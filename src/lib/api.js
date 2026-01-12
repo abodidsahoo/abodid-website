@@ -1,19 +1,24 @@
 import { supabase } from './supabaseClient';
 import { featuredStories as mockStories, recentPosts as mockPosts } from '../utils/mockData';
 
-// --- Projects (Code) ---
+// --- Helper to check if Supabase is configured ---
+const isSupabaseConfigured = () => {
+    return import.meta.env.PUBLIC_SUPABASE_URL && import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+};
+
+// --- Research (formerly Projects) ---
 
 export async function getProjects() {
     if (!isSupabaseConfigured()) return [];
 
     const { data, error } = await supabase
-        .from('projects')
+        .from('research')
         .select('*')
         .eq('published', true)
         .order('sort_order', { ascending: true });
 
     if (error) {
-        console.error('Error fetching projects:', error);
+        console.error('Error fetching research:', error);
         return [];
     }
 
@@ -21,9 +26,10 @@ export async function getProjects() {
         title: p.title,
         desc: p.description,
         tags: p.tags || [],
-        link: p.link || p.repo_link, // Prefer Live link, fallback to Repo
+        link: p.link || p.repo_link,
         slug: p.slug,
-        href: `/research/${p.slug}`
+        href: `/research/${p.slug}`,
+        image: p.image
     }));
 }
 
@@ -31,30 +37,26 @@ export async function getProjectBySlug(slug) {
     if (!isSupabaseConfigured()) return null;
 
     const { data, error } = await supabase
-        .from('projects')
+        .from('research')
         .select('*')
         .eq('slug', slug)
         .single();
 
     if (error) {
-        console.error(`Error fetching project ${slug}:`, error);
+        console.error(`Error fetching research ${slug}:`, error);
         return null;
     }
     return data;
 }
 
-// Helper to check if Supabase is configured
-const isSupabaseConfigured = () => {
-    return import.meta.env.PUBLIC_SUPABASE_URL && import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
-};
-
-// --- Stories ---
+// --- Stories (Table: 'blog') --- 
+// Note: 'blog' table is used for Photography Stories in this schema mapping.
 
 export async function getFeaturedStories() {
     if (!isSupabaseConfigured()) return mockStories;
 
     const { data, error } = await supabase
-        .from('stories')
+        .from('blog')
         .select('*')
         .eq('published', true)
         .order('created_at', { ascending: false })
@@ -65,7 +67,6 @@ export async function getFeaturedStories() {
         return mockStories;
     }
 
-    // Map DB fields to UI fields if necessary
     return data.map(story => ({
         title: story.title,
         category: story.category,
@@ -75,10 +76,10 @@ export async function getFeaturedStories() {
 }
 
 export async function getAllStories() {
-    if (!isSupabaseConfigured()) return mockStories; // Return all mock stories helper if we had one
+    if (!isSupabaseConfigured()) return mockStories;
 
     const { data, error } = await supabase
-        .from('stories')
+        .from('blog')
         .select('*')
         .eq('published', true)
         .order('created_at', { ascending: false });
@@ -102,16 +103,16 @@ export async function getStoryBySlug(slug) {
 
     // 1. Fetch Story Metadata
     const { data: story, error: storyError } = await supabase
-        .from('stories')
+        .from('blog')
         .select('*')
         .eq('slug', slug)
         .single();
 
     if (storyError || !story) return null;
 
-    // 2. Fetch Story Photos
+    // 2. Fetch Story Photos (Table: 'photography')
     const { data: photos, error: photosError } = await supabase
-        .from('photos')
+        .from('photography')
         .select('url, caption')
         .eq('story_id', story.id)
         .order('sort_order', { ascending: true });
@@ -122,13 +123,13 @@ export async function getStoryBySlug(slug) {
     };
 }
 
-// --- Blog Posts ---
+// --- Journal (Table: 'journal') ---
 
 export async function getRecentPosts() {
     if (!isSupabaseConfigured()) return mockPosts;
 
     const { data, error } = await supabase
-        .from('posts')
+        .from('journal')
         .select('*')
         .eq('published', true)
         .order('published_at', { ascending: false })
@@ -139,7 +140,7 @@ export async function getRecentPosts() {
     return data.map(post => ({
         title: post.title,
         date: new Date(post.published_at).toLocaleDateString(),
-        href: `/blog/${post.slug}` // Assumes blog uses slug routing
+        href: `/blog/${post.slug}`
     }));
 }
 
@@ -147,19 +148,19 @@ export async function getPostBySlug(slug) {
     if (!isSupabaseConfigured()) return null;
 
     const { data, error } = await supabase
-        .from('posts')
+        .from('journal')
         .select('*')
         .eq('slug', slug)
         .single();
 
     if (error) {
-        console.error(`Error fetching post ${slug}:`, error);
+        console.error(`Error fetching journal post ${slug}:`, error);
         return null;
     }
     return data;
 }
 
-// --- Films ---
+// --- Films (Table: 'films') ---
 
 export async function getFilms() {
     if (!isSupabaseConfigured()) return [];

@@ -24,7 +24,7 @@ export default function AdminDashboard() {
     }, []);
 
     const fetchStats = async () => {
-        const tableNames = ['stories', 'films', 'posts', 'projects'];
+        const tableNames = ['blog', 'films', 'journal', 'research'];
         const newStats = {};
         for (const name of tableNames) {
             const { count, error } = await supabase.from(name).select('*', { count: 'exact', head: true });
@@ -57,23 +57,23 @@ export default function AdminDashboard() {
                 <div className="stats-grid">
                     <DashboardCard
                         title="Photography"
-                        count={stats.stories}
-                        onCheck={() => setSelectedTable('stories')}
-                        onCreate={() => window.location.href = '/admin/editor?table=stories&id=new'}
+                        count={stats.blog}
+                        onCheck={() => setSelectedTable('blog')}
+                        onCreate={() => window.location.href = '/admin/editor?table=blog&id=new'}
                         label="Story"
                     />
                     <DashboardCard
                         title="Journal"
-                        count={stats.posts}
-                        onCheck={() => setSelectedTable('posts')}
-                        onCreate={() => window.location.href = '/admin/editor?table=posts&id=new'}
+                        count={stats.journal}
+                        onCheck={() => setSelectedTable('journal')}
+                        onCreate={() => window.location.href = '/admin/editor?table=journal&id=new'}
                         label="Post"
                     />
                     <DashboardCard
                         title="Research"
-                        count={stats.projects}
-                        onCheck={() => setSelectedTable('projects')}
-                        onCreate={() => window.location.href = '/admin/editor?table=projects&id=new'}
+                        count={stats.research}
+                        onCheck={() => setSelectedTable('research')}
+                        onCreate={() => window.location.href = '/admin/editor?table=research&id=new'}
                         label="Project"
                     />
                     <DashboardCard
