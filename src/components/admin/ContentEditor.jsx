@@ -75,7 +75,13 @@ export default function ContentEditor({ table, id }) {
             formData.slug = (formData.title || 'untitled').toLowerCase().replace(/[^\w ]+/g, '').replace(/ +/g, '-');
         }
 
-        const query = isNew ? supabase.from(table).insert([formData]).select() : supabase.from(table).update(formData).eq('id', id);
+        // Strict Filter: Only send fields that exist in the schema
+        const payload = {};
+        fields.forEach(field => {
+            if (formData[field] !== undefined) payload[field] = formData[field];
+        });
+
+        const query = isNew ? supabase.from(table).insert([payload]).select() : supabase.from(table).update(payload).eq('id', id);
         const { data, error } = await query;
 
         if (error) {
