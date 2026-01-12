@@ -63,7 +63,7 @@ export default function AdminDashboard() {
                         label="Story"
                     />
                     <DashboardCard
-                        title="Journal"
+                        title="Blog"
                         count={stats.journal}
                         onCheck={() => setSelectedTable('journal')}
                         onCreate={() => window.location.href = '/admin/editor?table=journal&id=new'}
