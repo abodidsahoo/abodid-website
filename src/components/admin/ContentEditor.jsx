@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
+import ImageUploader from './ImageUploader';
 
 export default function ContentEditor({ table, id }) {
     const isNew = id === 'new';
@@ -8,13 +9,17 @@ export default function ContentEditor({ table, id }) {
     const [formData, setFormData] = useState(isNew ? { published: true } : {});
     const [notification, setNotification] = useState(null);
 
+    // Schema Config
+    const isStory = table === 'stories';
+    const hasVisuals = isStory || table === 'posts' || table === 'projects';
+
+    // Fields
     const SCHEMAS = {
         posts: ['title', 'slug', 'excerpt', 'content', 'published'],
         projects: ['title', 'slug', 'description', 'content', 'link', 'repo_link', 'published'],
         stories: ['title', 'slug', 'intro', 'content', 'category', 'cover_image', 'published'],
         films: ['title', 'year', 'description', 'video_url', 'thumbnail_url', 'role', 'published']
     };
-
     const fields = SCHEMAS[table] || [];
 
     useEffect(() => {
@@ -29,53 +34,15 @@ export default function ContentEditor({ table, id }) {
 
     const handleChange = (field, value) => setFormData(prev => ({ ...prev, [field]: value }));
 
-    const handleDrop = async (e, field) => {
-        e.preventDefault();
-        const files = e.dataTransfer.files;
-        if (files.length === 0) return;
-        const file = files[0];
-        if (!file.type.startsWith('image/')) return;
-
-        setNotification({ type: 'info', msg: 'Uploading image...' });
-
-        const fileName = `${Date.now()}-${file.name.replace(/\s+/g, '-')}`;
-        const filePath = `${table}/${fileName}`;
-
-        const { error: uploadError } = await supabase.storage.from('portfolio-assets').upload(filePath, file);
-        if (uploadError) {
-            setNotification({ type: 'error', msg: uploadError.message });
-            return;
-        }
-
-        const { data: { publicUrl } } = supabase.storage.from('portfolio-assets').getPublicUrl(filePath);
-
-        // Smart Insert
-        const markdownImage = `\n![${file.name}](${publicUrl})\n`;
-        const textarea = document.getElementById(`field-${field}`);
-
-        if (textarea) {
-            const start = textarea.selectionStart;
-            const end = textarea.selectionEnd;
-            const text = formData[field] || '';
-            const newText = text.substring(0, start) + markdownImage + text.substring(end);
-            handleChange(field, newText);
-        } else {
-            handleChange(field, (formData[field] || '') + markdownImage);
-        }
-
-        setNotification({ type: 'success', msg: 'Image inserted!' });
-        setTimeout(() => setNotification(null), 3000);
-    };
-
     const handleSave = async (e) => {
-        e.preventDefault();
+        if (e) e.preventDefault();
         setSaving(true);
 
         if (!formData.slug && fields.includes('slug')) {
             formData.slug = (formData.title || 'untitled').toLowerCase().replace(/[^\w ]+/g, '').replace(/ +/g, '-');
         }
 
-        // Strict Filter: Only send fields that exist in the schema
+        // Strict Filter
         const payload = {};
         fields.forEach(field => {
             if (formData[field] !== undefined) payload[field] = formData[field];
@@ -96,19 +63,33 @@ export default function ContentEditor({ table, id }) {
         setTimeout(() => setNotification(null), 3000);
     };
 
-    if (loading) return <div className="loading">Loading Editor...</div>;
+    const appendToContent = (text) => {
+        handleChange('content', (formData.content || '') + text);
+    };
+
+    const handleImageBatch = (files, label) => {
+        if (!files.length) return;
+        const markdown = files.map(f => `\n![${f.name}](${f.url})`).join('');
+        // Optional: Wrap in a nice comment or section
+        const section = `\n\n<!-- ${label} -->${markdown}\n`;
+        appendToContent(section);
+        setNotification({ type: 'success', msg: `Added ${files.length} images from ${label}!` });
+        setTimeout(() => setNotification(null), 2000);
+    };
+
+    if (loading) return <div className="loading">Loading Studio...</div>;
 
     const contentField = fields.includes('content') ? 'content' : fields.includes('intro') ? 'intro' : null;
-    const metaFields = fields.filter(f => f !== contentField);
 
     return (
-        <div className="editor-layout">
-            <header className="editor-topbar">
+        <div className="studio-layout">
+            {/* ZONE A: HEADER & ACTIONS */}
+            <header className="studio-topbar">
                 <div className="breadcrumb">
                     <a href="/admin/dashboard">Dashboard</a> / <span className="current">{isNew ? 'New' : 'Edit'} {table}</span>
                 </div>
                 <div className="actions">
-                    <button onClick={handleSave} disabled={saving} className={`btn-save ${saving ? 'saving' : ''}`}>
+                    <button onClick={() => handleSave()} disabled={saving} className={`btn-save ${saving ? 'saving' : ''}`}>
                         {saving ? 'Saving...' : 'Save Changes'}
                     </button>
                 </div>
@@ -120,137 +101,216 @@ export default function ContentEditor({ table, id }) {
                 </div>
             )}
 
-            <div className="editor-grid">
-                {/* Left Column: Metadata */}
-                <div className="meta-pane">
-                    <h3>Details</h3>
-                    {metaFields.map(field => (
-                        <div key={field} className="form-group">
-                            <label>{field.replace('_', ' ')}</label>
-                            {field === 'published' ? (
-                                <label className="toggle-switch">
-                                    <input
-                                        type="checkbox"
-                                        checked={formData[field] || false}
-                                        onChange={e => handleChange(field, e.target.checked)}
-                                    />
-                                    <span className="slider"></span>
-                                    <span className="label-text">{formData[field] ? 'Public' : 'Draft'}</span>
-                                </label>
-                            ) : (
-                                <input
-                                    type="text"
-                                    value={formData[field] || ''}
-                                    onChange={e => handleChange(field, e.target.value)}
-                                    placeholder={`Enter ${field}...`}
-                                />
-                            )}
-                        </div>
-                    ))}
-                </div>
+            <div className="studio-grid">
 
-                {/* Right Column: Content Editor */}
-                {contentField && (
-                    <div className="content-pane">
-                        <div
-                            className="markdown-editor"
-                            onDragOver={e => e.preventDefault()}
-                            onDrop={e => handleDrop(e, contentField)}
-                        >
-                            <div className="editor-toolbar">
-                                <span>Markdown Editor</span>
-                                <span className="hint">Drag & Drop images anywhere to upload</span>
+                {/* ZONE B: VISUAL ASSETS (Only for visual types) */}
+                {hasVisuals && (
+                    <div className="visual-tray">
+                        {/* Cover Image Slot */}
+                        <div className="tray-section">
+                            <h4>Cover</h4>
+                            <div className="cover-slot">
+                                {formData.cover_image ? (
+                                    <div className="cover-preview" onClick={() => handleChange('cover_image', '')}>
+                                        <img src={formData.cover_image} alt="Cover" />
+                                        <div className="overlay">Ref Change</div>
+                                    </div>
+                                ) : (
+                                    <ImageUploader
+                                        path={`${table}/covers`}
+                                        label="Drag Cover"
+                                        onUpload={(files) => handleChange('cover_image', files[0].url)}
+                                    />
+                                )}
                             </div>
-                            <textarea
-                                id={`field-${contentField}`}
-                                value={formData[contentField] || ''}
-                                onChange={e => handleChange(contentField, e.target.value)}
-                                placeholder="# Start writing your story..."
-                            />
+                        </div>
+
+                        {/* Stacks for Content */}
+                        <div className="tray-section">
+                            <h4>Content Stacks</h4>
+                            <div className="stack-list">
+                                <StackBox label="Set 1 (Intro)" path={`${table}/set1`} onInsert={(files) => handleImageBatch(files, 'Set 1')} />
+                                <StackBox label="Set 2 (Middle)" path={`${table}/set2`} onInsert={(files) => handleImageBatch(files, 'Set 2')} />
+                                <StackBox label="Set 3 (End)" path={`${table}/set3`} onInsert={(files) => handleImageBatch(files, 'Set 3')} />
+                            </div>
+                        </div>
+
+                        {/* Metadata Form */}
+                        <div className="tray-section">
+                            <h4>Details</h4>
+                            {fields.filter(f => f !== 'content' && f !== 'cover_image' && f !== 'intro').map(field => (
+                                <div key={field} className="mini-form-group">
+                                    <label>{field.replace('_', ' ')}</label>
+                                    {field === 'published' ? (
+                                        <div className="toggle-wrapper" onClick={() => handleChange(field, !formData[field])}>
+                                            <div className={`toggle ${formData[field] ? 'on' : 'off'}`}></div>
+                                            <span>{formData[field] ? 'Public' : 'Draft'}</span>
+                                        </div>
+                                    ) : (
+                                        <input
+                                            type="text"
+                                            value={formData[field] || ''}
+                                            onChange={e => handleChange(field, e.target.value)}
+                                        />
+                                    )}
+                                </div>
+                            ))}
                         </div>
                     </div>
                 )}
+
+                {/* ZONE C: CANVAS (Content Editor) */}
+                <div className="canvas-area">
+                    {/* Title Input as part of Canvas */}
+                    <input
+                        type="text"
+                        className="canvas-title"
+                        placeholder="Untitled Story"
+                        value={formData.title || ''}
+                        onChange={e => handleChange('title', e.target.value)}
+                    />
+
+                    {contentField && (
+                        <textarea
+                            className="canvas-editor"
+                            value={formData[contentField] || ''}
+                            onChange={e => handleChange(contentField, e.target.value)}
+                            placeholder="# Start writing your story... Images from stacks will appear as links here."
+                        />
+                    )}
+                </div>
+
             </div>
 
             <style>{`
-        .editor-layout { max-width: 1400px; margin: 0 auto; height: 90vh; display: flex; flex-direction: column; }
-        .editor-topbar {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 1rem 2rem; border-bottom: 1px solid var(--border-subtle);
-            background: var(--bg-color);
-        }
-        .breadcrumb a { color: var(--text-secondary); text-decoration: none; }
-        .breadcrumb .current { color: var(--text-primary); font-weight: 500; }
-        
-        .btn-save {
-            background: var(--text-primary); color: var(--bg-color); border: none;
-            padding: 0.6rem 1.2rem; border-radius: 4px; font-weight: 500; cursor: pointer;
-            transition: opacity 0.2s;
-        }
-        .btn-save:disabled { opacity: 0.7; }
+                .studio-layout { height: 100vh; display: flex; flex-direction: column; background: var(--bg-color); }
+                .studio-topbar {
+                    display: flex; justify-content: space-between; align-items: center;
+                    padding: 0.8rem 1.5rem; border-bottom: 1px solid var(--border-subtle);
+                    background: var(--bg-surface);
+                    height: 60px;
+                }
+                .btn-save {
+                    background: var(--text-primary); color: var(--bg-color); border: none;
+                    padding: 0.5rem 1.2rem; border-radius: 4px; font-weight: 500; cursor: pointer;
+                }
 
-        .editor-grid {
-            display: grid; grid-template-columns: 350px 1fr; gap: 0; flex: 1; overflow: hidden;
-        }
-        
-        .meta-pane {
-            padding: 2rem; border-right: 1px solid var(--border-subtle);
-            overflow-y: auto; background: var(--bg-surface);
-        }
-        .meta-pane h3 { margin-top: 0; font-size: 0.9rem; text-transform: uppercase; color: var(--text-tertiary); }
-        
-        .content-pane { display: flex; flex-direction: column; height: 100%; border-left: 1px solid var(--border-subtle); }
-        .markdown-editor { display: flex; flex-direction: column; height: 100%; }
-        
-        .editor-toolbar {
-            padding: 0.8rem 1.5rem; background: var(--bg-surface);
-            border-bottom: 1px solid var(--border-subtle);
-            display: flex; justify-content: space-between; color: var(--text-secondary); font-size: 0.85rem;
-        }
-        
-        textarea {
-            flex: 1; resize: none; border: none; padding: 2rem;
-            background: var(--bg-color); color: var(--text-primary);
-            font-family: 'Menlo', monospace; font-size: 1rem; line-height: 1.7;
-            outline: none;
-        }
-        
-        .form-group { margin-bottom: 1.5rem; }
-        .form-group label { display: block; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-secondary); text-transform: capitalize; }
-        input[type="text"] {
-            width: 100%; padding: 0.6rem; background: var(--bg-color);
-            border: 1px solid var(--border-subtle); border-radius: 4px;
-            color: var(--text-primary);
-        }
-        input[type="text"]:focus { border-color: var(--text-primary); outline: none; }
+                .studio-grid { display: flex; flex: 1; overflow: hidden; }
 
-        .notification {
-            position: fixed; top: 1rem; left: 50%; transform: translateX(-50%);
-            padding: 0.8rem 1.5rem; border-radius: 30px; 
-            font-size: 0.9rem; font-weight: 500; z-index: 100;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-        .notification.info { background: var(--text-primary); color: var(--bg-color); }
-        .notification.success { background: #10B981; color: white; }
-        .notification.error { background: #EF4444; color: white; }
+                /* ZONE B: TRAY */
+                .visual-tray {
+                    width: 350px;
+                    border-right: 1px solid var(--border-subtle);
+                    background: var(--bg-surface);
+                    overflow-y: auto;
+                    display: flex; flex-direction: column;
+                }
+                .tray-section { padding: 1.5rem; border-bottom: 1px solid var(--border-subtle); }
+                .tray-section h4 { 
+                    margin: 0 0 1rem 0; font-size: 0.75rem; text-transform: uppercase; 
+                    letter-spacing: 0.1em; color: var(--text-tertiary); 
+                }
+                
+                .cover-preview {
+                    aspect-ratio: 16/9; border-radius: 6px; overflow: hidden; position: relative; cursor: pointer;
+                }
+                .cover-preview img { width: 100%; height: 100%; object-fit: cover; }
+                .cover-preview:hover .overlay { opacity: 1; }
+                .overlay {
+                    position: absolute; inset: 0; background: rgba(0,0,0,0.5); color: white;
+                    display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.2s;
+                }
 
-        /* Toggle Switch */
-        .toggle-switch { display: flex; align-items: center; position: relative; cursor: pointer; }
-        .toggle-switch input { opacity: 0; width: 0; height: 0; }
-        .slider {
-            position: relative; display: inline-block; width: 40px; height: 20px;
-            background-color: var(--bg-surface-hover); border-radius: 20px; transition: .4s;
-            border: 1px solid var(--border-subtle);
-        }
-        .slider:before {
-            position: absolute; content: ""; height: 14px; width: 14px;
-            left: 3px; bottom: 2px; background-color: var(--text-tertiary);
-            border-radius: 50%; transition: .4s;
-        }
-        input:checked + .slider { background-color: var(--text-primary); border-color: var(--text-primary); }
-        input:checked + .slider:before { transform: translateX(20px); background-color: var(--bg-color); }
-        .label-text { margin-left: 10px; font-size: 0.9rem; }
-      `}</style>
+                .stack-list { display: flex; flex-direction: column; gap: 1rem; }
+
+                /* ZONE C: CANVAS */
+                .canvas-area {
+                    flex: 1;
+                    padding: 3rem 4rem;
+                    display: flex; flex-direction: column;
+                    overflow-y: auto;
+                    max-width: 900px; /* Reading width */
+                    margin: 0 auto;
+                }
+                .canvas-title {
+                    font-size: 2.5rem; border: none; background: transparent;
+                    font-family: var(--font-serif); font-weight: 600;
+                    margin-bottom: 2rem; color: var(--text-primary);
+                    outline: none;
+                }
+                .canvas-editor {
+                    flex: 1; resize: none; border: none; background: transparent;
+                    font-family: 'Menlo', monospace; font-size: 1rem; line-height: 1.8;
+                    color: var(--text-primary); outline: none; min-height: 500px;
+                }
+
+                /* Mini Forms */
+                .mini-form-group { margin-bottom: 1rem; }
+                .mini-form-group label { display: block; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.3rem; }
+                .mini-form-group input { 
+                    width: 100%; padding: 0.5rem; background: var(--bg-color); border: 1px solid var(--border-subtle);
+                    border-radius: 4px; color: var(--text-primary);
+                }
+                
+                .toggle-wrapper { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; }
+                .toggle {
+                    width: 32px; height: 18px; background: var(--border-subtle); border-radius: 9px; position: relative; transition: 0.3s;
+                }
+                .toggle.on { background: var(--text-primary); }
+                .toggle::after {
+                    content: ''; position: absolute; left: 2px; top: 2px; width: 14px; height: 14px;
+                    background: white; border-radius: 50%; transition: 0.3s;
+                }
+                .toggle.on::after { transform: translateX(14px); }
+
+                .notification {
+                    position: fixed; top: 1rem; left: 50%; transform: translateX(-50%);
+                    padding: 0.8rem 1.5rem; border-radius: 30px; 
+                    font-size: 0.85rem; z-index: 1000; color: white;
+                }
+                .notification.success { background: #10B981; }
+                .notification.error { background: #EF4444; }
+            `}</style>
+        </div>
+    );
+}
+
+function StackBox({ label, path, onInsert }) {
+    const [files, setFiles] = useState([]);
+
+    const handleUpload = (newFiles) => {
+        setFiles(prev => [...prev, ...newFiles]);
+    };
+
+    return (
+        <div className="stack-box">
+            <div className="stack-header">
+                <span>{label}</span>
+                {files.length > 0 && (
+                    <button className="btn-insert" onClick={() => onInsert(files)}>
+                        Insert All ({files.length})
+                    </button>
+                )}
+            </div>
+            <ImageUploader
+                path={path}
+                multiple={true}
+                onUpload={handleUpload}
+                label="+"
+            />
+            <style>{`
+                .stack-box { margin-bottom: 0.5rem; }
+                .stack-header { 
+                    display: flex; justify-content: space-between; align-items: center; 
+                    margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);
+                }
+                .btn-insert {
+                    background: none; border: 1px solid var(--border-subtle);
+                    font-size: 0.7rem; padding: 2px 6px; border-radius: 4px;
+                    cursor: pointer; color: var(--text-primary);
+                }
+                .btn-insert:hover { background: var(--bg-surface-hover); }
+            `}</style>
         </div>
     );
 }
