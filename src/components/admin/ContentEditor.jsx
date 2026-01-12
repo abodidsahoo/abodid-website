@@ -171,15 +171,17 @@ export default function ContentEditor({ table, id }) {
                     />
 
                     {contentField && (
-                        <textarea
-                            className="canvas-editor"
-                            value={formData[contentField] || ''}
-                            onChange={e => handleChange(contentField, e.target.value)}
-                            placeholder="# Start writing your story... Images from stacks will appear as links here."
-                        />
+                        <>
+                            <Toolbar onInsert={appendToContent} />
+                            <textarea
+                                className="canvas-editor"
+                                value={formData[contentField] || ''}
+                                onChange={e => handleChange(contentField, e.target.value)}
+                                placeholder="# Start writing your story... Images from stacks will appear as links here."
+                            />
+                        </>
                     )}
                 </div>
-
             </div>
 
             <style>{`
@@ -194,7 +196,6 @@ export default function ContentEditor({ table, id }) {
                     background: var(--text-primary); color: var(--bg-color); border: none;
                     padding: 0.5rem 1.2rem; border-radius: 4px; font-weight: 500; cursor: pointer;
                 }
-
                 .studio-grid { display: flex; flex: 1; overflow: hidden; }
 
                 /* ZONE B: TRAY */
@@ -238,6 +239,21 @@ export default function ContentEditor({ table, id }) {
                     margin-bottom: 2rem; color: var(--text-primary);
                     outline: none;
                 }
+                
+                /* Toolbar */
+                .toolbar {
+                    display: flex; gap: 0.5rem; margin-bottom: 1rem;
+                    padding: 0.5rem; border: 1px solid var(--border-subtle);
+                    border-radius: 6px; background: var(--bg-surface);
+                    position: sticky; top: 0;
+                }
+                .tool-btn {
+                    background: none; border: none; padding: 0.4rem 0.8rem;
+                    cursor: pointer; font-size: 0.9rem; border-radius: 4px;
+                    color: var(--text-secondary); font-weight: 500;
+                }
+                .tool-btn:hover { background: var(--bg-surface-hover); color: var(--text-primary); }
+                
                 .canvas-editor {
                     flex: 1; resize: none; border: none; background: transparent;
                     font-family: 'Menlo', monospace; font-size: 1rem; line-height: 1.8;
@@ -271,6 +287,21 @@ export default function ContentEditor({ table, id }) {
                 .notification.success { background: #10B981; }
                 .notification.error { background: #EF4444; }
             `}</style>
+        </div>
+    );
+}
+
+function Toolbar({ onInsert }) {
+    return (
+        <div className="toolbar">
+            <button className="tool-btn" onClick={() => onInsert('**bold** ')} title="Bold">B</button>
+            <button className="tool-btn" onClick={() => onInsert('*italic* ')} title="Italic">I</button>
+            <button className="tool-btn" onClick={() => onInsert('\n# Heading 1\n')} title="Heading 1">H1</button>
+            <button className="tool-btn" onClick={() => onInsert('\n## Heading 2\n')} title="Heading 2">H2</button>
+            <button className="tool-btn" onClick={() => onInsert('\n> ')} title="Quote">❞</button>
+            <button className="tool-btn" onClick={() => onInsert('[]()')} title="Link">🔗</button>
+            <button className="tool-btn" onClick={() => onInsert('\n```\ncode\n```\n')} title="Code">{'</>'}</button>
+            <button className="tool-btn" onClick={() => onInsert('\n---\n')} title="Divider">HR</button>
         </div>
     );
 }
