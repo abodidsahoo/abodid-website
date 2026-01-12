@@ -505,18 +505,19 @@ export default function ContentEditor({ table, id }) {
 
                 /* CANVAS */
                 .cms-canvas {
-                    flex: 1; overflow-y: auto; padding: 2rem; /* Reduced padding */
+                    flex: 1; overflow-y: auto; padding: 0.5rem; /* Minimal padding */
                     display: flex; justify-content: center; align-items: flex-start;
                 }
 
                 .model-card {
                     width: 100%; max-width: none; /* FULL WIDTH */
-                    display: flex; flex-direction: column; gap: 2rem; /* Reduced gap */
+                    display: flex; flex-direction: column; gap: 2rem;
                     /* "Clean Upload Box" Style - Retained but full width */
                     background: #0f0f0f;
                     border: 1px solid #333;
-                    border-radius: 8px;
-                    padding: 2rem; /* Reduced padding */
+                    border-radius: 4px;
+                    padding: 1.5rem; /* Compact inner padding */
+                    min-height: 95vh; /* Ensure it looks substantial */
                 }
 
                 /* GRID LAYOUT FOR FILMS */
