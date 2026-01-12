@@ -3,19 +3,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getRecentPosts, getPostBySlug } from '../../lib/api';
 import { marked } from 'marked'; // We need to install this or use a simple parser
 
-export async function getStaticPaths() {
-  const posts = await getRecentPosts();
-  return posts.map(post => {
-    // Check if href is full path or just slug, normalize it
-    const slug = post.slug || post.href.split('/').pop();
-    return {
-      params: { slug },
-      props: { slug },
-    };
-  });
-}
+export const prerender = false;
 
-const { slug } = Astro.props;
+const { slug } = Astro.params;
 const post = await getPostBySlug(slug);
 
 if (!post) {

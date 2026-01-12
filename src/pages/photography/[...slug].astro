@@ -2,19 +2,10 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getAllStories, getStoryBySlug } from '../../lib/api';
 
-export async function getStaticPaths() {
-  const stories = await getAllStories();
-  
-  return stories.map(story => {
-    const slug = story.href.split('/').pop();
-    return {
-      params: { slug },
-      props: { slug }, // Pass slug to fetch full details
-    };
-  });
-}
+export const prerender = false;
 
-const { slug } = Astro.props;
+const { slug } = Astro.params;
+
 const storyContent = await getStoryBySlug(slug);
 
 if (!storyContent) {

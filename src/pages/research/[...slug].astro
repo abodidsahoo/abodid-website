@@ -3,15 +3,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getProjects, getProjectBySlug } from '../../lib/api';
 import { marked } from 'marked';
 
-export async function getStaticPaths() {
-  const projects = await getProjects();
-  return projects.map(project => ({
-    params: { slug: project.slug },
-    props: { slug: project.slug },
-  }));
-}
+export const prerender = false;
 
-const { slug } = Astro.props;
+const { slug } = Astro.params;
 const project = await getProjectBySlug(slug);
 
 if (!project) {
