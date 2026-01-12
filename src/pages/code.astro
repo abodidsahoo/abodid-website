@@ -1,0 +1,27 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+const pageTitle = "Code";
+---
+<BaseLayout title={pageTitle}>
+  <h1>Code & Projects</h1>
+  <p class="page-intro">Development projects and creative coding experiments.</p>
+  
+  <div class="projects-list">
+    <div class="project-card">
+      <h3>Personal Site</h3>
+      <p>Built with Astro, Supabase, and a focus on minimalism.</p>
+      <a href="https://github.com/abodid/personal-site" class="link">View Source &rarr;</a>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .projects-list { margin-top: 3rem; display: grid; gap: 2rem; }
+  .project-card { 
+    padding: 2rem; 
+    border: 1px solid var(--border-color); 
+    border-radius: 8px; 
+    background: var(--bg-alt);
+  }
+  .link { display: inline-block; margin-top: 1rem; font-size: 0.9rem; font-weight: 500; }
+</style>

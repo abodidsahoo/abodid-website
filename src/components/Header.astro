@@ -1,0 +1,53 @@
+---
+---
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="/" class="logo">Abodid</a>
+    <nav>
+      <ul class="nav-list">
+        <li><a href="/portfolio">Portfolio</a></li>
+        <li><a href="/blog">Blog</a></li>
+        <li><a href="/films">Films</a></li>
+        <li><a href="/code">Code</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    height: var(--header-height);
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  .header-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .logo {
+    font-size: 1.2rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  .nav-list {
+    display: flex;
+    gap: 2rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .nav-list a {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+  }
+
+  .nav-list a:hover {
+    color: var(--text-primary);
+  }
+</style>

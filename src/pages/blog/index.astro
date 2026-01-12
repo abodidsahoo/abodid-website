@@ -1,0 +1,35 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+const pageTitle = "Journal";
+---
+<BaseLayout title={pageTitle}>
+  <h1>Journal</h1>
+  <p class="page-intro">Thoughts on code, film, and design.</p>
+  
+  <div class="blog-list">
+    <article>
+      <span class="date">Jan 12, 2026</span>
+      <h2><a href="#">Building a Digital Playground</a></h2>
+      <p class="excerpt">Why I chose Astro for my personal site...</p>
+    </article>
+    <article>
+      <span class="date">Dec 20, 2025</span>
+      <h2><a href="#">The Art of Visual Storytelling</a></h2>
+      <p class="excerpt">Notes from my latest photo series.</p>
+    </article>
+  </div>
+</BaseLayout>
+
+<style>
+  .blog-list {
+    max-width: 800px;
+    margin-top: 3rem;
+  }
+  article {
+    padding: 2rem 0;
+    border-bottom: 1px solid var(--border-color);
+  }
+  .date { display: block; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.5rem; }
+  h2 { font-size: 1.8rem; margin: 0 0 0.5rem 0; }
+  .excerpt { color: var(--text-secondary); line-height: 1.6; }
+</style>

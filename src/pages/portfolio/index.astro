@@ -1,0 +1,37 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+const pageTitle = "Portfolio";
+---
+<BaseLayout title={pageTitle}>
+  <h1>Photo Stories</h1>
+  <p class="page-intro">Visual narratives.</p>
+  
+  <div class="grid">
+    {Array.from({ length: 4 }).map((_, i) => (
+      <div class="story-card">
+        <div class="image-placeholder"></div>
+        <h3>Project {i + 1}</h3>
+        <p>20 Photos • 2026</p>
+      </div>
+    ))}
+  </div>
+</BaseLayout>
+
+<style>
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 3rem 2rem;
+    margin-top: 3rem;
+  }
+  .image-placeholder {
+    width: 100%;
+    aspect-ratio: 4/3;
+    background: var(--bg-alt);
+    border: 1px solid var(--border-color);
+    margin-bottom: 1rem;
+    border-radius: 4px;
+  }
+  h3 { margin-bottom: 0.25rem; font-size: 1.2rem; }
+  p { color: var(--text-secondary); font-size: 0.9rem; margin: 0; }
+</style>

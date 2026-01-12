@@ -1,0 +1,108 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+const pageTitle = "Home";
+---
+<BaseLayout title={pageTitle}>
+  <section class="hero">
+    <h1>Abodid</h1>
+    <p class="subtitle">Photography. Film. Code. Storytelling.</p>
+    <p class="intro">
+      A digital playground where creativity meets technology.
+    </p>
+  </section>
+  
+  <section class="section-home">
+    <div class="section-header">
+      <h2>Latest Stories</h2>
+      <a href="/portfolio" class="view-all">View all &rarr;</a>
+    </div>
+    <div class="grid">
+      <div class="placeholder-card">
+        <span>Visual Story 1</span>
+      </div>
+      <div class="placeholder-card">
+        <span>Visual Story 2</span>
+      </div>
+    </div>
+  </section>
+  
+  <section class="section-home">
+    <div class="section-header">
+      <h2>Journal</h2>
+      <a href="/blog" class="view-all">Read more &rarr;</a>
+    </div>
+    <div class="list">
+       <div class="placeholder-item">
+         <h3>The Art of Code</h3>
+         <p>Exploring the intersection of logic and creativity.</p>
+       </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .hero {
+    padding: 6rem 0;
+    text-align: center;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 4rem;
+  }
+  h1 { 
+    font-size: 4rem; 
+    margin-bottom: 1rem; 
+    letter-spacing: -0.04em; 
+    font-weight: 700;
+  }
+  .subtitle { 
+    font-size: 1.5rem; 
+    color: var(--text-secondary); 
+    font-weight: 400;
+  }
+  .intro {
+    margin-top: 2rem;
+    font-size: 1.1rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    color: var(--text-secondary);
+  }
+  
+  .section-home {
+    margin-bottom: 4rem;
+  }
+  
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 2rem;
+  }
+  
+  .view-all {
+    font-size: 0.9rem;
+    text-decoration: underline;
+  }
+  
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+  }
+  
+  .placeholder-card {
+    background: var(--bg-alt);
+    aspect-ratio: 3/2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+  }
+  
+  .placeholder-item {
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border-color);
+  }
+  .placeholder-item h3 { margin-bottom: 0.5rem; }
+  .placeholder-item p { color: var(--text-secondary); margin: 0; }
+</style>
