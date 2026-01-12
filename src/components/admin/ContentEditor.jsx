@@ -179,151 +179,101 @@ export default function ContentEditor({ table, id }) {
 
                     <div className="model-card">
                         {/* 1. HEADER / METADATA */}
-                        <section className="card-section meta-section">
-                            <div className="field-group full-width">
+                        <section className="card-section">
+                            <label className="section-label">Essential Info</label>
+
+                            <div className="field-group">
                                 <label>Title</label>
                                 <input
                                     type="text"
                                     className="box-input large"
-                                    placeholder="Enter Title..."
+                                    placeholder="Story Title..."
                                     value={formData.title || ''}
                                     onChange={e => handleChange('title', e.target.value)}
                                 />
                             </div>
 
                             <div className="meta-grid">
-                                {visibleFields.map(field => (
-                                    <div key={field} className="field-group">
-                                        <label>{field.replace('_', ' ')}</label>
-                                        <input
-                                            type="text"
-                                            className="box-input"
-                                            value={formData[field] || ''}
-                                            onChange={e => handleChange(field, e.target.value)}
-                                            placeholder="—"
-                                        />
-                                    </div>
-                                ))}
-                                {(isPhotography || isFilms) && (
-                                    <div className="field-group full-width">
-                                        <label>{isFilms ? 'Logline' : 'Intro'}</label>
-                                        <input
-                                            type="text"
-                                            className="box-input"
-                                            placeholder={isFilms ? "Short description..." : "Brief introduction..."}
-                                            value={isFilms ? formData.description : formData.intro || ''}
-                                            onChange={e => handleChange(isFilms ? 'description' : 'intro', e.target.value)}
-                                        />
-                                    </div>
-                                )}
+                                <div className="field-group">
+                                    <label>Slug</label>
+                                    <input
+                                        type="text" className="box-input"
+                                        value={formData.slug || ''} readOnly
+                                        placeholder="auto-generated..."
+                                    />
+                                </div>
+                                <div className="field-group">
+                                    <label>Category</label>
+                                    <input
+                                        type="text" className="box-input"
+                                        value={formData.category || ''}
+                                        onChange={e => handleChange('category', e.target.value)}
+                                        placeholder="e.g. Portrait, Street..."
+                                    />
+                                </div>
+                                {/* Clean Intro box logic - Single instance */}
+                                <div className="field-group full-width">
+                                    <label>Intro / Logline</label>
+                                    <input
+                                        type="text"
+                                        className="box-input"
+                                        placeholder="A short introduction..."
+                                        value={formData.intro || ''}
+                                        onChange={e => handleChange('intro', e.target.value)}
+                                    />
+                                </div>
                             </div>
                         </section>
 
-                        {/* 2. COVER IMAGE */}
-                        <section className="card-section media-row">
-                            <div className="media-col">
-                                <label className="section-label">{isFilms ? 'Thumbnail' : 'Cover Image'}</label>
-                                <div className="fixed-uploader cover-uploader">
-                                    {(formData.cover_image || formData.thumbnail_url || (table === 'research' && formData.image)) ? (
-                                        <div className="preview-fit">
-                                            <img src={formData.cover_image || formData.thumbnail_url || formData.image} alt="Cover" />
-                                            <button className="btn-mini-remove" onClick={() => handleChange(
-                                                isFilms ? 'thumbnail_url' : table === 'research' ? 'image' : 'cover_image',
-                                                ''
-                                            )}>Replace</button>
-                                        </div>
-                                    ) : (
-                                        <ImageUploader
-                                            bucket={table}
-                                            path={isFilms ? 'thumbnails' : 'covers'}
-                                            label="+"
-                                            onUpload={files => handleChange(
-                                                isFilms ? 'thumbnail_url' : table === 'research' ? 'image' : 'cover_image',
-                                                files[0].url
-                                            )}
-                                        />
-                                    )}
-                                </div>
-                                {isFilms && (
-                                    <input
-                                        type="text"
-                                        className="box-input small-mt"
-                                        placeholder="Or paste URL..."
-                                        value={formData.thumbnail_url || ''}
-                                        onChange={e => handleChange('thumbnail_url', e.target.value)}
+                        {/* 2. COVER IMAGE (Small, contained) */}
+                        <section className="card-section">
+                            <label className="section-label">Cover Image</label>
+                            <div className="cover-wrapper-small">
+                                {(formData.cover_image) ? (
+                                    <div className="preview-fit">
+                                        <img src={formData.cover_image} alt="Cover" />
+                                        <button className="btn-mini-remove" onClick={() => handleChange('cover_image', '')}>Replace</button>
+                                    </div>
+                                ) : (
+                                    <ImageUploader bucket="photography" path="covers" label="Upload Cover"
+                                        onUpload={files => handleChange('cover_image', files[0].url)}
                                     />
                                 )}
                             </div>
-
-                            {/* VIDEO (Films Only) */}
-                            {isFilms && (
-                                <div className="media-col">
-                                    <label className="section-label">Primary Video</label>
-                                    <div className="fixed-uploader video-uploader">
-                                        {formData.video_url && getVideoEmbed(formData.video_url) ? (
-                                            <div className="preview-fit">
-                                                <iframe src={getVideoEmbed(formData.video_url)} frameBorder="0" allowFullScreen></iframe>
-                                                <button className="btn-mini-remove" onClick={() => handleChange('video_url', '')}>Remove</button>
-                                            </div>
-                                        ) : (
-                                            <div className="url-input-container">
-                                                <input
-                                                    type="text"
-                                                    className="box-input"
-                                                    placeholder="Paste YouTube/Vimeo..."
-                                                    value={formData.video_url || ''}
-                                                    onChange={e => handleChange('video_url', e.target.value)}
-                                                />
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
                         </section>
 
-                        {/* 3. GALLERY (Photography Only) */}
-                        {isPhotography && (
-                            <section className="card-section">
-                                <label className="section-label">Gallery Stream</label>
-                                <div className="gallery-container">
-                                    {/* The Existing Photos */}
-                                    <div className="gallery-stream">
-                                        {(formData.gallery_images || []).map((img, idx) => (
-                                            <div key={idx} className="stream-item">
-                                                <img src={img.url} />
-                                                <div className="item-overlay">
-                                                    <button onClick={() => removeGalleryItem(idx)}>×</button>
-                                                </div>
+                        {/* 3. GALLERY (BIG, Dominant) */}
+                        <section className="card-section">
+                            <label className="section-label">Gallery Stream</label>
+                            <div className="gallery-container large">
+                                <div className="gallery-stream">
+                                    {(formData.gallery_images || []).map((img, idx) => (
+                                        <div key={idx} className="stream-item">
+                                            <img src={img.url} />
+                                            <div className="item-overlay">
+                                                <button onClick={() => removeGalleryItem(idx)}>×</button>
                                             </div>
-                                        ))}
-
-                                        {/* The Uploader Button - Last in grid */}
-                                        <div className="stream-uploader">
-                                            <ImageUploader
-                                                bucket="photography"
-                                                path={`stories/${id}`}
-                                                multiple={true}
-                                                label="Add Photos"
-                                                onUpload={handleGalleryUpload}
-                                            />
                                         </div>
+                                    ))}
+                                    <div className="stream-uploader">
+                                        <ImageUploader bucket="photography" path={`stories/${id}`} multiple={true} label="+"
+                                            onUpload={handleGalleryUpload}
+                                        />
                                     </div>
                                 </div>
-                            </section>
-                        )}
+                            </div>
+                        </section>
 
-                        {/* 4. CONTENT BODY */}
-                        {!isFilms && (
-                            <section className="card-section">
-                                <label className="section-label">Content Body</label>
-                                <textarea
-                                    className="box-input content-area"
-                                    value={formData.content || ''}
-                                    onChange={e => handleChange('content', e.target.value)}
-                                    placeholder="Write your story here..."
-                                />
-                            </section>
-                        )}
+                        {/* 4. CONTENT */}
+                        <section className="card-section">
+                            <label className="section-label">Story Content</label>
+                            <textarea
+                                className="box-input content-area"
+                                value={formData.content || ''}
+                                onChange={e => handleChange('content', e.target.value)}
+                                placeholder="Write the full story..."
+                            />
+                        </section>
                     </div>
                 </div>
             </main>
@@ -333,224 +283,128 @@ export default function ContentEditor({ table, id }) {
                 :root {
                     --c-bg: #050505;
                     --c-card-bg: #111;
-                    --c-input-bg: #161616;
-                    --c-border: #2a2a2a;
+                    --c-input-bg: #111;
+                    --c-border: #333;
                     --c-text: #e5e5e5;
                     --c-text-dim: #666;
-                    --c-accent: #fff;
                     --font-mono: 'Menlo', 'Monaco', monospace;
                     --font-sans: 'Inter', system-ui, sans-serif;
                 }
 
                 .cms-shell {
-                    display: flex;
-                    height: 100vh;
-                    background: var(--c-bg);
-                    color: var(--c-text);
-                    font-family: var(--font-sans);
-                    overflow: hidden;
+                    display: flex; height: 100vh;
+                    background: var(--c-bg); color: var(--c-text);
+                    font-family: var(--font-sans); overflow: hidden;
                 }
 
-                /* SIDEBAR */
                 .cms-sidebar {
-                    width: 250px;
-                    flex-shrink: 0;
+                    width: 250px; flex-shrink: 0;
                     border-right: 1px solid var(--c-border);
-                    padding: 1.5rem;
-                    display: flex; flex-direction: column; gap: 1.5rem;
-                    background: var(--c-bg);
+                    padding: 2rem; display: flex; flex-direction: column; gap: 2rem;
                 }
-                .brand a { 
-                    color: var(--c-text-dim); text-decoration: none; font-size: 0.8rem; 
-                    text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 8px;
-                }
-                .brand a:hover { color: var(--c-text); }
-                
-                .meta-block label {
-                    display: block; font-size: 0.65rem; color: var(--c-text-dim);
-                    text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem;
-                }
-                .status-badge {
-                    display: inline-block; padding: 3px 6px; border-radius: 3px;
-                    font-size: 0.65rem; font-weight: 600; text-transform: uppercase;
-                }
+                .brand a { color: var(--c-text-dim); text-decoration: none; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; }
+                .meta-block label { display: block; font-size: 0.65rem; color: var(--c-text-dim); text-transform: uppercase; margin-bottom: 0.4rem; }
+                .status-badge { display: inline-block; padding: 3px 6px; border-radius: 3px; font-size: 0.65rem; font-weight: 600; text-transform: uppercase; }
                 .status-badge.live { background: #0f291e; color: #4ade80; border: 1px solid #14532d; }
                 .status-badge.draft { background: #1a1a1a; color: #888; border: 1px solid #333; }
-                
                 .id-hash { font-family: var(--font-mono); font-size: 0.75rem; color: var(--c-text-dim); }
 
                 .local-nav { display: flex; flex-direction: column; gap: 0.6rem; margin-top: auto; }
-                .local-nav a { 
-                    color: var(--c-text-dim); text-decoration: none; font-size: 0.8rem; 
-                    transition: 0.2s;
-                }
-                .local-nav a:hover { color: var(--c-text); transform: translateX(4px); }
+                .local-nav a { color: var(--c-text-dim); text-decoration: none; font-size: 0.8rem; }
+                .local-nav a:hover { color: var(--c-text); }
 
-                /* MAIN */
                 .cms-main { flex: 1; display: flex; flex-direction: column; min-width: 0; position: relative; }
 
                 .cms-actions {
                     height: 56px; border-bottom: 1px solid var(--c-border);
                     display: flex; align-items: center; justify-content: space-between;
                     padding: 0 2rem;
-                    background: rgba(5,5,5,0.9); backdrop-filter: blur(10px);
-                    position: sticky; top: 0; z-index: 50;
+                    position: sticky; top: 0; z-index: 50; background: rgba(5,5,5,0.9); backdrop-filter: blur(10px);
                 }
-                .context-title {
-                    font-family: var(--font-mono); font-size: 0.75rem; color: var(--c-text-dim);
-                    text-transform: uppercase;
-                }
+                .context-title { font-family: var(--font-mono); font-size: 0.75rem; color: var(--c-text-dim); text-transform: uppercase; }
                 .btn-group { display: flex; gap: 0.8rem; }
-                .btn {
-                    height: 28px; padding: 0 1rem;
-                    font-size: 0.75rem; font-weight: 500; cursor: pointer;
-                    border-radius: 3px; transition: 0.2s;
-                    display: flex; align-items: center; justify-content: center;
-                }
-                .btn.sec { 
-                    background: transparent; border: 1px solid var(--c-border); color: var(--c-text-dim); 
-                }
+                .btn { height: 28px; padding: 0 1rem; font-size: 0.75rem; font-weight: 500; cursor: pointer; border-radius: 3px; }
+                .btn.sec { background: transparent; border: 1px solid var(--c-border); color: var(--c-text-dim); }
                 .btn.sec:hover { border-color: var(--c-text); color: var(--c-text); }
-                .btn.pri {
-                    background: var(--c-text); color: var(--c-bg); border: none; font-weight: 600;
-                }
+                .btn.pri { background: var(--c-text); color: var(--c-bg); border: none; font-weight: 600; }
                 .btn.pri:hover { background: #ccc; }
 
-                /* CANVAS - THE MODEL CARD */
+                /* CANVAS: Center EVERYTHING */
                 .cms-canvas {
-                    flex: 1; overflow-y: auto;
-                    padding: 3rem;
-                    display: flex; justify-content: center;
+                    flex: 1; overflow-y: auto; padding: 4rem 2rem;
+                    display: flex; justify-content: center; align-items: flex-start;
                 }
 
                 .model-card {
-                    width: 100%; max-width: 800px;
-                    display: flex; flex-direction: column; gap: 3rem;
+                    width: 100%; max-width: 720px; /* Constrained width */
+                    display: flex; flex-direction: column; gap: 3.5rem; /* Big Gap between sections */
                 }
 
-                .card-section {
-                    display: flex; flex-direction: column; gap: 1.2rem;
-                }
-
-                .section-label {
+                .card-section { display: flex; flex-direction: column; gap: 1rem; }
+                .section-label { 
                     font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; 
-                    color: var(--c-text-dim); font-weight: 500; padding-left: 2px;
+                    color: #444; font-weight: 600; padding-bottom: 0.5rem; border-bottom: 1px solid #1a1a1a; margin-bottom: 0.5rem;
                 }
 
-                /* INPUTS & BOXES */
-                .field-group { display: flex; flex-direction: column; gap: 0.4rem; }
-                .field-group label {
-                    font-size: 0.65rem; color: var(--c-text-dim); text-transform: uppercase;
-                }
-                
+                .field-group { display: flex; flex-direction: column; gap: 0.5rem; }
+                .field-group label { font-size: 0.65rem; color: var(--c-text-dim); text-transform: uppercase; }
+
                 .box-input {
-                    background: var(--c-input-bg);
-                    border: 1px solid var(--c-border);
-                    border-radius: 4px;
-                    padding: 0.7rem 0.9rem;
-                    color: var(--c-text);
-                    font-size: 0.85rem;
-                    width: 100%;
-                    outline: none; transition: 0.15s;
-                    font-family: var(--font-sans);
+                    background: var(--c-input-bg); border: 1px solid var(--c-border);
+                    border-radius: 3px; padding: 0.8rem 1rem; color: var(--c-text);
+                    font-size: 0.9rem; width: 100%; outline: none; transition: 0.1s;
                 }
-                .box-input:focus { border-color: #555; background: #1d1d1d; }
-                .box-input::placeholder { color: #333; }
-                
-                .box-input.large { 
-                    font-size: 1.1rem; font-weight: 600; padding: 0.9rem 1rem; 
-                    background: var(--c-bg);
-                }
-                .box-input.content-area { 
-                    min-height: 400px; line-height: 1.6; font-family: var(--font-mono); resize: vertical; 
-                    font-size: 0.8rem;
-                }
-                .box-input.small-mt { margin-top: 0.6rem; font-size: 0.75rem; padding: 0.6rem; }
+                .box-input:focus { border-color: #555; background: #161616; }
+                .box-input.large { font-size: 1.2rem; padding: 1rem; border-color: #444; }
+                .box-input.content-area { min-height: 400px; line-height: 1.6; font-size: 0.9rem; font-family: var(--font-mono); }
 
-                .meta-grid {
-                    display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem;
-                }
+                .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
                 .full-width { grid-column: span 2; }
 
-                /* MEDIA ROW */
-                .media-row {
-                    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem;
-                    padding-bottom: 2rem; border-bottom: 1px dashed var(--c-border);
+                /* COVER IMAGE: Small Box */
+                .cover-wrapper-small {
+                    width: 240px; aspect-ratio: 16/9; /* Small Fixed Size */
+                    background: var(--c-input-bg); border: 1px dashed var(--c-border);
+                    border-radius: 4px; overflow: hidden; position: relative;
                 }
-                .media-col { display: flex; flex-direction: column; gap: 0.5rem; }
-
-                .fixed-uploader {
-                    width: 100%; aspect-ratio: 16/9;
-                    background: var(--c-input-bg);
-                    border: 1px solid var(--c-border); /* Solid clean line as requested */
-                    border-radius: 4px;
-                    overflow: hidden;
-                    position: relative;
-                    transition: border-color 0.2s;
-                }
-                .fixed-uploader:hover { border-color: #555; }
-
+                .cover-wrapper-small:hover { border-color: #555; }
                 .preview-fit { width: 100%; height: 100%; position: relative; }
-                .preview-fit img, .preview-fit iframe { width: 100%; height: 100%; object-fit: cover; }
-                
+                .preview-fit img { width: 100%; height: 100%; object-fit: cover; }
                 .btn-mini-remove {
-                    position: absolute; top: 8px; right: 8px;
-                    background: rgba(0,0,0,0.7); color: white;
-                    border: 1px solid rgba(255,255,255,0.1);
-                    padding: 3px 8px; font-size: 0.65rem; border-radius: 3px;
-                    cursor: pointer; backdrop-filter: blur(4px);
-                }
-                .btn-mini-remove:hover { background: rgba(0,0,0,0.9); border-color: rgba(255,255,255,0.3); }
-
-                .url-input-container {
-                    display: flex; align-items: center; justify-content: center; height: 100%; padding: 1.5rem;
+                    position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.8); color: white;
+                    border: none; padding: 3px 6px; font-size: 0.6rem; cursor: pointer;
                 }
 
-                /* GALLERY STREAM */
-                .gallery-container {
-                    background: var(--c-input-bg);
-                    border: 1px solid var(--c-border);
-                    border-radius: 4px;
-                    padding: 1.2rem;
+                /* GALLERY: Big Box */
+                .gallery-container.large {
+                    background: var(--c-input-bg); border: 1px solid var(--c-border);
+                    border-radius: 4px; padding: 1.5rem; min-height: 200px;
                 }
-                
-                .gallery-stream {
-                    display: flex; flex-wrap: wrap; gap: 12px;
-                }
-                
+                .gallery-stream { display: flex; flex-wrap: wrap; gap: 0.8rem; }
                 .stream-item {
-                    width: 100px; height: 100px; position: relative;
-                    border-radius: 3px; overflow: hidden;
+                    width: 100px; height: 100px; position: relative; border-radius: 3px; overflow: hidden;
                     border: 1px solid var(--c-border);
                 }
                 .stream-item img { width: 100%; height: 100%; object-fit: cover; }
-                
                 .item-overlay {
-                    position: absolute; inset: 0; background: rgba(0,0,0,0.4);
-                    opacity: 0; transition: 0.15s; display: flex; align-items: center; justify-content: center;
+                    position: absolute; inset: 0; background: rgba(0,0,0,0.5); opacity: 0;
+                    display: flex; align-items: center; justify-content: center; transition: 0.1s;
                 }
                 .stream-item:hover .item-overlay { opacity: 1; }
                 .item-overlay button {
-                    background: #ff4444; color: white; border: none;
-                    width: 20px; height: 20px; border-radius: 50%; cursor: pointer;
-                    display: flex; align-items: center; justify-content: center; font-size: 14px;
+                    background: #ff4444; color: white; border: none; width: 22px; height: 22px; border-radius: 50%;
+                    cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center;
                 }
-
                 .stream-uploader {
-                    width: 100px; height: 100px;
-                    border: 1px dashed var(--c-border);
-                    border-radius: 3px;
-                    display: flex; align-items: center; justify-content: center;
-                    transition: 0.2s;
+                    width: 100px; height: 100px; border: 1px dashed var(--c-border);
+                    border-radius: 3px; display: flex; align-items: center; justify-content: center;
+                    cursor: pointer;
                 }
-                .stream-uploader:hover { border-color: #555; background: #222; }
+                .stream-uploader:hover { border-color: #666; background: #1a1a1a; }
 
                 .toast {
-                    position: fixed; bottom: 2rem; right: 2rem;
-                    padding: 0.7rem 1.2rem; border-radius: 4px;
-                    color: white; font-size: 0.8rem; z-index: 100;
-                    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-                    font-weight: 500;
+                    position: fixed; bottom: 2rem; right: 2rem; padding: 0.7rem 1.2rem;
+                    border-radius: 4px; color: white; font-size: 0.8rem; z-index: 100; font-weight: 500;
                 }
                 .toast.success { background: #1a4d2e; border: 1px solid #14532d; }
                 .toast.error { background: #7f1d1d; border: 1px solid #7f1d1d; }
