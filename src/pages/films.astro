@@ -35,9 +35,13 @@ const films = await safeFetch(getFilms, []);
           </div>
         </div>
         <div class="film-info">
-          <div class="film-meta">
+          <div class="film-header">
             <h2>{film.title}</h2>
-            <span class="year">{film.year}</span>
+            <div class="film-subline">
+              <span class="genre">{film.genre}</span>
+              <span class="separator">|</span>
+              <span class="year">{film.year}</span>
+            </div>
           </div>
           <p class="film-desc">{film.description}</p>
           {film.role && <p class="film-role"><span class="label">Role</span> {film.role}</p>}
@@ -151,29 +155,40 @@ const films = await safeFetch(getFilms, []);
     text-shadow: 0 4px 12px rgba(0,0,0,0.2);
   }
   
-  .film-meta {
-    display: flex;
-    align-items: baseline;
-    gap: 1rem;
+  .film-header {
     margin-bottom: 0.5rem;
   }
-  
-  .film-meta h2 { 
+
+  .film-header h2 { 
     font-size: 1.5rem; 
-    margin: 0;
-    font-weight: 600; /* Bold title */
+    margin: 0 0 0.3rem 0;
+    font-weight: 600;
   }
   
+  .film-subline {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: var(--font-sans);
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .separator {
+    color: var(--border-strong);
+    font-weight: 300;
+  }
+
   .year { 
     color: var(--text-tertiary); 
-    font-family: var(--font-sans); /* Clean font */
-    font-size: 0.95rem;
   }
   
   .film-desc {
     color: var(--text-primary);
     max-width: 600px;
-    margin: 0 0 0.5rem 0;
+    margin: 0.5rem 0 0.5rem 0;
     font-size: 1.05rem;
     line-height: 1.5;
   }
