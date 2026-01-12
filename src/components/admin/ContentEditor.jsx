@@ -11,7 +11,8 @@ export default function ContentEditor({ table, id }) {
 
     // Schema Config
     const isPhotography = table === 'photography';
-    const hasVisuals = isPhotography || table === 'blog' || table === 'research';
+    const isFilms = table === 'films';
+    const hasVisuals = isPhotography || table === 'blog' || table === 'research' || isFilms;
 
     // Fields
     const SCHEMAS = {
@@ -21,6 +22,9 @@ export default function ContentEditor({ table, id }) {
         films: ['title', 'year', 'description', 'video_url', 'thumbnail_url', 'role', 'genre', 'published']
     };
     const fields = SCHEMAS[table] || [];
+
+    // Film Specific State
+    const [thumbMode, setThumbMode] = useState('upload'); // 'upload' | 'url'
 
     useEffect(() => {
         if (!isNew) fetchData();
@@ -32,7 +36,9 @@ export default function ContentEditor({ table, id }) {
         setLoading(false);
     };
 
-    const handleChange = (field, value) => setFormData(prev => ({ ...prev, [field]: value }));
+    const handleChange = (field, value) => {
+        setFormData(prev => ({ ...prev, [field]: value }));
+    };
 
     const handleSave = async (e) => {
         if (e) e.preventDefault();
@@ -63,6 +69,20 @@ export default function ContentEditor({ table, id }) {
         setTimeout(() => setNotification(null), 3000);
     };
 
+    // Helper: Video Embed Parser
+    const getVideoEmbed = (url) => {
+        if (!url) return null;
+        if (url.includes('youtube.com') || url.includes('youtu.be')) {
+            const id = url.split('v=')[1]?.split('&')[0] || url.split('/').pop();
+            return `https://www.youtube.com/embed/${id}`;
+        }
+        if (url.includes('vimeo.com')) {
+            const id = url.split('/').pop();
+            return `https://player.vimeo.com/video/${id}`;
+        }
+        return null; // Fallback or raw video link
+    };
+
     const appendToContent = (text) => {
         handleChange('content', (formData.content || '') + text);
     };
@@ -70,7 +90,6 @@ export default function ContentEditor({ table, id }) {
     const handleImageBatch = (files, label) => {
         if (!files.length) return;
         const markdown = files.map(f => `\n![${f.name}](${f.url})`).join('');
-        // Optional: Wrap in a nice comment or section
         const section = `\n\n<!-- ${label} -->${markdown}\n`;
         appendToContent(section);
         setNotification({ type: 'success', msg: `Added ${files.length} images from ${label}!` });
@@ -114,7 +133,8 @@ export default function ContentEditor({ table, id }) {
 
     if (loading) return <div className="loading">Loading Studio...</div>;
 
-    const contentField = fields.includes('content') ? 'content' : fields.includes('intro') ? 'intro' : null;
+    const contentField = fields.includes('content') ? 'content' : fields.includes('description') ? 'description' : null;
+    const introField = fields.includes('intro') ? 'intro' : null;
 
     return (
         <div className="studio-layout">
@@ -125,7 +145,7 @@ export default function ContentEditor({ table, id }) {
                 </div>
                 <div className="actions">
                     <button onClick={() => handleSave()} disabled={saving} className={`btn-save ${saving ? 'saving' : ''}`}>
-                        {saving ? 'Saving...' : 'Save Changes'}
+                        {saving ? 'Publish Changes' : 'Publish Changes'}
                     </button>
                 </div>
             </header>
@@ -141,27 +161,101 @@ export default function ContentEditor({ table, id }) {
                 {/* ZONE B: VISUAL ASSETS (Left Panel) */}
                 {hasVisuals && (
                     <div className="visual-tray">
-                        {/* Cover Image Slot */}
-                        <div className="tray-section">
-                            <h4>Cover Image</h4>
-                            <div className="cover-slot">
-                                {formData.cover_image ? (
-                                    <div className="cover-preview" onClick={() => handleChange('cover_image', '')}>
-                                        <img src={formData.cover_image} alt="Cover" />
-                                        <div className="overlay">Remove</div>
-                                    </div>
-                                ) : (
-                                    <ImageUploader
-                                        bucket={table}
-                                        path={`${table}/covers`}
-                                        label="Upload Cover"
-                                        onUpload={(files) => handleChange('cover_image', files[0].url)}
-                                    />
-                                )}
-                            </div>
-                        </div>
 
-                        {/* GALLERY MANAGER (Exclusive to Photography) */}
+                        {/* --- FILM SPECIFIC UI --- */}
+                        {isFilms && (
+                            <>
+                                {/* 1. Video Input & Preview */}
+                                <div className="tray-section">
+                                    <h4>Primary Video</h4>
+                                    <input
+                                        type="text"
+                                        className="std-input"
+                                        placeholder="Paste YouTube or Vimeo URL..."
+                                        value={formData.video_url || ''}
+                                        onChange={e => handleChange('video_url', e.target.value)}
+                                    />
+                                    {formData.video_url && (
+                                        <div className="video-preview-box">
+                                            {getVideoEmbed(formData.video_url) ? (
+                                                <iframe src={getVideoEmbed(formData.video_url)} frameBorder="0" allowFullScreen></iframe>
+                                            ) : (
+                                                <div className="vid-placeholder">Invalid Video URL</div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* 2. Thumbnail (Dual Mode) */}
+                                <div className="tray-section">
+                                    <div className="section-head">
+                                        <h4>Thumbnail</h4>
+                                        <div className="mode-toggle">
+                                            <span onClick={() => setThumbMode('upload')} className={thumbMode === 'upload' ? 'active' : ''}>Upload</span>
+                                            <span onClick={() => setThumbMode('url')} className={thumbMode === 'url' ? 'active' : ''}>URL</span>
+                                        </div>
+                                    </div>
+
+                                    {thumbMode === 'upload' ? (
+                                        <div className="cover-slot">
+                                            {formData.thumbnail_url ? (
+                                                <div className="cover-preview" onClick={() => handleChange('thumbnail_url', '')}>
+                                                    <img src={formData.thumbnail_url} alt="Thumb" />
+                                                    <div className="overlay">Remove</div>
+                                                </div>
+                                            ) : (
+                                                <ImageUploader
+                                                    bucket="films"
+                                                    path="thumbnails"
+                                                    label="Upload Thumbnail"
+                                                    onUpload={(files) => handleChange('thumbnail_url', files[0].url)}
+                                                />
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <div className="url-input-mode">
+                                            <input
+                                                type="text"
+                                                className="std-input"
+                                                placeholder="https://example.com/image.jpg"
+                                                value={formData.thumbnail_url || ''}
+                                                onChange={e => handleChange('thumbnail_url', e.target.value)}
+                                            />
+                                            {formData.thumbnail_url && (
+                                                <div className="mini-preview">
+                                                    <img src={formData.thumbnail_url} alt="Preview" />
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            </>
+                        )}
+
+
+                        {/* --- STANDARD COVER IMAGE (Non-Films) --- */}
+                        {!isFilms && (
+                            <div className="tray-section">
+                                <h4>Cover Image</h4>
+                                <div className="cover-slot">
+                                    {formData.cover_image || (table === 'research' && formData.image) ? (
+                                        <div className="cover-preview" onClick={() => handleChange(table === 'research' ? 'image' : 'cover_image', '')}>
+                                            <img src={formData.cover_image || formData.image} alt="Cover" />
+                                            <div className="overlay">Remove</div>
+                                        </div>
+                                    ) : (
+                                        <ImageUploader
+                                            bucket={table}
+                                            path={`${table}/covers`}
+                                            label="Upload Cover"
+                                            onUpload={(files) => handleChange(table === 'research' ? 'image' : 'cover_image', files[0].url)}
+                                        />
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* GALLERY MANAGER (Photography) */}
                         {isPhotography && (
                             <div className="tray-section">
                                 <h4>Gallery Photos</h4>
@@ -189,13 +283,12 @@ export default function ContentEditor({ table, id }) {
                             </div>
                         )}
 
-                        {/* STACKS (For Blog/Research Text Content) */}
-                        {!isPhotography && (
+                        {/* STACKS (Blog/Research) */}
+                        {!isPhotography && !isFilms && (
                             <div className="tray-section">
                                 <h4>Asset Stacks</h4>
                                 <div className="stack-list">
                                     <StackBox label="Set 1" bucket={table} path={`${table}/set1`} onInsert={(files) => handleImageBatch(files, 'Set 1')} />
-                                    <StackBox label="Set 2" bucket={table} path={`${table}/set2`} onInsert={(files) => handleImageBatch(files, 'Set 2')} />
                                 </div>
                             </div>
                         )}
@@ -203,30 +296,32 @@ export default function ContentEditor({ table, id }) {
                         {/* Metadata Form */}
                         <div className="tray-section">
                             <h4>Metadata</h4>
-                            {fields.filter(f => f !== 'content' && f !== 'cover_image' && f !== 'intro').map(field => (
-                                <div key={field} className="mini-form-group">
-                                    <label>
-                                        {field === 'genre' ? 'Kind of Project' :
-                                            field === 'role' ? 'My Role' :
-                                                field === 'video_url' ? 'Video Link' :
+                            {fields
+                                .filter(f => !['content', 'description', 'intro', 'cover_image', 'image', 'video_url', 'thumbnail_url'].includes(f))
+                                .map(field => (
+                                    <div key={field} className="mini-form-group">
+                                        <label>
+                                            {field === 'genre' ? 'Kind of Project' :
+                                                field === 'role' ? 'My Role' :
                                                     field.replace('_', ' ')}
-                                    </label>
+                                        </label>
 
-                                    {field === 'published' ? (
-                                        <div className="toggle-wrapper" onClick={() => handleChange(field, !formData[field])}>
-                                            <div className={`toggle ${formData[field] ? 'on' : 'off'}`}></div>
-                                            <span>{formData[field] ? 'Public' : 'Draft'}</span>
-                                        </div>
-                                    ) : (
-                                        <input
-                                            type="text"
-                                            value={formData[field] || ''}
-                                            onChange={e => handleChange(field, e.target.value)}
-                                            placeholder="..."
-                                        />
-                                    )}
-                                </div>
-                            ))}
+                                        {field === 'published' ? (
+                                            <div className="toggle-wrapper" onClick={() => handleChange(field, !formData[field])}>
+                                                <div className={`toggle ${formData[field] ? 'on' : 'off'}`}></div>
+                                                <span>{formData[field] ? 'Live' : 'Draft'}</span>
+                                            </div>
+                                        ) : (
+                                            <input
+                                                type="text"
+                                                value={formData[field] || ''}
+                                                onChange={e => handleChange(field, e.target.value)}
+                                                placeholder="..."
+                                            />
+                                        )}
+                                    </div>
+                                ))
+                            }
                         </div>
                     </div>
                 )}
@@ -236,13 +331,12 @@ export default function ContentEditor({ table, id }) {
                     <input
                         type="text"
                         className="canvas-title"
-                        placeholder={isPhotography ? "Story Title" : "Post Title"}
+                        placeholder={isFilms ? "Film Title" : "Title"}
                         value={formData.title || ''}
                         onChange={e => handleChange('title', e.target.value)}
                     />
 
-                    {/* Intro Field for Visual Stories */}
-                    {fields.includes('intro') && (
+                    {introField && (
                         <textarea
                             className="canvas-intro"
                             placeholder="Write a short introduction..."
@@ -251,15 +345,16 @@ export default function ContentEditor({ table, id }) {
                         />
                     )}
 
-                    {/* Markdown Editor (Hidden for Photography if content not used, but available) */}
-                    {contentField && table !== 'photography' && (
+                    {/* Editor for Text Content (or Description for Films) */}
+                    {contentField && (
                         <>
-                            <Toolbar onInsert={appendToContent} />
+                            {!isFilms && <Toolbar onInsert={appendToContent} />}
                             <textarea
                                 className="canvas-editor"
                                 value={formData[contentField] || ''}
                                 onChange={e => handleChange(contentField, e.target.value)}
-                                placeholder="# Write your story here..."
+                                placeholder={isFilms ? "Write a brief description..." : "# Write your story here..."}
+                                style={isFilms ? { minHeight: '200px', fontSize: '1rem' } : {}}
                             />
                         </>
                     )}
@@ -282,7 +377,7 @@ export default function ContentEditor({ table, id }) {
 
                 /* ZONE B: TRAY */
                 .visual-tray {
-                    width: 350px;
+                    width: 380px;
                     border-right: 1px solid var(--border-subtle);
                     background: var(--bg-surface);
                     overflow-y: auto;
@@ -294,6 +389,26 @@ export default function ContentEditor({ table, id }) {
                     letter-spacing: 0.1em; color: var(--text-tertiary); 
                 }
                 
+                .std-input {
+                    width: 100%; padding: 0.6rem; border: 1px solid var(--border-subtle);
+                    border-radius: 4px; background: var(--bg-color); color: var(--text-primary);
+                    font-size: 0.9rem;
+                }
+                
+                .video-preview-box {
+                    margin-top: 1rem; aspect-ratio: 16/9; background: black; border-radius: 4px; overflow: hidden;
+                }
+                .video-preview-box iframe { width: 100%; height: 100%; }
+                .vid-placeholder { 
+                    width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; 
+                    color: #666; font-size: 0.8rem; 
+                }
+
+                .section-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+                .mode-toggle { display: flex; gap: 10px; font-size: 0.8rem; }
+                .mode-toggle span { cursor: pointer; opacity: 0.5; border-bottom: 1px solid transparent; }
+                .mode-toggle span.active { opacity: 1; border-bottom: 1px solid var(--text-primary); font-weight: 500; }
+
                 .cover-preview {
                     aspect-ratio: 16/9; border-radius: 6px; overflow: hidden; position: relative; cursor: pointer;
                 }
@@ -303,6 +418,9 @@ export default function ContentEditor({ table, id }) {
                     position: absolute; inset: 0; background: rgba(0,0,0,0.5); color: white;
                     display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.2s;
                 }
+                
+                .mini-preview { margin-top: 0.5rem; width: 100px; height: 60px; border-radius: 4px; overflow: hidden; }
+                .mini-preview img { width: 100%; height: 100%; object-fit: cover; }
 
                 .gallery-grid {
                     display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-bottom: 1rem;
