@@ -7,8 +7,9 @@ import LoginForm from '../../components/admin/LoginForm.jsx';
 <AdminLayout title="Login">
   <div class="login-wrapper">
     <div class="brand">
-        <h1>Abodid</h1>
-        <p>Content Management System</p>
+        <h1 class="font-serif">Abodid Sahoo</h1>
+        <p class="tagline">This is where the magic happens.</p>
+        <p class="cms-label">CONTENT MANAGEMENT SYSTEM</p>
     </div>
     <LoginForm client:load />
   </div>
@@ -16,18 +17,51 @@ import LoginForm from '../../components/admin/LoginForm.jsx';
 
 <style>
   .login-wrapper {
-    max-width: 400px;
-    margin: 4rem auto;
+    max-width: 600px;
+    margin: 2rem auto;
+    
+    /* Single Container Style */
+    background: #111;
+    border: 1px solid #333;
+    border-radius: 16px;
+    padding: 2rem 2.5rem;
+    box-sizing: border-box;
   }
   .brand {
-    text-align: center;
+    text-align: left;
     margin-bottom: 2rem;
+    width: 100%;
   }
   h1 {
     font-size: 2rem;
     margin-bottom: 0.5rem;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-top: 0;
   }
-  p {
+  .tagline {
     color: var(--text-secondary);
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+    font-weight: 300;
+    line-height: 1.4;
+    margin-top: 0;
+  }
+  .cms-label {
+    color: var(--text-tertiary);
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin: 0;
+  }
+  
+  /* Responsive: Adjust padding on mobile */
+  @media (max-width: 768px) {
+    .login-wrapper {
+        padding: 1.5rem;
+        margin: 1rem auto;
+    }
   }
 </style>

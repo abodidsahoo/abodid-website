@@ -4,6 +4,6 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 import AdminDashboard from '../../components/admin/AdminDashboard.jsx';
 ---
 
-<AdminLayout title="Dashboard">
+<AdminLayout title="Dashboard" fullWidth={true}>
   <AdminDashboard client:only="react" />
 </AdminLayout>

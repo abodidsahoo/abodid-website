@@ -4,10 +4,12 @@ import { supabase } from '../../lib/supabaseClient';
 export default function ImageUploader({ bucket = 'portfolio-assets', path, onUpload, multiple = false, label = "Drop images here", className = '', style = {} }) {
     const [uploading, setUploading] = useState(false);
     const [previews, setPreviews] = useState([]);
+    const [isDragOver, setIsDragOver] = useState(false);
 
     const handleFiles = async (files) => {
         if (!files || files.length === 0) return;
         setUploading(true);
+        setIsDragOver(false);
 
         const newUploads = [];
 
@@ -53,9 +55,22 @@ export default function ImageUploader({ bucket = 'portfolio-assets', path, onUpl
     const onDrop = useCallback(e => {
         e.preventDefault();
         e.stopPropagation();
+        setIsDragOver(false);
         const files = Array.from(e.dataTransfer.files);
         handleFiles(files);
     }, [path, bucket]);
+
+    const onDragEnter = useCallback(e => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragOver(true);
+    }, []);
+
+    const onDragLeave = useCallback(e => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragOver(false);
+    }, []);
 
     const onFileSelect = (e) => {
         const files = Array.from(e.target.files);
@@ -63,23 +78,39 @@ export default function ImageUploader({ bucket = 'portfolio-assets', path, onUpl
     };
 
     return (
-        <div className={`uploader-container ${uploading ? 'uploading' : ''} ${className}`}
+        <div className={`uploader-container ${uploading ? 'uploading' : ''} ${isDragOver ? 'drag-over' : ''} ${className}`}
             style={style}
-            onDragOver={e => e.preventDefault()}
-            onDrop={onDrop}>
+            onDragOver={onDragEnter}
+            onDragEnter={onDragEnter}
+            onDragLeave={onDragLeave}
+            onDrop={onDrop}
+            onClick={() => document.getElementById(`file-${path || 'upload'}`).click()}
+        >
 
             {previews.length === 0 && (
                 <div className="empty-state">
-                    <span className="icon">☁️</span>
-                    <p>{label}</p>
+                    {/* Only show cloud if label is not just a plus sign */}
+                    {label !== '+' && <span className="icon">☁️</span>}
+
+                    <p className={label === '+' ? 'plus-label' : ''}>{label}</p>
+
                     <input
                         type="file"
                         multiple={multiple}
                         onChange={onFileSelect}
+                        onClick={e => e.stopPropagation()}
                         style={{ display: 'none' }}
                         id={`file-${path || 'upload'}`}
                     />
-                    <label htmlFor={`file-${path || 'upload'}`} className="btn-upload">Choose Files</label>
+                    {label !== '+' && (
+                        <label
+                            htmlFor={`file-${path || 'upload'}`}
+                            className="btn-upload"
+                            onClick={e => e.stopPropagation()}
+                        >
+                            Choose Files
+                        </label>
+                    )}
                 </div>
             )}
 
@@ -117,14 +148,17 @@ export default function ImageUploader({ bucket = 'portfolio-assets', path, onUpl
                     justify-content: center;
                     transition: all 0.2s;
                     position: relative;
+                    cursor: pointer;
                 }
-                .uploader-container:hover, .uploader-container.drag-over {
+                .uploader-container:hover {
                     border-color: var(--text-tertiary);
                     background: var(--bg-surface-hover);
                 }
                 .uploader-container.drag-over {
                     border-color: #fff !important;
                     background: #222 !important;
+                    transform: scale(1.02);
+                    box-shadow: 0 0 20px rgba(255,255,255,0.1);
                 }
                 .uploader-container.uploading {
                     opacity: 0.7;
@@ -136,9 +170,17 @@ export default function ImageUploader({ bucket = 'portfolio-assets', path, onUpl
                     display: flex;
                     flex-direction: column;
                     align-items: center;
+                    justify-content: center;
                     gap: 1rem;
+                    height: 100%;
                 }
-                .icon { font-size: 2rem; opacity: 0.5; }
+                .plus-label {
+                    font-size: 3rem;
+                    font-weight: 300;
+                    margin: 0;
+                    line-height: 1;
+                    color: #666;
+                }
                 .btn-upload {
                     padding: 0.5rem 1rem;
                     background: var(--bg-color);

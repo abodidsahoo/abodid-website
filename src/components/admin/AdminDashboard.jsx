@@ -89,13 +89,21 @@ export default function AdminDashboard() {
             height: 100vh; display: flex; align-items: center; justify-content: center; 
             color: var(--text-secondary); font-family: var(--font-sans);
         }
-        .dashboard-container { max-width: 1400px; margin: 0 auto; padding: 4rem 3rem; }
+        /* Full width container, remove max-width restriction if desired, or keep it wide */
+        .dashboard-container { 
+            width: 100%; 
+            min-height: 100vh;
+            padding: 4rem 3rem; 
+            box-sizing: border-box;
+            background-color: var(--bg-color); /* Ensure it matches site bg */
+        }
         
         .dash-header {
-            display: flex; justify-content: space-between; align-items: flex-end; /* Align bottom for "downwards" feel */
+            display: flex; justify-content: space-between; align-items: flex-end;
             margin-bottom: 5rem; 
             border-bottom: 1px solid #222;
             padding-bottom: 2rem;
+            max-width: 1600px; margin-left: auto; margin-right: auto; /* Limit header width for readability */
         }
         .hero-title { 
             font-size: 4rem; margin: 0 0 0.5rem 0; font-weight: 400; color: #fff;
@@ -112,7 +120,6 @@ export default function AdminDashboard() {
         }
         .btn-back:hover { color: #fff; }
 
-        /* Prominent Sign Out Button */
         .btn-logout-prominent {
             background: transparent;
             border: 1px solid #444;
@@ -124,7 +131,6 @@ export default function AdminDashboard() {
             letter-spacing: 0.05em;
             cursor: pointer;
             transition: all 0.2s ease;
-            margin-top: 1rem; /* Push slightly downwards if needed, but flex-end handles it */
         }
         .btn-logout-prominent:hover {
             border-color: #fff;
@@ -133,47 +139,48 @@ export default function AdminDashboard() {
             box-shadow: 0 0 15px rgba(255,255,255,0.1);
         }
 
-        /* 4-Column Grid */
         .stats-grid {
             display: grid; 
-            grid-template-columns: repeat(4, 1fr); /* Force 4 columns */
-            gap: 1.5rem;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+            gap: 2rem;
+            max-width: 1600px; margin: 0 auto;
         }
         
-        /* Compact Card Styling */
         .stat-card {
             background: #111; 
             border: 1px solid #222;
             border-radius: 4px; 
-            padding: 1.5rem; 
-            text-align: left;
+            padding: 2rem; 
+            text-align: center; /* Center align everything */
             display: flex; 
-            flex-direction: row; /* Horizontal Layout inside? User said "blocks", let's keep vertical but compact */
+            flex-direction: column; /* Vertical Layout */
             align-items: center; 
-            justify-content: space-between;
-            min-height: 120px; /* Smaller height */
+            justify-content: center;
+            min-height: 220px; /* Taller card */
             transition: 0.2s;
             cursor: pointer;
             position: relative;
+            gap: 1.5rem;
         }
         .stat-card:hover { 
             border-color: #444; 
             background: #161616;
+            transform: translateY(-2px);
         }
         
         .card-content {
-            display: flex; flex-direction: column; gap: 0.2rem;
+            display: flex; flex-direction: column; gap: 0.5rem; align-items: center;
         }
 
         .stat-card h3 { 
             margin: 0; 
-            font-size: 1.8rem; /* Way larger text */
+            font-size: 1.8rem;
             color: #fff; 
             font-weight: 400;
             letter-spacing: -0.02em;
         }
         .count { 
-            font-size: 0.75rem; /* Very small number */
+            font-size: 0.8rem;
             font-weight: 400; 
             color: #666;
             margin: 0; 
@@ -182,29 +189,35 @@ export default function AdminDashboard() {
             letter-spacing: 0.05em;
         }
         
+        /* New Line + Button */
         .btn-new-mini {
-            width: 32px; height: 32px;
+            width: 48px; height: 48px; /* Larger */
             border-radius: 50%;
-            background: #fff; color: #000;
-            border: none;
+            background: transparent; 
+            color: #444;
+            border: 1px solid #333;
             display: flex; align-items: center; justify-content: center;
-            font-size: 1.2rem;
+            font-size: 1.8rem; /* Larger symbol */
             font-weight: 300;
             cursor: pointer;
             transition: 0.2s;
+            margin-top: 0.5rem; /* Space from count */
         }
         .btn-new-mini:hover {
             transform: scale(1.1);
-            background: #ccc;
+            background: #fff;
+            color: #000;
+            border-color: #fff;
         }
 
-        /* Responsive Breakpoint - Collapse to 2 cols on smaller screens if needed */
         @media (max-width: 1000px) {
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
         }
 
-        /* List View */
-        .list-container { animation: fadeIn 0.3s ease; }
+        .list-container { 
+            animation: fadeIn 0.3s ease; 
+            max-width: 1600px; margin: 0 auto;
+        }
         .list-table { width: 100%; border-collapse: collapse; margin-top: 2rem; }
         .list-table tr { border-bottom: 1px solid #222; }
         .list-table th { text-align: left; padding: 1rem; border-bottom: 1px solid #333; color: #666; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
@@ -230,6 +243,7 @@ function DashboardCard({ title, count, onCheck, onCreate }) {
                 <h3>{title}</h3>
                 <p className="count">{count} Items</p>
             </div>
+            {/* Button is now below the content due to flex-col */}
             <button
                 onClick={(e) => { e.stopPropagation(); onCreate(); }}
                 className="btn-new-mini"
