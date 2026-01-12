@@ -171,14 +171,14 @@ export default function AdminDashboard() {
 
 function DashboardCard({ title, count, onCheck, onCreate, label }) {
     return (
-        <div className="stat-card">
+        <div className="stat-card" onClick={onCheck} style={{ cursor: 'pointer' }}>
             <div>
                 <h3>{title}</h3>
                 <p className="count">{count}</p>
             </div>
             <div className="card-actions">
-                <button onClick={onCheck} className="btn-action btn-secondary">List</button>
-                <button onClick={onCreate} className="btn-action btn-primary">+ New</button>
+                <button onClick={(e) => { e.stopPropagation(); onCheck(); }} className="btn-action btn-secondary">List</button>
+                <button onClick={(e) => { e.stopPropagation(); onCreate(); }} className="btn-action btn-primary">+ New</button>
             </div>
         </div>
     );
