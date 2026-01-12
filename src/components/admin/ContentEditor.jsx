@@ -117,6 +117,7 @@ export default function ContentEditor({ table, id }) {
                                     </div>
                                 ) : (
                                     <ImageUploader
+                                        bucket={table} // Dynamic Bucket Name
                                         path={`${table}/covers`}
                                         label="Drag Cover"
                                         onUpload={(files) => handleChange('cover_image', files[0].url)}
@@ -129,9 +130,9 @@ export default function ContentEditor({ table, id }) {
                         <div className="tray-section">
                             <h4>Content Stacks</h4>
                             <div className="stack-list">
-                                <StackBox label="Set 1 (Intro)" path={`${table}/set1`} onInsert={(files) => handleImageBatch(files, 'Set 1')} />
-                                <StackBox label="Set 2 (Middle)" path={`${table}/set2`} onInsert={(files) => handleImageBatch(files, 'Set 2')} />
-                                <StackBox label="Set 3 (End)" path={`${table}/set3`} onInsert={(files) => handleImageBatch(files, 'Set 3')} />
+                                <StackBox label="Set 1 (Intro)" bucket={table} path={`${table}/set1`} onInsert={(files) => handleImageBatch(files, 'Set 1')} />
+                                <StackBox label="Set 2 (Middle)" bucket={table} path={`${table}/set2`} onInsert={(files) => handleImageBatch(files, 'Set 2')} />
+                                <StackBox label="Set 3 (End)" bucket={table} path={`${table}/set3`} onInsert={(files) => handleImageBatch(files, 'Set 3')} />
                             </div>
                         </div>
 
@@ -306,7 +307,7 @@ function Toolbar({ onInsert }) {
     );
 }
 
-function StackBox({ label, path, onInsert }) {
+function StackBox({ label, bucket, path, onInsert }) {
     const [files, setFiles] = useState([]);
 
     const handleUpload = (newFiles) => {
@@ -324,6 +325,7 @@ function StackBox({ label, path, onInsert }) {
                 )}
             </div>
             <ImageUploader
+                bucket={bucket}
                 path={path}
                 multiple={true}
                 onUpload={handleUpload}
