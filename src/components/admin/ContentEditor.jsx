@@ -394,16 +394,20 @@ export default function ContentEditor({ table, id }) {
 
                                 <section className="card-section">
                                     <label className="section-label">Cover Image</label>
-                                    <div className="cover-wrapper-small">
-                                        {(formData.cover_image || formData.image) ? (
+                                    {(formData.cover_image || formData.image) ? (
+                                        <div className="cover-wrapper-small preview-active">
                                             <div className="preview-fit">
                                                 <img src={formData.cover_image || formData.image} />
                                                 <button className="btn-mini-remove" onClick={() => handleChange(table === 'research' ? 'image' : 'cover_image', '')}>Replace</button>
                                             </div>
-                                        ) : (
-                                            <ImageUploader bucket={table} path="covers" label="Upload Cover" onUpload={f => handleChange(table === 'research' ? 'image' : 'cover_image', f[0].url)} />
-                                        )}
-                                    </div>
+                                        </div>
+                                    ) : (
+                                        <ImageUploader
+                                            bucket={table} path="covers" label="Upload Cover"
+                                            className="cover-uploader-box"
+                                            onUpload={f => handleChange(table === 'research' ? 'image' : 'cover_image', f[0].url)}
+                                        />
+                                    )}
                                 </section>
 
                                 {/* WRITING AREA WITH INSERT TOOL */}
@@ -429,6 +433,7 @@ export default function ContentEditor({ table, id }) {
                                                 bucket={table}
                                                 path="content-assets"
                                                 label="IMG"
+                                                className="rail-uploader"
                                                 onUpload={(files) => insertMarkdownImage(files[0].url)}
                                             />
                                         </div>
