@@ -534,22 +534,34 @@ export default function ContentEditor({ table, id }) {
                 /* UPLOADERS - Clean Unification */
                 /* 1. The Cover Uploader Box configuration */
                 .cover-uploader-box {
-                    width: 240px !important; aspect-ratio: 16/9;
+                    width: 100% !important; max-width: 300px; /* Adjust width as needed, stacking now */
+                    aspect-ratio: 16/9;
                     background: var(--c-input-bg);
                     border: 1px solid var(--c-border) !important;
                     border-radius: 4px;
                     padding: 0 !important;
-                    min-height: 0 !important; /* Override ImageUploader default */
+                    min-height: 0 !important;
+                    position: relative;
                 }
                 .cover-uploader-box:hover { border-color: #555 !important; }
-                .cover-uploader-box .empty-state { padding: 0 !important; }
-                .cover-uploader-box .icon { font-size: 1.2rem; margin-bottom: 0.5rem; }
-                .cover-uploader-box p { font-size: 0.75rem; color: #666; margin: 0; }
-                .cover-uploader-box .btn-upload { display: none; /* Hide default button, dragging is enough or click whole box */ }
+                .cover-uploader-box .empty-state { padding: 0 !important; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 10px; }
+                .cover-uploader-box .icon { display: none; } /* Hide default cloud icon */
+                .cover-uploader-box p { font-size: 0.75rem; color: #666; margin: 0; text-transform: uppercase; letter-spacing: 0.05em; }
                 
-                /* When preview is live (not using Uploader component but the preview div) */
+                /* The + Button */
+                .cover-uploader-box .btn-upload { 
+                    display: flex !important; align-items: center; justify-content: center;
+                    width: 40px; height: 40px; border-radius: 50%;
+                    background: #222; border: 1px solid #333; color: #fff;
+                    font-size: 1.5rem; line-height: 1; cursor: pointer; padding: 0;
+                    transition: 0.2s;
+                }
+                .cover-uploader-box .btn-upload:hover { background: #333; border-color: #555; }
+                
+                /* When preview is live */
                 .cover-wrapper-small.preview-active {
-                    width: 240px; aspect-ratio: 16/9;
+                    width: 100%; max-width: 300px;
+                    aspect-ratio: 16/9;
                     background: var(--c-input-bg); border: 1px solid var(--c-border);
                     border-radius: 4px; overflow: hidden; position: relative;
                 }
@@ -557,12 +569,14 @@ export default function ContentEditor({ table, id }) {
                 .preview-fit { width: 100%; height: 100%; position: relative; }
                 .preview-fit img, .preview-fit iframe { width: 100%; height: 100%; object-fit: cover; }
                 .btn-mini-remove {
-                    position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.8); color: white;
-                    border: none; padding: 3px 6px; font-size: 0.6rem; cursor: pointer;
+                    position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.8); color: white;
+                    border: none; width: 24px; height: 24px; border-radius: 50%; 
+                    font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center;
                 }
+                .btn-mini-remove::after { content: "×"; }
 
-                /* MEDIA ROW (Films) */
-                .media-row { display: grid; grid-template-columns: 1fr 240px; gap: 2rem; }
+                /* MEDIA ROW (Films) - STACKED NOW */
+                .media-stack { display: flex; flex-direction: column; gap: 2rem; margin-top: 1rem; }
                 .media-col { display: flex; flex-direction: column; gap: 0.5rem; }
                 
                 .fixed-uploader {
@@ -636,6 +650,14 @@ export default function ContentEditor({ table, id }) {
                 }
                 .toast.success { background: #1a4d2e; border: 1px solid #14532d; }
                 .toast.error { background: #7f1d1d; border: 1px solid #7f1d1d; }
+
+                /* Hide Number Spinners */
+                input[type=number]::-webkit-inner-spin-button, 
+                input[type=number]::-webkit-outer-spin-button { 
+                  -webkit-appearance: none; 
+                  margin: 0; 
+                }
+                input[type=number] { -moz-appearance: textfield; }
 
             `}</style>
         </div>
