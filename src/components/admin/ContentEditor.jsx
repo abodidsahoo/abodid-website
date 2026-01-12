@@ -625,6 +625,11 @@ export default function ContentEditor({ table, id }) {
                 .rail-uploader p { font-size: 0.7rem; color: #666; margin: 0; font-weight: 600; }
                 .rail-uploader .btn-upload { display: none; }
 
+                .loading-screen {
+                    height: 100vh; display: flex; align-items: center; justify-content: center;
+                    color: #666; font-family: var(--font-sans); background: #050505;
+                }
+
                 .toast {
                     position: fixed; bottom: 2rem; right: 2rem; padding: 0.7rem 1.2rem;
                     border-radius: 4px; color: white; font-size: 0.8rem; z-index: 100; font-weight: 500;
