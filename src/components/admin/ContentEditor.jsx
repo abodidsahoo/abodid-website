@@ -232,23 +232,21 @@ export default function ContentEditor({ table, id }) {
                         {isFilms && (
                             <>
                                 <section className="card-section">
-                                    <div className="meta-grid">
-                                        <div className="field-group">
-                                            <label>Year</label>
-                                            <input type="number" className="box-input" value={formData.year || ''} onChange={e => handleChange('year', e.target.value)} />
-                                        </div>
-                                        <div className="field-group">
-                                            <label>Genre</label>
-                                            <input type="text" className="box-input" value={formData.genre || ''} onChange={e => handleChange('genre', e.target.value)} />
-                                        </div>
-                                        <div className="field-group full-width">
-                                            <label>Role / Credit</label>
-                                            <input type="text" className="box-input" value={formData.role || ''} onChange={e => handleChange('role', e.target.value)} placeholder="e.g. Director, Editor..." />
-                                        </div>
+                                    <div className="field-group">
+                                        <label>Year</label>
+                                        <input type="number" className="box-input" value={formData.year || ''} onChange={e => handleChange('year', e.target.value)} />
+                                    </div>
+                                    <div className="field-group">
+                                        <label>Genre</label>
+                                        <input type="text" className="box-input" value={formData.genre || ''} onChange={e => handleChange('genre', e.target.value)} />
+                                    </div>
+                                    <div className="field-group full-width">
+                                        <label>Role / Credit</label>
+                                        <input type="text" className="box-input" value={formData.role || ''} onChange={e => handleChange('role', e.target.value)} placeholder="e.g. Director, Editor..." />
                                     </div>
                                 </section>
 
-                                <section className="card-section">
+                                <section className="card-section" style={{ marginBottom: '3rem' }}>
                                     <label className="section-label">Media Assets</label>
                                     <div className="media-row">
                                         <div className="media-col">
