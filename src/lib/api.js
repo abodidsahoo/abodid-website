@@ -177,6 +177,7 @@ export async function getFilms() {
         description: film.description,
         year: film.year,
         image: film.thumbnail_url,
-        videoUrl: film.video_url
+        videoUrl: film.video_url,
+        role: film.role
     }));
 }
