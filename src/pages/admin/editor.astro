@@ -1,0 +1,65 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import ContentEditor from '../../../components/admin/ContentEditor.jsx';
+
+// Since this is a dynamic route for admin, simple params are enough.
+// We are using client-side fetching in the editor, so we don't need heavy server-side props.
+// However, Astro needs getStaticPaths for dynamic routes if output is static.
+// BUT: Admin panel usually works best with 'server' output or hybrid.
+// Since we are likely Static Site Generation (SSG), we can't easily have infinite "edit" pages.
+// WORKAROUND: For a static admin site, we usually can't have [id].
+// UNLESS: We use client-side routing or query params.
+// OR: We configure this specific page to be standard HTML and let React handle the URL.
+//
+// LET'S TRY: Using a simple catch-all or just query params would be safer for SSG,
+// BUT for standard nice URLs:
+// We will export getStaticPaths just for 'new' and maybe some common IDs?
+// NO, that's impossible for dynamic CMS.
+//
+// SOLUTION for Static output:
+// We rely on the user visiting `/admin/editor/posts/new` (which is static if we define it).
+// But `/admin/editor/posts/123` can't be statically generated if 123 is unknown at build time.
+//
+// REVISED PLAN:
+// We will assume 'output: server' is NOT enabled (standard Astro is static).
+// To make a "Dynamic" admin panel on a Static site:
+// We must use Query Parameters or Hash Routing for the IDs.
+// e.g. `/admin/editor?table=posts&id=123`.
+//
+// However, the files I'm creating are `[table]/[id].astro`.
+// This implies SSG.
+//
+// LET'S REFINE:
+// I will create ONE page `src/pages/admin/editor.astro` (no dynamic folders).
+// It will look at `window.location.search` in React.
+// This is much safer for your current setup.
+---
+
+<script>
+    // Client-side redirect if someone tries to visit explicit dynamic routes that don't exist
+    // Actually, we can just use this page to mount the editor and read params from URL.
+</script>
+
+<AdminLayout title="Editor">
+  <div id="editor-mount"></div>
+</AdminLayout>
+
+<script>
+  import React from 'react';
+  import { createRoot } from 'react-dom/client';
+  import ContentEditor from '../../components/admin/ContentEditor.jsx';
+
+  // Parse URL Params: /admin/editor?table=posts&id=new
+  const params = new URLSearchParams(window.location.search);
+  const table = params.get('table');
+  const id = params.get('id');
+
+  const root = createRoot(document.getElementById('editor-mount'));
+  
+  if (table && id) {
+    root.render(React.createElement(ContentEditor, { table, id }));
+  } else {
+    // Fallback or Error
+    window.location.href = '/admin/dashboard';
+  }
+</script>
