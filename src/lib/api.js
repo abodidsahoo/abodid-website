@@ -151,13 +151,13 @@ export async function getPostBySlug(slug) {
     if (!isSupabaseConfigured()) return null;
 
     const { data, error } = await supabase
-        .from('journal')
+        .from('blog')
         .select('*')
         .eq('slug', slug)
         .single();
 
     if (error) {
-        console.error(`Error fetching journal post ${slug}:`, error);
+        console.error(`Error fetching blog post ${slug}:`, error);
         return null;
     }
     return data;
