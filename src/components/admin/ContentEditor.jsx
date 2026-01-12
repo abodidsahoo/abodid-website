@@ -248,7 +248,7 @@ export default function ContentEditor({ table, id }) {
 
                                 <section className="card-section" style={{ marginBottom: '3rem' }}>
                                     <label className="section-label">Media Assets</label>
-                                    <div className="media-row">
+                                    <div className="media-stack">
                                         <div className="media-col">
                                             <label>Video URL (YouTube/Vimeo)</label>
                                             {formData.video_url && getVideoEmbed(formData.video_url) ? (
