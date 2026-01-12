@@ -16,20 +16,36 @@ const pageTitle = "Payment";
     <div class="checkout-box">
       <!-- PayPal SDK -->
       <script 
+        is:inline
         src="https://www.paypal.com/sdk/js?client-id=BAAQE8TkamhCfaYjOOl_ZjtgKbY0ZCtyOzmdOe83xf_zWg30P2ZzyrL0_v1NsBdll_k9zw5wYPq9KJkXy8&components=hosted-buttons&disable-funding=venmo&currency=GBP"
       ></script>
 
       <!-- PayPal Container -->
       <div id="paypal-container-22T4QFMFG6BDS"></div>
       
-      <script>
-        // Check if paypal object exists before rendering
-        // @ts-ignore
-        if (window.paypal) {
-          // @ts-ignore
-          window.paypal.HostedButtons({
-            hostedButtonId: "22T4QFMFG6BDS",
-          }).render("#paypal-container-22T4QFMFG6BDS")
+      <script is:inline>
+        // Robust check for PayPal SDK loading
+        const renderPayPal = () => {
+          if (window.paypal && window.paypal.HostedButtons) {
+            window.paypal.HostedButtons({
+              hostedButtonId: "22T4QFMFG6BDS",
+            }).render("#paypal-container-22T4QFMFG6BDS");
+            return true;
+          }
+          return false;
+        };
+
+        // Try immediately
+        if (!renderPayPal()) {
+          // If not ready, poll every 200ms for up to 5 seconds
+          const intervalId = setInterval(() => {
+            if (renderPayPal()) {
+              clearInterval(intervalId);
+            }
+          }, 200);
+
+          // Safety cleanup
+          setTimeout(() => clearInterval(intervalId), 5000);
         }
       </script>
       

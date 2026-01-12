@@ -100,6 +100,22 @@ export async function getRecentPosts() {
     }));
 }
 
+export async function getPostBySlug(slug) {
+    if (!isSupabaseConfigured()) return null;
+
+    const { data, error } = await supabase
+        .from('posts')
+        .select('*')
+        .eq('slug', slug)
+        .single();
+
+    if (error) {
+        console.error(`Error fetching post ${slug}:`, error);
+        return null;
+    }
+    return data;
+}
+
 // --- Films ---
 
 export async function getFilms() {

@@ -2,7 +2,7 @@
 create extension if not exists "uuid-ossp";
 
 -- 1. STORIES (Portfolio Projects)
-create table public.stories (
+create table if not exists public.stories (
   id uuid default uuid_generate_v4() primary key,
   slug text not null unique,
   title text not null,
@@ -14,7 +14,7 @@ create table public.stories (
 );
 
 -- 2. PHOTOS (Images inside a Story)
-create table public.photos (
+create table if not exists public.photos (
   id uuid default uuid_generate_v4() primary key,
   story_id uuid references public.stories(id) on delete cascade not null,
   url text not null,
@@ -24,7 +24,7 @@ create table public.photos (
 );
 
 -- 3. FILMS (Video/Cinematography)
-create table public.films (
+create table if not exists public.films (
   id uuid default uuid_generate_v4() primary key,
   title text not null,
   description text,
@@ -36,7 +36,7 @@ create table public.films (
 );
 
 -- 4. POSTS (Blog/Journal)
-create table public.posts (
+create table if not exists public.posts (
   id uuid default uuid_generate_v4() primary key,
   slug text not null unique,
   title text not null,
@@ -49,7 +49,7 @@ create table public.posts (
 );
 
 -- 5. COMMENTS (Unified for Stories and Posts)
-create table public.comments (
+create table if not exists public.comments (
   id uuid default uuid_generate_v4() primary key,
   story_id uuid references public.stories(id) on delete cascade,
   post_id uuid references public.posts(id) on delete cascade,
@@ -64,26 +64,57 @@ create table public.comments (
 );
 
 -- Row Level Security (RLS)
--- Allow public read access (this is a portfolio site)
+-- Note: Re-running these lines might show "policy already exists" errors. This is safe to ignore.
 alter table public.stories enable row level security;
 alter table public.photos enable row level security;
 alter table public.films enable row level security;
 alter table public.posts enable row level security;
 alter table public.comments enable row level security;
 
+-- Policies (Drop first to avoid errors on re-run, or ignore errors)
+drop policy if exists "Public stories are viewable by everyone" on public.stories;
 create policy "Public stories are viewable by everyone" on public.stories for select using (true);
+
+drop policy if exists "Public photos are viewable by everyone" on public.photos;
 create policy "Public photos are viewable by everyone" on public.photos for select using (true);
+
+drop policy if exists "Public films are viewable by everyone" on public.films;
 create policy "Public films are viewable by everyone" on public.films for select using (true);
+
+drop policy if exists "Public posts are viewable by everyone" on public.posts;
 create policy "Public posts are viewable by everyone" on public.posts for select using (true);
+
+drop policy if exists "Public comments are viewable by everyone" on public.comments;
 create policy "Public comments are viewable by everyone" on public.comments for select using (is_approved = true);
 
--- Allow anyone to Insert comments (Public submission)
+drop policy if exists "Anyone can insert comments" on public.comments;
 create policy "Anyone can insert comments" on public.comments for insert with check (true);
 
--- Insert Mock Data (for testing)
+-- 6. STORAGE (Buckets)
+insert into storage.buckets (id, name, public)
+values ('portfolio-assets', 'portfolio-assets', true)
+on conflict (id) do nothing;
+
+-- Storage Policies
+drop policy if exists "Public Access" on storage.objects;
+create policy "Public Access" on storage.objects for select using ( bucket_id = 'portfolio-assets' );
+
+drop policy if exists "Authenticated Upload" on storage.objects;
+create policy "Authenticated Upload" on storage.objects for insert with check ( bucket_id = 'portfolio-assets' and auth.role() = 'authenticated' );
+  
+drop policy if exists "Authenticated Manage" on storage.objects;
+create policy "Authenticated Manage" on storage.objects for update using ( bucket_id = 'portfolio-assets' and auth.role() = 'authenticated' );
+
+drop policy if exists "Authenticated Delete" on storage.objects;
+create policy "Authenticated Delete" on storage.objects for delete using ( bucket_id = 'portfolio-assets' and auth.role() = 'authenticated' );
+
+-- Insert Mock Data (Safe to re-run)
 insert into public.stories (slug, title, intro, category, cover_image, published) values
 ('urban-silence', 'Urban Silence', 'A visual exploration of the quiet moments in a bustling city.', 'Photography', 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000', true),
-('neon-nights', 'Neon Nights', 'Cyberpunk vibes in the rainy streets.', 'Photography', 'https://images.unsplash.com/photo-1555680202-c86f0e12f086', true);
+('neon-nights', 'Neon Nights', 'Cyberpunk vibes in the rainy streets.', 'Photography', 'https://images.unsplash.com/photo-1555680202-c86f0e12f086', true)
+on conflict (slug) do nothing;
 
 insert into public.posts (slug, title, excerpt, content, published_at, published) values
-('welcome', 'Welcome to my Digital Garden', 'Why I built this site with Astro and Supabase.', '# Hello World\n\nThis is my first post.', now(), true);
+('welcome', 'Welcome to my Digital Garden', 'Why I built this site with Astro and Supabase.', '# Hello World\n\nThis is my first post.', now(), true)
+on conflict (slug) do nothing;
+

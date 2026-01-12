@@ -1,0 +1,185 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getRecentPosts, getPostBySlug } from '../../lib/api';
+import { marked } from 'marked'; // We need to install this or use a simple parser
+
+export async function getStaticPaths() {
+  const posts = await getRecentPosts();
+  return posts.map(post => {
+    // Check if href is full path or just slug, normalize it
+    const slug = post.slug || post.href.split('/').pop();
+    return {
+      params: { slug },
+      props: { slug },
+    };
+  });
+}
+
+const { slug } = Astro.props;
+const post = await getPostBySlug(slug);
+
+if (!post) {
+  return Astro.redirect('/404');
+}
+
+// Convert Markdown to HTML
+// Note: In a real app we'd use 'marked' or Astro's content collections.
+// For now, if 'marked' isn't installed, we will just display raw text or install it.
+// To be safe without installing extra deps yet: simple text or we assume HTML.
+// But Supabase usually stores Markdown.
+const contentHtml = marked.parse(post.content || "");
+---
+
+<BaseLayout title={post.title}>
+  <article class="post-container">
+    <header class="post-header">
+      <div class="meta">
+        <span class="date">{new Date(post.published_at || post.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+        <span class="category">Journal</span>
+      </div>
+      <h1 class="title">{post.title}</h1>
+      {post.excerpt && <p class="excerpt">{post.excerpt}</p>}
+    </header>
+
+    {post.cover_image && (
+      <div class="cover-image">
+        <img src={post.cover_image} alt={post.title} />
+      </div>
+    )}
+
+    <div class="prose" set:html={contentHtml}></div>
+
+    <hr class="divider" />
+    
+    <div class="post-footer">
+      <a href="/blog" class="back-link">← Back to Journal</a>
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .post-container {
+    max-width: 720px;
+    margin: 4rem auto;
+    padding: 0 1.5rem;
+  }
+
+  .post-header {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+
+  .meta {
+    font-family: var(--font-sans);
+    font-size: 0.9rem;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 1rem;
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+  }
+
+  .title {
+    font-family: var(--font-serif);
+    font-size: 3rem;
+    font-weight: 400;
+    line-height: 1.2;
+    margin-bottom: 1.5rem;
+    color: var(--text-primary);
+  }
+
+  .excerpt {
+    font-family: var(--font-serif);
+    font-size: 1.25rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    max-width: 600px;
+    margin: 0 auto;
+    font-style: italic;
+  }
+
+  .cover-image {
+    margin: 3rem -2rem;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .cover-image img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  /* Typography for the article content */
+  .prose {
+    font-family: var(--font-serif);
+    font-size: 1.125rem; /* 18px */
+    line-height: 1.8;
+    color: var(--text-primary);
+  }
+
+  /* Deep Selection for dynamic HTML content */
+  .prose :global(h2) {
+    font-family: var(--font-sans);
+    font-size: 1.5rem;
+    margin-top: 3rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  .prose :global(p) {
+    margin-bottom: 1.5rem;
+  }
+
+  .prose :global(a) {
+    color: var(--text-primary);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 4px;
+    opacity: 0.8;
+  }
+  
+  .prose :global(ul) {
+    margin-bottom: 1.5rem;
+    padding-left: 1.5rem;
+  }
+  
+  .prose :global(li) {
+    margin-bottom: 0.5rem;
+  }
+
+  .prose :global(img) {
+    width: 100%;
+    border-radius: 4px;
+    margin: 2rem 0;
+  }
+
+  .prose :global(blockquote) {
+    border-left: 2px solid var(--accent-light);
+    padding-left: 1.5rem;
+    margin: 2rem 0;
+    font-style: italic;
+    color: var(--text-secondary);
+  }
+
+  .divider {
+    margin: 4rem 0 2rem;
+    border: none;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .back-link {
+    font-family: var(--font-sans);
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: color 0.2s;
+  }
+
+  .back-link:hover {
+    color: var(--text-primary);
+  }
+</style>
