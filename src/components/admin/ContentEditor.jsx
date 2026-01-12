@@ -8,7 +8,6 @@ export default function ContentEditor({ table, id }) {
     const [formData, setFormData] = useState({});
     const [notification, setNotification] = useState(null);
 
-    // Schema Definitions
     const SCHEMAS = {
         posts: ['title', 'slug', 'excerpt', 'content', 'published'],
         projects: ['title', 'slug', 'description', 'content', 'link', 'repo_link', 'published'],
@@ -19,63 +18,52 @@ export default function ContentEditor({ table, id }) {
     const fields = SCHEMAS[table] || [];
 
     useEffect(() => {
-        if (!isNew) {
-            fetchData();
-        }
+        if (!isNew) fetchData();
     }, [id]);
 
     const fetchData = async () => {
-        const { data, error } = await supabase
-            .from(table)
-            .select('*')
-            .eq('id', id)
-            .single();
-
+        const { data } = await supabase.from(table).select('*').eq('id', id).single();
         if (data) setFormData(data);
         setLoading(false);
     };
 
-    const handleChange = (field, value) => {
-        setFormData(prev => ({ ...prev, [field]: value }));
-    };
+    const handleChange = (field, value) => setFormData(prev => ({ ...prev, [field]: value }));
 
-    // Drag & Drop Image Handler for Markdown
     const handleDrop = async (e, field) => {
         e.preventDefault();
         const files = e.dataTransfer.files;
         if (files.length === 0) return;
-
         const file = files[0];
         if (!file.type.startsWith('image/')) return;
 
-        setNotification('Uploading image...');
+        setNotification({ type: 'info', msg: 'Uploading image...' });
 
-        // Upload
-        const fileName = `${Date.now()}-${file.name}`;
-        const filePath = `${table}/${fileName}`; // e.g. posts/123.jpg
+        const fileName = `${Date.now()}-${file.name.replace(/\s+/g, '-')}`;
+        const filePath = `${table}/${fileName}`;
 
-        const { data, error } = await supabase.storage
-            .from('portfolio-assets')
-            .upload(filePath, file);
-
-        if (error) {
-            setNotification(`Error: ${error.message}`);
+        const { error: uploadError } = await supabase.storage.from('portfolio-assets').upload(filePath, file);
+        if (uploadError) {
+            setNotification({ type: 'error', msg: uploadError.message });
             return;
         }
 
-        // Get Public URL
-        const { data: { publicUrl } } = supabase.storage
-            .from('portfolio-assets')
-            .getPublicUrl(filePath);
+        const { data: { publicUrl } } = supabase.storage.from('portfolio-assets').getPublicUrl(filePath);
 
-        // Insert into Markdown
+        // Smart Insert
         const markdownImage = `\n![${file.name}](${publicUrl})\n`;
-        const check = formData[field] || '';
+        const textarea = document.getElementById(`field-${field}`);
 
-        // Attempt to insert at cursor? For now, append to end or replace if empty
-        // To keep it simple: Append
-        handleChange(field, check + markdownImage);
-        setNotification('Image uploaded and inserted!');
+        if (textarea) {
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const text = formData[field] || '';
+            const newText = text.substring(0, start) + markdownImage + text.substring(end);
+            handleChange(field, newText);
+        } else {
+            handleChange(field, (formData[field] || '') + markdownImage);
+        }
+
+        setNotification({ type: 'success', msg: 'Image inserted!' });
         setTimeout(() => setNotification(null), 3000);
     };
 
@@ -83,129 +71,179 @@ export default function ContentEditor({ table, id }) {
         e.preventDefault();
         setSaving(true);
 
-        // Validate Slug
         if (!formData.slug) {
-            // Auto-generate slug from title if missing
-            const slug = formData.title
-                .toLowerCase()
-                .replace(/[^\w ]+/g, '')
-                .replace(/ +/g, '-');
-            formData.slug = slug;
+            formData.slug = (formData.title || 'untitled').toLowerCase().replace(/[^\w ]+/g, '').replace(/ +/g, '-');
         }
 
-        let result;
-        if (isNew) {
-            result = await supabase.from(table).insert([formData]).select();
-        } else {
-            result = await supabase.from(table).update(formData).eq('id', id);
-        }
-
-        const { error } = result;
+        const query = isNew ? supabase.from(table).insert([formData]).select() : supabase.from(table).update(formData).eq('id', id);
+        const { data, error } = await query;
 
         if (error) {
-            setNotification(`Error: ${error.message}`);
+            setNotification({ type: 'error', msg: error.message });
         } else {
-            setNotification('Saved successfully!');
-            if (isNew && result.data) {
-                // Redirect to edit mode to avoid duplicate inserts
-                window.location.href = `/admin/editor?table=${table}&id=${result.data[0].id}`;
+            setNotification({ type: 'success', msg: 'Saved successfully' });
+            if (isNew && data) {
+                window.location.href = `/admin/editor?table=${table}&id=${data[0].id}`;
             }
         }
         setSaving(false);
         setTimeout(() => setNotification(null), 3000);
     };
 
-    if (loading) return <div>Loading...</div>;
+    if (loading) return <div className="loading">Loading Editor...</div>;
+
+    const contentField = fields.includes('content') ? 'content' : fields.includes('intro') ? 'intro' : null;
+    const metaFields = fields.filter(f => f !== contentField);
 
     return (
-        <div className="editor-container">
-            <header className="editor-header">
-                <h1>{isNew ? 'Create' : 'Edit'} {table.slice(0, -1)}</h1>
+        <div className="editor-layout">
+            <header className="editor-topbar">
+                <div className="breadcrumb">
+                    <a href="/admin/dashboard">Dashboard</a> / <span className="current">{isNew ? 'New' : 'Edit'} {table}</span>
+                </div>
                 <div className="actions">
-                    <a href="/admin/dashboard" className="btn-cancel">Cancel</a>
-                    <button onClick={handleSave} disabled={saving} className="btn-save">
+                    <button onClick={handleSave} disabled={saving} className={`btn-save ${saving ? 'saving' : ''}`}>
                         {saving ? 'Saving...' : 'Save Changes'}
                     </button>
                 </div>
             </header>
 
-            {notification && <div className="notification">{notification}</div>}
+            {notification && (
+                <div className={`notification ${notification.type}`}>
+                    {notification.msg}
+                </div>
+            )}
 
-            <form className="editor-form">
-                {fields.map(field => (
-                    <div key={field} className="form-group">
-                        <label>{field.replace('_', ' ')}</label>
-
-                        {field === 'content' || field === 'description' || field === 'intro' ? (
-                            <div
-                                className="textarea-wrapper"
-                                onDragOver={(e) => e.preventDefault()}
-                                onDrop={(e) => handleDrop(e, field)}
-                            >
-                                <textarea
+            <div className="editor-grid">
+                {/* Left Column: Metadata */}
+                <div className="meta-pane">
+                    <h3>Details</h3>
+                    {metaFields.map(field => (
+                        <div key={field} className="form-group">
+                            <label>{field.replace('_', ' ')}</label>
+                            {field === 'published' ? (
+                                <label className="toggle-switch">
+                                    <input
+                                        type="checkbox"
+                                        checked={formData[field] || false}
+                                        onChange={e => handleChange(field, e.target.checked)}
+                                    />
+                                    <span className="slider"></span>
+                                    <span className="label-text">{formData[field] ? 'Public' : 'Draft'}</span>
+                                </label>
+                            ) : (
+                                <input
+                                    type="text"
                                     value={formData[field] || ''}
                                     onChange={e => handleChange(field, e.target.value)}
-                                    rows={field === 'content' ? 20 : 4}
-                                    placeholder={field === 'content' ? "Write your story here... (Drag & Drop images supported)" : ""}
+                                    placeholder={`Enter ${field}...`}
                                 />
-                                <span className="hint">Markdown supported. Drag & Drop images here.</span>
+                            )}
+                        </div>
+                    ))}
+                </div>
+
+                {/* Right Column: Content Editor */}
+                {contentField && (
+                    <div className="content-pane">
+                        <div
+                            className="markdown-editor"
+                            onDragOver={e => e.preventDefault()}
+                            onDrop={e => handleDrop(e, contentField)}
+                        >
+                            <div className="editor-toolbar">
+                                <span>Markdown Editor</span>
+                                <span className="hint">Drag & Drop images anywhere to upload</span>
                             </div>
-                        ) : field === 'published' ? (
-                            <div className="checkbox-wrapper">
-                                <input
-                                    type="checkbox"
-                                    checked={formData[field] || false}
-                                    onChange={e => handleChange(field, e.target.checked)}
-                                />
-                                <span>Live on Site</span>
-                            </div>
-                        ) : (
-                            <input
-                                type="text"
-                                value={formData[field] || ''}
-                                onChange={e => handleChange(field, e.target.value)}
+                            <textarea
+                                id={`field-${contentField}`}
+                                value={formData[contentField] || ''}
+                                onChange={e => handleChange(contentField, e.target.value)}
+                                placeholder="# Start writing your story..."
                             />
-                        )}
+                        </div>
                     </div>
-                ))}
-            </form>
+                )}
+            </div>
 
             <style>{`
-        .editor-container { max-width: 800px; margin: 0 auto; padding-bottom: 4rem; }
-        .editor-header {
+        .editor-layout { max-width: 1400px; margin: 0 auto; height: 90vh; display: flex; flex-direction: column; }
+        .editor-topbar {
             display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 2rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 1rem;
+            padding: 1rem 2rem; border-bottom: 1px solid var(--border-subtle);
+            background: var(--bg-color);
         }
-        .actions { display: flex; gap: 1rem; }
+        .breadcrumb a { color: var(--text-secondary); text-decoration: none; }
+        .breadcrumb .current { color: var(--text-primary); font-weight: 500; }
+        
         .btn-save {
             background: var(--text-primary); color: var(--bg-color); border: none;
-            padding: 0.75rem 1.5rem; border-radius: 4px; cursor: pointer; font-weight: 500;
+            padding: 0.6rem 1.2rem; border-radius: 4px; font-weight: 500; cursor: pointer;
+            transition: opacity 0.2s;
         }
-        .btn-cancel {
-            padding: 0.75rem 1rem; color: var(--text-secondary); text-decoration: none;
+        .btn-save:disabled { opacity: 0.7; }
+
+        .editor-grid {
+            display: grid; grid-template-columns: 350px 1fr; gap: 0; flex: 1; overflow: hidden;
         }
+        
+        .meta-pane {
+            padding: 2rem; border-right: 1px solid var(--border-subtle);
+            overflow-y: auto; background: var(--bg-surface);
+        }
+        .meta-pane h3 { margin-top: 0; font-size: 0.9rem; text-transform: uppercase; color: var(--text-tertiary); }
+        
+        .content-pane { display: flex; flex-direction: column; height: 100%; border-left: 1px solid var(--border-subtle); }
+        .markdown-editor { display: flex; flex-direction: column; height: 100%; }
+        
+        .editor-toolbar {
+            padding: 0.8rem 1.5rem; background: var(--bg-surface);
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex; justify-content: space-between; color: var(--text-secondary); font-size: 0.85rem;
+        }
+        
+        textarea {
+            flex: 1; resize: none; border: none; padding: 2rem;
+            background: var(--bg-color); color: var(--text-primary);
+            font-family: 'Menlo', monospace; font-size: 1rem; line-height: 1.7;
+            outline: none;
+        }
+        
         .form-group { margin-bottom: 1.5rem; }
-        label {
-            display: block; margin-bottom: 0.5rem; text-transform: capitalize;
-            color: var(--text-secondary); font-size: 0.9rem;
+        .form-group label { display: block; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-secondary); text-transform: capitalize; }
+        input[type="text"] {
+            width: 100%; padding: 0.6rem; background: var(--bg-color);
+            border: 1px solid var(--border-subtle); border-radius: 4px;
+            color: var(--text-primary);
         }
-        input[type="text"], textarea {
-            width: 100%; padding: 0.75rem; border: 1px solid var(--border-subtle);
-            background: var(--bg-surface); color: var(--text-primary); border-radius: 4px;
-            font-family: inherit; font-size: 1rem; box-sizing: border-box;
-        }
-        .textarea-wrapper { position: relative; }
-        .textarea-wrapper textarea { font-family: 'Menlo', 'Monaco', 'Courier New', monospace; line-height: 1.6; }
-        .is-dragging { border: 2px dashed var(--text-primary); background: rgba(0,0,0,0.05); }
-        .hint {
-            display: block; font-size: 0.8rem; color: var(--text-tertiary); margin-top: 0.5rem; text-align: right;
-        }
+        input[type="text"]:focus { border-color: var(--text-primary); outline: none; }
+
         .notification {
-            position: fixed; bottom: 2rem; right: 2rem; background: var(--text-primary);
-            color: var(--bg-color); padding: 1rem 2rem; border-radius: 4px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1); animation: slideIn 0.3s ease;
+            position: fixed; top: 1rem; left: 50%; transform: translateX(-50%);
+            padding: 0.8rem 1.5rem; border-radius: 30px; 
+            font-size: 0.9rem; font-weight: 500; z-index: 100;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
-        @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .notification.info { background: var(--text-primary); color: var(--bg-color); }
+        .notification.success { background: #10B981; color: white; }
+        .notification.error { background: #EF4444; color: white; }
+
+        /* Toggle Switch */
+        .toggle-switch { display: flex; align-items: center; position: relative; cursor: pointer; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: relative; display: inline-block; width: 40px; height: 20px;
+            background-color: var(--bg-surface-hover); border-radius: 20px; transition: .4s;
+            border: 1px solid var(--border-subtle);
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 14px; width: 14px;
+            left: 3px; bottom: 2px; background-color: var(--text-tertiary);
+            border-radius: 50%; transition: .4s;
+        }
+        input:checked + .slider { background-color: var(--text-primary); border-color: var(--text-primary); }
+        input:checked + .slider:before { transform: translateX(20px); background-color: var(--bg-color); }
+        .label-text { margin-left: 10px; font-size: 0.9rem; }
       `}</style>
         </div>
     );
