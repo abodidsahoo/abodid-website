@@ -71,7 +71,7 @@ export default function ContentEditor({ table, id }) {
         e.preventDefault();
         setSaving(true);
 
-        if (!formData.slug) {
+        if (!formData.slug && fields.includes('slug')) {
             formData.slug = (formData.title || 'untitled').toLowerCase().replace(/[^\w ]+/g, '').replace(/ +/g, '-');
         }
 
