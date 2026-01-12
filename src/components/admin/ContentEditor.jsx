@@ -5,7 +5,7 @@ export default function ContentEditor({ table, id }) {
     const isNew = id === 'new';
     const [loading, setLoading] = useState(!isNew);
     const [saving, setSaving] = useState(false);
-    const [formData, setFormData] = useState({});
+    const [formData, setFormData] = useState(isNew ? { published: true } : {});
     const [notification, setNotification] = useState(null);
 
     const SCHEMAS = {
