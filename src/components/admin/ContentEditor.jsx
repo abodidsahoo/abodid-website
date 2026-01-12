@@ -6,572 +6,559 @@ export default function ContentEditor({ table, id }) {
     const isNew = id === 'new';
     const [loading, setLoading] = useState(!isNew);
     const [saving, setSaving] = useState(false);
-    const [formData, setFormData] = useState(isNew ? { published: true } : {});
+    const [formData, setFormData] = useState(isNew ? { published: false } : {});
     const [notification, setNotification] = useState(null);
 
-    // Schema Config
+    // --- CONFIGURATION ---
     const isPhotography = table === 'photography';
     const isFilms = table === 'films';
-    const hasVisuals = isPhotography || table === 'blog' || table === 'research' || isFilms;
 
-    // Fields
-    const SCHEMAS = {
-        blog: ['title', 'slug', 'excerpt', 'content', 'cover_image', 'published_at', 'published'],
-        research: ['title', 'slug', 'description', 'content', 'link', 'repo_link', 'tags', 'image', 'sort_order', 'published'],
-        photography: ['title', 'slug', 'intro', 'content', 'category', 'cover_image', 'published'],
-        films: ['title', 'year', 'description', 'video_url', 'thumbnail_url', 'role', 'genre', 'published']
+    // Field Config
+    const FIELDS = {
+        blog: ['slug', 'excerpt', 'published_at'], // content handled separately
+        research: ['slug', 'link', 'repo_link', 'tags', 'published_at'],
+        photography: ['slug', 'category', 'intro'],
+        films: ['year', 'genre', 'role', 'video_url', 'thumbnail_url']
     };
-    const fields = SCHEMAS[table] || [];
+    const visibleFields = FIELDS[table] || [];
 
-    // Film Specific State
-    const [thumbMode, setThumbMode] = useState('upload'); // 'upload' | 'url'
-
+    // --- DATA FETCHING ---
     useEffect(() => {
         if (!isNew) fetchData();
     }, [id]);
 
     const fetchData = async () => {
-        const { data } = await supabase.from(table).select('*').eq('id', id).single();
+        const { data, error } = await supabase.from(table).select('*').eq('id', id).single();
         if (data) setFormData(data);
+        if (error) notify('error', 'Error loading data');
         setLoading(false);
     };
 
+    // --- ACTIONS ---
     const handleChange = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
-    const handleSave = async (e) => {
-        if (e) e.preventDefault();
+    const handleSave = async (publishStatus = null) => {
         setSaving(true);
+        const payload = { ...formData };
 
-        if (!formData.slug && fields.includes('slug')) {
-            formData.slug = (formData.title || 'untitled').toLowerCase().replace(/[^\w ]+/g, '').replace(/ +/g, '-');
+        // Auto-slug
+        if (!payload.slug && payload.title) {
+            payload.slug = payload.title.toLowerCase().replace(/[^\w ]+/g, '').replace(/ +/g, '-');
         }
 
-        // Strict Filter
-        const payload = {};
-        fields.forEach(field => {
-            if (formData[field] !== undefined) payload[field] = formData[field];
-        });
+        // Publish Logic
+        if (publishStatus !== null) {
+            payload.published = publishStatus;
+        }
 
-        const query = isNew ? supabase.from(table).insert([payload]).select() : supabase.from(table).update(payload).eq('id', id);
+        const query = isNew
+            ? supabase.from(table).insert([payload]).select()
+            : supabase.from(table).update(payload).eq('id', id);
+
         const { data, error } = await query;
 
         if (error) {
-            setNotification({ type: 'error', msg: error.message });
+            notify('error', error.message);
         } else {
-            setNotification({ type: 'success', msg: 'Saved successfully' });
+            const msg = publishStatus === true ? 'Published Live 🟢' : 'Draft Saved 💾';
+            notify('success', msg);
             if (isNew && data) {
                 window.location.href = `/admin/editor?table=${table}&id=${data[0].id}`;
+            } else if (!isNew) {
+                setFormData(prev => ({ ...prev, ...payload })); // Update local state specifically for published status
             }
         }
         setSaving(false);
+    };
+
+    const notify = (type, msg) => {
+        setNotification({ type, msg });
         setTimeout(() => setNotification(null), 3000);
     };
 
-    // Helper: Video Embed Parser
+    const copyLink = () => {
+        const origin = window.location.origin;
+        const link = `${origin}/${table === 'photography' ? 'photography' : table}/${formData.slug || ''}`;
+        navigator.clipboard.writeText(link);
+        notify('success', 'Preview link copied to clipboard');
+    };
+
+    // --- GALLERY LOGIC (Single Table) ---
+    const handleGalleryUpload = async (newUploads) => {
+        if (!newUploads.length) return;
+        const current = formData.gallery_images || [];
+        const newItems = newUploads.map((u, i) => ({
+            id: crypto.randomUUID(),
+            url: u.url,
+            caption: u.name,
+            sort_order: current.length + i,
+            is_vertical: false
+        }));
+        const updated = [...current, ...newItems];
+
+        handleChange('gallery_images', updated);
+        if (!isNew) {
+            await supabase.from(table).update({ gallery_images: updated }).eq('id', id);
+            notify('success', 'Photos added to gallery');
+        }
+    };
+
+    const removeGalleryItem = async (index) => {
+        const updated = [...(formData.gallery_images || [])];
+        updated.splice(index, 1);
+        handleChange('gallery_images', updated);
+        if (!isNew) {
+            await supabase.from(table).update({ gallery_images: updated }).eq('id', id);
+        }
+    };
+
+    // --- RENDER HELPERS ---
     const getVideoEmbed = (url) => {
         if (!url) return null;
-        if (url.includes('youtube.com') || url.includes('youtu.be')) {
+        if (url.includes('youtube') || url.includes('youtu.be')) {
             const id = url.split('v=')[1]?.split('&')[0] || url.split('/').pop();
             return `https://www.youtube.com/embed/${id}`;
         }
-        if (url.includes('vimeo.com')) {
-            const id = url.split('/').pop();
+        if (url.includes('vimeo')) {
+            const id = url.split('/').pop().split('?')[0];
             return `https://player.vimeo.com/video/${id}`;
         }
-        return null; // Fallback or raw video link
+        return null;
     };
 
-    const appendToContent = (text) => {
-        handleChange('content', (formData.content || '') + text);
-    };
-
-    const handleImageBatch = (files, label) => {
-        if (!files.length) return;
-        const markdown = files.map(f => `\n![${f.name}](${f.url})`).join('');
-        const section = `\n\n<!-- ${label} -->${markdown}\n`;
-        appendToContent(section);
-        setNotification({ type: 'success', msg: `Added ${files.length} images from ${label}!` });
-        setTimeout(() => setNotification(null), 2000);
-    };
-
-    // Gallery Logic (Single Table - JSON Column)
-    const handleGalleryUpload = async (newUploads) => {
-        if (!newUploads.length) return;
-
-        const currentGallery = formData.gallery_images || [];
-        const newItems = newUploads.map((u, i) => ({
-            id: crypto.randomUUID(), // Local unique ID for list keys
-            url: u.url,
-            caption: u.name,
-            sort_order: currentGallery.length + i,
-            is_vertical: false
-        }));
-
-        const updatedGallery = [...currentGallery, ...newItems];
-
-        // 1. Update UI state immediately
-        handleChange('gallery_images', updatedGallery);
-
-        // 2. Auto-save to DB to persist this change
-        if (!isNew) {
-            const { error } = await supabase
-                .from('photography')
-                .update({ gallery_images: updatedGallery })
-                .eq('id', id);
-
-            if (error) {
-                setNotification({ type: 'error', msg: 'Failed to save gallery: ' + error.message });
-            } else {
-                setNotification({ type: 'success', msg: 'Photos added to story!' });
-            }
-        }
-    };
-
-    const handleDeletePhoto = async (photoIndex) => {
-        const updatedGallery = [...(formData.gallery_images || [])];
-        updatedGallery.splice(photoIndex, 1);
-
-        handleChange('gallery_images', updatedGallery);
-
-        if (!isNew) {
-            await supabase
-                .from('photography')
-                .update({ gallery_images: updatedGallery })
-                .eq('id', id);
-        }
-    };
-
-    if (loading) return <div className="loading">Loading Studio...</div>;
-
-    const contentField = fields.includes('content') ? 'content' : fields.includes('description') ? 'description' : null;
-    const introField = fields.includes('intro') ? 'intro' : null;
+    if (loading) return <div className="loading-screen">Loading Record...</div>;
 
     return (
-        <div className="studio-layout">
-            {/* ZONE A: HEADER & ACTIONS */}
-            <header className="studio-topbar">
-                <div className="breadcrumb">
-                    <a href="/admin/dashboard">Dashboard</a> / <span className="current">{isNew ? 'New' : 'Edit'} {table}</span>
+        <div className="cms-shell">
+            {/* 1. SIDEBAR */}
+            <aside className="cms-sidebar">
+                <div className="brand">
+                    <a href="/admin/dashboard">← Dashboard</a>
                 </div>
-                <div className="actions">
-                    <button onClick={() => handleSave()} disabled={saving} className={`btn-save ${saving ? 'saving' : ''}`}>
-                        {saving ? 'Publish Changes' : 'Publish Changes'}
-                    </button>
+
+                <div className="meta-block">
+                    <label>Status</label>
+                    <div className={`status-badge ${formData.published ? 'live' : 'draft'}`}>
+                        {formData.published ? 'LIVE' : 'DRAFT'}
+                    </div>
                 </div>
-            </header>
 
-            {notification && (
-                <div className={`notification ${notification.type}`}>
-                    {notification.msg}
+                <div className="meta-block">
+                    <label>ID</label>
+                    <div className="id-hash">{id === 'new' ? 'Creating...' : id.slice(0, 8)}</div>
                 </div>
-            )}
 
-            <div className="studio-grid">
+                <nav className="local-nav">
+                    <a href="#section-main">Main Info</a>
+                    {(isFilms || isPhotography) && <a href="#section-media">Media Assets</a>}
+                    {!isFilms && <a href="#section-content">{table === 'photography' ? 'Story' : 'Content'}</a>}
+                </nav>
+            </aside>
 
-                {/* ZONE B: VISUAL ASSETS (Left Panel) */}
-                {hasVisuals && (
-                    <div className="visual-tray">
+            {/* 2. MAIN CONTEXT */}
+            <main className="cms-main">
+                {/* ACTION BAR */}
+                <header className="cms-actions">
+                    <div className="context-title">{table} / {formData.slug || 'Untitled'}</div>
+                    <div className="btn-group">
+                        <button className="btn sec" onClick={copyLink}>Copy Link</button>
+                        <button className="btn sec" onClick={() => handleSave(false)} disabled={saving}>Save Draft</button>
+                        <button className="btn pri" onClick={() => handleSave(true)} disabled={saving}>
+                            {saving ? 'Publishing...' : 'Publish'}
+                        </button>
+                    </div>
+                </header>
 
-                        {/* --- FILM SPECIFIC UI --- */}
-                        {isFilms && (
-                            <>
-                                {/* 1. Video Input & Preview */}
-                                <div className="tray-section">
-                                    <h4>Primary Video</h4>
-                                    <input
-                                        type="text"
-                                        className="std-input"
-                                        placeholder="Paste YouTube or Vimeo URL..."
-                                        value={formData.video_url || ''}
-                                        onChange={e => handleChange('video_url', e.target.value)}
-                                    />
-                                    {formData.video_url && (
-                                        <div className="video-preview-box">
-                                            {getVideoEmbed(formData.video_url) ? (
-                                                <iframe src={getVideoEmbed(formData.video_url)} frameBorder="0" allowFullScreen></iframe>
-                                            ) : (
-                                                <div className="vid-placeholder">Invalid Video URL</div>
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
+                {/* CANVAS */}
+                <div className="cms-canvas">
+                    {notification && (
+                        <div className={`toast ${notification.type}`}>{notification.msg}</div>
+                    )}
 
-                                {/* 2. Thumbnail (Dual Mode) */}
-                                <div className="tray-section">
-                                    <div className="section-head">
-                                        <h4>Thumbnail</h4>
-                                        <div className="mode-toggle">
-                                            <span onClick={() => setThumbMode('upload')} className={thumbMode === 'upload' ? 'active' : ''}>Upload</span>
-                                            <span onClick={() => setThumbMode('url')} className={thumbMode === 'url' ? 'active' : ''}>URL</span>
-                                        </div>
+                    <div className="model-card">
+                        {/* 1. HEADER / METADATA */}
+                        <section className="card-section meta-section">
+                            <div className="field-group full-width">
+                                <label>Title</label>
+                                <input
+                                    type="text"
+                                    className="box-input large"
+                                    placeholder="Enter Title..."
+                                    value={formData.title || ''}
+                                    onChange={e => handleChange('title', e.target.value)}
+                                />
+                            </div>
+
+                            <div className="meta-grid">
+                                {visibleFields.map(field => (
+                                    <div key={field} className="field-group">
+                                        <label>{field.replace('_', ' ')}</label>
+                                        <input
+                                            type="text"
+                                            className="box-input"
+                                            value={formData[field] || ''}
+                                            onChange={e => handleChange(field, e.target.value)}
+                                            placeholder="—"
+                                        />
                                     </div>
+                                ))}
+                                {(isPhotography || isFilms) && (
+                                    <div className="field-group full-width">
+                                        <label>{isFilms ? 'Logline' : 'Intro'}</label>
+                                        <input
+                                            type="text"
+                                            className="box-input"
+                                            placeholder={isFilms ? "Short description..." : "Brief introduction..."}
+                                            value={isFilms ? formData.description : formData.intro || ''}
+                                            onChange={e => handleChange(isFilms ? 'description' : 'intro', e.target.value)}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        </section>
 
-                                    {thumbMode === 'upload' ? (
-                                        <div className="cover-slot">
-                                            {formData.thumbnail_url ? (
-                                                <div className="cover-preview" onClick={() => handleChange('thumbnail_url', '')}>
-                                                    <img src={formData.thumbnail_url} alt="Thumb" />
-                                                    <div className="overlay">Remove</div>
-                                                </div>
-                                            ) : (
-                                                <ImageUploader
-                                                    bucket="films"
-                                                    path="thumbnails"
-                                                    label="Upload Thumbnail"
-                                                    onUpload={(files) => handleChange('thumbnail_url', files[0].url)}
-                                                />
-                                            )}
-                                        </div>
-                                    ) : (
-                                        <div className="url-input-mode">
-                                            <input
-                                                type="text"
-                                                className="std-input"
-                                                placeholder="https://example.com/image.jpg"
-                                                value={formData.thumbnail_url || ''}
-                                                onChange={e => handleChange('thumbnail_url', e.target.value)}
-                                            />
-                                            {formData.thumbnail_url && (
-                                                <div className="mini-preview">
-                                                    <img src={formData.thumbnail_url} alt="Preview" />
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
-                            </>
-                        )}
-
-
-                        {/* --- STANDARD COVER IMAGE (Non-Films) --- */}
-                        {!isFilms && (
-                            <div className="tray-section">
-                                <h4>Cover Image</h4>
-                                <div className="cover-slot">
-                                    {formData.cover_image || (table === 'research' && formData.image) ? (
-                                        <div className="cover-preview" onClick={() => handleChange(table === 'research' ? 'image' : 'cover_image', '')}>
-                                            <img src={formData.cover_image || formData.image} alt="Cover" />
-                                            <div className="overlay">Remove</div>
+                        {/* 2. COVER IMAGE */}
+                        <section className="card-section media-row">
+                            <div className="media-col">
+                                <label className="section-label">{isFilms ? 'Thumbnail' : 'Cover Image'}</label>
+                                <div className="fixed-uploader cover-uploader">
+                                    {(formData.cover_image || formData.thumbnail_url || (table === 'research' && formData.image)) ? (
+                                        <div className="preview-fit">
+                                            <img src={formData.cover_image || formData.thumbnail_url || formData.image} alt="Cover" />
+                                            <button className="btn-mini-remove" onClick={() => handleChange(
+                                                isFilms ? 'thumbnail_url' : table === 'research' ? 'image' : 'cover_image',
+                                                ''
+                                            )}>Replace</button>
                                         </div>
                                     ) : (
                                         <ImageUploader
                                             bucket={table}
-                                            path={`${table}/covers`}
-                                            label="Upload Cover"
-                                            onUpload={(files) => handleChange(table === 'research' ? 'image' : 'cover_image', files[0].url)}
+                                            path={isFilms ? 'thumbnails' : 'covers'}
+                                            label="+"
+                                            onUpload={files => handleChange(
+                                                isFilms ? 'thumbnail_url' : table === 'research' ? 'image' : 'cover_image',
+                                                files[0].url
+                                            )}
                                         />
                                     )}
                                 </div>
-                            </div>
-                        )}
-
-                        {/* GALLERY MANAGER (Photography) */}
-                        {isPhotography && (
-                            <div className="tray-section">
-                                <h4>Gallery Photos</h4>
-                                {!isNew ? (
-                                    <div className="gallery-manager">
-                                        <div className="gallery-grid">
-                                            {(formData.gallery_images || []).map((photo, index) => (
-                                                <div key={photo.id || index} className="gallery-thumb">
-                                                    <img src={photo.url} alt="Gallery" />
-                                                    <button className="btn-del" onClick={() => handleDeletePhoto(index)}>×</button>
-                                                </div>
-                                            ))}
-                                        </div>
-                                        <ImageUploader
-                                            bucket="photography"
-                                            path={`stories/${id}`}
-                                            multiple={true}
-                                            label="+ Add Photos"
-                                            onUpload={handleGalleryUpload}
-                                        />
-                                    </div>
-                                ) : (
-                                    <div className="info-box">Save the story first to add gallery photos.</div>
+                                {isFilms && (
+                                    <input
+                                        type="text"
+                                        className="box-input small-mt"
+                                        placeholder="Or paste URL..."
+                                        value={formData.thumbnail_url || ''}
+                                        onChange={e => handleChange('thumbnail_url', e.target.value)}
+                                    />
                                 )}
                             </div>
-                        )}
 
-                        {/* STACKS (Blog/Research) */}
-                        {!isPhotography && !isFilms && (
-                            <div className="tray-section">
-                                <h4>Asset Stacks</h4>
-                                <div className="stack-list">
-                                    <StackBox label="Set 1" bucket={table} path={`${table}/set1`} onInsert={(files) => handleImageBatch(files, 'Set 1')} />
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Metadata Form */}
-                        <div className="tray-section">
-                            <h4>Metadata</h4>
-                            {fields
-                                .filter(f => !['content', 'description', 'intro', 'cover_image', 'image', 'video_url', 'thumbnail_url'].includes(f))
-                                .map(field => (
-                                    <div key={field} className="mini-form-group">
-                                        <label>
-                                            {field === 'genre' ? 'Kind of Project' :
-                                                field === 'role' ? 'My Role' :
-                                                    field.replace('_', ' ')}
-                                        </label>
-
-                                        {field === 'published' ? (
-                                            <div className="toggle-wrapper" onClick={() => handleChange(field, !formData[field])}>
-                                                <div className={`toggle ${formData[field] ? 'on' : 'off'}`}></div>
-                                                <span>{formData[field] ? 'Live' : 'Draft'}</span>
+                            {/* VIDEO (Films Only) */}
+                            {isFilms && (
+                                <div className="media-col">
+                                    <label className="section-label">Primary Video</label>
+                                    <div className="fixed-uploader video-uploader">
+                                        {formData.video_url && getVideoEmbed(formData.video_url) ? (
+                                            <div className="preview-fit">
+                                                <iframe src={getVideoEmbed(formData.video_url)} frameBorder="0" allowFullScreen></iframe>
+                                                <button className="btn-mini-remove" onClick={() => handleChange('video_url', '')}>Remove</button>
                                             </div>
                                         ) : (
-                                            <input
-                                                type="text"
-                                                value={formData[field] || ''}
-                                                onChange={e => handleChange(field, e.target.value)}
-                                                placeholder="..."
-                                            />
+                                            <div className="url-input-container">
+                                                <input
+                                                    type="text"
+                                                    className="box-input"
+                                                    placeholder="Paste YouTube/Vimeo..."
+                                                    value={formData.video_url || ''}
+                                                    onChange={e => handleChange('video_url', e.target.value)}
+                                                />
+                                            </div>
                                         )}
                                     </div>
-                                ))
-                            }
-                        </div>
+                                </div>
+                            )}
+                        </section>
+
+                        {/* 3. GALLERY (Photography Only) */}
+                        {isPhotography && (
+                            <section className="card-section">
+                                <label className="section-label">Gallery Stream</label>
+                                <div className="gallery-container">
+                                    {/* The Existing Photos */}
+                                    <div className="gallery-stream">
+                                        {(formData.gallery_images || []).map((img, idx) => (
+                                            <div key={idx} className="stream-item">
+                                                <img src={img.url} />
+                                                <div className="item-overlay">
+                                                    <button onClick={() => removeGalleryItem(idx)}>×</button>
+                                                </div>
+                                            </div>
+                                        ))}
+
+                                        {/* The Uploader Button - Last in grid */}
+                                        <div className="stream-uploader">
+                                            <ImageUploader
+                                                bucket="photography"
+                                                path={`stories/${id}`}
+                                                multiple={true}
+                                                label="Add Photos"
+                                                onUpload={handleGalleryUpload}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+                        )}
+
+                        {/* 4. CONTENT BODY */}
+                        {!isFilms && (
+                            <section className="card-section">
+                                <label className="section-label">Content Body</label>
+                                <textarea
+                                    className="box-input content-area"
+                                    value={formData.content || ''}
+                                    onChange={e => handleChange('content', e.target.value)}
+                                    placeholder="Write your story here..."
+                                />
+                            </section>
+                        )}
                     </div>
-                )}
-
-                {/* ZONE C: MAIN EDITOR (Canvas) */}
-                <div className="canvas-area">
-                    <input
-                        type="text"
-                        className="canvas-title"
-                        placeholder={isFilms ? "Film Title" : "Title"}
-                        value={formData.title || ''}
-                        onChange={e => handleChange('title', e.target.value)}
-                    />
-
-                    {introField && (
-                        <textarea
-                            className="canvas-intro"
-                            placeholder="Write a short introduction..."
-                            value={formData.intro || ''}
-                            onChange={e => handleChange('intro', e.target.value)}
-                        />
-                    )}
-
-                    {/* Editor for Text Content (or Description for Films) */}
-                    {contentField && (
-                        <>
-                            {!isFilms && <Toolbar onInsert={appendToContent} />}
-                            <textarea
-                                className="canvas-editor"
-                                value={formData[contentField] || ''}
-                                onChange={e => handleChange(contentField, e.target.value)}
-                                placeholder={isFilms ? "Write a brief description..." : "# Write your story here..."}
-                                style={isFilms ? { minHeight: '200px', fontSize: '1rem' } : {}}
-                            />
-                        </>
-                    )}
                 </div>
-            </div>
+            </main>
 
+            {/* STYLES */}
             <style>{`
-                .studio-layout { height: 100vh; display: flex; flex-direction: column; background: var(--bg-color); }
-                .studio-topbar {
-                    display: flex; justify-content: space-between; align-items: center;
-                    padding: 0.8rem 1.5rem; border-bottom: 1px solid var(--border-subtle);
-                    background: var(--bg-surface);
-                    height: 60px;
+                :root {
+                    --c-bg: #050505;
+                    --c-card-bg: #111;
+                    --c-input-bg: #161616;
+                    --c-border: #2a2a2a;
+                    --c-text: #e5e5e5;
+                    --c-text-dim: #666;
+                    --c-accent: #fff;
+                    --font-mono: 'Menlo', 'Monaco', monospace;
+                    --font-sans: 'Inter', system-ui, sans-serif;
                 }
-                .btn-save {
-                    background: var(--text-primary); color: var(--bg-color); border: none;
-                    padding: 0.5rem 1.2rem; border-radius: 4px; font-weight: 500; cursor: pointer;
-                }
-                .studio-grid { display: flex; flex: 1; overflow: hidden; }
 
-                /* ZONE B: TRAY */
-                .visual-tray {
-                    width: 380px;
-                    border-right: 1px solid var(--border-subtle);
-                    background: var(--bg-surface);
-                    overflow-y: auto;
-                    display: flex; flex-direction: column;
+                .cms-shell {
+                    display: flex;
+                    height: 100vh;
+                    background: var(--c-bg);
+                    color: var(--c-text);
+                    font-family: var(--font-sans);
+                    overflow: hidden;
                 }
-                .tray-section { padding: 1.5rem; border-bottom: 1px solid var(--border-subtle); }
-                .tray-section h4 { 
-                    margin: 0 0 1rem 0; font-size: 0.75rem; text-transform: uppercase; 
-                    letter-spacing: 0.1em; color: var(--text-tertiary); 
+
+                /* SIDEBAR */
+                .cms-sidebar {
+                    width: 250px;
+                    flex-shrink: 0;
+                    border-right: 1px solid var(--c-border);
+                    padding: 1.5rem;
+                    display: flex; flex-direction: column; gap: 1.5rem;
+                    background: var(--c-bg);
+                }
+                .brand a { 
+                    color: var(--c-text-dim); text-decoration: none; font-size: 0.8rem; 
+                    text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 8px;
+                }
+                .brand a:hover { color: var(--c-text); }
+                
+                .meta-block label {
+                    display: block; font-size: 0.65rem; color: var(--c-text-dim);
+                    text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem;
+                }
+                .status-badge {
+                    display: inline-block; padding: 3px 6px; border-radius: 3px;
+                    font-size: 0.65rem; font-weight: 600; text-transform: uppercase;
+                }
+                .status-badge.live { background: #0f291e; color: #4ade80; border: 1px solid #14532d; }
+                .status-badge.draft { background: #1a1a1a; color: #888; border: 1px solid #333; }
+                
+                .id-hash { font-family: var(--font-mono); font-size: 0.75rem; color: var(--c-text-dim); }
+
+                .local-nav { display: flex; flex-direction: column; gap: 0.6rem; margin-top: auto; }
+                .local-nav a { 
+                    color: var(--c-text-dim); text-decoration: none; font-size: 0.8rem; 
+                    transition: 0.2s;
+                }
+                .local-nav a:hover { color: var(--c-text); transform: translateX(4px); }
+
+                /* MAIN */
+                .cms-main { flex: 1; display: flex; flex-direction: column; min-width: 0; position: relative; }
+
+                .cms-actions {
+                    height: 56px; border-bottom: 1px solid var(--c-border);
+                    display: flex; align-items: center; justify-content: space-between;
+                    padding: 0 2rem;
+                    background: rgba(5,5,5,0.9); backdrop-filter: blur(10px);
+                    position: sticky; top: 0; z-index: 50;
+                }
+                .context-title {
+                    font-family: var(--font-mono); font-size: 0.75rem; color: var(--c-text-dim);
+                    text-transform: uppercase;
+                }
+                .btn-group { display: flex; gap: 0.8rem; }
+                .btn {
+                    height: 28px; padding: 0 1rem;
+                    font-size: 0.75rem; font-weight: 500; cursor: pointer;
+                    border-radius: 3px; transition: 0.2s;
+                    display: flex; align-items: center; justify-content: center;
+                }
+                .btn.sec { 
+                    background: transparent; border: 1px solid var(--c-border); color: var(--c-text-dim); 
+                }
+                .btn.sec:hover { border-color: var(--c-text); color: var(--c-text); }
+                .btn.pri {
+                    background: var(--c-text); color: var(--c-bg); border: none; font-weight: 600;
+                }
+                .btn.pri:hover { background: #ccc; }
+
+                /* CANVAS - THE MODEL CARD */
+                .cms-canvas {
+                    flex: 1; overflow-y: auto;
+                    padding: 3rem;
+                    display: flex; justify-content: center;
+                }
+
+                .model-card {
+                    width: 100%; max-width: 800px;
+                    display: flex; flex-direction: column; gap: 3rem;
+                }
+
+                .card-section {
+                    display: flex; flex-direction: column; gap: 1.2rem;
+                }
+
+                .section-label {
+                    font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; 
+                    color: var(--c-text-dim); font-weight: 500; padding-left: 2px;
+                }
+
+                /* INPUTS & BOXES */
+                .field-group { display: flex; flex-direction: column; gap: 0.4rem; }
+                .field-group label {
+                    font-size: 0.65rem; color: var(--c-text-dim); text-transform: uppercase;
                 }
                 
-                .std-input {
-                    width: 100%; padding: 0.6rem; border: 1px solid var(--border-subtle);
-                    border-radius: 4px; background: var(--bg-color); color: var(--text-primary);
-                    font-size: 0.9rem;
+                .box-input {
+                    background: var(--c-input-bg);
+                    border: 1px solid var(--c-border);
+                    border-radius: 4px;
+                    padding: 0.7rem 0.9rem;
+                    color: var(--c-text);
+                    font-size: 0.85rem;
+                    width: 100%;
+                    outline: none; transition: 0.15s;
+                    font-family: var(--font-sans);
+                }
+                .box-input:focus { border-color: #555; background: #1d1d1d; }
+                .box-input::placeholder { color: #333; }
+                
+                .box-input.large { 
+                    font-size: 1.1rem; font-weight: 600; padding: 0.9rem 1rem; 
+                    background: var(--c-bg);
+                }
+                .box-input.content-area { 
+                    min-height: 400px; line-height: 1.6; font-family: var(--font-mono); resize: vertical; 
+                    font-size: 0.8rem;
+                }
+                .box-input.small-mt { margin-top: 0.6rem; font-size: 0.75rem; padding: 0.6rem; }
+
+                .meta-grid {
+                    display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem;
+                }
+                .full-width { grid-column: span 2; }
+
+                /* MEDIA ROW */
+                .media-row {
+                    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem;
+                    padding-bottom: 2rem; border-bottom: 1px dashed var(--c-border);
+                }
+                .media-col { display: flex; flex-direction: column; gap: 0.5rem; }
+
+                .fixed-uploader {
+                    width: 100%; aspect-ratio: 16/9;
+                    background: var(--c-input-bg);
+                    border: 1px solid var(--c-border); /* Solid clean line as requested */
+                    border-radius: 4px;
+                    overflow: hidden;
+                    position: relative;
+                    transition: border-color 0.2s;
+                }
+                .fixed-uploader:hover { border-color: #555; }
+
+                .preview-fit { width: 100%; height: 100%; position: relative; }
+                .preview-fit img, .preview-fit iframe { width: 100%; height: 100%; object-fit: cover; }
+                
+                .btn-mini-remove {
+                    position: absolute; top: 8px; right: 8px;
+                    background: rgba(0,0,0,0.7); color: white;
+                    border: 1px solid rgba(255,255,255,0.1);
+                    padding: 3px 8px; font-size: 0.65rem; border-radius: 3px;
+                    cursor: pointer; backdrop-filter: blur(4px);
+                }
+                .btn-mini-remove:hover { background: rgba(0,0,0,0.9); border-color: rgba(255,255,255,0.3); }
+
+                .url-input-container {
+                    display: flex; align-items: center; justify-content: center; height: 100%; padding: 1.5rem;
+                }
+
+                /* GALLERY STREAM */
+                .gallery-container {
+                    background: var(--c-input-bg);
+                    border: 1px solid var(--c-border);
+                    border-radius: 4px;
+                    padding: 1.2rem;
                 }
                 
-                .video-preview-box {
-                    margin-top: 1rem; aspect-ratio: 16/9; background: black; border-radius: 4px; overflow: hidden;
-                }
-                .video-preview-box iframe { width: 100%; height: 100%; }
-                .vid-placeholder { 
-                    width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; 
-                    color: #666; font-size: 0.8rem; 
-                }
-
-                .section-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-                .mode-toggle { display: flex; gap: 10px; font-size: 0.8rem; }
-                .mode-toggle span { cursor: pointer; opacity: 0.5; border-bottom: 1px solid transparent; }
-                .mode-toggle span.active { opacity: 1; border-bottom: 1px solid var(--text-primary); font-weight: 500; }
-
-                .cover-preview {
-                    aspect-ratio: 16/9; border-radius: 6px; overflow: hidden; position: relative; cursor: pointer;
-                }
-                .cover-preview img { width: 100%; height: 100%; object-fit: cover; }
-                .cover-preview:hover .overlay { opacity: 1; }
-                .overlay {
-                    position: absolute; inset: 0; background: rgba(0,0,0,0.5); color: white;
-                    display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.2s;
+                .gallery-stream {
+                    display: flex; flex-wrap: wrap; gap: 12px;
                 }
                 
-                .mini-preview { margin-top: 0.5rem; width: 100px; height: 60px; border-radius: 4px; overflow: hidden; }
-                .mini-preview img { width: 100%; height: 100%; object-fit: cover; }
-
-                .gallery-grid {
-                    display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-bottom: 1rem;
+                .stream-item {
+                    width: 100px; height: 100px; position: relative;
+                    border-radius: 3px; overflow: hidden;
+                    border: 1px solid var(--c-border);
                 }
-                .gallery-thumb { position: relative; aspect-ratio: 1; }
-                .gallery-thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 4px; }
-                .btn-del {
-                    position: absolute; top: 2px; right: 2px; width: 18px; height: 18px;
-                    background: rgba(0,0,0,0.7); color: white; border: none; border-radius: 50%;
-                    font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center;
-                }
-
-                .stack-list { display: flex; flex-direction: column; gap: 1rem; }
-                .info-box { font-size: 0.85rem; color: var(--text-secondary); font-style: italic; }
-
-                /* ZONE C: CANVAS */
-                .canvas-area {
-                    flex: 1;
-                    padding: 3rem 4rem;
-                    display: flex; flex-direction: column;
-                    overflow-y: auto;
-                    max-width: 900px; /* Reading width */
-                    margin: 0 auto;
-                }
-                .canvas-title {
-                    font-size: 2.5rem; border: none; background: transparent;
-                    font-family: var(--font-serif); font-weight: 600;
-                    margin-bottom: 1rem; color: var(--text-primary);
-                    outline: none;
-                }
-                .canvas-intro {
-                    font-size: 1.25rem; border: none; background: transparent;
-                    font-family: var(--font-serif); color: var(--text-secondary);
-                    outline: none; resize: none; min-height: 80px; margin-bottom: 2rem;
-                }
+                .stream-item img { width: 100%; height: 100%; object-fit: cover; }
                 
-                /* Toolbar */
-                .toolbar {
-                    display: flex; gap: 0.5rem; margin-bottom: 1rem;
-                    padding: 0.5rem; border: 1px solid var(--border-subtle);
-                    border-radius: 6px; background: var(--bg-surface);
-                    position: sticky; top: 0;
+                .item-overlay {
+                    position: absolute; inset: 0; background: rgba(0,0,0,0.4);
+                    opacity: 0; transition: 0.15s; display: flex; align-items: center; justify-content: center;
                 }
-                .tool-btn {
-                    background: none; border: none; padding: 0.4rem 0.8rem;
-                    cursor: pointer; font-size: 0.9rem; border-radius: 4px;
-                    color: var(--text-secondary); font-weight: 500;
-                }
-                .tool-btn:hover { background: var(--bg-surface-hover); color: var(--text-primary); }
-                
-                .canvas-editor {
-                    flex: 1; resize: none; border: none; background: transparent;
-                    font-family: 'Menlo', monospace; font-size: 1rem; line-height: 1.8;
-                    color: var(--text-primary); outline: none; min-height: 500px;
+                .stream-item:hover .item-overlay { opacity: 1; }
+                .item-overlay button {
+                    background: #ff4444; color: white; border: none;
+                    width: 20px; height: 20px; border-radius: 50%; cursor: pointer;
+                    display: flex; align-items: center; justify-content: center; font-size: 14px;
                 }
 
-                /* Mini Forms */
-                .mini-form-group { margin-bottom: 1rem; }
-                .mini-form-group label { display: block; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.3rem; }
-                .mini-form-group input { 
-                    width: 100%; padding: 0.5rem; background: var(--bg-color); border: 1px solid var(--border-subtle);
-                    border-radius: 4px; color: var(--text-primary);
+                .stream-uploader {
+                    width: 100px; height: 100px;
+                    border: 1px dashed var(--c-border);
+                    border-radius: 3px;
+                    display: flex; align-items: center; justify-content: center;
+                    transition: 0.2s;
                 }
-                
-                .toggle-wrapper { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; }
-                .toggle {
-                    width: 32px; height: 18px; background: var(--border-subtle); border-radius: 9px; position: relative; transition: 0.3s;
-                }
-                .toggle.on { background: var(--text-primary); }
-                .toggle::after {
-                    content: ''; position: absolute; left: 2px; top: 2px; width: 14px; height: 14px;
-                    background: white; border-radius: 50%; transition: 0.3s;
-                }
-                .toggle.on::after { transform: translateX(14px); }
+                .stream-uploader:hover { border-color: #555; background: #222; }
 
-                .notification {
-                    position: fixed; top: 1rem; left: 50%; transform: translateX(-50%);
-                    padding: 0.8rem 1.5rem; border-radius: 30px; 
-                    font-size: 0.85rem; z-index: 1000; color: white;
+                .toast {
+                    position: fixed; bottom: 2rem; right: 2rem;
+                    padding: 0.7rem 1.2rem; border-radius: 4px;
+                    color: white; font-size: 0.8rem; z-index: 100;
+                    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+                    font-weight: 500;
                 }
-                .notification.success { background: #10B981; }
-                .notification.error { background: #EF4444; }
+                .toast.success { background: #1a4d2e; border: 1px solid #14532d; }
+                .toast.error { background: #7f1d1d; border: 1px solid #7f1d1d; }
+
             `}</style>
         </div>
     );
 }
 
-function Toolbar({ onInsert }) {
-    return (
-        <div className="toolbar">
-            <button className="tool-btn" onClick={() => onInsert('**bold** ')} title="Bold">B</button>
-            <button className="tool-btn" onClick={() => onInsert('*italic* ')} title="Italic">I</button>
-            <button className="tool-btn" onClick={() => onInsert('\n# Heading 1\n')} title="Heading 1">H1</button>
-            <button className="tool-btn" onClick={() => onInsert('\n## Heading 2\n')} title="Heading 2">H2</button>
-            <button className="tool-btn" onClick={() => onInsert('\n> ')} title="Quote">❞</button>
-            <button className="tool-btn" onClick={() => onInsert('[]()')} title="Link">🔗</button>
-            <button className="tool-btn" onClick={() => onInsert('\n```\ncode\n```\n')} title="Code">{'</>'}</button>
-            <button className="tool-btn" onClick={() => onInsert('\n---\n')} title="Divider">HR</button>
-        </div>
-    );
-}
-
-function StackBox({ label, bucket, path, onInsert }) {
-    const [files, setFiles] = useState([]);
-
-    const handleUpload = (newFiles) => {
-        setFiles(prev => [...prev, ...newFiles]);
-    };
-
-    return (
-        <div className="stack-box">
-            <div className="stack-header">
-                <span>{label}</span>
-                {files.length > 0 && (
-                    <button className="btn-insert" onClick={() => onInsert(files)}>
-                        Insert All ({files.length})
-                    </button>
-                )}
-            </div>
-            <ImageUploader
-                bucket={bucket}
-                path={path}
-                multiple={true}
-                onUpload={handleUpload}
-                label="+"
-            />
-            <style>{`
-                .stack-box { margin-bottom: 0.5rem; }
-                .stack-header { 
-                    display: flex; justify-content: space-between; align-items: center; 
-                    margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);
-                }
-                .btn-insert {
-                    background: none; border: 1px solid var(--border-subtle);
-                    font-size: 0.7rem; padding: 2px 6px; border-radius: 4px;
-                    cursor: pointer; color: var(--text-primary);
-                }
-                .btn-insert:hover { background: var(--bg-surface-hover); }
-            `}</style>
-        </div>
-    );
-}
+// Minimal placeholder for the ImageUploader if specific styling is needed externally
+// But we assume the existing ImageUploader component works generally well.
