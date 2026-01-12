@@ -179,31 +179,43 @@ function DashboardCard({ title, count, onCheck, onCreate }) {
 function ListView({ table }) {
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [errorMsg, setErrorMsg] = useState(null);
 
     useEffect(() => {
         fetchItems();
     }, [table]);
 
     const fetchItems = async () => {
-        const { data, error } = await supabase
-            .from(table)
-            .select('*')
-            .order('created_at', { ascending: false });
-        if (data) setItems(data);
-        setLoading(false);
+        try {
+            setLoading(true);
+            const { data, error } = await supabase
+                .from(table)
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+            setItems(data || []);
+        } catch (err) {
+            console.error('Error fetching items:', err);
+            setErrorMsg(err.message);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleDelete = async (id) => {
         if (!window.confirm('Are you sure you want to delete this item?')) return;
         const { error } = await supabase.from(table).delete().eq('id', id);
         if (!error) fetchItems(); // Refresh
+        else alert('Error deleting: ' + error.message);
     };
 
-    if (loading) return <div>Loading...</div>;
+    if (loading) return <div style={{ color: '#666' }}>Loading list...</div>;
+    if (errorMsg) return <div style={{ color: '#ef4444' }}>Error loading items: {errorMsg}</div>;
 
     return (
         <div className="list-container">
-            <h3 style={{ fontSize: '1.5rem', fontWeight: 300, marginBottom: '2rem' }}>All {table}</h3>
+            <h3 style={{ fontSize: '1.5rem', fontWeight: 300, marginBottom: '2rem', color: '#fff' }}>All {table}</h3>
             {items.length === 0 ? (
                 <p style={{ color: '#666' }}>No items found.</p>
             ) : (
@@ -232,6 +244,9 @@ function ListView({ table }) {
                     </tbody>
                 </table>
             )}
+            <style>{`
+                @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+            `}</style>
         </div>
     );
 }
