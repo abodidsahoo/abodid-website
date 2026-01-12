@@ -533,7 +533,7 @@ export default function ContentEditor({ table, id }) {
 
                 /* UPLOADERS - Clean Unification */
                 /* 1. The Cover Uploader Box configuration */
-                :global(.cover-uploader-box) {
+                .cover-uploader-box {
                     width: 240px !important; aspect-ratio: 16/9;
                     background: var(--c-input-bg);
                     border: 1px solid var(--c-border) !important;
@@ -541,11 +541,11 @@ export default function ContentEditor({ table, id }) {
                     padding: 0 !important;
                     min-height: 0 !important; /* Override ImageUploader default */
                 }
-                :global(.cover-uploader-box:hover) { border-color: #555 !important; }
-                :global(.cover-uploader-box .empty-state) { padding: 0 !important; }
-                :global(.cover-uploader-box .icon) { font-size: 1.2rem; margin-bottom: 0.5rem; }
-                :global(.cover-uploader-box p) { font-size: 0.75rem; color: #666; margin: 0; }
-                :global(.cover-uploader-box .btn-upload) { display: none; /* Hide default button, dragging is enough or click whole box */ }
+                .cover-uploader-box:hover { border-color: #555 !important; }
+                .cover-uploader-box .empty-state { padding: 0 !important; }
+                .cover-uploader-box .icon { font-size: 1.2rem; margin-bottom: 0.5rem; }
+                .cover-uploader-box p { font-size: 0.75rem; color: #666; margin: 0; }
+                .cover-uploader-box .btn-upload { display: none; /* Hide default button, dragging is enough or click whole box */ }
                 
                 /* When preview is live (not using Uploader component but the preview div) */
                 .cover-wrapper-small.preview-active {
@@ -594,36 +594,36 @@ export default function ContentEditor({ table, id }) {
                 
                 /* Stream Uploader Tile */
                 .stream-action-tile { width: 100px; height: 100px; }
-                :global(.stream-uploader-inner) {
+                .stream-uploader-inner {
                     width: 100%; height: 100%;
                     border: 1px dashed var(--c-border) !important;
                     border-radius: 3px; background: #111;
                     padding: 0 !important; min-height: 0 !important;
                     display: flex; align-items: center; justify-content: center;
                 }
-                :global(.stream-uploader-inner:hover) { border-color: #666 !important; background: #1a1a1a; }
-                :global(.stream-uploader-inner .empty-state) { padding: 0 !important; }
-                :global(.stream-uploader-inner .icon) { display: none; }
-                :global(.stream-uploader-inner p) { font-size: 2rem; color: #444; display: block; margin: 0; line-height: 1; }
-                :global(.stream-uploader-inner .btn-upload) { display: none; }
+                .stream-uploader-inner:hover { border-color: #666 !important; background: #1a1a1a; }
+                .stream-uploader-inner .empty-state { padding: 0 !important; }
+                .stream-uploader-inner .icon { display: none; }
+                .stream-uploader-inner p { font-size: 2rem; color: #444; display: block; margin: 0; line-height: 1; }
+                .stream-uploader-inner .btn-upload { display: none; }
 
 
                 /* WRITING INSERTER RAIL */
                 .inserter-rail {
                     display: flex; flex-direction: column; gap: 10px;
                 }
-                :global(.rail-uploader) {
+                .rail-uploader {
                     width: 60px; height: 60px; 
                     border: 1px dashed var(--c-border) !important;
                     border-radius: 4px; background: transparent;
                     padding: 0 !important; min-height: 0 !important;
                     display: flex; align-items: center; justify-content: center;
                 }
-                :global(.rail-uploader:hover) { border-color: #888 !important; background: #1a1a1a; }
-                :global(.rail-uploader .empty-state) { padding: 0 !important; }
-                :global(.rail-uploader .icon) { display: none; }
-                :global(.rail-uploader p) { font-size: 0.7rem; color: #666; margin: 0; font-weight: 600; }
-                :global(.rail-uploader .btn-upload) { display: none; }
+                .rail-uploader:hover { border-color: #888 !important; background: #1a1a1a; }
+                .rail-uploader .empty-state { padding: 0 !important; }
+                .rail-uploader .icon { display: none; }
+                .rail-uploader p { font-size: 0.7rem; color: #666; margin: 0; font-weight: 600; }
+                .rail-uploader .btn-upload { display: none; }
 
                 .toast {
                     position: fixed; bottom: 2rem; right: 2rem; padding: 0.7rem 1.2rem;
