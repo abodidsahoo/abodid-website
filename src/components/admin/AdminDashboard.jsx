@@ -187,11 +187,12 @@ function ListView({ table }) {
 
     const fetchItems = async () => {
         try {
+            const sortCol = table === 'blog' ? 'published_at' : 'created_at';
             setLoading(true);
             const { data, error } = await supabase
                 .from(table)
                 .select('*')
-                .order('created_at', { ascending: false });
+                .order(sortCol, { ascending: false });
 
             if (error) throw error;
             setItems(data || []);
