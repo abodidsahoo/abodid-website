@@ -1,0 +1,106 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getAllStories, getStoryBySlug } from '../../lib/api';
+
+export async function getStaticPaths() {
+  const stories = await getAllStories();
+  
+  return stories.map(story => {
+    const slug = story.href.split('/').pop();
+    return {
+      params: { slug },
+      props: { slug }, // Pass slug to fetch full details
+    };
+  });
+}
+
+const { slug } = Astro.props;
+const storyContent = await getStoryBySlug(slug);
+
+if (!storyContent) {
+  return Astro.redirect('/404');
+}
+---
+
+<BaseLayout title={storyContent.title}>
+  <article class="story-article">
+    <header class="story-header">
+      <span class="meta">{storyContent.date}</span>
+      <h1>{storyContent.title}</h1>
+      <p class="intro text-serif">{storyContent.intro}</p>
+    </header>
+
+    <div class="story-content">
+      {storyContent.images.map((img, index) => (
+        <figure class="story-image">
+          <img src={img} alt={`Story image ${index + 1}`} loading="lazy" />
+        </figure>
+      ))}
+    </div>
+
+    <div class="story-footer">
+      <a href="/portfolio" class="back-link">← Back to Portfolio</a>
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .story-article {
+    max-width: 900px;
+    margin: 0 auto;
+    padding-top: var(--space-2xl);
+  }
+
+  .story-header {
+    text-align: center;
+    margin-bottom: var(--space-2xl);
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .meta {
+    font-size: 0.9rem;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    display: block;
+    margin-bottom: 1rem;
+  }
+
+  h1 {
+    font-size: 3rem;
+    margin-bottom: 2rem;
+  }
+
+  .intro {
+    font-size: 1.25rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+  }
+
+  .story-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2xl);
+  }
+
+  .story-image img {
+    width: 100%;
+    height: auto;
+    border-radius: 4px;
+    /* Optional: minimal shadow for depth */
+    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+  }
+  
+  .story-footer {
+    margin-top: var(--space-2xl);
+    padding-top: var(--space-lg);
+    border-top: 1px solid var(--border-subtle);
+    text-align: center;
+  }
+  
+  .back-link {
+    font-weight: 500;
+  }
+</style>

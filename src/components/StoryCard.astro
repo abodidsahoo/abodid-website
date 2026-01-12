@@ -1,0 +1,72 @@
+---
+interface Props {
+  title: string;
+  category: string;
+  image: string;
+  href: string;
+}
+
+const { title, category, image, href } = Astro.props;
+---
+
+<a href={href} class="story-card">
+  <div class="image-container">
+    <img src={image} alt={title} loading="lazy" />
+  </div>
+  <div class="meta">
+    <span class="category">{category}</span>
+    <h3 class="title">{title}</h3>
+  </div>
+</a>
+
+<style>
+  .story-card {
+    display: block;
+    group: pointer;
+  }
+
+  .image-container {
+    background-color: var(--bg-surface);
+    overflow: hidden;
+    border-radius: 6px;
+    aspect-ratio: 4/3;
+    margin-bottom: 1rem;
+    border: 1px solid var(--border-subtle);
+    transition: border-color 0.3s ease;
+  }
+
+  .story-card:hover .image-container {
+    border-color: var(--text-tertiary);
+  }
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+  }
+
+  .story-card:hover img {
+    transform: scale(1.03);
+  }
+
+  .meta {
+    padding-left: 2px;
+  }
+
+  .category {
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-tertiary);
+    margin-bottom: 0.25rem;
+    display: block;
+  }
+
+  .title {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin: 0;
+  }
+</style>

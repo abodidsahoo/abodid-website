@@ -1,0 +1,93 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+const pageTitle = "Payment";
+---
+
+<BaseLayout title={pageTitle}>
+  <div class="payment-container">
+    <header class="payment-header">
+      <span class="eyebrow">Secure Transaction</span>
+      <h1>Make a Payment</h1>
+      <p class="description">
+        Use the secure checkout below to complete your payment for photography services, prints, or digital assets.
+      </p>
+    </header>
+
+    <div class="checkout-box">
+      <!-- PayPal SDK -->
+      <script 
+        src="https://www.paypal.com/sdk/js?client-id=BAAQE8TkamhCfaYjOOl_ZjtgKbY0ZCtyOzmdOe83xf_zWg30P2ZzyrL0_v1NsBdll_k9zw5wYPq9KJkXy8&components=hosted-buttons&disable-funding=venmo&currency=GBP"
+      ></script>
+
+      <!-- PayPal Container -->
+      <div id="paypal-container-22T4QFMFG6BDS"></div>
+      
+      <script>
+        // Check if paypal object exists before rendering
+        // @ts-ignore
+        if (window.paypal) {
+          // @ts-ignore
+          window.paypal.HostedButtons({
+            hostedButtonId: "22T4QFMFG6BDS",
+          }).render("#paypal-container-22T4QFMFG6BDS")
+        }
+      </script>
+      
+      <div class="security-note">
+        <p>🔒 Secured by PayPal. We do not store your financial information.</p>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .payment-container {
+    max-width: 600px;
+    margin: 4rem auto;
+    text-align: center;
+  }
+
+  .eyebrow {
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    color: var(--text-tertiary);
+    margin-bottom: 1rem;
+    display: block;
+  }
+
+  h1 {
+    font-size: 3rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .description {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    margin-bottom: 3rem;
+    line-height: 1.6;
+  }
+
+  .checkout-box {
+    background: var(--bg-surface);
+    padding: 3rem 2rem;
+    border-radius: 12px;
+    border: 1px solid var(--border-subtle);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+  }
+
+  .security-note {
+    margin-top: 2rem;
+    font-size: 0.85rem;
+    color: var(--text-tertiary);
+    border-top: 1px solid var(--border-color);
+    padding-top: 1rem;
+  }
+
+  /* PayPal iframe centering fix */
+  #paypal-container-22T4QFMFG6BDS {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+</style>

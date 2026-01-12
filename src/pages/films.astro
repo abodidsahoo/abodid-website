@@ -1,30 +1,114 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { getFilms } from '../lib/api';
+
 const pageTitle = "Films";
+const films = await getFilms();
 ---
+
 <BaseLayout title={pageTitle}>
-  <h1>Films</h1>
-  <p class="page-intro">Short films and video experiments.</p>
+  <header class="page-header">
+    <h1>Cinematography</h1>
+    <p class="section-intro">
+      Moving images and visual experiments.
+    </p>
+  </header>
   
-  <div class="film-grid">
-     <div class="film-item">
-       <div class="video-placeholder">Video Thumbnail</div>
-       <h3>Cinematic Experiment 01</h3>
-     </div>
+  <div class="films-list">
+    {films.map(film => (
+      <article class="film-item">
+        <div class="film-thumbnail">
+          <img src={film.image} alt={film.title} />
+          <div class="play-overlay">
+            <span class="play-icon">▶</span>
+          </div>
+        </div>
+        <div class="film-info">
+          <div class="film-meta">
+            <h2>{film.title}</h2>
+            <span class="year">{film.year}</span>
+          </div>
+          <p>{film.description}</p>
+        </div>
+      </article>
+    ))}
   </div>
 </BaseLayout>
 
 <style>
-  .video-placeholder {
+  .page-header {
+    margin-bottom: var(--space-2xl);
+    padding-top: var(--space-lg);
+  }
+  
+  .section-intro {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    max-width: 500px;
+  }
+
+  .films-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2xl);
+    max-width: 900px;
+  }
+  
+  .film-item {
+    display: block;
+  }
+  
+  .film-thumbnail {
     width: 100%;
     aspect-ratio: 16/9;
-    background: #000;
-    color: white;
+    background-color: var(--bg-surface);
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    margin-bottom: var(--space-md);
+    cursor: pointer;
+  }
+  
+  .film-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+  }
+  
+  .film-thumbnail:hover img {
+    transform: scale(1.02);
+  }
+  
+  .play-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 1rem;
-    border-radius: 8px;
+    background: rgba(0,0,0,0.1);
+    transition: background 0.3s ease;
   }
-  .film-grid { margin-top: 3rem; display: grid; gap: 3rem; }
+  
+  .film-thumbnail:hover .play-overlay {
+    background: rgba(0,0,0,0.2);
+  }
+  
+  .play-icon {
+    font-size: 3rem;
+    color: white;
+    opacity: 0.8;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  }
+  
+  .film-meta {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .film-meta h2 { font-size: 1.5rem; margin: 0; }
+  .year { color: var(--text-tertiary); font-family: var(--font-serif); font-style: italic; }
+  .film-info p { color: var(--text-secondary); max-width: 600px; margin: 0; }
 </style>

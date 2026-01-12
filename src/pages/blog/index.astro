@@ -1,35 +1,76 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getRecentPosts } from '../../lib/api';
+
+const recentPosts = await getRecentPosts();
 const pageTitle = "Journal";
 ---
 <BaseLayout title={pageTitle}>
-  <h1>Journal</h1>
-  <p class="page-intro">Thoughts on code, film, and design.</p>
+  <header class="page-header">
+    <h1>Journal</h1>
+    <p class="section-intro">
+      Thoughts, notes, and observations.
+    </p>
+  </header>
   
   <div class="blog-list">
-    <article>
-      <span class="date">Jan 12, 2026</span>
-      <h2><a href="#">Building a Digital Playground</a></h2>
-      <p class="excerpt">Why I chose Astro for my personal site...</p>
-    </article>
-    <article>
-      <span class="date">Dec 20, 2025</span>
-      <h2><a href="#">The Art of Visual Storytelling</a></h2>
-      <p class="excerpt">Notes from my latest photo series.</p>
-    </article>
+    {recentPosts.map(post => (
+      <article class="post-item">
+        <span class="post-date">{post.date}</span>
+        <h2 class="post-title">
+          <a href={post.href}>{post.title}</a>
+        </h2>
+        <a href={post.href} class="read-more">Read entry →</a>
+      </article>
+    ))}
   </div>
 </BaseLayout>
 
 <style>
+  .page-header {
+    margin-bottom: var(--space-2xl);
+    padding-top: var(--space-lg);
+  }
+  .section-intro {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+  }
+  
   .blog-list {
-    max-width: 800px;
-    margin-top: 3rem;
+    max-width: 700px;
   }
-  article {
-    padding: 2rem 0;
-    border-bottom: 1px solid var(--border-color);
+  
+  .post-item {
+    margin-bottom: var(--space-2xl);
+    border-bottom: 1px solid var(--border-subtle);
+    padding-bottom: var(--space-lg);
   }
-  .date { display: block; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.5rem; }
-  h2 { font-size: 1.8rem; margin: 0 0 0.5rem 0; }
-  .excerpt { color: var(--text-secondary); line-height: 1.6; }
+  
+  .post-item:last-child { border-bottom: none; }
+  
+  .post-date {
+    display: block;
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    color: var(--text-tertiary);
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  
+  .post-title {
+    font-size: 2rem;
+    font-weight: 500;
+    margin-bottom: 1rem;
+    line-height: 1.2;
+  }
+  
+  .post-title a { text-decoration: none; }
+  .post-title a:hover { color: var(--text-secondary); }
+  
+  .read-more {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
 </style>
