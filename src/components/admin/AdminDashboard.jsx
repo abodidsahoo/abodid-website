@@ -42,12 +42,12 @@ export default function AdminDashboard() {
         <div className="dashboard-container animation-fade-in">
             <header className="dash-header">
                 <div>
-                    <h2 className="text-serif">Dashboard</h2>
+                    <h2 className="text-serif hero-title">Dashboard</h2>
                     <p className="subtext">Welcome back, {session.user.email}</p>
                 </div>
                 <div className="header-actions">
                     {selectedTable && (
-                        <button onClick={() => setSelectedTable(null)} className="btn-back">← Back to Overview</button>
+                        <button onClick={() => setSelectedTable(null)} className="btn-back">← Back</button>
                     )}
                     <button onClick={handleLogout} className="btn-logout">Sign Out</button>
                 </div>
@@ -60,28 +60,24 @@ export default function AdminDashboard() {
                         count={stats.photography}
                         onCheck={() => setSelectedTable('photography')}
                         onCreate={() => window.location.href = '/admin/editor?table=photography&id=new'}
-                        label="Story"
                     />
                     <DashboardCard
                         title="Blog"
                         count={stats.blog}
                         onCheck={() => setSelectedTable('blog')}
                         onCreate={() => window.location.href = '/admin/editor?table=blog&id=new'}
-                        label="Post"
                     />
                     <DashboardCard
                         title="Research"
                         count={stats.research}
                         onCheck={() => setSelectedTable('research')}
                         onCreate={() => window.location.href = '/admin/editor?table=research&id=new'}
-                        label="Project"
                     />
                     <DashboardCard
                         title="Films"
                         count={stats.films}
                         onCheck={() => setSelectedTable('films')}
                         onCreate={() => window.location.href = '/admin/editor?table=films&id=new'}
-                        label="Film"
                     />
                 </div>
             ) : (
@@ -93,89 +89,85 @@ export default function AdminDashboard() {
             height: 100vh; display: flex; align-items: center; justify-content: center; 
             color: var(--text-secondary); font-family: var(--font-sans);
         }
-        .dashboard-container { max-width: 1000px; margin: 0 auto; padding: 2rem; }
+        .dashboard-container { max-width: 1200px; margin: 0 auto; padding: 4rem 2rem; }
+        
         .dash-header {
             display: flex; justify-content: space-between; align-items: flex-start;
-            margin-bottom: 3rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border-subtle);
+            margin-bottom: 5rem; 
         }
-        .dash-header h2 { font-size: 2rem; margin: 0 0 0.5rem 0; font-weight: 500; }
-        .subtext { color: var(--text-secondary); margin: 0; font-size: 0.9rem; }
+        .hero-title { 
+            font-size: 4rem; margin: 0 0 0.5rem 0; font-weight: 400; color: #fff;
+            letter-spacing: -0.03em;
+        }
+        .subtext { color: #666; margin: 0; font-size: 0.9rem; }
         
-        .header-actions { display: flex; gap: 1rem; }
+        .header-actions { display: flex; gap: 1rem; align-items: center; }
         
         .btn-logout, .btn-back {
-            background: rgba(0,0,0,0.05); border: none; padding: 0.6em 1.2em;
-            border-radius: 20px; color: var(--text-secondary); cursor: pointer;
-            transition: all 0.2s ease; font-size: 0.85rem; font-weight: 500;
+            background: transparent; border: none; font-size: 0.9rem;
+            color: #666; cursor: pointer; font-weight: 500;
         }
-        .btn-logout:hover, .btn-back:hover { background: rgba(0,0,0,0.1); color: var(--text-primary); }
+        .btn-logout:hover, .btn-back:hover { color: #fff; }
 
-        /* Card Grid */
+        /* Minimal Card Grid */
         .stats-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem;
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem;
         }
         .stat-card {
-            background: var(--bg-surface); border: 1px solid var(--border-subtle);
-            border-radius: 12px; padding: 2rem; text-align: center;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            background: #111; border: 1px solid #222;
+            border-radius: 8px; padding: 2.5rem 2rem; text-align: center;
             display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-            min-height: 220px;
+            min-height: 280px; transition: 0.2s;
         }
-        .stat-card:hover {
-            transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.04);
-            border-color: var(--border-strong);
-        }
+        .stat-card:hover { border-color: #333; }
+        
         .stat-card h3 { 
-            margin: 0; font-size: 0.85rem; text-transform: uppercase; 
-            letter-spacing: 0.1em; color: var(--text-tertiary);
+            margin: 0; font-size: 0.75rem; text-transform: uppercase; 
+            letter-spacing: 0.15em; color: #666; font-weight: 600;
         }
         .count { 
-            font-size: 3.5rem; font-weight: 300; margin: 1rem 0; 
-            font-family: var(--font-serif); color: var(--text-primary);
+            font-size: 5rem; font-weight: 300; margin: 0; line-height: 1;
+            font-family: var(--font-serif); color: #fff;
         }
         
         .card-actions {
-            display: flex; gap: 0.8rem; width: 100%;
+            display: flex; gap: 10px; width: 100%; justify-content: center;
         }
         
         .btn-action {
-            flex: 1; padding: 0.8rem;
-            text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 0.9rem;
-            transition: opacity 0.2s ease; cursor: pointer; border: none;
+            padding: 0.6rem 1.5rem; border-radius: 4px; font-weight: 500; font-size: 0.85rem;
+            cursor: pointer; border: none; transition: 0.2s; min-width: 80px;
         }
-        .btn-primary { background: var(--text-primary); color: var(--bg-color); }
-        .btn-secondary { background: var(--bg-surface-hover); color: var(--text-primary); border: 1px solid var(--border-subtle); }
+        .btn-primary { background: #fff; color: #000; font-weight: 600; }
+        .btn-primary:hover { background: #ccc; }
         
-        .btn-action:hover { opacity: 0.9; }
-        .btn-secondary:hover { background: #e0e0e0; }
+        .btn-secondary { background: #1a1a1a; color: #ccc; border: 1px solid #333; }
+        .btn-secondary:hover { border-color: #666; color: #fff; }
 
         /* List View */
         .list-container { animation: fadeIn 0.3s ease; }
-        .list-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-        .list-table th { text-align: left; padding: 1rem; border-bottom: 2px solid var(--border-subtle); color: var(--text-tertiary); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; }
-        .list-table td { padding: 1rem; border-bottom: 1px solid var(--border-subtle); }
-        .list-table tr:last-child td { border-bottom: none; }
+        .list-table { width: 100%; border-collapse: collapse; margin-top: 2rem; }
+        .list-table th { text-align: left; padding: 1rem; border-bottom: 1px solid #333; color: #666; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        .list-table td { padding: 1.2rem 1rem; border-bottom: 1px solid #222; color: #ccc; }
         
-        .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; }
+        .status-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 8px; }
         .status-dot.published { background: #10B981; }
-        .status-dot.draft { background: #E5E7EB; }
+        .status-dot.draft { background: #444; }
         
-        .row-actions { display: flex; gap: 0.5rem; justify-content: flex-end; }
-        .btn-icon { background: none; border: none; cursor: pointer; color: var(--text-secondary); padding: 0.4rem; border-radius: 4px; transition: background 0.2s; }
-        .btn-icon:hover { background: var(--bg-surface-hover); color: var(--text-primary); }
-        .btn-icon.delete:hover { color: #EF4444; background: #FEF2F2; }
+        .row-actions { display: flex; gap: 1rem; justify-content: flex-end; }
+        .btn-icon { background: none; border: none; cursor: pointer; color: #666; font-size: 0.85rem; transition: 0.2s; }
+        .btn-icon:hover { color: #fff; }
+        .btn-icon.delete:hover { color: #ef4444; }
       `}</style>
         </div>
     );
 }
 
-function DashboardCard({ title, count, onCheck, onCreate, label }) {
+function DashboardCard({ title, count, onCheck, onCreate }) {
     return (
         <div className="stat-card" onClick={onCheck} style={{ cursor: 'pointer' }}>
-            <div>
-                <h3>{title}</h3>
-                <p className="count">{count}</p>
-            </div>
+            <h3>{title}</h3>
+            <p className="count">{count}</p>
             <div className="card-actions">
                 <button onClick={(e) => { e.stopPropagation(); onCheck(); }} className="btn-action btn-secondary">List</button>
                 <button onClick={(e) => { e.stopPropagation(); onCreate(); }} className="btn-action btn-primary">+ New</button>
@@ -207,13 +199,13 @@ function ListView({ table }) {
         if (!error) fetchItems(); // Refresh
     };
 
-    if (loading) return <div>Loading list...</div>;
+    if (loading) return <div>Loading...</div>;
 
     return (
         <div className="list-container">
-            <h3>Managing {table}</h3>
+            <h3 style={{ fontSize: '1.5rem', fontWeight: 300, marginBottom: '2rem' }}>All {table}</h3>
             {items.length === 0 ? (
-                <p>No items found.</p>
+                <p style={{ color: '#666' }}>No items found.</p>
             ) : (
                 <table className="list-table">
                     <thead>
@@ -232,8 +224,8 @@ function ListView({ table }) {
                                     {item.published ? 'Live' : 'Draft'}
                                 </td>
                                 <td className="row-actions">
-                                    <a href={`/admin/editor?table=${table}&id=${item.id}`} className="btn-icon">✎ Edit</a>
-                                    <button onClick={() => handleDelete(item.id)} className="btn-icon delete">🗑 Delete</button>
+                                    <a href={`/admin/editor?table=${table}&id=${item.id}`} className="btn-icon">Edit</a>
+                                    <button onClick={() => handleDelete(item.id)} className="btn-icon delete">Delete</button>
                                 </td>
                             </tr>
                         ))}
