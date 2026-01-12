@@ -137,16 +137,20 @@ export default function ImageUploader({ bucket = 'portfolio-assets', path, onUpl
                     gap: 0.5rem;
                     padding: 1rem;
                     width: 100%;
+                    box-sizing: border-box; /* Ensure padding doesn't cause overflow */
                 }
-                .preview-card {
+                .preview-card, .add-more {
                     aspect-ratio: 1;
                     border-radius: 4px;
                     overflow: hidden;
                     position: relative;
-                    background: #000;
+                    background: var(--bg-surface-hover);
                 }
                 .preview-card img {
                     width: 100%; height: 100%; object-fit: cover; opacity: 0.8;
+                }
+                .add-more {
+                    display: flex;
                 }
                 .add-more label {
                     display: flex; align-items: center; justify-content: center;
@@ -155,8 +159,13 @@ export default function ImageUploader({ bucket = 'portfolio-assets', path, onUpl
                     cursor: pointer;
                     border: 1px dashed var(--border-subtle);
                     border-radius: 4px;
+                    transition: all 0.2s;
                 }
-                .add-more label:hover { color: var(--text-primary); border-color: var(--text-primary); }
+                .add-more label:hover { 
+                    color: var(--text-primary); 
+                    border-color: var(--text-primary);
+                    background: var(--bg-surface);
+                }
             `}</style>
         </div>
     );

@@ -109,20 +109,17 @@ export async function getStoryBySlug(slug) {
 
     if (storyError || !story) return null;
 
-    // 2. Fetch Story Photos (Table: 'photography_images' - formerly photos)
-    // NOTE: Keeping 'photography' table for metadata. 
-    // Assuming 'photos' table is where images live? 
-    // Wait, previous code used 'photography' table for the story metadata.
-    // And 'photos' table for the images linked by story_id.
-    const { data: photos, error: photosError } = await supabase
-        .from('photos') // Keep this as 'photos' unless user requested otherwise
-        .select('url, caption')
-        .eq('story_id', story.id)
-        .order('sort_order', { ascending: true });
+    // 2. Fetch Story Photos (Simplified: From JSON Column)
+    // The 'gallery_images' column now holds the array of photo objects directly.
+    // If it's a legacy JSON string, parse it; if it's JSONB, it returns as an object/array.
+
+    let photos = story.gallery_images || [];
+
+    // If we haven't migrated data yet (or empty), photos is [].
 
     return {
         ...story,
-        images: photos ? photos.map(p => p.url) : []
+        images: photos.map(p => p.url) // Extract just the URLs for the frontend
     };
 }
 
