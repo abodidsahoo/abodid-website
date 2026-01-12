@@ -26,8 +26,7 @@ const contentHtml = marked.parse(storyContent.content || "");
 
     <div class="prose story-prose" set:html={contentHtml}></div>
 
-    <div class="story-content hidden-gallery">
-      {/* Fallback for legacy photos table if used */}
+    <div class="story-content gallery-grid">
       {storyContent.images.map((img, index) => (
         <figure class="story-image">
           <img src={img} alt={`Story image ${index + 1}`} loading="lazy" />

@@ -77,6 +77,41 @@ export default function ContentEditor({ table, id }) {
         setTimeout(() => setNotification(null), 2000);
     };
 
+    // Gallery State (for Photography)
+    const [gallery, setGallery] = useState([]);
+
+    useEffect(() => {
+        if (!isNew && isPhotography) fetchGallery();
+    }, [id, isPhotography]);
+
+    const fetchGallery = async () => {
+        const { data } = await supabase.from('photos').select('*').eq('story_id', id).order('sort_order');
+        if (data) setGallery(data);
+    };
+
+    const handleGalleryUpload = async (newUploads) => {
+        const newRecords = newUploads.map((u, i) => ({
+            story_id: id,
+            url: u.url,
+            caption: u.name,
+            sort_order: gallery.length + i,
+            is_vertical: false
+        }));
+
+        const { error } = await supabase.from('photos').insert(newRecords);
+        if (error) {
+            setNotification({ type: 'error', msg: 'Failed to link photos: ' + error.message });
+        } else {
+            setNotification({ type: 'success', msg: 'Gallery updated!' });
+            fetchGallery();
+        }
+    };
+
+    const handleDeletePhoto = async (photoId) => {
+        const { error } = await supabase.from('photos').delete().eq('id', photoId);
+        if (!error) fetchGallery();
+    };
+
     if (loading) return <div className="loading">Loading Studio...</div>;
 
     const contentField = fields.includes('content') ? 'content' : fields.includes('intro') ? 'intro' : null;
@@ -103,45 +138,80 @@ export default function ContentEditor({ table, id }) {
 
             <div className="studio-grid">
 
-                {/* ZONE B: VISUAL ASSETS (Only for visual types) */}
+                {/* ZONE B: VISUAL ASSETS (Left Panel) */}
                 {hasVisuals && (
                     <div className="visual-tray">
                         {/* Cover Image Slot */}
                         <div className="tray-section">
-                            <h4>Cover</h4>
+                            <h4>Cover Image</h4>
                             <div className="cover-slot">
                                 {formData.cover_image ? (
                                     <div className="cover-preview" onClick={() => handleChange('cover_image', '')}>
                                         <img src={formData.cover_image} alt="Cover" />
-                                        <div className="overlay">Ref Change</div>
+                                        <div className="overlay">Remove</div>
                                     </div>
                                 ) : (
                                     <ImageUploader
-                                        bucket={table} // Dynamic Bucket Name
+                                        bucket={table}
                                         path={`${table}/covers`}
-                                        label="Drag Cover"
+                                        label="Upload Cover"
                                         onUpload={(files) => handleChange('cover_image', files[0].url)}
                                     />
                                 )}
                             </div>
                         </div>
 
-                        {/* Stacks for Content */}
-                        <div className="tray-section">
-                            <h4>Content Stacks</h4>
-                            <div className="stack-list">
-                                <StackBox label="Set 1 (Intro)" bucket={table} path={`${table}/set1`} onInsert={(files) => handleImageBatch(files, 'Set 1')} />
-                                <StackBox label="Set 2 (Middle)" bucket={table} path={`${table}/set2`} onInsert={(files) => handleImageBatch(files, 'Set 2')} />
-                                <StackBox label="Set 3 (End)" bucket={table} path={`${table}/set3`} onInsert={(files) => handleImageBatch(files, 'Set 3')} />
+                        {/* GALLERY MANAGER (Exclusive to Photography) */}
+                        {isPhotography && (
+                            <div className="tray-section">
+                                <h4>Gallery Photos</h4>
+                                {!isNew ? (
+                                    <div className="gallery-manager">
+                                        <div className="gallery-grid">
+                                            {gallery.map(photo => (
+                                                <div key={photo.id} className="gallery-thumb">
+                                                    <img src={photo.url} alt="Gallery" />
+                                                    <button className="btn-del" onClick={() => handleDeletePhoto(photo.id)}>×</button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <ImageUploader
+                                            bucket="photography"
+                                            path={`stories/${id}`}
+                                            multiple={true}
+                                            label="+ Add Photos"
+                                            onUpload={handleGalleryUpload}
+                                        />
+                                    </div>
+                                ) : (
+                                    <div className="info-box">Save the story first to add gallery photos.</div>
+                                )}
                             </div>
-                        </div>
+                        )}
+
+                        {/* STACKS (For Blog/Research Text Content) */}
+                        {!isPhotography && (
+                            <div className="tray-section">
+                                <h4>Asset Stacks</h4>
+                                <div className="stack-list">
+                                    <StackBox label="Set 1" bucket={table} path={`${table}/set1`} onInsert={(files) => handleImageBatch(files, 'Set 1')} />
+                                    <StackBox label="Set 2" bucket={table} path={`${table}/set2`} onInsert={(files) => handleImageBatch(files, 'Set 2')} />
+                                </div>
+                            </div>
+                        )}
 
                         {/* Metadata Form */}
                         <div className="tray-section">
-                            <h4>Details</h4>
+                            <h4>Metadata</h4>
                             {fields.filter(f => f !== 'content' && f !== 'cover_image' && f !== 'intro').map(field => (
                                 <div key={field} className="mini-form-group">
-                                    <label>{field.replace('_', ' ')}</label>
+                                    <label>
+                                        {field === 'genre' ? 'Kind of Project' :
+                                            field === 'role' ? 'My Role' :
+                                                field === 'video_url' ? 'Video Link' :
+                                                    field.replace('_', ' ')}
+                                    </label>
+
                                     {field === 'published' ? (
                                         <div className="toggle-wrapper" onClick={() => handleChange(field, !formData[field])}>
                                             <div className={`toggle ${formData[field] ? 'on' : 'off'}`}></div>
@@ -152,6 +222,7 @@ export default function ContentEditor({ table, id }) {
                                             type="text"
                                             value={formData[field] || ''}
                                             onChange={e => handleChange(field, e.target.value)}
+                                            placeholder="..."
                                         />
                                     )}
                                 </div>
@@ -160,25 +231,35 @@ export default function ContentEditor({ table, id }) {
                     </div>
                 )}
 
-                {/* ZONE C: CANVAS (Content Editor) */}
+                {/* ZONE C: MAIN EDITOR (Canvas) */}
                 <div className="canvas-area">
-                    {/* Title Input as part of Canvas */}
                     <input
                         type="text"
                         className="canvas-title"
-                        placeholder="Untitled Story"
+                        placeholder={isPhotography ? "Story Title" : "Post Title"}
                         value={formData.title || ''}
                         onChange={e => handleChange('title', e.target.value)}
                     />
 
-                    {contentField && (
+                    {/* Intro Field for Visual Stories */}
+                    {fields.includes('intro') && (
+                        <textarea
+                            className="canvas-intro"
+                            placeholder="Write a short introduction..."
+                            value={formData.intro || ''}
+                            onChange={e => handleChange('intro', e.target.value)}
+                        />
+                    )}
+
+                    {/* Markdown Editor (Hidden for Photography if content not used, but available) */}
+                    {contentField && table !== 'photography' && (
                         <>
                             <Toolbar onInsert={appendToContent} />
                             <textarea
                                 className="canvas-editor"
                                 value={formData[contentField] || ''}
                                 onChange={e => handleChange(contentField, e.target.value)}
-                                placeholder="# Start writing your story... Images from stacks will appear as links here."
+                                placeholder="# Write your story here..."
                             />
                         </>
                     )}
@@ -223,7 +304,19 @@ export default function ContentEditor({ table, id }) {
                     display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.2s;
                 }
 
+                .gallery-grid {
+                    display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-bottom: 1rem;
+                }
+                .gallery-thumb { position: relative; aspect-ratio: 1; }
+                .gallery-thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 4px; }
+                .btn-del {
+                    position: absolute; top: 2px; right: 2px; width: 18px; height: 18px;
+                    background: rgba(0,0,0,0.7); color: white; border: none; border-radius: 50%;
+                    font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+                }
+
                 .stack-list { display: flex; flex-direction: column; gap: 1rem; }
+                .info-box { font-size: 0.85rem; color: var(--text-secondary); font-style: italic; }
 
                 /* ZONE C: CANVAS */
                 .canvas-area {
@@ -237,8 +330,13 @@ export default function ContentEditor({ table, id }) {
                 .canvas-title {
                     font-size: 2.5rem; border: none; background: transparent;
                     font-family: var(--font-serif); font-weight: 600;
-                    margin-bottom: 2rem; color: var(--text-primary);
+                    margin-bottom: 1rem; color: var(--text-primary);
                     outline: none;
+                }
+                .canvas-intro {
+                    font-size: 1.25rem; border: none; background: transparent;
+                    font-family: var(--font-serif); color: var(--text-secondary);
+                    outline: none; resize: none; min-height: 80px; margin-bottom: 2rem;
                 }
                 
                 /* Toolbar */
