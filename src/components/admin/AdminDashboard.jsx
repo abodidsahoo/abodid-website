@@ -147,8 +147,9 @@ export default function AdminDashboard() {
         /* List View */
         .list-container { animation: fadeIn 0.3s ease; }
         .list-table { width: 100%; border-collapse: collapse; margin-top: 2rem; }
+        .list-table tr { border-bottom: 1px solid #222; }
         .list-table th { text-align: left; padding: 1rem; border-bottom: 1px solid #333; color: #666; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
-        .list-table td { padding: 1.2rem 1rem; border-bottom: 1px solid #222; color: #ccc; }
+        .list-table td { padding: 1.2rem 1rem; color: #ccc; }
         
         .status-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 8px; }
         .status-dot.published { background: #10B981; }
