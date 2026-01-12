@@ -507,6 +507,12 @@ export default function ContentEditor({ table, id }) {
                 .model-card {
                     width: 100%; max-width: 720px;
                     display: flex; flex-direction: column; gap: 3.5rem;
+                    /* "Clean Upload Box" Style */
+                    background: #0f0f0f;
+                    border: 1px solid #333; /* Use #333 for subtle, or #ccc for high contrast if requested */
+                    border-radius: 8px;
+                    padding: 3rem;
+                    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
                 }
 
                 .card-section { display: flex; flex-direction: column; gap: 1rem; }
