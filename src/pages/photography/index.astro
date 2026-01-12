@@ -16,7 +16,7 @@ const pageTitle = "Photography";
     </p>
   </header>
   
-  <div class="grid-3 portfolio-grid">
+  <div class="stories-grid">
     {portfolioItems.map(item => (
       <StoryCard 
         title={item.title} 
@@ -29,6 +29,18 @@ const pageTitle = "Photography";
 </BaseLayout>
 
 <style>
+  .stories-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-lg);
+    margin-bottom: var(--space-2xl);
+  }
+
+  @media (max-width: 768px) {
+    .stories-grid {
+      grid-template-columns: 1fr;
+    }
+  }
   .page-header {
     margin-bottom: var(--space-2xl);
     max-width: 600px;
