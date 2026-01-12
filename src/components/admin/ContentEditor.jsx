@@ -198,8 +198,17 @@ export default function ContentEditor({ table, id }) {
                                     <label>Slug</label>
                                     <input
                                         type="text" className="box-input"
-                                        value={formData.slug || ''} readOnly
-                                        placeholder="auto-generated..."
+                                        value={formData.slug || ''}
+                                        onChange={e => handleChange('slug', e.target.value)}
+                                        onFocus={() => {
+                                            if (!formData.slug && formData.title) {
+                                                const autoSlug = formData.title.toLowerCase()
+                                                    .replace(/[^a-z0-9]+/g, '-')
+                                                    .replace(/(^-|-$)/g, '');
+                                                handleChange('slug', autoSlug);
+                                            }
+                                        }}
+                                        placeholder="Click to auto-generate..."
                                     />
                                 </div>
                                 <div className="field-group">
@@ -309,21 +318,26 @@ export default function ContentEditor({ table, id }) {
                 .status-badge.draft { background: #1a1a1a; color: #888; border: 1px solid #333; }
                 .id-hash { font-family: var(--font-mono); font-size: 0.75rem; color: var(--c-text-dim); }
 
-                .local-nav { display: flex; flex-direction: column; gap: 0.6rem; margin-top: auto; }
-                .local-nav a { color: var(--c-text-dim); text-decoration: none; font-size: 0.8rem; }
-                .local-nav a:hover { color: var(--c-text); }
-
+                /* REMOVED LOCAL NAV AS REQUESTED */
+                
                 .cms-main { flex: 1; display: flex; flex-direction: column; min-width: 0; position: relative; }
 
                 .cms-actions {
-                    height: 56px; border-bottom: 1px solid var(--c-border);
+                    height: 80px; /* Taller to accommodate large title */
+                    border-bottom: 1px solid var(--c-border);
                     display: flex; align-items: center; justify-content: space-between;
-                    padding: 0 2rem;
+                    padding: 0 3rem;
                     position: sticky; top: 0; z-index: 50; background: rgba(5,5,5,0.9); backdrop-filter: blur(10px);
                 }
-                .context-title { font-family: var(--font-mono); font-size: 0.75rem; color: var(--c-text-dim); text-transform: uppercase; }
-                .btn-group { display: flex; gap: 0.8rem; }
-                .btn { height: 28px; padding: 0 1rem; font-size: 0.75rem; font-weight: 500; cursor: pointer; border-radius: 3px; }
+                .context-title { 
+                    font-family: var(--font-sans); font-size: 1.8rem; font-weight: 700; color: var(--c-text);
+                    letter-spacing: -0.02em;
+                    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 600px;
+                }
+                .context-title.placeholder { color: #333; }
+
+                .btn-group { display: flex; gap: 0.8rem; align-items: center; }
+                .btn { height: 36px; padding: 0 1.2rem; font-size: 0.8rem; font-weight: 500; cursor: pointer; border-radius: 4px; }
                 .btn.sec { background: transparent; border: 1px solid var(--c-border); color: var(--c-text-dim); }
                 .btn.sec:hover { border-color: var(--c-text); color: var(--c-text); }
                 .btn.pri { background: var(--c-text); color: var(--c-bg); border: none; font-weight: 600; }
@@ -361,13 +375,21 @@ export default function ContentEditor({ table, id }) {
                 .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
                 .full-width { grid-column: span 2; }
 
-                /* COVER IMAGE: Small Box */
+                /* COVER IMAGE: Small Box - SUPER CLEAN */
                 .cover-wrapper-small {
                     width: 240px; aspect-ratio: 16/9; /* Small Fixed Size */
-                    background: var(--c-input-bg); border: 1px dashed var(--c-border);
+                    background: var(--c-input-bg); border: 1px solid var(--c-border);
                     border-radius: 4px; overflow: hidden; position: relative;
+                    display: flex; align-items: center; justify-content: center;
                 }
                 .cover-wrapper-small:hover { border-color: #555; }
+                /* Inner Uploader Clean-up */
+                .cover-wrapper-small :global(label) {
+                    font-size: 0.8rem; color: #666; font-weight: 500; cursor: pointer;
+                    display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;
+                }
+                .cover-wrapper-small :global(label):hover { color: #888; }
+                
                 .preview-fit { width: 100%; height: 100%; position: relative; }
                 .preview-fit img { width: 100%; height: 100%; object-fit: cover; }
                 .btn-mini-remove {
@@ -395,12 +417,19 @@ export default function ContentEditor({ table, id }) {
                     background: #ff4444; color: white; border: none; width: 22px; height: 22px; border-radius: 50%;
                     cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center;
                 }
+                
+                /* STREAM UPLOADER (The + box) */
                 .stream-uploader {
                     width: 100px; height: 100px; border: 1px dashed var(--c-border);
                     border-radius: 3px; display: flex; align-items: center; justify-content: center;
-                    cursor: pointer;
+                    cursor: pointer; background: #111;
                 }
                 .stream-uploader:hover { border-color: #666; background: #1a1a1a; }
+                .stream-uploader :global(label) {
+                    font-size: 1.5rem; color: #444; width: 100%; height: 100%; 
+                    display: flex; align-items: center; justify-content: center; cursor: pointer;
+                }
+                .stream-uploader :global(label):hover { color: #888; }
 
                 .toast {
                     position: fixed; bottom: 2rem; right: 2rem; padding: 0.7rem 1.2rem;
