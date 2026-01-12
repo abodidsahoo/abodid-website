@@ -277,7 +277,8 @@ export default function ContentEditor({ table, id }) {
                                                 </div>
                                             ) : (
                                                 <ImageUploader
-                                                    bucket="films" path="thumbnails" label="Upload Poster"
+                                                    bucket="films" path="thumbnails" label="Upload Thumbnail"
+                                                    buttonLabel="+"
                                                     className="cover-uploader-box"
                                                     onUpload={f => handleChange('thumbnail_url', f[0].url)}
                                                 />

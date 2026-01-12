@@ -118,9 +118,13 @@ export default function ImageUploader({ bucket = 'portfolio-assets', path, onUpl
                     transition: all 0.2s;
                     position: relative;
                 }
-                .uploader-container:hover {
+                .uploader-container:hover, .uploader-container.drag-over {
                     border-color: var(--text-tertiary);
                     background: var(--bg-surface-hover);
+                }
+                .uploader-container.drag-over {
+                    border-color: #fff !important;
+                    background: #222 !important;
                 }
                 .uploader-container.uploading {
                     opacity: 0.7;
