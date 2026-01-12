@@ -10,14 +10,14 @@ export default function ContentEditor({ table, id }) {
     const [notification, setNotification] = useState(null);
 
     // Schema Config
-    const isBlog = table === 'blog';
-    const hasVisuals = isBlog || table === 'journal' || table === 'research';
+    const isPhotography = table === 'photography';
+    const hasVisuals = isPhotography || table === 'blog' || table === 'research';
 
     // Fields
     const SCHEMAS = {
-        journal: ['title', 'slug', 'excerpt', 'content', 'cover_image', 'published_at', 'published'],
+        blog: ['title', 'slug', 'excerpt', 'content', 'cover_image', 'published_at', 'published'],
         research: ['title', 'slug', 'description', 'content', 'link', 'repo_link', 'tags', 'image', 'sort_order', 'published'],
-        blog: ['title', 'slug', 'intro', 'content', 'category', 'cover_image', 'published'],
+        photography: ['title', 'slug', 'intro', 'content', 'category', 'cover_image', 'published'],
         films: ['title', 'year', 'description', 'video_url', 'thumbnail_url', 'role', 'genre', 'published']
     };
     const fields = SCHEMAS[table] || [];

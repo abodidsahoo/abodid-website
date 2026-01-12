@@ -24,7 +24,7 @@ export default function AdminDashboard() {
     }, []);
 
     const fetchStats = async () => {
-        const tableNames = ['blog', 'films', 'journal', 'research'];
+        const tableNames = ['photography', 'films', 'blog', 'research'];
         const newStats = {};
         for (const name of tableNames) {
             const { count, error } = await supabase.from(name).select('*', { count: 'exact', head: true });
@@ -57,16 +57,16 @@ export default function AdminDashboard() {
                 <div className="stats-grid">
                     <DashboardCard
                         title="Photography"
-                        count={stats.blog}
-                        onCheck={() => setSelectedTable('blog')}
-                        onCreate={() => window.location.href = '/admin/editor?table=blog&id=new'}
+                        count={stats.photography}
+                        onCheck={() => setSelectedTable('photography')}
+                        onCreate={() => window.location.href = '/admin/editor?table=photography&id=new'}
                         label="Story"
                     />
                     <DashboardCard
                         title="Blog"
-                        count={stats.journal}
-                        onCheck={() => setSelectedTable('journal')}
-                        onCreate={() => window.location.href = '/admin/editor?table=journal&id=new'}
+                        count={stats.blog}
+                        onCheck={() => setSelectedTable('blog')}
+                        onCreate={() => window.location.href = '/admin/editor?table=blog&id=new'}
                         label="Post"
                     />
                     <DashboardCard

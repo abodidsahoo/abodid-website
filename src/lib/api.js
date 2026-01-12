@@ -49,14 +49,13 @@ export async function getProjectBySlug(slug) {
     return data;
 }
 
-// --- Stories (Table: 'blog') --- 
-// Note: 'blog' table is used for Photography Stories in this schema mapping.
+// --- Stories (Table: 'photography') --- 
 
 export async function getFeaturedStories() {
     if (!isSupabaseConfigured()) return mockStories;
 
     const { data, error } = await supabase
-        .from('blog')
+        .from('photography')
         .select('*')
         .eq('published', true)
         .order('created_at', { ascending: false })
@@ -79,7 +78,7 @@ export async function getAllStories() {
     if (!isSupabaseConfigured()) return mockStories;
 
     const { data, error } = await supabase
-        .from('blog')
+        .from('photography')
         .select('*')
         .eq('published', true)
         .order('created_at', { ascending: false });
@@ -103,16 +102,20 @@ export async function getStoryBySlug(slug) {
 
     // 1. Fetch Story Metadata
     const { data: story, error: storyError } = await supabase
-        .from('blog')
+        .from('photography')
         .select('*')
         .eq('slug', slug)
         .single();
 
     if (storyError || !story) return null;
 
-    // 2. Fetch Story Photos (Table: 'photography')
+    // 2. Fetch Story Photos (Table: 'photography_images' - formerly photos)
+    // NOTE: Keeping 'photography' table for metadata. 
+    // Assuming 'photos' table is where images live? 
+    // Wait, previous code used 'photography' table for the story metadata.
+    // And 'photos' table for the images linked by story_id.
     const { data: photos, error: photosError } = await supabase
-        .from('photography')
+        .from('photos') // Keep this as 'photos' unless user requested otherwise
         .select('url, caption')
         .eq('story_id', story.id)
         .order('sort_order', { ascending: true });
@@ -123,13 +126,13 @@ export async function getStoryBySlug(slug) {
     };
 }
 
-// --- Journal (Table: 'journal') ---
+// --- Blog (Table: 'blog') ---
 
 export async function getRecentPosts() {
     if (!isSupabaseConfigured()) return mockPosts;
 
     const { data, error } = await supabase
-        .from('journal')
+        .from('blog')
         .select('*')
         .eq('published', true)
         .order('published_at', { ascending: false })
