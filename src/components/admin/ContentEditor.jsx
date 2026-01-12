@@ -230,66 +230,71 @@ export default function ContentEditor({ table, id }) {
                             MODE: FILM EDITOR
                            ========================================= */}
                         {isFilms && (
-                            <>
-                                <section className="card-section">
-                                    <div className="field-group">
-                                        <label>Year</label>
-                                        <input type="number" className="box-input" value={formData.year || ''} onChange={e => handleChange('year', e.target.value)} />
-                                    </div>
-                                    <div className="field-group">
-                                        <label>Genre</label>
-                                        <input type="text" className="box-input" value={formData.genre || ''} onChange={e => handleChange('genre', e.target.value)} />
-                                    </div>
-                                    <div className="field-group full-width">
-                                        <label>Role / Credit</label>
-                                        <input type="text" className="box-input" value={formData.role || ''} onChange={e => handleChange('role', e.target.value)} placeholder="e.g. Director, Editor..." />
-                                    </div>
-                                </section>
+                            <div className="film-layout">
+                                <div className="film-grid">
+                                    {/* LEFT COL: METADATA */}
+                                    <section className="card-section">
+                                        <label className="section-label">Essential Info</label>
+                                        <div className="meta-row">
+                                            <div className="field-group">
+                                                <label>Year</label>
+                                                <input type="number" className="box-input" value={formData.year || ''} onChange={e => handleChange('year', e.target.value)} />
+                                            </div>
+                                            <div className="field-group">
+                                                <label>Genre</label>
+                                                <input type="text" className="box-input" value={formData.genre || ''} onChange={e => handleChange('genre', e.target.value)} />
+                                            </div>
+                                        </div>
+                                        <div className="field-group full-width">
+                                            <label>Role / Credit</label>
+                                            <input type="text" className="box-input" value={formData.role || ''} onChange={e => handleChange('role', e.target.value)} placeholder="e.g. Director, Editor..." />
+                                        </div>
 
-                                <section className="card-section" style={{ marginBottom: '3rem' }}>
-                                    <label className="section-label">Media Assets</label>
-                                    <div className="media-stack">
-                                        <div className="media-col">
-                                            <label>Video URL (YouTube/Vimeo)</label>
-                                            {formData.video_url && getVideoEmbed(formData.video_url) ? (
-                                                <div className="fixed-uploader">
-                                                    <div className="preview-fit">
-                                                        <iframe src={getVideoEmbed(formData.video_url)} frameBorder="0" allowFullScreen></iframe>
-                                                        <button className="btn-mini-remove" onClick={() => handleChange('video_url', '')}>Remove</button>
+                                        <div className="field-group" style={{ marginTop: '1rem' }}>
+                                            <label>Logline / Description</label>
+                                            <textarea className="box-input content-area-compact" value={formData.description || ''} onChange={e => handleChange('description', e.target.value)} />
+                                        </div>
+                                    </section>
+
+                                    {/* RIGHT COL: MEDIA */}
+                                    <section className="card-section">
+                                        <label className="section-label">Media Assets</label>
+                                        <div className="media-stack">
+                                            <div className="media-col">
+                                                <label>Video URL</label>
+                                                {formData.video_url && getVideoEmbed(formData.video_url) ? (
+                                                    <div className="fixed-uploader">
+                                                        <div className="preview-fit">
+                                                            <iframe src={getVideoEmbed(formData.video_url)} frameBorder="0" allowFullScreen></iframe>
+                                                            <button className="btn-mini-remove" onClick={() => handleChange('video_url', '')}>Remove</button>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            ) : (
-                                                <div className="field-group">
+                                                ) : (
                                                     <input type="text" className="box-input" placeholder="Paste URL..." value={formData.video_url || ''} onChange={e => handleChange('video_url', e.target.value)} />
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div className="media-col">
-                                            <label>Thumbnail Poster</label>
-                                            {formData.thumbnail_url ? (
-                                                <div className="cover-wrapper-small preview-active">
-                                                    <div className="preview-fit">
-                                                        <img src={formData.thumbnail_url} />
-                                                        <button className="btn-mini-remove" onClick={() => handleChange('thumbnail_url', '')}>Replace</button>
+                                                )}
+                                            </div>
+                                            <div className="media-col">
+                                                <label>Thumbnail</label>
+                                                {formData.thumbnail_url ? (
+                                                    <div className="cover-wrapper-small preview-active">
+                                                        <div className="preview-fit">
+                                                            <img src={formData.thumbnail_url} />
+                                                            <button className="btn-mini-remove" onClick={() => handleChange('thumbnail_url', '')}>Replace</button>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            ) : (
-                                                <ImageUploader
-                                                    bucket="films" path="thumbnails" label="Upload Thumbnail"
-                                                    buttonLabel="+"
-                                                    className="cover-uploader-box"
-                                                    onUpload={f => handleChange('thumbnail_url', f[0].url)}
-                                                />
-                                            )}
+                                                ) : (
+                                                    <ImageUploader
+                                                        bucket="films" path="thumbnails" label="Upload Thumbnail"
+                                                        buttonLabel="+"
+                                                        className="cover-uploader-box"
+                                                        onUpload={f => handleChange('thumbnail_url', f[0].url)}
+                                                    />
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
-                                </section>
-
-                                <section className="card-section">
-                                    <label className="section-label">Logline / Description</label>
-                                    <textarea className="box-input content-area" style={{ minHeight: '200px' }} value={formData.description || ''} onChange={e => handleChange('description', e.target.value)} />
-                                </section>
-                            </>
+                                    </section>
+                                </div>
+                            </div>
                         )}
 
                         {/* =========================================
@@ -500,20 +505,28 @@ export default function ContentEditor({ table, id }) {
 
                 /* CANVAS */
                 .cms-canvas {
-                    flex: 1; overflow-y: auto; padding: 4rem 2rem;
+                    flex: 1; overflow-y: auto; padding: 2rem; /* Reduced padding */
                     display: flex; justify-content: center; align-items: flex-start;
                 }
 
                 .model-card {
-                    width: 100%; max-width: 720px;
-                    display: flex; flex-direction: column; gap: 3.5rem;
-                    /* "Clean Upload Box" Style */
+                    width: 100%; max-width: none; /* FULL WIDTH */
+                    display: flex; flex-direction: column; gap: 2rem; /* Reduced gap */
+                    /* "Clean Upload Box" Style - Retained but full width */
                     background: #0f0f0f;
-                    border: 1px solid #333; /* Use #333 for subtle, or #ccc for high contrast if requested */
+                    border: 1px solid #333;
                     border-radius: 8px;
-                    padding: 3rem;
-                    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+                    padding: 2rem; /* Reduced padding */
                 }
+
+                /* GRID LAYOUT FOR FILMS */
+                .film-grid {
+                    display: grid; grid-template-columns: 1.2fr 0.8fr; /* Split layout */
+                    gap: 3rem;
+                }
+
+                .meta-row { display: flex; gap: 1rem; }
+                .meta-row .field-group { flex: 1; }
 
                 .card-section { display: flex; flex-direction: column; gap: 1rem; }
                 .section-label { 
@@ -532,6 +545,7 @@ export default function ContentEditor({ table, id }) {
                 .box-input:focus { border-color: #555; background: #161616; }
                 .box-input.large { font-size: 1.2rem; padding: 1rem; border-color: #444; }
                 .box-input.content-area { min-height: 400px; line-height: 1.6; font-size: 0.9rem; font-family: var(--font-mono); }
+                .box-input.content-area-compact { min-height: 150px; line-height: 1.6; font-size: 0.9rem; font-family: var(--font-mono); }
 
                 .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
                 .full-width { grid-column: span 2; }
@@ -539,7 +553,7 @@ export default function ContentEditor({ table, id }) {
                 /* UPLOADERS - Clean Unification */
                 /* 1. The Cover Uploader Box configuration */
                 .cover-uploader-box {
-                    width: 100% !important; max-width: 300px; /* Adjust width as needed, stacking now */
+                    width: 100% !important; /* Adjust width as needed, stacking now */
                     aspect-ratio: 16/9;
                     background: var(--c-input-bg);
                     border: 1px solid var(--c-border) !important;
@@ -553,19 +567,19 @@ export default function ContentEditor({ table, id }) {
                 .cover-uploader-box .icon { display: none; } /* Hide default cloud icon */
                 .cover-uploader-box p { font-size: 0.75rem; color: #666; margin: 0; text-transform: uppercase; letter-spacing: 0.05em; }
                 
-                /* The + Button */
+                /* The + Button - FIXED: Removed shadows/borders to prevent circle artifacts */
                 .cover-uploader-box .btn-upload { 
                     display: flex !important; align-items: center; justify-content: center;
-                    width: 40px; height: 40px; border-radius: 50%;
-                    background: #222; border: 1px solid #333; color: #fff;
-                    font-size: 1.5rem; line-height: 1; cursor: pointer; padding: 0;
-                    transition: 0.2s;
+                    width: 40px; height: 40px; border-radius: 50% !important;
+                    background: #222 !important; border: 1px solid #333 !important; color: #fff;
+                    font-size: 1.5rem; line-height: 1; cursor: pointer; padding: 0 !important;
+                    transition: 0.2s; box-shadow: none !important;
                 }
-                .cover-uploader-box .btn-upload:hover { background: #333; border-color: #555; }
+                .cover-uploader-box .btn-upload:hover { background: #333 !important; border-color: #555 !important; }
                 
                 /* When preview is live */
                 .cover-wrapper-small.preview-active {
-                    width: 100%; max-width: 300px;
+                    width: 100%; 
                     aspect-ratio: 16/9;
                     background: var(--c-input-bg); border: 1px solid var(--c-border);
                     border-radius: 4px; overflow: hidden; position: relative;
@@ -581,7 +595,7 @@ export default function ContentEditor({ table, id }) {
                 .btn-mini-remove::after { content: "×"; }
 
                 /* MEDIA ROW (Films) - STACKED NOW */
-                .media-stack { display: flex; flex-direction: column; gap: 2rem; margin-top: 1rem; }
+                .media-stack { display: flex; flex-direction: column; gap: 1.5rem; }
                 .media-col { display: flex; flex-direction: column; gap: 0.5rem; }
                 
                 .fixed-uploader {
