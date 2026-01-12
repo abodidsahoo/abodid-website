@@ -96,39 +96,51 @@ export default function ContentEditor({ table, id }) {
         setTimeout(() => setNotification(null), 2000);
     };
 
-    // Gallery State (for Photography)
-    const [gallery, setGallery] = useState([]);
-
-    useEffect(() => {
-        if (!isNew && isPhotography) fetchGallery();
-    }, [id, isPhotography]);
-
-    const fetchGallery = async () => {
-        const { data } = await supabase.from('photos').select('*').eq('story_id', id).order('sort_order');
-        if (data) setGallery(data);
-    };
-
+    // Gallery Logic (Single Table - JSON Column)
     const handleGalleryUpload = async (newUploads) => {
-        const newRecords = newUploads.map((u, i) => ({
-            story_id: id,
+        if (!newUploads.length) return;
+
+        const currentGallery = formData.gallery_images || [];
+        const newItems = newUploads.map((u, i) => ({
+            id: crypto.randomUUID(), // Local unique ID for list keys
             url: u.url,
             caption: u.name,
-            sort_order: gallery.length + i,
+            sort_order: currentGallery.length + i,
             is_vertical: false
         }));
 
-        const { error } = await supabase.from('photos').insert(newRecords);
-        if (error) {
-            setNotification({ type: 'error', msg: 'Failed to link photos: ' + error.message });
-        } else {
-            setNotification({ type: 'success', msg: 'Gallery updated!' });
-            fetchGallery();
+        const updatedGallery = [...currentGallery, ...newItems];
+
+        // 1. Update UI state immediately
+        handleChange('gallery_images', updatedGallery);
+
+        // 2. Auto-save to DB to persist this change
+        if (!isNew) {
+            const { error } = await supabase
+                .from('photography')
+                .update({ gallery_images: updatedGallery })
+                .eq('id', id);
+
+            if (error) {
+                setNotification({ type: 'error', msg: 'Failed to save gallery: ' + error.message });
+            } else {
+                setNotification({ type: 'success', msg: 'Photos added to story!' });
+            }
         }
     };
 
-    const handleDeletePhoto = async (photoId) => {
-        const { error } = await supabase.from('photos').delete().eq('id', photoId);
-        if (!error) fetchGallery();
+    const handleDeletePhoto = async (photoIndex) => {
+        const updatedGallery = [...(formData.gallery_images || [])];
+        updatedGallery.splice(photoIndex, 1);
+
+        handleChange('gallery_images', updatedGallery);
+
+        if (!isNew) {
+            await supabase
+                .from('photography')
+                .update({ gallery_images: updatedGallery })
+                .eq('id', id);
+        }
     };
 
     if (loading) return <div className="loading">Loading Studio...</div>;
@@ -262,10 +274,10 @@ export default function ContentEditor({ table, id }) {
                                 {!isNew ? (
                                     <div className="gallery-manager">
                                         <div className="gallery-grid">
-                                            {gallery.map(photo => (
-                                                <div key={photo.id} className="gallery-thumb">
+                                            {(formData.gallery_images || []).map((photo, index) => (
+                                                <div key={photo.id || index} className="gallery-thumb">
                                                     <img src={photo.url} alt="Gallery" />
-                                                    <button className="btn-del" onClick={() => handleDeletePhoto(photo.id)}>×</button>
+                                                    <button className="btn-del" onClick={() => handleDeletePhoto(index)}>×</button>
                                                 </div>
                                             ))}
                                         </div>
