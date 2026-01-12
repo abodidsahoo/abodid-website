@@ -1,13 +1,25 @@
 ---
+export const prerender = true;
 import BaseLayout from '../layouts/BaseLayout.astro';
 import StoryCard from '../components/StoryCard.astro';
 import { getFeaturedStories, getRecentPosts } from '../lib/api';
+import { featuredStories as mockStories, recentPosts as mockRecent } from '../utils/mockData';
 
 const pageTitle = "Home";
 
-// Fetch data from Supabase
-const featuredStories = await getFeaturedStories();
-const recentPosts = await getRecentPosts();
+// Helper to safely fetch data
+const safeFetch = async (fn, fallback) => {
+  try {
+    return await fn();
+  } catch (e) {
+    console.error('Data fetch failed:', e);
+    return fallback;
+  }
+};
+
+// Fetch data from Supabase with Fallback
+const featuredStories = await safeFetch(getFeaturedStories, mockStories);
+const recentPosts = await safeFetch(getRecentPosts, mockRecent);
 ---
 
 <BaseLayout title={pageTitle}>

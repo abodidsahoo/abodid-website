@@ -1,10 +1,20 @@
 ---
-export const prerender = false;
+export const prerender = true;
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { getFilms } from '../lib/api';
 
+// Safe Fetch Helper
+const safeFetch = async (fn, fallback) => {
+  try {
+    return await fn();
+  } catch (e) {
+    console.error('Data fetch failed:', e);
+    return fallback;
+  }
+};
+
 const pageTitle = "Films";
-const films = await getFilms();
+const films = await safeFetch(getFilms, []);
 ---
 
 <BaseLayout title={pageTitle}>

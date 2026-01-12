@@ -1,10 +1,21 @@
 ---
-export const prerender = false;
+export const prerender = true;
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import StoryCard from '../../components/StoryCard.astro';
 import { getAllStories } from '../../lib/api';
+import { featuredStories as mockStories } from '../../utils/mockData';
 
-const portfolioItems = await getAllStories();
+// Safe Fetch Helper
+const safeFetch = async (fn, fallback) => {
+  try {
+    return await fn();
+  } catch (e) {
+    console.error('Data fetch failed:', e);
+    return fallback;
+  }
+};
+
+const portfolioItems = await safeFetch(getAllStories, mockStories);
 const pageTitle = "Photography";
 ---
 
