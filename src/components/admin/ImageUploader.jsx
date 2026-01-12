@@ -8,10 +8,59 @@ export default function ImageUploader({ bucket = 'portfolio-assets', path, onUpl
     const handleFiles = async (files) => {
         if (!files || files.length === 0) return;
         setUploading(true);
-        // ... (rest of logic unchanged)
+
+        const newUploads = [];
+
+        try {
+            for (const file of files) {
+                // Create preview
+                const objUrl = URL.createObjectURL(file);
+
+                // Upload to Supabase
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
+                const filePath = `${path ? path + '/' : ''}${fileName}`;
+
+                const { data, error } = await supabase.storage
+                    .from(bucket)
+                    .upload(filePath, file);
+
+                if (error) throw error;
+
+                // Get Public URL
+                const { data: { publicUrl } } = supabase.storage
+                    .from(bucket)
+                    .getPublicUrl(filePath);
+
+                newUploads.push({
+                    url: publicUrl,
+                    objUrl: objUrl,
+                    name: file.name
+                });
+            }
+
+            setPreviews(prev => multiple ? [...prev, ...newUploads] : newUploads);
+            if (onUpload) onUpload(newUploads);
+
+        } catch (error) {
+            console.error('Upload failed:', error);
+            alert('Upload failed: ' + error.message);
+        } finally {
+            setUploading(false);
+        }
     };
 
-    // ...
+    const onDrop = useCallback(e => {
+        e.preventDefault();
+        e.stopPropagation();
+        const files = Array.from(e.dataTransfer.files);
+        handleFiles(files);
+    }, [path, bucket]);
+
+    const onFileSelect = (e) => {
+        const files = Array.from(e.target.files);
+        handleFiles(files);
+    };
 
     return (
         <div className={`uploader-container ${uploading ? 'uploading' : ''} ${className}`}
@@ -28,9 +77,9 @@ export default function ImageUploader({ bucket = 'portfolio-assets', path, onUpl
                         multiple={multiple}
                         onChange={onFileSelect}
                         style={{ display: 'none' }}
-                        id={`file-${path}`}
+                        id={`file-${path || 'upload'}`}
                     />
-                    <label htmlFor={`file-${path}`} className="btn-upload">Choose Files</label>
+                    <label htmlFor={`file-${path || 'upload'}`} className="btn-upload">Choose Files</label>
                 </div>
             )}
 
@@ -49,9 +98,9 @@ export default function ImageUploader({ bucket = 'portfolio-assets', path, onUpl
                                 multiple
                                 onChange={onFileSelect}
                                 style={{ display: 'none' }}
-                                id={`add-${path}`}
+                                id={`add-${path || 'upload'}`}
                             />
-                            <label htmlFor={`add-${path}`}>+</label>
+                            <label htmlFor={`add-${path || 'upload'}`}>+</label>
                         </div>
                     )}
                 </div>
