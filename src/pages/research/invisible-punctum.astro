@@ -1,0 +1,331 @@
+---
+export const prerender = false;
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invisible Punctums | Human vs AI Analysis</title>
+    
+    <!-- Fonts & Styles -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/abodidsahoo/invisible-punctums@main/untrainable-tabs.css" />
+
+    <!-- Scripts -->
+    <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script defer src="https://cdn.jsdelivr.net/gh/abodidsahoo/invisible-punctums@main/analysis.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/gh/abodidsahoo/invisible-punctums@main/ai-tab.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/gh/abodidsahoo/invisible-punctums@main/untrainable-core.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/abodidsahoo/invisible-punctums@main/sample_data.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/gh/abodidsahoo/invisible-punctums@main/response-widget.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/gh/abodidsahoo/invisible-punctums@main/untrainable-tabs.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/gh/abodidsahoo/invisible-punctums@main/project-info.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/abodidsahoo/invisible-punctums@main/audio-response.js"></script>
+</head>
+<body>
+
+<!-- =========================
+     UNTRAINABLE MEANINGS
+     A Photographic Study of Human vs AI Responses
+========================= -->
+
+<!-- Layout Fixer script -->
+<script>
+    (() => {
+        const WALL_ID = "t2-wf-wall-inner";
+        const BTN_Z = 120;
+
+        function normalizeFrame(frame) {
+            frame.style.position = "relative";
+            frame.style.isolation = "isolate";
+        }
+
+        function normalizeButton(btn) {
+            btn.style.zIndex = String(BTN_Z);
+            btn.style.pointerEvents = "auto";
+            btn.style.display = "inline-flex";
+            btn.style.visibility = "visible";
+        }
+
+        function fixTab2() {
+            const wall = document.getElementById(WALL_ID);
+            if (!wall) return;
+
+            wall.querySelectorAll(".wf-frame").forEach(frame => {
+                normalizeFrame(frame);
+                frame.querySelectorAll(".wf-comment-btn").forEach(normalizeButton);
+            });
+        }
+
+        function boot() {
+            fixTab2();
+            const wall = document.getElementById(WALL_ID);
+            if (wall) {
+                new MutationObserver(() => fixTab2())
+                    .observe(wall, { childList: true, subtree: true });
+            }
+            document.addEventListener("click", (e) => {
+                if (e.target?.closest?.('[data-tab="t2"]')) {
+                    setTimeout(fixTab2, 0);
+                    setTimeout(fixTab2, 150);
+                }
+            }, true);
+        }
+
+        if (document.readyState === "loading") {
+            addEventListener("DOMContentLoaded", boot);
+        } else {
+            boot();
+        }
+    })();
+</script>
+
+<style>
+    /* Sticky Glassmorphic Header (Floating Top Dock) */
+    .um-sticky-header {
+        position: fixed;
+        top: 24px;
+        bottom: auto;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1000;
+        width: fit-content;
+        border-radius: 100px;
+        background: rgba(120, 100, 200, 0.12);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 18px 24px 6px;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.75), rgba(235, 250, 255, 0.7), rgba(235, 255, 245, 0.7));
+        box-shadow: 0 12px 32px rgba(0, 50, 60, 0.08), 0 0 20px rgba(255, 255, 255, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        transition: all 0.3s ease;
+    }
+
+    /* Credit Text */
+    .um-credit-text {
+        font-family: 'Courier New', 'Courier', monospace;
+        font-size: 9px;
+        font-weight: 300;
+        color: rgba(80, 60, 140, 0.7);
+        text-align: left;
+        margin-top: 10px;
+        line-height: 1.4;
+        letter-spacing: 0.5px;
+    }
+    .dark-mode .um-credit-text { color: rgba(180, 160, 240, 0.6); }
+
+    .um-tabs { display: flex; align-items: center; justify-content: center; gap: 12px; }
+    .um-tabs-left { display: flex; gap: 8px; flex-wrap: nowrap; align-items: center; white-space: nowrap; }
+
+    /* Global controls */
+    .um-global-controls {
+        position: fixed; right: 16px; bottom: 20px; z-index: 200;
+        display: flex; flex-direction: column; gap: 10px; align-items: flex-end;
+    }
+
+    /* Project Info Modal */
+    .project-info-modal {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;
+        display: none; align-items: center; justify-content: center; padding: 20px;
+    }
+    .project-info-modal.is-open { display: flex; }
+    .project-info-backdrop {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    }
+    .dark-mode .project-info-backdrop { background: rgba(0, 0, 0, 0.8); }
+
+    .project-info-card {
+        position: relative; width: 35%; max-width: 600px; max-height: 85vh;
+        background: #ffffff; border-radius: 16px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        overflow: hidden; display: flex; flex-direction: column;
+    }
+    .dark-mode .project-info-card { background: #1a1a1a; color: #e0e0e0; }
+
+    .project-info-header { padding: 24px 24px 16px; border-bottom: 1px solid rgba(0, 0, 0, 0.1); position: relative; }
+    .dark-mode .project-info-header { border-bottom-color: rgba(255, 255, 255, 0.1); }
+
+    .project-info-close {
+        position: absolute; top: 20px; right: 20px; width: 32px; height: 32px;
+        border: none; background: rgba(0, 0, 0, 0.05); border-radius: 50%;
+        cursor: pointer; display: flex; align-items: center; justify-content: center;
+        transition: all 0.2s ease; color: #333;
+    }
+    .dark-mode .project-info-close { background: rgba(255, 255, 255, 0.1); color: #e0e0e0; }
+    .project-info-close:hover { background: rgba(0, 0, 0, 0.1); transform: scale(1.1); }
+
+    .project-info-credit {
+        font-family: 'Courier New', Courier, monospace; font-size: 11px;
+        color: rgba(0, 0, 0, 0.5); margin-bottom: 12px; letter-spacing: 0.5px;
+    }
+    .dark-mode .project-info-credit { color: rgba(255, 255, 255, 0.5); }
+
+    .project-info-title { font-size: 28px; font-weight: 600; color: #1a1a1a; margin: 0; }
+    .dark-mode .project-info-title { color: #ffffff; }
+
+    .project-info-content { padding: 24px; overflow-y: auto; flex: 1; line-height: 1.8; font-size: 15px; }
+    .project-info-content p { margin: 0 0 16px 0; color: #333; }
+    .dark-mode .project-info-content p { color: #d0d0d0; }
+
+    .project-info-signature {
+        margin-top: 32px; padding-top: 24px; border-top: 1px solid rgba(0, 0, 0, 0.1);
+        font-style: italic; color: #666;
+    }
+    .dark-mode .project-info-signature { border-top-color: rgba(255, 255, 255, 0.1); color: #999; }
+
+    @media (max-width: 1024px) { .project-info-card { width: 55%; } }
+    @media (max-width: 768px) { .project-info-card { width: 90%; } }
+
+    #project-info-btn { transition: all 0.2s ease; }
+    #project-info-btn:hover, #project-info-btn:focus { background: rgba(255, 255, 255, 0.25); transform: translateY(-1px); }
+    .dark-mode #project-info-btn:hover { background: rgba(255, 255, 255, 0.15); }
+</style>
+
+<div class="um-root" id="um-root">
+    <!-- Sticky Glassmorphic Header -->
+    <div class="um-sticky-header">
+        <div class="um-tabs" role="tablist" aria-label="Untrainable Meanings Tabs">
+            <div class="um-tabs-left">
+                <button class="um-tab is-active" data-tab="t1" role="tab" aria-selected="true">View All Photographs</button>
+                <button class="um-tab" data-tab="t2" role="tab" aria-selected="false">Add Your Response</button>
+                <button class="um-tab" data-tab="t3" role="tab" aria-selected="false">View All Responses</button>
+                <button class="um-tab" data-tab="t5" role="tab" aria-selected="false">Human Vs AI In-Depth Analysis</button>
+                <button class="um-tab" data-tab="t4" role="tab" aria-selected="false">Human Responses Bubble Visualization</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Controls -->
+    <div class="um-global-controls" aria-label="Global controls">
+        <button id="global-go-top" class="wf-goto-btn" aria-label="Go to top">
+            <span class="wf-goto-text">Go to top</span>
+        </button>
+        <button id="project-info-btn" class="wf-mode-btn" aria-label="Project Info" style="width: 100%;">Project Info</button>
+        <div class="wf-theme-group">
+            <button id="wf-btn-light" class="wf-mode-btn" aria-label="Light Mode">Light</button>
+            <button id="wf-btn-dark" class="wf-mode-btn" aria-label="Dark Mode">Dark</button>
+        </div>
+    </div>
+
+    <!-- TAB 1: Photographs -->
+    <section class="um-panel is-active" data-panel="t1" role="tabpanel">
+        <div class="wf-wall" id="t1-wf-photo-wall">
+            <div class="wf-initial-loader" id="t1-initial-loader">
+                <div class="wf-loader-spinner"></div>
+                <div class="wf-loader-text">Photographs are loading<br><span style="font-weight:400; font-size:11px; opacity:0.6; text-transform:none">Please wait...</span></div>
+            </div>
+            <div class="wf-wall-inner" id="t1-wf-wall-inner"></div>
+            <div class="wf-loading" id="t1-wf-loading" aria-live="polite" aria-busy="false">
+                <div class="wf-loading-pill"><span class="wf-loading-dot"></span><span>Photographs loading</span></div>
+            </div>
+            <div id="t1-wf-sentinel" class="wf-sentinel"></div>
+        </div>
+    </section>
+
+    <!-- TAB 2: Add Responses -->
+    <section class="um-panel" data-panel="t2" role="tabpanel">
+        <div class="wf-wall" id="t2-wf-photo-wall">
+            <div class="wf-initial-loader" id="t2-initial-loader">
+                <div class="wf-loader-spinner"></div>
+                <div class="wf-loader-text">Photographs are loading<br><span style="font-weight:400; font-size:11px; opacity:0.6; text-transform:none">Please wait...</span></div>
+            </div>
+            <div class="wf-wall-inner" id="t2-wf-wall-inner"></div>
+            <div class="wf-loading" id="t2-wf-loading" aria-live="polite" aria-busy="false">
+                <div class="wf-loading-pill"><span class="wf-loading-dot"></span><span>Photographs loading</span></div>
+            </div>
+            <div id="t2-wf-sentinel" class="wf-sentinel"></div>
+        </div>
+        <!-- Modal T2 -->
+        <div class="wf-modal" id="t2-wf-modal" aria-hidden="true">
+            <div class="wf-modal-backdrop" id="t2-wf-modal-backdrop"></div>
+            <div class="wf-modal-card" role="dialog" aria-modal="true" aria-labelledby="t2-wf-modal-title">
+                <button class="wf-modal-close" id="t2-wf-modal-close" type="button" aria-label="Close">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+                <div class="wf-modal-head">
+                    <div class="wf-modal-title" id="t2-wf-modal-title">What does this photograph make you feel?</div>
+                    <div class="wf-modal-sub">Your response will be saved with this photograph’s URL for research.</div>
+                </div>
+                <div class="wf-modal-preview"><img id="t2-wf-modal-img" alt="" /></div>
+                <form class="wf-modal-form" id="t2-wf-modal-form">
+                    <label class="wf-field"><span class="wf-label">Name (optional)</span><input id="t2-wf-name" type="text" class="wf-input" placeholder="Your name" maxlength="80" /></label>
+                    <label class="wf-field"><span class="wf-label">What do you feel?</span><textarea id="t2-wf-feel" class="wf-textarea" placeholder="Write in a few words…" maxlength="500" required></textarea></label>
+                    <div class="wf-actions"><button id="t2-wf-submit" type="submit" class="wf-submit">Submit</button><div class="wf-status" id="t2-wf-status" aria-live="polite"></div></div>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- TAB 3: Responses -->
+    <section class="um-panel" data-panel="t3" role="tabpanel">
+        <div class="rp-root" id="rp3-root">
+            <div class="rp-theme-toggle">
+                <button id="rp3-theme-btn" aria-label="Toggle theme"><span class="rp-theme-light active">Light</span><span class="rp-theme-dark">Dark</span></button>
+            </div>
+            <div class="rp-wrap">
+                <div id="rp3-status" class="rp-status">Loading research data…</div>
+                <div id="rp3-feed" class="rp-feed"></div>
+            </div>
+        </div>
+        <!-- Modal T3 -->
+        <div class="wf-modal" id="rp3-wf-modal" aria-hidden="true">
+            <div class="wf-modal-backdrop" id="rp3-wf-modal-backdrop"></div>
+            <div class="wf-modal-card" role="dialog" aria-modal="true" aria-labelledby="rp3-wf-modal-title">
+                <button class="wf-modal-close" id="rp3-wf-modal-close" type="button" aria-label="Close">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+                <div class="wf-modal-head">
+                    <div class="wf-modal-title" id="rp3-wf-modal-title">What does this photograph make you feel?</div>
+                    <div class="wf-modal-sub">Your response will be saved with this photograph’s URL for research.</div>
+                </div>
+                <div class="wf-modal-preview"><img id="rp3-wf-modal-img" alt="" /></div>
+                <form class="wf-modal-form" id="rp3-wf-modal-form">
+                    <label class="wf-field"><span class="wf-label">Name (optional)</span><input id="rp3-wf-name" type="text" class="wf-input" placeholder="Your name" maxlength="80" /></label>
+                    <label class="wf-field"><span class="wf-label">What do you feel?</span><textarea id="rp3-wf-feel" class="wf-textarea" placeholder="Write in a few words…" maxlength="500" required></textarea></label>
+                    <div class="wf-actions"><button id="rp3-wf-submit" type="submit" class="wf-submit">Submit</button><div class="wf-status" id="rp3-wf-status" aria-live="polite"></div></div>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- TAB 4: Visualization -->
+    <section class="um-panel" data-panel="t4" role="tabpanel">
+        <div id="um-stage" class="um-stage"><div id="um-notes" class="um-notes"></div></div>
+        <div id="t4-controls"></div>
+    </section>
+
+    <!-- TAB 5: AI Analysis -->
+    <section class="um-panel" data-panel="t5" role="tabpanel"></section>
+
+    <!-- Project Info Modal -->
+    <div class="project-info-modal" id="project-info-modal" aria-hidden="true">
+        <div class="project-info-backdrop" id="project-info-backdrop"></div>
+        <div class="project-info-card" role="dialog" aria-modal="true" aria-labelledby="project-info-title">
+            <div class="project-info-header">
+                <button class="project-info-close" id="project-info-close" type="button" aria-label="Close">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+                <div class="project-info-credit">Conceptualized, designed, and developed by Abodid Sahoo</div>
+                <h2 class="project-info-title" id="project-info-title">Invisible Punctums</h2>
+            </div>
+            <div class="project-info-content">
+                <p>The project is fundamentally an extension of myself.</p>
+                <p>Throughout my entire journey with photography, the most intimate moments have been those when I had the chance to engage in deeper conversations about a photograph with people.</p>
+                <p>What's the invisible punctum in that photo? Derived from the idea of "punctum" by Roland Barthes, I try to expand the concept by trying to find the "invisible punctum" in the photos.</p>
+                <p>This project is a reflection of the overwhelming number of photographs we capture these days. It's a critical analysis of how we comfortably upload everything to the cloud and how we allow AI to deeply analyse it.</p>
+                <p>You can check out responses by other people and listen to their voice memos on the images. You can do a comparative analysis of human reactions. You can check what an AI felt about the image.</p>
+                <p>All photos in this project are mine. Kindly refrain from using it anywhere without my permission.</p>
+                <div class="project-info-signature"><p><strong>Abodid Sahoo</strong><br>Written on 8th Jan 2026</p></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
