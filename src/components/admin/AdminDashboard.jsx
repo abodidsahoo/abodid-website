@@ -43,13 +43,13 @@ export default function AdminDashboard() {
             <header className="dash-header">
                 <div>
                     <h2 className="text-serif hero-title">Dashboard</h2>
-                    <p className="subtext">Welcome back, {session.user.email}</p>
+                    <p className="subtext">Welcome back, <span className="user-email">{session.user.email}</span></p>
                 </div>
                 <div className="header-actions">
                     {selectedTable && (
                         <button onClick={() => setSelectedTable(null)} className="btn-back">← Back</button>
                     )}
-                    <button onClick={handleLogout} className="btn-logout">Sign Out</button>
+                    <button onClick={handleLogout} className="btn-logout-prominent">Sign Out</button>
                 </div>
             </header>
 
@@ -60,6 +60,12 @@ export default function AdminDashboard() {
                         count={stats.photography}
                         onCheck={() => setSelectedTable('photography')}
                         onCreate={() => window.location.href = '/admin/editor?table=photography&id=new'}
+                    />
+                    <DashboardCard
+                        title="Films"
+                        count={stats.films}
+                        onCheck={() => setSelectedTable('films')}
+                        onCreate={() => window.location.href = '/admin/editor?table=films&id=new'}
                     />
                     <DashboardCard
                         title="Blog"
@@ -73,12 +79,6 @@ export default function AdminDashboard() {
                         onCheck={() => setSelectedTable('research')}
                         onCreate={() => window.location.href = '/admin/editor?table=research&id=new'}
                     />
-                    <DashboardCard
-                        title="Films"
-                        count={stats.films}
-                        onCheck={() => setSelectedTable('films')}
-                        onCreate={() => window.location.href = '/admin/editor?table=films&id=new'}
-                    />
                 </div>
             ) : (
                 <ListView table={selectedTable} />
@@ -89,60 +89,119 @@ export default function AdminDashboard() {
             height: 100vh; display: flex; align-items: center; justify-content: center; 
             color: var(--text-secondary); font-family: var(--font-sans);
         }
-        .dashboard-container { max-width: 1200px; margin: 0 auto; padding: 4rem 2rem; }
+        .dashboard-container { max-width: 1400px; margin: 0 auto; padding: 4rem 3rem; }
         
         .dash-header {
-            display: flex; justify-content: space-between; align-items: flex-start;
+            display: flex; justify-content: space-between; align-items: flex-end; /* Align bottom for "downwards" feel */
             margin-bottom: 5rem; 
+            border-bottom: 1px solid #222;
+            padding-bottom: 2rem;
         }
         .hero-title { 
             font-size: 4rem; margin: 0 0 0.5rem 0; font-weight: 400; color: #fff;
             letter-spacing: -0.03em;
         }
         .subtext { color: #666; margin: 0; font-size: 0.9rem; }
+        .user-email { color: #fff; border-bottom: 1px dotted #666; }
         
-        .header-actions { display: flex; gap: 1rem; align-items: center; }
+        .header-actions { display: flex; gap: 1.5rem; align-items: center; }
         
-        .btn-logout, .btn-back {
+        .btn-back {
             background: transparent; border: none; font-size: 0.9rem;
             color: #666; cursor: pointer; font-weight: 500;
         }
-        .btn-logout:hover, .btn-back:hover { color: #fff; }
+        .btn-back:hover { color: #fff; }
 
-        /* Minimal Card Grid */
+        /* Prominent Sign Out Button */
+        .btn-logout-prominent {
+            background: transparent;
+            border: 1px solid #444;
+            color: #ccc;
+            padding: 0.6rem 1.5rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: 1rem; /* Push slightly downwards if needed, but flex-end handles it */
+        }
+        .btn-logout-prominent:hover {
+            border-color: #fff;
+            color: #fff;
+            background: rgba(255,255,255,0.05);
+            box-shadow: 0 0 15px rgba(255,255,255,0.1);
+        }
+
+        /* 4-Column Grid */
         .stats-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem;
+            display: grid; 
+            grid-template-columns: repeat(4, 1fr); /* Force 4 columns */
+            gap: 1.5rem;
         }
-        .stat-card {
-            background: #111; border: 1px solid #222;
-            border-radius: 8px; padding: 2.5rem 2rem; text-align: center;
-            display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-            min-height: 280px; transition: 0.2s;
-        }
-        .stat-card:hover { border-color: #333; }
         
+        /* Compact Card Styling */
+        .stat-card {
+            background: #111; 
+            border: 1px solid #222;
+            border-radius: 4px; 
+            padding: 1.5rem; 
+            text-align: left;
+            display: flex; 
+            flex-direction: row; /* Horizontal Layout inside? User said "blocks", let's keep vertical but compact */
+            align-items: center; 
+            justify-content: space-between;
+            min-height: 120px; /* Smaller height */
+            transition: 0.2s;
+            cursor: pointer;
+            position: relative;
+        }
+        .stat-card:hover { 
+            border-color: #444; 
+            background: #161616;
+        }
+        
+        .card-content {
+            display: flex; flex-direction: column; gap: 0.2rem;
+        }
+
         .stat-card h3 { 
-            margin: 0; font-size: 0.75rem; text-transform: uppercase; 
-            letter-spacing: 0.15em; color: #666; font-weight: 600;
+            margin: 0; 
+            font-size: 1.8rem; /* Way larger text */
+            color: #fff; 
+            font-weight: 400;
+            letter-spacing: -0.02em;
         }
         .count { 
-            font-size: 5rem; font-weight: 300; margin: 0; line-height: 1;
-            font-family: var(--font-serif); color: #fff;
+            font-size: 0.75rem; /* Very small number */
+            font-weight: 400; 
+            color: #666;
+            margin: 0; 
+            font-family: var(--font-sans);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
         
-        .card-actions {
-            display: flex; gap: 10px; width: 100%; justify-content: center;
+        .btn-new-mini {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            background: #fff; color: #000;
+            border: none;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem;
+            font-weight: 300;
+            cursor: pointer;
+            transition: 0.2s;
         }
-        
-        .btn-action {
-            padding: 0.6rem 1.5rem; border-radius: 4px; font-weight: 500; font-size: 0.85rem;
-            cursor: pointer; border: none; transition: 0.2s; min-width: 80px;
+        .btn-new-mini:hover {
+            transform: scale(1.1);
+            background: #ccc;
         }
-        .btn-primary { background: #fff; color: #000; font-weight: 600; }
-        .btn-primary:hover { background: #ccc; }
-        
-        .btn-secondary { background: #1a1a1a; color: #ccc; border: 1px solid #333; }
-        .btn-secondary:hover { border-color: #666; color: #fff; }
+
+        /* Responsive Breakpoint - Collapse to 2 cols on smaller screens if needed */
+        @media (max-width: 1000px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
 
         /* List View */
         .list-container { animation: fadeIn 0.3s ease; }
@@ -166,13 +225,18 @@ export default function AdminDashboard() {
 
 function DashboardCard({ title, count, onCheck, onCreate }) {
     return (
-        <div className="stat-card" onClick={onCheck} style={{ cursor: 'pointer' }}>
-            <h3>{title}</h3>
-            <p className="count">{count}</p>
-            <div className="card-actions">
-                <button onClick={(e) => { e.stopPropagation(); onCheck(); }} className="btn-action btn-secondary">List</button>
-                <button onClick={(e) => { e.stopPropagation(); onCreate(); }} className="btn-action btn-primary">+ New</button>
+        <div className="stat-card" onClick={onCheck}>
+            <div className="card-content">
+                <h3>{title}</h3>
+                <p className="count">{count} Items</p>
             </div>
+            <button
+                onClick={(e) => { e.stopPropagation(); onCreate(); }}
+                className="btn-new-mini"
+                title="Create New"
+            >
+                +
+            </button>
         </div>
     );
 }
