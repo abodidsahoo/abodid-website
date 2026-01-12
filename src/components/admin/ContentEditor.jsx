@@ -196,45 +196,19 @@ export default function ContentEditor({ table, id }) {
 
                     <div className="model-card">
 
-                        {/* --- COMMON: TITLE HEADER --- */}
-                        <section className="card-section">
-                            <label className="section-label">Essential Info</label>
-                            <div className="field-group">
-                                <label>Title</label>
-                                <input
-                                    type="text" className="box-input large" placeholder="Enter Title..."
-                                    value={formData.title || ''} onChange={e => handleChange('title', e.target.value)}
-                                />
-                            </div>
-
-                            {/* Slug Logic (Common) */}
-                            {table !== 'films' && (
-                                <div className="field-group">
-                                    <label>Slug</label>
-                                    <input
-                                        type="text" className="box-input" value={formData.slug || ''}
-                                        onChange={e => handleChange('slug', e.target.value)}
-                                        onFocus={() => {
-                                            if (!formData.slug && formData.title) {
-                                                const s = formData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-                                                handleChange('slug', s);
-                                            }
-                                        }}
-                                        placeholder="Click to auto-generate..."
-                                    />
-                                </div>
-                            )}
-                        </section>
-
                         {/* =========================================
                             MODE: FILM EDITOR
                            ========================================= */}
                         {isFilms && (
-                            <div className="film-layout">
-                                <div className="film-grid">
-                                    {/* LEFT COL: METADATA */}
+                            <div className="editor-grid">
+                                {/* LEFT COL: METADATA */}
+                                <div className="editor-col-left">
                                     <section className="card-section">
                                         <label className="section-label">Essential Info</label>
+                                        <div className="field-group">
+                                            <label>Title</label>
+                                            <input type="text" className="box-input large" placeholder="Movie Title..." value={formData.title || ''} onChange={e => handleChange('title', e.target.value)} />
+                                        </div>
                                         <div className="meta-row">
                                             <div className="field-group">
                                                 <label>Year</label>
@@ -255,8 +229,10 @@ export default function ContentEditor({ table, id }) {
                                             <textarea className="box-input content-area-compact" value={formData.description || ''} onChange={e => handleChange('description', e.target.value)} />
                                         </div>
                                     </section>
+                                </div>
 
-                                    {/* RIGHT COL: MEDIA */}
+                                {/* RIGHT COL: MEDIA */}
+                                <div className="editor-col-right">
                                     <section className="card-section">
                                         <label className="section-label">Media Assets</label>
                                         <div className="media-stack">
@@ -301,149 +277,180 @@ export default function ContentEditor({ table, id }) {
                             MODE: PHOTOGRAPHY EDITOR
                            ========================================= */}
                         {isPhotography && (
-                            <>
-                                <section className="card-section">
-                                    <div className="meta-grid">
+                            <div className="editor-grid">
+                                {/* LEFT COL */}
+                                <div className="editor-col-left">
+                                    <section className="card-section">
+                                        <label className="section-label">Classification</label>
                                         <div className="field-group">
-                                            <label>Category</label>
-                                            <input type="text" className="box-input" value={formData.category || ''} onChange={e => handleChange('category', e.target.value)} />
+                                            <label>Title</label>
+                                            <input type="text" className="box-input large" placeholder="Title..." value={formData.title || ''} onChange={e => handleChange('title', e.target.value)} />
                                         </div>
                                         <div className="field-group">
-                                            <label>Intro</label>
-                                            <input type="text" className="box-input" value={formData.intro || ''} onChange={e => handleChange('intro', e.target.value)} />
+                                            <label>Slug</label>
+                                            <input type="text" className="box-input" value={formData.slug || ''} onChange={e => handleChange('slug', e.target.value)} onFocus={() => !formData.slug && formData.title && handleChange('slug', formData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-'))} placeholder="Auto-generate..." />
                                         </div>
-                                    </div>
-                                </section>
-
-                                <section className="card-section">
-                                    <label className="section-label">Cover Image</label>
-                                    {formData.cover_image ? (
-                                        <div className="cover-wrapper-small preview-active">
-                                            <div className="preview-fit">
-                                                <img src={formData.cover_image} />
-                                                <button className="btn-mini-remove" onClick={() => handleChange('cover_image', '')}>Replace</button>
+                                        <div className="meta-row">
+                                            <div className="field-group">
+                                                <label>Category</label>
+                                                <input type="text" className="box-input" value={formData.category || ''} onChange={e => handleChange('category', e.target.value)} />
+                                            </div>
+                                            <div className="field-group">
+                                                <label>Intro</label>
+                                                <input type="text" className="box-input" value={formData.intro || ''} onChange={e => handleChange('intro', e.target.value)} />
                                             </div>
                                         </div>
-                                    ) : (
-                                        <ImageUploader
-                                            bucket="photography" path="covers" label="Upload Cover"
-                                            className="cover-uploader-box"
-                                            onUpload={f => handleChange('cover_image', f[0].url)}
-                                        />
-                                    )}
-                                </section>
+                                    </section>
 
-                                <section className="card-section">
-                                    <label className="section-label">Gallery Stream (All Photos)</label>
-                                    <div className="gallery-container large">
-                                        <div className="gallery-stream">
-                                            {(formData.gallery_images || []).map((img, idx) => (
-                                                <div key={idx} className="stream-item">
-                                                    <img src={img.url} />
-                                                    <div className="item-overlay"><button onClick={() => removeGalleryItem(idx)}>×</button></div>
+                                    <section className="card-section">
+                                        <label className="section-label">Cover Image</label>
+                                        {formData.cover_image ? (
+                                            <div className="cover-wrapper-small preview-active">
+                                                <div className="preview-fit">
+                                                    <img src={formData.cover_image} />
+                                                    <button className="btn-mini-remove" onClick={() => handleChange('cover_image', '')}>Replace</button>
                                                 </div>
-                                            ))}
-                                            <div className="stream-action-tile">
-                                                <ImageUploader
-                                                    bucket="photography" path={`stories/${id}`} multiple={true} label="+"
-                                                    className="stream-uploader-inner"
-                                                    onUpload={handleGalleryUpload}
-                                                />
+                                            </div>
+                                        ) : (
+                                            <ImageUploader
+                                                bucket="photography" path="covers" label="Upload Cover"
+                                                className="cover-uploader-box"
+                                                onUpload={f => handleChange('cover_image', f[0].url)}
+                                            />
+                                        )}
+                                    </section>
+
+                                    <section className="card-section">
+                                        <label className="section-label">Story Text</label>
+                                        <textarea className="box-input content-area-compact" value={formData.content || ''} onChange={e => handleChange('content', e.target.value)} />
+                                    </section>
+                                </div>
+
+                                {/* RIGHT COL */}
+                                <div className="editor-col-right">
+                                    <section className="card-section">
+                                        <label className="section-label">Gallery Stream (All Photos)</label>
+                                        <div className="gallery-container large">
+                                            <div className="gallery-stream">
+                                                {(formData.gallery_images || []).map((img, idx) => (
+                                                    <div key={idx} className="stream-item">
+                                                        <img src={img.url} />
+                                                        <div className="item-overlay"><button onClick={() => removeGalleryItem(idx)}>×</button></div>
+                                                    </div>
+                                                ))}
+                                                <div className="stream-action-tile">
+                                                    <ImageUploader
+                                                        bucket="photography" path={`stories/${id}`} multiple={true} label="+"
+                                                        className="stream-uploader-inner"
+                                                        onUpload={handleGalleryUpload}
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                </section>
-
-                                <section className="card-section">
-                                    <label className="section-label">Story Text</label>
-                                    <textarea className="box-input content-area" value={formData.content || ''} onChange={e => handleChange('content', e.target.value)} />
-                                </section>
-                            </>
+                                    </section>
+                                </div>
+                            </div>
                         )}
 
                         {/* =========================================
                             MODE: WRITING (BLOG) & RESEARCH EDITOR
                            ========================================= */}
                         {(!isFilms && !isPhotography) && (
-                            <>
-                                <section className="card-section">
-                                    <div className="meta-grid">
+                            <div className="editor-grid">
+                                {/* LEFT COL: METADATA */}
+                                <div className="editor-col-left">
+                                    <section className="card-section">
+                                        <label className="section-label">Metadata</label>
+                                        <div className="field-group">
+                                            <label>Title</label>
+                                            <input type="text" className="box-input large" placeholder="Article Title..." value={formData.title || ''} onChange={e => handleChange('title', e.target.value)} />
+                                        </div>
+                                        <div className="field-group">
+                                            <label>Slug</label>
+                                            <input type="text" className="box-input" value={formData.slug || ''} onChange={e => handleChange('slug', e.target.value)} onFocus={() => !formData.slug && formData.title && handleChange('slug', formData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-'))} placeholder="Auto-generate..." />
+                                        </div>
+
+                                        <div className="field-group full-width" style={{ marginTop: '1rem' }}>
+                                            <label>Excerpt / Abstract</label>
+                                            <textarea className="box-input" style={{ minHeight: '100px' }} value={formData.excerpt || ''} onChange={e => handleChange('excerpt', e.target.value)} />
+                                        </div>
+
                                         {table === 'research' && (
                                             <>
-                                                <div className="field-group">
-                                                    <label>Project Link</label>
-                                                    <input type="text" className="box-input" placeholder="https://..." value={formData.link || ''} onChange={e => handleChange('link', e.target.value)} />
+                                                <div className="meta-row" style={{ marginTop: '1rem' }}>
+                                                    <div className="field-group">
+                                                        <label>Project Link</label>
+                                                        <input type="text" className="box-input" placeholder="https://..." value={formData.link || ''} onChange={e => handleChange('link', e.target.value)} />
+                                                    </div>
+                                                    <div className="field-group">
+                                                        <label>Repo Link</label>
+                                                        <input type="text" className="box-input" placeholder="GitHub..." value={formData.repo_link || ''} onChange={e => handleChange('repo_link', e.target.value)} />
+                                                    </div>
                                                 </div>
-                                                <div className="field-group">
-                                                    <label>Repo Link</label>
-                                                    <input type="text" className="box-input" placeholder="GitHub URL..." value={formData.repo_link || ''} onChange={e => handleChange('repo_link', e.target.value)} />
-                                                </div>
-                                                <div className="field-group full-width">
-                                                    <label>Tags (Comma separated)</label>
-                                                    <input type="text" className="box-input" placeholder="AI, UI/UX, Data..."
+                                                <div className="field-group full-width" style={{ marginTop: '1rem' }}>
+                                                    <label>Tags</label>
+                                                    <input type="text" className="box-input" placeholder="AI, UI/UX..."
                                                         value={(formData.tags || []).join(', ')}
                                                         onChange={e => handleChange('tags', e.target.value.split(',').map(s => s.trim()))}
                                                     />
                                                 </div>
                                             </>
                                         )}
-                                        {table === 'blog' && (
-                                            <div className="field-group full-width">
-                                                <label>Excerpt</label>
-                                                <input type="text" className="box-input" value={formData.excerpt || ''} onChange={e => handleChange('excerpt', e.target.value)} />
+                                    </section>
+
+                                    <section className="card-section">
+                                        <label className="section-label">Cover Image</label>
+                                        {(formData.cover_image || formData.image) ? (
+                                            <div className="cover-wrapper-small preview-active">
+                                                <div className="preview-fit">
+                                                    <img src={formData.cover_image || formData.image} />
+                                                    <button className="btn-mini-remove" onClick={() => handleChange(table === 'research' ? 'image' : 'cover_image', '')}>Replace</button>
+                                                </div>
                                             </div>
-                                        )}
-                                    </div>
-                                </section>
-
-                                <section className="card-section">
-                                    <label className="section-label">Cover Image</label>
-                                    {(formData.cover_image || formData.image) ? (
-                                        <div className="cover-wrapper-small preview-active">
-                                            <div className="preview-fit">
-                                                <img src={formData.cover_image || formData.image} />
-                                                <button className="btn-mini-remove" onClick={() => handleChange(table === 'research' ? 'image' : 'cover_image', '')}>Replace</button>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <ImageUploader
-                                            bucket={table} path="covers" label="Upload Cover"
-                                            className="cover-uploader-box"
-                                            onUpload={f => handleChange(table === 'research' ? 'image' : 'cover_image', f[0].url)}
-                                        />
-                                    )}
-                                </section>
-
-                                {/* WRITING AREA WITH INSERT TOOL */}
-                                <section className="card-section" style={{ position: 'relative' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <label className="section-label">Content Body (Markdown)</label>
-                                        <div style={{ fontSize: '0.7rem', color: '#666' }}>
-                                            Drop image below to insert →
-                                        </div>
-                                    </div>
-
-                                    <div className="writing-container" style={{ display: 'grid', gridTemplateColumns: '1fr 60px', gap: '1rem' }}>
-                                        <textarea
-                                            className="box-input content-area"
-                                            value={formData.content || ''}
-                                            onChange={e => handleChange('content', e.target.value)}
-                                            placeholder="Write your article..."
-                                        />
-
-                                        {/* INLINE IMAGE INSERTER */}
-                                        <div className="inserter-rail">
+                                        ) : (
                                             <ImageUploader
-                                                bucket={table}
-                                                path="content-assets"
-                                                label="IMG"
-                                                className="rail-uploader"
-                                                onUpload={(files) => insertMarkdownImage(files[0].url)}
+                                                bucket={table} path="covers" label="Upload Cover"
+                                                className="cover-uploader-box"
+                                                onUpload={f => handleChange(table === 'research' ? 'image' : 'cover_image', f[0].url)}
                                             />
+                                        )}
+                                    </section>
+                                </div>
+
+                                {/* RIGHT COL: WRITING */}
+                                <div className="editor-col-right">
+                                    {/* WRITING AREA WITH INSERT TOOL */}
+                                    <section className="card-section" style={{ position: 'relative', height: '100%' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <label className="section-label">Content Body (Markdown)</label>
+                                            <div style={{ fontSize: '0.7rem', color: '#666' }}>
+                                                Drop image below to insert →
+                                            </div>
                                         </div>
-                                    </div>
-                                </section>
-                            </>
+
+                                        <div className="writing-container" style={{ display: 'grid', gridTemplateColumns: '1fr 60px', gap: '1rem', height: '100%' }}>
+                                            <textarea
+                                                className="box-input content-area"
+                                                style={{ height: 'calc(100vh - 250px)', minHeight: '500px', resize: 'none' }}
+                                                value={formData.content || ''}
+                                                onChange={e => handleChange('content', e.target.value)}
+                                                placeholder="Write your article..."
+                                            />
+
+                                            {/* INLINE IMAGE INSERTER */}
+                                            <div className="inserter-rail">
+                                                <ImageUploader
+                                                    bucket={table}
+                                                    path="content-assets"
+                                                    label="IMG"
+                                                    className="rail-uploader"
+                                                    onUpload={(files) => insertMarkdownImage(files[0].url)}
+                                                />
+                                            </div>
+                                        </div>
+                                    </section>
+                                </div>
+                            </div>
                         )}
 
                     </div>
@@ -503,28 +510,30 @@ export default function ContentEditor({ table, id }) {
                 .btn.pri { background: var(--c-text); color: var(--c-bg); border: none; font-weight: 600; }
                 .btn.pri:hover { background: #ccc; }
 
-                /* CANVAS */
+                /* CANVAS - FULL SCREEN */
                 .cms-canvas {
-                    flex: 1; overflow-y: auto; padding: 0.5rem; /* Minimal padding */
+                    flex: 1; overflow-y: auto; padding: 0; /* NO PADDING to hit edges */
                     display: flex; justify-content: center; align-items: flex-start;
                 }
 
                 .model-card {
-                    width: 100%; max-width: none; /* FULL WIDTH */
+                    width: 100%; max-width: none;
                     display: flex; flex-direction: column; gap: 2rem;
-                    /* "Clean Upload Box" Style - Retained but full width */
-                    background: #0f0f0f;
-                    border: 1px solid #333;
-                    border-radius: 4px;
-                    padding: 1.5rem; /* Compact inner padding */
-                    min-height: 95vh; /* Ensure it looks substantial */
+                    background: transparent; /* No box */
+                    border: none; /* No border */
+                    padding: 3rem 4rem; /* Padding for content breathing room */
+                    min-height: auto;
+                    box-shadow: none;
                 }
 
-                /* GRID LAYOUT FOR FILMS */
-                .film-grid {
-                    display: grid; grid-template-columns: 1.2fr 0.8fr; /* Split layout */
-                    gap: 3rem;
+                /* SPLIT GRID LAYOUT */
+                .editor-grid {
+                    display: grid; grid-template-columns: 450px 1fr; /* Fixed Left Sidebar, Fluid Right */
+                    gap: 5rem; /* Wide gap */
+                    align-items: start;
                 }
+                .editor-col-left { display: flex; flex-direction: column; gap: 2.5rem; }
+                .editor-col-right { display: flex; flex-direction: column; gap: 2.5rem; min-width: 0; height: 100%; }
 
                 .meta-row { display: flex; gap: 1rem; }
                 .meta-row .field-group { flex: 1; }
@@ -552,7 +561,6 @@ export default function ContentEditor({ table, id }) {
                 .full-width { grid-column: span 2; }
 
                 /* UPLOADERS - Clean Unification */
-                /* 1. The Cover Uploader Box configuration */
                 .cover-uploader-box {
                     width: 100% !important; /* Adjust width as needed, stacking now */
                     aspect-ratio: 16/9;
@@ -683,6 +691,3 @@ export default function ContentEditor({ table, id }) {
         </div>
     );
 }
-
-// Minimal placeholder for the ImageUploader if specific styling is needed externally
-// But we assume the existing ImageUploader component works generally well.
