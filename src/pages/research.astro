@@ -1,33 +1,15 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-const pageTitle = "Code";
+import { getProjects } from '../lib/api';
 
-const projects = [
-  {
-    title: "Personal Portfolio",
-    desc: "Built with Astro, Supabase, and a custom design system focused on minimalism.",
-    tags: ["Astro", "TypeScript", "CSS"],
-    link: "https://github.com/abodid/personal-site"
-  },
-  {
-    title: "Generative Art",
-    desc: "Experiments with Canvas API and WebGL to create evolving visual patterns.",
-    tags: ["JavaScript", "WebGL", "Creative Coding"],
-    link: "#"
-  },
-  {
-    title: "Film Grain Emulator",
-    desc: "A lightweight CSS/SVG filter to emulate 35mm film grain on digital images.",
-    tags: ["CSS", "SVG"],
-    link: "#"
-  }
-];
+const pageTitle = "Research";
+const projects = await getProjects();
 ---
 <BaseLayout title={pageTitle}>
   <header class="page-header">
-    <h1>Code & Experiments</h1>
+    <h1>Research & Experiments</h1>
     <p class="section-intro">
-      The intersection of logic and aesthetics.
+      The intersection of sociology, AI, and visual culture.
     </p>
   </header>
   
@@ -35,8 +17,8 @@ const projects = [
     {projects.map(project => (
       <div class="project-card">
         <div class="card-header">
-          <h3>{project.title}</h3>
-          <a href={project.link} class="icon-link">↗</a>
+          <h3><a href={project.href} class="project-link">{project.title}</a></h3>
+          <a href={project.href} class="icon-link">↗</a>
         </div>
         <p>{project.desc}</p>
         <div class="tags">

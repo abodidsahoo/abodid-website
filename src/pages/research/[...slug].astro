@@ -1,0 +1,165 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getProjects, getProjectBySlug } from '../../lib/api';
+import { marked } from 'marked';
+
+export async function getStaticPaths() {
+  const projects = await getProjects();
+  return projects.map(project => ({
+    params: { slug: project.slug },
+    props: { slug: project.slug },
+  }));
+}
+
+const { slug } = Astro.props;
+const project = await getProjectBySlug(slug);
+
+if (!project) {
+  return Astro.redirect('/404');
+}
+
+const contentHtml = marked.parse(project.content || "");
+---
+
+<BaseLayout title={project.title}>
+  <article class="project-container">
+    <header class="project-header">
+      <div class="meta">
+        <span class="category">Code & Research</span>
+      </div>
+      <h1 class="title">{project.title}</h1>
+      <p class="excerpt">{project.description}</p>
+      
+      <div class="actions">
+        {project.link && (
+          <a href={project.link} target="_blank" rel="noopener noreferrer" class="btn-primary">
+            Go to Live Project ↗
+          </a>
+        )}
+        {project.repo_link && (
+          <a href={project.repo_link} target="_blank" rel="noopener noreferrer" class="btn-secondary">
+            View Source Code
+          </a>
+        )}
+      </div>
+    </header>
+
+    {project.image && (
+      <div class="project-hero">
+        <img src={project.image} alt={project.title} />
+      </div>
+    )}
+
+    <div class="prose" set:html={contentHtml}></div>
+
+    <hr class="divider" />
+    
+    <div class="footer-nav">
+      <a href="/research" class="back-link">← Back to Research</a>
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .project-container {
+    max-width: 800px;
+    margin: 4rem auto;
+    padding: 0 1.5rem;
+  }
+
+  .project-header {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+
+  .meta {
+    font-family: var(--font-sans);
+    font-size: 0.9rem;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 1rem;
+  }
+
+  .title {
+    font-family: var(--font-serif);
+    font-size: 3rem;
+    line-height: 1.2;
+    margin-bottom: 1.5rem;
+  }
+
+  .excerpt {
+    font-size: 1.25rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    max-width: 600px;
+    margin: 0 auto 2rem;
+  }
+
+  .actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 2rem;
+  }
+
+  .btn-primary {
+    display: inline-block;
+    padding: 0.8rem 1.5rem;
+    background: var(--text-primary);
+    color: var(--bg-color);
+    border-radius: 4px;
+    font-weight: 500;
+    transition: opacity 0.2s;
+  }
+
+  .btn-secondary {
+    display: inline-block;
+    padding: 0.8rem 1.5rem;
+    border: 1px solid var(--border-strong);
+    color: var(--text-primary);
+    border-radius: 4px;
+    font-weight: 500;
+    transition: background 0.2s;
+  }
+
+  .btn-primary:hover { opacity: 0.9; }
+  .btn-secondary:hover { background: var(--bg-surface); }
+
+  .project-hero {
+    margin: 3rem -2rem;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  }
+
+  .project-hero img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .prose {
+    font-family: var(--font-sans); /* Use sans for technical content? or serif? let's stick to serif for reading */
+    font-family: var(--font-serif);
+    font-size: 1.125rem;
+    line-height: 1.8;
+    color: var(--text-primary);
+  }
+
+  .divider {
+    margin: 4rem 0 2rem;
+    border: none;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .footer-nav {
+    text-align: center;
+  }
+  
+  .back-link {
+    color: var(--text-secondary);
+    text-decoration: none;
+  }
+  .back-link:hover { color: var(--text-primary); }
+</style>

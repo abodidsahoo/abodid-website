@@ -1,0 +1,82 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+const pageTitle = "About";
+---
+
+<BaseLayout title={pageTitle}>
+  <article class="about-container animation-fade-in">
+    <h1 class="page-title">About</h1>
+    
+    <div class="prose">
+      <p class="lead">
+        I am a creative technologist and researcher exploring the nuances of visual culture in the age of artificial intelligence.
+      </p>
+
+      <p>
+        My work bridges the gap between traditional photography, cinematography, and sociological research. 
+        I am interested in the "Invisible Punctum"—the unseen emotional impact of images—and how AI interprets (or fails to interpret) human feeling.
+      </p>
+
+      <hr class="divider" />
+
+      <h3>Contact</h3>
+      <ul class="contact-list">
+        <li><a href="mailto:hello@abodid.com">hello@abodid.com</a></li>
+        <li><a href="https://github.com/abodidsahoo" target="_blank">GitHub</a></li>
+        <li><a href="https://twitter.com/abodid" target="_blank">Twitter / X</a></li>
+      </ul>
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .about-container {
+    max-width: 720px;
+    margin: 4rem auto;
+    padding: 0 1.5rem;
+  }
+
+  .page-title {
+    font-size: 3rem;
+    margin-bottom: 2rem;
+    font-weight: 500;
+  }
+
+  .prose {
+    font-size: 1.125rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+  }
+
+  .lead {
+    font-size: 1.5rem;
+    color: var(--text-primary);
+    font-weight: 400;
+    line-height: 1.4;
+    margin-bottom: 2rem;
+    font-family: var(--font-serif);
+  }
+
+  .divider {
+    margin: 3rem 0;
+    border: none;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .contact-list {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    gap: 1.5rem;
+  }
+
+  .contact-list a {
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-subtle);
+    padding-bottom: 2px;
+  }
+
+  .contact-list a:hover {
+    border-bottom-color: var(--text-primary);
+  }
+</style>

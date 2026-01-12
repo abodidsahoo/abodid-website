@@ -1,6 +1,48 @@
 import { supabase } from './supabaseClient';
 import { featuredStories as mockStories, recentPosts as mockPosts } from '../utils/mockData';
 
+// --- Projects (Code) ---
+
+export async function getProjects() {
+    if (!isSupabaseConfigured()) return [];
+
+    const { data, error } = await supabase
+        .from('projects')
+        .select('*')
+        .eq('published', true)
+        .order('sort_order', { ascending: true });
+
+    if (error) {
+        console.error('Error fetching projects:', error);
+        return [];
+    }
+
+    return data.map(p => ({
+        title: p.title,
+        desc: p.description,
+        tags: p.tags || [],
+        link: p.link || p.repo_link, // Prefer Live link, fallback to Repo
+        slug: p.slug,
+        href: `/research/${p.slug}`
+    }));
+}
+
+export async function getProjectBySlug(slug) {
+    if (!isSupabaseConfigured()) return null;
+
+    const { data, error } = await supabase
+        .from('projects')
+        .select('*')
+        .eq('slug', slug)
+        .single();
+
+    if (error) {
+        console.error(`Error fetching project ${slug}:`, error);
+        return null;
+    }
+    return data;
+}
+
 // Helper to check if Supabase is configured
 const isSupabaseConfigured = () => {
     return import.meta.env.PUBLIC_SUPABASE_URL && import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
@@ -28,7 +70,7 @@ export async function getFeaturedStories() {
         title: story.title,
         category: story.category,
         image: story.cover_image,
-        href: `/portfolio/${story.slug}`
+        href: `/photography/${story.slug}`
     }));
 }
 
@@ -50,9 +92,10 @@ export async function getAllStories() {
         title: story.title,
         category: story.category,
         image: story.cover_image,
-        href: `/portfolio/${story.slug}`
+        href: `/photography/${story.slug}`
     }));
 }
+
 
 export async function getStoryBySlug(slug) {
     if (!isSupabaseConfigured()) return null;
