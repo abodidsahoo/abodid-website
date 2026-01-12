@@ -11,7 +11,7 @@ export default function ContentEditor({ table, id }) {
     const SCHEMAS = {
         posts: ['title', 'slug', 'excerpt', 'content', 'published'],
         projects: ['title', 'slug', 'description', 'content', 'link', 'repo_link', 'published'],
-        stories: ['title', 'slug', 'intro', 'category', 'cover_image', 'published'],
+        stories: ['title', 'slug', 'intro', 'content', 'category', 'cover_image', 'published'],
         films: ['title', 'year', 'description', 'video_url', 'thumbnail_url', 'role', 'published']
     };
 

@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getAllStories, getStoryBySlug } from '../../lib/api';
+import { marked } from 'marked';
 
 export const prerender = false;
 
@@ -11,6 +12,8 @@ const storyContent = await getStoryBySlug(slug);
 if (!storyContent) {
   return Astro.redirect('/404');
 }
+
+const contentHtml = marked.parse(storyContent.content || "");
 ---
 
 <BaseLayout title={storyContent.title}>
@@ -21,7 +24,10 @@ if (!storyContent) {
       <p class="intro text-serif">{storyContent.intro}</p>
     </header>
 
-    <div class="story-content">
+    <div class="prose story-prose" set:html={contentHtml}></div>
+
+    <div class="story-content hidden-gallery">
+      {/* Fallback for legacy photos table if used */}
       {storyContent.images.map((img, index) => (
         <figure class="story-image">
           <img src={img} alt={`Story image ${index + 1}`} loading="lazy" />
@@ -94,4 +100,23 @@ if (!storyContent) {
   .back-link {
     font-weight: 500;
   }
-</style>
+
+  .story-prose {
+    font-family: var(--font-serif);
+    font-size: 1.125rem;
+    line-height: 1.8;
+    color: var(--text-primary);
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .story-prose :global(img) {
+    width: 100%;
+    height: auto;
+    border-radius: 4px;
+    margin: 2rem 0;
+  }
+
+  .story-prose :global(p) { margin-bottom: 1.5rem; }
+
+  .hidden-gallery { display: none; } /* Hide unless we have legacy images */
