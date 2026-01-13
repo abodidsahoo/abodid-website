@@ -1,0 +1,349 @@
+---
+export const prerender = false; // Must be false for server-side auth check
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getRepoContents } from "../../lib/github";
+
+// Configuration
+const VAULT_PASSWORD = import.meta.env.VAULT_PASSWORD || "secret"; // Default for dev, set in Vercel
+const COOKIE_NAME = "obsidian_vault_access";
+const COOKIE_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
+
+// Server-Side Logic
+let isUnlocked = false;
+let error = "";
+let vaultFiles = [];
+
+// 1. Check Cookie
+if (Astro.cookies.has(COOKIE_NAME)) {
+    const cookieVal = Astro.cookies.get(COOKIE_NAME)?.value;
+    if (cookieVal === "granted") {
+        isUnlocked = true;
+    }
+}
+
+// 2. Handle Login Submission
+if (Astro.request.method === "POST") {
+    try {
+        const data = await Astro.request.formData();
+        const password = data.get("password");
+
+        if (password === VAULT_PASSWORD) {
+            isUnlocked = true;
+            Astro.cookies.set(COOKIE_NAME, "granted", {
+                path: "/",
+                maxAge: COOKIE_MAX_AGE,
+                httpOnly: true,
+                secure: import.meta.env.PROD,
+                sameSite: "lax",
+            });
+            // Redirect to avoid form resubmission on refresh
+            return Astro.redirect("/research/obsidian-vault");
+        } else {
+            error = "Incorrect password. The vault remains sealed.";
+        }
+    } catch (e) {
+        console.error(e);
+        error = "An unexpected error occurred.";
+    }
+}
+
+// 3. Fetch Data if Unlocked
+if (isUnlocked) {
+    vaultFiles = await getRepoContents();
+}
+
+const pageTitle = "Obsidian Vault";
+---
+
+<BaseLayout title={pageTitle}>
+    <div class="vault-container">
+        {
+            !isUnlocked ? (
+                /* --- LOCKED STATE --- */
+                <section class="locked-view">
+                    <header class="vault-header">
+                        <h1>Obsidian Vault</h1>
+                        <p class="subtitle">
+                            A digital garden of raw thoughts, research, and
+                            connections.
+                        </p>
+                    </header>
+
+                    <div class="pitch-content">
+                        <p>
+                            This vault contains my personal collection of
+                            Markdown notes, directly synced from my private
+                            Obsidian library. It includes unfinished research,
+                            daily logs, and deeper technical explorations that
+                            I'm not ready to publish as polished articles.
+                        </p>
+
+                        <div class="workshop-pitch">
+                            <h3>
+                                Interested in building your own Second Brain?
+                            </h3>
+                            <p>
+                                I offer personalized workshops where I take you
+                                through the entire route of setting up a
+                                knowledge management system that actually works
+                                for you. From Obsidian setup to workflow
+                                automation.
+                            </p>
+                            <a
+                                href="/research/workshop-booking"
+                                class="btn-primary"
+                            >
+                                Book a Personal Workshop
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="login-form-wrapper">
+                        <p class="login-label">ACCESS THE VAULT</p>
+                        <form method="POST" class="login-form">
+                            <input
+                                type="password"
+                                name="password"
+                                placeholder="Enter Password..."
+                                required
+                                autofocus
+                            />
+                            <button type="submit" class="btn-unlock">
+                                Unlock
+                            </button>
+                        </form>
+                        {error && <p class="error-msg">{error}</p>}
+                        <p class="hint-text">
+                            Ask Abodid for access if you're curious.
+                        </p>
+                    </div>
+                </section>
+            ) : (
+                /* --- UNLOCKED STATE --- */
+                <section class="vault-view">
+                    <header class="vault-header">
+                        <h1>Abodid's Vault</h1>
+                        <p class="subtitle">
+                            Live sync from GitHub. {vaultFiles.length} nodes
+                            found.
+                        </p>
+                    </header>
+
+                    <div class="vault-grid">
+                        {vaultFiles.length === 0 ? (
+                            <div class="empty-state">
+                                <p>
+                                    No files found. Please check the repository
+                                    configuration.
+                                </p>
+                            </div>
+                        ) : (
+                            vaultFiles.map((file) => (
+                                /* Filter out non-md files if desired, or handle directories */
+                                <a
+                                    href={`/research/obsidian-vault/${file.name.replace(".md", "")}`}
+                                    class="note-card"
+                                >
+                                    <div class="note-icon">
+                                        {file.type === "dir" ? "📁" : "📄"}
+                                    </div>
+                                    <div class="note-info">
+                                        <h3>
+                                            {file.name
+                                                .replace(".md", "")
+                                                .replace(/-/g, " ")}
+                                        </h3>
+                                        <span class="note-type">
+                                            {file.type}
+                                        </span>
+                                    </div>
+                                </a>
+                            ))
+                        )}
+                    </div>
+                </section>
+            )
+        }
+    </div>
+</BaseLayout>
+
+<style>
+    /* VARIABLES */
+    :root {
+        --vault-accent: #8e44ad; /* Deep Purple */
+        --vault-bg: #0f0f10;
+        --vault-card-bg: #1a1a1c;
+        --vault-text: #e0e0e0;
+        --vault-border: #333;
+    }
+
+    .vault-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+        min-height: 60vh;
+    }
+
+    .vault-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .vault-header h1 {
+        font-size: 3rem;
+        font-family: "Space Mono", monospace;
+        letter-spacing: -2px;
+        margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+        color: var(--text-secondary);
+        font-size: 1.1rem;
+    }
+
+    /* PITCH CONTENT */
+    .pitch-content {
+        margin-bottom: 4rem;
+        line-height: 1.6;
+        color: var(--text-secondary);
+        text-align: center;
+    }
+
+    .workshop-pitch {
+        margin-top: 2rem;
+        padding: 2rem;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border-subtle);
+        border-radius: 12px;
+    }
+
+    .btn-primary {
+        display: inline-block;
+        margin-top: 1.5rem;
+        padding: 0.8rem 1.5rem;
+        background: var(--text-main);
+        color: var(--bg-body);
+        font-weight: 700;
+        border-radius: 6px;
+        text-decoration: none;
+        transition: opacity 0.2s;
+    }
+
+    .btn-primary:hover {
+        opacity: 0.9;
+    }
+
+    /* LOGIN FORM */
+    .login-form-wrapper {
+        max-width: 400px;
+        margin: 0 auto;
+        text-align: center;
+        padding: 2rem;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-subtle);
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .login-label {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        opacity: 0.7;
+        margin-bottom: 1rem;
+    }
+
+    .login-form {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    input[type="password"] {
+        flex: 1;
+        padding: 0.8rem;
+        border: 1px solid var(--border-subtle);
+        background: var(--bg-body);
+        color: var(--text-main);
+        border-radius: 6px;
+        font-family: inherit;
+    }
+
+    .btn-unlock {
+        padding: 0 1.2rem;
+        background: var(--text-main);
+        color: var(--bg-body);
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.9rem;
+    }
+
+    .error-msg {
+        color: #ff6b6b;
+        margin-top: 1rem;
+        font-size: 0.9rem;
+    }
+
+    .hint-text {
+        margin-top: 1.5rem;
+        font-size: 0.8rem;
+        color: var(--text-tertiary);
+    }
+
+    /* VAULT GRID */
+    .vault-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+
+    .note-card {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        padding: 1rem;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-subtle);
+        border-radius: 8px;
+        text-decoration: none;
+        color: var(--text-main);
+        transition:
+            transform 0.2s,
+            background 0.2s;
+    }
+
+    .note-card:hover {
+        transform: translateY(-2px);
+        background: var(--bg-surface-hover);
+        border-color: var(--text-secondary);
+    }
+
+    .note-icon {
+        font-size: 1.5rem;
+        opacity: 0.7;
+    }
+
+    .note-info h3 {
+        font-size: 0.95rem;
+        margin: 0;
+        font-weight: 500;
+        text-transform: capitalize;
+    }
+
+    .note-type {
+        font-size: 0.7rem;
+        color: var(--text-tertiary);
+        text-transform: uppercase;
+    }
+
+    .empty-state {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 4rem;
+        color: var(--text-secondary);
+        border: 1px dashed var(--border-subtle);
+        border-radius: 12px;
+    }
+</style>
