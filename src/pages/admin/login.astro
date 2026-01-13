@@ -1,67 +1,125 @@
 ---
 export const prerender = false;
-import AdminLayout from '../../layouts/AdminLayout.astro';
-import LoginForm from '../../components/admin/LoginForm.jsx';
+import AdminLayout from "../../layouts/AdminLayout.astro";
+import LoginForm from "../../components/admin/LoginForm.jsx";
+import ThemeToggle from "../../components/ThemeToggle.astro";
 ---
 
 <AdminLayout title="Login">
-  <div class="login-wrapper">
-    <div class="brand">
-        <h1 class="font-serif">Abodid Sahoo</h1>
-        <p class="tagline">This is where the magic happens.</p>
-        <p class="cms-label">CONTENT MANAGEMENT SYSTEM</p>
+  <div class="page-container">
+    <div class="theme-toggle-wrapper">
+      <ThemeToggle />
     </div>
-    <LoginForm client:load />
+
+    <div class="login-card">
+      <div class="brand-column">
+        <div class="brand-content">
+          <h1 class="font-serif">Abodid Sahoo</h1>
+          <p class="cms-label">CONTENT MANAGEMENT SYSTEM</p>
+          <p class="tagline">This is where the magic happens.</p>
+        </div>
+      </div>
+
+      <div class="form-column">
+        <div class="form-content">
+          <LoginForm client:load />
+        </div>
+      </div>
+    </div>
   </div>
 </AdminLayout>
 
 <style>
-  .login-wrapper {
-    max-width: 600px;
-    margin: 2rem auto;
-    
-    /* Single Container Style */
-    background: #111;
-    border: 1px solid #333;
-    border-radius: 16px;
-    padding: 2rem 2.5rem;
-    box-sizing: border-box;
+  .page-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 80vh;
+    position: relative;
+    padding: 2rem;
   }
-  .brand {
-    text-align: left;
-    margin-bottom: 2rem;
+
+  .theme-toggle-wrapper {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 1rem;
+  }
+
+  .login-card {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     width: 100%;
+    max-width: 900px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
   }
+
+  .brand-column {
+    background: var(--bg-surface-hover);
+    padding: 4rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border-right: 1px solid var(--border-subtle);
+  }
+
+  .form-column {
+    padding: 4rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: var(--bg-color);
+  }
+
   h1 {
-    font-size: 2rem;
-    margin-bottom: 0.5rem;
+    font-size: 2.5rem;
+    margin-bottom: 1.5rem;
     font-weight: 400;
-    letter-spacing: -0.02em;
     line-height: 1.1;
     margin-top: 0;
+    color: var(--text-primary);
   }
-  .tagline {
-    color: var(--text-secondary);
-    font-size: 1rem;
-    margin-bottom: 0.75rem;
-    font-weight: 300;
-    line-height: 1.4;
-    margin-top: 0;
-  }
+
   .cms-label {
     color: var(--text-tertiary);
     font-size: 0.75rem;
-    letter-spacing: 0.15em;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
     font-weight: 600;
-    margin: 0;
+    margin: 0 0 1rem 0;
   }
-  
-  /* Responsive: Adjust padding on mobile */
+
+  .tagline {
+    color: var(--text-secondary);
+    font-size: 1.125rem;
+    margin: 0;
+    font-weight: 300;
+    line-height: 1.5;
+  }
+
+  /* Responsive */
   @media (max-width: 768px) {
-    .login-wrapper {
-        padding: 1.5rem;
-        margin: 1rem auto;
+    .login-card {
+      grid-template-columns: 1fr;
+      max-width: 500px;
+    }
+
+    .brand-column {
+      padding: 2.5rem;
+      border-right: none;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .form-column {
+      padding: 2.5rem;
+    }
+
+    h1 {
+      font-size: 2rem;
     }
   }
 </style>

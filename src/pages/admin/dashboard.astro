@@ -1,9 +1,13 @@
 ---
 export const prerender = false;
-import AdminLayout from '../../layouts/AdminLayout.astro';
-import AdminDashboard from '../../components/admin/AdminDashboard.jsx';
+import AdminLayout from "../../layouts/AdminLayout.astro";
+import AdminDashboard from "../../components/admin/AdminDashboard.jsx";
+import ThemeToggle from "../../components/ThemeToggle.astro";
 ---
 
 <AdminLayout title="Dashboard" fullWidth={true}>
+  <div style="position: absolute; top: 1rem; right: 1rem; z-index: 100;">
+    <ThemeToggle />
+  </div>
   <AdminDashboard client:only="react" />
 </AdminLayout>

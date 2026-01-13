@@ -30,14 +30,14 @@ export default function LoginForm() {
     <div className="login-container">
       <form onSubmit={handleLogin} className="login-form">
         <div className="form-group">
-          <label htmlFor="email">Email</label>
+          <label htmlFor="email">Email Address</label>
           <input
             id="email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            placeholder="you@example.com"
+            placeholder="name@example.com"
           />
         </div>
 
@@ -66,59 +66,77 @@ export default function LoginForm() {
         }
         .login-form {
           width: 100%;
-          padding: 0;
-          background: transparent;
-          border: none;
-          box-shadow: none;
+          display: flex;
+          flex-direction: column;
+          gap: 1.5rem;
         }
 
         .form-group {
-          margin-bottom: 1rem;
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
         }
+
         label {
-          display: block;
-          margin-bottom: 0.5rem;
-          font-size: 0.9rem;
+          font-size: 0.875rem;
+          font-weight: 500;
           color: var(--text-secondary);
         }
+
         input {
           width: 100%;
-          padding: 0.75rem 1rem;
+          padding: 0.875rem 1rem;
           border: 1px solid var(--border-subtle);
-          background: var(--bg-color);
+          background: var(--bg-surface);
           color: var(--text-primary);
-          border-radius: 4px;
+          border-radius: 8px;
           font-size: 1rem;
+          transition: all 0.2s ease;
           box-sizing: border-box;
         }
+
         input:focus {
           border-color: var(--text-primary);
+          background: var(--bg-color);
           outline: none;
+          box-shadow: 0 0 0 2px rgba(var(--text-primary-rgb), 0.1);
         }
+
         .btn-login {
           width: 100%;
-          padding: 0.875rem;
+          padding: 1rem;
           background: var(--text-primary);
           color: var(--bg-color);
           border: none;
-          border-radius: 4px;
+          border-radius: 8px;
           font-size: 1rem;
-          font-weight: 500;
+          font-weight: 600;
           cursor: pointer;
-          transition: opacity 0.2s;
+          transition: all 0.2s ease;
           margin-top: 0.5rem;
         }
+
+        .btn-login:hover {
+          opacity: 0.9;
+          transform: translateY(-1px);
+        }
+
+        .btn-login:active {
+          transform: translateY(0);
+        }
+
         .btn-login:disabled {
           opacity: 0.7;
           cursor: not-allowed;
+          transform: none;
         }
+
         .error-message {
-          color: #e53e3e;
-          background: #fff5f5;
+          color: #ef4444;
+          background: rgba(239, 68, 68, 0.1);
           padding: 0.75rem;
-          border-radius: 4px;
-          margin-bottom: 1rem;
-          font-size: 0.9rem;
+          border-radius: 8px;
+          font-size: 0.875rem;
           text-align: center;
         }
       `}</style>

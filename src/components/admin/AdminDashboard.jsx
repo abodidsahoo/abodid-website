@@ -42,8 +42,10 @@ export default function AdminDashboard() {
         <div className="dashboard-container animation-fade-in">
             <header className="dash-header">
                 <div>
-                    <h2 className="text-serif hero-title">Dashboard</h2>
-                    <p className="subtext">Welcome back, <span className="user-email">{session.user.email}</span></p>
+                    <h2 className="text-serif hero-title">{selectedTable ? selectedTable.charAt(0).toUpperCase() + selectedTable.slice(1) : 'Dashboard'}</h2>
+                    {!selectedTable && (
+                        <p className="subtext">Welcome back, <span className="user-email">{session.user.email}</span></p>
+                    )}
                 </div>
                 <div className="header-actions">
                     {selectedTable && (
@@ -96,47 +98,49 @@ export default function AdminDashboard() {
             padding: 4rem 3rem; 
             box-sizing: border-box;
             background-color: var(--bg-color); /* Ensure it matches site bg */
+            color: var(--text-primary);
         }
         
         .dash-header {
             display: flex; justify-content: space-between; align-items: flex-end;
             margin-bottom: 5rem; 
-            border-bottom: 1px solid #222;
+            border-bottom: 1px solid var(--border-subtle);
             padding-bottom: 2rem;
             max-width: 1600px; margin-left: auto; margin-right: auto; /* Limit header width for readability */
         }
         .hero-title { 
-            font-size: 4rem; margin: 0 0 0.5rem 0; font-weight: 400; color: #fff;
-            letter-spacing: -0.03em;
+            font-size: 3.5rem; margin: 0 0 0.5rem 0; font-weight: 400; color: var(--text-primary);
+            letter-spacing: -0.02em;
+            line-height: 1.1;
         }
-        .subtext { color: #666; margin: 0; font-size: 0.9rem; }
-        .user-email { color: #fff; border-bottom: 1px dotted #666; }
+        .subtext { color: var(--text-secondary); margin: 0; font-size: 1rem; }
+        .user-email { color: var(--text-primary); font-weight: 500; }
         
         .header-actions { display: flex; gap: 1.5rem; align-items: center; }
         
         .btn-back {
             background: transparent; border: none; font-size: 0.9rem;
-            color: #666; cursor: pointer; font-weight: 500;
+            color: var(--text-secondary); cursor: pointer; font-weight: 500;
         }
-        .btn-back:hover { color: #fff; }
+        .btn-back:hover { color: var(--text-primary); }
 
         .btn-logout-prominent {
             background: transparent;
-            border: 1px solid #444;
-            color: #ccc;
+            border: 1px solid var(--border-strong);
+            color: var(--text-primary);
             padding: 0.6rem 1.5rem;
-            font-size: 0.9rem;
+            font-size: 0.875rem;
             font-weight: 500;
             text-transform: uppercase;
             letter-spacing: 0.05em;
             cursor: pointer;
             transition: all 0.2s ease;
+            border-radius: 4px;
         }
         .btn-logout-prominent:hover {
-            border-color: #fff;
-            color: #fff;
-            background: rgba(255,255,255,0.05);
-            box-shadow: 0 0 15px rgba(255,255,255,0.1);
+            border-color: var(--text-primary);
+            background: var(--text-primary);
+            color: var(--bg-color);
         }
 
         .stats-grid {
@@ -147,25 +151,26 @@ export default function AdminDashboard() {
         }
         
         .stat-card {
-            background: #111; 
-            border: 1px solid #222;
-            border-radius: 4px; 
-            padding: 2rem; 
+            background: var(--bg-surface); 
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px; 
+            padding: 2.5rem; 
             text-align: center; /* Center align everything */
             display: flex; 
             flex-direction: column; /* Vertical Layout */
             align-items: center; 
             justify-content: center;
-            min-height: 220px; /* Taller card */
-            transition: 0.2s;
+            min-height: 240px; /* Taller card */
+            transition: all 0.2s ease;
             cursor: pointer;
             position: relative;
             gap: 1.5rem;
         }
         .stat-card:hover { 
-            border-color: #444; 
-            background: #161616;
-            transform: translateY(-2px);
+            border-color: var(--text-secondary); 
+            background: var(--bg-surface-hover);
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.1);
         }
         
         .card-content {
@@ -174,15 +179,15 @@ export default function AdminDashboard() {
 
         .stat-card h3 { 
             margin: 0; 
-            font-size: 1.8rem;
-            color: #fff; 
-            font-weight: 400;
-            letter-spacing: -0.02em;
+            font-size: 1.5rem;
+            color: var(--text-primary); 
+            font-weight: 500;
+            letter-spacing: -0.01em;
         }
         .count { 
-            font-size: 0.8rem;
-            font-weight: 400; 
-            color: #666;
+            font-size: 0.875rem;
+            font-weight: 500; 
+            color: var(--text-secondary);
             margin: 0; 
             font-family: var(--font-sans);
             text-transform: uppercase;
@@ -191,13 +196,13 @@ export default function AdminDashboard() {
         
         /* New Line + Button */
         .btn-new-mini {
-            width: 48px; height: 48px; /* Larger */
+            width: 44px; height: 44px; /* Larger */
             border-radius: 50%;
             background: transparent; 
-            color: #444;
-            border: 1px solid #333;
+            color: var(--text-tertiary);
+            border: 1px solid var(--border-subtle);
             display: flex; align-items: center; justify-content: center;
-            font-size: 1.8rem; /* Larger symbol */
+            font-size: 1.5rem; /* Larger symbol */
             font-weight: 300;
             cursor: pointer;
             transition: 0.2s;
@@ -205,31 +210,36 @@ export default function AdminDashboard() {
         }
         .btn-new-mini:hover {
             transform: scale(1.1);
-            background: #fff;
-            color: #000;
-            border-color: #fff;
+            background: var(--text-primary);
+            color: var(--bg-color);
+            border-color: var(--text-primary);
         }
 
         @media (max-width: 1000px) {
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .dash-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+            .header-actions { width: 100%; justify-content: space-between; }
         }
 
         .list-container { 
             animation: fadeIn 0.3s ease; 
             max-width: 1600px; margin: 0 auto;
         }
-        .list-table { width: 100%; border-collapse: collapse; margin-top: 2rem; }
-        .list-table tr { border-bottom: 1px solid #222; }
-        .list-table th { text-align: left; padding: 1rem; border-bottom: 1px solid #333; color: #666; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
-        .list-table td { padding: 1.2rem 1rem; color: #ccc; }
+        .list-table { width: 100%; border-collapse: collapse; margin-top: 0; }
+        .list-table tr { border-bottom: 1px solid var(--border-subtle); }
+        .list-table th { text-align: left; padding: 1rem 0; border-bottom: 1px solid var(--border-strong); color: var(--text-secondary); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+        .list-table td { padding: 1.5rem 0; color: var(--text-primary); vertical-align: middle; }
         
         .status-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 8px; }
         .status-dot.published { background: #10B981; }
-        .status-dot.draft { background: #444; }
+        .status-dot.draft { background: var(--text-tertiary); }
         
         .row-actions { display: flex; gap: 1rem; justify-content: flex-end; }
-        .btn-icon { background: none; border: none; cursor: pointer; color: #666; font-size: 0.85rem; transition: 0.2s; }
-        .btn-icon:hover { color: #fff; }
+        .btn-icon { background: none; border: none; cursor: pointer; color: var(--text-secondary); font-size: 0.875rem; transition: 0.2s; font-weight: 500; text-decoration: none; }
+        .btn-icon:hover { color: var(--text-primary); }
         .btn-icon.delete:hover { color: #ef4444; }
       `}</style>
         </div>
@@ -290,14 +300,13 @@ function ListView({ table }) {
         else alert('Error deleting: ' + error.message);
     };
 
-    if (loading) return <div style={{ color: '#666' }}>Loading list...</div>;
+    if (loading) return <div style={{ color: 'var(--text-secondary)' }}>Loading list...</div>;
     if (errorMsg) return <div style={{ color: '#ef4444' }}>Error loading items: {errorMsg}</div>;
 
     return (
         <div className="list-container">
-            <h3 style={{ fontSize: '1.5rem', fontWeight: 300, marginBottom: '2rem', color: '#fff' }}>All {table}</h3>
             {items.length === 0 ? (
-                <p style={{ color: '#666' }}>No items found.</p>
+                <p style={{ color: 'var(--text-secondary)' }}>No items found.</p>
             ) : (
                 <table className="list-table">
                     <thead>
@@ -310,7 +319,7 @@ function ListView({ table }) {
                     <tbody>
                         {items.map(item => (
                             <tr key={item.id}>
-                                <td><strong>{item.title}</strong></td>
+                                <td><strong style={{ fontWeight: 500 }}>{item.title || '(No Title)'}</strong></td>
                                 <td>
                                     <span className={`status-dot ${item.published ? 'published' : 'draft'}`}></span>
                                     {item.published ? 'Live' : 'Draft'}
