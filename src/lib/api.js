@@ -22,7 +22,17 @@ export async function getProjects() {
         return [];
     }
 
-    return data.map(p => ({
+    const obsidianVault = {
+        title: "Obsidian Vault",
+        desc: "A digital garden of raw thoughts, research, and connections.",
+        tags: ["Second Brain", "Knowledge Management", "Obsidian"],
+        link: null, /* Internal link handled by href */
+        slug: "obsidian-vault",
+        href: "/research/obsidian-vault",
+        image: null
+    };
+
+    const formattedProjects = data.map(p => ({
         title: p.title,
         desc: p.description,
         tags: p.tags || [],
@@ -31,6 +41,8 @@ export async function getProjects() {
         href: `/research/${p.slug}`,
         image: p.image
     }));
+
+    return [obsidianVault, ...formattedProjects];
 }
 
 export async function getProjectBySlug(slug) {
