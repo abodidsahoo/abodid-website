@@ -1,6 +1,7 @@
 // Configuration (defaults can be overridden by env vars if needed, but these are code-level config)
 const REPO_OWNER = import.meta.env.GITHUB_OWNER || process.env.GITHUB_OWNER || "abodidsahoo";
 const REPO_NAME = import.meta.env.GITHUB_REPO || process.env.GITHUB_REPO || "obsidian-vault";
+const GITHUB_API_BASE = "https://api.github.com";
 
 // Folder mappings
 const PATH_TAGS = "3 - Tags";
