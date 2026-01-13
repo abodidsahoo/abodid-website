@@ -21,8 +21,10 @@ const safeFetch = async (fn, fallback) => {
 };
 
 // Fetch data from Supabase with Fallback
-const featuredStories = await safeFetch(getFeaturedStories, mockStories);
-const recentPosts = await safeFetch(getRecentPosts, mockRecent);
+const featuredStories = (
+  await safeFetch(getFeaturedStories, mockStories)
+).slice(0, 1);
+const recentPosts = (await safeFetch(getRecentPosts, mockRecent)).slice(0, 3);
 ---
 
 <BaseLayout title={pageTitle}>
@@ -30,13 +32,15 @@ const recentPosts = await safeFetch(getRecentPosts, mockRecent);
   <section class="hero-section">
     <div class="hero-content">
       <h1 class="hero-title">
+        Hi, I am Abodid. <br />
+        My life revolves around... <br />
         <span id="typewriter-text" class="typing-text"></span><span
           class="typewriter-cursor"></span>
       </h1>
       <p class="hero-subtitle">
-        Hi, I’m Abodid. I build web-based creative experiences that examine
-        culture, bias, and the limits of AI systems. <br /> I love to work with artists,
-        brands and organisations who value depth over noise.
+        With over 8+ years of experience across art, design, and academia, I
+        design innovative creative strategies and produce offbeat, edgy, and
+        highly impactful work across photography, film, and interactive media.
       </p>
     </div>
   </section>
@@ -90,8 +94,16 @@ const recentPosts = await safeFetch(getRecentPosts, mockRecent);
       </div>
       <div class="code-preview">
         <p class="text-secondary">
-          Deep research into the intersection of AI, sociology, and visual
-          culture.
+          I am currently building
+          <a
+            href="https://abodid.com/research/invisible-punctum"
+            target="_blank"
+            rel="noopener noreferrer"
+            style="text-decoration: underline"
+          >
+            Invisible Punctums</a
+          > , a web-based interactive research experience that examines images, culture,
+          bias, and the limits of AI systems.
         </p>
       </div>
     </div>
@@ -108,7 +120,7 @@ const recentPosts = await safeFetch(getRecentPosts, mockRecent);
 
   .hero-title {
     font-size: 3.5rem;
-    font-weight: 600;
+    font-weight: 700;
     line-height: 1.1;
     margin-bottom: 2rem;
     letter-spacing: -0.03em;
@@ -123,7 +135,7 @@ const recentPosts = await safeFetch(getRecentPosts, mockRecent);
     font-size: 1rem;
     color: var(--text-secondary);
     max-width: 900px;
-    font-weight: 300;
+    font-weight: 400;
   }
 
   .section {
@@ -231,9 +243,13 @@ const recentPosts = await safeFetch(getRecentPosts, mockRecent);
 <script>
   const phrases = [
     "Images, Code & Culture.",
-    "Research-Led Storytelling.",
-    "Tech-Driven Frameworks.",
-    "Culturally Rooted Storytelling.",
+    "Art, Design & Technology.",
+    "Research, Writing & Storytelling.",
+    "Travel, Fashion & Culture.",
+    "Photography, Prints & Books.",
+    "AI, Sociology & Visual Culture.",
+    "Data, Statistics & Research.",
+    "Music, Film & Visual Culture.",
   ];
 
   const typingSpeed = { min: 30, max: 120 }; // Random speed for human feel
