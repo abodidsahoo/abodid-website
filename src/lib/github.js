@@ -29,10 +29,12 @@ function getAuthHeaders() {
  * @returns {Promise<Array>}
  */
 export async function getRepoContents(path = "") {
+    console.log(`[GitHub] Fetching contents for path: "${path}"`);
     const encodedPath = path.split('/').map(encodeURIComponent).join('/');
     const url = `${GITHUB_API_BASE}/repos/${REPO_OWNER}/${REPO_NAME}/contents/${encodedPath}`;
 
     try {
+        console.log(`[GitHub] Request URL: ${url}`);
         const response = await fetch(url, { headers: getAuthHeaders() });
 
         if (!response.ok) {
@@ -65,7 +67,10 @@ export async function getVaultTags() {
 }
 
 export async function getVaultNotes() {
-    return await getRepoContents(PATH_NOTES);
+    const contents = await getRepoContents(PATH_NOTES);
+    // STRICT FILTER: Only allow files (notes), no directories.
+    // This prevents folders from appearing in the notes list if something goes wrong with the path or if "Main Notes" has subdirs.
+    return contents.filter(item => item.type === 'file');
 }
 
 /**

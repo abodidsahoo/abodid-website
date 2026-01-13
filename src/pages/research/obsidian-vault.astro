@@ -4,7 +4,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import { getVaultTags, getVaultNotes } from "../../lib/github";
 
 // Configuration
-const VAULT_PASSWORD = import.meta.env.VAULT_PASSWORD || "secret";
+const VAULT_PASSWORD = import.meta.env.VAULT_PASSWORD || process.env.VAULT_PASSWORD || "secret";
 const COOKIE_NAME = "obsidian_vault_access";
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
 const ITEMS_PER_PAGE = 24;
