@@ -1,7 +1,7 @@
 ---
 export const prerender = false;
 import BaseLayout from "../../../layouts/BaseLayout.astro";
-import { getFileContent } from "../../../lib/github";
+import { getFileContent, searchRepo, getFileRaw } from "../../../lib/github";
 import { marked } from "marked";
 
 const { slug } = Astro.params;
@@ -19,24 +19,89 @@ if (!slug) {
     return Astro.redirect("/research/obsidian-vault");
 }
 
-// 2. Fetch Content
 let content = "";
 let htmlContent = "";
 let title = slug.split("/").pop() || "Note";
+let isTagView = false;
+let searchResults = [];
 
 try {
-    // Append .md if missing (standard for Obsidian links often, but url has no extension)
-    // The link from the main page was created with .replace('.md', ''), so we add it back.
-    const filePath = slug.endsWith(".md") ? slug : `${slug}.md`;
-    content = await getFileContent(filePath);
+    const cleanSlug = slug.endsWith(".md") ? slug : `${slug}.md`;
+
+    // A. Try "6 - Main Notes"
+    const folderNotes = "6 - Main Notes";
+    const filePathNotes = `${folderNotes}/${cleanSlug}`;
+    content = await getFileContent(filePathNotes);
 
     if (content) {
-        // Parse Markdown
-        // You might want to sanitize this if you don't trust the repo content,
-        // but since it's your own vault, it's generally safe.
-        htmlContent = await marked.parse(content);
+        // --- IT IS A MAIN NOTE ---
+
+        // 1. Convert Obsidian Image Embeds: ![[image.png]]
+        content = content.replace(/!\[\[(.*?)\]\]/g, (match, filename) => {
+            const cleanFilename = filename.split("|")[0];
+            return `![](/research/obsidian-vault/assets/${cleanFilename})`;
+        });
+
+        // 2. Convert standard Markdown images
+        content = content.replace(
+            /!\[(.*?)\]\((.*?)(?:7%20-%20Assets|7 - Assets)\/(.*?)\)/g,
+            "![$1](/research/obsidian-vault/assets/$3)",
+        );
+
+        // 3. Convert Obsidian Internal Links -> Local Links
+        content = content.replace(/\[\[(.*?)\]\]/g, (match, p1) => {
+            const parts = p1.split("|");
+            const linkTarget = parts[0];
+            const linkText = parts[1] || parts[0];
+            return `[${linkText}](/research/obsidian-vault/${linkTarget})`;
+        });
+
+        const renderer = new marked.Renderer();
+        renderer.image = ({ href, title, text }) => {
+            if (
+                href &&
+                (href.includes("7 - Assets") || href.includes("7%20-%20Assets"))
+            ) {
+                const parts = href.split("/");
+                const filename = parts[parts.length - 1];
+                return `<img src="/research/obsidian-vault/assets/${filename}" alt="${text}" title="${title || ""}" />`;
+            }
+            return `<img src="${href}" alt="${text}" title="${title || ""}" />`;
+        };
+
+        htmlContent = await marked.parse(content, { renderer });
     } else {
-        htmlContent = "<p>Note not found or empty.</p>";
+        // --- B. CHECK IF IT IS A TAG ---
+        // If content is null, maybe it is a tag?
+        // We can check if it exists in "3 - Tags" OR just assume it's a tag search if user navigated here.
+        // Let's verify existence in "3 - Tags" to be sure it's valid.
+        const folderTags = "3 - Tags";
+        const filePathTags = `${folderTags}/${cleanSlug}`;
+        // We don't necessarily need the content (it's empty), just existence.
+        // But getFileContent returns null if not found.
+        const tagCheck = await getFileContent(filePathTags);
+
+        if (tagCheck !== null) {
+            // IT IS A TAG!
+            isTagView = true;
+            title = `Tag: ${cleanSlug.replace(".md", "")}`;
+
+            // Perform Search for "[[tagname]]"
+            const tagName = cleanSlug.replace(".md", "");
+            const query = `[[${tagName}]]`;
+
+            // Search in "6 - Main Notes" (implicit by repo search, we might filter results)
+            const results = await searchRepo(query);
+
+            // Filter to ensure we only show Markdown files and likely from Main Notes
+            searchResults = results.filter(
+                (item) =>
+                    item.name.endsWith(".md") &&
+                    item.path.includes("6 - Main Notes"),
+            );
+        } else {
+            htmlContent = "<p>Note not found.</p>";
+        }
     }
 } catch (e) {
     console.error(e);
@@ -52,7 +117,43 @@ try {
 
         <article class="note-content">
             <h1>{title.replace(/-/g, " ")}</h1>
-            <div class="markdown-body" set:html={htmlContent} />
+
+            {
+                isTagView ? (
+                    /* --- TAG VIEW RESULTS --- */
+                    <div class="tag-results">
+                        <p class="search-meta">
+                            Found {searchResults.length} notes using this tag.
+                        </p>
+
+                        <div class="vault-grid">
+                            {searchResults.length === 0 ? (
+                                <p>No notes found referencing this tag.</p>
+                            ) : (
+                                searchResults.map((file) => (
+                                    <a
+                                        href={`/research/obsidian-vault/${file.name.replace(".md", "")}`}
+                                        class="note-card"
+                                    >
+                                        <div class="note-icon">📄</div>
+                                        <div class="note-info">
+                                            <h3>
+                                                {file.name
+                                                    .replace(".md", "")
+                                                    .replace(/-/g, " ")}
+                                            </h3>
+                                            <span class="note-type">Note</span>
+                                        </div>
+                                    </a>
+                                ))
+                            )}
+                        </div>
+                    </div>
+                ) : (
+                    /* --- STANDARD NOTE VIEW --- */
+                    <div class="markdown-body" set:html={htmlContent} />
+                )
+            }
         </article>
     </div>
 </BaseLayout>
@@ -107,39 +208,63 @@ try {
         text-underline-offset: 4px;
     }
 
-    .markdown-body :global(code) {
-        background: var(--bg-surface);
-        padding: 0.2rem 0.4rem;
-        border-radius: 4px;
-        font-size: 0.9em;
-        font-family: "Space Mono", monospace;
-    }
-
-    .markdown-body :global(pre) {
-        background: var(--bg-surface);
-        padding: 1.5rem;
+    .markdown-body :global(img) {
+        max-width: 100%;
+        height: auto;
         border-radius: 8px;
-        overflow-x: auto;
+        margin: 1.5rem 0;
+        display: block;
         border: 1px solid var(--border-subtle);
     }
 
-    .markdown-body :global(ul),
-    .markdown-body :global(ol) {
-        padding-left: 1.5rem;
-        margin-bottom: 1.5rem;
-    }
-
-    .markdown-body :global(blockquote) {
-        border-left: 4px solid var(--text-tertiary);
-        padding-left: 1rem;
-        margin-left: 0;
-        font-style: italic;
+    /* Tag View Styles */
+    .search-meta {
         color: var(--text-tertiary);
+        margin-bottom: 2rem;
     }
 
-    .markdown-body :global(img) {
-        max-width: 100%;
+    .vault-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+
+    .note-card {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        padding: 1rem;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-subtle);
         border-radius: 8px;
-        margin: 1rem 0;
+        text-decoration: none;
+        color: var(--text-main);
+        transition:
+            transform 0.2s,
+            background 0.2s;
+    }
+
+    .note-card:hover {
+        transform: translateY(-2px);
+        background: var(--bg-surface-hover);
+        border-color: var(--text-secondary);
+    }
+
+    .note-icon {
+        font-size: 1.5rem;
+        opacity: 0.7;
+    }
+
+    .note-info h3 {
+        font-size: 0.95rem;
+        margin: 0;
+        font-weight: 500;
+        text-transform: capitalize;
+    }
+
+    .note-type {
+        font-size: 0.7rem;
+        color: var(--text-tertiary);
+        text-transform: uppercase;
     }
 </style>

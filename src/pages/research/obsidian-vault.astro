@@ -1,17 +1,21 @@
 ---
 export const prerender = false; // Must be false for server-side auth check
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import { getRepoContents } from "../../lib/github";
+import { getVaultTags, getVaultNotes } from "../../lib/github";
 
 // Configuration
-const VAULT_PASSWORD = import.meta.env.VAULT_PASSWORD || "secret"; // Default for dev, set in Vercel
+const VAULT_PASSWORD = import.meta.env.VAULT_PASSWORD || "secret";
 const COOKIE_NAME = "obsidian_vault_access";
-const COOKIE_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
+const COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
+const ITEMS_PER_PAGE = 24;
 
 // Server-Side Logic
 let isUnlocked = false;
 let error = "";
-let vaultFiles = [];
+let allNotes = [];
+let initialNotes = [];
+let remainingNotes = [];
+let tags = [];
 
 // 1. Check Cookie
 if (Astro.cookies.has(COOKIE_NAME)) {
@@ -36,7 +40,6 @@ if (Astro.request.method === "POST") {
                 secure: import.meta.env.PROD,
                 sameSite: "lax",
             });
-            // Redirect to avoid form resubmission on refresh
             return Astro.redirect("/research/obsidian-vault");
         } else {
             error = "Incorrect password. The vault remains sealed.";
@@ -49,13 +52,36 @@ if (Astro.request.method === "POST") {
 
 // 3. Fetch Data if Unlocked
 if (isUnlocked) {
-    vaultFiles = await getRepoContents();
+    console.log("Vault Unlocked. Attempting to fetch data...");
+    try {
+        const [tagsData, notesData] = await Promise.all([
+            getVaultTags(),
+            getVaultNotes(),
+        ]);
+        
+        console.log(`Fetch Complete. Tags: ${tagsData?.length}, Notes: ${notesData?.length}`);
+
+        tags = tagsData || [];
+        allNotes = notesData || [];
+        
+        // Split for Infinite Scroll
+        initialNotes = allNotes.slice(0, ITEMS_PER_PAGE);
+        remainingNotes = allNotes.slice(ITEMS_PER_PAGE);
+    } catch (e) {
+        console.error("Error fetching vault data:", e);
+        error = "Failed to fetch vault data from GitHub. Check server logs.";
+    }
 }
 
 const pageTitle = "Obsidian Vault";
 ---
 
 <BaseLayout title={pageTitle}>
+    <!-- Load Fonts: Poppins (Weights 100-500) & Inconsolata & Space Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@300;400;500;600&family=Poppins:wght@100;200;300;400;500&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+
     <div class="vault-container">
         {
             !isUnlocked ? (
@@ -64,8 +90,7 @@ const pageTitle = "Obsidian Vault";
                     <header class="vault-header">
                         <h1>Obsidian Vault</h1>
                         <p class="subtitle">
-                            A digital garden of raw thoughts, research, and
-                            connections.
+                            A digital garden of raw thoughts, research, and connections.
                         </p>
                     </header>
 
@@ -79,20 +104,14 @@ const pageTitle = "Obsidian Vault";
                         </p>
 
                         <div class="workshop-pitch">
-                            <h3>
-                                Interested in building your own Second Brain?
-                            </h3>
+                            <h3>Interested in building your own Second Brain?</h3>
                             <p>
                                 I offer personalized workshops where I take you
                                 through the entire route of setting up a
                                 knowledge management system that actually works
-                                for you. From Obsidian setup to workflow
-                                automation.
+                                for you. From Obsidian setup to workflow automation.
                             </p>
-                            <a
-                                href="/research/workshop-booking"
-                                class="btn-primary"
-                            >
+                            <a href="/research/workshop-booking" class="btn-primary">
                                 Book a Personal Workshop
                             </a>
                         </div>
@@ -108,58 +127,64 @@ const pageTitle = "Obsidian Vault";
                                 required
                                 autofocus
                             />
-                            <button type="submit" class="btn-unlock">
-                                Unlock
-                            </button>
+                            <button type="submit" class="btn-unlock">Unlock</button>
                         </form>
                         {error && <p class="error-msg">{error}</p>}
-                        <p class="hint-text">
-                            Ask Abodid for access if you're curious.
-                        </p>
+                        <p class="hint-text">Ask Abodid for access if you're curious.</p>
                     </div>
                 </section>
             ) : (
-                /* --- UNLOCKED STATE --- */
-                <section class="vault-view">
-                    <header class="vault-header">
-                        <h1>Abodid's Vault</h1>
-                        <p class="subtitle">
-                            Live sync from GitHub. {vaultFiles.length} nodes
-                            found.
-                        </p>
+                /* --- UNLOCKED STATE (SPLIT VIEW) --- */
+                <section class="vault-view-split">
+                    <header class="vault-header-split">
+                         <h1>Abodid's Vault</h1>
+                         <p class="subtitle">Live sync from GitHub. {allNotes.length} notes, {tags.length} tags.</p>
+                         {error && <p class="error-msg" style="text-align:center; margin-top:1rem;">{error}</p>}
                     </header>
-
-                    <div class="vault-grid">
-                        {vaultFiles.length === 0 ? (
-                            <div class="empty-state">
-                                <p>
-                                    No files found. Please check the repository
-                                    configuration.
-                                </p>
+                    
+                    <div class="split-layout">
+                        {/* --- LEFT: NOTES LIST (Single Column Vertical, 50% Width) --- */}
+                        <div class="notes-column">
+                            <div class="notes-header-small">
+                                <h2>Notes</h2>
                             </div>
-                        ) : (
-                            vaultFiles.map((file) => (
-                                /* Filter out non-md files if desired, or handle directories */
-                                <a
-                                    href={`/research/obsidian-vault/${file.name.replace(".md", "")}`}
-                                    class="note-card"
-                                >
-                                    <div class="note-icon">
-                                        {file.type === "dir" ? "📁" : "📄"}
+                            <div class="vault-list" id="notes-grid">
+                                {initialNotes.length === 0 ? (
+                                    <div class="empty-state">
+                                        <p>No notes found. Check GitHub connection.</p>
                                     </div>
-                                    <div class="note-info">
-                                        <h3>
-                                            {file.name
-                                                .replace(".md", "")
-                                                .replace(/-/g, " ")}
-                                        </h3>
-                                        <span class="note-type">
-                                            {file.type}
-                                        </span>
-                                    </div>
-                                </a>
-                            ))
-                        )}
+                                ) : (
+                                    initialNotes.map((file) => (
+                                        <a href={`/research/obsidian-vault/${file.name.replace(".md", "")}`} class="note-card">
+                                            <div class="note-info">
+                                                <h3>{file.name.replace(".md", "").replace(/-/g, " ")}</h3>
+                                            </div>
+                                        </a>
+                                    ))
+                                )}
+                            </div>
+                            
+                            {/* Sentinel for Infinite Scroll */}
+                            {remainingNotes.length > 0 && (
+                                <div id="scroll-sentinel" class="loading-indicator">
+                                    <span>Loading more notes...</span>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* --- RIGHT: TAG CLOUD (50% Width) --- */}
+                        <aside class="tags-column">
+                            <div class="tags-header-small">
+                                <h2>Tags</h2>
+                            </div>
+                            <div class="tag-cloud-wrapper">
+                                {tags.map((tag) => (
+                                    <a href={`/research/obsidian-vault/${tag.name.replace(".md", "")}`} class="vault-tag">
+                                        {tag.name.replace(".md", "").replace(/-/g, " ")}
+                                    </a>
+                                ))}
+                            </div>
+                        </aside>
                     </div>
                 </section>
             )
@@ -167,48 +192,165 @@ const pageTitle = "Obsidian Vault";
     </div>
 </BaseLayout>
 
-<style>
+{/* Client-Side Infinite Scroll Script */}
+{isUnlocked && remainingNotes.length > 0 && (
+    <script define:vars={{ remainingNotes, ITEMS_PER_PAGE }}>
+        let currentNotes = remainingNotes;
+        const grid = document.getElementById('notes-grid');
+        const sentinel = document.getElementById('scroll-sentinel');
+
+        const observer = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting && currentNotes.length > 0) {
+                loadMore();
+            }
+        }, { rootMargin: '200px' });
+
+        if (sentinel) observer.observe(sentinel);
+
+        function loadMore() {
+            const batch = currentNotes.slice(0, ITEMS_PER_PAGE);
+            currentNotes = currentNotes.slice(ITEMS_PER_PAGE);
+
+            const fragment = document.createDocumentFragment();
+            batch.forEach((file) => {
+                const a = document.createElement('a');
+                a.href = `/research/obsidian-vault/${file.name.replace(".md", "")}`;
+                a.className = 'note-card fade-in';
+                
+                a.innerHTML = `
+                    <div class="note-info">
+                        <h3>${file.name.replace(".md", "").replace(/-/g, " ")}</h3>
+                    </div>
+                `;
+                fragment.appendChild(a);
+            });
+            
+            grid.appendChild(fragment);
+
+            if (currentNotes.length === 0) {
+                sentinel.style.display = 'none';
+                observer.disconnect();
+            }
+        }
+    </script>
+)}
+
+<style is:global>
     /* VARIABLES */
     :root {
-        --vault-accent: #8e44ad; /* Deep Purple */
         --vault-bg: #0f0f10;
-        --vault-card-bg: #1a1a1c;
         --vault-text: #e0e0e0;
         --vault-border: #333;
     }
 
     .vault-container {
-        max-width: 800px;
+        max-width: 96vw;
         margin: 0 auto;
-        padding: 2rem 1rem;
-        min-height: 60vh;
+        padding: 1rem 2rem;
+        min-height: 80vh;
     }
 
-    .vault-header {
+    /* --- LAYOUT GRID: 50/50 SPLIT --- */
+    .split-layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr; /* Big Notes, Small Tags */
+        gap: 0rem; /* Large gap between the two main columns */
+        margin-top: 2rem;
+        align-items: start;
+        border-top: 1px solid var(--border-subtle);
+        padding-top: 3rem;
+    }
+    
+    @media (max-width: 1100px) {
+        .split-layout {
+            grid-template-columns: 1fr;
+            gap: 3rem;
+        }
+        .tags-column {
+            border-top: 1px solid var(--border-subtle);
+            padding-top: 2rem;
+            width: 100%;
+            border-left: none !important;
+            padding-left: 0 !important;
+        }
+        .notes-column {
+            border-right: none !important;
+            padding-right: 0 !important;
+        }
+    }
+
+    /* NOTES COLUMN */
+    .notes-column {
+        min-width: 0;
+        border-right: 1px solid var(--border-subtle);
+        /* 1. NARROWER NOTES: Huge padding on the right to keep away from center */
+        padding-right: 9rem; 
+    }
+
+    /* TAGS COLUMN */
+    .tags-column {
+        /* Default 1fr from grid */
+        padding-left: 6rem;
+    }
+    
+    .notes-header-small h2, .tags-header-small h2 {
+        font-size: 1.2rem;
+        text-transform: uppercase;
+        color: var(--text-tertiary);
+        letter-spacing: 1px;
+        margin-bottom: 2rem;
+    }
+
+    /* VERTICAL LIST FOR NOTES */
+    .vault-list {
+        display: flex;
+        flex-direction: column;
+        /* 2. COMPACT SPACING: Reduced gap */
+        gap: 1.2rem; 
+    }
+
+    /* SHARED HEADER */
+    .vault-header, .vault-header-split {
         text-align: center;
-        margin-bottom: 3rem;
+        margin-bottom: 2rem;
+    }
+    
+    .vault-header-split {
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border-subtle);
     }
 
-    .vault-header h1 {
-        font-size: 3rem;
+    h1 {
         font-family: "Space Mono", monospace;
         letter-spacing: -2px;
         margin-bottom: 0.5rem;
     }
+    
+    .vault-header h1 { font-size: 3rem; }
+    .vault-header-split h1 { font-size: 2.5rem; }
 
     .subtitle {
         color: var(--text-secondary);
         font-size: 1.1rem;
     }
 
-    /* PITCH CONTENT */
-    .pitch-content {
-        margin-bottom: 4rem;
-        line-height: 1.6;
-        color: var(--text-secondary);
+    /* --- COMPONENTS --- */
+
+    /* Locked State */
+    .pitch-content, .login-form-wrapper {
+        max-width: 600px;
+        margin: 0 auto 3rem auto;
         text-align: center;
     }
-
+    
+    .login-form-wrapper {
+        padding: 2rem;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-subtle);
+        border-radius: 12px;
+    }
+    
     .workshop-pitch {
         margin-top: 2rem;
         padding: 2rem;
@@ -217,133 +359,109 @@ const pageTitle = "Obsidian Vault";
         border-radius: 12px;
     }
 
-    .btn-primary {
-        display: inline-block;
-        margin-top: 1.5rem;
-        padding: 0.8rem 1.5rem;
+    /* Buttons */
+    .btn-primary, .btn-unlock {
         background: var(--text-main);
         color: var(--bg-body);
         font-weight: 700;
         border-radius: 6px;
         text-decoration: none;
-        transition: opacity 0.2s;
+        padding: 0.8rem 1.5rem;
+        border: none;
+        cursor: pointer;
     }
-
-    .btn-primary:hover {
-        opacity: 0.9;
-    }
-
-    /* LOGIN FORM */
-    .login-form-wrapper {
-        max-width: 400px;
-        margin: 0 auto;
-        text-align: center;
-        padding: 2rem;
-        background: var(--bg-surface);
-        border: 1px solid var(--border-subtle);
-        border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    }
-
-    .login-label {
-        font-size: 0.8rem;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-        opacity: 0.7;
-        margin-bottom: 1rem;
-    }
-
-    .login-form {
-        display: flex;
-        gap: 0.5rem;
-    }
-
-    input[type="password"] {
-        flex: 1;
+    .btn-primary:hover, .btn-unlock:hover { opacity: 0.9; }
+    
+    .login-form input {
         padding: 0.8rem;
         border: 1px solid var(--border-subtle);
         background: var(--bg-body);
         color: var(--text-main);
         border-radius: 6px;
-        font-family: inherit;
+        flex: 1;
     }
+    
+    .login-form { display: flex; gap: 0.5rem; }
 
-    .btn-unlock {
-        padding: 0 1.2rem;
-        background: var(--text-main);
-        color: var(--bg-body);
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        font-weight: 600;
-        text-transform: uppercase;
-        font-size: 0.9rem;
-    }
-
-    .error-msg {
-        color: #ff6b6b;
-        margin-top: 1rem;
-        font-size: 0.9rem;
-    }
-
-    .hint-text {
-        margin-top: 1.5rem;
-        font-size: 0.8rem;
-        color: var(--text-tertiary);
-    }
-
-    /* VAULT GRID */
-    .vault-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 1rem;
-    }
-
-    .note-card {
+    /* Tags: PILL SHAPE + FLOW */
+    .tag-cloud-wrapper {
         display: flex;
+        flex-wrap: wrap;
+        gap: 0.8rem; /* Relaxed gap */
+    }
+    
+    .vault-tag {
+        display: inline-flex;
         align-items: center;
-        gap: 0.8rem;
-        padding: 1rem;
-        background: var(--bg-surface);
+        padding: 0.5rem 1rem; /* Slightly larger pills */
+        background: transparent;
         border: 1px solid var(--border-subtle);
-        border-radius: 8px;
+        border-radius: 50px; 
+        font-size: 0.85rem; 
+        color: var(--text-secondary);
+        font-family: 'Poppins', sans-serif; 
+        font-weight: 300; 
         text-decoration: none;
+        cursor: pointer;
+        transition: all 0.2s;
+        line-height: 1;
+    }
+    
+    .vault-tag:hover {
+        border-color: var(--text-main);
         color: var(--text-main);
-        transition:
-            transform 0.2s,
-            background 0.2s;
+        background: var(--bg-surface-hover);
+    }
+
+    /* NOTE CARD */
+    
+    .note-card {
+        display: block; 
+        /* 3. COMPACT CARD: Reduced padding */
+        padding: 1.2rem; 
+        border-radius: 8px; 
+        text-decoration: none;
+        color: #e0e0e0; 
+        transition: transform 0.2s, background 0.2s;
+        border: 1px solid var(--border-subtle); 
+        background: transparent;
+        width: 100%;
+        margin-bottom: 0; 
     }
 
     .note-card:hover {
-        transform: translateY(-2px);
-        background: var(--bg-surface-hover);
+        transform: translateX(4px); 
+        background: rgba(255, 255, 255, 0.03); 
         border-color: var(--text-secondary);
     }
-
-    .note-icon {
-        font-size: 1.5rem;
-        opacity: 0.7;
-    }
-
+    
     .note-info h3 {
-        font-size: 0.95rem;
+        font-family: 'Poppins', sans-serif;
+        font-weight: 500; 
+        /* 4. TYPOGRAPHY: Smaller, Darker */
+        font-size: 1rem; 
         margin: 0;
-        font-weight: 500;
+        color: #8a8a8a; /* Darker/Greyer */
         text-transform: capitalize;
+        line-height: 1.3;
     }
 
-    .note-type {
-        font-size: 0.7rem;
-        color: var(--text-tertiary);
-        text-transform: uppercase;
+    /* Animation */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
     }
-
-    .empty-state {
-        grid-column: 1 / -1;
+    .fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    
+    .error-msg { color: #ff6b6b; margin-top: 1rem; }
+    .hint-text { margin-top: 1rem; font-size: 0.8rem; color: var(--text-tertiary); }
+    
+    .loading-indicator {
+        margin-top: 2rem;
         text-align: center;
-        padding: 4rem;
-        color: var(--text-secondary);
-        border: 1px dashed var(--border-subtle);
-        border-radius: 12px;
+        color: var(--text-tertiary);
+        font-family: 'Space Mono', monospace;
+        grid-column: 1 / -1;
+        font-size: 0.8rem;
     }
 </style>
