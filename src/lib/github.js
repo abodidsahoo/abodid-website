@@ -63,14 +63,25 @@ export async function getRepoContents(path = "") {
 }
 
 export async function getVaultTags() {
-    return await getRepoContents(PATH_TAGS);
+    console.log("[GitHub] Fetching Tags from '3 - Tags'");
+    return await getRepoContents("3 - Tags");
 }
 
 export async function getVaultNotes() {
-    const contents = await getRepoContents(PATH_NOTES);
+    console.log("[GitHub] Fetching Notes from '6 - Main Notes'");
+    // Hardcoded path to ensure no variable resolution issues
+    const contents = await getRepoContents("6 - Main Notes");
+
+    if (!contents || contents.length === 0) {
+        console.warn("[GitHub] No contents found in '6 - Main Notes'");
+        return [];
+    }
+
     // STRICT FILTER: Only allow files (notes), no directories.
-    // This prevents folders from appearing in the notes list if something goes wrong with the path or if "Main Notes" has subdirs.
-    return contents.filter(item => item.type === 'file');
+    // This prevents folders from appearing in the notes list.
+    const files = contents.filter(item => item.type === 'file' && item.name.endsWith('.md'));
+    console.log(`[GitHub] Found ${files.length} notes (filtered from ${contents.length} items)`);
+    return files;
 }
 
 /**
