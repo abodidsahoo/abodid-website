@@ -165,36 +165,3 @@ export async function getFileRaw(filePath) {
         return null;
     }
 }
-
-/**
- * Search the repository for specific content (used for backlinks/tags)
- * @param {string} query - The search term (e.g. "[[tag-name]]")
- * @returns {Promise<Array>} - Array of matching file objects
- */
-export async function searchRepo(query) {
-    // GitHub Code Search API
-    // q=repo:owner/name+query
-    const q = encodedQuery(query, REPO_OWNER, REPO_NAME);
-    const url = `${GITHUB_API_BASE}/search/code?q=${q}`;
-
-    try {
-        const response = await fetch(url, { headers: getAuthHeaders() });
-        if (!response.ok) {
-            console.error(`Search failed: ${response.statusText}`);
-            return [];
-        }
-
-        const data = await response.json();
-        return data.items || [];
-    } catch (error) {
-        console.error("Error searching repo:", error);
-        return [];
-    }
-}
-
-function encodedQuery(term, owner, repo) {
-    // GitHub search syntax: term repo:owner/repo
-    // We strictly search for the term.
-    const repoScope = `repo:${owner}/${repo}`;
-    return encodeURIComponent(`${term} ${repoScope}`);
-}
