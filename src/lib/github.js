@@ -1,7 +1,3 @@
-import { GITHUB_TOKEN } from "astro:env/server";
-
-const GITHUB_API_BASE = "https://api.github.com";
-
 // Configuration (defaults can be overridden by env vars if needed, but these are code-level config)
 const REPO_OWNER = import.meta.env.GITHUB_OWNER || process.env.GITHUB_OWNER || "abodidsahoo";
 const REPO_NAME = import.meta.env.GITHUB_REPO || process.env.GITHUB_REPO || "obsidian-vault";
@@ -11,7 +7,7 @@ const PATH_TAGS = "3 - Tags";
 const PATH_NOTES = "6 - Main Notes";
 
 function getAuthHeaders() {
-    const token = GITHUB_TOKEN || import.meta.env.GITHUB_TOKEN || process.env.GITHUB_TOKEN;
+    const token = import.meta.env.GITHUB_TOKEN || process.env.GITHUB_TOKEN;
     if (!token) {
         console.error("GITHUB_TOKEN is missing from environment variables.");
         return {};
