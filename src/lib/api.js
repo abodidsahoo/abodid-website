@@ -22,27 +22,17 @@ export async function getProjects() {
         return [];
     }
 
-    const obsidianVault = {
-        title: "Obsidian Vault",
-        desc: "A digital garden of raw thoughts, research, and connections.",
-        tags: ["Second Brain", "Knowledge Management", "Obsidian"],
-        link: null, /* Internal link handled by href */
-        slug: "obsidian-vault",
-        href: "/research/obsidian-vault",
-        image: null
-    };
-
-    const formattedProjects = data.map(p => ({
+    // Map database fields to frontend structure
+    return data.map(p => ({
         title: p.title,
         desc: p.description,
         tags: p.tags || [],
-        link: p.link || p.repo_link,
+        // If it's the internal vault, use the specific route, otherwise use dynamic slug or external link
+        href: p.slug === 'obsidian-vault' ? '/research/obsidian-vault' : `/research/${p.slug}`,
+        link: p.link || p.repo_link, // Keep this for external links if displayed
         slug: p.slug,
-        href: `/research/${p.slug}`,
         image: p.image
     }));
-
-    return [obsidianVault, ...formattedProjects];
 }
 
 export async function getProjectBySlug(slug) {
