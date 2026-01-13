@@ -1,7 +1,8 @@
 ---
 export const prerender = false;
 import BaseLayout from "../../../layouts/BaseLayout.astro";
-import { getFileContent, searchRepo, getFileRaw } from "../../../lib/github";
+import { getFileContent, getFileRaw } from "../../../lib/github";
+import { findNotesReferencing } from "../../../lib/vault";
 import { marked } from "marked";
 
 const { slug } = Astro.params;
@@ -72,13 +73,10 @@ try {
         htmlContent = await marked.parse(content, { renderer });
     } else {
         // --- B. CHECK IF IT IS A TAG ---
-        // If content is null, maybe it is a tag?
-        // We can check if it exists in "3 - Tags" OR just assume it's a tag search if user navigated here.
-        // Let's verify existence in "3 - Tags" to be sure it's valid.
         const folderTags = "3 - Tags";
         const filePathTags = `${folderTags}/${cleanSlug}`;
-        // We don't necessarily need the content (it's empty), just existence.
-        // But getFileContent returns null if not found.
+
+        // Check for tag existence
         const tagCheck = await getFileContent(filePathTags);
 
         if (tagCheck !== null) {
@@ -86,19 +84,12 @@ try {
             isTagView = true;
             title = `Tag: ${cleanSlug.replace(".md", "")}`;
 
-            // Perform Search for "[[tagname]]"
             const tagName = cleanSlug.replace(".md", "");
-            const query = `[[${tagName}]]`;
 
-            // Search in "6 - Main Notes" (implicit by repo search, we might filter results)
-            const results = await searchRepo(query);
-
-            // Filter to ensure we only show Markdown files and likely from Main Notes
-            searchResults = results.filter(
-                (item) =>
-                    item.name.endsWith(".md") &&
-                    item.path.includes("6 - Main Notes"),
-            );
+            // USE NEW VAULT LOGIC HERE
+            // Replaces: const query = `[[${tagName}]]`; const results = await searchRepo(query);
+            console.log(`[Page] Finding backlinks for tag: ${tagName}`);
+            searchResults = await findNotesReferencing(tagName);
         } else {
             htmlContent = "<p>Note not found.</p>";
         }

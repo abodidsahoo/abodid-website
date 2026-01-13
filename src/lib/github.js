@@ -1,14 +1,17 @@
 // Configuration (defaults can be overridden by env vars if needed, but these are code-level config)
-const REPO_OWNER = import.meta.env.GITHUB_OWNER || process.env.GITHUB_OWNER || "abodidsahoo";
-const REPO_NAME = import.meta.env.GITHUB_REPO || process.env.GITHUB_REPO || "obsidian-vault";
-const GITHUB_API_BASE = "https://api.github.com";
+// Helper to get env vars safely in both Vite (Astro) and Node (Scripts) contexts
+const getEnv = (key) => (typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env[key] : undefined) || (typeof process !== 'undefined' ? process.env[key] : undefined);
+
+export const REPO_OWNER = getEnv("GITHUB_OWNER") || "abodidsahoo";
+export const REPO_NAME = getEnv("GITHUB_REPO") || "obsidian-vault";
+export const GITHUB_API_BASE = "https://api.github.com";
 
 // Folder mappings
 const PATH_TAGS = "3 - Tags";
 const PATH_NOTES = "6 - Main Notes";
 
-function getAuthHeaders() {
-    const token = import.meta.env.GITHUB_TOKEN || process.env.GITHUB_TOKEN;
+export function getAuthHeaders() {
+    const token = getEnv("GITHUB_TOKEN");
     if (!token) {
         console.error("GITHUB_TOKEN is missing from environment variables.");
         return {};
