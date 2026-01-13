@@ -1,8 +1,21 @@
 ---
+
 ---
+
 <header class="site-header">
   <div class="container header-inner">
-    <a href="/" class="logo">Abodid</a>
+    <a href="/" class="logo" aria-label="Abodid Home">
+      <img
+        src="/images/signature-black.png"
+        alt="Abodid"
+        class="logo-img logo-black"
+      />
+      <img
+        src="/images/signature-white.png"
+        alt="Abodid"
+        class="logo-img logo-white"
+      />
+    </a>
     <nav class="desktop-nav">
       <ul class="nav-list">
         <li><a href="/photography">Photography</a></li>
@@ -40,7 +53,7 @@
     border-bottom: 1px solid var(--border-subtle);
     overflow: hidden;
   }
-  
+
   .header-inner {
     display: flex;
     justify-content: space-between;
@@ -48,10 +61,34 @@
   }
 
   .logo {
-    font-size: 1.2rem;
-    font-weight: 600;
-    letter-spacing: -0.02em;
     z-index: 1001;
+    display: flex;
+    align-items: center;
+  }
+
+  .logo-img {
+    height: 60px;
+    width: auto;
+    display: block;
+    margin-top: 4px; /* Slight adjustment for visual balance */
+  }
+
+  /* Default (Light Mode) */
+  .logo-black {
+    display: block;
+  }
+
+  .logo-white {
+    display: none;
+  }
+
+  /* Dark Mode */
+  :global([data-theme="dark"]) .logo-black {
+    display: none;
+  }
+
+  :global([data-theme="dark"]) .logo-white {
+    display: block;
   }
 
   .desktop-nav {
@@ -154,48 +191,48 @@
 </style>
 
 <script>
-  const menuButton = document.querySelector('.mobile-menu-button');
-  const menuOverlay = document.querySelector('.mobile-menu-overlay');
-  const menuLinks = document.querySelectorAll('.mobile-nav-list a');
+  const menuButton = document.querySelector(".mobile-menu-button");
+  const menuOverlay = document.querySelector(".mobile-menu-overlay");
+  const menuLinks = document.querySelectorAll(".mobile-nav-list a");
 
-  menuButton?.addEventListener('click', () => {
-    menuOverlay?.classList.toggle('active');
-    
+  menuButton?.addEventListener("click", () => {
+    menuOverlay?.classList.toggle("active");
+
     // Animate hamburger to X
-    const lines = menuButton.querySelectorAll('.hamburger-line');
-    if (menuOverlay?.classList.contains('active')) {
-      lines[0].style.transform = 'rotate(45deg) translateY(7px)';
-      lines[1].style.opacity = '0';
-      lines[2].style.transform = 'rotate(-45deg) translateY(-7px)';
+    const lines = menuButton.querySelectorAll(".hamburger-line");
+    if (menuOverlay?.classList.contains("active")) {
+      lines[0].style.transform = "rotate(45deg) translateY(7px)";
+      lines[1].style.opacity = "0";
+      lines[2].style.transform = "rotate(-45deg) translateY(-7px)";
     } else {
-      lines[0].style.transform = 'none';
-      lines[1].style.opacity = '1';
-      lines[2].style.transform = 'none';
+      lines[0].style.transform = "none";
+      lines[1].style.opacity = "1";
+      lines[2].style.transform = "none";
     }
   });
 
   // Close menu when clicking a link
-  menuLinks.forEach(link => {
-    link.addEventListener('click', () => {
-      menuOverlay?.classList.remove('active');
-      const lines = menuButton?.querySelectorAll('.hamburger-line');
+  menuLinks.forEach((link) => {
+    link.addEventListener("click", () => {
+      menuOverlay?.classList.remove("active");
+      const lines = menuButton?.querySelectorAll(".hamburger-line");
       if (lines) {
-        lines[0].style.transform = 'none';
-        lines[1].style.opacity = '1';
-        lines[2].style.transform = 'none';
+        lines[0].style.transform = "none";
+        lines[1].style.opacity = "1";
+        lines[2].style.transform = "none";
       }
     });
   });
 
   // Close menu when clicking outside
-  menuOverlay?.addEventListener('click', (e) => {
+  menuOverlay?.addEventListener("click", (e) => {
     if (e.target === menuOverlay) {
-      menuOverlay.classList.remove('active');
-      const lines = menuButton?.querySelectorAll('.hamburger-line');
+      menuOverlay.classList.remove("active");
+      const lines = menuButton?.querySelectorAll(".hamburger-line");
       if (lines) {
-        lines[0].style.transform = 'none';
-        lines[1].style.opacity = '1';
-        lines[2].style.transform = 'none';
+        lines[0].style.transform = "none";
+        lines[1].style.opacity = "1";
+        lines[2].style.transform = "none";
       }
     }
   });

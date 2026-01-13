@@ -1,9 +1,12 @@
 ---
 export const prerender = true;
-import BaseLayout from '../layouts/BaseLayout.astro';
-import StoryCard from '../components/StoryCard.astro';
-import { getFeaturedStories, getRecentPosts } from '../lib/api';
-import { featuredStories as mockStories, recentPosts as mockRecent } from '../utils/mockData';
+import BaseLayout from "../layouts/BaseLayout.astro";
+import StoryCard from "../components/StoryCard.astro";
+import { getFeaturedStories, getRecentPosts } from "../lib/api";
+import {
+  featuredStories as mockStories,
+  recentPosts as mockRecent,
+} from "../utils/mockData";
 
 const pageTitle = "Home";
 
@@ -12,7 +15,7 @@ const safeFetch = async (fn, fallback) => {
   try {
     return await fn();
   } catch (e) {
-    console.error('Data fetch failed:', e);
+    console.error("Data fetch failed:", e);
     return fallback;
   }
 };
@@ -27,31 +30,35 @@ const recentPosts = await safeFetch(getRecentPosts, mockRecent);
   <section class="hero-section">
     <div class="hero-content">
       <h1 class="hero-title">
-        Exploring the space between<br />
-        <span class="text-serif italic">storytelling</span> and technology.
+        <span id="typewriter-text" class="typing-text"></span><span
+          class="typewriter-cursor"></span>
       </h1>
       <p class="hero-subtitle">
-        I am <strong>Abodid</strong>. A creative technologist using photography, film, and code to build digital narratives.
+        Hi, I’m Abodid. I build web-based creative experiences that examine
+        culture, bias, and the limits of AI systems. <br /> I love to work with artists,
+        brands and organisations who value depth over noise.
       </p>
     </div>
   </section>
 
-    <!-- Featured Work -->
+  <!-- Featured Work -->
   <section class="section">
     <div class="section-header">
       <h2>Photography</h2>
       <a href="/photography" class="link-arrow">View All</a>
     </div>
-    
+
     <div class="grid-3">
-      {featuredStories.map(story => (
-        <StoryCard 
-          title={story.title} 
-          category={story.category} 
-          image={story.image} 
-          href={story.href} 
-        />
-      ))}
+      {
+        featuredStories.map((story) => (
+          <StoryCard
+            title={story.title}
+            category={story.category}
+            image={story.image}
+            href={story.href}
+          />
+        ))
+      }
     </div>
   </section>
 
@@ -63,17 +70,19 @@ const recentPosts = await safeFetch(getRecentPosts, mockRecent);
         <a href="/blog" class="link-arrow">Read all</a>
       </div>
       <ul class="journal-list">
-        {recentPosts.map(post => (
-          <li>
-            <a href={post.href} class="journal-item">
-              <span class="title">{post.title}</span>
-              <span class="date">{post.date}</span>
-            </a>
-          </li>
-        ))}
+        {
+          recentPosts.map((post) => (
+            <li>
+              <a href={post.href} class="journal-item">
+                <span class="title">{post.title}</span>
+                <span class="date">{post.date}</span>
+              </a>
+            </li>
+          ))
+        }
       </ul>
     </div>
-    
+
     <div class="column">
       <div class="section-header">
         <h2>Research</h2>
@@ -81,7 +90,8 @@ const recentPosts = await safeFetch(getRecentPosts, mockRecent);
       </div>
       <div class="code-preview">
         <p class="text-secondary">
-          Deep research into the intersection of AI, sociology, and visual culture.
+          Deep research into the intersection of AI, sociology, and visual
+          culture.
         </p>
       </div>
     </div>
@@ -103,23 +113,23 @@ const recentPosts = await safeFetch(getRecentPosts, mockRecent);
     margin-bottom: 2rem;
     letter-spacing: -0.03em;
   }
-  
+
   .italic {
-    font-style: italic; 
+    font-style: italic;
     font-weight: 400;
   }
 
   .hero-subtitle {
-    font-size: 1.25rem;
+    font-size: 1rem;
     color: var(--text-secondary);
-    max-width: 500px;
+    max-width: 900px;
     font-weight: 300;
   }
-  
+
   .section {
     margin-bottom: var(--space-2xl);
   }
-  
+
   .section-header {
     display: flex;
     justify-content: space-between;
@@ -135,14 +145,14 @@ const recentPosts = await safeFetch(getRecentPosts, mockRecent);
     position: relative;
     padding-right: 1.2em;
   }
-  
+
   .link-arrow::after {
     content: "→";
     position: absolute;
     right: 0;
     transition: transform 0.2s ease;
   }
-  
+
   .link-arrow:hover::after {
     transform: translateX(4px);
   }
@@ -165,7 +175,7 @@ const recentPosts = await safeFetch(getRecentPosts, mockRecent);
     padding: var(--space-md) 0;
     border-bottom: 1px solid var(--border-subtle);
   }
-  
+
   .journal-item:hover .title {
     color: var(--text-secondary);
   }
@@ -177,8 +187,109 @@ const recentPosts = await safeFetch(getRecentPosts, mockRecent);
     margin-left: 1rem;
   }
 
+  /* Typewriter Cursor */
+  .typewriter-cursor {
+    display: inline-block;
+    width: 0.22em;
+    height: 1em;
+    background-color: var(--text-primary);
+    vertical-align: baseline;
+    margin-left: 0.1em;
+    animation: blink 1s step-end infinite;
+  }
+
+  @keyframes blink {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0;
+    }
+  }
+
+  /* Style for the typing text to match the italic request if needed, 
+     though user asked for "storytelling and technology" in italics previously. 
+     We'll keep it consistent with the parent h1 or allow specific styling.
+  */
+  .typing-text {
+    font-style: normal;
+    font-weight: 700;
+  }
+
   @media (max-width: 768px) {
-    .hero-title { font-size: 2.5rem; }
-    .split-section { grid-template-columns: 1fr; gap: var(--space-xl); }
+    .hero-title {
+      font-size: 2.5rem;
+    }
+    .split-section {
+      grid-template-columns: 1fr;
+      gap: var(--space-xl);
+    }
   }
 </style>
+
+<script>
+  const phrases = [
+    "Images, Code & Culture.",
+    "Research-led Storytelling.",
+    "Tech-Driven Narrative Frameworks",
+    "Culturally Rooted Storytelling.",
+  ];
+
+  const typingSpeed = { min: 30, max: 120 }; // Random speed for human feel
+  const backspaceSpeed = { min: 30, max: 40 }; // Faster delete
+  const pauseEnd = 1000; // Wait before deleting
+  const pauseStart = 500; // Wait before typing next
+
+  const textElement = document.getElementById("typewriter-text");
+  const cursorElement = document.querySelector(".typewriter-cursor");
+
+  let phraseIndex = 0;
+  let charIndex = 0;
+  let isDeleting = false;
+
+  function type() {
+    const currentPhrase = phrases[phraseIndex];
+
+    if (!textElement) return;
+
+    // Randomize typing speed
+    let speed =
+      Math.random() * (typingSpeed.max - typingSpeed.min) + typingSpeed.min;
+
+    if (isDeleting) {
+      // Deleting
+      textElement.textContent = currentPhrase.substring(0, charIndex - 1);
+      charIndex--;
+      speed =
+        Math.random() * (backspaceSpeed.max - backspaceSpeed.min) +
+        backspaceSpeed.min;
+    } else {
+      // Typing
+      textElement.textContent = currentPhrase.substring(0, charIndex + 1);
+      charIndex++;
+    }
+
+    if (!isDeleting && charIndex === currentPhrase.length) {
+      // Finished typing phrase
+      isDeleting = true;
+      setTimeout(type, pauseEnd);
+      if (cursorElement)
+        (cursorElement as HTMLElement).style.animation =
+          "blink 1s step-end infinite"; // Resume blink
+    } else if (isDeleting && charIndex === 0) {
+      // Finished deleting phrase
+      isDeleting = false;
+      phraseIndex = (phraseIndex + 1) % phrases.length;
+      setTimeout(type, pauseStart);
+    } else {
+      // Continue typing/deleting
+      if (cursorElement)
+        (cursorElement as HTMLElement).style.animation = "none"; // Stop blink while typing
+      setTimeout(type, speed);
+    }
+  }
+
+  // Start animation
+  setTimeout(type, 1000);
+</script>

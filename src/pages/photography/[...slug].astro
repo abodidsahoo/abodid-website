@@ -1,7 +1,7 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getAllStories, getStoryBySlug } from '../../lib/api';
-import { marked } from 'marked';
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getAllStories, getStoryBySlug } from "../../lib/api";
+import { marked } from "marked";
 
 export const prerender = false;
 
@@ -10,7 +10,7 @@ const { slug } = Astro.params;
 const storyContent = await getStoryBySlug(slug);
 
 if (!storyContent) {
-  return Astro.redirect('/404');
+  return Astro.redirect("/404");
 }
 
 const contentHtml = marked.parse(storyContent.content || "");
@@ -24,14 +24,16 @@ const contentHtml = marked.parse(storyContent.content || "");
       <p class="intro text-serif">{storyContent.intro}</p>
     </header>
 
-    <div class="prose story-prose" set:html={contentHtml}></div>
+    <div class="prose story-prose" set:html={contentHtml} />
 
     <div class="story-content gallery-grid">
-      {storyContent.images.map((img, index) => (
-        <figure class="story-image">
-          <img src={img} alt={`Story image ${index + 1}`} loading="lazy" />
-        </figure>
-      ))}
+      {
+        storyContent.images.map((img, index) => (
+          <figure class="story-image">
+            <img src={img} alt={`Story image ${index + 1}`} loading="lazy" />
+          </figure>
+        ))
+      }
     </div>
 
     <div class="story-footer">
@@ -42,7 +44,7 @@ const contentHtml = marked.parse(storyContent.content || "");
 
 <style>
   .story-article {
-    max-width: 900px;
+    max-width: 1052px; /* Align with navigation boundaries */
     margin: 0 auto;
     padding-top: var(--space-2xl);
   }
@@ -78,24 +80,29 @@ const contentHtml = marked.parse(storyContent.content || "");
   .story-content {
     display: flex;
     flex-direction: column;
-    gap: var(--space-2xl);
+    gap: var(--space-lg);
+  }
+
+  .story-image {
+    margin: 0; /* Remove default figure margins */
   }
 
   .story-image img {
     width: 100%;
     height: auto;
+    display: block; /* Remove inline spacing */
     border-radius: 4px;
     /* Optional: minimal shadow for depth */
-    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
   }
-  
+
   .story-footer {
     margin-top: var(--space-2xl);
     padding-top: var(--space-lg);
     border-top: 1px solid var(--border-subtle);
     text-align: center;
   }
-  
+
   .back-link {
     font-weight: 500;
   }
@@ -116,6 +123,43 @@ const contentHtml = marked.parse(storyContent.content || "");
     margin: 2rem 0;
   }
 
-  .story-prose :global(p) { margin-bottom: 1.5rem; }
+  .story-prose :global(p) {
+    margin-bottom: 1.5rem;
+  }
 
-  .hidden-gallery { display: none; } /* Hide unless we have legacy images */
+  .hidden-gallery {
+    display: none;
+  } /* Hide unless we have legacy images */
+
+  /* Mobile adjustments for tighter spacing */
+  @media (max-width: 900px) {
+    /* Override container padding to achieve equal spacing */
+    :global(.container) {
+      padding-left: var(--space-md);
+      padding-right: var(--space-md);
+    }
+
+    .story-article {
+      padding-left: 0;
+      padding-right: 0;
+    }
+
+    .story-content {
+      gap: var(--space-md); /* 1rem gap between images */
+      padding: 0; /* No extra padding - container handles it */
+    }
+
+    .story-header {
+      padding: 0;
+    }
+
+    .story-footer {
+      padding-left: 0;
+      padding-right: 0;
+    }
+
+    .story-prose {
+      padding: 0;
+    }
+  }
+</style>

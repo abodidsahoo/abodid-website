@@ -1,16 +1,16 @@
 ---
 export const prerender = false;
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import StoryCard from '../../components/StoryCard.astro';
-import { getAllStories } from '../../lib/api';
-import { featuredStories as mockStories } from '../../utils/mockData';
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import StoryCard from "../../components/StoryCard.astro";
+import { getAllStories } from "../../lib/api";
+import { featuredStories as mockStories } from "../../utils/mockData";
 
 // Safe Fetch Helper
 const safeFetch = async (fn, fallback) => {
   try {
     return await fn();
   } catch (e) {
-    console.error('Data fetch failed:', e);
+    console.error("Data fetch failed:", e);
     return fallback;
   }
 };
@@ -23,47 +23,44 @@ const pageTitle = "Photography";
   <header class="page-header">
     <h1>Visual Stories</h1>
     <p class="section-intro">
-      A collection of photo essays, capturing moments of silence, chaos, and everything in between.
+      A collection of photo essays, capturing moments of silence, chaos, and
+      everything in between.
     </p>
   </header>
-  
+
   <div class="stories-grid">
-    {portfolioItems.map(item => (
-      <StoryCard 
-        title={item.title} 
-        category={item.category} 
-        image={item.image} 
-        href={item.href} 
-      />
-    ))}
+    {
+      portfolioItems.map((item) => (
+        <StoryCard
+          title={item.title}
+          category={item.category}
+          image={item.image}
+          href={item.href}
+        />
+      ))
+    }
   </div>
 </BaseLayout>
 
 <style>
   .stories-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr; /* Single column for larger images */
     gap: var(--space-lg);
     margin-bottom: var(--space-2xl);
-  }
-
-  @media (max-width: 768px) {
-    .stories-grid {
-      grid-template-columns: 1fr;
-    }
   }
   .page-header {
     margin-bottom: var(--space-2xl);
     max-width: 600px;
     padding-top: var(--space-lg);
   }
-  
+
   .section-intro {
     font-size: 1.1rem;
     color: var(--text-secondary);
     margin-top: 1rem;
   }
-  
+
   .portfolio-grid {
     margin-bottom: var(--space-2xl);
   }

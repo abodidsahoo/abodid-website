@@ -1,20 +1,22 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
+import BaseLayout from "../layouts/BaseLayout.astro";
 const pageTitle = "About";
 ---
 
 <BaseLayout title={pageTitle}>
-  <article class="about-container animation-fade-in">
-    <h1 class="page-title">About</h1>
-    
+  <header class="page-header">
+    <h1>About</h1>
+  </header>
+
+  <section class="about-content animation-fade-in">
     <div class="prose">
-      <p class="lead">
-        Hi, I am Abodid. I am a creative technologist.
-      </p>
+      <p class="lead">Hi, I am Abodid. I am a creative technologist.</p>
 
       <p>
-        My work bridges the gap between traditional photography, cinematography, and sociological research. 
-        I am interested in the "Invisible Punctum"—the unseen emotional impact of images—and how AI interprets (or fails to interpret) human feeling.
+        My work bridges the gap between traditional photography, cinematography,
+        and sociological research. I am interested in the "Invisible
+        Punctum"—the unseen emotional impact of images—and how AI interprets (or
+        fails to interpret) human feeling.
       </p>
 
       <hr class="divider" />
@@ -22,24 +24,45 @@ const pageTitle = "About";
       <h3>Contact</h3>
       <ul class="contact-list">
         <li><a href="mailto:hello@abodid.com">hello@abodid.com</a></li>
-        <li><a href="https://github.com/abodidsahoo" target="_blank">GitHub</a></li>
-        <li><a href="https://twitter.com/abodid" target="_blank">Twitter / X</a></li>
+        <li>
+          <a href="https://github.com/abodidsahoo" target="_blank">GitHub</a>
+        </li>
+
+        <li>
+          <a href="https://uk.linkedin.com/in/abodidsahoo" target="_blank"
+            >Linkedin</a
+          >
+        </li>
+
+        <li>
+          <a href="https://www.instagram.com/abodid.sahoo" target="_blank"
+            >Instagram</a
+          >
+        </li>
+
+        <li>
+          <a href="https://twitter.com/abodidsahoo" target="_blank"
+            >Twitter / X</a
+          >
+        </li>
       </ul>
     </div>
-  </article>
+  </section>
 </BaseLayout>
 
 <style>
-  .about-container {
-    max-width: 720px;
-    margin: 4rem auto;
-    padding: 0 1.5rem;
+  .page-header {
+    margin-bottom: var(--space-lg);
+    padding-top: var(--space-lg);
   }
 
-  .page-title {
-    font-size: 3rem;
-    margin-bottom: 2rem;
-    font-weight: 500;
+  /* 
+    Keep text line length readable (65-75 chars is ideal), 
+    but allow it to align left with the header.
+  */
+  .about-content {
+    max-width: 720px;
+    /* No margin: auto here, so it aligns left */
   }
 
   .prose {
@@ -67,6 +90,7 @@ const pageTitle = "About";
     list-style: none;
     padding: 0;
     display: flex;
+    flex-wrap: wrap;
     gap: 1.5rem;
   }
 
