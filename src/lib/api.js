@@ -94,6 +94,7 @@ export async function getAllStories() {
         title: story.title,
         category: story.category,
         image: story.cover_image,
+        tags: story.tags || [], // Ensure tags are passed
         href: `/photography/${story.slug}`
     }));
 }
@@ -142,6 +143,7 @@ export async function getRecentPosts() {
     return data.map(post => ({
         title: post.title,
         date: new Date(post.published_at).toLocaleDateString(),
+        tags: post.tags || [],
         href: `/blog/${post.slug}`
     }));
 }

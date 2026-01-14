@@ -1,77 +1,26 @@
 ---
 export const prerender = false;
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getRecentPosts } from '../../lib/api';
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import BlogFilter from "../../components/BlogFilter.jsx";
+import { getRecentPosts } from "../../lib/api";
 
 const recentPosts = await getRecentPosts();
 const pageTitle = "Journal";
 ---
+
 <BaseLayout title={pageTitle}>
   <header class="page-header">
     <h1>Journal</h1>
-    <p class="section-intro">
-      Thoughts, notes, and observations.
-    </p>
+    <p class="section-intro">Thoughts, notes, and observations.</p>
   </header>
-  
-  <div class="blog-list">
-    {recentPosts.map(post => (
-      <article class="post-item">
-        <span class="post-date">{post.date}</span>
-        <h2 class="post-title">
-          <a href={post.href}>{post.title}</a>
-        </h2>
-        <a href={post.href} class="read-more">Read entry →</a>
-      </article>
-    ))}
+
+  <div class="blog-container">
+    <BlogFilter posts={recentPosts} client:load />
   </div>
 </BaseLayout>
 
 <style>
-  .page-header {
-    margin-bottom: var(--space-2xl);
-    padding-top: var(--space-lg);
-  }
-  .section-intro {
-    font-size: 1.1rem;
-    color: var(--text-secondary);
-  }
-  
-  .blog-list {
-    max-width: 700px;
-  }
-  
-  .post-item {
-    margin-bottom: var(--space-2xl);
-    border-bottom: 1px solid var(--border-subtle);
-    padding-bottom: var(--space-lg);
-  }
-  
-  .post-item:last-child { border-bottom: none; }
-  
-  .post-date {
-    display: block;
-    font-family: var(--font-sans);
-    font-size: 0.85rem;
-    color: var(--text-tertiary);
-    margin-bottom: 0.5rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-  
-  .post-title {
-    font-size: 2rem;
-    font-weight: 500;
-    margin-bottom: 1rem;
-    line-height: 1.2;
-  }
-  
-  .post-title a { text-decoration: none; }
-  .post-title a:hover { color: var(--text-secondary); }
-  
-  .read-more {
-    font-size: 0.95rem;
-    font-weight: 500;
-    color: var(--text-primary);
+  .blog-container {
+    margin-bottom: var(--space-3xl);
   }
 </style>

@@ -2,6 +2,7 @@
 export const prerender = false;
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import StoryCard from "../../components/StoryCard.astro";
+import PortfolioFilter from "../../components/PortfolioFilter.jsx";
 import { getAllStories } from "../../lib/api";
 import { featuredStories as mockStories } from "../../utils/mockData";
 
@@ -28,25 +29,13 @@ const pageTitle = "Photography";
     </p>
   </header>
 
-  <div class="stories-grid">
-    {
-      portfolioItems.map((item) => (
-        <StoryCard
-          title={item.title}
-          category={item.category}
-          image={item.image}
-          href={item.href}
-        />
-      ))
-    }
+  <div class="portfolio-container">
+    <PortfolioFilter items={portfolioItems} client:load />
   </div>
 </BaseLayout>
 
 <style>
-  .stories-grid {
-    display: grid;
-    grid-template-columns: 1fr; /* Single column for larger images */
-    gap: var(--space-lg);
+  .portfolio-container {
     margin-bottom: var(--space-2xl);
   }
   .page-header {
