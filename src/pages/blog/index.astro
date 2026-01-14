@@ -2,9 +2,9 @@
 export const prerender = false;
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import BlogFilter from "../../components/BlogFilter.jsx";
-import { getRecentPosts } from "../../lib/api";
+import { getAllPosts } from "../../lib/api";
 
-const recentPosts = await getRecentPosts();
+const recentPosts = await getAllPosts();
 const pageTitle = "Journal";
 ---
 

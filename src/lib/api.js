@@ -148,6 +148,25 @@ export async function getRecentPosts() {
     }));
 }
 
+export async function getAllPosts() {
+    if (!isSupabaseConfigured()) return mockPosts;
+
+    const { data, error } = await supabase
+        .from('blog')
+        .select('*')
+        .eq('published', true)
+        .order('published_at', { ascending: false });
+
+    if (error) return mockPosts;
+
+    return data.map(post => ({
+        title: post.title,
+        date: new Date(post.published_at).toLocaleDateString(),
+        tags: post.tags || [],
+        href: `/blog/${post.slug}`
+    }));
+}
+
 export async function getPostBySlug(slug) {
     if (!isSupabaseConfigured()) return null;
 
