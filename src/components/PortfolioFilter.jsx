@@ -3,23 +3,52 @@ import React, { useState, useMemo } from 'react';
 const PortfolioFilter = ({ items }) => {
     const [activeTag, setActiveTag] = useState('All');
 
-    // 1. Extract unique categories from all items
-    const allCategories = useMemo(() => {
-        const categories = new Set(['All']);
+    // 1. Extract, count and sort unique categories
+    const sortedCategories = useMemo(() => {
+        const counts = {};
+
         items.forEach(item => {
-            if (item.category) {
-                if (Array.isArray(item.category)) {
-                    item.category.forEach(c => categories.add(c));
-                } else {
-                    categories.add(item.category);
-                }
-            }
+            const cats = Array.isArray(item.category) ? item.category : (item.category ? [item.category] : []);
+            cats.forEach(c => {
+                counts[c] = (counts[c] || 0) + 1;
+            });
         });
-        return Array.from(categories);
+
+        // Filter out categories with 0 count (safety) and sort by count desc
+        let cats = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+
+        // Limit to most relevant if too many (heuristic for "max 2 lines")
+        // Accommodating roughly 12 tags max for 2 lines.
+        if (cats.length > 11) {
+            cats = cats.slice(0, 11);
+        }
+
+        return ['All', ...cats];
     }, [items]);
 
-    // 2. Filter items based on active category
-    // 2. Filter items based on active category
+    // 2. Logic to split categories into up to 2 lines
+    const { topRow, bottomRow } = useMemo(() => {
+        const total = sortedCategories.length;
+
+        // If few items, keep in one line to avoid forcing a weird stack
+        // "One less in upper line" implies we want to bias bottom.
+        // Mid floor: 5/2 = 2. Top: 2, Bot: 3.
+        // 6/2 = 3. Top: 3, Bot: 3.
+
+        // Threshold: If we have > 4 items, we split to ensure "pyramid" avoidance and visual balance.
+        // If <= 4, usually fits on one line unless they are huge words.
+        if (total <= 4) {
+            return { topRow: sortedCategories, bottomRow: [] };
+        }
+
+        const mid = Math.floor(total / 2);
+        return {
+            topRow: sortedCategories.slice(0, mid),
+            bottomRow: sortedCategories.slice(mid)
+        };
+    }, [sortedCategories]);
+
+    // 3. Filter items based on active category
     const filteredItems = useMemo(() => {
         if (activeTag === 'All') return items;
         return items.filter(item => {
@@ -30,21 +59,30 @@ const PortfolioFilter = ({ items }) => {
         });
     }, [items, activeTag]);
 
+    const renderButton = (category) => (
+        <button
+            key={category}
+            onClick={() => setActiveTag(category)}
+            className={`filter-btn ${activeTag === category ? 'active' : ''}`}
+        >
+            {category}
+        </button>
+    );
+
     return (
         <div className="portfolio-filter-container">
-            {/* Sticky Filter Bar */}
+            {/* Filter Bar */}
             <div className="filter-bar">
-                <div className="filter-scroll">
-                    {allCategories.map(category => (
-                        <button
-                            key={category}
-                            onClick={() => setActiveTag(category)}
-                            className={`filter-btn ${activeTag === category ? 'active' : ''}`}
-                        >
-                            {category}
-                        </button>
-                    ))}
+                {/* Row 1 */}
+                <div className="filter-row">
+                    {topRow.map(renderButton)}
                 </div>
+                {/* Row 2 (if exists) */}
+                {bottomRow.length > 0 && (
+                    <div className="filter-row">
+                        {bottomRow.map(renderButton)}
+                    </div>
+                )}
             </div>
 
             {/* Grid */}
@@ -74,22 +112,22 @@ const PortfolioFilter = ({ items }) => {
         /* Filter Container */
         .filter-bar {
             margin-bottom: 3rem;
-            padding: 0 2rem; /* Added padding from sides as requested */
+            padding: 0 1rem;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem; /* Space between rows */
         }
         
-        .filter-scroll {
-            display: block; /* Switch to block for text-like flow helpers */
-            text-align: center;
-            width: 100%;
-            max-width: 800px; /* Constrain width to encourage better wrapping */
-            text-wrap: balance; /* Try to balance lines */
+        .filter-row {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap; 
+            gap: 0.6rem; /* Space between buttons */
+            max-width: 900px;
         }
 
         .filter-btn {
-            display: inline-block; /* Inline-block for flowing */
-            margin: 0.5rem 0.3rem; /* Spacing between lines and items */
             background: transparent;
             border: 1px solid var(--border-subtle);
             font-size: 0.8rem;
@@ -168,7 +206,9 @@ const PortfolioFilter = ({ items }) => {
         }
 
         @media (max-width: 768px) {
-             /* Mobile adjustments if needed */
+             .filter-row {
+                gap: 0.4rem;
+             }
         }
       `}</style>
         </div>
