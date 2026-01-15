@@ -1,0 +1,142 @@
+---
+
+---
+
+<div class="newsletter-form-wrapper">
+    <form class="newsletter-form" id="newsletter-form">
+        <input
+            type="email"
+            name="email"
+            placeholder="Enter your email"
+            aria-label="Email address"
+            required
+        />
+        <button type="submit" aria-label="Subscribe">
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                ><line x1="5" y1="12" x2="19" y2="12"></line><polyline
+                    points="12 5 19 12 12 19"></polyline></svg
+            >
+        </button>
+    </form>
+    <p class="message" id="newsletter-message"></p>
+</div>
+
+<script>
+    const form = document.getElementById("newsletter-form");
+    const messageEl = document.getElementById("newsletter-message");
+
+    if (form) {
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const formData = new FormData(form as HTMLFormElement);
+
+            // Visual feedback
+            const btn = form.querySelector("button");
+            const originalIcon = btn.innerHTML;
+            btn.innerHTML = "...";
+            btn.disabled = true;
+
+            try {
+                const response = await fetch("/api/subscribe", {
+                    method: "POST",
+                    body: formData,
+                });
+                const data = await response.json();
+
+                messageEl.textContent = data.message;
+                messageEl.classList.add(response.ok ? "success" : "error");
+
+                if (response.ok) {
+                    (form as HTMLFormElement).reset();
+                }
+            } catch (error) {
+                messageEl.textContent =
+                    "Something went wrong. Please try again.";
+                messageEl.classList.add("error");
+            } finally {
+                btn.innerHTML = originalIcon;
+                btn.disabled = false;
+
+                // Clear message after 5 seconds
+                setTimeout(() => {
+                    messageEl.textContent = "";
+                    messageEl.className = "message";
+                }, 5000);
+            }
+        });
+    }
+</script>
+
+<style>
+    .newsletter-form-wrapper {
+        margin-top: 1rem;
+        max-width: 300px;
+    }
+
+    .newsletter-form {
+        display: flex;
+        align-items: center;
+        border-bottom: 1px solid var(--border-strong);
+        transition: border-color 0.3s ease;
+    }
+
+    .newsletter-form:focus-within {
+        border-color: var(--text-primary);
+    }
+
+    .message {
+        font-size: 0.75rem;
+        margin-top: 0.5rem;
+        min-height: 1.2em; /* Prevent layout jump */
+        transition: all 0.3s ease;
+    }
+
+    .message.success {
+        color: #2ecc71;
+    }
+    .message.error {
+        color: #e74c3c;
+    }
+
+    input {
+        flex: 1;
+        background: transparent;
+        border: none;
+        padding: 0.8rem 0;
+        color: var(--text-primary);
+        font-family: var(--font-sans);
+        font-size: 0.9rem;
+        outline: none;
+    }
+
+    input::placeholder {
+        color: var(--text-tertiary);
+    }
+
+    button {
+        background: transparent;
+        border: none;
+        color: var(--text-secondary);
+        cursor: pointer;
+        padding: 0.5rem;
+        transition: color 0.3s ease;
+    }
+
+    button:hover {
+        color: var(--text-primary);
+    }
+
+    button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+</style>

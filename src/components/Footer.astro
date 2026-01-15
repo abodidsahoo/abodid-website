@@ -1,18 +1,200 @@
 ---
+import Newsletter from "./Newsletter.astro";
+import SocialLinks from "./SocialLinks.astro";
+
 const year = new Date().getFullYear();
 ---
+
 <footer class="site-footer">
   <div class="container">
-    <p>&copy; {year} Abodid. All rights reserved.</p>
+    <!-- The Deep Ocean Grid -->
+    <div class="footer-grid">
+      <!-- Column 1: The Signal -->
+      <div class="footer-col signal">
+        <a href="/" class="footer-logo">Abodid</a>
+        <p class="tagline">
+          Capturing silence, chaos, and everything in between.
+        </p>
+
+        <div class="newsletter-section">
+          <p class="section-title">Join the expedition</p>
+          <Newsletter />
+        </div>
+      </div>
+
+      <!-- Column 2: The Map -->
+      <div class="footer-col map">
+        <nav class="footer-nav">
+          <div class="nav-group">
+            <span class="nav-header">Explore</span>
+            <a href="/photography">Photography</a>
+            <a href="/blog">Blog</a>
+            <a href="/about">About</a>
+          </div>
+
+          <div class="nav-group">
+            <span class="nav-header">Engage</span>
+            <a href="/services">Services</a>
+            <a href="/workshops">Workshops</a>
+            <a href="/guestbook">Guestbook</a>
+          </div>
+
+          <div class="nav-group">
+            <span class="nav-header">System</span>
+            <a href="/sitemap">Sitemap</a>
+            <a href="/rss.xml">RSS</a>
+          </div>
+        </nav>
+      </div>
+
+      <!-- Column 3: The Current -->
+      <div class="footer-col current">
+        <div class="connect-section">
+          <p class="section-title">Connect</p>
+          <SocialLinks />
+        </div>
+
+        <div class="legal-links">
+          <p>&copy; {year} Abodid.</p>
+          <a href="/privacy">Privacy Policy</a>
+          <a href="/licensing">Licensing</a>
+        </div>
+      </div>
+    </div>
   </div>
 </footer>
 
 <style>
   .site-footer {
-    padding: 2rem 0;
+    background-color: var(
+      --bg-surface
+    ); /* Uses surface color instead of purely dark ensures theme compatibility */
+    padding: 6rem 0 4rem;
     margin-top: auto;
-    border-top: 1px solid var(--border-color);
+    border-top: 1px solid var(--border-subtle);
+    font-family: var(--font-sans);
+  }
+
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr 0.8fr;
+    gap: 4rem;
+  }
+
+  /* Column Styles */
+  .footer-col {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Col 1: Signal */
+  .footer-logo {
+    font-family: var(--font-serif);
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 1rem;
+    display: inline-block;
+  }
+
+  .tagline {
     color: var(--text-secondary);
-    font-size: 0.9rem;
+    max-width: 300px;
+    line-height: 1.5;
+    margin-bottom: 2rem;
+  }
+
+  .section-title {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    margin-bottom: 0.5rem;
+  }
+
+  /* Col 2: Map */
+  .footer-nav {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+  }
+
+  .nav-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .nav-header {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-tertiary);
+    margin-bottom: 0.5rem;
+  }
+
+  .nav-group a {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    transition: color 0.2s ease;
+  }
+
+  .nav-group a:hover {
+    color: var(--text-primary);
+  }
+
+  /* Col 3: Current */
+  .connect-section {
+    margin-bottom: auto; /* Pushes legal links to bottom */
+  }
+
+  .legal-links {
+    font-size: 0.85rem;
+    color: var(--text-tertiary);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .legal-links a:hover {
+    text-decoration: underline;
+    color: var(--text-secondary);
+  }
+
+  /* Responsive */
+  @media (max-width: 968px) {
+    .footer-grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+    }
+    .footer-col.current {
+      grid-column: span 2;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .connect-section {
+      margin-bottom: 0;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .site-footer {
+      padding: 4rem 0 3rem;
+    }
+    .footer-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 3rem;
+    }
+    .footer-nav {
+      grid-template-columns: 1fr;
+    }
+    .footer-col.current {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 2rem;
+    }
   }
 </style>

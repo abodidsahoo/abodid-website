@@ -1,0 +1,63 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const title = "Privacy Policy";
+---
+
+<BaseLayout title={title}>
+    <article class="legal-content">
+        <h1>Privacy Policy</h1>
+        <p class="last-updated">
+            Last Updated: {new Date().toLocaleDateString()}
+        </p>
+
+        <section>
+            <h2>1. Overview</h2>
+            <p>
+                I respect your privacy. This website is a showcase of art and
+                thought, not a data collection machine. I do not sell your
+                personal data.
+            </p>
+        </section>
+
+        <section>
+            <h2>2. What We Collect</h2>
+            <p>
+                <strong>Newsletter:</strong> If you sign up, I collect your email
+                address solely to send you updates. You can unsubscribe at any time.
+            </p>
+            <p>
+                <strong>Analytics:</strong> I may use privacy-preserving analytics
+                (like Plausible or basic Vercel Analytics) to understand site traffic.
+                These do not track individual behavior across the web.
+            </p>
+        </section>
+
+        <section>
+            <h2>3. Contact</h2>
+            <p>For privacy concerns, please email hello@abodid.com.</p>
+        </section>
+    </article>
+</BaseLayout>
+
+<style>
+    .legal-content {
+        max-width: 680px;
+        margin: 0 auto;
+    }
+
+    .last-updated {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        margin-bottom: 3rem;
+    }
+
+    section {
+        margin-bottom: 2rem;
+    }
+
+    h2 {
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
+    }
+</style>

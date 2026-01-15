@@ -1,0 +1,51 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const title = "Guestbook";
+const description = "A wall of thoughts. Leave a mark.";
+---
+
+<BaseLayout title={title}>
+    <header class="page-header">
+        <h1>Guestbook</h1>
+        <p class="subtitle">{description}</p>
+    </header>
+
+    <section class="content-section">
+        <div class="placeholder-wall">
+            <!-- Future Giscus or Comment System Integration -->
+            <p class="note">
+                The wall is currently being prepared for your thoughts.
+            </p>
+        </div>
+    </section>
+</BaseLayout>
+
+<style>
+    .page-header {
+        margin-bottom: 4rem;
+        text-align: center;
+    }
+
+    .subtitle {
+        font-size: 1.2rem;
+        color: var(--text-secondary);
+        margin-top: 1rem;
+    }
+
+    .placeholder-wall {
+        min-height: 300px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--bg-surface);
+        border-radius: 8px;
+        border: 1px dashed var(--border-strong);
+    }
+
+    .note {
+        font-family: var(--font-serif);
+        font-style: italic;
+        color: var(--text-secondary);
+    }
+</style>

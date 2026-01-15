@@ -1,0 +1,56 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const title = "Workshops";
+const description =
+    "Learn photography and visual storytelling through 1-on-1 mentorship.";
+---
+
+<BaseLayout title={title}>
+    <header class="page-header">
+        <h1>Transferring Vision</h1>
+        <p class="subtitle">{description}</p>
+    </header>
+
+    <section class="content-section">
+        <div class="coming-soon">
+            <h2>Curriculum Loading...</h2>
+            <p>
+                Detailed workshop modules and booking calendars are being
+                finalized.
+            </p>
+            <p>For early access, please contact me directly.</p>
+            <a href="mailto:hello@abodid.com" class="cta-button">Email Me</a>
+        </div>
+    </section>
+</BaseLayout>
+
+<style>
+    .page-header {
+        margin-bottom: 4rem;
+        max-width: 800px;
+    }
+
+    .subtitle {
+        font-size: 1.2rem;
+        color: var(--text-secondary);
+        margin-top: 1rem;
+    }
+
+    .coming-soon {
+        padding: 3rem;
+        background: var(--bg-surface);
+        border-radius: 8px;
+        text-align: center;
+    }
+
+    .cta-button {
+        display: inline-block;
+        margin-top: 1rem;
+        padding: 0.8rem 1.5rem;
+        background: var(--text-primary);
+        color: var(--bg-color);
+        border-radius: 4px;
+        font-weight: 500;
+    }
+</style>
