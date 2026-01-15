@@ -1,5 +1,5 @@
 import { supabase } from './supabaseClient';
-import { featuredStories as mockStories, recentPosts as mockPosts } from '../utils/mockData';
+import { featuredPhotography as mockPhotography, recentPosts as mockPosts } from '../utils/mockData';
 
 // --- Helper to check if Supabase is configured ---
 const isSupabaseConfigured = () => {
@@ -51,10 +51,10 @@ export async function getProjectBySlug(slug) {
     return data;
 }
 
-// --- Stories (Table: 'photography') --- 
+// --- Photography (Table: 'photography') --- 
 
-export async function getFeaturedStories() {
-    if (!isSupabaseConfigured()) return mockStories;
+export async function getFeaturedPhotography() {
+    if (!isSupabaseConfigured()) return mockPhotography;
 
     const { data, error } = await supabase
         .from('photography')
@@ -64,20 +64,20 @@ export async function getFeaturedStories() {
         .limit(3);
 
     if (error) {
-        console.error('Error fetching stories:', error);
-        return mockStories;
+        console.error('Error fetching photography:', error);
+        return mockPhotography;
     }
 
-    return data.map(story => ({
-        title: story.title,
-        category: story.category,
-        image: story.cover_image,
-        href: `/photography/${story.slug}`
+    return data.map(project => ({
+        title: project.title,
+        category: project.category, // Now returns array
+        image: project.cover_image,
+        href: `/photography/${project.slug}`
     }));
 }
 
-export async function getAllStories() {
-    if (!isSupabaseConfigured()) return mockStories;
+export async function getAllPhotography() {
+    if (!isSupabaseConfigured()) return mockPhotography;
 
     const { data, error } = await supabase
         .from('photography')
@@ -86,42 +86,38 @@ export async function getAllStories() {
         .order('created_at', { ascending: false });
 
     if (error) {
-        console.error('Error fetching all stories:', error);
+        console.error('Error fetching all photography:', error);
         return [];
     }
 
-    return data.map(story => ({
-        title: story.title,
-        category: story.category,
-        image: story.cover_image,
-        tags: story.tags || [], // Ensure tags are passed
-        href: `/photography/${story.slug}`
+    return data.map(project => ({
+        title: project.title,
+        category: project.category,
+        image: project.cover_image,
+        tags: project.tags || [], // Legacy or unused if category is array
+        href: `/photography/${project.slug}`
     }));
 }
 
 
-export async function getStoryBySlug(slug) {
+export async function getPhotographyBySlug(slug) {
     if (!isSupabaseConfigured()) return null;
 
-    // 1. Fetch Story Metadata
-    const { data: story, error: storyError } = await supabase
+    // 1. Fetch Project Metadata
+    const { data: project, error: projectError } = await supabase
         .from('photography')
         .select('*')
         .eq('slug', slug)
         .single();
 
-    if (storyError || !story) return null;
+    if (projectError || !project) return null;
 
-    // 2. Fetch Story Photos (Simplified: From JSON Column)
+    // 2. Fetch Project Photos (Simplified: From JSON Column)
     // The 'gallery_images' column now holds the array of photo objects directly.
-    // If it's a legacy JSON string, parse it; if it's JSONB, it returns as an object/array.
-
-    let photos = story.gallery_images || [];
-
-    // If we haven't migrated data yet (or empty), photos is [].
+    let photos = project.gallery_images || [];
 
     return {
-        ...story,
+        ...project,
         images: photos.map(p => p.url) // Extract just the URLs for the frontend
     };
 }
@@ -144,6 +140,7 @@ export async function getRecentPosts() {
         title: post.title,
         date: new Date(post.published_at).toLocaleDateString(),
         tags: post.tags || [],
+        category: post.category || [], // Add category support
         href: `/blog/${post.slug}`
     }));
 }
@@ -163,6 +160,7 @@ export async function getAllPosts() {
         title: post.title,
         date: new Date(post.published_at).toLocaleDateString(),
         tags: post.tags || [],
+        category: post.category || [], // Add category support
         href: `/blog/${post.slug}`
     }));
 }

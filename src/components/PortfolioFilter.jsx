@@ -3,21 +3,31 @@ import React, { useState, useMemo } from 'react';
 const PortfolioFilter = ({ items }) => {
     const [activeTag, setActiveTag] = useState('All');
 
-    // 1. Extract unique tags from all items
-    const allTags = useMemo(() => {
-        const tags = new Set(['All']);
+    // 1. Extract unique categories from all items
+    const allCategories = useMemo(() => {
+        const categories = new Set(['All']);
         items.forEach(item => {
-            if (item.tags && Array.isArray(item.tags)) {
-                item.tags.forEach(tag => tags.add(tag));
+            if (item.category) {
+                if (Array.isArray(item.category)) {
+                    item.category.forEach(c => categories.add(c));
+                } else {
+                    categories.add(item.category);
+                }
             }
         });
-        return Array.from(tags);
+        return Array.from(categories);
     }, [items]);
 
-    // 2. Filter items based on active tag
+    // 2. Filter items based on active category
+    // 2. Filter items based on active category
     const filteredItems = useMemo(() => {
         if (activeTag === 'All') return items;
-        return items.filter(item => item.tags && item.tags.includes(activeTag));
+        return items.filter(item => {
+            if (Array.isArray(item.category)) {
+                return item.category.includes(activeTag);
+            }
+            return item.category === activeTag;
+        });
     }, [items, activeTag]);
 
     return (
@@ -25,28 +35,30 @@ const PortfolioFilter = ({ items }) => {
             {/* Sticky Filter Bar */}
             <div className="filter-bar">
                 <div className="filter-scroll">
-                    {allTags.map(tag => (
+                    {allCategories.map(category => (
                         <button
-                            key={tag}
-                            onClick={() => setActiveTag(tag)}
-                            className={`filter-btn ${activeTag === tag ? 'active' : ''}`}
+                            key={category}
+                            onClick={() => setActiveTag(category)}
+                            className={`filter-btn ${activeTag === category ? 'active' : ''}`}
                         >
-                            {tag}
+                            {category}
                         </button>
                     ))}
                 </div>
             </div>
 
             {/* Grid */}
-            <div className="stories-grid">
+            <div className="photography-grid">
                 {filteredItems.map((item) => (
-                    <a href={item.href} className="story-card" key={item.title}>
+                    <a href={item.href} className="photography-card" key={item.title}>
                         <div className="image-wrapper">
                             <img src={item.image} alt={item.title} loading="lazy" />
                         </div>
                         <div className="content">
                             <div className="meta">
-                                <span className="category">{item.tags ? item.tags[0] : 'Photography'}</span>
+                                <span className="category">
+                                    {Array.isArray(item.category) ? item.category.join(', ') : (item.category || 'Photography')}
+                                </span>
                             </div>
                             <h3>{item.title}</h3>
                         </div>
@@ -105,14 +117,14 @@ const PortfolioFilter = ({ items }) => {
             background: #000;
         }
 
-        /* Replicating StoryCard Styles locally to avoid Astro mapping issues in React */
-        .stories-grid {
+        /* Replicating PhotographyCard Styles locally to avoid Astro mapping issues in React */
+        .photography-grid {
             display: grid;
             grid-template-columns: 1fr;
             gap: var(--space-lg);
         }
         
-        .story-card {
+        .photography-card {
             display: block;
             text-decoration: none;
             color: inherit;
@@ -134,7 +146,7 @@ const PortfolioFilter = ({ items }) => {
             transition: transform 0.5s ease;
         }
 
-        .story-card:hover .image-wrapper img {
+        .photography-card:hover .image-wrapper img {
             transform: scale(1.02);
         }
 

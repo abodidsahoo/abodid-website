@@ -1,10 +1,10 @@
 ---
 export const prerender = false;
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import StoryCard from "../../components/StoryCard.astro";
+import PhotographyCard from "../../components/PhotographyCard.astro";
 import PortfolioFilter from "../../components/PortfolioFilter.jsx";
-import { getAllStories } from "../../lib/api";
-import { featuredStories as mockStories } from "../../utils/mockData";
+import { getAllPhotography } from "../../lib/api";
+import { featuredPhotography as mockPhotography } from "../../utils/mockData";
 
 // Safe Fetch Helper
 const safeFetch = async (fn, fallback) => {
@@ -16,7 +16,7 @@ const safeFetch = async (fn, fallback) => {
   }
 };
 
-const portfolioItems = await safeFetch(getAllStories, mockStories);
+const portfolioItems = await safeFetch(getAllPhotography, mockPhotography);
 const pageTitle = "Photography";
 ---
 

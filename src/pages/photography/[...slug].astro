@@ -1,36 +1,40 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import { getAllStories, getStoryBySlug } from "../../lib/api";
+import { getAllPhotography, getPhotographyBySlug } from "../../lib/api";
 import { marked } from "marked";
 
 export const prerender = false;
 
 const { slug } = Astro.params;
 
-const storyContent = await getStoryBySlug(slug);
+const project = await getPhotographyBySlug(slug);
 
-if (!storyContent) {
+if (!project) {
   return Astro.redirect("/404");
 }
 
-const contentHtml = marked.parse(storyContent.content || "");
+const contentHtml = marked.parse(project.content || "");
 ---
 
-<BaseLayout title={storyContent.title}>
-  <article class="story-article">
-    <header class="story-header">
-      <span class="meta">{storyContent.date}</span>
-      <h1>{storyContent.title}</h1>
-      <p class="intro text-serif">{storyContent.intro}</p>
+<BaseLayout title={project.title}>
+  <article class="photography-article">
+    <header class="project-header">
+      <span class="meta">{project.date}</span>
+      <h1>{project.title}</h1>
+      <p class="intro text-serif">{project.intro}</p>
     </header>
 
-    <div class="prose story-prose" set:html={contentHtml} />
+    <div class="prose project-prose" set:html={contentHtml} />
 
-    <div class="story-content gallery-grid">
+    <div class="project-content gallery-grid">
       {
-        storyContent.images.map((img, index) => (
-          <figure class="story-image">
-            <img src={img} alt={`Story image ${index + 1}`} loading="lazy" />
+        project.images.map((img, index) => (
+          <figure class="project-image">
+            <img
+              src={img}
+              alt={`Photography image ${index + 1}`}
+              loading="lazy"
+            />
           </figure>
         ))
       }
@@ -43,13 +47,13 @@ const contentHtml = marked.parse(storyContent.content || "");
 </BaseLayout>
 
 <style>
-  .story-article {
+  .photography-article {
     max-width: 1052px; /* Align with navigation boundaries */
     margin: 0 auto;
     padding-top: var(--space-2xl);
   }
 
-  .story-header {
+  .project-header {
     text-align: center;
     margin-bottom: var(--space-2xl);
     max-width: 700px;
@@ -77,17 +81,17 @@ const contentHtml = marked.parse(storyContent.content || "");
     line-height: 1.7;
   }
 
-  .story-content {
+  .project-content {
     display: flex;
     flex-direction: column;
     gap: var(--space-lg);
   }
 
-  .story-image {
+  .project-image {
     margin: 0; /* Remove default figure margins */
   }
 
-  .story-image img {
+  .project-image img {
     width: 100%;
     height: auto;
     display: block; /* Remove inline spacing */
@@ -107,7 +111,7 @@ const contentHtml = marked.parse(storyContent.content || "");
     font-weight: 500;
   }
 
-  .story-prose {
+  .project-prose {
     font-family: var(--font-serif);
     font-size: 1.125rem;
     line-height: 1.8;
@@ -116,14 +120,14 @@ const contentHtml = marked.parse(storyContent.content || "");
     margin: 0 auto;
   }
 
-  .story-prose :global(img) {
+  .project-prose :global(img) {
     width: 100%;
     height: auto;
     border-radius: 4px;
     margin: 2rem 0;
   }
 
-  .story-prose :global(p) {
+  .project-prose :global(p) {
     margin-bottom: 1.5rem;
   }
 
@@ -139,17 +143,17 @@ const contentHtml = marked.parse(storyContent.content || "");
       padding-right: var(--space-md);
     }
 
-    .story-article {
+    .photography-article {
       padding-left: 0;
       padding-right: 0;
     }
 
-    .story-content {
+    .project-content {
       gap: var(--space-md); /* 1rem gap between images */
       padding: 0; /* No extra padding - container handles it */
     }
 
-    .story-header {
+    .project-header {
       padding: 0;
     }
 
@@ -158,7 +162,7 @@ const contentHtml = marked.parse(storyContent.content || "");
       padding-right: 0;
     }
 
-    .story-prose {
+    .project-prose {
       padding: 0;
     }
   }

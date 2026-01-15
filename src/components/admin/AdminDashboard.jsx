@@ -4,8 +4,8 @@ import { supabase } from '../../lib/supabaseClient';
 export default function AdminDashboard() {
     const [session, setSession] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [stats, setStats] = useState({ stories: 0, films: 0, posts: 0, projects: 0 });
-    const [selectedTable, setSelectedTable] = useState(null); // 'stories', 'posts', etc.
+    const [stats, setStats] = useState({ photography: 0, films: 0, posts: 0, projects: 0 });
+    const [selectedTable, setSelectedTable] = useState(null); // 'photography', 'posts', etc.
 
     useEffect(() => {
         supabase.auth.getSession().then(({ data: { session } }) => {

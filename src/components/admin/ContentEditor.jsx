@@ -180,7 +180,7 @@ export default function ContentEditor({ table, id }) {
                 {/* ACTIONS */}
                 <header className="cms-actions">
                     <div className={`context-title ${!formData.title ? 'placeholder' : ''}`}>
-                        {formData.title || 'Untitled Story'}
+                        {formData.title || 'Untitled Project'}
                     </div>
                     <div className="btn-group">
                         <button className="btn sec" onClick={() => handleSave(false)}>Save Draft</button>
@@ -321,8 +321,8 @@ export default function ContentEditor({ table, id }) {
                                     </section>
 
                                     <section className="card-section">
-                                        <label className="section-label">Story Text</label>
-                                        <textarea className="box-input content-area-compact" value={formData.content || ''} onChange={e => handleChange('content', e.target.value)} />
+                                        <label className="section-label">Project Description</label>
+                                        <textarea className="box-input content-area-main" value={formData.content || ''} onChange={e => handleChange('content', e.target.value)} />
                                     </section>
                                 </div>
 
@@ -340,7 +340,7 @@ export default function ContentEditor({ table, id }) {
                                                 ))}
                                                 <div className="stream-action-tile">
                                                     <ImageUploader
-                                                        bucket="photography" path={`stories/${id}`} multiple={true} label="+"
+                                                        bucket="photography" path={`projects/${id}`} multiple={true} label="+"
                                                         className="stream-uploader-inner"
                                                         onUpload={handleGalleryUpload}
                                                     />

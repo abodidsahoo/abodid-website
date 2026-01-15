@@ -3,21 +3,30 @@ import React, { useState, useMemo } from 'react';
 const BlogFilter = ({ posts }) => { // Changed prop from items to posts for clarity
     const [activeTag, setActiveTag] = useState('All');
 
-    // 1. Extract unique tags
-    const allTags = useMemo(() => {
-        const tags = new Set(['All']);
+    // 1. Extract unique categories
+    const allCategories = useMemo(() => {
+        const categories = new Set(['All']);
         posts.forEach(post => {
-            if (post.tags && Array.isArray(post.tags)) {
-                post.tags.forEach(tag => tags.add(tag));
+            if (post.category) {
+                if (Array.isArray(post.category)) {
+                    post.category.forEach(c => categories.add(c));
+                } else {
+                    categories.add(post.category);
+                }
             }
         });
-        return Array.from(tags);
+        return Array.from(categories);
     }, [posts]);
 
     // 2. Filter posts
     const filteredPosts = useMemo(() => {
         if (activeTag === 'All') return posts;
-        return posts.filter(post => post.tags && post.tags.includes(activeTag));
+        return posts.filter(post => {
+            if (Array.isArray(post.category)) {
+                return post.category.includes(activeTag);
+            }
+            return post.category === activeTag;
+        });
     }, [posts, activeTag]);
 
     return (
@@ -25,13 +34,13 @@ const BlogFilter = ({ posts }) => { // Changed prop from items to posts for clar
             {/* Sticky Filter Bar */}
             <div className="filter-bar">
                 <div className="filter-scroll">
-                    {allTags.map(tag => (
+                    {allCategories.map(category => (
                         <button
-                            key={tag}
-                            onClick={() => setActiveTag(tag)}
-                            className={`filter-btn ${activeTag === tag ? 'active' : ''}`}
+                            key={category}
+                            onClick={() => setActiveTag(category)}
+                            className={`filter-btn ${activeTag === category ? 'active' : ''}`}
                         >
-                            {tag}
+                            {category}
                         </button>
                     ))}
                 </div>
@@ -45,8 +54,8 @@ const BlogFilter = ({ posts }) => { // Changed prop from items to posts for clar
                             <span className="post-date">{post.date}</span>
                             <span className="post-title">{post.title}</span>
                             <div className="tags-row">
-                                {post.tags && post.tags.slice(0, 3).map(tag => (
-                                    <span key={tag} className="mini-tag">{tag}</span>
+                                {post.category && (Array.isArray(post.category) ? post.category : [post.category]).slice(0, 3).map(cat => (
+                                    <span key={cat} className="mini-tag">{cat}</span>
                                 ))}
                             </div>
                         </a>
