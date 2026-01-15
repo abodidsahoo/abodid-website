@@ -109,8 +109,7 @@ try {
                 ) : (
                     testimonials.map((t) => (
                         <div class="t-card">
-                            <div class="t-content">"{t.content}"</div>
-                            <div class="t-meta">
+                            <div class="t-header">
                                 <span class="t-name">{t.name}</span>
                                 {(t.role || t.company) && (
                                     <span class="t-info">
@@ -120,6 +119,7 @@ try {
                                     </span>
                                 )}
                             </div>
+                            <div class="t-content">"{t.content}"</div>
                         </div>
                     ))
                 )
@@ -174,11 +174,11 @@ try {
 
                         const html = `
                             <div class="t-card" style="opacity: 0; transform: translateY(20px);">
-                                <div class="t-content">"${t.content}"</div>
-                                <div class="t-meta">
+                                <div class="t-header">
                                     <span class="t-name">${t.name}</span>
                                     ${roleInfo}
                                 </div>
+                                <div class="t-content">"${t.content}"</div>
                             </div>
                         `;
 
@@ -343,21 +343,22 @@ try {
     /* Grid */
     .testimonials-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
         gap: 2rem;
     }
 
     .t-card {
-        padding: 2rem;
+        background-color: var(--bg-surface); /* Fallback */
+        background-color: color-mix(in srgb, var(--bg-surface), white 2%);
         border: 1px solid var(--border-subtle);
-        border-radius: 8px;
-        background: transparent;
+        border-radius: 16px;
+        padding-bottom: 1.5rem; /* Space at bottom */
         transition:
             transform 0.3s ease,
             border-color 0.3s ease;
         display: flex;
         flex-direction: column;
-        justify-content: space-between;
+        overflow: hidden; /* For header background consistency */
     }
 
     .t-card:hover {
@@ -365,26 +366,39 @@ try {
         border-color: var(--text-secondary);
     }
 
-    .t-content {
-        font-size: 1.1rem;
-        line-height: 1.6;
-        margin-bottom: 2rem;
-        font-family: var(--font-serif);
-        color: var(--text-primary);
+    .t-header {
+        padding: 1.5rem 1.5rem 1rem;
+        border-bottom: 1px solid var(--border-subtle);
+        margin-bottom: 1.5rem;
+        background: rgba(255, 255, 255, 0.02);
     }
 
     .t-name {
         display: block;
+        font-family: var(--font-sans);
         font-weight: 600;
-        font-size: 0.95rem;
-        letter-spacing: 0.02em;
+        font-size: 1rem;
+        color: var(--text-primary);
+        letter-spacing: -0.01em;
     }
 
     .t-info {
         display: block;
-        font-size: 0.85rem;
-        color: var(--text-secondary);
+        font-family: var(--font-sans);
+        font-size: 0.8rem;
+        color: var(--text-tertiary);
         margin-top: 0.2rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .t-content {
+        padding: 0 1.5rem;
+        font-family: var(--font-serif);
+        font-size: 1.05rem;
+        line-height: 1.6;
+        color: var(--text-secondary);
+        font-style: italic;
     }
 
     @media (max-width: 600px) {
@@ -393,6 +407,9 @@ try {
         }
         .form-card {
             padding: 1.5rem;
+        }
+        .t-card {
+            border-radius: 12px;
         }
     }
 </style>
