@@ -71,35 +71,32 @@ const PortfolioFilter = ({ items }) => {
             width: 100%;
         }
         
-        /* Filter Bar */
+        /* Filter Container */
         .filter-bar {
-            position: sticky;
-            top: 20px;
-            z-index: 50;
-            margin-bottom: 2rem;
-            padding: 10px 0;
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--border-subtle);
+            margin-bottom: 3rem;
+            padding: 0 2rem; /* Added padding from sides as requested */
+            display: flex;
+            justify-content: center;
         }
         
         .filter-scroll {
-            display: flex;
-            gap: 0.8rem;
-            overflow-x: auto;
-            padding-bottom: 5px;
-            scrollbar-width: none; /* Hide scrollbar Firefox */
+            display: block; /* Switch to block for text-like flow helpers */
+            text-align: center;
+            width: 100%;
+            max-width: 800px; /* Constrain width to encourage better wrapping */
+            text-wrap: balance; /* Try to balance lines */
         }
-        .filter-scroll::-webkit-scrollbar { display: none; } /* Hide Chrome */
 
         .filter-btn {
-            background: none;
-            border: none;
-            font-size: 0.85rem;
+            display: inline-block; /* Inline-block for flowing */
+            margin: 0.5rem 0.3rem; /* Spacing between lines and items */
+            background: transparent;
+            border: 1px solid var(--border-subtle);
+            font-size: 0.8rem;
             font-weight: 500;
-            color: var(--text-tertiary);
+            color: var(--text-secondary);
             cursor: pointer;
-            padding: 6px 12px;
+            padding: 8px 16px;
             border-radius: 100px;
             white-space: nowrap;
             transition: all 0.2s ease;
@@ -108,13 +105,14 @@ const PortfolioFilter = ({ items }) => {
         }
 
         .filter-btn:hover {
+            border-color: var(--text-primary);
             color: var(--text-primary);
-            background: var(--bg-secondary);
         }
 
         .filter-btn.active {
-            color: #fff;
-            background: #000;
+            background: var(--text-primary);
+            color: var(--bg-color);
+            border-color: var(--text-primary);
         }
 
         /* Replicating PhotographyCard Styles locally to avoid Astro mapping issues in React */
@@ -170,7 +168,7 @@ const PortfolioFilter = ({ items }) => {
         }
 
         @media (max-width: 768px) {
-            .filter-bar { top: 70px; } /* Adjust for mobile header */
+             /* Mobile adjustments if needed */
         }
       `}</style>
         </div>
