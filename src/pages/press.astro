@@ -1,6 +1,7 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { getMediaMentions } from "../lib/api";
+import PressFilter from "../components/PressFilter.jsx";
 
 const mentions = await getMediaMentions();
 const pageTitle = "Digital Footprint";
@@ -15,56 +16,7 @@ const pageTitle = "Digital Footprint";
         </p>
     </header>
 
-    <div class="mentions-grid">
-        <ul class="mentions-list">
-            {
-                mentions.map((item) => (
-                    <li>
-                        <a
-                            href={item.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="mention-card"
-                        >
-                            <div class="mention-image-wrapper">
-                                {item.image ? (
-                                    <img
-                                        src={item.image}
-                                        alt={item.title}
-                                        class="mention-image"
-                                    />
-                                ) : (
-                                    <div class="mention-image-placeholder" />
-                                )}
-                            </div>
-
-                            <div class="mention-content">
-                                <span class="mention-date">{item.date}</span>
-                                <h3 class="mention-title">{item.title}</h3>
-                                <div class="mention-meta">
-                                    <span class="publication">
-                                        {item.publication}
-                                    </span>
-                                    {item.categories &&
-                                        item.categories.length > 0 && (
-                                            <span class="categories">
-                                                {" "}
-                                                • {item.categories.join(", ")}
-                                            </span>
-                                        )}
-                                </div>
-                            </div>
-
-                            <div class="mention-action">
-                                <span>READ ARTICLE</span>
-                                <span class="arrow">↗</span>
-                            </div>
-                        </a>
-                    </li>
-                ))
-            }
-        </ul>
-    </div>
+    <PressFilter items={mentions} client:load />
 </BaseLayout>
 
 <style>
@@ -90,7 +42,58 @@ const pageTitle = "Digital Footprint";
         margin: 0 auto;
         line-height: 1.6;
     }
+</style>
 
+<style is:global>
+    /* Global styles for the PressFilter React component */
+    .press-filter-container {
+        width: 100%;
+    }
+
+    /* Filter Bar */
+    .filter-bar {
+        margin-bottom: 4rem;
+        padding: 0 2rem;
+        display: flex;
+        justify-content: center;
+    }
+
+    .filter-scroll {
+        display: block;
+        text-align: center;
+        width: 100%;
+        max-width: 800px;
+    }
+
+    .filter-btn {
+        display: inline-block;
+        margin: 0.5rem 0.3rem;
+        background: transparent;
+        border: 1px solid var(--border-subtle);
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+        cursor: pointer;
+        padding: 8px 16px;
+        border-radius: 100px;
+        white-space: nowrap;
+        transition: all 0.2s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .filter-btn:hover {
+        border-color: var(--text-primary);
+        color: var(--text-primary);
+    }
+
+    .filter-btn.active {
+        background: var(--text-primary);
+        color: var(--bg-color);
+        border-color: var(--text-primary);
+    }
+
+    /* List Layout */
     .mentions-list {
         list-style: none;
         padding: 0;
@@ -104,7 +107,7 @@ const pageTitle = "Digital Footprint";
 
     .mention-card {
         display: grid;
-        grid-template-columns: 280px 1fr 200px; /* Matching Blog Grid */
+        grid-template-columns: 280px 1fr 200px;
         gap: 3rem;
         padding: 3rem 0;
         text-decoration: none;
@@ -124,9 +127,7 @@ const pageTitle = "Digital Footprint";
     /* Image Section */
     .mention-image-wrapper {
         width: 280px;
-        height: 200px; /* Slightly shorter than square for press/logos? Or stick to square? Let's go Landscape maybe? Or square 280x280 matches blog. */
-        /* Let's match blog: 280x280 was implied or used. Blog used height 280px. */
-        height: 200px; /* Let's use 200px height for press items, often logos/thumbnails are better landscape. */
+        height: 200px;
         overflow: hidden;
         background-color: var(--bg-surface);
         border-radius: 4px;
@@ -191,7 +192,7 @@ const pageTitle = "Digital Footprint";
         font-size: 0.9rem;
         text-transform: uppercase;
         letter-spacing: 0.05em;
-        color: var(--text-tertiary); /* Faded by default */
+        color: var(--text-tertiary);
         transition: color 0.3s ease;
     }
 
@@ -209,7 +210,7 @@ const pageTitle = "Digital Footprint";
             font-size: 1.5rem;
         }
         .mention-action {
-            display: none; /* Hide on tablet, link handles it */
+            display: none;
         }
     }
 
@@ -227,7 +228,7 @@ const pageTitle = "Digital Footprint";
             display: block;
         }
         .mention-action {
-            display: flex; /* Show at bottom on mobile if desired, or keep hidden */
+            display: flex;
             justify-content: flex-start;
             margin-top: 1rem;
         }

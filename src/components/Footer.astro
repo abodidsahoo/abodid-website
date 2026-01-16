@@ -11,7 +11,18 @@ const year = new Date().getFullYear();
     <div class="footer-grid">
       <!-- Column 1: The Signal -->
       <div class="footer-col signal">
-        <a href="/" class="footer-logo">Abodid</a>
+        <a href="/" class="footer-logo" aria-label="Abodid Home">
+          <img
+            src="/images/signature-black.png"
+            alt="Abodid"
+            class="logo-img logo-black"
+          />
+          <img
+            src="/images/signature-white.png"
+            alt="Abodid"
+            class="logo-img logo-white"
+          />
+        </a>
         <p class="tagline">
           Capturing silence, chaos, and everything in between.
         </p>
@@ -91,12 +102,32 @@ const year = new Date().getFullYear();
 
   /* Col 1: Signal */
   .footer-logo {
-    font-family: var(--font-serif);
-    font-size: 2rem;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    margin-bottom: 1rem;
     display: inline-block;
+    margin-bottom: 1rem;
+  }
+
+  .logo-img {
+    height: 100px; /* Larger than header (60px) */
+    width: auto;
+    display: block;
+  }
+
+  /* Default (Light Mode) */
+  .logo-black {
+    display: block;
+  }
+
+  .logo-white {
+    display: none;
+  }
+
+  /* Dark Mode */
+  :global([data-theme="dark"]) .logo-black {
+    display: none;
+  }
+
+  :global([data-theme="dark"]) .logo-white {
+    display: block;
   }
 
   .tagline {

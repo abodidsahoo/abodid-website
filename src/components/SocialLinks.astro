@@ -10,12 +10,7 @@
         rel="noopener noreferrer"
         aria-label="Instagram"
     >
-        <img
-            src="/assets/icons/instagram.png"
-            alt="Instagram"
-            width="24"
-            height="24"
-        />
+        <i class="fa-brands fa-instagram"></i>
     </a>
 
     <!-- LinkedIn -->
@@ -25,12 +20,7 @@
         rel="noopener noreferrer"
         aria-label="LinkedIn"
     >
-        <img
-            src="/assets/icons/linkedin.png"
-            alt="LinkedIn"
-            width="24"
-            height="24"
-        />
+        <i class="fa-brands fa-linkedin"></i>
     </a>
 
     <!-- GitHub -->
@@ -40,12 +30,7 @@
         rel="noopener noreferrer"
         aria-label="GitHub"
     >
-        <img
-            src="/assets/icons/github.png"
-            alt="GitHub"
-            width="24"
-            height="24"
-        />
+        <i class="fa-brands fa-github"></i>
     </a>
 
     <!-- X (Twitter) -->
@@ -55,7 +40,7 @@
         rel="noopener noreferrer"
         aria-label="X"
     >
-        <img src="/assets/icons/x.png" alt="X" width="24" height="24" />
+        <i class="fa-brands fa-x-twitter"></i>
     </a>
 
     <!-- Facebook -->
@@ -65,12 +50,7 @@
         rel="noopener noreferrer"
         aria-label="Facebook"
     >
-        <img
-            src="/assets/icons/facebook.png"
-            alt="Facebook"
-            width="24"
-            height="24"
-        />
+        <i class="fa-brands fa-facebook"></i>
     </a>
 
     <!-- YouTube -->
@@ -80,12 +60,7 @@
         rel="noopener noreferrer"
         aria-label="YouTube"
     >
-        <img
-            src="/assets/icons/youtube.png"
-            alt="YouTube"
-            width="24"
-            height="24"
-        />
+        <i class="fa-brands fa-youtube"></i>
     </a>
 
     <!-- Vimeo -->
@@ -95,45 +70,37 @@
         rel="noopener noreferrer"
         aria-label="Vimeo"
     >
-        <img src="/assets/icons/vimeo.png" alt="Vimeo" width="24" height="24" />
+        <i class="fa-brands fa-vimeo"></i>
     </a>
 </div>
 
 <style>
     .social-links {
-        display: flex;
-        gap: 1.5rem;
+        display: grid;
+        grid-template-columns: repeat(
+            4,
+            1fr
+        ); /* 4 columns -> 4 top, 3 bottom */
+        gap: 1.5rem 1rem; /* Row gap 1.5rem, Col gap 1rem */
+        margin-top: 1.2rem; /* Spacing from title */
+        width: fit-content;
     }
 
     .social-links a {
         display: flex;
         align-items: center;
-        justify-content: center;
-        color: var(--text-tertiary);
+        width: max-content;
+        color: var(--text-secondary); /* Higher contrast */
         transition: all 0.3s ease;
+        text-decoration: none;
     }
 
     .social-links a:hover {
         transform: translateY(-2px);
-        filter: brightness(1.1); /* Subtle brightness bump */
+        color: var(--text-primary);
     }
 
-    .social-links img {
-        width: 24px;
-        height: 24px;
-        object-fit: contain;
-        display: block;
-    }
-
-    .sr-only {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        padding: 0;
-        margin: -1px;
-        overflow: hidden;
-        clip: rect(0, 0, 0, 0);
-        white-space: nowrap;
-        border-width: 0;
+    .social-links i {
+        font-size: 1.8rem; /* Larger size */
     }
 </style>
