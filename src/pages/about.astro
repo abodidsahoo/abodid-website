@@ -1,130 +1,203 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import Timeline from "../components/Timeline.astro";
+import PdfIcon from "../components/PdfIcon.astro";
+
 const pageTitle = "About";
+
+const hubs = [
+  {
+    title: "Download Resume",
+    link: "/assets/resume.pdf", // Placeholder or upload to Supabase bucket
+    icon: "↓",
+    external: true,
+    isDownload: true, // Show PDF icon
+  },
+  {
+    title: "Timeline of my life",
+    link: "/timeline",
+    icon: "→",
+  },
+  {
+    title: "Media Mentions",
+    link: "/press",
+    icon: "→",
+  },
+  {
+    title: "Awards",
+    link: "/awards",
+    icon: "→",
+  },
+  {
+    title: "Artist CV",
+    link: "/cv-artist",
+    icon: "→",
+    // isDownload: true, // Uncomment if this is a PDF
+  },
+  {
+    title: "Commercial CV",
+    link: "/cv-commercial",
+    icon: "→",
+    // isDownload: true, // Uncomment if this is a PDF
+  },
+  {
+    title: "Creative Technologies",
+    link: "/tech",
+    icon: "→",
+  },
+  {
+    title: "Research Works",
+    link: "/research",
+    icon: "→",
+  },
+  {
+    title: "Education",
+    link: "/education",
+    icon: "→",
+  },
+];
 ---
 
 <BaseLayout title={pageTitle}>
   <header class="page-header">
-    <h1>About</h1>
+    <h1>About Me</h1>
   </header>
 
-  <section class="about-content animation-fade-in">
-    <div class="prose">
-      <p class="lead">Hi, I am Abodid. I am a creative technologist.</p>
-
-      <p>
-        I work with globally renowned art institutes, artists, design studios,
-        and innovative startups in the culture sector. I help them document
-        world-class exhibitions and events, while also building meaningful
-        relationships with key stakeholders and growing engaged communities. My
-        experience across art, design, and academia, I craft innovative creative
-        strategies and produce offbeat, edgy, and highly impactful work across
-        photography, film, and interactive media.
-      </p>
-    </div>
-  </section>
-
-  <section class="timeline-intro animation-fade-in">
-    <h2>My journey till now!</h2>
+  <section class="about-intro">
+    <p class="lead">Hi, I am Abodid. I am a creative technologist.</p>
     <p>
-      (A timeline of my life, the workplaces I've been, companies I've
-      collaborated with, tools I've mastered, knowledge I've gathered, and the
-      wisdom I've picked up along the way. Plus some luck, some heartbreak, and
-      a whole lot of fun.)
+      I work with globally renowned art institutes, artists, design studios, and
+      innovative startups in the culture sector. I help them document
+      world-class exhibitions and events, while also building meaningful
+      relationships with key stakeholders and growing engaged communities. My
+      experience across art, design, and academia allows me to craft innovative
+      creative strategies and produce offbeat, edgy, and highly impactful work
+      across photography, film, and interactive media.
     </p>
   </section>
 
-  <Timeline />
+  <section class="hub-grid">
+    {
+      hubs.map((item) => (
+        <a
+          href={item.link}
+          class="hub-card"
+          target={item.external ? "_blank" : "_self"}
+        >
+          <div class="card-content">
+            <div class="card-left">
+              {item.isDownload && <PdfIcon />}
+              <h3>{item.title}</h3>
+            </div>
+            <span class="icon">{item.icon}</span>
+          </div>
+        </a>
+      ))
+    }
+  </section>
 
-  <section class="about-content">
-    <div class="prose">
-      <hr class="divider" />
-
-      <h3>Contact</h3>
-      <ul class="contact-list">
-        <li><a href="mailto:hello@abodid.com">hello@abodid.com</a></li>
-        <li>
-          <a href="https://github.com/abodidsahoo" target="_blank">GitHub</a>
-        </li>
-
-        <li>
-          <a href="https://uk.linkedin.com/in/abodidsahoo" target="_blank"
-            >Linkedin</a
-          >
-        </li>
-
-        <li>
-          <a href="https://www.instagram.com/abodid.sahoo" target="_blank"
-            >Instagram</a
-          >
-        </li>
-
-        <li>
-          <a href="https://twitter.com/abodidsahoo" target="_blank"
-            >Twitter / X</a
-          >
-        </li>
-      </ul>
-    </div>
+  <section class="contact-section">
+    <hr class="divider" />
+    <h3>Contact</h3>
+    <ul class="contact-list">
+      <li><a href="mailto:hello@abodid.com">hello@abodid.com</a></li>
+      <li>
+        <a href="https://github.com/abodidsahoo" target="_blank">GitHub</a>
+      </li>
+      <li>
+        <a href="https://uk.linkedin.com/in/abodidsahoo" target="_blank"
+          >Linkedin</a
+        >
+      </li>
+      <li>
+        <a href="https://www.instagram.com/abodid.sahoo" target="_blank"
+          >Instagram</a
+        >
+      </li>
+      <li>
+        <a href="https://twitter.com/abodidsahoo" target="_blank">Twitter / X</a
+        >
+      </li>
+    </ul>
   </section>
 </BaseLayout>
 
 <style>
   .page-header {
-    margin-bottom: var(--space-lg);
+    margin-bottom: 2rem;
     padding-top: var(--space-lg);
   }
 
-  /* 
-    Keep text line length readable (65-75 chars is ideal), 
-    but allow it to align left with the header.
-  */
-  .about-content {
+  .about-intro {
     max-width: 720px;
-    /* No margin: auto here, so it aligns left */
-  }
-
-  /* Timeline Intro Styling */
-  .timeline-intro {
-    max-width: 720px;
-    margin-top: 10rem; /* "Quite some more space" after About paragraph */
-    margin-bottom: 1rem; /* "Reduce that space" before cards */
-  }
-
-  .timeline-intro h2 {
-    font-size: 3.5rem; /* Match About H1 size */
-    font-weight: 600; /* Match About H1 weight */
-    line-height: 1.1;
-    margin-bottom: 0.5rem;
-    letter-spacing: -0.02em;
-    color: var(--text-primary);
-  }
-
-  .timeline-intro p {
-    font-size: 1.25rem;
-    line-height: 1.6;
-    color: var(--text-secondary);
-    max-width: 65ch;
-    opacity: 0.9;
-    font-weight: 450;
-  }
-
-  .prose {
+    margin-bottom: 4rem;
     font-size: 1.125rem;
     line-height: 1.7;
     color: var(--text-secondary);
   }
 
   .lead {
-    font-size: 1.25rem; /* Smaller than 1.5rem */
+    font-size: 1.25rem;
     color: var(--text-primary);
-    font-weight: 600; /* Bold */
-    line-height: 1.5;
-    margin-bottom: 2rem;
-    /* font-family removed to inherit Poppins */
+    font-weight: 600;
+    margin-bottom: 1.5rem;
   }
 
+  /* Hub Grid */
+  .hub-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 4rem;
+  }
+
+  .hub-card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    padding: 2rem;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+  }
+
+  .hub-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--text-secondary);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
+
+  .card-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .card-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .hub-card h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  .icon {
+    font-size: 1.25rem;
+    color: var(--text-tertiary);
+    transition: transform 0.2s ease;
+  }
+
+  .hub-card:hover .icon {
+    transform: translateX(4px);
+    color: var(--text-primary);
+  }
+
+  /* Contact Section */
   .divider {
     margin: 3rem 0;
     border: none;
@@ -143,6 +216,7 @@ const pageTitle = "About";
     color: var(--text-primary);
     border-bottom: 1px solid var(--border-subtle);
     padding-bottom: 2px;
+    text-decoration: none;
   }
 
   .contact-list a:hover {

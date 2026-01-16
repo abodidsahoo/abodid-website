@@ -140,6 +140,7 @@ export async function getRecentPosts() {
         title: post.title,
         date: new Date(post.published_at).toLocaleDateString(),
         tags: post.tags || [],
+        image: post.cover_image,
         category: post.category || [], // Add category support
         href: `/blog/${post.slug}`
     }));
@@ -160,6 +161,7 @@ export async function getAllPosts() {
         title: post.title,
         date: new Date(post.published_at).toLocaleDateString(),
         tags: post.tags || [],
+        image: post.cover_image,
         category: post.category || [], // Add category support
         href: `/blog/${post.slug}`
     }));
@@ -179,6 +181,95 @@ export async function getPostBySlug(slug) {
         return null;
     }
     return data;
+}
+
+export async function getNextPost(currentSlug) {
+    // We fetch all posts to determine the order
+    // In a real optimized app, we would query Supabase for the specific next record
+    // using 'published_at' < current_published_at order by published_at desc limit 1.
+    // But reusing getAllPosts is simpler for now and keeps logic consistent with the list.
+    const posts = await getAllPosts();
+    const index = posts.findIndex(p => p.href.endsWith(`/${currentSlug}`));
+
+    if (index !== -1 && index < posts.length - 1) {
+        return posts[index + 1];
+    }
+    return null;
+}
+
+export async function getRelatedPost(currentSlug, category) {
+    const allPosts = await getAllPosts();
+
+    // Filter out current post
+    const otherPosts = allPosts.filter(p => !p.href.endsWith(`/${currentSlug}`));
+
+    if (otherPosts.length === 0) return null;
+
+    // Try to find posts with matching category
+    // category can be string or array
+    const categoryMatches = otherPosts.filter(p => {
+        if (!category || !p.category) return false;
+
+        const currentCats = Array.isArray(category) ? category : [category];
+        const postCats = Array.isArray(p.category) ? p.category : [p.category];
+
+        return currentCats.some(c => postCats.includes(c));
+    });
+
+    // If we have matches, pick one randomly
+    if (categoryMatches.length > 0) {
+        return categoryMatches[Math.floor(Math.random() * categoryMatches.length)];
+    }
+
+    // Fallback: pick random from all others if no category match found
+    // (Optional: could serve nothing, but "You may also like" usually wants *something*)
+    return otherPosts[Math.floor(Math.random() * otherPosts.length)];
+}
+
+// --- Media Mentions (Table: 'media_mentions') ---
+
+export async function getMediaMentions() {
+    if (!isSupabaseConfigured()) {
+        // Mock data fallback
+        return [
+            {
+                title: "Interview on Future of AI",
+                publication: "TechDaily",
+                url: "https://example.com/interview",
+                date: new Date().toLocaleDateString(),
+                categories: ["Interview", "AI"],
+                image: "https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&q=80&w=600",
+            },
+            {
+                title: "Top 10 Developers to Watch",
+                publication: "DevMag",
+                url: "https://example.com/list",
+                date: new Date(Date.now() - 86400000 * 5).toLocaleDateString(), // 5 days ago
+                categories: ["Mention", "Press"],
+                image: null,
+            }
+        ];
+    }
+
+    const { data, error } = await supabase
+        .from('media_mentions')
+        .select('*')
+        .eq('published', true)
+        .order('published_at', { ascending: false });
+
+    if (error) {
+        console.error('Error fetching media mentions:', error);
+        return [];
+    }
+
+    return data.map(item => ({
+        title: item.title,
+        publication: item.publication,
+        url: item.url,
+        date: new Date(item.published_at).toLocaleDateString(),
+        categories: item.categories || [],
+        image: item.image_url
+    }));
 }
 
 // --- Films (Table: 'films') ---

@@ -1,15 +1,29 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getRecentPosts, getPostBySlug } from '../../lib/api';
-import { marked } from 'marked'; // We need to install this or use a simple parser
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import {
+  getRecentPosts,
+  getPostBySlug,
+  getNextPost,
+  getRelatedPost,
+} from "../../lib/api";
+import { marked } from "marked"; // We need to install this or use a simple parser
 
 export const prerender = false;
 
 const { slug } = Astro.params;
 const post = await getPostBySlug(slug);
+const nextPost = await getNextPost(slug);
+
+// Ensure we have a category to match against (use first if array, or default string)
+const primaryCategory = post?.category
+  ? Array.isArray(post.category)
+    ? post.category[0]
+    : post.category
+  : null;
+const relatedPost = await getRelatedPost(slug, primaryCategory);
 
 if (!post) {
-  return Astro.redirect('/404');
+  return Astro.redirect("/404");
 }
 
 // Convert Markdown to HTML
@@ -24,25 +38,80 @@ const contentHtml = marked.parse(post.content || "");
   <article class="post-container">
     <header class="post-header">
       <div class="meta">
-        <span class="date">{new Date(post.published_at || post.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+        <span class="date"
+          >{
+            new Date(post.published_at || post.created_at).toLocaleDateString(
+              "en-US",
+              { year: "numeric", month: "long", day: "numeric" },
+            )
+          }</span
+        >
         <span class="category">Journal</span>
       </div>
       <h1 class="title">{post.title}</h1>
       {post.excerpt && <p class="excerpt">{post.excerpt}</p>}
     </header>
 
-    {post.cover_image && (
-      <div class="cover-image">
-        <img src={post.cover_image} alt={post.title} />
-      </div>
-    )}
+    {
+      post.cover_image && (
+        <div class="cover-image">
+          <img src={post.cover_image} alt={post.title} />
+        </div>
+      )
+    }
 
-    <div class="prose" set:html={contentHtml}></div>
+    <div class="prose" set:html={contentHtml} />
 
     <hr class="divider" />
-    
+
+    {
+      relatedPost && (
+        <div class="related-section">
+          <p class="related-label">You may also like</p>
+          <a href={relatedPost.href} class="related-card">
+            <div class="related-image-wrapper">
+              {relatedPost.image ? (
+                <img
+                  src={relatedPost.image}
+                  alt={relatedPost.title}
+                  class="related-image"
+                />
+              ) : (
+                <div class="related-image-placeholder" />
+              )}
+            </div>
+
+            <div class="related-content">
+              <span class="related-date">{relatedPost.date}</span>
+              <h3 class="related-title">{relatedPost.title}</h3>
+              <div class="related-category">
+                {relatedPost.category &&
+                  (Array.isArray(relatedPost.category)
+                    ? relatedPost.category[0]
+                    : relatedPost.category)}
+              </div>
+            </div>
+
+            <div class="related-action">
+              <span>VIEW MORE</span>
+              <span class="arrow">→</span>
+            </div>
+          </a>
+        </div>
+      )
+    }
+
     <div class="post-footer">
-      <a href="/blog" class="back-link">← Back to Journal</a>
+      <div class="nav-links">
+        <a href="/blog" class="back-link">← Back to Journal</a>
+        {
+          nextPost && (
+            <a href={nextPost.href} class="next-link">
+              Go to Next Article →
+            </a>
+          )
+        }
+      </div>
     </div>
   </article>
 </BaseLayout>
@@ -91,9 +160,33 @@ const contentHtml = marked.parse(post.content || "");
   }
 
   .cover-image {
-    margin: 3rem -2rem;
+    width: 100vw;
+    max-width: 1200px; /* Target size approx 1.5x of 720px + margins */
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 4rem;
+    margin-bottom: 3rem;
     border-radius: 8px;
     overflow: hidden;
+    background-color: var(--bg-surface);
+  }
+
+  @media (max-width: 1250px) {
+    .cover-image {
+      width: 95vw; /* Graceful degradation */
+    }
+  }
+
+  @media (max-width: 600px) {
+    .cover-image {
+      width: 100%; /* Respect container padding */
+      left: auto;
+      transform: none;
+      border-radius: 8px; /* Keep radius on mobile */
+      margin-top: 2rem;
+      margin-bottom: 2rem;
+    }
   }
 
   .cover-image img {
@@ -131,12 +224,12 @@ const contentHtml = marked.parse(post.content || "");
     text-underline-offset: 4px;
     opacity: 0.8;
   }
-  
+
   .prose :global(ul) {
     margin-bottom: 1.5rem;
     padding-left: 1.5rem;
   }
-  
+
   .prose :global(li) {
     margin-bottom: 0.5rem;
   }
@@ -161,15 +254,164 @@ const contentHtml = marked.parse(post.content || "");
     border-top: 1px solid var(--border-subtle);
   }
 
-  .back-link {
-    font-family: var(--font-sans);
-    color: var(--text-secondary);
-    text-decoration: none;
-    font-size: 0.9rem;
-    transition: color 0.2s;
+  /* Related Section */
+  .related-section {
+    margin-bottom: 4rem;
   }
 
-  .back-link:hover {
+  .related-label {
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 1.5rem;
+  }
+
+  .related-card {
+    display: grid;
+    grid-template-columns: 200px 1fr auto;
+    gap: 2rem;
+    padding: 2rem;
+    text-decoration: none;
     color: var(--text-primary);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    transition:
+      transform 0.3s ease,
+      border-color 0.3s ease;
+    align-items: center;
+  }
+
+  .related-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--text-secondary);
+  }
+
+  .related-image-wrapper {
+    width: 200px;
+    height: 200px;
+    overflow: hidden;
+    border-radius: 6px;
+    background: var(--bg-surface);
+  }
+
+  .related-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .related-image-placeholder {
+    width: 100%;
+    height: 100%;
+    background: var(--bg-surface);
+  }
+
+  .related-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .related-date {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-tertiary);
+    margin-bottom: 0.5rem;
+  }
+
+  .related-title {
+    font-family: var(--font-serif);
+    font-size: 1.5rem;
+    font-weight: 400;
+    line-height: 1.2;
+    margin: 0 0 0.5rem 0;
+  }
+
+  .related-category {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+  }
+
+  .related-action {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    transition: color 0.3s ease;
+  }
+
+  .related-card:hover .related-action {
+    color: var(--text-primary);
+  }
+
+  .related-card:hover .arrow {
+    transform: translateX(4px);
+    transition: transform 0.2s ease;
+  }
+
+  @media (max-width: 768px) {
+    .related-card {
+      grid-template-columns: 100px 1fr;
+      padding: 1.5rem;
+      gap: 1.5rem;
+    }
+    .related-action {
+      display: none; /* Hide on smaller screens or move */
+    }
+    .related-image-wrapper {
+      width: 100px;
+      height: 100px;
+    }
+    .related-title {
+      font-size: 1.2rem;
+    }
+  }
+
+  @media (max-width: 500px) {
+    .related-card {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+    .related-image-wrapper {
+      width: 100%;
+      height: 200px;
+    }
+  }
+
+  /* Footer Nav */
+  .post-footer {
+    margin-bottom: 4rem;
+  }
+
+  .nav-links {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--font-sans);
+    font-size: 0.9rem;
+  }
+
+  .back-link,
+  .next-link {
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: color 0.2s;
+    font-weight: 500;
+  }
+
+  .back-link:hover,
+  .next-link:hover {
+    color: var(--text-primary);
+  }
+
+  .next-link {
+    text-align: right;
   }
 </style>

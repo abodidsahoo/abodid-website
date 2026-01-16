@@ -23,11 +23,15 @@ export const recentPosts = [
   {
     title: "The minimalist approach to digital gardens",
     date: "Jan 12, 2026",
-    href: "/blog/minimalist-approach"
+    href: "/blog/minimalist-approach",
+    image: "https://images.unsplash.com/photo-1494438639946-1ebd1d20bf85?q=80&w=1000&auto=format&fit=crop",
+    category: "Design"
   },
   {
     title: "Why I switched to Astro for my portfolio",
     date: "Dec 28, 2025",
-    href: "/blog/astro-portfolio"
+    href: "/blog/astro-portfolio",
+    image: "https://images.unsplash.com/photo-1635350736475-c8cef4b21906?q=80&w=1000&auto=format&fit=crop",
+    category: "Tech"
   }
 ];

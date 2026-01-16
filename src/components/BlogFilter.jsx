@@ -51,12 +51,33 @@ const BlogFilter = ({ posts }) => { // Changed prop from items to posts for clar
                 {filteredPosts.map((post) => (
                     <li key={post.title}>
                         <a href={post.href} className="post-link">
-                            <span className="post-date">{post.date}</span>
-                            <span className="post-title">{post.title}</span>
-                            <div className="tags-row">
-                                {post.category && (Array.isArray(post.category) ? post.category : [post.category]).slice(0, 3).map(cat => (
-                                    <span key={cat} className="mini-tag">{cat}</span>
-                                ))}
+                            {/* 1. Image Section */}
+                            <div className="post-image-wrapper">
+                                {post.image ? (
+                                    <img
+                                        src={post.image}
+                                        alt={post.title}
+                                        className="post-image"
+                                        loading="lazy"
+                                    />
+                                ) : (
+                                    <div className="post-image-placeholder"></div>
+                                )}
+                            </div>
+
+                            {/* 2. Content Section */}
+                            <div className="post-content">
+                                <span className="post-date">{post.date}</span>
+                                <h3 className="post-title">{post.title}</h3>
+                                <div className="post-category">
+                                    {post.category && (Array.isArray(post.category) ? post.category[0] : post.category)}
+                                </div>
+                            </div>
+
+                            {/* 3. Action Section */}
+                            <div className="post-action">
+                                <span className="view-more">VIEW MORE</span>
+                                <span className="arrow">→</span>
                             </div>
                         </a>
                     </li>
@@ -68,7 +89,7 @@ const BlogFilter = ({ posts }) => { // Changed prop from items to posts for clar
 
         /* Filter Container */
         .filter-bar {
-            margin-bottom: 3rem;
+            margin-bottom: 4rem;
             padding: 0 2rem;
             display: flex;
             justify-content: center;
@@ -114,6 +135,7 @@ const BlogFilter = ({ posts }) => { // Changed prop from items to posts for clar
             list-style: none;
             padding: 0;
             margin: 0;
+            border-top: 1px solid var(--border-subtle);
         }
 
         .blog-list li {
@@ -122,47 +144,153 @@ const BlogFilter = ({ posts }) => { // Changed prop from items to posts for clar
 
         .post-link {
             display: grid;
-            grid-template-columns: 100px 1fr auto; /* Date | Title | Tags */
-            gap: 2rem;
-            padding: 1.5rem 0;
+            grid-template-columns: 280px 1fr 200px; /* Image | Content | Action */
+            gap: 4rem;
+            padding: 3rem 0;
             text-decoration: none;
             color: var(--text-primary);
-            transition: color 0.2s ease;
-            align-items: center;
+            transition: background-color 0.3s ease;
+            align-items: center; /* Center vertically */
+        }
+        
+        .post-link:hover {
+            /* Create a subtle highlight effect, maybe minimal interaction */
         }
 
-        .post-link:hover { color: var(--text-tertiary); }
+        /* 1. Image */
+        .post-image-wrapper {
+            width: 280px;
+            height: 280px;
+            overflow: hidden;
+            background: var(--bg-surface);
+        }
+        
+        .post-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+        
+        .post-image-placeholder {
+            width: 100%;
+            height: 100%;
+            background: var(--bg-surface);
+        }
+
+        .post-link:hover .post-image {
+            transform: scale(1.03);
+        }
+
+        /* 2. Content */
+        .post-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            height: 100%;
+        }
+
         .post-date {
             font-family: var(--font-mono);
-            font-size: 0.85rem;
-            color: var(--text-tertiary);
-        }
-        .post-title {
-            font-size: 1.1rem;
-            font-weight: 400;
-        }
-
-        .tags-row {
-            display: flex;
-            gap: 0.5rem;
-        }
-        .mini-tag {
-            font-size: 0.65rem;
+            font-size: 0.8rem;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            color: var(--text-tertiary);
-            background: var(--bg-secondary);
-            padding: 2px 6px;
-            border-radius: 4px;
+            color: var(--text-primary);
+            margin-bottom: 2rem;
+            display: block;
         }
 
-        @media (max-width: 768px) {
-            .filter-bar { margin-bottom: 2rem; }
-            .post-link {
-                grid-template-columns: 1fr;
-                gap: 0.5rem;
+        .post-title {
+            font-family: var(--font-serif); /* Display font */
+            font-size: 2.5rem;
+            font-weight: 400;
+            line-height: 1.1;
+            margin: 0 0 1.5rem 0;
+            letter-spacing: -0.02em;
+        }
+
+        .post-category {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        /* 3. Action */
+        .post-action {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end; /* Align to right */
+            gap: 1rem;
+            font-size: 0.9rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: var(--text-tertiary); /* Muted initially */
+            transition: color 0.3s ease;
+        }
+
+        .post-link:hover .post-action {
+            color: var(--text-primary); /* Highlight on hover */
+        }
+
+        .arrow {
+            font-size: 1.2rem;
+            transition: transform 0.3s ease;
+        }
+
+        .post-link:hover .arrow {
+            transform: translateX(5px);
+        }
+
+
+        /* Responsive */
+        @media (max-width: 968px) {
+             .post-link {
+                grid-template-columns: 200px 1fr;
+                gap: 2rem;
+                padding: 2.5rem 0;
             }
-            .tags-row { opacity: 0.7; }
+            .post-action {
+                grid-column: 2;
+                justify-content: flex-start;
+                margin-top: 1rem;
+            }
+            .post-image-wrapper {
+                width: 200px;
+                height: 200px;
+            }
+            .post-title {
+                font-size: 2rem;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .post-link {
+                display: flex;
+                flex-direction: column;
+                gap: 2rem;
+                align-items: flex-start;
+                padding: 3rem 0;
+            }
+            
+            .post-image-wrapper {
+                width: 100%;
+                height: auto;
+                aspect-ratio: 1/1;
+            }
+
+            .post-content {
+                width: 100%;
+            }
+
+            .post-title {
+                font-size: 1.8rem;
+            }
+
+            .post-action {
+                width: 100%;
+                justify-content: space-between; /* Spread out on mobile */
+                border-top: 1px solid var(--border-subtle);
+                padding-top: 1rem;
+            }
         }
       `}</style>
         </div>

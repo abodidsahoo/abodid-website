@@ -1,0 +1,54 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import TimelineComponent from "../components/Timeline.astro";
+const pageTitle = "Timeline";
+---
+
+<BaseLayout title={pageTitle}>
+    <header class="page-header">
+        <h1>Timeline</h1>
+    </header>
+
+    <section class="timeline-intro animation-fade-in">
+        <h2>My journey till now!</h2>
+        <p>
+            (A timeline of my life, the workplaces I've been, companies I've
+            collaborated with, tools I've mastered, knowledge I've gathered, and
+            the wisdom I've picked up along the way. Plus some luck, some
+            heartbreak, and a whole lot of fun.)
+        </p>
+    </section>
+
+    <TimelineComponent />
+</BaseLayout>
+
+<style>
+    .page-header {
+        margin-bottom: var(--space-lg);
+        padding-top: var(--space-lg);
+    }
+
+    /* Timeline Intro Styling */
+    .timeline-intro {
+        max-width: 720px;
+        margin-bottom: 3rem;
+    }
+
+    .timeline-intro h2 {
+        font-size: 3rem;
+        font-weight: 600;
+        line-height: 1.1;
+        margin-bottom: 1rem;
+        letter-spacing: -0.02em;
+        color: var(--text-primary);
+    }
+
+    .timeline-intro p {
+        font-size: 1.25rem;
+        line-height: 1.6;
+        color: var(--text-secondary);
+        max-width: 65ch;
+        opacity: 0.9;
+        font-weight: 450;
+    }
+</style>

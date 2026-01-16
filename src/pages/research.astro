@@ -1,14 +1,14 @@
 ---
 export const prerender = false;
-import BaseLayout from '../layouts/BaseLayout.astro';
-import { getProjects } from '../lib/api';
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { getProjects } from "../lib/api";
 
 // Safe Fetch Helper
 const safeFetch = async (fn, fallback) => {
   try {
     return await fn();
   } catch (e) {
-    console.error('Data fetch failed:', e);
+    console.error("Data fetch failed:", e);
     return fallback;
   }
 };
@@ -16,6 +16,7 @@ const safeFetch = async (fn, fallback) => {
 const pageTitle = "Research";
 const projects = await safeFetch(getProjects, []);
 ---
+
 <BaseLayout title={pageTitle}>
   <header class="page-header">
     <h1>Research & Experiments</h1>
@@ -23,22 +24,24 @@ const projects = await safeFetch(getProjects, []);
       The intersection of sociology, AI, and visual culture.
     </p>
   </header>
-  
+
   <div class="projects-grid">
-    {projects.map(project => (
-      <div class="project-card">
-        <div class="card-header">
-          <h3><a href={project.href} class="project-link">{project.title}</a></h3>
-          <a href={project.href} class="icon-link">↗</a>
-        </div>
-        <p>{project.desc}</p>
-        <div class="tags">
-          {project.tags.map(tag => (
-            <span class="tag">{tag}</span>
-          ))}
-        </div>
-      </div>
-    ))}
+    {
+      projects.map((project) => (
+        <a href={project.href} class="project-card">
+          <div class="card-header">
+            <h3>{project.title}</h3>
+            <span class="icon-link">↗</span>
+          </div>
+          <p>{project.desc}</p>
+          <div class="tags">
+            {project.tags.map((tag) => (
+              <span class="tag">{tag}</span>
+            ))}
+          </div>
+        </a>
+      ))
+    }
   </div>
 </BaseLayout>
 
@@ -47,7 +50,7 @@ const projects = await safeFetch(getProjects, []);
     margin-bottom: var(--space-2xl);
     padding-top: var(--space-lg);
   }
-  
+
   .section-intro {
     font-size: 1.1rem;
     color: var(--text-secondary);
@@ -58,44 +61,67 @@ const projects = await safeFetch(getProjects, []);
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: var(--space-lg);
   }
-  
+
   .project-card {
+    display: block; /* Ensure it behaves like a block */
+    text-decoration: none; /* Remove underline */
+    color: inherit; /* Inherit text color */
     border: 1px solid var(--border-subtle);
     padding: var(--space-lg);
     border-radius: 8px;
     background: var(--bg-surface);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease,
+      border-color 0.2s ease;
   }
-  
+
   .project-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     background: var(--bg-color); /* Lift effect */
+    border-color: var(--text-secondary);
   }
-  
+
   .card-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
     margin-bottom: 1rem;
   }
-  
-  .card-header h3 { font-size: 1.25rem; font-weight: 500; margin: 0; }
-  .icon-link { font-size: 1.2rem; color: var(--text-tertiary); }
-  
+
+  .card-header h3 {
+    font-size: 1.25rem;
+    font-weight: 500;
+    margin: 0;
+    color: var(--text-primary); /* Explicit color */
+  }
+  .icon-link {
+    font-size: 1.2rem;
+    color: var(--text-tertiary);
+    transition:
+      transform 0.2s ease,
+      color 0.2s ease;
+  }
+
+  .project-card:hover .icon-link {
+    color: var(--text-primary);
+    transform: translateX(2px) translateY(-2px);
+  }
+
   .project-card p {
     font-size: 0.95rem;
     color: var(--text-secondary);
     margin-bottom: 1.5rem;
     line-height: 1.5;
   }
-  
+
   .tags {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
   }
-  
+
   .tag {
     font-size: 0.75rem;
     padding: 0.2em 0.6em;
