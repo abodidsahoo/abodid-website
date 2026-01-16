@@ -11,15 +11,19 @@
   "dependencies": {
     "@astrojs/react": "^4.4.2",
     "@astrojs/vercel": "^9.0.3",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.5.0",
     "@supabase/supabase-js": "^2.90.1",
     "@types/react": "^19.2.8",
     "@types/react-dom": "^19.2.3",
+    "@types/three": "^0.182.0",
     "astro": "^5.16.8",
     "dotenv": "^17.2.3",
     "gsap": "^3.14.2",
     "marked": "^17.0.1",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
-    "sharp": "^0.33.2"
+    "sharp": "^0.33.2",
+    "three": "^0.182.0"
   }
 }

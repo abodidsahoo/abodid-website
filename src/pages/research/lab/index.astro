@@ -1,0 +1,177 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+
+const experiments = [
+    {
+        title: "Gravity Cloth",
+        tech: "Three.js / GLSL",
+        type: "Visual Physics",
+        year: "2026",
+        href: "/research/lab/gravity-cloth",
+        status: "Active",
+    },
+    {
+        title: "Invisible Punctums",
+        tech: "AI / Human Data",
+        type: "Research Study",
+        year: "2026",
+        href: "/research/invisible-punctum",
+        status: "Archived",
+    },
+    {
+        title: "Obsidian Garden",
+        tech: "Markdown / Graph",
+        type: "Knowledge System",
+        year: "2025",
+        href: "/research/obsidian-vault",
+        status: "Live Sync",
+    },
+];
+
+const pageTitle = "The Lab";
+---
+
+<BaseLayout title={pageTitle}>
+    <div class="lab-container">
+        <header class="lab-header">
+            <div class="breadcrumb">
+                <a href="/research">Research</a> / Lab
+            </div>
+            <h1>Creative Tech Experiments</h1>
+        </header>
+
+        <div class="table-container">
+            <table class="lab-table">
+                <thead>
+                    <tr>
+                        <th>Experiment</th>
+                        <th>Technology</th>
+                        <th>Type</th>
+                        <th>Year</th>
+                        <th class="align-right">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {
+                        experiments.map((exp) => (
+                            <tr onclick={`window.location='${exp.href}'`}>
+                                <td class="col-title">{exp.title}</td>
+                                <td class="col-tech">{exp.tech}</td>
+                                <td>{exp.type}</td>
+                                <td>{exp.year}</td>
+                                <td class="align-right status-cell">
+                                    <span class="status-dot" />
+                                    {exp.status}
+                                </td>
+                            </tr>
+                        ))
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</BaseLayout>
+
+<style>
+    .lab-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding-top: var(--space-lg);
+    }
+
+    .breadcrumb {
+        font-size: 0.9rem;
+        color: var(--text-tertiary);
+        margin-bottom: 1rem;
+        font-family: "Space Mono", monospace;
+    }
+
+    .breadcrumb a {
+        color: var(--text-secondary);
+        text-decoration: none;
+    }
+
+    .breadcrumb a:hover {
+        color: var(--text-primary);
+    }
+
+    .lab-header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 3rem;
+    }
+
+    .table-container {
+        overflow-x: auto;
+    }
+
+    .lab-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 1rem;
+    }
+
+    .lab-table th {
+        text-align: left;
+        padding: 1rem;
+        border-bottom: 1px solid var(--border-subtle);
+        color: var(--text-tertiary);
+        font-weight: 500;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .lab-table td {
+        padding: 1.5rem 1rem;
+        border-bottom: 1px solid var(--border-subtle);
+        color: var(--text-secondary);
+        transition: color 0.2s ease;
+    }
+
+    .lab-table tr {
+        cursor: pointer;
+        transition: background 0.2s ease;
+    }
+
+    .lab-table tr:hover {
+        background: var(--bg-surface);
+    }
+
+    .lab-table tr:hover td {
+        color: var(--text-primary);
+    }
+
+    .col-title {
+        font-weight: 600;
+        color: var(--text-primary) !important;
+    }
+
+    .col-tech {
+        font-family: "Space Mono", monospace;
+        font-size: 0.9rem;
+    }
+
+    .align-right {
+        text-align: right;
+    }
+
+    .status-cell {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 0.5rem;
+    }
+
+    .status-dot {
+        width: 6px;
+        height: 6px;
+        background: currentColor;
+        border-radius: 50%;
+        opacity: 0.5;
+    }
+
+    .lab-table tr:hover .status-dot {
+        opacity: 1;
+        box-shadow: 0 0 8px currentColor;
+    }
+</style>

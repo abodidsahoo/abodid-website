@@ -1,0 +1,119 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import GravityClothScene from "../../../components/experiments/GravityClothScene.jsx";
+
+const pageTitle = "Gravity Cloth";
+---
+
+<BaseLayout title={pageTitle}>
+    <div class="experiment-container">
+        <!-- Overlay UI -->
+        <div class="overlay-ui">
+            <div class="top-bar">
+                <a href="/research/lab" class="back-link">← Lab</a>
+                <span class="exp-id">EXP-01</span>
+            </div>
+
+            <div class="center-content">
+                <h1>Gravity Cloth</h1>
+                <p>Interactive Particle Physics System</p>
+                <p class="instruction">Hover to interact</p>
+            </div>
+        </div>
+
+        <!-- 3D Scene -->
+        <div class="canvas-wrapper">
+            <GravityClothScene client:only="react" />
+        </div>
+    </div>
+</BaseLayout>
+
+<style>
+    /* Reset BaseLayout container constraints for full screen if needed, 
+     but standard usage implies BaseLayout has a wrapper. 
+     We'll make this container break out or fit within. 
+     For this experiment, full screen is best. */
+
+    .experiment-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 100; /* Above everything */
+        background: #000;
+    }
+
+    .canvas-wrapper {
+        width: 100%;
+        height: 100%;
+    }
+
+    .overlay-ui {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none; /* Let clicks pass to canvas */
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        z-index: 10;
+    }
+
+    .top-bar {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    .back-link,
+    .exp-id {
+        font-family: "Space Mono", monospace;
+        color: rgba(255, 255, 255, 0.7);
+        text-decoration: none;
+        pointer-events: auto; /* Re-enable clicks */
+        background: rgba(0, 0, 0, 0.5);
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        backdrop-filter: blur(4px);
+    }
+
+    .back-link:hover {
+        color: #fff;
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .center-content {
+        align-self: center;
+        text-align: center;
+        margin-bottom: 20%;
+        mix-blend-mode: difference; /* Cool effect over white particles */
+        color: #fff;
+    }
+
+    h1 {
+        font-size: 4rem;
+        font-weight: 700;
+        letter-spacing: -0.05em;
+        margin: 0;
+        text-transform: uppercase;
+    }
+
+    p {
+        font-size: 1.2rem;
+        opacity: 0.8;
+        margin: 0.5rem 0 0 0;
+    }
+
+    .instruction {
+        font-family: "Space Mono", monospace;
+        font-size: 0.8rem;
+        margin-top: 2rem;
+        opacity: 0.5;
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+    }
+</style>
