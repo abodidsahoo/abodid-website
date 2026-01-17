@@ -1,0 +1,196 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const pageTitle =
+    "Do ghosts feel jealous if you miss the living ones more than them?";
+---
+
+<BaseLayout title="Do ghosts feel jealous?">
+    <div class="project-container">
+        <header class="project-header">
+            <h1 class="title">{pageTitle}</h1>
+            <p class="subtitle">
+                Graduation Project at Royal College of Art, London / 2022-
+                Ongoing <br />
+                <span class="medium"
+                    >Medium: Photography, Writing, Performance, Film, Print,
+                    Installation</span
+                >
+            </p>
+        </header>
+
+        <section class="content-body">
+            <p>
+                Blurring the lines between the living and the dead, this project
+                was a way to decode my minute emotional gestures around the
+                dissonance between absence and presence, while I desperately
+                longed for the presence of the people I have loved and lost.
+            </p>
+            <p>
+                The project seeks to illuminate the transformative power of love
+                and death and shed light on the haunting allure of unrequited
+                love and grief.
+            </p>
+        </section>
+
+        <section class="keywords-section">
+            <h3>Keywords</h3>
+            <div class="tags">
+                <span class="tag">Unresolved Emotions</span>
+                <span class="tag">Abandonment</span>
+                <span class="tag">Rejection</span>
+                <span class="tag">Fear</span>
+                <span class="tag">Grief</span>
+                <span class="tag">Death</span>
+                <span class="tag">Funeral</span>
+                <span class="tag">Love</span>
+                <span class="tag">Unrequited Love</span>
+                <span class="tag">Imagined Interactions</span>
+                <span class="tag">Autoethnography</span>
+                <span class="tag">Conversations</span>
+                <span class="tag">Hauntology</span>
+                <span class="tag">Longing</span>
+                <span class="tag">Journaling</span>
+                <span class="tag">Mental Health</span>
+                <span class="tag">Therapy</span>
+                <span class="tag">Innerchild Work</span>
+                <span class="tag">Psychotherapy</span>
+                <span class="tag">Phototherapy</span>
+                <span class="tag">Healing</span>
+                <span class="tag">Catharsis</span>
+            </div>
+        </section>
+
+        <section class="cta-section">
+            <a
+                href="https://www.whydidyoucry.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="external-btn"
+            >
+                Go through the body of work <span class="arrow">→</span>
+            </a>
+            <p class="url-text">www.whydidyoucry.com</p>
+        </section>
+    </div>
+</BaseLayout>
+
+<style>
+    .project-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 4rem 1rem;
+    }
+
+    .project-header {
+        margin-bottom: 3rem;
+        border-bottom: 1px solid var(--border-subtle);
+        padding-bottom: 2rem;
+    }
+
+    .title {
+        font-family: "Poppins", sans-serif;
+        font-size: 2.5rem;
+        font-weight: 500;
+        line-height: 1.2;
+        margin-bottom: 1.5rem;
+        color: var(--text-primary);
+    }
+
+    .subtitle {
+        font-family: var(--font-mono);
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        line-height: 1.6;
+    }
+
+    .medium {
+        display: block;
+        margin-top: 0.5rem;
+        color: var(--text-tertiary);
+        font-style: italic;
+    }
+
+    .content-body p {
+        font-family: var(--font-serif, Georgia, serif); /* Serif for reading */
+        font-size: 1.15rem;
+        line-height: 1.8;
+        color: var(--text-secondary);
+        margin-bottom: 1.5rem;
+    }
+
+    .keywords-section {
+        margin: 3rem 0;
+        background: var(--bg-surface);
+        padding: 2rem;
+        border-radius: 8px;
+        border: 1px solid var(--border-subtle);
+    }
+
+    .keywords-section h3 {
+        font-family: "Poppins", sans-serif;
+        font-size: 1rem;
+        text-transform: uppercase;
+        margin: 0 0 1rem 0;
+        color: var(--text-tertiary);
+    }
+
+    .tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.8rem;
+    }
+
+    .tag {
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        background: rgba(0, 0, 0, 0.05);
+        padding: 4px 10px;
+        border-radius: 4px;
+    }
+
+    :global(.dark) .tag {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .cta-section {
+        text-align: center;
+        margin-top: 4rem;
+    }
+
+    .external-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-family: "Poppins", sans-serif;
+        font-size: 1.1rem;
+        font-weight: 500;
+        color: #fff;
+        background: var(--accent-primary, #007aff);
+        padding: 1rem 2rem;
+        border-radius: 100px; /* Pill */
+        text-decoration: none;
+        transition:
+            transform 0.2s,
+            box-shadow 0.2s;
+    }
+
+    .external-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(0, 122, 255, 0.3);
+    }
+
+    .url-text {
+        font-family: var(--font-mono);
+        font-size: 0.9rem;
+        color: var(--text-tertiary);
+        margin-top: 1rem;
+    }
+
+    @media (max-width: 600px) {
+        .title {
+            font-size: 2rem;
+        }
+    }
+</style>

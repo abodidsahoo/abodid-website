@@ -1,0 +1,215 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const pageTitle = "Apple Scholarship";
+---
+
+<BaseLayout title={pageTitle}>
+    <div class="award-container">
+        <header class="award-header">
+            <span class="award-category">Higher Education</span>
+            <h1>{pageTitle}</h1>
+            <div class="award-value">£28,000</div>
+        </header>
+
+        <section class="award-content">
+            <div class="award-highlights">
+                <h2>Journey Highlights</h2>
+                <ul>
+                    <li>
+                        <strong>Freedom from Fear:</strong> The scholarship didn't
+                        just pay fees; it liberated me from financial anxiety, allowing
+                        me to fully immerse in the RCA experience.
+                    </li>
+                    <li>
+                        <strong>Living vs. Studying:</strong> Instead of budgeting
+                        every decision, I used the time to explore galleries, music
+                        gigs, and London itself.
+                    </li>
+                    <li>
+                        <strong>Deep Emotional Research:</strong> I poured my energy
+                        into conversations about healing, therapy, and identity, using
+                        visual tools and soundscapes as inquiry.
+                    </li>
+                </ul>
+            </div>
+
+            <div class="award-actions">
+                <a
+                    href="/blog/how-apple-funded-my-dream-at-rca"
+                    class="read-more-btn"
+                >
+                    Read Full Story
+                    <span class="arrow">→</span>
+                </a>
+                <a
+                    href="https://www.rca.ac.uk/study/apply-to-study/funding-your-studies/rca-scholarships-and-awards/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="external-link"
+                >
+                    View RCA Scholarships
+                </a>
+            </div>
+        </section>
+    </div>
+</BaseLayout>
+
+<style>
+    .award-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 4rem 1rem;
+    }
+
+    .award-header {
+        text-align: center;
+        margin-bottom: 4rem;
+        border-bottom: 1px solid var(--border-subtle);
+        padding-bottom: 3rem;
+    }
+
+    .award-category {
+        font-family: var(--font-mono);
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-tertiary);
+        display: block;
+        margin-bottom: 1rem;
+    }
+
+    h1 {
+        font-family: "Poppins", sans-serif;
+        font-size: 3.5rem;
+        font-weight: 600;
+        margin: 0 0 1rem 0;
+        color: var(--text-primary);
+        line-height: 1.1;
+    }
+
+    .award-value {
+        font-family: var(--font-mono);
+        font-size: 1.5rem;
+        color: var(--accent-color);
+        font-weight: 500;
+    }
+
+    .award-content {
+        font-family: var(--font-sans);
+        color: var(--text-secondary);
+        line-height: 1.8;
+        font-size: 1.1rem;
+    }
+
+    .award-highlights {
+        margin-bottom: 3rem;
+        background: var(--bg-surface);
+        padding: 2.5rem;
+        border-radius: 8px;
+        border: 1px solid var(--border-subtle);
+    }
+
+    h2 {
+        font-family: "Poppins", sans-serif;
+        color: var(--text-primary);
+        font-size: 1.5rem;
+        margin-top: 0;
+        margin-bottom: 1.5rem;
+    }
+
+    ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    li {
+        margin-bottom: 1.5rem;
+        padding-left: 1.5rem;
+        position: relative;
+    }
+
+    li:before {
+        content: "•";
+        color: var(--accent-color);
+        position: absolute;
+        left: 0;
+        font-weight: bold;
+    }
+
+    li:last-child {
+        margin-bottom: 0;
+    }
+
+    strong {
+        color: var(--text-primary);
+        font-weight: 600;
+    }
+
+    .award-actions {
+        display: flex;
+        gap: 1.5rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .read-more-btn {
+        background: var(--text-primary);
+        color: var(--bg-color);
+        padding: 1rem 2rem;
+        text-decoration: none;
+        border-radius: 100px;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition:
+            transform 0.2s ease,
+            opacity 0.2s ease;
+    }
+
+    .read-more-btn:hover {
+        transform: translateY(-2px);
+        opacity: 0.9;
+    }
+
+    .arrow {
+        transition: transform 0.2s ease;
+    }
+
+    .read-more-btn:hover .arrow {
+        transform: translateX(4px);
+    }
+
+    .external-link {
+        padding: 1rem 2rem;
+        color: var(--text-primary);
+        text-decoration: none;
+        border: 1px solid var(--border-subtle);
+        border-radius: 100px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .external-link:hover {
+        border-color: var(--text-primary);
+        background: var(--bg-surface);
+    }
+
+    @media (max-width: 600px) {
+        h1 {
+            font-size: 2.5rem;
+        }
+        .award-actions {
+            flex-direction: column;
+            width: 100%;
+        }
+        .read-more-btn,
+        .external-link {
+            width: 100%;
+            justify-content: center;
+            text-align: center;
+        }
+    }
+</style>

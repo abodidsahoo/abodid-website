@@ -33,9 +33,23 @@ export async function getRepoContents(path = "") {
     const encodedPath = path.split('/').map(encodeURIComponent).join('/');
     const url = `${GITHUB_API_BASE}/repos/${REPO_OWNER}/${REPO_NAME}/contents/${encodedPath}`;
 
+    const fetchWithAuth = async (useToken = true) => {
+        const headers = useToken ? getAuthHeaders() : {
+            "Accept": "application/vnd.github.v3+json",
+            "User-Agent": "Astro-Obsidian-Vault"
+        };
+        console.log(`[GitHub] Request URL: ${url} (Token: ${useToken})`);
+        return await fetch(url, { headers });
+    };
+
     try {
-        console.log(`[GitHub] Request URL: ${url}`);
-        const response = await fetch(url, { headers: getAuthHeaders() });
+        let response = await fetchWithAuth(true);
+
+        // If Unauth (Bad Token) or Forbidden (Rate Limit potentially), try public if it was auth
+        if (response.status === 401) {
+            console.warn("[GitHub] Token invalid (401). Retrying with public access...");
+            response = await fetchWithAuth(false);
+        }
 
         if (!response.ok) {
             console.error(`GitHub API Error: ${response.status} ${response.statusText}`);

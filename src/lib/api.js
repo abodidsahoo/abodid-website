@@ -1,10 +1,116 @@
 import { supabase } from './supabaseClient';
 import { featuredPhotography as mockPhotography, recentPosts as mockPosts } from '../utils/mockData';
 
+// Mock Data for Awards (Internal Fallback)
+const mockAwards = [
+    {
+        title: "Apple Scholarship",
+        category: "Higher Education",
+        value: "£28,000",
+        date: "2022-08-15",
+        url: "/awards/apple-scholarship",
+        description: "Full scholarship covering tuition for MA at Royal College of Art, London."
+    }
+];
+
+const mockEducation = [
+    {
+        institution: 'Royal College of Art',
+        location: 'London',
+        degree: 'M.A (Master of Arts)',
+        course: 'Digital Direction',
+        start_year: '2022',
+        end_year: '2023',
+        details: 'Translated my personal journey of love, grief, and healing into photographs, prints, writings, and performance films. Wrote a thesis, designed a photobook, and exhibited my work at the RCA Graduate Show 2023 in London.',
+        specialization: 'Explored the emotional pain of romantic rejection and the loss of a loved one, drawing parallels between both experiences and tracing how both wounds mirror each other.',
+        link_text: 'Link to a repository of all the research, photography works, films and writings.',
+        link_url: '/photography'
+    },
+    {
+        institution: 'National Institute of Design',
+        location: 'Ahmedabad',
+        degree: 'M.Des (Master of Design)',
+        course: 'Film and Video Communication',
+        start_year: '2021',
+        end_year: '2022',
+        details: 'Crafted short films and audio stories on anxiety, healing and mental health. Left NID after a year and moved to London for a fully funded masters at the Royal College of Art.',
+        specialization: null,
+        link_text: 'Watch my films on mental health focused on navigating rejection anxiety, healing and therapy.',
+        link_url: '/films'
+    },
+    {
+        institution: 'National Institute of Technology',
+        location: 'Rourkela',
+        degree: '(B.Tech + M.Tech) Bachelor of Technology + Master of Technology',
+        course: 'Mechanical Engineering',
+        start_year: '2012',
+        end_year: '2017',
+        details: 'Made a film so compelling, the Tech Mahindra CMO wanted me on their brand team when I was 21.',
+        specialization: 'Specialised in Mechatronics and Automation during my masters and worked on aerial drone photography and photogrammetry. I was the president of the film-making club where I executed film-making workshops. Served as Festival Director for Roots, a student-led creative conference; led concept design, speaker outreach, and full event execution connecting students with industry professionals.',
+        link_text: null,
+        link_url: null
+    }
+];
+
 // --- Helper to check if Supabase is configured ---
 const isSupabaseConfigured = () => {
     return import.meta.env.PUBLIC_SUPABASE_URL && import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
 };
+
+// --- Research (Key Projects) ---
+const mockResearchProjects = [
+    {
+        title: "The Second Brain",
+        description: "My personal Obsidian vault, a digital garden of interconnected thoughts, notes, and research.",
+        slug: "obsidian-vault",
+        href: "/research/obsidian-vault",
+        image: "https://images.unsplash.com/photo-1555421689-d68471e189f2?auto=format&fit=crop&q=80&w=1000",
+        tags: ["Knowledge Graph", "Obsidian", "Second Brain"]
+    },
+    {
+        title: "Invisible Punctums",
+        description: "An AI-driven exploration of human memory, data, and the gaps in our digital archives.",
+        slug: "invisible-punctum",
+        href: "/research/invisible-punctum",
+        image: "https://images.unsplash.com/photo-1620641788421-7f1368d12355?auto=format&fit=crop&q=80&w=1000",
+        tags: ["AI", "Memory", "Data Vis"]
+    },
+    {
+        title: "Do ghosts feel jealous if you miss the living ones more than them?",
+        description: "Blurring the lines between the living and the dead, this project was a way to decode my minute emotional gestures around the dissonance between absence and presence.",
+        slug: "do-ghosts-feel-jealous",
+        href: "/research/do-ghosts-feel-jealous",
+        image: "https://images.unsplash.com/photo-1516575334481-f85287c2c81d?auto=format&fit=crop&q=80&w=1000", // Placeholder ghostly image
+        tags: ["Photography", "Writing", "Performance", "Film"]
+    },
+    {
+        title: "Visual Experiments",
+        description: "A playground for creative coding, motion design, AR/VR, and 3D web experiences.",
+        slug: "visual-experiments",
+        href: "/visual-experiments",
+        image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=1000",
+        tags: ["Creative Coding", "Three.js", "Visual Lab"]
+    }
+];
+
+export async function getResearchProjects() {
+    if (!isSupabaseConfigured()) {
+        return mockResearchProjects;
+    }
+
+    const { data, error } = await supabase
+        .from('research_projects')
+        .select('*')
+        .order('sort_order', { ascending: true });
+
+    if (error || !data || data.length === 0) {
+        console.warn("Using mock research data due to DB error or empty table:", error);
+        return mockResearchProjects;
+    }
+
+    return data;
+}
+
 
 // --- Research (formerly Projects) ---
 
@@ -168,6 +274,9 @@ export async function getAllPosts() {
 }
 
 export async function getPostBySlug(slug) {
+    if (slug === 'how-apple-funded-my-dream-at-rca') return appleScholarshipPost;
+    if (slug === 'scholarships-for-higher-studies') return scholarshipGuidePost;
+
     if (!isSupabaseConfigured()) return null;
 
     const { data, error } = await supabase
@@ -182,6 +291,87 @@ export async function getPostBySlug(slug) {
     }
     return data;
 }
+
+// Mock Content for specific static pages
+const appleScholarshipPost = {
+    title: 'How Apple Funded My Dream at RCA',
+    slug: 'how-apple-funded-my-dream-at-rca',
+    excerpt: 'In August 2022, a single email changed the trajectory of my life. Apple stepped in with a full scholarship that covered every penny of my £28,000 tuition.',
+    content: `In August 2022, a single email changed the trajectory of my life. I had been accepted into the Royal College of Art in London but was struggling to figure out how I would pay for it. Then Apple stepped in, with a full scholarship. It covered every penny of my £28,000 tuition. The timing? Just a few weeks before term started. That close. It was wild!!!
+
+I didn’t just study thanks to that scholarship, I lived. I walked into galleries, music gigs, therapy conversations, deep dives into auto-ethnography and emotional research.
+
+I photographed everything. I asked questions about love, grief, relationships, and healing.
+I made art. I found space.
+
+That one year gave me freedom, not just from fees, but from fear.
+If there’s one thing in my life I still have to pinch myself to believe, it’s this: **Apple paid for my master’s in the Royal College of Art, London.** Not just a stipend. Not a partial fee cut. The whole damn thing. Twenty-eight thousand pounds!! Deuymm!!!
+
+When the email landed in my inbox, I remember sitting in stunned silence. Everything around me blurred. It was the first time in years I truly believed that anything could happen. Any f**king thing. I had written to them about my financial constraints, my social background, my dreams, my work. I explained. I didn’t have the answers. I just had urgency. And somehow, that was enough.
+
+That scholarship didn’t just give me education. It gave me time. I went to every art exhibition I could find. Every music gig. I documented RCA obsessively. I explored London like someone finally allowed to breathe. I tried new technologies. I printed endlessly. I poured my energy into conversations about healing, therapy, identity, loneliness, and connection.
+
+I researched mental health and human behaviour using myself as the subject. I used visual tools, experimental writing, soundscapes, and photos as methods of inquiry. That’s what the scholarship gave me, the freedom to go deep.
+
+If I had paid that money in tuition, I would’ve never had this freedom. I'd have been budgeting every decision. Instead, I spent my loan on living. On learning. This year wasn’t perfect. But it was expansive.`,
+    published_at: '2023-09-01', // Retroactive date
+    published: true,
+    category: ['Personal', 'Scholarships'],
+    tags: ['Apple', 'RCA', 'Scholarship', 'London'],
+    cover_image: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=1000'
+};
+
+const scholarshipGuidePost = {
+    title: "Everything You Need to Know About Scholarships for Higher Studies",
+    slug: 'scholarships-for-higher-studies',
+    excerpt: 'A comprehensive guide to scholarships for international students, including Aga Khan, Charles Wallace, and more.',
+    content: `Securing funding for higher education in art and design can be daunting, but there are numerous opportunities available for international students. Here is a curated list of scholarships and funding bodies to help you pursue your dreams.
+
+## Global & UK Specific Scholarships
+
+### Aga Khan Foundation’s International Scholarship Programme (AKF ISP)
+The Aga Khan Foundation provides a limited number of scholarships each year for postgraduate studies to outstanding students from select developing countries who have no other means of financing their studies.
+
+### Charles Wallace India Trust Scholarships
+For Indians to gain experience and deeper exposure to the arts and heritage conservation in the UK.
+
+### Commonwealth Master’s Scholarships
+Funded by the UK Foreign, Commonwealth & Development Office (FCDO), these scholarships enable talented and motivated individuals to gain the knowledge and skills required for sustainable development.
+
+### Inlaks Scholarships
+The Inlaks Shivdasani Foundation offers scholarships for young Indians to take up higher studies at top-rated American, European, and UK institutions.
+
+## Other Notable Funds
+- **Education Future International Scholarship**: For Indian students studying abroad.
+- **JND TATA Endowment**: Loan scholarships for higher studies.
+- **Lady Meherbai D Tata Education Trust**: For Indian women graduates.
+- **KC Mahindra Trust Foundation**: Interest-free loan scholarships.
+- **The Narotam Sekhsaria Foundation**: Interest-free scholarship loans.
+- **National Overseas Scholarships**: Facilitated by the Ministry of Social Justice and Empowerment.
+
+## Search Portals
+These platforms are excellent resources for finding tailored opportunities:
+- [MastersCompare](https://www.masterscompare.com)
+- [FindAMasters](https://www.findamasters.com)
+- [TopUniversities](https://www.topuniversities.com)
+- [Postgrad Solutions](https://www.postgrad.com)
+- [MastersPortal](https://www.mastersportal.com)
+- [Chevening Scholarships](https://www.chevening.org)
+- [Educations.com](https://www.educations.com)
+
+## My Journey
+I was fortunate enough to receive a full scholarship from Apple for my time at the RCA. It changed everything for me. You can read more about my personal experience here:
+
+[**How Apple Funded My Dream at RCA**](/blog/how-apple-funded-my-dream-at-rca)
+
+And check out my [Awards Page](/awards/apple-scholarship) for more details.`,
+    published_at: new Date().toISOString(),
+    published: true,
+    category: ['Resources', 'Scholarships'],
+    tags: ['Funding', 'Masters', 'Study Abroad'],
+    cover_image: null // Fallback or placeholder
+};
+
 
 export async function getNextPost(currentSlug) {
     // We fetch all posts to determine the order
@@ -233,20 +423,28 @@ export async function getMediaMentions() {
         // Mock data fallback
         return [
             {
-                title: "Interview on Future of AI",
-                publication: "TechDaily",
-                url: "https://example.com/interview",
-                date: new Date().toLocaleDateString(),
-                categories: ["Interview", "AI"],
-                image: "https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&q=80&w=600",
+                title: 'When Creative Minds Collide: XY’s "Show Me The Way" Music Video Is Visual Pleasure',
+                publication: 'Homegrown',
+                url: 'https://homegrown.co.in/homegrown-explore/when-creative-minds-collide-xys-show-me-the-way-music-video-is-visual-pleasure',
+                date: '10/01/2021',
+                categories: ['Press', 'Music Video'],
+                image: 'https://homegrown.co.in/public/uploads/articles/featured_image/5ff5a6873b2d6.jpg'
             },
             {
-                title: "Top 10 Developers to Watch",
-                publication: "DevMag",
-                url: "https://example.com/list",
-                date: new Date(Date.now() - 86400000 * 5).toLocaleDateString(), // 5 days ago
-                categories: ["Mention", "Press"],
-                image: null,
+                title: 'Four roommates shot a music video in their Mumbai flat and it received a premiere on Vh1',
+                publication: 'Edex Live',
+                url: 'https://www.edexlive.com/breaking/2021/Jan/05/four-roommates-shot-a-music-video-in-their-mumbai-flat-and-it-received-a-premiere-on-vh1-17053.html',
+                date: '05/01/2021',
+                categories: ['Press', 'Interview'],
+                image: 'https://gumlet.assettype.com/newindianexpress%2Fimport%2F2021%2F1%2F5%2Foriginal%2F0906_XY_1_1.jpg'
+            },
+            {
+                title: 'Watch Electronic Pop Duo XY’s Cinematic Video for Debut Single "Show Me The Way"',
+                publication: 'Rolling Stone India',
+                url: 'https://rollingstoneindia.com/watch-electronic-pop-duo-xys-cinematic-video-for-debut-single-show-me-the-way/',
+                date: '07/01/2021',
+                categories: ['Press', 'Featured'],
+                image: 'https://rollingstoneindia.com/wp-content/uploads/2021/01/XY-Show-Me-The-Way-960x639.jpg'
             }
         ];
     }
@@ -270,6 +468,57 @@ export async function getMediaMentions() {
         categories: item.categories || [],
         image: item.image_url
     }));
+    return data.map(item => ({
+        title: item.title,
+        publication: item.publication,
+        url: item.url,
+        date: new Date(item.published_at).toLocaleDateString(),
+        categories: item.categories || [],
+        image: item.image_url
+    }));
+}
+
+// --- Awards (Table: 'awards') ---
+
+export async function getAwards() {
+    if (!isSupabaseConfigured()) return mockAwards;
+
+    const { data, error } = await supabase
+        .from('awards')
+        .select('*')
+        .order('date', { ascending: false });
+
+    if (error) {
+        console.error('Error fetching awards:', error);
+        return mockAwards;
+    }
+
+    return data.map(item => ({
+        title: item.title,
+        category: item.category,
+        value: item.value,
+        date: new Date(item.date).toLocaleDateString(),
+        url: item.url,
+        description: item.description
+    }));
+}
+
+// --- Education (Table: 'education') ---
+
+export async function getEducation() {
+    if (!isSupabaseConfigured()) return mockEducation;
+
+    const { data, error } = await supabase
+        .from('education')
+        .select('*')
+        .order('sort_order', { ascending: true });
+
+    if (error) {
+        console.error('Error fetching education:', error);
+        return mockEducation;
+    }
+
+    return data;
 }
 
 // --- Films (Table: 'films') ---

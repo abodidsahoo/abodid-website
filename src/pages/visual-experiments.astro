@@ -1,0 +1,264 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const pageTitle = "Visual Experiments";
+
+const experiments = [
+    {
+        title: "Gravity Cloth",
+        description:
+            "An interactive physics simulation exploring cloth dynamics and gravity using Three.js.",
+        bgImage:
+            "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&q=80&w=1000", // Abstract mesh
+        href: "/research/lab/gravity-cloth",
+        tags: ["Three.js", "Physics"],
+    },
+    {
+        title: "iCloud Memory Space",
+        description:
+            "A 3D floating archive of 80,000 images, exploring digital memory as a spatial experience.",
+        bgImage:
+            "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&q=80&w=1000", // Cloud/sky
+        href: "/visual-experiments/icloud-images",
+        tags: ["3D Web", "CSS 3D", "Archive"],
+    },
+];
+---
+
+<BaseLayout title={pageTitle}>
+    <header class="page-header">
+        <div class="breadcrumb">
+            <a href="/research">Research</a> / Visual Experiments
+        </div>
+        <h1>{pageTitle}</h1>
+        <div class="intro-grid">
+            <div class="intro-text">
+                <p>
+                    A playground for my explorations in <strong
+                        >Motion Design</strong
+                    >, <strong>After Effects</strong>, <strong>Blender</strong>,
+                    and <strong>Creative Coding</strong>. Here I test the
+                    boundaries of web technologies like Three.js and WebXR to
+                    create immersive digital experiences.
+                </p>
+            </div>
+            <div class="intro-stats">
+                <div class="stat">
+                    <span class="label">Status</span>
+                    <span class="value">Experimental</span>
+                </div>
+                <div class="stat">
+                    <span class="label">Focus</span>
+                    <span class="value">Interactive 3D</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="experiments-list">
+        {
+            experiments.map((exp) => (
+                <div class="experiment-item">
+                    <div class="exp-content">
+                        <h2>{exp.title}</h2>
+                        <p>{exp.description}</p>
+                        <div class="exp-tags">
+                            {exp.tags.map((tag) => (
+                                <span class="tag">{tag}</span>
+                            ))}
+                        </div>
+                        <a href={exp.href} class="view-btn">
+                            View Experiment <span class="arrow">→</span>
+                        </a>
+                    </div>
+                    <div
+                        class="exp-visual"
+                        style={`background-image: url(${exp.bgImage})`}
+                    >
+                        <div class="overlay" />
+                    </div>
+                </div>
+            ))
+        }
+    </div>
+</BaseLayout>
+
+<style>
+    .page-header {
+        margin-bottom: 5rem;
+        padding-top: 2rem;
+    }
+
+    .breadcrumb {
+        font-family: var(--font-mono);
+        font-size: 0.9rem;
+        color: var(--text-tertiary);
+        margin-bottom: 1rem;
+    }
+
+    .breadcrumb a {
+        color: var(--text-secondary);
+        text-decoration: none;
+    }
+
+    .breadcrumb a:hover {
+        color: var(--text-primary);
+    }
+
+    h1 {
+        font-family: "Poppins", sans-serif;
+        font-size: 3rem;
+        font-weight: 500;
+        margin-bottom: 2rem;
+        color: var(--text-primary);
+    }
+
+    .intro-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 4rem;
+        align-items: start;
+    }
+
+    .intro-text p {
+        font-family: var(--font-sans);
+        font-size: 1.1rem;
+        color: var(--text-secondary);
+        line-height: 1.7;
+        margin: 0;
+    }
+
+    .intro-text strong {
+        color: var(--text-primary);
+        font-weight: 500;
+    }
+
+    .intro-stats {
+        display: flex;
+        gap: 2rem;
+        border-left: 1px solid var(--border-subtle);
+        padding-left: 2rem;
+    }
+
+    .stat {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .stat .label {
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        color: var(--text-tertiary);
+        text-transform: uppercase;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat .value {
+        font-weight: 500;
+        color: var(--text-primary);
+    }
+
+    /* Experiments List */
+    .experiments-list {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .experiment-item {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        border: 1px solid var(--border-subtle);
+        border-radius: 12px;
+        overflow: hidden;
+        min-height: 300px;
+    }
+
+    .exp-content {
+        padding: 3rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        background: var(--bg-surface);
+    }
+
+    .exp-content h2 {
+        font-family: "Poppins", sans-serif;
+        font-size: 2rem;
+        margin: 0 0 1rem 0;
+        color: var(--text-primary);
+    }
+
+    .exp-content p {
+        color: var(--text-secondary);
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+    }
+
+    .exp-tags {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .tag {
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        padding: 4px 8px;
+        border: 1px solid var(--border-subtle);
+        border-radius: 4px;
+        color: var(--text-tertiary);
+    }
+
+    .view-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: var(--text-primary);
+        color: var(--bg-color);
+        padding: 0.8rem 1.5rem;
+        border-radius: 100px;
+        text-decoration: none;
+        font-weight: 500;
+        align-self: flex-start;
+        transition: transform 0.2s ease;
+    }
+
+    .view-btn:hover {
+        transform: translateY(-2px);
+    }
+
+    .exp-visual {
+        background-size: cover;
+        background-position: center;
+        position: relative;
+    }
+
+    .overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.2);
+    }
+
+    @media (max-width: 900px) {
+        .intro-grid {
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+        .intro-stats {
+            border-left: none;
+            padding-left: 0;
+        }
+        .experiment-item {
+            grid-template-columns: 1fr;
+            grid-template-rows: 200px auto;
+        }
+        .exp-visual {
+            grid-row: 1;
+        }
+        .exp-content {
+            grid-row: 2;
+        }
+    }
+</style>

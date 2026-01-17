@@ -1,0 +1,152 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getAwards } from "../../lib/api";
+
+const awards = await getAwards();
+const pageTitle = "Awards & Recognition";
+---
+
+<BaseLayout title={pageTitle}>
+    <header class="page-header">
+        <h1>{pageTitle}</h1>
+        <p class="section-intro">
+            A selection of scholarships, grants, and awards that have supported
+            my creative journey.
+        </p>
+    </header>
+
+    <div class="awards-table-container">
+        <table class="awards-table">
+            <thead>
+                <tr>
+                    <th>Award / Scholarship</th>
+                    <th>Category</th>
+                    <th>Value</th>
+                    <th>Year</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {
+                    awards.map((award) => (
+                        <tr>
+                            <td class="award-title-cell">
+                                <strong>{award.title}</strong>
+                            </td>
+                            <td>{award.category}</td>
+                            <td class="award-value">{award.value}</td>
+                            <td class="award-date">
+                                {award.date
+                                    ? new Date(award.date).getFullYear()
+                                    : "-"}
+                            </td>
+                            <td class="award-link-cell">
+                                {award.url && (
+                                    <a href={award.url} class="view-btn">
+                                        View
+                                    </a>
+                                )}
+                            </td>
+                        </tr>
+                    ))
+                }
+            </tbody>
+        </table>
+    </div>
+</BaseLayout>
+
+<style>
+    .page-header {
+        margin-bottom: 4rem;
+        padding-top: 2rem;
+        text-align: left;
+    }
+
+    h1 {
+        font-family: "Poppins", sans-serif;
+        font-size: 3rem;
+        font-weight: 500;
+        margin-bottom: 1rem;
+        color: var(--text-primary);
+    }
+
+    .section-intro {
+        font-family: var(--font-sans);
+        font-size: 1.1rem;
+        color: var(--text-secondary);
+        max-width: 600px;
+        margin: 0;
+        line-height: 1.6;
+    }
+
+    .awards-table-container {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .awards-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-family: var(--font-sans);
+        color: var(--text-secondary);
+    }
+
+    .awards-table th {
+        text-align: left;
+        padding: 1.5rem 1rem;
+        border-bottom: 1px solid var(--border-subtle);
+        font-family: var(--font-mono);
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 0.05em;
+        color: var(--text-tertiary);
+        font-weight: 500;
+    }
+
+    .awards-table td {
+        padding: 1.5rem 1rem;
+        border-bottom: 1px solid var(--border-subtle);
+        vertical-align: middle;
+    }
+
+    .award-title-cell strong {
+        color: var(--text-primary);
+        font-size: 1.1rem;
+        font-weight: 500;
+    }
+
+    .award-value {
+        font-family: var(--font-mono);
+        color: var(--text-primary);
+    }
+
+    .award-date {
+        font-family: var(--font-mono);
+    }
+
+    .view-btn {
+        display: inline-block;
+        padding: 0.5rem 1.2rem;
+        border: 1px solid var(--border-subtle);
+        border-radius: 100px;
+        color: var(--text-primary);
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+    }
+
+    .view-btn:hover {
+        background: var(--text-primary);
+        color: var(--bg-color);
+        border-color: var(--text-primary);
+    }
+
+    @media (max-width: 768px) {
+        .awards-table th:nth-child(2),
+        .awards-table td:nth-child(2),
+        .awards-table th:nth-child(3),
+        .awards-table td:nth-child(3) {
+            display: none;
+        }
+    }
+</style>

@@ -1,154 +1,181 @@
 ---
-export const prerender = false;
 import BaseLayout from "../layouts/BaseLayout.astro";
+import { getResearchProjects } from "../lib/api";
 
+const projects = await getResearchProjects();
 const pageTitle = "Research";
 ---
 
 <BaseLayout title={pageTitle}>
   <header class="page-header">
-    <h1>From Timeline to Runtime</h1>
+    <h1>{pageTitle}</h1>
     <p class="section-intro">
-      My journey from non-linear editing to generative code.
+      Explorations in digital archives, AI-driven memory, and visual systems.
     </p>
   </header>
 
-  <section class="narrative-content">
-    <div class="chapter">
-      <span class="chapter-marker">01</span>
-      <h2>The Frame</h2>
-      <p>
-        I started as a <strong>Video Editor</strong>. I was obsessed with the
-        timeline—cutting seconds, rearranging moments, finding the rhythm in
-        chaos. But the timeline is fixed. Once rendered, it never changes.
-      </p>
-    </div>
+  <div class="projects-grid">
+    {
+      projects.map((project) => (
+        <a href={project.href} class="project-card">
+          <div class="card-content">
+            <h2>{project.title}</h2>
+            <p class="description">{project.description}</p>
 
-    <div class="chapter">
-      <span class="chapter-marker">02</span>
-      <h2>The Keyframe</h2>
-      <p>
-        I moved to <strong>Motion Design</strong>. Keyframes gave me control
-        over time and physics. I could make things bounce, float, and shatter.
-        Yet, it was still a loop. A pre-calculated simulation of reality.
-      </p>
-    </div>
+            <div class="meta-footer">
+              <div class="tags">
+                {project.tags &&
+                  project.tags
+                    .slice(0, 2)
+                    .map((tag) => <span class="tag">{tag}</span>)}
+                {project.tags && project.tags.length > 2 && (
+                  <span class="tag">+{project.tags.length - 2}</span>
+                )}
+              </div>
+              <span class="arrow-icon">→</span>
+            </div>
+          </div>
+        </a>
+      ))
+    }
+  </div>
+</BaseLayout>
 
-    <div class="chapter">
-      <span class="chapter-marker">03</span>
-      <h2>The Runtime</h2>
-      <p>
-        Now, I build <strong>Interactive Systems</strong>. I want to create
-        visuals that push back. Large-scale installations where the audience
-        isn't just watching, but influencing the art in real-time. Code is the
-        new lens.
-      </p>
-    </div>
+<style>
+  .page-header {
+    margin-bottom: 3rem;
+    padding-top: 2rem;
+    text-align: left;
+  }
 
-    <div class="cta-container">
-      <a href="/research/lab" class="lab-button">
-        <span class="btn-text">Enter The Lab</span>
-        <span class="btn-icon">→</span>
-      </a>
-      <p class="cta-sub">
-        Access the archive of visual experiments and prototypes.
-      </p>
-    </div>
-  </section>
+  h1 {
+    font-family: "Poppins", sans-serif;
+    font-size: 3rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+  }
 
-  <style>
-    .page-header {
-      margin-bottom: var(--space-2xl);
-      padding-top: var(--space-lg);
-      text-align: center;
+  .section-intro {
+    font-family: var(--font-sans);
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    max-width: 600px;
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  .projects-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* Force 3 columns */
+    gap: 1.5rem;
+    padding-bottom: 4rem;
+  }
+
+  .project-card {
+    display: block;
+    text-decoration: none;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    transition:
+      transform 0.2s ease,
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
+    overflow: hidden;
+    height: 100%;
+  }
+
+  .project-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--text-primary);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
+
+  .card-content {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .card-content h2 {
+    font-family: "Poppins", sans-serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem 0;
+    color: var(--text-primary);
+  }
+
+  .description {
+    font-family: var(--font-sans);
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin: 0 0 1.5rem 0;
+    flex-grow: 1; /* Pushes footer down */
+  }
+
+  .meta-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-top: 1px solid var(--border-subtle);
+    padding-top: 1rem;
+    margin-top: auto;
+  }
+
+  .tags {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    padding: 4px 10px;
+    border-radius: 100px; /* Pill shape */
+    display: inline-block;
+    transition: all 0.2s ease;
+  }
+
+  .tag:hover {
+    border-color: var(--text-primary);
+    color: var(--text-primary);
+  }
+
+  :global(.dark) .tag {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .arrow-icon {
+    color: var(--text-primary);
+    font-size: 1.2rem;
+    transition: transform 0.2s ease;
+  }
+
+  .project-card:hover .arrow-icon {
+    transform: translateX(4px);
+  }
+
+  @media (max-width: 900px) {
+    .projects-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 600px) {
+    .projects-grid {
+      grid-template-columns: 1fr;
     }
 
     .page-header h1 {
-      font-size: 3rem;
-      letter-spacing: -0.02em;
-      margin-bottom: 0.5rem;
+      font-size: 2.5rem;
     }
-
-    .section-intro {
-      font-size: 1.2rem;
-      color: var(--text-secondary);
-      font-family: "Space Mono", monospace;
-    }
-
-    .narrative-content {
-      max-width: 680px;
-      margin: 0 auto;
-      display: flex;
-      flex-direction: column;
-      gap: 4rem;
-    }
-
-    .chapter {
-      position: relative;
-      padding-left: 2rem;
-      border-left: 1px solid var(--border-subtle);
-    }
-
-    .chapter-marker {
-      position: absolute;
-      left: -2.5rem;
-      top: 0;
-      font-family: "Space Mono", monospace;
-      font-size: 0.9rem;
-      color: var(--text-tertiary);
-      opacity: 0.5;
-    }
-
-    .chapter h2 {
-      font-size: 1.5rem;
-      margin-bottom: 1rem;
-      color: var(--text-primary);
-    }
-
-    .chapter p {
-      font-size: 1.1rem;
-      line-height: 1.7;
-      color: var(--text-secondary);
-    }
-
-    .chapter strong {
-      color: var(--text-primary);
-      font-weight: 600;
-    }
-
-    .cta-container {
-      margin-top: 2rem;
-      text-align: center;
-      padding: 3rem 0;
-      border-top: 1px solid var(--border-subtle);
-      border-bottom: 1px solid var(--border-subtle);
-    }
-
-    .lab-button {
-      display: inline-flex;
-      align-items: center;
-      gap: 1rem;
-      background: var(--text-primary);
-      color: var(--bg-color);
-      padding: 1rem 2rem;
-      border-radius: 100px;
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 1.1rem;
-      transition:
-        transform 0.2s ease,
-        opacity 0.2s ease;
-    }
-
-    .lab-button:hover {
-      transform: scale(1.02);
-      opacity: 0.95;
-    }
-
-    .cta-sub {
-      margin-top: 1rem;
-      font-size: 0.9rem;
-      color: var(--text-tertiary);
-    }
-  </style>
-</BaseLayout>
+  }
+</style>
