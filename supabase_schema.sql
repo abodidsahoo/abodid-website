@@ -35,8 +35,8 @@ create table if not exists public.films (
   published boolean default false
 );
 
--- 4. POSTS (Blog/Journal)
-create table if not exists public.posts (
+-- 4. BLOG (Posts)
+create table if not exists public.blog (
   id uuid default uuid_generate_v4() primary key,
   slug text not null unique,
   title text not null,
@@ -52,7 +52,7 @@ create table if not exists public.posts (
 create table if not exists public.comments (
   id uuid default uuid_generate_v4() primary key,
   story_id uuid references public.stories(id) on delete cascade,
-  post_id uuid references public.posts(id) on delete cascade,
+  post_id uuid references public.blog(id) on delete cascade,
   author_name text not null,
   content text not null,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
@@ -68,7 +68,7 @@ create table if not exists public.comments (
 alter table public.stories enable row level security;
 alter table public.photos enable row level security;
 alter table public.films enable row level security;
-alter table public.posts enable row level security;
+alter table public.blog enable row level security;
 alter table public.comments enable row level security;
 
 -- Policies (Drop first to avoid errors on re-run, or ignore errors)
@@ -81,8 +81,8 @@ create policy "Public photos are viewable by everyone" on public.photos for sele
 drop policy if exists "Public films are viewable by everyone" on public.films;
 create policy "Public films are viewable by everyone" on public.films for select using (true);
 
-drop policy if exists "Public posts are viewable by everyone" on public.posts;
-create policy "Public posts are viewable by everyone" on public.posts for select using (true);
+drop policy if exists "Public posts are viewable by everyone" on public.blog;
+create policy "Public posts are viewable by everyone" on public.blog for select using (true);
 
 drop policy if exists "Public comments are viewable by everyone" on public.comments;
 create policy "Public comments are viewable by everyone" on public.comments for select using (is_approved = true);
@@ -114,7 +114,7 @@ insert into public.stories (slug, title, intro, category, cover_image, published
 ('neon-nights', 'Neon Nights', 'Cyberpunk vibes in the rainy streets.', 'Photography', 'https://images.unsplash.com/photo-1555680202-c86f0e12f086', true)
 on conflict (slug) do nothing;
 
-insert into public.posts (slug, title, excerpt, content, published_at, published) values
+insert into public.blog (slug, title, excerpt, content, published_at, published) values
 ('welcome', 'Welcome to my Digital Garden', 'Why I built this site with Astro and Supabase.', '# Hello World\n\nThis is my first post.', now(), true)
 on conflict (slug) do nothing;
 

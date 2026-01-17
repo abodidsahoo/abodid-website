@@ -100,12 +100,12 @@ const PressFilter = ({ items }) => {
             margin-bottom: 4rem;
             padding: 0 2rem;
             display: flex;
-            justify-content: center;
+            justify-content: flex-start;
         }
 
         .filter-scroll {
             display: block;
-            text-align: center;
+            text-align: left;
             width: 100%;
             max-width: 800px;
         }

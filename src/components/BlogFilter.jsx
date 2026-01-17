@@ -92,12 +92,13 @@ const BlogFilter = ({ posts }) => { // Changed prop from items to posts for clar
             margin-bottom: 4rem;
             padding: 0 2rem;
             display: flex;
-            justify-content: center;
+            justify-content: flex-start;
+            padding: 0; /* Align with left margin */
         }
 
         .filter-scroll {
             display: block;
-            text-align: center;
+            text-align: left;
             width: 100%;
             max-width: 800px;
             text-wrap: balance;

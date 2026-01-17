@@ -46,7 +46,7 @@ const contentHtml = marked.parse(post.content || "");
             )
           }</span
         >
-        <span class="category">Journal</span>
+        <span class="category">Blog</span>
       </div>
       <h1 class="title">{post.title}</h1>
       {post.excerpt && <p class="excerpt">{post.excerpt}</p>}
@@ -103,7 +103,7 @@ const contentHtml = marked.parse(post.content || "");
 
     <div class="post-footer">
       <div class="nav-links">
-        <a href="/blog" class="back-link">← Back to Journal</a>
+        <a href="/blog" class="back-link">← Back to Blog</a>
         {
           nextPost && (
             <a href={nextPost.href} class="next-link">

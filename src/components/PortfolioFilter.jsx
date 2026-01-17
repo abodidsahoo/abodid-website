@@ -112,16 +112,16 @@ const PortfolioFilter = ({ items }) => {
         /* Filter Container */
         .filter-bar {
             margin-bottom: 3rem;
-            padding: 0 1rem;
+            padding: 0;
             display: flex;
             flex-direction: column;
-            align-items: center;
+            align-items: flex-start;
             gap: 0.5rem; /* Space between rows */
         }
         
         .filter-row {
             display: flex;
-            justify-content: center;
+            justify-content: flex-start;
             flex-wrap: wrap; 
             gap: 0.6rem; /* Space between buttons */
             max-width: 900px;

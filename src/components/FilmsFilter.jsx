@@ -172,13 +172,13 @@ const FilmsFilter = ({ items }) => {
                     padding: 0 1rem;
                     display: flex;
                     flex-direction: column;
-                    align-items: center;
+                    align-items: flex-start;
                     gap: 1rem;
                 }
 
                 .filter-row {
                     display: flex;
-                    justify-content: center;
+                    justify-content: flex-start;
                     flex-wrap: wrap;
                     gap: 0.6rem;
                     max-width: 900px;
