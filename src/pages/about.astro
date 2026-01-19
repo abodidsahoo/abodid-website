@@ -11,15 +11,13 @@ const { artistCV, professionalCVs } = await getCVs();
 
 const hubs = [
     {
-        title: "Download Resume",
-        link: "/assets/resume.pdf", // Legacy fallback
-        icon: "↓",
-        external: true,
-        isDownload: true,
+        title: "Work Experience",
+        link: "/work",
+        icon: "→",
     },
     {
-        title: "Timeline of my life",
-        link: "/timeline",
+        title: "Curriculum Vitae",
+        link: "/cv",
         icon: "→",
     },
     {
@@ -30,32 +28,6 @@ const hubs = [
     {
         title: "Awards",
         link: "/awards",
-        icon: "→",
-    },
-    {
-        title: "Artist CV",
-        link: artistCV ? artistCV.url : "#",
-        icon: "→",
-        external: true,
-        isDownload: true,
-    },
-    {
-        title: "Professional CV",
-        isModal: true,
-        props: {
-            title: "Professional CV",
-            icon: "→",
-            cvs: professionalCVs,
-        },
-    },
-    {
-        title: "Creative Technologies",
-        link: "/tech",
-        icon: "→",
-    },
-    {
-        title: "Research Works",
-        link: "/research",
         icon: "→",
     },
     {
@@ -87,25 +59,16 @@ const hubs = [
 
     <section class="hub-grid">
         {
-            hubs.map((item) =>
-                item.isModal ? (
-                    <CVListModal client:load {...item.props} />
-                ) : (
-                    <a
-                        href={item.link}
-                        class="hub-card"
-                        target={item.external ? "_blank" : "_self"}
-                    >
-                        <div class="card-content">
-                            <div class="card-left">
-                                {item.isDownload && <PdfIcon />}
-                                <h3>{item.title}</h3>
-                            </div>
-                            <span class="icon">{item.icon}</span>
+            hubs.map((item) => (
+                <a href={item.link} class="hub-card">
+                    <div class="card-content">
+                        <div class="card-left">
+                            <h3>{item.title}</h3>
                         </div>
-                    </a>
-                ),
-            )
+                        <span class="icon">{item.icon}</span>
+                    </div>
+                </a>
+            ))
         }
     </section>
 

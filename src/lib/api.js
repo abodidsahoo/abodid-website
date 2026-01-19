@@ -545,6 +545,24 @@ export async function getFilms() {
     }));
 }
 
+// --- Timeline (Table: 'about_timeline_cards') ---
+
+export async function getTimelineCards() {
+    if (!isSupabaseConfigured()) return [];
+
+    const { data, error } = await supabase
+        .from('about_timeline_cards')
+        .select('*')
+        .order('sort_index', { ascending: true }); // 0 = newest
+
+    if (error) {
+        console.error('Error fetching timeline cards:', error);
+        return [];
+    }
+
+    return data;
+}
+
 // --- Documents (Bucket: 'documents') ---
 
 export async function getCVs() {

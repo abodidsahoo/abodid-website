@@ -1,0 +1,170 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import PdfIcon from "../components/PdfIcon.astro";
+
+const pageTitle = "Curriculum Vitae";
+
+const cvOptions = [
+    { title: "Artist CV", link: "#" },
+    { title: "Photography CV", link: "#" },
+    { title: "Film-making CV", link: "#" },
+    { title: "Research CV", link: "#" },
+    { title: "Creative Tech CV", link: "#" },
+    { title: "Designer CV", link: "#" },
+];
+
+const rejectedSeries = [
+    "Google DeepMind",
+    "Superflux",
+    "Wieden+Kennedy",
+    "Mubi",
+    "RCA",
+];
+---
+
+<BaseLayout title={pageTitle}>
+    <header class="page-header">
+        <h1>Curriculum Vitae</h1>
+        <p class="subtitle">
+            Tailored resumes for different facets of my work.
+        </p>
+    </header>
+
+    <section class="cv-grid">
+        {
+            cvOptions.map((item) => (
+                <a href={item.link} class="hub-card" target="_blank">
+                    <div class="card-content">
+                        <div class="card-left">
+                            <PdfIcon />
+                            <h3>{item.title}</h3>
+                        </div>
+                        <span class="icon">↓</span>
+                    </div>
+                </a>
+            ))
+        }
+    </section>
+
+    <section class="rejected-section">
+        <hr class="divider" />
+        <h2 class="rejected-title">Rejected Series</h2>
+        <p class="rejected-desc">
+            A growing list of esteemed organizations that have rejected me.
+            (Badge of honor? Maybe.)
+        </p>
+        <ul class="rejected-list">
+            {
+                rejectedSeries.map((item) => (
+                    <li class="rejected-item">{item}</li>
+                ))
+            }
+        </ul>
+    </section>
+</BaseLayout>
+
+<style>
+    .page-header {
+        margin-bottom: 3rem;
+        padding-top: var(--space-lg);
+    }
+
+    .subtitle {
+        font-size: 1.125rem;
+        color: var(--text-secondary);
+        max-width: 60ch;
+        margin-top: 0.5rem;
+    }
+
+    /* CV Grid (Reusing Hub Card Style) */
+    .cv-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 5rem;
+    }
+
+    .hub-card {
+        display: block;
+        text-decoration: none;
+        color: inherit;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-subtle);
+        padding: 2rem;
+        border-radius: 12px;
+        transition: all 0.2s ease;
+    }
+
+    .hub-card:hover {
+        transform: translateY(-4px);
+        border-color: var(--text-secondary);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .card-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .card-left {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .hub-card h3 {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 500;
+        color: var(--text-primary);
+    }
+
+    .icon {
+        font-size: 1.25rem;
+        color: var(--text-tertiary);
+        transition: transform 0.2s ease;
+    }
+
+    .hub-card:hover .icon {
+        transform: translateY(2px);
+        color: var(--text-primary);
+    }
+
+    /* Rejected Series */
+    .divider {
+        margin: 3rem 0;
+        border: none;
+        border-top: 1px solid var(--border-subtle);
+    }
+
+    .rejected-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .rejected-desc {
+        font-size: 1rem;
+        color: var(--text-secondary);
+        margin-bottom: 2rem;
+        max-width: 60ch;
+    }
+
+    .rejected-list {
+        list-style: none;
+        padding: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .rejected-item {
+        font-size: 1rem;
+        padding: 0.5rem 1rem;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-subtle);
+        border-radius: 6px;
+        color: var(--text-secondary);
+    }
+</style>
