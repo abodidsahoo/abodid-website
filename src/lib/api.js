@@ -253,7 +253,7 @@ export async function getRecentPosts() {
 }
 
 export async function getAllPosts() {
-    if (!isSupabaseConfigured()) return mockPosts;
+    if (!isSupabaseConfigured()) return mockPosts.map(p => ({ ...p, pubDate: new Date(p.date), description: p.title }));
 
     const { data, error } = await supabase
         .from('blog')
@@ -261,15 +261,17 @@ export async function getAllPosts() {
         .eq('published', true)
         .order('published_at', { ascending: false });
 
-    if (error) return mockPosts;
+    if (error) return mockPosts.map(p => ({ ...p, pubDate: new Date(p.date), description: p.title }));
 
     return data.map(post => ({
         title: post.title,
         date: new Date(post.published_at).toLocaleDateString(),
+        pubDate: new Date(post.published_at),
         tags: post.tags || [],
         image: post.cover_image,
         category: post.category || [], // Add category support
-        href: `/blog/${post.slug}`
+        href: `/blog/${post.slug}`,
+        description: post.excerpt || ''
     }));
 }
 

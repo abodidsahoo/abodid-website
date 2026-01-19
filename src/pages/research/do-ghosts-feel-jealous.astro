@@ -1,5 +1,6 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
+import ShareButtons from "../../components/ShareButtons.jsx";
 
 const pageTitle =
     "Do ghosts feel jealous if you miss the living ones more than them?";
@@ -72,6 +73,12 @@ const pageTitle =
             </a>
             <p class="url-text">www.whydidyoucry.com</p>
         </section>
+
+        <ShareButtons
+            client:only="react"
+            title={pageTitle}
+            url={Astro.url.href}
+        />
     </div>
 </BaseLayout>
 

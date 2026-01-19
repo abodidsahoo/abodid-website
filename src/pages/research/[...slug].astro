@@ -1,7 +1,8 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getProjects, getProjectBySlug } from '../../lib/api';
-import { marked } from 'marked';
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getProjects, getProjectBySlug } from "../../lib/api";
+import { marked } from "marked";
+import ShareButtons from "../../components/ShareButtons.jsx";
 
 export const prerender = false;
 
@@ -9,7 +10,7 @@ const { slug } = Astro.params;
 const project = await getProjectBySlug(slug);
 
 if (!project) {
-  return Astro.redirect('/404');
+  return Astro.redirect("/404");
 }
 
 const contentHtml = marked.parse(project.content || "");
@@ -23,32 +24,53 @@ const contentHtml = marked.parse(project.content || "");
       </div>
       <h1 class="title">{project.title}</h1>
       <p class="excerpt">{project.description}</p>
-      
+
       <div class="actions">
-        {project.link && (
-          <a href={project.link} target="_blank" rel="noopener noreferrer" class="btn-primary">
-            Go to Live Project ↗
-          </a>
-        )}
-        {project.repo_link && (
-          <a href={project.repo_link} target="_blank" rel="noopener noreferrer" class="btn-secondary">
-            View Source Code
-          </a>
-        )}
+        {
+          project.link && (
+            <a
+              href={project.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="btn-primary"
+            >
+              Go to Live Project ↗
+            </a>
+          )
+        }
+        {
+          project.repo_link && (
+            <a
+              href={project.repo_link}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="btn-secondary"
+            >
+              View Source Code
+            </a>
+          )
+        }
       </div>
     </header>
 
-    {project.image && (
-      <div class="project-hero">
-        <img src={project.image} alt={project.title} />
-      </div>
-    )}
+    {
+      project.image && (
+        <div class="project-hero">
+          <img src={project.image} alt={project.title} />
+        </div>
+      )
+    }
 
-    <div class="prose" set:html={contentHtml}></div>
+    <div class="prose" set:html={contentHtml} />
 
     <hr class="divider" />
-    
+
     <div class="footer-nav">
+      <ShareButtons
+        client:only="react"
+        title={project.title}
+        url={Astro.url.href}
+      />
       <a href="/research" class="back-link">← Back to Research</a>
     </div>
   </article>
@@ -117,14 +139,18 @@ const contentHtml = marked.parse(project.content || "");
     transition: background 0.2s;
   }
 
-  .btn-primary:hover { opacity: 0.9; }
-  .btn-secondary:hover { background: var(--bg-surface); }
+  .btn-primary:hover {
+    opacity: 0.9;
+  }
+  .btn-secondary:hover {
+    background: var(--bg-surface);
+  }
 
   .project-hero {
     margin: 3rem -2rem;
     border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
   }
 
   .project-hero img {
@@ -134,7 +160,9 @@ const contentHtml = marked.parse(project.content || "");
   }
 
   .prose {
-    font-family: var(--font-sans); /* Use sans for technical content? or serif? let's stick to serif for reading */
+    font-family: var(
+      --font-sans
+    ); /* Use sans for technical content? or serif? let's stick to serif for reading */
     font-family: var(--font-serif);
     font-size: 1.125rem;
     line-height: 1.8;
@@ -150,10 +178,12 @@ const contentHtml = marked.parse(project.content || "");
   .footer-nav {
     text-align: center;
   }
-  
+
   .back-link {
     color: var(--text-secondary);
     text-decoration: none;
   }
-  .back-link:hover { color: var(--text-primary); }
+  .back-link:hover {
+    color: var(--text-primary);
+  }
 </style>

@@ -9,5 +9,6 @@ import vercel from '@astrojs/vercel';
 export default defineConfig({
   output: 'server',
   adapter: vercel(),
-  integrations: [react()]
+  integrations: [react()],
+  site: 'https://abodid.com', // Replace with your actual domain
 });

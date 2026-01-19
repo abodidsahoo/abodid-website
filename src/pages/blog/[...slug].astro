@@ -6,7 +6,8 @@ import {
   getNextPost,
   getRelatedPost,
 } from "../../lib/api";
-import { marked } from "marked"; // We need to install this or use a simple parser
+import { marked } from "marked";
+import ShareButtons from "../../components/ShareButtons.jsx";
 
 export const prerender = false;
 
@@ -61,6 +62,8 @@ const contentHtml = marked.parse(post.content || "");
     }
 
     <div class="prose" set:html={contentHtml} />
+
+    <ShareButtons client:only="react" title={post.title} url={Astro.url.href} />
 
     <hr class="divider" />
 

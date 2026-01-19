@@ -148,7 +148,7 @@ a {
     gap: var(--space-lg);
 }
 
-/* Subtle fade entry for content */
+/* Subtle fade entry for content - REMOVED for stability
 main {
     animation: fadeIn 0.6s ease-out;
 }
@@ -164,3 +164,4 @@ main {
         transform: translateY(0);
     }
 }
+*/

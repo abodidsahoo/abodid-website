@@ -4,6 +4,7 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
 import { getFileContent, getFileRaw } from "../../../lib/github";
 import { findNotesReferencing } from "../../../lib/vault";
 import { marked } from "marked";
+import ShareButtons from "../../../components/ShareButtons.jsx";
 
 const { slug } = Astro.params;
 const COOKIE_NAME = "obsidian_vault_access";
@@ -143,6 +144,11 @@ try {
                     <div class="markdown-body" set:html={htmlContent} />
                 )
             }
+            <ShareButtons
+                client:only="react"
+                title={title.replace(/-/g, " ")}
+                url={Astro.url.href}
+            />
         </article>
     </div>
 </BaseLayout>

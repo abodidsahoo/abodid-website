@@ -2,6 +2,7 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { getAllPhotography, getPhotographyBySlug } from "../../lib/api";
 import { marked } from "marked";
+import ShareButtons from "../../components/ShareButtons.jsx";
 
 export const prerender = false;
 
@@ -41,6 +42,11 @@ const contentHtml = marked.parse(project.content || "");
     </div>
 
     <div class="story-footer">
+      <ShareButtons
+        client:only="react"
+        title={project.title}
+        url={Astro.url.href}
+      />
       <a href="/photography" class="back-link">← Back to Photography</a>
     </div>
   </article>
