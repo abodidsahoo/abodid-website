@@ -544,3 +544,49 @@ export async function getFilms() {
         categories: film.categories || []
     }));
 }
+
+// --- Documents (Bucket: 'documents') ---
+
+export async function getCVs() {
+    if (!isSupabaseConfigured()) {
+        // Mock data
+        return {
+            artistCV: { name: 'Artist CV (Mock)', url: '#' },
+            professionalCVs: [
+                { name: 'Professional CV 2024 (Mock)', url: '#' },
+                { name: 'Creative Tech CV (Mock)', url: '#' }
+            ]
+        };
+    }
+
+    const { data, error } = await supabase
+        .storage
+        .from('documents')
+        .list('CV');
+
+    if (error) {
+        console.error('Error fetching CVs:', error);
+        return { artistCV: null, professionalCVs: [] };
+    }
+
+    // Process files
+    const fileList = data.map(file => {
+        const { data: publicUrlData } = supabase
+            .storage
+            .from('documents')
+            .getPublicUrl(`CV/${file.name}`);
+
+        return {
+            name: file.name,
+            url: publicUrlData.publicUrl,
+            params: file // keep original meta if needed
+        };
+    });
+
+    // Categorize
+    // Assuming "artist" in filename means Artist CV
+    const artistCV = fileList.find(f => f.name.toLowerCase().includes('artist')) || null;
+    const professionalCVs = fileList.filter(f => f !== artistCV);
+
+    return { artistCV, professionalCVs };
+}

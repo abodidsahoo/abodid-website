@@ -25,12 +25,7 @@ const pageTitle = "Research";
             <div class="meta-footer">
               <div class="tags">
                 {project.tags &&
-                  project.tags
-                    .slice(0, 2)
-                    .map((tag) => <span class="tag">{tag}</span>)}
-                {project.tags && project.tags.length > 2 && (
-                  <span class="tag">+{project.tags.length - 2}</span>
-                )}
+                  project.tags.map((tag) => <span class="tag">{tag}</span>)}
               </div>
               <span class="arrow-icon">→</span>
             </div>
@@ -51,7 +46,7 @@ const pageTitle = "Research";
   h1 {
     font-family: "Poppins", sans-serif;
     font-size: 3rem;
-    font-weight: 500;
+    font-weight: 600;
     margin-bottom: 0.5rem;
     color: var(--text-primary);
   }
@@ -67,7 +62,7 @@ const pageTitle = "Research";
 
   .projects-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr); /* Force 3 columns */
+    grid-template-columns: repeat(2, 1fr); /* Force 2 columns max */
     gap: 1.5rem;
     padding-bottom: 4rem;
   }
@@ -101,10 +96,11 @@ const pageTitle = "Research";
 
   .card-content h2 {
     font-family: "Poppins", sans-serif;
-    font-size: 1.1rem;
-    font-weight: 600;
+    font-size: 1.5rem;
+    font-weight: 500;
     margin: 0 0 0.5rem 0;
     color: var(--text-primary);
+    line-height: 1.25;
   }
 
   .description {
@@ -134,23 +130,26 @@ const pageTitle = "Research";
   .tag {
     font-family: var(--font-mono);
     font-size: 0.75rem;
-    color: var(--text-secondary);
-    background: var(--bg-surface);
-    border: 1px solid var(--border-subtle);
-    padding: 4px 10px;
-    border-radius: 100px; /* Pill shape */
+    color: #333; /* Explicit dark color */
+    background: #f0f0f0; /* Explicit light grey background */
+    border: 1px solid #ccc; /* Explicit border */
+    padding: 6px 14px;
+    border-radius: 6px;
     display: inline-block;
+    font-weight: 500;
     transition: all 0.2s ease;
   }
 
   .tag:hover {
-    border-color: var(--text-primary);
-    color: var(--text-primary);
+    border-color: #000;
+    background: #e0e0e0;
+    color: #000;
   }
 
   :global(.dark) .tag {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: #eee;
   }
 
   .arrow-icon {
@@ -161,12 +160,6 @@ const pageTitle = "Research";
 
   .project-card:hover .arrow-icon {
     transform: translateX(4px);
-  }
-
-  @media (max-width: 900px) {
-    .projects-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
   }
 
   @media (max-width: 600px) {

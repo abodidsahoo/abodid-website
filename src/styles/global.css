@@ -1,4 +1,8 @@
 /* Core Design System */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 :root {
     /* Nuanced Palette - Light */
     --bg-color: #ffffff;

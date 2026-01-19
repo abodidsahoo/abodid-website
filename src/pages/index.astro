@@ -3,6 +3,8 @@ export const prerender = false;
 import BaseLayout from "../layouts/BaseLayout.astro";
 import PhotographyCard from "../components/PhotographyCard.astro";
 import { getFeaturedPhotography, getRecentPosts } from "../lib/api";
+
+import InteractiveTags from "../components/InteractiveTags";
 import {
   featuredPhotography as mockPhotography,
   recentPosts as mockRecent,
@@ -30,6 +32,7 @@ const recentPosts = (await safeFetch(getRecentPosts, mockRecent)).slice(0, 3);
 <BaseLayout title={pageTitle}>
   <!-- Hero Section -->
   <section class="hero-section">
+    <InteractiveTags client:load />
     <div class="hero-content">
       <h1 class="hero-title">
         Hi, I am Abodid. <br />
@@ -114,12 +117,17 @@ const recentPosts = (await safeFetch(getRecentPosts, mockRecent)).slice(0, 3);
   </section>
 </BaseLayout>
 
+<script>
+  // ... existing typewriter script ...
+</script>
+
 <style>
   .hero-section {
     min-height: 60vh;
     display: flex;
     align-items: center;
     margin-bottom: var(--space-2xl);
+    position: relative; /* Essential for InteractiveTags containment */
   }
 
   .hero-title {

@@ -1,225 +1,242 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import PdfIcon from "../components/PdfIcon.astro";
+import CVListModal from "../components/CVListModal.jsx";
+import { getCVs } from "../lib/api";
 
 const pageTitle = "About";
 
+// Fetch CVs
+const { artistCV, professionalCVs } = await getCVs();
+
 const hubs = [
-  {
-    title: "Download Resume",
-    link: "/assets/resume.pdf", // Placeholder or upload to Supabase bucket
-    icon: "↓",
-    external: true,
-    isDownload: true, // Show PDF icon
-  },
-  {
-    title: "Timeline of my life",
-    link: "/timeline",
-    icon: "→",
-  },
-  {
-    title: "Media Mentions",
-    link: "/press",
-    icon: "→",
-  },
-  {
-    title: "Awards",
-    link: "/awards",
-    icon: "→",
-  },
-  {
-    title: "Artist CV",
-    link: "/cv-artist",
-    icon: "→",
-    // isDownload: true, // Uncomment if this is a PDF
-  },
-  {
-    title: "Commercial CV",
-    link: "/cv-commercial",
-    icon: "→",
-    // isDownload: true, // Uncomment if this is a PDF
-  },
-  {
-    title: "Creative Technologies",
-    link: "/tech",
-    icon: "→",
-  },
-  {
-    title: "Research Works",
-    link: "/research",
-    icon: "→",
-  },
-  {
-    title: "Education",
-    link: "/education",
-    icon: "→",
-  },
+    {
+        title: "Download Resume",
+        link: "/assets/resume.pdf", // Legacy fallback
+        icon: "↓",
+        external: true,
+        isDownload: true,
+    },
+    {
+        title: "Timeline of my life",
+        link: "/timeline",
+        icon: "→",
+    },
+    {
+        title: "Media Mentions",
+        link: "/press",
+        icon: "→",
+    },
+    {
+        title: "Awards",
+        link: "/awards",
+        icon: "→",
+    },
+    {
+        title: "Artist CV",
+        link: artistCV ? artistCV.url : "#",
+        icon: "→",
+        external: true,
+        isDownload: true,
+    },
+    {
+        title: "Professional CV",
+        isModal: true,
+        props: {
+            title: "Professional CV",
+            icon: "→",
+            cvs: professionalCVs,
+        },
+    },
+    {
+        title: "Creative Technologies",
+        link: "/tech",
+        icon: "→",
+    },
+    {
+        title: "Research Works",
+        link: "/research",
+        icon: "→",
+    },
+    {
+        title: "Education",
+        link: "/education",
+        icon: "→",
+    },
 ];
 ---
 
 <BaseLayout title={pageTitle}>
-  <header class="page-header">
-    <h1>About Me</h1>
-  </header>
+    <header class="page-header">
+        <h1>About Me</h1>
+    </header>
 
-  <section class="about-intro">
-    <p class="lead">Hi, I am Abodid. I am a creative technologist.</p>
-    <p>
-      I work with globally renowned art institutes, artists, design studios, and
-      innovative startups in the culture sector. I help them document
-      world-class exhibitions and events, while also building meaningful
-      relationships with key stakeholders and growing engaged communities. My
-      experience across art, design, and academia allows me to craft innovative
-      creative strategies and produce offbeat, edgy, and highly impactful work
-      across photography, film, and interactive media.
-    </p>
-  </section>
+    <section class="about-intro">
+        <p class="lead">Hi, I am Abodid. I am a creative technologist.</p>
+        <p>
+            I work with globally renowned art institutes, artists, design
+            studios, and innovative startups in the culture sector. I help them
+            document world-class exhibitions and events, while also building
+            meaningful relationships with key stakeholders and growing engaged
+            communities. My experience across art, design, and academia allows
+            me to craft innovative creative strategies and produce offbeat,
+            edgy, and highly impactful work across photography, film, and
+            interactive media.
+        </p>
+    </section>
 
-  <section class="hub-grid">
-    {
-      hubs.map((item) => (
-        <a
-          href={item.link}
-          class="hub-card"
-          target={item.external ? "_blank" : "_self"}
-        >
-          <div class="card-content">
-            <div class="card-left">
-              {item.isDownload && <PdfIcon />}
-              <h3>{item.title}</h3>
-            </div>
-            <span class="icon">{item.icon}</span>
-          </div>
-        </a>
-      ))
-    }
-  </section>
+    <section class="hub-grid">
+        {
+            hubs.map((item) =>
+                item.isModal ? (
+                    <CVListModal client:load {...item.props} />
+                ) : (
+                    <a
+                        href={item.link}
+                        class="hub-card"
+                        target={item.external ? "_blank" : "_self"}
+                    >
+                        <div class="card-content">
+                            <div class="card-left">
+                                {item.isDownload && <PdfIcon />}
+                                <h3>{item.title}</h3>
+                            </div>
+                            <span class="icon">{item.icon}</span>
+                        </div>
+                    </a>
+                ),
+            )
+        }
+    </section>
 
-  <section class="contact-section">
-    <hr class="divider" />
-    <h3>Contact</h3>
-    <ul class="contact-list">
-      <li><a href="mailto:hello@abodid.com">hello@abodid.com</a></li>
-      <li>
-        <a href="https://github.com/abodidsahoo" target="_blank">GitHub</a>
-      </li>
-      <li>
-        <a href="https://uk.linkedin.com/in/abodidsahoo" target="_blank"
-          >Linkedin</a
-        >
-      </li>
-      <li>
-        <a href="https://www.instagram.com/abodid.sahoo" target="_blank"
-          >Instagram</a
-        >
-      </li>
-      <li>
-        <a href="https://twitter.com/abodidsahoo" target="_blank">Twitter / X</a
-        >
-      </li>
-    </ul>
-  </section>
+    <section class="contact-section">
+        <hr class="divider" />
+        <h3>Contact</h3>
+        <ul class="contact-list">
+            <li><a href="mailto:hello@abodid.com">hello@abodid.com</a></li>
+            <li>
+                <a href="https://github.com/abodidsahoo" target="_blank"
+                    >GitHub</a
+                >
+            </li>
+            <li>
+                <a href="https://uk.linkedin.com/in/abodidsahoo" target="_blank"
+                    >Linkedin</a
+                >
+            </li>
+            <li>
+                <a href="https://www.instagram.com/abodid.sahoo" target="_blank"
+                    >Instagram</a
+                >
+            </li>
+            <li>
+                <a href="https://twitter.com/abodidsahoo" target="_blank"
+                    >Twitter / X</a
+                >
+            </li>
+        </ul>
+    </section>
 </BaseLayout>
 
 <style>
-  .page-header {
-    margin-bottom: 2rem;
-    padding-top: var(--space-lg);
-  }
+    .page-header {
+        margin-bottom: 2rem;
+        padding-top: var(--space-lg);
+    }
 
-  .about-intro {
-    max-width: 720px;
-    margin-bottom: 4rem;
-    font-size: 1.125rem;
-    line-height: 1.7;
-    color: var(--text-secondary);
-  }
+    .about-intro {
+        max-width: 720px;
+        margin-bottom: 4rem;
+        font-size: 1.125rem;
+        line-height: 1.7;
+        color: var(--text-secondary);
+    }
 
-  .lead {
-    font-size: 1.25rem;
-    color: var(--text-primary);
-    font-weight: 600;
-    margin-bottom: 1.5rem;
-  }
+    .lead {
+        font-size: 1.25rem;
+        color: var(--text-primary);
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+    }
 
-  /* Hub Grid */
-  .hub-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 4rem;
-  }
+    /* Hub Grid */
+    .hub-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 4rem;
+    }
 
-  .hub-card {
-    display: block;
-    text-decoration: none;
-    color: inherit;
-    background: var(--bg-surface);
-    border: 1px solid var(--border-subtle);
-    padding: 2rem;
-    border-radius: 12px;
-    transition: all 0.2s ease;
-  }
+    .hub-card {
+        display: block;
+        text-decoration: none;
+        color: inherit;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-subtle);
+        padding: 2rem;
+        border-radius: 12px;
+        transition: all 0.2s ease;
+    }
 
-  .hub-card:hover {
-    transform: translateY(-4px);
-    border-color: var(--text-secondary);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  }
+    .hub-card:hover {
+        transform: translateY(-4px);
+        border-color: var(--text-secondary);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
 
-  .card-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
+    .card-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
 
-  .card-left {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-  }
+    .card-left {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
 
-  .hub-card h3 {
-    margin: 0;
-    font-size: 1.1rem;
-    font-weight: 500;
-    color: var(--text-primary);
-  }
+    .hub-card h3 {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 500;
+        color: var(--text-primary);
+    }
 
-  .icon {
-    font-size: 1.25rem;
-    color: var(--text-tertiary);
-    transition: transform 0.2s ease;
-  }
+    .icon {
+        font-size: 1.25rem;
+        color: var(--text-tertiary);
+        transition: transform 0.2s ease;
+    }
 
-  .hub-card:hover .icon {
-    transform: translateX(4px);
-    color: var(--text-primary);
-  }
+    .hub-card:hover .icon {
+        transform: translateX(4px);
+        color: var(--text-primary);
+    }
 
-  /* Contact Section */
-  .divider {
-    margin: 3rem 0;
-    border: none;
-    border-top: 1px solid var(--border-subtle);
-  }
+    /* Contact Section */
+    .divider {
+        margin: 3rem 0;
+        border: none;
+        border-top: 1px solid var(--border-subtle);
+    }
 
-  .contact-list {
-    list-style: none;
-    padding: 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1.5rem;
-  }
+    .contact-list {
+        list-style: none;
+        padding: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+    }
 
-  .contact-list a {
-    color: var(--text-primary);
-    border-bottom: 1px solid var(--border-subtle);
-    padding-bottom: 2px;
-    text-decoration: none;
-  }
+    .contact-list a {
+        color: var(--text-primary);
+        border-bottom: 1px solid var(--border-subtle);
+        padding-bottom: 2px;
+        text-decoration: none;
+    }
 
-  .contact-list a:hover {
-    border-bottom-color: var(--text-primary);
-  }
+    .contact-list a:hover {
+        border-bottom-color: var(--text-primary);
+    }
 </style>
