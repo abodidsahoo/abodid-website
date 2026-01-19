@@ -56,9 +56,12 @@ export async function getRepoContents(path = "") {
         }
 
         if (!response.ok) {
+            const errorText = await response.text();
             console.error(`GitHub API Error: ${response.status} ${response.statusText}`);
-            console.error(await response.text()); // Log response body for details
-            return null; // Return null to indicate error
+            console.error(errorText);
+
+            // Throw specific error to be caught by the UI
+            throw new Error(`GitHub API Error: ${response.status} ${response.statusText} - ${errorText.substring(0, 100)}`);
         }
 
         const data = await response.json();
@@ -91,10 +94,6 @@ export async function getVaultNotes() {
     console.log("[GitHub] Fetching Notes from '6 - Main Notes'");
     // Hardcoded path to ensure no variable resolution issues
     const contents = await getRepoContents("6 - Main Notes");
-
-    if (contents === null) {
-        throw new Error("Failed to fetch notes contents from GitHub");
-    }
 
     if (contents.length === 0) {
         console.warn("[GitHub] No contents found in '6 - Main Notes'");
