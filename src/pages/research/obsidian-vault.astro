@@ -69,7 +69,11 @@ if (isUnlocked) {
         remainingNotes = allNotes.slice(ITEMS_PER_PAGE);
     } catch (e) {
         console.error("Error fetching vault data:", e);
-        error = "Failed to fetch vault data from GitHub. Check server logs.";
+        if (e instanceof Error) {
+            error = e.message;
+        } else {
+            error = "Failed to fetch vault data from GitHub. Check server logs.";
+        }
     }
 }
 

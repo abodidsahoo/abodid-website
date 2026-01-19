@@ -14,7 +14,7 @@ export function getAuthHeaders() {
     const token = getEnv("GITHUB_TOKEN");
     if (!token) {
         console.error("GITHUB_TOKEN is missing from environment variables.");
-        return {};
+        throw new Error("Configuration Error: GITHUB_TOKEN is missing. Please add it to your environment variables (Vercel Settings).");
     }
     return {
         Authorization: `token ${token}`,
