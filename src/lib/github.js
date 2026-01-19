@@ -38,7 +38,11 @@ export async function getRepoContents(path = "") {
             "Accept": "application/vnd.github.v3+json",
             "User-Agent": "Astro-Obsidian-Vault"
         };
-        console.log(`[GitHub] Request URL: ${url} (Token: ${useToken})`);
+        console.log(`[GitHub] Request URL: ${url} (Auth: ${useToken})`);
+        if (useToken) {
+            const token = getEnv("GITHUB_TOKEN");
+            console.log(`[GitHub] Token status: ${token ? "Present (" + token.substring(0, 4) + "...)" : "Missing"}`);
+        }
         return await fetch(url, { headers });
     };
 
@@ -53,7 +57,8 @@ export async function getRepoContents(path = "") {
 
         if (!response.ok) {
             console.error(`GitHub API Error: ${response.status} ${response.statusText}`);
-            return [];
+            console.error(await response.text()); // Log response body for details
+            return null; // Return null to indicate error
         }
 
         const data = await response.json();
@@ -72,13 +77,14 @@ export async function getRepoContents(path = "") {
 
     } catch (error) {
         console.error("Failed to fetch repo contents:", error);
-        return [];
+        return null;
     }
 }
 
 export async function getVaultTags() {
     console.log("[GitHub] Fetching Tags from '3 - Tags'");
-    return await getRepoContents("3 - Tags");
+    const data = await getRepoContents("3 - Tags");
+    return data || [];
 }
 
 export async function getVaultNotes() {
@@ -86,7 +92,11 @@ export async function getVaultNotes() {
     // Hardcoded path to ensure no variable resolution issues
     const contents = await getRepoContents("6 - Main Notes");
 
-    if (!contents || contents.length === 0) {
+    if (contents === null) {
+        throw new Error("Failed to fetch notes contents from GitHub");
+    }
+
+    if (contents.length === 0) {
         console.warn("[GitHub] No contents found in '6 - Main Notes'");
         return [];
     }
