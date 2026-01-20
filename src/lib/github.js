@@ -60,14 +60,8 @@ export async function getRepoContents(path = "") {
             console.error(`GitHub API Error: ${response.status} ${response.statusText}`);
             console.error(errorText);
 
-            const token = getEnv("GITHUB_TOKEN");
-            const tokenPrefix = token ? token.substring(0, 4) + "..." : "NONE";
-
             // Throw specific error to be caught by the UI
-            throw new Error(`GitHub API Error: ${response.status} ${response.statusText} 
-            | Target: ${REPO_OWNER}/${REPO_NAME} 
-            | Token: ${tokenPrefix} 
-            | Msg: ${errorText.substring(0, 100)}`);
+            throw new Error(`GitHub API Error: ${response.status} ${response.statusText} - ${errorText.substring(0, 100)}`);
         }
 
         const data = await response.json();

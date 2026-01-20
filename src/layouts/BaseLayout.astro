@@ -4,6 +4,7 @@ import "../styles/brands.css";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import ThemeToggle from "../components/ThemeToggle.astro";
+import SEO from "../components/SEO.astro";
 
 const { title } = Astro.props;
 ---
@@ -57,7 +58,7 @@ const { title } = Astro.props;
       })();
     </script>
 
-    <title>{title} | Abodid</title>
+    <SEO title={title} />
   </head>
   <body>
     <Header />

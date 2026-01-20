@@ -1,0 +1,59 @@
+---
+export interface Props {
+    title?: string;
+    description?: string;
+    image?: string;
+    type?: "website" | "article";
+}
+
+const {
+    title,
+    description = "Abodid Sahoo's personal digital garden. Research, photography, and creative technologies.",
+    image,
+    type = "website",
+} = Astro.props;
+
+const siteName = "Abodid Sahoo";
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+
+// Generate Dynamic OG Image URL if no specific image is provided
+// We pass the title as a query parameter to our API
+const ogImage = image
+    ? new URL(image, Astro.url)
+    : new URL(
+          `/api/og?title=${encodeURIComponent(title || "Abodid Sahoo")}`,
+          Astro.url,
+      );
+---
+
+<!-- Global Metadata -->
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="canonical" href={canonicalURL} />
+<meta name="generator" content={Astro.generator} />
+
+<!-- Primary Meta Tags -->
+<title>{title ? `${title} | ${siteName}` : siteName}</title>
+<meta name="title" content={title ? `${title} | ${siteName}` : siteName} />
+<meta name="description" content={description} />
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content={type} />
+<meta property="og:url" content={Astro.url} />
+<meta
+    property="og:title"
+    content={title ? `${title} | ${siteName}` : siteName}
+/>
+<meta property="og:description" content={description} />
+<meta property="og:image" content={ogImage} />
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary_large_image" />
+<meta property="twitter:url" content={Astro.url} />
+<meta
+    property="twitter:title"
+    content={title ? `${title} | ${siteName}` : siteName}
+/>
+<meta property="twitter:description" content={description} />
+<meta property="twitter:image" content={ogImage} />
