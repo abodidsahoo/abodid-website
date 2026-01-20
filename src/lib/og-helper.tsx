@@ -1,12 +1,14 @@
 import { ImageResponse } from '@vercel/og';
 
-// Dark gradient combinations
+// Pastel & Bright Gradient combinations (Beige, Lilac, Soft Gradients)
 const gradients = [
-    'linear-gradient(to bottom right, #0F0F10 0%, #1a1a1a 100%)', // Midnight
-    'linear-gradient(120deg, #1a1a1a 0%, #2d3748 100%)', // Onyx
-    'linear-gradient(120deg, #0f2027 0%, #203a43 100%, #2c5364 100%)', // Deep Sea
-    'linear-gradient(to top, #141E30 0%, #243B55 100%)', // Royal Dark
-    'linear-gradient(to top, #000000 0%, #434343 100%)', // Charcoal
+    'linear-gradient(135deg, #FDFBFB 0%, #EBEDEE 100%)', // Soft White/Gray
+    'linear-gradient(to bottom right, #E0C3FC 0%, #8EC5FC 100%)', // Lilac -> Blue
+    'linear-gradient(120deg, #fdfbfb 0%, #ebedee 100%)', // Clean
+    'linear-gradient(to top, #fff1eb 0%, #ace0f9 100%)', // Pale Red -> Pale Blue
+    'linear-gradient(120deg, #fccb90 0%, #d57eeb 100%)', // Peach -> Lilac
+    'linear-gradient(to top, #e6b980 0%, #eacda3 100%)', // Beige / Gold
+    'linear-gradient(to top, #d299c2 0%, #fef9d7 100%)', // Lilac -> Cream
 ];
 
 function getGradient(title: string) {
@@ -16,6 +18,12 @@ function getGradient(title: string) {
 
 export function generateOgImage(title: string, image?: string) {
     const background = getGradient(title);
+    const isCustomImage = !!image;
+
+    // Theme Colors based on mode
+    const textColor = isCustomImage ? '#ffffff' : '#1a1a1a';
+    const subTextColor = isCustomImage ? '#dddddd' : '#4a4a4a';
+    const brandColor = isCustomImage ? '#ffffff' : '#1a1a1a';
 
     return new ImageResponse(
         (
@@ -27,35 +35,33 @@ export function generateOgImage(title: string, image?: string) {
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    backgroundImage: image ? undefined : background,
-                    backgroundColor: '#1a1a1a',
-                    color: '#f0f0f0',
-                    fontFamily: '"Space Mono", monospace',
+                    backgroundImage: isCustomImage ? undefined : background,
+                    backgroundColor: isCustomImage ? '#1a1a1a' : '#fff',
+                    color: textColor,
+                    fontFamily: 'sans-serif',
                     position: 'relative',
                 }}
             >
                 {/* Background Image if provided */}
-                {image && (
+                {isCustomImage && (
                     <img
                         src={image}
                         style={{
                             position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            width: '100%',
-                            height: '100%',
+                            top: 0, left: 0,
+                            width: '100%', height: '100%',
                             objectFit: 'cover',
                         }}
                     />
                 )}
 
                 {/* Overlay for text readability if image exists */}
-                {image && (
+                {isCustomImage && (
                     <div
                         style={{
                             position: 'absolute',
                             top: 0, left: 0, right: 0, bottom: 0,
-                            background: 'rgba(0,0,0,0.5)',
+                            background: 'rgba(0,0,0,0.4)',
                         }}
                     />
                 )}
@@ -63,17 +69,22 @@ export function generateOgImage(title: string, image?: string) {
                 {/* Decorative Elements */}
                 <div style={{
                     position: 'absolute',
-                    top: '40px',
-                    left: '40px',
-                    fontSize: '20px',
-                    fontWeight: 600,
-                    textTransform: 'uppercase',
-                    letterSpacing: '2px',
-                    opacity: 0.8,
-                    color: '#fff', // Always white on overlay
+                    top: '60px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
                     zIndex: 10
                 }}>
-                    Abodid Sahoo
+                    <div style={{
+                        fontSize: '24px',
+                        fontWeight: 600,
+                        textTransform: 'uppercase',
+                        letterSpacing: '4px',
+                        color: brandColor,
+                        opacity: isCustomImage ? 0.9 : 0.8,
+                    }}>
+                        Abodid Sahoo
+                    </div>
                 </div>
 
                 <div style={{
@@ -81,21 +92,22 @@ export function generateOgImage(title: string, image?: string) {
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    padding: '0 80px',
+                    padding: '0 100px',
                     textAlign: 'center',
-                    zIndex: 10
+                    zIndex: 10,
+                    width: '100%'
                 }}>
                     <div
                         style={{
-                            fontSize: 72,
-                            fontWeight: 800,
-                            letterSpacing: '-0.03em',
+                            fontSize: 84, // Bigger font
+                            fontWeight: 800, // Bold
+                            letterSpacing: '-0.04em',
                             fontFamily: 'sans-serif',
-                            lineHeight: 1.1,
+                            lineHeight: 1,
                             textWrap: 'balance',
-                            marginBottom: '20px',
-                            color: '#ffffff',
-                            textShadow: '0 4px 20px rgba(0,0,0,0.5)',
+                            color: textColor,
+                            // Text shadow only needed for image overlays
+                            textShadow: isCustomImage ? '0 4px 30px rgba(0,0,0,0.5)' : 'none',
                         }}
                     >
                         {title}
@@ -104,12 +116,13 @@ export function generateOgImage(title: string, image?: string) {
 
                 <div style={{
                     position: 'absolute',
-                    bottom: '40px',
-                    fontSize: '18px',
+                    bottom: '50px',
+                    fontSize: '20px',
                     fontWeight: 500,
-                    opacity: 0.6,
+                    opacity: 0.7,
                     fontFamily: 'sans-serif',
-                    color: '#ddd',
+                    letterSpacing: '1px',
+                    color: subTextColor,
                     zIndex: 10
                 }}>
                     abodid.com
