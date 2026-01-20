@@ -80,7 +80,7 @@ export async function getRepoContents(path = "") {
 
     } catch (error) {
         console.error("Failed to fetch repo contents:", error);
-        return null;
+        throw error; // Rethrow to let the UI handle it and show the message
     }
 }
 
