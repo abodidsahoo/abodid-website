@@ -4,8 +4,8 @@ import { supabase } from '../../lib/supabaseClient';
 export default function AdminDashboard() {
     const [session, setSession] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [stats, setStats] = useState({ photography: 0, films: 0, posts: 0, projects: 0 });
-    const [selectedTable, setSelectedTable] = useState(null); // 'photography', 'posts', etc.
+    const [stats, setStats] = useState({ photography: 0, films: 0, posts: 0, projects: 0, metadata: 0 });
+    const [selectedTable, setSelectedTable] = useState(null); // 'photography', 'posts', 'page_metadata', etc.
 
     useEffect(() => {
         supabase.auth.getSession().then(({ data: { session } }) => {
@@ -24,11 +24,15 @@ export default function AdminDashboard() {
     }, []);
 
     const fetchStats = async () => {
-        const tableNames = ['photography', 'films', 'blog', 'research'];
+        const tableNames = ['photography', 'films', 'blog', 'research', 'page_metadata'];
         const newStats = {};
         for (const name of tableNames) {
             const { count, error } = await supabase.from(name).select('*', { count: 'exact', head: true });
-            if (!error) newStats[name] = count;
+            if (!error) {
+                // Map 'page_metadata' to 'metadata' key for cleaner state
+                const key = name === 'page_metadata' ? 'metadata' : name;
+                newStats[key] = count;
+            }
         }
         setStats(prev => ({ ...prev, ...newStats }));
     };
@@ -42,7 +46,11 @@ export default function AdminDashboard() {
         <div className="dashboard-container animation-fade-in">
             <header className="dash-header">
                 <div>
-                    <h2 className="text-serif hero-title">{selectedTable ? selectedTable.charAt(0).toUpperCase() + selectedTable.slice(1) : 'Dashboard'}</h2>
+                    <h2 className="text-serif hero-title">
+                        {selectedTable
+                            ? (selectedTable === 'page_metadata' ? 'Page Metadata' : selectedTable.charAt(0).toUpperCase() + selectedTable.slice(1))
+                            : 'Dashboard'}
+                    </h2>
                     {!selectedTable && (
                         <p className="subtext">Welcome back, <span className="user-email">{session.user.email}</span></p>
                     )}
@@ -80,6 +88,12 @@ export default function AdminDashboard() {
                         count={stats.research}
                         onCheck={() => setSelectedTable('research')}
                         onCreate={() => window.location.href = '/admin/editor?table=research&id=new'}
+                    />
+                    <DashboardCard
+                        title="Page Metadata"
+                        count={stats.metadata}
+                        onCheck={() => setSelectedTable('page_metadata')}
+                        onCreate={() => window.location.href = '/admin/editor?table=page_metadata&id=new'}
                     />
                 </div>
             ) : (
@@ -276,12 +290,19 @@ function ListView({ table }) {
 
     const fetchItems = async () => {
         try {
-            const sortCol = table === 'blog' ? 'published_at' : 'created_at';
+            let query = supabase.from(table).select('*');
+
+            // Handle different sort columns based on table
+            if (table === 'blog') {
+                query = query.order('published_at', { ascending: false });
+            } else if (table === 'page_metadata') {
+                query = query.order('page_path', { ascending: true });
+            } else {
+                query = query.order('created_at', { ascending: false });
+            }
+
             setLoading(true);
-            const { data, error } = await supabase
-                .from(table)
-                .select('*')
-                .order(sortCol, { ascending: false });
+            const { data, error } = await query;
 
             if (error) throw error;
             setItems(data || []);
@@ -303,6 +324,25 @@ function ListView({ table }) {
     if (loading) return <div style={{ color: 'var(--text-secondary)' }}>Loading list...</div>;
     if (errorMsg) return <div style={{ color: '#ef4444' }}>Error loading items: {errorMsg}</div>;
 
+    // Helper to determine status and title based on table type
+    const getItemStatus = (item) => {
+        if (table === 'page_metadata') {
+            return {
+                isLive: item.is_active,
+                text: item.is_active ? 'Active' : 'Inactive'
+            };
+        }
+        return {
+            isLive: item.published,
+            text: item.published ? 'Live' : 'Draft'
+        };
+    };
+
+    const getItemTitle = (item) => {
+        if (table === 'page_metadata') return item.page_title || item.page_path;
+        return item.title || '(No Title)';
+    };
+
     return (
         <div className="list-container">
             {items.length === 0 ? (
@@ -317,19 +357,22 @@ function ListView({ table }) {
                         </tr>
                     </thead>
                     <tbody>
-                        {items.map(item => (
-                            <tr key={item.id}>
-                                <td><strong style={{ fontWeight: 500 }}>{item.title || '(No Title)'}</strong></td>
-                                <td>
-                                    <span className={`status-dot ${item.published ? 'published' : 'draft'}`}></span>
-                                    {item.published ? 'Live' : 'Draft'}
-                                </td>
-                                <td className="row-actions">
-                                    <a href={`/admin/editor?table=${table}&id=${item.id}`} className="btn-icon">Edit</a>
-                                    <button onClick={() => handleDelete(item.id)} className="btn-icon delete">Delete</button>
-                                </td>
-                            </tr>
-                        ))}
+                        {items.map(item => {
+                            const status = getItemStatus(item);
+                            return (
+                                <tr key={item.id}>
+                                    <td><strong style={{ fontWeight: 500 }}>{getItemTitle(item)}</strong></td>
+                                    <td>
+                                        <span className={`status-dot ${status.isLive ? 'published' : 'draft'}`}></span>
+                                        {status.text}
+                                    </td>
+                                    <td className="row-actions">
+                                        <a href={`/admin/editor?table=${table}&id=${item.id}`} className="btn-icon">Edit</a>
+                                        <button onClick={() => handleDelete(item.id)} className="btn-icon delete">Delete</button>
+                                    </td>
+                                </tr>
+                            );
+                        })}
                     </tbody>
                 </table>
             )}

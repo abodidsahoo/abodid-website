@@ -12,13 +12,15 @@ export default function ContentEditor({ table, id }) {
     // --- CONFIGURATION ---
     const isPhotography = table === 'photography';
     const isFilms = table === 'films';
+    const isMetadata = table === 'page_metadata';
 
     // Field Config
     const FIELDS = {
         blog: ['slug', 'excerpt', 'published_at'], // content handled separately
         research: ['slug', 'link', 'repo_link', 'tags', 'published_at'],
         photography: ['slug', 'category', 'intro'],
-        films: ['year', 'genre', 'role', 'video_url', 'thumbnail_url']
+        films: ['year', 'genre', 'role', 'video_url', 'thumbnail_url'],
+        page_metadata: ['page_path', 'page_title', 'meta_title', 'meta_description', 'og_image_url', 'is_active']
     };
     const visibleFields = FIELDS[table] || [];
 
@@ -29,7 +31,14 @@ export default function ContentEditor({ table, id }) {
 
     const fetchData = async () => {
         const { data, error } = await supabase.from(table).select('*').eq('id', id).single();
-        if (data) setFormData(data);
+        if (data) {
+            // Map table-specific "active/published" state to common UI state
+            if (table === 'page_metadata') {
+                setFormData({ ...data, published: data.is_active });
+            } else {
+                setFormData(data);
+            }
+        }
         if (error) notify('error', 'Error loading data');
         setLoading(false);
     };
@@ -53,6 +62,12 @@ export default function ContentEditor({ table, id }) {
             payload.published = publishStatus;
         }
 
+        // Map UI "published" state back to DB fields
+        if (table === 'page_metadata') {
+            payload.is_active = payload.published;
+            delete payload.published; // DB doesn't have "published" col for metadata
+        }
+
         const query = isNew
             ? supabase.from(table).insert([payload]).select()
             : supabase.from(table).update(payload).eq('id', id);
@@ -67,7 +82,7 @@ export default function ContentEditor({ table, id }) {
             if (isNew && data) {
                 window.location.href = `/admin/editor?table=${table}&id=${data[0].id}`;
             } else if (!isNew) {
-                setFormData(prev => ({ ...prev, ...payload })); // Update local state specifically for published status
+                setFormData(prev => ({ ...prev, ...payload, published: publishStatus !== null ? publishStatus : prev.published })); // Update local state specifically for published status
             }
         }
         setSaving(false);
@@ -166,7 +181,9 @@ export default function ContentEditor({ table, id }) {
                 <div className="meta-block">
                     <label>Status</label>
                     <div className={`status-badge ${formData.published ? 'live' : 'draft'}`}>
-                        {formData.published ? 'Live' : 'Draft'}
+                        {table === 'page_metadata'
+                            ? (formData.published ? 'Active' : 'Inactive')
+                            : (formData.published ? 'Live' : 'Draft')}
                     </div>
                 </div>
                 <div className="meta-block">
@@ -179,8 +196,8 @@ export default function ContentEditor({ table, id }) {
             <main className="cms-main">
                 {/* ACTIONS */}
                 <header className="cms-actions">
-                    <div className={`context-title ${!formData.title ? 'placeholder' : ''}`}>
-                        {formData.title || 'Untitled Project'}
+                    <div className={`context-title ${(!formData.title && !formData.page_title) ? 'placeholder' : ''}`}>
+                        {formData.title || formData.page_title || 'Untitled Project'}
                     </div>
                     <div className="btn-group">
                         <button className="btn sec" onClick={() => handleSave(false)}>Save Draft</button>
@@ -355,7 +372,7 @@ export default function ContentEditor({ table, id }) {
                         {/* =========================================
                             MODE: WRITING (BLOG) & RESEARCH EDITOR
                            ========================================= */}
-                        {(!isFilms && !isPhotography) && (
+                        {(!isFilms && !isPhotography && !isMetadata) && (
                             <div className="editor-stack">
                                 {/* SECTION 1: METADATA & COVER */}
                                 <div className="meta-cover-row">
@@ -454,6 +471,130 @@ export default function ContentEditor({ table, id }) {
                                                 placeholder="Write your article..."
                                                 spellCheck="false"
                                             />
+                                        </div>
+                                    </section>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* =========================================
+                            MODE: PAGE METADATA EDITOR
+                           ========================================= */}
+                        {isMetadata && (
+                            <div className="editor-stack">
+                                <div className="meta-cover-row">
+                                    <div className="stack-section fit-content">
+                                        <section className="card-section">
+                                            <label className="section-label">Context</label>
+                                            <div className="field-group">
+                                                <label>Page Path</label>
+                                                <input
+                                                    type="text"
+                                                    className="box-input"
+                                                    placeholder="/path/to/page"
+                                                    value={formData.page_path || ''}
+                                                    onChange={e => handleChange('page_path', e.target.value)}
+                                                />
+                                                <small style={{ color: 'var(--text-tertiary)', fontSize: '0.7em' }}>Must be unique (e.g. /, /about, /photography)</small>
+                                            </div>
+                                            <div className="field-group">
+                                                <label>Internal Title</label>
+                                                <input
+                                                    type="text"
+                                                    className="box-input large"
+                                                    placeholder="Page Name..."
+                                                    value={formData.page_title || ''}
+                                                    onChange={e => handleChange('page_title', e.target.value)}
+                                                />
+                                            </div>
+                                        </section>
+                                    </div>
+
+                                    <div className="stack-section fit-content">
+                                        <section className="card-section">
+                                            <label className="section-label">SEO Details</label>
+                                            <div className="field-group">
+                                                <label>Meta Title (Browser Tab)</label>
+                                                <input
+                                                    type="text"
+                                                    className="box-input"
+                                                    placeholder="Page Title | Abodid Sahoo"
+                                                    value={formData.meta_title || ''}
+                                                    onChange={e => handleChange('meta_title', e.target.value)}
+                                                />
+                                            </div>
+                                            <div className="field-group">
+                                                <label>Meta Description</label>
+                                                <textarea
+                                                    className="box-input"
+                                                    style={{ minHeight: '100px' }}
+                                                    placeholder="Description for search engines..."
+                                                    value={formData.meta_description || ''}
+                                                    onChange={e => handleChange('meta_description', e.target.value)}
+                                                />
+                                            </div>
+                                        </section>
+                                    </div>
+                                </div>
+
+                                <div className="stack-section full-editor">
+                                    <section className="card-section">
+                                        <label className="section-label">Social Image (Open Graph)</label>
+                                        <div className="meta-grid">
+                                            <div className="field-group">
+                                                <label>Custom Image URL</label>
+                                                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                                    <div style={{ flex: 1 }}>
+                                                        {formData.og_image_url ? (
+                                                            <div className="cover-wrapper-small preview-active">
+                                                                <div className="preview-fit">
+                                                                    <img src={formData.og_image_url} />
+                                                                    <button className="btn-mini-remove" onClick={() => handleChange('og_image_url', '')}>Remove</button>
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            <ImageUploader
+                                                                bucket="page-assets" path="og-images" label="Upload Custom OG Image"
+                                                                className="cover-uploader-box"
+                                                                onUpload={f => handleChange('og_image_url', f[0].url)}
+                                                            />
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="field-group">
+                                                <label>Dynamic Generated Preview</label>
+                                                <div style={{
+                                                    width: '100%', aspectRatio: '1200/630',
+                                                    background: '#111', borderRadius: '8px',
+                                                    overflow: 'hidden', position: 'relative',
+                                                    border: '1px solid var(--border-subtle)'
+                                                }}>
+                                                    <img
+                                                        src={`/api/og?title=${encodeURIComponent(formData.page_title || formData.title || 'Preview')}${formData.og_image_url ? `&image=${encodeURIComponent(formData.og_image_url)}` : ''}`}
+                                                        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                                                    />
+                                                    <a
+                                                        href={`/api/og?title=${encodeURIComponent(formData.page_title || formData.title || 'Preview')}${formData.og_image_url ? `&image=${encodeURIComponent(formData.og_image_url)}` : ''}`}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                        style={{
+                                                            position: 'absolute', bottom: '10px', right: '10px',
+                                                            background: 'rgba(0,0,0,0.7)', color: 'white',
+                                                            padding: '5px 10px', borderRadius: '4px', fontSize: '0.75rem',
+                                                            textDecoration: 'none'
+                                                        }}
+                                                    >
+                                                        Open Full Size ↗
+                                                    </a>
+                                                </div>
+                                                <small style={{ marginTop: '0.5rem', display: 'block', color: 'var(--text-tertiary)' }}>
+                                                    {formData.og_image_url
+                                                        ? "Your custom image is automatically cropped to 1200x630 with a text overlay."
+                                                        : "Using default gradient. Upload a custom image to replace background."}
+                                                </small>
+                                            </div>
                                         </div>
                                     </section>
                                 </div>

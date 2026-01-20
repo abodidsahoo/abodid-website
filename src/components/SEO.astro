@@ -16,14 +16,14 @@ const {
 const siteName = "Abodid Sahoo";
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
-// Generate Dynamic OG Image URL if no specific image is provided
-// We pass the title as a query parameter to our API
-const ogImage = image
-    ? new URL(image, Astro.url)
-    : new URL(
-          `/api/og?title=${encodeURIComponent(title || "Abodid Sahoo")}`,
-          Astro.url,
-      );
+// Generate Dynamic OG Image URL
+// We always use the proxy logic to ensure consistent styling and cropping (1200x630)
+const ogImageUrl = new URL(`/api/og`, Astro.url);
+ogImageUrl.searchParams.set("title", title || "Abodid Sahoo");
+if (image) {
+    ogImageUrl.searchParams.set("image", image);
+}
+const ogImage = ogImageUrl.toString();
 ---
 
 <!-- Global Metadata -->
