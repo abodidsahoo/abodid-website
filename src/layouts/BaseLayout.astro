@@ -5,8 +5,19 @@ import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import ThemeToggle from "../components/ThemeToggle.astro";
 import SEO from "../components/SEO.astro";
+import { getPageMetadata } from "../lib/api";
 
-const { title } = Astro.props;
+const { title, description, image, type } = Astro.props;
+
+// Fetch metadata from database if not provided via props
+const pagePath = Astro.url.pathname;
+const dbMetadata = await getPageMetadata(pagePath);
+
+// Props override database values
+const finalTitle = title || dbMetadata?.meta_title || dbMetadata?.page_title;
+const finalDescription = description || dbMetadata?.meta_description;
+const finalImage = image || dbMetadata?.og_image_url;
+const finalType = type || dbMetadata?.og_type || "website";
 ---
 
 <html lang="en">
@@ -58,7 +69,12 @@ const { title } = Astro.props;
       })();
     </script>
 
-    <SEO title={title} />
+    <SEO
+      title={finalTitle}
+      description={finalDescription}
+      image={finalImage}
+      type={finalType}
+    />
     <!-- Dynamic SEO & Social Images applied -->
   </head>
   <body>

@@ -17,7 +17,11 @@ if (!project) {
 const contentHtml = marked.parse(project.content || "");
 ---
 
-<BaseLayout title={project.title}>
+<BaseLayout
+  title={project.title}
+  description={project.intro || project.description}
+  image={project.cover_image}
+>
   <article class="photography-article">
     <header class="project-header">
       <span class="meta">{project.date}</span>

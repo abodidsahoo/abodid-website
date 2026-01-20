@@ -3,34 +3,20 @@ export const prerender = false;
 import AdminLayout from "../../layouts/AdminLayout.astro";
 import ThemeToggle from "../../components/ThemeToggle.astro";
 import ContentEditor from "../../components/admin/ContentEditor.jsx";
+
+// Parse URL params
+const table = Astro.url.searchParams.get("table");
+const id = Astro.url.searchParams.get("id");
+
+// Redirect if missing params
+if (!table || !id) {
+  return Astro.redirect("/admin/dashboard");
+}
 ---
 
 <AdminLayout title="Editor" fullWidth={true}>
   <div style="position: absolute; top: 1rem; right: 1rem; z-index: 100;">
     <ThemeToggle />
   </div>
-  <div id="editor-mount"></div>
+  <ContentEditor client:only="react" table={table} id={id} />
 </AdminLayout>
-
-<script>
-  import React from "react";
-  import { createRoot } from "react-dom/client";
-  import ContentEditor from "../../components/admin/ContentEditor.jsx";
-
-  // Parse URL Params: /admin/editor?table=posts&id=new
-  const params = new URLSearchParams(window.location.search);
-  const table = params.get("table");
-  const id = params.get("id");
-
-  const container = document.getElementById("editor-mount");
-  if (container) {
-    const root = createRoot(container);
-
-    if (table && id) {
-      root.render(React.createElement(ContentEditor, { table, id }));
-    } else {
-      // Fallback or Error
-      window.location.href = "/admin/dashboard";
-    }
-  }
-</script>

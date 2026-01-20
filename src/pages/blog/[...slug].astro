@@ -35,7 +35,12 @@ if (!post) {
 const contentHtml = marked.parse(post.content || "");
 ---
 
-<BaseLayout title={post.title}>
+<BaseLayout
+  title={post.title}
+  description={post.excerpt || post.description}
+  image={post.cover_image}
+  type="article"
+>
   <article class="post-container">
     <header class="post-header">
       <div class="meta">

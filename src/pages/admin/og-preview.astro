@@ -1,0 +1,474 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="OG Image Preview & Testing">
+    <div class="og-preview-container">
+        <h1>Open Graph Image Preview & Testing</h1>
+        <p class="subtitle">
+            Test what your pages look like when shared on WhatsApp, Facebook,
+            Twitter, and LinkedIn
+        </p>
+
+        <!-- Dynamic OG Image Preview -->
+        <section class="preview-section">
+            <h2>🎨 Dynamic OG Image Preview</h2>
+            <p>
+                Enter a page title to see what the auto-generated OG image looks
+                like:
+            </p>
+
+            <div class="input-group">
+                <input
+                    type="text"
+                    id="titleInput"
+                    placeholder="Enter page title (e.g., About, Photography, Research)"
+                    value="Abodid Sahoo"
+                />
+                <button id="previewBtn">Generate Preview</button>
+            </div>
+
+            <div class="image-preview">
+                <img
+                    id="ogImage"
+                    src="/api/og?title=Abodid%20Sahoo"
+                    alt="OG Image Preview"
+                />
+                <p class="image-info">
+                    1200 × 630 pixels (Optimal for social sharing)
+                </p>
+            </div>
+        </section>
+
+        <!-- Major Pages Quick Links -->
+        <section class="quick-links-section">
+            <h2>📄 Preview Major Pages</h2>
+            <div class="page-grid">
+                <button class="page-btn" data-title="Abodid Sahoo"
+                    >Homepage</button
+                >
+                <button class="page-btn" data-title="About">About</button>
+                <button class="page-btn" data-title="Photography"
+                    >Photography</button
+                >
+                <button class="page-btn" data-title="Research">Research</button>
+                <button class="page-btn" data-title="Blog">Blog</button>
+                <button class="page-btn" data-title="Press">Press</button>
+            </div>
+        </section>
+
+        <!-- Social Media Testing Tools -->
+        <section class="testing-tools-section">
+            <h2>🔍 Social Media Debuggers</h2>
+            <p>
+                Use these tools to test how your pages appear on different
+                platforms:
+            </p>
+
+            <div class="tools-grid">
+                <a
+                    href="https://developers.facebook.com/tools/debug/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="tool-card"
+                >
+                    <h3>Facebook Debugger</h3>
+                    <p>Test how your page appears on Facebook and LinkedIn</p>
+                </a>
+
+                <a
+                    href="https://cards-dev.twitter.com/validator"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="tool-card"
+                >
+                    <h3>Twitter Card Validator</h3>
+                    <p>Preview Twitter/X card appearance</p>
+                </a>
+
+                <a
+                    href="https://www.opengraph.xyz/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="tool-card"
+                >
+                    <h3>OpenGraph.xyz</h3>
+                    <p>Universal OG tag preview tool</p>
+                </a>
+
+                <a
+                    href="https://metatags.io/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="tool-card"
+                >
+                    <h3>Meta Tags</h3>
+                    <p>Generate and preview meta tags</p>
+                </a>
+            </div>
+        </section>
+
+        <!-- WhatsApp Testing Instructions -->
+        <section class="whatsapp-section">
+            <h2>💬 Testing on WhatsApp</h2>
+            <div class="instructions">
+                <ol>
+                    <li>
+                        <strong>Deploy your site</strong> to production or staging
+                        (WhatsApp needs a public URL)
+                    </li>
+                    <li>
+                        <strong>Copy the page URL</strong> you want to test (e.g.,
+                        https://abodid.com/about)
+                    </li>
+                    <li><strong>Open WhatsApp</strong> on your phone</li>
+                    <li><strong>Paste the link</strong> in any chat</li>
+                    <li>
+                        <strong>Wait a moment</strong> - WhatsApp will fetch the OG
+                        image and show a preview
+                    </li>
+                </ol>
+
+                <div class="note">
+                    <strong>Note:</strong> WhatsApp caches OG images aggressively.
+                    If you update your OG image and don't see changes:
+                    <ul>
+                        <li>
+                            Add a query parameter to the URL (e.g., <code
+                                >?v=2</code
+                            >)
+                        </li>
+                        <li>Wait 24-48 hours for cache to expire</li>
+                        <li>
+                            Use Facebook Debugger to force a refresh, then try
+                            WhatsApp again
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Current Page URLs -->
+        <section class="urls-section">
+            <h2>🔗 Your Page URLs</h2>
+            <p>Copy these URLs to test in social media debuggers:</p>
+            <div class="url-list">
+                <div class="url-item">
+                    <code>https://abodid.com/</code>
+                    <button class="copy-btn" data-url="https://abodid.com/"
+                        >Copy</button
+                    >
+                </div>
+                <div class="url-item">
+                    <code>https://abodid.com/about</code>
+                    <button class="copy-btn" data-url="https://abodid.com/about"
+                        >Copy</button
+                    >
+                </div>
+                <div class="url-item">
+                    <code>https://abodid.com/photography</code>
+                    <button
+                        class="copy-btn"
+                        data-url="https://abodid.com/photography">Copy</button
+                    >
+                </div>
+                <div class="url-item">
+                    <code>https://abodid.com/research</code>
+                    <button
+                        class="copy-btn"
+                        data-url="https://abodid.com/research">Copy</button
+                    >
+                </div>
+                <div class="url-item">
+                    <code>https://abodid.com/blog</code>
+                    <button class="copy-btn" data-url="https://abodid.com/blog"
+                        >Copy</button
+                    >
+                </div>
+            </div>
+        </section>
+    </div>
+</BaseLayout>
+
+<style>
+    .og-preview-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    h1 {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+        color: var(--text-secondary);
+        font-size: 1.1rem;
+        margin-bottom: 3rem;
+    }
+
+    .preview-section,
+    .quick-links-section,
+    .testing-tools-section,
+    .whatsapp-section,
+    .urls-section {
+        margin-bottom: 3rem;
+        padding: 2rem;
+        background: var(--bg-secondary);
+        border-radius: 12px;
+        border: 1px solid var(--border-subtle);
+    }
+
+    h2 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .input-group {
+        display: flex;
+        gap: 1rem;
+        margin: 1.5rem 0;
+    }
+
+    #titleInput {
+        flex: 1;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        border: 1px solid var(--border-subtle);
+        border-radius: 8px;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+    }
+
+    #previewBtn {
+        padding: 0.75rem 2rem;
+        background: #3b82f6;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    #previewBtn:hover {
+        background: #2563eb;
+    }
+
+    .image-preview {
+        margin-top: 2rem;
+        text-align: center;
+    }
+
+    #ogImage {
+        max-width: 100%;
+        border-radius: 8px;
+        border: 2px solid var(--border-subtle);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .image-info {
+        margin-top: 0.5rem;
+        font-size: 0.875rem;
+        color: var(--text-tertiary);
+    }
+
+    .page-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+    }
+
+    .page-btn {
+        padding: 1rem;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        border: 1px solid var(--border-subtle);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-weight: 500;
+    }
+
+    .page-btn:hover {
+        background: #3b82f6;
+        color: white;
+        border-color: #3b82f6;
+        transform: translateY(-2px);
+    }
+
+    .tools-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+    }
+
+    .tool-card {
+        padding: 1.5rem;
+        background: var(--bg-primary);
+        border: 1px solid var(--border-subtle);
+        border-radius: 8px;
+        text-decoration: none;
+        color: inherit;
+        transition: all 0.2s;
+    }
+
+    .tool-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        border-color: var(--text-primary);
+    }
+
+    .tool-card h3 {
+        margin: 0 0 0.5rem 0;
+        font-size: 1.1rem;
+    }
+
+    .tool-card p {
+        margin: 0;
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+    }
+
+    .instructions ol {
+        line-height: 1.8;
+        padding-left: 1.5rem;
+    }
+
+    .instructions li {
+        margin-bottom: 0.5rem;
+    }
+
+    .note {
+        margin-top: 1.5rem;
+        padding: 1rem;
+        background: var(--bg-primary);
+        border-left: 4px solid var(--text-primary);
+        border-radius: 4px;
+    }
+
+    .note ul {
+        margin-top: 0.5rem;
+        padding-left: 1.5rem;
+    }
+
+    .note code {
+        background: var(--bg-secondary);
+        padding: 0.2rem 0.4rem;
+        border-radius: 4px;
+        font-size: 0.9em;
+    }
+
+    .url-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .url-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.75rem 1rem;
+        background: var(--bg-primary);
+        border: 1px solid var(--border-subtle);
+        border-radius: 8px;
+    }
+
+    .url-item code {
+        font-size: 0.9rem;
+        color: var(--text-primary);
+    }
+
+    .copy-btn {
+        padding: 0.5rem 1rem;
+        background: #3b82f6;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .copy-btn:hover {
+        background: #2563eb;
+    }
+
+    .copy-btn.copied {
+        background: #10b981;
+    }
+
+    @media (max-width: 768px) {
+        .og-preview-container {
+            padding: 1rem;
+        }
+
+        h1 {
+            font-size: 2rem;
+        }
+
+        .input-group {
+            flex-direction: column;
+        }
+
+        .tools-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<script>
+    // Preview button functionality
+    const titleInput = document.getElementById(
+        "titleInput",
+    ) as HTMLInputElement;
+    const previewBtn = document.getElementById(
+        "previewBtn",
+    ) as HTMLButtonElement;
+    const ogImage = document.getElementById("ogImage") as HTMLImageElement;
+
+    function updatePreview() {
+        const title = titleInput.value || "Abodid Sahoo";
+        const encodedTitle = encodeURIComponent(title);
+        ogImage.src = `/api/og?title=${encodedTitle}`;
+    }
+
+    previewBtn.addEventListener("click", updatePreview);
+    titleInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+            updatePreview();
+        }
+    });
+
+    // Page quick links
+    const pageButtons = document.querySelectorAll(".page-btn");
+    pageButtons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const title = btn.getAttribute("data-title") || "";
+            titleInput.value = title;
+            updatePreview();
+        });
+    });
+
+    // Copy URL functionality
+    const copyButtons = document.querySelectorAll(".copy-btn");
+    copyButtons.forEach((btn) => {
+        btn.addEventListener("click", async () => {
+            const url = btn.getAttribute("data-url") || "";
+            try {
+                await navigator.clipboard.writeText(url);
+                btn.textContent = "Copied!";
+                btn.classList.add("copied");
+                setTimeout(() => {
+                    btn.textContent = "Copy";
+                    btn.classList.remove("copied");
+                }, 2000);
+            } catch (err) {
+                console.error("Failed to copy:", err);
+            }
+        });
+    });
+</script>

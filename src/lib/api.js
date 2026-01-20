@@ -669,3 +669,104 @@ export async function getResearchPapers() {
 
     return data;
 }
+
+// --- Page Metadata (Table: 'page_metadata') ---
+
+export async function getPageMetadata(pagePath) {
+    if (!isSupabaseConfigured()) return null;
+
+    try {
+        const { data, error } = await supabase
+            .from('page_metadata')
+            .select('*')
+            .eq('page_path', pagePath)
+            .eq('is_active', true)
+            .single();
+
+        if (error) {
+            // Not finding metadata is not necessarily an error - page might not have custom metadata
+            if (error.code !== 'PGRST116') { // PGRST116 = no rows returned
+                console.error('Error fetching page metadata:', error);
+            }
+            return null;
+        }
+
+        return data;
+    } catch (e) {
+        console.error('Failed to fetch page metadata:', e);
+        return null;
+    }
+}
+
+export async function getAllPageMetadata() {
+    if (!isSupabaseConfigured()) return [];
+
+    try {
+        const { data, error } = await supabase
+            .from('page_metadata')
+            .select('*')
+            .eq('is_active', true)
+            .order('page_path', { ascending: true });
+
+        if (error) throw error;
+        return data;
+    } catch (e) {
+        console.error('Failed to fetch all page metadata:', e);
+        return [];
+    }
+}
+
+export async function updatePageMetadata(id, updates) {
+    if (!isSupabaseConfigured()) return { success: false, error: 'Supabase not configured' };
+
+    try {
+        const { data, error } = await supabase
+            .from('page_metadata')
+            .update(updates)
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) throw error;
+        return { success: true, data };
+    } catch (e) {
+        console.error('Failed to update page metadata:', e);
+        return { success: false, error: e.message };
+    }
+}
+
+export async function createPageMetadata(metadata) {
+    if (!isSupabaseConfigured()) return { success: false, error: 'Supabase not configured' };
+
+    try {
+        const { data, error } = await supabase
+            .from('page_metadata')
+            .insert([metadata])
+            .select()
+            .single();
+
+        if (error) throw error;
+        return { success: true, data };
+    } catch (e) {
+        console.error('Failed to create page metadata:', e);
+        return { success: false, error: e.message };
+    }
+}
+
+export async function deletePageMetadata(id) {
+    if (!isSupabaseConfigured()) return { success: false, error: 'Supabase not configured' };
+
+    try {
+        const { error } = await supabase
+            .from('page_metadata')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
+        return { success: true };
+    } catch (e) {
+        console.error('Failed to delete page metadata:', e);
+        return { success: false, error: e.message };
+    }
+}
+
