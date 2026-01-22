@@ -1,0 +1,494 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import PdfIcon from "../../components/PdfIcon.astro";
+
+const pageTitle = "Cambridge Data School Fundraiser";
+
+// Project Data
+const goal = 1600;
+const raised = 820;
+const percentage = Math.min((raised / goal) * 100, 100);
+
+// Cost Data
+const costs = [
+    { item: "International Flight (India ↔ UK)", cost: 500 },
+    { item: "Accommodation (5 nights @ Selwyn College)", cost: 500 },
+    { item: "Local Travel (London – Cambridge)", cost: 200 },
+    { item: "Food & Essentials", cost: 250 },
+    { item: "Insurance / Contingency", cost: 150 },
+];
+---
+
+<BaseLayout title={pageTitle}>
+    <div class="campaign-page">
+        {/* --- HERO SECTION --- */}
+        <header class="campaign-hero">
+            <div class="hero-content">
+                <span class="eyebrow">Milestone Project</span>
+                <h1>From a small town in Odisha to Cambridge University.</h1>
+                <p class="subtitle">
+                    I’ve been awarded a <strong>full bursary</strong> to attend the
+                    Cambridge Cultural Heritage Data School. I’m raising <strong
+                        >£1,600</strong
+                    > to cover travel and living costs.
+                </p>
+            </div>
+        </header>
+
+        {/* --- TRUST / BURSARY CONFIRMATION --- */}
+        <section class="trust-section">
+            <div class="trust-card">
+                <div class="seal-icon">🏛️</div>
+                <blockquote>
+                    “We are delighted to offer you a bursary place at the
+                    Cultural Heritage Data School (CHDS), held in Cambridge from
+                    13–17 April 2026.”
+                </blockquote>
+                <div class="trust-meta">
+                    <span>✅ Full Bursary Awarded</span>
+                    <span>📅 13–17 April 2026</span>
+                    <span>📍 Cambridge, UK</span>
+                </div>
+            </div>
+        </section>
+
+        {/* --- MAIN EDITORIAL CONTENT --- */}
+        <article class="story-content">
+            <div class="content-block">
+                <h2>Why This Matters</h2>
+                <p>
+                    I have been offered a fully funded bursary place at the <strong
+                        >Cambridge Cultural Heritage Data School (CHDS)</strong
+                    >. The tuition fee has been completely waived. The remaining
+                    challenge is covering travel, accommodation, and essential
+                    living expenses.
+                </p>
+                <p>
+                    The <strong>Cambridge Cultural Heritage Data School</strong> is
+                    an intensive, in-person program focused on experience design,
+                    cultural data, and digital humanities. The curriculum explores
+                    how data, culture, and storytelling can be transformed into meaningful
+                    public experiences.
+                </p>
+            </div>
+
+            <div class="content-block">
+                <h3>About the Program</h3>
+                <ul>
+                    <li>Experience design methodologies</li>
+                    <li>Prototyping digital & analogue games</li>
+                    <li>
+                        Interactive performance design & Co-design workshops
+                    </li>
+                    <li>Worldbuilding in 3D using Blender</li>
+                </ul>
+                <p>
+                    This program sits directly at the intersection of culture,
+                    technology, design and storytelling — exactly where my work
+                    lives.
+                </p>
+            </div>
+
+            <div class="content-block">
+                <h2>My Background</h2>
+                <p>
+                    I was born and raised in <strong>Odisha, India</strong>, in
+                    a small town. I come from a middle-class family where
+                    education matters deeply — and where financial decisions are
+                    made carefully.
+                </p>
+                <p>
+                    I hold a Master’s degree in <strong
+                        >Digital Direction</strong
+                    > from the <strong>Royal College of Art, London</strong>,
+                    supported by a <strong class="highlight-apple"
+                        >full scholarship from Apple</strong
+                    >.
+                </p>
+                <p>
+                    Scholarships like this have paved my path from a small town
+                    to world-renowned institutions. In the future, I aspire to
+                    pursue a <strong>PhD at Cambridge</strong>, and the Cultural
+                    Heritage Data School feels like the perfect stepping stone
+                    to understand exactly what this school entails, interact
+                    with mentors, and explore full funding opportunities for my
+                    doctorate.
+                </p>
+                <p>
+                    I want to bring in my real-life projects, my <strong
+                        >South Asian context</strong
+                    >, the <strong>deep-rooted human-ness</strong> I share with my
+                    local communities, and the stories I carry with me. My goal is
+                    to merge these with world-class technologies and social sciences
+                    to build amazing products and organizations that truly make people's
+                    lives better.
+                </p>
+            </div>
+
+            {/* --- TRANSPARENCY SECTION --- */}
+            <div class="transparency-block">
+                <h3>Transparent Cost Breakdown</h3>
+                <p class="transparency-intro">
+                    This amount covers only essential costs required to attend
+                    in person. The course itself is free.
+                </p>
+
+                <div class="cost-table-wrapper">
+                    <table class="cost-table">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th class="text-right">Estimated Cost</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {
+                                costs.map((row) => (
+                                    <tr>
+                                        <td>{row.item}</td>
+                                        <td class="text-right">£{row.cost}</td>
+                                    </tr>
+                                ))
+                            }
+                            <tr class="total-row">
+                                <td><strong>Total Goal</strong></td>
+                                <td class="text-right"
+                                    ><strong>£1,600</strong></td
+                                >
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {/* --- REWARDS SECTION --- */}
+            <div class="rewards-block">
+                <div class="reward-card">
+                    <h4>🎁 In Gratitude: The Secret Lab</h4>
+                    <p>
+                        Supporters are not purchasing anything — this is
+                        appreciation-based. However, as a thank you, I am
+                        offering free access to my <strong>Secret Lab</strong> (normally
+                        £250/month).
+                    </p>
+                    <ul>
+                        <li>Obsidian knowledge systems & research workflows</li>
+                        <li>Learning frameworks & workshops</li>
+                        <li>Name listed in credits of work produced at CHDS</li>
+                    </ul>
+                </div>
+            </div>
+        </article>
+
+        {/* --- STICKY DONATION WIDGET (Glassmorphism) --- */}
+        <div class="donation-widget">
+            <div class="widget-progress">
+                <div class="widget-header">
+                    <span class="amount-raised">£{raised}</span>
+                    <span class="amount-goal">raised of £{goal}</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div
+                        class="progress-bar-fill"
+                        style={`width: ${percentage}%`}
+                    >
+                    </div>
+                </div>
+                <div class="percentage-text">
+                    {Math.round(percentage)}% Funded
+                </div>
+            </div>
+
+            <div class="widget-actions">
+                {/* PayPal SDK Script */}
+                <script
+                    is:inline
+                    src="https://www.paypal.com/sdk/js?client-id=BAAQE8TkamhCfaYjOOl_ZjtgKbY0ZCtyOzmdOe83xf_zWg30P2ZzyrL0_v1NsBdll_k9zw5wYPq9KJkXy8&components=hosted-buttons&disable-funding=venmo&currency=GBP"
+                ></script>
+
+                <div id="paypal-container-22T4QFMFG6BDS"></div>
+
+                <script is:inline>
+                    const renderPayPal = () => {
+                        if (window.paypal && window.paypal.HostedButtons) {
+                            window.paypal
+                                .HostedButtons({
+                                    hostedButtonId: "22T4QFMFG6BDS",
+                                })
+                                .render("#paypal-container-22T4QFMFG6BDS");
+                            return true;
+                        }
+                        return false;
+                    };
+                    if (!renderPayPal()) {
+                        const intervalId = setInterval(() => {
+                            if (renderPayPal()) clearInterval(intervalId);
+                        }, 200);
+                        setTimeout(() => clearInterval(intervalId), 5000);
+                    }
+                </script>
+            </div>
+
+            <p class="widget-footer">🔒 Secure payment via PayPal</p>
+        </div>
+    </div>
+</BaseLayout>
+
+<style>
+    /* --- LAYOUT --- */
+    .campaign-page {
+        max-width: 800px; /* Editorial Width */
+        margin: 0 auto;
+        padding: 4rem 1.5rem 10rem 1.5rem;
+        position: relative;
+    }
+
+    /* --- HERO --- */
+    .campaign-hero {
+        text-align: center;
+        margin-bottom: 4rem;
+    }
+
+    .eyebrow {
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.15em;
+        color: #4ade80; /* Accent Color */
+        font-weight: 600;
+        margin-bottom: 1rem;
+        display: block;
+    }
+
+    h1 {
+        font-family: "Poppins", sans-serif;
+        font-size: 3rem; /* Large Display */
+        line-height: 1.1;
+        margin-bottom: 1.5rem;
+        font-weight: 700;
+    }
+
+    .subtitle {
+        font-size: 1.25rem;
+        color: var(--text-secondary);
+        line-height: 1.6;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    strong {
+        color: #fff;
+        font-weight: 600;
+    }
+
+    .highlight-apple {
+        color: #fff;
+        text-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+        font-weight: 700;
+    }
+
+    /* --- TRUST SECTION --- */
+    .trust-section {
+        margin-bottom: 4rem;
+    }
+
+    .trust-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-left: 4px solid #4ade80;
+        padding: 2rem;
+        border-radius: 8px;
+        text-align: center;
+    }
+
+    .seal-icon {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+    }
+
+    blockquote {
+        font-family: "Georgia", serif;
+        font-style: italic;
+        font-size: 1.1rem;
+        color: var(--text-secondary);
+        margin: 0 0 1.5rem 0;
+        line-height: 1.6;
+    }
+
+    .trust-meta {
+        display: flex;
+        justify-content: center;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    /* --- EDITORIAL CONTENT --- */
+    .story-content {
+        font-size: 1.1rem;
+        line-height: 1.8;
+        color: var(--text-secondary);
+    }
+
+    .content-block {
+        margin-bottom: 3rem;
+    }
+
+    h2,
+    h3,
+    h4 {
+        color: var(--text-primary);
+        font-family: "Poppins", sans-serif;
+        margin-bottom: 1rem;
+    }
+
+    h2 {
+        font-size: 2rem;
+    }
+    h3 {
+        font-size: 1.5rem;
+    }
+
+    ul {
+        margin-bottom: 1.5rem;
+        padding-left: 1.5rem;
+    }
+
+    li {
+        margin-bottom: 0.5rem;
+    }
+
+    /* --- TRANSPARENCY TABLE --- */
+    .transparency-block {
+        background: var(--bg-surface);
+        padding: 2rem;
+        border-radius: 12px;
+        border: 1px solid var(--border-subtle);
+    }
+
+    .cost-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1.5rem;
+        font-size: 0.95rem;
+    }
+
+    .cost-table th {
+        text-align: left;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border-subtle);
+        color: var(--text-tertiary);
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 0.05em;
+    }
+
+    .cost-table td {
+        padding: 1rem 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .text-right {
+        text-align: right;
+    }
+
+    .total-row td {
+        border-bottom: none;
+        padding-top: 1.5rem;
+        font-size: 1.1rem;
+        color: #4ade80;
+    }
+
+    /* --- REWARDS --- */
+    .rewards-block {
+        margin-top: 6rem;
+    }
+
+    .reward-card {
+        background: linear-gradient(
+            145deg,
+            rgba(74, 222, 128, 0.1),
+            transparent
+        );
+        border: 1px solid rgba(74, 222, 128, 0.3);
+        padding: 2rem;
+        border-radius: 12px;
+    }
+
+    /* --- STICKY DONATION WIDGET --- */
+    .donation-widget {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        width: 320px;
+        background: rgba(15, 15, 16, 0.9); /* High contrast dark */
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        padding: 1.5rem;
+        border-radius: 16px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+        z-index: 100;
+    }
+
+    .widget-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 0.8rem;
+    }
+
+    .amount-raised {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #fff;
+        font-family: "Space Mono", monospace;
+    }
+
+    .amount-goal {
+        font-size: 0.85rem;
+        color: var(--text-tertiary);
+    }
+
+    .progress-bar-bg {
+        width: 100%;
+        height: 8px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+        margin-bottom: 0.5rem;
+        overflow: hidden;
+    }
+
+    .progress-bar-fill {
+        height: 100%;
+        background: #4ade80;
+        border-radius: 4px;
+    }
+
+    .percentage-text {
+        font-size: 0.8rem;
+        color: #4ade80;
+        text-align: right;
+        margin-bottom: 1.5rem;
+        font-family: "Space Mono", monospace;
+    }
+
+    .widget-footer {
+        text-align: center;
+        font-size: 0.75rem;
+        color: var(--text-tertiary);
+        margin-top: 1rem;
+    }
+
+    /* Mobile Responsive for Widget */
+    @media (max-width: 850px) {
+        .donation-widget {
+            position: relative;
+            bottom: auto;
+            right: auto;
+            width: 100%;
+            margin-top: 3rem;
+        }
+    }
+</style>

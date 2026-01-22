@@ -1,0 +1,125 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import FundraisingCard from "../../components/FundraisingCard.jsx";
+
+const pageTitle = "Fundraising";
+
+const projects = [
+    {
+        id: "cambridge",
+        title: "Cambridge Data School Bursary",
+        description:
+            "Help me cover travel and living costs to attend the Cambridge Cultural Heritage Data School, where I've been awarded a full tuition bursary.",
+        image: "https://images.unsplash.com/photo-1548695561-196d0046b85e?q=80&w=2000&auto=format&fit=crop", // Placeholder: Cambridge/Library like
+        goal: 1600,
+        raised: 820,
+        href: "/fundraising/cambridge-data-school",
+    },
+    {
+        id: "bsa",
+        title: "British Sociological Association Conference",
+        description:
+            "Two of my abstracts have been selected. Raising funds for travel and accommodation to present my work at this prestigious annual conference.",
+        image: "https://images.unsplash.com/photo-1544531586-fde5298cdd40?q=80&w=2000&auto=format&fit=crop", // Conference/Speaker
+        goal: 600,
+        raised: 150,
+        href: "#",
+    },
+    {
+        id: "music-video",
+        title: "Experimental Music Video Production",
+        description:
+            "Shooting a high-concept music video using the Nikon Zf. Combining analog aesthetics with digital compositing tech.",
+        image: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?q=80&w=2000&auto=format&fit=crop", // Camera/Film
+        goal: 5000,
+        raised: 450,
+        href: "#",
+    },
+    {
+        id: "photo-book",
+        title: "Limited Edition Photo Book",
+        description:
+            "Publishing a collection of hundreds of long-form prints. From testing proofs to the final bound publication.",
+        image: "https://images.unsplash.com/photo-1544216717-3fbf64afa798?q=80&w=2000&auto=format&fit=crop", // Photo book/Printing
+        goal: 3000,
+        raised: 0,
+        href: "#",
+    },
+];
+---
+
+<BaseLayout title={pageTitle}>
+    <div class="fundraising-hub">
+        <header class="hub-header">
+            <h1>Support My Work</h1>
+            <p class="subtitle">
+                Independent research, creative projects, and educational
+                milestones. Your support helps turn these ambitious ideas into
+                reality.
+            </p>
+        </header>
+
+        <div class="projects-grid">
+            {
+                projects.map((project) => (
+                    <FundraisingCard
+                        client:visible
+                        title={project.title}
+                        description={project.description}
+                        image={project.image}
+                        goal={project.goal}
+                        raised={project.raised}
+                        href={project.href}
+                    />
+                ))
+            }
+        </div>
+    </div>
+</BaseLayout>
+
+<style>
+    .fundraising-hub {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1rem 6rem 1rem;
+    }
+
+    .hub-header {
+        text-align: center;
+        max-width: 700px;
+        margin: 0 auto 5rem auto;
+        padding-top: 3rem;
+    }
+
+    h1 {
+        font-family: "Poppins", sans-serif;
+        font-size: 3.5rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        letter-spacing: -1px;
+        background: linear-gradient(to right, #fff, #a3a3a3);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+        font-size: 1.2rem;
+        color: var(--text-secondary);
+        line-height: 1.6;
+    }
+
+    .projects-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 2rem;
+    }
+
+    @media (max-width: 768px) {
+        h1 {
+            font-size: 2.5rem;
+        }
+        .projects-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
