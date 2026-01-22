@@ -48,6 +48,11 @@ const mapData = {
             })),
         },
         {
+            name: "Obsidian Vault",
+            href: "/research/obsidian-vault",
+            desc: "My digital second brain.",
+        },
+        {
             name: "Secret Lab",
             href: "/secret-lab",
             desc: "Experimental prototypes.",
@@ -87,7 +92,70 @@ const mapData = {
         { name: "RSS", href: "/rss.xml", desc: "Feed." },
     ],
 };
+const schemaData = {
+    "@context": "https://schema.org",
+    "@graph": [
+        {
+            "@type": "SiteNavigationElement",
+            name: "Main Navigation",
+            url: "https://abodid.com/sitemap",
+            hasPart: [
+                /* 1. Photography (Top Priority) */
+                {
+                    "@type": "WebPage",
+                    name: "Photography",
+                    url: "https://abodid.com/photography",
+                    description: "Cinematic moments and travel photography.",
+                },
+                /* 2. Research */
+                {
+                    "@type": "WebPage",
+                    name: "Research",
+                    url: "https://abodid.com/research",
+                    description: "Academic papers and technical studies.",
+                },
+                /* 3. Blog */
+                {
+                    "@type": "WebPage",
+                    name: "Blog",
+                    url: "https://abodid.com/blog",
+                    description: "Insights, tutorials, and thoughts.",
+                },
+                /* 4. Secret Lab */
+                {
+                    "@type": "WebPage",
+                    name: "Secret Lab",
+                    url: "https://abodid.com/secret-lab",
+                    description: "Experimental prototypes and ideas.",
+                },
+                /* 5. Obsidian Vault */
+                {
+                    "@type": "WebPage",
+                    name: "Obsidian Vault",
+                    url: "https://abodid.com/research/obsidian-vault",
+                    description: "My digital second brain.",
+                },
+                /* 6. Services */
+                {
+                    "@type": "WebPage",
+                    name: "Services",
+                    url: "https://abodid.com/services",
+                    description: "Hire for creative direction and development.",
+                },
+                /* 7. Press */
+                {
+                    "@type": "WebPage",
+                    name: "Press",
+                    url: "https://abodid.com/press",
+                    description: "Media mentions and features.",
+                },
+            ],
+        },
+    ],
+};
 ---
+
+<script type="application/ld+json" set:html={JSON.stringify(schemaData)} />
 
 <nav aria-label="Site Map" class="constellation-map">
     <div class="galaxy core-galaxy">

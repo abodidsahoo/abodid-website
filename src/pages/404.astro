@@ -1,0 +1,630 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const title = "Ghost Town | 404";
+const description = "Sorry, this is a ghost town.";
+---
+
+<BaseLayout title={title}>
+    <div class="error-container">
+        <div class="sky-background">
+            <div class="moon"></div>
+            <div class="meteor-wrapper">
+                <div class="meteor"></div>
+            </div>
+            <div class="star s1"></div>
+            <div class="star s2"></div>
+            <div class="star s3"></div>
+            <div class="star s4"></div>
+            <div class="star s5"></div>
+            <div class="star s6"></div>
+            <div class="star s7"></div>
+            <div class="star s8"></div>
+            <div class="star s9"></div>
+            <div class="star s10"></div>
+            <div class="star s11"></div>
+        </div>
+
+        <div class="ghost-town-scene">
+            <!-- Main Ghost -->
+            <div class="ghost main-ghost">
+                <!-- Bubble Inside for Tracking -->
+                <div class="speech-bubble bubble-1">
+                    Oh, sorry! You have landed in our ghost town.
+                </div>
+
+                <div class="face">
+                    <div class="eye left"></div>
+                    <div class="eye right"></div>
+                    <div class="mouth o-shape"></div>
+                </div>
+                <div class="blush left"></div>
+                <div class="blush right"></div>
+                <div class="shadow"></div>
+            </div>
+
+            <!-- Baby Ghost 1 (Floating Left) -->
+            <div class="ghost baby-ghost g1">
+                <!-- Bubble Inside for Tracking -->
+                <div class="speech-bubble bubble-2">
+                    Don't worry, we won't <strong>harm you!</strong>
+                </div>
+
+                <div class="face">
+                    <div class="eye left"></div>
+                    <div class="eye right"></div>
+                    <div class="mouth smile"></div>
+                </div>
+            </div>
+
+            <!-- Baby Ghost 2 (Floating Right) -->
+            <div class="ghost baby-ghost g2">
+                <!-- Bubble Inside for Tracking -->
+                <div class="speech-bubble bubble-3">
+                    Only <strong>dead links</strong><br />live here happily!
+                </div>
+
+                <div class="face">
+                    <div class="eye left"></div>
+                    <div class="eye right"></div>
+                    <div class="mouth line"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-wrapper">
+            <h1 class="error-title">Sorry, this is a ghost town.</h1>
+
+            <a href="/" class="home-button"> Return to Reality </a>
+        </div>
+    </div>
+</BaseLayout>
+
+<script>
+    // Randomize Meteor Path on every iteration
+    const meteor = document.querySelector(".meteor") as HTMLElement;
+    const wrapper = document.querySelector(".meteor-wrapper") as HTMLElement;
+
+    if (meteor && wrapper) {
+        meteor.addEventListener("animationiteration", () => {
+            // Avoid Vertical (-90+/-10deg = -100 to -80).
+            // Range 1: -160 to -110 (Top Left -> Bottom Right)
+            // Range 2: -70 to -20 (Top Right -> Bottom Left)
+
+            const ranges = [
+                { min: -160, max: -110 },
+                { min: -70, max: -20 },
+            ];
+            // Pick one range randomly
+            const range = ranges[Math.floor(Math.random() * ranges.length)];
+            const randomAngle =
+                Math.floor(Math.random() * (range.max - range.min + 1)) +
+                range.min;
+
+            wrapper.style.transform = `rotate(${randomAngle}deg)`;
+        });
+
+        // Initial random: Diagonal (-45)
+        wrapper.style.transform = `rotate(-45deg)`;
+    }
+</script>
+
+<style>
+    .error-container {
+        min-height: 70vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 2rem;
+        overflow: hidden;
+        position: relative;
+    }
+
+    /* --- Background Elements --- */
+    .sky-background {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+        pointer-events: none;
+        overflow: hidden;
+    }
+
+    /* Moon: Rotated 135deg */
+    .moon {
+        position: absolute;
+        top: 10%;
+        right: 15%;
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: transparent;
+        box-shadow: 12px 0 0 0 var(--text-primary);
+        opacity: 0.9;
+        transform: rotate(135deg);
+        filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.4));
+    }
+    :global(.dark) .moon {
+        box-shadow: 12px 0 0 0 #fff;
+        filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.8));
+    }
+
+    /* Meteor System */
+    .meteor-wrapper {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        transform: rotate(-45deg);
+    }
+
+    .meteor {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: var(--text-primary);
+        box-shadow:
+            0 0 10px 2px var(--text-primary),
+            -10px 0 20px 1px rgba(255, 255, 255, 0.5);
+        opacity: 0;
+        animation: travelAcross 12s linear infinite;
+        animation-delay: 1s;
+    }
+
+    :global(.dark) .meteor {
+        background: #fff;
+        box-shadow:
+            0 0 10px 2px #fff,
+            -20px 0 30px 1px rgba(255, 255, 255, 0.3);
+    }
+
+    @keyframes travelAcross {
+        0% {
+            transform: translateX(80vw) scale(1);
+            opacity: 0;
+            box-shadow: 0 0 10px 2px currentColor;
+        }
+        15% {
+            opacity: 1;
+        }
+
+        50% {
+            /* Peak Glow in middle */
+            box-shadow:
+                0 0 25px 5px currentColor,
+                -10px 0 30px 2px rgba(255, 255, 255, 0.8);
+            transform: translateX(0) scale(1.2);
+        }
+
+        85% {
+            opacity: 1;
+        }
+
+        100% {
+            transform: translateX(-80vw) scale(1);
+            opacity: 0;
+            box-shadow: 0 0 10px 2px currentColor;
+        }
+    }
+
+    /* Stars */
+    .star {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background: var(--text-primary);
+        border-radius: 50%;
+        opacity: 0.6;
+        animation: twinkle 5s ease-in-out infinite;
+    }
+
+    .s1 {
+        top: 25%;
+        left: 25%;
+        animation-delay: 0s;
+    }
+    .s2 {
+        top: 35%;
+        right: 35%;
+        animation-delay: 1s;
+    }
+    .s3 {
+        top: 60%;
+        left: 20%;
+        animation-delay: 2s;
+    }
+    .s4 {
+        top: 25%;
+        left: 55%;
+        animation-delay: 3s;
+    }
+    .s5 {
+        top: 45%;
+        right: 25%;
+        animation-delay: 1.5s;
+        width: 3px;
+        height: 3px;
+    }
+    .s6 {
+        top: 70%;
+        right: 30%;
+        animation-delay: 2.5s;
+        width: 5px;
+        height: 5px;
+    }
+    .s7 {
+        top: 30%;
+        left: 45%;
+        animation-delay: 0.5s;
+        width: 3px;
+        height: 3px;
+    }
+    .s8 {
+        top: 65%;
+        left: 55%;
+        animation-delay: 3.5s;
+    }
+    .s9 {
+        top: 35%;
+        left: 15%;
+        animation-delay: 4s;
+        width: 2px;
+        height: 2px;
+    }
+    .s10 {
+        top: 55%;
+        right: 45%;
+        animation-delay: 2.2s;
+    }
+    .s11 {
+        top: 40%;
+        right: 15%;
+        animation-delay: 1.8s;
+        width: 3px;
+        height: 3px;
+    }
+
+    @keyframes twinkle {
+        0%,
+        100% {
+            opacity: 0.3;
+            transform: scale(1);
+        }
+        50% {
+            opacity: 1;
+            transform: scale(1.5);
+            box-shadow: 0 0 6px currentColor;
+        }
+    }
+
+    /* --- Scene & Ghosts --- */
+    .ghost-town-scene {
+        position: relative;
+        width: 320px;
+        height: 300px;
+        margin-bottom: 2rem;
+        margin-top: 2rem;
+        z-index: 10;
+    }
+
+    .ghost {
+        position: absolute;
+        background: #f0f0f0;
+        border-radius: 60px 60px 10px 10px;
+        z-index: 2;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    :global(.dark) .ghost {
+        background: #e0e0e0;
+        box-shadow: 0 0 25px rgba(255, 255, 255, 0.15);
+    }
+    :global(:root:not(.dark)) .ghost {
+        background: #f8f9fa;
+        border: 1px solid var(--border-subtle);
+    }
+
+    /* Main Ghost */
+    .main-ghost {
+        width: 120px;
+        height: 140px;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 40px;
+        animation: floatMain 3.5s ease-in-out infinite;
+        z-index: 10;
+    }
+
+    .main-ghost .face {
+        top: 40px;
+    }
+
+    /* Baby Ghosts */
+    .baby-ghost {
+        width: 60px;
+        height: 70px;
+        opacity: 0.9;
+        border-radius: 30px 30px 5px 5px;
+    }
+
+    .baby-ghost .face {
+        top: 20px;
+        transform: scale(0.6);
+    }
+
+    .g1 {
+        left: 10px;
+        bottom: 60px;
+        animation:
+            floatBaby 4s ease-in-out infinite 0.5s,
+            sway 5s ease-in-out infinite;
+    }
+
+    .g2 {
+        right: 10px;
+        bottom: 20px;
+        animation:
+            floatBaby 3s ease-in-out infinite 1s,
+            sway 6s ease-in-out infinite reverse;
+    }
+
+    /* --- Speech Bubbles --- */
+    .speech-bubble {
+        position: absolute;
+        background: var(--bg-surface);
+        border: 2px solid var(--text-primary);
+        padding: 0.8rem 1rem;
+        border-radius: 12px;
+        font-size: 0.85rem;
+        line-height: 1.3;
+        color: var(--text-primary);
+        z-index: 20;
+        opacity: 0;
+        box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.1);
+        width: max-content;
+        max-width: 200px;
+        pointer-events: none;
+    }
+
+    .speech-bubble:after {
+        content: "";
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        background: var(--bg-surface);
+        border-bottom: 2px solid var(--text-primary);
+        border-right: 2px solid var(--text-primary);
+        transform: rotate(45deg);
+    }
+
+    .bubble-1 {
+        bottom: 160px;
+        left: 50%;
+        transform: translateX(-50%);
+        animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        animation-delay: 0.5s;
+        width: 220px;
+        font-size: 1rem;
+        font-weight: 500;
+    }
+    .bubble-1:after {
+        bottom: -7px;
+        left: 50%;
+        transform: translateX(-50%) rotate(45deg);
+    }
+
+    .bubble-2 {
+        top: -10px;
+        right: 80px;
+        animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        animation-delay: 1.5s;
+        transform-origin: bottom right;
+        max-width: 120px;
+        font-size: 0.8rem;
+    }
+    .bubble-2:after {
+        bottom: 20px;
+        right: -7px;
+        transform: rotate(-45deg);
+    }
+
+    .bubble-3 {
+        top: -50px;
+        left: 80px;
+        animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        animation-delay: 2.5s;
+        transform-origin: bottom left;
+        max-width: 120px;
+        font-size: 0.8rem;
+    }
+    .bubble-3:after {
+        bottom: 10px;
+        left: -7px;
+        transform: rotate(135deg);
+    }
+
+    /* Faces & Animations */
+    .face {
+        position: absolute;
+        width: 100%;
+        height: 40px;
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+    }
+    .eye {
+        width: 12px;
+        height: 12px;
+        background: #333;
+        border-radius: 50%;
+    }
+    .mouth {
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #333;
+        opacity: 0.8;
+    }
+    .mouth.o-shape {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+    }
+    .mouth.smile {
+        width: 14px;
+        height: 6px;
+        border-radius: 0 0 14px 14px;
+    }
+    .mouth.line {
+        width: 10px;
+        height: 2px;
+        border-radius: 2px;
+    }
+    .blush {
+        position: absolute;
+        top: 55px;
+        width: 12px;
+        height: 8px;
+        background: #ffb7b2;
+        border-radius: 50%;
+        opacity: 0.6;
+    }
+    .blush.left {
+        left: 30px;
+    }
+    .blush.right {
+        right: 30px;
+    }
+    .shadow {
+        position: absolute;
+        bottom: -30px;
+        left: 10px;
+        width: 100px;
+        height: 20px;
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 50%;
+        animation: shadow 3.5s ease-in-out infinite;
+        z-index: 1;
+    }
+    :global(.dark) .shadow {
+        background: rgba(0, 0, 0, 0.5);
+    }
+
+    @keyframes floatMain {
+        0%,
+        100% {
+            transform: translateY(0) translateX(-50%) rotate(0deg);
+        }
+        50% {
+            transform: translateY(-15px) translateX(-50%) rotate(2deg);
+        }
+    }
+    @keyframes floatBaby {
+        0%,
+        100% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(-15px);
+        }
+    }
+    @keyframes sway {
+        0%,
+        100% {
+            transform: translateX(0) translateY(0);
+        }
+        50% {
+            transform: translateX(10px) translateY(-10px);
+        }
+    }
+    @keyframes shadow {
+        0%,
+        100% {
+            transform: scale(1);
+            opacity: 0.5;
+        }
+        50% {
+            transform: scale(0.8);
+            opacity: 0.3;
+        }
+    }
+    @keyframes popIn {
+        0% {
+            transform: scale(0);
+            opacity: 0;
+        }
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    .content-wrapper {
+        position: relative;
+        z-index: 20;
+    }
+    .error-title {
+        font-family: "Poppins", sans-serif;
+        font-size: 2.5rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 2rem;
+    }
+    .home-button {
+        display: inline-block;
+        padding: 1.2rem 2.5rem;
+        background: var(--text-primary);
+        color: var(--bg-color);
+        text-decoration: none;
+        border-radius: 100px;
+        font-family: var(--font-mono);
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        transition: all 0.3s ease;
+        border: 1px solid var(--text-primary);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+    .home-button:hover {
+        background: transparent;
+        color: var(--text-primary);
+        transform: translateY(-3px);
+    }
+
+    @media (max-width: 600px) {
+        .ghost-town-scene {
+            transform: scale(0.75);
+            width: 100%;
+            margin-top: 0;
+        }
+        .bubble-2 {
+            left: -70px;
+            font-size: 0.75rem;
+        }
+        .bubble-3 {
+            right: -70px;
+            font-size: 0.75rem;
+        }
+        .moon {
+            width: 60px;
+            height: 60px;
+            top: 5%;
+            right: 10%;
+        }
+        .s1 {
+            left: 15%;
+        }
+        .s2 {
+            right: 15%;
+        }
+    }
+</style>
