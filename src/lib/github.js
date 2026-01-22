@@ -29,7 +29,7 @@ export function getAuthHeaders() {
  * @returns {Promise<Array>}
  */
 export async function getRepoContents(path = "") {
-    console.log(`[GitHub] Fetching contents for path: "${path}"`);
+
     const encodedPath = path.split('/').map(encodeURIComponent).join('/');
     const url = `${GITHUB_API_BASE}/repos/${REPO_OWNER}/${REPO_NAME}/contents/${encodedPath}`;
 
@@ -38,10 +38,8 @@ export async function getRepoContents(path = "") {
             "Accept": "application/vnd.github.v3+json",
             "User-Agent": "Astro-Obsidian-Vault"
         };
-        console.log(`[GitHub] Request URL: ${url} (Auth: ${useToken})`);
+
         if (useToken) {
-            const token = getEnv("GITHUB_TOKEN");
-            console.log(`[GitHub] Token status: ${token ? "Present (" + token.substring(0, 4) + "...)" : "Missing"}`);
         }
         return await fetch(url, { headers });
     };
@@ -85,13 +83,13 @@ export async function getRepoContents(path = "") {
 }
 
 export async function getVaultTags() {
-    console.log("[GitHub] Fetching Tags from '3 - Tags'");
+
     const data = await getRepoContents("3 - Tags");
     return data || [];
 }
 
 export async function getVaultNotes() {
-    console.log("[GitHub] Fetching Notes from '6 - Main Notes'");
+
     // Hardcoded path to ensure no variable resolution issues
     const contents = await getRepoContents("6 - Main Notes");
 
@@ -103,7 +101,7 @@ export async function getVaultNotes() {
     // STRICT FILTER: Only allow files (notes), no directories.
     // This prevents folders from appearing in the notes list.
     const files = contents.filter(item => item.type === 'file' && item.name.endsWith('.md'));
-    console.log(`[GitHub] Found ${files.length} notes (filtered from ${contents.length} items)`);
+
     return files;
 }
 

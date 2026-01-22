@@ -52,14 +52,14 @@ if (Astro.request.method === "POST") {
 
 // 3. Fetch Data if Unlocked
 if (isUnlocked) {
-    console.log("Vault Unlocked. Attempting to fetch data...");
+
     try {
         const [tagsData, notesData] = await Promise.all([
             getVaultTags(),
             getVaultNotes(),
         ]);
         
-        console.log(`Fetch Complete. Tags: ${tagsData?.length}, Notes: ${notesData?.length}`);
+
 
         tags = tagsData || [];
         allNotes = notesData || [];

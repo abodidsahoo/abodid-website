@@ -89,7 +89,7 @@ try {
 
             // USE NEW VAULT LOGIC HERE
             // Replaces: const query = `[[${tagName}]]`; const results = await searchRepo(query);
-            console.log(`[Page] Finding backlinks for tag: ${tagName}`);
+
             searchResults = await findNotesReferencing(tagName);
         } else {
             htmlContent = "<p>Note not found.</p>";

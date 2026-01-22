@@ -11,11 +11,11 @@ const CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
 export async function getAllVaultNotes() {
     // 1. Check Cache
     if (vaultCache && (Date.now() - vaultCache.timestamp < CACHE_TTL_MS)) {
-        console.log("[Vault] Serving notes from cache.");
+
         return vaultCache.notes;
     }
 
-    console.log("[Vault] Cache expired or missing. Fetching all notes...");
+
 
     try {
         // 2. Fetch Tree (Recursive)
@@ -37,7 +37,7 @@ export async function getAllVaultNotes() {
             item.type === 'blob'
         );
 
-        console.log(`[Vault] Found ${noteFiles.length} notes to fetch.`);
+
 
         // 4. Fetch Contents in Parallel (Batched to avoid rate limits if necessary, but 250 is usually fine)
         // We'll use a small concurrency limit just to be safe.
@@ -79,7 +79,7 @@ export async function getAllVaultNotes() {
             notes: notes
         };
 
-        console.log(`[Vault] Successfully cached ${notes.length} notes.`);
+
         return notes;
 
     } catch (e) {
