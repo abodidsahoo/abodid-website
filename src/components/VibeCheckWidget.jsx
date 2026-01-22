@@ -34,15 +34,15 @@ const VibeCheckWidget = () => {
     }, []);
 
     // --- THEME CONSTANTS ---
-    // Matte Red with White text and Neon Green accents (Sci-Fi Coding Feel)
+    // Deep European Green Aesthetics (Desaturated, Classy)
     const THEME = {
-        bgLight: '#C62828', // Matte Red
-        bgDark: '#8E0000', // Darker Red for dark mode
+        bgLight: '#2F4F3F', // Deep Desaturated Green
+        bgDark: '#1A2B22',  // Darker Forest Green
         textLight: '#FFFFFF',
         textDark: '#FFFFFF',
-        accent: '#39ff14', // Neon Green
-        glow: 'rgba(57, 255, 20, 0.6)', // Green glow
-        particle: '#39ff14'
+        accent: '#A3D9B5',  // Soft Pastel Green Accent (replacing Neon)
+        glow: 'rgba(163, 217, 181, 0.4)', // Soft glow
+        particle: '#A3D9B5'
     };
 
     return (
@@ -77,7 +77,7 @@ const VibeCheckWidget = () => {
             {isUnlocked ? (
                 <div className="unlock-message">
                     <span className="message-subtext">Vibe Check Passed</span>
-                    <span className="message-text">You are an absolutely curious soul. Let's take you to the real stuff!</span>
+                    {/* Message removed as requested */}
                     <div className="welcome-text">WELCOME TO THE SECRET LAB</div>
                     <a href="/secret-lab" className="lab-link">ENTER THE LAB</a>
                 </div>

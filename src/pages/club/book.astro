@@ -1,0 +1,133 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Book Discovery Call">
+    <div class="booking-container">
+        <div class="content-wrapper">
+            <div class="booking-header">
+                <h1>Book Your Discovery Call</h1>
+                <p>Select a time that works for you.</p>
+            </div>
+
+            <div class="calendar-wrapper">
+                <!-- Cal inline embed code begins -->
+                <div
+                    style="width:100%;height:100%;overflow:scroll"
+                    id="my-cal-inline-30min"
+                >
+                </div>
+                <script type="text/javascript">
+                    (function (C, A, L) {
+                        let p = function (a, ar) {
+                            a.q.push(ar);
+                        };
+                        let d = C.document;
+                        C.Cal =
+                            C.Cal ||
+                            function () {
+                                let cal = C.Cal;
+                                let ar = arguments;
+                                if (!cal.loaded) {
+                                    cal.ns = {};
+                                    cal.q = cal.q || [];
+                                    d.head.appendChild(
+                                        d.createElement("script"),
+                                    ).src = A;
+                                    cal.loaded = true;
+                                }
+                                if (ar[0] === L) {
+                                    const api = function () {
+                                        p(api, arguments);
+                                    };
+                                    const namespace = ar[1];
+                                    api.q = api.q || [];
+                                    if (typeof namespace === "string") {
+                                        cal.ns[namespace] =
+                                            cal.ns[namespace] || api;
+                                        p(cal.ns[namespace], ar);
+                                        p(cal, ["initNamespace", namespace]);
+                                    } else p(cal, ar);
+                                    return;
+                                }
+                                p(cal, ar);
+                            };
+                    })(window, "https://app.cal.com/embed/embed.js", "init");
+                    Cal("init", "30min", { origin: "https://app.cal.com" });
+
+                    Cal.ns["30min"]("inline", {
+                        elementOrSelector: "#my-cal-inline-30min",
+                        config: {
+                            layout: "month_view",
+                            useSlotsViewOnSmallScreen: "true",
+                        },
+                        calLink: "abodid/30min",
+                    });
+
+                    Cal.ns["30min"]("ui", {
+                        hideEventTypeDetails: false,
+                        layout: "month_view",
+                    });
+                </script>
+                <!-- Cal inline embed code ends -->
+            </div>
+
+            <div class="back-link">
+                <a href="/club/offers">← Back to Offers</a>
+            </div>
+        </div>
+    </div>
+</BaseLayout>
+
+<style>
+    .booking-container {
+        width: 100%;
+        min-height: 80vh;
+        padding: 64px 0;
+    }
+
+    .content-wrapper {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 0 24px;
+        text-align: center;
+    }
+
+    .booking-header {
+        margin-bottom: 48px;
+    }
+
+    h1 {
+        font-family: "Poppins", sans-serif;
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin: 0 0 16px 0;
+        color: var(--text-primary);
+    }
+
+    p {
+        font-size: 1.125rem;
+        color: var(--text-secondary);
+    }
+
+    .calendar-wrapper {
+        width: 100%;
+        height: 700px; /* Force height for the embed */
+        background: var(--bg-surface);
+        border: 1px solid var(--border-subtle);
+        border-radius: 8px;
+        overflow: hidden;
+        margin-bottom: 32px;
+    }
+
+    .back-link a {
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s;
+    }
+
+    .back-link a:hover {
+        color: var(--accent);
+    }
+</style>

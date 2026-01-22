@@ -7,15 +7,14 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         <div class="content-wrapper">
             {/* Header Section */}
             <div class="offers-header">
-                <div class="section-header">
-                    <span class="overline">Member Benefits</span>
-                    <h1>Choose Your Implementation Path</h1>
-                </div>
-                <p class="subtitle">
-                    Two ways to build your second brain—supported or
-                    self-directed. Both are intentionally limited.
-                </p>
+                <span class="overline">Member Benefits</span>
+                <h1>Choose Your Implementation Path</h1>
             </div>
+
+            <p class="subtitle">
+                Two ways to build your second brain—supported or self-directed.
+                Both are intentionally limited.
+            </p>
 
             {/* Pricing Cards */}
             <div class="pricing-grid">
@@ -34,31 +33,23 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
                     <div class="card-features">
                         <h3>Includes</h3>
                         <ul>
-                            <li>
-                                One private three-hour one-on-one workshop each
-                                month
-                            </li>
-                            <li>Full access to all recorded lectures</li>
-                            <li>
-                                Complete explanation of the thinking
-                                architecture
-                            </li>
-                            <li>
-                                Access to a private community of researchers
-                            </li>
-                            <li>Unlimited guidance via email</li>
+                            <li>Monthly 1-on-1 Workshop (3 Hours)</li>
+                            <li>Full Lecture Library Access</li>
+                            <li>Thinking Architecture Analysis</li>
+                            <li>Private Community Access</li>
+                            <li>Unlimited Email Guidance</li>
                         </ul>
 
                         <h3>Designed For</h3>
                         <ul>
-                            <li>PhD and Master's candidates</li>
+                            <li>PhD & Master's Candidates</li>
                             <li>Researchers & Strategists</li>
-                            <li>Creative professionals</li>
+                            <li>Creative Professionals</li>
                         </ul>
                     </div>
 
-                    <a href="#" class="offers-btn primary">
-                        Apply for Private Mentorship
+                    <a href="/club/payment-monthly" class="offers-btn primary">
+                        Complete Membership
                     </a>
                     <p class="microcopy">
                         Limited capacity. Offered on a monthly basis.
@@ -80,29 +71,44 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
                     <div class="card-features">
                         <h3>Includes</h3>
                         <ul>
-                            <li>Access to the knowledge wall logic</li>
-                            <li>All recorded lectures (2-3 hours)</li>
-                            <li>Tools, links, and installation guidance</li>
-                            <li>
-                                Note-making, tagging, and structural templates
-                            </li>
-                            <li>
-                                Complete framework for personal research site
-                            </li>
+                            <li>Knowledge Wall Logic Access</li>
+                            <li>Full Lecture Series (3 Hours)</li>
+                            <li>Tools & Installation Guide</li>
+                            <li>Tagging & Structure Templates</li>
+                            <li>Research Site Framework</li>
                         </ul>
 
-                        <h3>By Completion You Will Have</h3>
+                        <h3>You Will Build</h3>
                         <ul>
-                            <li>A functioning personal research website</li>
-                            <li>A structured PhD/Research repository</li>
-                            <li>A connected system for papers & articles</li>
+                            <li>Personal Research Website</li>
+                            <li>PhD/Research Repository</li>
+                            <li>Connected Paper System</li>
                         </ul>
                     </div>
 
-                    <a href="#" class="offers-btn secondary">
+                    <a
+                        href="/club/payment-foundation"
+                        class="offers-btn secondary"
+                    >
                         Unlock Foundation Access
                     </a>
                     <p class="microcopy">Lifetime access. Self-paced.</p>
+                </div>
+            </div>
+
+            {/* Discovery Call Section */}
+            <div class="discovery-section">
+                <div class="discovery-content">
+                    <h3>Not sure which path is right?</h3>
+                    <p>
+                        Book a free 1-on-1 discovery call (30 min) to understand
+                        exactly how the Second Brain Club can benefit your
+                        specific research or creative work.
+                    </p>
+                    <p>I'm happy to take you through it personally.</p>
+                    <a href="/club/book" class="discovery-btn">
+                        Book a Time Slot
+                    </a>
                 </div>
             </div>
 
@@ -132,27 +138,37 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
 <style>
     /* --- CONTAINER --- */
+    /* --- CONTAINER --- */
     .offers-container {
+        /* Local Theme Variables */
+        --theme-accent: #008f24; /* Darker Green for Light Mode */
+
         width: 100%;
         min-height: 70vh;
-        padding: var(--space-xl) 0;
+        padding: 0px 0; /* Reduced from 120px to match Welcome page feel */
+    }
+
+    /* Dark Mode Overrides */
+    :global([data-theme="dark"]) .offers-container {
+        --theme-accent: #00ff41; /* Neon Green for Dark Mode */
     }
 
     .content-wrapper {
-        max-width: var(--max-width);
+        max-width: 900px; /* Matched to Welcome Page (Wide) */
         margin: 0 auto;
         padding: 0 24px;
     }
 
     /* --- HEADER --- */
     .offers-header {
-        margin-bottom: var(--space-2xl);
+        text-align: left;
+        border-bottom: 2px solid var(--border-subtle); /* Matched to Welcome */
+        padding-bottom: var(--space-md);
+        margin-bottom: var(--space-md);
     }
 
     .section-header {
-        border-bottom: 1px solid var(--border-subtle);
-        padding-bottom: var(--space-md);
-        margin-bottom: var(--space-md);
+        margin-bottom: 0;
     }
 
     .overline {
@@ -162,12 +178,12 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         letter-spacing: 0.15em;
         color: var(--text-secondary);
         margin-bottom: var(--space-sm);
-        font-weight: 500;
+        font-weight: 600;
     }
 
     h1 {
         font-family: "Poppins", sans-serif;
-        font-size: var(--text-3xl);
+        font-size: 3rem; /* Matched to Welcome Page H1 */
         font-weight: 700;
         margin: 0;
         color: var(--text-primary);
@@ -184,44 +200,40 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     }
 
     .subtitle {
-        font-size: var(--text-lg);
+        font-size: 1.25rem;
         line-height: 1.6;
         color: var(--text-secondary);
-        margin: 0;
+        margin: 0 0 48px 0; /* Reduced to match Welcome flow */
+        max-width: 100%;
     }
 
-    /* --- PRICING GRID --- */
+    /* --- PRICING GRID (Single Column) --- */
     .pricing-grid {
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: var(--space-2xl);
-        margin-bottom: var(--space-2xl);
-    }
-
-    @media (max-width: 900px) {
-        .pricing-grid {
-            grid-template-columns: 1fr;
-        }
+        grid-template-columns: 1fr; /* Single Column Stack -> Wide Cards */
+        gap: 80px; /* Distinct blocks but related */
+        margin-bottom: 120px; /* Gap before Discovery */
     }
 
     /* --- PRICING CARDS --- */
     .pricing-card {
         border: 1px solid var(--border-subtle);
-        padding: var(--space-2xl);
-        border-radius: 4px;
+        padding: 48px; /* Generous internal padding */
+        border-radius: 8px; /* Slightly softer corners */
         background: var(--bg-surface);
         display: flex;
         flex-direction: column;
         transition: all 0.2s ease;
+        text-align: left; /* Strict Left Align */
     }
 
     .pricing-card:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
     }
 
     [data-theme="dark"] .pricing-card:hover {
-        box-shadow: 0 8px 24px rgba(255, 255, 255, 0.05);
+        box-shadow: 0 12px 30px rgba(255, 255, 255, 0.05);
     }
 
     .card-tag {
@@ -229,57 +241,59 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         font-size: var(--text-xs);
         text-transform: uppercase;
         letter-spacing: 0.1em;
-        color: #00ff41;
-        border: 1px solid #00ff41;
-        padding: 4px 12px;
+        color: var(--theme-accent); /* Theme aware */
+        border: 1px solid var(--theme-accent); /* Theme aware */
+        padding: 6px 14px;
         border-radius: 4px;
-        margin-bottom: var(--space-md);
+        margin-bottom: 32px;
         font-weight: 600;
         width: fit-content;
     }
 
     .pricing-card h2 {
         font-family: "Poppins", sans-serif;
-        font-size: var(--text-xl);
-        font-weight: 600;
-        margin: 0 0 var(--space-md) 0;
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0 0 16px 0;
         color: var(--text-primary);
     }
 
     .price {
-        font-size: 3rem;
-        font-weight: 700;
+        font-size: 3.5rem; /* Larger Visual */
+        font-weight: 800;
         font-family: "Poppins", sans-serif;
-        margin-bottom: var(--space-md);
+        margin-bottom: 24px;
         color: var(--text-primary);
+        line-height: 1;
     }
 
     .period {
-        font-size: var(--text-base);
+        font-size: 1.25rem;
         font-weight: 400;
         color: var(--text-tertiary);
     }
 
     .card-desc {
-        font-size: var(--text-base);
-        line-height: 1.7;
+        font-size: 1.125rem;
+        line-height: 1.7; /* Generous line height */
         color: var(--text-secondary);
-        margin-bottom: var(--space-lg);
+        margin-bottom: 40px;
+        min-height: auto;
     }
 
     /* --- CARD FEATURES --- */
     .card-features {
         flex-grow: 1;
-        margin-bottom: var(--space-lg);
+        margin-bottom: 48px;
     }
 
     .card-features h3 {
         font-size: var(--text-sm);
-        font-weight: 600;
+        font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.05em;
-        margin: var(--space-lg) 0 var(--space-md) 0;
-        color: var(--text-primary);
+        margin: 0 0 16px 0; /* Standardized label margin */
+        color: var(--text-secondary);
     }
 
     .card-features h3:first-child {
@@ -289,14 +303,18 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     .card-features ul {
         list-style: none;
         padding: 0;
-        margin: 0;
+        margin: 0 0 32px 0; /* Space between list and next section */
+    }
+
+    .card-features ul:last-child {
+        margin-bottom: 0;
     }
 
     .card-features li {
-        font-size: var(--text-sm);
+        font-size: 1rem;
         color: var(--text-secondary);
-        margin-bottom: var(--space-sm);
-        padding-left: 1rem;
+        margin-bottom: 12px;
+        padding-left: 1.5rem;
         position: relative;
         line-height: 1.6;
     }
@@ -305,7 +323,8 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         content: "→";
         position: absolute;
         left: 0;
-        color: #00ff41;
+        color: var(--theme-accent); /* Theme aware */
+        font-weight: bold;
     }
 
     /* --- BUTTONS --- */
@@ -314,11 +333,11 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         align-items: center;
         justify-content: center;
         width: 100%;
-        padding: var(--space-md);
+        padding: 24px; /* Big easy button */
         text-decoration: none;
-        font-weight: 600;
-        font-size: var(--text-sm);
-        border-radius: 4px;
+        font-weight: 700;
+        font-size: 1rem;
+        border-radius: 6px;
         transition: all 0.2s ease;
         text-transform: uppercase;
         letter-spacing: 0.05em;
@@ -346,31 +365,74 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         color: var(--bg-color);
     }
 
-    [data-theme="dark"] .offers-btn:hover {
-        box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+    /* --- DISCOVERY SECTION --- */
+    .discovery-section {
+        margin-bottom: 80px; /* Reduced vertical gap */
+        padding: 0;
+        background: transparent;
+        border: none;
+        text-align: left;
+        width: 100%;
+        max-width: 900px;
+    }
+
+    .discovery-content h3 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 16px;
+        color: var(--text-primary);
+    }
+
+    .discovery-content p {
+        font-size: 1.125rem;
+        line-height: 1.7;
+        color: var(--text-secondary);
+        margin-bottom: 16px;
+        max-width: 900px; /* Matched to Welcome Page (Wide) */
+    }
+
+    .discovery-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px 32px;
+        background: var(--text-primary); /* Dark/Contrast */
+        color: var(--bg-color);
+        border-radius: 6px;
+        font-weight: 600;
+        text-decoration: none;
+        text-transform: uppercase;
+        margin-top: 24px;
+        transition: transform 0.2s;
+    }
+
+    .discovery-btn:hover {
+        transform: translateY(-2px);
     }
 
     /* --- FOOTER --- */
     .offers-footer {
-        max-width: 720px;
-        margin: 0 auto;
-        text-align: center;
+        max-width: 100%;
+        margin: 0;
+        text-align: left;
+        padding: 0;
     }
 
     .offers-footer p {
-        font-size: var(--text-base);
-        line-height: 1.7;
+        font-size: 1.125rem;
+        line-height: 1.8;
         color: var(--text-secondary);
-        margin-bottom: var(--space-md);
+        margin-bottom: 32px;
     }
 
     .student-note {
-        margin-top: var(--space-lg);
-        padding: var(--space-md);
+        margin-top: 32px;
+        padding: 24px;
         background: var(--bg-surface);
         border: 1px solid var(--border-subtle);
         border-radius: 4px;
-        font-size: var(--text-sm);
+        font-size: 1rem;
+        line-height: 1.6;
     }
 
     .highlight {
@@ -383,18 +445,18 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         font-size: var(--text-xs);
         color: var(--text-tertiary);
         text-align: center;
-        margin: var(--space-sm) 0 0 0;
+        margin: 16px 0 0 0;
         font-style: italic;
     }
 
     /* --- RESPONSIVE --- */
     @media (max-width: 768px) {
         h1 {
-            font-size: var(--text-2xl);
+            font-size: 2rem;
         }
 
         .price {
-            font-size: 2.5rem;
+            font-size: 3rem;
         }
     }
 </style>

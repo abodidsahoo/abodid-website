@@ -118,55 +118,70 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
 <style>
     /* --- CONTAINER --- */
+    /* --- CONTAINER --- */
     .welcome-container {
+        /* Local Theme Variables */
+        --theme-accent: #008f24; /* Darker Green for Light Mode */
+        --theme-glow: rgba(0, 143, 36, 0.1);
+
         width: 100%;
         min-height: 70vh;
-        padding: var(--space-xl) 0;
+        padding: var(--space-3xl) 0;
+    }
+
+    /* Dark Mode Overrides */
+    :global([data-theme="dark"]) .welcome-container {
+        --theme-accent: #00ff41; /* Neon Green for Dark Mode */
+        --theme-glow: rgba(0, 255, 65, 0.1);
     }
 
     .content-wrapper {
-        max-width: var(--max-width);
+        max-width: 900px; /* Aligned with Secret Lab consistency */
         margin: 0 auto;
         padding: 0 24px;
-        display: grid;
-        grid-template-columns: 1.5fr 1fr;
-        gap: var(--space-2xl);
-        align-items: start;
-    }
-
-    @media (max-width: 900px) {
-        .content-wrapper {
-            grid-template-columns: 1fr;
-            gap: var(--space-xl);
-        }
+        display: flex;
+        flex-direction: column;
+        gap: var(
+            --space-3xl
+        ); /* Moderate spacing between Welcome and Access sections */
     }
 
     /* --- SECTION STYLES --- */
-    .welcome-section,
+    .welcome-section {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-md);
+        width: 100%;
+    }
+
     .access-section {
         display: flex;
         flex-direction: column;
-        gap: var(--space-lg);
+        gap: var(--space-md);
+        width: 100%;
+        margin-top: 120px; /* Distinct separation from previous section */
     }
 
     .section-header {
-        border-bottom: 1px solid var(--border-subtle);
+        border-bottom: 2px solid var(--border-subtle); /* Thicker border for clear separation */
         padding-bottom: var(--space-md);
+        margin-bottom: var(--space-md);
     }
 
     .overline {
         display: block;
+        font-family: "Space Mono", monospace;
         font-size: var(--text-xs);
         text-transform: uppercase;
         letter-spacing: 0.15em;
         color: var(--text-secondary);
         margin-bottom: var(--space-sm);
-        font-weight: 500;
+        font-weight: 600;
     }
 
     h1 {
         font-family: "Poppins", sans-serif;
-        font-size: var(--text-3xl);
+        font-size: 3rem; /* Larger, consistent header */
         font-weight: 700;
         margin: 0;
         color: var(--text-primary);
@@ -176,7 +191,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
     h2 {
         font-family: "Poppins", sans-serif;
-        font-size: var(--text-2xl);
+        font-size: 2.5rem;
         font-weight: 600;
         margin: 0;
         color: var(--text-primary);
@@ -188,17 +203,18 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     .welcome-content {
         display: flex;
         flex-direction: column;
-        gap: var(--space-md);
+        gap: var(--space-sm); /* Tighter paragraphs */
+        max-width: 800px;
     }
 
     .welcome-content .lead {
-        font-size: var(--text-lg);
+        font-size: 1.25rem;
         line-height: 1.6;
         color: var(--text-primary);
     }
 
     .welcome-content p {
-        font-size: var(--text-base);
+        font-size: 1.125rem;
         line-height: 1.7;
         color: var(--text-secondary);
         margin: 0;
@@ -207,25 +223,21 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     .highlight {
         color: var(--text-primary);
         font-weight: 600;
+        background: var(--theme-glow); /* Theme aware */
+        padding: 0 4px;
     }
 
-    /* --- BENEFITS GRID --- */
+    /* --- BENEFITS GRID (Now Single Column Stack) --- */
     .benefits-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: var(--space-lg);
+        display: flex;
+        flex-direction: column; /* Stacked */
+        gap: var(--space-md); /* Tighter card stack */
         margin-top: var(--space-md);
-    }
-
-    @media (max-width: 768px) {
-        .benefits-grid {
-            grid-template-columns: 1fr;
-        }
     }
 
     .benefit-card {
         border: 1px solid var(--border-subtle);
-        padding: var(--space-lg);
+        padding: var(--space-md); /* Compact card padding */
         border-radius: 4px;
         background: var(--bg-surface);
     }
@@ -258,7 +270,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         content: "→";
         position: absolute;
         left: 0;
-        color: #00ff41;
+        color: var(--theme-accent); /* Theme aware */
     }
 
     /* --- ACCESS CONTENT --- */
@@ -311,7 +323,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         content: "→";
         position: absolute;
         left: 0;
-        color: #00ff41;
+        color: var(--theme-accent); /* Theme aware */
     }
 
     .student-offer {
@@ -359,6 +371,12 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     }
 
     /* --- RESPONSIVE --- */
+    @media (max-width: 900px) {
+        .content-wrapper {
+            gap: var(--space-2xl); /* Smaller gap on mobile */
+        }
+    }
+
     @media (max-width: 768px) {
         h1 {
             font-size: var(--text-2xl);

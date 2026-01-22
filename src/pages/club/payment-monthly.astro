@@ -1,0 +1,157 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Complete Membership Payment">
+    <div class="payment-container">
+        <div class="content-wrapper">
+            <div class="payment-header">
+                <span class="overline">Secure Checkout</span>
+                <h1>Complete Your Membership</h1>
+                <p class="product-name">Private Monthly Mentorship</p>
+                <div class="price-display">
+                    £250 <span class="period">/ month</span>
+                </div>
+            </div>
+
+            <div class="paypal-wrapper">
+                <!-- PayPal Embed Code -->
+                <div>
+                    <style>
+                        .pp-NMF4SHBS2YKZU {
+                            text-align: center;
+                            border: none;
+                            border-radius: 0.25rem;
+                            min-width: 11.625rem;
+                            padding: 0 2rem;
+                            height: 2.625rem;
+                            font-weight: bold;
+                            background-color: #ffd140;
+                            color: #000000;
+                            font-family: "Helvetica Neue", Arial, sans-serif;
+                            font-size: 1rem;
+                            line-height: 1.25rem;
+                            cursor: pointer;
+                            transition: transform 0.2s ease;
+                        }
+                        .pp-NMF4SHBS2YKZU:hover {
+                            transform: translateY(-2px);
+                            box-shadow: 0 4px 12px rgba(255, 209, 64, 0.3);
+                        }
+                    </style>
+                    <form
+                        action="https://www.paypal.com/ncp/payment/NMF4SHBS2YKZU"
+                        method="post"
+                        target="_blank"
+                        style="display:inline-grid;justify-items:center;align-content:start;gap:0.5rem;"
+                    >
+                        <input
+                            class="pp-NMF4SHBS2YKZU"
+                            type="submit"
+                            value="Buy Now"
+                        />
+                        <img
+                            src="https://www.paypalobjects.com/images/Debit_Credit_APM.svg"
+                            alt="cards"
+                        />
+                        <section style="font-size: 0.75rem;">
+                            Powered by <img
+                                src="https://www.paypalobjects.com/paypal-ui/logos/svg/paypal-wordmark-color.svg"
+                                alt="paypal"
+                                style="height:0.875rem;vertical-align:middle;"
+                            />
+                        </section>
+                    </form>
+                </div>
+                <!-- End PayPal Embed -->
+            </div>
+
+            <div class="back-link">
+                <a href="/club/offers">← Back to Offers</a>
+            </div>
+        </div>
+    </div>
+</BaseLayout>
+
+<style>
+    .payment-container {
+        width: 100%;
+        min-height: 80vh;
+        padding: 64px 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .content-wrapper {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 48px;
+        text-align: center;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-subtle);
+        border-radius: 12px;
+    }
+
+    .overline {
+        display: block;
+        font-size: var(--text-xs);
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        color: var(--text-secondary);
+        margin-bottom: 16px;
+        font-weight: 600;
+    }
+
+    .payment-header {
+        margin-bottom: 48px;
+        border-bottom: 1px solid var(--border-subtle);
+        padding-bottom: 32px;
+    }
+
+    h1 {
+        font-family: "Poppins", sans-serif;
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0 0 16px 0;
+        color: var(--text-primary);
+        line-height: 1.2;
+    }
+
+    .product-name {
+        font-size: 1.25rem;
+        color: var(--text-secondary);
+        margin-bottom: 24px;
+    }
+
+    .price-display {
+        font-size: 3rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        font-family: "Poppins", sans-serif;
+    }
+
+    .period {
+        font-size: 1.125rem;
+        font-weight: 400;
+        color: var(--text-tertiary);
+    }
+
+    .paypal-wrapper {
+        margin-bottom: 48px;
+        display: flex;
+        justify-content: center;
+    }
+
+    .back-link a {
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s;
+        font-size: 0.9rem;
+    }
+
+    .back-link a:hover {
+        color: var(--text-primary);
+    }
+</style>
