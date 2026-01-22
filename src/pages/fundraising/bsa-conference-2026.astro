@@ -24,10 +24,7 @@ const costs = [
         <header class="campaign-hero">
             <div class="hero-content">
                 <span class="eyebrow">Academic Milestone</span>
-                <h1>
-                    From Odisha to Manchester — help me present my research on a
-                    global stage.
-                </h1>
+                <h1>Help me present my research on a global stage.</h1>
                 <p class="subtitle">
                     Two peer-reviewed research works accepted at the <strong
                         >BSA Annual Conference 2026</strong
@@ -190,24 +187,46 @@ const costs = [
 
             {/* --- REWARDS SECTION --- */}
             <div class="rewards-block">
-                <div class="reward-card">
-                    <h4>🎁 In Gratitude: The Secret Lab</h4>
-                    <p>
-                        Supporters are contributing to academic participation,
-                        not purchasing services. In gratitude, contributors will
-                        receive:
-                    </p>
-                    <ul>
-                        <li>
-                            Access to my <strong
-                                >Secret Lab learning space</strong
-                            >
-                        </li>
-                        <li>Early access to research reflections</li>
-                        <li>
-                            Name credited in public write-ups and documentation
-                        </li>
-                    </ul>
+                <div class="rewards-grid">
+                    {/* Individual Supporter */}
+                    <div class="reward-card">
+                        <h4>🎁 Individual Supporter</h4>
+                        <p>Contributors will receive:</p>
+                        <ul>
+                            <li>
+                                Access to my <strong
+                                    >Secret Lab learning space</strong
+                                >
+                            </li>
+                            <li>Early access to research reflections</li>
+                            <li>Name credited in public write-ups</li>
+                        </ul>
+                    </div>
+
+                    {/* Organizational Sponsor */}
+                    <div class="reward-card sponsor-card">
+                        <h4>🤝 Organizational Sponsor</h4>
+                        <p>
+                            Ideal for Tech, Art, & Culture organizations (e.g.,
+                            Google Arts & Culture) interested in human-tech
+                            interaction.
+                        </p>
+                        <ul>
+                            <li>
+                                <strong>Main Sponsor Acknowledgment</strong> on the
+                                printed research poster presented to hundreds of sociologists.
+                            </li>
+                            <li>
+                                <strong>Brand Mention</strong> in all related articles,
+                                blogs, and public coverage.
+                            </li>
+                            <li>
+                                <strong>Exclusive Insights</strong>: Access to
+                                research findings and consented contact data of
+                                engaged participants.
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </article>
@@ -537,12 +556,54 @@ const costs = [
     .reward-card {
         background: linear-gradient(
             145deg,
-            rgba(255, 209, 64, 0.1),
+            rgba(255, 209, 64, 0.05),
             transparent
         );
-        border: 1px solid rgba(255, 209, 64, 0.3);
+        border: 1px solid rgba(255, 209, 64, 0.2);
         padding: 2rem;
         border-radius: 12px;
+    }
+
+    .rewards-grid {
+        display: grid;
+        gap: 2rem;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .sponsor-card {
+        background: linear-gradient(
+            145deg,
+            rgba(255, 209, 64, 0.15),
+            rgba(255, 209, 64, 0.05)
+        );
+        border: 1px solid rgba(255, 209, 64, 0.5);
+    }
+
+    @media (max-width: 768px) {
+        .rewards-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .rewards-grid {
+        display: grid;
+        gap: 2rem;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .sponsor-card {
+        background: linear-gradient(
+            145deg,
+            rgba(255, 209, 64, 0.15),
+            rgba(255, 209, 64, 0.05)
+        );
+        border: 1px solid rgba(255, 209, 64, 0.5);
+    }
+
+    @media (max-width: 768px) {
+        .rewards-grid {
+            grid-template-columns: 1fr;
+        }
     }
 
     /* --- STICKY DONATION WIDGET --- */

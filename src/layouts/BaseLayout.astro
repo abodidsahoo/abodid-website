@@ -61,10 +61,8 @@ const finalType = type || dbMetadata?.og_type || "website";
       // Apply theme immediately before page renders
       (function () {
         const savedTheme = localStorage.getItem("theme");
-        const prefersDark = window.matchMedia(
-          "(prefers-color-scheme: dark)",
-        ).matches;
-        const theme = savedTheme || (prefersDark ? "dark" : "light");
+        // User Requirement: Default to "dark" unless manually switched (savedTheme exists)
+        const theme = savedTheme || "dark";
         document.documentElement.setAttribute("data-theme", theme);
       })();
     </script>
