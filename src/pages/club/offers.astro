@@ -1,0 +1,400 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Private Offers">
+    <div class="offers-container">
+        <div class="content-wrapper">
+            {/* Header Section */}
+            <div class="offers-header">
+                <div class="section-header">
+                    <span class="overline">Member Benefits</span>
+                    <h1>Choose Your Implementation Path</h1>
+                </div>
+                <p class="subtitle">
+                    Two ways to build your second brain—supported or
+                    self-directed. Both are intentionally limited.
+                </p>
+            </div>
+
+            {/* Pricing Cards */}
+            <div class="pricing-grid">
+                {/* Mentorship Option */}
+                <div class="pricing-card premium">
+                    <div class="card-tag">Mentorship</div>
+                    <h2>Private Monthly Mentorship</h2>
+                    <div class="price">
+                        £250 <span class="period">/ month</span>
+                    </div>
+                    <p class="card-desc">
+                        High-touch mentorship for individuals building serious
+                        intellectual or creative work.
+                    </p>
+
+                    <div class="card-features">
+                        <h3>Includes</h3>
+                        <ul>
+                            <li>
+                                One private three-hour one-on-one workshop each
+                                month
+                            </li>
+                            <li>Full access to all recorded lectures</li>
+                            <li>
+                                Complete explanation of the thinking
+                                architecture
+                            </li>
+                            <li>
+                                Access to a private community of researchers
+                            </li>
+                            <li>Unlimited guidance via email</li>
+                        </ul>
+
+                        <h3>Designed For</h3>
+                        <ul>
+                            <li>PhD and Master's candidates</li>
+                            <li>Researchers & Strategists</li>
+                            <li>Creative professionals</li>
+                        </ul>
+                    </div>
+
+                    <a href="#" class="offers-btn primary">
+                        Apply for Private Mentorship
+                    </a>
+                    <p class="microcopy">
+                        Limited capacity. Offered on a monthly basis.
+                    </p>
+                </div>
+
+                {/* Foundation Option */}
+                <div class="pricing-card foundation">
+                    <div class="card-tag">Self-Directed</div>
+                    <h2>Foundation System Access</h2>
+                    <div class="price">
+                        £99 <span class="period">one-time</span>
+                    </div>
+                    <p class="card-desc">
+                        A structured, self-guided introduction to the Second
+                        Brain system.
+                    </p>
+
+                    <div class="card-features">
+                        <h3>Includes</h3>
+                        <ul>
+                            <li>Access to the knowledge wall logic</li>
+                            <li>All recorded lectures (2-3 hours)</li>
+                            <li>Tools, links, and installation guidance</li>
+                            <li>
+                                Note-making, tagging, and structural templates
+                            </li>
+                            <li>
+                                Complete framework for personal research site
+                            </li>
+                        </ul>
+
+                        <h3>By Completion You Will Have</h3>
+                        <ul>
+                            <li>A functioning personal research website</li>
+                            <li>A structured PhD/Research repository</li>
+                            <li>A connected system for papers & articles</li>
+                        </ul>
+                    </div>
+
+                    <a href="#" class="offers-btn secondary">
+                        Unlock Foundation Access
+                    </a>
+                    <p class="microcopy">Lifetime access. Self-paced.</p>
+                </div>
+            </div>
+
+            {/* Footer Note */}
+            <div class="offers-footer">
+                <div class="section-header">
+                    <h3>Final Note</h3>
+                </div>
+                <p>
+                    This space is intentionally quiet. It is built for people
+                    who value clarity, depth, and long-term thinking over speed
+                    and noise.
+                </p>
+                <p>
+                    If your ideas are strong but your system feels fragmented,
+                    this is where structure begins.
+                </p>
+                <p class="student-note">
+                    <span class="highlight">Student Discount:</span> Special pricing
+                    available for current PhD and Master's students. Contact directly
+                    for details.
+                </p>
+            </div>
+        </div>
+    </div>
+</BaseLayout>
+
+<style>
+    /* --- CONTAINER --- */
+    .offers-container {
+        width: 100%;
+        min-height: 70vh;
+        padding: var(--space-xl) 0;
+    }
+
+    .content-wrapper {
+        max-width: var(--max-width);
+        margin: 0 auto;
+        padding: 0 24px;
+    }
+
+    /* --- HEADER --- */
+    .offers-header {
+        margin-bottom: var(--space-2xl);
+    }
+
+    .section-header {
+        border-bottom: 1px solid var(--border-subtle);
+        padding-bottom: var(--space-md);
+        margin-bottom: var(--space-md);
+    }
+
+    .overline {
+        display: block;
+        font-size: var(--text-xs);
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        color: var(--text-secondary);
+        margin-bottom: var(--space-sm);
+        font-weight: 500;
+    }
+
+    h1 {
+        font-family: "Poppins", sans-serif;
+        font-size: var(--text-3xl);
+        font-weight: 700;
+        margin: 0;
+        color: var(--text-primary);
+        letter-spacing: -0.02em;
+        line-height: 1.1;
+    }
+
+    h3 {
+        font-family: "Poppins", sans-serif;
+        font-size: var(--text-lg);
+        font-weight: 600;
+        margin: 0;
+        color: var(--text-primary);
+    }
+
+    .subtitle {
+        font-size: var(--text-lg);
+        line-height: 1.6;
+        color: var(--text-secondary);
+        margin: 0;
+    }
+
+    /* --- PRICING GRID --- */
+    .pricing-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-2xl);
+        margin-bottom: var(--space-2xl);
+    }
+
+    @media (max-width: 900px) {
+        .pricing-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* --- PRICING CARDS --- */
+    .pricing-card {
+        border: 1px solid var(--border-subtle);
+        padding: var(--space-2xl);
+        border-radius: 4px;
+        background: var(--bg-surface);
+        display: flex;
+        flex-direction: column;
+        transition: all 0.2s ease;
+    }
+
+    .pricing-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    }
+
+    [data-theme="dark"] .pricing-card:hover {
+        box-shadow: 0 8px 24px rgba(255, 255, 255, 0.05);
+    }
+
+    .card-tag {
+        display: inline-block;
+        font-size: var(--text-xs);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: #00ff41;
+        border: 1px solid #00ff41;
+        padding: 4px 12px;
+        border-radius: 4px;
+        margin-bottom: var(--space-md);
+        font-weight: 600;
+        width: fit-content;
+    }
+
+    .pricing-card h2 {
+        font-family: "Poppins", sans-serif;
+        font-size: var(--text-xl);
+        font-weight: 600;
+        margin: 0 0 var(--space-md) 0;
+        color: var(--text-primary);
+    }
+
+    .price {
+        font-size: 3rem;
+        font-weight: 700;
+        font-family: "Poppins", sans-serif;
+        margin-bottom: var(--space-md);
+        color: var(--text-primary);
+    }
+
+    .period {
+        font-size: var(--text-base);
+        font-weight: 400;
+        color: var(--text-tertiary);
+    }
+
+    .card-desc {
+        font-size: var(--text-base);
+        line-height: 1.7;
+        color: var(--text-secondary);
+        margin-bottom: var(--space-lg);
+    }
+
+    /* --- CARD FEATURES --- */
+    .card-features {
+        flex-grow: 1;
+        margin-bottom: var(--space-lg);
+    }
+
+    .card-features h3 {
+        font-size: var(--text-sm);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin: var(--space-lg) 0 var(--space-md) 0;
+        color: var(--text-primary);
+    }
+
+    .card-features h3:first-child {
+        margin-top: 0;
+    }
+
+    .card-features ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .card-features li {
+        font-size: var(--text-sm);
+        color: var(--text-secondary);
+        margin-bottom: var(--space-sm);
+        padding-left: 1rem;
+        position: relative;
+        line-height: 1.6;
+    }
+
+    .card-features li::before {
+        content: "→";
+        position: absolute;
+        left: 0;
+        color: #00ff41;
+    }
+
+    /* --- BUTTONS --- */
+    .offers-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        padding: var(--space-md);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: var(--text-sm);
+        border-radius: 4px;
+        transition: all 0.2s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .offers-btn.primary {
+        background: var(--accent);
+        color: var(--bg-color);
+        border: 1px solid var(--accent);
+    }
+
+    .offers-btn.secondary {
+        background: transparent;
+        color: var(--accent);
+        border: 1px solid var(--accent);
+    }
+
+    .offers-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .offers-btn.secondary:hover {
+        background: var(--accent);
+        color: var(--bg-color);
+    }
+
+    [data-theme="dark"] .offers-btn:hover {
+        box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+    }
+
+    /* --- FOOTER --- */
+    .offers-footer {
+        max-width: 720px;
+        margin: 0 auto;
+        text-align: center;
+    }
+
+    .offers-footer p {
+        font-size: var(--text-base);
+        line-height: 1.7;
+        color: var(--text-secondary);
+        margin-bottom: var(--space-md);
+    }
+
+    .student-note {
+        margin-top: var(--space-lg);
+        padding: var(--space-md);
+        background: var(--bg-surface);
+        border: 1px solid var(--border-subtle);
+        border-radius: 4px;
+        font-size: var(--text-sm);
+    }
+
+    .highlight {
+        color: #00ff41;
+        font-weight: 600;
+    }
+
+    /* --- MICROCOPY --- */
+    .microcopy {
+        font-size: var(--text-xs);
+        color: var(--text-tertiary);
+        text-align: center;
+        margin: var(--space-sm) 0 0 0;
+        font-style: italic;
+    }
+
+    /* --- RESPONSIVE --- */
+    @media (max-width: 768px) {
+        h1 {
+            font-size: var(--text-2xl);
+        }
+
+        .price {
+            font-size: 2.5rem;
+        }
+    }
+</style>

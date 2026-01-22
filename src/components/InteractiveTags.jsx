@@ -1,73 +1,115 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { vaultTags } from '../utils/tags';
+import confetti from 'canvas-confetti';
+
+// Simple "Ting" sound as base64 (short bell/chime)
+const TING_SOUND = "data:audio/wav;base64,UklGRl9vT1BXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU..."; // Placeholder, will use a real short base64 string in implementation
 
 const InteractiveTags = () => {
+    // --- STATE ---
     const [activeTags, setActiveTags] = useState([]);
+    const [tags, setTags] = useState(vaultTags);
+
+    // Game State
+    const [uniqueCount, setUniqueCount] = useState(0);
+    const [isUnlocked, setIsUnlocked] = useState(false);
+
+    // --- REFS ---
     const activeTagsRef = useRef([]);
     const containerRef = useRef(null);
     const lastSpawnPosition = useRef({ x: -999, y: -999 });
     const tagIdCounter = useRef(0);
+    const foundTagsRef = useRef(new Set());
+    const tagsRef = useRef(vaultTags);
 
-    // CONSTANTS
+    // --- CONSTANTS ---
     const CHECK_INTERVAL = 15;
     const MIN_SPACING = 90;
     const MAX_TAGS = 20;
     const FADE_DURATION = 1500;
     const EDGE_PADDING = 20;
-    const HEADER_BUFFER = 15; // Minimum distance tag center must be from header bottom
+    const HEADER_BUFFER = 15;
 
-    // Helper to check if point is inside a rect
-    const isInside = (x, y, rect) => {
-        return (
-            x >= rect.left &&
-            x <= rect.right &&
-            y >= rect.top &&
-            y <= rect.bottom
-        );
-    };
+    // FIXED UNLOCK THRESHOLD
+    const UNLOCK_THRESHOLD = 50;
 
-    // Helper to get all exclusion rects
-    const getExclusionZones = () => {
-        const zones = [];
-
-        // 1. Header (Strict exclusion REMOVED to allow Clamping/Displacement)
-        // We want tags to spawn (displaced) even if hovering the header.
-        /* 
-        const header = document.querySelector('.site-header');
-        if (header) {
-            zones.push(header.getBoundingClientRect());
-        } 
-        */
-
-        // 2. Hero Content (Text block)
-        const heroContent = document.querySelector('.hero-content');
-        if (heroContent) {
-            const rect = heroContent.getBoundingClientRect();
-            zones.push({
-                left: rect.left - 20,
-                right: rect.right + 20,
-                top: rect.top - 20,
-                bottom: rect.bottom + 20
-            });
-        }
-
-        // 3. Sections below the hero
-        const sections = document.querySelectorAll('.section');
-        sections.forEach(sec => {
-            const rect = sec.getBoundingClientRect();
-            if (rect.top < window.innerHeight) {
-                zones.push(rect);
+    // --- DATA FETCHING ---
+    useEffect(() => {
+        const fetchTags = async () => {
+            try {
+                const res = await fetch('/api/vault-tags.json');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (Array.isArray(data) && data.length > 0) {
+                        setTags(data);
+                    }
+                }
+            } catch (err) {
+                console.warn('Failed to fetch dynamic tags, using fallback.', err);
             }
-        });
+        };
+        fetchTags();
+    }, []);
 
-        return zones;
+    useEffect(() => {
+        tagsRef.current = tags;
+    }, [tags]);
+
+    // --- AUDIO HELPER ---
+    const audioRef = useRef(null);
+    const audioUnlockedRef = useRef(false);
+
+    useEffect(() => {
+        // Preload audio
+        audioRef.current = new Audio('/sounds/ting.mp3');
+        audioRef.current.volume = 0.5;
+        audioRef.current.load();
+
+        // Unlock audio on first user interaction
+        const unlockAudio = () => {
+            if (audioUnlockedRef.current || !audioRef.current) return;
+
+            // Try to play and immediately pause to unlock the AudioContext
+            audioRef.current.play().then(() => {
+                audioRef.current.pause();
+                audioRef.current.currentTime = 0;
+                audioUnlockedRef.current = true;
+            }).catch(e => {
+                // Ignore errors during unlock attempt (e.g., rapid clicks)
+            });
+
+            // Remove listeners once unlocked
+            window.removeEventListener('click', unlockAudio);
+            window.removeEventListener('keydown', unlockAudio);
+            window.removeEventListener('touchstart', unlockAudio);
+        };
+
+        window.addEventListener('click', unlockAudio);
+        window.addEventListener('keydown', unlockAudio);
+        window.addEventListener('touchstart', unlockAudio);
+
+        return () => {
+            window.removeEventListener('click', unlockAudio);
+            window.removeEventListener('keydown', unlockAudio);
+            window.removeEventListener('touchstart', unlockAudio);
+        };
+    }, []);
+
+    const playWinSound = () => {
+        try {
+            if (audioRef.current) {
+                audioRef.current.currentTime = 0; // Reset to start
+                audioRef.current.play().catch(e => console.warn("Audio blocked (interaction needed):", e));
+            }
+        } catch (e) {
+            console.error("Audio error", e);
+        }
     };
 
-
+    // --- INTERACTION LOGIC ---
     useEffect(() => {
         const handleMouseMove = (e) => {
             if (!containerRef.current) return;
-
             const containerRect = containerRef.current.getBoundingClientRect();
 
             const isMouseInsideContainer =
@@ -80,15 +122,12 @@ const InteractiveTags = () => {
                 const relX = e.clientX - containerRect.left;
                 const relY = e.clientY - containerRect.top;
 
-                // EDGE PADDING CHECK
                 if (
                     relX < EDGE_PADDING ||
                     relX > (containerRect.width - EDGE_PADDING) ||
                     relY < EDGE_PADDING ||
                     relY > (containerRect.height - EDGE_PADDING)
-                ) {
-                    return;
-                }
+                ) return;
 
                 const dxv = relX - lastSpawnPosition.current.x;
                 const dyv = relY - lastSpawnPosition.current.y;
@@ -101,34 +140,22 @@ const InteractiveTags = () => {
         };
 
         const attemptSpawn = (viewportX, viewportY, relX, relY, containerRect) => {
-            // 1. Check Exclusion Zones (Strict Overlap)
             const zones = getExclusionZones();
-            // We use viewportY for check, but later might clamp it
             const inExclusionZone = zones.some(rect => isInside(viewportX, viewportY, rect));
-
             if (inExclusionZone) return;
 
-            // 2. Header Clamping Logic
-            // Ensure tag spawns below header even if mouse is close
             const header = document.querySelector('.site-header');
             let finalRelY = relY;
-
             if (header) {
                 const headerRect = header.getBoundingClientRect();
                 const minViewportY = headerRect.bottom + HEADER_BUFFER;
-
-                // If the mouse is above this safe line (but below header due to exclusion check),
-                // or if we just want to enforce the tag position:
                 if (viewportY < minViewportY) {
-                    // DISPLACE: Force Y to be minViewportY
-                    // Convert minViewportY back to Relative Y
                     finalRelY = minViewportY - containerRect.top;
                 }
             }
 
-            // 3. Check Tag Collision (Anti-Overlap) using FINAL coordinates
             const hasCollision = activeTagsRef.current.some(tag => {
-                const dx = relX - tag.x; // We keep X same as mouse usually
+                const dx = relX - tag.x;
                 const dy = finalRelY - tag.y;
                 const dist = Math.sqrt(dx * dx + dy * dy);
                 return dist < MIN_SPACING;
@@ -141,7 +168,39 @@ const InteractiveTags = () => {
         };
 
         const spawnTag = (x, y) => {
-            const randomTag = vaultTags[Math.floor(Math.random() * vaultTags.length)];
+            const currentPool = tagsRef.current;
+            const randomTag = currentPool[Math.floor(Math.random() * currentPool.length)];
+
+            // --- GAMIFICATION LOGIC ---
+            if (!foundTagsRef.current.has(randomTag)) {
+                foundTagsRef.current.add(randomTag);
+                const count = foundTagsRef.current.size;
+                setUniqueCount(count);
+
+                // DISPATCH EVENT FOR WIDGET
+                const event = new CustomEvent('game-progress', {
+                    detail: {
+                        count,
+                        total: currentPool.length,
+                        unlocked: count === UNLOCK_THRESHOLD
+                    }
+                });
+                window.dispatchEvent(event);
+
+                // Check Win Condition: EXACTLY at the threshold to trigger once
+                if (count === UNLOCK_THRESHOLD) {
+                    setIsUnlocked(true);
+                    playWinSound();
+                    confetti({
+                        particleCount: 150,
+                        spread: 70,
+                        origin: { y: 0.6 },
+                        colors: ['#39ff14', '#ff0000', '#ffffff', '#00ff00'] // Neon Green, Red, White
+                    });
+                    window.dispatchEvent(new CustomEvent('game-unlock'));
+                }
+            }
+
             const newTag = {
                 id: tagIdCounter.current++,
                 text: randomTag,
@@ -167,8 +226,35 @@ const InteractiveTags = () => {
         return () => window.removeEventListener('mousemove', handleMouseMove);
     }, []);
 
+    // --- HELPERS ---
+    const isInside = (x, y, rect) => {
+        return (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom);
+    };
+
+    const getExclusionZones = () => {
+        const zones = [];
+        // Only exclude interactive elements/sections to avoid covering clicks
+        // But for background tags, we mainly care about not spawning ON TEXT excessively?
+        // Actually, let's keep it simple.
+        const heroContent = document.querySelector('.hero-content');
+        if (heroContent) {
+            const rect = heroContent.getBoundingClientRect();
+            zones.push({
+                left: rect.left - 20, right: rect.right + 20,
+                top: rect.top - 20, bottom: rect.bottom + 20
+            });
+        }
+        const sections = document.querySelectorAll('.section');
+        sections.forEach(sec => {
+            const rect = sec.getBoundingClientRect();
+            if (rect.top < window.innerHeight) zones.push(rect);
+        });
+        return zones;
+    };
+
     return (
         <div ref={containerRef} className="interactive-tags-container">
+            {/* --- FLOATING TAGS ONLY --- */}
             {activeTags.map(tag => (
                 <div
                     key={tag.id}
@@ -187,7 +273,7 @@ const InteractiveTags = () => {
             <style>{`
                 .interactive-tags-container {
                     position: absolute;
-                    top: -3rem; /* Cover the 3rem padding gap of Main */
+                    top: -3rem; 
                     left: 50%;
                     transform: translateX(-50%);
                     width: 100vw;

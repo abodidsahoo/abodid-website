@@ -1,0 +1,375 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Welcome to the Club">
+    <div class="welcome-container">
+        <div class="content-wrapper">
+            {/* Main Welcome Section */}
+            <div class="welcome-section">
+                <div class="section-header">
+                    <span class="overline">Access Granted</span>
+                    <h1>Welcome to the Second Brain Club</h1>
+                </div>
+
+                <div class="welcome-content">
+                    <p class="lead">
+                        You're now inside a private environment built for people
+                        who think at depth.
+                    </p>
+                    <p>
+                        This is not a newsletter. This is <span
+                            class="highlight">thinking infrastructure</span
+                        >.
+                    </p>
+                    <p>
+                        The Second Brain Club exists to help you design a system
+                        that supports long-term research, creative output, and
+                        intellectual clarity—without fragmentation or overload.
+                    </p>
+                </div>
+
+                <div class="benefits-grid">
+                    <div class="benefit-card">
+                        <h3>What This Space Is Designed For</h3>
+                        <ul>
+                            <li>
+                                Building a personal second brain that compounds
+                                over time
+                            </li>
+                            <li>
+                                Structuring notes, references, and insights into
+                                a connected system
+                            </li>
+                            <li>
+                                Developing clarity across complex or long-term
+                                work
+                            </li>
+                            <li>Creating a living research repository</li>
+                            <li>
+                                Supporting writing, publishing, and idea
+                                development
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="benefit-card">
+                        <h3>What You'll Learn</h3>
+                        <ul>
+                            <li>
+                                How to structure notes so ideas connect
+                                naturally
+                            </li>
+                            <li>
+                                How to design tags and links that support real
+                                thinking
+                            </li>
+                            <li>
+                                How to move from reading to insight to output
+                            </li>
+                            <li>
+                                How to maintain intellectual clarity at scale
+                            </li>
+                            <li>How to build a personal research website</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            {/* Member Access Section */}
+            <div class="access-section">
+                <div class="section-header">
+                    <span class="overline">Next Steps</span>
+                    <h2>Member Access</h2>
+                </div>
+
+                <div class="access-content">
+                    <p>
+                        As a new member, you now have access to a limited set of
+                        private offers designed to support deeper
+                        implementation.
+                    </p>
+
+                    <div class="target-audience">
+                        <h3>Who This Is Built For</h3>
+                        <ul>
+                            <li>PhD & Master's Students</li>
+                            <li>Researchers & Academics</li>
+                            <li>Knowledge Workers & Creatives</li>
+                        </ul>
+                        <p class="student-offer">
+                            This system is designed for people whose thinking is
+                            their work.
+                        </p>
+                    </div>
+
+                    <a href="/club/offers" class="offers-btn">
+                        View Private Offers →
+                    </a>
+
+                    <p class="microcopy">
+                        Private access. Thoughtfully curated. No spam.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</BaseLayout>
+
+<style>
+    /* --- CONTAINER --- */
+    .welcome-container {
+        width: 100%;
+        min-height: 70vh;
+        padding: var(--space-xl) 0;
+    }
+
+    .content-wrapper {
+        max-width: var(--max-width);
+        margin: 0 auto;
+        padding: 0 24px;
+        display: grid;
+        grid-template-columns: 1.5fr 1fr;
+        gap: var(--space-2xl);
+        align-items: start;
+    }
+
+    @media (max-width: 900px) {
+        .content-wrapper {
+            grid-template-columns: 1fr;
+            gap: var(--space-xl);
+        }
+    }
+
+    /* --- SECTION STYLES --- */
+    .welcome-section,
+    .access-section {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-lg);
+    }
+
+    .section-header {
+        border-bottom: 1px solid var(--border-subtle);
+        padding-bottom: var(--space-md);
+    }
+
+    .overline {
+        display: block;
+        font-size: var(--text-xs);
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        color: var(--text-secondary);
+        margin-bottom: var(--space-sm);
+        font-weight: 500;
+    }
+
+    h1 {
+        font-family: "Poppins", sans-serif;
+        font-size: var(--text-3xl);
+        font-weight: 700;
+        margin: 0;
+        color: var(--text-primary);
+        letter-spacing: -0.02em;
+        line-height: 1.1;
+    }
+
+    h2 {
+        font-family: "Poppins", sans-serif;
+        font-size: var(--text-2xl);
+        font-weight: 600;
+        margin: 0;
+        color: var(--text-primary);
+        letter-spacing: -0.02em;
+        line-height: 1.1;
+    }
+
+    /* --- WELCOME CONTENT --- */
+    .welcome-content {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-md);
+    }
+
+    .welcome-content .lead {
+        font-size: var(--text-lg);
+        line-height: 1.6;
+        color: var(--text-primary);
+    }
+
+    .welcome-content p {
+        font-size: var(--text-base);
+        line-height: 1.7;
+        color: var(--text-secondary);
+        margin: 0;
+    }
+
+    .highlight {
+        color: var(--text-primary);
+        font-weight: 600;
+    }
+
+    /* --- BENEFITS GRID --- */
+    .benefits-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-lg);
+        margin-top: var(--space-md);
+    }
+
+    @media (max-width: 768px) {
+        .benefits-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .benefit-card {
+        border: 1px solid var(--border-subtle);
+        padding: var(--space-lg);
+        border-radius: 4px;
+        background: var(--bg-surface);
+    }
+
+    .benefit-card h3 {
+        font-size: var(--text-sm);
+        font-weight: 600;
+        margin: 0 0 var(--space-md) 0;
+        color: var(--text-primary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .benefit-card ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .benefit-card li {
+        font-size: var(--text-sm);
+        color: var(--text-secondary);
+        margin-bottom: var(--space-sm);
+        padding-left: 1rem;
+        position: relative;
+        line-height: 1.6;
+    }
+
+    .benefit-card li::before {
+        content: "→";
+        position: absolute;
+        left: 0;
+        color: #00ff41;
+    }
+
+    /* --- ACCESS CONTENT --- */
+    .access-content {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-md);
+    }
+
+    .access-content p {
+        font-size: var(--text-base);
+        line-height: 1.7;
+        color: var(--text-secondary);
+        margin: 0;
+    }
+
+    /* --- TARGET AUDIENCE --- */
+    .target-audience {
+        margin-top: var(--space-sm);
+        padding: var(--space-md);
+        background: var(--bg-surface);
+        border-radius: 4px;
+        border: 1px solid var(--border-subtle);
+    }
+
+    .target-audience h3 {
+        font-size: var(--text-sm);
+        font-weight: 600;
+        margin: 0 0 var(--space-sm) 0;
+        color: var(--text-primary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .target-audience ul {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 var(--space-md) 0;
+    }
+
+    .target-audience li {
+        font-size: var(--text-sm);
+        color: var(--text-secondary);
+        margin-bottom: var(--space-sm);
+        padding-left: 1rem;
+        position: relative;
+    }
+
+    .target-audience li::before {
+        content: "→";
+        position: absolute;
+        left: 0;
+        color: #00ff41;
+    }
+
+    .student-offer {
+        font-size: var(--text-xs);
+        color: var(--text-secondary);
+        font-style: italic;
+        margin: 0;
+        padding-top: var(--space-sm);
+        border-top: 1px solid var(--border-subtle);
+    }
+
+    /* --- OFFERS BUTTON --- */
+    .offers-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        padding: var(--space-md);
+        background: var(--accent);
+        color: var(--bg-color);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: var(--text-sm);
+        border-radius: 4px;
+        transition: all 0.2s ease;
+        border: 1px solid var(--accent);
+        margin-top: var(--space-sm);
+    }
+
+    .offers-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    [data-theme="dark"] .offers-btn:hover {
+        box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+    }
+
+    /* --- MICROCOPY --- */
+    .microcopy {
+        font-size: var(--text-xs);
+        color: var(--text-tertiary);
+        text-align: center;
+        margin: 0;
+    }
+
+    /* --- RESPONSIVE --- */
+    @media (max-width: 768px) {
+        h1 {
+            font-size: var(--text-2xl);
+        }
+
+        h2 {
+            font-size: var(--text-xl);
+        }
+
+        .welcome-content .lead {
+            font-size: var(--text-base);
+        }
+    }
+</style>

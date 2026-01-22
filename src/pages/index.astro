@@ -4,11 +4,13 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import PhotographyCard from "../components/PhotographyCard.astro";
 import { getFeaturedPhotography, getRecentPosts } from "../lib/api";
 
-import InteractiveTags from "../components/InteractiveTags";
 import {
   featuredPhotography as mockPhotography,
   recentPosts as mockRecent,
 } from "../utils/mockData";
+
+import VibeCheckWidget from "../components/VibeCheckWidget";
+import InteractiveTags from "../components/InteractiveTags";
 
 const pageTitle = "Home";
 
@@ -45,6 +47,9 @@ const recentPosts = (await safeFetch(getRecentPosts, mockRecent)).slice(0, 3);
         media, I design authentic creative experiences for brands and
         organizations working in the culture and technology space.
       </p>
+
+      <!-- Gamification Widget (Vibe Check) -->
+      <VibeCheckWidget client:only="react" />
     </div>
   </section>
 

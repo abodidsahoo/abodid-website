@@ -349,43 +349,68 @@ const pageTitle = "Obsidian Vault";
     }
     
     .login-form-wrapper {
-        padding: 2rem;
+        padding: 3rem;
         background: var(--bg-surface);
         border: 1px solid var(--border-subtle);
-        border-radius: 12px;
+        border-radius: 16px;
+        max-width: 500px; /* Slightly tighter container */
+        margin: 0 auto 3rem auto;
     }
     
-    .workshop-pitch {
-        margin-top: 2rem;
-        padding: 2rem;
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid var(--border-subtle);
-        border-radius: 12px;
+    .login-label {
+        font-family: 'Poppins', sans-serif;
+        font-size: 1.8rem; /* Much bigger */
+        font-weight: 800; /* Extra bold */
+        letter-spacing: -0.5px;
+        margin-bottom: 2rem;
+        color: var(--text-main);
+        text-transform: uppercase;
+    }
+    
+    .login-form { 
+        display: flex; 
+        flex-direction: column; /* Stacked */
+        gap: 1rem; 
+        align-items: center;
     }
 
-    /* Buttons */
-    .btn-primary, .btn-unlock {
-        background: var(--text-main);
-        color: var(--bg-body);
-        font-weight: 700;
-        border-radius: 6px;
-        text-decoration: none;
-        padding: 0.8rem 1.5rem;
-        border: none;
-        cursor: pointer;
-    }
-    .btn-primary:hover, .btn-unlock:hover { opacity: 0.9; }
-    
     .login-form input {
-        padding: 0.8rem;
+        width: 100%;
+        padding: 1rem 1.2rem;
         border: 1px solid var(--border-subtle);
-        background: var(--bg-body);
-        color: var(--text-main);
-        border-radius: 6px;
-        flex: 1;
+        background: #000; /* Darker input background */
+        color: #fff;
+        border-radius: 8px;
+        font-size: 1rem;
+        text-align: center; /* Centered input text */
+        font-family: 'Space Mono', monospace;
+        transition: all 0.3s ease;
     }
     
-    .login-form { display: flex; gap: 0.5rem; }
+    .login-form input:focus {
+        border-color: #fff;
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(255,255,255,0.2);
+    }
+    
+    .btn-unlock {
+        width: 100%; /* Full width button */
+        background: #fff;
+        color: #000;
+        font-weight: 800;
+        font-size: 1rem;
+        text-transform: uppercase;
+        padding: 1.2rem;
+        border-radius: 8px;
+        letter-spacing: 1px;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .btn-unlock:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(255,255,255,0.2);
+        opacity: 1;
+    }
 
     /* Tags: PILL SHAPE + FLOW */
     .tag-cloud-wrapper {
