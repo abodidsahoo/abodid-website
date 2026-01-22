@@ -1,0 +1,436 @@
+---
+import {
+    getRecentPosts,
+    getFeaturedPhotography,
+    getResearchPapers,
+} from "../lib/api";
+
+const recentPosts = await getRecentPosts();
+const featuredPhotography = await getFeaturedPhotography();
+const allPapers = await getResearchPapers();
+const recentPapers = allPapers.slice(0, 3);
+
+const mapData = {
+    core: [
+        { name: "Home", href: "/", desc: "The central hub." },
+        { name: "About", href: "/about", desc: "Professional biography." },
+        { name: "Timeline", href: "/timeline", desc: "Chronological history." },
+    ],
+    creative: [
+        {
+            name: "Photography",
+            href: "/photography",
+            desc: "Cinematic moments.",
+            children: featuredPhotography.map((p) => ({
+                name: p.title,
+                href: p.href,
+                isDynamic: true,
+            })),
+        },
+        { name: "Films", href: "/films", desc: "Narrative & documentary." },
+        {
+            name: "Visual Experiments",
+            href: "/visual-experiments",
+            desc: "Generative art.",
+        },
+    ],
+    knowledge: [
+        {
+            name: "Research",
+            href: "/research",
+            desc: "Academic papers.",
+            children: recentPapers.map((p) => ({
+                name: p.formatted_title
+                    ? p.formatted_title.replace(/<\/?[^>]+(>|$)/g, "")
+                    : p.title,
+                href: p.pdf_url && p.pdf_url !== "#" ? p.pdf_url : "/research",
+                isDynamic: true,
+            })),
+        },
+        {
+            name: "Secret Lab",
+            href: "/secret-lab",
+            desc: "Experimental prototypes.",
+        },
+        {
+            name: "Blog",
+            href: "/blog",
+            desc: "Insights & thoughts.",
+            children: recentPosts.map((p) => ({
+                name: p.title,
+                href: p.href,
+                isDynamic: true,
+            })),
+        },
+    ],
+    professional: [
+        { name: "Work Experience", href: "/work", desc: "Roles & impact." },
+        { name: "Education", href: "/education", desc: "Academic background." },
+        { name: "Awards", href: "/awards", desc: "Grants & recognition." },
+        { name: "Press", href: "/press", desc: "Media mentions." },
+        { name: "Services", href: "/services", desc: "Hire me." },
+        { name: "Workshops", href: "/workshops", desc: "Teaching & sessions." },
+        { name: "CV", href: "/cv", desc: "Curriculum Vitae." },
+    ],
+    community: [
+        {
+            name: "Guestbook",
+            href: "/guestbook",
+            desc: "Leave a digital trace.",
+        },
+        { name: "Club", href: "/club/welcome", desc: "Supporters circle." },
+        // { name: "Newsletter", href: "/newsletter", desc: "Email updates." }
+    ],
+    meta: [
+        { name: "Licensing", href: "/licensing", desc: "Usage guidelines." },
+        { name: "Privacy", href: "/privacy", desc: "Data policy." },
+        { name: "RSS", href: "/rss.xml", desc: "Feed." },
+    ],
+};
+---
+
+<nav aria-label="Site Map" class="constellation-map">
+    <div class="galaxy core-galaxy">
+        <h2 class="galaxy-title">Core</h2>
+        <ul class="node-list">
+            {
+                mapData.core.map((node) => (
+                    <li class="node-item">
+                        <a href={node.href} class="node-link">
+                            <span class="node-name">{node.name}</span>
+                            <span class="node-desc">{node.desc}</span>
+                        </a>
+                    </li>
+                ))
+            }
+        </ul>
+    </div>
+
+    <div class="galaxy-cluster">
+        <div class="galaxy creative-galaxy">
+            <h2 class="galaxy-title">Creative</h2>
+            <ul class="node-list">
+                {
+                    mapData.creative.map((node) => (
+                        <li class="node-item">
+                            <a href={node.href} class="node-link main-node">
+                                <span class="node-name">{node.name}</span>
+                                <span class="node-desc">{node.desc}</span>
+                            </a>
+                            {node.children && (
+                                <ul class="sub-node-list">
+                                    {node.children.map((child) => (
+                                        <li class="sub-node-item">
+                                            <a
+                                                href={child.href}
+                                                class="sub-link"
+                                            >
+                                                {child.name}
+                                            </a>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        </li>
+                    ))
+                }
+            </ul>
+        </div>
+
+        <div class="galaxy knowledge-galaxy">
+            <h2 class="galaxy-title">Knowledge</h2>
+            <ul class="node-list">
+                {
+                    mapData.knowledge.map((node) => (
+                        <li class="node-item">
+                            <a href={node.href} class="node-link main-node">
+                                <span class="node-name">{node.name}</span>
+                                <span class="node-desc">{node.desc}</span>
+                            </a>
+                            {node.children && (
+                                <ul class="sub-node-list">
+                                    {node.children.map((child) => (
+                                        <li class="sub-node-item">
+                                            <a
+                                                href={child.href}
+                                                class="sub-link"
+                                            >
+                                                {child.name}
+                                            </a>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        </li>
+                    ))
+                }
+            </ul>
+        </div>
+
+        <div class="galaxy professional-galaxy">
+            <h2 class="galaxy-title">Professional</h2>
+            <ul class="node-list">
+                {
+                    mapData.professional.map((node) => (
+                        <li class="node-item">
+                            <a href={node.href} class="node-link">
+                                <span class="node-name">{node.name}</span>
+                                <span class="node-desc">{node.desc}</span>
+                            </a>
+                        </li>
+                    ))
+                }
+            </ul>
+        </div>
+
+        <div class="galaxy community-galaxy">
+            <h2 class="galaxy-title">Community</h2>
+            <ul class="node-list">
+                {
+                    mapData.community.map((node) => (
+                        <li class="node-item">
+                            <a href={node.href} class="node-link">
+                                <span class="node-name">{node.name}</span>
+                                <span class="node-desc">{node.desc}</span>
+                            </a>
+                        </li>
+                    ))
+                }
+            </ul>
+
+            <div class="meta-cluster">
+                <h3 class="galaxy-subtitle">Meta</h3>
+                <ul class="meta-list">
+                    {
+                        mapData.meta.map((node) => (
+                            <li>
+                                <a href={node.href}>{node.name}</a>
+                            </li>
+                        ))
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<style>
+    :root {
+        --star-color: var(--text-primary);
+        --line-color: var(--border-subtle);
+        --node-bg: var(--bg-surface);
+    }
+
+    .constellation-map {
+        position: relative;
+        padding: 2rem 0;
+        font-family: var(--font-sans);
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    /* Structure */
+    .galaxy-cluster {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 4rem;
+        margin-top: 4rem;
+        position: relative;
+    }
+
+    .galaxy {
+        position: relative;
+        padding: 1rem;
+        border-left: 1px dashed var(--line-color);
+    }
+
+    .core-galaxy {
+        text-align: center;
+        border-left: none;
+        border-bottom: 1px solid var(--line-color);
+        padding-bottom: 3rem;
+        margin-bottom: 2rem;
+    }
+
+    .core-galaxy .node-list {
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .galaxy-title {
+        font-family: "Poppins", sans-serif;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-tertiary);
+        margin-bottom: 2rem;
+        position: absolute;
+        top: -1.5rem;
+        left: -1px;
+        background: var(--bg-color);
+        padding: 0 0.5rem;
+    }
+
+    .core-galaxy .galaxy-title {
+        position: static;
+        margin-bottom: 1rem;
+        display: inline-block;
+    }
+
+    .node-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    /* Nodes */
+    .node-item {
+        position: relative;
+    }
+
+    .node-link {
+        display: block;
+        padding: 1rem;
+        background: var(--node-bg);
+        border: 1px solid var(--line-color);
+        border-radius: 8px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        position: relative;
+        z-index: 2;
+    }
+
+    .node-link:hover {
+        border-color: var(--text-primary);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .node-name {
+        display: block;
+        font-size: 1.2rem;
+        font-weight: 500;
+        color: var(--text-primary);
+        margin-bottom: 0.2rem;
+    }
+
+    .node-desc {
+        display: block;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+    }
+
+    /* Sub-nodes (Dynamic Content) */
+    .sub-node-list {
+        list-style: none;
+        padding: 0;
+        margin: 1rem 0 0 1.5rem;
+        border-left: 1px solid var(--line-color);
+        position: relative;
+    }
+
+    .sub-node-item {
+        position: relative;
+    }
+
+    .sub-node-item:before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 50%;
+        width: 15px;
+        height: 1px;
+        background: var(--line-color);
+    }
+
+    .sub-link {
+        display: block;
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        text-decoration: none;
+        transition: color 0.2s;
+        margin-left: 15px;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    .sub-link:hover {
+        color: var(--text-primary);
+        text-decoration: underline;
+    }
+
+    /* Meta Section */
+    .meta-cluster {
+        margin-top: 3rem;
+        padding-top: 2rem;
+        border-top: 1px dashed var(--line-color);
+    }
+
+    .galaxy-subtitle {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        color: var(--text-tertiary);
+        margin-bottom: 1rem;
+    }
+
+    .meta-list {
+        list-style: none;
+        padding: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .meta-list a {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        text-decoration: none;
+        padding: 0.3rem 0.8rem;
+        border: 1px solid var(--line-color);
+        border-radius: 100px;
+        transition: all 0.2s;
+    }
+
+    .meta-list a:hover {
+        border-color: var(--text-primary);
+        color: var(--text-primary);
+    }
+
+    /* Connecting Lines (The "Constellation" Look) */
+    /* This uses pseudo-elements to draw lines between sections on desktop */
+    @media (min-width: 900px) {
+        .constellation-map:before {
+            content: "";
+            position: absolute;
+            top: 8rem; /* approximate center of core */
+            left: 50%;
+            width: 1px;
+            height: calc(100% - 8rem);
+            background: linear-gradient(
+                to bottom,
+                var(--line-color) 0%,
+                transparent 100%
+            );
+            z-index: 0;
+            opacity: 0.3;
+        }
+    }
+
+    @media (max-width: 600px) {
+        .galaxy-cluster {
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        .core-galaxy .node-list {
+            flex-direction: column;
+        }
+    }
+</style>

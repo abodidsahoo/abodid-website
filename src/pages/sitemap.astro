@@ -1,5 +1,6 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import VisualSitemap from "../components/VisualSitemap.astro";
 
 const title = "Sitemap";
 const description = "The constellation of this digital space.";
@@ -11,37 +12,27 @@ const description = "The constellation of this digital space.";
         <p class="subtitle">{description}</p>
     </header>
 
-    <div class="sitemap-tree">
-        <ul>
-            <li>
-                <a href="/">Home</a>
-                <ul>
-                    <li><a href="/photography">Photography</a></li>
-                    <li><a href="/blog">Blog</a></li>
-                    <li><a href="/about">About</a></li>
-                    <li><a href="/workshops">Workshops</a></li>
-                    <li><a href="/services">Services</a></li>
-                    <li><a href="/guestbook">Guestbook</a></li>
-                </ul>
-            </li>
-        </ul>
+    <div class="sitemap-container">
+        <VisualSitemap />
     </div>
 </BaseLayout>
 
 <style>
     .page-header {
-        margin-bottom: 3rem;
+        margin-bottom: 2rem;
+        text-align: center;
     }
 
-    .sitemap-tree ul {
-        list-style: none;
-        padding-left: 20px;
-        border-left: 1px solid var(--border-subtle);
+    .subtitle {
+        color: var(--text-secondary);
+        font-family: var(--font-serif);
+        font-style: italic;
     }
-    .sitemap-tree li {
-        margin: 10px 0;
-    }
-    .sitemap-tree a {
-        font-size: 1.2rem;
+
+    h1 {
+        font-family: "Poppins", sans-serif;
+        font-size: 3rem;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
     }
 </style>
