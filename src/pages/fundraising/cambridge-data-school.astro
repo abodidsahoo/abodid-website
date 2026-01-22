@@ -247,6 +247,21 @@ const costs = [
     .campaign-hero {
         text-align: center;
         margin-bottom: 4rem;
+
+        /* Hero Image Setup */
+        background-image:
+            linear-gradient(
+                to bottom,
+                rgba(15, 15, 16, 0.7),
+                rgba(15, 15, 16, 1)
+            ),
+            url("https://upload.wikimedia.org/wikipedia/commons/b/b4/KingsCollegeChapelWest.jpg");
+        background-size: cover;
+        background-position: center;
+        padding: 8rem 1.5rem 4rem 1.5rem; /* Increased top padding */
+        margin-top: -4rem; /* Pull up into header area if needed, or just standard */
+        border-radius: 0 0 24px 24px;
+        position: relative;
     }
 
     .eyebrow {

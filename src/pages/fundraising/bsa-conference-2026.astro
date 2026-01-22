@@ -1,0 +1,631 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const pageTitle = "BSA Annual Conference Fundraiser";
+
+// Project Data
+const goal = 1200;
+const raised = 420;
+const percentage = Math.min((raised / goal) * 100, 100);
+
+// Cost Data
+const costs = [
+    { item: "International Flight (India ↔ UK)", cost: 500 },
+    { item: "Accommodation (3–4 nights)", cost: 350 },
+    { item: "Local Travel (Manchester + transit)", cost: 150 },
+    { item: "Food & Essentials", cost: 150 },
+    { item: "Insurance / Contingency", cost: 50 },
+];
+---
+
+<BaseLayout title={pageTitle}>
+    <div class="campaign-page">
+        {/* --- HERO SECTION --- */}
+        <header class="campaign-hero">
+            <div class="hero-content">
+                <span class="eyebrow">Academic Milestone</span>
+                <h1>
+                    From Odisha to Manchester — help me present my research on a
+                    global stage.
+                </h1>
+                <p class="subtitle">
+                    Two peer-reviewed research works accepted at the <strong
+                        >BSA Annual Conference 2026</strong
+                    >. I’m raising <strong>£1,200</strong> to cover travel and stay.
+                </p>
+            </div>
+        </header>
+
+        {/* --- TRUST / STATS SECTION --- */}
+        <section class="trust-section">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span class="stat-icon">📈</span>
+                    <h3>1,900+</h3>
+                    <p>Submissions (Highest in BSA History)</p>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-icon">🎓</span>
+                    <h3>Funded</h3>
+                    <p>Registration Fee & Place Awarded</p>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-icon">🌍</span>
+                    <h3>75 Years</h3>
+                    <p>Of Global Sociology</p>
+                </div>
+            </div>
+
+            <div class="trust-note">
+                <p>
+                    My abstracts were anonymously reviewed and accepted into the
+                    conference programme. I have also been awarded a <strong
+                        >fully funded place</strong
+                    > by the BSA, covering the conference fee.
+                </p>
+            </div>
+        </section>
+
+        {/* --- RESEARCH CARDS SECTION --- */}
+        <section class="research-section">
+            <h2 class="section-title">Accepted Research</h2>
+            <div class="research-grid">
+                {/* Card 1 */}
+                <div class="research-card">
+                    <div class="card-type">presentation mode: Poster</div>
+                    <h3>
+                        Cloud Memories and Algorithmic Recall: iCloud, AI
+                        Sorting, and Ownership
+                    </h3>
+                    <div class="card-meta">
+                        <span class="meta-stream"
+                            >Stream: Science, Technology & Digital Studies</span
+                        >
+                        <span class="meta-session">Session: STS Posters</span>
+                    </div>
+                    <p class="card-desc">
+                        Exploring how cloud infrastructures shape personal
+                        memory and how algorithmic sorting influences ownership
+                        and recall.
+                    </p>
+                </div>
+
+                {/* Card 2 */}
+                <div class="research-card">
+                    <div class="card-type">presentation mode: Roundtable</div>
+                    <h3>
+                        Rejection Re-Activates Unresolved Grief: Findings from
+                        an Archive-Led Autoethnography
+                    </h3>
+                    <div class="card-meta">
+                        <span class="meta-stream"
+                            >Stream: Families & Relationships</span
+                        >
+                        <span class="meta-session"
+                            >Session: FAR Roundtables</span
+                        >
+                    </div>
+                    <p class="card-desc">
+                        Examining how rejection and grief resurface through
+                        personal digital archives and contemporary human
+                        experience.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        {/* --- MAIN EDITORIAL CONTENT --- */}
+        <article class="story-content">
+            <div class="content-block">
+                <h2>Why This Matters</h2>
+                <p>
+                    The <strong
+                        >British Sociological Association Annual Conference</strong
+                    > is one of the UK’s most significant sociology gatherings. Presenting
+                    here allows early-career researchers to contribute to global sociological
+                    dialogue.
+                </p>
+                <p>
+                    My work sits at the intersection of technology, memory,
+                    archives, and emotion. Presenting this work publicly allows
+                    for academic dialogue and visibility for interdisciplinary
+                    research across digital humanities and sociology.
+                </p>
+            </div>
+
+            <div class="content-block">
+                <h2>From Odisha to the World</h2>
+                <p>
+                    I was born and raised in a small town in <strong
+                        >Odisha, India</strong
+                    >. My academic journey has been shaped through
+                    self-learning, scholarships, and cross-disciplinary
+                    practice.
+                </p>
+                <p>
+                    From the Royal College of Art (London) to international
+                    academic platforms, I continue building work that bridges
+                    art, technology, and culture. Being able to present at BSA
+                    represents both personal growth and representation for
+                    students from under-resourced geographies.
+                </p>
+            </div>
+
+            {/* --- TRANSPARENCY SECTION --- */}
+            <div class="transparency-block">
+                <h3>Transparent Cost Breakdown</h3>
+                <p class="transparency-intro">
+                    This amount supports only essential costs required to attend
+                    the conference in person. The registration is already
+                    funded.
+                </p>
+
+                <div class="cost-table-wrapper">
+                    <table class="cost-table">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th class="text-right">Estimated Cost</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {
+                                costs.map((row) => (
+                                    <tr>
+                                        <td>{row.item}</td>
+                                        <td class="text-right">£{row.cost}</td>
+                                    </tr>
+                                ))
+                            }
+                            <tr class="total-row">
+                                <td><strong>Total Goal</strong></td>
+                                <td class="text-right"
+                                    ><strong>£1,200</strong></td
+                                >
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {/* --- REWARDS SECTION --- */}
+            <div class="rewards-block">
+                <div class="reward-card">
+                    <h4>🎁 In Gratitude: The Secret Lab</h4>
+                    <p>
+                        Supporters are contributing to academic participation,
+                        not purchasing services. In gratitude, contributors will
+                        receive:
+                    </p>
+                    <ul>
+                        <li>
+                            Access to my <strong
+                                >Secret Lab learning space</strong
+                            >
+                        </li>
+                        <li>Early access to research reflections</li>
+                        <li>
+                            Name credited in public write-ups and documentation
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </article>
+
+        {/* --- STICKY DONATION WIDGET (Glassmorphism) --- */}
+        <div class="donation-widget">
+            <div class="widget-progress">
+                <div class="widget-header">
+                    <span class="amount-raised">£{raised}</span>
+                    <span class="amount-goal">raised of £{goal}</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div
+                        class="progress-bar-fill"
+                        style={`width: ${percentage}%`}
+                    >
+                    </div>
+                </div>
+                <div class="percentage-text">
+                    {Math.round(percentage)}% Funded
+                </div>
+            </div>
+
+            <div class="widget-actions">
+                {/* PayPal SDK Script */}
+                <script
+                    is:inline
+                    src="https://www.paypal.com/sdk/js?client-id=BAAQE8TkamhCfaYjOOl_ZjtgKbY0ZCtyOzmdOe83xf_zWg30P2ZzyrL0_v1NsBdll_k9zw5wYPq9KJkXy8&components=hosted-buttons&disable-funding=venmo&currency=GBP"
+                ></script>
+
+                <div id="paypal-container-22T4QFMFG6BDS"></div>
+
+                <script is:inline>
+                    const renderPayPal = () => {
+                        // Reuse existing button ID or use a dynamic one if available.
+                        // Using the same ID for demo as requested by user ("use those Paypal payment links... here just for the demo")
+                        if (window.paypal && window.paypal.HostedButtons) {
+                            window.paypal
+                                .HostedButtons({
+                                    hostedButtonId: "22T4QFMFG6BDS",
+                                })
+                                .render("#paypal-container-22T4QFMFG6BDS");
+                            return true;
+                        }
+                        return false;
+                    };
+                    if (!renderPayPal()) {
+                        const intervalId = setInterval(() => {
+                            if (renderPayPal()) clearInterval(intervalId);
+                        }, 200);
+                        setTimeout(() => clearInterval(intervalId), 5000);
+                    }
+                </script>
+            </div>
+
+            <p class="widget-footer">🔒 Secure payment via PayPal</p>
+            <p class="widget-footer-link">
+                <a
+                    href="/fundraising/cambridge-data-school"
+                    style="color: #666; font-size: 0.7rem;"
+                    >View Cambridge Campaign</a
+                >
+            </p>
+        </div>
+    </div>
+</BaseLayout>
+
+<style>
+    /* --- LAYOUT --- */
+    .campaign-page {
+        max-width: 800px; /* Editorial Width */
+        margin: 0 auto;
+        padding: 4rem 1.5rem 10rem 1.5rem;
+        position: relative;
+    }
+
+    /* --- HERO --- */
+    .campaign-hero {
+        text-align: center;
+        margin-bottom: 4rem;
+
+        /* Hero Image Setup */
+        background-image:
+            linear-gradient(
+                to bottom,
+                rgba(15, 15, 16, 0.8),
+                rgba(15, 15, 16, 1)
+            ),
+            url("https://www.birmingham.ac.uk/Images/academic-services/RPC21250x633.jpg");
+        background-size: cover;
+        background-position: center;
+        padding: 8rem 1.5rem 4rem 1.5rem;
+        margin-top: -4rem;
+        border-radius: 0 0 24px 24px;
+        position: relative;
+    }
+
+    .eyebrow {
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.15em;
+        color: #ffd140; /* Yellow Academic/Conference Vibe */
+        font-weight: 600;
+        margin-bottom: 1rem;
+        display: block;
+    }
+
+    h1 {
+        font-family: "Poppins", sans-serif;
+        font-size: 2.8rem;
+        line-height: 1.1;
+        margin-bottom: 1.5rem;
+        font-weight: 700;
+    }
+
+    .subtitle {
+        font-size: 1.25rem;
+        color: var(--text-secondary);
+        line-height: 1.6;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    strong {
+        color: #fff;
+        font-weight: 600;
+    }
+
+    /* --- TRUST / STATS --- */
+    .trust-section {
+        margin-bottom: 5rem;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 1.5rem;
+        border-radius: 12px;
+        text-align: center;
+    }
+
+    .stat-icon {
+        font-size: 1.5rem;
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-card h3 {
+        font-family: "Poppins", sans-serif;
+        font-size: 1.5rem;
+        color: #fff;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-card p {
+        font-size: 0.8rem;
+        color: var(--text-tertiary);
+        line-height: 1.4;
+    }
+
+    .trust-note {
+        text-align: center;
+        font-style: italic;
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        max-width: 600px;
+        margin: 0 auto;
+        border-top: 1px solid var(--border-subtle);
+        padding-top: 2rem;
+    }
+
+    /* --- RESEARCH CARDS --- */
+    .research-section {
+        margin-bottom: 5rem;
+    }
+
+    .section-title {
+        text-align: center;
+        font-size: 1.8rem;
+        margin-bottom: 2rem;
+        color: var(--text-primary);
+        font-family: "Poppins", sans-serif;
+    }
+
+    .research-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .research-card {
+        background: linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.05),
+            rgba(255, 255, 255, 0.02)
+        );
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-left: 3px solid #ffd140; /* Yellow */
+        padding: 2rem;
+        border-radius: 8px;
+        transition: transform 0.2s;
+    }
+
+    .research-card:hover {
+        transform: translateX(5px);
+        background: rgba(255, 255, 255, 0.07);
+    }
+
+    .card-type {
+        text-transform: uppercase;
+        font-size: 0.7rem;
+        letter-spacing: 0.1em;
+        color: var(--text-tertiary);
+        margin-bottom: 0.8rem;
+    }
+
+    .research-card h3 {
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
+        color: #fff;
+        line-height: 1.4;
+    }
+
+    .card-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        font-size: 0.85rem;
+        color: #ffd140;
+        margin-bottom: 1rem;
+        font-family: "Space Mono", monospace;
+    }
+
+    .card-desc {
+        font-size: 0.95rem;
+        color: var(--text-secondary);
+        line-height: 1.6;
+    }
+
+    /* --- EDITORIAL CONTENT --- */
+    .story-content {
+        font-size: 1.1rem;
+        line-height: 1.8;
+        color: var(--text-secondary);
+    }
+
+    .content-block {
+        margin-bottom: 3rem;
+    }
+
+    h2 {
+        color: var(--text-primary);
+        font-family: "Poppins", sans-serif;
+        font-size: 2rem;
+        margin-bottom: 1rem;
+    }
+
+    h4 {
+        font-family: "Poppins", sans-serif;
+        font-size: 1.3rem;
+        margin-bottom: 1rem;
+        color: var(--text-primary);
+    }
+
+    ul {
+        margin-bottom: 1.5rem;
+        padding-left: 1.5rem;
+    }
+
+    li {
+        margin-bottom: 0.5rem;
+    }
+
+    /* --- TRANSPARENCY TABLE --- */
+    .transparency-block {
+        background: var(--bg-surface);
+        padding: 2rem;
+        border-radius: 12px;
+        border: 1px solid var(--border-subtle);
+    }
+
+    .cost-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1.5rem;
+        font-size: 0.95rem;
+    }
+
+    .cost-table th {
+        text-align: left;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border-subtle);
+        color: var(--text-tertiary);
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 0.05em;
+    }
+
+    .cost-table td {
+        padding: 1rem 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .text-right {
+        text-align: right;
+    }
+
+    .total-row td {
+        border-bottom: none;
+        padding-top: 1.5rem;
+        font-size: 1.1rem;
+        color: #ffd140; /* Yellow Total */
+    }
+
+    /* --- REWARDS --- */
+    .rewards-block {
+        margin-top: 6rem;
+    }
+
+    .reward-card {
+        background: linear-gradient(
+            145deg,
+            rgba(255, 209, 64, 0.1),
+            transparent
+        );
+        border: 1px solid rgba(255, 209, 64, 0.3);
+        padding: 2rem;
+        border-radius: 12px;
+    }
+
+    /* --- STICKY DONATION WIDGET --- */
+    .donation-widget {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        width: 320px;
+        background: rgba(15, 15, 16, 0.9);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        padding: 1.5rem;
+        border-radius: 16px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+        z-index: 100;
+    }
+
+    .widget-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 0.8rem;
+    }
+
+    .amount-raised {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #fff;
+        font-family: "Space Mono", monospace;
+    }
+
+    .amount-goal {
+        font-size: 0.85rem;
+        color: var(--text-tertiary);
+    }
+
+    .progress-bar-bg {
+        width: 100%;
+        height: 8px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+        margin-bottom: 0.5rem;
+        overflow: hidden;
+    }
+
+    .progress-bar-fill {
+        height: 100%;
+        background: #ffd140; /* Yellow Progress */
+        border-radius: 4px;
+    }
+
+    .percentage-text {
+        font-size: 0.8rem;
+        color: #ffd140;
+        text-align: right;
+        margin-bottom: 1.5rem;
+        font-family: "Space Mono", monospace;
+    }
+
+    .widget-footer {
+        text-align: center;
+        font-size: 0.75rem;
+        color: var(--text-tertiary);
+        margin-top: 1rem;
+    }
+
+    .widget-footer-link {
+        text-align: center;
+        margin-top: 0.5rem;
+    }
+
+    @media (max-width: 850px) {
+        .donation-widget {
+            position: relative;
+            bottom: auto;
+            right: auto;
+            width: 100%;
+            margin-top: 3rem;
+            background: var(--bg-surface);
+        }
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
