@@ -3,18 +3,33 @@ export const featuredPhotography = [
     title: "Urban Silence",
     category: "Photography",
     image: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?q=80&w=1920&auto=format&fit=crop",
+    images: [
+      "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?q=80&w=1920&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1480796927426-f609979314bd?q=80&w=1920&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1517732306149-18967b2cb59b?q=80&w=1920&auto=format&fit=crop"
+    ],
     href: "/photography/urban-silence"
   },
   {
     title: "Neon Nights",
     category: "Photography",
     image: "https://images.unsplash.com/photo-1555680202-c86f0e12f086?q=80&w=1920&auto=format&fit=crop",
+    images: [
+      "https://images.unsplash.com/photo-1555680202-c86f0e12f086?q=80&w=1920&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1565615833231-e8c91a38a012?q=80&w=1920&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1565306915220-327c2443075b?q=80&w=1920&auto=format&fit=crop"
+    ],
     href: "/photography/neon-nights"
   },
   {
     title: "Desert Echoes",
     category: "Travel",
     image: "https://images.unsplash.com/photo-1473580044384-7ba9967e16a0?q=80&w=1920&auto=format&fit=crop",
+    images: [
+      "https://images.unsplash.com/photo-1473580044384-7ba9967e16a0?q=80&w=1920&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?q=80&w=1920&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?q=80&w=1920&auto=format&fit=crop"
+    ],
     href: "/photography/desert-echoes"
   }
 ];

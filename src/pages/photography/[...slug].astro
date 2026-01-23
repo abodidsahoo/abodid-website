@@ -94,20 +94,26 @@ const contentHtml = marked.parse(project.content || "");
   .project-content {
     display: flex;
     flex-direction: column;
-    gap: var(--space-lg);
+    gap: var(
+      --space-2xl
+    ); /* Increased from lg to 2xl for more breathing room */
   }
 
   .project-image {
-    margin: 0; /* Remove default figure margins */
+    margin: 0;
+    /* Frame Styling */
+    background-color: #ffffff;
+    padding: 2.5rem; /* The white frame width */
+    /* Add a subtle shadow for the frame lift */
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
   }
 
   .project-image img {
     width: 100%;
     height: auto;
-    display: block; /* Remove inline spacing */
-    border-radius: 4px;
-    /* Optional: minimal shadow for depth */
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    display: block;
+    /* Remove border radius from image as frame handles it (or keep rigid) */
+    /* box-shadow removed here as parent has it */
   }
 
   .story-footer {
@@ -133,6 +139,7 @@ const contentHtml = marked.parse(project.content || "");
   .project-prose :global(img) {
     width: 100%;
     height: auto;
+    /* Match the new frame style for prose images too if desired, or keep simple */
     border-radius: 4px;
     margin: 2rem 0;
   }

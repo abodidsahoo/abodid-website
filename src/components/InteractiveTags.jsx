@@ -244,6 +244,17 @@ const InteractiveTags = () => {
                 top: rect.top - 20, bottom: rect.bottom + 20
             });
         }
+
+        // Exclude Vibe Check Widget (repositioned to top-right)
+        const vibeWidget = document.querySelector('.vibe-check-wrapper');
+        if (vibeWidget) {
+            const rect = vibeWidget.getBoundingClientRect();
+            zones.push({
+                left: rect.left - 10, right: rect.right + 10,
+                top: rect.top - 10, bottom: rect.bottom + 10
+            });
+        }
+
         const sections = document.querySelectorAll('.section');
         sections.forEach(sec => {
             const rect = sec.getBoundingClientRect();

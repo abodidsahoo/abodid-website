@@ -60,12 +60,22 @@ export default function ContentEditor({ table, id }) {
         // Publish Logic
         if (publishStatus !== null) {
             payload.published = publishStatus;
+            // Ensure published_at is set when publishing (except for research which lacks the column)
+            if (payload.published && !payload.published_at && table !== 'research') {
+                payload.published_at = new Date().toISOString();
+            }
         }
 
         // Map UI "published" state back to DB fields
         if (table === 'page_metadata') {
             payload.is_active = payload.published;
             delete payload.published; // DB doesn't have "published" col for metadata
+        }
+
+        // Cleanup legacy fields
+        if (table === 'research') {
+            delete payload.image;        // Ensure "image" is gone
+            delete payload.published_at; // Ensure "published_at" is gone
         }
 
         const query = isNew
@@ -422,18 +432,18 @@ export default function ContentEditor({ table, id }) {
                                     <div className="stack-section fit-content">
                                         <section className="card-section">
                                             <label className="section-label">Cover Image</label>
-                                            {(formData.cover_image || formData.image) ? (
+                                            {formData.cover_image ? (
                                                 <div className="cover-wrapper-small preview-active">
                                                     <div className="preview-fit">
-                                                        <img src={formData.cover_image || formData.image} />
-                                                        <button className="btn-mini-remove" onClick={() => handleChange(table === 'research' ? 'image' : 'cover_image', '')}>Replace</button>
+                                                        <img src={formData.cover_image} />
+                                                        <button className="btn-mini-remove" onClick={() => handleChange('cover_image', '')}>Replace</button>
                                                     </div>
                                                 </div>
                                             ) : (
                                                 <ImageUploader
                                                     bucket={table} path="covers" label="Upload Cover"
                                                     className="cover-uploader-box"
-                                                    onUpload={f => handleChange(table === 'research' ? 'image' : 'cover_image', f[0].url)}
+                                                    onUpload={f => handleChange('cover_image', f[0].url)}
                                                 />
                                             )}
                                         </section>

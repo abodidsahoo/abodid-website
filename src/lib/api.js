@@ -64,7 +64,7 @@ const mockResearchProjects = [
         description: "My personal Obsidian vault, a digital garden of interconnected thoughts, notes, and research.",
         slug: "obsidian-vault",
         href: "/research/obsidian-vault",
-        image: "https://images.unsplash.com/photo-1555421689-d68471e189f2?auto=format&fit=crop&q=80&w=1000",
+        image: "https://images.unsplash.com/photo-1456324504439-367cee10123c?auto=format&fit=crop&q=80&w=1000",
         tags: ["Knowledge Graph", "Obsidian", "Second Brain"]
     },
     {
@@ -72,7 +72,7 @@ const mockResearchProjects = [
         description: "An AI-driven exploration of human memory, data, and the gaps in our digital archives.",
         slug: "invisible-punctum",
         href: "/research/invisible-punctum",
-        image: "https://images.unsplash.com/photo-1620641788421-7f1368d12355?auto=format&fit=crop&q=80&w=1000",
+        image: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=1000",
         tags: ["AI", "Memory", "Data Vis"]
     },
     {
@@ -80,7 +80,7 @@ const mockResearchProjects = [
         description: "Blurring the lines between the living and the dead, this project was a way to decode my minute emotional gestures around the dissonance between absence and presence.",
         slug: "do-ghosts-feel-jealous",
         href: "/research/do-ghosts-feel-jealous",
-        image: "https://images.unsplash.com/photo-1516575334481-f85287c2c81d?auto=format&fit=crop&q=80&w=1000", // Placeholder ghostly image
+        image: "https://images.unsplash.com/photo-1516575334481-f85287c2c81d?auto=format&fit=crop&q=80&w=1000",
         tags: ["Photography", "Writing", "Performance", "Film"]
     },
     {
@@ -88,7 +88,7 @@ const mockResearchProjects = [
         description: "A playground for creative coding, motion design, AR/VR, and 3D web experiences.",
         slug: "visual-experiments",
         href: "/visual-experiments",
-        image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=1000",
+        image: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=1000",
         tags: ["Creative Coding", "Three.js", "Visual Lab"]
     }
 ];
@@ -99,8 +99,9 @@ export async function getResearchProjects() {
     }
 
     const { data, error } = await supabase
-        .from('research_projects')
+        .from('research')
         .select('*')
+        .eq('published', true) // Filter by published
         .order('sort_order', { ascending: true });
 
     if (error || !data || data.length === 0) {
@@ -108,9 +109,15 @@ export async function getResearchProjects() {
         return mockResearchProjects;
     }
 
-    return data;
+    // Map database fields to frontend structure (create href)
+    return data.map(p => ({
+        ...p,
+        href: p.href || (p.slug === 'obsidian-vault' ? '/research/obsidian-vault' : `/research/${p.slug}`),
+        // Ensure tags is an array
+        tags: Array.isArray(p.tags) ? p.tags : (p.tags ? p.tags.split(',') : []),
+        image: p.cover_image
+    }));
 }
-
 
 // --- Research (formerly Projects) ---
 
@@ -137,7 +144,7 @@ export async function getProjects() {
         href: p.slug === 'obsidian-vault' ? '/research/obsidian-vault' : `/research/${p.slug}`,
         link: p.link || p.repo_link, // Keep this for external links if displayed
         slug: p.slug,
-        image: p.image
+        image: p.cover_image
     }));
 }
 
@@ -178,6 +185,7 @@ export async function getFeaturedPhotography() {
         title: project.title,
         category: project.category, // Now returns array
         image: project.cover_image,
+        images: (project.gallery_images || []).map(p => p.url), // Extract real gallery images
         href: `/photography/${project.slug}`
     }));
 }

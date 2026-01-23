@@ -1,0 +1,134 @@
+---
+const videoUrl =
+    "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/films/videos/Showreel%202025%20compressed.mp4";
+---
+
+<div class="showreel-container">
+    <video
+        id="showreel-video"
+        class="showreel-video"
+        loop
+        muted
+        playsinline
+        poster="/images/placeholder-video.jpg"
+        style="opacity: 0; transition: opacity 1s ease;"
+    >
+        <!-- Source will be added via JS -->
+    </video>
+</div>
+
+<script define:vars={{ videoUrl }}>
+    // Lazy load logic
+    document.addEventListener("DOMContentLoaded", () => {
+        const video = document.getElementById("showreel-video");
+
+        // Wait for main content to settle
+        const loadVideo = () => {
+            if (!video) return;
+            video.src = videoUrl;
+            video.load();
+
+            // Try to play when ready
+            video.addEventListener("canplay", () => {
+                video
+                    .play()
+                    .then(() => {
+                        video.style.opacity = "1";
+                    })
+                    .catch((e) => {
+                        console.log("Autoplay prevented:", e);
+                        video.style.opacity = "1"; // Show anyway
+                    });
+            });
+        };
+
+        // Use IntersectionObserver to load when near viewport,
+        // OR just timeout as requested "after initial part is loaded".
+        // A combination is best: Wait for load, then wait until close to view?
+        // User said: "loading ... only starts after the initial part ... is loaded"
+
+        if ("IntersectionObserver" in window) {
+            const observer = new IntersectionObserver(
+                (entries) => {
+                    entries.forEach((entry) => {
+                        if (entry.isIntersecting) {
+                            loadVideo();
+                            observer.disconnect();
+                        }
+                    });
+                },
+                { rootMargin: "200px" },
+            );
+
+            if (video) observer.observe(video);
+        } else {
+            // Fallback
+            setTimeout(loadVideo, 2000);
+        }
+    });
+</script>
+
+<style>
+    :root {
+        --sci-fi-cyan: #00f3ff;
+        --sci-fi-glow: rgba(0, 243, 255, 0.2);
+    }
+
+    .showreel-container {
+        width: 100%;
+        max-width: var(--max-width);
+        margin: 0 auto;
+        /* Standard margins, external spacing handled by index.astro spacers */
+        margin-top: 0;
+        margin-bottom: var(--space-2xl);
+
+        position: relative;
+        aspect-ratio: 16 / 9;
+        background-color: #050a10; /* Darker sci-fi bg */
+
+        /* Sci-Fi Theme Styling */
+        border-radius: 12px;
+        border: 1px solid rgba(0, 243, 255, 0.3); /* Thin cyan border */
+        box-shadow:
+            0 10px 40px rgba(0, 0, 0, 0.6),
+            0 0 20px var(--sci-fi-glow); /* Outer glow */
+
+        overflow: hidden;
+    }
+
+    /* Corner Accents (Pseudo-elements) */
+    .showreel-container::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border-radius: 12px;
+        box-shadow: inset 0 0 20px rgba(0, 243, 255, 0.1);
+        pointer-events: none;
+        z-index: 2;
+    }
+
+    .showreel-video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        opacity: 0;
+        transition: opacity 1.5s ease;
+    }
+
+    @media (max-width: 768px) {
+        .showreel-container {
+            border-radius: 0;
+            margin-left: -24px;
+            width: calc(100% + 48px);
+            max-width: none;
+            /* Remove margins on mobile to fit screen better? Or keep? 
+               User wants spacing, let's keep vertical spacing. */
+            border-left: none;
+            border-right: none;
+        }
+    }
+</style>

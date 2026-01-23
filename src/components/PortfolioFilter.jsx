@@ -69,6 +69,34 @@ const PortfolioFilter = ({ items }) => {
         </button>
     );
 
+    // Global Cursor Logic
+    const cursorRef = React.useRef(null);
+
+    React.useEffect(() => {
+        const moveCursor = (e) => {
+            if (cursorRef.current) {
+                const x = e.clientX;
+                const y = e.clientY;
+                cursorRef.current.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%)`;
+            }
+        };
+
+        window.addEventListener('mousemove', moveCursor);
+        return () => window.removeEventListener('mousemove', moveCursor);
+    }, []);
+
+    const handleMouseEnter = () => {
+        if (!cursorRef.current) return;
+        cursorRef.current.style.opacity = '1';
+        cursorRef.current.style.scale = '1';
+    };
+
+    const handleMouseLeave = () => {
+        if (!cursorRef.current) return;
+        cursorRef.current.style.opacity = '0';
+        cursorRef.current.style.scale = '0.5';
+    };
+
     return (
         <div className="portfolio-filter-container">
             {/* Filter Bar */}
@@ -85,20 +113,30 @@ const PortfolioFilter = ({ items }) => {
                 )}
             </div>
 
+            {/* Global Fixed Cursor */}
+            <div className="glass-cursor" ref={cursorRef}>
+                <div className="cursor-dot"></div>
+            </div>
+
             {/* Grid */}
             <div className="photography-grid">
                 {filteredItems.map((item) => (
                     <a href={item.href} className="photography-card" key={item.title}>
-                        <div className="image-wrapper">
+                        <div
+                            className="image-wrapper"
+                            onMouseEnter={handleMouseEnter}
+                            onMouseLeave={handleMouseLeave}
+                        >
                             <img src={item.image} alt={item.title} loading="lazy" />
                         </div>
                         <div className="content">
-                            <div className="meta">
-                                <span className="category">
-                                    {Array.isArray(item.category) ? item.category.join(', ') : (item.category || 'Photography')}
-                                </span>
+                            <div className="categories">
+                                {Array.isArray(item.category)
+                                    ? item.category.map(cat => <span key={cat} className="category-tag">{cat}</span>)
+                                    : <span className="category-tag">{item.category || 'Photography'}</span>
+                                }
                             </div>
-                            <h3>{item.title}</h3>
+                            <h3 className="photo-title">{item.title}</h3>
                         </div>
                     </a>
                 ))}
@@ -157,11 +195,13 @@ const PortfolioFilter = ({ items }) => {
         .photography-grid {
             display: grid;
             grid-template-columns: 1fr;
-            gap: var(--space-lg);
+            gap: 5rem 0;
         }
         
         .photography-card {
-            display: block;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
             text-decoration: none;
             color: inherit;
         }
@@ -171,43 +211,125 @@ const PortfolioFilter = ({ items }) => {
             aspect-ratio: 16/9;
             overflow: hidden;
             border-radius: var(--radius-sm);
-            margin-bottom: 1rem;
+            position: relative;
             background: var(--bg-secondary);
+            transition: transform 0.4s ease, box-shadow 0.4s ease;
+            cursor: none; /* Hide default cursor */
+        }
+
+        .image-wrapper:hover {
+             transform: translateY(-4px);
+             box-shadow: 0 12px 30px rgba(0,0,0,0.15);
         }
 
         .image-wrapper img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transition: transform 0.5s ease;
+            transition: transform 0.6s ease;
         }
 
         .photography-card:hover .image-wrapper img {
-            transform: scale(1.02);
+            transform: scale(1.05);
         }
 
-        .meta {
-            margin-bottom: 0.5rem;
+        /* GLOBAL Glass Cursor */
+        .glass-cursor {
+            position: fixed; /* Fixed to viewport, independent of scroll */
+            top: 0; 
+            left: 0;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            pointer-events: none;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            
+            /* Initial State */
+            opacity: 0;
+            transform: scale(0.5);
+            /* NO TRANSITIONS - Instant switch to mimic native cursor */
+            /* transition: opacity 0.2s ease, scale 0.2s ease; */
         }
 
-        .category {
-            font-family: var(--font-sans);
+        .cursor-dot {
+            width: 6px;
+            height: 6px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 0 4px rgba(0,0,0,0.2);
+        }
+
+        .content {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .categories {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .category-tag {
+            font-family: var(--font-mono);
             font-size: 0.75rem;
             text-transform: uppercase;
             letter-spacing: 0.05em;
             color: var(--text-tertiary);
+            border: 1px solid var(--border-subtle);
+            padding: 0.2rem 0.6rem;
+            border-radius: 100px;
         }
 
-        h3 {
-            font-size: 1.5rem;
+        h3.photo-title {
+            font-family: var(--font-serif);
+            font-size: 1.75rem;
             font-weight: 500;
+            color: var(--text-primary);
             margin: 0;
             line-height: 1.2;
+            position: relative;
+            display: inline-block;
+            width: fit-content;
+        }
+
+        /* Dynamic Red Underline Animation */
+        h3.photo-title::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -6px; /* Space below text */
+            height: 6px; /* Thickness */
+            width: 0;
+            background-color: #e63946; /* Vibrant red */
+            transition: width 0.4s cubic-bezier(0.25, 1, 0.5, 1); /* Fast out, slow ease */
+        }
+
+        .photography-card:hover h3.photo-title::after {
+            width: 100%;
         }
 
         @media (max-width: 768px) {
+             .photography-grid {
+                gap: 3rem 0;
+             }
              .filter-row {
                 gap: 0.4rem;
+             }
+             /* Disable custom cursor on touch devices */
+             .glass-cursor {
+                display: none;
+             }
+             .image-wrapper {
+                cursor: default;
              }
         }
       `}</style>

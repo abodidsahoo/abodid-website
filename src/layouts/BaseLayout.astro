@@ -1,7 +1,8 @@
 ---
 import "../styles/global.css";
 import "../styles/brands.css";
-import Header from "../components/Header.astro";
+// import Header from "../components/Header.astro";
+import SciFiHeader from "../components/SciFiHeader.astro";
 import Footer from "../components/Footer.astro";
 import ThemeToggle from "../components/ThemeToggle.astro";
 import SEO from "../components/SEO.astro";
@@ -76,7 +77,8 @@ const finalType = type || dbMetadata?.og_type || "website";
     <!-- Dynamic SEO & Social Images applied -->
   </head>
   <body>
-    <Header />
+    <!-- <Header /> -->
+    <SciFiHeader />
     <main class="container page-content">
       <slot />
     </main>

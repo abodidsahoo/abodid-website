@@ -213,8 +213,8 @@ const FilmsFilter = ({ items }) => {
                 /* Grid */
                 .films-grid {
                     display: grid;
-                    grid-template-columns: repeat(2, 1fr);
-                    gap: 4rem 3rem;
+                    grid-template-columns: 1fr;
+                    gap: 5rem 0;
                 }
 
                 .film-card {

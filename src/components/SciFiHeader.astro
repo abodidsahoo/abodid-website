@@ -1,0 +1,316 @@
+---
+import "../styles/global.css";
+---
+
+<header class="scifi-header-wrapper">
+    <div class="scifi-header">
+        <div class="holographic-overlay"></div>
+        <div class="content-container">
+            <a href="/" class="logo">
+                <span class="logo-text">ABODID.DEV</span>
+            </a>
+
+            <nav class="desktop-nav">
+                <ul class="nav-list">
+                    <li><a href="/photography">PHOTOGRAPHY</a></li>
+                    <li><a href="/films">FILMS</a></li>
+                    <li><a href="/research">RESEARCH</a></li>
+                    <li><a href="/blog">BLOG</a></li>
+                    <li><a href="/about">ABOUT</a></li>
+                </ul>
+            </nav>
+
+            <button class="mobile-menu-button" aria-label="Toggle menu">
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+            </button>
+        </div>
+    </div>
+</header>
+
+<div class="mobile-menu-overlay">
+    <nav class="mobile-menu">
+        <ul class="mobile-nav-list">
+            <li><a href="/photography">PHOTOGRAPHY</a></li>
+            <li><a href="/films">FILMS</a></li>
+            <li><a href="/research">RESEARCH</a></li>
+            <li><a href="/blog">BLOG</a></li>
+            <li><a href="/about">ABOUT</a></li>
+        </ul>
+    </nav>
+</div>
+
+<style>
+    /* Import Inconsolata directly here if not global, but it is global. */
+
+    :root {
+        --sci-fi-cyan: #00f3ff;
+        --sci-fi-glow: rgba(0, 243, 255, 0.4);
+        --sci-fi-bg: rgba(10, 15, 20, 0.7);
+    }
+
+    .scifi-header-wrapper {
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        display: flex;
+        justify-content: center;
+        width: 100%;
+        pointer-events: none; /* Let clicks pass through outside the bar */
+    }
+
+    .scifi-header {
+        pointer-events: auto;
+        position: relative;
+        width: 95%;
+        max-width: 1100px;
+        height: 70px; /* Compact height */
+
+        background: var(--sci-fi-bg);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+
+        border-radius: 0 0 24px 24px; /* The "hood" shape */
+
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-top: none; /* Looks attached to top */
+
+        box-shadow:
+            0 10px 30px rgba(0, 0, 0, 0.5),
+            0 0 15px var(--sci-fi-glow) inset; /* Inner glow */
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    /* The moving glow effect on edges */
+    .scifi-header::before {
+        content: "";
+        position: absolute;
+        top: -2px;
+        left: -2px;
+        right: -2px;
+        bottom: -2px;
+        z-index: -1;
+        border-radius: 0 0 26px 26px;
+        background: linear-gradient(
+            90deg,
+            transparent,
+            var(--sci-fi-cyan),
+            transparent
+        );
+        background-size: 200% 100%;
+        animation: borderMove 3s linear infinite;
+        opacity: 0.5;
+    }
+
+    @keyframes borderMove {
+        0% {
+            background-position: 100% 0;
+        }
+        100% {
+            background-position: -100% 0;
+        }
+    }
+
+    .content-container {
+        width: 100%;
+        padding: 0 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        height: 100%;
+    }
+
+    /* Typography */
+    .logo-text,
+    .nav-list a {
+        font-family: "Inconsolata", monospace;
+        color: #ffffff; /* Always white for sci-fi look */
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+    }
+
+    .logo-text {
+        font-weight: 700;
+        font-size: 1.2rem;
+        text-shadow: 0 0 5px var(--sci-fi-cyan);
+    }
+
+    .logo {
+        display: flex;
+        align-items: center;
+        text-decoration: none;
+    }
+
+    .desktop-nav {
+        display: flex;
+    }
+
+    .nav-list {
+        display: flex;
+        gap: 3rem; /* "Spaced out" */
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .nav-list a {
+        font-size: 0.9rem;
+        font-weight: 400;
+        position: relative;
+        padding: 0.5rem 0;
+        opacity: 0.8;
+        transition:
+            opacity 0.3s,
+            text-shadow 0.3s;
+    }
+
+    .nav-list a:hover {
+        opacity: 1;
+        text-shadow: 0 0 8px var(--sci-fi-cyan);
+    }
+
+    /* Hover underline effect */
+    .nav-list a::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 0%;
+        height: 2px;
+        background-color: var(--sci-fi-cyan);
+        box-shadow: 0 0 10px var(--sci-fi-cyan);
+        transition: width 0.3s ease;
+    }
+
+    .nav-list a:hover::after {
+        width: 100%;
+    }
+
+    /* Mobile */
+    .mobile-menu-button {
+        display: none;
+        flex-direction: column;
+        gap: 5px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 8px;
+        z-index: 1002;
+    }
+
+    .hamburger-line {
+        width: 24px;
+        height: 2px;
+        background-color: #fff;
+        transition: all 0.3s ease;
+        box-shadow: 0 0 5px var(--sci-fi-cyan);
+    }
+
+    /* Mobile Overlay */
+    .mobile-menu-overlay {
+        position: fixed;
+        top: 0;
+        right: -100%;
+        width: 100%;
+        height: 100vh;
+        background: rgba(5, 10, 15, 0.95);
+        backdrop-filter: blur(20px);
+        transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        z-index: 999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .mobile-menu-overlay.active {
+        right: 0;
+    }
+
+    .mobile-nav-list {
+        list-style: none;
+        padding: 0;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .mobile-nav-list a {
+        font-family: "Inconsolata", monospace;
+        font-size: 1.5rem;
+        color: #fff;
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+        text-decoration: none;
+    }
+
+    @media (max-width: 768px) {
+        .scifi-header {
+            width: 100%;
+            border-radius: 0 0 16px 16px;
+            padding: 0 0rem;
+        }
+        .content-container {
+            padding: 0 1.5rem;
+        }
+        .desktop-nav {
+            display: none;
+        }
+        .mobile-menu-button {
+            display: flex;
+        }
+    }
+</style>
+
+<script>
+    const menuButton = document.querySelector(".mobile-menu-button");
+    const menuOverlay = document.querySelector(".mobile-menu-overlay");
+    const menuLinks = document.querySelectorAll(".mobile-nav-list a");
+
+    menuButton?.addEventListener("click", () => {
+        menuOverlay?.classList.toggle("active");
+
+        const lines = menuButton.querySelectorAll(".hamburger-line");
+        if (menuOverlay?.classList.contains("active")) {
+            (lines[0] as HTMLElement).style.transform =
+                "rotate(45deg) translateY(7px)";
+            (lines[1] as HTMLElement).style.opacity = "0";
+            (lines[2] as HTMLElement).style.transform =
+                "rotate(-45deg) translateY(-7px)";
+        } else {
+            (lines[0] as HTMLElement).style.transform = "none";
+            (lines[1] as HTMLElement).style.opacity = "1";
+            (lines[2] as HTMLElement).style.transform = "none";
+        }
+    });
+
+    menuLinks.forEach((link) => {
+        link.addEventListener("click", () => {
+            menuOverlay?.classList.remove("active");
+            const lines = menuButton?.querySelectorAll(".hamburger-line");
+            if (lines) {
+                (lines[0] as HTMLElement).style.transform = "none";
+                (lines[1] as HTMLElement).style.opacity = "1";
+                (lines[2] as HTMLElement).style.transform = "none";
+            }
+        });
+    });
+
+    // Close menu when clicking outside
+    menuOverlay?.addEventListener("click", (e) => {
+        if (e.target === menuOverlay) {
+            menuOverlay.classList.remove("active");
+            const lines = menuButton?.querySelectorAll(".hamburger-line");
+            if (lines) {
+                (lines[0] as HTMLElement).style.transform = "none";
+                (lines[1] as HTMLElement).style.opacity = "1";
+                (lines[2] as HTMLElement).style.transform = "none";
+            }
+        }
+    });
+</script>

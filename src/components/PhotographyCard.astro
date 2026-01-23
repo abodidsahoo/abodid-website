@@ -4,25 +4,45 @@ interface Props {
   category: string;
   image: string;
   href: string;
+  images?: string[];
 }
 
-const { title, category, image, href } = Astro.props;
+const { title, category, image, href, images = [] } = Astro.props;
+// Ensure cover image is first, then gallery images.
+const uniqueImages = [...new Set([image, ...images])];
+const displayImages = uniqueImages.length > 0 ? uniqueImages : [image];
 ---
 
-<a href={href} class="photography-card">
+<a href={href} class="photography-card group">
   <div class="image-container">
-    <img src={image} alt={title} loading="lazy" />
-  </div>
-  <div class="meta">
-    <span class="category">{category}</span>
-    <h3 class="title">{title}</h3>
+    {
+      displayImages.map((imgSrc, index) => (
+        <img
+          src={imgSrc}
+          alt={`${title} - ${index + 1}`}
+          class={`slide-image ${index === 0 ? "active" : ""}`}
+          loading="lazy"
+        />
+      ))
+    }
+
+    <!-- Sci-Fi Overlay -->
+    <div class="meta-overlay">
+      <h3 class="title">{title}</h3>
+      <span class="category">{category}</span>
+
+      <!-- Corner Accents -->
+      <div class="corner top-left"></div>
+      <div class="corner bottom-right"></div>
+    </div>
   </div>
 </a>
 
 <style>
   .photography-card {
     display: block;
-    group: pointer;
+    cursor: pointer;
+    position: relative;
   }
 
   .image-container {
@@ -30,43 +50,143 @@ const { title, category, image, href } = Astro.props;
     overflow: hidden;
     border-radius: 6px;
     aspect-ratio: 4/3;
-    margin-bottom: 1rem;
     border: 1px solid var(--border-subtle);
     transition: border-color 0.3s ease;
+    position: relative;
+    /* When active, border glows */
   }
 
   .photography-card:hover .image-container {
-    border-color: var(--text-tertiary);
+    border-color: var(--sci-fi-cyan, #00f3ff);
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.15);
   }
 
-  img {
+  .slide-image {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+    transition:
+      transform 0.6s cubic-bezier(0.165, 0.84, 0.44, 1),
+      opacity 2s ease-in-out;
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
   }
 
-  .photography-card:hover img {
-    transform: scale(1.03);
+  .slide-image.active {
+    opacity: 1;
   }
 
-  .meta {
-    padding-left: 2px;
+  /* Dim image on hover to make text pop */
+  .photography-card:hover .slide-image {
+    transform: scale(1.05);
+    filter: brightness(0.6);
   }
 
-  .category {
-    font-size: var(--text-xs);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--text-tertiary);
-    margin-bottom: 0.25rem;
-    display: block;
+  /* Overlay Styling (Hidden by default) */
+  .meta-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 20;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+
+    padding: 1rem 1.5rem;
+    min-width: 60%;
+
+    background: rgba(10, 15, 20, 0.8); /* Darker backdrop for text */
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(0, 243, 255, 0.3);
+    border-radius: 4px;
+
+    opacity: 0; /* Hidden */
+    transition:
+      opacity 0.3s ease,
+      transform 0.3s ease;
+    pointer-events: none; /* Let clicks pass through to link */
+  }
+
+  .photography-card:hover .meta-overlay {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.05);
   }
 
   .title {
-    font-size: 1.1rem;
-    font-weight: 500;
-    color: var(--text-primary);
-    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 0.25rem 0;
+    font-family: "Space Mono", monospace;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+    text-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
+  }
+
+  .category {
+    font-size: 0.8rem;
+    font-family: "Inconsolata", monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--sci-fi-cyan, #00f3ff);
+  }
+
+  /* Corner Accents */
+  .corner {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border: 1px solid transparent;
+    transition: all 0.3s ease;
+  }
+
+  .corner.top-left {
+    top: -1px;
+    left: -1px;
+    border-top: 2px solid var(--sci-fi-cyan);
+    border-left: 2px solid var(--sci-fi-cyan);
+  }
+
+  .corner.bottom-right {
+    bottom: -1px;
+    right: -1px;
+    border-bottom: 2px solid var(--sci-fi-cyan);
+    border-right: 2px solid var(--sci-fi-cyan);
   }
 </style>
+
+<script>
+  function initSlideshows() {
+    const cards = document.querySelectorAll(".photography-card");
+
+    cards.forEach((card) => {
+      const images = card.querySelectorAll(".slide-image");
+      if (images.length <= 1) return;
+
+      let currentIndex = 0;
+
+      // Random start time to avoid synchronization
+      const delay = Math.random() * 2000;
+
+      setTimeout(() => {
+        setInterval(() => {
+          images[currentIndex].classList.remove("active");
+          currentIndex = (currentIndex + 1) % images.length;
+          images[currentIndex].classList.add("active");
+        }, 4000); // Switch every 4 seconds
+      }, delay);
+    });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initSlideshows);
+  } else {
+    initSlideshows();
+  }
+</script>
