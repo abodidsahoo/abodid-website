@@ -1,0 +1,417 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import { supabase } from "../../../lib/supabaseClient";
+import type { HubResource } from "../../../lib/resources/types";
+import "../../../styles/resources.css";
+
+import { getCurrentProfile } from "../../../lib/resources/db";
+import AdminEditButton from "../../../components/resources/AdminEditButton";
+
+const { id } = Astro.params;
+
+// Security Check (server-side) for showing Edit Button
+const profile = await getCurrentProfile();
+const isAdmin = profile?.role === "admin";
+
+// Fetch Resource
+let resource: HubResource | null = null;
+
+if (id) {
+    const { data, error } = await supabase
+        .from("hub_resources")
+        .select(
+            `
+        *,
+        submitter_profile:submitted_by (username, full_name, avatar_url),
+        tags:hub_resource_tags (
+            tag_id,
+            tag:hub_tags (name)
+        )
+        `,
+        )
+        .eq("status", "approved")
+        .eq("id", id)
+        .single();
+
+    if (data) {
+        resource = {
+            ...data,
+            tags: data.tags.map((t: any) => t.tag),
+        };
+    }
+}
+
+if (!resource) {
+    return Astro.redirect("/404");
+}
+
+const title = `${resource.title} | Resource Hub`;
+const description = resource.description || "A curated resource.";
+
+const getAudienceColor = (audience: string | null) => {
+    switch (audience) {
+        case "Designer":
+            return "#c084fc";
+        case "Artist":
+            return "#f472b6";
+        case "Filmmaker":
+            return "#60a5fa";
+        case "Creative Technologist":
+            return "#4ade80";
+        case "Researcher":
+            return "#fbbf24";
+        case "General Audience":
+            return "#94a3b8";
+        default:
+            return "#9ca3af";
+    }
+};
+const accentColor = getAudienceColor(resource.audience);
+---
+
+<BaseLayout title={title} description={description}>
+    <div class="hub-container detail-page-container">
+        {/* Navigation & Header */}
+        <div
+            style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center;"
+        >
+            <a
+                href="/resources"
+                style="color: var(--text-secondary); text-decoration: none; font-size: 14px; font-weight: 500;"
+            >
+                &larr; Back to Hub
+            </a>
+
+            {
+                isAdmin && (
+                    <a href={`/resources/${id}/edit`} class="admin-edit-btn">
+                        <span style="font-size: 1.1em; margin-right: 6px;">
+                            ✎
+                        </span>{" "}
+                        Edit Resource
+                    </a>
+                )
+            }
+        </div>
+
+        <style>
+            /* Inline style augmentation for prominence */
+            .admin-edit-btn {
+                background: var(--bg-surface);
+                border: 1px solid var(--border-strong);
+                color: var(--text-primary);
+                padding: 8px 16px;
+                border-radius: 8px;
+                font-weight: 600;
+                text-decoration: none;
+                transition: all 0.2s ease;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                display: inline-flex;
+                align-items: center;
+            }
+            .admin-edit-btn:hover {
+                background: var(--text-primary);
+                color: var(--bg-color);
+                transform: translateY(-1px);
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            }
+        </style>
+
+        <article class="resource-detail-stack">
+            {/* 1. Thumbnail (Full Width) */}
+            <div
+                class="detail-thumbnail-container"
+                style={`border-bottom: 4px solid ${accentColor}`}
+            >
+                {
+                    resource.thumbnail_url ? (
+                        <img
+                            src={resource.thumbnail_url}
+                            alt={resource.title}
+                            class="detail-thumbnail"
+                        />
+                    ) : (
+                        <div class="detail-placeholder">🔗</div>
+                    )
+                }
+            </div>
+
+            {/* 2. Primary Content */}
+            <div class="detail-content">
+                {/* Audience Tag */}
+                <div style="margin-bottom: 16px;">
+                    {
+                        resource.audience && (
+                            <span
+                                class="detail-audience"
+                                style={`background-color: ${accentColor}20; color: ${accentColor}; border-color: ${accentColor}40`}
+                            >
+                                {resource.audience}
+                            </span>
+                        )
+                    }
+                </div>
+
+                <h1 class="detail-title">{resource.title}</h1>
+
+                {/* Prominent Metadata Section */}
+                <div class="detail-meta-box">
+                    {/* Submitter Info */}
+                    <div class="meta-item">
+                        <span class="meta-label">Submitted by</span>
+                        <span class="meta-value">
+                            {
+                                resource.submitter_profile?.avatar_url && (
+                                    <img
+                                        src={
+                                            resource.submitter_profile
+                                                .avatar_url
+                                        }
+                                        class="meta-avatar"
+                                        alt=""
+                                    />
+                                )
+                            }
+                            @{resource.submitter_profile?.username || "Unknown"}
+                        </span>
+                    </div>
+
+                    {/* Date Added */}
+                    <div class="meta-item">
+                        <span class="meta-label">Date Added</span>
+                        <span class="meta-value">
+                            {
+                                new Date(
+                                    resource.created_at,
+                                ).toLocaleDateString("en-US", {
+                                    month: "long",
+                                    day: "numeric",
+                                    year: "numeric",
+                                })
+                            }
+                        </span>
+                    </div>
+
+                    {/* Admin Edit Button (Relocated Here) */}
+                    <div
+                        class="meta-item"
+                        style="justify-content: flex-end; margin-left: auto;"
+                    >
+                        <AdminEditButton
+                            client:only="react"
+                            resourceId={id as string}
+                        />
+                    </div>
+                </div>
+
+                <p class="detail-description">
+                    {resource.description}
+                </p>
+
+                {/* Tags */}
+                {
+                    resource.tags && resource.tags.length > 0 && (
+                        <div class="detail-tags">
+                            {resource.tags.map((tag) => (
+                                <span class="tag">{tag.name}</span>
+                            ))}
+                        </div>
+                    )
+                }
+
+                {/* CTA Button */}
+                <div
+                    style="margin-top: 48px; display: flex; gap: 16px; align-items: center;"
+                >
+                    <a
+                        href={resource.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="hub-btn detail-cta"
+                    >
+                        Visit Website &rarr;
+                    </a>
+
+                    <button
+                        id="share-btn"
+                        class="hub-btn hub-btn-secondary share-btn"
+                    >
+                        🔗 Share
+                    </button>
+                </div>
+
+                <script>
+                    const shareBtn = document.getElementById("share-btn");
+                    shareBtn?.addEventListener("click", async () => {
+                        try {
+                            await navigator.clipboard.writeText(
+                                window.location.href,
+                            );
+                            const originalText = shareBtn.innerText;
+                            shareBtn.innerText = "✅ Copied!";
+                            setTimeout(() => {
+                                shareBtn.innerText = originalText;
+                            }, 2000);
+                        } catch (err) {
+                            console.error("Failed to copy:", err);
+                        }
+                    });
+                </script>
+            </div>
+        </article>
+    </div>
+</BaseLayout>
+
+<style>
+    .detail-page-container {
+        max-width: 800px; /* Focused reading width */
+    }
+
+    /* Single Column Stack */
+    .resource-detail-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 40px;
+    }
+
+    .detail-thumbnail-container {
+        border-radius: 16px;
+        overflow: hidden;
+        background: var(--bg-surface-hover);
+        aspect-ratio: 16/9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .detail-thumbnail {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .detail-placeholder {
+        font-size: 4rem;
+        opacity: 0.2;
+    }
+
+    .detail-title {
+        font-family: "Poppins", sans-serif;
+        font-size: 2.5rem;
+        font-weight: 700;
+        line-height: 1.2;
+        margin-bottom: 24px;
+        color: var(--text-primary);
+    }
+
+    .detail-audience {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 6px 12px;
+        border-radius: 100px;
+        border: 1px solid;
+    }
+
+    /* New Prominent Meta Box */
+    .detail-meta-box {
+        display: flex;
+        gap: 32px;
+        padding: 24px 0;
+        border-top: 1px solid var(--border-subtle);
+        border-bottom: 1px solid var(--border-subtle);
+        margin-bottom: 32px;
+    }
+
+    .meta-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .meta-label {
+        font-size: 11px;
+        text-transform: uppercase;
+        color: var(--text-tertiary);
+        letter-spacing: 0.05em;
+        font-weight: 600;
+    }
+
+    .meta-value {
+        font-size: 14px;
+        color: var(--text-primary);
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .meta-avatar {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .detail-description {
+        font-size: 1.125rem;
+        line-height: 1.8;
+        color: var(--text-secondary);
+        margin-bottom: 32px;
+        white-space: pre-wrap;
+    }
+
+    .detail-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .tag {
+        font-size: 12px;
+        color: var(--text-secondary);
+        background: var(--bg-surface-hover);
+        padding: 6px 12px;
+        border-radius: 6px;
+        border: 1px solid var(--border-subtle);
+        font-weight: 500;
+    }
+
+    .detail-cta {
+        padding: 16px 48px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: 100px;
+    }
+
+    .share-btn {
+        padding: 16px 32px;
+        font-size: 1.1rem;
+        background: transparent;
+        border: 1px solid var(--border-subtle);
+        color: var(--text-primary);
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .share-btn:hover {
+        background: var(--bg-surface-hover);
+        border-color: var(--text-primary);
+    }
+
+    .admin-edit-btn {
+        font-size: 13px;
+        color: var(--text-secondary);
+        border: 1px solid var(--border-subtle);
+        border-radius: 6px;
+        padding: 6px 12px;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+    .admin-edit-btn:hover {
+        background: var(--bg-surface-hover);
+        color: var(--text-primary);
+    }
+</style>

@@ -1,22 +1,24 @@
 /* Core Design System */
-*, *::before, *::after {
-  box-sizing: border-box;
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
 }
 
 :root {
-    /* Nuanced Palette - Light */
-    --bg-color: #ffffff;
-    --bg-surface: #f7f7f7;
-    --bg-surface-hover: #efefef;
+    /* Nuanced Palette - Dark (Default) */
+    --bg-color: #0a0a0a;
+    --bg-surface: #141414;
+    --bg-surface-hover: #1f1f1f;
 
-    --text-primary: #121212;
-    --text-secondary: #666666;
-    --text-tertiary: #999999;
+    --text-primary: #ffffff;
+    --text-secondary: #a0a0a0;
+    --text-tertiary: #555555;
 
-    --border-subtle: #eaeaea;
-    --border-strong: #333333;
+    --border-subtle: #222222;
+    --border-strong: #444444;
 
-    --accent: #222222;
+    --accent: #ffffff;
 
     /* Typography Scale (Fluid) */
     --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -53,22 +55,6 @@
 
     /* Smooth transitions for theme switching */
     transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-/* Dark theme */
-[data-theme="dark"] {
-    --bg-color: #0a0a0a;
-    --bg-surface: #141414;
-    --bg-surface-hover: #1f1f1f;
-
-    --text-primary: #ffffff;
-    --text-secondary: #a0a0a0;
-    --text-tertiary: #555555;
-
-    --border-subtle: #222222;
-    --border-strong: #444444;
-
-    --accent: #ffffff;
 }
 
 /* Reset & Base */

@@ -1,7 +1,7 @@
 ---
 import PhotographyCard from "./PhotographyCard.astro";
 
-const { projects, direction = "left" } = Astro.props;
+const { projects, direction = "left", fullWidth = false } = Astro.props;
 
 // Duplicate projects to ensure smooth infinite loop
 // We need enough breadth to fill screen + overflow
@@ -10,7 +10,7 @@ const duplicatedProjects = [...projects, ...projects, ...projects];
 const animationDirection = direction === "right" ? "reverse" : "normal";
 ---
 
-<div class="carousel-wrapper">
+<div class:list={["carousel-wrapper", { "full-bleed": fullWidth }]}>
     <div
         class="carousel-track"
         style={`animation-direction: ${animationDirection};`}
@@ -37,28 +37,32 @@ const animationDirection = direction === "right" ? "reverse" : "normal";
 
 <style>
     .carousel-wrapper {
-        width: 100vw;
-        margin-left: 50%;
-        transform: translateX(-50%);
+        width: 100%; /* Default to contained */
         overflow: hidden;
         position: relative;
         padding: 2rem 0;
 
-        /* Fade edges */
+        /* Fade edges - wider fade (15%) to blend smoothly */
         -webkit-mask-image: linear-gradient(
             to right,
             transparent,
-            black 10%,
-            black 90%,
+            black 15%,
+            black 85%,
             transparent
         );
         mask-image: linear-gradient(
             to right,
             transparent,
-            black 10%,
-            black 90%,
+            black 15%,
+            black 85%,
             transparent
         );
+    }
+
+    .carousel-wrapper.full-bleed {
+        width: 100vw;
+        margin-left: 50%;
+        transform: translateX(-50%);
     }
 
     .carousel-track {

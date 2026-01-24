@@ -76,14 +76,11 @@
 
 <style>
     .social-links {
-        display: grid;
-        grid-template-columns: repeat(
-            4,
-            1fr
-        ); /* 4 columns -> 4 top, 3 bottom */
-        gap: 1.5rem 1rem; /* Row gap 1.5rem, Col gap 1rem */
-        margin-top: 1.2rem; /* Spacing from title */
-        width: fit-content;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.2rem;
+        margin-top: 1rem;
+        width: 100%;
     }
 
     .social-links a {

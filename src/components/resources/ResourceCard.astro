@@ -1,0 +1,299 @@
+---
+import type { HubResource } from "../../lib/resources/types";
+
+interface Props {
+    resource: HubResource;
+}
+
+const { resource } = Astro.props;
+
+// Map audience to color vars (defined in CSS or inline style)
+const getAudienceColor = (audience: string | null) => {
+    switch (audience) {
+        case "Designer":
+            return "#c084fc"; // Purple
+        case "Artist":
+            return "#f472b6"; // Pink
+        case "Filmmaker":
+            return "#60a5fa"; // Blue
+        case "Creative Technologist":
+            return "#4ade80"; // Green
+        case "Researcher":
+            return "#fbbf24"; // Amber
+        case "General Audience":
+            return "#94a3b8"; // Slate
+        default:
+            return "#9ca3af"; // Gray
+    }
+};
+
+const accentColor = getAudienceColor(resource.audience);
+---
+
+<div class="resource-card-wrapper">
+    <a
+        href={`/resources/${resource.id}`}
+        class="resource-card"
+        style={`--accent-color: ${accentColor}`}
+    >
+        <div class="thumbnail-container">
+            {
+                resource.thumbnail_url ? (
+                    <img
+                        src={resource.thumbnail_url}
+                        alt={resource.title}
+                        class="thumbnail"
+                        loading="lazy"
+                    />
+                ) : (
+                    <div class="thumbnail-placeholder">
+                        <span class="icon">🔗</span>
+                    </div>
+                )
+            }
+
+            <!-- Overlay Actions -->
+            <div class="card-overlay">
+                <span class="view-btn">
+                    <span class="icon-eye">👁️</span> View Details
+                </span>
+                <object class="visit-obj">
+                    <a
+                        href={resource.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="visit-btn"
+                    >
+                        Visit Site <span class="arrow">↗</span>
+                    </a>
+                </object>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="header-row">
+                {
+                    resource.audience && (
+                        <span class="audience-dot" title={resource.audience} />
+                    )
+                }
+                <h3 class="title" title={resource.title}>{resource.title}</h3>
+            </div>
+
+            {
+                resource.description && (
+                    <p class="description">{resource.description}</p>
+                )
+            }
+
+            <div class="meta">
+                <div class="tags">
+                    {
+                        resource.tags &&
+                            resource.tags
+                                .slice(0, 3)
+                                .map((tag) => (
+                                    <span class="tag">{tag.name}</span>
+                                ))
+                    }
+                </div>
+            </div>
+        </div>
+    </a>
+</div>
+
+<style>
+    .resource-card-wrapper {
+        height: 100%;
+    }
+
+    .resource-card {
+        display: flex;
+        flex-direction: column;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-subtle);
+        border-radius: 12px;
+        overflow: hidden;
+        height: 100%;
+        transition:
+            transform 0.3s ease,
+            box-shadow 0.3s ease,
+            border-color 0.3s ease;
+        text-decoration: none;
+        position: relative;
+        border-left: 4px solid var(--accent-color); /* The left border accent */
+    }
+
+    .resource-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+        border-color: var(--border-strong);
+    }
+
+    .thumbnail-container {
+        aspect-ratio: 16/9;
+        position: relative;
+        background: var(--bg-surface-hover);
+        overflow: hidden;
+        border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .thumbnail {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .thumbnail-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        opacity: 0.3;
+    }
+
+    /* Hover Overlay */
+    .card-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6); /* Darker for contrast */
+        display: flex;
+        flex-direction: column; /* Stack them */
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        backdrop-filter: blur(4px);
+    }
+
+    .resource-card:hover .card-overlay {
+        opacity: 1;
+    }
+
+    .resource-card:hover .thumbnail {
+        transform: scale(1.05);
+    }
+
+    .visit-obj {
+        /* No absolute positioning, use flex layout */
+        z-index: 2;
+    }
+
+    .visit-btn {
+        background: white;
+        color: black;
+        padding: 10px 20px;
+        border-radius: 100px;
+        font-size: 14px;
+        font-weight: 700;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        transform: translateY(10px);
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .visit-btn:hover {
+        background: var(--text-primary);
+        color: var(--bg-color);
+        transform: scale(1.05); /* Pop */
+    }
+
+    .view-btn {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 100px;
+        font-size: 13px;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        backdrop-filter: blur(4px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        transform: translateY(10px);
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .resource-card:hover .visit-btn,
+    .resource-card:hover .view-btn {
+        transform: translateY(0);
+    }
+
+    .arrow {
+        font-size: 1.2em;
+        line-height: 1;
+    }
+
+    .content {
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+    }
+
+    .header-row {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        margin-bottom: 8px;
+    }
+
+    .audience-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background-color: var(--accent-color);
+        flex-shrink: 0;
+    }
+
+    .title {
+        font-size: var(--text-base);
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0;
+        line-height: 1.4;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .description {
+        font-size: var(--text-sm);
+        color: var(--text-secondary);
+        margin-bottom: 16px;
+        line-height: 1.5;
+
+        /* Strict clamping */
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .meta {
+        margin-top: auto;
+    }
+
+    .tags {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .tag {
+        font-size: 11px;
+        color: var(--text-secondary);
+        background: var(--bg-surface-hover);
+        padding: 2px 8px;
+        border-radius: 4px;
+        border: 1px solid var(--border-subtle);
+        font-weight: 500;
+    }
+</style>

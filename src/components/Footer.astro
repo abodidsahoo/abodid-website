@@ -7,152 +7,224 @@ const year = new Date().getFullYear();
 
 <footer class="site-footer">
   <div class="container">
-    <!-- The Deep Ocean Grid -->
     <div class="footer-grid">
-      <!-- Column 1: The Signal -->
+      <!-- Column 1: The Signal (Brand & Newsletter) -->
       <div class="footer-col signal">
-        <a href="/" class="footer-logo" aria-label="Abodid Home">
-          <img
-            src="/images/signature-black.png"
-            alt="Abodid"
-            class="logo-img logo-black"
-          />
-          <img
-            src="/images/signature-white.png"
-            alt="Abodid"
-            class="logo-img logo-white"
-          />
-        </a>
-        <p class="tagline">
-          Capturing silence, chaos, and everything in between.
-        </p>
+        <div class="brand-block">
+          <a href="/" class="footer-logo" aria-label="Abodid Home">
+            <img
+              src="/images/signature-black.png"
+              alt="Abodid"
+              class="logo-img logo-black"
+            />
+            <img
+              src="/images/signature-white.png"
+              alt="Abodid"
+              class="logo-img logo-white"
+            />
+          </a>
+          <p class="tagline">The things we do for love.</p>
+        </div>
+
+        <div class="social-wrapper">
+          <SocialLinks />
+        </div>
 
         <div class="newsletter-section" id="newsletter">
-          <p class="section-title">Join the expedition</p>
+          <p class="section-title">Join the tribe</p>
           <Newsletter />
         </div>
       </div>
 
-      <!-- Column 2: The Map -->
-      <div class="footer-col map">
-        <nav class="footer-nav">
-          <div class="nav-group">
-            <span class="nav-header">Explore</span>
-            <a href="/photography">Photography</a>
-            <a href="/press">Press</a>
-            <a href="/blog">Blog</a>
-            <a href="/about">About</a>
-          </div>
+      <!-- Column 2: Studio & Recognition -->
+      <div class="footer-col links-col">
+        <div class="nav-group">
+          <span class="nav-header">Studio</span>
+          <a href="/photography">Photography</a>
+          <a href="/films">Films</a>
+          <a href="/visual-experiments">Visual Experiments</a>
+        </div>
 
-          <div class="nav-group">
-            <span class="nav-header">Engage</span>
-            <a href="/services">Services</a>
-            <a href="/workshops">Workshops</a>
-            <a href="/testimonials">Testimonials</a>
-            <a href="/guestbook">Guestbook</a>
-          </div>
-
-          <div class="nav-group">
-            <span class="nav-header">System</span>
-            <a href="/sitemap">Sitemap</a>
-            <a href="/rss.xml">RSS</a>
-          </div>
-        </nav>
+        <div class="nav-group">
+          <span class="nav-header">Recognition</span>
+          <a href="/awards">Awards</a>
+          <a href="/press">Press Mentions</a>
+        </div>
       </div>
 
-      <!-- Column 3: The Current -->
-      <div class="footer-col current">
-        <div class="connect-section">
-          <span class="nav-header" style="display:block">Connect</span>
-          <SocialLinks />
+      <!-- Column 3: The Lab & System -->
+      <div class="footer-col links-col">
+        <div class="nav-group">
+          <span class="nav-header">The Lab</span>
+          <a href="/research">Research Projects</a>
+          <a href="/research-papers">Research Papers</a>
+          <a href="/secret-lab">Secret Lab / Vault</a>
         </div>
 
-        <div class="legal-links">
-          <p>&copy; {year} Abodid.</p>
-          <a href="/privacy">Privacy Policy</a>
-          <a href="/licensing">Licensing</a>
+        <div class="nav-group">
+          <span class="nav-header">System</span>
+          <a href="/colophon">Colophon</a>
+          <a href="/timeline">Timeline</a>
+          <a href="/sitemap">Sitemap</a>
+          <a href="/rss.xml">RSS Feed</a>
         </div>
+      </div>
+
+      <!-- Column 4: Engage -->
+      <div class="footer-col links-col">
+        <div class="nav-group">
+          <span class="nav-header">Engage</span>
+          <a href="/blog">Blog</a>
+          <a href="/services">Services</a>
+          <a href="/workshops">Workshops</a>
+          <a href="/testimonials">Testimonials</a>
+          <a href="/guestbook">Guestbook</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Bar -->
+    <div class="footer-bottom">
+      <div class="copyright">
+        &copy; {year} Abodid. All rights reserved.
+      </div>
+      <div class="legal-links">
+        <a href="/privacy">Privacy Policy</a>
+        <span class="separator">•</span>
+        <a href="/licensing">Licensing</a>
       </div>
     </div>
   </div>
 </footer>
 
 <style>
+  :root {
+    --sci-fi-cyan: #00f3ff;
+    --sci-fi-bg: rgba(5, 10, 15, 0.98);
+  }
+
   .site-footer {
-    background-color: var(
-      --bg-surface
-    ); /* Uses surface color instead of purely dark ensures theme compatibility */
-    padding: 6rem 0 4rem;
+    background-color: var(--sci-fi-bg);
+
+    /* Subtle Grain/Grid overlay pattern to match "grains" request */
+    background-image:
+      radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+      radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-position:
+      0 0,
+      25px 25px;
+    background-size: 50px 50px;
+
+    padding: 4rem 0 2rem;
     margin-top: auto;
-    border-top: 1px solid var(--border-subtle);
-    font-family: var(--font-sans);
+    font-family: "Inconsolata", monospace; /* Cohesive font */
+    position: relative;
+    z-index: 10;
+
+    /* Top border glow + Inner Glow */
+    border-top: 1px solid rgba(0, 243, 255, 0.2);
+    box-shadow:
+      0 -10px 40px rgba(0, 0, 0, 0.8),
+      0 0 30px rgba(0, 243, 255, 0.05) inset;
+
+    overflow: hidden;
+  }
+
+  /* Animated Top Border "Scanner" Effect */
+  .site-footer::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      var(--sci-fi-cyan),
+      transparent
+    );
+    background-size: 50% 100%;
+    animation: scanLoad 4s linear infinite;
+    z-index: 11;
+  }
+
+  @keyframes scanLoad {
+    0% {
+      background-position: -100% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
   }
 
   .footer-grid {
     display: grid;
-    grid-template-columns: 1.2fr 1fr 0.8fr;
-    gap: 4rem;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 3rem;
+    margin-bottom: 4rem;
   }
 
   /* Column Styles */
   .footer-col {
     display: flex;
     flex-direction: column;
+    gap: 3rem; /* Increased vertical gap for distinct groups */
   }
 
-  /* Col 1: Signal */
+  /* Brand */
   .footer-logo {
     display: inline-block;
     margin-bottom: 1rem;
+    filter: drop-shadow(0 0 5px rgba(0, 243, 255, 0.3));
   }
 
   .logo-img {
-    height: 100px; /* Larger than header (60px) */
+    height: 90px; /* Increased size */
     width: auto;
     display: block;
   }
 
-  /* Default (Light Mode) */
+  /* Default (Dark Mode Base) */
   .logo-black {
-    display: block;
+    display: none;
   }
-
   .logo-white {
-    display: none;
-  }
-
-  /* Dark Mode */
-  :global([data-theme="dark"]) .logo-black {
-    display: none;
-  }
-
-  :global([data-theme="dark"]) .logo-white {
     display: block;
+  }
+  /* Light Mode Override */
+  :global([data-theme="light"]) .logo-black {
+    display: block;
+  }
+  :global([data-theme="light"]) .logo-white {
+    display: none;
   }
 
   .tagline {
     color: var(--text-secondary);
-    max-width: 300px;
+    max-width: 80%;
     line-height: 1.5;
-    margin-bottom: 2rem;
+    font-size: 1.2rem;
+    margin: 0;
+    opacity: 0.8;
   }
 
+  .social-wrapper {
+    margin-top: 0;
+  }
+
+  /* Newsletter */
   .section-title {
-    font-size: 0.85rem;
+    font-size: 0.7rem;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    font-weight: 600;
-    color: var(--text-tertiary);
-    margin-bottom: 0.5rem;
+    letter-spacing: 0.15em;
+    font-weight: 700;
+    color: var(--sci-fi-cyan);
+    margin-bottom: 1rem;
+    text-shadow: 0 0 5px rgba(0, 243, 255, 0.4);
   }
 
-  /* Col 2: Map */
-  .footer-nav {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 2rem;
-  }
-
+  /* Navigation Groups */
   .nav-group {
     display: flex;
     flex-direction: column;
@@ -160,74 +232,100 @@ const year = new Date().getFullYear();
   }
 
   .nav-header {
-    font-size: 0.75rem;
+    font-size: 1.1rem; /* Way bigger */
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--text-tertiary);
-    margin-bottom: 0.5rem;
+    letter-spacing: 0.1em;
+    color: rgba(255, 255, 255, 0.9); /* Brighter */
+    font-weight: 700;
+    margin-bottom: 1rem;
+    display: block;
+    text-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
   }
 
   .nav-group a {
     color: var(--text-secondary);
-    font-size: 0.95rem;
-    transition: color 0.2s ease;
+    font-size: 0.9rem;
+    text-decoration: none;
+    position: relative;
+    width: fit-content;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
   }
 
+  /* "Sky Fire" Hover Effect (Replica of Header) */
   .nav-group a:hover {
-    color: var(--text-primary);
+    color: #fff;
+    text-shadow: 0 0 8px var(--sci-fi-cyan);
+    transform: translateX(4px);
   }
 
-  /* Col 3: Current */
-  .connect-section {
-    margin-bottom: auto; /* Pushes legal links to bottom */
+  .nav-group a::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0%;
+    height: 1px;
+    background-color: var(--sci-fi-cyan);
+    box-shadow: 0 0 5px var(--sci-fi-cyan);
+    transition: width 0.3s ease;
+  }
+
+  .nav-group a:hover::after {
+    width: 100%;
+  }
+
+  /* Bottom Bar */
+  .footer-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
   }
 
   .legal-links {
-    font-size: 0.85rem;
-    color: var(--text-tertiary);
     display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
+    align-items: center;
+    gap: 1.5rem;
   }
 
   .legal-links a:hover {
-    text-decoration: underline;
-    color: var(--text-secondary);
+    color: var(--sci-fi-cyan);
+    text-shadow: 0 0 5px var(--sci-fi-cyan);
+  }
+
+  .separator {
+    color: var(--sci-fi-cyan);
+    opacity: 0.5;
   }
 
   /* Responsive */
-  @media (max-width: 968px) {
+  @media (max-width: 1024px) {
     .footer-grid {
       grid-template-columns: 1fr 1fr;
       gap: 3rem;
-    }
-    .footer-col.current {
-      grid-column: span 2;
-      flex-direction: row;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .connect-section {
-      margin-bottom: 0;
     }
   }
 
   @media (max-width: 600px) {
     .site-footer {
-      padding: 4rem 0 3rem;
+      padding: 3rem 0 2rem;
     }
     .footer-grid {
       display: flex;
       flex-direction: column;
       gap: 3rem;
     }
-    .footer-nav {
-      grid-template-columns: 1fr;
-    }
-    .footer-col.current {
-      flex-direction: column;
+    .footer-bottom {
+      flex-direction: column-reverse;
+      gap: 1.5rem;
       align-items: flex-start;
-      gap: 2rem;
     }
   }
 </style>

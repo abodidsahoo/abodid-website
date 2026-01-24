@@ -66,33 +66,36 @@ const recentPosts = (await safeFetch(getRecentPosts, mockRecent)).slice(0, 3);
     </div>
   </section>
 
-  <!-- Massive Spacer 1 (Bio to Showreel) -->
-  <div style="height: 20vh; w-100;" aria-hidden="true"></div>
+  <!-- Massive Spacer 1 (Bio to Links) -->
+  <div style="height: 15vh; width: 100%;" aria-hidden="true"></div>
+
+  <!-- Sci-Fi Navigation Grid -->
+  <SciFiLinks />
+
+  <!-- Massive Spacer 2 (Links to Showreel) -->
+  <div style="height: 15vh; width: 100%;" aria-hidden="true"></div>
 
   <!-- Showreel Section -->
   <Showreel />
 
-  <!-- Massive Spacer 2 (Showreel to Links) -->
-  <div style="height: 15vh; w-100;" aria-hidden="true"></div>
-
-  <!-- Sci-Fi Navigation Grid -->
-  <SciFiLinks />
+  <!-- Massive Spacer 3 (Showreel to Featured) -->
+  <div style="height: 15vh; width: 100%;" aria-hidden="true"></div>
 
   <!-- Featured Work -->
   <!-- Featured Work (Infinite Scroll) -->
   <section class="section">
     <div class="section-header">
-      <h2>Some of my favorite photo stories</h2>
+      <h2>Some of my most loved photo stories</h2>
       <a href="/photography" class="link-arrow">View All</a>
     </div>
 
-    <!-- Full Width Carousel Row 1 (Left) -->
+    <!-- Contained Carousel Row 1 (Left) -->
     <PhotoCarousel projects={featuredPhotography} direction="left" />
 
     <!-- Spacer between rows -->
     <div style="height: 2rem;"></div>
 
-    <!-- Full Width Carousel Row 2 (Right) -->
+    <!-- Contained Carousel Row 2 (Right) -->
     <PhotoCarousel
       projects={[...featuredPhotography].reverse()}
       direction="right"
@@ -152,73 +155,8 @@ const recentPosts = (await safeFetch(getRecentPosts, mockRecent)).slice(0, 3);
     isolation: isolate; /* Create stacking context for pseudo */
   }
 
-  /* Grid Background via pseudo-element to allow masking distinct from content */
-  .hero-section::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 100vw;
-    height: 120%; /* Extend downwards */
-    z-index: -2;
-    pointer-events: none;
-
-    /* Subtle Grid Background (Base) */
-    background-image:
-      linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-    background-size: 5vw 8vh; /* ~20 cols, ~12 rows */
-    background-position: center -2px; /* Shift up to hide top horizontal line */
-
-    /* Soft fade on ALL 4 sides using Radial Gradient */
-    -webkit-mask-image: radial-gradient(
-      ellipse at center,
-      black 40%,
-      transparent 90%
-    );
-    mask-image: radial-gradient(ellipse at center, black 40%, transparent 90%);
-  }
-
-  /* Interactive Glow Layer ('Lightsaber' Effect) */
-  .hero-section::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 100vw;
-    height: 120%;
-    z-index: -1; /* Above the base grid */
-    pointer-events: none;
-
-    /* Brighter Grid for Glow */
-    background-image:
-      linear-gradient(to right, rgba(200, 200, 255, 0.4) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(200, 200, 255, 0.4) 1px, transparent 1px);
-    background-size: 5vw 8vh;
-    background-position: center -2px; /* Match base grid shift */
-
-    /* Reveal only near mouse AND faded at edges */
-    -webkit-mask-image:
-      radial-gradient(
-        circle 250px at var(--mouse-x, -500px) var(--mouse-y, -500px),
-        black,
-        transparent
-      ),
-      radial-gradient(ellipse at center, black 40%, transparent 90%);
-    mask-image:
-      radial-gradient(
-        circle 250px at var(--mouse-x, -500px) var(--mouse-y, -500px),
-        black,
-        transparent
-      ),
-      radial-gradient(ellipse at center, black 40%, transparent 90%);
-
-    /* Composite: Intersect them so glow fades at edges */
-    -webkit-mask-composite: source-in;
-    mask-composite: intersect;
-  }
+  /* Grid Background & Glow moved to BaseLayout for global coverage */
+  /* .hero-section::before and ::after removed */
 
   .hero-hint {
     position: absolute;
@@ -398,6 +336,16 @@ const recentPosts = (await safeFetch(getRecentPosts, mockRecent)).slice(0, 3);
   .blog-card:hover .blog-link {
     opacity: 1;
     transform: translateX(0);
+  }
+
+  /* Typewriter Text Styling */
+  #typewriter-text {
+    font-size: 1.35em; /* Slightly reduced */
+    display: inline-block;
+    min-height: 1.2em; /* Reserve space */
+    margin-top: 0;
+    position: relative;
+    top: -2px; /* Shift upwards to balance */
   }
 
   @media (max-width: 768px) {
@@ -610,26 +558,8 @@ const recentPosts = (await safeFetch(getRecentPosts, mockRecent)).slice(0, 3);
     initHintFade();
   }
 
-  // Mouse tracking for grid glow
-  function initGridGlow() {
-    const hero = document.querySelector(".hero-section");
-    if (!hero) return;
-
-    window.addEventListener(
-      "mousemove",
-      (e) => {
-        const rect = hero.getBoundingClientRect();
-        // Since grid breaks out to 100vw, X is just viewport X
-        const x = e.clientX;
-        // Y is relative to container top
-        const y = e.clientY - rect.top;
-
-        (hero as HTMLElement).style.setProperty("--mouse-x", `${x}px`);
-        (hero as HTMLElement).style.setProperty("--mouse-y", `${y}px`);
-      },
-      { passive: true },
-    );
-  }
+  // Mouse tracking moved to BaseLayout (Global)
+  // initGridGlow removed
 
   // Scroll fade for Vibe Check Widget (Secret Lab block)
   function initVibeCheckFade() {
@@ -666,12 +596,12 @@ const recentPosts = (await safeFetch(getRecentPosts, mockRecent)).slice(0, 3);
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", () => {
-      initGridGlow();
+      // initGridGlow removed
       initVibeCheckFade();
       initHintFade(); // Ensure hint fade is also called
     });
   } else {
-    initGridGlow();
+    // initGridGlow removed
     initVibeCheckFade();
     initHintFade();
   }

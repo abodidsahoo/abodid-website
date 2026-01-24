@@ -4,7 +4,6 @@ import "../styles/brands.css";
 // import Header from "../components/Header.astro";
 import SciFiHeader from "../components/SciFiHeader.astro";
 import Footer from "../components/Footer.astro";
-import ThemeToggle from "../components/ThemeToggle.astro";
 import SEO from "../components/SEO.astro";
 import { getPageMetadata } from "../lib/api";
 
@@ -57,17 +56,6 @@ const finalType = type || dbMetadata?.og_type || "website";
       rel="stylesheet"
     />
 
-    <!-- Theme initialization script (prevents FOUC) -->
-    <script is:inline>
-      // Apply theme immediately before page renders
-      (function () {
-        const savedTheme = localStorage.getItem("theme");
-        // User Requirement: Default to "dark" unless manually switched (savedTheme exists)
-        const theme = savedTheme || "dark";
-        document.documentElement.setAttribute("data-theme", theme);
-      })();
-    </script>
-
     <SEO
       title={finalTitle}
       description={finalDescription}
@@ -79,11 +67,12 @@ const finalType = type || dbMetadata?.og_type || "website";
   <body>
     <!-- <Header /> -->
     <SciFiHeader />
+    <div class="global-grid-bg"></div>
+    <div class="global-glow-bg"></div>
     <main class="container page-content">
       <slot />
     </main>
     <Footer />
-    <ThemeToggle />
   </body>
 </html>
 
@@ -91,5 +80,139 @@ const finalType = type || dbMetadata?.og_type || "website";
   .page-content {
     padding-top: 3rem;
     padding-bottom: 3rem;
+    position: relative;
+    z-index: 1; /* Ensure content is above grid */
+  }
+
+  .global-grid-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0; /* Behind content but check base layout stacking */
+    pointer-events: none;
+
+    /* Subtle Grid Background */
+    background-image:
+      linear-gradient(
+        to right,
+        rgba(255, 255, 255, 0.015) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0.015) 1px,
+        transparent 1px
+      );
+    background-size: 5vw 8vh;
+    background-position: center top;
+
+    /* Soft fade on edges */
+    -webkit-mask-image: radial-gradient(
+      ellipse at center,
+      black 30%,
+      transparent 80%
+    );
+    mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+  }
+
+  /* Ensure Footer is above grid */
+  :global(.site-footer) {
+    position: relative;
+    z-index: 10;
+    background-color: var(--bg-surface);
+  }
+
+  .global-glow-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0; /* Same layer as grid, interactions managed by opacity */
+    pointer-events: none;
+    opacity: var(--glow-intensity, 1);
+    transition: opacity 0.3s ease-out;
+
+    /* Brighter Grid for Glow - Reduced power */
+    background-image:
+      linear-gradient(to right, rgba(200, 200, 255, 0.15) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(200, 200, 255, 0.15) 1px, transparent 1px);
+    background-size: 5vw 8vh;
+    background-position: center top;
+
+    /* Reveal only near mouse AND faded at edges (Global Mask) */
+    -webkit-mask-image:
+      radial-gradient(
+        circle 300px at var(--mouse-x, -500px) var(--mouse-y, -500px),
+        black,
+        transparent
+      ),
+      radial-gradient(ellipse at center, black 30%, transparent 80%);
+    mask-image:
+      radial-gradient(
+        circle 300px at var(--mouse-x, -500px) var(--mouse-y, -500px),
+        black,
+        transparent
+      ),
+      radial-gradient(ellipse at center, black 30%, transparent 80%);
+
+    /* Composite: Intersect them so glow fades at edges */
+    -webkit-mask-composite: source-in;
+    mask-composite: intersect;
   }
 </style>
+
+<script>
+  function initGlobalEffects() {
+    const glowBg = document.querySelector(".global-glow-bg") as HTMLElement;
+    if (!glowBg) return;
+
+    // Mouse Tracking
+    window.addEventListener(
+      "mousemove",
+      (e) => {
+        glowBg.style.setProperty("--mouse-x", `${e.clientX}px`);
+        glowBg.style.setProperty("--mouse-y", `${e.clientY}px`);
+      },
+      { passive: true },
+    );
+
+    // Scroll Intensity Tracking
+    const updateIntensity = () => {
+      // Check if we are on the homepage
+      const isHome =
+        window.location.pathname === "/" || window.location.pathname === "";
+
+      if (!isHome) {
+        // "Very subtle glow if it at all happens" on other pages
+        glowBg.style.setProperty("--glow-intensity", "0.05");
+        return;
+      }
+
+      // Homepage Logic: Targeted for typewriter area (top)
+      const scrollY = window.scrollY;
+      const windowHeight = window.innerHeight;
+
+      // Faster fade out to ensure it's mainly for the top area
+      const fadeDistance = windowHeight * 1.0;
+      const minIntensity = 0.05; // "Hardly visible"
+
+      let intensity = 1 - scrollY / fadeDistance;
+      if (intensity < minIntensity) intensity = minIntensity;
+
+      glowBg.style.setProperty("--glow-intensity", intensity.toString());
+    };
+
+    window.addEventListener("scroll", updateIntensity, { passive: true });
+    updateIntensity(); // Initial call
+  }
+
+  // Init
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initGlobalEffects);
+  } else {
+    initGlobalEffects();
+  }
+</script>

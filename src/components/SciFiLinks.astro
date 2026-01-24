@@ -82,7 +82,7 @@ const groups = [
         text-decoration: none;
 
         background: rgba(10, 15, 20, 0.4);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.4);
         border-radius: 8px;
 
         overflow: hidden;
@@ -92,10 +92,11 @@ const groups = [
 
     .card-text {
         font-family: "Inconsolata", monospace;
-        font-size: 0.9rem;
+        font-size: 0.95rem; /* Slightly larger */
+        font-weight: 500; /* More prominent */
         text-transform: uppercase;
         letter-spacing: 0.1em;
-        color: var(--text-secondary);
+        color: var(--text-primary); /* Brighter */
         z-index: 10;
         text-align: center;
         transition: color 1.5s ease-out;
@@ -106,10 +107,7 @@ const groups = [
         /* Fast transition for the 'on' state (activate) */
         transition: all 0.2s ease-out;
 
-        border-color: var(
-            --sci-fi-cyan,
-            #00f3ff
-        ) !important; /* Override pulse */
+        border-color: var(--sci-fi-cyan, #00f3ff) !important;
         box-shadow: 0 0 15px rgba(0, 243, 255, 0.15) !important;
         background: rgba(0, 243, 255, 0.03) !important;
         transform: translateY(-2px);
@@ -156,67 +154,9 @@ const groups = [
         border-right-color: var(--sci-fi-cyan, #00f3ff);
     }
 
-    /* Keyframes for the random slow glow pulse */
-    @keyframes sciFiPulse {
-        0% {
-            border-color: rgba(255, 255, 255, 0.1);
-            box-shadow: none;
-            background: rgba(10, 15, 20, 0.4);
-        }
-        50% {
-            border-color: var(--sci-fi-cyan, #00f3ff);
-            box-shadow: 0 0 25px rgba(0, 243, 255, 0.5); /* Stronger glow */
-            background: rgba(0, 243, 255, 0.1); /* Visible tint */
-        }
-        100% {
-            border-color: rgba(255, 255, 255, 0.1);
-            box-shadow: none;
-            background: rgba(10, 15, 20, 0.4);
-        }
-    }
-
-    /* Make class global so JS added class matches */
-    :global(.pulse-active) {
-        animation: sciFiPulse 3s ease-in-out;
-    }
-
     @media (max-width: 600px) {
         .scifi-grid {
             grid-template-columns: 1fr;
         }
     }
 </style>
-
-<script>
-    function initRandomPulse() {
-        const cards = document.querySelectorAll(".scifi-card");
-        if (!cards.length) return;
-
-        const triggerRandomPulse = () => {
-            const randomIndex = Math.floor(Math.random() * cards.length);
-            const card = cards[randomIndex];
-
-            card.classList.add("pulse-active");
-
-            card.addEventListener(
-                "animationend",
-                () => {
-                    card.classList.remove("pulse-active");
-                    // Delay between 0.5s and 2.5s
-                    const delay = Math.random() * 2000 + 500;
-                    setTimeout(triggerRandomPulse, delay);
-                },
-                { once: true },
-            );
-        };
-
-        // Start quickly (1s delay)
-        setTimeout(triggerRandomPulse, 1000);
-    }
-
-    if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", initRandomPulse);
-    } else {
-        initRandomPulse();
-    }
-</script>

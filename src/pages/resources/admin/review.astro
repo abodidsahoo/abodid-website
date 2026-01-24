@@ -1,0 +1,26 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import AdminReviewList from "../../../components/resources/AdminReviewList";
+import "../../../styles/resources.css";
+
+const title = "Resource Review";
+---
+
+<BaseLayout title={title} description="Admin Review Queue">
+    <div class="hub-container">
+        <div class="hub-header">
+            <h1 class="hub-title">Resource Review</h1>
+        </div>
+
+        <AdminReviewList client:only="react" />
+
+        <div style="text-align: center; margin-top: 24px;">
+            <a
+                href="/resources"
+                style="color: var(--text-secondary); text-decoration: underline;"
+            >
+                &larr; Back to Public Hub
+            </a>
+        </div>
+    </div>
+</BaseLayout>

@@ -1,0 +1,17 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+---
+<BaseLayout title='Verifying User...'>
+  <div style='display:flex; justify-content:center; align-items:center; height:60vh; color:white;'>
+    Completing login...
+  </div>
+  <script>
+    import { supabase } from '../../../lib/supabaseClient';
+    // Handle hash fragment
+    supabase.auth.onAuthStateChange((event, session) => {
+      if (session) {
+        window.location.href = '/resources';
+      }
+    });
+  </script>
+</BaseLayout>

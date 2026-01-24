@@ -1,0 +1,232 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import "../styles/resources.css";
+
+const title = "Login | Resource Hub";
+---
+
+<BaseLayout title={title}>
+    <div
+        class="hub-container"
+        style="max-width: 420px; padding-top: 80px; margin: 0 auto;"
+    >
+        <div class="hub-form" style="text-align: center;">
+            <h1 class="hub-title" style="margin-bottom: 8px;" id="page-title">
+                Welcome Back
+            </h1>
+            <p
+                style="color: var(--text-secondary); margin-bottom: 32px; font-size: 14px;"
+                id="page-subtitle"
+            >
+                Log in to continue your curation journey.
+            </p>
+
+            <form id="auth-form" style="text-align: left;">
+                {/* Full Name - Hidden by default (Login Mode) */}
+                <div
+                    class="hub-form-group"
+                    id="name-group"
+                    style="display: none;"
+                >
+                    <label class="hub-label">Full Name</label>
+                    <input
+                        type="text"
+                        id="fullname"
+                        class="hub-input"
+                        placeholder="Jane Doe"
+                    />
+                </div>
+
+                <div class="hub-form-group">
+                    <label class="hub-label">Email Address</label>
+                    <input
+                        type="email"
+                        id="email"
+                        class="hub-input"
+                        required
+                        placeholder="you@example.com"
+                    />
+                </div>
+
+                <div class="hub-form-group">
+                    <label class="hub-label">Password</label>
+                    <input
+                        type="password"
+                        id="password"
+                        class="hub-input"
+                        required
+                        placeholder="••••••••"
+                        minlength="6"
+                    />
+                </div>
+
+                <button
+                    type="submit"
+                    class="hub-btn"
+                    id="submit-btn"
+                    style="width: 100%; margin-top: 16px;"
+                >
+                    Log In
+                </button>
+            </form>
+
+            <div
+                id="message"
+                style="margin-top: 24px; text-align: center; display: none; padding: 12px; border-radius: 8px; font-weight: 500; font-size: 14px;"
+            >
+            </div>
+
+            <div
+                style="margin-top: 32px; pt-4; border-top: 1px solid var(--border-subtle);"
+            >
+                <p style="font-size: 14px; color: var(--text-secondary);">
+                    <span id="switch-text">Don't have an account?</span>
+                    <button
+                        id="mode-toggle"
+                        style="background: none; border: none; color: var(--text-primary); font-weight: 600; cursor: pointer; text-decoration: underline; margin-left: 4px;"
+                    >
+                        Sign Up
+                    </button>
+                </p>
+            </div>
+        </div>
+    </div>
+</BaseLayout>
+
+<script>
+    import { supabase } from "../lib/supabaseClient";
+
+    const form = document.getElementById("auth-form");
+    const messageEl = document.getElementById("message");
+    const submitBtn = document.getElementById(
+        "submit-btn",
+    ) as HTMLButtonElement;
+
+    // Toggle Elements
+    const toggleBtn = document.getElementById("mode-toggle");
+    const nameGroup = document.getElementById("name-group");
+    const pageTitle = document.getElementById("page-title");
+    const pageSubtitle = document.getElementById("page-subtitle");
+    const switchText = document.getElementById("switch-text");
+
+    let isSignup = false;
+
+    // Toggle Logic
+    toggleBtn?.addEventListener("click", () => {
+        isSignup = !isSignup;
+
+        if (isSignup) {
+            // Switch to Signup
+            nameGroup!.style.display = "block";
+            pageTitle!.innerText = "Join the Ecosystem";
+            pageSubtitle!.innerText =
+                "Create an account to save and share resources.";
+            submitBtn!.innerText = "Create Account";
+            switchText!.innerText = "Already have an account?";
+            toggleBtn!.innerText = "Log In";
+            // Require name
+            document
+                .getElementById("fullname")
+                ?.setAttribute("required", "true");
+        } else {
+            // Switch to Login
+            nameGroup!.style.display = "none";
+            pageTitle!.innerText = "Welcome Back";
+            pageSubtitle!.innerText =
+                "Log in to continue your curation journey.";
+            submitBtn!.innerText = "Log In";
+            switchText!.innerText = "Don't have an account?";
+            toggleBtn!.innerText = "Sign Up";
+            // Un-require name
+            document.getElementById("fullname")?.removeAttribute("required");
+        }
+
+        // Clear errors
+        if (messageEl) messageEl.style.display = "none";
+    });
+
+    // Helper to show message
+    const showMsg = (msg: string, type: "success" | "error") => {
+        if (!messageEl) return;
+        messageEl.style.display = "block";
+        messageEl.innerText = msg;
+        if (type === "error") {
+            messageEl.style.background = "#fee2e2";
+            messageEl.style.color = "#b91c1c";
+        } else {
+            messageEl.style.background = "#dcfce7";
+            messageEl.style.color = "#166534";
+        }
+    };
+
+    // FORM SUBMIT
+    form?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const email = (document.getElementById("email") as HTMLInputElement)
+            .value;
+        const password = (
+            document.getElementById("password") as HTMLInputElement
+        ).value;
+        const fullName = (
+            document.getElementById("fullname") as HTMLInputElement
+        ).value;
+
+        submitBtn.disabled = true;
+        submitBtn.innerText = isSignup ? "Creating..." : "Logging in...";
+
+        let result;
+
+        if (isSignup) {
+            // SIGN UP
+            result = await supabase.auth.signUp({
+                email,
+                password,
+                options: {
+                    data: { full_name: fullName },
+                },
+            });
+        } else {
+            // LOG IN
+            result = await supabase.auth.signInWithPassword({
+                email,
+                password,
+            });
+        }
+
+        const { data, error } = result;
+
+        if (error) {
+            // Improve UX for common errors
+            if (error.message.includes("Invalid login credentials")) {
+                showMsg(
+                    isSignup
+                        ? "Error: This email might already satisfy signup or password rules. Try Logging In?"
+                        : "Invalid email or password. If you haven't set a password yet, please Sign Up first.",
+                    "error",
+                );
+            } else {
+                showMsg(error.message, "error");
+            }
+
+            submitBtn.disabled = false;
+            submitBtn.innerText = isSignup ? "Create Account" : "Log In";
+        } else {
+            if (isSignup && !data.session) {
+                // If signup requires email verification
+                showMsg(
+                    "Account created! Please check your email to confirm.",
+                    "success",
+                );
+                submitBtn.innerText = "Check Email";
+            } else {
+                // Success Login/Signup
+                showMsg("Success! Redirecting...", "success");
+                window.location.href = "/resources";
+            }
+        }
+    });
+
+    // Forgot Password Logic (User requested instigation)
+    // Add a helper link if login fails repeatedly?
+    // For now, let's keep it simple as requested but clear text.
+</script>

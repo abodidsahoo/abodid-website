@@ -1,0 +1,312 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import ResourceFeed from "../../../components/resources/ResourceFeed";
+import {
+    getProfileByUsername,
+    getApprovedResources,
+    getBookmarkedResources,
+} from "../../../lib/resources/db";
+import "../../../styles/resources.css";
+
+const { username } = Astro.params;
+
+if (!username) {
+    return Astro.redirect("/404");
+}
+
+// 1. Fetch Profile
+const profile = await getProfileByUsername(username);
+
+if (!profile) {
+    return Astro.redirect("/404");
+}
+
+// 2. Fetch Curated (Submitted) Resources
+const curatedResources = await getApprovedResources({ username: username });
+
+// 3. Fetch Saved Resources (Publicly visible per requirements)
+const savedResources = await getBookmarkedResources(profile.id);
+
+const title = `${profile.full_name || profile.username}'s Profile`;
+const description = `Curated resources by ${profile.full_name || profile.username}`;
+---
+
+<BaseLayout title={title} description={description}>
+    <header class="profile-header">
+        <div class="avatar-container">
+            {
+                profile.avatar_url ? (
+                    <img
+                        src={profile.avatar_url}
+                        alt={profile.full_name || username}
+                        class="avatar"
+                    />
+                ) : (
+                    <div class="avatar-placeholder">
+                        {(profile.full_name ||
+                            username ||
+                            "?")[0].toUpperCase()}
+                    </div>
+                )
+            }
+        </div>
+
+        <div class="profile-info">
+            <h1 class="profile-name">
+                {profile.full_name || profile.username}
+            </h1>
+            <p class="profile-bio">
+                {profile.bio || "Creative mind exploring the digital frontier."}
+            </p>
+
+            {
+                profile.website && (
+                    <a
+                        href={profile.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="profile-link"
+                    >
+                        🔗 {profile.website.replace(/^https?:\/\//, "")}
+                    </a>
+                )
+            }
+
+            <div class="stats">
+                <span class="stat"
+                    ><strong>{curatedResources.length}</strong> Curated</span
+                >
+                <span class="stat"
+                    ><strong>{savedResources.length}</strong> Saved</span
+                >
+            </div>
+        </div>
+    </header>
+
+    <div class="hub-container">
+        <!-- Tabs Section -->
+        <div class="tabs-container">
+            <input type="radio" name="profile-tabs" id="tab-curated" checked />
+            <label for="tab-curated" class="tab-label">Submitted Gems</label>
+
+            <input type="radio" name="profile-tabs" id="tab-saved" />
+            <label for="tab-saved" class="tab-label">Saved Collection</label>
+
+            <!-- Curated Content -->
+            <div class="tab-content" id="content-curated">
+                {
+                    curatedResources.length > 0 ? (
+                        <ResourceFeed
+                            client:load
+                            initialResources={curatedResources}
+                            showSearch={false}
+                        />
+                    ) : (
+                        <div class="empty-state">
+                            <p>No submissions yet.</p>
+                        </div>
+                    )
+                }
+            </div>
+
+            <!-- Saved Content -->
+            <div class="tab-content" id="content-saved">
+                {
+                    savedResources.length > 0 ? (
+                        <ResourceFeed
+                            client:load
+                            initialResources={savedResources}
+                            showSearch={false}
+                        />
+                    ) : (
+                        <div class="empty-state">
+                            <p>
+                                This user hasn't curated a saved collection yet.
+                            </p>
+                        </div>
+                    )
+                }
+            </div>
+        </div>
+    </div>
+</BaseLayout>
+
+<style>
+    .profile-header {
+        text-align: center;
+        padding: 4rem 24px;
+        background: var(--bg-surface);
+        border-bottom: 1px solid var(--border-subtle);
+        margin-bottom: 2rem;
+    }
+
+    .avatar-container {
+        width: 100px;
+        height: 100px;
+        margin: 0 auto 1.5rem;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 2px solid var(--text-primary);
+        background: var(--bg-surface-hover);
+    }
+
+    .avatar {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .avatar-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+    }
+
+    .profile-name {
+        font-family: "Poppins", sans-serif;
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .profile-bio {
+        color: var(--text-secondary);
+        max-width: 500px;
+        margin: 0 auto 1rem;
+        line-height: 1.6;
+    }
+
+    .profile-link {
+        color: var(--text-primary);
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.9rem;
+        display: inline-block;
+        margin-bottom: 1rem;
+    }
+    .profile-link:hover {
+        text-decoration: underline;
+    }
+
+    .stats {
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+    .stat strong {
+        color: var(--text-primary);
+    }
+
+    .hub-container {
+        max-width: var(--max-width);
+        margin: 0 auto;
+        padding: 0 24px 64px;
+    }
+
+    /* CSS-only Tabs using radio hack */
+    .tabs-container {
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Hide Radio Inputs */
+    input[type="radio"] {
+        display: none;
+    }
+
+    /* Labels as Tab Buttons - Enhanced button style */
+    .tab-label {
+        display: inline-block;
+        padding: 14px 32px;
+        font-weight: 600;
+        font-size: 15px;
+        color: var(--text-secondary);
+        cursor: pointer;
+        border: 2px solid var(--border-subtle);
+        border-radius: 8px;
+        background: var(--bg-surface);
+        transition: all 0.25s ease;
+        text-align: center;
+        margin: 0 8px;
+    }
+
+    .tab-label:hover {
+        color: var(--text-primary);
+        background: var(--bg-surface-hover);
+        border-color: var(--text-secondary);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Active Tab Styling - Bold highlight with underline */
+    #tab-curated:checked ~ label[for="tab-curated"],
+    #tab-saved:checked ~ label[for="tab-saved"] {
+        color: var(--text-primary);
+        background: var(--bg-primary);
+        border-color: var(--text-primary);
+        border-bottom-width: 4px;
+        font-weight: 700;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Tab Content - Hide all by default */
+    .tab-content {
+        display: none;
+        padding-top: 32px;
+        animation: fadeIn 0.3s ease;
+    }
+
+    /* Show active content */
+    #tab-curated:checked ~ #content-curated {
+        display: block;
+    }
+    #tab-saved:checked ~ #content-saved {
+        display: block;
+    }
+
+    /* Layout override to inline tabs at the top center? No, let's keep them stacked or row. */
+    /* Wait, the labels need to be wrapped in a container to sit side-by-side */
+    /* Refactor structure for side-by-side tabs */
+</style>
+
+<!-- Refined Structure for Tabs (JS-free attempt logic was broken with flex-col, fixing style below) -->
+<style>
+    .tabs-container {
+        display: block; /* Standard block */
+        text-align: center; /* Center tabs */
+        margin-bottom: 2rem;
+    }
+
+    .tab-label {
+        display: inline-block;
+    }
+
+    .tab-content {
+        text-align: left; /* Reset alignment for content */
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 0;
+        color: var(--text-secondary);
+    }
+</style>

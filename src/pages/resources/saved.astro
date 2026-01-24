@@ -1,0 +1,57 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import SavedResourceList from "../../components/resources/SavedResourceList";
+import "../../styles/resources.css";
+
+const title = "My Saved Resources";
+const description =
+    "Your personal collection of bookmarked tools and articles.";
+---
+
+<BaseLayout title={title} description={description}>
+    <header
+        class="page-header"
+        style="position: relative; max-width: var(--max-width); margin: 0 auto; padding: 2rem 24px; display: flex; align-items: center; justify-content: space-between;"
+    >
+        <div>
+            <h1>My Collection</h1>
+            <p class="section-intro">Resources you've bookmarked for later.</p>
+        </div>
+        <div>
+            <a
+                href="/resources"
+                style="color: var(--text-secondary); text-decoration: none; font-size: 14px;"
+            >
+                &larr; Back to Hub
+            </a>
+        </div>
+    </header>
+
+    <div class="hub-container">
+        <SavedResourceList client:only="react" />
+    </div>
+</BaseLayout>
+
+<style>
+    h1 {
+        font-family: "Poppins", sans-serif;
+        font-size: 2.5rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        letter-spacing: -0.02em;
+        color: var(--text-primary);
+    }
+
+    .section-intro {
+        font-family: var(--font-sans);
+        font-size: 1.1rem;
+        color: var(--text-secondary);
+        margin: 0;
+    }
+
+    .hub-container {
+        max-width: var(--max-width);
+        margin: 0 auto;
+        padding: 0 24px 64px 24px;
+    }
+</style>

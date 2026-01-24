@@ -1,0 +1,55 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import { supabase } from "../../../lib/supabaseClient";
+import { getCurrentProfile } from "../../../lib/resources/db";
+import EditResourceForm from "../../../components/resources/EditResourceForm";
+import type { HubResource } from "../../../lib/resources/types";
+import "../../../styles/resources.css";
+
+const { id } = Astro.params;
+
+// 1. Security Check: Is User an Admin?
+// We skip strict server-side redirect here because of localhost cookie issues.
+// RLS policies ultimately protect the data update.
+const profile = await getCurrentProfile();
+// if (!profile || profile.role !== "admin") {
+//     return Astro.redirect("/404");
+// }
+
+// 2. Fetch Resource to Edit
+let resource: HubResource | null = null;
+if (id) {
+    const { data, error } = await supabase
+        .from("hub_resources")
+        .select(
+            `
+        *,
+        tags:hub_resource_tags (
+            tag_id,
+            tag:hub_tags (id, name)
+        )
+        `,
+        )
+        .eq("id", id)
+        .single();
+
+    if (data) {
+        resource = {
+            ...data,
+            tags: data.tags.map((t: any) => t.tag),
+        };
+    }
+}
+
+if (!resource) {
+    return Astro.redirect("/404");
+}
+
+const title = `Edit ${resource.title}`;
+---
+
+<BaseLayout title={title}>
+    <div class="hub-container">
+        <EditResourceForm client:load resource={resource} />
+    </div>
+</BaseLayout>

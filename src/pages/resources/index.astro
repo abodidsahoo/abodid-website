@@ -1,0 +1,160 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import ResourceFeed from "../../components/resources/ResourceFeed";
+import AuthHeader from "../../components/resources/AuthHeader";
+import { getApprovedResources, getAllTags } from "../../lib/resources/db";
+import type { ResourceAudience } from "../../lib/resources/types";
+import "../../styles/resources.css";
+
+// 1. Get Search Params
+const query = Astro.url.searchParams.get("q") || "";
+const audience = Astro.url.searchParams.get("audience") || "";
+
+// 2. Fetch Data
+const resources = await getApprovedResources({
+    query: query,
+    audience: audience as ResourceAudience | null,
+});
+
+const tags = await getAllTags();
+
+const title = "Resource Hub";
+const description =
+    "Curated collection of tools, articles, and inspiration for creatives.";
+---
+
+<BaseLayout title={title} description={description}>
+    {/* Page Header matching Photography/Blog design */}
+
+    <header
+        class="page-header"
+        style="position: relative; display: flex; justify-content: space-between; align-items: flex-start; gap: 48px; flex-wrap: wrap;"
+    >
+        <div style="flex: 1; min-width: 300px;">
+            <h1>Resource Hub</h1>
+            <p class="section-intro">
+                A curated library of tools, inspiration, and knowledge for
+                designers, artists, and creative technologists.
+            </p>
+        </div>
+
+        {/* Prominent Login CTA (Client-side Component) */}
+        <div style="flex-shrink: 0; text-align: right;">
+            <AuthHeader client:only="react" />
+        </div>
+    </header>
+
+    <div class="hub-container">
+        <!--
+          Resource Feed (React Island)
+          - Handles client-side filtering and visual "snapping" updates.
+        -->
+        <ResourceFeed
+            client:load
+            initialResources={resources}
+            availableTags={tags}
+        />
+
+        <!-- Footer CTA -->
+        <div
+            style="margin-top: 80px; text-align: left; padding-top: 32px; border-top: 1px solid var(--border-subtle);"
+        >
+            <p style="color: var(--text-secondary); margin-bottom: 8px;">
+                Know a great resource?
+            </p>
+            <a
+                href="/resources/submit"
+                style="color: var(--text-primary); text-decoration: underline; font-weight: 500;"
+            >
+                Submit to Hub &rarr;
+            </a>
+        </div>
+    </div>
+</BaseLayout>
+
+<style>
+    /* Match Photography/Blog Page Header exactly */
+    .page-header {
+        margin-bottom: 4rem; /* Match blog */
+        padding-top: 2rem;
+        text-align: left;
+        max-width: var(--max-width);
+        margin-left: auto;
+        margin-right: auto;
+        padding-left: 24px;
+        padding-right: 24px;
+    }
+
+    h1 {
+        font-family: "Poppins", sans-serif;
+        font-size: 3.5rem; /* Match blog */
+        font-weight: 600;
+        margin-bottom: 1rem;
+        letter-spacing: -0.02em;
+        color: var(--text-primary);
+        line-height: 1.1;
+    }
+
+    .section-intro {
+        font-family: var(--font-sans);
+        font-size: 1.1rem;
+        color: var(--text-secondary);
+        max-width: 600px;
+        margin: 0;
+        line-height: 1.6;
+    }
+
+    /* Specific buttons for this header */
+    .hub-btn-primary {
+        background: var(--text-primary);
+        color: var(--bg-color);
+        padding: 10px 20px;
+        border-radius: 8px; /* Slightly sharper than pill? Or keep pill? Using 8px to match others? Let's stick to pill for buttons usually, but maybe slightly rounded rect looks more 'system' */
+        border-radius: 100px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 14px;
+        display: inline-block;
+        transition: all 0.2s ease;
+    }
+    .hub-btn-primary:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+    }
+
+    .hub-btn-small {
+        display: inline-block;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-primary);
+        border: 1px solid var(--border-subtle);
+        padding: 6px 16px;
+        border-radius: 100px;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+    .hub-btn-small:hover {
+        background: var(--bg-surface-hover);
+        border-color: var(--text-primary);
+    }
+
+    /* Ensure hub container aligns */
+    .hub-container {
+        max-width: var(--max-width);
+        margin: 0 auto;
+        padding: 0 24px;
+    }
+
+    @media (max-width: 768px) {
+        .page-header {
+            flex-direction: column;
+            gap: 24px;
+        }
+        .page-header > div:last-child {
+            text-align: left !important; /* Reset alignment on mobile */
+        }
+        .page-header > div:last-child > div {
+            text-align: left !important;
+        }
+    }
+</style>
