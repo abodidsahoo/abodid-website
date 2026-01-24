@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { submitResource } from '../../lib/resources/db';
+import { supabase } from '../../lib/supabaseClient';
 import type { ResourceAudience } from '../../lib/resources/types';
 import TagInput from './TagInput';
 
@@ -9,6 +10,22 @@ export default function SubmissionForm() {
     const [success, setSuccess] = useState(false);
     const [autoApproved, setAutoApproved] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+
+    // Check authentication on mount
+    useEffect(() => {
+        checkAuth();
+    }, []);
+
+    const checkAuth = async () => {
+        if (!supabase) {
+            setIsAuthenticated(false);
+            return;
+        }
+
+        const { data: { session } } = await supabase.auth.getSession();
+        setIsAuthenticated(!!session);
+    };
 
     // Form State
     const [formData, setFormData] = useState({
@@ -93,6 +110,35 @@ export default function SubmissionForm() {
             setError(result.error || 'Something went wrong.');
         }
     };
+
+    // Loading state while checking auth
+    if (isAuthenticated === null) {
+        return (
+            <div className="hub-form text-center p-8">
+                <div style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>Loading...</div>
+            </div>
+        );
+    }
+
+    // Not authenticated - show login prompt
+    if (!isAuthenticated) {
+        return (
+            <div className="hub-form text-center p-8">
+                <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔒</div>
+                <h3 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '8px' }}>Login Required</h3>
+                <p className="text-secondary mb-6">
+                    You need to be logged in to submit resources to the hub.
+                </p>
+                <a
+                    href="/login?redirect=/resources/submit"
+                    className="hub-btn"
+                    style={{ display: 'inline-block', textDecoration: 'none' }}
+                >
+                    Login to Submit
+                </a>
+            </div>
+        );
+    }
 
     if (success) {
         return (
