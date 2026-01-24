@@ -65,9 +65,29 @@ export default function LoginForm() {
       // Sync email to profile for admin too
       if (data.user) {
         await supabase.from('profiles').update({ email: email }).eq('id', data.user.id);
+
+        // Check for redirect param
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirectUrl = urlParams.get('redirect');
+
+        if (redirectUrl) {
+          window.location.href = redirectUrl;
+        } else {
+          // Check role to determine default redirect
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', data.user.id)
+            .single();
+
+          if (profile?.role === 'admin') {
+            window.location.href = "/admin/dashboard";
+          } else {
+            // Curators and regular users go to unified dashboard
+            window.location.href = "/resources/dashboard";
+          }
+        }
       }
-      // Redirect to dashboard on success
-      window.location.href = "/admin/dashboard";
     }
   };
 
