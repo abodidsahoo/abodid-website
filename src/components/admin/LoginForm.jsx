@@ -55,7 +55,6 @@ export default function LoginForm() {
 
     if (error) {
       console.error("Login error:", error);
-      // alert(`Login Failed: ${error.message}`); // Removed alert for cleaner UX, using error state
       setError(error.message);
       setLoading(false);
       // Reset captcha on failure
@@ -64,28 +63,42 @@ export default function LoginForm() {
     } else {
       // Sync email to profile for admin too
       if (data.user) {
-        await supabase.from('profiles').update({ email: email }).eq('id', data.user.id);
+        console.log('Login successful for:', email);
+
+        try {
+          await supabase.from('profiles').update({ email: email }).eq('id', data.user.id);
+        } catch (e) {
+          console.warn('Profile sync warning:', e);
+        }
 
         // Check for redirect param
         const urlParams = new URLSearchParams(window.location.search);
         const redirectUrl = urlParams.get('redirect');
 
-        if (redirectUrl) {
-          window.location.href = redirectUrl;
-        } else {
-          // Check role to determine default redirect
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', data.user.id)
-            .single();
+        console.log('Redirect param found:', redirectUrl);
 
-          if (profile?.role === 'admin') {
-            window.location.href = "/admin/dashboard";
-          } else {
-            // Curators and regular users go to unified dashboard
-            window.location.href = "/resources/dashboard";
-          }
+        if (redirectUrl) {
+          console.log('Redirecting to param URL:', redirectUrl);
+          window.location.assign(redirectUrl);
+          return;
+        }
+
+        // Check role to determine default redirect
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', data.user.id)
+          .single();
+
+        console.log('User role detected:', profile?.role);
+
+        if (profile?.role === 'admin') {
+          console.log('Redirecting to Admin Dashboard');
+          window.location.assign("/admin/dashboard");
+        } else {
+          // Curators and regular users go to unified dashboard
+          console.log('Redirecting to Unified Dashboard');
+          window.location.assign("/resources/dashboard");
         }
       }
     }

@@ -307,13 +307,15 @@ const title = "Login | Resource Hub";
                 const redirect = params.get("redirect");
 
                 if (redirect) {
-                    window.location.href = redirect;
+                    window.location.assign(redirect);
                 } else if (profile?.role === "admin") {
-                    window.location.href = "/admin/dashboard";
+                    // Admins logging in via main login should probably go to Admin Dashboard,
+                    // or Unified Dashboard? Let's send them to Unified for now as it has a link to Admin.
+                    window.location.assign("/resources/dashboard");
                 } else if (profile?.role === "curator") {
-                    window.location.href = "/resources/curator";
+                    window.location.assign("/resources/dashboard");
                 } else {
-                    window.location.href = "/resources";
+                    window.location.assign("/resources/dashboard");
                 }
             }
         } catch (error: any) {

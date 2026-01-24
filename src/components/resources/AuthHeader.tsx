@@ -118,7 +118,7 @@ export default function AuthHeader({ theme = 'default' }: Props) {
                         transition: 'all 0.2s ease',
                         fontFamily: quoteFont
                     }}>
-                    CURATOR LOGIN
+                    LOGIN
                 </a>
 
                 {theme === 'scifi' && (
