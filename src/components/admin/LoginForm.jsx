@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import Turnstile from '../../components/Turnstile';
 
@@ -71,11 +71,12 @@ export default function LoginForm() {
     }
   };
 
-  // Callback for Turnstile
-  const handleTurnstile = (token) => {
+  // Callback for Turnstile - use useCallback to keep it stable
+  const handleTurnstile = useCallback((token) => {
+    console.log('Turnstile token received:', token ? 'token present' : 'no token');
     setCaptchaToken(token);
-    if (error === "Please complete the captcha.") setError(null);
-  };
+    setError(null); // Clear any captcha errors when token is received
+  }, []);
 
   return (
     <div className="login-container">

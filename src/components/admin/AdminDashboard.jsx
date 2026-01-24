@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import UserList from './UserList';
+import TagInput from '../resources/TagInput';
 
 const SECTIONS = [
     { id: 'dashboard', label: 'Overview', icon: '📊' },
@@ -951,7 +952,9 @@ function ResourceModal({ isOpen, onClose, onSave }) {
         title: '',
         url: '',
         description: '',
-        audience: 'General Audience'
+        audience: 'General Audience',
+        thumbnail_url: '',
+        selectedTags: []
     });
 
     if (!isOpen) return null;
@@ -960,17 +963,33 @@ function ResourceModal({ isOpen, onClose, onSave }) {
         e.preventDefault();
         setLoading(true);
         try {
-            const { error } = await supabase.from('hub_resources').insert([{
+            const { data: newResource, error } = await supabase.from('hub_resources').insert([{
                 title: formData.title,
                 url: formData.url,
                 description: formData.description,
                 audience: formData.audience,
-            }]);
+                thumbnail_url: formData.thumbnail_url || null,
+            }]).select().single();
 
             if (error) throw error;
+
+            // Add tags if any selected
+            if (newResource && formData.selectedTags.length > 0) {
+                const tagLinks = formData.selectedTags.map(tagId => ({
+                    resource_id: newResource.id,
+                    tag_id: tagId
+                }));
+
+                const { error: tagError } = await supabase
+                    .from('hub_resource_tags')
+                    .insert(tagLinks);
+
+                if (tagError) console.error('Error adding tags:', tagError);
+            }
+
             onSave();
             onClose();
-            setFormData({ title: '', url: '', description: '', audience: 'General Audience' });
+            setFormData({ title: '', url: '', description: '', audience: 'General Audience', thumbnail_url: '', selectedTags: [] });
         } catch (err) {
             alert('Error adding resource: ' + err.message);
         } finally {
@@ -1031,6 +1050,24 @@ function ResourceModal({ isOpen, onClose, onSave }) {
                             style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--border-subtle)', background: 'var(--bg-color)', color: 'var(--text-primary)', minHeight: '80px' }}
                             value={formData.description}
                             onChange={e => setFormData({ ...formData, description: e.target.value })}
+                        />
+                    </div>
+                    <div>
+                        <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>Thumbnail URL</label>
+                        <input
+                            type="url"
+                            placeholder="https://example.com/image.jpg"
+                            style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--border-subtle)', background: 'var(--bg-color)', color: 'var(--text-primary)' }}
+                            value={formData.thumbnail_url}
+                            onChange={e => setFormData({ ...formData, thumbnail_url: e.target.value })}
+                        />
+                    </div>
+                    <div>
+                        <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>Tags</label>
+                        <TagInput
+                            selectedTags={formData.selectedTags}
+                            onChange={(newTags) => setFormData(prev => ({ ...prev, selectedTags: newTags }))}
+                            maxTags={5}
                         />
                     </div>
                     <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
