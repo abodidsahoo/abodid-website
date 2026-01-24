@@ -241,7 +241,7 @@ export default function AdminDashboard() {
                 </nav>
 
                 <div className="sidebar-footer">
-                    <a href="/resources/curator" className="btn-curator-link" style={{ display: 'block', textAlign: 'center', padding: '10px', marginBottom: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '6px', textDecoration: 'none', color: 'var(--text-primary)', fontSize: '13px', fontWeight: 500 }}>
+                    <a href="/resources/dashboard" className="btn-curator-link" style={{ display: 'block', textAlign: 'center', padding: '10px', marginBottom: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '6px', textDecoration: 'none', color: 'var(--text-primary)', fontSize: '13px', fontWeight: 500 }}>
                         📚 Curator Dashboard
                     </a>
                     <button onClick={handleLogout} className="btn-logout-sidebar">

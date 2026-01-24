@@ -199,7 +199,7 @@ export default function AuthHeader({ theme = 'default' }: Props) {
                             ADMIN DASHBOARD
                         </a>
                         <a
-                            href="/resources/curator"
+                            href="/resources/dashboard"
                             style={{
                                 color: textColor,
                                 fontSize: '11px',
@@ -219,7 +219,7 @@ export default function AuthHeader({ theme = 'default' }: Props) {
                 )}
                 {profile.role === 'curator' && (
                     <a
-                        href="/resources/curator"
+                        href="/resources/dashboard"
                         style={{
                             color: textColor,
                             fontSize: '11px',
@@ -234,6 +234,25 @@ export default function AuthHeader({ theme = 'default' }: Props) {
                         }}
                     >
                         CURATOR DASHBOARD
+                    </a>
+                )}
+                {(profile.role === 'user' || !profile.role) && (
+                    <a
+                        href="/resources/dashboard"
+                        style={{
+                            color: textColor,
+                            fontSize: '11px',
+                            textDecoration: 'none',
+                            fontFamily,
+                            fontWeight: 600,
+                            padding: '4px 12px',
+                            border: `1px solid ${accentColor}`,
+                            borderRadius: '4px',
+                            background: theme === 'scifi' ? 'rgba(0, 243, 255, 0.05)' : 'transparent',
+                            transition: 'all 0.2s ease'
+                        }}
+                    >
+                        DASHBOARD
                     </a>
                 )}
                 <button

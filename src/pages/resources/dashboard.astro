@@ -1,0 +1,13 @@
+---
+export const prerender = false;
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import UnifiedDashboard from "../../components/resources/UnifiedDashboard";
+import "../../styles/resources.css";
+
+const title = "Resource Dashboard";
+const description = "Manage your resources, submissions, and bookmarks.";
+---
+
+<BaseLayout title={title} description={description}>
+    <UnifiedDashboard client:load />
+</BaseLayout>

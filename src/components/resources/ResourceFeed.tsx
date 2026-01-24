@@ -188,14 +188,14 @@ export default function ResourceFeed({ initialResources, availableTags, showSear
         // Optimistic UI
         setMyUpvotes(prev => isUpvoted ? prev.filter(id => id !== resourceId) : [...prev, resourceId]);
 
-        // Update Resource Count locally
-        setAllResources(prev => prev.map(res => {
+        // Update Resource Count locally (optimistic update)
+        setAllResources(prev => [...prev.map(res => {
             if (res.id === resourceId) {
                 const newCount = (res.upvotes_count || 0) + (isUpvoted ? -1 : 1);
                 return { ...res, upvotes_count: newCount };
             }
             return res;
-        }));
+        })]);
 
         try {
             await toggleUpvote(resourceId);
@@ -228,15 +228,15 @@ export default function ResourceFeed({ initialResources, availableTags, showSear
             }
 
         } catch (e) {
-            // Revert
+            // Revert on error
             setMyUpvotes(prev => isUpvoted ? [...prev, resourceId] : prev.filter(id => id !== resourceId));
-            setAllResources(prev => prev.map(res => {
+            setAllResources(prev => [...prev.map(res => {
                 if (res.id === resourceId) {
                     const newCount = (res.upvotes_count || 0) + (isUpvoted ? 1 : -1);
                     return { ...res, upvotes_count: newCount };
                 }
                 return res;
-            }));
+            })]);
         }
     };
 
@@ -342,15 +342,13 @@ export default function ResourceFeed({ initialResources, availableTags, showSear
             <div className="resource-grid">
                 {filteredResources.map(res => (
                     <div key={res.id} style={{ height: '100%', animation: 'fadeIn 0.3s ease' }}>
-                        <div key={res.id} style={{ height: '100%', animation: 'fadeIn 0.3s ease' }}>
-                            <ReactResourceCard
-                                resource={res}
-                                isBookmarked={myBookmarks.includes(res.id)}
-                                isUpvoted={myUpvotes.includes(res.id)}
-                                onToggleBookmark={() => handleToggleBookmark(res.id)}
-                                onToggleUpvote={() => handleToggleUpvote(res.id)}
-                            />
-                        </div>
+                        <ReactResourceCard
+                            resource={res}
+                            isBookmarked={myBookmarks.includes(res.id)}
+                            isUpvoted={myUpvotes.includes(res.id)}
+                            onToggleBookmark={() => handleToggleBookmark(res.id)}
+                            onToggleUpvote={() => handleToggleUpvote(res.id)}
+                        />
                     </div>
                 ))}
             </div>
