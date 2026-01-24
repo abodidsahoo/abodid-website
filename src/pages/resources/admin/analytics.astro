@@ -1,0 +1,111 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import AnalyticsDashboard from "../../../components/resources/AnalyticsDashboard";
+import {
+    getSystemStats,
+    getTopBookmarkedResources,
+    getTopUpvotedResources,
+    getRecentActivity,
+} from "../../../lib/resources/analytics";
+import { isAdmin } from "../../../lib/resources/admin";
+import { supabase } from "../../../lib/supabaseClient";
+import "../../../styles/resources.css";
+
+// Check authentication
+const {
+    data: { session },
+} = await supabase.auth.getSession();
+
+if (!session?.user) {
+    return Astro.redirect("/login?redirect=/resources/admin/analytics");
+}
+
+// Check if user is admin
+const userIsAdmin = await isAdmin(session.user.id);
+
+if (!userIsAdmin) {
+    return Astro.redirect("/resources");
+}
+
+// Fetch all data
+const [stats, topBookmarked, topUpvoted, activity] = await Promise.all([
+    getSystemStats(),
+    getTopBookmarkedResources(),
+    getTopUpvotedResources(),
+    getRecentActivity(),
+]);
+
+const title = "Analytics | Admin";
+const description = "Platform usage statistics and activity";
+---
+
+<BaseLayout title={title} description={description}>
+    <div class="hub-container" style="max-width: 1400px; padding-top: 40px;">
+        <div class="admin-header">
+            <div>
+                <h1 class="hub-title" style="margin-bottom: 8px;">
+                    Analytics Dashboard
+                </h1>
+                <p style="color: var(--text-secondary);">
+                    Real-time insights into community engagement
+                </p>
+            </div>
+            <div class="header-actions">
+                <a href="/resources/admin/users" class="hub-btn-secondary">
+                    👥 Users
+                </a>
+                <a href="/resources" class="hub-btn-secondary"> ← Resources </a>
+            </div>
+        </div>
+
+        <AnalyticsDashboard
+            client:load
+            stats={stats}
+            topBookmarked={topBookmarked}
+            topUpvoted={topUpvoted}
+            activity={activity}
+        />
+    </div>
+</BaseLayout>
+
+<style>
+    .admin-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 32px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 12px;
+    }
+
+    .hub-btn-secondary {
+        display: inline-flex;
+        align-items: center;
+        padding: 10px 20px;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-subtle);
+        border-radius: 8px;
+        color: var(--text-primary);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 14px;
+        transition: all 0.2s;
+    }
+
+    .hub-btn-secondary:hover {
+        background: var(--bg-surface-hover);
+        border-color: var(--text-secondary);
+    }
+
+    @media (max-width: 600px) {
+        .admin-header {
+            flex-direction: column;
+            gap: 16px;
+        }
+    }
+</style>

@@ -9,14 +9,36 @@ interface Profile {
     stats?: { recent_upvotes: number; total_bookmarks: number };
 }
 
-export default function AuthHeader() {
+interface Props {
+    theme?: 'default' | 'scifi';
+}
+
+export default function AuthHeader({ theme = 'default' }: Props) {
     const [profile, setProfile] = useState<Profile | null>(null);
     const [loading, setLoading] = useState(true);
 
+    // Determine base font based on theme
+    const quoteFont = theme === 'scifi' ? '"Inconsolata", monospace' : "'Poppins', sans-serif";
+
+    // Determine base font based on theme - Moved inside component or passed to styles
+    // But since we use it in render, let's keep it derived.
+
     useEffect(() => {
+        // 0. Try to load from cache immediately for instant UI
+        const cached = localStorage.getItem('curator_profile');
+        if (cached) {
+            try {
+                const parsed = JSON.parse(cached);
+                setProfile(parsed);
+                setLoading(false); // Show cached data immediately
+            } catch (e) {
+                console.error("Cache parse error", e);
+            }
+        }
+
         const checkUser = async () => {
             if (!supabase) {
-                setLoading(false);
+                if (!cached) setLoading(false);
                 return;
             }
             try {
@@ -34,8 +56,16 @@ export default function AuthHeader() {
                     if (data) {
                         // 3. Fetch Stats
                         const stats = await getUserStats(session.user.id);
-                        setProfile({ ...data, stats });
+                        const fullProfile = { ...data, stats };
+
+                        setProfile(fullProfile);
+                        // Update cache
+                        localStorage.setItem('curator_profile', JSON.stringify(fullProfile));
                     }
+                } else {
+                    // No session, clear profile and cache
+                    setProfile(null);
+                    localStorage.removeItem('curator_profile');
                 }
             } catch (e) {
                 console.error("Auth check failed", e);
@@ -52,9 +82,12 @@ export default function AuthHeader() {
             if (event === 'SIGNED_IN' && session) {
                 const { data } = await supabase.from('profiles').select('username, full_name, role').eq('id', session.user.id).single();
                 const stats = await getUserStats(session.user.id);
-                setProfile(data ? { ...data, stats } : null);
+                const fullProfile = { ...data, stats };
+                setProfile(fullProfile);
+                localStorage.setItem('curator_profile', JSON.stringify(fullProfile));
             } else if (event === 'SIGNED_OUT') {
                 setProfile(null);
+                localStorage.removeItem('curator_profile');
             }
         });
 
@@ -63,171 +96,117 @@ export default function AuthHeader() {
     }, []);
 
     if (loading) {
-        return <div style={{ height: '40px' }}></div>;
+        // Reserve space to prevent layout shift, or render nothing if handled by cache
+        return <div style={{ height: '40px', minWidth: '100px' }}></div>;
     }
 
-    // Render Logged In State
-    if (profile) {
-        const displayName = profile.full_name || profile.username;
-
+    // Render Logged Out State
+    if (!profile) {
         return (
-            <div style={{ textAlign: 'right', animation: 'fadeIn 0.3s ease', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
+            <div style={{ textAlign: 'right', animation: 'fadeIn 0.3s ease' }}>
+                <a href="/login"
+                    className={theme === 'scifi' ? 'scifi-login-btn' : ''}
+                    style={theme === 'scifi' ? {} : {
+                        background: 'var(--text-primary)',
+                        color: 'var(--bg-color)',
+                        padding: '8px 20px',
+                        borderRadius: '100px',
+                        textDecoration: 'none',
+                        fontWeight: 600,
+                        fontSize: '14px',
+                        display: 'inline-block',
+                        transition: 'all 0.2s ease',
+                        fontFamily: quoteFont
+                    }}>
+                    CURATOR LOGIN
+                </a>
 
-                {/* User Identity */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
-                        {displayName}
-                    </span>
-                    {profile.role === 'admin' && (
-                        <span style={{
-                            background: 'var(--text-primary)',
-                            color: 'var(--bg-color)',
-                            padding: '2px 6px',
-                            borderRadius: '4px',
-                            fontSize: '9px',
-                            fontWeight: 700,
-                            letterSpacing: '0.05em'
-                        }}>
-                            ADMIN
-                        </span>
-                    )}
-                </div>
-
-                {/* Dashboard / Stats - All clickable */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '20px', fontSize: '13px' }}>
-                    <a
-                        href={`/resources/u/${profile.username}#upvoted`}
-                        style={{
-                            color: 'var(--text-secondary)',
-                            textDecoration: 'none',
-                            borderBottom: '1px solid transparent',
-                            paddingBottom: '2px',
-                            transition: 'all 0.2s ease'
-                        }}
-                        onMouseOver={(e) => {
-                            e.currentTarget.style.color = 'var(--text-primary)';
-                            e.currentTarget.style.borderBottomColor = 'var(--text-primary)';
-                        }}
-                        onMouseOut={(e) => {
-                            e.currentTarget.style.color = 'var(--text-secondary)';
-                            e.currentTarget.style.borderBottomColor = 'transparent';
-                        }}
-                    >
-                        👍 Upvoted: <strong>{profile.stats?.recent_upvotes || 0}</strong>
-                    </a>
-                    <a
-                        href="/resources/saved"
-                        style={{
-                            color: 'var(--text-primary)',
-                            textDecoration: 'none',
-                            fontWeight: 500,
-                            borderBottom: '2px solid var(--text-primary)',
-                            paddingBottom: '2px',
-                            transition: 'all 0.2s ease'
-                        }}
-                        onMouseOver={(e) => {
-                            e.currentTarget.style.opacity = '0.7';
-                        }}
-                        onMouseOut={(e) => {
-                            e.currentTarget.style.opacity = '1';
-                        }}
-                    >
-                        🔖 Saved: <strong>{profile.stats?.total_bookmarks || 0}</strong>
-                    </a>
-                </div>
-
-                {/* Actions */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    {profile.username && (
-                        <a
-                            href={`/resources/u/${profile.username}`}
-                            className="auth-link-btn"
-                            style={{
-                                color: 'var(--text-secondary)',
-                                textDecoration: 'none',
-                                fontSize: '13px',
-                                fontWeight: 500
-                            }}
-                        >
-                            My Profile
-                        </a>
-                    )}
-
-                    <button
-                        onClick={() => supabase?.auth.signOut()}
-                        className="auth-link-btn"
-                    >
-                        Sign Out
-                    </button>
-
-                    <a href="/resources/submit" className="hub-btn-pill">
-                        Submit Resource
-                    </a>
-                </div>
-
-                <style>{`
-                    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-                    
-                    .auth-link-btn {
-                        background: none;
-                        border: none;
-                        color: var(--text-secondary);
-                        font-size: 13px;
-                        font-weight: 500;
-                        cursor: pointer;
-                        padding: 0;
-                        transition: color 0.2s;
-                    }
-                    .auth-link-btn:hover {
-                        color: var(--text-primary);
-                        text-decoration: underline;
-                    }
-
-                    .hub-btn-pill {
-                         display: inline-block;
-                         font-size: 13px;
-                         fontWeight: 600;
-                         color: var(--text-primary);
-                         background: var(--bg-surface);
-                         border: 1px solid var(--border-subtle);
-                         padding: 6px 16px;
-                         border-radius: 100px;
-                         text-decoration: none;
-                         transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
-                    }
-                    .hub-btn-pill:hover {
-                         background: var(--text-primary);
-                         color: var(--bg-color);
-                         border-color: var(--text-primary);
-                         transform: translateY(-1px);
-                    }
-                `}</style>
+                {theme === 'scifi' && (
+                    <style>{`
+                        .scifi-login-btn {
+                            font-family: "Inconsolata", monospace;
+                            color: #00f3ff;
+                            border: 1px solid rgba(0, 243, 255, 0.3);
+                            padding: 8px 16px;
+                            text-decoration: none;
+                            font-size: 0.9rem;
+                            letter-spacing: 0.1em;
+                            background: rgba(0, 243, 255, 0.05);
+                            transition: all 0.3s ease;
+                        }
+                        .scifi-login-btn:hover {
+                            background: rgba(0, 243, 255, 0.15);
+                            box-shadow: 0 0 10px rgba(0, 243, 255, 0.4);
+                            text-shadow: 0 0 5px #00f3ff;
+                        }
+                    `}</style>
+                )}
             </div>
         );
     }
 
-    // Render Logged Out State
+    // Render Logged In State
+    const displayName = profile.full_name || profile.username;
+    const fontFamily = theme === 'scifi' ? '"Inconsolata", monospace' : "'Poppins', sans-serif";
+    const textColor = theme === 'scifi' ? '#fff' : 'var(--text-primary)';
+    const accentColor = theme === 'scifi' ? '#00f3ff' : 'var(--text-primary)';
+
     return (
-        <div style={{ maxWidth: '240px', textAlign: 'right', animation: 'fadeIn 0.3s ease' }}>
-            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '12px', lineHeight: 1.4 }}>
-                Log in to add your favorite resources and join the journey.
-            </p>
-            <a href="/login" style={{
-                background: 'var(--text-primary)',
-                color: 'var(--bg-color)',
-                padding: '10px 20px',
-                borderRadius: '100px',
-                textDecoration: 'none',
-                fontWeight: 600,
-                fontSize: '14px',
-                display: 'inline-block',
-                transition: 'all 0.2s ease'
-            }}
-                onMouseOver={(e) => e.currentTarget.style.opacity = '0.9'}
-                onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
-            >
-                Curator Login
-            </a>
+        <div style={{ textAlign: 'right', animation: 'fadeIn 0.3s ease', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+
+            {/* User Identity */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontFamily, fontWeight: 600, fontSize: '0.9rem', color: textColor, letterSpacing: theme === 'scifi' ? '0.1em' : '0' }}>
+                    {theme === 'scifi' ? `USER: ${displayName.toUpperCase()}` : displayName}
+                </span>
+                {profile.role === 'admin' && (
+                    <a
+                        href="/admin/dashboard"
+                        className="hub-btn-pill"
+                        style={{
+                            background: 'transparent',
+                            color: 'var(--text-primary)',
+                            borderColor: 'var(--text-primary)'
+                        }}
+                    >
+                        Admin Dashboard
+                    </a>
+                )}
+            </div>
+
+            {/* Dashboard / Stats */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px', fontSize: '12px', fontFamily }}>
+                <a
+                    href={`/resources/u/${profile.username}#upvoted`}
+                    style={{ color: theme === 'scifi' ? 'rgba(255,255,255,0.7)' : 'var(--text-secondary)', textDecoration: 'none' }}
+                >
+                    UPVOTES: <strong>{profile.stats?.recent_upvotes || 0}</strong>
+                </a>
+                <a
+                    href="/resources/saved"
+                    style={{ color: theme === 'scifi' ? accentColor : 'var(--text-primary)', textDecoration: 'none', fontWeight: 600 }}
+                >
+                    SAVED: <strong>{profile.stats?.total_bookmarks || 0}</strong>
+                </a>
+            </div>
+
+            {/* Actions */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '2px' }}>
+                {profile.role === 'admin' && (
+                    <a href="/admin/dashboard" style={{ color: textColor, fontSize: '11px', textDecoration: 'none', fontFamily }}>
+                        DASHBOARD
+                    </a>
+                )}
+                <a href={`/resources/u/${profile.username}`} style={{ color: theme === 'scifi' ? 'rgba(255,255,255,0.7)' : 'var(--text-secondary)', fontSize: '11px', textDecoration: 'none', fontFamily }}>
+                    PROFILE
+                </a>
+                <button
+                    onClick={() => supabase?.auth.signOut()}
+                    style={{ background: 'none', border: 'none', color: theme === 'scifi' ? '#ef4444' : 'var(--text-secondary)', cursor: 'pointer', fontSize: '11px', padding: 0, fontFamily }}
+                >
+                    LOGOUT
+                </button>
+            </div>
         </div>
     );
 }

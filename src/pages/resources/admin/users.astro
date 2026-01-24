@@ -1,0 +1,102 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import UserManagementTable from "../../../components/resources/UserManagementTable";
+import { getAllUsers, isAdmin } from "../../../lib/resources/admin";
+import { supabase } from "../../../lib/supabaseClient";
+import "../../../styles/resources.css";
+
+// Check authentication
+const {
+    data: { session },
+} = await supabase.auth.getSession();
+
+if (!session?.user) {
+    return Astro.redirect("/login?redirect=/resources/admin/users");
+}
+
+// Check if user is admin
+const userIsAdmin = await isAdmin(session.user.id);
+
+if (!userIsAdmin) {
+    return Astro.redirect("/resources");
+}
+
+// Fetch all users
+const { users, error } = await getAllUsers();
+
+if (error) {
+    console.error("Error fetching users:", error);
+}
+
+const title = "User Management | Admin";
+const description = "Manage users, roles, and permissions";
+---
+
+<BaseLayout title={title} description={description}>
+    <div class="hub-container" style="max-width: 1400px; padding-top: 40px;">
+        <div class="admin-header">
+            <div>
+                <h1 class="hub-title" style="margin-bottom: 8px;">
+                    Admin Panel
+                </h1>
+                <p style="color: var(--text-secondary); margin-bottom: 24px;">
+                    Manage user accounts, confirm emails, and assign roles
+                </p>
+            </div>
+            <a href="/resources" class="hub-btn-secondary">
+                ← Back to Resources
+            </a>
+        </div>
+
+        {
+            error ? (
+                <div class="error-message">
+                    <p>❌ Error loading users: {error}</p>
+                </div>
+            ) : (
+                <UserManagementTable
+                    client:load
+                    initialUsers={users}
+                    currentUserId={session.user.id}
+                />
+            )
+        }
+    </div>
+</BaseLayout>
+
+<style>
+    .admin-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 32px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .hub-btn-secondary {
+        display: inline-block;
+        padding: 10px 20px;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-subtle);
+        border-radius: 8px;
+        color: var(--text-primary);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 14px;
+        transition: all 0.2s;
+    }
+
+    .hub-btn-secondary:hover {
+        background: var(--bg-surface-hover);
+        border-color: var(--text-secondary);
+    }
+
+    .error-message {
+        padding: 24px;
+        background: #fee2e2;
+        color: #b91c1c;
+        border-radius: 12px;
+        text-align: center;
+    }
+</style>

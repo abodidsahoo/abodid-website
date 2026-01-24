@@ -2,6 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import type { HubResource, ResourceAudience } from '../../lib/resources/types';
 import { toggleBookmark, toggleUpvote, getMyBookmarks, getMyUpvotes } from '../../lib/resources/db';
 import { supabase } from '../../lib/supabaseClient'; // Need to check auth state
+import { ensureSession, isAnonymousSession, getUserBookmarkCount } from '../../lib/anonymousAuth';
+import SyncDataPopup from './SyncDataPopup';
 
 // --- Re-implementing Resource Card (React) ---
 const ReactResourceCard = ({
@@ -106,6 +108,12 @@ export default function ResourceFeed({ initialResources, availableTags, showSear
     const [myUpvotes, setMyUpvotes] = useState<string[]>([]);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+    // Sync Popup State
+    const [showSyncPopup, setShowSyncPopup] = useState(false);
+    const [bookmarkCount, setBookmarkCount] = useState(0);
+
+    const SYNC_POPUP_KEY = 'sync_popup_shown_at';
+
     useEffect(() => {
         // Check auth and fetch user state
         const initUser = async () => {
@@ -116,13 +124,30 @@ export default function ResourceFeed({ initialResources, availableTags, showSear
                 const [bookmarks, upvotes] = await Promise.all([getMyBookmarks(), getMyUpvotes()]);
                 setMyBookmarks(bookmarks);
                 setMyUpvotes(upvotes);
+                setBookmarkCount(bookmarks.length);
             }
         };
         initUser();
     }, []);
 
+    const shouldShowSyncPopup = (count: number): boolean => {
+        const milestones = [1, 3, 10, 25];
+        const lastShown = localStorage.getItem(SYNC_POPUP_KEY);
+
+        if (milestones.includes(count) && lastShown !== String(count)) {
+            localStorage.setItem(SYNC_POPUP_KEY, String(count));
+            return true;
+        }
+
+        return false;
+    };
+
     const handleToggleBookmark = async (resourceId: string) => {
-        if (!isAuthenticated) return alert('Please log in to save resources.');
+        // Ensure we have a session (anonymous or real)
+        const session = await ensureSession();
+        if (!session) {
+            return alert('Unable to create session. Please try again.');
+        }
 
         // Optimistic UI
         const isBookmarked = myBookmarks.includes(resourceId);
@@ -130,6 +155,20 @@ export default function ResourceFeed({ initialResources, availableTags, showSear
 
         try {
             await toggleBookmark(resourceId);
+
+            // Update count and check if we should show popup
+            if (!isBookmarked) {
+                const newCount = myBookmarks.length + 1;
+                setBookmarkCount(newCount);
+
+                // Show popup if anonymous and at milestone
+                const isAnon = await isAnonymousSession();
+                if (isAnon && shouldShowSyncPopup(newCount)) {
+                    setShowSyncPopup(true);
+                }
+            } else {
+                setBookmarkCount(prev => Math.max(0, prev - 1));
+            }
         } catch (e) {
             // Revert on error
             setMyBookmarks(prev => isBookmarked ? [...prev, resourceId] : prev.filter(id => id !== resourceId));
@@ -138,7 +177,11 @@ export default function ResourceFeed({ initialResources, availableTags, showSear
     };
 
     const handleToggleUpvote = async (resourceId: string) => {
-        if (!isAuthenticated) return alert('Please log in to vote.');
+        // Ensure we have a session (anonymous or real)
+        const session = await ensureSession();
+        if (!session) {
+            return alert('Unable to create session. Please try again.');
+        }
 
         const isUpvoted = myUpvotes.includes(resourceId);
 
@@ -156,6 +199,34 @@ export default function ResourceFeed({ initialResources, availableTags, showSear
 
         try {
             await toggleUpvote(resourceId);
+
+            // Allow upvotes to also trigger the "Save your progress" popup
+            if (!isUpvoted) {
+                // We rely on Bookmark count for the milestone logic roughly, 
+                // but let's just trigger it if they are engaging.
+                // Actually, let's track "interactions" or just reuse the bookmark count state 
+                // (since bookmarks are the primary value to save).
+                // However, spec says "bookmark/upvote".
+                // Let's check session and trigger if it's their first time engaging.
+
+                const isAnon = await isAnonymousSession();
+                // We use the same 'sync_popup_shown_at' logic. 
+                // If they just upvoted and haven't seen popup, maybe show it?
+                // Simple approach: Check if it's 1st interaction?
+                // For now, let's Reuse the milestones based on bookmark count OR just checking if we showed it.
+                // But simply: If they upvote, let's treat it as an engagement that might prompt upgrade.
+
+                if (isAnon && shouldShowSyncPopup(bookmarkCount + (myBookmarks.length > 0 ? 0 : 1))) {
+                    // We bias towards bookmarks for the count, but if count is 0 and they upvote, treat as 1?
+                    // Let's just simply trigger if milestones hit.
+                    // A safer bet: Only trigger on Bookmarks as that's "Saving data".
+                    // Upvoting is less "I need to save this".
+                    // BUT spec says "bookmark/upvote".
+                    // Let's show it if they have at least 1 bookmark or just upvoted.
+                    setShowSyncPopup(true);
+                }
+            }
+
         } catch (e) {
             // Revert
             setMyUpvotes(prev => isUpvoted ? [...prev, resourceId] : prev.filter(id => id !== resourceId));
@@ -167,6 +238,16 @@ export default function ResourceFeed({ initialResources, availableTags, showSear
                 return res;
             }));
         }
+    };
+
+    // Sync Popup Handlers
+    const handleCreateAccount = () => {
+        // Redirect to signup with link parameter
+        window.location.href = '/login?mode=signup&link=true';
+    };
+
+    const handleDismissPopup = () => {
+        setShowSyncPopup(false);
     };
 
     const [query, setQuery] = useState('');
@@ -278,6 +359,14 @@ export default function ResourceFeed({ initialResources, availableTags, showSear
                     </button>
                 </div>
             )}
+
+            {/* Sync Data Popup */}
+            <SyncDataPopup
+                show={showSyncPopup}
+                bookmarkCount={bookmarkCount}
+                onCreateAccount={handleCreateAccount}
+                onDismiss={handleDismissPopup}
+            />
 
             <style>{`
             .feed-container {
