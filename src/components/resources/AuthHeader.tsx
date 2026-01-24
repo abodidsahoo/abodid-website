@@ -159,19 +159,6 @@ export default function AuthHeader({ theme = 'default' }: Props) {
                 <span style={{ fontFamily, fontWeight: 600, fontSize: '0.9rem', color: textColor, letterSpacing: theme === 'scifi' ? '0.1em' : '0' }}>
                     {theme === 'scifi' ? `USER: ${displayName.toUpperCase()}` : displayName}
                 </span>
-                {profile.role === 'admin' && (
-                    <a
-                        href="/admin/dashboard"
-                        className="hub-btn-pill"
-                        style={{
-                            background: 'transparent',
-                            color: 'var(--text-primary)',
-                            borderColor: 'var(--text-primary)'
-                        }}
-                    >
-                        Admin Dashboard
-                    </a>
-                )}
             </div>
 
             {/* Dashboard / Stats */}
@@ -193,13 +180,62 @@ export default function AuthHeader({ theme = 'default' }: Props) {
             {/* Actions */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '2px' }}>
                 {profile.role === 'admin' && (
-                    <a href="/admin/dashboard" style={{ color: textColor, fontSize: '11px', textDecoration: 'none', fontFamily }}>
-                        DASHBOARD
+                    <>
+                        <a
+                            href="/admin/dashboard"
+                            style={{
+                                color: textColor,
+                                fontSize: '11px',
+                                textDecoration: 'none',
+                                fontFamily,
+                                fontWeight: 600,
+                                padding: '4px 12px',
+                                border: `1px solid ${accentColor}`,
+                                borderRadius: '4px',
+                                background: theme === 'scifi' ? 'rgba(0, 243, 255, 0.05)' : 'transparent',
+                                transition: 'all 0.2s ease'
+                            }}
+                        >
+                            ADMIN DASHBOARD
+                        </a>
+                        <a
+                            href="/resources/curator"
+                            style={{
+                                color: textColor,
+                                fontSize: '11px',
+                                textDecoration: 'none',
+                                fontFamily,
+                                fontWeight: 600,
+                                padding: '4px 12px',
+                                border: `1px solid ${accentColor}`,
+                                borderRadius: '4px',
+                                background: theme === 'scifi' ? 'rgba(0, 243, 255, 0.05)' : 'transparent',
+                                transition: 'all 0.2s ease'
+                            }}
+                        >
+                            CURATOR DASHBOARD
+                        </a>
+                    </>
+                )}
+                {profile.role === 'curator' && (
+                    <a
+                        href="/resources/curator"
+                        style={{
+                            color: textColor,
+                            fontSize: '11px',
+                            textDecoration: 'none',
+                            fontFamily,
+                            fontWeight: 600,
+                            padding: '4px 12px',
+                            border: `1px solid ${accentColor}`,
+                            borderRadius: '4px',
+                            background: theme === 'scifi' ? 'rgba(0, 243, 255, 0.05)' : 'transparent',
+                            transition: 'all 0.2s ease'
+                        }}
+                    >
+                        CURATOR DASHBOARD
                     </a>
                 )}
-                <a href={`/resources/u/${profile.username}`} style={{ color: theme === 'scifi' ? 'rgba(255,255,255,0.7)' : 'var(--text-secondary)', fontSize: '11px', textDecoration: 'none', fontFamily }}>
-                    PROFILE
-                </a>
                 <button
                     onClick={() => supabase?.auth.signOut()}
                     style={{ background: 'none', border: 'none', color: theme === 'scifi' ? '#ef4444' : 'var(--text-secondary)', cursor: 'pointer', fontSize: '11px', padding: 0, fontFamily }}

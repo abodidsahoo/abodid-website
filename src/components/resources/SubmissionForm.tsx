@@ -7,6 +7,7 @@ export default function SubmissionForm() {
     const [loading, setLoading] = useState(false);
     const [fetchingMeta, setFetchingMeta] = useState(false);
     const [success, setSuccess] = useState(false);
+    const [autoApproved, setAutoApproved] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     // Form State
@@ -76,6 +77,8 @@ export default function SubmissionForm() {
 
         if (result.success) {
             setSuccess(true);
+            // Check if the submission was auto-approved (curator/admin)
+            setAutoApproved(result.data?.status === 'approved');
             setFormData({
                 title: '',
                 url: '',
@@ -95,8 +98,14 @@ export default function SubmissionForm() {
         return (
             <div className="hub-form text-center p-8">
                 <div style={{ fontSize: '48px', marginBottom: '16px' }}>🎉</div>
-                <h3 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '8px' }}>Submitted!</h3>
-                <p className="text-secondary mb-6">Your resource is now pending review.</p>
+                <h3 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '8px' }}>
+                    {autoApproved ? 'Published!' : 'Submitted!'}
+                </h3>
+                <p className="text-secondary mb-6">
+                    {autoApproved
+                        ? 'Your resource is now live on the hub!'
+                        : 'Your resource is now pending review.'}
+                </p>
                 <button
                     onClick={() => setSuccess(false)}
                     className="hub-btn"

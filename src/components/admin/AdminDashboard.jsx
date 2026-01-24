@@ -54,6 +54,29 @@ export default function AdminDashboard() {
                     return;
                 }
 
+                // Check if user has admin role
+                console.log("AdminDashboard: Checking admin role...");
+                const { data: profile, error: profileError } = await supabase
+                    .from('profiles')
+                    .select('role')
+                    .eq('id', session.user.id)
+                    .single();
+
+                if (profileError) {
+                    console.error("AdminDashboard: Error fetching profile", profileError);
+                    setConnectionError("Failed to verify admin privileges");
+                    setLoading(false);
+                    return;
+                }
+
+                if (!profile || profile.role !== 'admin') {
+                    console.warn("AdminDashboard: User is not admin, role:", profile?.role);
+                    setConnectionError("Access Denied: Admin privileges required");
+                    setLoading(false);
+                    return;
+                }
+
+                console.log("AdminDashboard: Admin verified, loading dashboard");
                 // Fetch valid session data
                 fetchStats();
                 fetchRecentActivity();
@@ -218,6 +241,9 @@ export default function AdminDashboard() {
                 </nav>
 
                 <div className="sidebar-footer">
+                    <a href="/resources/curator" className="btn-curator-link" style={{ display: 'block', textAlign: 'center', padding: '10px', marginBottom: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '6px', textDecoration: 'none', color: 'var(--text-primary)', fontSize: '13px', fontWeight: 500 }}>
+                        📚 Curator Dashboard
+                    </a>
                     <button onClick={handleLogout} className="btn-logout-sidebar">
                         Sign Out
                     </button>
@@ -963,12 +989,17 @@ function ResourceModal({ isOpen, onClose, onSave }) {
         e.preventDefault();
         setLoading(true);
         try {
+            // Get current user
+            const { data: { user } } = await supabase.auth.getUser();
+
             const { data: newResource, error } = await supabase.from('hub_resources').insert([{
                 title: formData.title,
                 url: formData.url,
                 description: formData.description,
                 audience: formData.audience,
                 thumbnail_url: formData.thumbnail_url || null,
+                status: 'approved', // Admin-created resources are auto-approved
+                submitted_by: user?.id, // Track who created it
             }]).select().single();
 
             if (error) throw error;

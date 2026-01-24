@@ -154,6 +154,17 @@ export async function submitResource(payload: CreateResourcePayload): Promise<{ 
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return { success: false, error: 'You must be logged in to submit.' };
 
+        // 1.5. Get user role to determine auto-approval
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .single();
+
+        const userRole = profile?.role || 'user';
+        // Auto-approve for curators and admins, pending for regular users
+        const submissionStatus = (userRole === 'curator' || userRole === 'admin') ? 'approved' : 'pending';
+
         // 2. Rate Limit Check (Max 3 per day)
         const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
         const { count, error: countError } = await supabase
@@ -178,7 +189,12 @@ export async function submitResource(payload: CreateResourcePayload): Promise<{ 
                 thumbnail_url: payload.thumbnail_url,
                 credit_text: payload.credit_text,
                 submitted_by: user.id,
-                status: 'pending'
+                status: submissionStatus,
+                // If auto-approved, set reviewed_at and reviewed_by
+                ...(submissionStatus === 'approved' ? {
+                    reviewed_at: new Date().toISOString(),
+                    reviewed_by: user.id
+                } : {})
             }])
             .select()
             .single();
@@ -510,4 +526,38 @@ export async function getUserStats(userId: string): Promise<{ recent_upvotes: nu
         recent_upvotes: upvotesCount || 0,
         total_bookmarks: bookmarksCount || 0
     };
+}
+
+// --- Curator Moderation Actions ---
+
+export async function approveResource(resourceId: string): Promise<{ success: boolean; error?: string }> {
+    return updateResourceStatus(resourceId, 'approved');
+}
+
+export async function rejectResource(resourceId: string, reason?: string): Promise<{ success: boolean; error?: string }> {
+    if (!supabase) return { success: false, error: 'Database not connected' };
+
+    try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return { success: false, error: 'Unauthorized' };
+
+        const updates: any = {
+            status: 'rejected',
+            reviewed_at: new Date().toISOString(),
+            reviewed_by: user.id,
+            rejection_reason: reason || 'No reason provided'
+        };
+
+        const { error } = await supabase
+            .from('hub_resources')
+            .update(updates)
+            .eq('id', resourceId);
+
+        if (error) throw error;
+        return { success: true };
+
+    } catch (e: any) {
+        console.error('Rejection failed:', e);
+        return { success: false, error: e.message };
+    }
 }

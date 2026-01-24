@@ -1,0 +1,128 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+const title = "Access Denied";
+---
+
+<BaseLayout title={title}>
+    <div class="unauthorized-container">
+        <div class="unauthorized-card">
+            <div class="icon">🔒</div>
+            <h1>Access Denied</h1>
+            <p class="message">
+                You don't have permission to access this page. Admin privileges
+                are required.
+            </p>
+            <p class="submessage">
+                If you believe you should have access, please contact the site
+                administrator.
+            </p>
+            <div class="actions">
+                <a href="/" class="btn-primary">Go to Homepage</a>
+                <a href="/resources" class="btn-secondary">Browse Resources</a>
+            </div>
+        </div>
+    </div>
+</BaseLayout>
+
+<style>
+    .unauthorized-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 80vh;
+        padding: 2rem;
+    }
+
+    .unauthorized-card {
+        max-width: 500px;
+        text-align: center;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-subtle);
+        border-radius: 16px;
+        padding: 3rem 2rem;
+    }
+
+    .icon {
+        font-size: 4rem;
+        margin-bottom: 1.5rem;
+        opacity: 0.8;
+    }
+
+    h1 {
+        font-size: 2rem;
+        font-weight: 600;
+        margin: 0 0 1rem 0;
+        color: var(--text-primary);
+    }
+
+    .message {
+        font-size: 1.125rem;
+        color: var(--text-secondary);
+        margin: 0 0 0.75rem 0;
+        line-height: 1.6;
+    }
+
+    .submessage {
+        font-size: 0.9rem;
+        color: var(--text-tertiary);
+        margin: 0 0 2rem 0;
+    }
+
+    .actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+        padding: 0.875rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        font-size: 0.95rem;
+    }
+
+    .btn-primary {
+        background: var(--text-primary);
+        color: var(--bg-color);
+        border: 1px solid var(--text-primary);
+    }
+
+    .btn-primary:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+        background: transparent;
+        color: var(--text-primary);
+        border: 1px solid var(--border-subtle);
+    }
+
+    .btn-secondary:hover {
+        background: var(--bg-surface-hover);
+        border-color: var(--text-primary);
+    }
+
+    @media (max-width: 640px) {
+        .unauthorized-card {
+            padding: 2rem 1.5rem;
+        }
+
+        h1 {
+            font-size: 1.75rem;
+        }
+
+        .actions {
+            flex-direction: column;
+        }
+
+        .btn-primary,
+        .btn-secondary {
+            width: 100%;
+        }
+    }
+</style>

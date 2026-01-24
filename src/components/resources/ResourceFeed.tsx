@@ -305,6 +305,13 @@ export default function ResourceFeed({ initialResources, availableTags, showSear
                                 autoFocus={false}
                             />
                         </div>
+                        <a href="/resources/submit" className="submit-to-hub-btn">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            Submit to Hub
+                        </a>
                     </div>
 
                     {/* Audience Filters */}
@@ -378,18 +385,22 @@ export default function ResourceFeed({ initialResources, availableTags, showSear
             /* Large Search */
             .filter-header {
                 width: 100%;
-                /* Removed max-width restriction to span full or reasonable width */
+                display: flex;
+                gap: 16px;
+                align-items: center;
+                flex-wrap: wrap;
             }
 
             .search-wrapper-large {
                 position: relative;
-                width: 100%;
-                max-width: 600px; /* Limit width but keep left aligned */
+                flex: 1;
+                min-width: 300px;
+                max-width: 600px;
             }
 
             .search-input-large {
                 width: 100%;
-                padding: 16px 24px 16px 60px; /* Slightly smaller padding */
+                padding: 16px 24px 16px 60px;
                 border-radius: 12px;
                 border: 1px solid var(--border-subtle);
                 background: var(--bg-surface);
@@ -414,6 +425,33 @@ export default function ResourceFeed({ initialResources, availableTags, showSear
                 color: var(--text-tertiary);
                 pointer-events: none;
                 opacity: 0.7;
+            }
+
+            .submit-to-hub-btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 10px;
+                padding: 16px 32px;
+                border-radius: 12px;
+                background: var(--text-primary);
+                color: var(--bg-color);
+                font-size: 1.05rem;
+                font-weight: 600;
+                text-decoration: none;
+                white-space: nowrap;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                transition: all 0.2s ease;
+                border: 1px solid var(--text-primary);
+            }
+
+            .submit-to-hub-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+                opacity: 0.95;
+            }
+
+            .submit-to-hub-btn svg {
+                flex-shrink: 0;
             }
 
             /* Audience Section */

@@ -1,0 +1,12 @@
+---
+export const prerender = false;
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import CuratorDashboard from "../../components/resources/CuratorDashboard";
+import "../../styles/resources.css";
+
+const title = "Curator Dashboard";
+---
+
+<BaseLayout title={title}>
+    <CuratorDashboard client:load />
+</BaseLayout>

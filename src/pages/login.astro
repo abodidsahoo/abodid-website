@@ -295,9 +295,26 @@ const title = "Login | Resource Hub";
                 }
 
                 showMsg("Success! Redirecting...", "success");
+
+                // Smart redirect based on user role
+                const { data: profile } = await supabase
+                    .from("profiles")
+                    .select("role")
+                    .eq("id", (data.user as any)?.id)
+                    .single();
+
                 const params = new URLSearchParams(window.location.search);
                 const redirect = params.get("redirect");
-                window.location.href = redirect || "/resources";
+
+                if (redirect) {
+                    window.location.href = redirect;
+                } else if (profile?.role === "admin") {
+                    window.location.href = "/admin/dashboard";
+                } else if (profile?.role === "curator") {
+                    window.location.href = "/resources/curator";
+                } else {
+                    window.location.href = "/resources";
+                }
             }
         } catch (error: any) {
             if (error.message.includes("Invalid login credentials")) {
