@@ -2,17 +2,22 @@ import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
 
-const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
-const supabaseServiceKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-// Move Resend init inside handler to prevent startup crashes
-// const resend = new Resend(import.meta.env.RESEND_API_KEY);
-
 export const POST: APIRoute = async ({ request }) => {
     try {
-        // Safe access to env var (handle Vercel/Node differences)
+        const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL || process.env.PUBLIC_SUPABASE_URL;
+        const supabaseServiceKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
         const resendKey = import.meta.env.RESEND_API_KEY || process.env.RESEND_API_KEY;
+
+        // 1. Critical Config Check
+        if (!supabaseUrl || !supabaseServiceKey) {
+            console.error("Missing Supabase Config (URL or Service Key)");
+            return new Response(JSON.stringify({ error: 'Server Configuration Error: Missing Supabase Admin Key' }), {
+                status: 500,
+                headers: { 'Content-Type': 'application/json' }
+            });
+        }
+
+        const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
         const { resourceId, reason } = await request.json();
 
@@ -72,7 +77,7 @@ export const POST: APIRoute = async ({ request }) => {
             });
         }
 
-        // Get submitter email
+        // Get submitter email via Admin API
         const { data: { user: submitterUser }, error: userError } = await supabase.auth.admin.getUserById(
             resource.submitted_by
         );
