@@ -173,6 +173,7 @@ export async function getFeaturedPhotography() {
         .from('photography')
         .select('*')
         .eq('published', true)
+        .order('sort_order', { ascending: true })
         .order('created_at', { ascending: false })
         .limit(3);
 
@@ -197,6 +198,7 @@ export async function getAllPhotography() {
         .from('photography')
         .select('*')
         .eq('published', true)
+        .order('sort_order', { ascending: true })
         .order('created_at', { ascending: false });
 
     if (error) {
@@ -540,6 +542,7 @@ export async function getFilms() {
         .from('films')
         .select('*')
         .eq('published', true)
+        .order('sort_order', { ascending: true })
         .order('year', { ascending: false });
 
     if (error) return [];

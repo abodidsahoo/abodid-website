@@ -8,6 +8,7 @@ export default function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [captchaToken, setCaptchaToken] = useState('');
+  const [session, setSession] = useState(null);
 
   // Helper to verify captcha on our server
   const verifyCaptcha = async (token) => {
@@ -27,16 +28,16 @@ export default function LoginForm() {
   };
 
   // Shared redirect logic
-  const handleRedirect = async (userId) => {
+  const handleRedirect = async (userId, force = false) => {
     // Check for redirect param
     const urlParams = new URLSearchParams(window.location.search);
     const redirectUrl = urlParams.get('redirect');
 
     console.log('Redirect check. Param:', redirectUrl);
 
-    // Check for loop prevention
+    // Check for loop prevention (skip if forced, e.g. after manual login)
     const reason = urlParams.get('reason');
-    if (reason === 'auth_failed') {
+    if (!force && reason === 'auth_failed') {
       console.warn('Redirect loop detected (auth_failed). Stopping auto-redirect.');
       return;
     }
@@ -65,10 +66,11 @@ export default function LoginForm() {
   // Check auth on mount
   React.useEffect(() => {
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        console.log('Already logged in as:', session.user.email);
-        handleRedirect(session.user.id);
+      const { data: { session: activeSession } } = await supabase.auth.getSession();
+      if (activeSession?.user) {
+        console.log('Already logged in as:', activeSession.user.email);
+        setSession(activeSession);
+        handleRedirect(activeSession.user.id);
       }
     };
     checkSession();
@@ -119,8 +121,8 @@ export default function LoginForm() {
           console.warn('Profile sync warning:', e);
         }
 
-        // Reuse shared redirect logic
-        await handleRedirect(data.user.id);
+        // Reuse shared redirect logic - force redirect after manual login
+        await handleRedirect(data.user.id, true);
       }
     }
   };
@@ -131,6 +133,87 @@ export default function LoginForm() {
     setCaptchaToken(token);
     setError(null); // Clear any captcha errors when token is received
   }, []);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    setSession(null);
+    window.location.reload();
+  };
+
+  if (session) {
+    return (
+      <div className="login-container">
+        <div className="welcome-back">
+          <h2>Welcome back!</h2>
+          <p>You are logged in as <strong>{session.user.email}</strong></p>
+          <div className="button-group">
+            <button
+              onClick={() => handleRedirect(session.user.id, true)}
+              className="btn-login"
+            >
+              Go to Dashboard
+            </button>
+            <button
+              onClick={handleSignOut}
+              className="btn-secondary"
+            >
+              Sign Out
+            </button>
+          </div>
+        </div>
+        <style>{`
+          .welcome-back {
+            text-align: center;
+            padding: 2rem;
+            background: var(--bg-surface);
+            border-radius: 12px;
+            border: 1px solid var(--border-subtle);
+          }
+          .welcome-back h2 {
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+          }
+          .welcome-back p {
+            margin-bottom: 2rem;
+            color: var(--text-secondary);
+          }
+          .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+          }
+          .btn-login {
+            width: 100%;
+            padding: 1rem;
+            background: var(--text-primary);
+            color: var(--bg-color);
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+          }
+          .btn-secondary {
+            width: 100%;
+            padding: 1rem;
+            background: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+          }
+          .btn-secondary:hover {
+            background: var(--bg-color);
+            border-color: var(--text-primary);
+          }
+        `}</style>
+      </div>
+    );
+  }
 
   return (
     <div className="login-container">
