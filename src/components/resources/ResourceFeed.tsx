@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import type { HubResource, ResourceAudience } from '../../lib/resources/types';
-import { toggleBookmark, toggleUpvote, getMyBookmarks, getMyUpvotes } from '../../lib/resources/db';
+import { toggleBookmark, toggleUpvote, getMyBookmarks, getMyUpvotes, getApprovedResources } from '../../lib/resources/db';
 import { supabase } from '../../lib/supabaseClient'; // Need to check auth state
 import { ensureSession, isAnonymousSession, getUserBookmarkCount } from '../../lib/anonymousAuth';
 import SyncDataPopup from './SyncDataPopup';
@@ -253,8 +253,21 @@ export default function ResourceFeed({ initialResources, availableTags, showSear
     const [query, setQuery] = useState('');
     const [audience, setAudience] = useState('');
 
-    // NOTE: If we wanted to fetch "fresh" data on client mount to catch updates since SSR:
-    // useEffect(() => { fetch('/api/resources/search').then(r => r.json()).then(setAllResources); }, []);
+    // Fetch fresh data on mount to catch updates
+    useEffect(() => {
+        const fetchFresh = async () => {
+            try {
+                // Using the requested auto-refresh logic
+                const freshData = await getApprovedResources();
+                if (freshData && freshData.length > 0) {
+                    setAllResources(freshData);
+                }
+            } catch (e) {
+                console.error("Failed to refresh feed:", e);
+            }
+        };
+        fetchFresh();
+    }, []);
 
     // Client-Side Filter Logic (Instant)
     const filteredResources = useMemo(() => {

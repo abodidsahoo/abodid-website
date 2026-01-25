@@ -22,50 +22,34 @@ interface Submission {
     submitter_profile?: any;
 }
 
-export default function CuratorDashboard() {
+// Add props interface
+interface Props {
+    user: User;
+    role: string;
+}
+
+export default function CuratorDashboard({ user, role }: Props) {
     const [loading, setLoading] = useState(true);
-    const [user, setUser] = useState<User | null>(null);
-    const [profile, setProfile] = useState<Profile | null>(null);
+    // User/Profile come from props now
     const [submissions, setSubmissions] = useState<Submission[]>([]);
     const [pendingSubmissions, setPendingSubmissions] = useState<Submission[]>([]);
     const [filter, setFilter] = useState('all'); // all, pending, approved, rejected
 
     useEffect(() => {
-        checkAuth();
-    }, []);
-
-    const checkAuth = async () => {
-        if (!supabase) {
-            window.location.href = '/login';
-            return;
+        if (user) {
+            initDashboard();
         }
+    }, [user]);
 
-        const { data: { session } } = await supabase.auth.getSession();
+    const initDashboard = async () => {
+        setLoading(true);
+        await fetchSubmissions(user.id);
 
-        if (!session) {
-            window.location.href = '/login';
-            return;
+        // Only fetch pending if curator/admin
+        if (role === 'curator' || role === 'admin') {
+            await fetchPendingSubmissions();
         }
-
-        setUser(session.user);
-
-        // Get user profile
-        const { data: profileData } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-
-        setProfile(profileData);
-
-        // Check if user is curator or admin
-        if (profileData?.role !== 'curator' && profileData?.role !== 'admin') {
-            window.location.href = '/resources';
-            return;
-        }
-
-        fetchSubmissions(session.user.id);
-        fetchPendingSubmissions();
+        setLoading(false);
     };
 
     const fetchSubmissions = async (userId: string) => {
@@ -124,6 +108,13 @@ export default function CuratorDashboard() {
             const result = await response.json();
 
             if (result.success) {
+                // Feedback about email
+                if (result.emailResult?.sent) {
+                    alert(`Submission rejected.\nExample email sent to submitter.`);
+                } else {
+                    alert(`Submission rejected (Saved to DB).\n⚠️ Email Failed: ${result.emailResult?.reason}\n\nCheck your Resend domain verification.`);
+                }
+
                 // Refresh both pending submissions and own submissions
                 await fetchPendingSubmissions();
                 if (user) await fetchSubmissions(user.id);
@@ -176,9 +167,14 @@ export default function CuratorDashboard() {
             <div className="curator-header">
                 <div>
                     <h1>Curator Dashboard</h1>
-                    <p className="welcome">Welcome back, {profile?.full_name || user?.email}!</p>
+                    <p className="welcome">Welcome back, {user?.user_metadata?.full_name || user?.email}!</p>
                 </div>
                 <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                    {role === 'admin' && (
+                        <a href="/admin/dashboard" className="btn-admin-panel">
+                            Admin Panel
+                        </a>
+                    )}
                     <a href="/resources/submit" className="btn-submit-new">
                         + Submit New Resource
                     </a>
@@ -197,7 +193,7 @@ export default function CuratorDashboard() {
                     <div className="stat-label">Total Submissions</div>
                 </div>
                 <div className="stat-card pending">
-                    <div className="stat-value">{pendingCount}</div>
+                    <div className="stat-value">{role === 'curator' || role === 'admin' ? pendingSubmissions.length : pendingCount}</div>
                     <div className="stat-label">Pending Review</div>
                 </div>
                 <div className="stat-card approved">
@@ -406,6 +402,24 @@ export default function CuratorDashboard() {
 
                 .btn-submit-new:hover {
                     opacity: 0.9;
+                }
+
+                .btn-admin-panel {
+                    background: #334155;
+                    color: white;
+                    padding: 0.875rem 1.5rem;
+                    border-radius: 8px;
+                    text-decoration: none;
+                    font-weight: 600;
+                    transition: all 0.2s;
+                    white-space: nowrap;
+                    border: 1px solid var(--border-subtle);
+                }
+
+                .btn-admin-panel:hover {
+                    background: #1e293b;
+                    border-color: var(--text-primary);
+                    transform: translateY(-1px);
                 }
 
                 .btn-logout {

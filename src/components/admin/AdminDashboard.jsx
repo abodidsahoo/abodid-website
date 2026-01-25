@@ -42,15 +42,32 @@ export default function AdminDashboard() {
 
             try {
                 console.log("AdminDashboard: Calling getSession()...");
-                const { data: { session }, error } = await supabase.auth.getSession();
+
+                let session = null;
+                let error = null;
+
+                // Retry logic for session (3 attempts)
+                for (let i = 0; i < 3; i++) {
+                    const res = await supabase.auth.getSession();
+                    session = res.data.session;
+                    error = res.error;
+
+                    if (session) break; // Found it!
+
+                    if (i < 2) {
+                        console.warn(`AdminDashboard: Session not found, retrying (${i + 1}/3)...`);
+                        await new Promise(r => setTimeout(r, 500));
+                    }
+                }
+
                 console.log("AdminDashboard: getSession result", { session, error });
 
                 if (error) throw error;
 
                 setSession(session);
                 if (!session) {
-                    console.warn("AdminDashboard: No session, redirecting...");
-                    window.location.href = '/admin/login';
+                    console.warn("AdminDashboard: No session after retries, redirecting...");
+                    window.location.href = '/admin/login?reason=auth_failed';
                     return;
                 }
 
@@ -96,7 +113,7 @@ export default function AdminDashboard() {
             const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
                 console.log("AuthStateChange:", _event, session?.user?.id);
                 setSession(session);
-                if (!session) window.location.href = '/admin/login';
+                if (!session) window.location.href = '/admin/login?reason=auth_failed';
             });
 
             return () => subscription.unsubscribe();
@@ -126,6 +143,13 @@ export default function AdminDashboard() {
                 console.warn(`Error fetching count for ${name}:`, error.message);
             }
         }
+
+        // Fetch pending count specifically
+        const { count: pendingCount } = await supabase.from('hub_resources')
+            .select('*', { count: 'exact', head: true })
+            .eq('status', 'pending');
+        newStats['pendingResources'] = pendingCount || 0;
+
         setStats(prev => ({ ...prev, ...newStats }));
     };
 
@@ -267,7 +291,7 @@ export default function AdminDashboard() {
                                 <DashboardCard title="Films" count={stats.films} icon="🎬" onClick={() => setActiveSection('films')} loading={loading} />
                                 <DashboardCard title="Blog" count={stats.blog} icon="✍️" onClick={() => setActiveSection('blog')} loading={loading} />
                                 <DashboardCard title="Research" count={stats.research} icon="🔬" onClick={() => setActiveSection('research')} loading={loading} />
-                                <DashboardCard title="Resources" count={stats.resources} icon="📚" onClick={() => setActiveSection('hub_resources')} loading={loading} />
+                                <DashboardCard title="Resources" count={stats.pendingResources > 0 ? `${stats.resources} (${stats.pendingResources} Pending)` : stats.resources} icon="📚" onClick={() => setActiveSection('hub_resources')} loading={loading} />
                             </div>
 
                             {/* Split View: Activity + Planning */}

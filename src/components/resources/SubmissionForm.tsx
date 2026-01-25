@@ -152,12 +152,21 @@ export default function SubmissionForm() {
                         ? 'Your resource is now live on the hub!'
                         : 'Your resource is now pending review.'}
                 </p>
-                <button
-                    onClick={() => setSuccess(false)}
-                    className="hub-btn"
-                >
-                    Submit Another
-                </button>
+                <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                    <button
+                        onClick={() => window.location.href = '/resources'}
+                        className="hub-btn"
+                    >
+                        View on Hub
+                    </button>
+                    <button
+                        onClick={() => setSuccess(false)}
+                        className="hub-btn"
+                        style={{ background: 'transparent', border: '1px solid var(--border-subtle)', color: 'var(--text-primary)' }}
+                    >
+                        Submit Another
+                    </button>
+                </div>
             </div>
         );
     }

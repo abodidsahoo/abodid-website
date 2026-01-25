@@ -41,6 +41,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
     }
 
     // Only protect /admin routes (except /admin/login)
+    // DISABLED: Client-side auth in AdminDashboard.jsx handles this. 
+    // Middleware cookie check conflicts with localStorage session.
+    /*
     if (context.url.pathname.startsWith('/admin') &&
         !context.url.pathname.startsWith('/admin/login')) {
 
@@ -86,6 +89,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
         // User is authenticated and has admin role, proceed
         console.log(`Admin access granted for ${session.user.email} to ${context.url.pathname}`);
     }
+    */
 
     return next();
 });

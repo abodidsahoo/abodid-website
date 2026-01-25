@@ -15,6 +15,7 @@ interface Props {
 
 export default function AuthHeader({ theme = 'default' }: Props) {
     const [profile, setProfile] = useState<Profile | null>(null);
+    const [sessionUser, setSessionUser] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
     // Determine base font based on theme
@@ -24,6 +25,9 @@ export default function AuthHeader({ theme = 'default' }: Props) {
     // But since we use it in render, let's keep it derived.
 
     useEffect(() => {
+        // Safety timeout - force loading to false after 2s max
+        const timer = setTimeout(() => setLoading(false), 2000);
+
         // 0. Try to load from cache immediately for instant UI
         const cached = localStorage.getItem('curator_profile');
         if (cached) {
@@ -31,6 +35,7 @@ export default function AuthHeader({ theme = 'default' }: Props) {
                 const parsed = JSON.parse(cached);
                 setProfile(parsed);
                 setLoading(false); // Show cached data immediately
+                clearTimeout(timer);
             } catch (e) {
                 console.error("Cache parse error", e);
             }
@@ -46,6 +51,11 @@ export default function AuthHeader({ theme = 'default' }: Props) {
                 const { data: { session } } = await supabase.auth.getSession();
 
                 if (session?.user) {
+                    setSessionUser(session.user);
+                    // Don't modify loading state if we have session but no profile yet -> wait for profile
+                    // Actually, let's set loading false so we render fallback
+                    if (!cached) setLoading(false);
+
                     // 2. Fetch Profile if logged in
                     const { data } = await supabase
                         .from('profiles')
@@ -65,6 +75,7 @@ export default function AuthHeader({ theme = 'default' }: Props) {
                 } else {
                     // No session, clear profile and cache
                     setProfile(null);
+                    setSessionUser(null);
                     localStorage.removeItem('curator_profile');
                 }
             } catch (e) {
@@ -80,6 +91,7 @@ export default function AuthHeader({ theme = 'default' }: Props) {
         if (!supabase) return;
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             if (event === 'SIGNED_IN' && session) {
+                setSessionUser(session.user);
                 const { data } = await supabase.from('profiles').select('username, full_name, role').eq('id', session.user.id).single();
                 const stats = await getUserStats(session.user.id);
                 const fullProfile = { ...data, stats };
@@ -87,6 +99,7 @@ export default function AuthHeader({ theme = 'default' }: Props) {
                 localStorage.setItem('curator_profile', JSON.stringify(fullProfile));
             } else if (event === 'SIGNED_OUT') {
                 setProfile(null);
+                setSessionUser(null);
                 localStorage.removeItem('curator_profile');
             }
         });
@@ -101,7 +114,7 @@ export default function AuthHeader({ theme = 'default' }: Props) {
     }
 
     // Render Logged Out State
-    if (!profile) {
+    if (!profile && !sessionUser) {
         return (
             <div style={{ textAlign: 'right', animation: 'fadeIn 0.3s ease' }}>
                 <a href="/login"
@@ -145,8 +158,16 @@ export default function AuthHeader({ theme = 'default' }: Props) {
         );
     }
 
+    // Determine what to show (Profile or Fallback Session)
+    const activeData = profile || {
+        username: sessionUser?.email?.split('@')[0] || 'User',
+        full_name: sessionUser?.user_metadata?.full_name || null,
+        role: 'user', // Default role for fallback
+        stats: { recent_upvotes: 0, total_bookmarks: 0 }
+    };
+
     // Render Logged In State
-    const displayName = profile.full_name || profile.username;
+    const displayName = activeData.full_name || activeData.username;
     const fontFamily = theme === 'scifi' ? '"Inconsolata", monospace' : "'Poppins', sans-serif";
     const textColor = theme === 'scifi' ? '#fff' : 'var(--text-primary)';
     const accentColor = theme === 'scifi' ? '#00f3ff' : 'var(--text-primary)';
@@ -164,22 +185,22 @@ export default function AuthHeader({ theme = 'default' }: Props) {
             {/* Dashboard / Stats */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '15px', fontSize: '12px', fontFamily }}>
                 <a
-                    href={`/resources/u/${profile.username}#upvoted`}
+                    href={`/resources/u/${activeData.username}#upvoted`}
                     style={{ color: theme === 'scifi' ? 'rgba(255,255,255,0.7)' : 'var(--text-secondary)', textDecoration: 'none' }}
                 >
-                    UPVOTES: <strong>{profile.stats?.recent_upvotes || 0}</strong>
+                    UPVOTES: <strong>{activeData.stats?.recent_upvotes || 0}</strong>
                 </a>
                 <a
                     href="/resources/saved"
                     style={{ color: theme === 'scifi' ? accentColor : 'var(--text-primary)', textDecoration: 'none', fontWeight: 600 }}
                 >
-                    SAVED: <strong>{profile.stats?.total_bookmarks || 0}</strong>
+                    SAVED: <strong>{activeData.stats?.total_bookmarks || 0}</strong>
                 </a>
             </div>
 
             {/* Actions */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '2px' }}>
-                {profile.role === 'admin' && (
+                {activeData.role === 'admin' && (
                     <>
                         <a
                             href="/admin/dashboard"
@@ -217,7 +238,7 @@ export default function AuthHeader({ theme = 'default' }: Props) {
                         </a>
                     </>
                 )}
-                {profile.role === 'curator' && (
+                {activeData.role === 'curator' && (
                     <a
                         href="/resources/dashboard"
                         style={{
@@ -236,7 +257,7 @@ export default function AuthHeader({ theme = 'default' }: Props) {
                         CURATOR DASHBOARD
                     </a>
                 )}
-                {(profile.role === 'user' || !profile.role) && (
+                {(activeData.role === 'user' || !activeData.role) && (
                     <a
                         href="/resources/dashboard"
                         style={{
@@ -256,7 +277,11 @@ export default function AuthHeader({ theme = 'default' }: Props) {
                     </a>
                 )}
                 <button
-                    onClick={() => supabase?.auth.signOut()}
+                    onClick={async () => {
+                        await supabase?.auth.signOut();
+                        localStorage.removeItem('curator_profile');
+                        window.location.href = '/login';
+                    }}
                     style={{ background: 'none', border: 'none', color: theme === 'scifi' ? '#ef4444' : 'var(--text-secondary)', cursor: 'pointer', fontSize: '11px', padding: 0, fontFamily }}
                 >
                     LOGOUT

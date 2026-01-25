@@ -26,6 +26,54 @@ export default function LoginForm() {
     }
   };
 
+  // Shared redirect logic
+  const handleRedirect = async (userId) => {
+    // Check for redirect param
+    const urlParams = new URLSearchParams(window.location.search);
+    const redirectUrl = urlParams.get('redirect');
+
+    console.log('Redirect check. Param:', redirectUrl);
+
+    // Check for loop prevention
+    const reason = urlParams.get('reason');
+    if (reason === 'auth_failed') {
+      console.warn('Redirect loop detected (auth_failed). Stopping auto-redirect.');
+      return;
+    }
+
+    if (redirectUrl) {
+      window.location.assign(redirectUrl);
+      return;
+    }
+
+    // Check role to determine default redirect
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .single();
+
+    console.log('User role:', profile?.role);
+
+    if (profile?.role === 'admin') {
+      window.location.assign("/admin/dashboard");
+    } else {
+      window.location.assign("/resources/dashboard");
+    }
+  };
+
+  // Check auth on mount
+  React.useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        console.log('Already logged in as:', session.user.email);
+        handleRedirect(session.user.id);
+      }
+    };
+    checkSession();
+  }, []);
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -71,35 +119,8 @@ export default function LoginForm() {
           console.warn('Profile sync warning:', e);
         }
 
-        // Check for redirect param
-        const urlParams = new URLSearchParams(window.location.search);
-        const redirectUrl = urlParams.get('redirect');
-
-        console.log('Redirect param found:', redirectUrl);
-
-        if (redirectUrl) {
-          console.log('Redirecting to param URL:', redirectUrl);
-          window.location.assign(redirectUrl);
-          return;
-        }
-
-        // Check role to determine default redirect
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', data.user.id)
-          .single();
-
-        console.log('User role detected:', profile?.role);
-
-        if (profile?.role === 'admin') {
-          console.log('Redirecting to Admin Dashboard');
-          window.location.assign("/admin/dashboard");
-        } else {
-          // Curators and regular users go to unified dashboard
-          console.log('Redirecting to Unified Dashboard');
-          window.location.assign("/resources/dashboard");
-        }
+        // Reuse shared redirect logic
+        await handleRedirect(data.user.id);
       }
     }
   };

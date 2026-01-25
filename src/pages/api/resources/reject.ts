@@ -73,13 +73,18 @@ export const POST: APIRoute = async ({ request }) => {
             resource.submitted_by
         );
 
+        let emailResult = { sent: false, reason: 'No submitter email found' };
+
         if (!userError && submitterUser?.email) {
             // Send rejection email
             try {
+                const subject = `Your Resource Hub submission was reviewed`;
+                const fromAddress = 'Resource Hub <noreply@abodid.com>';
+
                 await resend.emails.send({
-                    from: 'Resource Hub <noreply@abodidsahoo.zip>',
+                    from: fromAddress,
                     to: submitterUser.email,
-                    subject: `Your Resource Hub submission was reviewed`,
+                    subject: subject,
                     html: `
                         <!DOCTYPE html>
                         <html>
@@ -113,10 +118,10 @@ export const POST: APIRoute = async ({ request }) => {
                                     
                                     <p>You can edit and resubmit your resource anytime. We encourage you to address the feedback and try again!</p>
                                     
-                                    <a href="https://abodidsahoo.zip/resources/curator" class="button">View Your Dashboard</a>
+                                    <a href="https://abodid.com/resources/dashboard" class="button">View Your Dashboard</a>
                                     
                                     <div class="footer">
-                                        <p>Questions? Reply to this email or visit our <a href="https://abodidsahoo.zip/resources">Resource Hub</a></p>
+                                        <p>Questions? Reply to this email or visit our <a href="https://abodid.com/resources">Resource Hub</a></p>
                                     </div>
                                 </div>
                             </div>
@@ -124,13 +129,14 @@ export const POST: APIRoute = async ({ request }) => {
                         </html>
                     `
                 });
-            } catch (emailError) {
-                console.error('Failed to send email, but rejection succeeded:', emailError);
-                // Don't fail the whole operation if email fails
+                emailResult = { sent: true, reason: `Sent to ${submitterUser.email}` };
+            } catch (emailError: any) {
+                console.error('Failed to send email:', emailError);
+                emailResult = { sent: false, reason: emailError.message || 'Unknown email error' };
             }
         }
 
-        return new Response(JSON.stringify({ success: true }), {
+        return new Response(JSON.stringify({ success: true, emailResult }), {
             status: 200,
             headers: { 'Content-Type': 'application/json' }
         });
