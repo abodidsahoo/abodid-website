@@ -247,6 +247,7 @@ export async function getRecentPosts() {
         .from('blog')
         .select('*')
         .eq('published', true)
+        .order('sort_order', { ascending: true })
         .order('published_at', { ascending: false })
         .limit(3);
 
@@ -269,6 +270,7 @@ export async function getAllPosts() {
         .from('blog')
         .select('*')
         .eq('published', true)
+        .order('sort_order', { ascending: true })
         .order('published_at', { ascending: false });
 
     if (error) return mockPosts.map(p => ({ ...p, pubDate: new Date(p.date), description: p.title }));

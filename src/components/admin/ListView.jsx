@@ -11,7 +11,7 @@ export default function ListView({ table, title, onCreate }) {
     const [isSavingOrder, setIsSavingOrder] = useState(false);
 
     // Define which tables support reordering
-    const supportReorder = ['photography', 'films', 'education', 'research'].includes(table);
+    const supportReorder = ['photography', 'films', 'education', 'research', 'blog'].includes(table);
 
     const sensors = useSensors(
         useSensor(PointerSensor),
