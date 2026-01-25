@@ -14,7 +14,11 @@ export default function ListView({ table, title, onCreate }) {
     const supportReorder = ['photography', 'films', 'education', 'research', 'blog'].includes(table);
 
     const sensors = useSensors(
-        useSensor(PointerSensor),
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 5,
+            },
+        }),
         useSensor(KeyboardSensor, {
             coordinateGetter: sortableKeyboardCoordinates,
         })
@@ -30,16 +34,12 @@ export default function ListView({ table, title, onCreate }) {
             let query = supabase.from(table).select('*');
 
             if (table === 'blog') {
-                query = query.order('published_at', { ascending: false });
+                query = query.order('sort_order', { ascending: true }).order('published_at', { ascending: false });
             } else if (table === 'page_metadata') {
                 query = query.order('page_path', { ascending: true });
             } else if (table === 'hub_resources') {
                 query = query.order('created_at', { ascending: false });
             } else if (supportReorder) {
-                // For sortable tables, prefer sort_order, fallback to created_at
-                // Note: If sort_order is null, it might mess up order. 
-                // We should ideally ensure sort_order is populated.
-                // We'll order by sort_order ascending (0, 1, 2...)
                 query = query.order('sort_order', { ascending: true, nullsFirst: false }).order('created_at', { ascending: false });
             } else {
                 query = query.order('created_at', { ascending: false });
@@ -66,9 +66,7 @@ export default function ListView({ table, title, onCreate }) {
                 const newIndex = items.findIndex((item) => item.id === over.id);
                 const newItems = arrayMove(items, oldIndex, newIndex);
 
-                // Trigger save
                 saveOrder(newItems);
-
                 return newItems;
             });
         }
@@ -82,14 +80,6 @@ export default function ListView({ table, title, onCreate }) {
                 sort_order: index,
             }));
 
-            // Supabase upsert/update is tricky with batch. 
-            // We can promise.all but that might be heavy.
-            // But for CMS lists < 50 items it's fine.
-            // Alternatively, create a stored procedure, but we'll stick to client side for now.
-            // Optimization: Only update items that changed? 
-            // arrayMove changes indices of everything in between.
-
-            // Limit concurrency
             const promises = updates.map(update =>
                 supabase.from(table).update({ sort_order: update.sort_order }).eq('id', update.id)
             );
@@ -213,38 +203,43 @@ export default function ListView({ table, title, onCreate }) {
 
                                     return (
                                         <SortableItem key={item.id} id={item.id}>
-                                            <div className="list-row-card sortable-row">
-                                                <div className="drag-handle" {...(supportReorder ? { style: { cursor: 'grab' } } : {})}>
-                                                    ⋮⣿
-                                                </div>
-                                                <div className="row-main-info">
-                                                    <span className="row-title">{getItemTitle(item)}</span>
-                                                </div>
+                                            {(listeners) => (
+                                                <div className="list-row-card sortable-row">
+                                                    <div
+                                                        className="drag-handle"
+                                                        {...listeners}
+                                                        style={{ cursor: 'grab' }}
+                                                    >
+                                                        ⋮⣿
+                                                    </div>
+                                                    <div className="row-main-info">
+                                                        <span className="row-title">{getItemTitle(item)}</span>
+                                                    </div>
 
-                                                <div className="row-actions">
-                                                    {canToggle && (
-                                                        <button
-                                                            className={`btn-action-box ${status.isLive ? 'toggle-live' : 'toggle-draft'}`}
-                                                            onClick={(e) => {
-                                                                // Prevent drag
-                                                                e.stopPropagation();
-                                                                handleToggleStatus(item);
-                                                            }}
-                                                            title="Toggle Status"
-                                                        >
-                                                            <span className={`status-dot-inner`} style={{ background: status.isLive ? '#10B981' : 'currentColor' }}></span>
-                                                            {status.text}
+                                                    <div className="row-actions">
+                                                        {canToggle && (
+                                                            <button
+                                                                className={`btn-action-box ${status.isLive ? 'toggle-live' : 'toggle-draft'}`}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleToggleStatus(item);
+                                                                }}
+                                                                title="Toggle Status"
+                                                            >
+                                                                <span className={`status-dot-inner`} style={{ background: status.isLive ? '#10B981' : 'currentColor' }}></span>
+                                                                {status.text}
+                                                            </button>
+                                                        )}
+
+                                                        <a href={`/admin/editor?table=${table}&id=${item.id}`} className="btn-action-box">
+                                                            Edit
+                                                        </a>
+                                                        <button onClick={() => handleDelete(item.id)} className="btn-action-box delete">
+                                                            Delete
                                                         </button>
-                                                    )}
-
-                                                    <a href={`/admin/editor?table=${table}&id=${item.id}`} className="btn-action-box">
-                                                        Edit
-                                                    </a>
-                                                    <button onClick={() => handleDelete(item.id)} className="btn-action-box delete">
-                                                        Delete
-                                                    </button>
+                                                    </div>
                                                 </div>
-                                            </div>
+                                            )}
                                         </SortableItem>
                                     );
                                 })}

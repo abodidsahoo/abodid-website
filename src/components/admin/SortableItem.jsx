@@ -22,9 +22,7 @@ export function SortableItem(props) {
 
     return (
         <div ref={setNodeRef} style={style} {...attributes}>
-            {/* We pass listeners to a specific drag handle or the whole item depending on design */}
-            {/* In this implementation, we'll pass listeners to the child to decide where to attach */}
-            {React.cloneElement(props.children, { dragHandleProps: listeners })}
+            {typeof props.children === 'function' ? props.children(listeners) : props.children}
         </div>
     );
 }
