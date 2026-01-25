@@ -95,8 +95,11 @@ export default function AdminDashboard() {
 
                 console.log("AdminDashboard: Admin verified, loading dashboard");
                 // Fetch valid session data
-                fetchStats();
-                fetchRecentActivity();
+                // Fetch valid session data
+                await Promise.all([
+                    fetchStats(),
+                    fetchRecentActivity()
+                ]);
 
             } catch (err) {
                 console.error('Auth initialization error:', err);
@@ -229,10 +232,41 @@ export default function AdminDashboard() {
 
     if (connectionError) {
         return (
-            <div className="loading-screen" style={{ flexDirection: 'column', gap: '1rem' }}>
-                <div style={{ color: '#ef4444', fontSize: '1.2rem' }}>⚠️ Connection Error</div>
-                <code>{connectionError}</code>
-                <button onClick={() => window.location.reload()} style={{ marginTop: '1rem', padding: '0.5rem 1rem' }}>Retry</button>
+            <div className="loading-screen" style={{ flexDirection: 'column', gap: '1rem', fontFamily: 'var(--font-sans)' }}>
+                <div style={{ textAlign: 'center', maxWidth: '320px' }}>
+                    <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', margin: '0 0 1.5rem 0', lineHeight: '1.5' }}>
+                        I'm sorry, we're facing some hiccups.
+                    </p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', alignItems: 'center' }}>
+                        <a
+                            href="/resources"
+                            style={{
+                                fontSize: '0.875rem',
+                                padding: '0.5rem 1.25rem',
+                                textDecoration: 'none',
+                                background: 'var(--text-primary)',
+                                color: 'var(--bg-color)',
+                                borderRadius: '6px',
+                                fontWeight: 500
+                            }}
+                        >
+                            View Resources Instead
+                        </a>
+                        <button
+                            onClick={() => window.location.reload()}
+                            style={{
+                                background: 'transparent',
+                                border: 'none',
+                                color: 'var(--text-tertiary)',
+                                fontSize: '0.75rem',
+                                cursor: 'pointer',
+                                textDecoration: 'underline'
+                            }}
+                        >
+                            Try reloading
+                        </button>
+                    </div>
+                </div>
             </div>
         );
     }
@@ -845,9 +879,22 @@ function ListView({ table, title, onCreate }) {
 
     const handleDelete = async (id) => {
         if (!window.confirm('Are you sure you want to delete this item?')) return;
-        const { error } = await supabase.from(table).delete().eq('id', id);
-        if (!error) fetchItems();
-        else alert('Error deleting: ' + error.message);
+
+        // Special handling for Resources to use the Admin-Secure function
+        if (table === 'hub_resources') {
+            const { deleteResource } = await import('../../lib/resources/db');
+            const result = await deleteResource(id);
+            if (result.success) {
+                fetchItems();
+            } else {
+                alert('Error deleting resource: ' + result.error);
+            }
+        } else {
+            // Standard Delete for other tables
+            const { error } = await supabase.from(table).delete().eq('id', id);
+            if (!error) fetchItems();
+            else alert('Error deleting: ' + error.message);
+        }
     };
 
     const handleToggleStatus = async (item) => {

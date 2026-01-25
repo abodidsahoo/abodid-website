@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { updateResource, getAllTags } from '../../lib/resources/db';
+import { updateResource, getAllTags, deleteResource } from '../../lib/resources/db';
 import type { HubResource, HubTag, ResourceAudience } from '../../lib/resources/types';
 import TagInput from './TagInput';
 
@@ -144,13 +144,36 @@ export default function EditResourceForm({ resource }: Props) {
                     />
                 </div>
 
-                <div style={{ display: 'flex', gap: '16px', marginTop: '32px' }}>
+                <div style={{ display: 'flex', gap: '16px', marginTop: '32px', alignItems: 'center' }}>
                     <button type="submit" className="hub-btn" disabled={loading}>
                         {loading ? 'Saving...' : 'Save Changes'}
                     </button>
                     <a href={`/resources/${resource.id}`} style={{ display: 'inline-flex', alignItems: 'center', color: 'var(--text-secondary)', textDecoration: 'none', padding: '0 16px' }}>
                         Cancel
                     </a>
+
+                    <div style={{ flexGrow: 1 }} />
+
+                    <button
+                        type="button"
+                        className="hub-btn"
+                        style={{ background: '#fee2e2', color: '#b91c1c', border: '1px solid #ef4444' }}
+                        onClick={async () => {
+                            if (confirm('Are you SUPER sure? This deletes the resource forever.')) {
+                                setLoading(true); // Re-use loading state or add new one
+                                const res = await deleteResource(resource.id);
+                                if (res.success) {
+                                    alert('Deleted.');
+                                    window.location.href = '/resources/dashboard'; // Go to dashboard after delete
+                                } else {
+                                    alert(res.error || 'Failed to delete');
+                                    setLoading(false);
+                                }
+                            }
+                        }}
+                    >
+                        🗑 Delete Resource
+                    </button>
                 </div>
             </form>
         </div>

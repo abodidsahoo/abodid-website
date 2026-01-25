@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
-import { approveResource, rejectResource, getPendingResources } from '../../lib/resources/db';
+import { approveResource, rejectResource, getPendingResources, deleteResource, restoreResource, permanentDeleteResource, getDeletedResources, getAllResourcesAdmin } from '../../lib/resources/db';
 import type { User } from '@supabase/supabase-js';
 
 interface Profile {
@@ -14,7 +14,8 @@ interface Submission {
     title: string;
     url: string;
     description: string | null;
-    status: 'pending' | 'approved' | 'rejected';
+    thumbnail_url: string | null;
+    status: 'pending' | 'approved' | 'rejected' | 'deleted';
     created_at: string;
     reviewed_at: string | null;
     rejection_reason: string | null;
@@ -33,23 +34,38 @@ export default function CuratorDashboard({ user, role }: Props) {
     // User/Profile come from props now
     const [submissions, setSubmissions] = useState<Submission[]>([]);
     const [pendingSubmissions, setPendingSubmissions] = useState<Submission[]>([]);
-    const [filter, setFilter] = useState('all'); // all, pending, approved, rejected
+    const [deletedSubmissions, setDeletedSubmissions] = useState<Submission[]>([]);
+    const [globalResources, setGlobalResources] = useState<Submission[]>([]);
+    const [filter, setFilter] = useState('all'); // all, pending, approved, rejected, deleted, global
+    const [error, setError] = useState<string | null>(null);
+
+    const fetchData = async () => {
+        if (!user) return;
+        setLoading(true);
+        setError(null);
+        try {
+            await fetchSubmissions(user.id);
+            if (role === 'curator' || role === 'admin') {
+                await fetchPendingSubmissions();
+            }
+            if (role === 'admin') {
+                await fetchDeletedSubmissions();
+                await fetchGlobalResources();
+            }
+        } catch (err: any) {
+            console.error('Dashboard load error:', err);
+            setError('Failed to load dashboard data. Please try again.');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        if (user) {
-            initDashboard();
-        }
-    }, [user]);
+        fetchData();
+    }, [user, role]);
 
-    const initDashboard = async () => {
-        setLoading(true);
-        await fetchSubmissions(user.id);
-
-        // Only fetch pending if curator/admin
-        if (role === 'curator' || role === 'admin') {
-            await fetchPendingSubmissions();
-        }
-        setLoading(false);
+    const handleRefresh = () => {
+        fetchData();
     };
 
     const fetchSubmissions = async (userId: string) => {
@@ -73,62 +89,132 @@ export default function CuratorDashboard({ user, role }: Props) {
         setPendingSubmissions(pending as unknown as Submission[]);
     };
 
+    const fetchDeletedSubmissions = async () => {
+        const deleted = await getDeletedResources();
+        setDeletedSubmissions(deleted as unknown as Submission[]);
+    };
+
+    const fetchGlobalResources = async () => {
+        const global = await getAllResourcesAdmin();
+        setGlobalResources(global as unknown as Submission[]);
+    };
+
     const handleApprove = async (resourceId: string) => {
+        // Optimistic Update
+        const item = pendingSubmissions.find(s => s.id === resourceId);
+        if (!item) return;
+
+        setPendingSubmissions(prev => prev.filter(s => s.id !== resourceId));
+
+        // If it was my submission, update status in main list
+        setSubmissions(prev => prev.map(s => s.id === resourceId ? { ...s, status: 'approved' } : s));
+
+        // Attempt API
         const result = await approveResource(resourceId);
-        if (result.success) {
-            // Refresh pending list
+        if (!result.success) {
+            // Revert on failure (simplified: just reload or show alert)
+            alert('Failed to approve. Refreshing...');
             fetchPendingSubmissions();
-            // Optionally refresh own submissions if this was theirs
-            if (user) fetchSubmissions(user.id);
-        } else {
-            alert(result.error || 'Failed to approve');
         }
     };
 
     const handleReject = async (resourceId: string) => {
-        const reason = prompt('Reason for rejection (optional):');
+        const reason = prompt('Reason for rejection?');
+        if (reason === null) return;
 
-        // Call API that handles both rejection and email
-        try {
-            // Get auth token
-            const { data: { session } } = await supabase!.auth.getSession();
+        // Optimistic Update
+        setPendingSubmissions(prev => prev.filter(s => s.id !== resourceId));
+        setSubmissions(prev => prev.map(s => s.id === resourceId ? { ...s, status: 'rejected' } : s));
 
-            const response = await fetch('/api/resources/reject', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${session?.access_token}`
-                },
-                body: JSON.stringify({
-                    resourceId,
-                    reason: reason || 'No specific reason provided'
-                })
-            });
+        const result = await rejectResource(resourceId, reason);
+        if (!result.success) {
+            alert('Failed to reject. Refreshing...');
+            fetchPendingSubmissions();
+        }
+    };
 
-            const result = await response.json();
+    const handleDelete = async (resourceId: string) => {
+        if (!confirm('Move this resource to Trash?')) return;
 
-            if (result.success) {
-                // Feedback about email
-                if (result.emailResult?.sent) {
-                    alert(`Submission rejected.\nExample email sent to submitter.`);
-                } else {
-                    alert(`Submission rejected (Saved to DB).\n⚠️ Email Failed: ${result.emailResult?.reason}\n\nCheck your Resend domain verification.`);
-                }
+        // Optimistic Update
+        const itemInGlobal = globalResources.find(s => s.id === resourceId);
+        const itemInMy = submissions.find(s => s.id === resourceId);
 
-                // Refresh both pending submissions and own submissions
-                await fetchPendingSubmissions();
-                if (user) await fetchSubmissions(user.id);
-            } else {
-                alert(result.error || 'Failed to reject');
+        // Remove from ALL views immediately
+        setSubmissions(prev => prev.filter(s => s.id !== resourceId));
+        setGlobalResources(prev => prev.filter(s => s.id !== resourceId));
+        setPendingSubmissions(prev => prev.filter(s => s.id !== resourceId));
+
+        // Add to trash (ensure no duplicates)
+        if (role === 'admin') {
+            const recycledItem = itemInGlobal || itemInMy;
+            if (recycledItem) {
+                setDeletedSubmissions(prev => {
+                    // Remove any existing duplicate first
+                    const filtered = prev.filter(s => s.id !== resourceId);
+                    return [{ ...recycledItem, status: 'deleted', reviewed_at: new Date().toISOString() }, ...filtered];
+                });
             }
-        } catch (error) {
-            console.error('Rejection failed:', error);
-            alert('Failed to reject submission');
+        }
+
+        const result = await deleteResource(resourceId);
+        if (!result.success) {
+            // Revert by refetching
+            alert('Failed to delete. Refreshing...');
+            fetchGlobalResources();
+            if (user) fetchSubmissions(user.id);
+            fetchDeletedSubmissions();
+        }
+    };
+
+    const handleRestore = async (resourceId: string) => {
+        // Optimistic
+        const item = deletedSubmissions.find(s => s.id === resourceId);
+
+        // Remove from trash
+        setDeletedSubmissions(prev => prev.filter(s => s.id !== resourceId));
+
+        // Add to pending (ensure no duplicates)
+        if (item) {
+            setPendingSubmissions(prev => {
+                const filtered = prev.filter(s => s.id !== resourceId);
+                return [{ ...item, status: 'pending' }, ...filtered];
+            });
+            // Also update submissions if it's the user's item
+            setSubmissions(prev => {
+                const filtered = prev.filter(s => s.id !== resourceId);
+                return [{ ...item, status: 'pending' }, ...filtered];
+            });
+        }
+
+        const result = await restoreResource(resourceId);
+        if (!result.success) {
+            alert('Failed to restore. Refreshing...');
+            fetchDeletedSubmissions();
+            fetchPendingSubmissions();
+            if (user) fetchSubmissions(user.id);
+        }
+    };
+
+    const handlePermanentDelete = async (resourceId: string) => {
+        if (!confirm('Are you ABSOLUTELY SURE? This cannot be undone.')) return;
+
+        // Optimistic - remove from everywhere
+        setDeletedSubmissions(prev => prev.filter(s => s.id !== resourceId));
+        setSubmissions(prev => prev.filter(s => s.id !== resourceId));
+        setGlobalResources(prev => prev.filter(s => s.id !== resourceId));
+        setPendingSubmissions(prev => prev.filter(s => s.id !== resourceId));
+
+        const result = await permanentDeleteResource(resourceId);
+        if (!result.success) {
+            alert('Failed to delete. Refreshing...');
+            fetchDeletedSubmissions();
+            if (user) fetchSubmissions(user.id);
         }
     };
 
     const filteredSubmissions = submissions.filter(sub => {
-        if (filter === 'all') return true;
+        if (filter === 'all') return true; // Show everything, including deleted
         return sub.status === filter;
     });
 
@@ -146,6 +232,7 @@ export default function CuratorDashboard({ user, role }: Props) {
             case 'approved': return '✓';
             case 'pending': return '⏱';
             case 'rejected': return '✗';
+            case 'deleted': return '🗑';
             default: return '•';
         }
     };
@@ -154,6 +241,17 @@ export default function CuratorDashboard({ user, role }: Props) {
         return (
             <div className="curator-dashboard">
                 <div className="loading">Loading your dashboard...</div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="curator-dashboard">
+                <div className="error-state" style={{ textAlign: 'center', padding: '4rem' }}>
+                    <p style={{ color: '#EF4444', marginBottom: '1rem' }}>{error}</p>
+                    <button onClick={handleRefresh} className="btn-secondary">Retry</button>
+                </div>
             </div>
         );
     }
@@ -170,19 +268,24 @@ export default function CuratorDashboard({ user, role }: Props) {
                     <p className="welcome">Welcome back, {user?.user_metadata?.full_name || user?.email}!</p>
                 </div>
                 <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                    <button onClick={handleRefresh} className="btn-refresh-text">
+                        Refresh
+                    </button>
                     {role === 'admin' && (
-                        <a href="/admin/dashboard" className="btn-admin-panel">
+                        <a
+                            href="/admin/dashboard"
+                            className="btn-admin-panel"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
                             Admin Panel
                         </a>
                     )}
-                    <a href="/resources/submit" className="btn-submit-new">
-                        + Submit New Resource
-                    </a>
                     <button
                         onClick={() => supabase?.auth.signOut().then(() => window.location.href = '/resources')}
-                        className="btn-logout"
+                        className="btn-logout-prominent"
                     >
-                        Logout
+                        Sign Out
                     </button>
                 </div>
             </div>
@@ -204,11 +307,36 @@ export default function CuratorDashboard({ user, role }: Props) {
                     <div className="stat-value">{rejectedCount}</div>
                     <div className="stat-label">Rejected</div>
                 </div>
+                {role === 'admin' && (
+                    <div className="stat-card deleted">
+                        <div className="stat-value">{deletedSubmissions.length}</div>
+                        <div className="stat-label">Trash</div>
+                    </div>
+                )}
+            </div>
+
+            <div style={{ marginBottom: '1.5rem' }}>
+                <div className="quick-nav-buttons">
+                    <a href="/resources" className="btn-quick-nav">
+                        <span style={{ marginRight: '0.5rem' }}>🔍</span>
+                        Explore All Approved Resources
+                    </a>
+                    <a href={`/resources/u/${user?.user_metadata?.username || 'me'}`} className="btn-quick-nav">
+                        <span style={{ marginRight: '0.5rem' }}>⭐</span>
+                        View Saved Collection
+                    </a>
+                </div>
+            </div>
+
+            <div style={{ marginBottom: '3rem' }}>
+                <a href="/resources/submit" className="btn-submit-new-prominent">
+                    + Submit New Resource
+                </a>
             </div>
 
             <div className="submissions-section">
                 <div className="section-header">
-                    <h2>My Submissions</h2>
+                    <h2>{filter === 'global' ? 'Global Library (All Users)' : 'My Submissions'}</h2>
                     <div className="filter-tabs">
                         <button
                             className={filter === 'all' ? 'active' : ''}
@@ -234,56 +362,119 @@ export default function CuratorDashboard({ user, role }: Props) {
                         >
                             Rejected ({rejectedCount})
                         </button>
+                        {role === 'admin' && (
+                            <>
+                                <button
+                                    className={filter === 'deleted' ? 'active' : ''}
+                                    onClick={() => setFilter('deleted')}
+                                >
+                                    Trash ({deletedSubmissions.length})
+                                </button>
+                                <button
+                                    className={filter === 'global' ? 'active' : ''}
+                                    onClick={() => setFilter('global')}
+                                    style={{ marginLeft: '1rem', borderLeft: '1px solid var(--border-subtle)' }}
+                                >
+                                    Global Library ({globalResources.length})
+                                </button>
+                            </>
+                        )}
                     </div>
                 </div>
 
-                {filteredSubmissions.length === 0 ? (
-                    <div className="empty-state">
-                        <p>No submissions found.</p>
-                        <a href="/resources/submit" className="btn-secondary">Submit Your First Resource</a>
-                    </div>
-                ) : (
+                {filter === 'global' ? (
                     <div className="submissions-list">
-                        {filteredSubmissions.map(submission => (
+                        {globalResources.map(submission => (
                             <div key={submission.id} className="submission-card">
-                                <div className="submission-header">
-                                    <h3>{submission.title}</h3>
-                                    <span
-                                        className="status-badge"
-                                        style={{
-                                            background: getStatusColor(submission.status),
-                                            color: 'white'
-                                        }}
-                                    >
-                                        {getStatusIcon(submission.status)} {submission.status}
-                                    </span>
-                                </div>
-                                <p className="submission-url">{submission.url}</p>
-                                {submission.description && (
-                                    <p className="submission-description">{submission.description}</p>
-                                )}
-                                <div className="submission-meta">
-                                    <span>Submitted {new Date(submission.created_at).toLocaleDateString()}</span>
-                                    {submission.reviewed_at && (
-                                        <span>• Reviewed {new Date(submission.reviewed_at).toLocaleDateString()}</span>
-                                    )}
-                                </div>
-                                {submission.rejection_reason && (
-                                    <div className="rejection-reason">
-                                        <strong>Rejection reason:</strong> {submission.rejection_reason}
+                                {submission.thumbnail_url && (
+                                    <div className="card-thumbnail">
+                                        <img src={submission.thumbnail_url} alt={submission.title} loading="lazy" />
+                                        <span
+                                            className="status-badge-overlay"
+                                            style={{
+                                                background: getStatusColor(submission.status)
+                                            }}
+                                        >
+                                            {submission.status.toUpperCase()}
+                                        </span>
                                     </div>
                                 )}
-                                <div className="submission-actions">
-                                    {submission.status === 'approved' && (
+                                <div className="card-content">
+                                    <div className="submission-header">
+                                        <h3>{submission.title}</h3>
+                                    </div>
+                                    <p className="submission-url">{submission.url}</p>
+                                    <div className="submission-actions">
                                         <a href={`/resources/${submission.id}`} className="btn-view">View Resource</a>
-                                    )}
-                                    {submission.status === 'pending' && (
-                                        <a href={`/resources/submit?edit=${submission.id}`} className="btn-edit">Edit</a>
-                                    )}
+                                        {role === 'admin' && (
+                                            <button
+                                                onClick={() => handleDelete(submission.id)}
+                                                className="btn-delete"
+                                                title="Move to Trash"
+                                            >
+                                                <span>🗑</span> Delete
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         ))}
                     </div>
+                ) : filter === 'deleted' ? null : (
+                    filteredSubmissions.length === 0 ? (
+                        <div className="empty-state">
+                            <p>No submissions found.</p>
+                            <a href="/resources/submit" className="btn-secondary">Submit Your First Resource</a>
+                        </div>
+                    ) : (
+                        <div className="submissions-list">
+                            {filteredSubmissions.map(submission => (
+                                <div key={submission.id} className="submission-card">
+                                    {submission.thumbnail_url && (
+                                        <div className="card-thumbnail">
+                                            <img src={submission.thumbnail_url} alt={submission.title} loading="lazy" />
+                                            <span
+                                                className="status-badge-overlay"
+                                                style={{
+                                                    background: getStatusColor(submission.status)
+                                                }}
+                                            >
+                                                {submission.status.toUpperCase()}
+                                            </span>
+                                        </div>
+                                    )}
+                                    <div className="card-content">
+                                        <div className="submission-header">
+                                            <h3>{submission.title}</h3>
+                                        </div>
+                                        <p className="submission-url">{submission.url}</p>
+
+                                        {submission.rejection_reason && (
+                                            <div className="rejection-reason">
+                                                <strong>Rejection reason:</strong> {submission.rejection_reason}
+                                            </div>
+                                        )}
+                                        <div className="submission-actions">
+                                            <a href={`/resources/${submission.id}`} className="btn-view">View Resource</a>
+                                            {submission.status === 'pending' && (
+                                                <a href={`/resources/submit?edit=${submission.id}`} className="btn-edit">Edit</a>
+                                            )}
+                                            {role === 'admin' && submission.status !== 'deleted' && (
+                                                <button
+                                                    onClick={() => handleDelete(submission.id)}
+                                                    className="btn-delete"
+                                                    title="Move to Trash"
+                                                    style={{ gap: '0.5rem' }}
+                                                >
+                                                    <span>🗑</span> Delete
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )
                 )}
             </div>
 
@@ -298,47 +489,65 @@ export default function CuratorDashboard({ user, role }: Props) {
                     <div className="submissions-list">
                         {pendingSubmissions.map(submission => (
                             <div key={submission.id} className="submission-card pending-review">
-                                <div className="submission-header">
-                                    <h3>{submission.title}</h3>
-                                    <span
-                                        className="status-badge"
-                                        style={{
-                                            background: '#F59E0B',
-                                            color: 'white'
-                                        }}
-                                    >
-                                        ⏱ pending
-                                    </span>
-                                </div>
-                                <p className="submission-url">{submission.url}</p>
-                                {submission.description && (
-                                    <p className="submission-description">{submission.description}</p>
+                                {submission.thumbnail_url && (
+                                    <div className="card-thumbnail">
+                                        <img src={submission.thumbnail_url} alt={submission.title} loading="lazy" />
+                                    </div>
                                 )}
-                                <div className="submission-meta">
-                                    <span>Submitted by {submission.submitter_profile?.full_name || submission.submitter_profile?.username || 'Unknown'}</span>
-                                    <span>• {new Date(submission.created_at).toLocaleDateString()}</span>
-                                </div>
-                                <div className="submission-actions">
-                                    <button
-                                        onClick={() => handleApprove(submission.id)}
-                                        className="btn-approve"
-                                    >
-                                        ✓ Approve
-                                    </button>
-                                    <button
-                                        onClick={() => handleReject(submission.id)}
-                                        className="btn-reject"
-                                    >
-                                        ✗ Reject
-                                    </button>
-                                    <a
-                                        href={submission.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="btn-preview"
-                                    >
-                                        Preview →
-                                    </a>
+                                <div className="card-content">
+                                    <div className="submission-header">
+                                        <h3>{submission.title}</h3>
+                                    </div>
+                                    <p className="submission-url">{submission.url}</p>
+                                    <div style={{ marginBottom: '1rem' }}>
+                                        <span
+                                            className="status-badge"
+                                            style={{
+                                                background: '#F59E0B',
+                                                color: 'white',
+                                                fontSize: '0.75rem',
+                                                padding: '0.25rem 0.75rem',
+                                                borderRadius: '100px',
+                                                fontWeight: 600,
+                                                letterSpacing: '0.05em',
+                                                textTransform: 'uppercase'
+                                            }}
+                                        >
+                                            ⏱ pending
+                                        </span>
+                                    </div>
+                                    <div className="submission-actions">
+                                        <button
+                                            onClick={() => handleApprove(submission.id)}
+                                            className="btn-approve"
+                                        >
+                                            ✓ Approve
+                                        </button>
+                                        <button
+                                            onClick={() => handleReject(submission.id)}
+                                            className="btn-reject"
+                                        >
+                                            ✗ Reject
+                                        </button>
+                                        <a
+                                            href={submission.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="btn-preview"
+                                        >
+                                            Preview →
+                                        </a>
+                                        {role === 'admin' && (
+                                            <button
+                                                onClick={() => handleDelete(submission.id)}
+                                                className="btn-delete"
+                                                title="Move to Trash"
+                                                style={{ gap: '0.5rem' }}
+                                            >
+                                                <span>🗑</span> Delete
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         ))}
@@ -346,22 +555,49 @@ export default function CuratorDashboard({ user, role }: Props) {
                 </div>
             )}
 
-            <div className="quick-links">
-                <a href="/resources" className="link-card">
-                    <span className="icon">🔍</span>
-                    <div>
-                        <h3>Browse Resources</h3>
-                        <p>Explore all approved resources</p>
+            {/* Trash Bin (Admin Only) */}
+            {role === 'admin' && filter === 'deleted' && (
+                <div className="submissions-section">
+                    <div className="section-header">
+                        <h2>🗑 Trash Bin</h2>
+                        <span className="pending-count" style={{ background: '#EF4444' }}>{deletedSubmissions.length} items</span>
                     </div>
-                </a>
-                <a href="/resources/saved" className="link-card">
-                    <span className="icon">💾</span>
-                    <div>
-                        <h3>Saved Resources</h3>
-                        <p>View your saved collection</p>
+
+                    <div className="submissions-list">
+                        {deletedSubmissions.map(submission => (
+                            <div key={submission.id} className="submission-card" style={{ opacity: 0.7 }}>
+                                {submission.thumbnail_url && (
+                                    <div className="card-thumbnail">
+                                        <img src={submission.thumbnail_url} alt={submission.title} loading="lazy" />
+                                    </div>
+                                )}
+                                <div className="card-content">
+                                    <div className="submission-header">
+                                        <h3>{submission.title}</h3>
+                                    </div>
+                                    <p className="submission-url">{submission.url}</p>
+                                    <div style={{ marginBottom: '1rem' }}>
+                                        <span className="status-badge" style={{ background: '#EF4444', color: 'white', fontSize: '0.75rem', padding: '0.25rem 0.75rem', borderRadius: '100px', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Deleted</span>
+                                    </div>
+                                    <div className="submission-meta">
+                                        Deleted at {submission.reviewed_at ? new Date(submission.reviewed_at).toLocaleDateString() : 'Unknown'}
+                                    </div>
+                                    <div className="submission-actions">
+                                        <button onClick={() => handleRestore(submission.id)} className="btn-approve">
+                                            ↺ Restore
+                                        </button>
+                                        <button onClick={() => handlePermanentDelete(submission.id)} className="btn-delete">
+                                            ⚠ Delete Forever
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
                     </div>
-                </a>
-            </div>
+                </div>
+            )}
+
+
 
             <style>{`
                 .curator-dashboard {
@@ -441,16 +677,17 @@ export default function CuratorDashboard({ user, role }: Props) {
 
                 .stats-grid {
                     display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                    /* Ensure they fit in one row on desktop (pending count etc might make 5 items) */
+                    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
                     gap: 1rem;
-                    margin-bottom: 3rem;
+                    margin-bottom: 2rem;
                 }
 
                 .stat-card {
                     background: var(--bg-surface);
                     border: 1px solid var(--border-subtle);
                     border-radius: 12px;
-                    padding: 1.5rem;
+                    padding: 1rem;
                     text-align: center;
                 }
 
@@ -466,11 +703,16 @@ export default function CuratorDashboard({ user, role }: Props) {
                     border-color: #EF4444;
                 }
 
+                .stat-card.deleted {
+                    border-color: #6B7280;
+                    opacity: 0.8;
+                }
+
                 .stat-value {
-                    font-size: 2.5rem;
+                    font-size: 1.75rem;
                     font-weight: 700;
                     color: var(--text-primary);
-                    margin-bottom: 0.5rem;
+                    margin-bottom: 0.25rem;
                 }
 
                 .stat-label {
@@ -486,31 +728,24 @@ export default function CuratorDashboard({ user, role }: Props) {
 
                 .section-header {
                     display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    margin-bottom: 1.5rem;
-                    gap: 1rem;
-                    flex-wrap: wrap;
+                    flex-direction: column; /* Stack them */
+                    align-items: flex-start;
+                    gap: 1.5rem;
+                    margin-bottom: 2rem;
                 }
 
                 .section-header h2 {
                     margin: 0;
-                    font-size: 1.5rem;
+                    font-size: 2.5rem; /* Larger font */
+                    font-weight: 700;
+                    letter-spacing: -0.02em;
                 }
-
-                .pending-count {
-                    background: #F59E0B;
-                    color: white;
-                    padding: 0.25rem 0.75rem;
-                    border-radius: 100px;
-                    font-size: 0.875rem;
-                    font-weight: 600;
-                }
-
+                
                 .filter-tabs {
                     display: flex;
-                    gap: 0.5rem;
+                    gap: 0.75rem;
                     flex-wrap: wrap;
+                    width: 100%; /* Full width for tabs */
                 }
 
                 .filter-tabs button {
@@ -536,30 +771,72 @@ export default function CuratorDashboard({ user, role }: Props) {
                 }
 
                 .submissions-list {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 1rem;
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                    gap: 1.5rem;
                 }
 
                 .submission-card {
                     background: var(--bg-surface);
                     border: 1px solid var(--border-subtle);
                     border-radius: 12px;
-                    padding: 1.5rem;
+                    overflow: hidden;
+                    display: flex;
+                    flex-direction: column;
+                    height: 100%;
+                    transition: transform 0.2s, box-shadow 0.2s;
+                }
+
+                .submission-card:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                }
+
+                .card-thumbnail {
+                    position: relative;
+                    width: 100%;
+                    height: 160px;
+                    background: var(--bg-surface-hover);
+                    overflow: hidden;
+                }
+
+                .status-badge-overlay {
+                    position: absolute;
+                    top: 8px;
+                    right: 8px;
+                    color: white;
+                    font-size: 0.7rem;
+                    padding: 0.25rem 0.5rem;
+                    border-radius: 6px;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    letter-spacing: 0.02em;
+                    backdrop-filter: blur(4px);
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+                }
+
+                .card-thumbnail img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                }
+
+                .card-content {
+                    padding: 1.25rem;
+                    display: flex;
+                    flex-direction: column;
+                    flex: 1;
                 }
 
                 .submission-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: flex-start;
-                    gap: 1rem;
-                    margin-bottom: 0.75rem;
+                    margin-bottom: 0.5rem;
                 }
 
                 .submission-header h3 {
                     margin: 0;
                     font-size: 1.125rem;
                     color: var(--text-primary);
+                    line-height: 1.4;
                 }
 
                 .status-badge {
@@ -573,8 +850,8 @@ export default function CuratorDashboard({ user, role }: Props) {
                 }
 
                 .submission-url {
-                    color: var(--text-secondary);
-                    font-size: 0.875rem;
+                    color: var(--text-tertiary);
+                    font-size: 0.75rem;
                     margin: 0 0 0.5rem 0;
                     word-break: break-all;
                 }
@@ -603,6 +880,8 @@ export default function CuratorDashboard({ user, role }: Props) {
                 .submission-actions {
                     display: flex;
                     gap: 0.5rem;
+                    margin-top: auto; /* Push to bottom */
+                    flex-wrap: wrap;
                 }
 
                 .btn-view, .btn-edit {
@@ -690,6 +969,130 @@ export default function CuratorDashboard({ user, role }: Props) {
                     border-radius: 8px;
                     text-decoration: none;
                     font-weight: 500;
+                }
+
+                    font-weight: 500;
+                }
+
+                .btn-refresh {
+                    background: #334155; /* Match Admin Panel */
+                    color: white;
+                    border: none;
+                    height: 48px;
+                    width: 48px;
+                    border-radius: 8px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+                    font-size: 1.25rem;
+                    transition: all 0.2s;
+                    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+                }
+                .btn-refresh:hover {
+                    background: #1e293b;
+                    transform: rotate(180deg);
+                }
+
+                .btn-refresh-text {
+                    background: transparent;
+                    border: 1px solid var(--border-subtle);
+                    color: var(--text-primary);
+                    padding: 0.8rem 1.5rem;
+                    border-radius: 8px;
+                    font-weight: 500;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                }
+                .btn-refresh-text:hover {
+                    background: var(--bg-surface-hover);
+                    border-color: var(--text-primary);
+                }
+
+                .btn-logout-prominent {
+                    background: #EF4444;
+                    color: white;
+                    border: none;
+                    padding: 0.8rem 1.5rem;
+                    border-radius: 8px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                }
+                .btn-logout-prominent:hover {
+                    background: #DC2626;
+                    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+                }
+
+                .quick-nav-buttons {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 1rem;
+                    width: 100%;
+                }
+
+                .btn-quick-nav {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 1.5rem;
+                    background: var(--bg-surface);
+                    color: var(--text-primary);
+                    border: 1px solid var(--border-subtle);
+                    border-radius: 12px;
+                    text-decoration: none;
+                    font-weight: 600;
+                    font-size: 1rem;
+                    transition: all 0.2s;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+                }
+                .btn-quick-nav:hover {
+                    background: var(--bg-surface-hover);
+                    border-color: var(--text-primary);
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+                }
+
+                .btn-submit-new-prominent {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 100%;
+                    padding: 1.5rem;
+                    background: var(--text-primary);
+                    color: var(--bg-color);
+                    border-radius: 12px;
+                    text-decoration: none;
+                    font-weight: 700;
+                    font-size: 1.1rem;
+                    transition: transform 0.2s, opacity 0.2s;
+                    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+                }
+                .btn-submit-new-prominent:hover {
+                    transform: translateY(-2px);
+                    opacity: 0.95;
+                    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+                }
+
+                .btn-delete {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 0.5rem;
+                    padding: 0.5rem 1rem;
+                    border-radius: 6px;
+                    text-decoration: none;
+                    font-size: 0.875rem;
+                    font-weight: 500;
+                    border: none;
+                    background: #EF4444;
+                    color: white;
+                    cursor: pointer;
+                    transition: opacity 0.2s;
+                }
+
+                .btn-delete:hover {
+                    opacity: 0.8;
                 }
 
                 .quick-links {

@@ -250,7 +250,7 @@ export async function getPendingResources(): Promise<HubResource[]> {
       *,
       submitter_profile:submitted_by (username, full_name, avatar_url)
     `)
-        .eq('status', 'pending')
+        .in('status', ['pending']) // Explicitly only pending
         .order('created_at', { ascending: true });
 
     if (error) {
@@ -263,7 +263,7 @@ export async function getPendingResources(): Promise<HubResource[]> {
 
 export async function updateResourceStatus(
     resourceId: string,
-    status: 'approved' | 'rejected',
+    status: 'approved' | 'rejected' | 'pending' | 'deleted',
     adminNotes?: string
 ): Promise<{ success: boolean; error?: string }> {
     if (!supabase) return { success: false, error: 'Database not connected' };
@@ -560,4 +560,139 @@ export async function rejectResource(resourceId: string, reason?: string): Promi
         console.error('Rejection failed:', e);
         return { success: false, error: e.message };
     }
+}
+
+export async function deleteResource(resourceId: string): Promise<{ success: boolean; error?: string }> {
+    if (!supabase) return { success: false, error: 'Database not connected' };
+
+    try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return { success: false, error: 'Unauthorized' };
+
+        // Verify Admin Role
+        const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+        if (profile?.role !== 'admin') {
+            return { success: false, error: 'Only admins can delete resources.' };
+        }
+
+        // SOFT DELETE: Update status to 'deleted'
+        const { error } = await supabase
+            .from('hub_resources')
+            .update({ status: 'deleted', reviewed_at: new Date().toISOString(), reviewed_by: user.id })
+            .eq('id', resourceId);
+
+        if (error) throw error;
+        return { success: true };
+
+    } catch (e: any) {
+        console.error('Soft Deletion failed:', e);
+        return { success: false, error: e.message };
+    }
+}
+
+export async function restoreResource(resourceId: string): Promise<{ success: boolean; error?: string }> {
+    if (!supabase) return { success: false, error: 'Database not connected' };
+
+    try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return { success: false, error: 'Unauthorized' };
+
+        const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+        if (profile?.role !== 'admin') {
+            return { success: false, error: 'Only admins can restore resources.' };
+        }
+
+        // Restore to pending
+        const { error } = await supabase
+            .from('hub_resources')
+            .update({ status: 'pending', reviewed_at: new Date().toISOString(), reviewed_by: user.id })
+            .eq('id', resourceId);
+
+        if (error) throw error;
+        return { success: true };
+
+    } catch (e: any) {
+        console.error('Restore failed:', e);
+        return { success: false, error: e.message };
+    }
+}
+
+export async function permanentDeleteResource(resourceId: string): Promise<{ success: boolean; error?: string }> {
+    if (!supabase) return { success: false, error: 'Database not connected' };
+
+    try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return { success: false, error: 'Unauthorized' };
+
+        const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+        if (profile?.role !== 'admin') {
+            return { success: false, error: 'Only admins can permanently delete resources.' };
+        }
+
+        const { error } = await supabase
+            .from('hub_resources')
+            .delete()
+            .eq('id', resourceId);
+
+        if (error) throw error;
+        return { success: true };
+
+    } catch (e: any) {
+        console.error('Permanent Deletion failed:', e);
+        return { success: false, error: e.message };
+    }
+}
+
+export async function getDeletedResources(): Promise<HubResource[]> {
+    if (!supabase) return [];
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return [];
+
+    // Verify Admin
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+    if (profile?.role !== 'admin') return [];
+
+    const { data, error } = await supabase
+        .from('hub_resources')
+        .select(`
+      *,
+      submitter_profile:submitted_by (username, full_name, avatar_url)
+    `)
+        .eq('status', 'deleted')
+        .order('reviewed_at', { ascending: false }); // Show most recently deleted first
+
+    if (error) {
+        console.error('Error fetching deleted resources:', error);
+        return [];
+    }
+
+    return data;
+}
+
+export async function getAllResourcesAdmin(): Promise<HubResource[]> {
+    if (!supabase) return [];
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return [];
+
+    // Verify Admin
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+    if (profile?.role !== 'admin') return [];
+
+    const { data, error } = await supabase
+        .from('hub_resources')
+        .select(`
+      *,
+      submitter_profile:submitted_by (username, full_name, avatar_url)
+    `)
+        .neq('status', 'deleted') // Exclude deleted (trash)
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Error fetching all resources:', error);
+        return [];
+    }
+
+    return data;
 }

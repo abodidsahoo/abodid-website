@@ -31,5 +31,8 @@
     "resend": "^6.8.0",
     "sharp": "^0.33.2",
     "three": "^0.182.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.0"
   }
 }
