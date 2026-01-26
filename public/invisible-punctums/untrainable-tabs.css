@@ -1,0 +1,1866 @@
+/* ===========================
+   TABS SHELL (UPDATED)
+=========================== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+.um-root {
+  width: 100%;
+  padding: 16px;
+  box-sizing: border-box;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+}
+
+/* Header row: left tabs + right toggle on same line */
+.um-tabs {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+@media (min-width: 768px) {
+  .um-tabs {
+    justify-content: center;
+  }
+}
+
+
+.um-tabs-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+/* Center the whole tab group on larger screens */
+@media (min-width: 768px) {
+  .um-tabs-left {
+    justify-content: center;
+    width: 100%;
+  }
+}
+
+
+
+.um-tabs-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 0 0 auto;
+}
+
+
+
+.um-global-controls {
+  position: fixed;
+  right: 16px;
+  bottom: 20px;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+@media (max-width: 767px) {
+  .um-global-controls {
+    right: 12px;
+    bottom: 16px;
+    gap: 8px;
+  }
+}
+
+
+
+
+/* Tab buttons unchanged */
+.um-tab {
+  height: var(--tabH);
+  padding: 0 20px;
+  /* larger horizontal padding for elegance */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 10px;
+  /* smaller */
+  font-weight: 400;
+  /* thin */
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-radius: 30px;
+  /* pill shape */
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.1);
+  color: #555;
+  cursor: pointer;
+  transition: all .2s ease;
+  white-space: nowrap;
+  backdrop-filter: blur(4px);
+}
+
+.um-tab:hover {
+  background: rgba(255, 255, 255, 0.4);
+  color: #222;
+  border-color: rgba(130, 110, 210, 0.2);
+  /* slight pastel purple border */
+}
+
+.um-tab.is-active {
+  background: rgba(130, 110, 210, 0.15);
+  /* Pastel bluish-purple */
+  color: #222;
+  border-color: rgba(130, 110, 210, 0.4);
+  box-shadow: 0 2px 10px rgba(130, 110, 210, 0.1);
+}
+
+.um-panel {
+  display: none;
+  width: 100%;
+  padding-top: 100px;
+  /* Space for sticky header */
+}
+
+.um-panel[data-panel="t4"] {
+  padding-top: 140px;
+  /* Extra space for Bubbles */
+}
+
+.um-panel.is-active {
+  display: block;
+}
+
+/* Mobile tweaks */
+@media (max-width: 767px) {
+  .um-root {
+    padding: 10px;
+  }
+
+  .um-tabs {
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .um-tab {
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+
+  /* Keep toggle aligned nicely when wrapping */
+  .um-tabs-right {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+
+/* ===========================
+   THEME TOKENS
+=========================== */
+:root {
+  --pad: 16px;
+  --gap: 16px;
+  --radius: 14px;
+  --bg: #ffffff;
+
+  --ui: rgba(255, 255, 255, 0.85);
+  --uiBorder: rgba(0, 0, 0, 0.10);
+  --uiText: rgba(0, 0, 0, 0.86);
+  --uiMuted: rgba(0, 0, 0, 0.55);
+  --shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+
+  --chipBg: rgba(0, 0, 0, 0.06);
+  --btnBg: rgba(255, 255, 255, 0.88);
+  --btnBorder: rgba(0, 0, 0, 0.12);
+
+  --overlayBtnBg: rgba(255, 255, 255, 0.82);
+  --overlayBtnText: rgba(0, 0, 0, 0.82);
+
+  --tabControlH: 36px;
+  /* exact visual height of tab buttons */
+  --tabH: 36px;
+}
+
+body {
+  background: var(--bg);
+  transition: background 0.3s ease;
+  color: var(--uiText);
+}
+
+body.dark-mode {
+  --bg: #0b0b0b;
+  --ui: rgba(20, 20, 20, 0.72);
+  --uiBorder: rgba(255, 255, 255, 0.12);
+  --uiText: rgba(255, 255, 255, 0.92);
+  --uiMuted: rgba(255, 255, 255, 0.62);
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
+  --chipBg: rgba(255, 255, 255, 0.10);
+  --btnBg: rgba(20, 20, 20, 0.70);
+  --btnBorder: rgba(255, 255, 255, 0.14);
+  --overlayBtnBg: rgba(20, 20, 20, 0.70);
+  --overlayBtnText: rgba(255, 255, 255, 0.90);
+}
+
+/* ===========================
+   PHOTO WALL (Tabs 1 & 2)
+=========================== */
+.wf-wall {
+  width: 100%;
+  background: transparent;
+  position: relative;
+  overflow-x: hidden;
+}
+
+.wf-wall-inner {
+  width: 100%;
+  padding: var(--pad);
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+/* Theme toggle aligned with tabs */
+
+/* Hide duplicate top toggle */
+.um-tabs-right .wf-theme-btn {
+  display: none;
+}
+
+.um-tabs-right .wf-theme-option {
+  display: none;
+}
+
+
+
+.wf-bottom-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+
+/* Bottom toggle styled like top "pill" (Glassmorphism + Thinner) */
+/* Theme Group Wrapper */
+.wf-theme-group {
+  display: flex;
+  gap: 8px;
+  /* Gap between the two buttons */
+}
+
+/* Independent Theme Buttons (Light / Dark) */
+/* Exact replica of .wf-goto-btn styles */
+.wf-mode-btn {
+  /* Container Shape & Texture */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: var(--btnBg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--btnBorder);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  gap: 12px;
+
+  /* Typography */
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: var(--uiText);
+  line-height: 1;
+
+  /* Inactive State by default */
+  opacity: 0.5;
+}
+
+.wf-mode-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+  opacity: 0.8;
+}
+
+/* Active State: Highlighted (Bold + Inverted Border) */
+.wf-mode-btn.active {
+  opacity: 1;
+  font-weight: 700;
+  border-color: var(--uiText);
+  /* Highlight Border */
+}
+
+
+
+
+body.dark-mode .wf-bottom-controls .wf-theme-option.active {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+
+
+
+.wf-goto-btn,
+.wf-loadmore-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--btnBg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--btnBorder);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.wf-goto-btn {
+  border-radius: 6px;
+  padding: 6px 12px;
+}
+
+.wf-loadmore-btn {
+  border-radius: 8px;
+  padding: 10px 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.wf-goto-btn:hover,
+.wf-loadmore-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
+.wf-goto-text,
+.wf-loadmore-text {
+  font-size: 10px;
+  font-weight: 500;
+  /* Thinner font */
+  color: var(--uiText);
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.wf-block {
+  width: 100%;
+  display: grid;
+  gap: var(--gap);
+}
+
+/* ===========================
+   GRID SYSTEM (Missing in original)
+=========================== */
+.wf-row {
+  display: grid;
+  width: 100%;
+  gap: var(--gap);
+
+  /* CRITICAL: Prevent overlaps with strict containment */
+  position: relative;
+  isolation: isolate;
+  /* REMOVED: contain: layout style paint; - causes Safari height calculation issues */
+  flex-shrink: 0;
+
+  /* Force separate stacking context for each row */
+  z-index: auto;
+
+  /* REMOVED: margin-bottom - spacing handled by parent flex gap only */
+
+  /* Prevent any overflow from escaping */
+  overflow: visible;
+
+  /* ADDED: Ensure minimum height to prevent collapse during loading */
+  min-height: 200px;
+}
+
+.wf-col {
+  position: relative;
+  width: 100%;
+  height: 100%;
+
+  /* CRITICAL: Strict containment for each column */
+  isolation: isolate;
+  contain: layout style;
+
+  /* Prevent any content from escaping column bounds */
+  overflow: hidden;
+}
+
+/* Layout Variations */
+.wf-hero {
+  grid-template-columns: 1fr;
+  height: min(80vh, 800px);
+  min-height: min(80vh, 800px);
+}
+
+.wf-split {
+  height: min(70vh, 760px);
+  grid-template-columns: 1fr 1fr;
+  min-height: min(70vh, 760px);
+}
+
+.wf-23 {
+  height: min(70vh, 760px);
+  grid-template-columns: 2fr 1fr;
+  min-height: min(70vh, 760px);
+}
+
+.wf-32 {
+  height: min(70vh, 760px);
+  grid-template-columns: 1fr 2fr;
+  min-height: min(70vh, 760px);
+}
+
+.wf-3up {
+  height: min(62vh, 680px);
+  grid-template-columns: repeat(3, 1fr);
+  min-height: min(62vh, 680px);
+}
+
+.wf-4up {
+  height: min(56vh, 620px);
+  grid-template-columns: repeat(4, 1fr);
+  min-height: min(56vh, 620px);
+}
+
+@media (max-width: 991px) {
+  .wf-3up {
+    grid-template-columns: repeat(2, 1fr);
+    height: min(70vh, 760px);
+  }
+
+  .wf-4up {
+    grid-template-columns: repeat(2, 1fr);
+    height: min(70vh, 760px);
+  }
+}
+
+@media (max-width: 767px) {
+  .um-root {
+    padding: 10px;
+  }
+
+  .um-tab {
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+
+  .wf-split,
+  .wf-23,
+  .wf-32 {
+    grid-template-columns: 1fr;
+    height: auto;
+    min-height: 300px;
+  }
+
+  .wf-3up,
+  .wf-4up {
+    grid-template-columns: 1fr;
+    height: auto;
+    min-height: 300px;
+  }
+
+  .wf-bottom-controls {
+    bottom: 16px;
+    right: 12px;
+  }
+
+  .wf-theme-toggle-wrapper {
+    top: 12px;
+    right: 12px;
+  }
+}
+
+.wf-frame {
+  width: 100%;
+  height: 100%;
+  position: relative;
+
+  /* CRITICAL: Strict overflow and border-radius enforcement */
+  overflow: hidden !important;
+  border-radius: var(--radius) !important;
+  background: rgba(0, 0, 0, 0.03);
+
+  /* Force GPU acceleration and separate layer */
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
+  will-change: transform;
+
+  /* Prevent z-index stacking issues */
+  z-index: 1;
+  isolation: isolate;
+
+  /* Safari-specific fixes for clipping */
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -webkit-perspective: 1000;
+  perspective: 1000;
+
+  /* CRITICAL: Strict clip-path for rounded corners */
+  -webkit-clip-path: inset(0 round var(--radius));
+  clip-path: inset(0 round var(--radius));
+
+  /* Ensure containment */
+  contain: layout style paint;
+}
+
+body.dark-mode .wf-frame {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.wf-img {
+  width: 100%;
+  height: 100%;
+  display: block;
+
+  /* CRITICAL: Ensure image fills container properly */
+  object-fit: cover;
+  object-position: center;
+
+  /* Force GPU rendering */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+
+  /* CRITICAL: Inherit and enforce border-radius */
+  border-radius: var(--radius) !important;
+
+  /* Prevent any overflow or bleeding */
+  max-width: 100%;
+  max-height: 100%;
+
+  /* Ensure smooth rendering */
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+/* ===========================
+   TAB 2 "Share your feeling"
+   - Hover on desktop
+   - Shows always on touch for usability
+=========================== */
+.wf-comment-btn {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  z-index: 5;
+  border: 1px solid var(--btnBorder);
+  background: var(--overlayBtnBg);
+  color: var(--overlayBtnText);
+  border-radius: 999px;
+  padding: 8px 12px;
+  font: 600 12px/1 "Inter", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  letter-spacing: 0.2px;
+  cursor: pointer;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  user-select: none;
+
+  /* Flex for Icon + Text */
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+/* Desktop hover behavior */
+@media (hover: hover) and (pointer: fine) {
+  .wf-comment-btn {
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 180ms ease, transform 180ms ease;
+  }
+
+  .wf-frame:hover .wf-comment-btn,
+  .wf-frame:focus-within .wf-comment-btn {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Touch devices: visible (otherwise no hover exists) */
+@media (hover: none) {
+  .wf-comment-btn {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.wf-loading {
+  position: sticky;
+  bottom: 14px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 220ms ease;
+  z-index: 10;
+}
+
+.wf-loading.is-on {
+  opacity: 1;
+}
+
+.wf-loading-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: var(--ui);
+  border: 1px solid var(--uiBorder);
+  color: var(--uiText);
+  font: 700 13px/1.1 "Inter", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  letter-spacing: 0.2px;
+  animation: wfPulse 1.2s ease-in-out infinite;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.wf-loading-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--uiText);
+  opacity: 0.9;
+}
+
+@keyframes wfPulse {
+
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: translateY(0);
+  }
+
+  50% {
+    opacity: 0.95;
+    transform: translateY(-1px);
+  }
+}
+
+/* Initial Loader Overlay */
+.wf-initial-loader {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  z-index: 50;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 35vh;
+  /* Upper central part */
+  gap: 24px;
+  transition: opacity 0.6s ease;
+}
+
+.wf-initial-loader.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.wf-loader-spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid rgba(0, 0, 0, 0.15);
+  /* Slightly darker track */
+  border-top-color: #000;
+  /* Jet black solid border for contrast */
+  border-radius: 50%;
+  animation: wfSpin 1.1s cubic-bezier(0.65, 0.05, 0.36, 1) infinite;
+  /* Exponential / Logarithmic sort of ease */
+  will-change: transform;
+}
+
+body.dark-mode .wf-loader-spinner {
+  border-color: rgba(255, 255, 255, 0.15);
+  border-top-color: #fff;
+}
+
+.wf-loader-text {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--uiMuted);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  animation: none;
+  /* Removed pulse for cleaner look */
+  text-align: center;
+  /* Centered Text */
+}
+
+@keyframes wfSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes wfPulseText {
+
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+/* ===========================
+   MODAL (Tabs 2 & 3)
+=========================== */
+.wf-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 250;
+  display: none;
+}
+
+.wf-modal.is-open {
+  display: flex;
+  align-items: flex-start;
+  /* Changed from center to fix top position */
+  justify-content: center;
+  padding: 20px;
+  /* Header is ~85px tall at top:24px. We want ~55px gap below it. Total ~150px */
+  padding-top: calc(150px + env(safe-area-inset-top));
+  padding-bottom: calc(20px + env(safe-area-inset-bottom));
+}
+
+.wf-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+body.dark-mode .wf-modal-backdrop {
+  background: rgba(0, 0, 0, 0.60);
+}
+
+.wf-modal-card {
+  position: relative;
+  width: min(640px, calc(100% - 24px));
+  margin: 0;
+  /* Ensure it fits within the remaining space (100vh - 150px top - 20px bottom - 20px cushion) */
+  max-height: calc(100dvh - 190px);
+  /* overflow: hidden; Removed to allow flex scrolling internal */
+  display: flex;
+  flex-direction: column;
+  background: var(--ui);
+  border: 1px solid var(--uiBorder);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  padding: 14px 14px 12px;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  color: var(--uiText);
+}
+
+.wf-modal-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  border: 1px solid var(--uiBorder);
+  background: rgba(255, 255, 255, 0.10);
+  color: inherit;
+  border-radius: 10px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font: 900 14px/1 "Inter", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
+.wf-modal-head {
+  padding: 6px 6px 10px;
+  flex-shrink: 0;
+}
+
+.wf-modal-title {
+  font: 900 19px/1.2 "Inter", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
+.wf-modal-sub {
+  margin-top: 6px;
+  font: 700 12px/1.2 "Inter", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  color: var(--uiMuted);
+}
+
+.wf-modal-preview {
+  width: 100%;
+  border-radius: 14px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.06);
+  border: 1px solid var(--uiBorder);
+  flex-shrink: 0;
+}
+
+.wf-modal-preview img {
+  width: 100%;
+  height: min(24vh, 280px);
+  display: block;
+  object-fit: cover;
+  object-position: center;
+}
+
+.wf-modal-form {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  /* Takes remaining space */
+  min-height: 0;
+  /* Allow shrinking */
+  padding: 0;
+}
+
+.wf-modal-scroll-body {
+  flex: 1;
+  overflow-y: auto;
+  /* Scrollable inputs */
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 6px 4px;
+}
+
+.wf-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.wf-label {
+  font: 800 11px/1 "Inter", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  color: var(--uiMuted);
+  letter-spacing: 0.25px;
+  text-transform: uppercase;
+}
+
+.wf-input,
+.wf-textarea {
+  width: 100%;
+  border: 1px solid var(--uiBorder);
+  background: rgba(255, 255, 255, 0.10);
+  color: inherit;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font: 700 16px/1.25 "Inter", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  outline: none;
+}
+
+body.dark-mode .wf-input,
+body.dark-mode .wf-textarea {
+  background: rgba(0, 0, 0, 0.20);
+}
+
+.wf-textarea {
+  min-height: 72px;
+  resize: none;
+}
+
+.wf-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 0;
+  padding: 10px 6px 0;
+  /* Top padding separation */
+  flex-shrink: 0;
+  /* Always fixed at bottom */
+}
+
+.wf-submit {
+  border: 1px solid var(--btnBorder);
+  background: rgba(255, 255, 255, 0.18);
+  color: inherit;
+  border-radius: 12px;
+  padding: 10px 12px;
+  cursor: pointer;
+  font: 900 13px/1 "Inter", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
+.wf-submit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.wf-status {
+  font: 800 12px/1.2 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  color: var(--uiMuted);
+  min-height: 14px;
+}
+
+/* =========================================================
+   TAB 3: RESPONSES (scoped)
+========================================================= */
+#rp3-root {
+  --muted: rgba(0, 0, 0, 0.55);
+  --border: rgba(0, 0, 0, 0.10);
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, Segoe UI, Roboto, Arial, sans-serif;
+
+  --wrapW: 70vw;
+  --gap: 18px;
+  --radius: 14px;
+
+  --cardShadow: 0 12px 26px rgba(0, 0, 0, 0.16);
+  --safePad: 46px;
+  --safePadMobile: 12px;
+  --stickyTop: 0px;
+}
+
+body.dark-mode #rp3-root {
+  --muted: rgba(255, 255, 255, 0.62);
+  --border: rgba(255, 255, 255, 0.12);
+  --cardShadow: 0 14px 30px rgba(0, 0, 0, 0.38);
+}
+
+#rp3-root,
+#rp3-root * {
+  box-sizing: border-box;
+  font-family: var(--font);
+}
+
+#rp3-root .rp-theme-toggle {
+  display: none !important;
+}
+
+#rp3-theme-btn {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--border);
+  font-size: 10px;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+body.dark-mode #rp3-theme-btn {
+  background: rgba(20, 20, 20, 0.78);
+}
+
+#rp3-theme-btn span {
+  padding: 4px 8px;
+  border-radius: 4px;
+  opacity: .55;
+  font-weight: 800;
+  letter-spacing: .25px;
+  text-transform: uppercase;
+}
+
+#rp3-theme-btn span.active {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.08);
+}
+
+body.dark-mode #rp3-theme-btn span.active {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+#rp3-root .rp-wrap {
+  max-width: var(--wrapW);
+  margin: 0 auto;
+  padding: 18px 0 48px;
+}
+
+@media(max-width: 900px) {
+  #rp3-root .rp-wrap {
+    max-width: 100%;
+    padding: 16px;
+  }
+}
+
+#rp3-root .rp-status {
+  margin: 12px 0 24px;
+  /* More space */
+}
+
+/* GAMIFIED STATS UI */
+.rp-stats-wrap {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  /* Increased gap */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  /* Glassmorphic Container */
+  padding: 12px 32px;
+  border-radius: 100px;
+  /* Full pill */
+
+  /* UPDATED: Darker border for visibility in light mode */
+  border: 1px solid rgba(0, 60, 80, 0.12);
+
+  background: linear-gradient(135deg, rgba(235, 250, 255, 0.4), rgba(235, 255, 245, 0.4));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  /* Slightly stronger shadow for definition */
+  box-shadow: 0 4px 24px rgba(0, 50, 60, 0.08);
+}
+
+.rp-stats-wrap span {
+  font-size: 14px;
+  /* Slightly smaller label to let numbers shine */
+  font-weight: 300;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: #444;
+}
+
+.dark-mode .rp-stats-wrap {
+  border-color: rgba(255, 255, 255, 0.15);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(200, 255, 230, 0.05));
+}
+
+.dark-mode .rp-stats-wrap span {
+  color: #fff;
+}
+
+.rp-stat-card {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 14px;
+  min-width: 48px;
+  border-radius: 8px;
+
+  /* Glassmorphic Pastel Gradient */
+  background: linear-gradient(135deg, rgba(200, 240, 255, 0.4), rgba(200, 255, 230, 0.4));
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+
+  /* Typography */
+  font-size: 24px;
+  font-weight: 200;
+  /* Very Thin */
+  color: #000;
+  /* Number color */
+  line-height: 1;
+}
+
+.dark-mode .rp-stat-card {
+  color: #fff;
+  background: linear-gradient(135deg, rgba(200, 240, 255, 0.15), rgba(200, 255, 230, 0.15));
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+#rp3-root .rp-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 72px;
+}
+
+#rp3-root .rp-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--gap);
+  align-items: start;
+}
+
+@media(max-width: 900px) {
+  #rp3-root .rp-section {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media(min-width: 901px) {
+
+  #rp3-root .rp-section.rp-portrait .rp-photo,
+  #rp3-root .rp-section.rp-portrait .rp-panel {
+    position: sticky;
+    top: var(--stickyTop);
+    align-self: start;
+  }
+}
+
+#rp3-root .rp-section.rp-landscape {
+  grid-template-columns: 1fr;
+}
+
+#rp3-root .rp-landscape .rp-panel {
+  margin-top: 4px;
+  margin-bottom: 18px;
+}
+
+#rp3-root .rp-photo {
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.04);
+  position: relative;
+}
+
+body.dark-mode #rp3-root .rp-photo {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+#rp3-root .rp-portrait .rp-photo img {
+  width: 100%;
+  height: min(68vh, 760px);
+  object-fit: cover;
+  display: block;
+}
+
+#rp3-root .rp-landscape .rp-photo img {
+  width: 100%;
+  height: min(72vh, 780px);
+  object-fit: cover;
+  object-position: center;
+  transform: scale(1.06);
+  display: block;
+}
+
+@media(max-width: 900px) {
+  #rp3-root .rp-photo img {
+    height: auto !important;
+    transform: none !important;
+  }
+}
+
+#rp3-root .rp-panel {
+  background: transparent;
+  border: none;
+  padding: 0;
+  overflow: hidden;
+}
+
+@media(min-width: 901px) {
+  #rp3-root .rp-portrait .rp-panel {
+    height: var(--panelH, 640px);
+  }
+}
+
+@media(max-width: 900px) {
+  #rp3-root .rp-panel {
+    height: auto !important;
+    overflow: visible;
+  }
+}
+
+#rp3-root .rp-panel-inner {
+  padding: var(--safePad);
+  height: 100%;
+  position: relative;
+}
+
+@media(max-width: 900px) {
+  #rp3-root .rp-panel-inner {
+    padding: var(--safePadMobile) 0 0;
+    position: static;
+    height: auto;
+  }
+}
+
+#rp3-root .rp-portrait .rp-canvas {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+#rp3-root .rp-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-content: flex-start;
+  align-items: flex-start;
+}
+
+@media(max-width: 900px) {
+  #rp3-root .rp-grid {
+    flex-direction: column;
+  }
+}
+
+#rp3-root .rp-card {
+  border-radius: 7px;
+  padding: 10px 16px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: var(--cardShadow);
+  transform-origin: 50% 18%;
+  will-change: transform;
+  overflow: visible;
+  background: #f7f2ea;
+
+  width: fit-content;
+  max-width: 320px;
+  display: inline-block;
+}
+
+#rp3-root .rp-portrait .rp-canvas .rp-card {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+/* Scattered sticky-note effect for landscape cards */
+#rp3-root .rp-landscape .rp-card:nth-child(6n+1) {
+  transform: rotate(-1.5deg);
+}
+
+#rp3-root .rp-landscape .rp-card:nth-child(6n+2) {
+  transform: rotate(1.2deg);
+}
+
+#rp3-root .rp-landscape .rp-card:nth-child(6n+3) {
+  transform: rotate(-0.8deg);
+}
+
+#rp3-root .rp-landscape .rp-card:nth-child(6n+4) {
+  transform: rotate(1.8deg);
+}
+
+#rp3-root .rp-landscape .rp-card:nth-child(6n+5) {
+  transform: rotate(-1.2deg);
+}
+
+#rp3-root .rp-landscape .rp-card:nth-child(6n+6) {
+  transform: rotate(0.9deg);
+}
+
+#rp3-root .rp-text {
+  font-size: 12.5px;
+  line-height: 1.35;
+  font-weight: 700;
+  color: rgba(20, 20, 20, 0.90);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+#rp3-root .rp-name {
+  margin-top: 8px;
+  font-size: 10.5px;
+  font-weight: 900;
+  color: rgba(20, 20, 20, 0.55);
+}
+
+#rp3-root .rp-more {
+  display: none;
+  margin: 12px auto 0;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.65);
+  border-radius: 999px;
+  padding: 10px 12px;
+  cursor: pointer;
+  font: 900 12px/1 var(--font);
+  color: inherit;
+  width: max-content;
+}
+
+body.dark-mode #rp3-root .rp-more {
+  background: rgba(20, 20, 20, 0.65);
+}
+
+@media(max-width: 900px) {
+  #rp3-root .rp-more {
+    display: none !important;
+  }
+}
+
+#rp3-root .rp-comment-btn {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  z-index: 5;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.82);
+  color: rgba(0, 0, 0, 0.82);
+  border-radius: 999px;
+  padding: 8px 10px;
+  font: 900 12px/1 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  letter-spacing: 0.2px;
+  cursor: pointer;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  user-select: none;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+body.dark-mode #rp3-root .rp-comment-btn {
+  background: rgba(20, 20, 20, 0.70);
+  color: rgba(255, 255, 255, 0.90);
+}
+
+#rp3-root .rp-photo:hover .rp-comment-btn,
+#rp3-root .rp-photo:focus-within .rp-comment-btn {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (max-width: 900px) {
+  #rp3-root .rp-comment-btn {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =========================================================
+   TAB 4 (kept compatible with your working viz)
+========================================================= */
+.um-stage {
+  width: 100%;
+  min-height: 260vh;
+  position: relative;
+  padding: 10px 12px 160px;
+  overflow: visible;
+}
+
+.um-node {
+  position: absolute;
+  border-radius: 999px;
+  overflow: hidden;
+  will-change: transform, left, top;
+  user-select: none;
+  cursor: pointer;
+  transform: translateZ(0);
+  z-index: 10;
+}
+
+.um-node img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transform: scale(1.02);
+}
+
+.um-badge {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 12px);
+  transform: translateX(-50%);
+  font: 900 11px/1.1 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  letter-spacing: .25px;
+  color: rgba(255, 255, 255, 0.78);
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  padding: 6px 10px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.um-notes {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 999;
+}
+
+.um-note {
+  position: absolute;
+  border-radius: 10px;
+  background: #f7f3ec;
+  border: 1px solid rgba(0, 0, 0, 0.10);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.18);
+  padding: 12px 12px 10px;
+  will-change: transform, opacity, left, top;
+  opacity: 0;
+  transform: translateY(8px) scale(0.985);
+  transition: opacity 220ms ease, transform 220ms ease;
+}
+
+.um-note.is-on {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.um-note .t {
+  font: 800 12.5px/1.35 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: rgba(20, 20, 20, 0.92);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.um-note .n {
+  margin-top: 10px;
+  font: 900 10.5px/1 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: rgba(20, 20, 20, 0.55);
+  letter-spacing: .2px;
+}
+
+
+
+
+
+/* =========================================================
+   TAB 4: BUBBLES (used by Tab4 JS engine)
+   If your older viz uses .um-node, this is separate and safe.
+========================================================= */
+#um-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  /* "Stage" for the engine */
+}
+
+.bubble-node {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: 50%;
+  background-size: cover;
+  background-position: center;
+  /* Thinner, soft beige border */
+  border: 2px solid #E0D8CC;
+  /* Soft drop shadow */
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  will-change: transform;
+  /* Interaction */
+  transition: transform 0.2s ease, border-color 0.2s;
+  z-index: 10;
+}
+
+.bubble-node:hover {
+  border-color: #bbb;
+  /* Slightly darker interaction state */
+  z-index: 100;
+  /* Bring to front on hover */
+}
+
+.bubble-badge {
+  display: none;
+  /* User requested removal */
+}
+
+/* Radial Menu Container */
+.bubble-radial-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  /* Cards obscure bubble, but container is zero size */
+  overflow: visible;
+}
+
+/* Comment Card */
+.bubble-comment-card {
+  position: absolute;
+  top: 0;
+  left: 0;
+
+  /* SIZING STABILITY FIX: */
+  /* Move max-content here so it doesn't change when .in is removed */
+  width: max-content;
+  max-width: 300px;
+  min-width: 120px;
+
+  padding: 10px 14px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  color: #444;
+  font-size: 11px;
+  line-height: 1.35;
+  font-weight: 500;
+  text-align: center;
+  pointer-events: none;
+
+  /* Start State: Centered, Hidden, Small */
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.8);
+  will-change: transform, opacity;
+
+  word-wrap: break-word;
+}
+
+.bubble-comment-card.in {
+  opacity: 1;
+  /* Scale to 1 means normal size */
+  transform: translate(calc(var(--tx) - 50%), calc(var(--ty) - 50%)) scale(1);
+
+  /* Slow, soft entry */
+  transition: opacity 0.4s cubic-bezier(0.25, 1, 0.5, 1),
+    transform 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.bubble-comment-card.out {
+  opacity: 0;
+  /* Stay at scale 1 or slightly smaller, but don't jump size */
+  transform: translate(calc(var(--tx) - 50%), calc(var(--ty) - 50%)) scale(0.95);
+
+  /* Slow, soft exit */
+  transition: opacity 0.4s ease-in, transform 0.4s ease-in;
+}
+
+
+
+.t4-bubble img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+  transform: scale(1.02);
+}
+
+
+
+/* TAB 2: Force the hover button to be visible/positioned correctly */
+#t2-wf-wall-inner .wf-frame {
+  position: relative !important;
+}
+
+#t2-wf-wall-inner .wf-comment-btn {
+  display: inline-flex !important;
+  align-items: center;
+  pointer-events: auto !important;
+  z-index: 999 !important;
+}
+
+/* Ensure hover reveal works even if something overrides opacity */
+@media (hover: hover) and (pointer: fine) {
+  #t2-wf-wall-inner .wf-frame:hover .wf-comment-btn {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+  }
+}
+
+/* Audio Response Styles */
+
+:root {
+  --ar-primary: #000;
+  --ar-text: #333;
+  --ar-bg-canvas: #f4f4f5;
+  --ar-border: rgba(0, 0, 0, 0.1);
+  --ar-danger: #e02e2e;
+}
+
+body.dark-mode {
+  --ar-primary: #fff;
+  --ar-text: #eee;
+  --ar-bg-canvas: #2a2a2a;
+  --ar-border: rgba(255, 255, 255, 0.15);
+}
+
+/* 1. Segmented Control */
+.ar-toggle-group {
+  display: flex;
+  background: var(--ar-bg-canvas);
+  padding: 4px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border: 1px solid var(--ar-border);
+}
+
+.ar-toggle-opt {
+  flex: 1;
+  background: transparent;
+  border: none;
+  padding: 8px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--ar-text);
+  opacity: 0.7;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.ar-toggle-opt:hover {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.ar-toggle-opt.is-active {
+  background: #fff;
+  /* Always white card in light mode */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  opacity: 1;
+  color: #000;
+}
+
+body.dark-mode .ar-toggle-opt.is-active {
+  background: #444;
+  color: #fff;
+}
+
+.ar-icon {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+
+/* 2. Recorder UI */
+/* AUDIO RECORDER STATES & CUSTOM PLAYER */
+
+/* State: IDLE */
+.ar-wrapper[data-state="IDLE"] .ar-canvas {
+  opacity: 0.3;
+}
+
+/* State: ARMING */
+.ar-wrapper[data-state="ARMING"] .ar-status {
+  color: var(--ar-text);
+  font-size: 14px;
+  /* Reset size for instruction text */
+  font-weight: 500;
+}
+
+.ar-wrapper[data-state="ARMING"] .ar-canvas {
+  opacity: 0.5;
+}
+
+/* State: LIVE */
+.ar-wrapper[data-state="LIVE"] .ar-status {
+  color: #2ecc71;
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.ar-wrapper[data-state="LIVE"] .ar-canvas {
+  border-color: #2ecc71;
+  /* Green border active */
+  box-shadow: 0 0 0 1px rgba(46, 204, 113, 0.2);
+}
+
+/* State: REVIEW (Custom Player) */
+.ar-review-ui {
+  display: none;
+  /* hidden by default */
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  background: var(--bg-card, #fff);
+  padding: 8px 12px;
+  border-radius: 100px;
+  /* Pill shape */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--ar-border);
+  max-width: 320px;
+  /* Compact */
+}
+
+.ar-wrapper[data-state="REVIEW"] .ar-review-ui {
+  display: flex;
+  /* Show in review */
+  animation: ar-fade-in 0.3s ease;
+}
+
+.ar-wrapper[data-state="REVIEW"] .ar-canvas {
+  display: none;
+  /* Hide recording canvas */
+}
+
+@keyframes ar-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ar-play-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--ar-primary);
+  color: var(--ar-bg-canvas);
+  /* Invert */
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: transform 0.1s, background 0.2s;
+}
+
+.ar-play-btn:hover {
+  transform: scale(1.05);
+}
+
+.ar-play-btn:active {
+  transform: scale(0.95);
+}
+
+.ar-play-btn svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
+
+/* Review Waveform (Canvas) */
+.ar-review-waveform {
+  flex: 1;
+  height: 32px;
+  width: 100%;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+/* Mobile responsive */
+@media (max-width: 480px) {
+  .ar-status {
+    font-size: 14px !important;
+  }
+
+  /* Cap size on mobile */
+  .ar-play-btn {
+    width: 44px;
+    height: 44px;
+  }
+
+  /* Touch target */
+  .ar-review-ui {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.ar-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+}
+
+.ar-canvas {
+  width: 100%;
+  height: 100px;
+  background: var(--ar-bg-canvas);
+  border-radius: 12px;
+  border: 1px solid var(--ar-border);
+}
+
+.ar-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ar-text);
+  min-height: 32px;
+  /* Prevent layout jump */
+}
+
+.ar-status {
+  transition: font-size 0.2s, color 0.2s;
+}
+
+.ar-status.is-countdown {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--ar-primary);
+  /* Prominent Black/White */
+}
+
+.ar-status.is-speaking {
+  font-size: 18px;
+  font-weight: 600;
+  color: #2ecc71;
+  /* Green cue */
+}
+
+.ar-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ccc;
+  transition: background 0.3s;
+}
+
+.ar-dot.is-recording {
+  background: var(--ar-danger);
+  animation: ar-pulse 1.5s infinite;
+}
+
+@keyframes ar-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(224, 46, 46, 0.4);
+  }
+
+  70% {
+    box-shadow: 0 0 0 6px rgba(224, 46, 46, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(224, 46, 46, 0);
+  }
+}
+
+.ar-timer {
+  font-weight: 600;
+  min-width: 40px;
+}
+
+/* 3. Controls */
+.ar-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.ar-btn {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: transform 0.1s;
+}
+
+.ar-btn:active {
+  transform: scale(0.96);
+}
+
+.ar-btn-stop {
+  background: var(--ar-danger);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(224, 46, 46, 0.3);
+}
+
+.ar-btn-secondary {
+  background: transparent;
+  border: 1px solid var(--ar-border);
+  color: var(--ar-text);
+}
+
+.ar-btn-retry {
+  background: #555;
+  color: #fff;
+}
+
+/* 4. Player */
+.ar-player {
+  width: 100%;
+  height: 36px;
+  border-radius: 18px;
+  margin-top: 4px;
+}
