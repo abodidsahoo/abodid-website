@@ -27,11 +27,42 @@ const pageTitle = "Photography";
       A collection of photo essays, capturing moments of silence, chaos, and
       everything in between.
     </p>
+    <div class="darkroom-cta">
+        <a href="/darkroom" class="btn-darkroom">Enter Darkroom &rarr;</a>
+    </div>
   </header>
 
+
+
   <div class="portfolio-container">
+    <div class="divider">
+    </div>
     <PortfolioFilter items={portfolioItems} client:load />
   </div>
+</BaseLayout>
+
+<style>
+
+  
+  .divider {
+      text-align: center;
+      margin: 4rem 0 2rem;
+      border-top: 1px solid var(--border-subtle);
+      position: relative;
+  }
+  
+  .divider span {
+      background: var(--bg-primary);
+      padding: 0 1rem;
+      position: relative;
+      top: -0.8rem;
+      font-size: 0.9rem;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+  }
+
+  .portfolio-container {
 </BaseLayout>
 
 <style>
@@ -61,5 +92,28 @@ const pageTitle = "Photography";
     max-width: 600px;
     margin: 0;
     line-height: 1.6;
+  }
+
+  .darkroom-cta {
+    margin-top: 1.5rem;
+  }
+
+  .btn-darkroom {
+    display: inline-block;
+    padding: 0.6rem 1.2rem;
+    background: #222;
+    color: #fff;
+    text-decoration: none;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    border: 1px solid #222;
+  }
+
+  .btn-darkroom:hover {
+    background: transparent;
+    color: #222;
+    transform: translateY(-2px);
   }
 </style>

@@ -210,7 +210,8 @@ export async function getAllPhotography() {
         title: project.title,
         category: project.category,
         image: project.cover_image,
-        tags: project.tags || [], // Legacy or unused if category is array
+        tags: project.tags || [],
+        images: (project.gallery_images || []).map(p => p.url), // Expose all images
         href: `/photography/${project.slug}`
     }));
 }

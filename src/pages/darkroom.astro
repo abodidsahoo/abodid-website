@@ -1,0 +1,189 @@
+---
+export const prerender = false;
+import BaseLayout from "../layouts/BaseLayout.astro";
+import PolaroidScatter from "../components/PolaroidScatter.jsx";
+import ThemeWidget from "../components/ThemeWidget.jsx";
+import { getAllPhotography } from "../lib/api";
+import { featuredPhotography as mockPhotography } from "../utils/mockData";
+
+// Safe Fetch Helper
+const safeFetch = async (fn, fallback) => {
+    try {
+        return await fn();
+    } catch (e) {
+        console.error("Data fetch failed:", e);
+        return fallback;
+    }
+};
+
+const portfolioProjects = await safeFetch(getAllPhotography, mockPhotography);
+
+// Flatten into a single list of EVERY image
+let allImages = [];
+let globalIdCounter = 0; // Ensure absolute uniqueness across all projects
+
+portfolioProjects.forEach((project) => {
+    // Add cover image
+    if (project.image) {
+        allImages.push({
+            // Use a composite ID that is guaranteed unique: slug + type + simple counter
+            id: `img-${globalIdCounter++}-${project.slug}-cover`,
+            title: project.title,
+            image: project.image,
+            slug: project.slug,
+            link: project.href,
+            isCover: true, // Priority Flag
+        });
+    }
+    // Add gallery images
+    if (project.images && project.images.length > 0) {
+        project.images.forEach((imgUrl, idx) => {
+            allImages.push({
+                id: `img-${globalIdCounter++}-${project.slug}-${idx}`,
+                title: project.title,
+                image: imgUrl,
+                slug: project.slug,
+                link: project.href,
+                isCover: false,
+            });
+        });
+    }
+});
+
+// Shuffle (Fisher-Yates)
+for (let i = allImages.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [allImages[i], allImages[j]] = [allImages[j], allImages[i]];
+}
+
+const pageTitle = "Darkroom - Polaroid Scatter";
+---
+
+<BaseLayout title={pageTitle} hideHeader={true} fullWidth={true}>
+    <a href="/" class="home-button">Home</a>
+
+    <ThemeWidget client:idle />
+    <main class="darkroom-immersive">
+        {/* Pass ALL images */}
+        <PolaroidScatter items={allImages} client:load immersive={true} />
+    </main>
+</BaseLayout>
+
+<style>
+    /* 
+       Darkroom specific styles to ensure full immersion.
+    */
+    @import url("https://fonts.googleapis.com/css2?family=Reenie+Beanie&display=swap");
+
+    .darkroom-immersive {
+        position: relative;
+        width: 100vw;
+        min-height: 100vh;
+        /* Allow scroll */
+        overflow-x: hidden;
+        overflow-y: auto;
+
+        /* BACKGROUND STYLES (Migrated from React for instant load) */
+
+        /* --- OPTION B: DARK TEXTURED STUDIO (ACTIVE - INFINITE SCROLL) --- */
+        background-color: var(--darkroom-bg, #080808);
+
+        background-image: 
+            /* LAYER 1: THE GRID (Moved to Top! White, Higher Opacity, Thicker) */
+            linear-gradient(
+                to right,
+                rgba(255, 255, 255, 0.09) 2.5px,
+                transparent 2.5px
+            ),
+            linear-gradient(
+                to bottom,
+                rgba(255, 255, 255, 0.09) 2.5px,
+                transparent 2.5px
+            ),
+            /* LAYER 2: VIGNETTE & SEAM BLENDING (Topmost blend layer for seams) */
+            /* SOLID BLACK at edges to guarantee perfect tile blending */
+            linear-gradient(
+                    to bottom,
+                    var(--darkroom-bg, #080808) 0%,
+                    var(--darkroom-bg, #080808) 15%,
+                    transparent 30%,
+                    transparent 70%,
+                    var(--darkroom-bg, #080808) 85%,
+                    var(--darkroom-bg, #080808) 100%
+                ),
+            /* LAYER 3: NOISE TEXTURE */
+            url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.07'/%3E%3C/svg%3E"),
+            /* LAYER 4: CONICAL WINDOW LIGHT (Left - Bright Beige) - Centered vertically in tile */
+            radial-gradient(
+                    ellipse at -10% 40%,
+                    rgba(245, 240, 220, 0.08) 0%,
+                    transparent 60%
+                ),
+            /* LAYER 5: SIDE FILL LIGHT (Right - Warm Beige) - Centered vertically in tile */
+            radial-gradient(
+                    ellipse at 110% 60%,
+                    rgba(245, 235, 210, 0.05) 0%,
+                    transparent 50%
+                ),
+            /* LAYER 6: TEXTURE CLOUDS - Centered */
+            radial-gradient(
+                    circle at 40% 50%,
+                    rgba(255, 255, 255, 0.015) 0%,
+                    transparent 30%
+                ),
+            radial-gradient(
+                circle at 65% 30%,
+                rgba(255, 255, 255, 0.01) 0%,
+                transparent 20%
+            );
+
+        background-attachment: local;
+        background-blend-mode:
+            normal, normal, normal, overlay, screen, screen, screen, screen;
+
+        background-size:
+            50px 50px,
+            50px 50px,
+            /* Grid X, Grid Y */ 100% 2500px,
+            /* Vignette */ 150px 150px,
+            /* Noise */ 100% 2500px,
+            /* Beam Left */ 100% 2500px,
+            /* Beam Right */ 100% 2500px,
+            /* Clouds 1 */ 100% 2500px; /* Clouds 2 */
+
+        background-repeat:
+            repeat,
+            repeat,
+            /* Grid repeats everywhere */ repeat-y,
+            repeat,
+            repeat-y,
+            repeat-y,
+            repeat-y,
+            repeat-y;
+    }
+
+    /* REMOVED ::before - Grid is now in main stack */
+    .darkroom-immersive::before {
+        display: none;
+    }
+
+    .home-button {
+        position: fixed;
+        top: 2rem;
+        right: 2rem;
+        z-index: 1000;
+        background: #fff;
+        color: #000;
+        padding: 0.5rem 1rem;
+        font-family: "Space Mono", monospace;
+        text-decoration: none;
+        font-weight: bold;
+        border-radius: 4px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        transition: transform 0.2s;
+    }
+
+    .home-button:hover {
+        transform: scale(1.05);
+    }
+</style>
