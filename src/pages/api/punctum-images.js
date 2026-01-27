@@ -11,45 +11,27 @@ export const prerender = false;
 export async function GET() {
     try {
         // Logic: Fetch images for the game.
-        // 1. Try fetching from the new dedicated project table first
-        let { data, error } = await supabase
-            .from('invisible_punctum_images')
-            .select('image_url, id, title')
-            .filter('active', 'eq', true)
-            .limit(50);
+        // Fetch images directly from the main 'photography' table
+        // This is the "Clean Supabase Content" source.
+        let { data: images, error } = await supabase
+            .from('photography')
+            .select('cover_image, title, id')
+            .not('cover_image', 'is', null);
 
-        // 2. Fallback to 'photography' if new table is empty or missing (graceful degradation)
-        if (error || !data || data.length === 0) {
-            const fallback = await supabase
-                .from('photography')
-                .select('cover_image, id, title')
-                .limit(50);
+        if (error) throw error;
 
-            data = fallback.data;
-            error = fallback.error;
-        }
+        // Normalize to expected format
+        const formattedImages = images.map(img => ({
+            id: img.id,
+            url: img.cover_image, // Frontend expects 'url'
+            title: img.title
+        }));
 
-        if (error) {
-            console.error("Supabase Error:", error);
-            throw error;
-        }
-
-        // 3. Validate URLs and Normalize
-        // Note: data might have 'image_url' (new table) or 'cover_image' (old table)
-        const validImages = data
-            .map(img => ({
-                id: img.id,
-                url: img.image_url || img.cover_image,
-                title: img.title
-            }))
-            .filter(img => img.url && img.url.startsWith('http'));
-
-        // 3. Return JSON
-        return new Response(JSON.stringify(validImages), {
+        return new Response(JSON.stringify(formattedImages), {
             status: 200,
             headers: {
                 "Content-Type": "application/json",
-                "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400" // Cache for 1 hour
+                "Cache-Control": "public, s-maxage=60, stale-while-revalidate=30"
             },
         });
 

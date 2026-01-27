@@ -1,6 +1,7 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { getTimelineCards } from "../lib/api";
+import BrandShowcase from "../components/BrandShowcase";
 
 const pageTitle = "Work Experience";
 const timelineData = await getTimelineCards();
@@ -15,6 +16,11 @@ const timelineData = await getTimelineCards();
                 along the way.
             </p>
         </header>
+
+        <section class="brands-section-wrapper">
+            <h2 class="section-label">Brands & Clients</h2>
+            <BrandShowcase client:load />
+        </section>
 
         <section class="work-list">
             {
@@ -72,8 +78,20 @@ const timelineData = await getTimelineCards();
     }
 
     .page-header {
-        margin-bottom: 4rem;
+        margin-bottom: 3rem;
         padding-top: var(--space-lg);
+    }
+
+    .brands-section-wrapper {
+        margin-bottom: 5rem;
+    }
+    .section-label {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-tertiary);
+        margin-bottom: 1.5rem;
+        font-weight: 600;
     }
 
     .subtitle {

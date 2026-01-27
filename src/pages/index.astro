@@ -12,11 +12,12 @@ import {
 import VibeCheckWidget from "../components/VibeCheckWidget";
 import InteractiveTags from "../components/InteractiveTags";
 import Showreel from "../components/Showreel.astro";
-import SciFiLinks from "../components/SciFiLinks.astro";
+
 import PhotoCarousel from "../components/PhotoCarousel.astro";
+import NavigationCards from "../components/NavigationCards.astro";
+import BrandFilmStrip from "../components/BrandFilmStrip";
 
 const pageTitle = "Home";
-
 // Helper to safely fetch data
 const safeFetch = async (fn, fallback) => {
   try {
@@ -43,6 +44,7 @@ const recentPosts = (await safeFetch(getRecentPosts, mockRecent)).slice(0, 3);
     <div class="vibe-check-wrapper">
       <VibeCheckWidget client:only="react" />
     </div>
+
     <div class="hero-content">
       <h1 class="hero-title">
         Hi, I am Abodid. <br />
@@ -54,7 +56,6 @@ const recentPosts = (await safeFetch(getRecentPosts, mockRecent)).slice(0, 3);
       keep hovering around for a surprise before you scroll down ...
     </div>
   </section>
-
   <!-- Introduction Section -->
   <section class="section intro-section">
     <div class="intro-content">
@@ -66,20 +67,21 @@ const recentPosts = (await safeFetch(getRecentPosts, mockRecent)).slice(0, 3);
     </div>
   </section>
 
-  <!-- Massive Spacer 1 (Bio to Links) -->
-  <div style="height: 15vh; width: 100%;" aria-hidden="true"></div>
+  <!-- Navigation Cards -->
+  <section class="section">
+    <NavigationCards />
+  </section>
 
-  <!-- Sci-Fi Navigation Grid -->
-  <SciFiLinks />
-
-  <!-- Massive Spacer 2 (Links to Showreel) -->
-  <div style="height: 15vh; width: 100%;" aria-hidden="true"></div>
+  <!-- Brand Film Strip -->
+  <section class="section">
+    <BrandFilmStrip client:only="react" />
+  </section>
 
   <!-- Showreel Section -->
   <Showreel />
 
   <!-- Massive Spacer 3 (Showreel to Featured) -->
-  <div style="height: 15vh; width: 100%;" aria-hidden="true"></div>
+  <div style="height: 20vh; width: 100%;" aria-hidden="true"></div>
 
   <!-- Featured Work -->
   <!-- Featured Work (Infinite Scroll) -->

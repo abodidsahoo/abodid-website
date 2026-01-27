@@ -255,7 +255,7 @@ const DeveloperContent = () => (
                 <h3 className="block-header">Deep Dives: Logic</h3>
                 <ul className="clean-list">
                     <li><strong>Atomic Research Engine</strong>: Client-side consensus algorithm. Parses tag arrays from JSON to build weighted frequency clouds instantly.</li>
-                    <li><strong>Obsidian Bridge</strong>: Private Edge Function. Fetches raw Markdown -> Regex Parse (Wiki-links) -> HTML Render.</li>
+                    <li><strong>Obsidian Bridge</strong>: Private Edge Function. Fetches raw Markdown → Regex Parse (Wiki-links) → HTML Render.</li>
                     <li><strong>Lazy-Performance</strong>: <code>IntersectionObserver</code> keeps DOM light. 0-byte placeholders for 3D/Video until scroll.</li>
                 </ul>
             </div>

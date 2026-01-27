@@ -191,3 +191,26 @@ create policy "Public insert inquiries" on public.inquiries
 -- Only Admin can SELECT/MANAGE
 create policy "Admin manage inquiries" on public.inquiries
   for all using (auth.role() = 'authenticated');
+
+-- 7. BRANDS (Logos & Roles)
+create table if not exists public.brands (
+  id uuid default uuid_generate_v4() primary key,
+  name text not null,
+  logo_url text not null,
+  role text, -- e.g. "Designer", "Consultant"
+  category text, -- e.g. "Education", "Experience", "Volunteering"
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  display_order integer default 0
+);
+
+-- RLS for Brands
+alter table public.brands enable row level security;
+
+-- Public can VIEW brands
+create policy "Public view brands" on public.brands
+  for select using (true);
+
+-- Only Admin can MANAGE brands
+create policy "Admin manage brands" on public.brands
+  for all using (auth.role() = 'authenticated');
+

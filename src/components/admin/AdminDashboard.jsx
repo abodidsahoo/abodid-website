@@ -3,16 +3,18 @@ import { supabase } from '../../lib/supabaseClient';
 import UserList from './UserList';
 import TagInput from '../resources/TagInput';
 import ListView from './ListView';
+import BrandManager from './BrandManager';
 
 const SECTIONS = [
     { id: 'dashboard', label: 'Overview', icon: '📊' },
     { id: 'users', label: 'Users', icon: '👥' },
+    { id: 'brands', label: 'Brands', icon: '🏷️' },
     { id: 'photography', label: 'Photography', icon: '📸' },
     { id: 'films', label: 'Films', icon: '🎬' },
     { id: 'blog', label: 'Blog', icon: '✍️' },
     { id: 'research', label: 'Research', icon: '🔬' },
     { id: 'hub_resources', label: 'Resources', icon: '📚' },
-    { id: 'page_metadata', label: 'Metadata', icon: '🏷️' },
+    { id: 'page_metadata', label: 'Metadata', icon: '⚙️' },
 ];
 
 export default function AdminDashboard() {
@@ -32,48 +34,21 @@ export default function AdminDashboard() {
         const section = params.get('section');
         if (section) setActiveSection(section);
 
-        const initAuth = async () => {
-            console.log("AdminDashboard: initAuth starting...");
-            if (!supabase) {
-                console.error("AdminDashboard: Supabase client is missing/null");
-                setConnectionError("Supabase misconfigured - check .env keys");
-                setLoading(false);
-                return;
-            }
-
+        // Simple, robust auth check
+        const checkAuth = async () => {
             try {
-                console.log("AdminDashboard: Calling getSession()...");
+                // 1. Get Session
+                const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
-                let session = null;
-                let error = null;
+                if (sessionError) throw sessionError;
 
-                // Retry logic for session (3 attempts)
-                for (let i = 0; i < 3; i++) {
-                    const res = await supabase.auth.getSession();
-                    session = res.data.session;
-                    error = res.error;
-
-                    if (session) break; // Found it!
-
-                    if (i < 2) {
-                        console.warn(`AdminDashboard: Session not found, retrying (${i + 1}/3)...`);
-                        await new Promise(r => setTimeout(r, 500));
-                    }
-                }
-
-                console.log("AdminDashboard: getSession result", { session, error });
-
-                if (error) throw error;
-
-                setSession(session);
                 if (!session) {
-                    console.warn("AdminDashboard: No session after retries, redirecting...");
-                    window.location.href = '/admin/login?reason=auth_failed';
+                    console.warn("AdminDashboard: No session found, redirecting.");
+                    window.location.href = '/admin/login?reason=no_session';
                     return;
                 }
 
-                // Check if user has admin role
-                console.log("AdminDashboard: Checking admin role...");
+                // 2. Check Admin Role
                 const { data: profile, error: profileError } = await supabase
                     .from('profiles')
                     .select('role')
@@ -81,48 +56,49 @@ export default function AdminDashboard() {
                     .single();
 
                 if (profileError) {
-                    console.error("AdminDashboard: Error fetching profile", profileError);
-                    setConnectionError("Failed to verify admin privileges");
+                    console.error("AdminDashboard: Profile fetch error", profileError);
+                    // Decide if you want to block or just warn. Blocking is safer for admin.
+                    throw new Error("Could not verify admin profile.");
+                }
+
+                if (profile?.role !== 'admin') {
+                    console.warn("AdminDashboard: User is not admin. Role:", profile?.role);
+                    setConnectionError("Access Denied: You do not have admin privileges.");
                     setLoading(false);
                     return;
                 }
 
-                if (!profile || profile.role !== 'admin') {
-                    console.warn("AdminDashboard: User is not admin, role:", profile?.role);
-                    setConnectionError("Access Denied: Admin privileges required");
-                    setLoading(false);
-                    return;
-                }
-
-                console.log("AdminDashboard: Admin verified, loading dashboard");
-                // Fetch valid session data
-                // Fetch valid session data
+                // 3. Success
+                setSession(session);
                 await Promise.all([
                     fetchStats(),
                     fetchRecentActivity()
                 ]);
 
             } catch (err) {
-                console.error('Auth initialization error:', err);
-                setConnectionError(err.message);
+                console.error("AdminDashboard: Auth check failed:", err);
+                setConnectionError(err.message || "Authentication check failed.");
             } finally {
-                console.log("AdminDashboard: Loading set to false");
                 setLoading(false);
             }
         };
 
         if (supabase) {
-            initAuth();
+            checkAuth();
 
+            // Listen for auth changes
             const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-                console.log("AuthStateChange:", _event, session?.user?.id);
-                setSession(session);
-                if (!session) window.location.href = '/admin/login?reason=auth_failed';
+                if (_event === 'SIGNED_OUT') {
+                    setSession(null);
+                    window.location.href = '/admin/login';
+                } else if (_event === 'SIGNED_IN' && session) {
+                    setSession(session);
+                }
             });
 
             return () => subscription.unsubscribe();
         } else {
-            setConnectionError("Supabase Not Initialized");
+            setConnectionError("Supabase client not initialized.");
             setLoading(false);
         }
     }, []);
@@ -391,7 +367,16 @@ export default function AdminDashboard() {
                         </>
                     )}
 
-                    {activeSection !== 'dashboard' && activeSection !== 'users' && (
+                    {activeSection === 'brands' && (
+                        <div className="brands-section">
+                            <header className="content-header" style={{ marginBottom: '2rem' }}>
+                                <h2 className="section-title">Brands & Logos</h2>
+                            </header>
+                            <BrandManager />
+                        </div>
+                    )}
+
+                    {activeSection !== 'dashboard' && activeSection !== 'users' && activeSection !== 'brands' && (
                         <ListView
                             table={activeSection}
                             title={SECTIONS.find(s => s.id === activeSection)?.label}

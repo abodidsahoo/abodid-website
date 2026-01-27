@@ -1,0 +1,196 @@
+---
+const cards = [
+    {
+        title: "Education",
+        items: [
+            { label: "Awards", href: "/about#awards" },
+            { label: "Conferences", href: "/conferences" },
+            { label: "Workshops", href: "/workshops" },
+        ],
+    },
+    {
+        title: "Experience",
+        items: [
+            { label: "Work Experience", href: "/work" },
+            { label: "Press Mentions", href: "/press" },
+            { label: "Testimonials", href: "/about#testimonials" },
+        ],
+    },
+    {
+        title: "Portfolio",
+        items: [
+            { label: "Photography Portfolio", href: "/photography" },
+            { label: "Film Portfolio", href: "/films" },
+            { label: "Research Projects", href: "/research" },
+            { label: "Testimonials", href: "/about#testimonials" },
+            { label: "Press Mentions", href: "/press" },
+        ],
+    },
+    {
+        title: "Resources",
+        items: [
+            { label: "Obsidian Vault", href: "#" },
+            { label: "Blog", href: "/blog" },
+            { label: "Newsletter", href: "#" },
+            { label: "Research Papers", href: "/research" },
+        ],
+    },
+];
+---
+
+<section class="nav-cards-section">
+    <div class="nav-cards-grid">
+        {
+            cards.map((card) => (
+                <div class="nav-card scifi-panel">
+                    <h3 class="card-title">{card.title}</h3>
+                    <ul class="card-list">
+                        {card.items.map((item) => (
+                            <li class="card-list-item">
+                                <a href={item.href} class="card-link">
+                                    <span class="link-arrow">›</span>
+                                    {item.label}
+                                </a>
+                            </li>
+                        ))}
+                    </ul>
+                    <div class="card-corners" />
+                </div>
+            ))
+        }
+    </div>
+</section>
+
+<style is:global>
+    .nav-cards-section {
+        width: 100% !important;
+        margin-bottom: var(--space-2xl) !important;
+    }
+
+    .nav-cards-grid {
+        display: grid !important;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)) !important;
+        gap: 1.5rem !important;
+        width: 100% !important;
+    }
+
+    .nav-card {
+        background: rgba(10, 15, 20, 0.4) !important; /* Dark Sci-Fi BG */
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        border-radius: 8px !important;
+        padding: 2rem !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 1.5rem !important;
+        position: relative !important;
+        transition: all 0.4s ease-out !important;
+        overflow: hidden !important;
+    }
+
+    /* Sci-Fi Hover State */
+    .nav-card:hover {
+        border-color: rgba(0, 243, 255, 0.5) !important;
+        box-shadow: 0 0 20px rgba(0, 243, 255, 0.1) !important;
+        background: rgba(0, 243, 255, 0.02) !important;
+        transform: translateY(-2px) !important;
+    }
+
+    .card-title {
+        font-family: "Inconsolata", monospace !important;
+        font-size: 1.1rem !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.1em !important;
+        color: #fff !important;
+        margin: 0 !important;
+        text-shadow: 0 0 10px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    .card-list {
+        list-style: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 0.8rem !important;
+    }
+
+    .card-link {
+        color: var(--text-secondary) !important;
+        text-decoration: none !important;
+        font-family: "Inconsolata", monospace !important;
+        font-size: 0.9rem !important;
+        transition: all 0.2s ease !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        letter-spacing: 0.02em !important;
+    }
+
+    .link-arrow {
+        color: var(--sci-fi-cyan, #00f3ff) !important;
+        font-weight: bold !important;
+        opacity: 0.5 !important;
+        transition: all 0.2s ease !important;
+        transform: translateX(-5px) !important;
+    }
+
+    .card-link:hover {
+        color: #fff !important;
+        text-shadow: 0 0 5px rgba(0, 243, 255, 0.5) !important;
+    }
+
+    .card-link:hover .link-arrow {
+        opacity: 1 !important;
+        transform: translateX(0) !important;
+        text-shadow: 0 0 8px var(--sci-fi-cyan, #00f3ff) !important;
+    }
+
+    /* Corner Accents (Standardized size from SciFiLinks) */
+    .nav-card::before,
+    .nav-card::after {
+        content: "" !important;
+        position: absolute !important;
+        width: 8px !important;
+        height: 8px !important;
+        border: 1px solid transparent !important;
+        transition: border-color 0.3s ease !important;
+        pointer-events: none !important;
+    }
+
+    /* Top Left */
+    .nav-card::before {
+        top: 0 !important;
+        left: 0 !important;
+        border-top: 1px solid transparent !important;
+        border-left: 1px solid transparent !important;
+        border-radius: 8px 0 0 0 !important;
+    }
+
+    /* Bottom Right */
+    .nav-card::after {
+        bottom: 0 !important;
+        right: 0 !important;
+        border-bottom: 1px solid transparent !important;
+        border-right: 1px solid transparent !important;
+        border-radius: 0 0 8px 0 !important;
+    }
+
+    .nav-card:hover::before {
+        border-top-color: var(--sci-fi-cyan, #00f3ff) !important;
+        border-left-color: var(--sci-fi-cyan, #00f3ff) !important;
+    }
+
+    .nav-card:hover::after {
+        border-bottom-color: var(--sci-fi-cyan, #00f3ff) !important;
+        border-right-color: var(--sci-fi-cyan, #00f3ff) !important;
+    }
+
+    /* Mobile adjustments */
+    @media (max-width: 768px) {
+        .nav-cards-grid {
+            grid-template-columns: 1fr !important;
+            gap: 1rem !important;
+        }
+    }
+</style>

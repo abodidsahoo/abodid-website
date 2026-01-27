@@ -1,0 +1,54 @@
+---
+import Layout from "../../layouts/BaseLayout.astro";
+import AnalysisInterface from "../../components/AnalysisInterface.jsx";
+import { createClient } from "@supabase/supabase-js";
+
+// Server-side: Fetch a random image for the analysis demo
+const supabase = createClient(
+    import.meta.env.PUBLIC_SUPABASE_URL,
+    import.meta.env.PUBLIC_SUPABASE_ANON_KEY,
+);
+
+let imageUrl = null;
+let imageId = null;
+
+try {
+    const { data, error } = await supabase
+        .from("photography")
+        .select("cover_image, id")
+        .not("cover_image", "is", null)
+        .limit(20); // Get a pool
+
+    if (data && data.length > 0) {
+        const random = data[Math.floor(Math.random() * data.length)];
+        imageUrl = random.cover_image;
+        imageId = random.id;
+    }
+} catch (e) {
+    console.error("Failed to fetch image for analysis", e);
+}
+
+// Fallback if DB fails
+if (!imageUrl) {
+    imageUrl = "/images/fallback-punctum.jpg";
+    imageId = "demo-123";
+}
+---
+
+<Layout title="AI Analysis | Invisible Punctums">
+    <main class="min-h-screen bg-stone-100 flex flex-col">
+        <!-- Analysis Container -->
+        <div class="flex-1 flex items-center justify-center p-4">
+            <AnalysisInterface
+                client:only="react"
+                imageUrl={imageUrl}
+                imageId={imageId}
+            />
+        </div>
+
+        <!-- Footer Note -->
+        <div class="p-6 text-center text-xs text-stone-400 font-mono">
+            <p>Research prototype v2.1 • Untrainable Model Project</p>
+        </div>
+    </main>
+</Layout>

@@ -18,24 +18,26 @@ export default function ImageUploader({ bucket = 'portfolio-assets', path, onUpl
                 // Create preview
                 const objUrl = URL.createObjectURL(file);
 
-                // Upload to Supabase
-                const fileExt = file.name.split('.').pop();
-                const fileName = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
-                const filePath = `${path ? path + '/' : ''}${fileName}`;
+                // Use Server-Side Upload (Bypass RLS)
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('bucket', bucket);
+                if (path) formData.append('path', path);
 
-                const { data, error } = await supabase.storage
-                    .from(bucket)
-                    .upload(filePath, file);
+                const res = await fetch('/api/admin/upload', {
+                    method: 'POST',
+                    body: formData
+                });
 
-                if (error) throw error;
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.error || 'Upload failed');
+                }
 
-                // Get Public URL
-                const { data: { publicUrl } } = supabase.storage
-                    .from(bucket)
-                    .getPublicUrl(filePath);
+                const data = await res.json();
 
                 newUploads.push({
-                    url: publicUrl,
+                    url: data.url,
                     objUrl: objUrl,
                     name: file.name
                 });
