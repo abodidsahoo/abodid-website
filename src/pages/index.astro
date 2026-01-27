@@ -67,15 +67,16 @@ const recentPosts = (await safeFetch(getRecentPosts, mockRecent)).slice(0, 3);
     </div>
   </section>
 
+  <!-- Massive Spacer 3 (Showreel to Featured) -->
+  <div style="height: 20vh; width: 100%;" aria-hidden="true"></div>
+
   <!-- Navigation Cards -->
   <section class="section">
     <NavigationCards />
   </section>
 
-  <!-- Brand Film Strip -->
-  <section class="section">
-    <BrandFilmStrip client:only="react" />
-  </section>
+  <!-- Massive Spacer 3 (Showreel to Featured) -->
+  <div style="height: 20vh; width: 100%;" aria-hidden="true"></div>
 
   <!-- Showreel Section -->
   <Showreel />
