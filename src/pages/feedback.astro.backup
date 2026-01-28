@@ -1,0 +1,1003 @@
+---
+/**
+ * Website Feedback — Astro Page
+ * Features:
+ * - Source filter (All / Bharat / Mehnaj / Aswin)
+ * - Large checkbox per item to mark "Implemented"
+ * - Strikethrough + dim styling when implemented
+ * - Persists state in localStorage
+ * - Color-coded rows by source
+ */
+
+type Source = "Bharat" | "Mehnaj" | "Aswin";
+
+type FeedbackItem = {
+    id: string;
+    source: Source;
+    title: string;
+    insight: string;
+    action: string;
+};
+
+const feedback: FeedbackItem[] = [
+    // ===================== BHARAT =====================
+    {
+        id: "bharat-01",
+        source: "Bharat",
+        title: "Identity overload on website",
+        insight:
+            "One site contains multiple identities, collapsing signal clarity.",
+        action: "Enforce single-purpose identity per domain.",
+    },
+    {
+        id: "bharat-02",
+        source: "Bharat",
+        title: "Personal site misused as storage",
+        insight:
+            "Archives and thinking systems are presented as self-definition.",
+        action: "Remove vaults, collections, and research repositories from personal domain.",
+    },
+    {
+        id: "bharat-03",
+        source: "Bharat",
+        title: "Curation treated as personality",
+        insight: "Curation is a product, not a trait.",
+        action: "Isolate curation under a separate product identity.",
+    },
+    {
+        id: "bharat-04",
+        source: "Bharat",
+        title: "Visual intensity overrides cognition",
+        insight: "Glow and effects dominate perception over meaning.",
+        action: "Remove visual stimuli that compete with reading hierarchy.",
+    },
+    {
+        id: "bharat-05",
+        source: "Bharat",
+        title: "Video lacks authorship clarity",
+        insight: "Viewer cannot infer your contribution.",
+        action: "Explicitly declare your role and delimit others' roles.",
+    },
+    {
+        id: "bharat-06",
+        source: "Bharat",
+        title: "Secret Lab lacks semantic anchor",
+        insight: "Feature has no intelligible purpose to outsiders.",
+        action: "Delete or redefine with explicit utility and outcome.",
+    },
+    {
+        id: "bharat-07",
+        source: "Bharat",
+        title: "Playful signals reduce credibility",
+        insight: "Confetti/celebratory patterns weaken professional trust.",
+        action: "Remove playful UI elements from landing context.",
+    },
+    {
+        id: "bharat-08",
+        source: "Bharat",
+        title: "Testimonials lack authority filtering",
+        insight: "Open submission degrades legitimacy.",
+        action: "Restrict testimonials to verified professionals only.",
+    },
+    {
+        id: "bharat-09",
+        source: "Bharat",
+        title: "Blog concept misframed",
+        insight: "Thinking style is synthesis, not posts.",
+        action: "Reclassify as notes, trails, learning logs.",
+    },
+    {
+        id: "bharat-10",
+        source: "Bharat",
+        title: "Obsidian + LLM under-articulated",
+        insight: "Idea is powerful but cognitively opaque.",
+        action: "Define it as a consumable thinking interface, not a tool dump.",
+    },
+    {
+        id: "bharat-11",
+        source: "Bharat",
+        title: "Research shared without epistemic stance",
+        insight: "Material appears borrowed rather than authored.",
+        action: "Attach rationale, intent, and insight to every research item.",
+    },
+    {
+        id: "bharat-12",
+        source: "Bharat",
+        title: "About vs expectation conflated",
+        insight: "Biography and value proposition are mixed.",
+        action: "Separate narrative history from what people can expect.",
+    },
+    {
+        id: "bharat-13",
+        source: "Bharat",
+        title: "Experience reduced to imagery",
+        insight: "Achievements are implied, not stated.",
+        action: "Translate experience into explicit competencies.",
+    },
+    {
+        id: "bharat-14",
+        source: "Bharat",
+        title: "Skills unclear for recruiters",
+        insight: "Recruiters cannot assess depth/category quickly.",
+        action: "Segment skills by domain and proficiency.",
+    },
+    {
+        id: "bharat-15",
+        source: "Bharat",
+        title: "Landing page underused for trust",
+        insight: "Entry point does not establish credibility fast.",
+        action: "Add resume download, testimonials, vision access on landing.",
+    },
+
+    // ===================== MEHNAJ =====================
+    {
+        id: "mehnaj-01",
+        source: "Mehnaj",
+        title: "Darkroom interaction unclear",
+        insight: "Users do not infer click-based navigation.",
+        action: "Add explicit nudge: photos are clickable and sequential.",
+    },
+    {
+        id: "mehnaj-02",
+        source: "Mehnaj",
+        title: "Photo story lacks progress awareness",
+        insight: "Users cannot perceive narrative length or completion path.",
+        action: "Show progress indicator (e.g., 3/16) + end-state guidance.",
+    },
+    {
+        id: "mehnaj-03",
+        source: "Mehnaj",
+        title: "WhatsApp share loses identity",
+        insight: "Shares strip authorship and weaken recall.",
+        action: "Predefine share copy with attribution and canonical link.",
+    },
+    {
+        id: "mehnaj-04",
+        source: "Mehnaj",
+        title: "Hiring pathway missing inside work",
+        insight: "Artifacts exist without economic pathway.",
+        action: "Embed hire signal inside galleries and photo stories.",
+    },
+    {
+        id: "mehnaj-05",
+        source: "Mehnaj",
+        title: "Privacy page credibility gap",
+        insight: "Non-clickable email + stale date signal neglect.",
+        action: "Make email clickable; update date to current validity window.",
+    },
+    {
+        id: "mehnaj-06",
+        source: "Mehnaj",
+        title: "Irrelevant slogans",
+        insight: "Value statements unrelated to purpose distort meaning.",
+        action: "Remove or replace with purpose-aligned language.",
+    },
+    {
+        id: "mehnaj-07",
+        source: "Mehnaj",
+        title: "Tagline redundancy",
+        insight: "Tagline adds noise without semantic gain.",
+        action: "Remove tagline.",
+    },
+    {
+        id: "mehnaj-08",
+        source: "Mehnaj",
+        title: "Visual identity inconsistency",
+        insight: "Different profile photos fracture recognition memory.",
+        action: "Standardize one photo across Google/Vimeo/links.",
+    },
+    {
+        id: "mehnaj-09",
+        source: "Mehnaj",
+        title: "About section lacks first-person presence",
+        insight: "Role labels distance the reader from the individual.",
+        action: "Rewrite in first-person: what you do and why.",
+    },
+    {
+        id: "mehnaj-10",
+        source: "Mehnaj",
+        title: "Join the Tribe lacks functional exchange",
+        insight: "Signup offers no explicit expectation or outcome.",
+        action: "Collect email + expectation; wire to notification workflow.",
+    },
+    {
+        id: "mehnaj-11",
+        source: "Mehnaj",
+        title: "Footer clutter",
+        insight: "System menus add noise without value.",
+        action: "Remove unnecessary footer system menu items.",
+    },
+    {
+        id: "mehnaj-12",
+        source: "Mehnaj",
+        title: "Proof elements need curiosity",
+        insight:
+            "Press/testimonials upfront reduce curiosity; too much at once.",
+        action: "Show teasers with expand-to-read behavior.",
+    },
+    {
+        id: "mehnaj-13",
+        source: "Mehnaj",
+        title: "Awards lack breadth and context",
+        insight: "Single brand mention undersells.",
+        action: "Add brand menu + explanations beyond one logo.",
+    },
+    {
+        id: "mehnaj-14",
+        source: "Mehnaj",
+        title: "WIP projects still signal skill",
+        insight: "Unfinished projects can prove coding capability.",
+        action: "Label as work-in-progress with intended direction.",
+    },
+    {
+        id: "mehnaj-15",
+        source: "Mehnaj",
+        title: "Obsidian tag click disrupts reading",
+        insight: "Tag navigation should not teleport context.",
+        action: "Clicking tags should re-sort notes list in-place.",
+    },
+    {
+        id: "mehnaj-16",
+        source: "Mehnaj",
+        title: "Reading theme strain",
+        insight: "White background reading preferred for long sessions.",
+        action: "Add light theme option for Obsidian-like pages.",
+    },
+    {
+        id: "mehnaj-17",
+        source: "Mehnaj",
+        title: "Invisible Punctum UX friction",
+        insight: "Input/record controls ambiguous; consent not clear.",
+        action: "Word-limit prompt, redesign record control, show mic notice on entry, show remaining image count.",
+    },
+    {
+        id: "mehnaj-18",
+        source: "Mehnaj",
+        title: 'Header label "Resources" is weak',
+        insight: "Generic label reduces meaning.",
+        action: "Rename to Mindhive/Mindhub and break palette monotony on these pages.",
+    },
+    {
+        id: "mehnaj-19",
+        source: "Mehnaj",
+        title: "Workshops missing",
+        insight: "Offering is absent so it cannot convert.",
+        action: "Add clear workshop mention and placement in site hierarchy.",
+    },
+
+    // ===================== ASWIN =====================
+    {
+        id: "aswin-01",
+        source: "Aswin",
+        title: "Landing animation validated",
+        insight: "Popping text animation strengthens curiosity and identity.",
+        action: "Keep animation; treat as signature interaction.",
+    },
+    {
+        id: "aswin-02",
+        source: "Aswin",
+        title: "Secret Lab rejected again",
+        insight: "Repeated feedback marks it as unstable and confusing.",
+        action: "Suspend or rebuild with explicit purpose and narrative.",
+    },
+    {
+        id: "aswin-03",
+        source: "Aswin",
+        title: "Second-brain onboarding incoherent",
+        insight: "Password reveal + reuse creates weird flow.",
+        action: "Rebuild as linear onboarding; remove symbolic leakage across pages.",
+    },
+    {
+        id: "aswin-04",
+        source: "Aswin",
+        title: "Site reads as thought-leadership platform",
+        insight: "Core frame is authority, not a random portfolio.",
+        action: "Add conferences, processes, frameworks, and discourse artifacts.",
+    },
+    {
+        id: "aswin-05",
+        source: "Aswin",
+        title: "Resources should be a separate entity",
+        insight:
+            "Research repositories dilute the main site's authority signal.",
+        action: "Move resources/Obsidian/repositories to separate site/domain.",
+    },
+    {
+        id: "aswin-06",
+        source: "Aswin",
+        title: "Broken links damage trust",
+        insight: "Non-working media mentions/projects negate seriousness.",
+        action: "Audit and fix all broken links; remove anything not maintained.",
+    },
+    {
+        id: "aswin-07",
+        source: "Aswin",
+        title: "whydidyoucry.com expired",
+        insight: "Domain expiration signals abandonment.",
+        action: "Renew domain or archive with explanation and working redirect.",
+    },
+    {
+        id: "aswin-08",
+        source: "Aswin",
+        title: "Work experience timeline needs hooks",
+        insight: "Simple chronology is less engaging than contextual proof.",
+        action: "Add hover project imagery and contextual artifacts per time period.",
+    },
+    {
+        id: "aswin-09",
+        source: "Aswin",
+        title: "Rejected series needs story and evidence",
+        insight: "Without narrative it reads as flaunting.",
+        action: "Add story, rejection slips, rejected proposals, and your vision.",
+    },
+    {
+        id: "aswin-10",
+        source: "Aswin",
+        title: "Research needs output examples",
+        insight: "Consumption vs authored output not differentiated.",
+        action: "Show specific research notes/output; separate consumed vs produced.",
+    },
+    {
+        id: "aswin-11",
+        source: "Aswin",
+        title: "User flow needs convergence",
+        insight: "Visitors wander without clarity and next step.",
+        action: "Design flow to converge toward community/workshop/participation; simplify CTA per page.",
+    },
+    {
+        id: "aswin-12",
+        source: "Aswin",
+        title: "Meta improvements required",
+        insight: "Headers/meta do not reinforce intent and authority.",
+        action: "Add page-level meta titles/descriptions aligned to each page's job.",
+    },
+    {
+        id: "aswin-13",
+        source: "Aswin",
+        title: "Dark Room needs retention-grade polish",
+        insight: "Novelty decays quickly; motion/interaction must be smooth.",
+        action: "Improve interaction smoothness and layer micro-rewards past minute one.",
+    },
+];
+---
+
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Website Feedback — Abodid</title>
+        <meta
+            name="description"
+            content="Consolidated feedback from Bharat, Mehnaj, and Aswin on the personal website — track implementation progress."
+        />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <style>
+            :root {
+                --bg: #0b0b0f;
+                --card: rgba(255, 255, 255, 0.06);
+                --card2: rgba(255, 255, 255, 0.08);
+                --border: rgba(255, 255, 255, 0.1);
+                --text: rgba(255, 255, 255, 0.92);
+                --muted: rgba(255, 255, 255, 0.7);
+
+                --bharat-bg: #efe6ff;
+                --bharat-accent: #7b49ff;
+
+                --mehnaj-bg: #e8f4ff;
+                --mehnaj-accent: #2a78ff;
+
+                --aswin-bg: #fff3e6;
+                --aswin-accent: #ff8a2a;
+
+                --shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+                --radius: 18px;
+            }
+
+            *,
+            *::before,
+            *::after {
+                box-sizing: border-box;
+            }
+
+            body {
+                margin: 0;
+                font-family:
+                    ui-sans-serif,
+                    system-ui,
+                    -apple-system,
+                    "Segoe UI",
+                    Roboto,
+                    Helvetica,
+                    Arial,
+                    "Apple Color Emoji",
+                    "Segoe UI Emoji",
+                    sans-serif;
+                background:
+                    radial-gradient(
+                        900px 500px at 30% 0%,
+                        rgba(123, 73, 255, 0.15),
+                        transparent 70%
+                    ),
+                    radial-gradient(
+                        900px 500px at 70% 0%,
+                        rgba(42, 120, 255, 0.12),
+                        transparent 70%
+                    ),
+                    radial-gradient(
+                        900px 500px at 50% 20%,
+                        rgba(255, 138, 42, 0.1),
+                        transparent 70%
+                    ),
+                    var(--bg);
+                color: var(--text);
+                min-height: 100vh;
+            }
+
+            .wrap {
+                max-width: 1120px;
+                margin: 0 auto;
+                padding: 40px 18px 72px;
+            }
+
+            .header {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+                margin-bottom: 20px;
+            }
+
+            .title {
+                font-size: 34px;
+                line-height: 1.1;
+                letter-spacing: -0.02em;
+                margin: 0;
+                font-weight: 700;
+            }
+
+            .subtitle {
+                margin: 0;
+                color: var(--muted);
+                font-size: 14px;
+                line-height: 1.4;
+                max-width: 70ch;
+            }
+
+            .toolbar {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+                align-items: center;
+                justify-content: space-between;
+                padding: 14px;
+                background: var(--card);
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                box-shadow: var(--shadow);
+                margin-bottom: 18px;
+            }
+
+            .filters {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+                align-items: center;
+            }
+
+            .chip {
+                appearance: none;
+                border: 1px solid var(--border);
+                background: var(--card2);
+                color: var(--text);
+                padding: 10px 12px;
+                border-radius: 999px;
+                cursor: pointer;
+                font-size: 13px;
+                line-height: 1;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                user-select: none;
+                transition: all 0.2s ease;
+            }
+
+            .chip:hover {
+                border-color: rgba(255, 255, 255, 0.18);
+                background: rgba(255, 255, 255, 0.1);
+            }
+
+            .chip[aria-pressed="true"] {
+                border-color: rgba(255, 255, 255, 0.22);
+                background: rgba(255, 255, 255, 0.12);
+            }
+
+            .chip-dot {
+                width: 10px;
+                height: 10px;
+                border-radius: 999px;
+                display: inline-block;
+            }
+
+            .chip-dot.bharat {
+                background: var(--bharat-accent);
+            }
+            .chip-dot.mehnaj {
+                background: var(--mehnaj-accent);
+            }
+            .chip-dot.aswin {
+                background: var(--aswin-accent);
+            }
+
+            .stats {
+                color: var(--muted);
+                font-size: 13px;
+                line-height: 1;
+                padding: 8px 10px;
+                font-variant-numeric: tabular-nums;
+            }
+
+            .list {
+                display: flex;
+                flex-direction: column;
+                gap: 14px;
+            }
+
+            .row {
+                display: grid;
+                grid-template-columns: 76px 1fr;
+                gap: 14px;
+                padding: 16px;
+                border-radius: var(--radius);
+                border: 1px solid var(--border);
+                background: var(--card);
+                box-shadow: var(--shadow);
+                transition: opacity 0.3s ease;
+            }
+
+            .row-inner {
+                display: grid;
+                grid-template-columns: 1fr 1.2fr 1.2fr;
+                gap: 14px;
+            }
+
+            .left {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                align-items: stretch;
+            }
+
+            .index-pill {
+                font-variant-numeric: tabular-nums;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 52px;
+                height: 38px;
+                border-radius: 12px;
+                border: 1px solid var(--border);
+                background: rgba(255, 255, 255, 0.08);
+                color: rgba(255, 255, 255, 0.9);
+                font-size: 14px;
+                font-weight: 600;
+            }
+
+            .source-pill {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                height: 28px;
+                border-radius: 999px;
+                font-size: 12px;
+                padding: 0 10px;
+                border: 1px solid rgba(0, 0, 0, 0.1);
+                color: rgba(0, 0, 0, 0.85);
+                font-weight: 600;
+            }
+
+            .source-pill.bharat {
+                background: var(--bharat-bg);
+            }
+            .source-pill.mehnaj {
+                background: var(--mehnaj-bg);
+            }
+            .source-pill.aswin {
+                background: var(--aswin-bg);
+            }
+
+            .check {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 52px;
+                height: 52px;
+                border-radius: 14px;
+                border: 2px solid rgba(255, 255, 255, 0.22);
+                background: rgba(0, 0, 0, 0.2);
+                cursor: pointer;
+                user-select: none;
+                transition: all 0.2s ease;
+            }
+
+            .check:hover {
+                border-color: rgba(255, 255, 255, 0.28);
+                background: rgba(255, 255, 255, 0.08);
+            }
+
+            .check input {
+                position: absolute;
+                opacity: 0;
+                pointer-events: none;
+            }
+
+            .check svg {
+                width: 28px;
+                height: 28px;
+                opacity: 0.25;
+                transform: scale(0.98);
+                transition: all 0.2s ease;
+            }
+
+            .row[data-done="true"] .check {
+                border-color: rgba(255, 255, 255, 0.34);
+                background: rgba(255, 255, 255, 0.1);
+            }
+
+            .row[data-done="true"] .check svg {
+                opacity: 0.95;
+                transform: scale(1);
+            }
+
+            .cell {
+                padding: 14px;
+                border-radius: 14px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                background: rgba(0, 0, 0, 0.18);
+                min-height: 88px;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .cell h3 {
+                margin: 0 0 8px 0;
+                font-size: 15px;
+                letter-spacing: -0.01em;
+                font-weight: 600;
+            }
+
+            .cell p {
+                margin: 0;
+                color: var(--muted);
+                font-size: 13px;
+                line-height: 1.55;
+            }
+
+            .cell-title {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 10px;
+                margin-bottom: 8px;
+            }
+
+            .tag {
+                font-size: 11px;
+                line-height: 1;
+                padding: 6px 8px;
+                border-radius: 999px;
+                border: 1px solid rgba(255, 255, 255, 0.14);
+                color: rgba(255, 255, 255, 0.8);
+                background: rgba(255, 255, 255, 0.06);
+                white-space: nowrap;
+            }
+
+            /* Source accents on the Title cell */
+            .row.bharat .cell.title {
+                outline: 2px solid rgba(123, 73, 255, 0.28);
+            }
+            .row.mehnaj .cell.title {
+                outline: 2px solid rgba(42, 120, 255, 0.24);
+            }
+            .row.aswin .cell.title {
+                outline: 2px solid rgba(255, 138, 42, 0.24);
+            }
+
+            /* Strike-through on completed */
+            .row[data-done="true"] .cell h3,
+            .row[data-done="true"] .cell p {
+                text-decoration: line-through;
+                text-decoration-thickness: 2px;
+                text-decoration-color: rgba(255, 255, 255, 0.55);
+            }
+            .row[data-done="true"] {
+                opacity: 0.7;
+            }
+
+            /* Responsive */
+            @media (max-width: 980px) {
+                .row-inner {
+                    grid-template-columns: 1fr;
+                }
+                .row {
+                    grid-template-columns: 76px 1fr;
+                }
+            }
+            @media (max-width: 560px) {
+                .row {
+                    grid-template-columns: 1fr;
+                }
+                .left {
+                    flex-direction: row;
+                    align-items: center;
+                    justify-content: space-between;
+                }
+                .index-pill {
+                    width: 46px;
+                }
+                .check {
+                    width: 48px;
+                    height: 48px;
+                }
+                .title {
+                    font-size: 28px;
+                }
+            }
+        </style>
+    </head>
+
+    <body>
+        <main class="wrap">
+            <header class="header">
+                <h1 class="title">Website Feedback</h1>
+                <p class="subtitle">
+                    Consolidated feedback from Bharat, Mehnaj, and Aswin. Mark
+                    items as implemented to strike-through and persist locally.
+                </p>
+            </header>
+
+            <section class="toolbar" aria-label="Feedback controls">
+                <div class="filters" role="group" aria-label="Filter by source">
+                    <button class="chip" data-filter="All" aria-pressed="true">
+                        <span
+                            class="chip-dot"
+                            style="background: rgba(255,255,255,0.65)"></span>
+                        All
+                    </button>
+                    <button
+                        class="chip"
+                        data-filter="Bharat"
+                        aria-pressed="false"
+                    >
+                        <span class="chip-dot bharat"></span>
+                        Bharat
+                    </button>
+                    <button
+                        class="chip"
+                        data-filter="Mehnaj"
+                        aria-pressed="false"
+                    >
+                        <span class="chip-dot mehnaj"></span>
+                        Mehnaj
+                    </button>
+                    <button
+                        class="chip"
+                        data-filter="Aswin"
+                        aria-pressed="false"
+                    >
+                        <span class="chip-dot aswin"></span>
+                        Aswin
+                    </button>
+                </div>
+
+                <div class="stats" aria-live="polite">
+                    <span id="statsText">—</span>
+                </div>
+            </section>
+
+            <section class="list" id="feedbackList">
+                {
+                    feedback.map((item, idx) => (
+                        <article
+                            class={`row ${item.source.toLowerCase()}`}
+                            data-source={item.source}
+                            data-id={item.id}
+                            data-done="false"
+                        >
+                            <div class="left">
+                                <div class="index-pill">{idx + 1}</div>
+                                <div
+                                    class={`source-pill ${item.source.toLowerCase()}`}
+                                >
+                                    {item.source}
+                                </div>
+
+                                <label
+                                    class="check"
+                                    title="Mark as implemented"
+                                >
+                                    <input type="checkbox" data-check />
+                                    <svg
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        aria-hidden="true"
+                                    >
+                                        <path
+                                            d="M20 6L9 17l-5-5"
+                                            stroke="currentColor"
+                                            stroke-width="2.6"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                        />
+                                    </svg>
+                                </label>
+                            </div>
+
+                            <div class="row-inner">
+                                <div class="cell title">
+                                    <div class="cell-title">
+                                        <h3>{item.title}</h3>
+                                        <span class="tag">Title</span>
+                                    </div>
+                                    <p>{item.insight}</p>
+                                </div>
+
+                                <div class="cell">
+                                    <div class="cell-title">
+                                        <h3>Insight</h3>
+                                        <span class="tag">What it means</span>
+                                    </div>
+                                    <p>{item.insight}</p>
+                                </div>
+
+                                <div class="cell">
+                                    <div class="cell-title">
+                                        <h3>Action</h3>
+                                        <span class="tag">What to change</span>
+                                    </div>
+                                    <p>{item.action}</p>
+                                </div>
+                            </div>
+                        </article>
+                    ))
+                }
+            </section>
+
+            <script is:inline>
+                (function () {
+                    const STORAGE_KEY = "website_feedback_done_v1";
+                    const chips = Array.from(
+                        document.querySelectorAll(".chip"),
+                    );
+                    const rows = Array.from(document.querySelectorAll(".row"));
+                    const statsText = document.getElementById("statsText");
+
+                    function loadDoneMap() {
+                        try {
+                            const raw = localStorage.getItem(STORAGE_KEY);
+                            if (!raw) return {};
+                            const parsed = JSON.parse(raw);
+                            if (parsed && typeof parsed === "object")
+                                return parsed;
+                            return {};
+                        } catch {
+                            return {};
+                        }
+                    }
+
+                    function saveDoneMap(map) {
+                        try {
+                            localStorage.setItem(
+                                STORAGE_KEY,
+                                JSON.stringify(map),
+                            );
+                        } catch {}
+                    }
+
+                    const doneMap = loadDoneMap();
+
+                    function applyDoneState() {
+                        for (const row of rows) {
+                            const id = row.getAttribute("data-id");
+                            const isDone = !!doneMap[id];
+                            row.setAttribute(
+                                "data-done",
+                                isDone ? "true" : "false",
+                            );
+                            const cb = row.querySelector(
+                                'input[type="checkbox"][data-check]',
+                            );
+                            if (cb) cb.checked = isDone;
+                        }
+                    }
+
+                    function getActiveFilter() {
+                        const active = chips.find(
+                            (c) => c.getAttribute("aria-pressed") === "true",
+                        );
+                        return active
+                            ? active.getAttribute("data-filter")
+                            : "All";
+                    }
+
+                    function applyFilter() {
+                        const filter = getActiveFilter();
+                        for (const row of rows) {
+                            const src = row.getAttribute("data-source");
+                            const show = filter === "All" || src === filter;
+                            row.style.display = show ? "" : "none";
+                        }
+                        updateStats();
+                    }
+
+                    function updateStats() {
+                        const filter = getActiveFilter();
+                        const visible = rows.filter(
+                            (r) => r.style.display !== "none",
+                        );
+                        const totalVisible = visible.length;
+                        const doneVisible = visible.filter(
+                            (r) => r.getAttribute("data-done") === "true",
+                        ).length;
+
+                        const totalAll = rows.length;
+                        const doneAll = rows.filter(
+                            (r) => r.getAttribute("data-done") === "true",
+                        ).length;
+
+                        if (filter === "All") {
+                            statsText.textContent = `${doneAll}/${totalAll} implemented`;
+                        } else {
+                            statsText.textContent = `${doneVisible}/${totalVisible} implemented (${filter})`;
+                        }
+                    }
+
+                    chips.forEach((chip) => {
+                        chip.addEventListener("click", () => {
+                            for (const c of chips)
+                                c.setAttribute("aria-pressed", "false");
+                            chip.setAttribute("aria-pressed", "true");
+                            applyFilter();
+                        });
+                    });
+
+                    rows.forEach((row) => {
+                        const id = row.getAttribute("data-id");
+                        const cb = row.querySelector(
+                            'input[type="checkbox"][data-check]',
+                        );
+                        const label = row.querySelector(".check");
+
+                        function toggleDone(next) {
+                            doneMap[id] = !!next;
+                            row.setAttribute(
+                                "data-done",
+                                next ? "true" : "false",
+                            );
+                            saveDoneMap(doneMap);
+                            updateStats();
+                        }
+
+                        if (cb) {
+                            cb.addEventListener("change", (e) => {
+                                toggleDone(e.target.checked);
+                            });
+                        }
+
+                        if (label) {
+                            label.addEventListener("click", (e) => {
+                                if (e.target && e.target.tagName === "INPUT")
+                                    return;
+                                if (!cb) return;
+                                cb.checked = !cb.checked;
+                                toggleDone(cb.checked);
+                            });
+                        }
+                    });
+
+                    applyDoneState();
+                    applyFilter();
+                })();
+            </script>
+        </main>
+    </body>
+</html>

@@ -1,0 +1,773 @@
+---
+/**
+ * Website Feedback — Clean Airtable-style Design
+ * Matte black background with white boxes and proper spacing
+ */
+
+type Source = "Bharat" | "Mehnaj" | "Aswin";
+
+type FeedbackItem = {
+    id: string;
+    source: Source;
+    title: string;
+    insight: string;
+    action: string;
+};
+
+const feedback: FeedbackItem[] = [
+    // ===================== BHARAT =====================
+    {
+        id: "bharat-01",
+        source: "Bharat",
+        title: "Identity overload on website",
+        insight:
+            "One site contains multiple identities, collapsing signal clarity.",
+        action: "Enforce single-purpose identity per domain.",
+    },
+    {
+        id: "bharat-02",
+        source: "Bharat",
+        title: "Personal site misused as storage",
+        insight:
+            "Archives and thinking systems are presented as self-definition.",
+        action: "Remove vaults, collections, and research repositories from personal domain.",
+    },
+    {
+        id: "bharat-03",
+        source: "Bharat",
+        title: "Curation treated as personality",
+        insight: "Curation is a product, not a trait.",
+        action: "Isolate curation under a separate product identity.",
+    },
+    {
+        id: "bharat-04",
+        source: "Bharat",
+        title: "Visual intensity overrides cognition",
+        insight: "Glow and effects dominate perception over meaning.",
+        action: "Remove visual stimuli that compete with reading hierarchy.",
+    },
+    {
+        id: "bharat-05",
+        source: "Bharat",
+        title: "Video lacks authorship clarity",
+        insight: "Viewer cannot infer your contribution.",
+        action: "Explicitly declare your role and delimit others' roles.",
+    },
+    {
+        id: "bharat-06",
+        source: "Bharat",
+        title: "Secret Lab lacks semantic anchor",
+        insight: "Feature has no intelligible purpose to outsiders.",
+        action: "Delete or redefine with explicit utility and outcome.",
+    },
+    {
+        id: "bharat-07",
+        source: "Bharat",
+        title: "Playful signals reduce credibility",
+        insight: "Confetti/celebratory patterns weaken professional trust.",
+        action: "Remove playful UI elements from landing context.",
+    },
+    {
+        id: "bharat-08",
+        source: "Bharat",
+        title: "Testimonials lack authority filtering",
+        insight: "Open submission degrades legitimacy.",
+        action: "Restrict testimonials to verified professionals only.",
+    },
+    {
+        id: "bharat-09",
+        source: "Bharat",
+        title: "Blog concept misframed",
+        insight: "Thinking style is synthesis, not posts.",
+        action: "Reclassify as notes, trails, learning logs.",
+    },
+    {
+        id: "bharat-10",
+        source: "Bharat",
+        title: "Obsidian + LLM under-articulated",
+        insight: "Idea is powerful but cognitively opaque.",
+        action: "Define it as a consumable thinking interface, not a tool dump.",
+    },
+    {
+        id: "bharat-11",
+        source: "Bharat",
+        title: "Research shared without epistemic stance",
+        insight: "Material appears borrowed rather than authored.",
+        action: "Attach rationale, intent, and insight to every research item.",
+    },
+    {
+        id: "bharat-12",
+        source: "Bharat",
+        title: "About vs expectation conflated",
+        insight: "Biography and value proposition are mixed.",
+        action: "Separate narrative history from what people can expect.",
+    },
+    {
+        id: "bharat-13",
+        source: "Bharat",
+        title: "Experience reduced to imagery",
+        insight: "Achievements are implied, not stated.",
+        action: "Translate experience into explicit competencies.",
+    },
+    {
+        id: "bharat-14",
+        source: "Bharat",
+        title: "Skills unclear for recruiters",
+        insight: "Recruiters cannot assess depth/category quickly.",
+        action: "Segment skills by domain and proficiency.",
+    },
+    {
+        id: "bharat-15",
+        source: "Bharat",
+        title: "Landing page underused for trust",
+        insight: "Entry point does not establish credibility fast.",
+        action: "Add resume download, testimonials, vision access on landing.",
+    },
+
+    // ===================== MEHNAJ =====================
+    {
+        id: "mehnaj-01",
+        source: "Mehnaj",
+        title: "Darkroom interaction unclear",
+        insight: "Users do not infer click-based navigation.",
+        action: "Add explicit nudge: photos are clickable and sequential.",
+    },
+    {
+        id: "mehnaj-02",
+        source: "Mehnaj",
+        title: "Photo story lacks progress awareness",
+        insight: "Users cannot perceive narrative length or completion path.",
+        action: "Show progress indicator (e.g., 3/16) + end-state guidance.",
+    },
+    {
+        id: "mehnaj-03",
+        source: "Mehnaj",
+        title: "WhatsApp share loses identity",
+        insight: "Shares strip authorship and weaken recall.",
+        action: "Predefine share copy with attribution and canonical link.",
+    },
+    {
+        id: "mehnaj-04",
+        source: "Mehnaj",
+        title: "Hiring pathway missing inside work",
+        insight: "Artifacts exist without economic pathway.",
+        action: "Embed hire signal inside galleries and photo stories.",
+    },
+    {
+        id: "mehnaj-05",
+        source: "Mehnaj",
+        title: "Privacy page credibility gap",
+        insight: "Non-clickable email + stale date signal neglect.",
+        action: "Make email clickable; update date to current validity window.",
+    },
+    {
+        id: "mehnaj-06",
+        source: "Mehnaj",
+        title: "Irrelevant slogans",
+        insight: "Value statements unrelated to purpose distort meaning.",
+        action: "Remove or replace with purpose-aligned language.",
+    },
+    {
+        id: "mehnaj-07",
+        source: "Mehnaj",
+        title: "Tagline redundancy",
+        insight: "Tagline adds noise without semantic gain.",
+        action: "Remove tagline.",
+    },
+    {
+        id: "mehnaj-08",
+        source: "Mehnaj",
+        title: "Visual identity inconsistency",
+        insight: "Different profile photos fracture recognition memory.",
+        action: "Standardize one photo across Google/Vimeo/links.",
+    },
+    {
+        id: "mehnaj-09",
+        source: "Mehnaj",
+        title: "About section lacks first-person presence",
+        insight: "Role labels distance the reader from the individual.",
+        action: "Rewrite in first-person: what you do and why.",
+    },
+    {
+        id: "mehnaj-10",
+        source: "Mehnaj",
+        title: "Join the Tribe lacks functional exchange",
+        insight: "Signup offers no explicit expectation or outcome.",
+        action: "Collect email + expectation; wire to notification workflow.",
+    },
+    {
+        id: "mehnaj-11",
+        source: "Mehnaj",
+        title: "Footer clutter",
+        insight: "System menus add noise without value.",
+        action: "Remove unnecessary footer system menu items.",
+    },
+    {
+        id: "mehnaj-12",
+        source: "Mehnaj",
+        title: "Proof elements need curiosity",
+        insight:
+            "Press/testimonials upfront reduce curiosity; too much at once.",
+        action: "Show teasers with expand-to-read behavior.",
+    },
+    {
+        id: "mehnaj-13",
+        source: "Mehnaj",
+        title: "Awards lack breadth and context",
+        insight: "Single brand mention undersells.",
+        action: "Add brand menu + explanations beyond one logo.",
+    },
+    {
+        id: "mehnaj-14",
+        source: "Mehnaj",
+        title: "WIP projects still signal skill",
+        insight: "Unfinished projects can prove coding capability.",
+        action: "Label as work-in-progress with intended direction.",
+    },
+    {
+        id: "mehnaj-15",
+        source: "Mehnaj",
+        title: "Obsidian tag click disrupts reading",
+        insight: "Tag navigation should not teleport context.",
+        action: "Clicking tags should re-sort notes list in-place.",
+    },
+    {
+        id: "mehnaj-16",
+        source: "Mehnaj",
+        title: "Reading theme strain",
+        insight: "White background reading preferred for long sessions.",
+        action: "Add light theme option for Obsidian-like pages.",
+    },
+    {
+        id: "mehnaj-17",
+        source: "Mehnaj",
+        title: "Invisible Punctum UX friction",
+        insight: "Input/record controls ambiguous; consent not clear.",
+        action: "Word-limit prompt, redesign record control, show mic notice on entry, show remaining image count.",
+    },
+    {
+        id: "mehnaj-18",
+        source: "Mehnaj",
+        title: 'Header label \\"Resources\\" is weak',
+        insight: "Generic label reduces meaning.",
+        action: "Rename to Mindhive/Mindhub and break palette monotony on these pages.",
+    },
+    {
+        id: "mehnaj-19",
+        source: "Mehnaj",
+        title: "Workshops missing",
+        insight: "Offering is absent so it cannot convert.",
+        action: "Add clear workshop mention and placement in site hierarchy.",
+    },
+
+    // ===================== ASWIN =====================
+    {
+        id: "aswin-01",
+        source: "Aswin",
+        title: "Landing animation validated",
+        insight: "Popping text animation strengthens curiosity and identity.",
+        action: "Keep animation; treat as signature interaction.",
+    },
+    {
+        id: "aswin-02",
+        source: "Aswin",
+        title: "Secret Lab rejected again",
+        insight: "Repeated feedback marks it as unstable and confusing.",
+        action: "Suspend or rebuild with explicit purpose and narrative.",
+    },
+    {
+        id: "aswin-03",
+        source: "Aswin",
+        title: "Second-brain onboarding incoherent",
+        insight: "Password reveal + reuse creates weird flow.",
+        action: "Rebuild as linear onboarding; remove symbolic leakage across pages.",
+    },
+    {
+        id: "aswin-04",
+        source: "Aswin",
+        title: "Site reads as thought-leadership platform",
+        insight: "Core frame is authority, not a random portfolio.",
+        action: "Add conferences, processes, frameworks, and discourse artifacts.",
+    },
+    {
+        id: "aswin-05",
+        source: "Aswin",
+        title: "Resources should be a separate entity",
+        insight:
+            "Research repositories dilute the main site's authority signal.",
+        action: "Move resources/Obsidian/repositories to separate site/domain.",
+    },
+    {
+        id: "aswin-06",
+        source: "Aswin",
+        title: "Broken links damage trust",
+        insight: "Non-working media mentions/projects negate seriousness.",
+        action: "Audit and fix all broken links; remove anything not maintained.",
+    },
+    {
+        id: "aswin-07",
+        source: "Aswin",
+        title: "whydidyoucry.com expired",
+        insight: "Domain expiration signals abandonment.",
+        action: "Renew domain or archive with explanation and working redirect.",
+    },
+    {
+        id: "aswin-08",
+        source: "Aswin",
+        title: "Work experience timeline needs hooks",
+        insight: "Simple chronology is less engaging than contextual proof.",
+        action: "Add hover project imagery and contextual artifacts per time period.",
+    },
+    {
+        id: "aswin-09",
+        source: "Aswin",
+        title: "Rejected series needs story and evidence",
+        insight: "Without narrative it reads as flaunting.",
+        action: "Add story, rejection slips, rejected proposals, and your vision.",
+    },
+    {
+        id: "aswin-10",
+        source: "Aswin",
+        title: "Research needs output examples",
+        insight: "Consumption vs authored output not differentiated.",
+        action: "Show specific research notes/output; separate consumed vs produced.",
+    },
+    {
+        id: "aswin-11",
+        source: "Aswin",
+        title: "User flow needs convergence",
+        insight: "Visitors wander without clarity and next step.",
+        action: "Design flow to converge toward community/workshop/participation; simplify CTA per page.",
+    },
+    {
+        id: "aswin-12",
+        source: "Aswin",
+        title: "Meta improvements required",
+        insight: "Headers/meta do not reinforce intent and authority.",
+        action: "Add page-level meta titles/descriptions aligned to each page's job.",
+    },
+    {
+        id: "aswin-13",
+        source: "Aswin",
+        title: "Dark Room needs retention-grade polish",
+        insight: "Novelty decays quickly; motion/interaction must be smooth.",
+        action: "Improve interaction smoothness and layer micro-rewards past minute one.",
+    },
+];
+
+// Group feedback by source
+const bharatFeedback = feedback.filter((f) => f.source === "Bharat");
+const mehnajFeedback = feedback.filter((f) => f.source === "Mehnaj");
+const aswinFeedback = feedback.filter((f) => f.source === "Aswin");
+---
+
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Website Feedback — Abodid</title>
+        <meta
+            name="description"
+            content="Consolidated feedback from Bharat, Mehnaj, and Aswin on the personal website — track implementation progress."
+        />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family:
+                    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                    "Helvetica Neue", Arial, sans-serif;
+                background: #1a1a1a;
+                color: #ffffff;
+                line-height: 1.6;
+                padding: 60px 30px;
+            }
+
+            .container {
+                max-width: 1400px;
+                margin: 0 auto;
+            }
+
+            .legend {
+                margin-bottom: 40px;
+                padding: 24px 28px;
+                background: #2a2a2a;
+                border-radius: 12px;
+            }
+
+            .legend ul {
+                list-style: none;
+                display: flex;
+                gap: 40px;
+                flex-wrap: wrap;
+            }
+
+            .legend li {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                font-size: 14px;
+                color: #e0e0e0;
+            }
+
+            .dot {
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                flex-shrink: 0;
+            }
+
+            .dot.bharat {
+                background: #7b49ff;
+            }
+            .dot.mehnaj {
+                background: #2a78ff;
+            }
+            .dot.aswin {
+                background: #ff8a2a;
+            }
+
+            .legend-label {
+                font-weight: 600;
+                color: #ffffff;
+            }
+
+            .legend-desc {
+                color: #a0a0a0;
+            }
+
+            .section-header {
+                display: flex;
+                align-items: center;
+                gap: 14px;
+                margin: 50px 0 24px 0;
+                font-size: 22px;
+                font-weight: 600;
+                color: #ffffff;
+            }
+
+            .section-header:first-of-type {
+                margin-top: 0;
+            }
+
+            .section-header .dot {
+                width: 14px;
+                height: 14px;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: separate;
+                border-spacing: 0 12px;
+                margin-bottom: 50px;
+            }
+
+            thead {
+                background: transparent;
+            }
+
+            th {
+                padding: 16px 20px;
+                text-align: left;
+                font-weight: 600;
+                font-size: 12px;
+                color: #a0a0a0;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                background: transparent;
+                border: none;
+            }
+
+            th:first-child {
+                width: 70px;
+                padding-left: 24px;
+            }
+
+            th:nth-child(2) {
+                width: 24%;
+            }
+
+            th:nth-child(3) {
+                width: 36%;
+            }
+
+            th:nth-child(4) {
+                width: 36%;
+            }
+
+            tbody tr {
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+
+            tbody tr:hover td {
+                background: #333333;
+            }
+
+            tbody tr[data-done="true"] td {
+                background: #1a3a2a;
+                opacity: 0.7;
+            }
+
+            tbody tr[data-done="true"]:hover td {
+                background: #224435;
+            }
+
+            td {
+                padding: 20px;
+                font-size: 14px;
+                background: #2a2a2a;
+                color: #e8e8e8;
+                border: none;
+                line-height: 1.6;
+                word-wrap: break-word;
+            }
+
+            td:first-child {
+                border-radius: 10px 0 0 10px;
+                color: #888;
+                font-variant-numeric: tabular-nums;
+                font-weight: 600;
+                padding-left: 24px;
+            }
+
+            td:last-child {
+                border-radius: 0 10px 10px 0;
+            }
+
+            .stats {
+                position: fixed;
+                bottom: 24px;
+                right: 24px;
+                background: #ffffff;
+                color: #1a1a1a;
+                padding: 14px 24px;
+                border-radius: 10px;
+                font-size: 13px;
+                font-weight: 600;
+                font-variant-numeric: tabular-nums;
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            }
+
+            @media (max-width: 768px) {
+                body {
+                    padding: 30px 15px;
+                }
+
+                table {
+                    font-size: 13px;
+                    border-spacing: 0 8px;
+                }
+
+                th,
+                td {
+                    padding: 14px 12px;
+                }
+
+                th:first-child,
+                td:first-child {
+                    display: none;
+                }
+
+                .section-header {
+                    font-size: 18px;
+                }
+
+                .legend {
+                    padding: 18px 20px;
+                }
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="container">
+            <div class="legend">
+                <ul>
+                    <li>
+                        <span class="dot bharat"></span>
+                        <span class="legend-label">Bharat</span>
+                        <span class="legend-desc"
+                            >— Structural clarity, identity, recruiter logic</span
+                        >
+                    </li>
+                    <li>
+                        <span class="dot mehnaj"></span>
+                        <span class="legend-label">Mehnaj</span>
+                        <span class="legend-desc"
+                            >— UX, interaction clarity, flow, polish</span
+                        >
+                    </li>
+                    <li>
+                        <span class="dot aswin"></span>
+                        <span class="legend-label">Aswin</span>
+                        <span class="legend-desc"
+                            >— Narrative depth, thought leadership, authority</span
+                        >
+                    </li>
+                </ul>
+            </div>
+
+            <h2 class="section-header">
+                <span class="dot bharat"></span>
+                Bharat — Core Structure & Identity
+            </h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Title</th>
+                        <th>Insight</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {
+                        bharatFeedback.map((item, idx) => (
+                            <tr data-id={item.id} data-done="false">
+                                <td>{idx + 1}</td>
+                                <td>{item.title}</td>
+                                <td>{item.insight}</td>
+                                <td>{item.action}</td>
+                            </tr>
+                        ))
+                    }
+                </tbody>
+            </table>
+
+            <h2 class="section-header">
+                <span class="dot mehnaj"></span>
+                Mehnaj — UX, Interaction & Clarity
+            </h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Title</th>
+                        <th>Insight</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {
+                        mehnajFeedback.map((item, idx) => (
+                            <tr data-id={item.id} data-done="false">
+                                <td>{idx + 1}</td>
+                                <td>{item.title}</td>
+                                <td>{item.insight}</td>
+                                <td>{item.action}</td>
+                            </tr>
+                        ))
+                    }
+                </tbody>
+            </table>
+
+            <h2 class="section-header">
+                <span class="dot aswin"></span>
+                Aswin — Narrative & Authority
+            </h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Title</th>
+                        <th>Insight</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {
+                        aswinFeedback.map((item, idx) => (
+                            <tr data-id={item.id} data-done="false">
+                                <td>{idx + 1}</td>
+                                <td>{item.title}</td>
+                                <td>{item.insight}</td>
+                                <td>{item.action}</td>
+                            </tr>
+                        ))
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="stats" id="statsText">—</div>
+
+        <script is:inline>
+            (function () {
+                const STORAGE_KEY = "website_feedback_done_v1";
+                const rows = Array.from(document.querySelectorAll("tbody tr"));
+                const statsText = document.getElementById("statsText");
+
+                function loadDoneMap() {
+                    try {
+                        const raw = localStorage.getItem(STORAGE_KEY);
+                        if (!raw) return {};
+                        const parsed = JSON.parse(raw);
+                        if (parsed && typeof parsed === "object") return parsed;
+                        return {};
+                    } catch {
+                        return {};
+                    }
+                }
+
+                function saveDoneMap(map) {
+                    try {
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(map));
+                    } catch {}
+                }
+
+                const doneMap = loadDoneMap();
+
+                function applyDoneState() {
+                    for (const row of rows) {
+                        const id = row.getAttribute("data-id");
+                        const isDone = !!doneMap[id];
+                        row.setAttribute(
+                            "data-done",
+                            isDone ? "true" : "false",
+                        );
+                    }
+                }
+
+                function updateStats() {
+                    const totalAll = rows.length;
+                    const doneAll = rows.filter(
+                        (r) => r.getAttribute("data-done") === "true",
+                    ).length;
+                    statsText.textContent = `${doneAll}/${totalAll} implemented`;
+                }
+
+                rows.forEach((row) => {
+                    const id = row.getAttribute("data-id");
+
+                    function toggleDone() {
+                        const currentState =
+                            row.getAttribute("data-done") === "true";
+                        const nextState = !currentState;
+                        doneMap[id] = nextState;
+                        row.setAttribute(
+                            "data-done",
+                            nextState ? "true" : "false",
+                        );
+                        saveDoneMap(doneMap);
+                        updateStats();
+                    }
+
+                    row.addEventListener("click", toggleDone);
+                });
+
+                applyDoneState();
+                updateStats();
+            })();
+        </script>
+    </body>
+</html>
