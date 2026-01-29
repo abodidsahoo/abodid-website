@@ -60,18 +60,34 @@ const isSupabaseConfigured = () => {
 // --- Research (Key Projects) ---
 const mockResearchProjects = [
     {
+        title: "LLM-based Chatbot",
+        description: "Experimenting with OpenRouter API to build an internal chatbot trained on my research papers and creative work. Using selective free-tier models to create AI-driven tools for analyzing social data.",
+        slug: "llm-chatbot",
+        href: "/research/llm-chatbot",
+        image: "https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&q=80&w=1000",
+        tags: ["OpenRouter API", "AI Tools", "In Progress"]
+    },
+    {
+        title: "Polaroids Table",
+        description: "An interactive photo arrangement experiment—handle photographs like physical objects, sequence them on a digital table, and feel how their order changes meaning. A stepping stone for designing photo books.",
+        slug: "polaroids-table",
+        href: "/research/polaroids-table",
+        image: "https://images.unsplash.com/photo-1606857521015-7f9fcf423740?auto=format&fit=crop&q=80&w=1000",
+        tags: ["Photography", "Interaction Design", "In Progress"]
+    },
+    {
         title: "The Second Brain",
         description: "My personal Obsidian vault, a digital garden of interconnected thoughts, notes, and research.",
-        slug: "obsidian-vault",
-        href: "/research/obsidian-vault",
+        slug: "second-brain",
+        href: "/research/second-brain",
         image: "https://images.unsplash.com/photo-1456324504439-367cee10123c?auto=format&fit=crop&q=80&w=1000",
         tags: ["Knowledge Graph", "Obsidian", "Second Brain"]
     },
     {
         title: "Invisible Punctums",
         description: "An AI-driven exploration of human memory, data, and the gaps in our digital archives.",
-        slug: "invisible-punctum",
-        href: "/research/invisible-punctum",
+        slug: "invisible-punctum-explanation",
+        href: "/research/invisible-punctum-explanation",
         image: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=1000",
         tags: ["AI", "Memory", "Data Vis"]
     },
@@ -102,6 +118,7 @@ export async function getResearchProjects() {
         .from('research')
         .select('*')
         .eq('published', true) // Filter by published
+        .eq('visible', true)    // Filter by visible
         .order('sort_order', { ascending: true });
 
     if (error || !data || data.length === 0) {
@@ -109,14 +126,18 @@ export async function getResearchProjects() {
         return mockResearchProjects;
     }
 
-    // Map database fields to frontend structure (create href)
-    return data.map(p => ({
+    // Map database fields to frontend structure
+    const dbProjects = data.map(p => ({
         ...p,
-        href: p.href || (p.slug === 'obsidian-vault' ? '/research/obsidian-vault' : `/research/${p.slug}`),
+        // Generate href from slug - slug is the single source of truth
+        href: `/research/${p.slug}`,
         // Ensure tags is an array
         tags: Array.isArray(p.tags) ? p.tags : (p.tags ? p.tags.split(',') : []),
         image: p.cover_image
     }));
+
+    // Return ONLY database projects (no mock data to avoid duplicates)
+    return dbProjects;
 }
 
 // --- Research (formerly Projects) ---

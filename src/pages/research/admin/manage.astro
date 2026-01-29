@@ -1,0 +1,319 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import { isAuthenticated, isAdmin } from "../../../lib/auth";
+
+// Check authentication
+const session = await isAuthenticated(Astro);
+if (!session) {
+    return Astro.redirect(
+        "/login?redirect=" + encodeURIComponent(Astro.url.pathname),
+    );
+}
+
+// Check admin status
+const adminStatus = await isAdmin(Astro);
+if (!adminStatus) {
+    return Astro.redirect("/unauthorized");
+}
+
+const pageTitle = "Manage Research Projects";
+---
+
+<BaseLayout title={pageTitle}>
+    <div class="admin-container">
+        <header class="admin-header">
+            <h1>Research Projects Management</h1>
+            <p class="subtitle">
+                Manage visibility, order, and content of research projects
+            </p>
+        </header>
+
+        <div id="projects-container" class="projects-list">
+            <div class="loading">Loading projects...</div>
+        </div>
+    </div>
+</BaseLayout>
+
+<style>
+    .admin-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .admin-header {
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 2px solid var(--border-subtle);
+    }
+
+    .admin-header h1 {
+        font-family: "Poppins", sans-serif;
+        font-size: 2.5rem;
+        margin: 0 0 0.5rem 0;
+        color: var(--text-primary);
+    }
+
+    .subtitle {
+        color: var(--text-secondary);
+        font-size: 1rem;
+        margin: 0;
+    }
+
+    .projects-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .loading {
+        text-align: center;
+        padding: 3rem;
+        color: var(--text-secondary);
+        font-style: italic;
+    }
+
+    .project-item {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-subtle);
+        border-radius: 8px;
+        padding: 1.5rem;
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 1.5rem;
+        align-items: center;
+        transition: all 0.2s ease;
+    }
+
+    .project-item.hidden {
+        opacity: 0.5;
+        background: var(--bg-secondary);
+    }
+
+    .project-item:hover {
+        border-color: var(--text-primary);
+    }
+
+    .drag-handle {
+        cursor: grab;
+        color: var(--text-tertiary);
+        font-size: 1.5rem;
+        user-select: none;
+    }
+
+    .drag-handle:active {
+        cursor: grabbing;
+    }
+
+    .project-info {
+        min-width: 0;
+    }
+
+    .project-info h3 {
+        font-family: "Poppins", sans-serif;
+        font-size: 1.25rem;
+        margin: 0 0 0.5rem 0;
+        color: var(--text-primary);
+    }
+
+    .project-meta {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .meta-item {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        font-family: var(--font-mono);
+    }
+
+    .project-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-family: var(--font-mono);
+        font-size: 0.85rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: none;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-visibility {
+        background: transparent;
+        border: 1px solid var(--border-subtle);
+        color: var(--text-primary);
+    }
+
+    .btn-visibility:hover {
+        border-color: var(--text-primary);
+        transform: translateY(-1px);
+    }
+
+    .btn-visibility.visible {
+        background: #22c55e;
+        color: white;
+        border-color: #22c55e;
+    }
+
+    .btn-visibility.hidden {
+        background: #ef4444;
+        color: white;
+        border-color: #ef4444;
+    }
+
+    .btn-edit {
+        background: transparent;
+        border: 1px solid var(--border-subtle);
+        color: var(--text-primary);
+    }
+
+    .btn-edit:hover {
+        border-color: var(--text-primary);
+    }
+
+    .btn-live {
+        background: var(--accent-purple);
+        color: white;
+        border: 1px solid var(--accent-purple);
+    }
+
+    .btn-live:hover {
+        opacity: 0.9;
+    }
+
+    .error-message {
+        background: #fee2e2;
+        border: 1px solid #ef4444;
+        color: #991b1b;
+        padding: 1rem;
+        border-radius: 6px;
+        margin-bottom: 1rem;
+    }
+
+    @media (max-width: 768px) {
+        .project-item {
+            grid-template-columns: 1fr;
+        }
+
+        .project-actions {
+            justify-content: flex-start;
+        }
+    }
+</style>
+
+<script>
+    import { createClient } from "@supabase/supabase-js";
+
+    const supabase = createClient(
+        import.meta.env.PUBLIC_SUPABASE_URL,
+        import.meta.env.PUBLIC_SUPABASE_ANON_KEY,
+    );
+
+    let projects = [];
+
+    async function loadProjects() {
+        const container = document.getElementById("projects-container");
+
+        try {
+            const { data, error } = await supabase
+                .from("research")
+                .select("*")
+                .order("sort_order", { ascending: true });
+
+            if (error) throw error;
+
+            projects = data || [];
+            renderProjects();
+        } catch (error) {
+            console.error("Error loading projects:", error);
+            container.innerHTML = `
+                <div class="error-message">
+                    <strong>Error loading projects:</strong> ${error.message}
+                </div>
+            `;
+        }
+    }
+
+    function renderProjects() {
+        const container = document.getElementById("projects-container");
+
+        if (projects.length === 0) {
+            container.innerHTML =
+                '<div class="loading">No projects found</div>';
+            return;
+        }
+
+        container.innerHTML = projects
+            .map(
+                (project, index) => `
+            <div class="project-item ${project.visible === false ? "hidden" : ""}" data-id="${project.id}">
+                <div class="drag-handle" title="Drag to reorder">⋮⋮</div>
+                
+                <div class="project-info">
+                    <h3>${project.title}</h3>
+                    <div class="project-meta">
+                        <span class="meta-item">URL: /research/${project.slug}</span>
+                        <span class="meta-item">Order: ${project.sort_order || index + 1}</span>
+                        <span class="meta-item">Published: ${project.published ? "Yes" : "No"}</span>
+                    </div>
+                </div>
+
+                <div class="project-actions">
+                    <button 
+                        class="btn btn-visibility ${project.visible !== false ? "visible" : "hidden"}"
+                        onclick="toggleVisibility('${project.id}', ${project.visible !== false})"
+                        title="${project.visible !== false ? "Click to hide from research page" : "Click to show on research page"}"
+                    >
+                        ${project.visible !== false ? "👁️ Visible" : "🔒 Hidden"}
+                    </button>
+                    
+                    <a href="/resources/admin/edit-research?id=${project.id}" class="btn btn-edit">
+                        ✏️ Edit
+                    </a>
+                    
+                    <a href="/research/${project.slug}" class="btn btn-live" target="_blank">
+                        🔗 Live
+                    </a>
+                </div>
+            </div>
+        `,
+            )
+            .join("");
+    }
+
+    window.toggleVisibility = async function (id, currentlyVisible) {
+        try {
+            const { error } = await supabase
+                .from("research")
+                .update({ visible: !currentlyVisible })
+                .eq("id", id);
+
+            if (error) throw error;
+
+            // Update local state
+            const projectIndex = projects.findIndex((p) => p.id === id);
+            if (projectIndex !== -1) {
+                projects[projectIndex].visible = !currentlyVisible;
+                renderProjects();
+            }
+        } catch (error) {
+            console.error("Error toggling visibility:", error);
+            alert("Failed to update visibility: " + error.message);
+        }
+    };
+
+    // Load projects on page load
+    document.addEventListener("DOMContentLoaded", loadProjects);
+</script>

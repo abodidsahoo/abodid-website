@@ -1,0 +1,341 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+const pageTitle = "Polaroids Table";
+---
+
+<BaseLayout title={pageTitle}>
+    <article class="research-page">
+        <header class="project-header">
+            <h1>Polaroids Table</h1>
+            <p class="status-tag">In Progress</p>
+        </header>
+
+        <section class="introduction">
+            <p class="lead">
+                An interactive photo arrangement experiment where you handle
+                photographs like <strong>physical objects</strong>—drag them
+                across a digital table, sequence them, and discover how their
+                order changes meaning. A stepping stone toward reimagining photo
+                book design.
+            </p>
+        </section>
+
+        <section class="details">
+            <h2>The Concept</h2>
+            <p>
+                Photography isn't just about individual images—it's about <strong
+                    >sequence, juxtaposition, and rhythm</strong
+                >. When you place two photos side by side, a narrative emerges.
+                Change the order, and the story shifts. This project explores
+                that fundamental truth through interaction.
+            </p>
+
+            <h3>Current Features</h3>
+            <ul>
+                <li>
+                    <strong>Infinite scatter</strong> – Hundreds of images displayed
+                    in a randomized, endlessly scrolling grid
+                </li>
+                <li>
+                    <strong>Lightbox navigation</strong> – Click any image to enter
+                    full-screen viewing mode
+                </li>
+                <li>
+                    <strong>Smooth transitions</strong> – Shutter animation masks
+                    image loading for a cinematic feel
+                </li>
+                <li>
+                    <strong>Color palette extraction</strong> – Every image analyzed
+                    for dominant colors (coming soon)
+                </li>
+                <li>
+                    <strong>Sequential browsing</strong> – Navigate through the entire
+                    collection with keyboard or buttons
+                </li>
+            </ul>
+
+            <h3>The Vision</h3>
+            <p>
+                This experiment is a prototype for something bigger: a platform
+                where photographers can <strong
+                    >design photo books intuitively</strong
+                >, before ever touching Adobe InDesign or Photoshop.
+            </p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Stage</th>
+                        <th>Description</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Phase 1</strong></td>
+                        <td>Browse and sequence existing portfolio images</td>
+                        <td>✅ Live</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Phase 2</strong></td>
+                        <td>Drag-and-drop reordering on a grid</td>
+                        <td>🚧 In Progress</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Phase 3</strong></td>
+                        <td>Upload your own photos and arrange them</td>
+                        <td>📋 Planned</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Phase 4</strong></td>
+                        <td>Export layouts as print-ready PDFs</td>
+                        <td>💭 Future</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Why This Matters</h3>
+            <p>
+                Most photo book tools force you into rigid templates.
+                Professional design tools like <em>InDesign</em> require steep learning
+                curves. This project sits in the middle—offering creative freedom
+                without technical barriers.
+            </p>
+            <p>
+                Imagine designing a 40-page photo essay by simply <strong
+                    >arranging polaroids on a table</strong
+                >, feeling the rhythm, seeing how colors interact, and only then
+                moving to typesetting. That's the dream.
+            </p>
+
+            <h3>Technical Implementation</h3>
+            <ul>
+                <li>
+                    <code>React</code> for state management and interactivity
+                </li>
+                <li><code>Framer Motion</code> for smooth animations</li>
+                <li>
+                    <code>Vibrant.js</code> for color palette extraction (planned)
+                </li>
+                <li><code>Supabase</code> for image storage and metadata</li>
+                <li><code>Canvas API</code> for future drag-and-drop grid</li>
+            </ul>
+
+            <p class="small-note">
+                This is still early-stage. Right now, it's a beautiful way to
+                browse my photography portfolio—but the foundation is being
+                built for something transformative.
+            </p>
+        </section>
+
+        <section class="experiment-launch">
+            <a href="/darkroom" class="launch-button">
+                Launch the experiment →
+            </a>
+        </section>
+    </article>
+</BaseLayout>
+
+<style>
+    .research-page {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 3rem 2rem 6rem;
+        font-family: var(--font-sans);
+    }
+
+    .project-header {
+        margin-bottom: 3rem;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .project-header h1 {
+        font-family: "Poppins", sans-serif;
+        font-size: 3rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        letter-spacing: -0.02em;
+        color: var(--text-primary);
+    }
+
+    .status-tag {
+        display: inline-block;
+        padding: 0.4rem 1rem;
+        background: rgba(102, 126, 234, 0.1);
+        color: #667eea;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        font-family: var(--font-mono);
+    }
+
+    .introduction {
+        margin-bottom: 3rem;
+    }
+
+    .lead {
+        font-size: 1.25rem;
+        line-height: 1.7;
+        color: var(--text-secondary);
+    }
+
+    .details h2 {
+        font-family: "Poppins", sans-serif;
+        font-size: 1.75rem;
+        font-weight: 600;
+        margin: 2.5rem 0 1rem;
+        color: var(--text-primary);
+    }
+
+    .details h3 {
+        font-family: "Poppins", sans-serif;
+        font-size: 1.25rem;
+        font-weight: 500;
+        margin: 2rem 0 1rem;
+        color: var(--text-primary);
+    }
+
+    .details p {
+        font-size: 1rem;
+        line-height: 1.7;
+        color: var(--text-secondary);
+        margin-bottom: 1.25rem;
+    }
+
+    .details ul {
+        list-style: none;
+        padding-left: 0;
+        margin: 1.5rem 0;
+    }
+
+    .details ul li {
+        padding-left: 1.75rem;
+        margin-bottom: 0.75rem;
+        position: relative;
+        line-height: 1.6;
+        color: var(--text-secondary);
+    }
+
+    .details ul li::before {
+        content: "→";
+        position: absolute;
+        left: 0;
+        color: #667eea;
+        font-weight: 600;
+    }
+
+    .details strong {
+        color: var(--text-primary);
+        font-weight: 600;
+    }
+
+    .details em {
+        font-style: italic;
+        color: var(--text-secondary);
+    }
+
+    .details code {
+        font-family: var(--font-mono);
+        font-size: 0.9em;
+        padding: 0.2em 0.4em;
+        background: rgba(0, 0, 0, 0.05);
+        border-radius: 3px;
+        color: #667eea;
+    }
+
+    :global(.dark) .details code {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .small-note {
+        font-size: 0.9rem;
+        color: var(--text-tertiary);
+        font-style: italic;
+        margin-top: 1.5rem;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1.5rem 0;
+        font-size: 0.95rem;
+    }
+
+    thead {
+        border-bottom: 2px solid var(--border-subtle);
+    }
+
+    th {
+        text-align: left;
+        padding: 0.75rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        font-family: "Poppins", sans-serif;
+    }
+
+    td {
+        padding: 0.75rem;
+        border-bottom: 1px solid var(--border-subtle);
+        color: var(--text-secondary);
+    }
+
+    tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .experiment-launch {
+        margin-top: 4rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--border-subtle);
+        text-align: center;
+    }
+
+    .launch-button {
+        display: inline-block;
+        padding: 1rem 2.5rem;
+        background: transparent;
+        color: var(--text-primary);
+        border: 1px solid var(--border-subtle);
+        border-radius: 6px;
+        text-decoration: none;
+        font-family: var(--font-mono);
+        font-size: 0.95rem;
+        font-weight: 500;
+        transition: all 0.25s ease;
+        letter-spacing: 0.02em;
+    }
+
+    .launch-button:hover {
+        border-color: var(--text-primary);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    @media (max-width: 600px) {
+        .research-page {
+            padding: 2rem 1.5rem 4rem;
+        }
+
+        .project-header h1 {
+            font-size: 2.25rem;
+        }
+
+        .details h2 {
+            font-size: 1.5rem;
+        }
+
+        .details h3 {
+            font-size: 1.15rem;
+        }
+
+        table {
+            font-size: 0.85rem;
+        }
+
+        th,
+        td {
+            padding: 0.5rem;
+        }
+    }
+</style>
