@@ -1,0 +1,159 @@
+---
+import PhotographyCard from "./PhotographyCard.astro";
+
+const { projects, maxItems = 6 } = Astro.props;
+
+// We'll show maxItems slots, each cycling through all projects
+const gridSlots = Array.from({ length: maxItems }, (_, i) => i);
+
+// Serialize projects for client-side JavaScript
+const projectsJson = JSON.stringify(projects);
+---
+
+<div class="photo-grid" data-projects={projectsJson}>
+    {
+        gridSlots.map((slotIndex) => (
+            <div class="grid-item" data-slot={slotIndex}>
+                {/* Initial project for this slot */}
+                {projects[slotIndex % projects.length] && (
+                    <PhotographyCard
+                        title={projects[slotIndex % projects.length].title}
+                        category={
+                            Array.isArray(
+                                projects[slotIndex % projects.length].category,
+                            )
+                                ? projects[slotIndex % projects.length]
+                                      .category[0]
+                                : projects[slotIndex % projects.length].category
+                        }
+                        image={projects[slotIndex % projects.length].image}
+                        href={projects[slotIndex % projects.length].href}
+                    />
+                )}
+            </div>
+        ))
+    }
+</div>
+
+<style>
+    .photo-grid {
+        /* Full-bleed: break out of container to fill entire viewport width */
+        width: 100vw;
+        margin-left: 50%;
+        transform: translateX(-50%);
+
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.25rem;
+        padding: 1.5rem;
+    }
+
+    .grid-item {
+        width: 100%;
+        /* Cards will auto-size to fit grid cells */
+    }
+
+    /* Tablet: 2 columns */
+    @media (max-width: 1024px) {
+        .photo-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            padding: 1.5rem;
+        }
+    }
+
+    /* Mobile: 1 column */
+    @media (max-width: 640px) {
+        .photo-grid {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            padding: 1rem;
+        }
+    }
+</style>
+
+<script>
+    function initProjectRotation() {
+        const gridEl = document.querySelector(".photo-grid");
+        if (!gridEl) return;
+
+        const projectsData = gridEl.getAttribute("data-projects");
+        if (!projectsData) return;
+
+        const projects = JSON.parse(projectsData);
+        if (projects.length <= 6) return; // No rotation needed if 6 or fewer projects
+
+        const slots = gridEl.querySelectorAll(".grid-item");
+
+        // Track which project is in each slot
+        const currentProjects = Array.from(slots).map(
+            (_, i) => i % projects.length,
+        );
+
+        // Get a random project that's not currently displayed
+        const getRandomUniqueProject = (excludeIndices) => {
+            const available = projects
+                .map((_, i) => i)
+                .filter((i) => !excludeIndices.includes(i));
+
+            if (available.length === 0)
+                return Math.floor(Math.random() * projects.length);
+            return available[Math.floor(Math.random() * available.length)];
+        };
+
+        // Update a single slot with slow fade
+        const updateSlot = (slot, slotIndex, newProjectIndex) => {
+            const project = projects[newProjectIndex];
+            const card = slot.querySelector(".photography-card");
+            if (!card) return;
+
+            const img = card.querySelector(".slide-image");
+            const title = card.querySelector(".title");
+            const category = card.querySelector(".category");
+
+            // Slow fade out (2 seconds)
+            if (img) img.style.transition = "opacity 2s ease-in-out";
+            if (img) img.style.opacity = "0";
+
+            setTimeout(() => {
+                // Update content while invisible
+                card.setAttribute("href", project.href);
+                if (img) {
+                    img.src = project.image;
+                    img.alt = project.title;
+                }
+                if (title) title.textContent = project.title;
+                if (category) {
+                    category.textContent = Array.isArray(project.category)
+                        ? project.category[0]
+                        : project.category;
+                }
+
+                // Slow fade in (2 seconds)
+                setTimeout(() => {
+                    if (img) img.style.opacity = "1";
+                }, 50);
+            }, 2000); // Wait for fade out to complete
+
+            currentProjects[slotIndex] = newProjectIndex;
+        };
+
+        // Randomly pick one slot to update every 6 seconds
+        setInterval(() => {
+            // Pick random slot
+            const slotIndex = Math.floor(Math.random() * slots.length);
+
+            // Get unique project (not currently displayed)
+            const newProjectIndex = getRandomUniqueProject(currentProjects);
+
+            // Update that slot
+            updateSlot(slots[slotIndex], slotIndex, newProjectIndex);
+        }, 6000); // Update every 6 seconds
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initProjectRotation);
+    } else {
+        initProjectRotation();
+    }
+</script>

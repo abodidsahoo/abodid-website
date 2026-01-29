@@ -50,6 +50,9 @@ if (
     </div>
 </header>
 
+<!-- Top gradient overlay to blend the area above the header -->
+<div class="top-gradient-overlay"></div>
+
 <div class="mobile-menu-overlay">
     <nav class="mobile-menu">
         <ul class="mobile-nav-list">
@@ -67,14 +70,31 @@ if (
     /* Import Inconsolata directly here if not global, but it is global. */
 
     :root {
-        --sci-fi-cyan: #00f3ff;
-        --sci-fi-glow: rgba(0, 243, 255, 0.4);
-        --sci-fi-bg: rgba(10, 15, 20, 0.7);
+        --sci-fi-cyan: #00d4dd;
+        --sci-fi-glow: rgba(0, 212, 221, 0.05);
+        --sci-fi-bg: rgba(10, 15, 20, 0.35);
+    }
+
+    /* Top gradient overlay */
+    .top-gradient-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100px;
+        background: linear-gradient(
+            to bottom,
+            rgba(0, 0, 0, 0.95) 0%,
+            rgba(0, 0, 0, 0.7) 40%,
+            transparent 100%
+        );
+        z-index: 999;
+        pointer-events: none;
     }
 
     .scifi-header-wrapper {
         position: sticky;
-        top: 0;
+        top: 12px; /* Bring it down from the top */
         z-index: 1000;
         display: flex;
         justify-content: center;
@@ -90,17 +110,16 @@ if (
         height: 70px; /* Compact height */
 
         background: var(--sci-fi-bg);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
 
-        border-radius: 0 0 24px 24px; /* The "hood" shape */
+        border-radius: 24px; /* Curved edges on all sides */
 
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-top: none; /* Looks attached to top */
+        border: 1px solid rgba(255, 255, 255, 0.03);
 
         box-shadow:
-            0 10px 30px rgba(0, 0, 0, 0.5),
-            0 0 15px var(--sci-fi-glow) inset; /* Inner glow */
+            0 10px 30px rgba(0, 0, 0, 0.2),
+            0 0 3px var(--sci-fi-glow) inset; /* Very subtle inner glow */
 
         display: flex;
         align-items: center;
@@ -117,7 +136,7 @@ if (
         right: -2px;
         bottom: -2px;
         z-index: -1;
-        border-radius: 0 0 26px 26px;
+        border-radius: 26px;
         background: linear-gradient(
             90deg,
             transparent,
@@ -126,7 +145,7 @@ if (
         );
         background-size: 200% 100%;
         animation: borderMove 3s linear infinite;
-        opacity: 0.5;
+        opacity: 0.08; /* Extremely subtle */
     }
 
     @keyframes borderMove {
@@ -159,7 +178,7 @@ if (
     .logo-text {
         font-weight: 700;
         font-size: 1.2rem;
-        text-shadow: 0 0 5px var(--sci-fi-cyan);
+        text-shadow: 0 0 1px var(--sci-fi-cyan);
     }
 
     .logo {
@@ -193,7 +212,7 @@ if (
 
     .nav-list a:hover {
         opacity: 1;
-        text-shadow: 0 0 8px var(--sci-fi-cyan);
+        text-shadow: 0 0 2px var(--sci-fi-cyan);
     }
 
     /* Hover underline effect */
@@ -205,7 +224,7 @@ if (
         width: 0%;
         height: 2px;
         background-color: var(--sci-fi-cyan);
-        box-shadow: 0 0 10px var(--sci-fi-cyan);
+        box-shadow: 0 0 2px var(--sci-fi-cyan);
         transition: width 0.3s ease;
     }
 
@@ -230,7 +249,7 @@ if (
         height: 2px;
         background-color: #fff;
         transition: all 0.3s ease;
-        box-shadow: 0 0 5px var(--sci-fi-cyan);
+        box-shadow: 0 0 1px var(--sci-fi-cyan);
     }
 
     /* Mobile Overlay */

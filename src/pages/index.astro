@@ -13,7 +13,7 @@ import VibeCheckWidget from "../components/VibeCheckWidget";
 import InteractiveTags from "../components/InteractiveTags";
 import Showreel from "../components/Showreel.astro";
 
-import PhotoCarousel from "../components/PhotoCarousel.astro";
+import PhotoGrid from "../components/PhotoGrid.astro";
 import NavigationCards from "../components/NavigationCards.astro";
 import BrandFilmStrip from "../components/BrandFilmStrip";
 
@@ -70,6 +70,76 @@ const recentPosts = (await safeFetch(getRecentPosts, mockRecent)).slice(0, 3);
   <!-- Massive Spacer 3 (Showreel to Featured) -->
   <div style="height: 20vh; width: 100%;" aria-hidden="true"></div>
 
+  <!-- Showreel Section -->
+  <Showreel />
+
+  <!-- Filmmaking Background Note -->
+  <div class="note-grid">
+    <div class="showreel-note note-primary">
+      <p>
+        What I loved most in this active filmmaking journey were my
+        collaborations with amazing artists like XY to create highly
+        experimental music videos which were broadcast on
+        <a class="hl-link" href="#" target="_blank" rel="noopener noreferrer"
+          >VH1 India</a
+        >. They were also featured in
+        <a class="hl-link" href="#" target="_blank" rel="noopener noreferrer"
+          >Rolling Stone</a
+        >,
+        <a class="hl-link" href="#" target="_blank" rel="noopener noreferrer"
+          >Homegrown</a
+        >, and more.
+        <span class="line-gap"></span>
+
+        I also made documentary films for NGOs like
+        <a class="hl-link" href="#" target="_blank" rel="noopener noreferrer"
+          >Educate Girls</a
+        >
+        and internationally recognised organisations in the arts and culture space
+        like
+        <a class="hl-link" href="#" target="_blank" rel="noopener noreferrer"
+          >Curves and Colors</a
+        >,
+        <a class="hl-link" href="#" target="_blank" rel="noopener noreferrer"
+          >Pursuit of Portraits (New York)</a
+        >, and others who value depth over noise.
+      </p>
+    </div>
+
+    <div class="showreel-note note-secondary">
+      <p>
+        I have also actively produced, directed, shot, and edited films for
+        about 3 years in Mumbai before I joined NID Ahmedabad. Clients included
+        <a class="hl-link" href="#" target="_blank" rel="noopener noreferrer"
+          >Hermosa Design Studio</a
+        >,
+        <a class="hl-link" href="#" target="_blank" rel="noopener noreferrer"
+          >Budweiser</a
+        >,
+        <a class="hl-link" href="#" target="_blank" rel="noopener noreferrer"
+          >Wieden+Kennedy</a
+        >,
+        <a class="hl-link" href="#" target="_blank" rel="noopener noreferrer"
+          >Animal</a
+        >,
+        <a class="hl-link" href="#" target="_blank" rel="noopener noreferrer"
+          >Jawa Motorcycles</a
+        >,
+        <a class="hl-link" href="#" target="_blank" rel="noopener noreferrer"
+          >Odisha Tourism</a
+        >, and more.
+        <span class="line-gap"></span>
+
+        Now, I work with organizations that value depth, authenticity, and
+        long-form storytelling. Using film, photography, sound, and interactive
+        media, I create experiences that build genuine, lasting communities.
+      </p>
+    </div>
+  </div>
+
+  <!-- Massive Spacer 3 (Showreel to Featured) -->
+  <div style="height: 20vh; width: 100%;" aria-hidden="true"></div>
+
   <!-- Navigation Cards -->
   <section class="section">
     <NavigationCards />
@@ -78,61 +148,51 @@ const recentPosts = (await safeFetch(getRecentPosts, mockRecent)).slice(0, 3);
   <!-- Massive Spacer 3 (Showreel to Featured) -->
   <div style="height: 20vh; width: 100%;" aria-hidden="true"></div>
 
-  <!-- Showreel Section -->
-  <Showreel />
-
-  <!-- Massive Spacer 3 (Showreel to Featured) -->
-  <div style="height: 20vh; width: 100%;" aria-hidden="true"></div>
-
   <!-- Featured Work -->
   <!-- Featured Work (Infinite Scroll) -->
   <section class="section">
     <div class="section-header">
-      <h2>Some of my most loved photo stories</h2>
+      <h2>People loved these photo stories the most.</h2>
       <a href="/photography" class="link-arrow">View All</a>
     </div>
 
     <!-- Contained Carousel Row 1 (Left) -->
-    <PhotoCarousel projects={featuredPhotography} direction="left" />
-
-    <!-- Spacer between rows -->
-    <div style="height: 2rem;"></div>
-
-    <!-- Contained Carousel Row 2 (Right) -->
-    <PhotoCarousel
-      projects={[...featuredPhotography].reverse()}
-      direction="right"
-    />
+    <PhotoGrid projects={featuredPhotography} maxItems={6} />
   </section>
 
   <!-- Blog Section -->
   <section class="section">
     <div class="section-header">
-      <h2>Most Read Articles</h2>
+      <h2>Some of my most read articles</h2>
       <a href="/blog" class="link-arrow">Read All</a>
     </div>
 
     <div class="blog-list">
       {
         recentPosts.map((post) => (
-          <a href={post.href} class="blog-card group">
+          <a href={post.href} class="blog-card">
             <div class="blog-image-wrapper">
-              <img src={post.image} alt={post.title} loading="lazy" />
+              {post.image ? (
+                <img src={post.image} alt={post.title} class="blog-image" />
+              ) : (
+                <div class="blog-image-placeholder" />
+              )}
             </div>
+
             <div class="blog-content">
-              <div class="blog-meta">
-                <span class="blog-date">{post.date}</span>
-                {post.category && (
-                  <span class="blog-category">
-                    /{" "}
-                    {Array.isArray(post.category)
-                      ? post.category[0]
-                      : post.category}
-                  </span>
-                )}
-              </div>
+              <span class="blog-date">{post.date}</span>
               <h3 class="blog-title">{post.title}</h3>
-              <div class="blog-link">Read Article →</div>
+              <div class="blog-category">
+                {post.category &&
+                  (Array.isArray(post.category)
+                    ? post.category[0]
+                    : post.category)}
+              </div>
+            </div>
+
+            <div class="blog-action">
+              <span>VIEW MORE</span>
+              <span class="arrow">→</span>
             </div>
           </a>
         ))
@@ -257,88 +317,95 @@ const recentPosts = (await safeFetch(getRecentPosts, mockRecent)).slice(0, 3);
   .blog-list {
     display: flex;
     flex-direction: column;
-    gap: var(--space-xl);
+    gap: 1.5rem;
   }
 
   .blog-card {
-    display: flex;
-    gap: var(--space-lg);
-    align-items: center;
+    display: grid;
+    grid-template-columns: 200px 1fr auto;
+    gap: 2rem;
+    padding: 2rem;
     text-decoration: none;
-    padding-bottom: var(--space-lg);
-    border-bottom: 1px solid var(--border-subtle);
-    transition: border-color 0.3s ease;
-  }
-
-  .blog-card:last-child {
-    border-bottom: none;
+    color: var(--text-primary);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    transition:
+      transform 0.3s ease,
+      border-color 0.3s ease;
+    align-items: center;
   }
 
   .blog-card:hover {
-    border-bottom-color: var(--text-tertiary);
+    transform: translateY(-2px);
+    border-color: var(--text-secondary);
   }
 
   .blog-image-wrapper {
-    flex-shrink: 0;
-    width: 280px;
-    aspect-ratio: 16/9;
-    background: var(--bg-surface);
-    border-radius: 4px;
+    width: 200px;
+    height: 200px;
     overflow: hidden;
-    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    background: var(--bg-surface);
   }
 
-  .blog-image-wrapper img {
+  .blog-image {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.5s ease;
   }
 
-  .blog-card:hover .blog-image-wrapper img {
-    transform: scale(1.03);
+  .blog-image-placeholder {
+    width: 100%;
+    height: 100%;
+    background: var(--bg-surface);
   }
 
   .blog-content {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 0.5rem;
   }
 
-  .blog-meta {
-    font-size: var(--text-xs);
-    color: var(--text-tertiary);
+  .blog-date {
+    font-family: "Inconsolata", monospace;
+    font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    font-family: "Inconsolata", monospace;
+    color: var(--text-tertiary);
+    margin-bottom: 0.5rem;
   }
 
   .blog-title {
+    font-family: var(--font-serif);
     font-size: 1.5rem;
-    font-weight: 500;
-    color: var(--text-primary);
-    margin: 0;
-    line-height: 1.3;
-    transition: color 0.2s ease;
+    font-weight: 400;
+    line-height: 1.2;
+    margin: 0 0 0.5rem 0;
   }
 
-  .blog-card:hover .blog-title {
-    color: var(--sci-fi-cyan, #00f3ff);
-  }
-
-  .blog-link {
-    font-size: 0.9rem;
+  .blog-category {
+    font-size: 0.85rem;
     color: var(--text-secondary);
-    margin-top: 0.5rem;
-    opacity: 0;
-    transform: translateX(-10px);
-    transition: all 0.3s ease;
   }
 
-  .blog-card:hover .blog-link {
-    opacity: 1;
-    transform: translateX(0);
+  .blog-action {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    transition: color 0.3s ease;
+  }
+
+  .blog-card:hover .blog-action {
+    color: var(--text-primary);
+  }
+
+  .blog-card:hover .arrow {
+    transform: translateX(4px);
+    transition: transform 0.2s ease;
   }
 
   /* Typewriter Text Styling */
@@ -349,6 +416,47 @@ const recentPosts = (await safeFetch(getRecentPosts, mockRecent)).slice(0, 3);
     margin-top: 0;
     position: relative;
     top: -2px; /* Shift upwards to balance */
+
+    /* Smooth text removal - adjust transition duration */
+    transition: opacity 0.1s ease; /* Makes disappearance smoother */
+  }
+
+  #typewriter-text span {
+    /* Smooth individual character removal */
+    transition: opacity 0.08s ease;
+  }
+
+  /* Typewriter Cursor - Customizable */
+  #typewriter-text::after {
+    content: "";
+    display: inline-block;
+
+    /* Cursor dimensions - adjust these */
+    width: 14px; /* Width of cursor */
+    height: 0.8em; /* Height of cursor */
+
+    /* Cursor appearance */
+    background-color: currentColor; /* Uses text color by default */
+
+    /* Positioning */
+    margin-left: 3px; /* Space from text */
+    vertical-align: top; /* Align with text baseline */
+    position: relative;
+    top: 0.1em; /* Fine-tune vertical position */
+
+    /* Animation */
+    animation: blink 1s infinite;
+  }
+
+  @keyframes blink {
+    0%,
+    50% {
+      opacity: 1;
+    }
+    51%,
+    100% {
+      opacity: 0;
+    }
   }
 
   @media (max-width: 768px) {
@@ -360,19 +468,146 @@ const recentPosts = (await safeFetch(getRecentPosts, mockRecent)).slice(0, 3);
       font-size: 1.5rem;
     }
     .blog-card {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 1rem;
+      grid-template-columns: 100px 1fr;
+      padding: 1.5rem;
+      gap: 1.5rem;
+    }
+    .blog-action {
+      display: none;
     }
     .blog-image-wrapper {
-      width: 100%;
-      aspect-ratio: 2/1;
+      width: 100px;
+      height: 100px;
+    }
+    .blog-title {
+      font-size: 1.2rem;
     }
     /* Hide Vibe Check on mobile */
     .vibe-check-wrapper {
       display: none;
     }
   }
+
+  @media (max-width: 500px) {
+    .blog-card {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+    .blog-image-wrapper {
+      width: 100%;
+      height: 200px;
+    }
+  }
+
+  .note-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1.5rem;
+
+    max-width: 1100px;
+    margin: 3rem auto;
+  }
+
+  .showreel-note {
+    font-family: "Inconsolata", monospace;
+    font-size: 0.95rem;
+    line-height: 1.6;
+
+    color: #ffffff;
+
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    border-radius: 8px;
+
+    padding: 1.25rem 1.5rem;
+
+    backdrop-filter: blur(2px);
+
+    letter-spacing: 0.02em;
+  }
+
+  .note-primary {
+    background-color: rgba(178, 28, 48, 0.881);
+  }
+
+  .note-secondary {
+    background-color: rgba(39, 24, 138, 0.941);
+  }
+
+  .showreel-note p {
+    margin: 0;
+  }
+
+  @media (max-width: 768px) {
+    .note-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .note-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 1.5rem;
+
+    max-width: 1100px;
+    margin: 3rem auto;
+
+    padding: 0 rem; /* ← THIS is the key line */
+  }
+
+  .showreel-note .line-gap {
+    display: block;
+    height: 1rem;
+  }
+
+  /* Link that looks like underlined white text + "selection fill" hover */
+  .hl-link {
+    color: #fff;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+
+    position: relative;
+    display: inline-block;
+    padding: 0 0.12em; /* tiny padding so highlight looks intentional */
+    border-radius: 2px; /* subtle rounding like a selection */
+    cursor: pointer;
+
+    /* remove default link focus outline styling differences across browsers */
+    outline: none;
+  }
+
+  /* Background "fill" on hover like text selection */
+  .hl-link::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0.05em;
+    width: 100%;
+    height: 1.1em;
+    background: rgba(255, 255, 255, 0.22); /* selection-like fill */
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 160ms ease;
+    border-radius: 2px;
+    z-index: -1; /* keep fill behind text */
+  }
+
+  .hl-link:hover::before {
+    transform: scaleX(1);
+  }
+
+  /* Optional: slightly stronger on active click */
+  .hl-link:active::before {
+    background: rgba(255, 255, 255, 0.35);
+  }
+
+  /* Accessible keyboard focus */
+  .hl-link:focus-visible {
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.35);
+    border-radius: 4px;
+  }
+
+  /* Refined hero / statement font styling — matched to image */
 </style>
 
 <script>
@@ -401,10 +636,21 @@ const recentPosts = (await safeFetch(getRecentPosts, mockRecent)).slice(0, 3);
     "#9BCDEF", // Baby Blue Eyes
   ];
 
-  const typingSpeed = { min: 40, max: 100 };
-  const backspaceSpeed = { min: 30, max: 50 };
-  const pauseEnd = 2000; // Longer pause to read
-  const pauseStart = 500;
+  // ============================================
+  // TYPEWRITER ANIMATION CONTROLS
+  // ============================================
+
+  // Typing speed (milliseconds per character)
+  const typingSpeed = { min: 40, max: 100 }; // Lower = faster typing
+
+  // Backspace/removal speed (milliseconds per character)
+  const backspaceSpeed = { min: 30, max: 50 }; // Lower = faster deletion
+
+  // Pause durations (milliseconds)
+  const pauseEnd = 2000; // Pause after phrase is complete (before deletion starts)
+  const pauseStart = 500; // Pause after deletion (before next phrase starts)
+
+  // Cursor blink speed is controlled in CSS (search for "animation: blink")
 
   const textElement = document.getElementById("typewriter-text");
 

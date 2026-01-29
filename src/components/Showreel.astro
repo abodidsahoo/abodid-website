@@ -3,17 +3,18 @@ const videoUrl =
     "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/films/videos/Showreel%202025%20compressed.mp4";
 ---
 
-<div class="showreel-container">
+<div class="showreel-container" style="display: none;">
     <video
         id="showreel-video"
         class="showreel-video"
         loop
         muted
         playsinline
-        poster="/images/placeholder-video.jpg"
-        style="opacity: 0; transition: opacity 1s ease;"
+        webkit-playsinline
+        preload="auto"
+        autoplay
     >
-        <!-- Source will be added via JS -->
+        <!-- Source will be added via JS with proper type -->
     </video>
 
     <!-- Mute/Unmute Button -->
@@ -34,15 +35,17 @@ const videoUrl =
 </div>
 
 <script define:vars={{ videoUrl }}>
-    // Lazy load logic
     document.addEventListener("DOMContentLoaded", () => {
+        const container = document.querySelector(".showreel-container");
         const video = document.getElementById("showreel-video");
         const muteBtn = document.getElementById("mute-btn");
         const iconMuted = document.getElementById("icon-muted");
         const iconUnmuted = document.getElementById("icon-unmuted");
 
+        if (!container || !video) return;
+
         // Toggle Mute Logic
-        if (muteBtn && video) {
+        if (muteBtn) {
             muteBtn.addEventListener("click", () => {
                 video.muted = !video.muted;
                 if (video.muted) {
@@ -55,49 +58,160 @@ const videoUrl =
             });
         }
 
-        // Wait for main content to settle
-        const loadVideo = () => {
-            if (!video) return;
-            video.src = videoUrl;
-            video.load();
+        // Safari-compatible loading strategy with smooth expansion
+        const loadShowreel = () => {
+            if (!video.src) {
+                // Set video source
+                video.src = videoUrl;
+                video.load();
 
-            // Try to play when ready
-            video.addEventListener("canplay", () => {
-                video
-                    .play()
-                    .then(() => {
-                        video.style.opacity = "1";
-                    })
-                    .catch((e) => {
-                        console.log("Autoplay prevented:", e);
-                        video.style.opacity = "1"; // Show anyway
-                    });
-            });
+                // ULTRA-AGGRESSIVE AUTOPLAY STRATEGY
+                let playAttempts = 0;
+                const maxAttempts = 30;
+                let hasStartedPlaying = false;
+                let playbackMonitor = null;
+
+                // Continuous play forcing
+                const forcePlay = () => {
+                    if (hasStartedPlaying || playAttempts >= maxAttempts)
+                        return;
+
+                    playAttempts++;
+                    video
+                        .play()
+                        .then(() => {
+                            hasStartedPlaying = true;
+                            console.log(
+                                `Autoplay success attempt ${playAttempts}`,
+                            );
+
+                            // Start continuous monitoring once playing
+                            startPlaybackMonitor();
+                        })
+                        .catch(() => {
+                            // Keep trying every 200ms
+                            setTimeout(forcePlay, 200);
+                        });
+                };
+
+                // Continuous playback monitoring - checks every 2 seconds
+                const startPlaybackMonitor = () => {
+                    if (playbackMonitor) return; // Already monitoring
+
+                    playbackMonitor = setInterval(() => {
+                        if (video.paused && !video.ended) {
+                            console.log("Video paused detected - restarting");
+                            video.play().catch(() => {
+                                console.log("Manual play attempt failed");
+                            });
+                        }
+                    }, 2000); // Check every 2 seconds
+                };
+
+                // Start forcing play immediately - let it play in background
+                setTimeout(forcePlay, 50);
+                setTimeout(forcePlay, 300);
+                setTimeout(forcePlay, 600);
+
+                // Unified expansion function - reveals video with opacity
+                const performExpansion = () => {
+                    // Make container visible but keep video hidden
+                    container.style.display = "block";
+                    container.style.opacity = "0";
+                    container.style.maxHeight = "0";
+                    container.style.overflow = "hidden";
+
+                    // Animate expansion
+                    setTimeout(() => {
+                        container.style.transition =
+                            "max-height 1.5s ease, opacity 1.2s ease 0.3s";
+                        const containerWidth =
+                            container.parentElement.offsetWidth;
+                        const targetHeight = Math.min(
+                            containerWidth * (9 / 16),
+                            800,
+                        );
+                        container.style.maxHeight = targetHeight + "px";
+                        container.style.opacity = "1";
+
+                        setTimeout(() => {
+                            container.style.maxHeight = "none";
+                        }, 1500);
+                    }, 50);
+                };
+
+                // Expand and ensure playing
+                const expandAndPlay = () => {
+                    performExpansion();
+
+                    // Force another play attempt after expansion
+                    forcePlay();
+
+                    // Extra check after expansion
+                    setTimeout(() => {
+                        if (video.paused && !video.ended) {
+                            console.log("Post-expansion play check");
+                            video.play().catch(() => {});
+                        }
+
+                        // Start monitoring if not already started
+                        if (!hasStartedPlaying) {
+                            hasStartedPlaying = true;
+                            startPlaybackMonitor();
+                        }
+                    }, 2000);
+                };
+
+                // Multiple event listeners - trigger expansion when ready
+                let hasExpanded = false;
+
+                video.addEventListener(
+                    "loadedmetadata",
+                    () => {
+                        if (!hasExpanded) {
+                            hasExpanded = true;
+                            expandAndPlay();
+                        }
+                    },
+                    { once: true },
+                );
+
+                video.addEventListener(
+                    "loadeddata",
+                    () => {
+                        if (!hasExpanded) {
+                            hasExpanded = true;
+                            expandAndPlay();
+                        }
+                    },
+                    { once: true },
+                );
+
+                video.addEventListener(
+                    "canplay",
+                    () => {
+                        if (!hasExpanded) {
+                            hasExpanded = true;
+                            expandAndPlay();
+                        }
+                    },
+                    { once: true },
+                );
+
+                // Fallback - expand after 1.5 seconds regardless
+                setTimeout(() => {
+                    if (!hasExpanded) {
+                        hasExpanded = true;
+                        expandAndPlay();
+                    }
+                }, 1500);
+            }
         };
 
-        // Use IntersectionObserver to load when near viewport,
-        // OR just timeout as requested "after initial part is loaded".
-        // A combination is best: Wait for load, then wait until close to view?
-        // User said: "loading ... only starts after the initial part ... is loaded"
-
-        if ("IntersectionObserver" in window) {
-            const observer = new IntersectionObserver(
-                (entries) => {
-                    entries.forEach((entry) => {
-                        if (entry.isIntersecting) {
-                            loadVideo();
-                            observer.disconnect();
-                        }
-                    });
-                },
-                { rootMargin: "200px" },
-            );
-
-            if (video) observer.observe(video);
-        } else {
-            // Fallback
-            setTimeout(loadVideo, 2000);
-        }
+        // Defer loading by 2 seconds
+        setTimeout(() => {
+            loadShowreel();
+        }, 2000);
     });
 </script>
 
@@ -111,22 +225,24 @@ const videoUrl =
         width: 100%;
         max-width: var(--max-width);
         margin: 0 auto;
-        /* Standard margins, external spacing handled by index.astro spacers */
         margin-top: 0;
         margin-bottom: var(--space-2xl);
 
         position: relative;
-        aspect-ratio: 16 / 9;
-        background-color: #050a10; /* Darker sci-fi bg */
+
+        /* Will be animated from 0 to full height */
+        /* Height will be set dynamically based on aspect ratio */
+
+        background-color: #050a10;
 
         /* Sci-Fi Theme Styling */
         border-radius: 12px;
-        border: 1px solid rgba(0, 243, 255, 0.3); /* Thin cyan border */
+        border: 1px solid rgba(0, 243, 255, 0.3);
         box-shadow:
             0 10px 40px rgba(0, 0, 0, 0.6),
-            0 0 20px var(--sci-fi-glow); /* Outer glow */
+            0 0 20px var(--sci-fi-glow);
 
-        overflow: hidden;
+        /* Smooth transitions will be applied via JS */
     }
 
     /* Corner Accents (Pseudo-elements) */
@@ -148,8 +264,7 @@ const videoUrl =
         height: 100%;
         object-fit: cover;
         display: block;
-        opacity: 0;
-        transition: opacity 1.5s ease;
+        aspect-ratio: 16 / 9;
     }
 
     /* Mute Button Styling */

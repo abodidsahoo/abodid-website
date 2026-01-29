@@ -4,27 +4,14 @@ interface Props {
   category: string;
   image: string;
   href: string;
-  images?: string[];
 }
 
-const { title, category, image, href, images = [] } = Astro.props;
-// Ensure cover image is first, then gallery images.
-const uniqueImages = [...new Set([image, ...images])];
-const displayImages = uniqueImages.length > 0 ? uniqueImages : [image];
+const { title, category, image, href } = Astro.props;
 ---
 
 <a href={href} class="photography-card group">
   <div class="image-container">
-    {
-      displayImages.map((imgSrc, index) => (
-        <img
-          src={imgSrc}
-          alt={`${title} - ${index + 1}`}
-          class={`slide-image ${index === 0 ? "active" : ""}`}
-          loading="lazy"
-        />
-      ))
-    }
+    <img src={image} alt={title} class="slide-image active" loading="lazy" />
 
     <!-- Sci-Fi Overlay -->
     <div class="meta-overlay">
@@ -49,7 +36,7 @@ const displayImages = uniqueImages.length > 0 ? uniqueImages : [image];
     background-color: var(--bg-surface);
     overflow: hidden;
     border-radius: 6px;
-    aspect-ratio: 4/3;
+    aspect-ratio: 16/9;
     border: 1px solid var(--border-subtle);
     transition: border-color 0.3s ease;
     position: relative;
@@ -76,6 +63,7 @@ const displayImages = uniqueImages.length > 0 ? uniqueImages : [image];
 
   .slide-image.active {
     opacity: 1;
+    pointer-events: none; /* Prevent images from interfering with hover */
   }
 
   /* Dim image on hover to make text pop */
@@ -90,7 +78,7 @@ const displayImages = uniqueImages.length > 0 ? uniqueImages : [image];
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    z-index: 20;
+    z-index: 30; /* Higher z-index to stay on top during image transitions */
 
     display: flex;
     flex-direction: column;
@@ -111,6 +99,9 @@ const displayImages = uniqueImages.length > 0 ? uniqueImages : [image];
       opacity 0.3s ease,
       transform 0.3s ease;
     pointer-events: none; /* Let clicks pass through to link */
+
+    /* Prevent overlay from being affected by image transitions */
+    will-change: opacity, transform;
   }
 
   .photography-card:hover .meta-overlay {
@@ -160,33 +151,3 @@ const displayImages = uniqueImages.length > 0 ? uniqueImages : [image];
     border-right: 2px solid var(--sci-fi-cyan);
   }
 </style>
-
-<script>
-  function initSlideshows() {
-    const cards = document.querySelectorAll(".photography-card");
-
-    cards.forEach((card) => {
-      const images = card.querySelectorAll(".slide-image");
-      if (images.length <= 1) return;
-
-      let currentIndex = 0;
-
-      // Random start time to avoid synchronization
-      const delay = Math.random() * 2000;
-
-      setTimeout(() => {
-        setInterval(() => {
-          images[currentIndex].classList.remove("active");
-          currentIndex = (currentIndex + 1) % images.length;
-          images[currentIndex].classList.add("active");
-        }, 4000); // Switch every 4 seconds
-      }, delay);
-    });
-  }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", initSlideshows);
-  } else {
-    initSlideshows();
-  }
-</script>
