@@ -70,6 +70,29 @@ const finalType = type || dbMetadata?.og_type || "website";
       type={finalType}
     />
     <!-- Dynamic SEO & Social Images applied -->
+
+    <!-- Theme Initialization to prevent FOUC -->
+    <script is:inline>
+      const theme = (() => {
+        if (
+          typeof localStorage !== "undefined" &&
+          localStorage.getItem("theme")
+        ) {
+          return localStorage.getItem("theme");
+        }
+        if (window.matchMedia("(prefers-color-scheme: light)").matches) {
+          return "light";
+        }
+        return "dark";
+      })();
+
+      if (theme === "light") {
+        document.documentElement.setAttribute("data-theme", "light");
+      } else {
+        document.documentElement.setAttribute("data-theme", "dark");
+      }
+      window.localStorage.setItem("theme", theme);
+    </script>
   </head>
   <body>
     <!-- <Header /> -->
@@ -111,16 +134,8 @@ const finalType = type || dbMetadata?.og_type || "website";
 
     /* Subtle Grid Background */
     background-image:
-      linear-gradient(
-        to right,
-        rgba(255, 255, 255, 0.015) 1px,
-        transparent 1px
-      ),
-      linear-gradient(
-        to bottom,
-        rgba(255, 255, 255, 0.015) 1px,
-        transparent 1px
-      );
+      linear-gradient(to right, var(--grid-color-2) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--grid-color-2) 1px, transparent 1px);
     background-size: 5vw 8vh;
     background-position: center top;
 
@@ -153,8 +168,8 @@ const finalType = type || dbMetadata?.og_type || "website";
 
     /* Brighter Grid for Glow - Reduced power */
     background-image:
-      linear-gradient(to right, rgba(200, 200, 255, 0.15) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(200, 200, 255, 0.15) 1px, transparent 1px);
+      linear-gradient(to right, var(--grid-color-1) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--grid-color-1) 1px, transparent 1px);
     background-size: 5vw 8vh;
     background-position: center top;
 

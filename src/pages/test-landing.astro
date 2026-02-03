@@ -1,0 +1,94 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import CardStacker from "../components/CardStacker.jsx";
+import { getFeaturedPhotography } from "../lib/api";
+import { featuredPhotography as mockPhotography } from "../utils/mockData";
+
+// Helper to safely fetch data
+const safeFetch = async (fn, fallback) => {
+    try {
+        return await fn();
+    } catch (e) {
+        console.error("Data fetch failed:", e);
+        return fallback;
+    }
+};
+
+const featuredPhotography = await safeFetch(
+    getFeaturedPhotography,
+    mockPhotography,
+);
+
+const pageTitle = "Test Landing - Card Stack";
+---
+
+<BaseLayout title={pageTitle}>
+    <CardStacker client:only="react" images={featuredPhotography} />
+
+    <!-- Initial "Hold" Area -->
+    <section class="hold-section">
+        <div class="content">
+            <h1>Welcome to the Test</h1>
+            <p>Start specific, expand later.</p>
+        </div>
+    </section>
+
+    <!-- Content Below -->
+    <section class="body-section">
+        <div class="text-body">
+            <h2>The Journey Continues</h2>
+            <p>
+                This is the text body the user travels down to. Here we can have
+                the regular content of the landing page or whatever story is
+                being told.
+            </p>
+            <p>
+                Lore ipsum dolor sit amet, consectetur adipiscing elit. Sed do
+                eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
+                enim ad minim veniam, quis nostrud exercitation ullamco laboris
+                nisi ut aliquip ex ea commodo consequat.
+            </p>
+            <p>
+                With over 8+ years of expereince in photography, film and
+                interactive media, I design authentic creative experiences for
+                brands and organizations working in the culture and technology
+                space.
+            </p>
+        </div>
+    </section>
+</BaseLayout>
+
+<style>
+    .hold-section {
+        height: 100vh;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        padding-left: 10vw;
+    }
+
+    .body-section {
+        min-height: 100vh;
+        width: 100%;
+        background-color: var(--bg-surface);
+        padding: 5rem 10vw;
+        border-top: 1px solid var(--border-subtle);
+    }
+
+    .text-body {
+        max-width: 600px;
+    }
+
+    h1 {
+        font-family: var(--font-serif);
+        font-size: 4rem;
+        margin-bottom: 1rem;
+    }
+
+    p {
+        font-family: var(--font-sans);
+        font-size: 1.2rem;
+        color: var(--text-secondary);
+        line-height: 1.6;
+    }
+</style>

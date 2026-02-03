@@ -102,15 +102,27 @@ const year = new Date().getFullYear();
   :root {
     --sci-fi-cyan: #00f3ff;
     --sci-fi-bg: rgba(5, 10, 15, 0.98);
+    --footer-text-header: rgba(255, 255, 255, 0.9);
+    --footer-text-dim: rgba(255, 255, 255, 0.4);
+    --footer-border: rgba(0, 243, 255, 0.2);
+  }
+
+  :global([data-theme="light"]) {
+    --sci-fi-cyan: #d6b400; /* Gold/Amber for paper theme */
+    --sci-fi-bg: var(--bg-surface);
+    --footer-text-header: var(--text-primary);
+    --footer-text-dim: var(--text-tertiary);
+    --footer-border: var(--border-subtle);
   }
 
   .site-footer {
     background-color: var(--sci-fi-bg);
+    transition: background-color 0.3s ease;
 
     /* Subtle Grain/Grid overlay pattern to match "grains" request */
     background-image:
-      radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-      radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+      radial-gradient(var(--grid-color-1) 1px, transparent 1px),
+      radial-gradient(var(--grid-color-1) 1px, transparent 1px);
     background-position:
       0 0,
       25px 25px;
@@ -123,10 +135,10 @@ const year = new Date().getFullYear();
     z-index: 10;
 
     /* Top border glow + Inner Glow */
-    border-top: 1px solid rgba(0, 243, 255, 0.2);
+    border-top: 1px solid var(--footer-border);
     box-shadow:
-      0 -10px 40px rgba(0, 0, 0, 0.8),
-      0 0 30px rgba(0, 243, 255, 0.05) inset;
+      0 -10px 40px rgba(0, 0, 0, 0.05),
+      0 0 30px var(--accent-glow) inset;
 
     overflow: hidden;
   }
@@ -148,6 +160,7 @@ const year = new Date().getFullYear();
     background-size: 50% 100%;
     animation: scanLoad 4s linear infinite;
     z-index: 11;
+    opacity: 0.5;
   }
 
   @keyframes scanLoad {
@@ -177,7 +190,8 @@ const year = new Date().getFullYear();
   .footer-logo {
     display: inline-block;
     margin-bottom: 1rem;
-    filter: drop-shadow(0 0 5px rgba(0, 243, 255, 0.3));
+    filter: drop-shadow(0 0 5px var(--accent-glow));
+    transition: filter 0.3s ease;
   }
 
   .logo-img {
@@ -222,7 +236,7 @@ const year = new Date().getFullYear();
     font-weight: 700;
     color: var(--sci-fi-cyan);
     margin-bottom: 1rem;
-    text-shadow: 0 0 5px rgba(0, 243, 255, 0.4);
+    text-shadow: 0 0 5px var(--accent-glow);
   }
 
   /* Navigation Groups */
@@ -236,11 +250,12 @@ const year = new Date().getFullYear();
     font-size: 1.1rem; /* Way bigger */
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    color: rgba(255, 255, 255, 0.9); /* Brighter */
+    color: var(--footer-text-header);
     font-weight: 700;
     margin-bottom: 1rem;
     display: block;
-    text-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
+    text-shadow: 0 0 10px var(--accent-glow);
+    transition: color 0.3s ease;
   }
 
   .nav-group a {
@@ -256,7 +271,7 @@ const year = new Date().getFullYear();
 
   /* "Sky Fire" Hover Effect (Replica of Header) */
   .nav-group a:hover {
-    color: #fff;
+    color: var(--text-primary);
     text-shadow: 0 0 8px var(--sci-fi-cyan);
     transform: translateX(4px);
   }
@@ -283,11 +298,12 @@ const year = new Date().getFullYear();
     justify-content: space-between;
     align-items: center;
     padding-top: 2rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-top: 1px solid var(--border-subtle);
     font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.4);
+    color: var(--footer-text-dim);
     text-transform: uppercase;
     letter-spacing: 0.1em;
+    transition: color 0.3s ease;
   }
 
   .legal-links {

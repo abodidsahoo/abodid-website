@@ -1,4 +1,5 @@
 ---
+import ThemeToggle from "./ThemeToggle.astro";
 const { pathname } = Astro.url;
 
 let suffix = "IO"; // Default
@@ -38,6 +39,7 @@ if (
                     <li><a href="/resources">RESOURCES</a></li>
                     <li><a href="/blog">BLOG</a></li>
                     <li><a href="/about">ABOUT</a></li>
+                    <li><ThemeToggle /></li>
                 </ul>
             </nav>
 
@@ -62,17 +64,25 @@ if (
             <li><a href="/resources">RESOURCES</a></li>
             <li><a href="/blog">BLOG</a></li>
             <li><a href="/about">ABOUT</a></li>
+            <li class="mobile-theme-toggle"><ThemeToggle /></li>
         </ul>
     </nav>
 </div>
 
 <style>
     /* Import Inconsolata directly here if not global, but it is global. */
+    /* Note: --sci-fi-cyan and glow are specific to the Header's identity, so we keep them or map them to accent tokens */
 
     :root {
         --sci-fi-cyan: #00d4dd;
         --sci-fi-glow: rgba(0, 212, 221, 0.05);
-        --sci-fi-bg: rgba(10, 15, 20, 0.35);
+        /* Use semantic token for background base, then apply specific sci-fi opacity */
+        /* But header needs to be translucent */
+    }
+
+    [data-theme="light"] {
+        --sci-fi-cyan: #d6b400; /* Gold/Amber for paper theme */
+        --sci-fi-glow: rgba(214, 180, 0, 0.1);
     }
 
     /* Top gradient overlay */
@@ -84,12 +94,12 @@ if (
         height: 100px;
         background: linear-gradient(
             to bottom,
-            rgba(0, 0, 0, 0.95) 0%,
-            rgba(0, 0, 0, 0.7) 40%,
+            var(--bg-canvas) 10%,
             transparent 100%
         );
         z-index: 999;
         pointer-events: none;
+        opacity: 0.9;
     }
 
     .scifi-header-wrapper {
@@ -109,22 +119,26 @@ if (
         max-width: 1100px;
         height: 70px; /* Compact height */
 
-        background: var(--sci-fi-bg);
+        /* Glassmorphism background adapted for themes */
+        background: color-mix(in srgb, var(--bg-surface) 65%, transparent);
         backdrop-filter: blur(20px) saturate(180%);
         -webkit-backdrop-filter: blur(20px) saturate(180%);
 
         border-radius: 24px; /* Curved edges on all sides */
 
-        border: 1px solid rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border-subtle);
 
         box-shadow:
-            0 10px 30px rgba(0, 0, 0, 0.2),
+            0 10px 30px rgba(0, 0, 0, 0.1),
             0 0 3px var(--sci-fi-glow) inset; /* Very subtle inner glow */
 
         display: flex;
         align-items: center;
         justify-content: center;
         overflow: hidden;
+        transition:
+            background-color 0.3s ease,
+            border-color 0.3s ease;
     }
 
     /* The moving glow effect on edges */
@@ -145,7 +159,14 @@ if (
         );
         background-size: 200% 100%;
         animation: borderMove 3s linear infinite;
-        opacity: 0.08; /* Extremely subtle */
+        opacity: 0.2; /* Subtle */
+    }
+
+    /* Reveal effect only on Dark Mode if desired, or keep both? 
+       For Light mode, maybe reduce opacity further? 
+    */
+    :global([data-theme="light"]) .scifi-header::before {
+        opacity: 0.2;
     }
 
     @keyframes borderMove {
@@ -170,9 +191,10 @@ if (
     .logo-text,
     .nav-list a {
         font-family: "Inconsolata", monospace;
-        color: #ffffff; /* Always white for sci-fi look */
+        color: var(--text-primary);
         text-transform: uppercase;
         letter-spacing: 0.15em;
+        transition: color 0.3s ease;
     }
 
     .logo-text {
@@ -189,6 +211,7 @@ if (
 
     .desktop-nav {
         display: flex;
+        align-items: center;
     }
 
     .nav-list {
@@ -197,6 +220,7 @@ if (
         list-style: none;
         margin: 0;
         padding: 0;
+        align-items: center;
     }
 
     .nav-list a {
@@ -207,7 +231,8 @@ if (
         opacity: 0.8;
         transition:
             opacity 0.3s,
-            text-shadow 0.3s;
+            text-shadow 0.3s,
+            color 0.3s;
     }
 
     .nav-list a:hover {
@@ -247,7 +272,7 @@ if (
     .hamburger-line {
         width: 24px;
         height: 2px;
-        background-color: #fff;
+        background-color: var(--text-primary);
         transition: all 0.3s ease;
         box-shadow: 0 0 1px var(--sci-fi-cyan);
     }
@@ -259,7 +284,7 @@ if (
         right: -100%;
         width: 100%;
         height: 100vh;
-        background: rgba(5, 10, 15, 0.95);
+        background: var(--bg-overlay);
         backdrop-filter: blur(20px);
         transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         z-index: 999;
@@ -279,15 +304,21 @@ if (
         display: flex;
         flex-direction: column;
         gap: 2rem;
+        align-items: center;
     }
 
     .mobile-nav-list a {
         font-family: "Inconsolata", monospace;
         font-size: 1.5rem;
-        color: #fff;
+        color: var(--text-primary);
         text-transform: uppercase;
         letter-spacing: 0.2em;
         text-decoration: none;
+    }
+
+    .mobile-theme-toggle {
+        margin-top: 1rem;
+        transform: scale(1.2);
     }
 
     @media (max-width: 768px) {

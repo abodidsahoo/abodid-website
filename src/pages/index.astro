@@ -16,6 +16,7 @@ import Showreel from "../components/Showreel.astro";
 import PhotoGrid from "../components/PhotoGrid.astro";
 import NavigationCards from "../components/NavigationCards.astro";
 import BrandFilmStrip from "../components/BrandFilmStrip";
+import CardStacker from "../components/CardStacker.jsx";
 
 const pageTitle = "Home";
 // Helper to safely fetch data
@@ -37,6 +38,9 @@ const recentPosts = (await safeFetch(getRecentPosts, mockRecent)).slice(0, 3);
 ---
 
 <BaseLayout title={pageTitle}>
+  <!-- Card Stacker Overlay -->
+  <CardStacker client:only="react" images={featuredPhotography} />
+
   <!-- Hero Section -->
   <section class="hero-section">
     <InteractiveTags client:load />
@@ -52,9 +56,7 @@ const recentPosts = (await safeFetch(getRecentPosts, mockRecent)).slice(0, 3);
         <span id="typewriter-text" class="typing-text"></span>
       </h1>
     </div>
-    <div class="hero-hint">
-      keep hovering around for a surprise before you scroll down ...
-    </div>
+    <div class="hero-hint">keep hovering around to see more photos...</div>
   </section>
   <!-- Introduction Section -->
   <section class="section intro-section">
@@ -424,6 +426,8 @@ const recentPosts = (await safeFetch(getRecentPosts, mockRecent)).slice(0, 3);
   #typewriter-text span {
     /* Smooth individual character removal */
     transition: opacity 0.08s ease;
+    /* Soft blur shadow to make text pop more as requested */
+    text-shadow: 0 0 10px currentColor;
   }
 
   /* Typewriter Cursor - Customizable */
@@ -436,16 +440,17 @@ const recentPosts = (await safeFetch(getRecentPosts, mockRecent)).slice(0, 3);
     height: 0.8em; /* Height of cursor */
 
     /* Cursor appearance */
-    background-color: currentColor; /* Uses text color by default */
+    background-color: var(--text-primary);
+    border-radius: 1px;
 
     /* Positioning */
-    margin-left: 3px; /* Space from text */
+    margin-left: 5px; /* Space from text */
     vertical-align: top; /* Align with text baseline */
     position: relative;
     top: 0.1em; /* Fine-tune vertical position */
 
     /* Animation */
-    animation: blink 1s infinite;
+    animation: blink 1.2s infinite; /* Slightly slower blink for calmer feel */
   }
 
   @keyframes blink {
