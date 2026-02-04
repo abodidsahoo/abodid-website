@@ -3,7 +3,7 @@ const videoUrl =
     "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/films/videos/Showreel%202025%20compressed.mp4";
 ---
 
-<div class="showreel-container" style="display: none;">
+<div class="showreel-container">
     <video
         id="showreel-video"
         class="showreel-video"
@@ -138,160 +138,35 @@ const videoUrl =
             });
         }
 
-        // Safari-compatible loading strategy with smooth expansion
+        // Simplified Loading Strategy - Direct Load, No Flicker
         const loadShowreel = () => {
             if (!video.src) {
                 // Set video source
                 video.src = videoUrl;
-                video.load();
 
-                // ULTRA-AGGRESSIVE AUTOPLAY STRATEGY
-                let playAttempts = 0;
-                const maxAttempts = 30;
-                let hasStartedPlaying = false;
-                let playbackMonitor = null;
+                // Show container immediately
+                container.style.display = "block";
 
-                // Continuous play forcing
-                const forcePlay = () => {
-                    if (hasStartedPlaying || playAttempts >= maxAttempts)
-                        return;
+                // Try to play
+                video.play().catch(() => {
+                    console.log("Autoplay blocked, waiting for interaction");
+                });
 
-                    playAttempts++;
-                    video
-                        .play()
-                        .then(() => {
-                            hasStartedPlaying = true;
-                            console.log(
-                                `Autoplay success attempt ${playAttempts}`,
-                            );
-
-                            // Start continuous monitoring once playing
-                            startPlaybackMonitor();
-                        })
-                        .catch(() => {
-                            // Keep trying every 200ms
-                            setTimeout(forcePlay, 200);
-                        });
-                };
-
-                // Continuous playback monitoring - checks every 2 seconds
-                const startPlaybackMonitor = () => {
-                    if (playbackMonitor) return; // Already monitoring
-
-                    playbackMonitor = setInterval(() => {
-                        if (video.paused && !video.ended) {
-                            console.log("Video paused detected - restarting");
-                            video.play().catch(() => {
-                                console.log("Manual play attempt failed");
-                            });
-                        }
-                    }, 2000); // Check every 2 seconds
-                };
-
-                // Start forcing play immediately - let it play in background
-                setTimeout(forcePlay, 50);
-                setTimeout(forcePlay, 300);
-                setTimeout(forcePlay, 600);
-
-                // Unified expansion function - reveals video with opacity
-                const performExpansion = () => {
-                    // Make container visible but keep video hidden
-                    container.style.display = "block";
-                    container.style.opacity = "0";
-                    container.style.maxHeight = "0";
-                    container.style.overflow = "hidden";
-
-                    // Animate expansion
-                    setTimeout(() => {
-                        container.style.transition =
-                            "max-height 1.5s ease, opacity 1.2s ease 0.3s";
-                        const containerWidth =
-                            container.parentElement.offsetWidth;
-                        const targetHeight = Math.min(
-                            containerWidth * (9 / 16),
-                            800,
-                        );
-                        container.style.maxHeight = targetHeight + "px";
-                        container.style.opacity = "1";
-
-                        setTimeout(() => {
-                            container.style.maxHeight = "none";
-                        }, 1500);
-                    }, 50);
-                };
-
-                // Expand and ensure playing
-                const expandAndPlay = () => {
-                    performExpansion();
-
-                    // Force another play attempt after expansion
-                    forcePlay();
-
-                    // Extra check after expansion
-                    setTimeout(() => {
-                        if (video.paused && !video.ended) {
-                            console.log("Post-expansion play check");
-                            video.play().catch(() => {});
-                        }
-
-                        // Start monitoring if not already started
-                        if (!hasStartedPlaying) {
-                            hasStartedPlaying = true;
-                            startPlaybackMonitor();
-                        }
-                    }, 2000);
-                };
-
-                // Multiple event listeners - trigger expansion when ready
-                let hasExpanded = false;
-
-                video.addEventListener(
-                    "loadedmetadata",
-                    () => {
-                        if (!hasExpanded) {
-                            hasExpanded = true;
-                            expandAndPlay();
-                        }
-                    },
-                    { once: true },
-                );
-
-                video.addEventListener(
-                    "loadeddata",
-                    () => {
-                        if (!hasExpanded) {
-                            hasExpanded = true;
-                            expandAndPlay();
-                        }
-                    },
-                    { once: true },
-                );
-
-                video.addEventListener(
-                    "canplay",
-                    () => {
-                        if (!hasExpanded) {
-                            hasExpanded = true;
-                            expandAndPlay();
-                        }
-                    },
-                    { once: true },
-                );
-
-                // Fallback - expand after 1.5 seconds regardless
-                setTimeout(() => {
-                    if (!hasExpanded) {
-                        hasExpanded = true;
-                        expandAndPlay();
+                // Simple check loop to ensure playback if possible
+                const ensurePlay = () => {
+                    if (video.paused && !video.ended) {
+                        video.play().catch(() => {});
                     }
-                }, 1500);
+                };
+
+                // Check a few times
+                setTimeout(ensurePlay, 500);
+                setTimeout(ensurePlay, 1000);
             }
         };
 
-        // Defer loading by 2 seconds
-        setTimeout(() => {
-            loadShowreel();
-        }, 2000);
+        // Load immediately on mount (or very short delay)
+        loadShowreel();
     });
 </script>
 
@@ -316,7 +191,8 @@ const videoUrl =
         background-color: #050a10;
 
         /* Sci-Fi Theme Styling */
-        border-radius: 12px;
+        border-radius: 12px; /* APPLY RADIUS TO CONTAINER */
+        overflow: hidden; /* FORCE MASKING for all views */
         border: 1px solid rgba(0, 243, 255, 0.3);
         box-shadow:
             0 10px 40px rgba(0, 0, 0, 0.6),
@@ -336,7 +212,7 @@ const videoUrl =
         border-radius: 12px;
         box-shadow: inset 0 0 20px rgba(0, 243, 255, 0.1);
         pointer-events: none;
-        z-index: 2;
+        z-index: 2; /* Ensure overlay is ON TOP of video */
     }
 
     .showreel-video {
@@ -345,6 +221,9 @@ const videoUrl =
         object-fit: cover;
         display: block;
         aspect-ratio: 16 / 9;
+        /* Ensure video stays behind the container mask/border effects */
+        position: relative;
+        z-index: 1;
     }
 
     /* Video Controls Container */
@@ -444,12 +323,25 @@ const videoUrl =
 
     @media (max-width: 768px) {
         .showreel-container {
-            border-radius: 0;
-            margin-left: -24px;
-            width: calc(100% + 48px);
+            border-radius: 12px; /* APPLY RADIUS TO CONTAINER (Mask) */
+            border: none;
+            box-shadow: none;
+            margin-left: 0;
+            width: 100%;
             max-width: none;
-            border-left: none;
-            border-right: none;
+            overflow: hidden; /* FORCE MASKING of video */
+            /* Remove any padding/gap that might cause "weird spacing" */
+            padding: 0;
+            background: black; /* seamless bg */
+            aspect-ratio: 16/9; /* Enforce ratio on container */
+        }
+
+        .showreel-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 0; /* Let container handle the mask */
+            display: block;
         }
 
         /* Always show control buttons on mobile since there is no hover */

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 
 const PortfolioFilter = ({ items }) => {
     const [activeTag, setActiveTag] = useState('All');
@@ -17,36 +17,8 @@ const PortfolioFilter = ({ items }) => {
         // Filter out categories with 0 count (safety) and sort by count desc
         let cats = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
 
-        // Limit to most relevant if too many (heuristic for "max 2 lines")
-        // Accommodating roughly 12 tags max for 2 lines.
-        if (cats.length > 11) {
-            cats = cats.slice(0, 11);
-        }
-
         return ['All', ...cats];
     }, [items]);
-
-    // 2. Logic to split categories into up to 2 lines
-    const { topRow, bottomRow } = useMemo(() => {
-        const total = sortedCategories.length;
-
-        // If few items, keep in one line to avoid forcing a weird stack
-        // "One less in upper line" implies we want to bias bottom.
-        // Mid floor: 5/2 = 2. Top: 2, Bot: 3.
-        // 6/2 = 3. Top: 3, Bot: 3.
-
-        // Threshold: If we have > 4 items, we split to ensure "pyramid" avoidance and visual balance.
-        // If <= 4, usually fits on one line unless they are huge words.
-        if (total <= 4) {
-            return { topRow: sortedCategories, bottomRow: [] };
-        }
-
-        const mid = Math.floor(total / 2);
-        return {
-            topRow: sortedCategories.slice(0, mid),
-            bottomRow: sortedCategories.slice(mid)
-        };
-    }, [sortedCategories]);
 
     // 3. Filter items based on active category
     const filteredItems = useMemo(() => {
@@ -70,9 +42,9 @@ const PortfolioFilter = ({ items }) => {
     );
 
     // Global Cursor Logic
-    const cursorRef = React.useRef(null);
+    const cursorRef = useRef(null);
 
-    React.useEffect(() => {
+    useEffect(() => {
         const moveCursor = (e) => {
             if (cursorRef.current) {
                 const x = e.clientX;
@@ -101,16 +73,9 @@ const PortfolioFilter = ({ items }) => {
         <div className="portfolio-filter-container">
             {/* Filter Bar */}
             <div className="filter-bar">
-                {/* Row 1 */}
-                <div className="filter-row">
-                    {topRow.map(renderButton)}
+                <div className="filter-scroll">
+                    {sortedCategories.map(renderButton)}
                 </div>
-                {/* Row 2 (if exists) */}
-                {bottomRow.length > 0 && (
-                    <div className="filter-row">
-                        {bottomRow.map(renderButton)}
-                    </div>
-                )}
             </div>
 
             {/* Global Fixed Cursor */}
@@ -150,18 +115,13 @@ const PortfolioFilter = ({ items }) => {
         /* Filter Container */
         .filter-bar {
             margin-bottom: 3rem;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 0.5rem; /* Space between rows */
+            width: 100%;
         }
         
-        .filter-row {
+        .filter-scroll {
             display: flex;
-            justify-content: flex-start;
-            flex-wrap: wrap; 
-            gap: 0.6rem; /* Space between buttons */
+            flex-wrap: wrap; /* Default desktop: wrap */
+            gap: 0.6rem;
             max-width: 900px;
         }
 
@@ -191,13 +151,26 @@ const PortfolioFilter = ({ items }) => {
             border-color: var(--text-primary);
         }
 
-        /* Replicating PhotographyCard Styles locally to avoid Astro mapping issues in React */
+        /* Photography Grid */
         .photography-grid {
             display: grid;
             grid-template-columns: 1fr;
             gap: 5rem 0;
         }
         
+        /* Tablet: 2 Columns */
+        @media (min-width: 600px) and (max-width: 1024px) {
+            .photography-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 2rem;
+            }
+        }
+
+        /* Desktop: Maybe ensure it's not too wide if 1 col? 
+           User said "Desktop = current grid as desired", which was 1 col.
+           Keeping 1 col default.
+        */
+
         .photography-card {
             display: flex;
             flex-direction: column;
@@ -235,7 +208,7 @@ const PortfolioFilter = ({ items }) => {
 
         /* GLOBAL Glass Cursor */
         .glass-cursor {
-            position: fixed; /* Fixed to viewport, independent of scroll */
+            position: fixed;
             top: 0; 
             left: 0;
             width: 60px;
@@ -250,12 +223,8 @@ const PortfolioFilter = ({ items }) => {
             display: flex;
             align-items: center;
             justify-content: center;
-            
-            /* Initial State */
             opacity: 0;
             transform: scale(0.5);
-            /* NO TRANSITIONS - Instant switch to mimic native cursor */
-            /* transition: opacity 0.2s ease, scale 0.2s ease; */
         }
 
         .cursor-dot {
@@ -301,16 +270,15 @@ const PortfolioFilter = ({ items }) => {
             width: fit-content;
         }
 
-        /* Dynamic Red Underline Animation */
         h3.photo-title::after {
             content: '';
             position: absolute;
             left: 0;
-            bottom: -6px; /* Space below text */
-            height: 6px; /* Thickness */
+            bottom: -6px;
+            height: 6px;
             width: 0;
-            background-color: #e63946; /* Vibrant red */
-            transition: width 0.4s cubic-bezier(0.25, 1, 0.5, 1); /* Fast out, slow ease */
+            background-color: #e63946;
+            transition: width 0.4s cubic-bezier(0.25, 1, 0.5, 1);
         }
 
         .photography-card:hover h3.photo-title::after {
@@ -321,9 +289,6 @@ const PortfolioFilter = ({ items }) => {
              .photography-grid {
                 gap: 3rem 0;
              }
-             .filter-row {
-                gap: 0.4rem;
-             }
              /* Disable custom cursor on touch devices */
              .glass-cursor {
                 display: none;
@@ -331,6 +296,20 @@ const PortfolioFilter = ({ items }) => {
              .image-wrapper {
                 cursor: default;
              }
+        }
+
+        /* Mobile Filters: Horizontal Scroll */
+        @media (max-width: 600px) {
+            .filter-scroll {
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                padding-bottom: 0.5rem;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+            }
+            .filter-scroll::-webkit-scrollbar {
+                display: none;
+            }
         }
       `}</style>
         </div>

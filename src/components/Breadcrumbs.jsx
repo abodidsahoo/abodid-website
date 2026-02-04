@@ -101,9 +101,17 @@ const Breadcrumbs = () => {
                     font-weight: 700;
                 }
 
-                @media (max-width: 600px) {
+                @media (max-width: 768px) {
+                    .breadcrumbs-nav {
+                        width: 100%;
+                        margin-top: 0.5rem;
+                        margin-bottom: 2rem; /* Clean spacing below before content */
+                        display: block; /* Allow full width block */
+                    }
                     .breadcrumb-list {
-                        font-size: 0.65rem;
+                        font-size: 0.7rem;
+                        justify-content: flex-start; /* Align left */
+                        flex-wrap: wrap; /* allow wrap if very deep */
                     }
                 }
             `}</style>

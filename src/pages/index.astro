@@ -82,118 +82,37 @@ const odishaUrl = findLink("Odisha");
 ---
 
 <BaseLayout title={pageTitle}>
+    <!-- Only load Audio on Desktop/Tablet to save massive bandwidth/battery on mobile -->
     <AudioControl
-        client:only="react"
+        client:media="(min-width: 769px)"
         src="https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/music/her.mp3"
     />
-    <LiquidCursor client:only="react" />
+    <!-- Disable Liquid Cursor on mobile (touch devices don't need it and it's heavy) -->
+    <LiquidCursor client:media="(min-width: 769px)" />
 
-    <!-- Force Black Background for this experiment -->
-    <style>
-        body {
-            background-color: #050505 !important; /* Deep black/gray */
-            /* Override grid colors for visibility on this dark background */
-            /* Whitish glow, very faint blue tint for depth, but mostly white */
-            --grid-color-1: rgba(220, 230, 255, 0.25);
-            --grid-color-2: rgba(255, 255, 255, 0.15);
-        }
-        /* Grid and Glow restored to original BaseLayout defaults */
+    <!-- ... styles ... -->
 
-        /* OVERRIDES for Flashlight Effect (User Request) */
-        :global(.global-grid-bg) {
-            /* 1. Visible Static Grid (faint everywhere) */
-            /* User requested: "none of the space looks so super dark" -> increased to 0.25 */
-            opacity: 0.25 !important;
-
-            /* 2. Vignette Mask: Visible in center, fades out at edges */
-            -webkit-mask-image: radial-gradient(
-                ellipse at center,
-                black 40%,
-                transparent 95%
-            ) !important;
-        }
-
-        /* --- SCROLL SNAP FOR SOFT LANDING --- */
-        html {
-            scroll-snap-type: y proximity; /* Proximity allows scrolling past snap points to reach footer */
-            scroll-behavior: smooth;
-        }
-
-        /* Snap Point 1: The Top Stack */
-        .snap-top {
-            scroll-snap-align: start;
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 1px;
-        }
-
-        /* Snap Point 2: The Narrative */
-        .narrative-section {
-            scroll-snap-align: center;
-            scroll-margin-top: 10vh;
-        }
-
-        :global(.global-glow-bg) {
-            /* Remove composite mask limitation. Only Mouse Radial! */
-            -webkit-mask-image: radial-gradient(
-                circle 400px at var(--mouse-x, -500px) var(--mouse-y, -500px),
-                black,
-                transparent
-            ) !important;
-            mask-image: radial-gradient(
-                circle 400px at var(--mouse-x, -500px) var(--mouse-y, -500px),
-                black,
-                transparent
-            ) !important;
-
-            -webkit-mask-composite: source-over !important;
-            mask-composite: add !important;
-
-            /* Reduced Intensity (User requested "tad bit reduced") */
-            --glow-intensity: 0.7 !important;
-            opacity: 0.7 !important;
-        }
-
-        /* Snap Point 3: The End */
-        .bottom-spacer {
-            height: 50vh;
-            scroll-snap-align: start; /* Allow snapping to bottom/next section */
-        }
-
-        /* Snap behavior for following sections */
-        :global(.showreel-container) {
-            scroll-snap-align: center;
-            scroll-snap-stop: always;
-        }
-        .section {
-            scroll-snap-align: start;
-            scroll-snap-stop: always;
-            scroll-margin-top: 5vh; /* Breathable room */
-        }
-    </style>
-
-    <!-- 1. Centered Card Stack -->
-    <div class="snap-top"></div>
-    <!-- anchorX/Y center it. It puts the stack origin at center screen. -->
-    <CardStacker
-        client:only="react"
-        images={featuredPhotography}
-        anchorX="50%"
-        anchorY="50%"
-    />
-
-    <!-- Overlays for First "Page" -->
-    <div class="landing-overlays">
-        <!-- Bottom Scroll Hint -->
-        <div class="scroll-hint">SCROLL DOWN</div>
+    <!-- 1. Centered Card Stack (Hidden on Mobile via CSS, now also JS prevented) -->
+    <div class="card-stack-wrapper">
+        <div class="snap-top"></div>
+        <CardStacker
+            client:media="(min-width: 769px)"
+            images={featuredPhotography}
+            anchorX="50%"
+            anchorY="50%"
+        />
+        <!-- Overlays for First "Page" -->
+        <div class="landing-overlays">
+            <!-- Bottom Scroll Hint -->
+            <div class="scroll-hint">SCROLL DOWN</div>
+        </div>
     </div>
 
     <!-- Spacer to push content below the "fold" -->
     <!-- Spacer to push content below the "fold" -->
     <!-- Increased to 90vh so it starts BELOW the images, then scrolls up into view -->
-    <div style="height: 90vh;"></div>
+    <!-- Spacer to push content below the "fold" -->
+    <div class="stack-spacer" style="height: 90vh;"></div>
 
     <!-- 2. The Narrative Section (Appears after scroll) -->
     <section class="narrative-section">
@@ -208,7 +127,7 @@ const odishaUrl = findLink("Odisha");
         <!-- 3. Bio / Next Page Content -->
         <div class="bio-content">
             <p>
-                With over 8+ years of expereince in photography, film and
+                With over 8+ years of experience in photography, film and
                 interactive media, I design authentic creative experiences for
                 brands and organizations working in the culture and technology
                 space.
@@ -219,135 +138,129 @@ const odishaUrl = findLink("Odisha");
     <!-- Spacer at bottom -->
     <div class="bottom-spacer"></div>
 
-    <!-- Showreel Section -->
-    <Showreel />
-
-    <!-- Filmmaking Background Note -->
-    <div class="note-grid">
-        <div class="showreel-note note-primary">
-            <p>
-                What I loved most in this active filmmaking journey were my
-                collaborations with amazing artists like XY to create highly
-                experimental music videos which were broadcast on
-                <a
-                    class="hl-link"
-                    href={vh1Url}
-                    target="_blank"
-                    rel="noopener noreferrer">VH1 India</a
-                >. They were also featured in
-                <a
-                    class="hl-link"
-                    href={rollingStoneUrl}
-                    target="_blank"
-                    rel="noopener noreferrer">Rolling Stone</a
-                >,
-                <a
-                    class="hl-link"
-                    href={homegrownUrl}
-                    target="_blank"
-                    rel="noopener noreferrer">Homegrown</a
-                >, and more.
-                <span class="line-gap"></span>
-
-                I also made documentary films for NGOs like
-                <a
-                    class="hl-link"
-                    href={educateGirlsUrl}
-                    target="_blank"
-                    rel="noopener noreferrer">Educate Girls</a
-                >
-                and internationally recognised organisations in the arts and culture
-                space like
-                <a
-                    class="hl-link"
-                    href={curvesColorsUrl}
-                    target="_blank"
-                    rel="noopener noreferrer">Curves and Colors</a
-                >,
-                <a
-                    class="hl-link"
-                    href={pursuitUrl}
-                    target="_blank"
-                    rel="noopener noreferrer">Pursuit of Portraits (New York)</a
-                >, and others who value depth over noise.
-            </p>
-        </div>
-
-        <div class="showreel-note note-secondary">
-            <p>
-                I have also actively produced, directed, shot, and edited films
-                for about 3 years in Mumbai before I joined NID Ahmedabad.
-                Clients included
-                <a
-                    class="hl-link"
-                    href={hermosaUrl}
-                    target="_blank"
-                    rel="noopener noreferrer">Hermosa Design Studio</a
-                >,
-                <a
-                    class="hl-link"
-                    href={budweiserUrl}
-                    target="_blank"
-                    rel="noopener noreferrer">Budweiser</a
-                >,
-                <a
-                    class="hl-link"
-                    href={wiedenUrl}
-                    target="_blank"
-                    rel="noopener noreferrer">Wieden+Kennedy</a
-                >,
-                <a
-                    class="hl-link"
-                    href={animalUrl}
-                    target="_blank"
-                    rel="noopener noreferrer">Animal</a
-                >,
-                <a
-                    class="hl-link"
-                    href={jawaUrl}
-                    target="_blank"
-                    rel="noopener noreferrer">Jawa Motorcycles</a
-                >,
-                <a
-                    class="hl-link"
-                    href={odishaUrl}
-                    target="_blank"
-                    rel="noopener noreferrer">Odisha Tourism</a
-                >, and more.
-                <span class="line-gap"></span>
-
-                Now, I work with organizations that value depth, authenticity,
-                and long-form storytelling. Using film, photography, sound, and
-                interactive media, I create experiences that build genuine,
-                lasting communities.
-            </p>
-        </div>
-    </div>
-
-    <!-- Massive Spacer 3 (Showreel to Featured) -->
-    <div style="height: 20vh; width: 100%;" aria-hidden="true"></div>
-
-    <!-- Navigation Cards -->
+    <!-- Showreel Section - Wrapped for Alignment -->
     <section class="section">
-        <NavigationCards />
+        <Showreel />
+
+        <!-- Filmmaking Background Note -->
+        <div class="note-grid">
+            <div class="showreel-note note-primary">
+                <p>
+                    What I loved most in this active filmmaking journey were my
+                    collaborations with amazing artists like XY to create highly
+                    experimental music videos which were broadcast on
+                    <a
+                        class="hl-link"
+                        href={vh1Url}
+                        target="_blank"
+                        rel="noopener noreferrer">VH1 India</a
+                    >. They were also featured in
+                    <a
+                        class="hl-link"
+                        href={rollingStoneUrl}
+                        target="_blank"
+                        rel="noopener noreferrer">Rolling Stone</a
+                    >,
+                    <a
+                        class="hl-link"
+                        href={homegrownUrl}
+                        target="_blank"
+                        rel="noopener noreferrer">Homegrown</a
+                    >, and more.
+                    <span class="line-gap"></span>
+
+                    I also made documentary films for NGOs like
+                    <a
+                        class="hl-link"
+                        href={educateGirlsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer">Educate Girls</a
+                    >
+                    and internationally recognised organisations in the arts and culture
+                    space like
+                    <a
+                        class="hl-link"
+                        href={curvesColorsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer">Curves and Colors</a
+                    >,
+                    <a
+                        class="hl-link"
+                        href={pursuitUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        >Pursuit of Portraits (New York)</a
+                    >, and others who value depth over noise.
+                </p>
+            </div>
+
+            <div class="showreel-note note-secondary">
+                <p>
+                    I have also actively produced, directed, shot, and edited
+                    films for about 3 years in Mumbai before I joined NID
+                    Ahmedabad. Clients included
+                    <a
+                        class="hl-link"
+                        href={hermosaUrl}
+                        target="_blank"
+                        rel="noopener noreferrer">Hermosa Design Studio</a
+                    >,
+                    <a
+                        class="hl-link"
+                        href={budweiserUrl}
+                        target="_blank"
+                        rel="noopener noreferrer">Budweiser</a
+                    >,
+                    <a
+                        class="hl-link"
+                        href={wiedenUrl}
+                        target="_blank"
+                        rel="noopener noreferrer">Wieden+Kennedy</a
+                    >,
+                    <a
+                        class="hl-link"
+                        href={animalUrl}
+                        target="_blank"
+                        rel="noopener noreferrer">Animal</a
+                    >,
+                    <a
+                        class="hl-link"
+                        href={jawaUrl}
+                        target="_blank"
+                        rel="noopener noreferrer">Jawa Motorcycles</a
+                    >,
+                    <a
+                        class="hl-link"
+                        href={odishaUrl}
+                        target="_blank"
+                        rel="noopener noreferrer">Odisha Tourism</a
+                    >, and more.
+                    <span class="line-gap"></span>
+
+                    Now, I work with organizations that value depth,
+                    authenticity, and long-form storytelling. Using film,
+                    photography, sound, and interactive media, I create
+                    experiences that build genuine, lasting communities.
+                </p>
+            </div>
+        </div>
     </section>
 
     <!-- Massive Spacer 3 (Showreel to Featured) -->
-    <div style="height: 20vh; width: 100%;" aria-hidden="true"></div>
+    <!-- Responsive Spacer -->
+    <div class="responsive-spacer" aria-hidden="true"></div>
 
-    <!-- Featured Work -->
-    <!-- Featured Work (Infinite Scroll) -->
     <!-- Photo Stories -->
     <section class="section contained-section">
         <div class="section-header">
             <h2 class="section-title">Photo Stories</h2>
-            <a href="/photography" class="link-arrow">View All</a>
+            <a href="/photography" class="link-arrow mobile-btn">View All</a>
         </div>
 
         <!-- Contained Carousel Row 1 (Left) -->
         <PhotoGrid
             projects={featuredPhotography}
-            maxItems={4}
+            maxItems={6}
             columns={2}
             contained={true}
         />
@@ -356,8 +269,8 @@ const odishaUrl = findLink("Odisha");
     <!-- Blog Section -->
     <section class="section">
         <div class="section-header">
-            <h2>Some of my most read articles</h2>
-            <a href="/blog" class="link-arrow">Read All</a>
+            <h2 class="section-title">Articles by Me</h2>
+            <a href="/blog" class="link-arrow mobile-btn">Read All</a>
         </div>
 
         <div class="blog-list">
@@ -458,33 +371,155 @@ const odishaUrl = findLink("Odisha");
     .narrative-section {
         position: relative;
         z-index: 20;
-        opacity: 0;
-        transform: translateY(50px); /* Start lower */
-        will-change: opacity, transform;
-        /* transition removed for direct scroll control */
-        padding-top: 10vh; /* Space from top after scrolling past fold */
-        padding-left: 4vw; /* User requested "Full Screen Experience" - Reduced from 10vw */
-        padding-right: 4vw; /* User requested "Full Screen Experience" - Reduced from 10vw */
-        min-height: 20vh;
+        /* opacity: 0; */
+        /* transform: translateY(50px); */
+        /* will-change: opacity, transform; */
+        padding-top: 10vh;
+        /* Match standard container padding or remove completely if using contained-section class, 
+           but here we use manual padding. User said "regular padding match showreel".
+           Showreel on mobile respects parent padding (0 or 1.5rem). 
+           Previously we had 1.5rem. Let's check strict alignment. */
+        padding-left: 24px; /* Standard site padding */
+        padding-right: 24px;
+        min-height: auto;
         display: flex;
         flex-direction: column;
-        gap: 3rem;
+        gap: 6rem;
+        max-width: 1100px; /* Align with other max-width containers */
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    /* Mobile Enhancements for Narrative */
+    @media (max-width: 768px) {
+        /* Hide Stack & Overlays */
+        .card-stack-wrapper,
+        .stack-spacer,
+        .snap-top {
+            display: none !important;
+        }
+
+        /* Hide Nav Cards */
+        .nav-cards-section {
+            display: none !important;
+        }
+
+        /* Narrative becomes Hero */
+        .narrative-section {
+            opacity: 1 !important; /* Always visible */
+            transform: none !important;
+            padding-top: 100px;
+            /* REMOVED EXTRA PADDING: Now relies on parent .container (1.5rem) to match Showreel width */
+            padding-left: 0;
+            padding-right: 0;
+            min-height: auto;
+            margin-bottom: 2rem;
+            width: 100%; /* Ensure full width */
+            box-sizing: border-box;
+        }
+
+        .hero-title {
+            font-size: 1.75rem !important; /* Reduced from 2rem */
+            line-height: 1.3 !important;
+            min-height: auto; /* Remove the flex/min-height hack on the container */
+            display: block; /* Restore block layout */
+        }
+
+        /* Ensure distinct lines on mobile */
+        .hero-title br {
+            display: block;
+            content: "";
+            margin-bottom: 0.5rem;
+        }
+
+        #typewriter-text {
+            display: block; /* Force new line */
+            margin-top: 0.5rem;
+            min-height: 10em; /* Generous reserve for 2-3 lines + buffer */
+            height: 10em;
+            overflow: hidden; /* Prevent spill */
+            margin-bottom: 4rem; /* Reduced back to 4rem since height covers the 'gap' now, or keep 8? User said 'space added up remaining blank'. 8rem gave huge margin. 6em height gives huge internal space. Let's keep margin 4rem for balance if height is big. */
+        }
+
+        .bio-content p {
+            font-size: 1.125rem !important; /* 18px */
+            line-height: 1.5 !important;
+        }
+
+        /* Showreel Notes: Hide completely on mobile as requested */
+        .note-grid {
+            display: none !important;
+        }
+
+        /* Reduce spacer between Showreel & Featured */
+        .section {
+            margin-bottom: 4rem;
+        }
+
+        /* Blog List Item on Mobile */
+        .blog-card {
+            grid-template-columns: 1fr;
+            /* REMOVE CARD PADDING concept */
+            padding: 0;
+            margin-left: 0vw; /* Align with global page gutter */
+            margin-right: 0vw; /* Align with global page gutter */
+            margin-bottom: 2rem; /* Just spacing between items */
+            border-bottom: none; /* Remove separator line/card feel */
+            gap: 0rem;
+            /* Ensure NO extra borders or margins on the card itself */
+            width: 100%; /* Allow margin to take effect */
+        }
+
+        .blog-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0; /* Stack cleanly */
+            width: 100%;
+            /* Ensure NO padding on list wrapper */
+            padding: 0;
+            margin: 0;
+        }
+
+        .blog-image-wrapper {
+            width: 100%;
+            height: 200px;
+        }
+        .blog-action {
+            display: block;
+            margin-top: 0.5rem;
+            font-size: 0.75rem;
+        }
     }
 
     .hero-title {
         font-family: var(--font-headline); /* Inherit or specific font */
         font-size: 3.5rem;
-        font-weight: 700;
+        font-weight: 700; /* Ensure Bold */
         line-height: 1.1;
         color: #fff;
     }
 
     .bio-content p {
-        font-size: 2rem;
-        font-weight: 400;
-        line-height: 1.4;
+        font-size: 2.2rem;
+        font-weight: 300; /* Increased from 400 */
+        line-height: 1.2;
         max-width: 900px;
-        color: rgba(255, 255, 255, 0.85);
+        color: rgba(255, 255, 255, 0.95); /* Brighter/Bolder */
+    }
+
+    /* ... type writer styles ... */
+
+    /* Desktop alignment for Showreel & Notes to match Narrative block width */
+    /* REMOVED: Now handled by wrapper .section with padding */
+    /* :global(.showreel-container),
+    :global(.note-grid) {
+        padding-left: 4vw;
+        padding-right: 4vw;
+    } */
+
+    /* Spacer at bottom */
+    .bottom-spacer {
+        height: 25vh; /* Increased from 15vh for more gap before Showreel */
     }
 
     /* Typewriter Cursor */
@@ -513,10 +548,27 @@ const odishaUrl = findLink("Odisha");
     @media (max-width: 768px) {
         .hero-title {
             font-size: 2.5rem;
+            min-height: auto;
         }
-        .bio-content p {
+        .intro-content p {
             font-size: 1.5rem;
         }
+        .blog-card {
+            grid-template-columns: 100px 1fr;
+            padding: 1.5rem;
+            gap: 1.5rem;
+        }
+        .blog-action {
+            display: none;
+        }
+        .blog-image-wrapper {
+            width: 100px;
+            height: 100px;
+        }
+        .blog-title {
+            font-size: 1.2rem;
+        }
+        /* Hide Vibe Check on mobile */
     }
 
     .italic {
@@ -526,21 +578,19 @@ const odishaUrl = findLink("Odisha");
 
     .section {
         margin-bottom: var(--space-2xl);
-    }
-
-    .contained-section {
+        /* Ensure sections align with the grid */
         max-width: 1100px;
         margin-left: auto;
         margin-right: auto;
-        padding: 0 4vw; /* Ensure padding on smaller screens */
+        padding-left: 24px;
+        padding-right: 24px;
     }
 
-    .section-title {
-        font-family: var(--font-headline);
-        font-weight: 700;
-        font-size: 2.5rem; /* Bold and distinct */
-        margin: 0;
-        letter-spacing: -0.02em;
+    .contained-section {
+        /* Inherits padding from .section or explicit override? 
+           Let's just use .section styles for all mainly, but if contained-section was separate: */
+        padding-left: 24px;
+        padding-right: 24px;
     }
 
     .section-header {
@@ -550,6 +600,50 @@ const odishaUrl = findLink("Odisha");
         margin-bottom: var(--space-lg);
         border-bottom: 1px solid var(--border-subtle);
         padding-bottom: var(--space-md);
+        /* Remove margin-left/right if any existed */
+    }
+
+    @media (max-width: 600px) {
+        .section-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.25rem; /* TIGHTER gap between title and button */
+            margin-bottom: 1rem; /* Compact header */
+        }
+
+        /* Mobile Spacing for Sections - REMOVED EXTRA PADDING to align with Showreel */
+        .section,
+        .contained-section {
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+        }
+
+        .section-title {
+            font-size: 2rem; /* Ensure it fits one line if possible, or wrap cleanly */
+            line-height: 1.1;
+        }
+
+        /* Minimal Sleek Button Mobile */
+        .mobile-btn {
+            display: inline-block;
+            width: auto;
+            text-align: left;
+            padding: 0; /* Remove button padding */
+            border: none; /* Remove border */
+            background: none;
+            margin-top: 0;
+            font-size: 0.7rem; /* Tiny text */
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: rgba(255, 255, 255, 0.6); /* Subtle color */
+            font-weight: 400;
+        }
+
+        .mobile-btn::after {
+            content: " →";
+            display: inline;
+            opacity: 0.6;
+        }
     }
 
     .link-arrow {
@@ -580,20 +674,18 @@ const odishaUrl = findLink("Odisha");
         display: grid;
         grid-template-columns: 200px 1fr auto;
         gap: 2rem;
-        padding: 2rem;
+        padding: 1.5rem 0; /* Remove side padding for cleaner alignment with header */
         text-decoration: none;
         color: var(--text-primary);
-        border: 1px solid var(--border-subtle);
-        border-radius: 12px;
-        transition:
-            transform 0.3s ease,
-            border-color 0.3s ease;
+        border-bottom: 1px solid var(--border-subtle); /* Subtle separator instead of box */
+        /* border-radius removed */
+        transition: transform 0.3s ease;
         align-items: center;
     }
 
     .blog-card:hover {
         transform: translateY(-2px);
-        border-color: var(--text-secondary);
+        /* border-color removed */
     }
 
     .blog-image-wrapper {
@@ -676,6 +768,14 @@ const odishaUrl = findLink("Odisha");
 
         /* Smooth text removal - adjust transition duration */
         transition: opacity 0.1s ease; /* Makes disappearance smoother */
+    }
+
+    @media (max-width: 600px) {
+        #typewriter-text {
+            white-space: normal; /* Allow wrapping on mobile */
+            word-break: break-word;
+            display: inline; /* changing to inline allows wrapping naturally */
+        }
     }
 
     #typewriter-text span {
@@ -811,7 +911,18 @@ const odishaUrl = findLink("Odisha");
         max-width: 1100px;
         margin: 3rem auto;
 
-        padding: 0 rem; /* ← THIS is the key line */
+        padding: 0; /* ← THIS is the key line */
+    }
+
+    .responsive-spacer {
+        height: 20vh;
+        width: 100%;
+    }
+
+    @media (max-width: 768px) {
+        .responsive-spacer {
+            height: 5vh; /* Drastically reduce on mobile */
+        }
     }
 
     .showreel-note .line-gap {

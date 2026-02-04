@@ -26,9 +26,10 @@ const year = new Date().getFullYear();
           <!-- <p class="tagline">The things we do for love.</p> -->
         </div>
 
-        <div class="social-wrapper">
+        <!-- Social Links Removed as per request -->
+        <!-- <div class="social-wrapper">
           <SocialLinks />
-        </div>
+        </div> -->
 
         <div class="newsletter-section" id="newsletter">
           <p class="section-title">
@@ -270,6 +271,12 @@ const year = new Date().getFullYear();
       flex-direction: column;
       gap: 3rem;
     }
+
+    /* Mobile Simplification: Hide detailed links */
+    .links-col {
+      display: none !important;
+    }
+
     .footer-bottom {
       flex-direction: column-reverse;
       gap: 1.5rem;

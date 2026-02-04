@@ -11,7 +11,13 @@ const { title, category, image, href } = Astro.props;
 
 <a href={href} class="photography-card group">
   <div class="image-container">
-    <img src={image} alt={title} class="slide-image active" loading="lazy" />
+    <img
+      src={image}
+      alt={title}
+      class="slide-image active"
+      loading="lazy"
+      sizes="(max-width: 600px) 100vw, (max-width: 1024px) 50vw, 33vw"
+    />
 
     <!-- Sci-Fi Overlay -->
     <div class="meta-overlay">
@@ -36,11 +42,19 @@ const { title, category, image, href } = Astro.props;
     background-color: var(--bg-surface);
     overflow: hidden;
     border-radius: 6px;
-    aspect-ratio: 16/9;
+    aspect-ratio: 16/9; /* Reverted to 16:9 Landscape as requested */
     border: 1px solid var(--border-subtle);
     transition: border-color 0.3s ease;
     position: relative;
-    /* When active, border glows */
+    height: auto;
+  }
+
+  /* Revert mobile to 16:9 or keep same as desktop */
+  @media (max-width: 600px) {
+    .image-container {
+      aspect-ratio: 16/9 !important;
+      border-width: 1px; /* Ensure tiny border */
+    }
   }
 
   .photography-card:hover .image-container {

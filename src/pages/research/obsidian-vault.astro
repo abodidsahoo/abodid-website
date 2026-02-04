@@ -53,10 +53,30 @@ const pageTitle = "Obsidian Vault";
                  {error && <p class="error-msg" style="text-align:center; margin-top:1rem;">{error}</p>}
             </header>
             
-            <div class="split-layout">
+            {/* --- MOBILE: CHOICE SCREEN (Visible only on mobile start) --- */}
+            <div id="mobile-choice-screen" class="mobile-only">
+                <button class="choice-btn" data-target="notes">
+                    <span class="icon">📝</span>
+                    <span class="label">Browse Notes</span>
+                </button>
+                <button class="choice-btn" data-target="tags">
+                    <span class="icon">🏷️</span>
+                    <span class="label">Browse Tags</span>
+                </button>
+            </div>
+
+            {/* --- MOBILE: STICKY CONTROLS (Hidden initially) --- */}
+            <div id="mobile-controls" class="mobile-sticky-header mobile-only hidden">
+                <div class="segmented-control">
+                    <button class="seg-btn active" data-view="notes">Notes</button>
+                    <button class="seg-btn" data-view="tags">Tags</button>
+                </div>
+            </div>
+
+            <div class="split-layout" id="vault-layout">
                 {/* --- LEFT: NOTES LIST (Single Column Vertical, 50% Width) --- */}
-                <div class="notes-column">
-                    <div class="notes-header-small">
+                <div class="notes-column mobile-view-target">
+                    <div class="notes-header-small desktop-only">
                         <h2>Notes</h2>
                     </div>
                     <div class="vault-list" id="notes-grid">
@@ -84,8 +104,8 @@ const pageTitle = "Obsidian Vault";
                 </div>
 
                 {/* --- RIGHT: TAG CLOUD (50% Width) --- */}
-                <aside class="tags-column">
-                    <div class="tags-header-small">
+                <aside class="tags-column mobile-view-target">
+                    <div class="tags-header-small desktop-only">
                         <h2>Tags</h2>
                     </div>
                     <div class="tag-cloud-wrapper">
@@ -104,6 +124,7 @@ const pageTitle = "Obsidian Vault";
 {/* Client-Side Infinite Scroll Script */}
 {remainingNotes.length > 0 && (
     <script define:vars={{ remainingNotes, ITEMS_PER_PAGE }}>
+        /* ... existing scroll script ... */
         let currentNotes = remainingNotes;
         const grid = document.getElementById('notes-grid');
         const sentinel = document.getElementById('scroll-sentinel');
@@ -144,6 +165,62 @@ const pageTitle = "Obsidian Vault";
     </script>
 )}
 
+<script>
+    // MOBILE IA LOGIC
+    document.addEventListener('DOMContentLoaded', () => {
+        const isMobile = window.matchMedia("(max-width: 1100px)").matches;
+        if (!isMobile) return;
+
+        const choiceScreen = document.getElementById('mobile-choice-screen');
+        const mobileControls = document.getElementById('mobile-controls');
+        const layout = document.getElementById('vault-layout');
+        const notesCol = document.querySelector('.notes-column');
+        const tagsCol = document.querySelector('.tags-column');
+        
+        // Initial State: Show Choice, Hide Layout
+        if(choiceScreen) choiceScreen.style.display = 'flex';
+        if(layout) layout.style.display = 'none';
+
+        function switchView(view) {
+            // Hide Choice
+            if(choiceScreen) choiceScreen.style.display = 'none';
+            
+            // Show Controls & Layout
+            if(mobileControls) mobileControls.classList.remove('hidden');
+            if(layout) layout.style.display = 'block'; // Or flex/grid? Split-layout has grid.
+
+            // Toggle Columns
+            if (view === 'notes') {
+                if(notesCol) notesCol.style.display = 'block';
+                if(tagsCol) tagsCol.style.display = 'none';
+                updateSegButtons('notes');
+            } else {
+                if(notesCol) notesCol.style.display = 'none';
+                if(tagsCol) tagsCol.style.display = 'block';
+                updateSegButtons('tags');
+            }
+        }
+
+        function updateSegButtons(activeView) {
+            const btns = document.querySelectorAll('.seg-btn');
+            btns.forEach(btn => {
+                if(btn.dataset.view === activeView) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+        }
+
+        // Choice Buttons
+        document.querySelectorAll('.choice-btn').forEach(btn => {
+            btn.addEventListener('click', () => switchView(btn.dataset.target));
+        });
+
+        // Segmented Controls
+        document.querySelectorAll('.seg-btn').forEach(btn => {
+            btn.addEventListener('click', () => switchView(btn.dataset.view));
+        });
+    });
+</script>
+
 <style is:global>
     /* VARIABLES */
     :root {
@@ -174,9 +251,10 @@ const pageTitle = "Obsidian Vault";
         .split-layout {
             grid-template-columns: 1fr;
             gap: 3rem;
+            display: none; /* Controlled by JS */
         }
         .tags-column {
-            border-top: 1px solid var(--border-subtle);
+            border-top: none !important;
             padding-top: 2rem;
             width: 100%;
             border-left: none !important;
@@ -186,7 +264,72 @@ const pageTitle = "Obsidian Vault";
             border-right: none !important;
             padding-right: 0 !important;
         }
+        
+        .desktop-only { display: none; }
+        
+        /* Mobile Choice Screen */
+        .mobile-only { display: flex; }
+        #mobile-choice-screen {
+            flex-direction: column;
+            gap: 1rem;
+            margin: 4rem 0;
+        }
+        
+        .choice-btn {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            padding: 2rem;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s;
+        }
+        .choice-btn:active { background: var(--border-subtle); }
+        .choice-btn .icon { font-size: 2rem; }
+        .choice-btn .label { font-family: 'Poppins',sans-serif; font-size: 1.2rem; font-weight: 500; color: var(--text-main); }
+
+        /* Sticky Control */
+        .mobile-sticky-header {
+            position: sticky;
+            top: 0px; /* Adjust for fixed header? */
+            z-index: 100;
+            background: var(--vault-bg);
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border-subtle);
+            width: 100%;
+        }
+        .hidden { display: none !important; }
+        
+        .segmented-control {
+            display: flex;
+            background: var(--bg-surface);
+            border-radius: 8px;
+            padding: 4px;
+            width: 100%;
+        }
+        
+        .seg-btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            padding: 0.6rem;
+            border-radius: 6px;
+            color: var(--text-tertiary);
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .seg-btn.active {
+            background: var(--vault-border); /* Highlight */
+            color: white;
+        }
     }
+    
+    /* Default Hide Mobile Elements on Desktop */
+    .mobile-only { display: none; }
+    .desktop-only { display: block; }
 
     /* NOTES COLUMN */
     .notes-column {

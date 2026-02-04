@@ -100,8 +100,16 @@ const BlogFilter = ({ posts }) => { // Changed prop from items to posts for clar
             display: block;
             text-align: left;
             width: 100%;
-            max-width: 800px;
-            text-wrap: balance;
+            max-width: 100%; /* Allow full width */
+            overflow-x: auto; /* Horizontal scroll */
+            white-space: nowrap; /* Prevent wrapping */
+            -webkit-overflow-scrolling: touch; /* Smooth scroll on iOS */
+            padding-bottom: 1rem; /* Space for scrollbar if visible */
+            scrollbar-width: none; /* Hide scrollbar Firefox */
+        }
+        
+        .filter-scroll::-webkit-scrollbar {
+            display: none; /* Hide scrollbar Chrome/Safari */
         }
 
         .filter-btn {

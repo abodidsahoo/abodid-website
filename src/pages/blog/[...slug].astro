@@ -168,6 +168,13 @@ const contentHtml = marked.parse(post.content || "");
     color: var(--text-primary);
   }
 
+  @media (max-width: 600px) {
+    .title {
+      font-size: 1.75rem; /* ~28px */
+      line-height: 1.25;
+    }
+  }
+
   .excerpt {
     font-family: var(--font-serif);
     font-size: 1.25rem;
@@ -203,8 +210,16 @@ const contentHtml = marked.parse(post.content || "");
       left: auto;
       transform: none;
       border-radius: 8px; /* Keep radius on mobile */
-      margin-top: 2rem;
+      margin-top: 1rem;
       margin-bottom: 2rem;
+      max-height: 40vh; /* Reduced height config */
+      object-fit: cover;
+    }
+
+    .cover-image img {
+      height: 100%;
+      width: 100%;
+      object-fit: cover;
     }
   }
 

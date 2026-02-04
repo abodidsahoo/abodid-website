@@ -84,15 +84,16 @@ const ReaderModeToggle = () => {
                     font-weight: 600;
                 }
 
-                /* Mobile: maybe icon only? */
+                /* Mobile: check layout fits */
                 @media (max-width: 600px) {
-                    .btn-label {
-                        display: none;
-                    }
-                    .reader-mode-btn {
-                        padding: 8px;
-                        border-radius: 50%;
-                    }
+                   /* Keep label visible as requested */
+                   /* .btn-label { display: none; } REMOVED */
+                   
+                   .reader-mode-btn {
+                       padding: 8px 12px;
+                       width: 100%;
+                       justify-content: center;
+                   }
                 }
             `}</style>
         </button>

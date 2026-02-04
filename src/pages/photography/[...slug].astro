@@ -166,8 +166,13 @@ const contentHtml = marked.parse(project.content || "");
     }
 
     .project-content {
-      gap: var(--space-md); /* 1rem gap between images */
+      gap: 2rem; /* Increased spacing between photos as requested */
       padding: 0; /* No extra padding - container handles it */
+    }
+
+    .project-image {
+      padding: 0.6rem; /* Significantly reduced from 2.5rem (~10px) */
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); /* Softer shadow for mobile */
     }
 
     .project-header {

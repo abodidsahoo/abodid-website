@@ -74,11 +74,11 @@ const projectsJson = JSON.stringify(projects);
     }
 
     /* Mobile: 1 column */
-    @media (max-width: 640px) {
+    @media (max-width: 600px) {
         .photo-grid {
             grid-template-columns: 1fr;
-            gap: 1.5rem;
-            padding: 1rem;
+            gap: 2rem; /* Increased spacing for cleaner look as requested */
+            padding: 0;
         }
     }
 </style>

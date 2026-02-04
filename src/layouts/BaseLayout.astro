@@ -4,6 +4,7 @@ import "../styles/brands.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer.astro";
 import SEO from "../components/SEO.astro";
+import StickyMobileNav from "../components/StickyMobileNav.jsx";
 import { getPageMetadata } from "../lib/api";
 
 const {
@@ -95,7 +96,8 @@ const finalType = type || dbMetadata?.og_type || "website";
   </head>
   <body>
     <!-- <Header /> -->
-    {!hideHeader && <Header client:only="react" />}
+    <!-- Header: client:load for immediate hydration priority -->
+    {!hideHeader && <Header client:load />}
     <div class="global-grid-bg"></div>
     <div class="global-glow-bg"></div>
     <main
@@ -103,6 +105,7 @@ const finalType = type || dbMetadata?.og_type || "website";
     >
       <slot />
     </main>
+    <StickyMobileNav client:idle />
     <Footer />
   </body>
 </html>
@@ -135,7 +138,7 @@ const finalType = type || dbMetadata?.og_type || "website";
     background-image:
       linear-gradient(to right, var(--grid-color-2) 1px, transparent 1px),
       linear-gradient(to bottom, var(--grid-color-2) 1px, transparent 1px);
-    background-size: 5vw 8vh;
+    background-size: 60px 60px; /* PERFECT SQUARE as requested */
     background-position: center top;
 
     /* Soft fade on edges */
@@ -169,7 +172,7 @@ const finalType = type || dbMetadata?.og_type || "website";
     background-image:
       linear-gradient(to right, var(--grid-color-1) 1px, transparent 1px),
       linear-gradient(to bottom, var(--grid-color-1) 1px, transparent 1px);
-    background-size: 5vw 8vh;
+    background-size: 60px 60px; /* PERFECT SQUARE */
     background-position: center top;
 
     /* Reveal only near mouse AND faded at edges (Global Mask) */
