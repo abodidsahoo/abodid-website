@@ -8,6 +8,7 @@ import {
 } from "../../lib/api";
 import { marked } from "marked";
 import ShareButtons from "../../components/ShareButtons.jsx";
+import ReaderModeToggle from "../../components/ReaderModeToggle.jsx";
 
 export const prerender = false;
 
@@ -43,6 +44,9 @@ const contentHtml = marked.parse(post.content || "");
 >
   <article class="post-container">
     <header class="post-header">
+      <div class="reader-mode-wrapper">
+        <ReaderModeToggle client:only="react" />
+      </div>
       <div class="meta">
         <span class="date"
           >{
@@ -134,6 +138,13 @@ const contentHtml = marked.parse(post.content || "");
   .post-header {
     text-align: center;
     margin-bottom: 3rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .reader-mode-wrapper {
+    margin-bottom: 1rem;
   }
 
   .meta {

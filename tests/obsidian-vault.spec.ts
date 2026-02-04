@@ -18,27 +18,11 @@ test('Obsidian Vault Content Verification', async ({ page, context }) => {
         await route.fulfill({ json });
     });
 
-    // 2. Grant Clipboard & Login
-    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
-    await page.goto('/secret-lab');
+    // 2. Enter Vault Page Directly
+    await page.goto('/research/obsidian-vault');
 
-    await page.click('#password-container');
-    await expect(page.locator('#password-text')).not.toHaveClass(/hidden-mode/);
+    // 3. Verify No Error
 
-    // 3. Enter Vault Page
-    await page.click('a.enter-btn');
-
-    // New Strategy: Force Cookie (Bypass UI Login)
-    // The app checks for cookie: "obsidian_vault_access" = "granted"
-    await context.addCookies([{
-        name: 'obsidian_vault_access',
-        value: 'granted',
-        domain: 'localhost',
-        path: '/'
-    }]);
-
-    // Reload to apply cookie
-    await page.reload();
 
     // 4. Verify No Error
     const bodyText = await page.locator('body').innerText();

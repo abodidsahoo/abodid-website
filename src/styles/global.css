@@ -224,3 +224,27 @@ main {
     }
 }
 */
+
+/* 
+ * READER MODE (High Contrast / White)
+ * Forces white background and black text for reading.
+ */
+:root[data-reader-mode="true"],
+[data-reader-mode="true"] body {
+    --bg-canvas: #ffffff !important;
+    --bg-surface: #f8f8f8 !important;
+    --text-primary: #000000 !important;
+    --text-secondary: #333333 !important;
+    --text-tertiary: #555555 !important;
+    --border-subtle: #dddddd !important;
+
+    background-color: #ffffff !important;
+    color: #000000 !important;
+}
+
+/* Hide background effects in Reader Mode to reduce distraction */
+[data-reader-mode="true"] .global-grid-bg,
+[data-reader-mode="true"] .global-glow-bg {
+    opacity: 0 !important;
+    visibility: hidden !important;
+}

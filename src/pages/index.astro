@@ -2,11 +2,16 @@
 export const prerender = false;
 import BaseLayout from "../layouts/BaseLayout.astro";
 import PhotographyCard from "../components/PhotographyCard.astro";
-import { getFeaturedPhotography, getRecentPosts } from "../lib/api";
+import {
+    getFeaturedPhotography,
+    getRecentPosts,
+    getMediaMentions,
+    getFilms,
+} from "../lib/api";
 
 import {
-  featuredPhotography as mockPhotography,
-  recentPosts as mockRecent,
+    featuredPhotography as mockPhotography,
+    recentPosts as mockRecent,
 } from "../utils/mockData";
 
 import Showreel from "../components/Showreel.astro";
@@ -21,884 +26,1000 @@ import AudioControl from "../components/AudioControl.jsx";
 const pageTitle = "Home";
 // Helper to safely fetch data
 const safeFetch = async (fn, fallback) => {
-  try {
-    return await fn();
-  } catch (e) {
-    console.error("Data fetch failed:", e);
-    return fallback;
-  }
+    try {
+        return await fn();
+    } catch (e) {
+        console.error("Data fetch failed:", e);
+        return fallback;
+    }
 };
 
 // Fetch data from Supabase with Fallback
 const featuredPhotography = await safeFetch(
-  getFeaturedPhotography,
-  mockPhotography,
+    getFeaturedPhotography,
+    mockPhotography,
 );
 const recentPosts = (await safeFetch(getRecentPosts, mockRecent)).slice(0, 3);
+const mediaMentions = await safeFetch(getMediaMentions, []);
+const films = await safeFetch(getFilms, []);
+
+// Helper to find link by name match
+const findLink = (name) => {
+    const term = name.toLowerCase();
+
+    // 1. Search Media Mentions (Publication or Title)
+    const mediaMatch = mediaMentions.find(
+        (m) =>
+            (m.publication && m.publication.toLowerCase().includes(term)) ||
+            (m.title && m.title.toLowerCase().includes(term)),
+    );
+    if (mediaMatch) return mediaMatch.url;
+
+    // 2. Search Films (Title or Description)
+    const filmMatch = films.find(
+        (f) =>
+            (f.title && f.title.toLowerCase().includes(term)) ||
+            (f.description && f.description.toLowerCase().includes(term)),
+    );
+    if (filmMatch) return filmMatch.videoUrl || "/films"; // Fallback to /films if videoUrl missing
+
+    return "#"; // Default fallback
+};
+
+// Resolve Links for Showreel Notes
+const vh1Url = findLink("Vh1");
+const rollingStoneUrl = findLink("Rolling Stone");
+const homegrownUrl = findLink("Homegrown");
+const educateGirlsUrl = findLink("Educate Girls");
+const curvesColorsUrl = findLink("Curves and Colors");
+const pursuitUrl = findLink("Pursuit of Portraits");
+const hermosaUrl = findLink("Hermosa");
+const budweiserUrl = findLink("Budweiser");
+const wiedenUrl = findLink("Wieden");
+const animalUrl = findLink("Animal");
+const jawaUrl = findLink("Jawa");
+const odishaUrl = findLink("Odisha");
 ---
 
 <BaseLayout title={pageTitle}>
-  <AudioControl
-    client:only="react"
-    src="https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/music/her.mp3"
-  />
-  <LiquidCursor client:only="react" />
+    <AudioControl
+        client:only="react"
+        src="https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/music/her.mp3"
+    />
+    <LiquidCursor client:only="react" />
 
-  <!-- Force Black Background for this experiment -->
-  <style>
-    body {
-      background-color: #050505 !important; /* Deep black/gray */
-      /* Override grid colors for visibility on this dark background */
-      /* Whitish glow, very faint blue tint for depth, but mostly white */
-      --grid-color-1: rgba(220, 230, 255, 0.25);
-      --grid-color-2: rgba(255, 255, 255, 0.15);
-    }
-    /* Grid and Glow restored to original BaseLayout defaults */
+    <!-- Force Black Background for this experiment -->
+    <style>
+        body {
+            background-color: #050505 !important; /* Deep black/gray */
+            /* Override grid colors for visibility on this dark background */
+            /* Whitish glow, very faint blue tint for depth, but mostly white */
+            --grid-color-1: rgba(220, 230, 255, 0.25);
+            --grid-color-2: rgba(255, 255, 255, 0.15);
+        }
+        /* Grid and Glow restored to original BaseLayout defaults */
 
-    /* OVERRIDES for Flashlight Effect (User Request) */
-    :global(.global-grid-bg) {
-      /* 1. Visible Static Grid (faint everywhere) */
-      /* User requested: "none of the space looks so super dark" -> increased to 0.25 */
-      opacity: 0.25 !important;
+        /* OVERRIDES for Flashlight Effect (User Request) */
+        :global(.global-grid-bg) {
+            /* 1. Visible Static Grid (faint everywhere) */
+            /* User requested: "none of the space looks so super dark" -> increased to 0.25 */
+            opacity: 0.25 !important;
 
-      /* 2. Vignette Mask: Visible in center, fades out at edges */
-      -webkit-mask-image: radial-gradient(
-        ellipse at center,
-        black 40%,
-        transparent 95%
-      ) !important;
-    }
+            /* 2. Vignette Mask: Visible in center, fades out at edges */
+            -webkit-mask-image: radial-gradient(
+                ellipse at center,
+                black 40%,
+                transparent 95%
+            ) !important;
+        }
 
-    /* --- SCROLL SNAP FOR SOFT LANDING --- */
-    html {
-      scroll-snap-type: y proximity; /* Proximity allows scrolling past snap points to reach footer */
-      scroll-behavior: smooth;
-    }
+        /* --- SCROLL SNAP FOR SOFT LANDING --- */
+        html {
+            scroll-snap-type: y proximity; /* Proximity allows scrolling past snap points to reach footer */
+            scroll-behavior: smooth;
+        }
 
-    /* Snap Point 1: The Top Stack */
-    .snap-top {
-      scroll-snap-align: start;
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 1px;
-    }
+        /* Snap Point 1: The Top Stack */
+        .snap-top {
+            scroll-snap-align: start;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 1px;
+        }
 
-    /* Snap Point 2: The Narrative */
-    .narrative-section {
-      scroll-snap-align: center;
-      scroll-margin-top: 10vh;
-    }
+        /* Snap Point 2: The Narrative */
+        .narrative-section {
+            scroll-snap-align: center;
+            scroll-margin-top: 10vh;
+        }
 
-    :global(.global-glow-bg) {
-      /* Remove composite mask limitation. Only Mouse Radial! */
-      -webkit-mask-image: radial-gradient(
-        circle 400px at var(--mouse-x, -500px) var(--mouse-y, -500px),
-        black,
-        transparent
-      ) !important;
-      mask-image: radial-gradient(
-        circle 400px at var(--mouse-x, -500px) var(--mouse-y, -500px),
-        black,
-        transparent
-      ) !important;
+        :global(.global-glow-bg) {
+            /* Remove composite mask limitation. Only Mouse Radial! */
+            -webkit-mask-image: radial-gradient(
+                circle 400px at var(--mouse-x, -500px) var(--mouse-y, -500px),
+                black,
+                transparent
+            ) !important;
+            mask-image: radial-gradient(
+                circle 400px at var(--mouse-x, -500px) var(--mouse-y, -500px),
+                black,
+                transparent
+            ) !important;
 
-      -webkit-mask-composite: source-over !important;
-      mask-composite: add !important;
+            -webkit-mask-composite: source-over !important;
+            mask-composite: add !important;
 
-      /* Reduced Intensity (User requested "tad bit reduced") */
-      --glow-intensity: 0.7 !important;
-      opacity: 0.7 !important;
-    }
+            /* Reduced Intensity (User requested "tad bit reduced") */
+            --glow-intensity: 0.7 !important;
+            opacity: 0.7 !important;
+        }
 
-    /* Snap Point 3: The End */
-    .bottom-spacer {
-      height: 50vh;
-      scroll-snap-align: start; /* Allow snapping to bottom/next section */
-    }
+        /* Snap Point 3: The End */
+        .bottom-spacer {
+            height: 50vh;
+            scroll-snap-align: start; /* Allow snapping to bottom/next section */
+        }
 
-    /* Snap behavior for following sections */
-    :global(.showreel-container) {
-      scroll-snap-align: center;
-      scroll-snap-stop: always;
-    }
-    .section {
-      scroll-snap-align: start;
-      scroll-snap-stop: always;
-      scroll-margin-top: 5vh; /* Breathable room */
-    }
-  </style>
+        /* Snap behavior for following sections */
+        :global(.showreel-container) {
+            scroll-snap-align: center;
+            scroll-snap-stop: always;
+        }
+        .section {
+            scroll-snap-align: start;
+            scroll-snap-stop: always;
+            scroll-margin-top: 5vh; /* Breathable room */
+        }
+    </style>
 
-  <!-- 1. Centered Card Stack -->
-  <div class="snap-top"></div>
-  <!-- anchorX/Y center it. It puts the stack origin at center screen. -->
-  <CardStacker
-    client:only="react"
-    images={featuredPhotography}
-    anchorX="50%"
-    anchorY="50%"
-  />
+    <!-- 1. Centered Card Stack -->
+    <div class="snap-top"></div>
+    <!-- anchorX/Y center it. It puts the stack origin at center screen. -->
+    <CardStacker
+        client:only="react"
+        images={featuredPhotography}
+        anchorX="50%"
+        anchorY="50%"
+    />
 
-  <!-- Overlays for First "Page" -->
-  <div class="landing-overlays">
-    <!-- Bottom Scroll Hint -->
-    <div class="scroll-hint">SCROLL DOWN</div>
-  </div>
-
-  <!-- Spacer to push content below the "fold" -->
-  <!-- Increased to 90vh so it starts BELOW the images, then scrolls up into view -->
-  <div style="height: 90vh;"></div>
-
-  <!-- 2. The Narrative Section (Appears after scroll) -->
-  <section class="narrative-section">
-    <div class="hero-content">
-      <h1 class="hero-title">
-        Hi, I am Abodid. <br />
-        My life revolves around... <br />
-        <span id="typewriter-text" class="typing-text"></span>
-      </h1>
+    <!-- Overlays for First "Page" -->
+    <div class="landing-overlays">
+        <!-- Bottom Scroll Hint -->
+        <div class="scroll-hint">SCROLL DOWN</div>
     </div>
 
-    <!-- 3. Bio / Next Page Content -->
-    <div class="bio-content">
-      <p>
-        With over 8+ years of expereince in photography, film and interactive
-        media, I design authentic creative experiences for brands and
-        organizations working in the culture and technology space.
-      </p>
+    <!-- Spacer to push content below the "fold" -->
+    <!-- Spacer to push content below the "fold" -->
+    <!-- Increased to 90vh so it starts BELOW the images, then scrolls up into view -->
+    <div style="height: 90vh;"></div>
+
+    <!-- 2. The Narrative Section (Appears after scroll) -->
+    <section class="narrative-section">
+        <div class="hero-content">
+            <h1 class="hero-title">
+                Hi, I am Abodid. <br />
+                My life revolves around... <br />
+                <span id="typewriter-text" class="typing-text"></span>
+            </h1>
+        </div>
+
+        <!-- 3. Bio / Next Page Content -->
+        <div class="bio-content">
+            <p>
+                With over 8+ years of expereince in photography, film and
+                interactive media, I design authentic creative experiences for
+                brands and organizations working in the culture and technology
+                space.
+            </p>
+        </div>
+    </section>
+
+    <!-- Spacer at bottom -->
+    <div class="bottom-spacer"></div>
+
+    <!-- Showreel Section -->
+    <Showreel />
+
+    <!-- Filmmaking Background Note -->
+    <div class="note-grid">
+        <div class="showreel-note note-primary">
+            <p>
+                What I loved most in this active filmmaking journey were my
+                collaborations with amazing artists like XY to create highly
+                experimental music videos which were broadcast on
+                <a
+                    class="hl-link"
+                    href={vh1Url}
+                    target="_blank"
+                    rel="noopener noreferrer">VH1 India</a
+                >. They were also featured in
+                <a
+                    class="hl-link"
+                    href={rollingStoneUrl}
+                    target="_blank"
+                    rel="noopener noreferrer">Rolling Stone</a
+                >,
+                <a
+                    class="hl-link"
+                    href={homegrownUrl}
+                    target="_blank"
+                    rel="noopener noreferrer">Homegrown</a
+                >, and more.
+                <span class="line-gap"></span>
+
+                I also made documentary films for NGOs like
+                <a
+                    class="hl-link"
+                    href={educateGirlsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer">Educate Girls</a
+                >
+                and internationally recognised organisations in the arts and culture
+                space like
+                <a
+                    class="hl-link"
+                    href={curvesColorsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer">Curves and Colors</a
+                >,
+                <a
+                    class="hl-link"
+                    href={pursuitUrl}
+                    target="_blank"
+                    rel="noopener noreferrer">Pursuit of Portraits (New York)</a
+                >, and others who value depth over noise.
+            </p>
+        </div>
+
+        <div class="showreel-note note-secondary">
+            <p>
+                I have also actively produced, directed, shot, and edited films
+                for about 3 years in Mumbai before I joined NID Ahmedabad.
+                Clients included
+                <a
+                    class="hl-link"
+                    href={hermosaUrl}
+                    target="_blank"
+                    rel="noopener noreferrer">Hermosa Design Studio</a
+                >,
+                <a
+                    class="hl-link"
+                    href={budweiserUrl}
+                    target="_blank"
+                    rel="noopener noreferrer">Budweiser</a
+                >,
+                <a
+                    class="hl-link"
+                    href={wiedenUrl}
+                    target="_blank"
+                    rel="noopener noreferrer">Wieden+Kennedy</a
+                >,
+                <a
+                    class="hl-link"
+                    href={animalUrl}
+                    target="_blank"
+                    rel="noopener noreferrer">Animal</a
+                >,
+                <a
+                    class="hl-link"
+                    href={jawaUrl}
+                    target="_blank"
+                    rel="noopener noreferrer">Jawa Motorcycles</a
+                >,
+                <a
+                    class="hl-link"
+                    href={odishaUrl}
+                    target="_blank"
+                    rel="noopener noreferrer">Odisha Tourism</a
+                >, and more.
+                <span class="line-gap"></span>
+
+                Now, I work with organizations that value depth, authenticity,
+                and long-form storytelling. Using film, photography, sound, and
+                interactive media, I create experiences that build genuine,
+                lasting communities.
+            </p>
+        </div>
     </div>
-  </section>
 
-  <!-- Spacer at bottom -->
-  <div class="bottom-spacer"></div>
+    <!-- Massive Spacer 3 (Showreel to Featured) -->
+    <div style="height: 20vh; width: 100%;" aria-hidden="true"></div>
 
-  <!-- Showreel Section -->
-  <Showreel />
+    <!-- Navigation Cards -->
+    <section class="section">
+        <NavigationCards />
+    </section>
 
-  <!-- Filmmaking Background Note -->
-  <div class="note-grid">
-    <div class="showreel-note note-primary">
-      <p>
-        What I loved most in this active filmmaking journey were my
-        collaborations with amazing artists like XY to create highly
-        experimental music videos which were broadcast on
-        <a class="hl-link" href="#" target="_blank" rel="noopener noreferrer"
-          >VH1 India</a
-        >. They were also featured in
-        <a class="hl-link" href="#" target="_blank" rel="noopener noreferrer"
-          >Rolling Stone</a
-        >,
-        <a class="hl-link" href="#" target="_blank" rel="noopener noreferrer"
-          >Homegrown</a
-        >, and more.
-        <span class="line-gap"></span>
+    <!-- Massive Spacer 3 (Showreel to Featured) -->
+    <div style="height: 20vh; width: 100%;" aria-hidden="true"></div>
 
-        I also made documentary films for NGOs like
-        <a class="hl-link" href="#" target="_blank" rel="noopener noreferrer"
-          >Educate Girls</a
-        >
-        and internationally recognised organisations in the arts and culture space
-        like
-        <a class="hl-link" href="#" target="_blank" rel="noopener noreferrer"
-          >Curves and Colors</a
-        >,
-        <a class="hl-link" href="#" target="_blank" rel="noopener noreferrer"
-          >Pursuit of Portraits (New York)</a
-        >, and others who value depth over noise.
-      </p>
-    </div>
+    <!-- Featured Work -->
+    <!-- Featured Work (Infinite Scroll) -->
+    <!-- Photo Stories -->
+    <section class="section contained-section">
+        <div class="section-header">
+            <h2 class="section-title">Photo Stories</h2>
+            <a href="/photography" class="link-arrow">View All</a>
+        </div>
 
-    <div class="showreel-note note-secondary">
-      <p>
-        I have also actively produced, directed, shot, and edited films for
-        about 3 years in Mumbai before I joined NID Ahmedabad. Clients included
-        <a class="hl-link" href="#" target="_blank" rel="noopener noreferrer"
-          >Hermosa Design Studio</a
-        >,
-        <a class="hl-link" href="#" target="_blank" rel="noopener noreferrer"
-          >Budweiser</a
-        >,
-        <a class="hl-link" href="#" target="_blank" rel="noopener noreferrer"
-          >Wieden+Kennedy</a
-        >,
-        <a class="hl-link" href="#" target="_blank" rel="noopener noreferrer"
-          >Animal</a
-        >,
-        <a class="hl-link" href="#" target="_blank" rel="noopener noreferrer"
-          >Jawa Motorcycles</a
-        >,
-        <a class="hl-link" href="#" target="_blank" rel="noopener noreferrer"
-          >Odisha Tourism</a
-        >, and more.
-        <span class="line-gap"></span>
+        <!-- Contained Carousel Row 1 (Left) -->
+        <PhotoGrid
+            projects={featuredPhotography}
+            maxItems={4}
+            columns={2}
+            contained={true}
+        />
+    </section>
 
-        Now, I work with organizations that value depth, authenticity, and
-        long-form storytelling. Using film, photography, sound, and interactive
-        media, I create experiences that build genuine, lasting communities.
-      </p>
-    </div>
-  </div>
+    <!-- Blog Section -->
+    <section class="section">
+        <div class="section-header">
+            <h2>Some of my most read articles</h2>
+            <a href="/blog" class="link-arrow">Read All</a>
+        </div>
 
-  <!-- Massive Spacer 3 (Showreel to Featured) -->
-  <div style="height: 20vh; width: 100%;" aria-hidden="true"></div>
+        <div class="blog-list">
+            {
+                recentPosts.map((post) => (
+                    <a href={post.href} class="blog-card">
+                        <div class="blog-image-wrapper">
+                            {post.image ? (
+                                <img
+                                    src={post.image}
+                                    alt={post.title}
+                                    class="blog-image"
+                                />
+                            ) : (
+                                <div class="blog-image-placeholder" />
+                            )}
+                        </div>
 
-  <!-- Navigation Cards -->
-  <section class="section">
-    <NavigationCards />
-  </section>
+                        <div class="blog-content">
+                            <span class="blog-date">{post.date}</span>
+                            <h3 class="blog-title">{post.title}</h3>
+                            <div class="blog-category">
+                                {post.category &&
+                                    (Array.isArray(post.category)
+                                        ? post.category[0]
+                                        : post.category)}
+                            </div>
+                        </div>
 
-  <!-- Massive Spacer 3 (Showreel to Featured) -->
-  <div style="height: 20vh; width: 100%;" aria-hidden="true"></div>
-
-  <!-- Featured Work -->
-  <!-- Featured Work (Infinite Scroll) -->
-  <section class="section">
-    <div class="section-header">
-      <h2>People loved these photo stories the most.</h2>
-      <a href="/photography" class="link-arrow">View All</a>
-    </div>
-
-    <!-- Contained Carousel Row 1 (Left) -->
-    <PhotoGrid projects={featuredPhotography} maxItems={6} />
-  </section>
-
-  <!-- Blog Section -->
-  <section class="section">
-    <div class="section-header">
-      <h2>Some of my most read articles</h2>
-      <a href="/blog" class="link-arrow">Read All</a>
-    </div>
-
-    <div class="blog-list">
-      {
-        recentPosts.map((post) => (
-          <a href={post.href} class="blog-card">
-            <div class="blog-image-wrapper">
-              {post.image ? (
-                <img src={post.image} alt={post.title} class="blog-image" />
-              ) : (
-                <div class="blog-image-placeholder" />
-              )}
-            </div>
-
-            <div class="blog-content">
-              <span class="blog-date">{post.date}</span>
-              <h3 class="blog-title">{post.title}</h3>
-              <div class="blog-category">
-                {post.category &&
-                  (Array.isArray(post.category)
-                    ? post.category[0]
-                    : post.category)}
-              </div>
-            </div>
-
-            <div class="blog-action">
-              <span>VIEW MORE</span>
-              <span class="arrow">→</span>
-            </div>
-          </a>
-        ))
-      }
-    </div>
-  </section>
+                        <div class="blog-action">
+                            <span>VIEW MORE</span>
+                            <span class="arrow">→</span>
+                        </div>
+                    </a>
+                ))
+            }
+        </div>
+    </section>
 </BaseLayout>
 
 <script>
-  // ... existing typewriter script ...
+    // ... existing typewriter script ...
 </script>
 
 <style>
-  /* Fixed Positioning Layouts */
-  .landing-overlays {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100vh;
-    pointer-events: none; /* Let clicks pass through to stack if needed */
-    z-index: 10;
-    transition: opacity 0.3s ease;
-  }
-
-  .hover-hint {
-    position: absolute;
-    top: 58%; /* Just below the center stack */
-    left: 50%;
-    transform: translateX(-50%);
-    font-family: "Courier New", Courier, monospace;
-    text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.4);
-    font-size: 0.8rem;
-    letter-spacing: 0.05em;
-  }
-
-  .scroll-hint {
-    position: absolute;
-    bottom: 5vh; /* Strictly at bottom */
-    left: 50%;
-    transform: translateX(-50%);
-    font-family: "Space Mono", monospace;
-    font-size: 0.9rem;
-    color: rgba(255, 255, 255, 0.6);
-    animation: bounce 2s infinite;
-  }
-
-  @keyframes bounce {
-    0%,
-    20%,
-    50%,
-    80%,
-    100% {
-      transform: translateX(-50%) translateY(0);
+    /* Fixed Positioning Layouts */
+    .landing-overlays {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        pointer-events: none; /* Let clicks pass through to stack if needed */
+        z-index: 10;
+        transition: opacity 0.3s ease;
     }
-    40% {
-      transform: translateX(-50%) translateY(-10px);
+
+    .hover-hint {
+        position: absolute;
+        top: 58%; /* Just below the center stack */
+        left: 50%;
+        transform: translateX(-50%);
+        font-family: "Courier New", Courier, monospace;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.4);
+        font-size: 0.8rem;
+        letter-spacing: 0.05em;
     }
-    60% {
-      transform: translateX(-50%) translateY(-5px);
+
+    .scroll-hint {
+        position: absolute;
+        bottom: 5vh; /* Strictly at bottom */
+        left: 50%;
+        transform: translateX(-50%);
+        font-family: "Space Mono", monospace;
+        font-size: 0.9rem;
+        color: rgba(255, 255, 255, 0.6);
+        animation: bounce 2s infinite;
     }
-  }
 
-  /* Narrative Section */
-  .narrative-section {
-    position: relative;
-    z-index: 20;
-    opacity: 0; /* Hidden initially, controlled by scroll script */
-    transition: opacity 0.8s ease-out; /* Smooth fade in */
-    padding-top: 10vh; /* Space from top after scrolling past fold */
-    padding-left: 4vw; /* User requested "Full Screen Experience" - Reduced from 10vw */
-    padding-right: 4vw; /* User requested "Full Screen Experience" - Reduced from 10vw */
-    min-height: 80vh;
-    display: flex;
-    flex-direction: column;
-    gap: 3rem;
-  }
-
-  .hero-title {
-    font-family: var(--font-headline); /* Inherit or specific font */
-    font-size: 3.5rem;
-    font-weight: 700;
-    line-height: 1.1;
-    color: #fff;
-  }
-
-  .bio-content p {
-    font-size: 2rem;
-    font-weight: 400;
-    line-height: 1.4;
-    max-width: 900px;
-    color: rgba(255, 255, 255, 0.85);
-  }
-
-  /* Typewriter Cursor */
-  #typewriter-text::after {
-    content: "";
-    display: inline-block;
-    width: 12px;
-    height: 1em;
-    background-color: currentColor;
-    margin-left: 5px;
-    animation: blink 1s infinite;
-    vertical-align: text-bottom;
-  }
-
-  @keyframes blink {
-    0%,
-    50% {
-      opacity: 1;
+    @keyframes bounce {
+        0%,
+        20%,
+        50%,
+        80%,
+        100% {
+            transform: translateX(-50%) translateY(0);
+        }
+        40% {
+            transform: translateX(-50%) translateY(-10px);
+        }
+        60% {
+            transform: translateX(-50%) translateY(-5px);
+        }
     }
-    51%,
-    100% {
-      opacity: 0;
-    }
-  }
 
-  @media (max-width: 768px) {
+    /* Narrative Section */
+    .narrative-section {
+        position: relative;
+        z-index: 20;
+        opacity: 0;
+        transform: translateY(50px); /* Start lower */
+        will-change: opacity, transform;
+        /* transition removed for direct scroll control */
+        padding-top: 10vh; /* Space from top after scrolling past fold */
+        padding-left: 4vw; /* User requested "Full Screen Experience" - Reduced from 10vw */
+        padding-right: 4vw; /* User requested "Full Screen Experience" - Reduced from 10vw */
+        min-height: 20vh;
+        display: flex;
+        flex-direction: column;
+        gap: 3rem;
+    }
+
     .hero-title {
-      font-size: 2.5rem;
+        font-family: var(--font-headline); /* Inherit or specific font */
+        font-size: 3.5rem;
+        font-weight: 700;
+        line-height: 1.1;
+        color: #fff;
     }
+
     .bio-content p {
-      font-size: 1.5rem;
+        font-size: 2rem;
+        font-weight: 400;
+        line-height: 1.4;
+        max-width: 900px;
+        color: rgba(255, 255, 255, 0.85);
     }
-  }
 
-  .italic {
-    font-style: italic;
-    font-weight: 400;
-  }
-
-  .section {
-    margin-bottom: var(--space-2xl);
-  }
-
-  .section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    margin-bottom: var(--space-lg);
-    border-bottom: 1px solid var(--border-subtle);
-    padding-bottom: var(--space-md);
-  }
-
-  .link-arrow {
-    font-size: var(--text-sm);
-    font-weight: 500;
-    position: relative;
-    padding-right: 1.2em;
-  }
-
-  .link-arrow::after {
-    content: "→";
-    position: absolute;
-    right: 0;
-    transition: transform 0.2s ease;
-  }
-
-  .link-arrow:hover::after {
-    transform: translateX(4px);
-  }
-
-  .blog-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-
-  .blog-card {
-    display: grid;
-    grid-template-columns: 200px 1fr auto;
-    gap: 2rem;
-    padding: 2rem;
-    text-decoration: none;
-    color: var(--text-primary);
-    border: 1px solid var(--border-subtle);
-    border-radius: 12px;
-    transition:
-      transform 0.3s ease,
-      border-color 0.3s ease;
-    align-items: center;
-  }
-
-  .blog-card:hover {
-    transform: translateY(-2px);
-    border-color: var(--text-secondary);
-  }
-
-  .blog-image-wrapper {
-    width: 200px;
-    height: 200px;
-    overflow: hidden;
-    border-radius: 6px;
-    background: var(--bg-surface);
-  }
-
-  .blog-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  .blog-image-placeholder {
-    width: 100%;
-    height: 100%;
-    background: var(--bg-surface);
-  }
-
-  .blog-content {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-  }
-
-  .blog-date {
-    font-family: "Inconsolata", monospace;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--text-tertiary);
-    margin-bottom: 0.5rem;
-  }
-
-  .blog-title {
-    font-family: var(--font-serif);
-    font-size: 1.5rem;
-    font-weight: 400;
-    line-height: 1.2;
-    margin: 0 0 0.5rem 0;
-  }
-
-  .blog-category {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-  }
-
-  .blog-action {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.8rem;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: var(--text-tertiary);
-    transition: color 0.3s ease;
-  }
-
-  .blog-card:hover .blog-action {
-    color: var(--text-primary);
-  }
-
-  .blog-card:hover .arrow {
-    transform: translateX(4px);
-    transition: transform 0.2s ease;
-  }
-
-  /* Typewriter Text Styling */
-  #typewriter-text {
-    font-size: 1.35em; /* Slightly reduced */
-    display: inline-block;
-    min-height: 1.2em; /* Reserve space */
-    margin-top: 0;
-    position: relative;
-    top: -2px; /* Shift upwards to balance */
-    white-space: nowrap; /* Prevent wrapping to next line */
-
-    /* Smooth text removal - adjust transition duration */
-    transition: opacity 0.1s ease; /* Makes disappearance smoother */
-  }
-
-  #typewriter-text span {
-    /* Smooth individual character removal */
-    transition: opacity 0.08s ease;
-    /* Soft blur shadow to make text pop more as requested */
-    text-shadow: 0 0 10px currentColor;
-  }
-
-  /* Typewriter Cursor - Customizable */
-  #typewriter-text::after {
-    content: "";
-    display: inline-block;
-
-    /* Cursor dimensions - adjust these */
-    width: 14px; /* Width of cursor */
-    height: 0.8em; /* Height of cursor */
-
-    /* Cursor appearance */
-    background-color: var(--text-primary);
-    border-radius: 1px;
-
-    /* Positioning */
-    margin-left: 5px; /* Space from text */
-    vertical-align: top; /* Align with text baseline */
-    position: relative;
-    top: 0.1em; /* Fine-tune vertical position */
-
-    /* Animation */
-    animation: blink 1.2s infinite; /* Slightly slower blink for calmer feel */
-  }
-
-  @keyframes blink {
-    0%,
-    50% {
-      opacity: 1;
+    /* Typewriter Cursor */
+    #typewriter-text::after {
+        content: "";
+        display: inline-block;
+        width: 12px;
+        height: 1em;
+        background-color: currentColor;
+        margin-left: 5px;
+        animation: blink 1s infinite;
+        vertical-align: text-bottom;
     }
-    51%,
-    100% {
-      opacity: 0;
-    }
-  }
 
-  @media (max-width: 768px) {
-    .hero-title {
-      font-size: 2.5rem;
-      min-height: auto;
+    @keyframes blink {
+        0%,
+        50% {
+            opacity: 1;
+        }
+        51%,
+        100% {
+            opacity: 0;
+        }
     }
-    .intro-content p {
-      font-size: 1.5rem;
+
+    @media (max-width: 768px) {
+        .hero-title {
+            font-size: 2.5rem;
+        }
+        .bio-content p {
+            font-size: 1.5rem;
+        }
     }
+
+    .italic {
+        font-style: italic;
+        font-weight: 400;
+    }
+
+    .section {
+        margin-bottom: var(--space-2xl);
+    }
+
+    .contained-section {
+        max-width: 1100px;
+        margin-left: auto;
+        margin-right: auto;
+        padding: 0 4vw; /* Ensure padding on smaller screens */
+    }
+
+    .section-title {
+        font-family: var(--font-headline);
+        font-weight: 700;
+        font-size: 2.5rem; /* Bold and distinct */
+        margin: 0;
+        letter-spacing: -0.02em;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: var(--space-lg);
+        border-bottom: 1px solid var(--border-subtle);
+        padding-bottom: var(--space-md);
+    }
+
+    .link-arrow {
+        font-size: var(--text-sm);
+        font-weight: 500;
+        position: relative;
+        padding-right: 1.2em;
+    }
+
+    .link-arrow::after {
+        content: "→";
+        position: absolute;
+        right: 0;
+        transition: transform 0.2s ease;
+    }
+
+    .link-arrow:hover::after {
+        transform: translateX(4px);
+    }
+
+    .blog-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
     .blog-card {
-      grid-template-columns: 100px 1fr;
-      padding: 1.5rem;
-      gap: 1.5rem;
+        display: grid;
+        grid-template-columns: 200px 1fr auto;
+        gap: 2rem;
+        padding: 2rem;
+        text-decoration: none;
+        color: var(--text-primary);
+        border: 1px solid var(--border-subtle);
+        border-radius: 12px;
+        transition:
+            transform 0.3s ease,
+            border-color 0.3s ease;
+        align-items: center;
     }
-    .blog-action {
-      display: none;
+
+    .blog-card:hover {
+        transform: translateY(-2px);
+        border-color: var(--text-secondary);
     }
+
     .blog-image-wrapper {
-      width: 100px;
-      height: 100px;
+        width: 200px;
+        height: 200px;
+        overflow: hidden;
+        border-radius: 6px;
+        background: var(--bg-surface);
     }
+
+    .blog-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .blog-image-placeholder {
+        width: 100%;
+        height: 100%;
+        background: var(--bg-surface);
+    }
+
+    .blog-content {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .blog-date {
+        font-family: "Inconsolata", monospace;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-tertiary);
+        margin-bottom: 0.5rem;
+    }
+
     .blog-title {
-      font-size: 1.2rem;
+        font-family: var(--font-serif);
+        font-size: 1.5rem;
+        font-weight: 400;
+        line-height: 1.2;
+        margin: 0 0 0.5rem 0;
     }
-    /* Hide Vibe Check on mobile */
-    .vibe-check-wrapper {
-      display: none;
+
+    .blog-category {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
     }
-  }
 
-  @media (max-width: 500px) {
-    .blog-card {
-      grid-template-columns: 1fr;
-      gap: 1rem;
+    .blog-action {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--text-tertiary);
+        transition: color 0.3s ease;
     }
-    .blog-image-wrapper {
-      width: 100%;
-      height: 200px;
+
+    .blog-card:hover .blog-action {
+        color: var(--text-primary);
     }
-  }
 
-  .note-grid {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 1.5rem;
+    .blog-card:hover .arrow {
+        transform: translateX(4px);
+        transition: transform 0.2s ease;
+    }
 
-    max-width: 1100px;
-    margin: 3rem auto;
-  }
+    /* Typewriter Text Styling */
+    #typewriter-text {
+        font-size: 1.35em; /* Slightly reduced */
+        display: inline-block;
+        min-height: 1.2em; /* Reserve space */
+        margin-top: 0;
+        position: relative;
+        top: -2px; /* Shift upwards to balance */
+        white-space: nowrap; /* Prevent wrapping to next line */
 
-  .showreel-note {
-    font-family: "Inconsolata", monospace;
-    font-size: 0.95rem;
-    line-height: 1.6;
+        /* Smooth text removal - adjust transition duration */
+        transition: opacity 0.1s ease; /* Makes disappearance smoother */
+    }
 
-    color: #ffffff;
+    #typewriter-text span {
+        /* Smooth individual character removal */
+        transition: opacity 0.08s ease;
+        /* Soft blur shadow to make text pop more as requested */
+        text-shadow: 0 0 10px currentColor;
+    }
 
-    border: 1px solid rgba(255, 255, 255, 0.6);
-    border-radius: 8px;
+    /* Typewriter Cursor - Customizable */
+    #typewriter-text::after {
+        content: "";
+        display: inline-block;
 
-    padding: 1.25rem 1.5rem;
+        /* Cursor dimensions - adjust these */
+        width: 14px; /* Width of cursor */
+        height: 0.8em; /* Height of cursor */
 
-    backdrop-filter: blur(2px);
+        /* Cursor appearance */
+        background-color: var(--text-primary);
+        border-radius: 1px;
 
-    letter-spacing: 0.02em;
-  }
+        /* Positioning */
+        margin-left: 5px; /* Space from text */
+        vertical-align: top; /* Align with text baseline */
+        position: relative;
+        top: 0.1em; /* Fine-tune vertical position */
 
-  .note-primary {
-    background-color: rgba(178, 28, 48, 0.881);
-  }
+        /* Animation */
+        animation: blink 1.2s infinite; /* Slightly slower blink for calmer feel */
+    }
 
-  .note-secondary {
-    background-color: rgba(39, 24, 138, 0.941);
-  }
+    @keyframes blink {
+        0%,
+        50% {
+            opacity: 1;
+        }
+        51%,
+        100% {
+            opacity: 0;
+        }
+    }
 
-  .showreel-note p {
-    margin: 0;
-  }
+    @media (max-width: 768px) {
+        .hero-title {
+            font-size: 2.5rem;
+            min-height: auto;
+        }
+        .intro-content p {
+            font-size: 1.5rem;
+        }
+        .blog-card {
+            grid-template-columns: 100px 1fr;
+            padding: 1.5rem;
+            gap: 1.5rem;
+        }
+        .blog-action {
+            display: none;
+        }
+        .blog-image-wrapper {
+            width: 100px;
+            height: 100px;
+        }
+        .blog-title {
+            font-size: 1.2rem;
+        }
+        /* Hide Vibe Check on mobile */
+        .vibe-check-wrapper {
+            display: none;
+        }
+    }
 
-  @media (max-width: 768px) {
+    @media (max-width: 500px) {
+        .blog-card {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        .blog-image-wrapper {
+            width: 100%;
+            height: 200px;
+        }
+    }
+
     .note-grid {
-      grid-template-columns: 1fr;
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 1.5rem;
+
+        max-width: 1100px;
+        margin: 3rem auto;
     }
-  }
 
-  .note-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr !important;
-    gap: 1.5rem;
+    .showreel-note {
+        font-family: "Inconsolata", monospace;
+        font-size: 0.95rem;
+        line-height: 1.6;
 
-    max-width: 1100px;
-    margin: 3rem auto;
+        color: #ffffff;
 
-    padding: 0 rem; /* ← THIS is the key line */
-  }
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        border-radius: 8px;
 
-  .showreel-note .line-gap {
-    display: block;
-    height: 1rem;
-  }
+        padding: 1.25rem 1.5rem;
 
-  /* Link that looks like underlined white text + "selection fill" hover */
-  .hl-link {
-    color: #fff;
-    text-decoration: underline;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 3px;
+        backdrop-filter: blur(2px);
 
-    position: relative;
-    display: inline-block;
-    padding: 0 0.12em; /* tiny padding so highlight looks intentional */
-    border-radius: 2px; /* subtle rounding like a selection */
-    cursor: pointer;
+        letter-spacing: 0.02em;
+    }
 
-    /* remove default link focus outline styling differences across browsers */
-    outline: none;
-  }
+    .note-primary {
+        background-color: rgba(178, 28, 48, 0.881);
+    }
 
-  /* Background "fill" on hover like text selection */
-  .hl-link::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    bottom: 0.05em;
-    width: 100%;
-    height: 1.1em;
-    background: rgba(255, 255, 255, 0.22); /* selection-like fill */
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform 160ms ease;
-    border-radius: 2px;
-    z-index: -1; /* keep fill behind text */
-  }
+    .note-secondary {
+        background-color: rgba(39, 24, 138, 0.941);
+    }
 
-  .hl-link:hover::before {
-    transform: scaleX(1);
-  }
+    .showreel-note p {
+        margin: 0;
+    }
 
-  /* Optional: slightly stronger on active click */
-  .hl-link:active::before {
-    background: rgba(255, 255, 255, 0.35);
-  }
+    @media (max-width: 768px) {
+        .note-grid {
+            grid-template-columns: 1fr;
+        }
+    }
 
-  /* Accessible keyboard focus */
-  .hl-link:focus-visible {
-    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.35);
-    border-radius: 4px;
-  }
+    .note-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 1.5rem;
 
-  /* Refined hero / statement font styling — matched to image */
+        max-width: 1100px;
+        margin: 3rem auto;
+
+        padding: 0 rem; /* ← THIS is the key line */
+    }
+
+    .showreel-note .line-gap {
+        display: block;
+        height: 1rem;
+    }
+
+    /* Link that looks like underlined white text + "selection fill" hover */
+    .hl-link {
+        color: #fff;
+        text-decoration: underline;
+        text-decoration-thickness: 1px;
+        text-underline-offset: 3px;
+
+        position: relative;
+        display: inline-block;
+        padding: 0 0.12em; /* tiny padding so highlight looks intentional */
+        border-radius: 2px; /* subtle rounding like a selection */
+        cursor: pointer;
+
+        /* remove default link focus outline styling differences across browsers */
+        outline: none;
+    }
+
+    /* Background "fill" on hover like text selection */
+    .hl-link::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        bottom: 0.05em;
+        width: 100%;
+        height: 1.1em;
+        background: rgba(255, 255, 255, 0.22); /* selection-like fill */
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform 160ms ease;
+        border-radius: 2px;
+        z-index: -1; /* keep fill behind text */
+    }
+
+    .hl-link:hover::before {
+        transform: scaleX(1);
+    }
+
+    /* Optional: slightly stronger on active click */
+    .hl-link:active::before {
+        background: rgba(255, 255, 255, 0.35);
+    }
+
+    /* Accessible keyboard focus */
+    .hl-link:focus-visible {
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.35);
+        border-radius: 4px;
+    }
+
+    /* Refined hero / statement font styling — matched to image */
 </style>
 
 <script>
-  // --- Scroll Hint Fade Logic ---
-  const scrollHint = document.querySelector(".scroll-hint");
-  const landingOverlays = document.querySelector(".landing-overlays");
-  const narrativeSection = document.querySelector(".narrative-section");
+    // --- Scroll Hint Fade Logic ---
+    const scrollHint = document.querySelector(".scroll-hint");
+    const landingOverlays = document.querySelector(".landing-overlays");
+    const narrativeSection = document.querySelector(".narrative-section");
 
-  window.addEventListener("scroll", () => {
-    const y = window.scrollY;
+    window.addEventListener("scroll", () => {
+        const y = window.scrollY;
 
-    // 1. Fade out Landing Overlays quickly
-    const overlayOpacity = Math.max(0, 1 - y / 200);
-    if (landingOverlays) {
-      landingOverlays.style.opacity = overlayOpacity.toString();
-      landingOverlays.style.pointerEvents =
-        overlayOpacity <= 0 ? "none" : "auto";
-    }
+        // 1. Fade out Landing Overlays quickly
+        const overlayOpacity = Math.max(0, 1 - y / 200);
+        if (landingOverlays) {
+            landingOverlays.style.opacity = overlayOpacity.toString();
+            landingOverlays.style.pointerEvents =
+                overlayOpacity <= 0 ? "none" : "auto";
+        }
 
-    // 2. Fade IN Narrative Section after cards flick away
-    // Cards usually clear by ~400-500px depending on user interaction.
-    // We start fading in exponentially earlier (at 50px) so it overlaps with the exit.
-    if (narrativeSection) {
-      const startFade = 50;
-      const endFade = 500;
-      let narrativeOpacity = 0;
+        // 2. Fade IN Narrative Section after cards flick away
+        // Delayed: Starts after ~2 swipes (200px)
+        if (narrativeSection) {
+            const startFade = 200;
+            const endFade = 700;
+            let opacity = 0;
+            let translateY = 50;
 
-      if (y > startFade) {
-        narrativeOpacity = Math.min(1, (y - startFade) / (endFade - startFade));
-      }
-      narrativeSection.style.opacity = narrativeOpacity.toString();
-    }
-  });
-
-  // --- Typewriter Logic (Ported from index.astro) ---
-  // User requested "The High I am about it, my life revolves around..."
-  // content structure is reused from main page logic.
-
-  const phrases = [
-    "Images, Code & Culture.",
-    "Design & Technology.",
-    "Writing & Storytelling.",
-    "Travel, Fashion & Music.",
-    "Photography, Film & Art.",
-    "AI, Sociology & Research.",
-  ];
-
-  const colors = [
-    "#D35E7F", // Cinnamon Satin
-    "#D7E97B", // Manz
-    "#A999EB", // Max Blue Purple
-    "#9BCDEF", // Baby Blue Eyes
-  ];
-
-  const typingSpeed = { min: 40, max: 100 };
-  const backspaceSpeed = { min: 30, max: 50 };
-  const pauseEnd = 2000;
-  const pauseStart = 500;
-
-  const textElement = document.getElementById("typewriter-text");
-
-  let phraseIndex = 0;
-  let charIndex = 0;
-  let isDeleting = false;
-  let currentPhraseObjects = [];
-
-  function parsePhrase(phrase) {
-    const words = phrase.split(" ");
-    let phraseColors = [...colors];
-
-    // Simple shuffle for variety
-    phraseColors.sort(() => Math.random() - 0.5);
-
-    // Ensure we have enough colors
-    while (phraseColors.length < words.length) {
-      phraseColors = phraseColors.concat(
-        [...colors].sort(() => Math.random() - 0.5),
-      );
-    }
-
-    return words.map((word, i) => {
-      return {
-        text: word + " ",
-        color: phraseColors[i],
-      };
+            if (y > startFade) {
+                const ratio = Math.min(
+                    1,
+                    Math.max(0, (y - startFade) / (endFade - startFade)),
+                );
+                opacity = ratio;
+                translateY = 50 - ratio * 50;
+            }
+            narrativeSection.style.opacity = opacity.toString();
+            narrativeSection.style.transform = `translateY(${translateY}px)`;
+        }
     });
-  }
 
-  function renderText() {
-    if (!textElement) return;
-    let charCount = 0;
-    let html = "";
+    // --- Typewriter Logic (Ported from index.astro) ---
+    // User requested "The High I am about it, my life revolves around..."
+    // content structure is reused from main page logic.
 
-    for (let obj of currentPhraseObjects) {
-      if (charCount >= charIndex) break;
-      const remaining = charIndex - charCount;
-      const textToDisplay = obj.text.substring(0, remaining);
-      html += `<span style="color: ${obj.color}">${textToDisplay}</span>`;
-      charCount += obj.text.length;
-      if (charCount > charIndex) break;
+    const phrases = [
+        "Images, Code & Culture.",
+        "Design & Technology.",
+        "Writing & Storytelling.",
+        "Travel, Fashion & Music.",
+        "Photography, Film & Art.",
+        "AI, Sociology & Research.",
+    ];
+
+    const colors = [
+        "#D35E7F", // Cinnamon Satin
+        "#D7E97B", // Manz
+        "#A999EB", // Max Blue Purple
+        "#9BCDEF", // Baby Blue Eyes
+    ];
+
+    const typingSpeed = { min: 40, max: 100 };
+    const backspaceSpeed = { min: 30, max: 50 };
+    const pauseEnd = 2000;
+    const pauseStart = 500;
+
+    const textElement = document.getElementById("typewriter-text");
+
+    let phraseIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    let currentPhraseObjects = [];
+
+    function parsePhrase(phrase) {
+        const words = phrase.split(" ");
+        let phraseColors = [...colors];
+
+        // Simple shuffle for variety
+        phraseColors.sort(() => Math.random() - 0.5);
+
+        // Ensure we have enough colors
+        while (phraseColors.length < words.length) {
+            phraseColors = phraseColors.concat(
+                [...colors].sort(() => Math.random() - 0.5),
+            );
+        }
+
+        return words.map((word, i) => {
+            return {
+                text: word + " ",
+                color: phraseColors[i],
+            };
+        });
     }
-    textElement.innerHTML = html;
-  }
 
-  function getTotalLength() {
-    return currentPhraseObjects.reduce((acc, obj) => acc + obj.text.length, 0);
-  }
+    function renderText() {
+        if (!textElement) return;
+        let charCount = 0;
+        let html = "";
 
-  function type() {
-    if (!textElement) return;
-
-    if (charIndex === 0 && !isDeleting) {
-      currentPhraseObjects = parsePhrase(phrases[phraseIndex]);
+        for (let obj of currentPhraseObjects) {
+            if (charCount >= charIndex) break;
+            const remaining = charIndex - charCount;
+            const textToDisplay = obj.text.substring(0, remaining);
+            html += `<span style="color: ${obj.color}">${textToDisplay}</span>`;
+            charCount += obj.text.length;
+            if (charCount > charIndex) break;
+        }
+        textElement.innerHTML = html;
     }
 
-    const totalLen = getTotalLength();
-    let speed =
-      Math.random() * (typingSpeed.max - typingSpeed.min) + typingSpeed.min;
-
-    if (isDeleting) {
-      charIndex--;
-      renderText();
-      speed =
-        Math.random() * (backspaceSpeed.max - backspaceSpeed.min) +
-        backspaceSpeed.min;
-    } else {
-      charIndex++;
-      renderText();
+    function getTotalLength() {
+        return currentPhraseObjects.reduce(
+            (acc, obj) => acc + obj.text.length,
+            0,
+        );
     }
 
-    if (!isDeleting && charIndex === totalLen) {
-      isDeleting = true;
-      setTimeout(type, pauseEnd);
-    } else if (isDeleting && charIndex === 0) {
-      isDeleting = false;
-      phraseIndex = (phraseIndex + 1) % phrases.length;
-      setTimeout(type, pauseStart);
-    } else {
-      setTimeout(type, speed);
-    }
-  }
+    function type() {
+        if (!textElement) return;
 
-  // Start typewriter
-  setTimeout(type, 1000);
+        if (charIndex === 0 && !isDeleting) {
+            currentPhraseObjects = parsePhrase(phrases[phraseIndex]);
+        }
+
+        const totalLen = getTotalLength();
+        let speed =
+            Math.random() * (typingSpeed.max - typingSpeed.min) +
+            typingSpeed.min;
+
+        if (isDeleting) {
+            charIndex--;
+            renderText();
+            speed =
+                Math.random() * (backspaceSpeed.max - backspaceSpeed.min) +
+                backspaceSpeed.min;
+        } else {
+            charIndex++;
+            renderText();
+        }
+
+        if (!isDeleting && charIndex === totalLen) {
+            isDeleting = true;
+            setTimeout(type, pauseEnd);
+        } else if (isDeleting && charIndex === 0) {
+            isDeleting = false;
+            phraseIndex = (phraseIndex + 1) % phrases.length;
+            setTimeout(type, pauseStart);
+        } else {
+            setTimeout(type, speed);
+        }
+    }
+
+    // Start typewriter
+    setTimeout(type, 1000);
 </script>

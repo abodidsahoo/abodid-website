@@ -15,10 +15,13 @@ const CardStacker = ({ images, anchorX = '65%', anchorY = '68%' }) => {
     const scrollAccumulatorRef = useRef(0);
     // Fix for Z-Index Stacking: Monotonic counter to ensure new cards ALWAYS appear on top
     const zIndexCounter = useRef(100);
+    // Cooldown Ref
+    const lastActionTime = useRef(0);
 
     // ASYMMETRIC PHYSICS
-    const UNSTACK_THRESHOLD = 40;
-    const RESTACK_THRESHOLD = 300;
+    const UNSTACK_THRESHOLD = 35; // Sensitivity High
+    const RESTACK_THRESHOLD = 300; // Heavy restack
+    const COOLDOWN_MS = 250; // Rhythm control
 
     // Pools
     const readyPoolRef = useRef([]);
@@ -148,6 +151,11 @@ const CardStacker = ({ images, anchorX = '65%', anchorY = '68%' }) => {
             const isVisible = window.scrollY < 800;
 
             if (isVisible) {
+                // LOCK SCROLL: Prevent page rubber-banding so flick energy goes to cards
+                if (e.deltaY > 0 && stackRef.current.length > 0) {
+                    e.preventDefault();
+                }
+
                 // Zero Latency Reset
                 if ((e.deltaY > 0 && scrollAccumulatorRef.current < 0) ||
                     (e.deltaY < 0 && scrollAccumulatorRef.current > 0)) {
@@ -164,18 +172,27 @@ const CardStacker = ({ images, anchorX = '65%', anchorY = '68%' }) => {
 
                 // A. UNSTACK
                 if (scrollAccumulatorRef.current > UNSTACK_THRESHOLD) {
-                    const potential = Math.floor(scrollAccumulatorRef.current / UNSTACK_THRESHOLD);
-                    if (potential > 0) {
-                        const hasCards = stackRef.current.length > 0;
-                        if (hasCards) {
-                            setLastAction('unstack');
-                            const removeCount = 1;
-                            const newStack = stackRef.current.slice(0, -removeCount);
-                            stackRef.current = newStack;
-                            setStack(newStack);
-                            scrollAccumulatorRef.current -= (removeCount * UNSTACK_THRESHOLD);
-                        } else {
-                            scrollAccumulatorRef.current = 0;
+                    const now = Date.now();
+
+                    // Rate Limit: Only allow unstack if cooldown passed
+                    if (now - lastActionTime.current < COOLDOWN_MS) {
+                        // In cooldown: Cap momentum so we don't queue up 10 unstacks
+                        scrollAccumulatorRef.current = Math.min(scrollAccumulatorRef.current, UNSTACK_THRESHOLD * 1.1);
+                    } else {
+                        const potential = Math.floor(scrollAccumulatorRef.current / UNSTACK_THRESHOLD);
+                        if (potential > 0) {
+                            const hasCards = stackRef.current.length > 0;
+                            if (hasCards) {
+                                setLastAction('unstack');
+                                lastActionTime.current = now;
+                                const removeCount = 1;
+                                const newStack = stackRef.current.slice(0, -removeCount);
+                                stackRef.current = newStack;
+                                setStack(newStack);
+                                scrollAccumulatorRef.current -= (removeCount * UNSTACK_THRESHOLD);
+                            } else {
+                                scrollAccumulatorRef.current = 0;
+                            }
                         }
                     }
                 }

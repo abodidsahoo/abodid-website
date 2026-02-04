@@ -1,7 +1,7 @@
 ---
 import PhotographyCard from "./PhotographyCard.astro";
 
-const { projects, maxItems = 6 } = Astro.props;
+const { projects, maxItems = 6, columns = 3, contained = false } = Astro.props;
 
 // We'll show maxItems slots, each cycling through all projects
 const gridSlots = Array.from({ length: maxItems }, (_, i) => i);
@@ -10,7 +10,11 @@ const gridSlots = Array.from({ length: maxItems }, (_, i) => i);
 const projectsJson = JSON.stringify(projects);
 ---
 
-<div class="photo-grid" data-projects={projectsJson}>
+<div
+    class={`photo-grid ${contained ? "contained" : "full-bleed"}`}
+    style={`--grid-cols: ${columns}`}
+    data-projects={projectsJson}
+>
     {
         gridSlots.map((slotIndex) => (
             <div class="grid-item" data-slot={slotIndex}>
@@ -37,15 +41,23 @@ const projectsJson = JSON.stringify(projects);
 
 <style>
     .photo-grid {
-        /* Full-bleed: break out of container to fill entire viewport width */
+        display: grid;
+        grid-template-columns: repeat(var(--grid-cols, 3), 1fr);
+        gap: 2rem; /* Increased spacing */
+        padding: 1.5rem 0; /* Vertical padding only for contained typically, but keeping safe */
+    }
+
+    .full-bleed {
         width: 100vw;
         margin-left: 50%;
         transform: translateX(-50%);
+        padding: 1.5rem; /* Restore padding for full bleed */
+    }
 
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 1.25rem;
-        padding: 1.5rem;
+    .contained {
+        width: 100%;
+        /* Parent container usually controls max-width, but we can enforce if needed */
+        margin: 0 auto;
     }
 
     .grid-item {
@@ -58,7 +70,6 @@ const projectsJson = JSON.stringify(projects);
         .photo-grid {
             grid-template-columns: repeat(2, 1fr);
             gap: 1.5rem;
-            padding: 1.5rem;
         }
     }
 

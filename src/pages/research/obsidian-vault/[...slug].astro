@@ -10,12 +10,13 @@ const { slug } = Astro.params;
 const COOKIE_NAME = "obsidian_vault_access";
 
 // 1. Auth Check
-if (
-    !Astro.cookies.has(COOKIE_NAME) ||
-    Astro.cookies.get(COOKIE_NAME)?.value !== "granted"
-) {
-    return Astro.redirect("/research/obsidian-vault");
-}
+// 1. Auth Check
+// if (
+//     !Astro.cookies.has(COOKIE_NAME) ||
+//     Astro.cookies.get(COOKIE_NAME)?.value !== "granted"
+// ) {
+//     return Astro.redirect("/research/obsidian-vault");
+// }
 
 if (!slug) {
     return Astro.redirect("/research/obsidian-vault");

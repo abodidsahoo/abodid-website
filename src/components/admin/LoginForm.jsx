@@ -1,31 +1,16 @@
 import React, { useState, useCallback } from 'react';
 import { supabase } from '../../lib/supabaseClient';
-import Turnstile from '../../components/Turnstile';
+
 
 export default function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [captchaToken, setCaptchaToken] = useState('');
+
   const [session, setSession] = useState(null);
 
-  // Helper to verify captcha on our server
-  const verifyCaptcha = async (token) => {
-    if (!token) return false;
-    try {
-      const res = await fetch("/api/turnstile/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token }),
-      });
-      const data = await res.json();
-      return data.success === true;
-    } catch (e) {
-      console.error("Captcha Verification Error:", e);
-      return false;
-    }
-  };
+
 
   // Shared redirect logic
   const handleRedirect = async (userId, force = false) => {
@@ -81,35 +66,19 @@ export default function LoginForm() {
     setLoading(true);
     setError(null);
 
-    // 1. Client-Side Check
-    if (!captchaToken) {
-      setError("Please complete the captcha.");
-      setLoading(false);
-      return;
-    }
 
-    // 2. Server-Side Verification (Our API)
-    // We enforce this regardless of Supabase setting
-    const isHuman = await verifyCaptcha(captchaToken);
-    if (!isHuman) {
-      setError("Captcha verification failed. Please refresh and try again.");
-      setLoading(false);
-      return;
-    }
 
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
-      options: { captchaToken } // Pass to Supabase (optional, relies on Dashboard setting)
+      options: {} // Pass to Supabase (optional, relies on Dashboard setting)
     });
 
     if (error) {
       console.error("Login error:", error);
       setError(error.message);
       setLoading(false);
-      // Reset captcha on failure
-      if (window.turnstile) window.turnstile.reset();
-      setCaptchaToken('');
+      setLoading(false);
     } else {
       // Sync email to profile for admin too
       if (data.user) {
@@ -127,12 +96,7 @@ export default function LoginForm() {
     }
   };
 
-  // Callback for Turnstile - use useCallback to keep it stable
-  const handleTurnstile = useCallback((token) => {
-    console.log('Turnstile token received:', token ? 'token present' : 'no token');
-    setCaptchaToken(token);
-    setError(null); // Clear any captcha errors when token is received
-  }, []);
+
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -243,9 +207,7 @@ export default function LoginForm() {
         </div>
 
         {/* Turnstile Widget */}
-        <div className="form-group">
-          <Turnstile onToken={handleTurnstile} action="admin_login" />
-        </div>
+
 
         {error && <div className="error-message">{error}</div>}
 

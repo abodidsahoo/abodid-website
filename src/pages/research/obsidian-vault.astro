@@ -4,76 +4,34 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import { getVaultTags, getVaultNotes } from "../../lib/github";
 
 // Configuration
-const VAULT_PASSWORD = import.meta.env.VAULT_PASSWORD || process.env.VAULT_PASSWORD || "secret";
-const COOKIE_NAME = "obsidian_vault_access";
-const COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
 const ITEMS_PER_PAGE = 24;
 
 // Server-Side Logic
-let isUnlocked = false;
 let error = "";
 let allNotes = [];
 let initialNotes = [];
 let remainingNotes = [];
 let tags = [];
 
-// 1. Check Cookie
-if (Astro.cookies.has(COOKIE_NAME)) {
-    const cookieVal = Astro.cookies.get(COOKIE_NAME)?.value;
-    if (cookieVal === "granted") {
-        isUnlocked = true;
-    }
-}
+// Always Fetch Data
+try {
+    const [tagsData, notesData] = await Promise.all([
+        getVaultTags(),
+        getVaultNotes(),
+    ]);
 
-// 2. Handle Login Submission
-if (Astro.request.method === "POST") {
-    try {
-        const data = await Astro.request.formData();
-        const password = data.get("password");
-
-        if (password === VAULT_PASSWORD) {
-            isUnlocked = true;
-            Astro.cookies.set(COOKIE_NAME, "granted", {
-                path: "/",
-                maxAge: COOKIE_MAX_AGE,
-                httpOnly: true,
-                secure: import.meta.env.PROD,
-                sameSite: "lax",
-            });
-            return Astro.redirect("/research/obsidian-vault");
-        } else {
-            error = "Incorrect password. The vault remains sealed.";
-        }
-    } catch (e) {
-        console.error(e);
-        error = "An unexpected error occurred.";
-    }
-}
-
-// 3. Fetch Data if Unlocked
-if (isUnlocked) {
-
-    try {
-        const [tagsData, notesData] = await Promise.all([
-            getVaultTags(),
-            getVaultNotes(),
-        ]);
-        
-
-
-        tags = tagsData || [];
-        allNotes = notesData || [];
-        
-        // Split for Infinite Scroll
-        initialNotes = allNotes.slice(0, ITEMS_PER_PAGE);
-        remainingNotes = allNotes.slice(ITEMS_PER_PAGE);
-    } catch (e) {
-        console.error("Error fetching vault data:", e);
-        if (e instanceof Error) {
-            error = e.message;
-        } else {
-            error = "Failed to fetch vault data from GitHub. Check server logs.";
-        }
+    tags = tagsData || [];
+    allNotes = notesData || [];
+    
+    // Split for Infinite Scroll
+    initialNotes = allNotes.slice(0, ITEMS_PER_PAGE);
+    remainingNotes = allNotes.slice(ITEMS_PER_PAGE);
+} catch (e) {
+    console.error("Error fetching vault data:", e);
+    if (e instanceof Error) {
+        error = e.message;
+    } else {
+        error = "Failed to fetch vault data from GitHub. Check server logs.";
     }
 }
 
@@ -87,117 +45,64 @@ const pageTitle = "Obsidian Vault";
     <link href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@300;400;500;600&family=Poppins:wght@100;200;300;400;500&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 
     <div class="vault-container">
-        {
-            !isUnlocked ? (
-                /* --- LOCKED STATE --- */
-                <section class="locked-view">
-                    <header class="vault-header">
-                        <h1>Obsidian Vault</h1>
-                        <p class="subtitle">
-                            A digital garden of raw thoughts, research, and connections.
-                        </p>
-                    </header>
-
-                    <div class="pitch-content">
-                        <p>
-                            This vault contains my personal collection of
-                            Markdown notes, directly synced from my private
-                            Obsidian library. It includes unfinished research,
-                            daily logs, and deeper technical explorations that
-                            I'm not ready to publish as polished articles.
-                        </p>
-
-                        <div class="workshop-pitch">
-                            <h3>Interested in building your own Second Brain?</h3>
-                            <p>
-                                I offer personalized workshops where I take you
-                                through the entire route of setting up a
-                                knowledge management system that actually works
-                                for you. From Obsidian setup to workflow automation.
-                            </p>
-                            <a href="/research/workshop-booking" class="btn-primary">
-                                Book a Personal Workshop
-                            </a>
-                        </div>
+        {/* --- UNLOCKED STATE (SPLIT VIEW) --- */}
+        <section class="vault-view-split">
+            <header class="vault-header-split">
+                 <h1>Abodid's Vault</h1>
+                 <p class="subtitle">Live sync from GitHub. {allNotes.length} notes, {tags.length} tags.</p>
+                 {error && <p class="error-msg" style="text-align:center; margin-top:1rem;">{error}</p>}
+            </header>
+            
+            <div class="split-layout">
+                {/* --- LEFT: NOTES LIST (Single Column Vertical, 50% Width) --- */}
+                <div class="notes-column">
+                    <div class="notes-header-small">
+                        <h2>Notes</h2>
                     </div>
-
-                    <div class="login-form-wrapper">
-                        <p class="login-label">ACCESS THE VAULT</p>
-                        <form method="POST" class="login-form">
-                            <input
-                                type="password"
-                                name="password"
-                                placeholder="Enter Password..."
-                                required
-                                autofocus
-                            />
-                            <button type="submit" class="btn-unlock">Unlock</button>
-                        </form>
-                        {error && <p class="error-msg">{error}</p>}
-                        <p class="hint-text">Ask Abodid for access if you're curious.</p>
-                    </div>
-                </section>
-            ) : (
-                /* --- UNLOCKED STATE (SPLIT VIEW) --- */
-                <section class="vault-view-split">
-                    <header class="vault-header-split">
-                         <h1>Abodid's Vault</h1>
-                         <p class="subtitle">Live sync from GitHub. {allNotes.length} notes, {tags.length} tags.</p>
-                         {error && <p class="error-msg" style="text-align:center; margin-top:1rem;">{error}</p>}
-                    </header>
-                    
-                    <div class="split-layout">
-                        {/* --- LEFT: NOTES LIST (Single Column Vertical, 50% Width) --- */}
-                        <div class="notes-column">
-                            <div class="notes-header-small">
-                                <h2>Notes</h2>
+                    <div class="vault-list" id="notes-grid">
+                        {initialNotes.length === 0 ? (
+                            <div class="empty-state">
+                                <p>No notes found. Check GitHub connection.</p>
                             </div>
-                            <div class="vault-list" id="notes-grid">
-                                {initialNotes.length === 0 ? (
-                                    <div class="empty-state">
-                                        <p>No notes found. Check GitHub connection.</p>
+                        ) : (
+                            initialNotes.map((file) => (
+                                <a href={`/research/obsidian-vault/${file.name.replace(".md", "")}`} class="note-card">
+                                    <div class="note-info">
+                                        <h3>{file.name.replace(".md", "").replace(/-/g, " ")}</h3>
                                     </div>
-                                ) : (
-                                    initialNotes.map((file) => (
-                                        <a href={`/research/obsidian-vault/${file.name.replace(".md", "")}`} class="note-card">
-                                            <div class="note-info">
-                                                <h3>{file.name.replace(".md", "").replace(/-/g, " ")}</h3>
-                                            </div>
-                                        </a>
-                                    ))
-                                )}
-                            </div>
-                            
-                            {/* Sentinel for Infinite Scroll */}
-                            {remainingNotes.length > 0 && (
-                                <div id="scroll-sentinel" class="loading-indicator">
-                                    <span>Loading more notes...</span>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* --- RIGHT: TAG CLOUD (50% Width) --- */}
-                        <aside class="tags-column">
-                            <div class="tags-header-small">
-                                <h2>Tags</h2>
-                            </div>
-                            <div class="tag-cloud-wrapper">
-                                {tags.map((tag) => (
-                                    <a href={`/research/obsidian-vault/${tag.name.replace(".md", "")}`} class="vault-tag">
-                                        {tag.name.replace(".md", "").replace(/-/g, " ")}
-                                    </a>
-                                ))}
-                            </div>
-                        </aside>
+                                </a>
+                            ))
+                        )}
                     </div>
-                </section>
-            )
-        }
+                    
+                    {/* Sentinel for Infinite Scroll */}
+                    {remainingNotes.length > 0 && (
+                        <div id="scroll-sentinel" class="loading-indicator">
+                            <span>Loading more notes...</span>
+                        </div>
+                    )}
+                </div>
+
+                {/* --- RIGHT: TAG CLOUD (50% Width) --- */}
+                <aside class="tags-column">
+                    <div class="tags-header-small">
+                        <h2>Tags</h2>
+                    </div>
+                    <div class="tag-cloud-wrapper">
+                        {tags.map((tag) => (
+                            <a href={`/research/obsidian-vault/${tag.name.replace(".md", "")}`} class="vault-tag">
+                                {tag.name.replace(".md", "").replace(/-/g, " ")}
+                            </a>
+                        ))}
+                    </div>
+                </aside>
+            </div>
+        </section>
     </div>
 </BaseLayout>
 
 {/* Client-Side Infinite Scroll Script */}
-{isUnlocked && remainingNotes.length > 0 && (
+{remainingNotes.length > 0 && (
     <script define:vars={{ remainingNotes, ITEMS_PER_PAGE }}>
         let currentNotes = remainingNotes;
         const grid = document.getElementById('notes-grid');

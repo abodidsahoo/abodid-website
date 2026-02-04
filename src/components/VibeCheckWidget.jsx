@@ -4,7 +4,6 @@ const VibeCheckWidget = () => {
     // State driven by events
     const [uniqueCount, setUniqueCount] = useState(0);
     const [totalTags, setTotalTags] = useState(50); // Default until event
-    const [isUnlocked, setIsUnlocked] = useState(false);
 
     const UNLOCK_THRESHOLD = 50;
 
@@ -15,21 +14,12 @@ const VibeCheckWidget = () => {
             setUniqueCount(cappedCount);
 
             if (e.detail.total) setTotalTags(e.detail.total);
-            if (e.detail.unlocked) {
-                setIsUnlocked(true); // Trigger unlock if not already
-            }
-        };
-
-        const handleUnlock = () => {
-            setIsUnlocked(true);
         };
 
         window.addEventListener('game-progress', handleProgress);
-        window.addEventListener('game-unlock', handleUnlock);
 
         return () => {
             window.removeEventListener('game-progress', handleProgress);
-            window.removeEventListener('game-unlock', handleUnlock);
         };
     }, []);
 
@@ -46,9 +36,9 @@ const VibeCheckWidget = () => {
     };
 
     return (
-        <div className={`vibe-check-widget ${isUnlocked ? 'unlocked' : ''}`}>
+        <div className="vibe-check-widget">
             <div className="widget-header">
-                <span className="widget-title">The Secret Lab Vibe Check</span>
+                <span className="widget-title">The Vibe Check</span>
                 <span className="widget-counter">
                     <span className="count-val">{uniqueCount}</span>
                     <span className="count-sep">/</span>
@@ -57,13 +47,6 @@ const VibeCheckWidget = () => {
             </div>
 
             {/* Progress bar removed as requested for a cleaner look */}
-
-            {isUnlocked ? (
-                <div className="unlock-message">
-                    <div className="welcome-text">WELCOME TO THE SECRET LAB</div>
-                    <a href="/secret-lab" className="lab-link">ENTER THE LAB</a>
-                </div>
-            ) : null}
 
             <style jsx>{`
                 .vibe-check-widget {

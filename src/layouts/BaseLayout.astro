@@ -1,8 +1,7 @@
 ---
 import "../styles/global.css";
 import "../styles/brands.css";
-// import Header from "../components/Header.astro";
-import ExperimentHeader from "../components/ExperimentHeader";
+import Header from "../components/Header";
 import Footer from "../components/Footer.astro";
 import SEO from "../components/SEO.astro";
 import { getPageMetadata } from "../lib/api";
@@ -96,7 +95,7 @@ const finalType = type || dbMetadata?.og_type || "website";
   </head>
   <body>
     <!-- <Header /> -->
-    {!hideHeader && <ExperimentHeader client:only="react" />}
+    {!hideHeader && <Header client:only="react" />}
     <div class="global-grid-bg"></div>
     <div class="global-glow-bg"></div>
     <main

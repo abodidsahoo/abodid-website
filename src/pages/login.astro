@@ -1,7 +1,6 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import "../styles/resources.css";
-import Turnstile from "../components/Turnstile";
 
 const title = "Login | Resource Hub";
 ---
@@ -9,10 +8,17 @@ const title = "Login | Resource Hub";
 <BaseLayout title={title}>
     <div
         class="hub-container"
-        style="max-width: 420px; padding-top: 80px; margin: 0 auto;"
+        style="max-width: 500px; padding-top: 80px; margin: 0 auto;"
     >
-        <div class="hub-form" style="text-align: center;">
-            <h1 class="hub-title" style="margin-bottom: 8px;" id="page-title">
+        <div
+            class="hub-form"
+            style="text-align: center; font-family: 'Poppins', sans-serif;"
+        >
+            <h1
+                class="hub-title"
+                style="margin-bottom: 8px; white-space: nowrap;"
+                id="page-title"
+            >
                 Curator Login
             </h1>
             <p
@@ -27,9 +33,11 @@ const title = "Login | Resource Hub";
                 <div
                     class="hub-form-group"
                     id="name-group"
-                    style="display: none;"
+                    style="display: none; margin-bottom: 24px;"
                 >
-                    <label class="hub-label">Full Name</label>
+                    <label class="hub-label" style="margin-bottom: 4px;"
+                        >Full Name</label
+                    >
                     <input
                         type="text"
                         id="fullname"
@@ -38,8 +46,10 @@ const title = "Login | Resource Hub";
                     />
                 </div>
 
-                <div class="hub-form-group">
-                    <label class="hub-label">Email Address</label>
+                <div class="hub-form-group" style="margin-bottom: 24px;">
+                    <label class="hub-label" style="margin-bottom: 4px;"
+                        >Email Address</label
+                    >
                     <input
                         type="email"
                         id="email"
@@ -49,8 +59,10 @@ const title = "Login | Resource Hub";
                     />
                 </div>
 
-                <div class="hub-form-group">
-                    <label class="hub-label">Password</label>
+                <div class="hub-form-group" style="margin-bottom: 24px;">
+                    <label class="hub-label" style="margin-bottom: 4px;"
+                        >Password</label
+                    >
                     <input
                         type="password"
                         id="password"
@@ -59,21 +71,6 @@ const title = "Login | Resource Hub";
                         placeholder="••••••••"
                         minlength="6"
                     />
-                </div>
-
-                <!-- Turnstile Widget -->
-                <div
-                    id="turnstile-container"
-                    style="min-height: 65px; margin-top: 16px;"
-                >
-                    <Turnstile client:only="react" onToken={() => {}} />
-                </div>
-
-                <div
-                    id="captcha-error"
-                    style="color: #b91c1c; font-size: 13px; margin-top: 8px; display: none;"
-                >
-                    Please complete the captcha verification.
                 </div>
 
                 <button
@@ -113,7 +110,7 @@ const title = "Login | Resource Hub";
     import { supabase } from "../lib/supabaseClient";
 
     // --- STATE ---
-    let captchaToken = "";
+    let captchaToken = ""; // Removed but needed for logic below? No, removing all logic.
     let isSignup = false;
     let isLinking = false;
 
@@ -123,7 +120,7 @@ const title = "Login | Resource Hub";
     const submitBtn = document.getElementById(
         "submit-btn",
     ) as HTMLButtonElement;
-    const captchaError = document.getElementById("captcha-error");
+
     const toggleBtn = document.getElementById("mode-toggle");
     const nameGroup = document.getElementById("name-group");
     const pageTitle = document.getElementById("page-title");
@@ -172,67 +169,13 @@ const title = "Login | Resource Hub";
         }
 
         if (messageEl) messageEl.style.display = "none";
-        if (captchaError) captchaError.style.display = "none";
     };
-
-    async function verifyCaptcha(token: string) {
-        if (!token) return false;
-        try {
-            const res = await fetch("/api/turnstile/verify", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ token }),
-            });
-            const data = await res.json();
-            return data.success === true;
-        } catch (e) {
-            console.error(e);
-            return false;
-        }
-    }
-
-    // --- EVENT LISTENERS ---
-    window.addEventListener("turnstile-token", (e: any) => {
-        captchaToken = e.detail;
-        const errorEl = document.getElementById("captcha-error");
-        if (errorEl && captchaToken) errorEl.style.display = "none";
-        console.log("Captcha token received via event");
-    });
-
-    toggleBtn?.addEventListener("click", () => toggleMode());
 
     form?.addEventListener("submit", async (e) => {
         e.preventDefault();
         if (!supabase) return;
 
-        // 1. Client-side Captcha Check
-        if (!captchaToken) {
-            if (captchaError) {
-                captchaError.style.display = "block";
-                captchaError.innerText =
-                    "Please complete the captcha verification.";
-            }
-            return;
-        }
-
         submitBtn.disabled = true;
-        submitBtn.innerText = "Verifying Captcha...";
-
-        // 2. Server-side Captcha Verify
-        const isHuman = await verifyCaptcha(captchaToken);
-        if (!isHuman) {
-            if (captchaError) {
-                captchaError.style.display = "block";
-                captchaError.innerText =
-                    "Verification failed. Please try again.";
-            }
-            if (window.turnstile) window.turnstile.reset();
-            captchaToken = "";
-            submitBtn.disabled = false;
-            submitBtn.innerText = isSignup ? "Create Account" : "Log In";
-            return;
-        }
-
         submitBtn.innerText = isSignup ? "Creating..." : "Logging in...";
 
         const email = (document.getElementById("email") as HTMLInputElement)
@@ -259,7 +202,6 @@ const title = "Login | Resource Hub";
                         password,
                         options: {
                             data: { full_name: fullName },
-                            captchaToken,
                         },
                     });
                 }
@@ -268,7 +210,6 @@ const title = "Login | Resource Hub";
                 result = await supabase.auth.signInWithPassword({
                     email,
                     password,
-                    options: { captchaToken },
                 });
             }
 
@@ -331,8 +272,8 @@ const title = "Login | Resource Hub";
             }
             submitBtn.disabled = false;
             submitBtn.innerText = isSignup ? "Create Account" : "Log In";
-            if (window.turnstile) window.turnstile.reset();
-            captchaToken = "";
+            submitBtn.disabled = false;
+            submitBtn.innerText = isSignup ? "Create Account" : "Log In";
         }
     });
 

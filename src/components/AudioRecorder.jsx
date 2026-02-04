@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-const SimpleAudioRecorder = ({ onRecordingComplete }) => {
+const AudioRecorder = ({ onRecordingComplete }) => {
     const [isRecording, setIsRecording] = useState(false);
     const [isCountdown, setIsCountdown] = useState(false);
     const [countdownVal, setCountdownVal] = useState(3);
@@ -362,4 +362,4 @@ const SimpleAudioRecorder = ({ onRecordingComplete }) => {
     );
 };
 
-export default SimpleAudioRecorder;
+export default AudioRecorder;

@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@supabase/supabase-js';
 
-import SimpleAudioRecorder from './SimpleAudioRecorder';
+import AudioRecorder from './AudioRecorder';
 import ConstellationGraph from './ConstellationGraph';
-import SciFiImageReveal from './SciFiImageReveal';
+import SciFiImageReveal from './experiments/SciFiImageReveal';
 
 // Helper for playback
 const AudioPlayerButton = ({ url, label = "", small = false }) => {
@@ -731,7 +731,7 @@ export default function PunctumGame() {
                                         <div style={{ marginBottom: '16px', fontSize: '12px', color: '#666', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
                                             OR RECORD YOUR VOICE
                                         </div>
-                                        <SimpleAudioRecorder onRecordingComplete={(blob, duration, mimeType) => setAudioData({ blob, duration, mimeType })} />
+                                        <AudioRecorder onRecordingComplete={(blob, duration, mimeType) => setAudioData({ blob, duration, mimeType })} />
                                     </div>
                                 </div>
 
