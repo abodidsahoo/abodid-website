@@ -206,7 +206,7 @@ const FilmsFilter = ({ items }) => {
 
                 .filter-btn.active {
                     background: var(--text-primary);
-                    color: var(--bg-color);
+                    color: #000000;
                     border-color: var(--text-primary);
                 }
 

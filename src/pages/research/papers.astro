@@ -1,0 +1,158 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const pageTitle = "Research Papers";
+---
+
+<BaseLayout title={pageTitle}>
+    <header class="page-header">
+        <h1>{pageTitle}</h1>
+        <p class="section-intro">
+            Contains a collection of research papers published by me, and also a
+            curation of research papers that I found insightful.
+        </p>
+    </header>
+
+    <div class="papers-grid">
+        <!-- Written by Me Card -->
+        <a href="/research/my-papers" class="paper-category-card">
+            <div class="card-content">
+                <div class="icon">📝</div>
+                <h2>Papers by Me</h2>
+                <p class="description">
+                    Research papers that I have authored and published.
+                </p>
+                <span class="arrow-icon">→</span>
+            </div>
+        </a>
+
+        <!-- Curated Papers Card -->
+        <a href="/research-papers" class="paper-category-card">
+            <div class="card-content">
+                <div class="icon">🔖</div>
+                <h2>Curated by Me</h2>
+                <p class="description">
+                    A curated collection of research papers that I found
+                    insightful on themes of autoethnography, unrequited love,
+                    grief, death, and human emotions.
+                </p>
+                <span class="arrow-icon">→</span>
+            </div>
+        </a>
+    </div>
+</BaseLayout>
+
+<style>
+    .page-header {
+        margin-bottom: 3rem;
+        padding-top: 2rem;
+        text-align: left;
+    }
+
+    h1 {
+        font-family: "Poppins", sans-serif;
+        font-size: 3.5rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        letter-spacing: -0.02em;
+        color: var(--text-primary);
+    }
+
+    .section-intro {
+        font-family: var(--font-sans);
+        font-size: 1.1rem;
+        color: var(--text-secondary);
+        max-width: 700px;
+        margin: 0;
+        line-height: 1.6;
+    }
+
+    .papers-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 2rem;
+        padding-bottom: 4rem;
+        max-width: 1000px;
+    }
+
+    .paper-category-card {
+        display: block;
+        text-decoration: none;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-subtle);
+        border-radius: 12px;
+        transition:
+            transform 0.3s ease,
+            border-color 0.3s ease,
+            box-shadow 0.3s ease;
+        overflow: hidden;
+        min-height: 280px;
+        position: relative;
+    }
+
+    .paper-category-card:hover {
+        transform: translateY(-4px);
+        border-color: var(--text-primary);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    }
+
+    .card-content {
+        padding: 2.5rem;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .card-content h2 {
+        font-family: "Poppins", sans-serif;
+        font-size: 1.75rem;
+        font-weight: 600;
+        margin: 0 0 1rem 0;
+        color: var(--text-primary);
+        line-height: 1.25;
+    }
+
+    .description {
+        font-family: var(--font-sans);
+        font-size: 1rem;
+        color: var(--text-secondary);
+        line-height: 1.6;
+        margin: 0 0 auto 0;
+        flex-grow: 1;
+    }
+
+    .arrow-icon {
+        color: var(--text-primary);
+        font-size: 1.5rem;
+        transition: transform 0.3s ease;
+        align-self: flex-end;
+        margin-top: 1.5rem;
+    }
+
+    .paper-category-card:hover .arrow-icon {
+        transform: translateX(8px);
+    }
+
+    @media (max-width: 768px) {
+        .papers-grid {
+            grid-template-columns: 1fr;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+        }
+
+        .paper-category-card {
+            min-height: 240px;
+        }
+
+        .card-content {
+            padding: 2rem;
+        }
+    }
+</style>

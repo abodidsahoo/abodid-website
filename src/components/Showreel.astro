@@ -17,21 +17,57 @@ const videoUrl =
         <!-- Source will be added via JS with proper type -->
     </video>
 
-    <!-- Mute/Unmute Button -->
-    <button id="mute-btn" class="mute-btn" title="Toggle Sound">
-        <!-- Muted Icon (Default) -->
-        <svg id="icon-muted" viewBox="0 0 24 24">
-            <path
-                d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73 4.27 3zM12 4L9.91 6.09 12 8.18V4z"
-            ></path>
-        </svg>
-        <!-- Unmuted Icon -->
-        <svg id="icon-unmuted" viewBox="0 0 24 24" style="display: none;">
-            <path
-                d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"
-            ></path>
-        </svg>
-    </button>
+    <!-- Video Controls -->
+    <div class="video-controls">
+        <!-- Fullscreen Button -->
+        <button
+            id="fullscreen-btn"
+            class="control-btn"
+            title="Toggle Fullscreen"
+        >
+            <!-- Enter Fullscreen Icon (Default) -->
+            <svg id="icon-enter-fullscreen" viewBox="0 0 24 24">
+                <path
+                    d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"
+                ></path>
+            </svg>
+            <!-- Exit Fullscreen Icon -->
+            <svg
+                id="icon-exit-fullscreen"
+                viewBox="0 0 24 24"
+                style="display: none;"
+            >
+                <path
+                    d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"
+                ></path>
+            </svg>
+        </button>
+
+        <!-- Mute/Unmute Button -->
+        <button id="mute-btn" class="control-btn" title="Toggle Sound">
+            <!-- Muted Icon (Default) -->
+            <svg id="icon-muted" viewBox="0 0 24 24">
+                <path
+                    d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73 4.27 3zM12 4L9.91 6.09 12 8.18V4z"
+                ></path>
+            </svg>
+            <!-- Unmuted Icon -->
+            <svg id="icon-unmuted" viewBox="0 0 24 24" style="display: none;">
+                <path
+                    d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"
+                ></path>
+            </svg>
+        </button>
+    </div>
+</div>
+
+<!-- Credits Section (Separate from video) -->
+<div class="showreel-credits">
+    <p class="credits-roles">
+        <span class="role-label">ROLE:</span> Director / Editor / Sound Designer /
+        Cinematographer / Colourist / Creative Producer
+    </p>
+    <a href="/films" class="view-all-btn">View All Films</a>
 </div>
 
 <script define:vars={{ videoUrl }}>
@@ -41,6 +77,13 @@ const videoUrl =
         const muteBtn = document.getElementById("mute-btn");
         const iconMuted = document.getElementById("icon-muted");
         const iconUnmuted = document.getElementById("icon-unmuted");
+        const fullscreenBtn = document.getElementById("fullscreen-btn");
+        const iconEnterFullscreen = document.getElementById(
+            "icon-enter-fullscreen",
+        );
+        const iconExitFullscreen = document.getElementById(
+            "icon-exit-fullscreen",
+        );
 
         if (!container || !video) return;
 
@@ -54,6 +97,43 @@ const videoUrl =
                 } else {
                     iconMuted.style.display = "none";
                     iconUnmuted.style.display = "block";
+                }
+            });
+        }
+
+        // Toggle Fullscreen Logic
+        if (fullscreenBtn) {
+            fullscreenBtn.addEventListener("click", () => {
+                if (!document.fullscreenElement) {
+                    // Enter fullscreen
+                    container
+                        .requestFullscreen()
+                        .then(() => {
+                            iconEnterFullscreen.style.display = "none";
+                            iconExitFullscreen.style.display = "block";
+                        })
+                        .catch((err) => {
+                            console.error("Error entering fullscreen:", err);
+                        });
+                } else {
+                    // Exit fullscreen
+                    document
+                        .exitFullscreen()
+                        .then(() => {
+                            iconEnterFullscreen.style.display = "block";
+                            iconExitFullscreen.style.display = "none";
+                        })
+                        .catch((err) => {
+                            console.error("Error exiting fullscreen:", err);
+                        });
+                }
+            });
+
+            // Listen for fullscreen changes (e.g., ESC key)
+            document.addEventListener("fullscreenchange", () => {
+                if (!document.fullscreenElement) {
+                    iconEnterFullscreen.style.display = "block";
+                    iconExitFullscreen.style.display = "none";
                 }
             });
         }
@@ -226,7 +306,7 @@ const videoUrl =
         max-width: var(--max-width);
         margin: 0 auto;
         margin-top: 0;
-        margin-bottom: var(--space-2xl);
+        margin-bottom: 0;
 
         position: relative;
 
@@ -267,12 +347,18 @@ const videoUrl =
         aspect-ratio: 16 / 9;
     }
 
-    /* Mute Button Styling */
-    .mute-btn {
+    /* Video Controls Container */
+    .video-controls {
         position: absolute;
         bottom: 20px;
         right: 20px;
         z-index: 10;
+        display: flex;
+        gap: 12px;
+    }
+
+    /* Control Button Styling (Mute & Fullscreen) */
+    .control-btn {
         background: rgba(5, 10, 16, 0.8);
         border: 1px solid var(--sci-fi-cyan);
         color: var(--sci-fi-cyan);
@@ -289,21 +375,71 @@ const videoUrl =
         backdrop-filter: blur(4px);
     }
 
-    .mute-btn:hover {
+    .control-btn:hover {
         background: rgba(0, 243, 255, 0.1);
         box-shadow: 0 0 15px rgba(0, 243, 255, 0.3);
     }
 
-    .mute-btn svg {
+    .control-btn svg {
         width: 20px;
         height: 20px;
         fill: currentColor;
     }
 
-    /* Show button on container hover */
-    .showreel-container:hover .mute-btn {
+    /* Show buttons on container hover */
+    .showreel-container:hover .control-btn {
         opacity: 1;
         transform: translateY(0);
+    }
+
+    /* Credits Section (Now separate from video container) */
+    .showreel-credits {
+        width: 100%;
+        max-width: var(--max-width);
+        margin: 0 auto;
+        margin-top: 2rem;
+        margin-bottom: var(--space-2xl);
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        padding: 0;
+    }
+
+    .credits-roles {
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-tertiary);
+        margin: 0;
+        line-height: 1.6;
+    }
+
+    .role-label {
+        color: var(--text-secondary);
+        font-weight: 600;
+        margin-right: 0.5rem;
+    }
+
+    .view-all-btn {
+        display: inline-block;
+        width: fit-content;
+        font-family: var(--font-sans);
+        font-size: 0.9rem;
+        color: var(--text-primary);
+        background: transparent;
+        border: 1px solid var(--border-subtle);
+        padding: 0.75rem 1.5rem;
+        border-radius: 2px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .view-all-btn:hover {
+        background: var(--text-primary);
+        color: #000; /* Dark text for visibility */
+        border-color: var(--text-primary);
     }
 
     @media (max-width: 768px) {
@@ -316,10 +452,13 @@ const videoUrl =
             border-right: none;
         }
 
-        /* Always show mute button on mobile since there is no hover */
-        .mute-btn {
+        /* Always show control buttons on mobile since there is no hover */
+        .control-btn {
             opacity: 1;
             transform: translateY(0);
+        }
+
+        .video-controls {
             bottom: 16px;
             right: 16px;
         }

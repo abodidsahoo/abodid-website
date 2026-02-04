@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const CardStacker = ({ images }) => {
+const CardStacker = ({ images, anchorX = '65%', anchorY = '68%' }) => {
     // --- STATE ---
     const [stack, setStack] = useState([]);
     const [lastAction, setLastAction] = useState('unstack');
@@ -13,6 +13,8 @@ const CardStacker = ({ images }) => {
     const lastMousePosRef = useRef({ x: 0, y: 0 });
 
     const scrollAccumulatorRef = useRef(0);
+    // Fix for Z-Index Stacking: Monotonic counter to ensure new cards ALWAYS appear on top
+    const zIndexCounter = useRef(100);
 
     // ASYMMETRIC PHYSICS
     const UNSTACK_THRESHOLD = 40;
@@ -107,6 +109,9 @@ const CardStacker = ({ images }) => {
         const img = pool[idx];
         if (!isHistory) pool.splice(idx, 1);
 
+        // Increment Global Z-Index to strictly guarantee top placement
+        zIndexCounter.current += 1;
+
         return {
             id: `card-${now}-${Math.random()}`,
             image: img.image || img.cover_image,
@@ -114,7 +119,7 @@ const CardStacker = ({ images }) => {
             angle: (Math.random() * 8 - 4),
             x: (Math.random() * 60 - 30),
             y: (Math.random() * 60 - 30),
-            zIndex: now,
+            zIndex: zIndexCounter.current, // Monotonic increment
             initialPos: initialOverride // Store unique spawn origin
         };
     };
@@ -321,8 +326,8 @@ const CardStacker = ({ images }) => {
                 }
                 .stack-anchor {
                     position: absolute;
-                    top: 68%; 
-                    left: 65%; 
+                    top: ${anchorY}; 
+                    left: ${anchorX}; 
                     width: 0; height: 0;
                 }
                 .stacked-card {

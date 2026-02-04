@@ -3,13 +3,13 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import ResearchFilter from "../components/ResearchFilter.jsx";
 import { getResearchPapers } from "../lib/api";
 
-const pageTitle = "Research Papers";
+const pageTitle = "Research Papers (Curated by Me)";
 const papers = await getResearchPapers();
 ---
 
 <BaseLayout title={pageTitle}>
     <header class="page-header">
-        <h1>{pageTitle}</h1>
+        <h1>Curated Research Papers</h1>
         <p class="section-intro">
             This is my personal research repository on autoethnography,
             unrequited love, grief, death, and the messy, beautiful world of

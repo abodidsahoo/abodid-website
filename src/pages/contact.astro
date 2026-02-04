@@ -1,0 +1,250 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const pageTitle = "Contact";
+---
+
+<BaseLayout title={pageTitle}>
+    <div class="contact-wrapper">
+        <header class="contact-header">
+            <h1>Get In Touch</h1>
+            <p class="intro">Let's collaborate on something amazing.</p>
+        </header>
+
+        <section class="contact-content">
+            <div class="contact-grid">
+                <!-- Email -->
+                <div class="contact-card">
+                    <div class="card-icon">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                        >
+                            <path
+                                d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
+                            ></path>
+                            <polyline points="22,6 12,13 2,6"></polyline>
+                        </svg>
+                    </div>
+                    <h3>Email</h3>
+                    <a href="mailto:hello@abodid.com" class="contact-link"
+                        >hello@abodid.com</a
+                    >
+                </div>
+
+                <!-- Social Media -->
+                <div class="contact-card">
+                    <div class="card-icon">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                        >
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M12 16v-4"></path>
+                            <path d="M12 8h.01"></path>
+                        </svg>
+                    </div>
+                    <h3>Social Media</h3>
+                    <ul class="social-links">
+                        <li>
+                            <a
+                                href="https://www.instagram.com/abodid.sahoo"
+                                target="_blank"
+                                rel="noopener noreferrer">Instagram</a>
+                        </li>
+                        <li>
+                            <a
+                                href="https://uk.linkedin.com/in/abodidsahoo"
+                                target="_blank"
+                                rel="noopener noreferrer">LinkedIn</a>
+                        </li>
+                        <li>
+                            <a
+                                href="https://twitter.com/abodidsahoo"
+                                target="_blank"
+                                rel="noopener noreferrer">Twitter / X</a>
+                        </li>
+                        <li>
+                            <a
+                                href="https://github.com/abodidsahoo"
+                                target="_blank"
+                                rel="noopener noreferrer">GitHub</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Additional Info -->
+            <div class="contact-note">
+                <p>
+                    Looking for my CV or portfolio? Visit the <a href="/about"
+                        >About</a
+                    > page for more information about my work and experience.
+                </p>
+            </div>
+        </section>
+    </div>
+</BaseLayout>
+
+<style>
+    .contact-wrapper {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 0 24px;
+    }
+
+    .contact-header {
+        text-align: center;
+        padding-top: 4rem;
+        margin-bottom: 4rem;
+    }
+
+    h1 {
+        font-family: "Poppins", sans-serif;
+        font-size: 3.5rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        letter-spacing: -0.02em;
+        color: var(--text-primary);
+    }
+
+    .intro {
+        font-size: 1.25rem;
+        color: var(--text-secondary);
+        margin: 0;
+    }
+
+    .contact-content {
+        padding-bottom: 6rem;
+    }
+
+    .contact-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-bottom: 4rem;
+    }
+
+    .contact-card {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-subtle);
+        border-radius: 12px;
+        padding: 2.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .contact-card:hover {
+        transform: translateY(-4px);
+        border-color: var(--text-secondary);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    }
+
+    .card-icon {
+        width: 48px;
+        height: 48px;
+        background: var(--bg-color);
+        border: 1px solid var(--border-subtle);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+        color: var(--text-primary);
+    }
+
+    .contact-card h3 {
+        font-family: var(--font-sans);
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-tertiary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin: 0 0 1rem 0;
+    }
+
+    .contact-link {
+        display: inline-block;
+        font-size: 1.2rem;
+        color: var(--text-primary);
+        text-decoration: none;
+        border-bottom: 2px solid var(--border-subtle);
+        padding-bottom: 4px;
+        transition: all 0.2s ease;
+    }
+
+    .contact-link:hover {
+        border-bottom-color: var(--text-primary);
+    }
+
+    .social-links {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .social-links a {
+        font-size: 1.1rem;
+        color: var(--text-primary);
+        text-decoration: none;
+        border-bottom: 1px solid transparent;
+        padding-bottom: 2px;
+        transition: all 0.2s ease;
+        display: inline-block;
+    }
+
+    .social-links a:hover {
+        border-bottom-color: var(--text-primary);
+    }
+
+    .contact-note {
+        text-align: center;
+        padding: 2rem;
+        background: var(--bg-surface);
+        border-radius: 8px;
+        border: 1px solid var(--border-subtle);
+    }
+
+    .contact-note p {
+        margin: 0;
+        font-size: 1rem;
+        color: var(--text-secondary);
+        line-height: 1.6;
+    }
+
+    .contact-note a {
+        color: var(--text-primary);
+        text-decoration: underline;
+        text-underline-offset: 2px;
+    }
+
+    .contact-note a:hover {
+        text-decoration-thickness: 2px;
+    }
+
+    @media (max-width: 768px) {
+        h1 {
+            font-size: 2.5rem;
+        }
+
+        .contact-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .contact-card {
+            padding: 2rem;
+        }
+    }
+</style>

@@ -9,14 +9,14 @@ import {
   recentPosts as mockRecent,
 } from "../utils/mockData";
 
-import VibeCheckWidget from "../components/VibeCheckWidget";
-import InteractiveTags from "../components/InteractiveTags";
 import Showreel from "../components/Showreel.astro";
 
 import PhotoGrid from "../components/PhotoGrid.astro";
 import NavigationCards from "../components/NavigationCards.astro";
 import BrandFilmStrip from "../components/BrandFilmStrip";
 import CardStacker from "../components/CardStacker.jsx";
+import LiquidCursor from "../components/LiquidCursor.jsx";
+import AudioControl from "../components/AudioControl.jsx";
 
 const pageTitle = "Home";
 // Helper to safely fetch data
@@ -38,17 +38,120 @@ const recentPosts = (await safeFetch(getRecentPosts, mockRecent)).slice(0, 3);
 ---
 
 <BaseLayout title={pageTitle}>
-  <!-- Card Stacker Overlay -->
-  <CardStacker client:only="react" images={featuredPhotography} />
+  <AudioControl
+    client:only="react"
+    src="https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/music/her.mp3"
+  />
+  <LiquidCursor client:only="react" />
 
-  <!-- Hero Section -->
-  <section class="hero-section">
-    <InteractiveTags client:load />
-    <!-- Gamification Widget (Vibe Check) - Repositioned to top right -->
-    <div class="vibe-check-wrapper">
-      <VibeCheckWidget client:only="react" />
-    </div>
+  <!-- Force Black Background for this experiment -->
+  <style>
+    body {
+      background-color: #050505 !important; /* Deep black/gray */
+      /* Override grid colors for visibility on this dark background */
+      /* Whitish glow, very faint blue tint for depth, but mostly white */
+      --grid-color-1: rgba(220, 230, 255, 0.25);
+      --grid-color-2: rgba(255, 255, 255, 0.15);
+    }
+    /* Grid and Glow restored to original BaseLayout defaults */
 
+    /* OVERRIDES for Flashlight Effect (User Request) */
+    :global(.global-grid-bg) {
+      /* 1. Visible Static Grid (faint everywhere) */
+      /* User requested: "none of the space looks so super dark" -> increased to 0.25 */
+      opacity: 0.25 !important;
+
+      /* 2. Vignette Mask: Visible in center, fades out at edges */
+      -webkit-mask-image: radial-gradient(
+        ellipse at center,
+        black 40%,
+        transparent 95%
+      ) !important;
+    }
+
+    /* --- SCROLL SNAP FOR SOFT LANDING --- */
+    html {
+      scroll-snap-type: y proximity; /* Proximity allows scrolling past snap points to reach footer */
+      scroll-behavior: smooth;
+    }
+
+    /* Snap Point 1: The Top Stack */
+    .snap-top {
+      scroll-snap-align: start;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 1px;
+    }
+
+    /* Snap Point 2: The Narrative */
+    .narrative-section {
+      scroll-snap-align: center;
+      scroll-margin-top: 10vh;
+    }
+
+    :global(.global-glow-bg) {
+      /* Remove composite mask limitation. Only Mouse Radial! */
+      -webkit-mask-image: radial-gradient(
+        circle 400px at var(--mouse-x, -500px) var(--mouse-y, -500px),
+        black,
+        transparent
+      ) !important;
+      mask-image: radial-gradient(
+        circle 400px at var(--mouse-x, -500px) var(--mouse-y, -500px),
+        black,
+        transparent
+      ) !important;
+
+      -webkit-mask-composite: source-over !important;
+      mask-composite: add !important;
+
+      /* Reduced Intensity (User requested "tad bit reduced") */
+      --glow-intensity: 0.7 !important;
+      opacity: 0.7 !important;
+    }
+
+    /* Snap Point 3: The End */
+    .bottom-spacer {
+      height: 50vh;
+      scroll-snap-align: start; /* Allow snapping to bottom/next section */
+    }
+
+    /* Snap behavior for following sections */
+    :global(.showreel-container) {
+      scroll-snap-align: center;
+      scroll-snap-stop: always;
+    }
+    .section {
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+      scroll-margin-top: 5vh; /* Breathable room */
+    }
+  </style>
+
+  <!-- 1. Centered Card Stack -->
+  <div class="snap-top"></div>
+  <!-- anchorX/Y center it. It puts the stack origin at center screen. -->
+  <CardStacker
+    client:only="react"
+    images={featuredPhotography}
+    anchorX="50%"
+    anchorY="50%"
+  />
+
+  <!-- Overlays for First "Page" -->
+  <div class="landing-overlays">
+    <!-- Bottom Scroll Hint -->
+    <div class="scroll-hint">SCROLL DOWN</div>
+  </div>
+
+  <!-- Spacer to push content below the "fold" -->
+  <!-- Increased to 90vh so it starts BELOW the images, then scrolls up into view -->
+  <div style="height: 90vh;"></div>
+
+  <!-- 2. The Narrative Section (Appears after scroll) -->
+  <section class="narrative-section">
     <div class="hero-content">
       <h1 class="hero-title">
         Hi, I am Abodid. <br />
@@ -56,11 +159,9 @@ const recentPosts = (await safeFetch(getRecentPosts, mockRecent)).slice(0, 3);
         <span id="typewriter-text" class="typing-text"></span>
       </h1>
     </div>
-    <div class="hero-hint">keep hovering around to see more photos...</div>
-  </section>
-  <!-- Introduction Section -->
-  <section class="section intro-section">
-    <div class="intro-content">
+
+    <!-- 3. Bio / Next Page Content -->
+    <div class="bio-content">
       <p>
         With over 8+ years of expereince in photography, film and interactive
         media, I design authentic creative experiences for brands and
@@ -69,8 +170,8 @@ const recentPosts = (await safeFetch(getRecentPosts, mockRecent)).slice(0, 3);
     </div>
   </section>
 
-  <!-- Massive Spacer 3 (Showreel to Featured) -->
-  <div style="height: 20vh; width: 100%;" aria-hidden="true"></div>
+  <!-- Spacer at bottom -->
+  <div class="bottom-spacer"></div>
 
   <!-- Showreel Section -->
   <Showreel />
@@ -208,76 +309,118 @@ const recentPosts = (await safeFetch(getRecentPosts, mockRecent)).slice(0, 3);
 </script>
 
 <style>
-  .hero-section {
-    min-height: 80vh; /* Full screen height + buffer to push body below fold */
-    display: flex;
-    flex-direction: column; /* Stack vertically */
-    justify-content: center; /* Center content vertically */
-    margin-bottom: var(--space-xl);
-    position: relative; /* Essential for InteractiveTags containment */
-    padding-top: var(--space-l); /* Give some top space */
-    padding-bottom: var(--space-2xl);
-    isolation: isolate; /* Create stacking context for pseudo */
-  }
-
-  /* Grid Background & Glow moved to BaseLayout for global coverage */
-  /* .hero-section::before and ::after removed */
-
-  .hero-hint {
-    position: absolute;
-    bottom: 2rem;
+  /* Fixed Positioning Layouts */
+  .landing-overlays {
+    position: fixed;
+    top: 0;
     left: 0;
-    font-size: 0.85rem; /* Increased size */
-    font-family: "Courier New", Courier, monospace; /* Courier style */
-    text-transform: uppercase; /* All caps */
-    color: var(--text-secondary); /* Brighter/More visible */
-    font-weight: 400;
-    max-width: 300px;
-    line-height: 1.4;
-    opacity: 1; /* Fully visible at start (fades on scroll) */
-    letter-spacing: 0.05em;
-    transition: opacity 0.2s ease-out; /* Smooth fade */
-    pointer-events: none; /* Let clicks pass through if covered */
+    width: 100%;
+    height: 100vh;
+    pointer-events: none; /* Let clicks pass through to stack if needed */
+    z-index: 10;
+    transition: opacity 0.3s ease;
   }
 
-  /* Wrapper for absolute positioning of Vibe Check */
-  .vibe-check-wrapper {
-    position: fixed; /* Moved to fixed to be "outer section" */
-    top: 140px;
-    right: 12vw; /* Increased right spacing significantly */
-    z-index: 100;
+  .hover-hint {
+    position: absolute;
+    top: 58%; /* Just below the center stack */
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: "Courier New", Courier, monospace;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+  }
+
+  .scroll-hint {
+    position: absolute;
+    bottom: 5vh; /* Strictly at bottom */
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: "Space Mono", monospace;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.6);
+    animation: bounce 2s infinite;
+  }
+
+  @keyframes bounce {
+    0%,
+    20%,
+    50%,
+    80%,
+    100% {
+      transform: translateX(-50%) translateY(0);
+    }
+    40% {
+      transform: translateX(-50%) translateY(-10px);
+    }
+    60% {
+      transform: translateX(-50%) translateY(-5px);
+    }
+  }
+
+  /* Narrative Section */
+  .narrative-section {
+    position: relative;
+    z-index: 20;
+    opacity: 0; /* Hidden initially, controlled by scroll script */
+    transition: opacity 0.8s ease-out; /* Smooth fade in */
+    padding-top: 10vh; /* Space from top after scrolling past fold */
+    padding-left: 4vw; /* User requested "Full Screen Experience" - Reduced from 10vw */
+    padding-right: 4vw; /* User requested "Full Screen Experience" - Reduced from 10vw */
+    min-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
   }
 
   .hero-title {
+    font-family: var(--font-headline); /* Inherit or specific font */
     font-size: 3.5rem;
     font-weight: 700;
     line-height: 1.1;
-    margin-bottom: 0; /* Remove bottom margin to keep it tight */
-    margin-top: 2vh; /* Push it down significantly from center */
-    letter-spacing: -0.03em;
-    min-height: 4em; /* Tighter reserve height to reduce gap below typewriter */
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
+    color: #fff;
   }
 
-  .intro-section {
-    margin-bottom: var(
-      --space-2xl
-    ); /* Reset to standard, using spacer div instead */
-    margin-top: var(
-      --space-md
-    ); /* Minimal margin as Hero min-height > 90vh handles the 'next scroll' positioning */
+  .bio-content p {
+    font-size: 2rem;
+    font-weight: 400;
+    line-height: 1.4;
+    max-width: 900px;
+    color: rgba(255, 255, 255, 0.85);
   }
 
-  .intro-content p {
-    font-size: 2.9rem;
-    font-weight: 600;
-    line-height: 1.3;
-    max-width: 90%;
-    color: var(--text-primary);
-    margin: 0;
-    letter-spacing: -0.02em;
+  /* Typewriter Cursor */
+  #typewriter-text::after {
+    content: "";
+    display: inline-block;
+    width: 12px;
+    height: 1em;
+    background-color: currentColor;
+    margin-left: 5px;
+    animation: blink 1s infinite;
+    vertical-align: text-bottom;
+  }
+
+  @keyframes blink {
+    0%,
+    50% {
+      opacity: 1;
+    }
+    51%,
+    100% {
+      opacity: 0;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .hero-title {
+      font-size: 2.5rem;
+    }
+    .bio-content p {
+      font-size: 1.5rem;
+    }
   }
 
   .italic {
@@ -418,6 +561,7 @@ const recentPosts = (await safeFetch(getRecentPosts, mockRecent)).slice(0, 3);
     margin-top: 0;
     position: relative;
     top: -2px; /* Shift upwards to balance */
+    white-space: nowrap; /* Prevent wrapping to next line */
 
     /* Smooth text removal - adjust transition duration */
     transition: opacity 0.1s ease; /* Makes disappearance smoother */
@@ -616,6 +760,41 @@ const recentPosts = (await safeFetch(getRecentPosts, mockRecent)).slice(0, 3);
 </style>
 
 <script>
+  // --- Scroll Hint Fade Logic ---
+  const scrollHint = document.querySelector(".scroll-hint");
+  const landingOverlays = document.querySelector(".landing-overlays");
+  const narrativeSection = document.querySelector(".narrative-section");
+
+  window.addEventListener("scroll", () => {
+    const y = window.scrollY;
+
+    // 1. Fade out Landing Overlays quickly
+    const overlayOpacity = Math.max(0, 1 - y / 200);
+    if (landingOverlays) {
+      landingOverlays.style.opacity = overlayOpacity.toString();
+      landingOverlays.style.pointerEvents =
+        overlayOpacity <= 0 ? "none" : "auto";
+    }
+
+    // 2. Fade IN Narrative Section after cards flick away
+    // Cards usually clear by ~400-500px depending on user interaction.
+    // We start fading in exponentially earlier (at 50px) so it overlaps with the exit.
+    if (narrativeSection) {
+      const startFade = 50;
+      const endFade = 500;
+      let narrativeOpacity = 0;
+
+      if (y > startFade) {
+        narrativeOpacity = Math.min(1, (y - startFade) / (endFade - startFade));
+      }
+      narrativeSection.style.opacity = narrativeOpacity.toString();
+    }
+  });
+
+  // --- Typewriter Logic (Ported from index.astro) ---
+  // User requested "The High I am about it, my life revolves around..."
+  // content structure is reused from main page logic.
+
   const phrases = [
     "Images, Code & Culture.",
     "Design & Technology.",
@@ -625,15 +804,6 @@ const recentPosts = (await safeFetch(getRecentPosts, mockRecent)).slice(0, 3);
     "AI, Sociology & Research.",
   ];
 
-  // Pastel / Soft Palette (Off-white, Lilac, Beige, Soft Red, etc.)
-  // We want to avoid pure white.
-  /* 
-    User Provided Palette:
-    CINNAMON SATIN: #D35E7F
-    MANZ: #D7E97B
-    MAX BLUE PURPLE: #A999EB
-    BABY BLUE EYES: #9BCDEF
-  */
   const colors = [
     "#D35E7F", // Cinnamon Satin
     "#D7E97B", // Manz
@@ -641,104 +811,53 @@ const recentPosts = (await safeFetch(getRecentPosts, mockRecent)).slice(0, 3);
     "#9BCDEF", // Baby Blue Eyes
   ];
 
-  // ============================================
-  // TYPEWRITER ANIMATION CONTROLS
-  // ============================================
-
-  // Typing speed (milliseconds per character)
-  const typingSpeed = { min: 40, max: 100 }; // Lower = faster typing
-
-  // Backspace/removal speed (milliseconds per character)
-  const backspaceSpeed = { min: 30, max: 50 }; // Lower = faster deletion
-
-  // Pause durations (milliseconds)
-  const pauseEnd = 2000; // Pause after phrase is complete (before deletion starts)
-  const pauseStart = 500; // Pause after deletion (before next phrase starts)
-
-  // Cursor blink speed is controlled in CSS (search for "animation: blink")
+  const typingSpeed = { min: 40, max: 100 };
+  const backspaceSpeed = { min: 30, max: 50 };
+  const pauseEnd = 2000;
+  const pauseStart = 500;
 
   const textElement = document.getElementById("typewriter-text");
 
   let phraseIndex = 0;
   let charIndex = 0;
   let isDeleting = false;
-
-  // We need to maintain the HTML structure so we don't break the color spans
-  // Current phrase state
-  let currentWordIndex = 0;
-  let currentWordChars = "";
-  // We'll pre-calculate the colored HTML for the current phrase to make "typing" easier?
-  // Or type raw text and wrap? No, we need colors.
-  // approach: The content of #typewriter-text will be a list of <span>word</span>.
-  // But typing effect needs to reveal characters one by one.
-
-  // Let's pre-assign colors to words for the current phrase.
-  let currentPhraseObjects = []; // [{ text: "Images,", color: "#..." }, ...]
+  let currentPhraseObjects = [];
 
   function parsePhrase(phrase) {
     const words = phrase.split(" ");
-
-    // "Bag Shuffle" logic to ensure strictly unique colors for the entire line
-    // Since our palette has 6 colors and most phrases are <= 6 words,
-    // we can just shuffle the palette and take the first N colors.
-    // This guarantees NO repeats in the line.
-
     let phraseColors = [...colors];
 
-    // Fisher-Yates shuffle
-    for (let i = phraseColors.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [phraseColors[i], phraseColors[j]] = [phraseColors[j], phraseColors[i]];
-    }
+    // Simple shuffle for variety
+    phraseColors.sort(() => Math.random() - 0.5);
 
-    // If the phrase is longer than the palette (unlikely with current data, but possible),
-    // we extend the color list while maintaining adjacency uniqueness.
+    // Ensure we have enough colors
     while (phraseColors.length < words.length) {
-      let nextBatch = [...colors];
-      // Shuffle next batch
-      for (let i = nextBatch.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [nextBatch[i], nextBatch[j]] = [nextBatch[j], nextBatch[i]];
-      }
-      // Ensure boundary check
-      if (nextBatch[0] === phraseColors[phraseColors.length - 1]) {
-        // Swap first with last to break repetition
-        [nextBatch[0], nextBatch[nextBatch.length - 1]] = [
-          nextBatch[nextBatch.length - 1],
-          nextBatch[0],
-        ];
-      }
-      phraseColors = phraseColors.concat(nextBatch);
+      phraseColors = phraseColors.concat(
+        [...colors].sort(() => Math.random() - 0.5),
+      );
     }
 
     return words.map((word, i) => {
       return {
-        text: word + " ", // Include space
+        text: word + " ",
         color: phraseColors[i],
       };
     });
   }
+
   function renderText() {
     if (!textElement) return;
-
-    // We render up to charIndex of the flattened phrase
-    // But we need to wrap them in spans based on parsing
-
     let charCount = 0;
     let html = "";
 
     for (let obj of currentPhraseObjects) {
       if (charCount >= charIndex) break;
-
       const remaining = charIndex - charCount;
       const textToDisplay = obj.text.substring(0, remaining);
-
       html += `<span style="color: ${obj.color}">${textToDisplay}</span>`;
-
       charCount += obj.text.length;
-      if (charCount > charIndex) break; // We are in the middle of this word
+      if (charCount > charIndex) break;
     }
-
     textElement.innerHTML = html;
   }
 
@@ -749,7 +868,6 @@ const recentPosts = (await safeFetch(getRecentPosts, mockRecent)).slice(0, 3);
   function type() {
     if (!textElement) return;
 
-    // Initialize phrase if needed
     if (charIndex === 0 && !isDeleting) {
       currentPhraseObjects = parsePhrase(phrases[phraseIndex]);
     }
@@ -781,82 +899,6 @@ const recentPosts = (await safeFetch(getRecentPosts, mockRecent)).slice(0, 3);
     }
   }
 
+  // Start typewriter
   setTimeout(type, 1000);
-
-  // Scroll fade for hero hint
-  // Ensure we run this after DOM is ready or immediately if already ready
-  function initHintFade() {
-    const heroHint = document.querySelector(".hero-hint");
-    if (!heroHint) return;
-
-    const updateOpacity = () => {
-      const scrollY = window.scrollY;
-      // Vanish quickly (within 50px)
-      const fadeThreshold = 50;
-      // Initial opacity in CSS is 0.8
-      const newOpacity = Math.max(0, 0.8 - scrollY / fadeThreshold);
-      heroHint.style.opacity = newOpacity.toString();
-    };
-
-    // Initial check
-    updateOpacity();
-
-    // Update on scroll
-    window.addEventListener("scroll", updateOpacity, { passive: true });
-  }
-
-  // Run init
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", initHintFade);
-  } else {
-    initHintFade();
-  }
-
-  // Mouse tracking moved to BaseLayout (Global)
-  // initGridGlow removed
-
-  // Scroll fade for Vibe Check Widget (Secret Lab block)
-  function initVibeCheckFade() {
-    const vibeCheck = document.querySelector(".vibe-check-wrapper");
-    if (!vibeCheck) return;
-
-    const updateOpacity = () => {
-      const scrollY = window.scrollY;
-      const windowHeight = window.innerHeight;
-
-      // Start fading after a small scroll
-      const startFade = 50;
-      // End fading when we are near the showreel (approx 1.2 screen heights down)
-      const endFade = windowHeight * 1.2;
-
-      let opacity = 1;
-      if (scrollY > startFade) {
-        const progress = (scrollY - startFade) / (endFade - startFade);
-        opacity = Math.max(0, 1 - progress);
-      }
-
-      (vibeCheck as HTMLElement).style.opacity = opacity.toString();
-
-      if (opacity <= 0) {
-        (vibeCheck as HTMLElement).style.visibility = "hidden";
-      } else {
-        (vibeCheck as HTMLElement).style.visibility = "visible";
-      }
-    };
-
-    window.addEventListener("scroll", updateOpacity, { passive: true });
-    updateOpacity(); // Initial check
-  }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", () => {
-      // initGridGlow removed
-      initVibeCheckFade();
-      initHintFade(); // Ensure hint fade is also called
-    });
-  } else {
-    // initGridGlow removed
-    initVibeCheckFade();
-    initHintFade();
-  }
 </script>

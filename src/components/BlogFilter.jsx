@@ -128,7 +128,7 @@ const BlogFilter = ({ posts }) => { // Changed prop from items to posts for clar
 
         .filter-btn.active {
             background: var(--text-primary);
-            color: var(--bg-color);
+            color: #000000;
             border-color: var(--text-primary);
         }
 

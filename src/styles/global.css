@@ -6,6 +6,16 @@
 }
 
 :root {
+    /* 
+     * MAJOR COLOR PALETTE (Added for reference)
+     * Source: Step 39 Request
+     */
+    --palette-red: #EA2A10;
+    --palette-light: #F9F8F3;
+    --palette-dark: #010101;
+    --palette-sand: #E0DBD3;
+    --palette-grey: #9E9992;
+
     /* ==========================================================================
        Design Token System
        ========================================================================== */

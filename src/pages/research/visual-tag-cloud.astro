@@ -1,0 +1,53 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import InteractiveTags from "../../components/InteractiveTags";
+
+const pageTitle = "Visual Tag Cloud Generator";
+---
+
+<BaseLayout title={pageTitle}>
+    <div class="hero-section">
+        <InteractiveTags client:load />
+        <div class="hero-content">
+            <h1 class="hero-title">Visual Tag Cloud Generator</h1>
+            <p class="hero-description">
+                A physics-based exploration of knowledge taxonomy. Move your
+                cursor to generate tags from my Obsidian vault—watch them spawn,
+                float, and fade as you navigate the space.
+            </p>
+        </div>
+    </div>
+</BaseLayout>
+
+<style>
+    .hero-section {
+        min-height: 80vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        padding-top: var(--space-l);
+        padding-bottom: var(--space-2xl);
+        isolation: isolate;
+    }
+
+    .hero-content {
+        text-align: center;
+        z-index: 10;
+        pointer-events: none; /* Let clicks pass through to tags if needed (though tags handle mousemove) */
+    }
+
+    .hero-title {
+        font-size: 3.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+
+    .hero-description {
+        font-size: 1.2rem;
+        line-height: 1.6;
+        max-width: 600px;
+        color: var(--text-secondary);
+    }
+</style>

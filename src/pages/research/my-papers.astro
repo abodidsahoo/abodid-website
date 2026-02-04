@@ -1,0 +1,151 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+// For now, we'll use a placeholder. User can add actual papers data later
+const pageTitle = "Papers by Me";
+const myPapers = []; // TODO: Add published papers data
+---
+
+<BaseLayout title={pageTitle}>
+    <header class="page-header">
+        <h1>{pageTitle}</h1>
+        <p class="section-intro">
+            Research papers that I have authored and published.
+        </p>
+    </header>
+
+    <section class="papers-content">
+        {
+            myPapers.length > 0 ? (
+                <div class="papers-list">
+                    {myPapers.map((paper) => (
+                        <div class="paper-item">
+                            <h3>{paper.title}</h3>
+                            <p class="authors">{paper.authors}</p>
+                            <p class="venue">{paper.venue}</p>
+                            <a
+                                href={paper.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                View Paper →
+                            </a>
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                <div class="empty-state">
+                    <p>📄</p>
+                    <p>No published papers yet. Check back soon!</p>
+                </div>
+            )
+        }
+    </section>
+</BaseLayout>
+
+<style>
+    .page-header {
+        margin-bottom: 3rem;
+        padding-top: 2rem;
+        text-align: left;
+    }
+
+    h1 {
+        font-family: "Poppins", sans-serif;
+        font-size: 3.5rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        letter-spacing: -0.02em;
+        color: var(--text-primary);
+    }
+
+    .section-intro {
+        font-family: var(--font-sans);
+        font-size: 1.1rem;
+        color: var(--text-secondary);
+        max-width: 700px;
+        margin: 0;
+        line-height: 1.6;
+    }
+
+    .papers-content {
+        padding-bottom: 4rem;
+    }
+
+    .papers-list {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .paper-item {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-subtle);
+        border-radius: 8px;
+        padding: 2rem;
+        transition: all 0.2s ease;
+    }
+
+    .paper-item:hover {
+        border-color: var(--text-primary);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .paper-item h3 {
+        font-family: "Poppins", sans-serif;
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin: 0 0 0.5rem 0;
+        color: var(--text-primary);
+    }
+
+    .authors {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        margin: 0.5rem 0;
+    }
+
+    .venue {
+        font-size: 0.9rem;
+        color: var(--text-tertiary);
+        font-style: italic;
+        margin: 0.5rem 0 1rem 0;
+    }
+
+    .paper-item a {
+        display: inline-block;
+        color: var(--text-primary);
+        text-decoration: none;
+        font-weight: 500;
+        border-bottom: 1px solid var(--text-primary);
+        transition: all 0.2s ease;
+    }
+
+    .paper-item a:hover {
+        border-bottom-width: 2px;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: var(--text-secondary);
+    }
+
+    .empty-state p:first-child {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+    }
+
+    .empty-state p:last-child {
+        font-size: 1.1rem;
+    }
+
+    @media (max-width: 768px) {
+        h1 {
+            font-size: 2.5rem;
+        }
+
+        .paper-item {
+            padding: 1.5rem;
+        }
+    }
+</style>

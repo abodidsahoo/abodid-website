@@ -1,6 +1,8 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import CardStacker from "../components/CardStacker.jsx";
+import ExperimentHeader from "../components/ExperimentHeader.jsx";
+import LiquidCursor from "../components/LiquidCursor.jsx";
 import { getFeaturedPhotography } from "../lib/api";
 import { featuredPhotography as mockPhotography } from "../utils/mockData";
 
@@ -19,35 +21,126 @@ const featuredPhotography = await safeFetch(
     mockPhotography,
 );
 
-const pageTitle = "Test Landing - Card Stack";
+import AudioControl from "../components/AudioControl.jsx";
+
+const pageTitle = "Experiment - The Stack";
 ---
 
-<BaseLayout title={pageTitle}>
-    <CardStacker client:only="react" images={featuredPhotography} />
+<BaseLayout title={pageTitle} hideHeader={true}>
+    <AudioControl
+        client:only="react"
+        src="https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/music/her.mp3"
+    />
+    <LiquidCursor client:only="react" />
+    <ExperimentHeader client:only="react" />
+    <!-- Force Black Background for this experiment -->
+    <style>
+        body {
+            background-color: #050505 !important; /* Deep black/gray */
+            /* Override grid colors for visibility on this dark background */
+            /* Whitish glow, very faint blue tint for depth, but mostly white */
+            --grid-color-1: rgba(220, 230, 255, 0.25);
+            --grid-color-2: rgba(255, 255, 255, 0.15);
+        }
+        /* Grid and Glow restored to original BaseLayout defaults */
 
-    <!-- Initial "Hold" Area -->
-    <section class="hold-section">
-        <div class="content">
-            <h1>Welcome to the Test</h1>
-            <p>Start specific, expand later.</p>
+        /* OVERRIDES for Flashlight Effect (User Request) */
+        :global(.global-grid-bg) {
+            /* 1. Visible Static Grid (faint everywhere) */
+            /* User requested: "none of the space looks so super dark" -> increased to 0.25 */
+            opacity: 0.25 !important;
+
+            /* 2. Vignette Mask: Visible in center, fades out at edges */
+            -webkit-mask-image: radial-gradient(
+                ellipse at center,
+                black 40%,
+                transparent 95%
+            ) !important;
+            ) !important;
+        }
+
+        /* --- SCROLL SNAP FOR SOFT LANDING --- */
+        html {
+            scroll-snap-type: y mandatory; /* "Stops a bit" behavior */
+            scroll-behavior: smooth;
+        }
+        
+        /* Snap Point 1: The Top Stack */
+        .snap-top {
+            scroll-snap-align: start;
+            scroll-snap-stop: always; /* Force stop at top if scrolling up */
+            position: absolute; top: 0; left: 0; width: 100%; height: 1px;
+        }
+
+        /* Snap Point 2: The Narrative */
+        .narrative-section {
+            scroll-snap-align: center; /* Land in the middle */
+            scroll-snap-stop: always;  /* Force brake even on fast scroll */
+            scroll-margin-top: 10vh;   /* Adjust landing offset if needed */
+        }
+
+
+        :global(.global-glow-bg) {
+            /* Remove composite mask limitation. Only Mouse Radial! */
+            -webkit-mask-image: radial-gradient(
+                circle 400px at var(--mouse-x, -500px) var(--mouse-y, -500px),
+                black,
+                transparent
+            ) !important;
+            mask-image: radial-gradient(
+                circle 400px at var(--mouse-x, -500px) var(--mouse-y, -500px),
+                black,
+                transparent
+            ) !important;
+
+            -webkit-mask-composite: source-over !important;
+            mask-composite: add !important;
+
+            /* Reduced Intensity (User requested "tad bit reduced") */
+            --glow-intensity: 0.7 !important;
+            opacity: 0.7 !important;
+        }
+
+        /* Snap Point 3: The End */
+        .bottom-spacer {
+            height: 50vh;
+            scroll-snap-align: start; /* Allow snapping to bottom/next section */
+        }
+    </style>
+
+    <!-- 1. Centered Card Stack -->
+    <div class="snap-top"></div>
+    <!-- anchorX/Y center it. It puts the stack origin at center screen. -->
+    <CardStacker
+        client:only="react"
+        images={featuredPhotography}
+        anchorX="50%"
+        anchorY="50%"
+    />
+
+    <!-- Overlays for First "Page" -->
+    <div class="landing-overlays">
+        <!-- Bottom Scroll Hint -->
+        <div class="scroll-hint">SCROLL DOWN</div>
+    </div>
+
+    <!-- Spacer to push content below the "fold" -->
+    <!-- Increased to 90vh so it starts BELOW the images, then scrolls up into view -->
+    <div style="height: 90vh;"></div>
+
+    <!-- 2. The Narrative Section (Appears after scroll) -->
+    <section class="narrative-section">
+        <div class="hero-content">
+            <h1 class="hero-title">
+                Hi, I am Abodid. <br />
+                My life revolves around... <br />
+                <span id="typewriter-text" class="typing-text"></span>
+            </h1>
         </div>
-    </section>
 
-    <!-- Content Below -->
-    <section class="body-section">
-        <div class="text-body">
-            <h2>The Journey Continues</h2>
-            <p>
-                This is the text body the user travels down to. Here we can have
-                the regular content of the landing page or whatever story is
-                being told.
-            </p>
-            <p>
-                Lore ipsum dolor sit amet, consectetur adipiscing elit. Sed do
-                eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
-                enim ad minim veniam, quis nostrud exercitation ullamco laboris
-                nisi ut aliquip ex ea commodo consequat.
-            </p>
+        <!-- 3. Bio / Next Page Content -->
+        <!-- Just using the generic bio text from the original structure or placeholder as requested -->
+        <div class="bio-content">
             <p>
                 With over 8+ years of expereince in photography, film and
                 interactive media, I design authentic creative experiences for
@@ -56,39 +149,274 @@ const pageTitle = "Test Landing - Card Stack";
             </p>
         </div>
     </section>
+
+    <!-- Spacer at bottom -->
+    <div class="bottom-spacer"></div>
 </BaseLayout>
 
+<script>
+    // --- Scroll Hint Fade Logic ---
+    const scrollHint = document.querySelector(".scroll-hint");
+    const landingOverlays = document.querySelector(".landing-overlays");
+    const narrativeSection = document.querySelector(".narrative-section");
+
+    window.addEventListener("scroll", () => {
+        const y = window.scrollY;
+
+        // 1. Fade out Landing Overlays quickly
+        const overlayOpacity = Math.max(0, 1 - y / 200);
+        if (landingOverlays) {
+            landingOverlays.style.opacity = overlayOpacity.toString();
+            landingOverlays.style.pointerEvents =
+                overlayOpacity <= 0 ? "none" : "auto";
+        }
+
+        // 2. Fade IN Narrative Section after cards flick away
+        // Cards usually clear by ~400-500px depending on user interaction.
+        // We start fading in exponentially earlier (at 50px) so it overlaps with the exit.
+        if (narrativeSection) {
+            const startFade = 50;
+            const endFade = 500;
+            let narrativeOpacity = 0;
+
+            if (y > startFade) {
+                narrativeOpacity = Math.min(
+                    1,
+                    (y - startFade) / (endFade - startFade),
+                );
+            }
+            narrativeSection.style.opacity = narrativeOpacity.toString();
+        }
+    });
+
+    // --- Typewriter Logic (Ported from index.astro) ---
+    // User requested "The High I am about it, my life revolves around..."
+    // content structure is reused from main page logic.
+
+    const phrases = [
+        "Images, Code & Culture.",
+        "Design & Technology.",
+        "Writing & Storytelling.",
+        "Travel, Fashion & Music.",
+        "Photography, Film & Art.",
+        "AI, Sociology & Research.",
+    ];
+
+    const colors = [
+        "#D35E7F", // Cinnamon Satin
+        "#D7E97B", // Manz
+        "#A999EB", // Max Blue Purple
+        "#9BCDEF", // Baby Blue Eyes
+    ];
+
+    const typingSpeed = { min: 40, max: 100 };
+    const backspaceSpeed = { min: 30, max: 50 };
+    const pauseEnd = 2000;
+    const pauseStart = 500;
+
+    const textElement = document.getElementById("typewriter-text");
+
+    let phraseIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    let currentPhraseObjects = [];
+
+    function parsePhrase(phrase) {
+        const words = phrase.split(" ");
+        let phraseColors = [...colors];
+
+        // Simple shuffle for variety
+        phraseColors.sort(() => Math.random() - 0.5);
+
+        // Ensure we have enough colors
+        while (phraseColors.length < words.length) {
+            phraseColors = phraseColors.concat(
+                [...colors].sort(() => Math.random() - 0.5),
+            );
+        }
+
+        return words.map((word, i) => {
+            return {
+                text: word + " ",
+                color: phraseColors[i],
+            };
+        });
+    }
+
+    function renderText() {
+        if (!textElement) return;
+        let charCount = 0;
+        let html = "";
+
+        for (let obj of currentPhraseObjects) {
+            if (charCount >= charIndex) break;
+            const remaining = charIndex - charCount;
+            const textToDisplay = obj.text.substring(0, remaining);
+            html += `<span style="color: ${obj.color}">${textToDisplay}</span>`;
+            charCount += obj.text.length;
+            if (charCount > charIndex) break;
+        }
+        textElement.innerHTML = html;
+    }
+
+    function getTotalLength() {
+        return currentPhraseObjects.reduce(
+            (acc, obj) => acc + obj.text.length,
+            0,
+        );
+    }
+
+    function type() {
+        if (!textElement) return;
+
+        if (charIndex === 0 && !isDeleting) {
+            currentPhraseObjects = parsePhrase(phrases[phraseIndex]);
+        }
+
+        const totalLen = getTotalLength();
+        let speed =
+            Math.random() * (typingSpeed.max - typingSpeed.min) +
+            typingSpeed.min;
+
+        if (isDeleting) {
+            charIndex--;
+            renderText();
+            speed =
+                Math.random() * (backspaceSpeed.max - backspaceSpeed.min) +
+                backspaceSpeed.min;
+        } else {
+            charIndex++;
+            renderText();
+        }
+
+        if (!isDeleting && charIndex === totalLen) {
+            isDeleting = true;
+            setTimeout(type, pauseEnd);
+        } else if (isDeleting && charIndex === 0) {
+            isDeleting = false;
+            phraseIndex = (phraseIndex + 1) % phrases.length;
+            setTimeout(type, pauseStart);
+        } else {
+            setTimeout(type, speed);
+        }
+    }
+
+    // Start typewriter
+    setTimeout(type, 1000);
+</script>
+
 <style>
-    .hold-section {
+    /* Fixed Positioning Layouts */
+    .landing-overlays {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
         height: 100vh;
-        width: 100%;
+        pointer-events: none; /* Let clicks pass through to stack if needed */
+        z-index: 10;
+        transition: opacity 0.3s ease;
+    }
+
+    .hover-hint {
+        position: absolute;
+        top: 58%; /* Just below the center stack */
+        left: 50%;
+        transform: translateX(-50%);
+        font-family: "Courier New", Courier, monospace;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.4);
+        font-size: 0.8rem;
+        letter-spacing: 0.05em;
+    }
+
+    .scroll-hint {
+        position: absolute;
+        bottom: 5vh; /* Strictly at bottom */
+        left: 50%;
+        transform: translateX(-50%);
+        font-family: "Space Mono", monospace;
+        font-size: 0.9rem;
+        color: rgba(255, 255, 255, 0.6);
+        animation: bounce 2s infinite;
+    }
+
+    @keyframes bounce {
+        0%,
+        20%,
+        50%,
+        80%,
+        100% {
+            transform: translateX(-50%) translateY(0);
+        }
+        40% {
+            transform: translateX(-50%) translateY(-10px);
+        }
+        60% {
+            transform: translateX(-50%) translateY(-5px);
+        }
+    }
+
+    /* Narrative Section */
+    .narrative-section {
+        position: relative;
+        z-index: 20;
+        opacity: 0; /* Hidden initially, controlled by scroll script */
+        transition: opacity 0.8s ease-out; /* Smooth fade in */
+        padding-top: 10vh; /* Space from top after scrolling past fold */
+        padding-left: 4vw; /* User requested "Full Screen Experience" - Reduced from 10vw */
+        padding-right: 4vw; /* User requested "Full Screen Experience" - Reduced from 10vw */
+        min-height: 80vh;
         display: flex;
-        align-items: center;
-        padding-left: 10vw;
+        flex-direction: column;
+        gap: 3rem;
     }
 
-    .body-section {
-        min-height: 100vh;
-        width: 100%;
-        background-color: var(--bg-surface);
-        padding: 5rem 10vw;
-        border-top: 1px solid var(--border-subtle);
+    .hero-title {
+        font-family: var(--font-headline); /* Inherit or specific font */
+        font-size: 3.5rem;
+        font-weight: 700;
+        line-height: 1.1;
+        color: #fff;
     }
 
-    .text-body {
-        max-width: 600px;
+    .bio-content p {
+        font-size: 2rem;
+        font-weight: 400;
+        line-height: 1.4;
+        max-width: 900px;
+        color: rgba(255, 255, 255, 0.85);
     }
 
-    h1 {
-        font-family: var(--font-serif);
-        font-size: 4rem;
-        margin-bottom: 1rem;
+    /* Typewriter Cursor */
+    #typewriter-text::after {
+        content: "";
+        display: inline-block;
+        width: 12px;
+        height: 1em;
+        background-color: currentColor;
+        margin-left: 5px;
+        animation: blink 1s infinite;
+        vertical-align: text-bottom;
     }
 
-    p {
-        font-family: var(--font-sans);
-        font-size: 1.2rem;
-        color: var(--text-secondary);
-        line-height: 1.6;
+    @keyframes blink {
+        0%,
+        50% {
+            opacity: 1;
+        }
+        51%,
+        100% {
+            opacity: 0;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .hero-title {
+            font-size: 2.5rem;
+        }
+        .bio-content p {
+            font-size: 1.5rem;
+        }
     }
 </style>

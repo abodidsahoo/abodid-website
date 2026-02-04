@@ -445,7 +445,7 @@ export default function ResourceFeed({ initialResources, availableTags, showSear
                 padding: 16px 32px;
                 border-radius: 12px;
                 background: var(--text-primary);
-                color: var(--bg-color);
+                color: #000000;
                 font-size: 1.05rem;
                 font-weight: 600;
                 text-decoration: none;
@@ -505,7 +505,7 @@ export default function ResourceFeed({ initialResources, availableTags, showSear
 
             .filter-chip.active {
                 background: var(--text-primary);
-                color: var(--bg-color);
+                color: #000000;
                 border-color: var(--text-primary);
                 box-shadow: 0 4px 12px rgba(0,0,0,0.15);
                 transform: scale(1.05);

@@ -118,58 +118,12 @@ const year = new Date().getFullYear();
   .site-footer {
     background-color: var(--sci-fi-bg);
     transition: background-color 0.3s ease;
-
-    /* Subtle Grain/Grid overlay pattern to match "grains" request */
-    background-image:
-      radial-gradient(var(--grid-color-1) 1px, transparent 1px),
-      radial-gradient(var(--grid-color-1) 1px, transparent 1px);
-    background-position:
-      0 0,
-      25px 25px;
-    background-size: 50px 50px;
-
     padding: 4rem 0 2rem;
     margin-top: auto;
-    font-family: "Inconsolata", monospace; /* Cohesive font */
+    font-family: "Inconsolata", monospace;
     position: relative;
     z-index: 10;
-
-    /* Top border glow + Inner Glow */
     border-top: 1px solid var(--footer-border);
-    box-shadow:
-      0 -10px 40px rgba(0, 0, 0, 0.05),
-      0 0 30px var(--accent-glow) inset;
-
-    overflow: hidden;
-  }
-
-  /* Animated Top Border "Scanner" Effect */
-  .site-footer::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 1px;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      var(--sci-fi-cyan),
-      transparent
-    );
-    background-size: 50% 100%;
-    animation: scanLoad 4s linear infinite;
-    z-index: 11;
-    opacity: 0.5;
-  }
-
-  @keyframes scanLoad {
-    0% {
-      background-position: -100% 0;
-    }
-    100% {
-      background-position: 200% 0;
-    }
   }
 
   .footer-grid {
@@ -190,8 +144,6 @@ const year = new Date().getFullYear();
   .footer-logo {
     display: inline-block;
     margin-bottom: 1rem;
-    filter: drop-shadow(0 0 5px var(--accent-glow));
-    transition: filter 0.3s ease;
   }
 
   .logo-img {
@@ -236,7 +188,6 @@ const year = new Date().getFullYear();
     font-weight: 700;
     color: var(--sci-fi-cyan);
     margin-bottom: 1rem;
-    text-shadow: 0 0 5px var(--accent-glow);
   }
 
   /* Navigation Groups */
@@ -247,14 +198,13 @@ const year = new Date().getFullYear();
   }
 
   .nav-header {
-    font-size: 1.1rem; /* Way bigger */
+    font-size: 1.1rem;
     text-transform: uppercase;
     letter-spacing: 0.1em;
     color: var(--footer-text-header);
     font-weight: 700;
     margin-bottom: 1rem;
     display: block;
-    text-shadow: 0 0 10px var(--accent-glow);
     transition: color 0.3s ease;
   }
 
@@ -269,27 +219,9 @@ const year = new Date().getFullYear();
     letter-spacing: 0.05em;
   }
 
-  /* "Sky Fire" Hover Effect (Replica of Header) */
   .nav-group a:hover {
     color: var(--text-primary);
-    text-shadow: 0 0 8px var(--sci-fi-cyan);
     transform: translateX(4px);
-  }
-
-  .nav-group a::after {
-    content: "";
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 0%;
-    height: 1px;
-    background-color: var(--sci-fi-cyan);
-    box-shadow: 0 0 5px var(--sci-fi-cyan);
-    transition: width 0.3s ease;
-  }
-
-  .nav-group a:hover::after {
-    width: 100%;
   }
 
   /* Bottom Bar */
@@ -314,7 +246,6 @@ const year = new Date().getFullYear();
 
   .legal-links a:hover {
     color: var(--sci-fi-cyan);
-    text-shadow: 0 0 5px var(--sci-fi-cyan);
   }
 
   .separator {

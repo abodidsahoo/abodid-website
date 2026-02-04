@@ -1,0 +1,11 @@
+/* 
+   MAJOR COLOR PALETTE REFERENCE 
+   Source: User Request (Step 39)
+*/
+:root {
+    --palette-red: #EA2A10;
+    --palette-light: #F9F8F3;
+    --palette-dark: #010101;
+    --palette-sand: #E0DBD3;
+    --palette-grey: #9E9992;
+}

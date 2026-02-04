@@ -45,8 +45,8 @@
   color: var(--text-primary);
 }
 
-.hub-input, 
-.hub-textarea, 
+.hub-input,
+.hub-textarea,
 .hub-select {
   width: 100%;
   padding: 12px;
@@ -77,7 +77,7 @@
   justify-content: center;
   padding: 12px 24px;
   background: var(--text-primary);
-  color: var(--bg-color);
+  color: #000000;
   border: none;
   border-radius: 8px;
   font-weight: 500;
