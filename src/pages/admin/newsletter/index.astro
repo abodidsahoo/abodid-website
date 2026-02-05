@@ -1,0 +1,46 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import NewsletterSender from "../../../components/admin/NewsletterSender.jsx";
+
+// Simple auth check (you can expand this)
+const isAuthenticated = true; // For development, set to true. In production, check session/cookie
+---
+
+<BaseLayout
+    title="Newsletter Broadcast - Admin"
+    description="Send newsletters to subscribers"
+>
+    <div class="admin-newsletter-page">
+        <div class="page-header">
+            <h1>Newsletter Broadcast</h1>
+            <p>Create and send newsletters to your subscribers</p>
+        </div>
+
+        <NewsletterSender client:load />
+    </div>
+</BaseLayout>
+
+<style>
+    .admin-newsletter-page {
+        max-width: 100%;
+        padding: 2rem;
+        min-height: 100vh;
+    }
+
+    .page-header {
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+
+    .page-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: var(--text-primary);
+    }
+
+    .page-header p {
+        font-size: 1rem;
+        color: var(--text-secondary);
+    }
+</style>

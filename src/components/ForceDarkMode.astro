@@ -1,0 +1,18 @@
+<!-- 
+Landing Page Dark Mode Override
+This script ensures the landing page is ALWAYS in dark mode
+regardless of any saved preferences or system settings.
+The dark aesthetic is core to the landing page experience.
+-->
+<script is:inline>
+    (function () {
+        // Force dark mode on landing page
+        document.documentElement.setAttribute("data-theme", "dark");
+
+        // Clear reader mode if somehow active on landing page
+        document.documentElement.removeAttribute("data-reader-mode");
+
+        // Prevent any flicker by setting immediately
+        document.documentElement.style.backgroundColor = "#000";
+    })();
+</script>

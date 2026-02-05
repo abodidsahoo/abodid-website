@@ -86,6 +86,7 @@ const FilmsFilter = ({ items }) => {
     const renderButton = (category) => (
         <button
             key={category}
+            onClick={() => setActiveTag(category)}
             className={`filter-btn ${activeTag === category ? 'contrast-active' : ''}`}
         >
             {category}

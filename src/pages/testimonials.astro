@@ -10,6 +10,10 @@ let testimonials = [];
 let error = null;
 
 try {
+    if (!supabase) {
+        throw new Error("Supabase client not initialized");
+    }
+
     const { data, error: err } = await supabase
         .from("testimonials")
         .select("*")
@@ -31,74 +35,6 @@ try {
     </header>
 
     <section class="content-section">
-        <!-- The Form: Top position to encourage input -->
-        <div class="form-card">
-            <h3>Leave a note</h3>
-            <p class="form-hint">
-                Your email is not required. Just your honest experience.
-            </p>
-
-            <form id="testimonial-form" class="t-form">
-                <div class="form-group half">
-                    <input
-                        type="text"
-                        name="name"
-                        placeholder="Your Name *"
-                        required
-                    />
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <input
-                            type="text"
-                            name="role"
-                            placeholder="Your Role (Optional)"
-                        />
-                        <span class="hint">e.g. Creative Director</span>
-                    </div>
-                    <div class="form-group">
-                        <input
-                            type="text"
-                            name="company"
-                            placeholder="Company (Optional)"
-                        />
-                        <span class="hint">e.g. Freelance / Studio X</span>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <textarea
-                        name="content"
-                        rows="4"
-                        placeholder="How was our collaboration? *"
-                        required></textarea>
-                </div>
-
-                <button type="submit" class="submit-btn">
-                    <span>Publish Note</span>
-                </button>
-                <p id="t-message" class="message"></p>
-            </form>
-        </div>
-
-        <div class="divider-wave">
-            <svg
-                fill="currentColor"
-                viewBox="0 0 1000 100"
-                preserveAspectRatio="none"
-            >
-                <path
-                    opacity="0.33"
-                    d="M473,67.3c-203.9,88.3-263.1-34-320.3,0C66,119.1,0,59.7,0,59.7V0h1000v59.7 c0,0-62.1,26.1-94.1,29.3c-32.5,3.3-61.5-3-89.5-25.8C816.2,35.2,869.5,84.9,792,94.9C730.3,102.8,705.4,14.5,604,14.5 S523.5,67.3,473,67.3z"
-                ></path>
-                <path
-                    opacity="0.66"
-                    d="M635.6,56c-67.6,33.4-113.8,1.3-178.6,1.3c-62.7,0-136.6,56-258.9,0C100.8,36.4,0,94.6,0,94.6V0h1000 v81.6c0,0-58.4-3.1-80.4-13.3c-28.7-13.3-68.4-44.6-136.8-9.1C724.8,81.6,676.6,67.4,635.6,56z"
-                ></path>
-            </svg>
-        </div>
-
         <!-- The Grid -->
         <div class="testimonials-grid">
             {
@@ -128,104 +64,6 @@ try {
     </section>
 </BaseLayout>
 
-<script>
-    const form = document.getElementById("testimonial-form");
-    const msg = document.getElementById("t-message");
-    const grid = document.querySelector(".testimonials-grid");
-
-    if (form) {
-        form.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const btn = form.querySelector("button");
-
-            if (!btn) return;
-            const originalText = btn.innerText;
-
-            btn.disabled = true;
-            btn.innerText = "Publishing...";
-
-            try {
-                // @ts-ignore
-                const formData = new FormData(form);
-                const res = await fetch("/api/testimonials", {
-                    method: "POST",
-                    body: formData,
-                });
-
-                const json = await res.json();
-
-                if (res.ok) {
-                    if (msg) {
-                        msg.textContent = "Thanks. Your note is live.";
-                        msg.className = "message success";
-                    }
-
-                    // Reset form
-                    // @ts-ignore
-                    form.reset();
-
-                    // Dynamically inject the new card
-                    if (json.testimonial && grid) {
-                        const t = json.testimonial;
-                        const roleInfo =
-                            t.role || t.company
-                                ? `<span class="t-info">${t.role || ""} ${t.role && t.company ? "at" : ""} ${t.company || ""}</span>`
-                                : "";
-
-                        const html = `
-                            <div class="t-card" style="opacity: 0; transform: translateY(20px);">
-                                <div class="t-header">
-                                    <span class="t-name">${t.name}</span>
-                                    ${roleInfo}
-                                </div>
-                                <div class="t-content">"${t.content}"</div>
-                            </div>
-                        `;
-
-                        // Remove empty state if present
-                        const emptyState =
-                            document.querySelector(".empty-state");
-                        if (emptyState) emptyState.remove();
-
-                        // Insert new card at the beginning
-                        grid.insertAdjacentHTML("afterbegin", html);
-
-                        // Animate in
-                        const newCard = grid.firstElementChild;
-                        if (newCard) {
-                            requestAnimationFrame(() => {
-                                // @ts-ignore
-                                newCard.style.opacity = "1";
-                                // @ts-ignore
-                                newCard.style.transform = "translateY(0)";
-                            });
-                        }
-                    }
-                } else {
-                    throw new Error(json.message || "Failed");
-                }
-            } catch (error) {
-                if (msg) {
-                    // @ts-ignore
-                    msg.textContent = error.message || "Something went wrong.";
-                    msg.className = "message error";
-                }
-            } finally {
-                btn.disabled = false;
-                btn.innerText = originalText;
-
-                // Clear success message after a while
-                if (msg && msg.classList.contains("success")) {
-                    setTimeout(() => {
-                        msg.textContent = "";
-                        msg.className = "message";
-                    }, 5000);
-                }
-            }
-        });
-    }
-</script>
-
 <style>
     .page-header {
         text-align: center;
@@ -236,108 +74,6 @@ try {
         color: var(--text-secondary);
         font-family: var(--font-serif);
         font-style: italic;
-    }
-
-    /* Form Section */
-    .form-card {
-        background: var(--bg-surface);
-        padding: 2.5rem;
-        border-radius: 12px;
-        max-width: 600px;
-        margin: 0 auto 4rem;
-        border: 1px solid var(--border-subtle);
-    }
-
-    .form-card h3 {
-        margin-top: 0;
-        margin-bottom: 0.5rem;
-    }
-
-    .form-hint {
-        font-size: 0.9rem;
-        color: var(--text-secondary);
-        margin-bottom: 2rem;
-    }
-
-    .t-form {
-        display: flex;
-        flex-direction: column;
-        gap: 1.5rem;
-    }
-
-    .form-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1rem;
-    }
-
-    input,
-    textarea {
-        width: 100%;
-        padding: 0.8rem;
-        background: var(--bg-color);
-        border: 1px solid var(--border-subtle);
-        border-radius: 6px;
-        color: var(--text-primary);
-        font-family: var(--font-sans);
-        font-size: 0.95rem;
-        transition: border-color 0.2s;
-        box-sizing: border-box; /* Important for padding */
-    }
-
-    input:focus,
-    textarea:focus {
-        outline: none;
-        border-color: var(--text-primary);
-    }
-
-    .hint {
-        display: block;
-        font-size: 0.75rem;
-        color: var(--text-tertiary);
-        margin-top: 0.4rem;
-    }
-
-    .submit-btn {
-        background: var(--text-primary);
-        color: var(--bg-color);
-        border: none;
-        padding: 1rem;
-        border-radius: 6px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: opacity 0.2s;
-    }
-
-    .submit-btn:hover {
-        opacity: 0.9;
-    }
-
-    .message {
-        text-align: center;
-        font-size: 0.9rem;
-        min-height: 1.2em;
-    }
-    .message.success {
-        color: #2ecc71;
-    }
-    .message.error {
-        color: #e74c3c;
-    }
-
-    /* Divider */
-    .divider-wave {
-        width: 100%;
-        height: 60px;
-        color: var(--bg-surface);
-        margin-bottom: 4rem;
-        transform: rotate(180deg);
-        overflow: hidden;
-    }
-
-    .divider-wave svg {
-        width: 100%;
-        height: 100%;
     }
 
     /* Grid */
@@ -402,12 +138,6 @@ try {
     }
 
     @media (max-width: 600px) {
-        .form-row {
-            grid-template-columns: 1fr;
-        }
-        .form-card {
-            padding: 1.5rem;
-        }
         .t-card {
             border-radius: 12px;
         }

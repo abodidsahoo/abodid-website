@@ -1,23 +1,60 @@
-// Configuration (defaults can be overridden by env vars if needed, but these are code-level config)
-// Helper to get env vars safely in both Vite (Astro) and Node (Scripts) contexts
+import fs from 'node:fs';
+import path from 'node:path';
+
+// Helper to get env vars safely
 const getEnv = (key) => (typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env[key] : undefined) || (typeof process !== 'undefined' ? process.env[key] : undefined);
+
+// PERSISTENT CACHE (File System)
+// Robust for local dev where server restarts wipe memory.
+const CACHE_DIR = path.resolve('.astro'); // Store in .astro folder (usually ignored)
+const CACHE_FILE = path.join(CACHE_DIR, 'github_cache.json');
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+// Ensure cache dir exists
+try {
+    if (!fs.existsSync(CACHE_DIR)) fs.mkdirSync(CACHE_DIR, { recursive: true });
+} catch (e) { /* Ignore permissions issues in Prod/Serverless */ }
+
+function readCache(key) {
+    try {
+        if (!fs.existsSync(CACHE_FILE)) return null;
+        const raw = fs.readFileSync(CACHE_FILE, 'utf-8');
+        const allCache = JSON.parse(raw);
+        return allCache[key] || null;
+    } catch (e) {
+        return null;
+    }
+}
+
+function writeCache(key, value) {
+    try {
+        let allCache = {};
+        if (fs.existsSync(CACHE_FILE)) {
+            try { allCache = JSON.parse(fs.readFileSync(CACHE_FILE, 'utf-8')); } catch (e) { }
+        }
+        allCache[key] = value;
+        fs.writeFileSync(CACHE_FILE, JSON.stringify(allCache, null, 2));
+    } catch (e) {
+        console.warn("Failed to write to local cache file:", e.message);
+    }
+}
 
 export const REPO_OWNER = getEnv("GITHUB_OWNER") || "abodidsahoo";
 export const REPO_NAME = getEnv("GITHUB_REPO") || "obsidian-vault";
 export const GITHUB_API_BASE = "https://api.github.com";
 
-// Folder mappings
-const PATH_TAGS = "3 - Tags";
-const PATH_NOTES = "6 - Main Notes";
-
 export function getAuthHeaders() {
     const token = getEnv("GITHUB_TOKEN");
+    // Only throw if we strictly require auth, but for now we let it pass to allow public fallback if needed,
+    // though the current logic expects a token.
     if (!token) {
-        console.error("GITHUB_TOKEN is missing from environment variables.");
-        throw new Error("Configuration Error: GITHUB_TOKEN is missing. Please add it to your environment variables (Vercel Settings).");
+        console.warn("GITHUB_TOKEN is missing. Requests will be rate-limited.");
     }
-    return {
+    return token ? {
         Authorization: `token ${token}`,
+        Accept: "application/vnd.github.v3+json",
+        "User-Agent": "Astro-Obsidian-Vault",
+    } : {
         Accept: "application/vnd.github.v3+json",
         "User-Agent": "Astro-Obsidian-Vault",
     };
@@ -29,56 +66,90 @@ export function getAuthHeaders() {
  * @returns {Promise<Array>}
  */
 export async function getRepoContents(path = "") {
+    const cacheKey = `contents-${path}`;
+    const now = Date.now();
+
+    // 1. Try Cache (Persistent)
+    let cached = readCache(cacheKey);
+
+    // Short-circuit: Logic for "Zero Request" interval
+    if (cached && (now - cached.timestamp < 60 * 1000)) {
+        return cached.data;
+    }
 
     const encodedPath = path.split('/').map(encodeURIComponent).join('/');
     const url = `${GITHUB_API_BASE}/repos/${REPO_OWNER}/${REPO_NAME}/contents/${encodedPath}`;
 
-    const fetchWithAuth = async (useToken = true) => {
-        const headers = useToken ? getAuthHeaders() : {
-            "Accept": "application/vnd.github.v3+json",
-            "User-Agent": "Astro-Obsidian-Vault"
-        };
+    const headers = getAuthHeaders();
 
-        if (useToken) {
-        }
-        return await fetch(url, { headers });
-    };
+    // 2. Smart Check: If we have an ETag
+    if (cached && cached.etag) {
+        headers['If-None-Match'] = cached.etag;
+    }
 
     try {
-        let response = await fetchWithAuth(true);
+        const response = await fetch(url, { headers });
 
-        // If Unauth (Bad Token) or Forbidden (Rate Limit potentially), try public if it was auth
-        if (response.status === 401) {
-            console.warn("[GitHub] Token invalid (401). Retrying with public access...");
-            response = await fetchWithAuth(false);
+        // 3. Handle "Not Modified" (304)
+        if (response.status === 304) {
+            if (cached) {
+                cached.timestamp = now;
+                writeCache(cacheKey, cached); // Renew timestamp on disk
+                return cached.data;
+            }
         }
 
         if (!response.ok) {
             const errorText = await response.text();
             console.error(`GitHub API Error: ${response.status} ${response.statusText}`);
-            console.error(errorText);
 
-            // Throw specific error to be caught by the UI
+            // If rate limited, force return stale cache
+            if (response.status === 403) {
+                if (cached) {
+                    console.warn("Rate limit hit. Returning stale cache from disk.");
+                    return cached.data;
+                }
+                // EMERGENCY MOCK IF EMPTY (Avoid 0 notes crash loop)
+                // If it's the tags folder, return empty to not break logic
+                // If it's notes, return logic below
+                console.warn("Rate limit hit and NO cache. Returning empty to prevent crash.");
+                return [];
+            }
+
             throw new Error(`GitHub API Error: ${response.status} ${response.statusText} - ${errorText.substring(0, 100)}`);
         }
 
         const data = await response.json();
+        const etag = response.headers.get('etag');
 
         if (!Array.isArray(data)) {
             return [];
         }
 
-        // Filter for files/dirs we care about
-        return data.map(item => ({
+        const result = data.map(item => ({
             name: item.name,
             path: item.path,
-            type: item.type, // 'file' or 'dir'
+            type: item.type,
             download_url: item.download_url
         })).filter(item => item.name.endsWith('.md') || item.type === 'dir');
 
+        // Update Cache
+        writeCache(cacheKey, {
+            data: result,
+            timestamp: now,
+            etag: etag
+        });
+
+        return result;
+
     } catch (error) {
         console.error("Failed to fetch repo contents:", error);
-        throw error; // Rethrow to let the UI handle it and show the message
+        // Fallback to stale cache
+        let fallback = readCache(cacheKey);
+        if (fallback) {
+            return fallback.data;
+        }
+        throw error;
     }
 }
 

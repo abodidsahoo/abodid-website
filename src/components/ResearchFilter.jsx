@@ -63,6 +63,7 @@ const ResearchFilter = ({ papers }) => {
                     {sortedTags.map(tag => (
                         <button
                             key={tag}
+                            onClick={() => setActiveTag(tag)}
                             className={`filter-btn ${activeTag === tag ? 'contrast-active' : ''}`}
                         >
                             {tag}

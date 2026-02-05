@@ -44,7 +44,7 @@ export const POST: APIRoute = async ({ request }) => {
         }
 
         // 3. Parse Request
-        const { subject, message, isTest, testEmail, previewText, senderName, senderEmail } = await request.json();
+        const { subject, message, isTest, testEmail, previewText, senderName, senderEmail, htmlFooter } = await request.json();
 
         // Validate Sender Email (Must be verified domain)
         if (senderEmail && !senderEmail.endsWith('@abodid.com')) {
@@ -135,6 +135,14 @@ export const POST: APIRoute = async ({ request }) => {
         // Process batches sequentially to be safe, though parallel is likely fine for small numbers
         for (const batch of batches) {
             const emailBatch = batch.map((recipient) => {
+                // Use custom footer if provided, otherwise use default
+                const footerContent = htmlFooter || `
+                    <p style="font-size: 12px; color: #888; text-align: center;">
+                        You received this because you are subscribed to updates from Abodid. 
+                        <a href="${baseUrl}/unsubscribe?email=${encodeURIComponent(recipient.email)}" style="color: #888;">Unsubscribe</a>
+                    </p>
+                `;
+
                 const htmlContent = `
                 <!DOCTYPE html>
                 <html>
@@ -142,10 +150,7 @@ export const POST: APIRoute = async ({ request }) => {
                     ${preheaderHtml}
                     <div style="white-space: pre-wrap;">${message}</div>
                     <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;" />
-                    <p style="font-size: 12px; color: #888; text-align: center;">
-                        You received this because you are subscribed to updates from Abodid. 
-                        <a href="${baseUrl}/unsubscribe?email=${encodeURIComponent(recipient.email)}" style="color: #888;">Unsubscribe</a>
-                    </p>
+                    ${footerContent}
                     <img src="${pixelUrl}" width="1" height="1" style="display:none;" alt="" />
                 </body>
                 </html>

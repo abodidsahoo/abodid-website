@@ -2,33 +2,30 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import ImageUploader from './ImageUploader';
 
-// Helper to insert text at cursor
-const insertAtCursor = (text, value) => {
-    // Since we don't have direct ref access in this simple conversion without rewriting everything,
-    // we'll just append for now, or users can use the visual cue.
-    // For a robust implementation, we'd need a ref to the textarea.
-    return text + '\n' + value + '\n';
-};
-
 export default function NewsletterSender() {
     const [subject, setSubject] = useState('');
     const [previewText, setPreviewText] = useState('');
     const [message, setMessage] = useState('');
+    const [htmlFooter, setHtmlFooter] = useState('');
     const [status, setStatus] = useState('idle'); // idle, sending, success, error
     const [statusMsg, setStatusMsg] = useState('');
     const [subscriberCount, setSubscriberCount] = useState(0);
     const [adminEmail, setAdminEmail] = useState('');
+    const [previewMode, setPreviewMode] = useState('desktop'); // desktop or phone
 
     // New Feature States
-    const [resources, setResources] = useState([]);
     const [newSubscriber, setNewSubscriber] = useState('');
     const [addSubStatus, setAddSubStatus] = useState('');
     const [senderName, setSenderName] = useState('Abodid');
     const [senderEmail, setSenderEmail] = useState('newsletter@abodid.com');
 
+    // Footer Template Management
+    const [savedFooters, setSavedFooters] = useState([]);
+    const [footerName, setFooterName] = useState('');
+
     useEffect(() => {
         fetchSubscribers();
-        fetchResources();
+        loadSavedFooters();
     }, []);
 
     const fetchSubscribers = async () => {
@@ -43,33 +40,49 @@ export default function NewsletterSender() {
         if (user) setAdminEmail(user.email);
     };
 
-    const fetchResources = async () => {
-        const { data } = await supabase
-            .from('hub_resources')
-            .select('*')
-            .eq('status', 'approved') // Only show approved resources
-            .order('created_at', { ascending: false })
-            .limit(20);
-        setResources(data || []);
-    }
+    // Footer Template Functions
+    const loadSavedFooters = () => {
+        const saved = localStorage.getItem('newsletter_footer_templates');
+        if (saved) {
+            setSavedFooters(JSON.parse(saved));
+        }
+    };
 
-    const handleImageUpload = (files) => {
+    const saveFooterTemplate = () => {
+        if (!htmlFooter.trim()) {
+            alert('Please add footer HTML first');
+            return;
+        }
+        const name = footerName.trim() || `Footer ${savedFooters.length + 1}`;
+        const newFooter = { name, html: htmlFooter, id: Date.now() };
+        const updated = [...savedFooters, newFooter];
+        setSavedFooters(updated);
+        localStorage.setItem('newsletter_footer_templates', JSON.stringify(updated));
+        setFooterName('');
+        alert(`Footer template "${name}" saved!`);
+    };
+
+    const loadFooterTemplate = (footer) => {
+        setHtmlFooter(footer.html);
+    };
+
+    const deleteFooterTemplate = (footerId) => {
+        if (!confirm('Delete this footer template?')) return;
+        const updated = savedFooters.filter(f => f.id !== footerId);
+        setSavedFooters(updated);
+        localStorage.setItem('newsletter_footer_templates', JSON.stringify(updated));
+    };
+
+    const handleImageUpload = async (files) => {
         if (!files || !files.length) return;
         const imgHtml = `<img src="${files[0].url}" style="max-width:100%; border-radius:8px; margin: 1rem 0;" />`;
-        // We'll append HTML since we support HTML in the email body
+        // Append image HTML to message content
         setMessage(prev => prev + '\n' + imgHtml + '\n');
     };
 
-    const handleInsertResource = (resource) => {
-        // Create a beautiful "Card" HTML
-        const cardHtml = `
-<div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin: 16px 0; background-color: #f9fafb;">
-    <h3 style="margin: 0 0 8px 0; font-size: 18px;">
-        <a href="${resource.url}" target="_blank" style="color: #111; text-decoration: none;">${resource.title} ↗</a>
-    </h3>
-    <p style="margin: 0; color: #555; font-size: 14px; line-height: 1.5;">${resource.description || 'Check out this useful resource.'}</p>
-</div>`;
-        setMessage(prev => prev + '\n' + cardHtml + '\n');
+    const handleBlockInsert = (blockHtml) => {
+        // Insert block HTML into message
+        setMessage(prev => prev + '\n' + blockHtml + '\n');
     };
 
     const handleAddSubscriber = async () => {
@@ -129,8 +142,7 @@ export default function NewsletterSender() {
                         subject,
                         previewText,
                         message,
-                        senderName,
-                        senderEmail,
+                        htmlFooter,
                         senderName,
                         senderEmail,
                         testEmail: targetEmail,
@@ -214,28 +226,9 @@ export default function NewsletterSender() {
 
             <div className="sender-card">
                 <div className="sender-grid">
-                    {/* Left: Resource Picker */}
-                    <div className="resources-col">
-                        <section className="card-section">
-                            <label className="section-label">Resource Picker</label>
-                            <div className="resources-list">
-                                {resources.map(r => (
-                                    <div key={r.id} className="resource-item" onClick={() => handleInsertResource(r)}>
-                                        <div className="res-title">{r.title}</div>
-                                        <div className="res-desc">{r.description?.substring(0, 50)}...</div>
-                                        <div className="res-action">+ Click to Insert</div>
-                                    </div>
-                                ))}
-                                {resources.length === 0 && <div className="empty-msg">No approved resources found.</div>}
-                            </div>
-                        </section>
-                    </div>
-
-                    {/* Middle Left: Compose (Existing) */}
+                    {/* Left: Compose */}
                     <div className="compose-col">
                         <section className="card-section">
-                            <label className="section-label">Compose Message</label>
-
                             <div className="form-group">
                                 <label>Subject Line</label>
                                 <input
@@ -243,7 +236,7 @@ export default function NewsletterSender() {
                                     value={subject}
                                     onChange={(e) => setSubject(e.target.value)}
                                     placeholder="Enter subject line..."
-                                    className="input-field box-input" // Unified class
+                                    className="input-field box-input"
                                 />
                             </div>
                             <div className="field-group">
@@ -258,9 +251,9 @@ export default function NewsletterSender() {
                             </div>
 
                             <div className="field-group full-height">
-                                <label>Message Body (HTML enabled)</label>
+                                <label>Message Body (Markdown)</label>
 
-                                {/* Image Uploader Zone */}
+                                {/* Image Uploader */}
                                 <div style={{ marginBottom: '1rem' }}>
                                     <ImageUploader
                                         bucket="newsletter-assets"
@@ -271,22 +264,102 @@ export default function NewsletterSender() {
                                     />
                                 </div>
 
+                                {/* Simple Textarea for Markdown */}
                                 <textarea
-                                    className="box-input content-area"
-                                    placeholder="Write your update here... Images uploaded will be appended."
                                     value={message}
                                     onChange={e => setMessage(e.target.value)}
-                                    style={{ minHeight: '500px', fontFamily: 'var(--font-mono)' }}
+                                    placeholder="Write your newsletter in markdown or HTML..."
+                                    className="box-input markdown-editor"
+                                    rows={15}
+                                />
+                            </div>
+
+                            {/* Footer Templates */}
+                            <div className="field-group">
+                                <label>Footer Templates</label>
+                                <div className="footer-templates">
+                                    {savedFooters.map((footer) => (
+                                        <div key={footer.id} className="footer-template-card">
+                                            <div className="footer-template-info">
+                                                <span className="footer-template-name">{footer.name}</span>
+                                                <span className="footer-template-preview">
+                                                    {footer.html.substring(0, 60)}...
+                                                </span>
+                                            </div>
+                                            <div className="footer-template-actions">
+                                                <button
+                                                    className="btn-small btn-primary"
+                                                    onClick={() => loadFooterTemplate(footer)}
+                                                    title="Insert this footer"
+                                                >
+                                                    Insert
+                                                </button>
+                                                <button
+                                                    className="btn-small btn-danger"
+                                                    onClick={() => deleteFooterTemplate(footer.id)}
+                                                    title="Delete this template"
+                                                >
+                                                    ✕
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {savedFooters.length === 0 && (
+                                        <p className="no-templates">No footer templates saved yet. Create one below!</p>
+                                    )}
+                                </div>
+                                <div className="save-footer-template">
+                                    <input
+                                        type="text"
+                                        value={footerName}
+                                        onChange={e => setFooterName(e.target.value)}
+                                        placeholder="Template name (optional)"
+                                        className="box-input footer-name-input"
+                                    />
+                                    <button
+                                        className="btn-save-template"
+                                        onClick={saveFooterTemplate}
+                                        title="Save current footer as template"
+                                    >
+                                        + Save Current Footer
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="field-group">
+                                <label>HTML Footer (Optional)</label>
+                                <textarea
+                                    value={htmlFooter}
+                                    onChange={e => setHtmlFooter(e.target.value)}
+                                    placeholder="<p>Custom footer HTML...</p>"
+                                    className="box-input"
+                                    rows={3}
                                 />
                             </div>
                         </section>
                     </div>
 
-                    {/* Middle Right: Preview (Existing) */}
+                    {/* Middle: Preview */}
                     <div className="preview-col">
                         <section className="card-section">
-                            <label className="section-label">Live Email Preview</label>
-                            <div className="email-preview-frame">
+                            <div className="preview-header">
+                                <label className="section-label">Live Email Preview</label>
+                                <div className="preview-toggle">
+                                    <button
+                                        className={`toggle-btn ${previewMode === 'desktop' ? 'active' : ''}`}
+                                        onClick={() => setPreviewMode('desktop')}
+                                    >
+                                        🖥️ Desktop
+                                    </button>
+                                    <button
+                                        className={`toggle-btn ${previewMode === 'phone' ? 'active' : ''}`}
+                                        onClick={() => setPreviewMode('phone')}
+                                    >
+                                        📱 Phone
+                                    </button>
+                                </div>
+                            </div>
+                            <div className={`email-preview-frame ${previewMode}`}>
                                 <div className="email-header">
                                     <h2 className="email-subject">{subject}</h2>
                                 </div>
@@ -296,8 +369,14 @@ export default function NewsletterSender() {
                                 </div>
                                 <hr className="email-divider" />
                                 <div className="email-footer">
-                                    You received this because you are subscribed to updates from Abodid. <br />
-                                    <span style={{ textDecoration: 'underline' }}>Unsubscribe</span>
+                                    {htmlFooter ? (
+                                        <div dangerouslySetInnerHTML={{ __html: htmlFooter }} />
+                                    ) : (
+                                        <>
+                                            You received this because you are subscribed to updates from Abodid. <br />
+                                            <span style={{ textDecoration: 'underline' }}>Unsubscribe</span>
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         </section>
@@ -331,7 +410,7 @@ export default function NewsletterSender() {
 
                         <div className="action-box">
                             <h4 className="action-title">Test First</h4>
-                            <p className="action-desc">Send a preview to <strong>{adminEmail}</strong></p>
+                            <p className="action-desc">Send a preview to <strong>abodidsahoo@gmail.com</strong></p>
                             <button
                                 className="btn sec full-width"
                                 onClick={() => handleSend(true)}
@@ -418,7 +497,7 @@ export default function NewsletterSender() {
                 }
                 .sender-grid {
                     display: grid;
-                    grid-template-columns: 250px 1.5fr 1.5fr 320px; /* Adjusted columns */
+                    grid-template-columns: 2fr 1.5fr 300px; /* Compose, Preview, Actions */
                     gap: 2rem;
                     align-items: start;
                 }
@@ -434,34 +513,54 @@ export default function NewsletterSender() {
                     resize: vertical;
                 }
                 .box-input:focus { border-color: var(--text-primary); outline: none; }
+                
+                .markdown-editor {
+                    font-family: 'Monaco', 'Menlo', monospace;
+                    font-size: 0.9rem;
+                    line-height: 1.6;
+                    min-height: 400px;
+                }
+                
                 .field-group { margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
                 .field-group label { font-size: 0.7rem; text-transform: uppercase; color: var(--text-secondary); font-weight: 600; letter-spacing: 0.05em; }
                 .form-group { margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
                 .form-group label { font-size: 0.7rem; text-transform: uppercase; color: var(--text-secondary); font-weight: 600; letter-spacing: 0.05em; }
 
-                /* RESOURCE PICKER STYLES */
-                .resources-list {
-                    display: flex; flex-direction: column; gap: 10px;
-                    max-height: 700px; overflow-y: auto;
-                    padding-right: 5px;
+                /* PREVIEW HEADER AND TOGGLE */
+                .preview-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 1rem;
                 }
-                .resource-item {
-                    background: var(--bg-color);
+                .preview-toggle {
+                    display: flex;
+                    gap: 0.5rem;
+                }
+                .toggle-btn {
+                    padding: 0.5rem 1rem;
                     border: 1px solid var(--border-subtle);
-                    border-radius: 6px; padding: 10px;
-                    cursor: pointer; transition: 0.2s;
+                    background: transparent;
+                    color: var(--text-secondary);
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-size: 0.85rem;
+                    transition: 0.2s;
                 }
-                .resource-item:hover { border-color: var(--text-primary); transform: translateX(2px); }
-                .res-title { font-weight: 600; font-size: 0.9rem; margin-bottom: 4px; color: var(--text-primary); }
-                .res-desc { font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 8px; }
-                .res-action { font-size: 0.7rem; color: var(--accent-primary); text-transform: uppercase; letter-spacing: 0.05em; font-weight: bold; }
-                .empty-msg { font-size: 0.8rem; color: var(--text-secondary); font-style: italic; }
+                .toggle-btn.active {
+                    background: var(--text-primary);
+                    color: var(--bg-color);
+                    border-color: var(--text-primary);
+                }
+                .toggle-btn:hover:not(.active) {
+                    background: var(--bg-surface-hover);
+                }
 
                 /* PREVIEW STYLES */
                 .email-preview-frame {
                     background: #fff; /* Email is usually white */
                     color: #333;
-                    border: 1px solid #e5e7eb;
+                    border: none;
                     border-radius: 8px;
                     padding: 20px;
                     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -470,6 +569,11 @@ export default function NewsletterSender() {
                     box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
                     overflow-y: auto;
                     max-height: 80vh;
+                    transition: max-width 0.3s ease;
+                }
+                .email-preview-frame.phone {
+                    max-width: 375px;
+                    margin: 0 auto;
                 }
                 .email-subject { color: #111; margin: 0 0 1rem 0; font-size: 1.5rem; font-weight: 700; line-height: 1.2; min-height: 1.2em; }
                 .email-body { white-space: pre-wrap; font-size: 16px; }
@@ -507,13 +611,97 @@ export default function NewsletterSender() {
                 .status-alert.error { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
                 .status-alert.sending { background: rgba(59, 130, 246, 0.1); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.2); }
 
-                @media (max-width: 1400px) {
-                    .sender-grid { grid-template-columns: 1fr 1fr 1fr; } 
-                    .resources-col { display: none; } /* Hide on smaller screens or make specific UI */
+                /* FOOTER TEMPLATES */
+                .footer-templates {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.8rem;
+                    margin-bottom: 1rem;
                 }
-                @media (max-width: 1200px) {
-                    .sender-grid { grid-template-columns: 1fr 1fr; }
-                    .action-col { grid-column: span 2; flex-direction: row; }
+                .footer-template-card {
+                    background: var(--bg-surface-hover);
+                    border: 1px solid var(--border-subtle);
+                    border-radius: 8px;
+                    padding: 0.8rem 1rem;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    gap: 1rem;
+                }
+                .footer-template-info {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.2rem;
+                    overflow: hidden;
+                }
+                .footer-template-name {
+                    font-weight: 600;
+                    font-size: 0.9rem;
+                    color: var(--text-primary);
+                }
+                .footer-template-preview {
+                    font-size: 0.75rem;
+                    color: var(--text-secondary);
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
+                .footer-template-actions {
+                    display: flex;
+                    gap: 0.5rem;
+                    flex-shrink: 0;
+                }
+                .btn-small {
+                    padding: 0.4rem 0.8rem;
+                    font-size: 0.8rem;
+                    border-radius: 4px;
+                }
+                .btn-danger {
+                    background: rgba(239, 68, 68, 0.1);
+                    color: #ef4444;
+                    border: 1px solid rgba(239, 68, 68, 0.2);
+                }
+                .btn-danger:hover {
+                    background: #ef4444;
+                    color: #fff;
+                }
+                .save-footer-template {
+                    display: flex;
+                    gap: 0.8rem;
+                    align-items: center;
+                    margin-top: 0.5rem;
+                }
+                .footer-name-input {
+                    flex: 1;
+                }
+                .btn-save-template {
+                    white-space: nowrap;
+                    padding: 0.8rem 1.2rem;
+                    background: var(--bg-surface-hover);
+                    border: 1px dashed var(--border-strong);
+                    color: var(--text-primary);
+                    border-radius: 6px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: 0.2s;
+                }
+                .btn-save-template:hover {
+                    background: var(--bg-surface);
+                    border-style: solid;
+                }
+                .no-templates {
+                    font-size: 0.85rem;
+                    color: var(--text-secondary);
+                    font-style: italic;
+                    text-align: center;
+                    padding: 1rem;
+                    border: 1px dashed var(--border-subtle);
+                    border-radius: 8px;
+                }
+
+                @media (max-width: 1400px) {
+                    .sender-grid { grid-template-columns: 1fr 1fr; } 
+                    .action-col { grid-column: span 2; flex-direction: row; flex-wrap: wrap; }
                 }
                 @media (max-width: 900px) {
                     .sender-grid { grid-template-columns: 1fr; }

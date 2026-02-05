@@ -1,0 +1,251 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const title = "Leave a Note";
+const description = "Share your experience working with me.";
+---
+
+<BaseLayout title={title}>
+    <header class="page-header">
+        <h1>{title}</h1>
+        <p class="subtitle">{description}</p>
+    </header>
+
+    <section class="content-section">
+        <div class="form-card">
+            <h3>Your Words</h3>
+            <p class="form-hint">
+                Your email is not required. Just your honest experience.
+            </p>
+
+            <form id="testimonial-form" class="t-form">
+                <div class="form-group half">
+                    <input
+                        type="text"
+                        name="name"
+                        placeholder="Your Name *"
+                        required
+                    />
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <input
+                            type="text"
+                            name="role"
+                            placeholder="Your Role (Optional)"
+                        />
+                        <span class="hint">e.g. Creative Director</span>
+                    </div>
+                    <div class="form-group">
+                        <input
+                            type="text"
+                            name="company"
+                            placeholder="Company (Optional)"
+                        />
+                        <span class="hint">e.g. Freelance / Studio X</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <textarea
+                        name="content"
+                        rows="4"
+                        placeholder="How was our collaboration? *"
+                        required></textarea>
+                </div>
+
+                <button type="submit" class="submit-btn contrast-active">
+                    <span>Publish Note</span>
+                </button>
+                <p id="t-message" class="message"></p>
+            </form>
+        </div>
+    </section>
+</BaseLayout>
+
+<script>
+    const form = document.getElementById("testimonial-form");
+    const msg = document.getElementById("t-message");
+
+    if (form) {
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const btn = form.querySelector("button");
+
+            if (!btn) return;
+            const originalText = btn.innerText;
+
+            btn.disabled = true;
+            btn.innerText = "Publishing...";
+
+            try {
+                // @ts-ignore
+                const formData = new FormData(form);
+                const res = await fetch("/api/testimonials", {
+                    method: "POST",
+                    body: formData,
+                });
+
+                const json = await res.json();
+
+                if (res.ok) {
+                    if (msg) {
+                        msg.textContent = "Thanks. Your note is live.";
+                        msg.className = "message success";
+                    }
+
+                    // Reset form
+                    // @ts-ignore
+                    form.reset();
+                } else {
+                    throw new Error(json.message || "Failed");
+                }
+            } catch (error) {
+                if (msg) {
+                    // @ts-ignore
+                    msg.textContent = error.message || "Something went wrong.";
+                    msg.className = "message error";
+                }
+            } finally {
+                btn.disabled = false;
+                btn.innerText = originalText;
+
+                // Clear success message after a while
+                if (msg && msg.classList.contains("success")) {
+                    setTimeout(() => {
+                        msg.textContent = "";
+                        msg.className = "message";
+                    }, 5000);
+                }
+            }
+        });
+    }
+</script>
+
+<style>
+    .page-header {
+        text-align: center;
+        margin-bottom: 4rem;
+    }
+
+    .subtitle {
+        color: var(--text-secondary);
+        font-family: var(--font-serif);
+        font-style: italic;
+    }
+
+    /* Form Section */
+    .form-card {
+        background: var(--bg-surface);
+        padding: 2.5rem;
+        border-radius: 12px;
+        max-width: 600px;
+        margin: 0 auto 4rem;
+        border: 1px solid var(--border-subtle);
+    }
+
+    .form-card h3 {
+        margin-top: 0;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-hint {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        margin-bottom: 2rem;
+    }
+
+    .t-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    input,
+    textarea {
+        width: 100%;
+        padding: 0.8rem;
+        background: var(--bg-color);
+        border: 1px solid var(--border-subtle);
+        border-radius: 6px;
+        color: var(--text-primary);
+        font-family: var(--font-sans);
+        font-size: 0.95rem;
+        transition: border-color 0.2s;
+        box-sizing: border-box;
+    }
+
+    input:focus,
+    textarea:focus {
+        outline: none;
+        border-color: var(--text-primary);
+    }
+
+    .hint {
+        display: block;
+        font-size: 0.75rem;
+        color: var(--text-tertiary);
+        margin-top: 0.4rem;
+    }
+
+    /* 
+     * BUTTON FIX: 
+     * Using .contrast-active to force high contrast logic:
+     * Background = Text Primary (White in Dark, Black in Light)
+     * Text = Text Inverse (Black in Dark, White in Light)
+     */
+    .submit-btn {
+        background: var(--text-primary);
+        color: var(--bg-canvas); /* Ensures contrast */
+        border: none;
+        padding: 1rem;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: opacity 0.2s;
+        text-transform: uppercase; /* Match site style */
+        letter-spacing: 0.05em;
+    }
+
+    /* Explicit overrides for robust visibility */
+    :global([data-theme="light"]) .submit-btn {
+        background: #000;
+        color: #fff;
+    }
+    :global([data-theme="dark"]) .submit-btn {
+        background: #fff;
+        color: #000;
+    }
+
+    .submit-btn:hover {
+        opacity: 0.9;
+    }
+
+    .message {
+        text-align: center;
+        font-size: 0.9rem;
+        min-height: 1.2em;
+    }
+    .message.success {
+        color: #2ecc71;
+    }
+    .message.error {
+        color: #e74c3c;
+    }
+
+    @media (max-width: 600px) {
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+        .form-card {
+            padding: 1.5rem;
+        }
+    }
+</style>

@@ -71,27 +71,21 @@ const finalType = type || dbMetadata?.og_type || "website";
     />
     <!-- Dynamic SEO & Social Images applied -->
 
-    <!-- Theme Initialization to prevent FOUC -->
+    <!-- Theme Initialization to prevent FOUC - ALWAYS DARK MODE -->
     <script is:inline>
-      const theme = (() => {
-        if (
-          typeof localStorage !== "undefined" &&
-          localStorage.getItem("theme")
-        ) {
-          return localStorage.getItem("theme");
-        }
-        if (window.matchMedia("(prefers-color-scheme: light)").matches) {
-          return "light";
-        }
-        return "dark";
-      })();
+      // Force dark mode site-wide - ignore light mode preferences
+      // Only exception is reader-mode on blog posts (handled separately)
+      const theme = "dark";
 
-      if (theme === "light") {
-        document.documentElement.setAttribute("data-theme", "light");
-      } else {
-        document.documentElement.setAttribute("data-theme", "dark");
+      document.documentElement.setAttribute("data-theme", "dark");
+
+      // Clear any old light mode preferences
+      if (typeof localStorage !== "undefined") {
+        const oldTheme = localStorage.getItem("theme");
+        if (oldTheme === "light") {
+          localStorage.removeItem("theme");
+        }
       }
-      window.localStorage.setItem("theme", theme);
     </script>
   </head>
   <body>

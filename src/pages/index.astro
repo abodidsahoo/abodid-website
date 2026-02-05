@@ -22,6 +22,7 @@ import BrandFilmStrip from "../components/BrandFilmStrip";
 import CardStacker from "../components/CardStacker.jsx";
 import LiquidCursor from "../components/LiquidCursor.jsx";
 import AudioControl from "../components/AudioControl.jsx";
+import ForceDarkMode from "../components/ForceDarkMode.astro";
 
 const pageTitle = "Home";
 // Helper to safely fetch data
@@ -82,10 +83,13 @@ const odishaUrl = findLink("Odisha");
 ---
 
 <BaseLayout title={pageTitle}>
+    <!-- Force dark mode on landing page - core to the experience -->
+    <ForceDarkMode />
+
     <!-- Only load Audio on Desktop/Tablet to save massive bandwidth/battery on mobile -->
     <AudioControl
         client:media="(min-width: 769px)"
-        src="https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/music/her.mp3"
+        src="https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/music/mix.mp3"
     />
     <!-- Disable Liquid Cursor on mobile (touch devices don't need it and it's heavy) -->
     <LiquidCursor client:media="(min-width: 769px)" />
@@ -96,12 +100,11 @@ const odishaUrl = findLink("Odisha");
     <div class="card-stack-wrapper">
         <div class="snap-top"></div>
         <CardStacker
-            client:media="(min-width: 769px)"
+            client:only="react"
             images={featuredPhotography}
             anchorX="50%"
             anchorY="50%"
         />
-        <!-- Overlays for First "Page" -->
         <div class="landing-overlays">
             <!-- Bottom Scroll Hint -->
             <div class="scroll-hint">SCROLL DOWN</div>

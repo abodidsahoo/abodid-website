@@ -75,6 +75,21 @@ const AudioControl = ({ src }) => {
                 </span>
             </button>
 
+            {/* Hint text with slow reveal animation */}
+            <AnimatePresence>
+                {!hasInteracted && (
+                    <motion.span
+                        className="audio-hint"
+                        initial={{ opacity: 0, filter: 'blur(4px)' }}
+                        animate={{ opacity: 1, filter: 'blur(0px)' }}
+                        exit={{ opacity: 0 }}
+                        transition={{ delay: 2.5, duration: 2, ease: 'easeOut' }}
+                    >
+                        Click the play button for a fuller experience.
+                    </motion.span>
+                )}
+            </AnimatePresence>
+
             <style>{`
                 .audio-control-wrapper {
                     position: fixed;
@@ -118,6 +133,23 @@ const AudioControl = ({ src }) => {
                     font-size: 0.75rem;
                     color: white;
                     letter-spacing: 0.05em;
+                }
+
+                .audio-hint {
+                    font-family: 'Inconsolata', monospace;
+                    font-size: 0.65rem;
+                    color: rgba(255, 255, 255, 0.5);
+                    margin-left: 16px;
+                    letter-spacing: 0.02em;
+                    white-space: nowrap;
+                    font-weight: 300;
+                }
+
+                /* Hide hint on mobile/tablet */
+                @media (max-width: 1024px) {
+                    .audio-hint {
+                        display: none;
+                    }
                 }
             `}</style>
         </motion.div>
