@@ -140,13 +140,22 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         button {
             padding: 1rem;
             border-radius: 8px;
-            background: var(--text-primary);
-            color: var(--text-inverse);
+            /* Default: Dark Theme (High Contrast White Button) */
+            background-color: #ffffff;
+            color: #000000;
             font-weight: 600;
             border: 1px solid var(--border-subtle);
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition:
+                transform 0.2s ease,
+                box-shadow 0.2s ease; /* Removed color transition to avoid ghosting */
             margin-top: 1rem;
+        }
+
+        /* Light Theme Override (High Contrast Black Button) */
+        :global([data-theme="light"]) button {
+            background-color: #1a1a1a;
+            color: #ffffff;
         }
         button:hover {
             opacity: 0.9;
