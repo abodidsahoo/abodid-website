@@ -4,6 +4,7 @@ import UserList from './UserList';
 import TagInput from '../resources/TagInput';
 import ListView from './ListView';
 import BrandManager from './BrandManager';
+import NewsletterSender from './NewsletterSender';
 
 const SECTIONS = [
     { id: 'dashboard', label: 'Overview', icon: '📊' },
@@ -14,13 +15,14 @@ const SECTIONS = [
     { id: 'blog', label: 'Blog', icon: '✍️' },
     { id: 'research', label: 'Research', icon: '🔬' },
     { id: 'hub_resources', label: 'Resources', icon: '📚' },
+    { id: 'newsletter', label: 'Newsletter', icon: '📧' },
     { id: 'page_metadata', label: 'Metadata', icon: '⚙️' },
 ];
 
 export default function AdminDashboard() {
     const [session, setSession] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [stats, setStats] = useState({ photography: 0, films: 0, posts: 0, projects: 0, metadata: 0, users: 0, resources: 0 });
+    const [stats, setStats] = useState({ photography: 0, films: 0, posts: 0, projects: 0, metadata: 0, users: 0, resources: 0, subscribers: 0 });
     const [activeSection, setActiveSection] = useState('dashboard');
     const [recentActivity, setRecentActivity] = useState([]);
     const [connectionError, setConnectionError] = useState(null);
@@ -112,7 +114,7 @@ export default function AdminDashboard() {
 
     const fetchStats = async () => {
         if (!supabase) return;
-        const tableNames = ['photography', 'films', 'blog', 'research', 'hub_resources', 'page_metadata', 'profiles'];
+        const tableNames = ['photography', 'films', 'blog', 'research', 'hub_resources', 'page_metadata', 'profiles', 'subscribers'];
         const newStats = {};
         for (const name of tableNames) {
             const { count, error } = await supabase.from(name).select('*', { count: 'exact', head: true });
@@ -141,7 +143,9 @@ export default function AdminDashboard() {
                 { name: 'films', type: 'Film', icon: '🎬' },
                 { name: 'blog', type: 'Post', icon: '✍️' },
                 { name: 'research', type: 'Research', icon: '🔬' },
+                { name: 'research', type: 'Research', icon: '🔬' },
                 { name: 'hub_resources', type: 'Resource', icon: '📚' },
+                { name: 'subscribers', type: 'Subscriber', icon: '📧' },
                 { name: 'profiles', type: 'User', icon: '👤' }
             ];
 
@@ -303,6 +307,7 @@ export default function AdminDashboard() {
                                 <DashboardCard title="Blog" count={stats.blog} icon="✍️" onClick={() => setActiveSection('blog')} loading={loading} />
                                 <DashboardCard title="Research" count={stats.research} icon="🔬" onClick={() => setActiveSection('research')} loading={loading} />
                                 <DashboardCard title="Resources" count={stats.pendingResources > 0 ? `${stats.resources} (${stats.pendingResources} Pending)` : stats.resources} icon="📚" onClick={() => setActiveSection('hub_resources')} loading={loading} />
+                                <DashboardCard title="Subscribers" count={stats.subscribers} icon="📧" onClick={() => setActiveSection('newsletter')} loading={loading} />
                             </div>
 
                             {/* Split View: Activity + Planning */}
@@ -376,7 +381,13 @@ export default function AdminDashboard() {
                         </div>
                     )}
 
-                    {activeSection !== 'dashboard' && activeSection !== 'users' && activeSection !== 'brands' && (
+                    {activeSection === 'newsletter' && (
+                        <div className="newsletter-section">
+                            <NewsletterSender />
+                        </div>
+                    )}
+
+                    {activeSection !== 'dashboard' && activeSection !== 'users' && activeSection !== 'brands' && activeSection !== 'newsletter' && (
                         <ListView
                             table={activeSection}
                             title={SECTIONS.find(s => s.id === activeSection)?.label}

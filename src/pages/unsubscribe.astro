@@ -1,0 +1,167 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout
+    title="Unsubscribe | Abodid Sahoo"
+    description="Manage your subscription preferences."
+>
+    <div class="unsubscribe-container">
+        <div class="card">
+            <h1>Unsubscribe</h1>
+            <p id="desc-text">
+                Enter your email address below to unsubscribe from the
+                newsletter. You won't receive any further updates.
+            </p>
+
+            <form id="unsub-form" class="form">
+                <div class="input-group">
+                    <input
+                        type="email"
+                        name="email"
+                        id="email"
+                        placeholder="your@email.com"
+                        required
+                    />
+                </div>
+                <button type="submit" id="submit-btn" class="btn-primary"
+                    >Unsubscribe</button
+                >
+                <div id="message" class="message"></div>
+            </form>
+
+            <a href="/" id="home-link" class="home-link" style="display: none;"
+                >Return to Home</a
+            >
+        </div>
+    </div>
+
+    <script>
+        // Pre-fill email from URL if present
+        const params = new URLSearchParams(window.location.search);
+        const emailParam = params.get("email");
+        const emailInput = document.getElementById("email") as HTMLInputElement;
+
+        if (emailParam && emailInput) {
+            emailInput.value = emailParam;
+        }
+
+        const form = document.getElementById("unsub-form");
+        const messageDiv = document.getElementById("message");
+        const btn = document.getElementById("submit-btn") as HTMLButtonElement;
+
+        form?.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            if (!btn || !messageDiv || !emailInput) return;
+
+            const email = emailInput.value;
+            btn.disabled = true;
+            btn.innerText = "Processing...";
+            messageDiv.innerText = "";
+            messageDiv.className = "message";
+
+            try {
+                const res = await fetch("/api/unsubscribe", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email }),
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    messageDiv.innerText =
+                        "You have been successfully unsubscribed.";
+                    messageDiv.classList.add("success");
+                    btn.innerText = "Unsubscribed";
+
+                    // Show home link
+                    const homeLink = document.getElementById("home-link");
+                    if (homeLink) homeLink.style.display = "block";
+                } else {
+                    throw new Error(data.error || "Something went wrong.");
+                }
+            } catch (err: any) {
+                messageDiv.innerText = err.message;
+                messageDiv.classList.add("error");
+                btn.disabled = false;
+                btn.innerText = "Unsubscribe";
+            }
+        });
+    </script>
+
+    <style>
+        .unsubscribe-container {
+            min-height: 80vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        .card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            padding: 3rem;
+            border-radius: 12px;
+            max-width: 450px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+        p {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        input {
+            width: 100%;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-subtle);
+            background: var(--bg-color);
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+        input:focus {
+            outline: none;
+            border-color: var(--text-primary);
+        }
+
+        button {
+            padding: 1rem;
+            border-radius: 8px;
+            background: var(--text-primary);
+            color: var(--bg-color);
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .message {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            min-height: 1.5em;
+        }
+        .message.success {
+            color: #10b981;
+        }
+        .message.error {
+            color: #ef4444;
+        }
+    </style>
+</BaseLayout>
