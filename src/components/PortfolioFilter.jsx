@@ -35,7 +35,7 @@ const PortfolioFilter = ({ items }) => {
         <button
             key={category}
             onClick={() => setActiveTag(category)}
-            className={`filter-btn ${activeTag === category ? 'active' : ''}`}
+            className={`filter-btn ${activeTag === category ? 'contrast-active' : ''}`}
         >
             {category}
         </button>
@@ -145,11 +145,7 @@ const PortfolioFilter = ({ items }) => {
             color: var(--text-primary);
         }
 
-        .filter-btn.active {
-            background: var(--text-primary);
-            color: #000000;
-            border-color: var(--text-primary);
-        }
+
 
         /* Photography Grid */
         .photography-grid {

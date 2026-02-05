@@ -208,13 +208,18 @@ const Header = () => {
                     padding: 0 4vw;
                 }
                 .nav-center { display: flex; justify-content: center; }
-                .nav-right { display: flex; justify-content: flex-end; }
+                .nav-right { 
+                    display: flex; 
+                    justify-content: flex-end;
+                    color: rgba(255, 255, 255, 0.9); /* Force white text on dark header */
+                }
                 
                 .mobile-breadcrumbs-row {
                     display: none; /* Hidden by default */
                     padding: 0.5rem 4vw 0.5rem; /* Tight top/bottom padding */
                     width: 100%;
                     background: rgba(5, 5, 5, 0.95); /* Slight distinction or match bg */
+                    color: rgba(255, 255, 255, 0.9); /* Force white text */
                 }
 
                 /* LOGO VARIANTS */
@@ -222,12 +227,15 @@ const Header = () => {
                 .mobile-logo { display: none; }
 
                 @media (max-width: 768px) {
-                    .desktop-only-breadcrumbs { display: none !important; }
+                    .desktop-only-breadcrumbs { 
+                        display: none !important; 
+                    }
                     .mobile-breadcrumbs-row { 
                         display: block;
-                        padding: 0.5rem 4vw 0.5rem; /* Tight top/bottom padding */
+                        padding: 0.5rem 4vw 0.5rem; 
                         width: 100%;
-                        background: rgba(5, 5, 5, 0.95); /* Slight distinction or match bg */
+                        background: rgba(5, 5, 5, 0.95); 
+                        color: rgba(255, 255, 255, 0.9); /* Force white text for visibility */
                     }
                     .nav-grid { 
                         height: 70px; /* Reduced mobile height */

@@ -86,8 +86,7 @@ const FilmsFilter = ({ items }) => {
     const renderButton = (category) => (
         <button
             key={category}
-            onClick={() => setActiveTag(category)}
-            className={`filter-btn ${activeTag === category ? 'active' : ''}`}
+            className={`filter-btn ${activeTag === category ? 'contrast-active' : ''}`}
         >
             {category}
         </button>
@@ -204,11 +203,7 @@ const FilmsFilter = ({ items }) => {
                     color: var(--text-primary);
                 }
 
-                .filter-btn.active {
-                    background: var(--text-primary);
-                    color: #000000;
-                    border-color: var(--text-primary);
-                }
+
 
                 /* Grid */
                 .films-grid {

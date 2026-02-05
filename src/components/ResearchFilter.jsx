@@ -63,8 +63,7 @@ const ResearchFilter = ({ papers }) => {
                     {sortedTags.map(tag => (
                         <button
                             key={tag}
-                            onClick={() => setActiveTag(tag)}
-                            className={`filter-btn ${activeTag === tag ? 'active' : ''}`}
+                            className={`filter-btn ${activeTag === tag ? 'contrast-active' : ''}`}
                         >
                             {tag}
                         </button>
@@ -89,7 +88,7 @@ const ResearchFilter = ({ papers }) => {
                                     {paper.tags && paper.tags.map(tag => (
                                         <button
                                             key={tag}
-                                            className={`paper-tag ${activeTag === tag ? 'highlight' : ''}`}
+                                            className={`paper-tag ${activeTag === tag ? 'contrast-active' : ''}`}
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 setActiveTag(tag);
@@ -178,11 +177,7 @@ const ResearchFilter = ({ papers }) => {
                     color: var(--text-primary);
                 }
 
-                .filter-btn.active {
-                    background: var(--text-primary);
-                    color: #000000;
-                    border-color: var(--text-primary);
-                }
+
 
                 /* List Layout */
                 .papers-list {
@@ -248,9 +243,10 @@ const ResearchFilter = ({ papers }) => {
                     transition: all 0.2s ease;
                 }
 
-                .paper-tag:hover, .paper-tag.highlight {
-                    color: var(--text-primary);
-                    border-color: var(--text-secondary);
+                .paper-tag:hover, .paper-tag.contrast-active {
+                    color: var(--text-inverse);
+                    background-color: var(--text-primary);
+                    border-color: var(--text-primary);
                 }
 
                 /* Download Button */

@@ -38,7 +38,7 @@ const BlogFilter = ({ posts }) => { // Changed prop from items to posts for clar
                         <button
                             key={category}
                             onClick={() => setActiveTag(category)}
-                            className={`filter-btn ${activeTag === category ? 'active' : ''}`}
+                            className={`filter-btn ${activeTag === category ? 'contrast-active' : ''}`}
                         >
                             {category}
                         </button>
@@ -134,11 +134,7 @@ const BlogFilter = ({ posts }) => { // Changed prop from items to posts for clar
             color: var(--text-primary);
         }
 
-        .filter-btn.active {
-            background: var(--text-primary);
-            color: #000000;
-            border-color: var(--text-primary);
-        }
+
 
         .blog-list {
             list-style: none;

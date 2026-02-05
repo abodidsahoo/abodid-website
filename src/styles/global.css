@@ -263,8 +263,19 @@ main {
 }
 
 /* Hide background effects in Reader Mode to reduce distraction */
-[data-reader-mode="true"] .global-grid-bg,
 [data-reader-mode="true"] .global-glow-bg {
     opacity: 0 !important;
     visibility: hidden !important;
+}
+
+/* 
+ * UTILITY: High Contrast Active State (Global)
+ * Ensures text is always visible on active backgrounds using instant transition logic.
+ */
+.contrast-active {
+    background-color: var(--text-primary) !important;
+    color: var(--text-inverse) !important;
+    border-color: var(--text-primary) !important;
+    /* Disable color transition for instant visibility switch */
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease !important;
 }
