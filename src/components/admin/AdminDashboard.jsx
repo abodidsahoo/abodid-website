@@ -595,12 +595,13 @@ export default function AdminDashboard() {
 
                  .btn-view-live {
                     display: flex; align-items: center; justify-content: center;
-                    background: var(--text-primary); color: var(--bg-color); padding: 1rem;
+                    background: #ffffff; color: #000000; padding: 1rem;
+                    border: 1px solid #e1e1e1;
                     border-radius: 12px; font-weight: 600; text-decoration: none;
-                    transition: transform 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                    transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.05);
                     flex-shrink: 0;
                 }
-                .btn-view-live:hover { transform: translateY(-2px); opacity: 0.95; }
+                .btn-view-live:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.1); background: #f9fafb; }
                 
                 /* Large Calendar Styles */
                 .planning-calendar { display: flex; flex-direction: column; height: 100%; flex: 1; }

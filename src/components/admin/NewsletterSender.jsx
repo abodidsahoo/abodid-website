@@ -23,6 +23,8 @@ export default function NewsletterSender() {
     const [resources, setResources] = useState([]);
     const [newSubscriber, setNewSubscriber] = useState('');
     const [addSubStatus, setAddSubStatus] = useState('');
+    const [senderName, setSenderName] = useState('Abodid');
+    const [senderEmail, setSenderEmail] = useState('newsletter@abodid.com');
 
     useEffect(() => {
         fetchSubscribers();
@@ -90,19 +92,29 @@ export default function NewsletterSender() {
         }
     };
 
-    const handleSend = async (isTest = true) => {
+    const handleSend = async (isTest = false) => {
         if (!subject || !message) {
             setStatus('error');
-            setStatusMsg('Please provide both a subject and a message.');
+            setStatusMsg('Please fill in subject and message.');
             return;
         }
 
-        if (!isTest && !window.confirm(`Are you sure you want to broadcast this to ${subscriberCount} people?`)) {
+        // Validate sender email domain
+        if (!senderEmail.endsWith('@abodid.com')) {
+            setStatus('error');
+            setStatusMsg('Sender email must end in @abodid.com');
+            return;
+        }
+
+        const targetEmail = isTest ? (adminEmail || 'abodid@abodid.com') : null;
+        const count = isTest ? 1 : (subscriberCount || 0);
+
+        if (!isTest && !window.confirm(`Are you sure you want to broadcast this to ${count} people?`)) {
             return;
         }
 
         setStatus('sending');
-        setStatusMsg(isTest ? 'Sending test email...' : `Broadcasting to ${subscriberCount} subscribers...`);
+        setStatusMsg(isTest ? 'Sending test email...' : `Broadcasting to ${count} subscribers...`);
 
         try {
             // Helper to perform the fetch
@@ -117,7 +129,11 @@ export default function NewsletterSender() {
                         subject,
                         previewText,
                         message,
-                        testEmail: adminEmail,
+                        senderName,
+                        senderEmail,
+                        senderName,
+                        senderEmail,
+                        testEmail: targetEmail,
                         isTest
                     })
                 });
@@ -174,6 +190,22 @@ export default function NewsletterSender() {
         }
     };
 
+    // Helper to add new sender email
+    const [savedSenderEmails, setSavedSenderEmails] = useState(['newsletter@abodid.com']);
+    const [isAddingEmail, setIsAddingEmail] = useState(false);
+    const [tempNewEmail, setTempNewEmail] = useState('');
+
+    const handleAddSenderEmail = () => {
+        if (tempNewEmail && tempNewEmail.endsWith('@abodid.com') && !savedSenderEmails.includes(tempNewEmail)) {
+            setSavedSenderEmails([...savedSenderEmails, tempNewEmail]);
+            setSenderEmail(tempNewEmail);
+            setIsAddingEmail(false);
+            setTempNewEmail('');
+        } else if (!tempNewEmail.endsWith('@abodid.com')) {
+            alert('Email must end with @abodid.com');
+        }
+    };
+
     return (
         <div className="newsletter-sender">
             <header className="content-header" style={{ marginBottom: '2rem' }}>
@@ -182,7 +214,7 @@ export default function NewsletterSender() {
 
             <div className="sender-card">
                 <div className="sender-grid">
-                    {/* Left: Resource Picker (NEW) */}
+                    {/* Left: Resource Picker */}
                     <div className="resources-col">
                         <section className="card-section">
                             <label className="section-label">Resource Picker</label>
@@ -204,23 +236,22 @@ export default function NewsletterSender() {
                         <section className="card-section">
                             <label className="section-label">Compose Message</label>
 
-                            <div className="field-group">
+                            <div className="form-group">
                                 <label>Subject Line</label>
                                 <input
                                     type="text"
-                                    className="box-input large"
-                                    placeholder="Subject..."
                                     value={subject}
-                                    onChange={e => setSubject(e.target.value)}
+                                    onChange={(e) => setSubject(e.target.value)}
+                                    placeholder="Enter subject line..."
+                                    className="input-field box-input" // Unified class
                                 />
                             </div>
-
                             <div className="field-group">
                                 <label>Preview Text (Preheader)</label>
                                 <input
                                     type="text"
                                     className="box-input"
-                                    placeholder="Text shown after subject in inbox..."
+                                    placeholder="Text shown in inbox preview..."
                                     value={previewText}
                                     onChange={e => setPreviewText(e.target.value)}
                                 />
@@ -257,7 +288,7 @@ export default function NewsletterSender() {
                             <label className="section-label">Live Email Preview</label>
                             <div className="email-preview-frame">
                                 <div className="email-header">
-                                    <h2 className="email-subject">{subject || 'Subject Line Preview'}</h2>
+                                    <h2 className="email-subject">{subject}</h2>
                                 </div>
                                 <div className="email-body">
                                     {/* Safe Render */}
@@ -279,7 +310,7 @@ export default function NewsletterSender() {
                             <span className="stat-val">{subscriberCount}</span>
                         </div>
 
-                        {/* Manual Add Subscriber (NEW) */}
+                        {/* Manual Add Subscriber */}
                         <div className="action-box">
                             <h4 className="action-title">Add Subscriber </h4>
                             <div style={{ display: 'flex', gap: '8px' }}>
@@ -310,15 +341,61 @@ export default function NewsletterSender() {
                             </button>
                         </div>
 
-                        <div className="action-box danger-zone">
-                            <h4 className="action-title">Broadcast</h4>
-                            <p className="action-desc">This will email everyone. No undo.</p>
+                        {/* Broadcast Section with Sender Config */}
+                        <div className="action-box danger-zone" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                            <div>
+                                <h4 className="action-title" style={{ marginBottom: '1rem' }}>Broadcast Configuration</h4>
+
+                                <div className="field-group" style={{ marginBottom: '1rem' }}>
+                                    <label>Sender Name</label>
+                                    <input
+                                        type="text"
+                                        value={senderName}
+                                        onChange={(e) => setSenderName(e.target.value)}
+                                        placeholder="e.g. Abodid"
+                                        className="box-input"
+                                    />
+                                </div>
+
+                                <div className="field-group" style={{ marginBottom: '0.5rem' }}>
+                                    <label>Sender Email</label>
+                                    {!isAddingEmail ? (
+                                        <div style={{ display: 'flex', gap: '8px' }}>
+                                            <select
+                                                className="box-input"
+                                                value={senderEmail}
+                                                onChange={(e) => e.target.value === 'ADD_NEW' ? setIsAddingEmail(true) : setSenderEmail(e.target.value)}
+                                            >
+                                                {savedSenderEmails.map(email => (
+                                                    <option key={email} value={email}>{email}</option>
+                                                ))}
+                                                <option value="ADD_NEW">+ Add New Email</option>
+                                            </select>
+                                        </div>
+                                    ) : (
+                                        <div style={{ display: 'flex', gap: '8px' }}>
+                                            <input
+                                                type="email"
+                                                className="box-input"
+                                                placeholder="news@abodid.com"
+                                                value={tempNewEmail}
+                                                onChange={(e) => setTempNewEmail(e.target.value)}
+                                                autoFocus
+                                            />
+                                            <button className="btn sec" onClick={() => setIsAddingEmail(false)}>✕</button>
+                                            <button className="btn pri" onClick={handleAddSenderEmail}>✓</button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
                             <button
                                 className="btn pri full-width"
                                 onClick={() => handleSend(false)}
                                 disabled={status === 'sending' || subscriberCount === 0}
+                                style={{ padding: '1rem', fontSize: '1rem' }}
                             >
-                                {status === 'sending' && !statusMsg.includes('Test') ? 'Sending...' : 'Send to All ->'}
+                                {status === 'sending' && !statusMsg.includes('Test') ? 'Sending...' : 'Send to All'}
                             </button>
                         </div>
 
@@ -341,7 +418,7 @@ export default function NewsletterSender() {
                 }
                 .sender-grid {
                     display: grid;
-                    grid-template-columns: 250px 1.5fr 1.5fr 300px; /* 4 Columns: Resources | Compose | Preview | Actions */
+                    grid-template-columns: 250px 1.5fr 1.5fr 320px; /* Adjusted columns */
                     gap: 2rem;
                     align-items: start;
                 }
@@ -357,9 +434,10 @@ export default function NewsletterSender() {
                     resize: vertical;
                 }
                 .box-input:focus { border-color: var(--text-primary); outline: none; }
-                .box-input.large { font-size: 1.25rem; font-weight: 500; padding: 1rem; }
-                .field-group { margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
-                .field-group label { font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary); font-weight: 600; letter-spacing: 0.05em; }
+                .field-group { margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
+                .field-group label { font-size: 0.7rem; text-transform: uppercase; color: var(--text-secondary); font-weight: 600; letter-spacing: 0.05em; }
+                .form-group { margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
+                .form-group label { font-size: 0.7rem; text-transform: uppercase; color: var(--text-secondary); font-weight: 600; letter-spacing: 0.05em; }
 
                 /* RESOURCE PICKER STYLES */
                 .resources-list {
@@ -393,7 +471,7 @@ export default function NewsletterSender() {
                     overflow-y: auto;
                     max-height: 80vh;
                 }
-                .email-subject { color: #111; margin: 0 0 1rem 0; font-size: 1.5rem; font-weight: 700; line-height: 1.2; }
+                .email-subject { color: #111; margin: 0 0 1rem 0; font-size: 1.5rem; font-weight: 700; line-height: 1.2; min-height: 1.2em; }
                 .email-body { white-space: pre-wrap; font-size: 16px; }
                 .email-divider { margin: 30px 0; border: none; border-top: 1px solid #eee; }
                 .email-footer { font-size: 12px; color: #888; text-align: center; }
@@ -410,6 +488,7 @@ export default function NewsletterSender() {
 
                 .action-box { 
                     padding: 1.5rem; border: 1px solid var(--border-subtle); border-radius: 8px;
+                    background: var(--bg-surface);
                 }
                 .action-box.danger-zone { border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.02); }
                 .action-title { margin: 0 0 0.5rem 0; font-size: 1rem; font-weight: 600; }
