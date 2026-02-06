@@ -1,0 +1,715 @@
+---
+import "../styles/global.css";
+import Footer from "../components/Footer.astro";
+
+const techStack = [
+    {
+        component: "Framework",
+        tech: "Astro 5.0 (SSR) + React 19",
+        purpose: "Hybrid rendering for performance & interactivity",
+    },
+    {
+        component: "Styling",
+        tech: "Tailwind CSS + Custom CSS",
+        purpose: "Utility-first with bespoke design tokens",
+    },
+    {
+        component: "Animations",
+        tech: "GSAP 3 + Framer Motion",
+        purpose: "Fluid interactions & narrative transitions",
+    },
+    {
+        component: "Database",
+        tech: "Supabase (PostgreSQL 15)",
+        purpose: "Real-time data, auth (RLS), and storage",
+    },
+    {
+        component: "Deployment",
+        tech: "Vercel (Serverless)",
+        purpose: "Edge network delivery & serverless functions",
+    },
+    {
+        component: "Email",
+        tech: "Resend",
+        purpose: "Transactional & broadcast messaging",
+    },
+    {
+        component: "Audio",
+        tech: "Web Audio API",
+        purpose: "Native browser audio processing without bloat",
+    },
+];
+---
+
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <meta name="viewport" content="width=device-width" />
+        <meta name="generator" content={Astro.generator} />
+        <title>Website Architecture | Abodid</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300..700;1,300..700&family=Inter:wght@300;400;500;600&family=Inconsolata:wght@400;500;700&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap"
+            rel="stylesheet"
+        />
+    </head>
+    <body>
+        <div class="architecture-page">
+            <header class="arch-header">
+                <div class="system-status-bar">
+                    <div class="indicator-group user-select-none">
+                        <div class="status-indicator online"></div>
+                        <span class="mono-label">SYSTEM STATUS: ONLINE</span>
+                    </div>
+                </div>
+
+                <h1 class="arch-title">Website Architecture</h1>
+                <p class="arch-intro">
+                    This digital space is a living, breathing extension of my
+                    mind. <br class="hidden md:block" />
+                    It is designed to be a "Dark Room" for my work — a place where
+                    ideas develop slowly and clearly.
+                </p>
+            </header>
+
+            <main class="arch-grid">
+                {/* Tech Stack Section */}
+                <section class="arch-section">
+                    <h2 class="section-title">01 // The Stack</h2>
+                    <div class="table-container">
+                        <table class="tech-table">
+                            <thead>
+                                <tr>
+                                    <th>Component</th>
+                                    <th>Technology</th>
+                                    <th>Purpose</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {
+                                    techStack.map((item) => (
+                                        <tr>
+                                            <td>{item.component}</td>
+                                            <td class="highlight">
+                                                {item.tech}
+                                            </td>
+                                            <td class="muted">
+                                                {item.purpose}
+                                            </td>
+                                        </tr>
+                                    ))
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                {/* Typography & Design System */}
+                <section class="arch-section two-col">
+                    <div class="col-content">
+                        <h2 class="section-title">02 // Typography System</h2>
+                        <ul class="feature-list">
+                            <li>
+                                <span class="bullet">→</span>
+                                <div>
+                                    <strong>Primary: Poppins</strong>
+                                    <p
+                                        style="font-family: 'Poppins', sans-serif;"
+                                    >
+                                        Geometric, clean sans-serif for UI and
+                                        body text.
+                                    </p>
+                                </div>
+                            </li>
+                            <li>
+                                <span class="bullet">→</span>
+                                <div>
+                                    <strong>Editorial: Crimson Pro</strong>
+                                    <p
+                                        style="font-family: 'Crimson Pro', serif;"
+                                    >
+                                        Classic serif for storytelling and
+                                        narrative depth.
+                                    </p>
+                                </div>
+                            </li>
+                            <li>
+                                <span class="bullet">→</span>
+                                <div>
+                                    <strong>Data/Code: Inconsolata</strong>
+                                    <p
+                                        style="font-family: 'Inconsolata', monospace;"
+                                    >
+                                        Monospace for technical specifications
+                                        and raw data.
+                                    </p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="col-content">
+                        <h2 class="section-title">
+                            03 // Logic & Optimization
+                        </h2>
+                        <ul class="feature-list">
+                            <li>
+                                <span class="bullet">→</span>
+                                <div>
+                                    <strong>Obsidian Bridge</strong>
+                                    <p>
+                                        Private Edge Function parses raw
+                                        Markdown wikilinks into HTML, bridging
+                                        personal notes to public site.
+                                    </p>
+                                </div>
+                            </li>
+                            <li>
+                                <span class="bullet">→</span>
+                                <div>
+                                    <strong>Atomic Research Engine</strong>
+                                    <p>
+                                        Client-side algorithm builds weighted
+                                        frequency clouds instantly from JSON tag
+                                        arrays.
+                                    </p>
+                                </div>
+                            </li>
+                            <li>
+                                <span class="bullet">→</span>
+                                <div>
+                                    <strong>Lazy-Performance</strong>
+                                    <p>
+                                        <code>IntersectionObserver</code> keeps DOM
+                                        light, loading 3D/Video assets only when scrolled
+                                        into view.
+                                    </p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </section>
+
+                {/* Experience Engines */}
+                <section class="arch-section two-col">
+                    <div class="col-content">
+                        <h2 class="section-title">04 // Audio Engine</h2>
+                        <ul class="feature-list">
+                            <li>
+                                <span class="bullet">→</span>
+                                <div>
+                                    <strong>Native Web Audio API</strong>
+                                    <p>
+                                        No heavy libraries. Pure browser-native
+                                        audio processing for maximum
+                                        performance.
+                                    </p>
+                                </div>
+                            </li>
+                            <li>
+                                <span class="bullet">→</span>
+                                <div>
+                                    <strong>Real-time Spectrum</strong>
+                                    <p>
+                                        Visualizes audio frequencies using FFT
+                                        (Fast Fourier Transform) data directly
+                                        on screen.
+                                    </p>
+                                </div>
+                            </li>
+                            <li>
+                                <span class="bullet">→</span>
+                                <div>
+                                    <strong>Scroll-based Ducking</strong>
+                                    <p>
+                                        Audio volume automatically lowers,
+                                        "ducking" out of the way as you scroll
+                                        down to read content.
+                                    </p>
+                                </div>
+                            </li>
+                            <li>
+                                <span class="bullet">→</span>
+                                <div>
+                                    <strong>Lyric Synchronization</strong>
+                                    <p>
+                                        Precise time-stamp checking ensures
+                                        lyrics appear exactly in rhythm with the
+                                        music.
+                                    </p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="col-content">
+                        <h2 class="section-title">
+                            05 // Interactive Experiments
+                        </h2>
+                        <ul class="feature-list">
+                            <li>
+                                <span class="bullet">→</span>
+                                <div>
+                                    <strong>Invisible Punctum</strong>
+                                    <p>
+                                        Live OpenRouter API connection analyzes
+                                        image composition to generate poetic,
+                                        AI-driven emotional narratives.
+                                    </p>
+                                </div>
+                            </li>
+                            <li>
+                                <span class="bullet">→</span>
+                                <div>
+                                    <strong>Polaroid Physics</strong>
+                                    <p>
+                                        Card-stacking mechanism uses plane
+                                        curves for distribution and
+                                        physics-based drag gestures for natural
+                                        interaction.
+                                    </p>
+                                </div>
+                            </li>
+                            <li>
+                                <span class="bullet">→</span>
+                                <div>
+                                    <strong>Algorithmic Color</strong>
+                                    <p>
+                                        Adaptive palette generator clusters
+                                        pixel data to sense the "mood" of
+                                        images, creating dynamic themes.
+                                    </p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </section>
+
+                {/* Control Room & Broadcast */}
+                <section class="arch-section two-col">
+                    <div class="col-content">
+                        <h2 class="section-title">06 // Custom CMS</h2>
+                        <ul class="feature-list">
+                            <li>
+                                <span class="bullet">→</span>
+                                <div>
+                                    <strong>Content Dashboard</strong>
+                                    <p>
+                                        Bespoke admin interface to manage
+                                        research papers, films, and journals
+                                        without touching code.
+                                    </p>
+                                </div>
+                            </li>
+                            <li>
+                                <span class="bullet">→</span>
+                                <div>
+                                    <strong>Drag &amp; Drop Sequencing</strong>
+                                    <p>
+                                        Intuitively re-order content and curated
+                                        lists using <code>dnd-kit</code> sortable
+                                        interfaces.
+                                    </p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="col-content">
+                        <h2 class="section-title">07 // Broadcast System</h2>
+                        <ul class="feature-list">
+                            <li>
+                                <span class="bullet">→</span>
+                                <div>
+                                    <strong>Newsletter Engine</strong>
+                                    <p>
+                                        Integrated system using Resend's Batch
+                                        API to email thousands of subscribers
+                                        instantly.
+                                    </p>
+                                </div>
+                            </li>
+                            <li>
+                                <span class="bullet">→</span>
+                                <div>
+                                    <strong>Audience Logic</strong>
+                                    <p>
+                                        Segmented delivery ensures the right
+                                        content reaches the right curious minds.
+                                    </p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </section>
+
+                {/* Awards & Ethics */}
+                <section class="arch-section two-col">
+                    <div class="col-content">
+                        <h2 class="section-title">
+                            08 // Ethics & Optimization
+                        </h2>
+                        <ul class="feature-list">
+                            <li>
+                                <span class="bullet">→</span>
+                                <div>
+                                    <strong>Inclusive Design</strong>
+                                    <p>
+                                        ARIA-labeled visualizers, semantic <code
+                                            >&lt;button&gt;</code
+                                        > controls, and keyboard-navigable interfaces
+                                        ensure access for all.
+                                    </p>
+                                </div>
+                            </li>
+                            <li>
+                                <span class="bullet">→</span>
+                                <div>
+                                    <strong>Zero-Tracking</strong>
+                                    <p>
+                                        No cookies, no analytics pixels, no
+                                        invasion. Just pure, unadulterated code.
+                                    </p>
+                                </div>
+                            </li>
+                            <li>
+                                <span class="bullet">→</span>
+                                <div>
+                                    <strong>Reduced Motion</strong>
+                                    <p>
+                                        Respects system preferences to disable
+                                        complex physics and parallax effects for
+                                        sensitive users.
+                                    </p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="col-content">
+                        <h2 class="section-title">09 // Award Protocols</h2>
+                        <ul class="feature-list">
+                            <li>
+                                <span class="bullet">→</span>
+                                <div>
+                                    <strong>Lighthouse Score</strong>
+                                    <p>
+                                        Targeting 4x100 (Performance,
+                                        Accessibility, Best Practices, SEO) via
+                                        static generation.
+                                    </p>
+                                </div>
+                            </li>
+                            <li>
+                                <span class="bullet">→</span>
+                                <div>
+                                    <strong>Progressive Enhancement</strong>
+                                    <p>
+                                        Core content works without JavaScript.
+                                        "Magic" is layered on top, not required
+                                        for basic consumption.
+                                    </p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </section>
+
+                {/* CTA */}
+                <section class="arch-cta">
+                    <p class="cta-text">
+                        Understanding the stack is just step one. <br />
+                        If you want to build a site like this—with your own content,
+                        ideas, and soul—I offer personalized guidance.
+                    </p>
+                    <a
+                        href="mailto:hello@abodid.com?subject=Workshop%20Inquiry"
+                        class="cta-link">Book a 1-on-1 Workshop →</a
+                    >
+                </section>
+            </main>
+        </div>
+        <Footer />
+    </body>
+</html>
+
+<style>
+    :root {
+        --bg-color: #050505;
+        --card-bg: #0a0a0a;
+        --text-main: #e5e5e5;
+        --text-muted: #888888;
+        --accent: #ff3333; /* Dark room red */
+        --border: #222;
+        --font-mono: "Space Mono", monospace;
+        --font-serif: "Crimson Pro", serif;
+        --font-sans: "Poppins", sans-serif;
+    }
+
+    body {
+        background-color: var(--bg-color);
+        color: var(--text-main);
+        font-family: var(--font-sans);
+        margin: 0;
+        overflow-x: hidden;
+    }
+
+    .architecture-page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 4rem 2rem;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* HEADER */
+    .arch-header {
+        margin-bottom: 6rem;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 3rem;
+    }
+
+    .system-status-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 3rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        letter-spacing: 0.1em;
+        color: var(--text-muted);
+    }
+
+    .indicator-group {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+    }
+
+    .status-indicator {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: var(--border);
+    }
+
+    .status-indicator.online {
+        background-color: #00ff00;
+        box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+        animation: pulse 2s infinite;
+    }
+
+    .role-switch {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .toggle-switch {
+        width: 32px;
+        height: 16px;
+        background: var(--border);
+        border-radius: 20px;
+        position: relative;
+        cursor: not-allowed; /* Just visual for now */
+    }
+
+    .toggle-knob {
+        position: absolute;
+        left: 2px;
+        top: 2px;
+        width: 12px;
+        height: 12px;
+        background: var(--text-main);
+        border-radius: 50%;
+        /* Centered for duality */
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    .arch-title {
+        font-family: var(--font-mono);
+        font-size: clamp(2rem, 5vw, 4rem);
+        font-weight: 400;
+        text-transform: uppercase;
+        letter-spacing: -0.02em;
+        margin: 0 0 1.5rem 0;
+        line-height: 1;
+    }
+
+    .arch-intro {
+        font-family: var(--font-serif);
+        font-size: 1.25rem;
+        line-height: 1.6;
+        color: var(--text-muted);
+        max-width: 600px;
+        font-style: italic;
+    }
+
+    /* SECTIONS */
+    .arch-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 6rem;
+        margin-bottom: 6rem;
+    }
+
+    .section-title {
+        font-family: var(--font-mono);
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-muted);
+        margin-bottom: 2rem;
+        display: block;
+        border-left: 2px solid var(--accent);
+        padding-left: 1rem;
+    }
+
+    /* TABLE */
+    .table-container {
+        overflow-x: auto;
+    }
+
+    .tech-table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+        font-family: var(--font-mono);
+        font-size: 0.9rem;
+    }
+
+    .tech-table th {
+        border-bottom: 1px solid var(--border);
+        padding: 1rem 0;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        font-weight: normal;
+        font-size: 0.75rem;
+    }
+
+    .tech-table td {
+        padding: 1.2rem 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .tech-table .highlight {
+        color: var(--text-main);
+        font-weight: bold;
+    }
+
+    .tech-table .muted {
+        color: var(--text-muted);
+    }
+
+    /* FEATURE LISTS */
+    .two-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4rem;
+    }
+
+    .feature-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .feature-list li {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .bullet {
+        color: var(--accent);
+        font-weight: bold;
+    }
+
+    .feature-list strong {
+        display: block;
+        color: var(--text-main);
+        margin-bottom: 0.25rem;
+        font-family: var(--font-mono);
+        font-size: 0.95rem;
+    }
+
+    .feature-list p {
+        margin: 0;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        line-height: 1.5;
+        max-width: 38ch; /* Crisper, narrower columns */
+    }
+
+    /* CTA */
+    .arch-cta {
+        text-align: center;
+        padding: 4rem 0;
+        border-top: 1px solid var(--border);
+    }
+
+    .cta-text {
+        font-family: var(--font-serif);
+        font-size: 1.5rem;
+        font-style: italic;
+        margin-bottom: 1.5rem;
+        color: var(--text-main);
+    }
+
+    .cta-link {
+        font-family: var(--font-mono);
+        color: var(--text-main);
+        text-decoration: none;
+        border: 1px solid var(--border);
+        padding: 1rem 2rem;
+        border-radius: 50px;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.1em;
+        transition: all 0.3s ease;
+    }
+
+    .cta-link:hover {
+        background: var(--text-main);
+        color: var(--bg-color);
+    }
+
+    @keyframes pulse {
+        0% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.5;
+        }
+        100% {
+            opacity: 1;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .two-col {
+            grid-template-columns: 1fr;
+            gap: 4rem;
+        }
+
+        .system-status-bar {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .tech-table {
+            font-size: 0.8rem;
+        }
+
+        .arch-title {
+            font-size: 2.5rem;
+        }
+    }
+</style>

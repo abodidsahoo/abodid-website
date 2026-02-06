@@ -54,19 +54,17 @@ export async function getAwards(): Promise<Award[]> {
         // Mock Data
         return [
             {
+                title: 'Apple Scholarship',
+                organization: 'Apple / Royal College of Art',
+                year: '2019 - 2021',
+                description: 'A prestigious full scholarship covering the entire tuition fees and a £28,000 stipend for the Master’s degree in Digital Direction at the Royal College of Art, London.',
+                published: true
+            },
+            {
                 title: 'Winner - Best Cinematography',
                 organization: 'National Film Festival',
                 year: '2023',
                 description: 'Awarded for exceptional visual storytelling in the short film "Echoes".',
-                image: 'https://via.placeholder.com/300x200?text=Award+Winner',
-                published: true
-            },
-            {
-                title: 'Finalist - Innovation in Design',
-                organization: 'Global Design Awards',
-                year: '2022',
-                description: 'Recognized for the interactive web experience "Digital Dreams".',
-                image: 'https://via.placeholder.com/300x200?text=Finalist',
                 published: true
             }
         ];
@@ -76,7 +74,8 @@ export async function getAwards(): Promise<Award[]> {
         .from('awards')
         .select('*')
         .eq('published', true)
-        .order('year', { ascending: false });
+        .order('year', { ascending: false })
+        .order('created_at', { ascending: false });
 
     if (error) {
         console.error('Error fetching awards:', error);
@@ -84,11 +83,15 @@ export async function getAwards(): Promise<Award[]> {
     }
 
     return data.map((item: any) => ({
+        id: item.id,
         title: item.title,
         organization: item.organization,
         year: item.year,
+        category: item.category,
+        value: item.value,
+        date: item.date,
+        url: item.url,
         description: item.description,
-        image: item.image_url,
         published: item.published
     } as Award));
 }
@@ -100,24 +103,31 @@ export async function getEducation(): Promise<Education[]> {
             {
                 degree: "Master of Design",
                 institution: "National Institute of Design",
-                year: "2019 - 2021",
-                description: "Focus on New Media Design",
+                location: "India",
+                course: "New Media Design",
+                start_year: "2019",
+                end_year: "2021",
+                details: "Focus on New Media Design",
                 published: true
             },
             {
                 degree: "Bachelor of Arts",
                 institution: "University of Creative Arts",
-                year: "2015 - 2018",
-                description: "Major in Film Making",
+                location: "United Kingdom",
+                course: "Film Making",
+                start_year: "2015",
+                end_year: "2018",
+                details: "Major in Film Making",
                 published: true
             }
-        ];
+        ] as Education[];
     }
 
     const { data, error } = await supabase
         .from('education')
         .select('*')
         .eq('published', true)
+        .order('sort_order', { ascending: true })
         .order('end_year', { ascending: false });
 
     if (error) {
@@ -125,13 +135,7 @@ export async function getEducation(): Promise<Education[]> {
         return [];
     }
 
-    return data.map((item: any) => ({
-        degree: item.degree,
-        institution: item.institution,
-        year: `${item.start_year} - ${item.end_year}`,
-        description: item.description,
-        published: item.published
-    } as Education));
+    return data as Education[];
 }
 
 export async function getTimelineCards(): Promise<TimelineCard[]> {
@@ -179,9 +183,9 @@ export async function getTimelineCards(): Promise<TimelineCard[]> {
 }
 
 // --- CV ---
-export async function getCVs(): Promise<CV[]> {
+export async function getCVs(): Promise<{ artistCV: CV | null, professionalCVs: CV[] }> {
     if (!isSupabaseConfigured() || !supabase) {
-        return [];
+        return { artistCV: null, professionalCVs: [] };
     }
 
     const { data, error } = await supabase
@@ -191,15 +195,20 @@ export async function getCVs(): Promise<CV[]> {
 
     if (error) {
         console.error('Error fetching CVs:', error);
-        return [];
+        return { artistCV: null, professionalCVs: [] };
     }
 
-    return data.map((cv: any) => ({
+    const cvs = data.map((cv: any) => ({
         id: cv.id,
         title: cv.title || 'Resume',
         url: cv.pdf_url,
         created_at: cv.created_at
     }));
+
+    return {
+        artistCV: cvs.find(cv => cv.title.toLowerCase().includes('artist')) || cvs[0] || null,
+        professionalCVs: cvs.filter(cv => !cv.title.toLowerCase().includes('artist'))
+    };
 }
 
 // --- Page Metadata ---

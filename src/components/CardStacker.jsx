@@ -11,7 +11,7 @@ const CardStacker = ({ images, anchorX = '65%', anchorY = '68%' }) => {
             className="card-stacker-container"
             ref={containerRef}
         >
-            <div className="stack-anchor">
+            <div className="stack-anchor" aria-hidden="true">
                 <AnimatePresence custom={lastAction}>
                     {stack.map(card => {
                         // Determine initial state

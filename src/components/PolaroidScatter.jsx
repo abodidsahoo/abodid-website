@@ -14,7 +14,7 @@ const PolaroidScatter = ({ items, immersive = false }) => {
     useEffect(() => {
         const checkBg = () => {
             const root = document.documentElement;
-            const bg = getComputedStyle(root).getPropertyValue('--darkroom-bg').trim() || '#080808';
+            const bg = getComputedStyle(root).getPropertyValue('--polaroid-hub-bg').trim() || '#080808';
 
             // Simple brightness check (Y = 0.299R + 0.587G + 0.114B)
             // Handle hex and rgb

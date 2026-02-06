@@ -56,14 +56,14 @@ for (let i = allImages.length - 1; i > 0; i--) {
     [allImages[i], allImages[j]] = [allImages[j], allImages[i]];
 }
 
-const pageTitle = "Darkroom - Polaroid Scatter";
+const pageTitle = "Polaroid Hub - Polaroid Scatter";
 ---
 
 <BaseLayout title={pageTitle} hideHeader={true} fullWidth={true}>
     <a href="/" class="home-button">Home</a>
 
     <ThemeWidget client:idle />
-    <main class="darkroom-immersive">
+    <main class="polaroid-hub-immersive">
         {/* Pass ALL images */}
         <PolaroidScatter items={allImages} client:load immersive={true} />
     </main>
@@ -71,11 +71,11 @@ const pageTitle = "Darkroom - Polaroid Scatter";
 
 <style>
     /* 
-       Darkroom specific styles to ensure full immersion.
+       Polaroid Hub specific styles to ensure full immersion.
     */
     @import url("https://fonts.googleapis.com/css2?family=Reenie+Beanie&display=swap");
 
-    .darkroom-immersive {
+    .polaroid-hub-immersive {
         position: relative;
         width: 100vw;
         min-height: 100vh;
@@ -86,7 +86,7 @@ const pageTitle = "Darkroom - Polaroid Scatter";
         /* BACKGROUND STYLES (Migrated from React for instant load) */
 
         /* --- OPTION B: DARK TEXTURED STUDIO (ACTIVE - INFINITE SCROLL) --- */
-        background-color: var(--darkroom-bg, #080808);
+        background-color: var(--polaroid-hub-bg, #080808);
 
         background-image: 
             /* LAYER 1: THE GRID (Moved to Top! White, Higher Opacity, Thicker) */
@@ -104,12 +104,12 @@ const pageTitle = "Darkroom - Polaroid Scatter";
             /* SOLID BLACK at edges to guarantee perfect tile blending */
             linear-gradient(
                     to bottom,
-                    var(--darkroom-bg, #080808) 0%,
-                    var(--darkroom-bg, #080808) 15%,
+                    var(--polaroid-hub-bg, #080808) 0%,
+                    var(--polaroid-hub-bg, #080808) 15%,
                     transparent 30%,
                     transparent 70%,
-                    var(--darkroom-bg, #080808) 85%,
-                    var(--darkroom-bg, #080808) 100%
+                    var(--polaroid-hub-bg, #080808) 85%,
+                    var(--polaroid-hub-bg, #080808) 100%
                 ),
             /* LAYER 3: NOISE TEXTURE */
             url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.07'/%3E%3C/svg%3E"),
@@ -163,7 +163,7 @@ const pageTitle = "Darkroom - Polaroid Scatter";
     }
 
     /* REMOVED ::before - Grid is now in main stack */
-    .darkroom-immersive::before {
+    .polaroid-hub-immersive::before {
         display: none;
     }
 

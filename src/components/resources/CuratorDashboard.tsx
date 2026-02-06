@@ -266,11 +266,20 @@ export default function CuratorDashboard({ user, role }: Props) {
                 <div>
                     <h1>Curator Dashboard</h1>
                     <p className="welcome">Welcome back, {user?.user_metadata?.full_name || user?.email}!</p>
+
+                    <div style={{ marginTop: '1.5rem', marginBottom: '1rem' }}>
+                        <a href="/resources/submit" className="btn-submit-new-prominent">
+                            + Submit New Resource
+                        </a>
+                    </div>
                 </div>
-                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
                     <button onClick={handleRefresh} className="btn-refresh-text">
                         Refresh
                     </button>
+                    <a href="/resources" className="btn-back-logo">
+                        Back to Resources
+                    </a>
                     {role === 'admin' && (
                         <a
                             href="/admin/dashboard"
@@ -282,7 +291,17 @@ export default function CuratorDashboard({ user, role }: Props) {
                         </a>
                     )}
                     <button
-                        onClick={() => supabase?.auth.signOut().then(() => window.location.href = '/resources')}
+                        onClick={async (e) => {
+                            e.preventDefault();
+                            try {
+                                await supabase?.auth.signOut();
+                            } catch (err) {
+                                console.error("Logout error:", err);
+                            } finally {
+                                localStorage.removeItem('curator_profile');
+                                window.location.href = '/resources';
+                            }
+                        }}
                         className="btn-logout-prominent"
                     >
                         Sign Out
@@ -328,11 +347,7 @@ export default function CuratorDashboard({ user, role }: Props) {
                 </div>
             </div>
 
-            <div style={{ marginBottom: '3rem' }}>
-                <a href="/resources/submit" className="btn-submit-new-prominent">
-                    + Submit New Resource
-                </a>
-            </div>
+            {/* Submit button moved to top section */}
 
             <div className="submissions-section">
                 <div className="section-header">
@@ -1022,6 +1037,22 @@ export default function CuratorDashboard({ user, role }: Props) {
                 .btn-logout-prominent:hover {
                     background: #DC2626;
                     box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+                }
+
+                .btn-back-logo {
+                    font-family: 'Space Mono', monospace;
+                    font-size: 0.9rem;
+                    text-transform: uppercase;
+                    color: white;
+                    text-decoration: none;
+                    letter-spacing: 0.05em;
+                    transition: opacity 0.2s;
+                    border-bottom: 1px solid transparent;
+                    padding-bottom: 2px;
+                }
+                .btn-back-logo:hover {
+                    opacity: 0.7;
+                    border-bottom-color: white;
                 }
 
                 .quick-nav-buttons {

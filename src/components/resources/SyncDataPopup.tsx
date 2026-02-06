@@ -34,11 +34,11 @@ export default function SyncDataPopup({ show, bookmarkCount, onCreateAccount, on
                     <div className="popup-icon">🔖</div>
                     <h2 className="popup-title">Save your bookmarks anywhere?</h2>
                     <p className="popup-body">
-                        You've saved <strong>{bookmarkCount} resource{bookmarkCount !== 1 ? 's' : ''}</strong>!
+                        You&apos;ve saved <strong>{bookmarkCount}</strong> resource{bookmarkCount !== 1 ? 's' : ''}!
                         Create an account to sync your bookmarks across all your devices.
                     </p>
                     <p className="popup-note">
-                        Skip for now and they'll stay on this device only.
+                        Skip for now and they&apos;ll stay on this device only.
                     </p>
 
                     <div className="popup-actions">

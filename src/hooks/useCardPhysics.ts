@@ -105,7 +105,8 @@ export const useCardPhysics = ({ initialImages }: UseCardPhysicsProps) => {
         if (typeof window !== 'undefined') {
             (window as any).__cardEngagement = {
                 reveals: totalRevealsRef.current,
-                firstInteraction: firstInteractionTimeRef.current
+                firstInteraction: firstInteractionTimeRef.current,
+                lastInteraction: now // Update on every spawn/reveal
             };
         }
 
@@ -149,12 +150,39 @@ export const useCardPhysics = ({ initialImages }: UseCardPhysicsProps) => {
         const fetchData = async () => {
             try {
                 // REFACTOR: Use service layer instead of raw fetch
-                const allPhotos = await getAllPhotography();
-                const shuffled = allPhotos.sort(() => Math.random() - 0.5);
+                const allProjects = await getAllPhotography();
+
+                // FLATTEN: Combine covers and inner gallery images into one massive pool
+                let allImagesPool: any[] = [];
+
+                // 1. Add all covers first (priority?) - actually let's mix them
+                // 2. Add all inner images
+                allProjects.forEach(proj => {
+                    // Cover
+                    if (proj.image) {
+                        allImagesPool.push(proj); // Use project object itself for cover
+                    }
+                    // Inner Images
+                    if (proj.images && Array.isArray(proj.images)) {
+                        proj.images.forEach((imgUrl: string) => {
+                            allImagesPool.push({
+                                image: imgUrl,
+                                title: proj.title, // Share title
+                                // Maybe add a distinct ID or type if needed, but simple object works for queue
+                            });
+                        });
+                    }
+                });
+
+                // SHUFFLE: Randomize the entire pool
+                const shuffled = allImagesPool.sort(() => Math.random() - 0.5);
+
                 const feed = setInterval(() => {
+                    // Slow drip feed into the download queue
+                    // If queue is low (< 5), add more from our shuffled pool
                     if (downloadQueueRef.current.length < 5 && shuffled.length > 0) {
                         const chunk = shuffled.splice(0, 3);
-                        chunk.forEach(item => addToDownloadQueue(item.image, item));
+                        chunk.forEach(item => addToDownloadQueue(item.image || item.cover_image, item));
                     } else if (shuffled.length === 0) {
                         clearInterval(feed);
                     }

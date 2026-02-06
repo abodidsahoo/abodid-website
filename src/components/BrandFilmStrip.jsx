@@ -39,7 +39,6 @@ export default function BrandFilmStrip() {
         <div
             className="brand-filmstrip-wrapper"
             onMouseMove={handleMouseMove}
-            style={{ position: 'relative', width: '100%' }}
         >
             <div className="brand-filmstrip">
                 <div className="filmstrip-track">
@@ -49,7 +48,6 @@ export default function BrandFilmStrip() {
                             className="filmstrip-item"
                             onMouseEnter={() => setHoveredBrand(brand)}
                             onMouseLeave={() => setHoveredBrand(null)}
-                            style={{ pointerEvents: 'auto' }}
                         >
                             <img src={brand.logo_url} alt={brand.name} loading="lazy" />
                         </div>
@@ -57,17 +55,19 @@ export default function BrandFilmStrip() {
                 </div>
             </div>
 
-            {/* Hover Popup Card - Outside the screened container for clarity */}
+            {/* Hover Popup Card */}
             {hoveredBrand && (
                 <motion.div
                     className="brand-popup-card"
-                    initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                    transition={{ duration: 0.2, ease: "backOut" }}
+                    initial={{ opacity: 0, scale: 0.9, x: -10, y: 10 }} // Starts slightly bottom-left
+                    animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.9, x: -5, y: 5 }}
+                    transition={{ duration: 0.15, ease: "easeOut" }}
                     style={{
-                        top: mousePos.y + 20,
-                        left: mousePos.x + 20,
+                        /* Position: Top-Right of pointer, extremely close */
+                        top: mousePos.y - 10,
+                        left: mousePos.x + 15,
+                        /* Ensure it doesn't flip off screen if too close to edge (basic check logic could be added but stick to request first) */
                     }}
                 >
                     <div className="popup-content">
@@ -81,29 +81,36 @@ export default function BrandFilmStrip() {
                 .brand-filmstrip-wrapper {
                     position: relative;
                     width: 100%;
+                    /* Removed breakout hacks */
                     z-index: 10;
-                    isolation: isolate; /* Create new stacking context */
+                    margin: 0;
+                    pointer-events: none;
                 }
 
                 .brand-filmstrip {
                     width: 100%;
                     overflow: hidden;
                     position: relative;
-                    padding: 4rem 0;
-                    /* Screen the entire ribbon to vanish its black parts and reveal site grid */
-                    mix-blend-mode: screen; 
-                    border-top: 1px solid rgba(255, 255, 255, 0.05);
-                    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-                    background: transparent;
+                    padding: 4rem 0; 
+                    
+                    /* SOLID BLACK background */
+                    background: #000;
+                    
+                    /* Edge Fade Mask: Fades left and right edges to black/transparent */
+                    /* Since background is black, fading to transparent works if parent is black. Parent IS black. */
+                    mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+                    -webkit-mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+                    
+                    pointer-events: auto; 
                 }
 
                 .filmstrip-track {
                     display: flex;
-                    gap: 0; /* Pure back-to-back as requested */
-                    animation: scrollFilm 60s linear infinite;
-                    will-change: transform;
                     align-items: center;
-                    background: #000; /* Unified black ribbon */
+                    gap: 6rem; /* Decent enough spacing between logos */
+                    width: max-content;
+                    animation: scrollFilm 120s linear infinite;
+                    will-change: transform;
                 }
 
                 .filmstrip-track:hover {
@@ -117,16 +124,13 @@ export default function BrandFilmStrip() {
 
                 .filmstrip-item {
                     flex-shrink: 0;
-                    height: 220px;
+                    width: auto;
+                    height: 120px; 
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    background: #000; /* Attached black backgrounds */
-                    padding: 0 4rem; /* Internal spacing for "back-to-back" look */
                     cursor: pointer;
-                    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-                    position: relative;
-                    pointer-events: auto !important; /* Force hover capture */
+                    transition: transform 0.3s ease;
                 }
 
                 .filmstrip-item:hover {
@@ -134,25 +138,20 @@ export default function BrandFilmStrip() {
                 }
 
                 .filmstrip-item img {
-                    max-width: 100%;
-                    max-height: 100%;
-                    width: auto;
                     height: 100%;
+                    width: auto;
+                    max-width: 120px;
                     object-fit: contain;
-                    /* Clears logo backgrounds against the black ribbon */
-                    mix-blend-mode: screen; 
-                    filter: contrast(3) brightness(1.1) grayscale(1); 
-                    transition: all 0.3s ease;
+
+                    /* RAW IMAGE DISPLAY */
+                    filter: none;
+                    opacity: 1; 
                 }
 
-                .filmstrip-item:hover img {
-                    filter: contrast(3.5) brightness(1.4) grayscale(0);
-                }
-
-                /* Popup Card - Outside the screened area to remain opaque and readable */
+                /* Popup Card */
                 .brand-popup-card {
                     position: fixed;
-                    z-index: 1000000; /* High z-index to stay on top */
+                    z-index: 9999; 
                     background: rgba(10, 15, 22, 0.95);
                     backdrop-filter: blur(12px);
                     border: 1px solid var(--sci-fi-cyan, #00f3ff);
@@ -161,6 +160,9 @@ export default function BrandFilmStrip() {
                     box-shadow: 0 0 35px rgba(0, 243, 255, 0.35);
                     padding: 0.8rem 1.4rem;
                     min-width: 170px;
+                    
+                    /* Prevent text wrap generally */
+                    white-space: nowrap;
                 }
 
                 .popup-category {
@@ -184,9 +186,17 @@ export default function BrandFilmStrip() {
                 }
 
                 @media (max-width: 768px) {
+                    .brand-filmstrip {
+                        padding: 4rem 0;
+                        /* Reduce fade on mobile to maximize visible area */
+                         mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+                        -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+                    }
+                    .filmstrip-track {
+                        gap: 4rem; 
+                    }
                     .filmstrip-item { 
-                        height: 120px;
-                        padding: 0 2rem;
+                        height: 70px;
                     }
                 }
             `}</style>

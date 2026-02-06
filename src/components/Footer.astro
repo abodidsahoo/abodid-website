@@ -1,14 +1,21 @@
 ---
 import Newsletter from "./Newsletter.astro";
-import SocialLinks from "./SocialLinks.astro";
+import BrandFilmStrip from "./BrandFilmStrip.jsx";
 
 const year = new Date().getFullYear();
 ---
 
 <footer class="site-footer">
-  <div class="container">
+  <!-- Top Fade Area: Extra space for fade-to-black transition -->
+  <div class="footer-fade-strip"></div>
+
+  <!-- Top Full-Width Line -->
+  <div class="footer-line top-line"></div>
+
+  <!-- Main Content Grid -->
+  <div class="footer-main-content">
     <div class="footer-grid">
-      <!-- Column 1: The Signal (Brand & Newsletter) -->
+      <!-- Left Main Column: The Signal (Brand & Newsletter) -->
       <div class="footer-col signal">
         <div class="brand-block">
           <a href="/" class="footer-logo" aria-label="Abodid Home">
@@ -23,13 +30,7 @@ const year = new Date().getFullYear();
               class="logo-img logo-white"
             />
           </a>
-          <!-- <p class="tagline">The things we do for love.</p> -->
         </div>
-
-        <!-- Social Links Removed as per request -->
-        <!-- <div class="social-wrapper">
-          <SocialLinks />
-        </div> -->
 
         <div class="newsletter-section" id="newsletter">
           <p class="section-title">
@@ -39,59 +40,109 @@ const year = new Date().getFullYear();
         </div>
       </div>
 
-      <!-- Column 2: Studio & Recognition -->
-      <div class="footer-col links-col">
-        <div class="nav-group">
-          <span class="nav-header">Studio</span>
-          <a href="/photography">Photography</a>
-          <a href="/films">Films</a>
+      <!-- Right Main Column: Links Sub-Grid -->
+      <div class="links-grid-container">
+        <!-- Column 1: Work -->
+        <div class="footer-col links-col">
+          <div class="nav-group">
+            <span class="nav-header">Work</span>
+            <a href="/photography">Photography</a>
+            <a href="/films">Films</a>
+          </div>
         </div>
 
-        <div class="nav-group">
-          <span class="nav-header">Recognition</span>
-          <a href="/awards">Awards</a>
-          <a href="/press">Press Mentions</a>
-          <a href="/work">Work Experience</a>
+        <!-- Column 2: Recognition -->
+        <div class="footer-col links-col">
+          <div class="nav-group">
+            <span class="nav-header">Recognition</span>
+            <a href="/awards">Awards</a>
+            <a href="/press">Press Mentions</a>
+            <a href="/work">Work Experience</a>
+            <a
+              href="https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/cv/Abodid%20Sahoo%20-%20Photography%20&%20AI%20-%20CV.pdf"
+              target="_blank"
+              rel="noopener noreferrer">Resume</a
+            >
+            <a href="/about">About Me</a>
+            <a href="/education">Education</a>
+          </div>
         </div>
-      </div>
 
-      <!-- Column 3: The Lab -->
-      <div class="footer-col links-col">
-        <div class="nav-group">
-          <span class="nav-header">The Lab</span>
-          <a href="/research">Research Projects</a>
-          <a href="/research-papers">Research Papers</a>
-          <a href="/research/obsidian-vault">Obsidian Vault</a>
-          <a href="/visual-experiments">Creative Experiments</a>
-          <a href="/darkroom">Darkroom</a>
+        <!-- Column 3: The Lab -->
+        <div class="footer-col links-col">
+          <div class="nav-group">
+            <span class="nav-header">The Lab</span>
+            <a href="/research">Research Projects</a>
+            <a href="/research-papers">Research Papers</a>
+            <a href="/research/obsidian-vault">Obsidian Vault</a>
+            <a href="/visual-experiments">Creative Experiments</a>
+            <a href="/polaroid-hub">Polaroid Hub</a>
+          </div>
         </div>
-      </div>
 
-      <!-- Column 4: Engage -->
-      <div class="footer-col links-col">
-        <div class="nav-group">
-          <span class="nav-header">Engage</span>
-          <a href="/blog">Blog</a>
-          <a href="/services">Services</a>
-          <a href="/workshops">Workshops</a>
-          <a href="/testimonials">Testimonials</a>
-          <a href="/licensing">Licensing</a>
+        <!-- Column 4: Engage -->
+        <div class="footer-col links-col">
+          <div class="nav-group">
+            <span class="nav-header">Engage</span>
+            <a href="/blog">Blog</a>
+            <a href="/services">Services</a>
+            <a href="/workshops">Workshops</a>
+            <a href="/testimonials">Testimonials</a>
+            <a href="/licensing">Licensing</a>
+          </div>
+        </div>
+
+        <!-- Column 5: Socials -->
+        <div class="footer-col links-col">
+          <div class="nav-group">
+            <span class="nav-header">Socials</span>
+            <a
+              href="https://instagram.com/abodid"
+              target="_blank"
+              rel="noopener noreferrer">Instagram</a
+            >
+            <a
+              href="https://linkedin.com/in/abodid"
+              target="_blank"
+              rel="noopener noreferrer">LinkedIn</a
+            >
+            <a
+              href="https://vimeo.com/abodid"
+              target="_blank"
+              rel="noopener noreferrer">Vimeo</a
+            >
+            <a
+              href="https://github.com/abodid"
+              target="_blank"
+              rel="noopener noreferrer">GitHub</a
+            >
+          </div>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Bottom Bar -->
-    <div class="footer-bottom">
-      <div class="copyright">
-        &copy; {year} Abodid. All rights reserved.
-      </div>
-      <div class="legal-links">
-        <a href="/privacy">Privacy Policy</a>
-        <span class="separator">•</span>
-        <a href="/sitemap">Sitemap</a>
-        <span class="separator">•</span>
-        <a href="/colophon">Website Architecture</a>
-      </div>
+  <!-- Ticker Section (Full Width) -->
+  <div class="footer-line ticker-top-line"></div>
+  <div class="footer-ticker-fullwidth">
+    <!-- Wrapper to ensure component is clean -->
+    <div class="ticker-inner">
+      <BrandFilmStrip client:only="react" />
+    </div>
+  </div>
+  <div class="footer-line ticker-bottom-line"></div>
+
+  <!-- Bottom Bar (Full Width content) -->
+  <div class="footer-bottom-full">
+    <div class="copyright">
+      &copy; {year} Abodid Sahoo. All rights reserved.
+    </div>
+    <div class="legal-links">
+      <a href="/privacy">Privacy Policy</a>
+      <span class="separator">•</span>
+      <a href="/sitemap">Sitemap</a>
+      <span class="separator">•</span>
+      <a href="/architecture">Website Architecture</a>
     </div>
   </div>
 </footer>
@@ -99,43 +150,120 @@ const year = new Date().getFullYear();
 <style>
   :root {
     --sci-fi-cyan: #00f3ff;
-    --sci-fi-bg: rgba(5, 10, 15, 0.98);
     --footer-text-header: rgba(255, 255, 255, 0.9);
     --footer-text-dim: rgba(255, 255, 255, 0.4);
-    --footer-border: rgba(0, 243, 255, 0.2);
+    --footer-border: rgba(255, 255, 255, 0.15); /* Thin gray line */
   }
 
   :global([data-theme="light"]) {
-    --sci-fi-cyan: #d6b400; /* Gold/Amber for paper theme */
-    --sci-fi-bg: var(--bg-surface);
+    --sci-fi-cyan: #d6b400;
     --footer-text-header: var(--text-primary);
     --footer-text-dim: var(--text-tertiary);
-    --footer-border: var(--border-subtle);
+    --footer-border: rgba(255, 255, 255, 0.15);
   }
 
   .site-footer {
-    background-color: var(--sci-fi-bg);
-    transition: background-color 0.3s ease;
-    padding: 4rem 0 2rem;
+    background-color: #000000 !important; /* Pure Black */
+    color: #fff;
+    padding: 0;
     margin-top: auto;
     font-family: "Inconsolata", monospace;
     position: relative;
     z-index: 10;
-    border-top: 1px solid var(--footer-border);
+    width: 100%;
+    /* Ensure no overflow issues */
+    box-sizing: border-box;
+    /* Create spacing for fade strip to sit in */
+    border-top: 10rem solid transparent;
+    background-clip: padding-box; /* Ensure bg doesn't bleed into border */
   }
 
+  /* Full Width Separator Lines */
+  .footer-line {
+    width: 100%;
+    height: 1px;
+    background-color: var(--footer-border);
+    display: block;
+  }
+
+  /* Fade Strip */
+  .footer-fade-strip {
+    width: 100%;
+    height: 18rem;
+    background: linear-gradient(to bottom, transparent, #000);
+    position: absolute;
+    top: -18rem;
+    left: 0;
+    pointer-events: none;
+    z-index: 5;
+  }
+
+  .footer-main-content {
+    /* Increased horizontal padding for "decent spacing on the left/right" */
+    padding: 6rem 8% 5rem;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Main Grid: 2 Large Columns (Brand Area vs Links Area) */
   .footer-grid {
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr 1fr;
-    gap: 3rem;
-    margin-bottom: 4rem;
+    /* Brand area gets breathing room (e.g., 35% or fixed), Links area takes rest */
+    grid-template-columns: 350px 1fr;
+    gap: 8vw; /* Large gap to separate Logo from Links */
+    width: 100%;
+  }
+
+  /* Left Column: Brand & Newsletter */
+  .signal {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+    /* No extra padding needed, layout handles spacing */
+  }
+
+  /* Right Column: Links Sub-Grid */
+  .links-grid-container {
+    display: grid;
+    /* 5 Columns for the links: Work, Recog, Lab, Engage, Socials */
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1rem; /* "Compact" spacing between menu blocks */
+  }
+
+  /* Ticker Full Width Wrapper */
+  .footer-ticker-fullwidth {
+    width: 100%;
+    background: #000;
+  }
+
+  .ticker-inner {
+    width: 100%;
+  }
+
+  /* Bottom Bar Full Width */
+  .footer-bottom-full {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    /* Match the main content padding horizontally */
+    padding: 2rem 8%;
+    font-size: 0.75rem;
+    color: var(--footer-text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    transition: color 0.3s ease;
+    background: #000;
+    box-sizing: border-box;
   }
 
   /* Column Styles */
   .footer-col {
     display: flex;
     flex-direction: column;
-    gap: 3rem; /* Increased vertical gap for distinct groups */
+    gap: 2.5rem;
+    /* Ensure content doesn't overflow if compact */
+    min-width: 0;
   }
 
   /* Brand */
@@ -145,37 +273,16 @@ const year = new Date().getFullYear();
   }
 
   .logo-img {
-    height: 140px; /* Increased size */
+    height: 140px;
     width: auto;
     display: block;
   }
 
-  /* Default (Dark Mode Base) */
   .logo-black {
-    display: none;
+    display: none !important;
   }
   .logo-white {
-    display: block;
-  }
-  /* Light Mode Override */
-  :global([data-theme="light"]) .logo-black {
-    display: block;
-  }
-  :global([data-theme="light"]) .logo-white {
-    display: none;
-  }
-
-  .tagline {
-    color: var(--text-secondary);
-    max-width: 80%;
-    line-height: 1.5;
-    font-size: 1.2rem;
-    margin: 0;
-    opacity: 0.8;
-  }
-
-  .social-wrapper {
-    margin-top: 0;
+    display: block !important;
   }
 
   /* Newsletter */
@@ -186,17 +293,18 @@ const year = new Date().getFullYear();
     font-weight: 700;
     color: var(--sci-fi-cyan);
     margin-bottom: 1rem;
+    max-width: 300px; /* constraining width of text */
   }
 
   /* Navigation Groups */
   .nav-group {
     display: flex;
     flex-direction: column;
-    gap: 0.8rem;
+    gap: 0.6rem; /* Slightly tighter link spacing */
   }
 
   .nav-header {
-    font-size: 1.1rem;
+    font-size: 1rem; /* Slightly smaller header for compactness */
     text-transform: uppercase;
     letter-spacing: 0.1em;
     color: var(--footer-text-header);
@@ -204,36 +312,24 @@ const year = new Date().getFullYear();
     margin-bottom: 1rem;
     display: block;
     transition: color 0.3s ease;
+    white-space: nowrap; /* Prevent headers breaking */
   }
 
   .nav-group a {
-    color: var(--text-secondary);
-    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.85rem; /* Slightly smaller font */
     text-decoration: none;
     position: relative;
     width: fit-content;
     transition: all 0.3s ease;
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    white-space: nowrap;
   }
 
   .nav-group a:hover {
-    color: var(--text-primary);
+    color: #fff;
     transform: translateX(4px);
-  }
-
-  /* Bottom Bar */
-  .footer-bottom {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-top: 2rem;
-    border-top: 1px solid var(--border-subtle);
-    font-size: 0.75rem;
-    color: var(--footer-text-dim);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    transition: color 0.3s ease;
   }
 
   .legal-links {
@@ -252,32 +348,49 @@ const year = new Date().getFullYear();
   }
 
   /* Responsive */
-  @media (max-width: 1024px) {
+  @media (max-width: 1400px) {
     .footer-grid {
-      grid-template-columns: 1fr 1fr;
-      gap: 3rem;
+      grid-template-columns: 300px 1fr;
+      gap: 4vw;
+    }
+    .links-grid-container {
+      gap: 1.5rem;
+    }
+  }
+
+  @media (max-width: 1100px) {
+    .footer-grid {
+      grid-template-columns: 1fr;
+      gap: 4rem;
+    }
+    .links-grid-container {
+      grid-template-columns: 1fr 1fr 1fr;
+      row-gap: 3rem;
+    }
+    .footer-main-content {
+      padding: 6rem 5% 5rem;
     }
   }
 
   @media (max-width: 600px) {
-    .site-footer {
-      padding: 3rem 0 2rem;
+    .footer-main-content {
+      padding: 4rem 1rem 3rem;
     }
-    .footer-grid {
+    .links-grid-container {
       display: flex;
       flex-direction: column;
       gap: 3rem;
     }
 
-    /* Mobile Simplification: Hide detailed links */
-    .links-col {
-      display: none !important;
-    }
-
-    .footer-bottom {
+    .footer-bottom-full {
       flex-direction: column-reverse;
       gap: 1.5rem;
       align-items: flex-start;
+      padding: 2rem 1rem;
+    }
+
+    .footer-line.top-line {
+      /* Keep it */
     }
   }
 </style>

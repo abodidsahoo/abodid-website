@@ -3,6 +3,7 @@ import { supabase } from "../../lib/supabaseClient";
 export const POST = async ({ request }) => {
     const data = await request.formData();
     const email = data.get("email");
+    const name = data.get("name") || null; // Optional name
 
     if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
         return new Response(
@@ -15,7 +16,7 @@ export const POST = async ({ request }) => {
 
     const { error } = await supabase
         .from("subscribers")
-        .insert([{ email, source: "footer" }]);
+        .insert([{ email, name, source: "popup" }]);
 
     if (error) {
         // Handle unique constraint violation (already subscribed)

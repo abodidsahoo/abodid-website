@@ -4,11 +4,9 @@ import Breadcrumbs from './Breadcrumbs';
 
 const Header = () => {
     const [isOpen, setIsOpen] = useState(false);
-    const [showSecondary, setShowSecondary] = useState(false); // Mobile: Toggle for Secondary links
 
     const toggleMenu = () => {
         setIsOpen(!isOpen);
-        if (!isOpen) setShowSecondary(false); // Reset on open
     };
 
     // Lock body scroll when menu is open
@@ -24,27 +22,23 @@ const Header = () => {
     // --- ANIMATION VARIANTS ---
     const menuPanelVariants = {
         closed: {
-            y: "-100%", // Drop from Top
-            x: "0%",
-            opacity: 1, // Keep opacity 1 so it's a solid block moving
-            transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } // Fast enter, slow land
+            y: "-100%",
+            opacity: 1,
+            transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] }
         },
         open: {
             y: "0%",
-            x: "0%",
             opacity: 1,
             transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] }
         }
     };
 
     const containerVariants = {
-        // No staggering - "Pre-loaded" feel
         open: { transition: { staggerChildren: 0 } },
         closed: { transition: { staggerChildren: 0 } }
     };
 
     const itemVariants = {
-        // No internal animation for items - they just move with the container
         closed: { x: 0, opacity: 1 },
         open: { x: 0, opacity: 1 }
     };
@@ -65,11 +59,11 @@ const Header = () => {
                     {/* CENTER: Menu Toggle */}
                     <div className="nav-center">
                         <button onClick={toggleMenu} className="menu-btn">
-                            {isOpen ? 'CLOSE' : 'MENU'}
+                            <span>{isOpen ? 'CLOSE' : 'MENU'}</span>
                         </button>
                     </div>
 
-                    {/* RIGHT: Say Hi & Breadcrumbs (Desktop Only) */}
+                    {/* RIGHT: Say Hi & Breadcrumbs */}
                     <div className="nav-right desktop-only-breadcrumbs">
                         <a href="/contact" className="say-hi-link">SAY HI</a>
                         <Breadcrumbs />
@@ -80,8 +74,6 @@ const Header = () => {
                 <div className="mobile-breadcrumbs-row">
                     <Breadcrumbs />
                 </div>
-
-
             </div>
 
             {/* --- DRAWER MENU --- */}
@@ -95,7 +87,7 @@ const Header = () => {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             transition={{ duration: 0.3 }}
-                            onClick={toggleMenu} // Clean close
+                            onClick={toggleMenu}
                         />
 
                         {/* DRAWER PANEL */}
@@ -107,87 +99,78 @@ const Header = () => {
                             variants={menuPanelVariants}
                         >
                             <div className="menu-inner">
-                                {/* LEFT PANEL: RED BLOCK (Hidden on Mobile) */}
-                                <div className="menu-panel left-panel">
-                                    <div className="credits-text">
-                                        This website is designed and developed by me with a lot of love and care.
-                                        <br /><br />
-                                        Super thankful to everyone who shared their feedback. Special thanks to Bharat, Aswin, Mehenaz, Sabya Bhai, and my wife, Yashaswinee.
+
+                                {/* 
+                                    PANEL 1: RED (MAIN MENU) (~40%)
+                                */}
+                                <motion.div className="menu-panel left-panel" variants={containerVariants}>
+                                    <div className="dominant-links-wrapper">
+                                        <MenuLink href="/research" variants={itemVariants} className="dominant-link">Research</MenuLink>
+                                        <MenuLink href="/photography" variants={itemVariants} className="dominant-link">Photography</MenuLink>
+                                        <MenuLink href="/films" variants={itemVariants} className="dominant-link">Filmmaking</MenuLink>
+                                        <MenuLink href="/blog" variants={itemVariants} className="dominant-link">Writing</MenuLink>
+                                        <MenuLink href="/about" variants={itemVariants} className="dominant-link">About Me</MenuLink>
+                                    </div>
+                                </motion.div>
+
+                                {/* 
+                                    PANEL 2: WHITE (SECONDARY) (~60%)
+                                */}
+                                <div className="menu-panel right-panel">
+                                    <div className="secondary-columns-container">
+
+                                        {/* COL 1: Resources -> Work -> Credentials */}
+                                        <div className="secondary-col">
+                                            {/* Resources */}
+                                            <div className="sidebar-block">
+                                                <div className="mono-label">Resources</div>
+                                                <MenuLink href="/resources" variants={itemVariants} className="mono-link">Curated Resources Mega Vault</MenuLink>
+                                                <MenuLink href="/research/obsidian-vault" variants={itemVariants} className="mono-link">Personal Notes (Obsidian Vault)</MenuLink>
+                                                <MenuLink href="/research/second-brain" variants={itemVariants} className="mono-link">Second Brain Club Membership</MenuLink>
+                                            </div>
+
+                                            {/* Work With Me */}
+                                            <div className="sidebar-block">
+                                                <div className="mono-label">Work With Me</div>
+                                                <MenuLink href="/services" variants={itemVariants} className="mono-link">Services</MenuLink>
+                                                <MenuLink href="/fundraising" variants={itemVariants} className="mono-link">Sponsorship</MenuLink>
+                                            </div>
+
+                                            {/* Credentials */}
+                                            <div className="sidebar-block">
+                                                <div className="mono-label">Credentials</div>
+                                                <MenuLink href="/awards" variants={itemVariants} className="mono-link">Awards & Recognition</MenuLink>
+                                                <MenuLink href="/press" variants={itemVariants} className="mono-link">Press Mentions</MenuLink>
+                                                <MenuLink href="/testimonials" variants={itemVariants} className="mono-link">Testimonials</MenuLink>
+                                                <MenuLink href="https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/cv/Abodid%20Sahoo%20-%20Photography%20&%20AI%20-%20CV.pdf" target="_blank" variants={itemVariants} className="mono-link">Resume</MenuLink>
+                                            </div>
+                                        </div>
+
+                                        {/* COL 2: Contact & Socials */}
+                                        <div className="secondary-col">
+                                            {/* Contact */}
+                                            <div className="sidebar-block">
+                                                <div className="mono-label">Contact</div>
+                                                <a href="mailto:hello@abodid.com" className="mono-text-link">hello@abodid.com</a>
+                                                <a href="tel:+919439094370" className="mono-text-link">+91 94390 94370 <span className="country-label">(IN)</span></a>
+                                                <a href="tel:+447522258768" className="mono-text-link">+44 7522 258768 <span className="country-label">(UK)</span></a>
+                                            </div>
+
+                                            {/* Socials - VERTICAL STACK */}
+                                            <div className="sidebar-block">
+                                                <div className="mono-label">Socials</div>
+                                                <div className="social-stack">
+                                                    <MenuLink href="https://www.instagram.com/abodid.sahoo" target="_blank" variants={itemVariants} className="mono-link">Instagram</MenuLink>
+                                                    <MenuLink href="https://uk.linkedin.com/in/abodidsahoo" target="_blank" variants={itemVariants} className="mono-link">LinkedIn</MenuLink>
+                                                    <MenuLink href="https://vimeo.com/abodidsahoo" target="_blank" variants={itemVariants} className="mono-link">Vimeo</MenuLink>
+                                                    <MenuLink href="https://github.com/abodidsahoo" target="_blank" variants={itemVariants} className="mono-link">GitHub</MenuLink>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                     </div>
                                 </div>
 
-                                {/* RIGHT PANEL: LINKS (3 Cols on Desktop) */}
-                                <motion.div className="menu-panel right-panel" variants={containerVariants}>
-
-                                    {/* MOBILE HEADER (Inside Drawer) */}
-                                    <div className="mobile-menu-header">
-                                        <span className="menu-title">Menu</span>
-                                        <button onClick={toggleMenu} className="close-icon-btn">×</button>
-                                    </div>
-
-                                    {/* COL 1: EXPLORE (Primary) */}
-                                    <div className={`menu-section primary-section ${showSecondary ? 'hidden-mobile' : ''}`}>
-                                        <div className="col-label">Explore</div>
-                                        <MenuLink href="/blog" variants={itemVariants}>Blog</MenuLink>
-                                        <MenuLink href="/about" variants={itemVariants}>About</MenuLink>
-                                        <MenuLink href="/photography" variants={itemVariants}>Photography</MenuLink>
-                                        <MenuLink href="/films" variants={itemVariants}>Films</MenuLink>
-                                        <MenuLink href="/research" variants={itemVariants} select>Research</MenuLink>
-
-                                        {/* Contact in Primary for Mobile ONLY */}
-                                        <div className="mobile-contact mobile-only">
-                                            <div className="col-label" style={{ marginTop: '2rem' }}>Contact</div>
-                                            <a href="mailto:hello@abodid.com" className="contact-link">hello@abodid.com</a>
-                                            <a href="tel:+919439094370" className="contact-link">+91 94390 94370</a>
-                                            <a href="tel:+447522258768" className="contact-link">+44 7522 258768</a>
-                                        </div>
-
-                                        {/* Mobile Toggle Button */}
-                                        <div className="mobile-only toggle-wrapper">
-                                            <button
-                                                className="secondary-toggle-btn"
-                                                onClick={() => setShowSecondary(true)}
-                                            >
-                                                More Resources →
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    {/* COL 2: RESOURCES (Desktop Col 2, Mobile Toggle) */}
-                                    <div className={`menu-section mindhub-links ${showSecondary ? 'active-mobile' : 'desktop-only'} mobile-hidden-default`}>
-                                        {/* Mobile Back Button */}
-                                        <div className="mobile-only toggle-wrapper">
-                                            <a href="/" className="secondary-toggle-btn back-btn" style={{ display: 'block', textDecoration: 'none', color: 'inherit' }}>
-                                                ← Back to Home
-                                            </a>
-                                        </div>
-
-                                        <div className="col-label">Resources</div>
-                                        <MenuLink href="https://read.cv/abodid" target="_blank" variants={itemVariants} small>Resume</MenuLink>
-                                        <MenuLink href="/research/second-brain" variants={itemVariants} small>Second Brain Club</MenuLink>
-                                        <MenuLink href="/fundraising" variants={itemVariants} small>Fundraising</MenuLink>
-                                        <MenuLink href="/press" variants={itemVariants} small>Press Mentions</MenuLink>
-                                        <MenuLink href="/testimonials" variants={itemVariants} small>Testimonials</MenuLink>
-                                        <MenuLink href="/privacy" variants={itemVariants} small>Privacy Policy</MenuLink>
-                                        <MenuLink href="/licensing" variants={itemVariants} small>Licensing</MenuLink>
-                                    </div>
-
-                                    {/* COL 3: CONTACT & SOCIALS (Desktop Col 3, Mobile Hidden) */}
-                                    <div className="menu-section contact-links desktop-only">
-                                        <div className="col-label">Contact</div>
-                                        <div className="contact-details" style={{ marginBottom: '2rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                                            <a href="mailto:hello@abodid.com" className="menu-text small">hello@abodid.com</a>
-                                            <a href="tel:+919439094370" className="menu-text small">+91 94390 94370</a>
-                                            <a href="tel:+447522258768" className="menu-text small">+44 7522 258768</a>
-                                        </div>
-
-                                        <div className="col-label">Socials</div>
-                                        <MenuLink href="https://www.instagram.com/abodid.sahoo" variants={itemVariants} small target="_blank">Instagram</MenuLink>
-                                        <MenuLink href="https://uk.linkedin.com/in/abodidsahoo" variants={itemVariants} small target="_blank">LinkedIn</MenuLink>
-                                        <MenuLink href="https://vimeo.com/abodidsahoo" variants={itemVariants} small target="_blank">Vimeo</MenuLink>
-                                    </div>
-
-                                </motion.div>
                             </div>
                         </motion.div>
                     </>
@@ -201,275 +184,190 @@ const Header = () => {
                     z-index: 1000;
                     background: rgba(5, 5, 5, 0.85);
                     backdrop-filter: blur(12px);
-                    border-bottom: 1px solid #c0c0c0ff; /* Subtle white line as requested */
+                    border-bottom: 1px solid #c0c0c0ff;
                 }
                 .nav-grid {
                     display: grid;
                     grid-template-columns: 1fr 1fr 1fr;
                     align-items: center;
-                    height: 80px; /* Reduced from 120px as requested ("too huge") */
+                    height: 80px;
                     padding: 0 4vw;
                 }
                 .nav-center { display: flex; justify-content: center; }
                 .nav-right { 
-                    display: flex; 
-                    align-items: center;
-                    justify-content: flex-end;
+                    display: flex; align-items: center; justify-content: flex-end;
                     gap: 2rem;
-                    color: rgba(255, 255, 255, 0.9); /* Force white text on dark header */
+                    color: rgba(255, 255, 255, 0.9);
                 }
                 
                 .say-hi-link {
-                    font-family: 'Space Mono', monospace;
-                    font-size: 0.75rem;
-                    color: white;
-                    letter-spacing: 0.1em;
-                    text-decoration: none;
-                    border-bottom: 1px solid transparent;
-                    transition: border-color 0.3s ease;
+                    font-family: 'Space Mono', monospace; font-size: 0.75rem; color: white;
+                    letter-spacing: 0.1em; text-decoration: none;
+                    border-bottom: 1px solid transparent; transition: border-color 0.3s ease;
                     mix-blend-mode: difference;
                 }
-
-                .say-hi-link:hover {
-                    border-bottom-color: white;
-                }
+                .say-hi-link:hover { border-bottom-color: white; }
                 
                 .mobile-breadcrumbs-row {
-                    display: none; /* Hidden by default */
-                    padding: 0.5rem 4vw 0.5rem; /* Tight top/bottom padding */
-                    width: 100%;
-                    background: rgba(5, 5, 5, 0.95); /* Slight distinction or match bg */
-                    color: rgba(255, 255, 255, 0.9); /* Force white text */
+                    display: none; padding: 0.5rem 4vw 0.5rem; width: 100%;
+                    background: rgba(5, 5, 5, 0.95); color: rgba(255, 255, 255, 0.9);
                 }
 
-                /* LOGO VARIANTS */
                 .desktop-logo { display: inline-block; }
                 .mobile-logo { display: none; }
 
-                @media (max-width: 768px) {
-                    .desktop-only-breadcrumbs { 
-                        display: none !important; 
-                    }
-                    .mobile-breadcrumbs-row { 
-                        display: block;
-                        padding: 0.5rem 4vw 0.5rem; 
-                        width: 100%;
-                        background: rgba(5, 5, 5, 0.95); 
-                        color: rgba(255, 255, 255, 0.9); /* Force white text for visibility */
-                    }
-                    .nav-grid { 
-                        height: 70px; /* Reduced mobile height */
-                        grid-template-columns: auto 1fr auto; 
-                        display: flex;
-                        justify-content: space-between;
-                    }
-
-                    /* Swap logos */
-                    .desktop-logo { display: none; }
-                    .mobile-logo { display: inline-block; font-weight: 700; text-transform: capitalize; } /* "Abodid" style */
-
-                    /* REVERTED POSITIONS: Logo Left (Default Order), Menu Right */
-                    .nav-left { order: 1; } /* Logo Left */
-                    .nav-center { order: 2; justify-content: flex-end; } /* Menu Right */
-                    .nav-right { display: none; } 
-                    
-                    /* Prominent styling */
-                    .logo-text, .menu-btn {
-                        font-size: 1.1rem; 
-                        font-weight: 700;
-                    }
-                }
-
                 .nav-border { width: 100%; height: 1px; background: rgba(255,255,255, 0.15); }
                 .logo-text, .menu-btn {
-                    font-family: 'Space Mono', monospace;
-                    font-size: 0.9rem;
-                    text-transform: uppercase;
-                    color: white;
-                    background: none; border: none; cursor: pointer;
-                    letter-spacing: 0.05em;
-                    mix-blend-mode: difference;
-                    z-index: 1100;
-                    text-decoration: none;
+                    font-family: 'Space Mono', monospace; font-size: 0.9rem; text-transform: uppercase;
+                    color: white; background: none; border: none; cursor: pointer;
+                    letter-spacing: 0.05em; mix-blend-mode: difference; z-index: 1100; text-decoration: none;
                 }
 
                 /* BACKDROP */
                 .menu-backdrop {
-                    position: fixed; top: 0; left: 0;
-                    width: 100vw; height: 100vh;
-                    background: rgba(0, 0, 0, 0.6);
-                    backdrop-filter: blur(4px);
-                    z-index: 850;
+                    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+                    background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); z-index: 850;
                 }
 
                 /* DRAWER CONTAINER */
                 .mega-menu {
-                    position: fixed;
-                    top: 0; right: 0; 
-                    width: 100%; max-width: 100%; 
-                    height: auto; /* REDUCED HEIGHT: Not full page */
-                    max-height: 90vh; /* Cap it so bottom is visible */
-                    background-color: transparent;
-                    z-index: 900;
-                    box-shadow: 0 10px 40px rgba(0,0,0,0.5); /* Stronger shadow since it floats */
-                    overflow-y: auto;
-                    border-bottom-left-radius: 16px;
-                    border-bottom-right-radius: 16px;
+                    position: fixed; top: 0; right: 0; 
+                    width: 100%; height: auto; max-height: 90vh;
+                    background-color: transparent; z-index: 900;
+                    box-shadow: 0 10px 40px rgba(0,0,0,0.5); overflow-y: auto;
                 }
 
                 .menu-inner {
                     display: grid;
-                    /* DESKTOP 3-COLUMN STRUCTURE: 
-                       Col 1: Red (Left Panel) - 25% or fixed width
-                       Col 2 & 3: White (Right Panel) - Auto
-                    */
-                    grid-template-columns: 25% 75%;
+                    /* 2-PANEL LAYOUT: 40% Red | 60% White */
+                    grid-template-columns: 40% 60%;
                     height: 100%;
-                    min-height: auto; /* Remove 100vh enforcement */
                 }
 
-                .menu-panel { padding: 150px 4vw 4rem; height: 100%; } /* Increased top padding to clear header completely */
+                /* --- PANEL COMMON STYLES --- */
+                .menu-panel { padding: 180px 3vw 4rem; height: 100%; }
 
-                /* LEFT PANEL: RED (Column 1) */
+                /* --- PANEL 1: RED (LEFT) --- */
                 .left-panel {
-                    background-color: #D00000;
-                    border-right: 1px solid rgba(0,0,0,0.1);
+                    background-color: #a30021;
+                    color: white;
                     display: flex; flex-direction: column;
-                }
-                .credits-text {
-                    font-family: 'Space Mono', monospace;
-                    color: rgba(255,255,255,0.9);
-                    font-size: 0.7rem; line-height: 1.6; max-width: 300px;
+                    justify-content: flex-start;
+                    padding-left: 8vw; 
+                    padding-right: 2vw; 
                 }
 
-                /* RIGHT PANEL: WHITE (Columns 2, 3, 4) */
+                /* DOMINANT LINKS */
+                .dominant-links-wrapper {
+                    display: flex; flex-direction: column; 
+                    gap: 0.5rem;
+                }
+
+                .dominant-link {
+                    display: block; text-decoration: none; line-height: 1.1; 
+                }
+
+                .dominant-link .menu-text {
+                    font-family: 'Poppins', sans-serif;
+                    font-weight: 600; 
+                    font-size: 3.5rem; 
+                    color: white; 
+                    letter-spacing: -0.02em;
+                }
+
+                /* --- PANEL 2: WHITE (RIGHT) --- */
                 .right-panel {
-                    background-color: #F5F5F7;
-                    color: #1a1a1a;
-                    display: grid; 
-                    /* 3 Columns in Right Panel: Explore | Resources | Contact+Socials */
-                    grid-template-columns: 1fr 1fr 1fr; 
-                    gap: 2rem;
-                    align-content: start; 
+                    background-color: #f5f5f5;
+                    display: block;
+                    padding-left: 5vw;
                 }
-                
-                /* Column Wrappers */
-                .menu-section { display: flex; flex-direction: column; gap: 0.5rem; }
-                
-                /* Resources Group (Col 2) */
-                .mindhub-links { display: flex; flex-direction: column; gap: 0.5rem; }
-                
-                /* Contact Group (Col 3) */
-                .contact-links { display: flex; flex-direction: column; gap: 0.5rem; }
 
-                /* Mobile Elements Hidden by Default on Desktop */
-                .mobile-menu-header, .mobile-only { display: none; }
-                
-                .col-label {
-                    font-family: 'Space Mono', monospace;
-                    font-size: 0.75rem; color: inherit; opacity: 0.5;
-                    text-transform: uppercase; margin-bottom: 2rem;
-                    border-bottom: 1px solid currentColor; padding-bottom: 0.5rem;
-                    width: 80%;
+                .secondary-columns-container {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 3rem; 
+                    width: 100%;
                 }
                 
-                .menu-link-item { display: block; text-decoration: none; margin-bottom: 0.5rem; width: fit-content; }
-                .menu-text {
-                    font-family: 'Poppins', sans-serif; font-weight: 500;
-                    transition: all 0.3s ease; display: block; color: #1a1a1a;
+                .secondary-col {
+                    display: flex; flex-direction: column; 
+                    gap: 3rem; /* Block Gap */
                 }
-                .menu-text.major { font-size: 2rem; font-weight: 600; letter-spacing: -0.02em; line-height: 1.1; } /* Reduced size slightly for density */
-                .menu-text.small { font-size: 1.0rem; font-weight: 400; color: #444; }
-                /* REMOVED CSS HOVER: Handled by Framer Motion now */
-                /* .menu-link-item:hover .menu-text { color: #000; transform: translateX(5px); } */
 
-                /* TABLET / MOBILE STYLES */
+                /* SECONDARY LINKS */
+                .sidebar-block { 
+                    display: flex; flex-direction: column; 
+                    gap: 0.15rem; /* REDUCED line-to-line spacing (Verified Request) */
+                }
+
+                .mono-label {
+                    font-family: 'Inconsolata', monospace; 
+                    font-size: 1.1rem; 
+                    font-weight: 800; 
+                    color: #1a1a1a; 
+                    letter-spacing: 0.05em; /* REDUCED letter-spacing (Verified Request) */
+                    text-transform: uppercase; 
+                    margin-bottom: 0.5rem; /* Reduced bottom margin */
+                }
+
+                .mono-link { text-decoration: none; display: block; width: fit-content; }
+
+                .mono-link .menu-text, .mono-text-link {
+                    font-family: 'Inconsolata', monospace; 
+                    font-size: 0.9rem;
+                    color: #444;
+                    text-decoration: none;
+                }
+                
+                .mono-link:hover .menu-text, .mono-text-link:hover {
+                    opacity: 0.6; color: #a30021;
+                }
+
+                .country-label {
+                    opacity: 0.5; font-size: 0.9em; margin-left: 0.5rem;
+                }
+                
+                /* SOCIAL STACK (Vertical) */
+                .social-stack {
+                    display: flex; flex-direction: column; gap: 0.15rem; /* Reduced gap */
+                }
+
+
+                /* MOBILE */
                 @media (max-width: 1024px) {
-                    /* ... (rest of styles remain same) ... */
-                    .mega-menu { max-width: 100%; }
+                    .mega-menu { height: 100vh; }
+                    .menu-inner { display: flex; flex-direction: column; }
+
+                    .left-panel {
+                        padding: 120px 5vw 2rem;
+                        flex: none;
+                    }
                     
-                    /* STACK LAYOUT: White (Links) on TOP, Red (Credits) on BOTTOM */
-                    .menu-inner { 
-                        display: flex;
-                        flex-direction: column-reverse; 
+                    .right-panel {
+                        padding: 2rem 5vw 4rem;
+                        background: #f5f5f5;
+                        flex: 1;
                     }
 
-                    /* Red Panel - Visible on Tablet/Mobile now, at bottom */
-                    .left-panel {
-                        display: flex;
-                        width: 100%;
-                        height: auto;
-                        padding: 4rem 5vw;
-                        border-right: none;
-                        border-top: 1px solid rgba(0,0,0,0.1);
-                    }
-                    
-                    .right-panel { 
-                        display: flex; 
-                        flex-direction: column; 
-                        padding: 2rem 5vw 4rem; 
-                        width: 100%;
-                        height: auto; 
+                    .secondary-columns-container {
+                        grid-template-columns: 1fr;
                         gap: 2rem;
                     }
                     
-                    /* Reset Grid Items for Flex Layout on Mobile */
-                    .mindhub-links, .contact-links, .menu-section {
-                        width: 100%;
-                    }
-                    
-                    /* Mobile Header within Drawer */
-                    .mobile-menu-header {
-                         display: flex; justify-content: space-between; align-items: center;
-                         margin-bottom: 2rem; padding-bottom: 1rem;
-                         border-bottom: 1px solid rgba(0,0,0,0.1);
-                    }
-                    .menu-title { font-size: 1.5rem; font-weight: 700; color: #1a1a1a; }
-                    .close-icon-btn {
-                        background: none; border: none; font-size: 2rem; color: #1a1a1a;
-                    }
-
-                    .mobile-only { display: block; }
-                    .desktop-only { display: none; }
-
-                    /* Button Styles */
-                    .secondary-toggle-btn {
-                        background: none; border: 1px solid #1a1a1a;
-                        padding: 1rem 1.5rem; width: 100%;
-                        text-align: left; font-family: 'Space Mono', monospace;
-                        text-transform: uppercase; margin-top: 2rem; cursor: pointer;
-                        display: flex; justify-content: space-between;
-                        transition: all 0.2s ease;
-                    }
-                    .secondary-toggle-btn:hover { background: #1a1a1a; color: white; }
-
-                    /* Mobile Toggling Logic */
-                    .hidden-mobile { display: none; }
-                    .active-mobile { display: block; animation: fadeIn 0.3s ease; }
-                    
-                    .desktop-grid-wrapper { display: flex; flex-direction: column; gap: 2rem; }
-                    
-                    .menu-text.major { font-size: 2rem; }
-                    
-                    /* Contact Links on Mobile */
-                    .contact-link {
-                        display: block; font-size: 1.1rem; color: #1a1a1a;
-                        text-decoration: none; margin-bottom: 0.5rem;
-                    }
-                    
-                    .mobile-hidden-default { display: none; }
-                    .mobile-hidden-default.active-mobile { display: block; }
-                }
-                
-                @media (min-width: 1025px) {
-                   .primary-section, .secondary-section { 
-                       display: flex; 
-                       height: auto;
-                   }
-                   .mobile-hidden-default { display: flex; /* Show Resources col on Desktop */ }
+                    .dominant-link .menu-text { font-size: 2.5rem; }
                 }
 
-                @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+                @media (max-width: 768px) {
+                     .desktop-only-breadcrumbs { display: none !important; }
+                     .mobile-breadcrumbs-row { display: block; }
+                     .nav-grid { height: 70px; grid-template-columns: auto 1fr auto; display: flex; justify-content: space-between; }
+                     .desktop-logo { display: none; }
+                     .mobile-logo { display: inline-block; font-weight: 700; text-transform: capitalize; }
+                     .nav-left { order: 1; }
+                     .nav-center { order: 2; justify-content: flex-end; }
+                     .nav-right { display: none; } 
+                     .logo-text, .menu-btn { font-size: 1.1rem; font-weight: 700; }
+                }
             `}</style>
         </React.Fragment>
     );
@@ -481,12 +379,14 @@ const MenuLink = ({ children, href, variants, small, className, ...props }) => {
             <motion.span
                 className={`menu-text ${small ? 'small' : 'major'}`}
                 variants={variants}
-                initial="closed" // Ensure base state
-                // Force fast transition for ALL state changes, including return from hover
-                transition={{ duration: 0.1, ease: "easeOut" }}
+                initial="closed"
+                // FORCE INLINE-BLOCK FOR TRANSFORM TO WORK
+                style={{ display: 'inline-block' }}
+                // SNAPPY MOVEMENT (Not instant, but very fast)
+                transition={{ duration: 0.05, ease: "easeOut" }}
                 whileHover={{
-                    x: 15, // Fast X-axis shift right (Requested: "quick X-axis movement")
-                    color: "#000000", // Highlight to pure black (or darker)
+                    x: 10,
+                    // No Color Change requested
                 }}
             >
                 {children}

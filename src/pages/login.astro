@@ -14,11 +14,7 @@ const title = "Login | Resource Hub";
             class="hub-form"
             style="text-align: center; font-family: 'Poppins', sans-serif;"
         >
-            <h1
-                class="hub-title"
-                style="margin-bottom: 8px; white-space: nowrap;"
-                id="page-title"
-            >
+            <h1 class="hub-title" style="margin-bottom: 8px;" id="page-title">
                 Curator Login
             </h1>
             <p
@@ -275,6 +271,11 @@ const title = "Login | Resource Hub";
             submitBtn.disabled = false;
             submitBtn.innerText = isSignup ? "Create Account" : "Log In";
         }
+    });
+
+    toggleBtn?.addEventListener("click", (e) => {
+        e.preventDefault();
+        toggleMode();
     });
 
     // --- INIT ---

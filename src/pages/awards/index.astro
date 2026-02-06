@@ -7,67 +7,78 @@ const pageTitle = "Awards & Recognition";
 ---
 
 <BaseLayout title={pageTitle}>
-    <header class="page-header">
-        <h1>{pageTitle}</h1>
-        <p class="section-intro">
-            A selection of scholarships, grants, and awards that have supported
-            my creative journey.
-        </p>
-    </header>
+    <div class="page-container">
+        <header class="page-header">
+            <h1>{pageTitle}</h1>
+            <p class="section-intro">
+                A selection of scholarships, grants, and awards that have
+                supported my creative and academic journey.
+            </p>
+        </header>
 
-    <div class="awards-table-container">
-        <table class="awards-table">
-            <thead>
-                <tr>
-                    <th>Award / Scholarship</th>
-                    <th>Category</th>
-                    <th>Value</th>
-                    <th>Year</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
+        <section class="awards-list-section">
+            <div class="awards-grid">
+                {/* Header Row */}
+                <div class="grid-row header-row">
+                    <div class="cell year-cell">Year</div>
+                    <div class="cell title-cell">Award / Honor</div>
+                    <div class="cell desc-cell">Description</div>
+                </div>
+
+                {/* Data Rows */}
                 {
                     awards.map((award) => (
-                        <tr>
-                            <td class="award-title-cell">
-                                <strong>{award.title}</strong>
-                            </td>
-                            <td>{award.category}</td>
-                            <td class="award-value">{award.value}</td>
-                            <td class="award-date">
-                                {award.date
-                                    ? new Date(award.date).getFullYear()
-                                    : "-"}
-                            </td>
-                            <td class="award-link-cell">
-                                {award.url && (
-                                    <a href={award.url} class="view-btn">
-                                        View
-                                    </a>
-                                )}
-                            </td>
-                        </tr>
+                        <div class="grid-row content-row">
+                            <div class="cell year-cell">
+                                <span class="mono-text">{award.year}</span>
+                            </div>
+
+                            <div class="cell title-cell">
+                                <div class="award-hierarchy">
+                                    <span class="award-name">
+                                        {award.title}
+                                    </span>
+                                    {award.organization && (
+                                        <span class="org-name">
+                                            {award.organization}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div class="cell desc-cell">
+                                <p class="award-description">
+                                    {award.description}
+                                </p>
+                            </div>
+                        </div>
                     ))
                 }
-            </tbody>
-        </table>
+            </div>
+        </section>
     </div>
 </BaseLayout>
 
 <style>
+    .page-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding-bottom: 8rem;
+    }
+
     .page-header {
-        margin-bottom: 4rem;
+        margin-bottom: 5rem;
         padding-top: 2rem;
         text-align: left;
     }
 
     h1 {
         font-family: "Poppins", sans-serif;
-        font-size: 3rem;
-        font-weight: 500;
-        margin-bottom: 1rem;
+        font-size: 3.5rem;
+        font-weight: 600;
+        letter-spacing: -0.02em;
         color: var(--text-primary);
+        margin-bottom: 1rem;
     }
 
     .section-intro {
@@ -79,74 +90,143 @@ const pageTitle = "Awards & Recognition";
         line-height: 1.6;
     }
 
-    .awards-table-container {
-        width: 100%;
-        overflow-x: auto;
+    /* Strictly Enforced Grid Table */
+    .awards-grid {
+        display: flex;
+        flex-direction: column;
+        border: 1px solid var(--border-subtle);
+        background: var(--bg-canvas);
     }
 
-    .awards-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-family: var(--font-sans);
-        color: var(--text-secondary);
-    }
-
-    .awards-table th {
-        text-align: left;
-        padding: 1.5rem 1rem;
+    .grid-row {
+        display: grid;
+        grid-template-columns: 180px 350px 1fr;
         border-bottom: 1px solid var(--border-subtle);
-        font-family: var(--font-mono);
-        text-transform: uppercase;
+    }
+
+    .grid-row:last-child {
+        border-bottom: none;
+    }
+
+    .cell {
+        padding: 2.5rem 2rem;
+        display: flex;
+        align-items: flex-start;
+        border-right: 1px solid var(--border-subtle);
+    }
+
+    .cell:last-child {
+        border-right: none;
+    }
+
+    /* Header Styling */
+    .header-row {
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    .header-row .cell {
+        font-family: "Space Mono", monospace;
         font-size: 0.8rem;
-        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-tertiary);
+        padding: 1.25rem 2rem;
+        font-weight: 700;
+    }
+
+    /* Hierarchy & Typography */
+    .mono-text {
+        font-family: "Space Mono", monospace;
+        font-size: 1rem;
         color: var(--text-tertiary);
         font-weight: 500;
     }
 
-    .awards-table td {
-        padding: 1.5rem 1rem;
-        border-bottom: 1px solid var(--border-subtle);
-        vertical-align: middle;
+    .award-hierarchy {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
     }
 
-    .award-title-cell strong {
+    .award-name {
+        font-family: "Poppins", sans-serif;
+        font-size: 1.35rem;
+        font-weight: 700; /* Bold for hierarchy */
         color: var(--text-primary);
-        font-size: 1.1rem;
-        font-weight: 500;
+        line-height: 1.2;
     }
 
-    .award-value {
-        font-family: var(--font-mono);
-        color: var(--text-primary);
+    .org-name {
+        font-family: "Inter", sans-serif;
+        font-size: 1rem;
+        color: var(--text-tertiary);
+        font-weight: 400;
+        opacity: 0.8;
     }
 
-    .award-date {
-        font-family: var(--font-mono);
+    .award-description {
+        font-size: 1.05rem;
+        line-height: 1.7;
+        color: var(--text-secondary);
+        margin: 0;
+        max-width: 60ch;
     }
 
-    .view-btn {
-        display: inline-block;
-        padding: 0.5rem 1.2rem;
-        border: 1px solid var(--border-subtle);
-        border-radius: 100px;
-        color: var(--text-primary);
-        text-decoration: none;
-        font-size: 0.9rem;
-        transition: all 0.2s ease;
+    /* Hover State */
+    .content-row:hover {
+        background: rgba(255, 255, 255, 0.02);
     }
 
-    .view-btn:hover {
-        background: var(--text-primary);
-        color: var(--bg-color);
-        border-color: var(--text-primary);
+    /* Responsive Design */
+    @media (max-width: 1100px) {
+        .grid-row {
+            grid-template-columns: 140px 300px 1fr;
+        }
+
+        .cell {
+            padding: 2rem 1.5rem;
+        }
+    }
+
+    @media (max-width: 850px) {
+        .awards-grid {
+            border: none;
+        }
+
+        .header-row {
+            display: none; /* Hide header on mobile for stacked layout */
+        }
+
+        .grid-row {
+            grid-template-columns: 1fr;
+            border: 1px solid var(--border-subtle);
+            margin-bottom: 2rem;
+            border-radius: 4px;
+        }
+
+        .cell {
+            border-right: none;
+            border-bottom: 1px solid var(--border-subtle);
+            padding: 1.5rem;
+        }
+
+        .cell:last-child {
+            border-bottom: none;
+        }
+
+        .year-cell {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 0.75rem 1.5rem;
+        }
+
+        h1 {
+            font-size: 3rem;
+        }
     }
 
     @media (max-width: 768px) {
-        .awards-table th:nth-child(2),
-        .awards-table td:nth-child(2),
-        .awards-table th:nth-child(3),
-        .awards-table td:nth-child(3) {
-            display: none;
+        h1 {
+            font-size: 2.5rem;
         }
     }
 </style>

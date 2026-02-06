@@ -145,7 +145,7 @@ export default function TagInput({ selectedTags, onChange, maxTags = 3 }: Props)
         }
         .selected-tag-chip {
             background: var(--text-primary);
-            color: var(--bg-color);
+            color: var(--text-inverse);
             padding: 4px 10px;
             border-radius: 100px;
             font-size: 13px;

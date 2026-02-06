@@ -1,0 +1,55 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import NewsletterForm from "../components/NewsletterForm.jsx";
+import { getPageMetadata } from "../lib/api";
+
+const pagePath = Astro.url.pathname;
+const dbMetadata = await getPageMetadata(pagePath);
+const title = dbMetadata?.meta_title || "Newsletter | Abodid";
+const description =
+    dbMetadata?.meta_description ||
+    "Get the Internet’s Best Ideas and Resources — Curated for You. Every month, we filter the noise and send you only what’s genuinely worth your time.";
+---
+
+<BaseLayout title={title} description={description} fullWidth={true}>
+    <div class="newsletter-page-wrapper">
+        <div class="content-container">
+            <h1 class="visually-hidden">Newsletter Subscription</h1>
+            <!-- Reusing the form with 'page' variant for specific styling -->
+            <NewsletterForm client:load variant="page" />
+        </div>
+    </div>
+</BaseLayout>
+
+<style>
+    .newsletter-page-wrapper {
+        min-height: 80vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 2rem;
+        position: relative;
+        z-index: 2;
+    }
+
+    .content-container {
+        width: 100%;
+        max-width: 700px;
+        display: flex;
+        justify-content: center;
+    }
+
+    /* Accessibility hide h1 as form has its own headline */
+    .visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border-width: 0;
+    }
+</style>

@@ -60,7 +60,7 @@ const Breadcrumbs = () => {
                     );
                 })}
             </ol>
-            <style jsx>{`
+            <style>{`
                 .breadcrumbs-nav {
                     display: flex;
                     align-items: center;

@@ -5,6 +5,10 @@ const EngagementCTA = () => {
     const [isVisible, setIsVisible] = useState(false);
     const [isDismissed, setIsDismissed] = useState(false);
 
+    // New state for tolerance logic
+    const [cooldownUntil, setCooldownUntil] = useState(0);
+    const [showTime, setShowTime] = useState(0);
+
     useEffect(() => {
         // Check session storage for dismissal
         if (typeof window !== 'undefined' && sessionStorage.getItem('cta_dismissed') === 'true') {
@@ -15,23 +19,45 @@ const EngagementCTA = () => {
         const checkEngagement = () => {
             if (isDismissed) return;
 
+            const now = Date.now();
+            if (now < cooldownUntil) return; // In cooldown (temporarily hidden)
+
             const engagement = window.__cardEngagement;
             const scrollY = window.scrollY;
 
-            // Condition (a): 15 cards revealed
-            // Condition (b): 15 seconds since first interaction
-            const hasEnoughReveals = engagement && engagement.reveals >= 15;
-            const hasEnoughTime = engagement && engagement.firstInteraction && (Date.now() - engagement.firstInteraction > 15000);
+            // Condition 1: Interest shown (at least 10 reveals)
+            const hasEnoughReveals = engagement && engagement.reveals >= 10;
+
+            // Interaction Check (Active < 3s)
+            const lastInteraction = engagement ? engagement.lastInteraction : 0;
+            const timeSinceInteraction = now - lastInteraction;
+            const isActive = timeSinceInteraction < 3000;
 
             // Only if user hasn't scrolled past the experience area
             // Experience area is roughly at 70vh, so scrollY < 700 is a safe bet for "not past"
             const inExperienceArea = scrollY < 700;
 
-            if (hasEnoughReveals && hasEnoughTime && inExperienceArea) {
-                if (!isVisible) setIsVisible(true);
-            } else if (isVisible && !inExperienceArea) {
-                // Dimiss permanently if they scroll away while it's active
-                handleDismiss();
+            if (isVisible) {
+                // TOLERANCE LOGIC:
+                // If it's been visible for > 8 seconds...
+                // AND the user is STILL playing (active)...
+                // Then hide it (they are ignored it/busy).
+                if (now - showTime > 8000 && isActive) {
+                    setIsVisible(false);
+                    setCooldownUntil(now + 20000); // Hide for 20s before checking again
+                }
+
+                // Also hide if they scroll away
+                if (!inExperienceArea) {
+                    setIsVisible(false);
+                }
+            } else {
+                // LOGIC: Show if engaged + in area.
+                // We REMOVED the "isIdle" check. It can appear while playing.
+                if (hasEnoughReveals && inExperienceArea) {
+                    setIsVisible(true);
+                    setShowTime(now);
+                }
             }
         };
 
@@ -42,7 +68,7 @@ const EngagementCTA = () => {
             clearInterval(interval);
             window.removeEventListener('scroll', checkEngagement);
         };
-    }, [isVisible, isDismissed]);
+    }, [isVisible, isDismissed, cooldownUntil, showTime]);
 
     const handleDismiss = () => {
         setIsVisible(false);
@@ -52,7 +78,27 @@ const EngagementCTA = () => {
         }
     };
 
-    if (isDismissed || !isVisible) return null;
+    if (isDismissed || (!isVisible && !cooldownUntil)) return null;
+    // ^ Note: We keep the component mounted if it's just temporarily hidden, 
+    // but returning null when invisible is fine as Interval needs to run?
+    // Actually, if we return null here, the Effect cleanup will run and clear interval?
+    // Wait, if !isVisible, we return NULL.
+    // DOES THE EFFECT RUN if we return null? NO. 
+    // The hook is inside the component. If the component renders null, does it unmount? 
+    // No, React components can return null and still run hooks.
+    // BUT we must be careful. 
+    // Let's stick to the previous pattern: return null at the end if not visible.
+
+    // Actually, looking at previous code:
+    // if (isDismissed || !isVisible) return null;
+    // THIS IS A PERF OPTIMIZATION BUT IT BREAKS THE INTERVAL IF IT UNMOUNTS?
+    // Wait, <EngagementCTA /> is likely rendered in a parent.
+    // If it returns null, the component instance still exists? 
+    // NO. If a functional component returns null, it's still mounted.
+    // The hooks still run.
+    // Correct.
+
+    // However, to be safe and clean, let's keep the return logic at the end.
 
     return (
         <div className="engagement-cta-container">

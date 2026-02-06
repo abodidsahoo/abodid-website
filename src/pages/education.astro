@@ -8,53 +8,72 @@ const pageTitle = "Education";
 
 <BaseLayout title={pageTitle}>
     <header class="page-header">
-        <h1>{pageTitle}</h1>
+        <h1>Education</h1>
         <p class="section-intro">
             My academic journey and the institutions that have shaped my
             practice.
         </p>
     </header>
 
-    <div class="education-container">
-        {
-            education.map((edu) => (
-                <div class="education-item">
-                    <div class="edu-header">
-                        <h2 class="institution">{edu.institution}</h2>
-                        <span class="location">{edu.location}</span>
-                    </div>
+    <section class="education-list-section">
+        <div class="awards-grid">
+            {/* Header Row */}
+            <div class="grid-row header-row">
+                <div class="cell inst-cell">Institution</div>
+                <div class="cell deg-cell">Degree & Course</div>
+                <div class="cell focus-cell">Focus Area</div>
+            </div>
 
-                    <div class="edu-meta">
-                        <span class="degree">{edu.degree}</span>
-                        <span class="separator">•</span>
-                        <span class="course">{edu.course}</span>
-                        <span class="separator">•</span>
-                        <span class="years">
-                            {edu.start_year} - {edu.end_year}
-                        </span>
-                    </div>
+            {/* Data Rows */}
+            {
+                education.map((edu) => (
+                    <div class="grid-row content-row">
+                        <div class="cell inst-cell">
+                            <div class="inst-meta">
+                                <span class="institution-title">
+                                    {edu.institution}
+                                </span>
+                                <span class="location-year">
+                                    {edu.location}
+                                    {edu.location ? " " : ""}(
+                                    {edu.start_year && edu.end_year
+                                        ? `${edu.start_year} – ${edu.end_year}`
+                                        : edu.end_year || edu.start_year || "—"}
+                                    )
+                                </span>
+                            </div>
+                        </div>
 
-                    <div class="edu-content">
-                        <p class="details">{edu.details}</p>
-                        {edu.specialization && (
-                            <p class="specialization">
-                                <strong>Focus:</strong> {edu.specialization}
-                            </p>
-                        )}
-                        {edu.link_url && (
-                            <a href={edu.link_url} class="edu-link">
-                                {edu.link_text || "View Related Work"}{" "}
-                                <span class="arrow">→</span>
-                            </a>
-                        )}
+                        <div class="cell deg-cell">
+                            <div class="degree-info">
+                                <span class="degree-type">{edu.degree}</span>
+                                {edu.course && (
+                                    <span class="course-detail">
+                                        {edu.course}
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+
+                        <div class="cell focus-cell">
+                            <div class="focus-content">
+                                {edu.specialization || edu.details}
+                            </div>
+                        </div>
                     </div>
-                </div>
-            ))
-        }
-    </div>
+                ))
+            }
+        </div>
+    </section>
 </BaseLayout>
 
 <style>
+    .page-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding-bottom: 8rem;
+    }
+
     .page-header {
         margin-bottom: 5rem;
         padding-top: 2rem;
@@ -63,10 +82,11 @@ const pageTitle = "Education";
 
     h1 {
         font-family: "Poppins", sans-serif;
-        font-size: 3rem;
-        font-weight: 500;
-        margin-bottom: 1rem;
+        font-size: 3.5rem;
+        font-weight: 600;
+        letter-spacing: -0.02em;
         color: var(--text-primary);
+        margin-bottom: 1rem;
     }
 
     .section-intro {
@@ -78,128 +98,174 @@ const pageTitle = "Education";
         line-height: 1.6;
     }
 
-    .education-container {
+    /* Strictly Enforced Grid Table (Synced with Awards) */
+    .awards-grid {
         display: flex;
         flex-direction: column;
-        gap: 4rem;
-        max-width: 900px;
+        border: 1px solid var(--border-subtle);
+        background: var(--bg-canvas);
     }
 
-    .education-item {
+    .grid-row {
+        display: grid;
+        grid-template-columns: 350px 350px 1fr;
         border-bottom: 1px solid var(--border-subtle);
-        padding-bottom: 4rem;
     }
 
-    .education-item:last-child {
+    .grid-row:last-child {
         border-bottom: none;
     }
 
-    .edu-header {
+    .cell {
+        padding: 2.5rem 2rem;
         display: flex;
-        align-items: baseline;
-        gap: 1rem;
-        margin-bottom: 0.5rem;
-        flex-wrap: wrap;
+        align-items: flex-start;
+        border-right: 1px solid var(--border-subtle);
     }
 
-    .institution {
-        font-family: var(--font-serif);
-        font-size: 2rem;
-        font-weight: 400;
-        margin: 0;
+    .cell:last-child {
+        border-right: none;
+    }
+
+    /* Header Styling */
+    .header-row {
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    .header-row .cell {
+        font-family: "Poppins", sans-serif;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--text-tertiary);
+        padding: 1.25rem 2rem;
+        font-weight: 600;
+    }
+
+    /* Column 1: Institution & Name/Year */
+    .inst-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .institution-title {
+        font-family: "Poppins", sans-serif;
+        font-size: 1.3rem; /* Reduced for better balance */
+        font-weight: 700;
         color: var(--text-primary);
+        line-height: 1.2;
+        letter-spacing: -0.01em;
+        text-transform: capitalize;
     }
 
-    .location {
-        font-family: var(--font-mono);
+    .location-year {
+        font-family: "Inter", sans-serif;
         font-size: 0.9rem;
         color: var(--text-tertiary);
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
+        font-weight: 400; /* Matched with course-detail */
+        line-height: 1.4;
     }
 
-    .edu-meta {
-        font-family: var(--font-sans);
-        color: var(--text-secondary);
-        font-size: 1rem;
-        margin-bottom: 1.5rem;
+    /* Column 2: Degree & Course */
+    .degree-info {
         display: flex;
-        flex-wrap: wrap;
+        flex-direction: column;
         gap: 0.5rem;
-        align-items: center;
     }
 
-    .course {
+    .degree-type {
+        font-family: "Poppins", sans-serif;
+        font-size: 1.1rem;
+        font-weight: 500; /* Refined hierarchy */
         color: var(--text-primary);
-        font-weight: 500;
+        opacity: 0.9;
     }
 
-    .separator {
+    .course-detail {
+        font-family: "Inter", sans-serif;
+        font-size: 0.9rem;
         color: var(--text-tertiary);
-        font-size: 0.8em;
+        line-height: 1.5;
+        font-weight: 400;
     }
 
-    .edu-content {
-        font-family: var(--font-sans);
-        color: var(--text-secondary);
+    /* Column 3: Focus Area */
+    .focus-content {
+        font-family: "Inter", sans-serif;
+        font-size: 0.9rem; /* Synced with course details */
         line-height: 1.7;
-    }
-
-    .details {
-        margin-bottom: 1rem;
-    }
-
-    .specialization {
-        margin-bottom: 1.5rem;
-        font-style: italic;
-        color: var(--text-tertiary);
-    }
-
-    .specialization strong {
         color: var(--text-secondary);
-        font-style: normal;
+        max-width: 60ch;
+        padding-left: 1.5rem;
+        border-left: 1px solid var(--border-subtle);
+        position: relative;
     }
 
-    .edu-link {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        color: var(--text-primary);
-        text-decoration: none;
-        font-weight: 500;
-        margin-top: 0.5rem;
-        padding-bottom: 2px;
-        border-bottom: 1px solid transparent;
-        transition: border-bottom-color 0.2s ease;
+    .focus-content::before {
+        content: "";
+        position: absolute;
+        left: -1px;
+        top: 0;
+        height: 2rem;
+        width: 1px;
+        background: var(--text-primary);
+        opacity: 0.4;
     }
 
-    .edu-link:hover {
-        border-bottom-color: var(--text-primary);
+    .content-row:hover {
+        background: rgba(255, 255, 255, 0.02);
     }
 
-    .arrow {
-        transition: transform 0.2s ease;
-    }
-
-    .edu-link:hover .arrow {
-        transform: translateX(4px);
-    }
-
-    @media (max-width: 600px) {
-        .edu-header {
-            flex-direction: column;
-            gap: 0.2rem;
+    /* Responsive Design */
+    @media (max-width: 1100px) {
+        .grid-row {
+            grid-template-columns: 350px 250px 1fr;
         }
-        .institution {
-            font-size: 1.75rem;
+
+        .cell {
+            padding: 2rem 1.5rem;
         }
-        .edu-meta {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 0.2rem;
+
+        .institution-title {
+            font-size: 1.3rem;
         }
-        .separator {
+    }
+
+    @media (max-width: 900px) {
+        .grid-row {
+            grid-template-columns: 1fr;
+            border: 1px solid var(--border-subtle);
+            margin-bottom: 2rem;
+            border-radius: 4px;
+        }
+
+        .awards-grid {
+            border: none;
+        }
+
+        .header-row {
             display: none;
+        }
+
+        .cell {
+            border-right: none;
+            border-bottom: 1px solid var(--border-subtle);
+            padding: 1.5rem;
+        }
+
+        .cell:last-child {
+            border-bottom: none;
+        }
+
+        .inst-cell {
+            background: rgba(255, 255, 255, 0.03);
+        }
+    }
+
+    @media (max-width: 768px) {
+        h1 {
+            font-size: 2.5rem;
         }
     }
 </style>

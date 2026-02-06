@@ -202,21 +202,33 @@ const ExperienceModule = ({ src, captions = [] }) => {
         if (e) e.stopPropagation();
         if (!audioRef.current) return;
 
-        if (isPlaying) {
-            // Fade out then pause
-            await fadeAudio(0, 1.0);
-            audioRef.current.pause();
-            setIsPlaying(false);
+        // Optimistic UI update
+        const willPlay = !isPlaying;
+        setIsPlaying(willPlay);
+
+        if (!willPlay) {
+            // User requested pause: Fade out
+            // We use 'await' here so the fade happens before potentially pausing
+            // But we must check isPlayingRef after the await in case user clicked Resume during fade
+            try {
+                await fadeAudio(0, 1.0);
+                if (!isPlayingRef.current && audioRef.current) {
+                    audioRef.current.pause();
+                }
+            } catch (err) {
+                console.error("Fade out failed", err);
+            }
         } else {
+            // User requested resume
             if (audioContextRef.current.state === 'suspended') {
                 await audioContextRef.current.resume();
             }
-            // Ensure volume is at 0 before playing if we're resuming
-            if (gainNodeRef.current) {
-                gainNodeRef.current.gain.setValueAtTime(0, audioContextRef.current.currentTime);
+            // If we are resuming, fadeAudio will ramp from the current value (even if mid-fade)
+
+
+            if (audioRef.current.paused) {
+                await audioRef.current.play();
             }
-            await audioRef.current.play();
-            setIsPlaying(true);
             fadeAudio(1.0, 1.0).catch(err => console.error("Fade in failed:", err));
         }
     };
@@ -278,22 +290,26 @@ const ExperienceModule = ({ src, captions = [] }) => {
                 <div className="experience-col experience-col-right">
                     <AnimatePresence>
                         {isStarted && (
-                            <motion.div
+                            <motion.button
                                 className="spectrum-control-group"
                                 initial={{ opacity: 0, x: 10 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ duration: 0.5 }}
+                                onClick={togglePlay}
+                                type="button"
+                                aria-label={isPlaying ? "Pause Audio Experience" : "Resume Audio Experience"}
                             >
                                 <canvas
                                     ref={canvasRef}
                                     width={200}
                                     height={20}
                                     className="mirrored-spectrum-mini"
+                                    aria-hidden="true"
                                 />
-                                <button className="experience-toggle-right" onClick={togglePlay}>
+                                <span className="experience-toggle-right">
                                     {isPlaying ? "Pause Experience" : "Resume Experience"}
-                                </button>
-                            </motion.div>
+                                </span>
+                            </motion.button>
                         )}
                     </AnimatePresence>
                 </div>
@@ -380,6 +396,16 @@ const ExperienceModule = ({ src, captions = [] }) => {
                     align-items: center;
                     gap: 12px;
                     pointer-events: auto;
+                    cursor: pointer;
+                    padding: 1rem;
+                    border-radius: 0;
+                    transition: opacity 0.3s ease;
+                    /* Reset Button Styles */
+                    background: transparent;
+                    border: none;
+                }
+                .spectrum-control-group:hover {
+                    opacity: 0.8;
                 }
 
                 .experience-toggle-right {

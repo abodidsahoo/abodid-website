@@ -32,7 +32,7 @@ const projects = [
     <div class="fundraising-hub">
         <header class="hub-header">
             <h1>Support My Work</h1>
-            <p class="subtitle">
+            <p class="section-intro">
                 Independent research, creative projects, and educational
                 milestones. Your support helps turn these ambitious ideas into
                 reality.
@@ -65,26 +65,26 @@ const projects = [
     }
 
     .hub-header {
-        text-align: center;
-        max-width: 700px;
-        margin: 0 auto 5rem auto;
-        padding-top: 3rem;
+        margin-bottom: 5rem;
+        padding-top: 2rem;
+        text-align: left;
     }
 
     h1 {
         font-family: "Poppins", sans-serif;
         font-size: 3.5rem;
-        font-weight: 700;
-        margin-bottom: 1.5rem;
-        letter-spacing: -1px;
-        background: linear-gradient(to right, #fff, #a3a3a3);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        letter-spacing: -0.02em;
+        color: var(--text-primary);
     }
 
-    .subtitle {
-        font-size: 1.2rem;
+    .section-intro {
+        font-family: var(--font-sans);
+        font-size: 1.1rem;
         color: var(--text-secondary);
+        max-width: 600px;
+        margin: 0;
         line-height: 1.6;
     }
 
@@ -97,9 +97,6 @@ const projects = [
     @media (max-width: 768px) {
         h1 {
             font-size: 2.5rem;
-        }
-        .projects-grid {
-            grid-template-columns: 1fr;
         }
     }
 </style>

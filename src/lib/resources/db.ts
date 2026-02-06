@@ -81,7 +81,9 @@ export async function getApprovedResources(filters: ResourceFilters = {}): Promi
     // Transform to flatter structure
     let resources = data.map((item: any) => ({
         ...item,
-        tags: item.tags.map((t: any) => t.tag)
+        tags: item.tags
+            ?.map((t: any) => t.tag)
+            ?.filter((tag: any) => tag !== null) || []
     }));
 
     // JS Post-Filter for Tags (if needed)

@@ -92,11 +92,19 @@ export default function AuthHeader({ theme = 'default' }: Props) {
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             if (event === 'SIGNED_IN' && session) {
                 setSessionUser(session.user);
+                if (!supabase) return;
                 const { data } = await supabase.from('profiles').select('username, full_name, role').eq('id', session.user.id).single();
                 const stats = await getUserStats(session.user.id);
-                const fullProfile = { ...data, stats };
-                setProfile(fullProfile);
-                localStorage.setItem('curator_profile', JSON.stringify(fullProfile));
+                if (data) {
+                    const fullProfile: Profile = {
+                        username: data.username,
+                        full_name: data.full_name,
+                        role: data.role,
+                        stats
+                    };
+                    setProfile(fullProfile);
+                    localStorage.setItem('curator_profile', JSON.stringify(fullProfile));
+                }
             } else if (event === 'SIGNED_OUT') {
                 setProfile(null);
                 setSessionUser(null);
@@ -174,120 +182,74 @@ export default function AuthHeader({ theme = 'default' }: Props) {
     const accentColor = theme === 'scifi' ? '#00f3ff' : 'var(--text-primary)';
 
     return (
-        <div style={{ textAlign: 'right', animation: 'fadeIn 0.3s ease', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+        <div style={{ textAlign: 'right', animation: 'fadeIn 0.3s ease', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '12px' }}>
 
-            {/* User Identity */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontFamily, fontWeight: 600, fontSize: '0.9rem', color: textColor, letterSpacing: theme === 'scifi' ? '0.1em' : '0' }}>
-                    {theme === 'scifi' ? `USER: ${displayName.toUpperCase()}` : displayName}
+            {/* Greeting Block */}
+            <div className="auth-greeting-block" style={{ marginBottom: '4px' }}>
+                <span style={{
+                    fontFamily,
+                    fontWeight: 700,
+                    fontSize: '1.2rem',
+                    color: textColor,
+                    letterSpacing: '-0.01em'
+                }}>
+                    Hi, {displayName}
                 </span>
             </div>
 
-            {/* Dashboard / Stats */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '15px', fontSize: '12px', fontFamily }}>
+            {/* Dashboard Action Box */}
+            <div className="auth-action-box" style={{
+                width: '100%',
+                maxWidth: '240px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px'
+            }}>
                 <a
-                    href={`/resources/u/${activeData.username}#upvoted`}
-                    style={{ color: theme === 'scifi' ? 'rgba(255,255,255,0.7)' : 'var(--text-secondary)', textDecoration: 'none' }}
+                    href="/resources/dashboard"
+                    className="auth-dashboard-btn-box"
+                    style={{
+                        background: '#334155',
+                        color: '#FFFFFF',
+                        padding: '12px 20px',
+                        borderRadius: '12px',
+                        textDecoration: 'none',
+                        transition: 'all 0.2s ease',
+                        fontFamily,
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '2px',
+                        boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                    }}
                 >
-                    UPVOTES: <strong>{activeData.stats?.recent_upvotes || 0}</strong>
-                </a>
-                <a
-                    href="/resources/saved"
-                    style={{ color: theme === 'scifi' ? accentColor : 'var(--text-primary)', textDecoration: 'none', fontWeight: 600 }}
-                >
-                    SAVED: <strong>{activeData.stats?.total_bookmarks || 0}</strong>
+                    <span style={{ fontWeight: 700, fontSize: '0.9rem', letterSpacing: '0.05em' }}>
+                        {activeData.role === 'admin' ? 'GO TO ADMIN PANEL' : 'GO TO DASHBOARD'}
+                    </span>
+                    <span style={{
+                        fontSize: '9px',
+                        opacity: 0.7,
+                        fontWeight: 500,
+                        fontStyle: 'italic'
+                    }}>
+                        (Logout option is available in dashboard)
+                    </span>
                 </a>
             </div>
 
-            {/* Actions */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '2px' }}>
-                {activeData.role === 'admin' && (
-                    <>
-                        <a
-                            href="/admin/dashboard"
-                            style={{
-                                color: textColor,
-                                fontSize: '11px',
-                                textDecoration: 'none',
-                                fontFamily,
-                                fontWeight: 600,
-                                padding: '4px 12px',
-                                border: `1px solid ${accentColor}`,
-                                borderRadius: '4px',
-                                background: theme === 'scifi' ? 'rgba(0, 243, 255, 0.05)' : 'transparent',
-                                transition: 'all 0.2s ease'
-                            }}
-                        >
-                            ADMIN DASHBOARD
-                        </a>
-                        <a
-                            href="/resources/dashboard"
-                            style={{
-                                color: textColor,
-                                fontSize: '11px',
-                                textDecoration: 'none',
-                                fontFamily,
-                                fontWeight: 600,
-                                padding: '4px 12px',
-                                border: `1px solid ${accentColor}`,
-                                borderRadius: '4px',
-                                background: theme === 'scifi' ? 'rgba(0, 243, 255, 0.05)' : 'transparent',
-                                transition: 'all 0.2s ease'
-                            }}
-                        >
-                            CURATOR DASHBOARD
-                        </a>
-                    </>
-                )}
-                {activeData.role === 'curator' && (
-                    <a
-                        href="/resources/dashboard"
-                        style={{
-                            color: textColor,
-                            fontSize: '11px',
-                            textDecoration: 'none',
-                            fontFamily,
-                            fontWeight: 600,
-                            padding: '4px 12px',
-                            border: `1px solid ${accentColor}`,
-                            borderRadius: '4px',
-                            background: theme === 'scifi' ? 'rgba(0, 243, 255, 0.05)' : 'transparent',
-                            transition: 'all 0.2s ease'
-                        }}
-                    >
-                        CURATOR DASHBOARD
-                    </a>
-                )}
-                {(activeData.role === 'user' || !activeData.role) && (
-                    <a
-                        href="/resources/dashboard"
-                        style={{
-                            color: textColor,
-                            fontSize: '11px',
-                            textDecoration: 'none',
-                            fontFamily,
-                            fontWeight: 600,
-                            padding: '4px 12px',
-                            border: `1px solid ${accentColor}`,
-                            borderRadius: '4px',
-                            background: theme === 'scifi' ? 'rgba(0, 243, 255, 0.05)' : 'transparent',
-                            transition: 'all 0.2s ease'
-                        }}
-                    >
-                        DASHBOARD
-                    </a>
-                )}
-                <button
-                    onClick={async () => {
-                        await supabase?.auth.signOut();
-                        localStorage.removeItem('curator_profile');
-                        window.location.href = '/login';
-                    }}
-                    style={{ background: 'none', border: 'none', color: theme === 'scifi' ? '#ef4444' : 'var(--text-secondary)', cursor: 'pointer', fontSize: '11px', padding: 0, fontFamily }}
-                >
-                    LOGOUT
-                </button>
-            </div>
+            <style>{`
+                .auth-dashboard-btn-box:hover {
+                    background: #1e293b !important;
+                    transform: translateY(-2px);
+                    box-shadow: 0 6px 15px rgba(0,0,0,0.2) !important;
+                    border-color: rgba(255,255,255,0.3) !important;
+                }
+                .auth-dashboard-btn-box:active {
+                    transform: translateY(0);
+                }
+            `}</style>
         </div>
     );
 }

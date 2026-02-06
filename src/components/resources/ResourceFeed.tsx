@@ -58,8 +58,8 @@ const ReactResourceCard = ({
 
                 <div className="meta">
                     <div className="tags">
-                        {resource.tags?.slice(0, 3).map(t => (
-                            <span key={t.id} className="tag">{t.name}</span>
+                        {resource.tags?.slice(0, 3).map((t, idx) => (
+                            t && <span key={t.id || `tag-${idx}`} className="tag">{t.name}</span>
                         ))}
                     </div>
 
@@ -70,7 +70,7 @@ const ReactResourceCard = ({
                             onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleUpvote(); }}
                             title="Upvote this resource"
                         >
-                            👍 {resource.upvotes_count || 0}
+                            <span>👍</span> {resource.upvotes_count || 0}
                         </button>
 
                         <button
@@ -78,7 +78,7 @@ const ReactResourceCard = ({
                             onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleBookmark(); }}
                             title="Bookmark"
                         >
-                            🔖 {isBookmarked ? 'Saved' : 'Save'}
+                            <span>🔖</span> {isBookmarked ? 'Saved' : 'Save'}
                         </button>
 
                         <a href={`/resources/${resource.id}`} className="view-details-link">
@@ -301,7 +301,7 @@ export default function ResourceFeed({ initialResources, availableTags, showSear
     ];
 
     return (
-        <div className="feed-container">
+        <div className="feed-container" suppressHydrationWarning={true}>
 
             {/* Big Search Header */}
             {showSearch && (
@@ -323,7 +323,7 @@ export default function ResourceFeed({ initialResources, availableTags, showSear
                                 <line x1="12" y1="5" x2="12" y2="19"></line>
                                 <line x1="5" y1="12" x2="19" y2="12"></line>
                             </svg>
-                            Submit to Hub
+                            Submit new resource
                         </a>
                     </div>
 
@@ -557,11 +557,13 @@ export default function ResourceFeed({ initialResources, availableTags, showSear
                 width: 100%;
                 height: 100%;
                 object-fit: cover;
-                transition: transform 0.5s ease;
+                transition: transform 0.5s ease, filter 0.5s ease, opacity 0.5s ease;
+                filter: grayscale(0.8) opacity(0.8);
             }
 
              .resource-card-react:hover .thumbnail {
                 transform: scale(1.05);
+                filter: grayscale(0) opacity(1);
             }
 
             .thumbnail-placeholder {

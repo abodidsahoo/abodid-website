@@ -1,62 +1,62 @@
 import React, { useState } from 'react';
 
 const FundraisingCard = ({
-    title,
-    description,
-    image,
-    goal,
-    raised,
-    href,
-    customButtonAction
+  title,
+  description,
+  image,
+  goal,
+  raised,
+  href,
+  customButtonAction = null
 }) => {
-    const percentage = Math.min((raised / goal) * 100, 100);
+  const percentage = Math.min((raised / goal) * 100, 100);
 
-    return (
-        <div className="fundraising-card">
-            <a href={href} className="card-link">
-                <div className="image-container">
-                    <img src={image} alt={title} className="card-image" />
-                    <div className="overlay"></div>
-                </div>
-            </a>
+  return (
+    <div className="fundraising-card">
+      <a href={href} className="card-link">
+        <div className="image-container">
+          <img src={image} alt={title} className="card-image" />
+          <div className="overlay"></div>
+        </div>
+      </a>
 
-            <div className="card-content">
-                <a href={href} className="title-link">
-                    <h3>{title}</h3>
-                </a>
-                <p className="description">{description}</p>
+      <div className="card-content">
+        <a href={href} className="title-link">
+          <h3>{title}</h3>
+        </a>
+        <p className="description">{description}</p>
 
-                <div className="progress-section">
-                    <div className="progress-bar-bg">
-                        <div
-                            className="progress-bar-fill"
-                            style={{ width: `${percentage}%` }}
-                        ></div>
-                    </div>
-                    <div className="stats-row">
-                        <div className="stat">
-                            <span className="value">£{raised.toLocaleString()}</span>
-                            <span className="label">Raised</span>
-                        </div>
-                        <div className="stat right">
-                            <span className="value">£{goal.toLocaleString()}</span>
-                            <span className="label">Goal</span>
-                        </div>
-                    </div>
-                </div>
-
-                {customButtonAction ? (
-                    <button onClick={customButtonAction} className="btn-back">
-                        Back this Project
-                    </button>
-                ) : (
-                    <a href={href} className="btn-back">
-                        View Project
-                    </a>
-                )}
+        <div className="progress-section">
+          <div className="progress-bar-bg">
+            <div
+              className="progress-bar-fill"
+              style={{ width: `${percentage}%` }}
+            ></div>
+          </div>
+          <div className="stats-row">
+            <div className="stat">
+              <span className="value">£{raised.toLocaleString()}</span>
+              <span className="label">Raised</span>
             </div>
+            <div className="stat right">
+              <span className="value">£{goal.toLocaleString()}</span>
+              <span className="label">Goal</span>
+            </div>
+          </div>
+        </div>
 
-            <style jsx>{`
+        {customButtonAction ? (
+          <button onClick={customButtonAction} className="btn-back">
+            Back this Project
+          </button>
+        ) : (
+          <a href={href} className="btn-back">
+            View Project
+          </a>
+        )}
+      </div>
+
+      <style jsx>{`
         .fundraising-card {
           background: rgba(255, 255, 255, 0.03);
           border: 1px solid rgba(255, 255, 255, 0.08); /* border-subtle */
@@ -199,8 +199,8 @@ const FundraisingCard = ({
           border-color: #fff;
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 };
 
 export default FundraisingCard;

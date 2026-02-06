@@ -39,7 +39,7 @@ const ThemeWidget = () => {
     const handleColorChange = (color) => {
         setActiveColor(color);
         // Update the CSS variable globally
-        document.documentElement.style.setProperty('--darkroom-bg', color);
+        document.documentElement.style.setProperty('--polaroid-hub-bg', color);
     };
 
     return (

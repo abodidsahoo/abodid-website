@@ -59,11 +59,14 @@ export interface MediaMention extends BaseEntity {
 
 export interface Award extends BaseEntity {
     title: string;
-    category: string;
-    value: string;
-    date: string;
-    url: string;
+    organization: string;
+    year: string;
+    category?: string;
+    value?: string;
+    date?: string;
+    url?: string;
     description: string;
+    published: boolean;
 }
 
 export interface Education extends BaseEntity {
@@ -78,6 +81,9 @@ export interface Education extends BaseEntity {
     link_text?: string | null;
     link_url?: string | null;
     sort_order?: number;
+    year?: string; // For mock data/backward compatibility
+    description?: string; // For mock data
+    published?: boolean;
 }
 
 export interface Film extends BaseEntity {
@@ -93,10 +99,23 @@ export interface Film extends BaseEntity {
 }
 
 export interface TimelineCard extends BaseEntity {
+    id: string; // Ensure id is required if used as string
     year: string;
     title: string;
     description: string;
     sort_index?: number;
+    image?: string; // thumbnail_url or image_url
+    published?: boolean;
+}
+
+export interface CV extends BaseEntity {
+    title: string;
+    url: string;
+}
+
+export interface CVsResponse {
+    artistCV: CV | null;
+    professionalCVs: CV[];
 }
 
 export interface ResearchPaper extends BaseEntity {

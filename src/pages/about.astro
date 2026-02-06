@@ -1,7 +1,5 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import PdfIcon from "../components/PdfIcon.astro";
-import CVListModal from "../components/CVListModal.jsx";
 import { getCVs } from "../lib/api";
 
 const pageTitle = "About";
@@ -17,7 +15,7 @@ const hubs = [
     },
     {
         title: "Curriculum Vitae",
-        link: "/cv",
+        link: "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/cv/Abodid%20Sahoo%20-%20Photography%20&%20AI%20-%20CV.pdf",
         icon: "→",
     },
     {
@@ -56,76 +54,132 @@ const hubs = [
         icon: "→",
     },
 ];
+
+const competencies = [
+    "Creative Technology & Interactive Media",
+    "Photography & Film Production",
+    "Digital Strategy & Community Growth",
+    "Exhibition & Event Documentation",
+    "Research & Academic Writing",
+];
+
+const clients = [
+    "Globally Renowned Art Institutes",
+    "Avant-Garde Design Studios",
+    "Innovative Cultural Startups",
+    "Independent Artists & Curators",
+];
 ---
 
 <BaseLayout title={pageTitle}>
-    <header class="page-header">
-        <h1>About Me</h1>
-    </header>
+    <div class="page-container">
+        <header class="page-header">
+            <h1>About Me</h1>
+        </header>
 
-    <section class="about-intro">
-        <p class="lead">Hi, I am Abodid. I am a creative technologist.</p>
-        <p>
-            I work with globally renowned art institutes, artists, design
-            studios, and innovative startups in the culture sector. I help them
-            document world-class exhibitions and events, while also building
-            meaningful relationships with key stakeholders and growing engaged
-            communities. My experience across art, design, and academia allows
-            me to craft innovative creative strategies and produce offbeat,
-            edgy, and highly impactful work across photography, film, and
-            interactive media.
-        </p>
-    </section>
+        <section class="about-content">
+            <div class="intro-group">
+                <h2 class="intro-name">Hi, I am Abodid.</h2>
+                <h3 class="intro-title">
+                    I'm a creative technologist and researcher.
+                </h3>
+                <p class="intro-mission">
+                    I help organizations document world-class exhibitions and
+                    events, build meaningful relationships with key
+                    stakeholders, and grow engaged communities.
+                </p>
+            </div>
 
-    <section class="hub-grid">
-        {
-            hubs.map((item) => (
-                <a href={item.link} class="hub-card">
-                    <div class="card-content">
-                        <div class="card-left">
-                            <h3>{item.title}</h3>
-                        </div>
-                        <span class="icon">{item.icon}</span>
-                    </div>
-                </a>
-            ))
-        }
-    </section>
+            <div class="info-grid">
+                <div class="info-column">
+                    <h3 class="info-label">What I Do</h3>
+                    <ul class="bullet-list">
+                        {competencies.map((item) => <li>{item}</li>)}
+                    </ul>
+                </div>
 
-    <section class="contact-section">
-        <hr class="divider" />
-        <h3>Contact</h3>
-        <ul class="contact-list">
-            <li><a href="mailto:hello@abodid.com">hello@abodid.com</a></li>
-            <li>
-                <a href="https://github.com/abodidsahoo" target="_blank"
-                    >GitHub</a
-                >
-            </li>
-            <li>
-                <a href="https://uk.linkedin.com/in/abodidsahoo" target="_blank"
-                    >Linkedin</a
-                >
-            </li>
-            <li>
-                <a href="https://www.instagram.com/abodid.sahoo" target="_blank"
-                    >Instagram</a
-                >
-            </li>
-            <li>
-                <a href="https://twitter.com/abodidsahoo" target="_blank"
-                    >Twitter / X</a
-                >
-            </li>
-        </ul>
-    </section>
+                <div class="info-column">
+                    <h3 class="info-label">Who I Work With</h3>
+                    <ul class="bullet-list">
+                        {clients.map((item) => <li>{item}</li>)}
+                    </ul>
+                </div>
+            </div>
+
+            <div class="why-section">
+                <h3 class="info-label">Why do people love working with me</h3>
+                <p class="intro-text">
+                    My experience across art, design, and academia allows me to
+                    craft innovative creative strategies and produce offbeat,
+                    edgy, and highly impactful work.
+                </p>
+            </div>
+        </section>
+
+        <section class="hubs-section">
+            <h3 class="section-label">Explore More</h3>
+            <div class="hub-grid">
+                {
+                    hubs.map((item) => (
+                        <a href={item.link} class="hub-card">
+                            <div class="card-content">
+                                <span class="card-title">{item.title}</span>
+                                <span class="icon">{item.icon}</span>
+                            </div>
+                        </a>
+                    ))
+                }
+            </div>
+        </section>
+
+        <section class="contact-section">
+            <hr class="divider" />
+            <div class="contact-wrapper">
+                <h3>Contact</h3>
+                <ul class="contact-list">
+                    <li>
+                        <a href="mailto:hello@abodid.com">hello@abodid.com</a>
+                    </li>
+                    <li>
+                        <a href="https://github.com/abodidsahoo" target="_blank"
+                            >GitHub</a
+                        >
+                    </li>
+                    <li>
+                        <a
+                            href="https://uk.linkedin.com/in/abodidsahoo"
+                            target="_blank">Linkedin</a
+                        >
+                    </li>
+                    <li>
+                        <a
+                            href="https://www.instagram.com/abodid.sahoo"
+                            target="_blank">Instagram</a
+                        >
+                    </li>
+                    <li>
+                        <a
+                            href="https://twitter.com/abodidsahoo"
+                            target="_blank">Twitter / X</a
+                        >
+                    </li>
+                </ul>
+            </div>
+        </section>
+    </div>
 </BaseLayout>
 
 <style>
+    .page-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding-bottom: 4rem;
+    }
+
     .page-header {
-        margin-bottom: 2rem;
-        padding-top: var(--space-lg);
-        text-align: center;
+        margin-bottom: 5rem;
+        padding-top: 2rem;
+        text-align: left;
     }
 
     h1 {
@@ -137,51 +191,140 @@ const hubs = [
         color: var(--text-primary);
     }
 
-    @media (max-width: 600px) {
+    .section-intro {
+        font-family: var(--font-sans);
+        font-size: 1.1rem;
+        color: var(--text-secondary);
+        max-width: 600px;
+        margin: 0;
+        line-height: 1.6;
+    }
+
+    @media (max-width: 768px) {
         h1 {
             font-size: 2.5rem;
         }
     }
 
-    .about-intro {
-        max-width: 720px;
-        margin: 0 auto 4rem auto;
-        font-size: 1.125rem;
-        line-height: 1.7;
-        color: var(--text-secondary);
-        text-align: center;
+    .about-content {
+        margin-bottom: 5rem;
+        max-width: 800px;
     }
 
-    .lead {
-        font-size: 1.25rem;
-        color: var(--text-primary);
+    .intro-group {
+        margin-bottom: 4rem;
+    }
+
+    .intro-name {
+        font-family: "Poppins", sans-serif;
+        font-size: 2.5rem;
         font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.25rem;
+        letter-spacing: -0.02em;
+    }
+
+    .intro-title {
+        font-family: "Poppins", sans-serif;
+        font-size: 1.7rem;
+        font-weight: 300;
+        color: var(--text-secondary);
         margin-bottom: 1.5rem;
     }
 
-    /* Hub Grid */
+    .intro-mission {
+        font-size: 1.2rem;
+        line-height: 1.6;
+        color: var(--text-primary);
+        max-width: 700px;
+    }
+
+    .intro-text {
+        font-size: 0.9rem;
+        line-height: 1.6;
+        color: var(--text-secondary);
+        margin-top: 1rem;
+    }
+
+    .why-section {
+        margin-top: 5rem;
+        max-width: 700px;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 3rem;
+    }
+
+    .info-label {
+        font-family: "Space Mono", monospace;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-tertiary);
+        margin-bottom: 1rem;
+        border-bottom: 1px solid var(--border-subtle);
+        padding-bottom: 0.5rem;
+    }
+
+    .bullet-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .bullet-list li {
+        position: relative;
+        padding-left: 1.2rem;
+        margin-bottom: 0.6rem;
+        font-family: "Poppins", sans-serif;
+        font-size: 0.9rem; /* Smaller as requested */
+        color: var(--text-secondary);
+        line-height: 1.4;
+    }
+
+    .bullet-list li::before {
+        content: "•";
+        position: absolute;
+        left: 0;
+        color: var(--accent-primary, #666); /* Or use red if preferred */
+    }
+
+    /* Hubs Section */
+    .hubs-section {
+        margin-bottom: 5rem;
+    }
+
+    .section-label {
+        font-family: "Space Mono", monospace;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-tertiary);
+        margin-bottom: 2rem;
+    }
+
     .hub-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 1.5rem;
-        margin-bottom: 4rem;
+        gap: 1rem;
     }
 
     .hub-card {
         display: block;
         text-decoration: none;
-        color: inherit;
         background: var(--bg-surface);
         border: 1px solid var(--border-subtle);
-        padding: 2rem;
-        border-radius: 12px;
+        padding: 1.5rem;
+        border-radius: 4px; /* Sharper */
         transition: all 0.2s ease;
     }
 
     .hub-card:hover {
-        transform: translateY(-4px);
         border-color: var(--text-secondary);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        background: var(--bg-surface-hover, #111);
+        transform: translateY(-2px);
     }
 
     .card-content {
@@ -190,21 +333,14 @@ const hubs = [
         align-items: center;
     }
 
-    .card-left {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-    }
-
-    .hub-card h3 {
-        margin: 0;
-        font-size: 1.1rem;
+    .card-title {
+        font-family: "Inter", sans-serif;
+        font-size: 1rem;
         font-weight: 500;
         color: var(--text-primary);
     }
 
     .icon {
-        font-size: 1.25rem;
         color: var(--text-tertiary);
         transition: transform 0.2s ease;
     }
@@ -215,10 +351,23 @@ const hubs = [
     }
 
     /* Contact Section */
+    .contact-section {
+        margin-top: 2rem;
+    }
+
     .divider {
-        margin: 3rem 0;
+        margin: 0 0 3rem 0;
         border: none;
         border-top: 1px solid var(--border-subtle);
+    }
+
+    .contact-wrapper h3 {
+        font-family: "Space Mono", monospace;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-tertiary);
+        margin-bottom: 1.5rem;
     }
 
     .contact-list {
@@ -226,17 +375,31 @@ const hubs = [
         padding: 0;
         display: flex;
         flex-wrap: wrap;
-        gap: 1.5rem;
+        gap: 2rem;
     }
 
     .contact-list a {
+        font-family: "Inter", sans-serif;
         color: var(--text-primary);
-        border-bottom: 1px solid var(--border-subtle);
-        padding-bottom: 2px;
         text-decoration: none;
+        font-size: 1rem;
+        border-bottom: 1px solid transparent; /* Prepare for hover */
+        transition: border-bottom-color 0.2s;
     }
 
     .contact-list a:hover {
         border-bottom-color: var(--text-primary);
+    }
+
+    @media (max-width: 768px) {
+        .info-grid {
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        .contact-list {
+            flex-direction: column;
+            gap: 1rem;
+        }
     }
 </style>

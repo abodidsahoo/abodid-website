@@ -181,7 +181,7 @@ const odishaUrl = "https://vimeo.com/265220711";
     <!-- Photo Stories -->
     <section class="section contained-section">
         <div class="section-header">
-            <h2 class="section-title">Photographs by me that made a mark</h2>
+            <h2 class="section-title">Photography Projects</h2>
             <a href="/photography" class="link-arrow mobile-btn">View All</a>
         </div>
 
@@ -197,9 +197,7 @@ const odishaUrl = "https://vimeo.com/265220711";
     <!-- Blog Section -->
     <section class="section">
         <div class="section-header">
-            <h2 class="section-title">
-                Read some of the most read articles by me
-            </h2>
+            <h2 class="section-title">Writings</h2>
             <a href="/blog" class="link-arrow mobile-btn">Read All</a>
         </div>
 
@@ -602,7 +600,7 @@ const odishaUrl = "https://vimeo.com/265220711";
 
     .blog-card {
         display: grid;
-        grid-template-columns: 200px 1fr auto;
+        grid-template-columns: 280px 1fr auto;
         gap: 2rem;
         padding: 1.5rem 0; /* Remove side padding for cleaner alignment with header */
         text-decoration: none;
@@ -619,8 +617,9 @@ const odishaUrl = "https://vimeo.com/265220711";
     }
 
     .blog-image-wrapper {
-        width: 200px;
-        height: 200px;
+        width: 280px;
+        aspect-ratio: 16 / 9;
+        height: auto;
         overflow: hidden;
         border-radius: 6px;
         background: var(--bg-surface);
@@ -659,6 +658,7 @@ const odishaUrl = "https://vimeo.com/265220711";
         font-weight: 400;
         line-height: 1.2;
         margin: 0 0 0.5rem 0;
+        max-width: 38ch; /* Force wrapping after ~9-12 words */
     }
 
     .blog-category {

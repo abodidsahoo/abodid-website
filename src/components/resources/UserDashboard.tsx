@@ -93,16 +93,32 @@ export default function UserDashboard({ user: propUser }: UserDashboardProps) {
                 <div>
                     <h1>My Dashboard</h1>
                     <p className="welcome">Welcome back, {user?.user_metadata?.full_name || user?.email}!</p>
+
+                    <div style={{ marginTop: '1.5rem', marginBottom: '1rem' }}>
+                        <a href="/resources/submit" className="btn-submit-new-prominent">
+                            + Submit New Resource
+                        </a>
+                    </div>
                 </div>
-                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                    <a href="/resources/submit" className="btn-submit-new">
-                        + Submit New Resource
+                <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+                    <a href="/resources" className="btn-back-logo">
+                        Back to Resources
                     </a>
                     <button
-                        onClick={() => supabase?.auth.signOut().then(() => window.location.href = '/resources')}
-                        className="btn-logout"
+                        onClick={async (e) => {
+                            e.preventDefault();
+                            try {
+                                await supabase?.auth.signOut();
+                            } catch (err) {
+                                console.error("Sign out error:", err);
+                            } finally {
+                                localStorage.removeItem('curator_profile');
+                                window.location.href = '/resources';
+                            }
+                        }}
+                        className="btn-logout-prominent"
                     >
-                        Logout
+                        Sign Out
                     </button>
                 </div>
             </div>
@@ -254,21 +270,58 @@ export default function UserDashboard({ user: propUser }: UserDashboardProps) {
                     opacity: 0.9;
                 }
 
-                .btn-logout {
-                    background: transparent;
-                    color: var(--text-secondary);
-                    padding: 0.875rem 1.5rem;
+                .btn-logout-prominent {
+                    background: #EF4444;
+                    color: white;
+                    border: none;
+                    padding: 0.8rem 1.5rem;
                     border-radius: 8px;
-                    border: 1px solid var(--border-subtle);
                     font-weight: 600;
                     cursor: pointer;
                     transition: all 0.2s;
                     white-space: nowrap;
                 }
+                .btn-logout-prominent:hover {
+                    background: #DC2626;
+                    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+                }
 
-                .btn-logout:hover {
-                    border-color: var(--text-primary);
-                    color: var(--text-primary);
+                .btn-back-logo {
+                    font-family: 'Space Mono', monospace;
+                    font-size: 0.9rem;
+                    text-transform: uppercase;
+                    color: white;
+                    text-decoration: none;
+                    letter-spacing: 0.05em;
+                    transition: opacity 0.2s;
+                    border-bottom: 1px solid transparent;
+                    padding-bottom: 2px;
+                }
+                .btn-back-logo:hover {
+                    opacity: 0.7;
+                    border-bottom-color: white;
+                }
+
+                .btn-submit-new-prominent {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 100%;
+                    max-width: 400px;
+                    padding: 1rem 1.5rem;
+                    background: var(--text-primary);
+                    color: var(--bg-color);
+                    border-radius: 12px;
+                    text-decoration: none;
+                    font-weight: 700;
+                    font-size: 1.1rem;
+                    transition: transform 0.2s, opacity 0.2s;
+                    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+                }
+                .btn-submit-new-prominent:hover {
+                    transform: translateY(-2px);
+                    opacity: 0.95;
+                    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
                 }
 
                 .stats-grid {

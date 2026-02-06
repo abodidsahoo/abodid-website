@@ -5,6 +5,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer.astro";
 import SEO from "../components/SEO.astro";
 import StickyMobileNav from "../components/StickyMobileNav.jsx";
+import NewsletterPopup from "../components/NewsletterPopup.jsx";
 import { getPageMetadata } from "../lib/api";
 
 const {
@@ -89,17 +90,20 @@ const finalType = type || dbMetadata?.og_type || "website";
     </script>
   </head>
   <body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
     <!-- <Header /> -->
     <!-- Header: client:load for immediate hydration priority -->
     {!hideHeader && <Header client:load />}
     <div class="global-grid-bg"></div>
     <div class="global-glow-bg"></div>
     <main
+      id="main-content"
       class={`${fullWidth ? "page-content-full" : "container page-content"}`}
     >
       <slot />
     </main>
     <StickyMobileNav client:idle />
+    <NewsletterPopup client:only="react" />
     <Footer />
   </body>
 </html>
@@ -188,6 +192,21 @@ const finalType = type || dbMetadata?.og_type || "website";
     /* Composite: Intersect them so glow fades at edges */
     -webkit-mask-composite: source-in;
     mask-composite: intersect;
+  }
+
+  .skip-link {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: #000;
+    color: #fff;
+    padding: 8px;
+    z-index: 9999;
+    transition: top 0.2s;
+  }
+
+  .skip-link:focus {
+    top: 0;
   }
 </style>
 
