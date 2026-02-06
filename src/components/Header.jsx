@@ -57,7 +57,7 @@ const Header = () => {
                     {/* LEFT: Logo */}
                     <div className="nav-left">
                         <a href="/" className="logo-text">
-                            <span className="desktop-logo">ABODID.IO</span>
+                            <span className="desktop-logo">ABODID</span>
                             <span className="mobile-logo">Abodid</span>
                         </a>
                     </div>
@@ -69,8 +69,9 @@ const Header = () => {
                         </button>
                     </div>
 
-                    {/* RIGHT: Breadcrumbs (Desktop Only) */}
+                    {/* RIGHT: Say Hi & Breadcrumbs (Desktop Only) */}
                     <div className="nav-right desktop-only-breadcrumbs">
+                        <a href="/contact" className="say-hi-link">SAY HI</a>
                         <Breadcrumbs />
                     </div>
                 </div>
@@ -137,7 +138,8 @@ const Header = () => {
                                         <div className="mobile-contact mobile-only">
                                             <div className="col-label" style={{ marginTop: '2rem' }}>Contact</div>
                                             <a href="mailto:hello@abodid.com" className="contact-link">hello@abodid.com</a>
-                                            <a href="tel:+918295699650" className="contact-link">+91 82956 99650</a>
+                                            <a href="tel:+919439094370" className="contact-link">+91 94390 94370</a>
+                                            <a href="tel:+447522258768" className="contact-link">+44 7522 258768</a>
                                         </div>
 
                                         {/* Mobile Toggle Button */}
@@ -175,7 +177,8 @@ const Header = () => {
                                         <div className="col-label">Contact</div>
                                         <div className="contact-details" style={{ marginBottom: '2rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                                             <a href="mailto:hello@abodid.com" className="menu-text small">hello@abodid.com</a>
-                                            <a href="tel:+918295699650" className="menu-text small">+91 82956 99650</a>
+                                            <a href="tel:+919439094370" className="menu-text small">+91 94390 94370</a>
+                                            <a href="tel:+447522258768" className="menu-text small">+44 7522 258768</a>
                                         </div>
 
                                         <div className="col-label">Socials</div>
@@ -210,8 +213,25 @@ const Header = () => {
                 .nav-center { display: flex; justify-content: center; }
                 .nav-right { 
                     display: flex; 
+                    align-items: center;
                     justify-content: flex-end;
+                    gap: 2rem;
                     color: rgba(255, 255, 255, 0.9); /* Force white text on dark header */
+                }
+                
+                .say-hi-link {
+                    font-family: 'Space Mono', monospace;
+                    font-size: 0.75rem;
+                    color: white;
+                    letter-spacing: 0.1em;
+                    text-decoration: none;
+                    border-bottom: 1px solid transparent;
+                    transition: border-color 0.3s ease;
+                    mix-blend-mode: difference;
+                }
+
+                .say-hi-link:hover {
+                    border-bottom-color: white;
                 }
                 
                 .mobile-breadcrumbs-row {

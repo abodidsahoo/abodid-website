@@ -65,11 +65,21 @@ const projectsJson = JSON.stringify(projects);
         /* Cards will auto-size to fit grid cells */
     }
 
+    /* Make 7th item span both columns for full-width display */
+    .grid-item:nth-child(7) {
+        grid-column: 1 / -1; /* Span all columns */
+    }
+
     /* Tablet: 2 columns */
     @media (max-width: 1024px) {
         .photo-grid {
             grid-template-columns: repeat(2, 1fr);
             gap: 1.5rem;
+        }
+
+        /* Keep 7th item full width on tablet */
+        .grid-item:nth-child(7) {
+            grid-column: 1 / -1;
         }
     }
 
@@ -79,6 +89,11 @@ const projectsJson = JSON.stringify(projects);
             grid-template-columns: 1fr;
             gap: 2rem; /* Increased spacing for cleaner look as requested */
             padding: 0;
+        }
+
+        /* On mobile, all items are naturally full width, but keep explicit for consistency */
+        .grid-item:nth-child(7) {
+            grid-column: 1;
         }
     }
 </style>

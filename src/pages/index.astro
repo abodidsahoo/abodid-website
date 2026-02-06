@@ -22,7 +22,10 @@ import BrandFilmStrip from "../components/BrandFilmStrip";
 import CardStacker from "../components/CardStacker.jsx";
 import LiquidCursor from "../components/LiquidCursor.jsx";
 import AudioControl from "../components/AudioControl.jsx";
+import AudioCaption from "../components/AudioCaption.jsx";
+import AudioScrollVolume from "../components/AudioScrollVolume.jsx";
 import ForceDarkMode from "../components/ForceDarkMode.astro";
+import captionData from "../data/landing-audio-captions.json";
 
 const pageTitle = "Home";
 // Helper to safely fetch data
@@ -67,19 +70,22 @@ const findLink = (name) => {
     return "#"; // Default fallback
 };
 
-// Resolve Links for Showreel Notes
-const vh1Url = findLink("Vh1");
-const rollingStoneUrl = findLink("Rolling Stone");
-const homegrownUrl = findLink("Homegrown");
+// Resolve Links for Showreel Notes - Direct URLs
+const vh1Url =
+    "https://www.edexlive.com/breaking/2021/Jan/05/four-roommates-shot-a-music-video-in-their-mumbai-flat-and-it-received-a-premiere-on-vh1-17053.html";
+const rollingStoneUrl =
+    "https://rollingstoneindia.com/watch-electronic-pop-duo-xys-cinematic-video-for-debut-single-show-me-the-way/";
+const homegrownUrl =
+    "https://homegrown.co.in/homegrown-explore/when-creative-minds-collide-xys-show-me-the-way-music-video-is-visual-pleasure";
 const educateGirlsUrl = findLink("Educate Girls");
 const curvesColorsUrl = findLink("Curves and Colors");
-const pursuitUrl = findLink("Pursuit of Portraits");
-const hermosaUrl = findLink("Hermosa");
-const budweiserUrl = findLink("Budweiser");
+const pursuitUrl = "https://www.pursuitofportraits.com/";
+const hermosaUrl = "https://www.youtube.com/watch?v=EMsZT9PCFms";
+const budweiserUrl = "https://www.weareanimal.co/budweiser-streetwear";
 const wiedenUrl = findLink("Wieden");
 const animalUrl = findLink("Animal");
-const jawaUrl = findLink("Jawa");
-const odishaUrl = findLink("Odisha");
+const jawaUrl = "http://youtube.com/watch?v=CSmZHXpr13E";
+const odishaUrl = "https://vimeo.com/265220711";
 ---
 
 <BaseLayout title={pageTitle}>
@@ -89,8 +95,17 @@ const odishaUrl = findLink("Odisha");
     <!-- Only load Audio on Desktop/Tablet to save massive bandwidth/battery on mobile -->
     <AudioControl
         client:media="(min-width: 769px)"
-        src="https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/music/mix.mp3"
+        client:only="react"
+        src="https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/music/landing-page-audio-01.mp3"
     />
+    <!-- Synchronized captions for the audio -->
+    <AudioCaption
+        client:media="(min-width: 769px)"
+        captions={captionData}
+        client:only="react"
+    />
+    <!-- Scroll-based volume control -->
+    <AudioScrollVolume client:only="react" />
     <!-- Disable Liquid Cursor on mobile (touch devices don't need it and it's heavy) -->
     <LiquidCursor client:media="(min-width: 769px)" />
 
@@ -143,110 +158,23 @@ const odishaUrl = findLink("Odisha");
 
     <!-- Showreel Section - Wrapped for Alignment -->
     <section class="section">
-        <Showreel />
+        <Showreel
+            vh1Url={vh1Url}
+            rollingStoneUrl={rollingStoneUrl}
+            homegrownUrl={homegrownUrl}
+            educateGirlsUrl={educateGirlsUrl}
+            curvesColorsUrl={curvesColorsUrl}
+            pursuitUrl={pursuitUrl}
+            hermosaUrl={hermosaUrl}
+            budweiserUrl={budweiserUrl}
+            wiedenUrl={wiedenUrl}
+            animalUrl={animalUrl}
+            jawaUrl={jawaUrl}
+            odishaUrl={odishaUrl}
+        />
 
         <!-- Filmmaking Background Note -->
-        <div class="note-grid">
-            <div class="showreel-note note-primary">
-                <p>
-                    What I loved most in this active filmmaking journey were my
-                    collaborations with amazing artists like XY to create highly
-                    experimental music videos which were broadcast on
-                    <a
-                        class="hl-link"
-                        href={vh1Url}
-                        target="_blank"
-                        rel="noopener noreferrer">VH1 India</a
-                    >. They were also featured in
-                    <a
-                        class="hl-link"
-                        href={rollingStoneUrl}
-                        target="_blank"
-                        rel="noopener noreferrer">Rolling Stone</a
-                    >,
-                    <a
-                        class="hl-link"
-                        href={homegrownUrl}
-                        target="_blank"
-                        rel="noopener noreferrer">Homegrown</a
-                    >, and more.
-                    <span class="line-gap"></span>
-
-                    I also made documentary films for NGOs like
-                    <a
-                        class="hl-link"
-                        href={educateGirlsUrl}
-                        target="_blank"
-                        rel="noopener noreferrer">Educate Girls</a
-                    >
-                    and internationally recognised organisations in the arts and culture
-                    space like
-                    <a
-                        class="hl-link"
-                        href={curvesColorsUrl}
-                        target="_blank"
-                        rel="noopener noreferrer">Curves and Colors</a
-                    >,
-                    <a
-                        class="hl-link"
-                        href={pursuitUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        >Pursuit of Portraits (New York)</a
-                    >, and others who value depth over noise.
-                </p>
-            </div>
-
-            <div class="showreel-note note-secondary">
-                <p>
-                    I have also actively produced, directed, shot, and edited
-                    films for about 3 years in Mumbai before I joined NID
-                    Ahmedabad. Clients included
-                    <a
-                        class="hl-link"
-                        href={hermosaUrl}
-                        target="_blank"
-                        rel="noopener noreferrer">Hermosa Design Studio</a
-                    >,
-                    <a
-                        class="hl-link"
-                        href={budweiserUrl}
-                        target="_blank"
-                        rel="noopener noreferrer">Budweiser</a
-                    >,
-                    <a
-                        class="hl-link"
-                        href={wiedenUrl}
-                        target="_blank"
-                        rel="noopener noreferrer">Wieden+Kennedy</a
-                    >,
-                    <a
-                        class="hl-link"
-                        href={animalUrl}
-                        target="_blank"
-                        rel="noopener noreferrer">Animal</a
-                    >,
-                    <a
-                        class="hl-link"
-                        href={jawaUrl}
-                        target="_blank"
-                        rel="noopener noreferrer">Jawa Motorcycles</a
-                    >,
-                    <a
-                        class="hl-link"
-                        href={odishaUrl}
-                        target="_blank"
-                        rel="noopener noreferrer">Odisha Tourism</a
-                    >, and more.
-                    <span class="line-gap"></span>
-
-                    Now, I work with organizations that value depth,
-                    authenticity, and long-form storytelling. Using film,
-                    photography, sound, and interactive media, I create
-                    experiences that build genuine, lasting communities.
-                </p>
-            </div>
-        </div>
+        <!-- Content moved to manifesto section - removed duplicate -->
     </section>
 
     <!-- Massive Spacer 3 (Showreel to Featured) -->
@@ -256,14 +184,14 @@ const odishaUrl = findLink("Odisha");
     <!-- Photo Stories -->
     <section class="section contained-section">
         <div class="section-header">
-            <h2 class="section-title">Photo Stories</h2>
+            <h2 class="section-title">Photographs by me that made a mark</h2>
             <a href="/photography" class="link-arrow mobile-btn">View All</a>
         </div>
 
         <!-- Contained Carousel Row 1 (Left) -->
         <PhotoGrid
             projects={featuredPhotography}
-            maxItems={6}
+            maxItems={7}
             columns={2}
             contained={true}
         />
@@ -272,7 +200,9 @@ const odishaUrl = findLink("Odisha");
     <!-- Blog Section -->
     <section class="section">
         <div class="section-header">
-            <h2 class="section-title">Articles by Me</h2>
+            <h2 class="section-title">
+                Read some of the most read articles by me
+            </h2>
             <a href="/blog" class="link-arrow mobile-btn">Read All</a>
         </div>
 

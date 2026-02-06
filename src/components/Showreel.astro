@@ -1,4 +1,34 @@
 ---
+interface Props {
+    vh1Url?: string;
+    rollingStoneUrl?: string;
+    homegrownUrl?: string;
+    educateGirlsUrl?: string;
+    curvesColorsUrl?: string;
+    pursuitUrl?: string;
+    hermosaUrl?: string;
+    budweiserUrl?: string;
+    wiedenUrl?: string;
+    animalUrl?: string;
+    jawaUrl?: string;
+    odishaUrl?: string;
+}
+
+const {
+    vh1Url = "#",
+    rollingStoneUrl = "#",
+    homegrownUrl = "#",
+    educateGirlsUrl = "#",
+    curvesColorsUrl = "#",
+    pursuitUrl = "#",
+    hermosaUrl = "#",
+    budweiserUrl = "#",
+    wiedenUrl = "#",
+    animalUrl = "#",
+    jawaUrl = "#",
+    odishaUrl = "#",
+} = Astro.props;
+
 const videoUrl =
     "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/films/videos/Showreel%202025%20compressed.mp4";
 ---
@@ -67,7 +97,89 @@ const videoUrl =
         <span class="role-label">ROLE:</span> Director / Editor / Sound Designer /
         Cinematographer / Colourist / Creative Producer
     </p>
-    <a href="/films" class="view-all-btn">VIEW ALL FILMS</a>
+    <div class="credits-buttons-row">
+        <a href="/films" class="view-all-btn">VIEW ALL FILMS</a>
+        <button id="manifesto-toggle-btn" class="view-all-btn manifesto-toggle">
+            READ MY FILM MAKING MANIFESTO
+        </button>
+    </div>
+</div>
+
+<!-- Collapsible Manifesto Section -->
+<div id="manifesto-section" class="manifesto-section" style="display: none;">
+    <div class="manifesto-content">
+        <div class="manifesto-boxes">
+            <div class="manifesto-box manifesto-box-red">
+                <h3>Vision</h3>
+                <p>
+                    Film is about creating experiences that resonate deeply. I
+                    believe in authenticity, stories that matter, and visual
+                    storytelling that builds communities and inspires change.
+                </p>
+            </div>
+            <div class="manifesto-box manifesto-box-blue">
+                <h3>Approach</h3>
+                <p>
+                    Collaborative work, valuing depth over noise. Every project
+                    explores new creative territories while staying true to the
+                    core narrative. My goal is work that stands the test of
+                    time.
+                </p>
+            </div>
+        </div>
+        <div class="manifesto-journey">
+            <h2>Filmmaking Journey</h2>
+            <p>
+                Collaborated with artists like XY on experimental music videos
+                broadcast on <a
+                    href={vh1Url}
+                    target="_blank"
+                    rel="noopener noreferrer">VH1 India</a
+                >, featured in <a
+                    href={rollingStoneUrl}
+                    target="_blank"
+                    rel="noopener noreferrer">Rolling Stone</a
+                > and <a
+                    href={homegrownUrl}
+                    target="_blank"
+                    rel="noopener noreferrer">Homegrown</a
+                >. Created documentary films for <a
+                    href={educateGirlsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer">Educate Girls</a
+                >, <a
+                    href={curvesColorsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer">Curves and Colors</a
+                >, and <a
+                    href={pursuitUrl}
+                    target="_blank"
+                    rel="noopener noreferrer">Pursuit of Portraits (NY)</a
+                >.
+            </p>
+            <p>
+                Worked with clients including <a
+                    href={hermosaUrl}
+                    target="_blank"
+                    rel="noopener noreferrer">Hermosa Design</a
+                >, <a
+                    href={budweiserUrl}
+                    target="_blank"
+                    rel="noopener noreferrer">Budweiser</a
+                >, <a href={wiedenUrl} target="_blank" rel="noopener noreferrer"
+                    >Wieden+Kennedy</a
+                >, <a href={animalUrl} target="_blank" rel="noopener noreferrer"
+                    >Animal</a
+                >, <a href={jawaUrl} target="_blank" rel="noopener noreferrer"
+                    >Jawa Motorcycles</a
+                >, and <a
+                    href={odishaUrl}
+                    target="_blank"
+                    rel="noopener noreferrer">Odisha Tourism</a
+                >.
+            </p>
+        </div>
+    </div>
 </div>
 
 <script define:vars={{ videoUrl }}>
@@ -167,6 +279,57 @@ const videoUrl =
 
         // Load immediately on mount (or very short delay)
         loadShowreel();
+
+        // Manifesto Toggle Logic
+        const manifestoToggleBtn = document.getElementById(
+            "manifesto-toggle-btn",
+        );
+        const manifestoSection = document.getElementById("manifesto-section");
+
+        if (manifestoToggleBtn && manifestoSection) {
+            manifestoToggleBtn.addEventListener("click", () => {
+                const isOpen = manifestoSection.style.display !== "none";
+
+                if (isOpen) {
+                    // Close the manifesto
+                    manifestoSection.style.maxHeight =
+                        manifestoSection.scrollHeight + "px";
+                    // Trigger reflow
+                    manifestoSection.offsetHeight;
+                    manifestoSection.style.maxHeight = "0";
+                    manifestoSection.style.opacity = "0";
+
+                    setTimeout(() => {
+                        manifestoSection.style.display = "none";
+                    }, 400); // Match transition duration
+
+                    manifestoToggleBtn.textContent =
+                        "READ MY FILM MAKING MANIFESTO";
+                } else {
+                    // Open the manifesto
+                    manifestoSection.style.display = "block";
+                    manifestoSection.style.opacity = "0";
+                    manifestoSection.style.maxHeight = "0";
+
+                    // Trigger reflow
+                    manifestoSection.offsetHeight;
+
+                    const fullHeight = manifestoSection.scrollHeight + "px";
+                    manifestoSection.style.maxHeight = fullHeight;
+                    manifestoSection.style.opacity = "1";
+
+                    manifestoToggleBtn.textContent =
+                        "HIDE MY FILM MAKING MANIFESTO";
+
+                    // Remove max-height after transition completes for dynamic content
+                    setTimeout(() => {
+                        if (manifestoSection.style.display !== "none") {
+                            manifestoSection.style.maxHeight = "none";
+                        }
+                    }, 400);
+                }
+            });
+        }
     });
 </script>
 
@@ -321,6 +484,124 @@ const videoUrl =
         border-color: var(--text-primary);
     }
 
+    /* Buttons Row Layout */
+    .credits-buttons-row {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .manifesto-toggle {
+        cursor: pointer;
+    }
+
+    /* Manifesto Section Styles */
+    .manifesto-section {
+        width: 100%;
+        max-width: var(--max-width);
+        margin: 0.5rem auto 0; /* Tightened gap further */
+        overflow: hidden;
+        transition:
+            max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+            opacity 0.4s ease;
+    }
+
+    .manifesto-content {
+        padding: 1rem 0 2rem; /* Reduced top padding to close gap */
+    }
+
+    .manifesto-boxes {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+
+    .manifesto-box {
+        padding: 2rem;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .manifesto-box-red {
+        background: linear-gradient(
+            135deg,
+            rgba(208, 0, 0, 0.15) 0%,
+            rgba(150, 0, 0, 0.08) 100%
+        );
+        border-color: rgba(208, 0, 0, 0.3);
+    }
+
+    .manifesto-box-blue {
+        background: linear-gradient(
+            135deg,
+            rgba(0, 100, 200, 0.15) 0%,
+            rgba(0, 50, 150, 0.08) 100%
+        );
+        border-color: rgba(0, 100, 200, 0.3);
+    }
+
+    .manifesto-box h3 {
+        font-family: "Inconsolata", monospace;
+        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-bottom: 1rem;
+        color: var(--text-primary);
+        font-weight: 700; /* Bold */
+    }
+
+    .manifesto-box p {
+        font-family: "Inconsolata", monospace;
+        font-size: 0.95rem;
+        line-height: 1.8;
+        color: var(--text-secondary);
+    }
+
+    .manifesto-journey {
+        padding: 2rem;
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .manifesto-journey h2 {
+        font-family: "Inconsolata", monospace;
+        font-size: 1.2rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 1.5rem;
+        color: var(--text-primary);
+        font-weight: 700; /* Bold */
+    }
+
+    .manifesto-journey p {
+        font-family: "Inconsolata", monospace;
+        font-size: 1rem;
+        line-height: 1.8;
+        color: var(--text-secondary);
+        margin-bottom: 1.5rem;
+    }
+
+    .manifesto-journey p:last-child {
+        margin-bottom: 0;
+    }
+
+    /* Clickable Links in Manifesto */
+    .manifesto-journey a {
+        color: var(--text-primary);
+        text-decoration: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    .manifesto-journey a:hover {
+        color: #ffffff;
+        border-bottom-color: #ffffff;
+        cursor: pointer;
+    }
+
     @media (max-width: 768px) {
         .showreel-container {
             border-radius: 12px; /* APPLY RADIUS TO CONTAINER (Mask) */
@@ -353,6 +634,40 @@ const videoUrl =
         .video-controls {
             bottom: 16px;
             right: 16px;
+        }
+
+        /* Manifesto Mobile Styles */
+        .credits-buttons-row {
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .view-all-btn,
+        .manifesto-toggle {
+            width: 100%;
+            text-align: center;
+        }
+
+        .manifesto-boxes {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .manifesto-box {
+            padding: 1.5rem;
+        }
+
+        .manifesto-journey {
+            padding: 1.5rem;
+        }
+
+        .manifesto-journey h2 {
+            font-size: 1rem;
+        }
+
+        .manifesto-journey p {
+            font-size: 0.85rem;
         }
     }
 </style>
