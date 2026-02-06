@@ -32,6 +32,8 @@ export const useCardPhysics = ({ initialImages }: UseCardPhysicsProps) => {
     const zIndexCounter = useRef(100);
     // Cooldown Ref
     const lastActionTime = useRef(0);
+    const totalRevealsRef = useRef(0);
+    const firstInteractionTimeRef = useRef<number | null>(null);
 
     // ASYMMETRIC PHYSICS
     const UNSTACK_THRESHOLD = 35; // Sensitivity High
@@ -92,6 +94,20 @@ export const useCardPhysics = ({ initialImages }: UseCardPhysicsProps) => {
 
         // Increment Global Z-Index to strictly guarantee top placement
         zIndexCounter.current += 1;
+
+        // Engagement Track
+        totalRevealsRef.current += 1;
+        if (!firstInteractionTimeRef.current) {
+            firstInteractionTimeRef.current = now;
+        }
+
+        // Expose to global for EngagementCTA component
+        if (typeof window !== 'undefined') {
+            (window as any).__cardEngagement = {
+                reveals: totalRevealsRef.current,
+                firstInteraction: firstInteractionTimeRef.current
+            };
+        }
 
         return {
             id: `card-${now}-${Math.random()}`,

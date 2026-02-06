@@ -21,9 +21,9 @@ import NavigationCards from "../components/NavigationCards.astro";
 import BrandFilmStrip from "../components/BrandFilmStrip";
 import CardStacker from "../components/CardStacker.jsx";
 import LiquidCursor from "../components/LiquidCursor.jsx";
-import AudioControl from "../components/AudioControl.jsx";
-import AudioCaption from "../components/AudioCaption.jsx";
+import ExperienceModule from "../components/ExperienceModule.jsx";
 import AudioScrollVolume from "../components/AudioScrollVolume.jsx";
+import EngagementCTA from "../components/EngagementCTA.jsx";
 import ForceDarkMode from "../components/ForceDarkMode.astro";
 import captionData from "../data/landing-audio-captions.json";
 
@@ -92,17 +92,12 @@ const odishaUrl = "https://vimeo.com/265220711";
     <!-- Force dark mode on landing page - core to the experience -->
     <ForceDarkMode />
 
-    <!-- Only load Audio on Desktop/Tablet to save massive bandwidth/battery on mobile -->
-    <AudioControl
+    <!-- Consolidated Audio-Visual Experience Module -->
+    <ExperienceModule
         client:media="(min-width: 769px)"
         client:only="react"
         src="https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/music/landing-page-audio-01.mp3"
-    />
-    <!-- Synchronized captions for the audio -->
-    <AudioCaption
-        client:media="(min-width: 769px)"
         captions={captionData}
-        client:only="react"
     />
     <!-- Scroll-based volume control -->
     <AudioScrollVolume client:only="react" />
@@ -121,6 +116,8 @@ const odishaUrl = "https://vimeo.com/265220711";
             anchorY="50%"
         />
         <div class="landing-overlays">
+            <!-- Engagement triggered CTA -->
+            <EngagementCTA client:only="react" />
             <!-- Bottom Scroll Hint -->
             <div class="scroll-hint">SCROLL DOWN</div>
         </div>

@@ -201,7 +201,7 @@ const Header = () => {
                     z-index: 1000;
                     background: rgba(5, 5, 5, 0.85);
                     backdrop-filter: blur(12px);
-                    /* border-bottom removed to avoid double lines on mobile */
+                    border-bottom: 1px solid #c0c0c0ff; /* Subtle white line as requested */
                 }
                 .nav-grid {
                     display: grid;
@@ -262,8 +262,6 @@ const Header = () => {
                         grid-template-columns: auto 1fr auto; 
                         display: flex;
                         justify-content: space-between;
-                        /* SEPARATOR LINE REQUESTED: White thin line always visible */
-                        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
                     }
 
                     /* Swap logos */
