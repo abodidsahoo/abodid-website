@@ -1,0 +1,162 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import "../../styles/resources.css";
+
+const title = "Curator Program | Abodid Sahoo";
+---
+
+<BaseLayout title={title}>
+    <div class="curator-landing">
+        <div class="content-wrapper">
+            <div class="hero-text">
+                <h1 class="headline">
+                    Taste is clarity.<br />
+                    Taste is context.<br />
+                    <span class="highlight">Taste is responsibility.</span>
+                </h1>
+            </div>
+
+            <div class="manifesto-text">
+                <p>
+                    We’re building a taste-driven ecosystem across creative
+                    experimentation, tools, ideas, and culture, powered by
+                    creators, artists, designers, filmmakers, and technologists.
+                </p>
+
+                <div class="spacer"></div>
+
+                <p>
+                    Curators set the bar.<br />
+                    They define what gets seen.<br />
+                    They decide what’s worth attention.
+                </p>
+
+                <p>
+                    If you care about quality over noise, and selection over
+                    saturation, you’re already thinking like one.
+                </p>
+
+                <p class="final-call">Now you can be one with us.</p>
+            </div>
+
+            <div class="action-area">
+                <a href="/login?mode=signup" class="curator-btn">
+                    Sign up as a Curator
+                    <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 16 16"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                    >
+                        <path
+                            d="M3.33337 8H12.6667"
+                            stroke="currentColor"
+                            stroke-width="1.33333"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"></path>
+                        <path
+                            d="M8 3.33331L12.6667 7.99998L8 12.6666"
+                            stroke="currentColor"
+                            stroke-width="1.33333"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"></path>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </div>
+</BaseLayout>
+
+<style>
+    .curator-landing {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 24px 24px 64px;
+        background: var(--bg-color);
+        font-family: "Poppins", sans-serif;
+    }
+
+    .content-wrapper {
+        max-width: 680px;
+        width: 100%;
+        margin: 0 auto;
+    }
+
+    .hero-text {
+        margin-bottom: 64px;
+    }
+
+    .headline {
+        font-family: "Poppins", sans-serif;
+        font-size: clamp(2rem, 5vw, 3.5rem);
+        font-weight: 600;
+        line-height: 1.2;
+        color: var(--text-primary);
+        letter-spacing: -0.02em;
+    }
+
+    .highlight {
+        color: #eab308; /* Yellow/Gold matching the request */
+    }
+
+    .manifesto-text {
+        font-family: "Inter", sans-serif;
+        font-size: 1.125rem;
+        line-height: 1.6;
+        color: var(--text-secondary);
+        margin-bottom: 48px;
+    }
+
+    .manifesto-text p {
+        margin-bottom: 24px;
+    }
+
+    .spacer {
+        height: 16px;
+    }
+
+    .final-call {
+        color: var(--text-primary);
+        font-weight: 500;
+    }
+
+    .action-area {
+        margin-top: 32px;
+    }
+
+    .curator-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        background: var(--text-primary);
+        color: var(--bg-color);
+        padding: 16px 32px;
+        border-radius: 100px;
+        font-weight: 600;
+        text-decoration: none;
+        transition:
+            transform 0.2s cubic-bezier(0.2, 0, 0, 1),
+            opacity 0.2s;
+        font-size: 1rem;
+    }
+
+    .curator-btn:hover {
+        transform: translateY(-2px);
+        opacity: 0.95;
+    }
+
+    .curator-btn:active {
+        transform: translateY(0);
+    }
+
+    @media (max-width: 768px) {
+        .curator-landing {
+            padding-top: 100px;
+            text-align: left;
+        }
+    }
+</style>
