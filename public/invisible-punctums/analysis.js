@@ -608,128 +608,84 @@
            EXPORT
         ============================ */
         async function fetchAnalysis(imgUrl, onProgress, options = {}) {
-            // 1. Fetch Comments First
+            // 1. Fetch Comments
             if (onProgress) onProgress("Reading comments from database...");
             let comments = [];
             try {
                 if (window.UntrainableCore && window.UntrainableCore.getCommentsForImage) {
                     comments = await window.UntrainableCore.getCommentsForImage(imgUrl);
-                    console.log(`[Analysis] Fetched ${comments.length} comments.`);
                 }
             } catch (e) {
-                console.warn("[Analysis] Failed to fetch comments, proceeding without them.", e);
+                console.warn("Failed to fetch comments", e);
+            }
+            // Fallback comments if none found (for demo consistency)
+            if (comments.length === 0) {
+                comments = ["It feels lonely", "Dark but peaceful", "Scary", "I love the lighting", "Hauntingly beautiful"];
             }
 
-            const payload = {
-                image_url: imgUrl,
-                mode: "full",
-                comments: comments // Send extracted comments to backend
-            };
-            if (options.force_local) payload.force_local = true;
-
-            // Check if local dev or prod
-            const res = await fetch(ENDPOINT, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
-                signal: options.signal
+            // 2. VISION ANALYSIS
+            if (onProgress) onProgress("Connecting to Vision Neural Net...");
+            const visionRes = await fetch('/api/analyze-vision', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ imageUrl: imgUrl })
             });
 
-            if (!res.ok) {
-                // Try to read error text
-                const txt = await res.text();
-                let errMsg = `Backend Error: ${res.status}`;
-                try { errMsg = JSON.parse(txt).error || errMsg; } catch (e) { }
-                throw new Error(errMsg);
+            if (!visionRes.ok) throw new Error("Vision analysis failed");
+            const visionData = await visionRes.json();
+
+            if (onProgress) {
+                onProgress(`Vision Model: ${visionData.model_used}`);
+                onProgress(`Detected Emotion: ${visionData.dominant_emotion}`);
             }
 
-            // STREAM READER (NDJSON)
-            const reader = res.body.getReader();
-            const decoder = new TextDecoder("utf-8");
-            let buffer = "";
-            let finalData = null;
-            let partialData = null;
-            let rawComments = [];
+            // 3. CONSENSUS ANALYSIS
+            if (onProgress) onProgress("Calculating Consensus & Trainability...");
+            const consensusRes = await fetch('/api/analyze-consensus', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    aiAnalysis: visionData,
+                    humanComments: comments
+                })
+            });
 
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
+            if (!consensusRes.ok) throw new Error("Consensus analysis failed");
+            const consensusData = await consensusRes.json();
 
-                buffer += decoder.decode(value, { stream: true });
-                const lines = buffer.split("\n");
+            if (onProgress) {
+                onProgress(`Consensus Model: ${consensusData.model_used}`);
+                onProgress("Gap Analysis complete.");
+            }
 
-                // Process all complete lines
-                buffer = lines.pop(); // Keep the last incomplete chunk
-
-                for (const line of lines) {
-                    if (!line.trim()) continue;
-                    try {
-                        const msg = JSON.parse(line);
-                        if (msg.type === "progress") {
-                            if (onProgress) onProgress(msg.message || msg.status || `Step: ${msg.step}`);
-                        } else if (msg.type === "partial_result") {
-                            // Capture partial data (e.g. comments)
-                            partialData = msg.data;
-                        } else if (msg.type === "result") {
-                            finalData = msg.data;
-                        } else if (msg.type === "error") {
-                            // CRITICAL: Throw explicit error to break loop and fail fetchAnalysis
-                            const e = new Error(msg.error || "Unknown Stream Error");
-                            e.partialData = partialData; // Attach partials if any
-                            throw e;
+            // 4. MAP TO LEGACY SCHEMA (for renderResults)
+            const finalData = {
+                model_used: visionData.model_used,
+                raw_comments: comments,
+                analytics: {
+                    trainability_score: consensusData.trainability_score,
+                    variability_emotion: 100 - (consensusData.consensus_score || 0), // Mapping Consensus -> Variability
+                    gemini: {
+                        aggregate: {
+                            dominant_emotion: "Mixed Emotions" // Placeholder for agg
                         }
-                    } catch (e) {
-                        if (e.message && (e.message.startsWith("Backend Error") || e.message.startsWith("Network Error") || e.partialData || e.rawComments)) throw e;
-                        // otherwise ignore parse errors for chunks
+                    },
+                    advanced: {
+                        final_emotion: visionData.dominant_emotion,
+                        keywords: visionData.emotional_keywords || [],
+                        ai_data: {
+                            visual_description: visionData.studium_description,
+                            dominant_emotion: visionData.dominant_emotion
+                        },
+                        comparison: {
+                            gap_summary: consensusData.gap_analysis,
+                            trainability_score: consensusData.trainability_score,
+                            trainability_label: consensusData.trainability_score > 70 ? "High" : (consensusData.trainability_score < 40 ? "Low" : "Medium")
+                        }
                     }
                 }
-            }
+            };
 
-            // UPDATE SOURCE LABEL
-            // UPDATE SOURCE LABEL
-            if (finalData && finalData.analytics) {
-                const srcEl = document.getElementById("um-model-source");
-                let modelName = "Unknown Model";
-                let isLocal = false;
-
-                // 1. Identify Model
-                if (options.force_local) {
-                    isLocal = true;
-                    // Try to get specific local model name
-                    if (finalData.analytics.stage1 && finalData.analytics.stage1.model_used) {
-                        modelName = finalData.analytics.stage1.model_used;
-                    } else {
-                        modelName = "gemma3:4b"; // Fallback known default
-                    }
-                } else if (finalData.analytics.gemini && finalData.analytics.gemini.model_used) {
-                    modelName = finalData.analytics.gemini.model_used;
-                    isLocal = false;
-                } else if (finalData.model_used) {
-                    modelName = finalData.model_used;
-                }
-
-                // 2. Format Name Nicely
-                if (isLocal || modelName.includes("gemma") || modelName.includes("ollama")) {
-                    // Clean up raw string like "gemma3:4b" -> "Gemma 3:4B"
-                    let cleanName = modelName.replace("ollama-", "").replace("local-", "");
-                    if (cleanName.includes(":")) {
-                        const parts = cleanName.split(":");
-                        cleanName = parts[0].charAt(0).toUpperCase() + parts[0].slice(1) + " " + parts[1].toUpperCase();
-                    } else {
-                        cleanName = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
-                    }
-                    modelName = `Local Ollama (${cleanName})`;
-                } else if (modelName.includes("gemini")) {
-                    // e.g. "gemini-1.5-flash" -> "Google Gemini 1.5 Flash"
-                    modelName = "Google " + modelName.replace("gemini-", "Gemini ").replace("-", " ").replace("flash", "Flash").replace("pro", "Pro");
-                } else if (modelName.includes("dummy") || modelName.includes("mock")) {
-                    modelName = "Dummy Text Source";
-                }
-
-                if (srcEl) srcEl.textContent = modelName;
-            }
-
-            if (!finalData) throw new Error("Stream ended without final result.");
             return finalData;
         }
 

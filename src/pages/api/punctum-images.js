@@ -1,10 +1,5 @@
-import { createClient } from "@supabase/supabase-js";
-
 // Initialize Supabase Client (Server-Side)
-const supabase = createClient(
-    import.meta.env.PUBLIC_SUPABASE_URL,
-    import.meta.env.PUBLIC_SUPABASE_ANON_KEY
-);
+import { supabase } from '../../lib/supabase';
 
 export const prerender = false;
 

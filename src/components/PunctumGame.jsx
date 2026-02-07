@@ -56,18 +56,15 @@ const AudioPlayerButton = ({ url, label = "", small = false }) => {
     );
 };
 
-const supabase = createClient(
-    import.meta.env.PUBLIC_SUPABASE_URL,
-    import.meta.env.PUBLIC_SUPABASE_ANON_KEY
-);
+import { supabase } from '../lib/supabase';
 
 // Fallback images if database empty
 const FALLBACK_IMAGES = [
-    "https://raw.githubusercontent.com/manikandan-ko/invisible-punctum/main/public/images/img1.jpg",
-    "https://raw.githubusercontent.com/manikandan-ko/invisible-punctum/main/public/images/img2.jpg",
-    "https://raw.githubusercontent.com/manikandan-ko/invisible-punctum/main/public/images/img3.jpg",
-    "https://raw.githubusercontent.com/manikandan-ko/invisible-punctum/main/public/images/img4.jpg",
-    "https://raw.githubusercontent.com/manikandan-ko/invisible-punctum/main/public/images/img5.jpg",
+    "https://images.unsplash.com/photo-1518066000714-58f45f1a297d?q=80&w=800&auto=format&fit=crop", // Dark minimal architecture
+    "https://images.unsplash.com/photo-1504386106331-1e24749f7e4a?q=80&w=800&auto=format&fit=crop", // Foggy forest
+    "https://images.unsplash.com/photo-1498330177096-689e3fb901ca?q=80&w=800&auto=format&fit=crop", // Abstract light
+    "https://images.unsplash.com/photo-1516663235285-845fac339ca7?q=80&w=800&auto=format&fit=crop", // Geometric shadows
+    "https://images.unsplash.com/photo-1507608616759-54f48f0af0ee?q=80&w=800&auto=format&fit=crop", // Rain on glass
 ];
 
 const MOCK_AI_DATA = {
@@ -125,8 +122,13 @@ export default function PunctumGame() {
     const [keywords, setKeywords] = useState([]);
     const [consensusData, setConsensusData] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [audioBlobUrl, setAudioBlobUrl] = useState(null);
+    const [logs, setLogs] = useState([]);
 
+    const addLog = (message, type = 'info') => {
+        setLogs(prev => [...prev, { timestamp: new Date(), message, type }]);
+    };
+
+    const [audioBlobUrl, setAudioBlobUrl] = useState(null);
     const [error, setError] = useState(null);
     const [aiReport, setAiReport] = useState(null);
 
@@ -156,21 +158,34 @@ export default function PunctumGame() {
 
     // 1. LOAD IMAGES
     useEffect(() => {
-        const fetchImages = async () => {
+        const fetchImages = async (retryCount = 0) => {
             try {
                 const res = await fetch("/api/punctum-images", { cache: "no-store" });
-                if (!res.ok) throw new Error("Failed to fetch");
+                if (!res.ok) throw new Error(`Status ${res.status}`);
                 const data = await res.json();
                 const validImages = Array.isArray(data) ? data : [];
+
+                if (validImages.length === 0) throw new Error("No images found in API");
+
                 const shuffled = validImages.sort(() => 0.5 - Math.random()).slice(0, 5);
                 const mapped = shuffled.map((url, i) => ({
                     id: i,
                     url: typeof url === 'string' ? url : url.url
                 }));
-                setImages(mapped.length > 0 ? mapped : FALLBACK_IMAGES.map((url, i) => ({ id: i, url })));
+                // Reset fallback log if successful
+                if (retryCount > 0) addLog(`[SYSTEM] Connection restored. Loaded ${mapped.length} images.`, 'success');
+
+                setImages(mapped);
             } catch (err) {
                 console.error("Failed to fetch images", err);
-                setImages(FALLBACK_IMAGES.map((url, i) => ({ id: i, url })));
+
+                if (retryCount < 2) {
+                    addLog(`[SYSTEM] Connection failed (${err.message}). Retrying... (${retryCount + 1}/3)`, 'warning');
+                    setTimeout(() => fetchImages(retryCount + 1), 2000);
+                } else {
+                    addLog(`[SYSTEM] Critical Failure: ${err.message}. Enabling Emergency Fallback Protocol.`, 'error');
+                    setImages(FALLBACK_IMAGES.map((url, i) => ({ id: i, url })));
+                }
             }
         };
         fetchImages();
@@ -198,17 +213,54 @@ export default function PunctumGame() {
     }, [selectedImage]);
 
     // 3. FETCH KEYWORDS
+    const [loadingKeywords, setLoadingKeywords] = useState(false);
+    const [keywordModel, setKeywordModel] = useState(null);
+
     useEffect(() => {
-        if (comments.length === 0) return;
+        if (comments.length === 0 || loadingKeywords) return;
+
         const fetchKeywords = async () => {
+            setLoadingKeywords(true);
+
+            // Preview prompt construction
+            const commentList = comments.map(c => c.feeling_text || "").filter(Boolean);
+            const previewPrompt = `Analyze these human responses:\n[${commentList.length} items] (e.g. "${commentList[0]}...")\nReturn EXACTLY 3 evocative...`;
+
+            addLog(`[AI] Reading ${comments.length} human memories...`, 'info');
+            addLog(`[AI] PROMPT PREVIEW: ${previewPrompt}`, 'system');
+            addLog(`[AI] Sending to OpenRouter Neural Grid...`, 'info');
+
             try {
+                const start = Date.now();
                 const res = await fetch('/api/extract-emotions', {
                     method: 'POST',
-                    body: JSON.stringify({ comments: comments.map(c => c.feeling_text || "").filter(Boolean) })
+                    body: JSON.stringify({ comments: commentList })
                 });
+
+                if (!res.ok) throw new Error("Keyword extraction failed");
+
                 const data = await res.json();
-                if (data.keywords) setKeywords(data.keywords);
-            } catch (e) { console.error("Keyword fetch error", e); }
+
+                // Add backend process logs to terminal
+                if (data.logs && Array.isArray(data.logs)) {
+                    data.logs.forEach(logMsg => addLog(`[AI] ${logMsg}`, 'info'));
+                }
+
+                if (data.keywords) {
+                    setKeywords(data.keywords);
+                    setKeywordModel(data.model_used);
+                    const time = ((Date.now() - start) / 1000).toFixed(2);
+                    addLog(`[AI] Synthesized emotional theme in ${time}s`, 'success');
+                    if (data.model_used) addLog(`[AI] Poet Algo: ${data.model_used}`, 'info');
+                    if (data.prompt) addLog(`[AI] PROMPT: "${data.prompt.replace(/\n/g, ' ').substring(0, 100)}..."`, 'system');
+                }
+            } catch (e) {
+                console.error("Keyword fetch error", e);
+                addLog(`[AI] Error: ${e.message || "Unknown Failure"}. Using fallback.`, 'error');
+                setKeywords(["Signal", "Lost", "Entropy"]);
+            } finally {
+                setLoadingKeywords(false);
+            }
         };
         fetchKeywords();
     }, [comments]);
@@ -222,9 +274,11 @@ export default function PunctumGame() {
         setAudioData({ blob: null, duration: 0 });
         setComments([]);
         setKeywords([]);
+        setKeywordModel(null);
         setConsensusData(null);
         setAiReport(null);
         setLoading(false);
+        setLogs([]);
     };
 
     const handleSelect = (img) => {
@@ -304,48 +358,97 @@ export default function PunctumGame() {
         }
     };
 
-    const simulateAIAnalysis = (imgId) => {
-        return new Promise(resolve => {
-            setTimeout(() => {
-                const id = imgId % 5; // Simple modulo if needed, or fallback
-                const report = MOCK_AI_DATA[id] || MOCK_AI_DATA["default"];
-                // Add some randomization to score to make it feel alive
-                resolve({
-                    ...report,
-                    trainability_score: Math.max(10, Math.min(99, report.trainability_score + Math.floor(Math.random() * 10 - 5)))
-                });
-            }, 3000); // 3 seconds "processing" time
-        });
-    };
-
     const handleAnalyze = async () => {
         setStep('analysis');
         setLoading(true);
         setError(null);
+        setAiReport(null);
+        setLogs([]); // Clear previous logs
+
+        addLog("Initializing Neural Interface...", "system");
 
         try {
-            // SIMULATED AI ANALYSIS as per user request (no API available yet)
-            // In a real scenario, this would call /api/analyze-image
+            // 1. VISION ANALYSIS
+            addLog(`[VISION] Analyzing image: ${selectedImage.url.split('/').pop()}...`, "info");
+            addLog(`[VISION] Connecting to OpenRouter API...`, "info");
 
-            // 1. Simulate delay and 'processing'
-            const report = await simulateAIAnalysis(selectedImage.id);
-            setAiReport(report);
+            const visionStart = Date.now();
+            const visionRes = await fetch('/api/analyze-vision', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    imageUrl: selectedImage.url,
+                    userContext: userInput
+                })
+            });
 
-            // 2. We can still try to get a 'real' sentiment analysis from the backend if we wanted to mix them, 
-            // but for now we focus on the Simulated AI vs Human Data comparison.
+            if (!visionRes.ok) {
+                const errData = await visionRes.json().catch(() => ({}));
+                const errMsg = errData.error || `Status ${visionRes.status}`;
+                addLog(`[VISION] FAILED: ${errMsg}`, "error");
+                throw new Error(errMsg);
+            }
+
+            const visionData = await visionRes.json();
+            const visionTime = ((Date.now() - visionStart) / 1000).toFixed(2);
+
+            addLog(`[VISION] Success in ${visionTime}s`, "success");
+            addLog(`[VISION] Model: ${visionData.model_used}`, "success");
+            addLog(`[VISION] Detected Emotion: ${visionData.dominant_emotion}`, "info");
+
+            // 2. CONSENSUS ANALYSIS
+            addLog(`[CONSENSUS] Retrieving human memory bank...`, "info");
+            const humanComments = comments.map(c => c.feeling_text).filter(Boolean);
+
+            if (userInput && !humanComments.includes(userInput)) {
+                humanComments.unshift(userInput);
+            }
+            addLog(`[CONSENSUS] Found ${humanComments.length} human responses.`, "info");
+
+            addLog(`[CONSENSUS] Calculating semantic distance...`, "info");
+            const consensusRes = await fetch('/api/analyze-consensus', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    aiAnalysis: visionData,
+                    humanComments: humanComments
+                })
+            });
+
+            if (!consensusRes.ok) {
+                const errData = await consensusRes.json().catch(() => ({}));
+                const errMsg = errData.error || `Status ${consensusRes.status}`;
+                addLog(`[CONSENSUS] FAILED: ${errMsg}`, "error");
+                throw new Error(errMsg);
+            }
+
+            const consensusData = await consensusRes.json();
+            addLog(`[CONSENSUS] Success. Model: ${consensusData.model_used}`, "success");
+            addLog(`[CONSENSUS] Score: ${consensusData.consensus_score}/100`, "info");
+
+            // 3. COMBINE & SET STATE
+            const fullReport = {
+                ai_keywords: visionData.emotional_keywords || [],
+                trainability_score: consensusData.trainability_score || 0,
+                consensus_score: consensusData.consensus_score || 0,
+                analysis: consensusData.gap_analysis || visionData.studium_description,
+                visual_summary: visionData.visual_summary || "Observing physical structure.",
+                ai_feeling: visionData.ai_feeling || visionData.dominant_emotion || "COMPLEX",
+                model_used: `${visionData.model_used} + ${consensusData.model_used}`,
+                vision_analysis: visionData // Store full vision data for detailed view
+            };
+
+            setAiReport(fullReport);
+            addLog(`[SYSTEM] Report Generation Complete.`, "success");
 
         } catch (err) {
             console.error(err);
-            setError("AI was unable to process this image.");
+            setError(err.message || "AI Connection Failed");
+            addLog(`[CRITICAL] ${err.message}`, "error");
         } finally {
             setLoading(false);
         }
     };
-
-
-
-
-
 
     return (
         <div className="game-wrapper" style={{
@@ -359,9 +462,69 @@ export default function PunctumGame() {
             justifyContent: 'center',
             fontFamily: "'Inter', sans-serif",
             overflow: 'hidden',
-            position: 'relative' // Ensure absolute children are positioned relative to this
+            position: 'relative'
         }}>
+
+            {/* STATUS LOG - TOP RIGHT */}
+            <AnimatePresence>
+                {(logs.length > 0 && (step === 'analysis' || step === 'viz' || step === 'consensus')) && (
+                    <motion.div
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 20 }}
+                        style={{
+                            position: 'fixed',
+                            top: '20px',
+                            right: '20px',
+                            width: '300px',
+                            maxHeight: '400px',
+                            background: 'rgba(0, 0, 0, 0.85)',
+                            border: '1px solid rgba(0, 255, 0, 0.2)',
+                            borderRadius: '8px',
+                            padding: '12px',
+                            fontFamily: "'Fira Code', monospace",
+                            fontSize: '10px',
+                            color: '#0f0',
+                            zIndex: 9999,
+                            overflowY: 'auto',
+                            boxShadow: '0 0 20px rgba(0, 255, 0, 0.1)',
+                            backdropFilter: 'blur(5px)'
+                        }}
+                    >
+                        <div style={{
+                            borderBottom: '1px solid rgba(0,255,0,0.2)',
+                            paddingBottom: '4px',
+                            marginBottom: '8px',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            fontWeight: 'bold',
+                            letterSpacing: '0.1em'
+                        }}>
+                            <span>TERMINAL_LOG</span>
+                            <span style={{ width: '6px', height: '6px', background: '#0f0', borderRadius: '50%', boxShadow: '0 0 5px #0f0' }}></span>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            {logs.map((log, i) => (
+                                <div key={i} style={{
+                                    opacity: 0,
+                                    animation: 'fadeIn 0.2s forwards',
+                                    animationDelay: `${i * 0.05}s`,
+                                    color: log.type === 'error' ? '#ff4444' : (log.type === 'success' ? '#00ff00' : '#888')
+                                }}>
+                                    <span style={{ opacity: 0.5 }}>[{log.timestamp.toLocaleTimeString().split(' ')[0]}]</span>{' '}
+                                    {log.message}
+                                </div>
+                            ))}
+                            <div style={{ height: '10px' }} />
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             <style>{`
+                @keyframes fadeIn { from { opacity: 0; transform: translateY(2px); } to { opacity: 1; transform: translateY(0); } }
+                /* ... existing styles ... */
                 .punctum-grid-bg {
                     position: absolute;
                     top: 0;
@@ -810,7 +973,25 @@ export default function PunctumGame() {
                                     color: '#e0e0e0',
                                     letterSpacing: '-0.02em'
                                 }}>
-                                    {keywords.length > 0 ? (
+                                    {loadingKeywords ? (
+                                        <div style={{ display: 'flex', justifyContent: 'center', gap: '15px' }}>
+                                            {Array(3).fill(0).map((_, i) => (
+                                                <motion.span
+                                                    key={i}
+                                                    animate={{ opacity: [0.3, 1, 0.3] }}
+                                                    transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.2 }}
+                                                    style={{
+                                                        fontSize: '2.5rem',
+                                                        color: '#444',
+                                                        fontFamily: "'Cormorant Garamond', serif",
+                                                        fontStyle: 'italic',
+                                                    }}
+                                                >
+                                                    Scanning...
+                                                </motion.span>
+                                            ))}
+                                        </div>
+                                    ) : keywords.length > 0 ? (
                                         keywords.slice(0, 3).map((k, i) => (
                                             <span key={i} style={{ margin: '0 10px', display: 'inline-block' }}>
                                                 {k}
@@ -1030,32 +1211,47 @@ export default function PunctumGame() {
 
                                         {/* AI COLUMN */}
                                         <div style={{ textAlign: 'right' }}>
-                                            <h3 style={{ fontSize: '12px', color: '#00f3ff', letterSpacing: '0.2em', marginBottom: '8px', fontWeight: 600 }}>
+                                            <h3 style={{ fontSize: '12px', color: '#00f3ff', letterSpacing: '0.2em', marginBottom: '16px', fontWeight: 600 }}>
                                                 MACHINE VISION
                                             </h3>
-                                            <div style={{ fontSize: '10px', color: '#00f3ff', opacity: 0.6, marginBottom: '24px', textTransform: 'uppercase' }}>
-                                                FEELING: {aiReport?.ai_feeling || "PROCESSING"}
+
+                                            {/* AI Summary & Feeling Clusters */}
+                                            <div style={{ marginBottom: '24px' }}>
+                                                <div style={{
+                                                    fontSize: '12px', color: '#aaa', fontStyle: 'italic',
+                                                    marginBottom: '12px', lineHeight: '1.5', fontFamily: '"Cormorant Garamond", serif'
+                                                }}>
+                                                    "{aiReport?.visual_summary}"
+                                                </div>
+                                                <div style={{
+                                                    fontSize: '10px', color: '#00f3ff', letterSpacing: '0.1em',
+                                                    textTransform: 'uppercase', background: 'rgba(0, 243, 255, 0.05)',
+                                                    padding: '8px', borderRadius: '4px', borderRight: '2px solid #00f3ff'
+                                                }}>
+                                                    AI FEELING: <span style={{ color: '#fff', fontWeight: 300 }}>{aiReport?.ai_feeling}</span>
+                                                </div>
                                             </div>
-                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'flex-end' }}>
-                                                {aiReport?.ai_keywords.map((kw, i) => (
+
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
+                                                {aiReport?.ai_keywords.slice(0, 3).map((kw, i) => (
                                                     <motion.div
                                                         key={i}
                                                         initial={{ opacity: 0, x: -20 }}
                                                         animate={{ opacity: 1, x: 0 }}
                                                         transition={{ delay: i * 0.1 }}
                                                         style={{
-                                                            fontFamily: 'monospace', fontSize: '14px', color: '#ccc',
-                                                            padding: '6px 14px', background: 'rgba(0, 243, 255, 0.05)', borderRadius: '4px',
-                                                            borderRight: '2px solid #00f3ff', maxWidth: '90%'
+                                                            fontFamily: 'monospace', fontSize: '11px', color: '#888',
+                                                            padding: '4px 10px', background: 'rgba(255, 255, 255, 0.02)', borderRadius: '2px',
+                                                            borderRight: '1px solid rgba(0, 243, 255, 0.3)', maxWidth: '90%'
                                                         }}
                                                     >
                                                         {kw}
                                                     </motion.div>
                                                 ))}
                                             </div>
-                                            <div style={{ marginTop: '32px', fontSize: '10px', color: '#666', fontFamily: 'monospace' }}>
-                                                MODEL USED:<br />
-                                                <span style={{ color: '#888' }}>{aiReport?.model_used || "Unknown Model"}</span>
+                                            <div style={{ marginTop: '24px', fontSize: '9px', color: '#444', fontFamily: 'monospace' }}>
+                                                ENGINE:<br />
+                                                <span style={{ color: '#666' }}>{aiReport?.model_used?.split(' + ')[0] || "Neural Grid"}</span>
                                             </div>
                                         </div>
 
@@ -1119,10 +1315,81 @@ export default function PunctumGame() {
                                             </span>
                                         </div>
 
-                                        <div style={{ marginBottom: '40px' }}>
-                                            <p style={{ maxWidth: '600px', margin: '0 auto', fontSize: '14px', color: '#888', lineHeight: '1.6' }}>
-                                                {aiReport?.analysis}
-                                            </p>
+                                        <div style={{ marginTop: '0px', marginBottom: '30px' }}>
+                                            <h3 style={{ fontSize: '12px', letterSpacing: '2px', color: '#666', marginBottom: '10px' }}>
+                                                COLLECTIVE MEMORY {keywordModel && <span style={{ color: '#333', fontSize: '10px' }}>[{keywordModel}]</span>}
+                                            </h3>
+                                            <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                                                {loadingKeywords ? (
+                                                    Array(3).fill(0).map((_, i) => (
+                                                        <motion.span
+                                                            key={i}
+                                                            animate={{ opacity: [0.3, 1, 0.3] }}
+                                                            transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.2 }}
+                                                            style={{
+                                                                fontSize: '18px',
+                                                                color: '#444',
+                                                                fontFamily: "'Cormorant Garamond', serif",
+                                                                fontStyle: 'italic',
+                                                                letterSpacing: '0.05em'
+                                                            }}
+                                                        >
+                                                            Scanning...
+                                                        </motion.span>
+                                                    ))
+                                                ) : (
+                                                    keywords.map((word, i) => (
+                                                        <motion.span
+                                                            key={i}
+                                                            initial={{ opacity: 0, y: 10 }}
+                                                            animate={{ opacity: 1, y: 0 }}
+                                                            transition={{ delay: 0.8 + (i * 0.1) }}
+                                                            style={{
+                                                                padding: '5px 15px',
+                                                                border: '1px solid rgba(255,255,255,0.15)',
+                                                                borderRadius: '20px',
+                                                                fontSize: '18px',
+                                                                color: word === "Signal" ? '#ff4444' : '#ccc',
+                                                                fontFamily: "'Cormorant Garamond', serif",
+                                                                fontStyle: 'italic',
+                                                                letterSpacing: '0.05em',
+                                                                background: 'rgba(255,255,255,0.02)'
+                                                            }}
+                                                        >
+                                                            {word}
+                                                        </motion.span>
+                                                    ))
+                                                )}
+                                            </div>
+
+                                            {/* RETRY MECHANISM */}
+                                            {!loadingKeywords && keywords.includes("Signal") && (
+                                                <div style={{ marginTop: '15px' }}>
+                                                    <button
+                                                        onClick={() => {
+                                                            setKeywords([]);
+                                                            setLoadingKeywords(true);
+                                                            // Force effect re-run by updating dependency
+                                                            const newComments = [...comments];
+                                                            setComments(newComments);
+                                                        }}
+                                                        style={{
+                                                            background: 'transparent',
+                                                            border: '1px solid #ff4444',
+                                                            color: '#ff4444',
+                                                            padding: '6px 16px',
+                                                            fontSize: '10px',
+                                                            borderRadius: '4px',
+                                                            cursor: 'pointer',
+                                                            fontFamily: 'monospace',
+                                                            letterSpacing: '0.1em',
+                                                            textTransform: 'uppercase'
+                                                        }}
+                                                    >
+                                                        Retry Connection
+                                                    </button>
+                                                </div>
+                                            )}
                                         </div>
 
                                         <button
@@ -1174,6 +1441,6 @@ export default function PunctumGame() {
                     )}
                 </AnimatePresence>
             </div>
-        </div>
+        </div >
     );
 };

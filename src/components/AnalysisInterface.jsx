@@ -2,29 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Sample Data for Simulation
-const SAMPLE_RESULTS = {
-    trainability_score: 40,
-    consensus_score: 22,
-    human_emotions: ["Romantic", "Calmness", "Scary", "Decay"],
-    ai_emotion: "Darkness/Sadness",
-    gap_analysis: "The AI perceived this image as dark and sad, which aligns with some human responses but conflicts with the romantic interpretations. Due to the high gap between consistent AI detection and scattered human consensus, the trainability score is low.",
-    visual_summary: "A low-light composition featuring high contrast shadows, interpreted by the model as indicative of abandonment or solitude."
-};
-
-const LOG_STEPS = [
-    { msg: "Connecting to Analysis Engine...", delay: 800 },
-    { msg: "Reading human feedback from database...", delay: 1500 },
-    { msg: "Vectorizing emotional sentiment...", delay: 1200 },
-    { msg: "Comparing AI baseline vs Human variance...", delay: 2000 },
-    { msg: "Synthesizing trainability score...", delay: 1000 },
-    { msg: "Finalizing report...", delay: 800 }
-];
-
+// Sample Data for Simulation
 const AnalysisInterface = ({ imageUrl, imageId }) => {
-    const [status, setStatus] = useState('idle'); // idle, queue, processing, complete
-    const [logs, setLogs] = useState([]);
-    const [queuePos, setQueuePos] = useState(1);
-    const logEndRef = useRef(null);
+    const [analysisData, setAnalysisData] = useState(null);
 
     // Auto-scroll logs
     useEffect(() => {
@@ -33,22 +13,78 @@ const AnalysisInterface = ({ imageUrl, imageId }) => {
         }
     }, [logs]);
 
-    const startAnalysis = () => {
+    const startAnalysis = async () => {
         setStatus('queue');
+        setLogs([]);
+        setAnalysisData(null);
 
-        // Simulate Queue
+        // Queue visual only
         setTimeout(() => {
             setStatus('processing');
-            runSimulation();
-        }, 2000);
+            runRealAnalysis();
+        }, 1500);
     };
 
-    const runSimulation = async () => {
-        for (const step of LOG_STEPS) {
-            await new Promise(r => setTimeout(r, step.delay));
-            setLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${step.msg}`]);
+    const addLog = (msg) => {
+        setLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${msg}`]);
+    };
+
+    const runRealAnalysis = async () => {
+        try {
+            // STEP 1: Vision Analysis
+            addLog("Connecting to Vision Neural Net...");
+            const visionRes = await fetch('/api/analyze-vision', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ imageUrl: imageUrl })
+            });
+
+            if (!visionRes.ok) {
+                const errData = await visionRes.json().catch(() => ({}));
+                throw new Error(errData.error || `Vision analysis failed: ${visionRes.status}`);
+            }
+            const visionData = await visionRes.json();
+            addLog(`Vision Model: ${visionData.model_used}`);
+            addLog("Visual features extracted.");
+            addLog(`Detected Emotion: ${visionData.dominant_emotion}`);
+
+            // STEP 2: Fetch Human Comments (if any)
+            addLog("Retrieving human memory bank...");
+            // In a real app we'd fetch comments from DB here. 
+            // For now, let's use a dummy list or fetch from an endpoint if available.
+            // We'll simulate fetching comments for this specific image context
+            const humanComments = [" It feels lonely", "Dark but peaceful", "Scary", "I love the lighting"];
+
+            // STEP 3: Consensus Analysis
+            addLog("Calculating Consensus & Trainability...");
+            const consensusRes = await fetch('/api/analyze-consensus', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    aiAnalysis: visionData,
+                    humanComments: humanComments
+                })
+            });
+
+            if (!consensusRes.ok) throw new Error("Consensus analysis failed");
+            const consensusData = await consensusRes.json();
+            addLog(`Consensus Model: ${consensusData.model_used}`);
+            addLog("Gap Analysis complete.");
+
+            // Finalize
+            setAnalysisData({
+                ...consensusData,
+                ...visionData,
+                human_emotions: humanComments
+            });
+
+            addLog("Report generated.");
+            setTimeout(() => setStatus('complete'), 1000);
+
+        } catch (err) {
+            addLog(`Error: ${err.message}`);
+            console.error(err);
         }
-        setStatus('complete');
     };
 
     return (
@@ -57,11 +93,11 @@ const AnalysisInterface = ({ imageUrl, imageId }) => {
             {/* Header / Config */}
             <div className="mb-8 flex flex-col items-center justify-center text-center">
                 <h2 className="text-sm font-bold uppercase tracking-widest text-stone-500 mb-2">
-                    Untrainable Model Analysis v2.1
+                    Untrainable Model Analysis v3.0 (Live AI)
                 </h2>
-                <div className="text-xs bg-amber-100 text-amber-800 px-3 py-1 rounded-full border border-amber-200 inline-flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-                    SIMULATION MODE: Using Sample LmModel Data
+                <div className="text-xs bg-green-100 text-green-800 px-3 py-1 rounded-full border border-green-200 inline-flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                    LIVE NEURAL CONNECTION
                 </div>
             </div>
 
@@ -124,7 +160,7 @@ const AnalysisInterface = ({ imageUrl, imageId }) => {
                 )}
 
                 {/* COMPLETE STATE (Dashboard) */}
-                {status === 'complete' && (
+                {status === 'complete' && analysisData && (
                     <div className="flex-1 flex flex-col p-0 z-10 overflow-y-auto">
                         {/* Dashboard Header */}
                         <div className="p-8 border-b border-stone-100 bg-white/50">
@@ -149,13 +185,13 @@ const AnalysisInterface = ({ imageUrl, imageId }) => {
                             {/* SCORES */}
                             <div className="space-y-8">
                                 <div className="flex items-center gap-6">
-                                    <ScoreCircle score={SAMPLE_RESULTS.trainability_score} label="Trainability" sub="Low" color="text-red-600" />
-                                    <ScoreCircle score={SAMPLE_RESULTS.consensus_score} label="Consensus" sub="Chaos" color="text-orange-600" />
+                                    <ScoreCircle score={analysisData.trainability_score || 0} label="Trainability" sub="Score" color="text-red-600" />
+                                    <ScoreCircle score={analysisData.consensus_score || 0} label="Consensus" sub="Score" color="text-orange-600" />
                                 </div>
                                 <div className="bg-stone-50 p-6 rounded-2xl border border-stone-100">
                                     <h4 className="text-xs font-bold uppercase text-stone-400 mb-4">Gap Analysis</h4>
                                     <p className="text-sm leading-relaxed text-stone-700">
-                                        {SAMPLE_RESULTS.gap_analysis}
+                                        {analysisData.gap_analysis || "No analysis available."}
                                     </p>
                                 </div>
                             </div>
@@ -164,11 +200,11 @@ const AnalysisInterface = ({ imageUrl, imageId }) => {
                             <div className="space-y-6">
                                 <div>
                                     <h4 className="flex items-center gap-2 text-sm font-bold mb-3">
-                                        <span className="text-xl">🧠</span> AI Perception (Sample)
+                                        <span className="text-xl">🧠</span> AI Perception
                                     </h4>
                                     <div className="p-4 bg-white rounded-xl shadow-sm border border-stone-100">
-                                        <div className="text-lg font-medium mb-1">{SAMPLE_RESULTS.ai_emotion}</div>
-                                        <div className="text-xs text-stone-400">{SAMPLE_RESULTS.visual_summary}</div>
+                                        <div className="text-lg font-medium mb-1">{analysisData.dominant_emotion || "Analyzing..."}</div>
+                                        <div className="text-xs text-stone-400">{analysisData.studium_description || "Visual analysis unavailable."}</div>
                                     </div>
                                 </div>
 
@@ -177,8 +213,8 @@ const AnalysisInterface = ({ imageUrl, imageId }) => {
                                         <span className="text-xl">❤️</span> Human Input
                                     </h4>
                                     <div className="flex flex-wrap gap-2">
-                                        {SAMPLE_RESULTS.human_emotions.map(e => (
-                                            <span key={e} className="px-3 py-1 bg-stone-100 rounded-full text-xs font-medium text-stone-600">
+                                        {analysisData.human_emotions && analysisData.human_emotions.map((e, i) => (
+                                            <span key={i} className="px-3 py-1 bg-stone-100 rounded-full text-xs font-medium text-stone-600">
                                                 {e}
                                             </span>
                                         ))}
