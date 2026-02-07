@@ -1,12 +1,14 @@
 import type { APIRoute } from 'astro';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export const prerender = false;
 
 const OPENROUTER_API_KEY = import.meta.env.OPENROUTER_API_KEY;
+const GOOGLE_API_KEY = import.meta.env.GOOGLE_API_KEY;
 const SITE_URL = import.meta.env.SITE || 'https://abodid.com';
 const SITE_NAME = 'Abodid Personal Site';
 
-// Priority: Vision capable, Free/Low-cost, Reliable (Verified 2024-02-07)
+// Priority 1: OpenRouter Free Models
 const VISION_MODELS = [
     'nvidia/nemotron-nano-12b-v2-vl:free', // Confirmed Free + Vision
     'google/gemma-3-27b-it:free',          // Confirmed Free + Vision
@@ -14,13 +16,11 @@ const VISION_MODELS = [
     'openrouter/free'                       // Ultimate fallback
 ];
 
+// Priority 2: Google SDK Direct (Fallback)
+const GOOGLE_FALLBACK_MODEL = 'gemini-1.5-pro';
+
 export const POST: APIRoute = async ({ request }) => {
     try {
-        if (!OPENROUTER_API_KEY) {
-            console.error("Missing OPENROUTER_API_KEY in environment variables.");
-            return new Response(JSON.stringify({ error: "Server Configuration Error: Missing API Key" }), { status: 500 });
-        }
-
         const { imageUrl, userContext } = await request.json();
 
         if (!imageUrl) {
@@ -42,6 +42,7 @@ Output strictly valid JSON with this structure:
     "ai_feeling": "...",
     "studium_description": "...",
     "punctum_element": "...",
+    "ai_emotions": ["emotion1", "emotion2", "emotion3"],
     "emotional_keywords": ["keyword1", "keyword2", "keyword3", "keyword4", "keyword5"],
     "emotional_atmosphere": "...",
     "dominant_emotion": "..."
@@ -52,84 +53,107 @@ Output strictly valid JSON with this structure:
             ? `Analyze this image. The user also noted: "${userContext}". Consider this but form your own independent visual analysis.`
             : `Analyze this image. Focus on the emotional and psychological impact.`;
 
-        let lastError = null;
-
-        for (const model of VISION_MODELS) {
-            console.log(`[Vision Analysis] Attempting model: ${model}`);
-            try {
-                const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-                    method: "POST",
-                    headers: {
-                        "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
-                        "Content-Type": "application/json",
-                        "HTTP-Referer": SITE_URL,
-                        "X-Title": SITE_NAME,
-                    },
-                    body: JSON.stringify({
-                        model: model,
-                        messages: [
-                            { role: "system", content: systemPrompt },
-                            {
-                                role: "user",
-                                content: [
-                                    { type: "text", text: userPrompt },
-                                    { type: "image_url", image_url: { url: imageUrl } }
-                                ]
-                            }
-                        ]
-                        // Removed response_format to improve compatibility with Llama/Free models
-                    })
-                });
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error(`[Vision Analysis] Model ${model} failed with status ${response.status}: ${errorText}`);
-                    lastError = new Error(`Provider error: ${response.status} - ${errorText}`);
-                    continue; // Try next model
-                }
-
-                const data = await response.json();
-
-                if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-                    console.error(`[Vision Analysis] Invalid response format from ${model}:`, JSON.stringify(data));
-                    throw new Error("Invalid response format from provider");
-                }
-
-                const content = data.choices[0].message.content;
-                let parsed;
+        // STRATEGY 1: Try OpenRouter Models
+        if (OPENROUTER_API_KEY) {
+            for (const model of VISION_MODELS) {
+                console.log(`[Vision Analysis] Attempting OpenRouter model: ${model}`);
                 try {
-                    parsed = JSON.parse(content);
-                } catch (e) {
-                    // Fallback if model didn't return pure JSON
-                    const jsonMatch = content.match(/\{[\s\S]*\}/);
-                    if (jsonMatch) {
-                        try {
-                            parsed = JSON.parse(jsonMatch[0]);
-                        } catch (e2) {
-                            console.error(`[Vision Analysis] JSON parse failed for ${model}. Content:`, content);
-                            throw new Error("Could not parse JSON from model response");
-                        }
-                    } else {
-                        console.error(`[Vision Analysis] No JSON found in response from ${model}. Content:`, content);
-                        throw new Error("Could not parse JSON from model response");
-                    }
-                }
+                    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                        method: "POST",
+                        headers: {
+                            "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+                            "Content-Type": "application/json",
+                            "HTTP-Referer": SITE_URL,
+                            "X-Title": SITE_NAME,
+                        },
+                        body: JSON.stringify({
+                            model: model,
+                            messages: [
+                                { role: "system", content: systemPrompt },
+                                {
+                                    role: "user",
+                                    content: [
+                                        { type: "text", text: userPrompt },
+                                        { type: "image_url", image_url: { url: imageUrl } }
+                                    ]
+                                }
+                            ]
+                        })
+                    });
 
-                console.log(`[Vision Analysis] Success with model: ${model}`);
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.warn(`[Vision Analysis] OpenRouter ${model} failed: ${response.status} - ${errorText}`);
+                        continue; // Try next OpenRouter model
+                    }
+
+                    const data = await response.json();
+                    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+                        console.warn(`[Vision Analysis] Invalid format from ${model}`);
+                        continue;
+                    }
+
+                    const content = data.choices[0].message.content;
+                    const parsed = parseJSON(content); // Helper function
+
+                    console.log(`[Vision Analysis] Success with OpenRouter model: ${model}`);
+                    return new Response(JSON.stringify({
+                        success: true,
+                        model_used: model,
+                        ...parsed
+                    }), { status: 200 });
+
+                } catch (err) {
+                    console.warn(`[Vision Analysis] Error with ${model}:`, err);
+                    // Continue to next model
+                }
+            }
+            console.warn("[Vision Analysis] All OpenRouter models failed. Attempting Google Fallback...");
+        } else {
+            console.warn("[Vision Analysis] No OPENROUTER_API_KEY found, skipping directly to Google fallback.");
+        }
+
+
+        // STRATEGY 2: Google SDK Fallback
+        if (GOOGLE_API_KEY) {
+            console.log(`[Vision Analysis] Attempting Google Gemini Fallback (${GOOGLE_FALLBACK_MODEL})...`);
+
+            try {
+                const genAI = new GoogleGenerativeAI(GOOGLE_API_KEY);
+                const model = genAI.getGenerativeModel({ model: GOOGLE_FALLBACK_MODEL });
+
+                // Fetch image and convert to base64 for Gemini SDK
+                const imageResponse = await fetch(imageUrl);
+                if (!imageResponse.ok) throw new Error(`Failed to fetch image: ${imageResponse.statusText}`);
+                const imageArrayBuffer = await imageResponse.arrayBuffer();
+                const imageBase64 = Buffer.from(imageArrayBuffer).toString('base64');
+                const mimeType = imageResponse.headers.get('content-type') || 'image/jpeg';
+
+                const result = await model.generateContent([
+                    systemPrompt,
+                    userPrompt,
+                    { inlineData: { data: imageBase64, mimeType: mimeType } }
+                ]);
+
+                const response = await result.response;
+                const text = response.text();
+                const parsed = parseJSON(text);
+
+                console.log(`[Vision Analysis] Success with Google Fallback: ${GOOGLE_FALLBACK_MODEL}`);
                 return new Response(JSON.stringify({
                     success: true,
-                    model_used: model,
+                    model_used: `google/${GOOGLE_FALLBACK_MODEL} (fallback)`,
                     ...parsed
                 }), { status: 200 });
 
-            } catch (err) {
-                console.warn(`[Vision Analysis] Model ${model} execution error:`, err);
-                lastError = err;
+            } catch (googleErr) {
+                console.error("[Vision Analysis] Google Fallback failed:", googleErr);
+                throw new Error("All analysis strategies (OpenRouter + Google) failed.");
             }
+        } else {
+            console.error("[Vision Analysis] No GOOGLE_API_KEY provided for fallback.");
+            throw new Error("Analysis failed: all providers exhausted.");
         }
-
-        console.error("[Vision Analysis] All models failed.");
-        throw lastError || new Error("All vision models failed to respond.");
 
     } catch (error) {
         console.error("Analysis API Error:", error);
@@ -138,3 +162,23 @@ Output strictly valid JSON with this structure:
         }), { status: 500 });
     }
 };
+
+
+// Robust JSON Parsing Helper
+function parseJSON(text: string) {
+    try {
+        const cleanedText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+        return JSON.parse(cleanedText);
+    } catch (e) {
+        // Fallback: Try to find JSON object structure
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+            try {
+                return JSON.parse(jsonMatch[0]);
+            } catch (e2) {
+                throw new Error("Could not parse JSON from model response");
+            }
+        }
+        throw new Error("Could not parse JSON from model response");
+    }
+}

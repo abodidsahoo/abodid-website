@@ -119,7 +119,7 @@ export const POST: APIRoute = async ({ request }) => {
             .map((c: string, i: number) => `${i + 1}. "${c}"`)
             .join('\n');
 
-        const prompt = `Analyze these human responses:\n${commentList}\n\nReturn EXACTLY 3 evocative, texture-rich words capturing the collective mood (e.g., "Fractured, Solitude, Decay").\nAvoid generic terms.\nOutput ONLY the 3 words, comma-separated.`;
+        const prompt = `Analyze these human responses:\n${commentList}\n\nReturn EXACTLY 3 simple, clean human emotions capturing the core feeling (e.g., "Sadness, Joy, Anger").\nAvoid complex or evocative poetry.\nOutput ONLY the 3 words, comma-separated.`;
 
         console.log('[EXTRACT-EMOTIONS] Searching for keywords from', comments.length, 'inputs...');
         console.log('[EXTRACT-EMOTIONS] Generated Prompt:\n', prompt);
