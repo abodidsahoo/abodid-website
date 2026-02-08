@@ -1,135 +1,116 @@
 ---
-import BaseLayout from "../../layouts/BaseLayout.astro";
-const pageTitle = "Polaroids Table";
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+const pageTitle = "LLM-based Chatbot";
 ---
 
 <BaseLayout title={pageTitle}>
     <article class="research-page">
         <header class="project-header">
-            <h1>Polaroids Table</h1>
+            <h1>LLM-based Chatbot</h1>
             <p class="status-tag">In Progress</p>
         </header>
 
         <section class="introduction">
             <p class="lead">
-                An interactive photo arrangement experiment where you handle
-                photographs like <strong>physical objects</strong>—drag them
-                across a digital table, sequence them, and discover how their
-                order changes meaning. A stepping stone toward reimagining photo
-                book design.
+                Experimenting with <strong>OpenRouter API</strong> to build an internal
+                chatbot that understands my research papers, creative work, and personal
+                knowledge systems. This is a playground for understanding how AI can
+                augment creative research and make sense of social data.
             </p>
         </section>
 
         <section class="details">
-            <h2>The Concept</h2>
+            <h2>What is this?</h2>
             <p>
-                Photography isn't just about individual images—it's about <strong
-                    >sequence, juxtaposition, and rhythm</strong
-                >. When you place two photos side by side, a narrative emerges.
-                Change the order, and the story shifts. This project explores
-                that fundamental truth through interaction.
+                This project explores the integration of <strong
+                    >OpenRouter API</strong
+                >—a unified gateway to multiple Large Language Models (LLMs). By
+                using selective free-tier models, I'm building AI-driven tools
+                without the cost overhead, making experimentation accessible and
+                sustainable.
             </p>
 
-            <h3>Current Features</h3>
+            <h3>Why OpenRouter?</h3>
             <ul>
                 <li>
-                    <strong>Infinite scatter</strong> – Hundreds of images displayed
-                    in a randomized, endlessly scrolling grid
+                    <strong>Model diversity</strong> – Access to 30+ free models from
+                    Meta, Google, and others
                 </li>
                 <li>
-                    <strong>Lightbox navigation</strong> – Click any image to enter
-                    full-screen viewing mode
+                    <strong>Free-first routing</strong> – Intelligent fallback system
+                    prioritizes free models
                 </li>
                 <li>
-                    <strong>Smooth transitions</strong> – Shutter animation masks
-                    image loading for a cinematic feel
+                    <strong>No vendor lock-in</strong> – Switch between models seamlessly
                 </li>
                 <li>
-                    <strong>Color palette extraction</strong> – Every image analyzed
-                    for dominant colors (coming soon)
-                </li>
-                <li>
-                    <strong>Sequential browsing</strong> – Navigate through the entire
-                    collection with keyboard or buttons
+                    <strong>Cost transparency</strong> – Built-in quota management
+                    and usage tracking
                 </li>
             </ul>
 
-            <h3>The Vision</h3>
-            <p>
-                This experiment is a prototype for something bigger: a platform
-                where photographers can <strong
-                    >design photo books intuitively</strong
-                >, before ever touching Adobe InDesign or Photoshop.
-            </p>
-
+            <h3>Technical Architecture</h3>
             <table>
                 <thead>
                     <tr>
-                        <th>Stage</th>
-                        <th>Description</th>
-                        <th>Status</th>
+                        <th>Component</th>
+                        <th>Purpose</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td><strong>Phase 1</strong></td>
-                        <td>Browse and sequence existing portfolio images</td>
-                        <td>✅ Live</td>
+                        <td><code>OpenRouter Client</code></td>
+                        <td>HTTP wrapper for API communication</td>
                     </tr>
                     <tr>
-                        <td><strong>Phase 2</strong></td>
-                        <td>Drag-and-drop reordering on a grid</td>
-                        <td>🚧 In Progress</td>
+                        <td><code>Model Catalog</code></td>
+                        <td>Discovers and caches available models</td>
                     </tr>
                     <tr>
-                        <td><strong>Phase 3</strong></td>
-                        <td>Upload your own photos and arrange them</td>
-                        <td>📋 Planned</td>
+                        <td><code>Quota Manager</code></td>
+                        <td>Enforces rate limits (20/min, 1000/day)</td>
                     </tr>
                     <tr>
-                        <td><strong>Phase 4</strong></td>
-                        <td>Export layouts as print-ready PDFs</td>
-                        <td>💭 Future</td>
+                        <td><code>Policy Engine</code></td>
+                        <td>Routes requests to optimal free models</td>
+                    </tr>
+                    <tr>
+                        <td><code>Executor</code></td>
+                        <td>Handles retries and intelligent failover</td>
                     </tr>
                 </tbody>
             </table>
 
-            <h3>Why This Matters</h3>
-            <p>
-                Most photo book tools force you into rigid templates.
-                Professional design tools like <em>InDesign</em> require steep learning
-                curves. This project sits in the middle—offering creative freedom
-                without technical barriers.
-            </p>
-            <p>
-                Imagine designing a 40-page photo essay by simply <strong
-                    >arranging polaroids on a table</strong
-                >, feeling the rhythm, seeing how colors interact, and only then
-                moving to typesetting. That's the dream.
-            </p>
-
-            <h3>Technical Implementation</h3>
+            <h3>Current Capabilities</h3>
             <ul>
-                <li>
-                    <code>React</code> for state management and interactivity
-                </li>
-                <li><code>Framer Motion</code> for smooth animations</li>
-                <li>
-                    <code>Vibrant.js</code> for color palette extraction (planned)
-                </li>
-                <li><code>Supabase</code> for image storage and metadata</li>
-                <li><code>Canvas API</code> for future drag-and-drop grid</li>
+                <li>Real-time conversational AI with context memory</li>
+                <li>Response latency tracking (typically 1.4–1.9s)</li>
+                <li>Transparent model identification in every response</li>
+                <li>Automatic quota management and rate limiting</li>
+                <li>Graceful error handling with model failover</li>
             </ul>
 
+            <h3>Future Vision</h3>
+            <p>
+                The long-term goal is to train this chatbot on my research
+                papers, photography notes, and creative writings. Imagine
+                asking: <em
+                    >"What are the recurring themes in my grief photography?"</em
+                > or <em
+                    >"How does my work on memory connect to my emotional
+                    research?"</em
+                >
+            </p>
             <p class="small-note">
-                This is still early-stage. Right now, it's a beautiful way to
-                browse my photography portfolio—but the foundation is being
-                built for something transformative.
+                This is still early-stage exploration. Right now, it's a
+                general-purpose chat interface—think of it as a testing ground
+                for understanding how LLMs can become thought partners for
+                creative research.
             </p>
         </section>
 
         <section class="experiment-launch">
-            <a href="/polaroid-hub" class="launch-button">
+            <a href="/llm-testing" class="launch-button">
                 Launch the experiment →
             </a>
         </section>

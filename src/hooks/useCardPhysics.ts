@@ -14,9 +14,10 @@ export interface Card {
 
 interface UseCardPhysicsProps {
     initialImages: any[];
+    isActive: boolean;
 }
 
-export const useCardPhysics = ({ initialImages }: UseCardPhysicsProps) => {
+export const useCardPhysics = ({ initialImages, isActive = true }: UseCardPhysicsProps) => {
     // --- STATE ---
     const [stack, setStack] = useState<Card[]>([]);
     const [lastAction, setLastAction] = useState<'unstack' | 'restack' | 'add'>('unstack');
@@ -193,20 +194,24 @@ export const useCardPhysics = ({ initialImages }: UseCardPhysicsProps) => {
 
         // Small Kickstart
         const kickstart = setInterval(() => {
-            if (window.scrollY < 50 && stackRef.current.length < 4) {
+            // ONLY start spawning when ACTIVE
+            if (isActive && window.scrollY < 50 && stackRef.current.length < 4) {
                 setLastAction('add');
                 attemptSpawn(true);
-            } else {
+            } else if (isActive) {
+                // Determine completion: If we have enough cards and are active, stop attempting
                 clearInterval(kickstart);
             }
         }, 200);
 
         return () => clearInterval(kickstart);
-    }, [initialImages]);
+    }, [initialImages, isActive]);
 
     // --- 4. EVENT LOOP ---
     useEffect(() => {
         const handleWheel = (e: WheelEvent) => {
+            if (!isActive) return; // Block interactions if not active
+
             const isVisible = window.scrollY < 800;
 
             if (isVisible) {
@@ -285,11 +290,12 @@ export const useCardPhysics = ({ initialImages }: UseCardPhysicsProps) => {
             window.removeEventListener('wheel', handleWheel);
             window.removeEventListener('scroll', handleScroll);
         };
-    }, []);
+    }, [isActive]);
 
     // --- 5. MOUSE ---
     useEffect(() => {
         const handleMove = (e: MouseEvent) => {
+            if (!isActive) return;
             if (window.scrollY > 10) return;
             const dx = e.clientX - lastMousePosRef.current.x;
             const dy = e.clientY - lastMousePosRef.current.y;
@@ -313,7 +319,7 @@ export const useCardPhysics = ({ initialImages }: UseCardPhysicsProps) => {
         };
         window.addEventListener('mousemove', handleMove);
         return () => window.removeEventListener('mousemove', handleMove);
-    }, []);
+    }, [isActive]);
 
     return { stack, lastAction, containerRef };
 };

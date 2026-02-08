@@ -5,9 +5,9 @@
 -- These lead to explanation pages first, which then have buttons to launch experiments
 INSERT INTO research (title, description, slug, cover_image, tags, published, visible, sort_order)
 VALUES
-    -- 1. Polaroids Table (at the top - this IS the explanation/experiment combined)
+    -- 1. Polaroids Hub (at the top - this IS the explanation/experiment combined)
     (
-        'Polaroids Table',
+        'Polaroid Hub',
         'An interactive photo arrangement experiment—handle photographs like physical objects, sequence them on a digital table, and feel how their order changes meaning. A stepping stone for designing photo books.',
         'polaroids-table',
         'https://images.unsplash.com/photo-1606857521015-7f9fcf423740?auto=format&fit=crop&q=80&w=1000',

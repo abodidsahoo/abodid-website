@@ -15,10 +15,10 @@ const mockResearchProjects: Project[] = [
         published: true,
     },
     {
-        title: "Polaroids Table",
+        title: "Polaroid Hub",
         description: "An interactive photo arrangement experiment—handle photographs like physical objects, sequence them on a digital table, and feel how their order changes meaning. A stepping stone for designing photo books.",
-        slug: "polaroids-table",
-        href: "/research/polaroids-table",
+        slug: "polaroid-hub",
+        href: "/research/polaroid-hub",
         image: "https://images.unsplash.com/photo-1606857521015-7f9fcf423740?auto=format&fit=crop&q=80&w=1000",
         tags: ["Photography", "Interaction Design", "In Progress"],
         published: true,
@@ -48,15 +48,6 @@ const mockResearchProjects: Project[] = [
         href: "/research/do-ghosts-feel-jealous",
         image: "https://images.unsplash.com/photo-1516575334481-f85287c2c81d?auto=format&fit=crop&q=80&w=1000",
         tags: ["Photography", "Writing", "Performance", "Film"],
-        published: true,
-    },
-    {
-        title: "Visual Experiments",
-        description: "A playground for creative coding, motion design, AR/VR, and 3D web experiences.",
-        slug: "visual-experiments",
-        href: "/visual-experiments",
-        image: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=1000",
-        tags: ["Creative Coding", "Three.js", "Visual Lab"],
         published: true,
     }
 ];

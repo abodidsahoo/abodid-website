@@ -16,6 +16,13 @@
     --palette-sand: #E0DBD3;
     --palette-grey: #9E9992;
 
+    /* Grainy Glitch Palette */
+    --color-glitch-red: #FF4D30;
+    --color-glitch-dark: #111111;
+    --color-brand-red: #a30021;
+    /* Menu Red */
+    --color-glitch-text: #E0E0E0;
+
     /* ==========================================================================
        Design Token System
        ========================================================================== */

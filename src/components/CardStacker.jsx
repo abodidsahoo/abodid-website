@@ -2,14 +2,18 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCardPhysics } from '../hooks/useCardPhysics';
 
-const CardStacker = ({ images, anchorX = '65%', anchorY = '68%' }) => {
+const CardStacker = ({ images, anchorX = '65%', anchorY = '68%', active = true }) => {
     // Legacy support: hook expects 'initialImages', component receives 'images'
-    const { stack, lastAction, containerRef } = useCardPhysics({ initialImages: images });
+    const { stack, lastAction, containerRef } = useCardPhysics({ initialImages: images, isActive: active });
 
     return (
         <div
             className="card-stacker-container"
             ref={containerRef}
+            style={{
+                opacity: active ? 1 : 0,
+                transition: 'opacity 1.5s ease-in-out'
+            }}
         >
             <div className="stack-anchor" aria-hidden="true">
                 <AnimatePresence custom={lastAction}>
@@ -97,15 +101,16 @@ const CardStacker = ({ images, anchorX = '65%', anchorY = '68%' }) => {
                 }
                 .stacked-card {
                     position: absolute;
-                    width: 420px; 
+                    width: 559px; /* +10% from 508px */
                     aspect-ratio: 16/9;
                     background-color: #fff; 
                     padding: 16px; 
                     border-radius: 2px; 
                     box-shadow: 0 15px 50px rgba(0,0,0,0.15);
-                    top: -118px; left: -210px;
+                    top: -157px; left: -279px; /* Adjusted offsets for 559px width */
                     display: flex; align-items: center; justify-content: center;
                     overflow: hidden; backface-visibility: hidden;
+                    pointer-events: auto; /* Allow interactions with cards */
                 }
                 .stacked-card img {
                     width: 100%; height: 100%;

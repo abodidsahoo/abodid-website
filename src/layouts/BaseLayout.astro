@@ -15,7 +15,11 @@ const {
   type,
   hideHeader = false,
   fullWidth = false,
+  showCursor = true, // Default to true for all pages
 } = Astro.props;
+
+import LiquidCursor from "../components/LiquidCursor.jsx";
+import NoiseOverlay from "../components/NoiseOverlay.jsx";
 
 // Fetch metadata from database if not provided via props
 const pagePath = Astro.url.pathname;
@@ -64,6 +68,11 @@ const finalType = type || dbMetadata?.og_type || "website";
       rel="stylesheet"
     />
 
+    <link
+      href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&display=swap"
+      rel="stylesheet"
+    />
+
     <SEO
       title={finalTitle}
       description={finalDescription}
@@ -98,20 +107,30 @@ const finalType = type || dbMetadata?.og_type || "website";
     <div class="global-glow-bg"></div>
     <main
       id="main-content"
-      class={`${fullWidth ? "page-content-full" : "container page-content"}`}
+      class={`${fullWidth ? "page-content-full" : "container page-content"} ${!hideHeader ? "header-padding" : ""}`}
     >
       <slot />
     </main>
     <StickyMobileNav client:idle />
     <NewsletterPopup client:only="react" />
+
+    <!-- Global Liquid Cursor (Conditional) -->
+    {showCursor && <LiquidCursor client:only="react" />}
+
+    <NoiseOverlay client:only="react" opacity={0.05} />
+
     <Footer />
   </body>
 </html>
 
 <style>
-  .page-content {
-    padding-top: 110px; /* 80px header + 30px spacing */
-    padding-bottom: 3rem;
+  body {
+    background-color: var(--color-glitch-dark) !important;
+  }
+
+  <style > .page-content {
+    /* Padding handled by .header-padding if header visible */
+    padding-bottom: 22rem;
     position: relative;
     z-index: 1; /* Ensure content is above grid */
   }
@@ -121,6 +140,12 @@ const finalType = type || dbMetadata?.og_type || "website";
     width: 100vw;
     position: relative;
     z-index: 1;
+  }
+
+  /* Universal Header Clearance Rule */
+  /* Applied if !hideHeader is true */
+  .header-padding {
+    padding-top: 140px !important; /* 80px header + 60px safe buffer */
   }
 
   .global-grid-bg {
@@ -227,17 +252,33 @@ const finalType = type || dbMetadata?.og_type || "website";
 
     // Scroll Intensity Tracking
     const updateIntensity = () => {
-      // Check if we are on the homepage or the experiment page
+      // Universal Glow - Apply logic to all pages
+      // Check if we are on the homepage for specific intensity tuning if needed,
+      // but user requested "universal pointer for all pages".
+
       const isHome =
         window.location.pathname === "/" ||
         window.location.pathname === "" ||
         window.location.pathname === "/test-landing";
 
+      // Base intensity for all pages
+      let baseIntensity = 1.0;
+
+      // If NOT home, maybe we want it slightly less intense?
+      // User said "universal pointer", "affect things in this testimonial page".
+      // Let's keep it consistent but maybe respect the scroll fade only on Home if it has the typewriter?
+      // Or just let it be persistent.
+
+      // Let's try enabling it fully first.
+      // We'll use the scroll logic only for Home (fade out) but keep it active on others.
+
       if (!isHome) {
-        // "Very subtle glow if it at all happens" on other pages
-        glowBg.style.setProperty("--glow-intensity", "0.05");
-        return;
+        glowBg.style.setProperty("--glow-intensity", "0.8");
+        return; // EXIT HERE so scroll logic doesn't override it
       }
+
+      // Homepage Logic: Targeted for typewriter area (top)
+      // ...
 
       // Homepage Logic: Targeted for typewriter area (top)
       const scrollY = window.scrollY;

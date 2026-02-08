@@ -19,11 +19,10 @@ import Showreel from "../components/Showreel.astro";
 import PhotoGrid from "../components/PhotoGrid.astro";
 import NavigationCards from "../components/NavigationCards.astro";
 import BrandFilmStrip from "../components/BrandFilmStrip";
-import CardStacker from "../components/CardStacker.jsx";
-import LiquidCursor from "../components/LiquidCursor.jsx";
-import ExperienceModule from "../components/ExperienceModule.jsx";
-import AudioScrollVolume from "../components/AudioScrollVolume.jsx";
-import EngagementCTA from "../components/EngagementCTA.jsx";
+// CardStacker replaced by LandingOrchestrator
+import LandingOrchestrator from "../components/LandingOrchestrator.jsx";
+// LiquidCursor moved to BaseLayout
+// EngagementCTA moved to LandingOrchestrator
 import ForceDarkMode from "../components/ForceDarkMode.astro";
 import captionData from "../data/landing-audio-captions.json";
 
@@ -92,34 +91,30 @@ const odishaUrl = "https://vimeo.com/265220711";
     <!-- Force dark mode on landing page - core to the experience -->
     <ForceDarkMode />
 
-    <!-- Consolidated Audio-Visual Experience Module -->
-    <ExperienceModule
-        client:media="(min-width: 769px)"
-        client:only="react"
-        src="https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/music/landing-page-audio-01.mp3"
-        captions={captionData}
-    />
-    <!-- Scroll-based volume control -->
-    <AudioScrollVolume client:only="react" />
-    <!-- Disable Liquid Cursor on mobile (touch devices don't need it and it's heavy) -->
-    <LiquidCursor client:media="(min-width: 769px)" />
+    <!-- Force dark mode on landing page - core to the experience -->
+    <ForceDarkMode />
+
+    <!-- ExperienceModule is now inside LandingOrchestrator -> EngagementCTA -->
+    <!-- Liquid Cursor is now global via BaseLayout -->
+    <!-- Liquid Cursor is now global via BaseLayout -->
 
     <!-- ... styles ... -->
 
     <!-- 1. Centered Card Stack (Hidden on Mobile via CSS, now also JS prevented) -->
     <div class="card-stack-wrapper">
         <div class="snap-top"></div>
-        <CardStacker
+        <LandingOrchestrator
             client:only="react"
             images={featuredPhotography}
             anchorX="50%"
             anchorY="50%"
+            audioSrc="https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/music/landing-page-audio-01.mp3"
+            captions={captionData}
         />
         <div class="landing-overlays">
-            <!-- Engagement triggered CTA -->
-            <EngagementCTA client:only="react" />
-            <!-- Bottom Scroll Hint -->
-            <div class="scroll-hint">SCROLL DOWN</div>
+            <!-- EngagementCTA moved to Orchestrator -->
+
+            <!-- Bottom Scroll Hint moved to LandingOrchestrator -->
         </div>
     </div>
 
@@ -245,6 +240,19 @@ const odishaUrl = "https://vimeo.com/265220711";
 
 <style>
     /* Fixed Positioning Layouts */
+    .card-stack-wrapper {
+        user-select: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+    }
+
+    .card-stack-wrapper img {
+        -webkit-user-drag: none;
+        user-drag: none; /* Non-standard but good for completeness */
+        pointer-events: auto; /* Ensure hovers still work, though active by default */
+    }
+
     .landing-overlays {
         position: fixed;
         top: 0;
@@ -266,33 +274,6 @@ const odishaUrl = "https://vimeo.com/265220711";
         color: rgba(255, 255, 255, 0.4);
         font-size: 0.8rem;
         letter-spacing: 0.05em;
-    }
-
-    .scroll-hint {
-        position: absolute;
-        bottom: 5vh; /* Strictly at bottom */
-        left: 50%;
-        transform: translateX(-50%);
-        font-family: "Space Mono", monospace;
-        font-size: 0.9rem;
-        color: rgba(255, 255, 255, 0.6);
-        animation: bounce 2s infinite;
-    }
-
-    @keyframes bounce {
-        0%,
-        20%,
-        50%,
-        80%,
-        100% {
-            transform: translateX(-50%) translateY(0);
-        }
-        40% {
-            transform: translateX(-50%) translateY(-10px);
-        }
-        60% {
-            transform: translateX(-50%) translateY(-5px);
-        }
     }
 
     /* Narrative Section */

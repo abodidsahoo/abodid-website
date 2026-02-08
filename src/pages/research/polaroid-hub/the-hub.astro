@@ -1,10 +1,10 @@
 ---
 export const prerender = false;
-import BaseLayout from "../layouts/BaseLayout.astro";
-import PolaroidScatter from "../components/PolaroidScatter.jsx";
-import ThemeWidget from "../components/ThemeWidget.jsx";
-import { getAllPhotography } from "../lib/api";
-import { featuredPhotography as mockPhotography } from "../utils/mockData";
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import PolaroidScatter from "../../../components/PolaroidScatter.jsx";
+import ThemeWidget from "../../../components/ThemeWidget.jsx";
+import { getAllPhotography } from "../../../lib/api";
+import { featuredPhotography as mockPhotography } from "../../../utils/mockData";
 
 // Safe Fetch Helper
 const safeFetch = async (fn, fallback) => {

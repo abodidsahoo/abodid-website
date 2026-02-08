@@ -24,12 +24,12 @@ const Header = () => {
         closed: {
             y: "-100%",
             opacity: 1,
-            transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] }
+            transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] } // Faster close
         },
         open: {
             y: "0%",
             opacity: 1,
-            transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] }
+            transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] } // Faster open
         }
     };
 
@@ -56,17 +56,17 @@ const Header = () => {
                         </a>
                     </div>
 
-                    {/* CENTER: Menu Toggle */}
+                    {/* CENTER: Empty (was Menu) */}
                     <div className="nav-center">
+                        {/* Spacer or empty */}
+                    </div>
+
+                    {/* RIGHT: Menu Toggle & Breadcrumbs */}
+                    <div className="nav-right desktop-only-breadcrumbs">
+                        <Breadcrumbs />
                         <button onClick={toggleMenu} className="menu-btn">
                             <span>{isOpen ? 'CLOSE' : 'MENU'}</span>
                         </button>
-                    </div>
-
-                    {/* RIGHT: Say Hi & Breadcrumbs */}
-                    <div className="nav-right desktop-only-breadcrumbs">
-                        <a href="/contact" className="say-hi-link">SAY HI</a>
-                        <Breadcrumbs />
                     </div>
                 </div>
 
@@ -102,6 +102,7 @@ const Header = () => {
 
                                 {/* 
                                     PANEL 1: RED (MAIN MENU) (~40%)
+                                    UPDATED: MAtch Header Red
                                 */}
                                 <motion.div className="menu-panel left-panel" variants={containerVariants}>
                                     <div className="dominant-links-wrapper">
@@ -141,7 +142,7 @@ const Header = () => {
                                                 <div className="mono-label">Credentials</div>
                                                 <MenuLink href="/awards" variants={itemVariants} className="mono-link">Awards & Recognition</MenuLink>
                                                 <MenuLink href="/press" variants={itemVariants} className="mono-link">Press Mentions</MenuLink>
-                                                <MenuLink href="/testimonials" variants={itemVariants} className="mono-link">Testimonials</MenuLink>
+
                                                 <MenuLink href="https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/cv/Abodid%20Sahoo%20-%20Photography%20&%20AI%20-%20CV.pdf" target="_blank" variants={itemVariants} className="mono-link">Resume</MenuLink>
                                             </div>
                                         </div>
@@ -170,7 +171,6 @@ const Header = () => {
 
                                     </div>
                                 </div>
-
                             </div>
                         </motion.div>
                     </>
@@ -181,10 +181,10 @@ const Header = () => {
                 /* FIXED NAV */
                 .fixed-nav {
                     position: fixed; top: 0; left: 0; width: 100%;
-                    z-index: 1000;
+                    z-index: 10005; /* Highest Priority */
                     background: rgba(5, 5, 5, 0.85);
                     backdrop-filter: blur(12px);
-                    border-bottom: 1px solid #c0c0c0ff;
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
                 }
                 .nav-grid {
                     display: grid;
@@ -200,13 +200,7 @@ const Header = () => {
                     color: rgba(255, 255, 255, 0.9);
                 }
                 
-                .say-hi-link {
-                    font-family: 'Space Mono', monospace; font-size: 0.75rem; color: white;
-                    letter-spacing: 0.1em; text-decoration: none;
-                    border-bottom: 1px solid transparent; transition: border-color 0.3s ease;
-                    mix-blend-mode: difference;
-                }
-                .say-hi-link:hover { border-bottom-color: white; }
+                /* REMOVED .say-hi-link */
                 
                 .mobile-breadcrumbs-row {
                     display: none; padding: 0.5rem 4vw 0.5rem; width: 100%;
@@ -226,15 +220,18 @@ const Header = () => {
                 /* BACKDROP */
                 .menu-backdrop {
                     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-                    background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); z-index: 850;
+                    background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); 
+                    z-index: 10000; /* Below Header + Menu */
                 }
 
                 /* DRAWER CONTAINER */
                 .mega-menu {
                     position: fixed; top: 0; right: 0; 
                     width: 100%; height: auto; max-height: 90vh;
-                    background-color: transparent; z-index: 900;
+                    background-color: transparent; 
                     box-shadow: 0 10px 40px rgba(0,0,0,0.5); overflow-y: auto;
+                    z-index: 10001; /* Above Backdrop, Below Header (Header is 10005) */
+                    top: 80px; /* Below header */
                 }
 
                 .menu-inner {
@@ -245,7 +242,8 @@ const Header = () => {
                 }
 
                 /* --- PANEL COMMON STYLES --- */
-                .menu-panel { padding: 180px 3vw 4rem; height: 100%; }
+                .menu-panel { padding: 80px 3vw 4rem; height: 100%; } /* Reduced top padding since it's below header now? Or stick with full overlay? */
+                /* Let's keep it sticking to header */
 
                 /* --- PANEL 1: RED (LEFT) --- */
                 .left-panel {

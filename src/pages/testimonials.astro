@@ -1,145 +1,97 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import { supabase } from "../lib/supabaseClient";
+import TestimonialsField from "../components/TestimonialsField";
+import { supabase } from "../lib/supabase";
 
-const title = "Words";
-const description = "Echoes of collaboration and shared vision.";
-
-// Server-Side Fetch
+// Fetch testimonials from Supabase
 let testimonials = [];
 let error = null;
 
 try {
-    if (!supabase) {
-        throw new Error("Supabase client not initialized");
-    }
-
-    const { data, error: err } = await supabase
+    const { data, error: supabaseError } = await supabase
         .from("testimonials")
         .select("*")
         .eq("is_approved", true)
         .order("created_at", { ascending: false });
 
-    if (err) throw err;
-    testimonials = data || [];
+    if (supabaseError) {
+        console.error("Supabase error fetching testimonials:", supabaseError);
+        error = supabaseError.message;
+    } else {
+        testimonials = data || [];
+    }
 } catch (e) {
-    console.error("Failed to fetch testimonials:", e);
-    error = "Could not load testimonials.";
+    console.error("Unexpected error fetching testimonials:", e);
+    error = e.message;
 }
+
+const title = "Testimonials | Abodid Sahoo";
+const description = "What people say about working with Abodid Sahoo.";
 ---
 
-<BaseLayout title={title}>
-    <header class="page-header">
-        <h1>{title}</h1>
-        <p class="subtitle">{description}</p>
-    </header>
+<BaseLayout title={title} description={description} fullWidth={true}>
+    {/* Page Header (Constrained Width) */}
+    <div class="page-container">
+        <header class="page-header">
+            <h1>Testimonials</h1>
+            <p class="section-intro">
+                What people say about working with Abodid Sahoo.
+            </p>
+        </header>
+    </div>
 
-    <section class="content-section">
-        <!-- The Grid -->
-        <div class="testimonials-grid">
-            {
-                testimonials.length === 0 ? (
-                    <div class="empty-state">
-                        <p>No echoes yet. Be the first to speak.</p>
-                    </div>
-                ) : (
-                    testimonials.map((t) => (
-                        <div class="t-card">
-                            <div class="t-header">
-                                <span class="t-name">{t.name}</span>
-                                {(t.role || t.company) && (
-                                    <span class="t-info">
-                                        {t.role}{" "}
-                                        {t.role && t.company ? "at" : ""}{" "}
-                                        {t.company}
-                                    </span>
-                                )}
-                            </div>
-                            <div class="t-content">"{t.content}"</div>
-                        </div>
-                    ))
-                )
-            }
-        </div>
-    </section>
+    {/* Full Width Interactive Field */}
+    <main class="min-h-screen">
+        {
+            error && (
+                <div class="fixed top-24 left-1/2 -translate-x-1/2 z-50 p-4 border border-red-500 bg-red-100 text-red-700 rounded-lg">
+                    Error loading testimonials: {error}
+                </div>
+            )
+        }
+
+        <TestimonialsField client:load testimonials={testimonials} />
+    </main>
 </BaseLayout>
 
 <style>
+    .page-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding-left: 2rem;
+        padding-right: 2rem;
+        padding-top: 2rem; /* Added top padding inside container */
+    }
+
+    /* Header Styles (Matched from Films) */
     .page-header {
-        text-align: center;
-        margin-bottom: 4rem;
+        margin-bottom: 4rem; /* Reduced from 5rem to be "a bit upwards" */
+        text-align: left;
+        /* Padding top handled by container + BaseLayout */
     }
 
-    .subtitle {
-        color: var(--text-secondary);
-        font-family: var(--font-serif);
-        font-style: italic;
-    }
-
-    /* Grid */
-    .testimonials-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-        gap: 2rem;
-    }
-
-    .t-card {
-        background-color: var(--bg-surface); /* Fallback */
-        background-color: color-mix(in srgb, var(--bg-surface), white 2%);
-        border: 1px solid var(--border-subtle);
-        border-radius: 16px;
-        padding-bottom: 1.5rem; /* Space at bottom */
-        transition:
-            transform 0.3s ease,
-            border-color 0.3s ease;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden; /* For header background consistency */
-    }
-
-    .t-card:hover {
-        transform: translateY(-5px);
-        border-color: var(--text-secondary);
-    }
-
-    .t-header {
-        padding: 1.5rem 1.5rem 1rem;
-        border-bottom: 1px solid var(--border-subtle);
-        margin-bottom: 1.5rem;
-        background: rgba(255, 255, 255, 0.02);
-    }
-
-    .t-name {
-        display: block;
-        font-family: var(--font-sans);
+    h1 {
+        font-family: "Poppins", sans-serif;
+        font-size: 3.5rem;
         font-weight: 600;
-        font-size: 1rem;
-        color: var(--text-primary);
-        letter-spacing: -0.01em;
+        margin-bottom: 1rem;
+        letter-spacing: -0.02em;
+        color: var(--text-primary, #121212);
     }
 
-    .t-info {
-        display: block;
-        font-family: var(--font-sans);
-        font-size: 0.8rem;
-        color: var(--text-tertiary);
-        margin-top: 0.2rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-
-    .t-content {
-        padding: 0 1.5rem;
-        font-family: var(--font-serif);
-        font-size: 1.05rem;
+    .section-intro {
+        font-family: var(--font-sans, system-ui, sans-serif);
+        font-size: 1.1rem;
+        color: var(--text-secondary, #666);
+        max-width: 600px;
+        margin: 0;
         line-height: 1.6;
-        color: var(--text-secondary);
-        font-style: italic;
     }
 
-    @media (max-width: 600px) {
-        .t-card {
-            border-radius: 12px;
+    /* Responsive */
+    @media (max-width: 768px) {
+        h1 {
+            font-size: 2.5rem;
         }
     }
 </style>

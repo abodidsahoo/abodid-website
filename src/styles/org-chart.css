@@ -1,0 +1,157 @@
+/* Vertical Neon Sitemap CSS */
+
+.org-tree {
+	width: 100%;
+	max-width: 800px;
+	/* Constrain width for readability, but allow growth */
+	margin: 0 auto;
+	padding: 20px;
+	font-family: 'Space Mono', monospace;
+	/* Enforce global mono if loaded, else fallback */
+}
+
+/* --- VERTICAL TREE LAYOUT --- */
+
+/* The Container UL (and nested ULs) */
+.org-tree ul {
+	position: relative;
+	padding-left: 20px;
+	/* Indent logic */
+	list-style: none;
+}
+
+/* The Spine (Vertical Line) */
+/* We draw the spine on the UL, offset to the left */
+.org-tree ul {
+	border-left: 1px solid rgba(168, 85, 247, 0.3);
+	/* Purple, low opacity */
+	margin-left: 10px;
+	/* Space from parent's content to this spine */
+}
+
+/* Hide spine for the very first root UL if we want the root centered or flush */
+.org-tree>ul {
+	border-left: none;
+	padding-left: 0;
+	margin-left: 0;
+}
+
+/* The List Items */
+.org-tree li {
+	position: relative;
+	padding-left: 20px;
+	/* Space for the horizontal connector */
+	margin-bottom: 12px;
+}
+
+/* The Branch (Horizontal Line) */
+.org-tree li::before {
+	content: '';
+	position: absolute;
+	top: 25px;
+	/* Adjust based on box height */
+	left: 0;
+	width: 20px;
+	/* Connects spine to content */
+	height: 1px;
+	background: rgba(168, 85, 247, 0.3);
+	/* Purple connector */
+}
+
+/* Root Item Override */
+.org-tree>ul>li {
+	padding-left: 0;
+	margin-bottom: 20px;
+}
+
+.org-tree>ul>li::before {
+	display: none;
+	/* No connector for root */
+}
+
+/* FIX: The spine (UL border) goes all the way down. 
+   We often want it to stop at the last child.
+   Standard CSS trick: Cover the excess spine with a white box? No, bg is black.
+   Actually, cleaner approach: 
+   Don't bubble the border on UL. Put border on LI::after (up line).
+*/
+
+.org-tree ul {
+	border-left: none;
+	/* Reset simple spine */
+}
+
+/* New Logic: Connectors on LI */
+
+/* Vertical Line Up (to parent/sibling) */
+.org-tree li::after {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: -10px;
+	/* Spine position */
+	bottom: 0;
+	width: 1px;
+	background: rgba(168, 85, 247, 0.3);
+}
+
+/* Horizontal Line (to content) */
+.org-tree li::before {
+	content: '';
+	position: absolute;
+	top: 24px;
+	/* Center of a ~40-50px box */
+	left: -10px;
+	width: 30px;
+	/* Length of reach */
+	height: 1px;
+	background: rgba(168, 85, 247, 0.3);
+}
+
+/* Top-level overrides */
+.org-tree>ul {
+	margin-left: 0;
+	padding-left: 0;
+}
+
+.org-tree>ul>li {
+	padding-left: 0;
+}
+
+.org-tree>ul>li::before,
+.org-tree>ul>li::after {
+	display: none;
+	/* Root has no external connectors */
+}
+
+/* Nested Items Spacing */
+.org-tree li>ul {
+	margin-top: 12px;
+	margin-left: 10px;
+	/* Offset for children */
+}
+
+/* Last Child Fix: 
+   The vertical line (::after) should stop at the horizontal line (::before).
+*/
+.org-tree li:last-child::after {
+	height: 25px;
+	/* Stop at the crossbar */
+	bottom: auto;
+}
+
+/* Neon Glow Animation for Connectors? */
+.org-tree li:hover::before,
+.org-tree li:hover::after {
+	background: rgba(168, 85, 247, 0.8);
+	/* Brighter purple on hover path */
+	box-shadow: 0 0 5px rgba(168, 85, 247, 0.5);
+	transition: all 0.3s ease;
+}
+
+/* Ensure nice spacing for the visual tree */
+.vertical-tree-node {
+	/* React component will apply box styles */
+	display: block;
+	width: 100%;
+}
