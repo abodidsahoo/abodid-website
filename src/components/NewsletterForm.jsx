@@ -5,6 +5,7 @@ const NewsletterForm = ({ onClose, variant = "popup" }) => {
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
+    const [successMsg, setSuccessMsg] = useState("");
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
 
@@ -30,6 +31,7 @@ const NewsletterForm = ({ onClose, variant = "popup" }) => {
             }
 
             // Success
+            setSuccessMsg(result.message);
             setIsSubmitted(true);
             if (variant === "popup") {
                 localStorage.setItem("newsletter_popup_dismissed", "true");
@@ -149,7 +151,7 @@ const NewsletterForm = ({ onClose, variant = "popup" }) => {
                         </svg>
                     </div>
                     <h3>Welcome to the circle.</h3>
-                    <p>You’re on the list. Keep an eye on your inbox.</p>
+                    <p>{successMsg || "You’re on the list. Keep an eye on your inbox."}</p>
                     {!isPage && onClose && (
                         <button onClick={onClose} className="newsletter-close-text-btn">
                             Close
@@ -165,15 +167,18 @@ const NewsletterForm = ({ onClose, variant = "popup" }) => {
 
             <style>{`
             .newsletter-container {
-               overflow: hidden; /* Ensure header color doesn't bleed */
-               border-radius: 16px; /* Curved corners */
+               overflow: hidden; 
+               display: flex;
+               flex-direction: column;
+               border-radius: 16px; 
                background: #0a0a0a;
-               border: 1px solid rgba(255, 255, 255, 0.1); /* Subtle white border */
+               border: 1px solid rgba(255, 255, 255, 0.1); 
                position: relative;
                box-shadow: 
                  0 20px 40px rgba(0,0,0,0.8),
-                 0 0 0 1px rgba(255, 255, 255, 0.05), /* Extra thin ring */
-                 0 0 30px rgba(255, 255, 255, 0.08); /* Stronger white glow */
+                 0 0 0 1px rgba(255, 255, 255, 0.05), 
+                 0 0 30px rgba(255, 255, 255, 0.08); 
+               max-height: 90vh; /* New: Prevent exceeding viewport */
             }
 
             .newsletter-popup-container {
@@ -196,6 +201,7 @@ const NewsletterForm = ({ onClose, variant = "popup" }) => {
 
             .newsletter-body {
                 padding: 2.5rem;
+                overflow-y: auto; /* Allow scrolling within the body */
             }
 
             .newsletter-close-btn {

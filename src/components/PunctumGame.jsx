@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@supabase/supabase-js';
 
@@ -126,11 +126,48 @@ export default function PunctumGame() {
 
     const addLog = (message, type = 'info') => {
         setLogs(prev => [...prev, { timestamp: new Date(), message, type }]);
+        setCurrentStatus(message.replace(/\[.*?\]\s*/, '')); // Remove [TAG] for cleaner UI status
     };
 
     const [audioBlobUrl, setAudioBlobUrl] = useState(null);
     const [error, setError] = useState(null);
     const [aiReport, setAiReport] = useState(null);
+    const [currentStatus, setCurrentStatus] = useState("");
+    const [showResults, setShowResults] = useState(false);
+    const [collectiveTheme, setCollectiveTheme] = useState("");
+
+
+
+    // Auto-scroll ref for terminal
+    const logEndRef = useRef(null);
+
+    // Auto-scroll to bottom of logs
+    useEffect(() => {
+        if (logEndRef.current) {
+            logEndRef.current.scrollIntoView({ behavior: "smooth" });
+        }
+    }, [logs]);
+
+    // Navigation Handler
+    const handleNext = () => {
+        if (step === 'viz') {
+            analyzeAI();
+        } else if (step === 'analysis-ai') {
+            analyzeHumans();
+        } else if (step === 'analysis-human') {
+            synthesize();
+        }
+    };
+
+    const handlePrev = () => {
+        if (step === 'analysis-ai') {
+            setStep('viz');
+        } else if (step === 'analysis-human') {
+            setStep('analysis-ai');
+        } else if (step === 'analysis-synthesis') {
+            setStep('analysis-human');
+        }
+    };
 
     // Manage Blob URL lifecycle
     useEffect(() => {
@@ -363,26 +400,7 @@ export default function PunctumGame() {
         }
     };
 
-    const handleHumanAnalysis = async () => {
-        setStep('consensus');
-        setLoading(true);
-        try {
-            const res = await Promise.race([
-                fetch('/api/analyze-human-consensus', {
-                    method: 'POST',
-                    body: JSON.stringify({ comments: comments.map(c => c.feeling_text || "").filter(Boolean) })
-                }),
-                new Promise((_, reject) => setTimeout(() => reject(new Error("Human Analysis Timeout - data too complex")), 20000))
-            ]);
-            const data = await res.json();
-            setConsensusData(data);
-        } catch (err) {
-            console.error(err);
-            setConsensusData({ consensus_score: 50, label: "DIVERGENCE UNKNOWN", summary: "The data is too chaotic to read." });
-        } finally {
-            setLoading(false);
-        }
-    };
+
 
 
     // State for Feedback Modal
@@ -413,9 +431,45 @@ export default function PunctumGame() {
         } catch (err) {
             console.error(err);
             alert("Failed to send feedback, but we heard you.");
-        } finally {
-            setSendingFeedback(false);
         }
+    };
+
+    // Helper: Resize & Convert Blob to Base64 (Compressed)
+    const blobToBase64 = async (url) => {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = 'Anonymous';
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+
+                // Max dimensions to prevent payload too large errors
+                const MAX_SIZE = 800; // ample for vision models
+                let width = img.width;
+                let height = img.height;
+
+                if (width > height) {
+                    if (width > MAX_SIZE) {
+                        height *= MAX_SIZE / width;
+                        width = MAX_SIZE;
+                    }
+                } else {
+                    if (height > MAX_SIZE) {
+                        width *= MAX_SIZE / height;
+                        height = MAX_SIZE;
+                    }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                ctx.drawImage(img, 0, 0, width, height);
+
+                // Compress to JPEG 0.7
+                resolve(canvas.toDataURL('image/jpeg', 0.7));
+            };
+            img.onerror = reject;
+            img.src = url;
+        });
     };
 
     // New Multi-Stage Analysis Functions
@@ -427,6 +481,11 @@ export default function PunctumGame() {
 
         try {
             addLog(`[VISION] Analyzing image: ${selectedImage.url.split('/').pop()}...`, "info");
+
+            // Convert to Base64 because standard fetch to external API cannot access localhost/blob URLs
+            addLog(`[VISION] Encoding visual data...`, "system");
+            const base64Image = await blobToBase64(selectedImage.url);
+
             addLog(`[VISION] Connecting to specialized AI models...`, "info");
 
             const visionStart = Date.now();
@@ -435,7 +494,7 @@ export default function PunctumGame() {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        imageUrl: selectedImage.url,
+                        imageUrl: base64Image, // Send Base64 data URI
                         userContext: userInput
                     })
                 }),
@@ -453,25 +512,70 @@ export default function PunctumGame() {
 
             addLog(`[VISION] Success in ${visionTime}s`, "success");
             addLog(`[VISION] Model: ${visionData.model_used}`, "success");
-            addLog(`[VISION] Detected Emotion: ${visionData.dominant_emotion}`, "info");
+            addLog(`[VISION] Detected Emotion: ${visionData.dominant_emotion || visionData.ai_feeling || 'Complex State'}`, "info");
 
             // Init partial report
+            // STRICT MODE: No defaults. If data is missing/undefined, we want it to break or show "Unknown" explicitly if acceptable, 
+            // but user requested to "show error when there is not a good analysis".
+            // Since API now throws on missing critical fields, we can trust the data here is reasonably complete if we reached this point.
+
             setAiReport({
                 ...visionData,
                 ai_keywords: visionData.emotional_keywords || [],
-                ai_feeling: visionData.ai_feeling || visionData.dominant_emotion || "COMPLEX",
-                visual_summary: visionData.visual_summary || "Observing physical structure.",
+                ai_feeling: visionData.ai_feeling,
+                visual_summary: visionData.visual_summary,
+                ai_emotions: visionData.ai_emotions || [],
+                dominant_emotion: visionData.dominant_emotion,
                 vision_analysis: visionData
             });
 
         } catch (err) {
-            console.error(err);
-            setError(err.message || "AI Connection Failed");
-            addLog(`[CRITICAL] ${err.message}`, "error");
-            // Auto-open feedback modal on visible error
-            setTimeout(() => openFeedback('error', `AI Analysis Failed: ${err.message}`), 1000);
+            console.error("Analysis Error:", err);
+
+            let displayMessage = err.message || "AI Connection Failed";
+            let detailedLogs = [];
+
+            // Try to parse if it's a JSON error report
+            try {
+                const parsedError = JSON.parse(err.message);
+                if (parsedError && typeof parsedError === 'object') {
+                    displayMessage = parsedError.message || displayMessage;
+
+                    if (parsedError.google_error) {
+                        detailedLogs.push(`Google: ${parsedError.google_error}`);
+                    }
+                    if (parsedError.open_router_errors && Array.isArray(parsedError.open_router_errors)) {
+                        parsedError.open_router_errors.forEach(e => detailedLogs.push(`Provider: ${e}`));
+                    }
+                }
+            } catch (e) {
+                // Not JSON, keep original message
+
+                // Parse specific error codes
+                if (displayMessage.includes("429") || displayMessage.includes("Rate Limit")) {
+                    displayMessage = "System busy (Rate Limit). Please try again in a few seconds.";
+                } else if (displayMessage.includes("402") || displayMessage.includes("Insufficient Credit")) {
+                    displayMessage = "AI Resource Limit Reached. Please check provider credits.";
+                } else if (displayMessage.includes("401") || displayMessage.includes("Authentication Failed")) {
+                    displayMessage = "System Configuration Error (Auth Failed).";
+                }
+            }
+
+            setError(displayMessage);
+            addLog(`[CRITICAL] ${displayMessage}`, "error");
+            detailedLogs.forEach(log => addLog(`[DEBUG] ${log}`, "error"));
+
+            // Auto-open feedback modal for non-transient errors
+            if (!displayMessage.includes("System busy")) {
+                setTimeout(() => {
+                    const feedbackMsg = `Analysis Failed: ${displayMessage}\n\nDetails:\n${detailedLogs.join('\n')}`;
+                    openFeedback('error', feedbackMsg);
+                }, 2000);
+            }
+
         } finally {
-            if (loading) setLoading(false);
+            setLoading(false);
+            setCurrentStatus("");
         }
     };
 
@@ -491,9 +595,15 @@ export default function PunctumGame() {
                 addLog(`[CONSENSUS] Found ${humanComments.length} human responses.`, "info");
                 addLog(`[CONSENSUS] Extracting collective sentiment keywords...`, "info");
 
-                if (keywords.length === 0) {
-                    addLog(`[CONSENSUS] detailed sentiment extraction...`, "info");
+                // Calculate Collective Theme from Keywords
+                let theme = "Collective";
+                if (keywords && keywords.length > 0) {
+                    // Capitalize and join top 2 keywords
+                    theme = keywords.slice(0, 2).map(k => k.charAt(0).toUpperCase() + k.slice(1)).join(" & ");
+                } else if (userInput) {
+                    theme = userInput;
                 }
+                setCollectiveTheme(theme);
 
                 setLoading(false);
             } catch (err) {
@@ -505,6 +615,11 @@ export default function PunctumGame() {
     };
 
     const synthesize = async () => {
+        if (!aiReport || !aiReport.vision_analysis) {
+            openFeedback('error', "Cannot perform synthesis: AI Analysis is missing. Please try to re-establish the connection or restart the experiment.");
+            return;
+        }
+
         setStep('analysis-synthesis');
         setLoading(true);
         addLog(`[SYNTHESIS] Initiating Comparative Analysis...`, "info");
@@ -515,18 +630,36 @@ export default function PunctumGame() {
                 humanComments.unshift(userInput);
             }
 
-            const consensusRes = await Promise.race([
-                fetch('/api/analyze-consensus', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        aiAnalysis: aiReport.vision_analysis,
-                        humanComments: humanComments,
-                        humanKeywords: keywords
-                    })
-                }),
-                new Promise((_, reject) => setTimeout(() => reject(new Error("Synthesis timed out (30s). Complexity overload.")), 30000))
-            ]);
+            // PARSE AI KEYWORDS: 
+            // Robustly handle string or array formats
+            let aiKeywords = [];
+            if (Array.isArray(aiReport.ai_feeling_keywords)) {
+                aiKeywords = aiReport.ai_feeling_keywords;
+            } else if (typeof aiReport.ai_feeling_keywords === 'string') {
+                aiKeywords = aiReport.ai_feeling_keywords.split(/[\s,]+/);
+            } else {
+                aiKeywords = aiReport.ai_emotions || [];
+            }
+
+            // HUMAN KEYWORDS:
+            const humanKeywords = keywords && keywords.length > 0 ? keywords : humanComments;
+
+            // PREPARE TEXT BLOCKS FOR COMPARISON
+            const aiDescriptionText = aiReport.ai_feeling_description || aiReport.ai_feeling || aiKeywords.join(", ");
+            // Use user input if available, otherwise join top comments
+            const humanDescriptionText = userInput || comments.slice(0, 3).map(c => c.feeling_text).join(". ");
+
+            // DIRECT FETCH (No Timeout Race)
+            const consensusRes = await fetch('/api/analyze-consensus', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    aiEmotions: aiKeywords,
+                    humanEmotions: humanKeywords,
+                    aiDescription: aiDescriptionText,
+                    humanText: humanDescriptionText
+                })
+            });
 
             if (!consensusRes.ok) {
                 const errData = await consensusRes.json().catch(() => ({}));
@@ -552,12 +685,40 @@ export default function PunctumGame() {
             setTimeout(() => openFeedback('success', 'Experiment Completed Successfully'), 2000);
 
         } catch (err) {
-            addLog(`[SYNTHESIS] Error: ${err.message}`, "error");
-            setTimeout(() => openFeedback('error', `Synthesis Failed: ${err.message}`), 1000);
+            console.error("Synthesis Error", err);
+            setError(err.message || "Synthesis Failed");
+            addLog(`[SYNTHESIS] Critical Failure: ${err.message}`, "error");
         } finally {
             setLoading(false);
         }
     };
+
+    // SMART RETRY HANDLER
+    const handleRetry = () => {
+        if (!error) return;
+        setError(null); // Clear error
+
+        // Re-trigger the current step's function
+        if (step === 'analysis-ai') {
+            analyzeAI();
+        } else if (step === 'analysis-human') {
+            analyzeHumans();
+        } else if (step === 'analysis-synthesis') {
+            synthesize();
+        } else {
+            // Fallback if step is unknown, though unlikely in this flow
+            window.location.reload();
+        }
+    };
+
+    const copyErrorToClipboard = () => {
+        if (!error) return;
+        navigator.clipboard.writeText(error).then(() => {
+            alert("Error copied to clipboard");
+        });
+    };
+
+
 
     return (
         <div className="game-wrapper" style={{
@@ -592,57 +753,82 @@ export default function PunctumGame() {
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0.9, opacity: 0 }}
                             style={{
-                                width: '90%', maxWidth: '500px',
+                                width: '90%', maxWidth: '800px', // Wider box
                                 background: '#111', border: `1px solid ${feedbackModal.type === 'error' ? '#ff4444' : '#00ff00'}`,
-                                borderRadius: '12px', padding: '32px', textAlign: 'center',
-                                boxShadow: `0 0 30px ${feedbackModal.type === 'error' ? 'rgba(255, 68, 68, 0.2)' : 'rgba(0, 255, 0, 0.2)'}`
+                                borderRadius: '12px', padding: '40px', textAlign: 'center',
+                                boxShadow: `0 0 50px ${feedbackModal.type === 'error' ? 'rgba(255, 68, 68, 0.1)' : 'rgba(0, 255, 0, 0.1)'}`
                             }}
                         >
                             <h3 style={{
-                                fontFamily: "'Poppins', sans-serif", fontSize: '24px', fontWeight: 600,
-                                color: feedbackModal.type === 'error' ? '#ff4444' : '#fff', marginBottom: '16px'
+                                fontFamily: "'Poppins', sans-serif", fontSize: '20px', fontWeight: 600,
+                                color: feedbackModal.type === 'error' ? '#ff4444' : '#fff', marginBottom: '24px',
+                                letterSpacing: '0.05em'
                             }}>
-                                {feedbackModal.type === 'error' ? 'CONNECTION SEVERED' : 'EXPERIMENT COMPLETE'}
+                                {feedbackModal.type === 'error' ? 'CONNECTION INTERRUPTED' : 'EXPERIMENT COMPLETE'}
                             </h3>
-                            <p style={{ fontFamily: "'Inconsolata', monospace", color: '#ccc', marginBottom: '24px', lineHeight: '1.5' }}>
-                                {feedbackModal.type === 'error'
-                                    ? `We apologize. The neural link was unstable and the analysis could not be completed. (${feedbackModal.context})`
-                                    : "Thank you for participating in this study of human-machine divergence."}
-                                <br /><br />
-                                Would you like to share your thoughts or report what happened?
+
+                            {/* Scrollable Error Content */}
+                            <div style={{
+                                maxHeight: '30vh', overflowY: 'auto',
+                                background: 'rgba(0,0,0,0.3)', padding: '16px', borderRadius: '4px',
+                                marginBottom: '24px', border: '1px solid rgba(255,255,255,0.05)',
+                                textAlign: 'left'
+                            }}>
+                                <p style={{
+                                    fontFamily: "'Inconsolata', monospace", color: '#ccc',
+                                    marginBottom: '0', lineHeight: '1.6', fontSize: '11px', whiteSpace: 'pre-wrap'
+                                }}>
+                                    {feedbackModal.type === 'error'
+                                        ? `ANALYSIS FAILED.\n\nDETAILS:\n${feedbackModal.context}`
+                                        : "Thank you for participating in this study of human-machine divergence."}
+                                </p>
+                            </div>
+
+                            <p style={{ fontFamily: "'Poppins', sans-serif", fontSize: '14px', color: '#888', marginBottom: '16px' }}>
+                                Would you like to report this issue?
                             </p>
+
                             <textarea
                                 value={feedbackText}
                                 onChange={e => setFeedbackText(e.target.value)}
-                                placeholder="Your thoughts..."
+                                placeholder="Additional context (optional)..."
                                 style={{
-                                    width: '100%', height: '100px', background: '#222', border: '1px solid #333',
+                                    width: '100%', height: '80px', background: '#222', border: '1px solid #333',
                                     color: '#fff', borderRadius: '8px', padding: '12px', fontFamily: "'Inconsolata', monospace",
-                                    marginBottom: '24px', resize: 'none'
+                                    marginBottom: '32px', resize: 'none', fontSize: '13px'
                                 }}
                             />
-                            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                            <div style={{ display: 'flex', gap: '16px', justifyContent: 'center' }}>
                                 <button
                                     onClick={() => setFeedbackModal({ ...feedbackModal, isOpen: false })}
+                                    className="hover-btn"
                                     style={{
-                                        padding: '12px 24px', background: 'transparent', border: '1px solid #666',
-                                        color: '#888', borderRadius: '50px', cursor: 'pointer', fontFamily: "'Poppins', sans-serif"
+                                        padding: '14px 32px', background: 'transparent', border: '1px solid #666',
+                                        color: '#aaa', borderRadius: '50px', cursor: 'pointer', fontFamily: "'Poppins', sans-serif",
+                                        fontSize: '12px', letterSpacing: '0.05em', transition: 'all 0.2s'
                                     }}
+                                    onMouseOver={e => { e.currentTarget.style.borderColor = '#fff'; e.currentTarget.style.color = '#fff'; }}
+                                    onMouseOut={e => { e.currentTarget.style.borderColor = '#666'; e.currentTarget.style.color = '#aaa'; }}
                                 >
-                                    SKIP
+                                    CLOSE & RETRY
                                 </button>
                                 <button
                                     onClick={handleSendFeedback}
                                     disabled={sendingFeedback}
+                                    className="hover-btn"
                                     style={{
-                                        padding: '12px 32px',
+                                        padding: '14px 40px',
                                         background: feedbackModal.type === 'error' ? '#ff4444' : '#fff',
                                         color: feedbackModal.type === 'error' ? '#fff' : '#000',
                                         border: 'none', borderRadius: '50px', cursor: 'pointer',
-                                        fontWeight: 600, fontFamily: "'Poppins', sans-serif"
+                                        fontWeight: 600, fontFamily: "'Poppins', sans-serif",
+                                        fontSize: '12px', letterSpacing: '0.05em', transition: 'transform 0.2s',
+                                        opacity: sendingFeedback ? 0.7 : 1
                                     }}
+                                    onMouseOver={e => e.currentTarget.style.transform = 'scale(1.05)'}
+                                    onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
                                 >
-                                    {sendingFeedback ? 'SENDING...' : 'SEND FEEDBACK'}
+                                    {sendingFeedback ? 'SENDING...' : 'SEND REPORT'}
                                 </button>
                             </div>
                         </motion.div>
@@ -650,7 +836,127 @@ export default function PunctumGame() {
                 )}
             </AnimatePresence>
 
-            {/* STATUS LOG - TOP RIGHT */}
+            {/* NEW LEFT-SIDE CONTROLS (Restart + Nav) - Below "Go back" link */}
+            <AnimatePresence>
+                {(step.startsWith('analysis') || step === 'viz' || step === 'consensus') && (
+                    <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        style={{
+                            position: 'fixed',
+                            top: '80px', // Below the "Go back to homepage" link (approx 20px + 40px height + gap)
+                            left: '20px',
+                            zIndex: 10001,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '12px',
+                            alignItems: 'flex-start'
+                        }}
+                    >
+                        {/* RESTART BUTTON */}
+                        <button
+                            onClick={() => window.location.reload()}
+                            className="hover-btn"
+                            style={{
+                                background: 'rgba(0,0,0,0.6)',
+                                border: '1px solid rgba(255, 255, 255, 0.3)',
+                                borderRadius: '4px',
+                                padding: '8px 16px',
+                                color: '#fff',
+                                fontFamily: "'Inconsolata', monospace",
+                                fontSize: '11px',
+                                textTransform: 'uppercase',
+                                cursor: 'pointer',
+                                backdropFilter: 'blur(5px)',
+                                letterSpacing: '0.1em',
+                                width: '100%',
+                                textAlign: 'left',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px'
+                            }}
+                            onMouseOver={e => {
+                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                                e.currentTarget.style.borderColor = '#fff';
+                            }}
+                            onMouseOut={e => {
+                                e.currentTarget.style.background = 'rgba(0,0,0,0.6)';
+                                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                            }}
+                        >
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                            RESTART
+                        </button>
+
+                        {/* NAVIGATION BUTTONS */}
+                        <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
+                            <button
+                                onClick={handlePrev}
+                                disabled={step === 'viz' || step === 'select'}
+                                className="hover-btn"
+                                style={{
+                                    flex: 1,
+                                    background: 'rgba(0,0,0,0.6)',
+                                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                                    borderRadius: '4px',
+                                    padding: '8px',
+                                    color: (step === 'viz' || step === 'select') ? '#555' : '#fff',
+                                    fontFamily: "'Inconsolata', monospace",
+                                    fontSize: '11px',
+                                    cursor: (step === 'viz' || step === 'select') ? 'default' : 'pointer',
+                                    backdropFilter: 'blur(5px)',
+                                    display: 'flex', justifyContent: 'center', alignItems: 'center'
+                                }}
+                                onMouseOver={e => {
+                                    if (step !== 'viz' && step !== 'select') {
+                                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                                        e.currentTarget.style.borderColor = '#fff';
+                                    }
+                                }}
+                                onMouseOut={e => {
+                                    e.currentTarget.style.background = 'rgba(0,0,0,0.6)';
+                                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                                }}
+                            >
+                                ← PREV
+                            </button>
+                            <button
+                                onClick={handleNext}
+                                disabled={step === 'analysis-synthesis'}
+                                className="hover-btn"
+                                style={{
+                                    flex: 1,
+                                    background: 'rgba(0,0,0,0.6)',
+                                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                                    borderRadius: '4px',
+                                    padding: '8px',
+                                    color: step === 'analysis-synthesis' ? '#555' : '#fff',
+                                    fontFamily: "'Inconsolata', monospace",
+                                    fontSize: '11px',
+                                    cursor: step === 'analysis-synthesis' ? 'default' : 'pointer',
+                                    backdropFilter: 'blur(5px)',
+                                    display: 'flex', justifyContent: 'center', alignItems: 'center'
+                                }}
+                                onMouseOver={e => {
+                                    if (step !== 'analysis-synthesis') {
+                                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                                        e.currentTarget.style.borderColor = '#fff';
+                                    }
+                                }}
+                                onMouseOut={e => {
+                                    e.currentTarget.style.background = 'rgba(0,0,0,0.6)';
+                                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                                }}
+                            >
+                                NEXT →
+                            </button>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* STATUS LOG - TOP RIGHT (Below Restart Button) */}
             <AnimatePresence>
                 {(logs.length > 0 && (step.startsWith('analysis') || step === 'viz' || step === 'consensus')) && (
                     <motion.div
@@ -659,9 +965,18 @@ export default function PunctumGame() {
                         exit={{ opacity: 0, x: 20 }}
                         style={{
                             position: 'fixed',
-                            top: '20px',
+                            top: '70px', /* Shifted down to avoid overlap with Restart Button */
                             right: '20px',
                             width: '300px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '10px',
+                            zIndex: 9999,
+                        }}
+                    >
+                        {/* TERMINAL CONTAINER */}
+                        <div style={{
+                            width: '100%',
                             maxHeight: '400px',
                             background: 'rgba(0, 0, 0, 0.85)',
                             border: '1px solid rgba(0, 255, 0, 0.2)',
@@ -670,38 +985,37 @@ export default function PunctumGame() {
                             fontFamily: "'Fira Code', monospace",
                             fontSize: '10px',
                             color: '#0f0',
-                            zIndex: 9999,
                             overflowY: 'auto',
                             boxShadow: '0 0 20px rgba(0, 255, 0, 0.1)',
                             backdropFilter: 'blur(5px)'
-                        }}
-                    >
-                        <div style={{
-                            borderBottom: '1px solid rgba(0,255,0,0.2)',
-                            paddingBottom: '4px',
-                            marginBottom: '8px',
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            fontWeight: 'bold',
-                            letterSpacing: '0.1em'
                         }}>
-                            <span>TERMINAL_LOG</span>
-                            <span style={{ width: '6px', height: '6px', background: '#0f0', borderRadius: '50%', boxShadow: '0 0 5px #0f0' }}></span>
-                        </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                            {logs.map((log, i) => (
-                                <div key={i} style={{
-                                    opacity: 0,
-                                    animation: 'fadeIn 0.2s forwards',
-                                    animationDelay: `${i * 0.05}s`,
-                                    color: log.type === 'error' ? '#ff4444' : (log.type === 'success' ? '#00ff00' : '#888')
-                                }}>
-                                    <span style={{ opacity: 0.5 }}>[{log.timestamp.toLocaleTimeString().split(' ')[0]}]</span>{' '}
-                                    {log.message}
-                                </div>
-                            ))}
-                            <div style={{ height: '10px' }} />
+                            <div style={{
+                                borderBottom: '1px solid rgba(0,255,0,0.2)',
+                                paddingBottom: '4px',
+                                marginBottom: '8px',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                fontWeight: 'bold',
+                                letterSpacing: '0.1em'
+                            }}>
+                                <span>TERMINAL_LOG</span>
+                                <span style={{ width: '6px', height: '6px', background: '#0f0', borderRadius: '50%', boxShadow: '0 0 5px #0f0' }}></span>
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                {logs.map((log, i) => (
+                                    <div key={i} style={{
+                                        opacity: 0,
+                                        animation: 'fadeIn 0.2s forwards',
+                                        animationDelay: `${i * 0.05}s`,
+                                        color: log.type === 'error' ? '#ff4444' : (log.type === 'success' ? '#00ff00' : '#888')
+                                    }}>
+                                        <span style={{ opacity: 0.5 }}>[{log.timestamp.toLocaleTimeString().split(' ')[0]}]</span>{' '}
+                                        {log.message}
+                                    </div>
+                                ))}
+                                <div style={{ height: '10px' }} />
+                            </div>
                         </div>
                     </motion.div>
                 )}
@@ -757,6 +1071,10 @@ export default function PunctumGame() {
                     mask-composite: intersect;
                     -webkit-mask-composite: source-in;
                 }
+                .blinking-cursor {
+                    animation: blink 1s step-end infinite;
+                }
+                @keyframes blink { 50% { opacity: 0; } }
             `}</style>
             <div className="punctum-grid-bg"></div>
             <div className="punctum-glow-bg"></div>
@@ -1220,28 +1538,30 @@ export default function PunctumGame() {
                                 </div>
                             </div>
 
-                            {/* 5. ACTION BUTTON */}
-                            <button
-                                onClick={analyzeAI}
-                                className="hover-btn"
-                                style={{
-                                    padding: '16px 48px',
-                                    background: '#333',
-                                    color: '#fff',
-                                    border: '1px solid rgba(255,255,255,0.2)',
-                                    borderRadius: '100px',
-                                    cursor: 'pointer',
-                                    fontWeight: 500,
-                                    fontSize: '13px',
-                                    letterSpacing: '0.1em',
-                                    textTransform: 'uppercase',
-                                    transition: 'all 0.3s'
-                                }}
-                                onMouseOver={(e) => { e.target.style.background = '#fff'; e.target.style.color = '#000'; }}
-                                onMouseOut={(e) => { e.target.style.background = '#333'; e.target.style.color = '#fff'; }}
-                            >
-                                Analyze What AI Feels
-                            </button>
+                            {/* 5. ACTION BUTTON (RESTORED) */}
+                            {!loading && (
+                                <button
+                                    onClick={analyzeAI}
+                                    className="hover-btn"
+                                    style={{
+                                        padding: '16px 48px',
+                                        background: '#333',
+                                        color: '#fff',
+                                        border: '1px solid rgba(255,255,255,0.2)',
+                                        borderRadius: '100px',
+                                        cursor: 'pointer',
+                                        fontWeight: 500,
+                                        fontSize: '13px',
+                                        letterSpacing: '0.1em',
+                                        textTransform: 'uppercase',
+                                        transition: 'all 0.3s'
+                                    }}
+                                    onMouseOver={(e) => { e.target.style.background = '#fff'; e.target.style.color = '#000'; }}
+                                    onMouseOut={(e) => { e.target.style.background = '#333'; e.target.style.color = '#fff'; }}
+                                >
+                                    Analyze What AI Feels
+                                </button>
+                            )}
 
                         </motion.div>
                     )}
@@ -1269,6 +1589,7 @@ export default function PunctumGame() {
                                     overflow: 'hidden'
                                 }}
                             >
+                                {/* Removed Top Right Controls (Restart + Nav) - Moved to Persistent Left Side */}
                                 {loading ? (
                                     <div className="loader" style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
                                         <div style={{ position: 'relative', width: '120px', height: '120px', marginBottom: '40px' }}>
@@ -1305,144 +1626,317 @@ export default function PunctumGame() {
                                                         'CALCULATING GAP'}
                                             </div>
                                             <div style={{ fontFamily: 'Inconsolata, monospace', fontSize: '12px', color: '#666' }}>
-                                                {step === 'analysis-ai' && progress < 40 && `[Vectors: ${(progress * 124).toFixed(0)}]`}
-                                                {step === 'analysis-ai' && progress >= 40 && `[Layer: Deep Convolution]`}
-                                                {step === 'analysis-human' && `[Sources: ${comments.length} verified]`}
+                                                {step === 'analysis-ai' && progress < 30 && `[Vectors: ${(progress * 124).toFixed(0)}]`}
+                                                {step === 'analysis-ai' && progress >= 30 && progress < 55 && `[Layer: Deep Convolution]`}
+                                                {step === 'analysis-ai' && progress >= 55 && progress < 75 && `[Layer: Multi-Head Attention]`}
+                                                {step === 'analysis-ai' && progress >= 75 && `[Layer: Semantic Weights]`}
+
+                                                {step === 'analysis-human' && progress < 50 && `[Scanning Collective Memory...]`}
+                                                {step === 'analysis-human' && progress >= 50 && `[Sources: ${comments.length} verified]`}
+
                                                 {step === 'analysis-synthesis' && `[Divergence Check...]`}
                                             </div>
+
+                                            {/* REAL-TIME STATUS - Added per user request */}
+                                            {/* REAL-TIME TERMINAL LOG */}
+                                            <div
+                                                className="terminal-window"
+                                                style={{
+                                                    marginTop: '20px',
+                                                    width: '100%',
+                                                    maxWidth: '600px',
+                                                    height: '120px',
+                                                    background: 'rgba(0, 0, 0, 0.6)',
+                                                    border: '1px solid rgba(0, 243, 255, 0.3)',
+                                                    borderRadius: '4px',
+                                                    padding: '12px',
+                                                    overflowY: 'auto',
+                                                    textAlign: 'left',
+                                                    fontFamily: "'Fira Code', monospace",
+                                                    fontSize: '11px',
+                                                    boxShadow: '0 0 15px rgba(0, 243, 255, 0.1) inset'
+                                                }}
+                                            >
+                                                {logs.map((log, i) => (
+                                                    <div key={i} style={{ marginBottom: '4px', color: log.type === 'error' ? '#ff4444' : log.type === 'success' ? '#00ff66' : '#00f3ff' }}>
+                                                        <span style={{ opacity: 0.5 }}>[{log.timestamp.toLocaleTimeString()}]</span> {log.message}
+                                                    </div>
+                                                ))}
+                                                <div ref={logEndRef} />
+                                            </div>
+
+                                            {/* COMPACT ERROR UI */}
+                                            {error && (
+                                                <div style={{ marginTop: '10px' }}>
+                                                    <div style={{ color: '#ff4444', fontSize: '11px', fontFamily: 'monospace', cursor: 'pointer', marginBottom: '4px', textDecoration: 'underline' }} onClick={() => navigator.clipboard.writeText(error)}>
+                                                        [COPY ERROR]
+                                                    </div>
+                                                    <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+                                                        <button onClick={handleRetry} className="hover-btn" style={{ padding: '4px 12px', background: 'rgba(255,255,255,0.1)', color: '#fff', border: 'none', fontSize: '10px', borderRadius: '4px', cursor: 'pointer' }}>RETRY</button>
+                                                        <button onClick={() => openFeedback('error', `Reported Error: ${error}`)} className="hover-btn" style={{ padding: '4px 12px', background: '#ff4444', color: '#fff', border: 'none', fontSize: '10px', borderRadius: '4px', cursor: 'pointer' }}>REPORT</button>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 ) : (
                                     <>
-                                        {/* HEADER - Top Spacer */}
-                                        <div style={{ textAlign: 'center', marginBottom: '40px', flexShrink: 0 }}>
+                                        {/* ERROR DISPLAY - COMPACT & CONTEXTUAL */}
+                                        {
+                                            error && (
+                                                <motion.div
+                                                    initial={{ opacity: 0, y: -10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    style={{
+                                                        maxWidth: '500px', margin: '0 auto 30px',
+                                                        padding: '10px 20px',
+                                                        borderLeft: '2px solid #ff4444',
+                                                        background: 'rgba(0,0,0,0.3)',
+                                                        textAlign: 'left',
+                                                        display: 'flex', flexDirection: 'column', gap: '8px'
+                                                    }}
+                                                >
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                        <span style={{ fontFamily: 'monospace', fontSize: '10px', color: '#ff4444', textTransform: 'uppercase' }}>
+                                                            PROCESS FAILURE
+                                                        </span>
+                                                        <button
+                                                            onClick={copyErrorToClipboard}
+                                                            style={{ background: 'none', border: 'none', color: '#666', fontSize: '10px', cursor: 'pointer', textDecoration: 'underline' }}
+                                                        >
+                                                            COPY ERROR
+                                                        </button>
+                                                    </div>
 
+                                                    <div style={{ fontFamily: 'monospace', fontSize: '11px', color: '#999', lineHeight: '1.4' }}>
+                                                        {error}
+                                                    </div>
+
+                                                    <div style={{ display: 'flex', gap: '10px', marginTop: '5px' }}>
+                                                        <button
+                                                            onClick={handleRetry}
+                                                            className="hover-btn"
+                                                            style={{
+                                                                padding: '6px 16px', borderRadius: '4px',
+                                                                background: 'rgba(255,255,255,0.1)', color: '#fff',
+                                                                border: 'none', fontSize: '10px', fontWeight: 600, cursor: 'pointer'
+                                                            }}
+                                                        >
+                                                            RETRY STEP
+                                                        </button>
+
+                                                        <button
+                                                            onClick={() => openFeedback('error', `Reported Error: ${error}`)}
+                                                            className="hover-btn"
+                                                            style={{
+                                                                padding: '6px 16px', borderRadius: '4px',
+                                                                background: '#ff4444', color: '#fff',
+                                                                border: 'none', fontSize: '10px', fontWeight: 600, cursor: 'pointer',
+                                                                flex: 1
+                                                            }}
+                                                        >
+                                                            SEND ERROR REPORT
+                                                        </button>
+                                                    </div>
+                                                </motion.div>
+                                            )
+                                        }
+
+                                        {/* HEADER - Top Spacer */}
+                                        <div style={{ textAlign: 'center', marginBottom: '20px', flexShrink: 0 }}>
                                             <p style={{ color: '#666', fontSize: '11px', fontFamily: 'monospace', textTransform: 'uppercase' }}>
-                                                {step === 'analysis-ai' ? 'STAGE 1: MACHINE PERCEPTION' : (step === 'analysis-human' ? 'STAGE 2: HUMAN SENTIMENT' : 'STAGE 3: COMPARATIVE SYNTHESIS')}
+                                                {step === 'analysis-ai' ? 'STAGE 1: MACHINE PERCEPTION' : (step === 'analysis-human' ? 'STAGE 2: HUMAN SENTIMENT' : 'STAGE 3: FINAL SYNTHESIS')}
                                             </p>
                                         </div>
 
-                                        {/* COMPARISON GRID - Centered Content */}
-                                        <div style={{
-                                            display: 'grid', gridTemplateColumns: '1fr 1px 1fr', gap: '40px', width: '100%', maxWidth: '900px',
-                                            background: 'rgba(255,255,255,0.02)', padding: '40px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)',
-                                            flex: 1, maxHeight: '50vh', overflowY: 'auto'
-                                        }}>
-
-                                            {/* AI COLUMN */}
-                                            <div style={{ textAlign: 'right' }}>
-                                                <h3 style={{ fontSize: '12px', color: '#00f3ff', letterSpacing: '0.2em', marginBottom: '16px', fontWeight: 600 }}>
-                                                    MACHINE VISION
-                                                </h3>
-
-                                                {/* AI Summary & Feeling Clusters */}
-                                                <div style={{ marginBottom: '24px' }}>
-                                                    <div style={{
-                                                        fontSize: '12px', color: '#aaa', fontStyle: 'italic',
-                                                        marginBottom: '12px', lineHeight: '1.5', fontFamily: '"Cormorant Garamond", serif'
-                                                    }}>
+                                        {/* STAGE 1: AI VIEW (Centered, Clean, Split) */}
+                                        {step === 'analysis-ai' && (
+                                            <motion.div
+                                                initial={{ opacity: 0, scale: 0.95 }}
+                                                animate={{ opacity: 1, scale: 1 }}
+                                                style={{ textAlign: 'center', maxWidth: '800px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '40px' }}
+                                            >
+                                                {/* SECTION A: WHAT AI SAW */}
+                                                <div>
+                                                    <div style={{ fontSize: '12px', color: '#00f3ff', letterSpacing: '0.2em', marginBottom: '12px', fontFamily: 'monospace', textTransform: 'uppercase' }}>
+                                                        WHAT AI SAW
+                                                    </div>
+                                                    <div style={{ fontSize: '14px', color: '#ccc', lineHeight: '1.6', fontFamily: 'monospace', maxWidth: '600px', margin: '0 auto' }}>
                                                         "{aiReport?.visual_summary}"
                                                     </div>
-                                                    <div style={{
-                                                        fontSize: '10px', color: '#00f3ff', letterSpacing: '0.1em',
-                                                        textTransform: 'uppercase', background: 'rgba(0, 243, 255, 0.05)',
-                                                        padding: '8px', borderRadius: '4px', borderRight: '2px solid #00f3ff', marginBottom: '16px'
-                                                    }}>
-                                                        AI FEELING: <span style={{ color: '#fff', fontWeight: 300 }}>{aiReport?.ai_feeling}</span>
-                                                    </div>
+                                                </div>
 
-                                                    {/* AI EMOTIONS - 3 Simple Words */}
-                                                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-                                                        {aiReport?.ai_emotions && aiReport.ai_emotions.map((word, i) => (
+                                                {/* SECTION B: WHAT AI FELT */}
+                                                <div>
+                                                    <div style={{ fontSize: '12px', color: '#00f3ff', letterSpacing: '0.2em', marginBottom: '12px', fontFamily: 'monospace', textTransform: 'uppercase' }}>
+                                                        WHAT AI FELT
+                                                    </div>
+                                                    <div style={{
+                                                        fontSize: '24px', fontWeight: 300, color: '#fff',
+                                                        marginBottom: '16px', fontFamily: '"Cormorant Garamond", serif', fontStyle: 'italic', maxWidth: '600px'
+                                                    }}>
+                                                        "{aiReport?.ai_feeling_description || aiReport?.ai_feeling || "Analyzing..."}"
+                                                    </div>
+                                                    <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+                                                        {aiReport?.ai_keywords?.slice(0, 3).map((kw, i) => (
                                                             <span key={i} style={{
-                                                                fontSize: '14px', fontFamily: '"Cormorant Garamond", serif', fontStyle: 'italic', color: '#00f3ff',
-                                                                borderBottom: '1px solid rgba(0, 243, 255, 0.3)'
+                                                                fontSize: '11px', fontFamily: 'monospace', color: '#00f3ff',
+                                                                padding: '6px 12px', background: 'rgba(0, 243, 255, 0.05)',
+                                                                border: '1px solid rgba(0, 243, 255, 0.2)', borderRadius: '100px'
                                                             }}>
-                                                                {word}
+                                                                {kw}
                                                             </span>
                                                         ))}
                                                     </div>
                                                 </div>
+                                            </motion.div>
+                                        )}
 
-                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
-                                                    {aiReport?.ai_keywords.slice(0, 3).map((kw, i) => (
-                                                        <motion.div
-                                                            key={i}
-                                                            initial={{ opacity: 0, x: -20 }}
-                                                            animate={{ opacity: 1, x: 0 }}
-                                                            transition={{ delay: i * 0.1 }}
-                                                            style={{
-                                                                fontFamily: 'monospace', fontSize: '11px', color: '#888',
-                                                                padding: '4px 10px', background: 'rgba(255, 255, 255, 0.02)', borderRadius: '2px',
-                                                                borderRight: '1px solid rgba(0, 243, 255, 0.3)', maxWidth: '90%'
-                                                            }}
-                                                        >
-                                                            {kw}
-                                                        </motion.div>
-                                                    ))}
-                                                </div>
-                                                <div style={{ marginTop: '24px', fontSize: '9px', color: '#444', fontFamily: 'monospace' }}>
-                                                    ENGINE:<br />
-                                                    <span style={{ color: '#666' }}>{aiReport?.model_used?.split(' + ')[0] || "Neural Grid"}</span>
-                                                </div>
-                                            </div>
-
-                                            {/* DIVIDER */}
-                                            <div style={{ width: '1px', background: 'linear-gradient(to bottom, transparent, #333, transparent)' }} />
-
-                                            {/* HUMAN COLUMN */}
-                                            {/* COL 2: HUMAN (Conditional) */}
-                                            <div style={{ textAlign: 'center', opacity: step === 'analysis-ai' ? 0.1 : 1, filter: step === 'analysis-ai' ? 'blur(4px)' : 'none', transition: 'all 0.5s' }}>
-                                                <h3 style={{ fontSize: '12px', color: '#ff0055', letterSpacing: '0.2em', marginBottom: '16px', fontWeight: 600 }}>HUMAN SENTIMENT</h3>
-
-                                                {step !== 'analysis-ai' ? (
-                                                    <>
-                                                        <div style={{ fontSize: '10px', color: '#ff0055', opacity: 0.6, marginBottom: '24px' }}>
-                                                            {keywords.length} VOICES DETECTED
-                                                        </div>
-                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'center' }}>
-                                                            {keywords.slice(0, 3).map((kw, i) => (
-                                                                <div key={i} style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: '18px', fontStyle: 'italic', color: '#eee', padding: '6px 14px', background: 'rgba(255, 0, 85, 0.05)', borderRadius: '4px', border: '1px solid #ff0055' }}>
-                                                                    {kw}
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                        <div style={{ marginTop: '32px', fontSize: '10px', color: '#666', fontFamily: 'monospace' }}>
-                                                            TEXT ENGINE: <span style={{ color: '#888' }}>[{keywordModel || "Linguistic Core"}]</span>
-                                                        </div>
-                                                    </>
-                                                ) : (
-                                                    <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#333', fontSize: '10px', letterSpacing: '0.1em' }}>
-                                                        WAITING FOR INPUT...
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            {/* CENTER OVERLAY: SYNTHESIS (Absolute) */}
-                                            {step === 'analysis-synthesis' && (
+                                        {/* STAGE 2 & 3: COMPARATIVE VIEW (Side-by-Side, EMOTION ONLY) */}
+                                        {(step === 'analysis-human' || step === 'analysis-synthesis') && (
+                                            <div style={{
+                                                display: 'grid', gridTemplateColumns: '1fr 1px 1fr', gap: '40px', width: '100%', maxWidth: '1000px',
+                                                flex: 1, alignItems: 'center', padding: '0 20px'
+                                            }}>
+                                                {/* AI SIDE (Left) - STRICTLY EMOTION ONLY */}
                                                 <motion.div
-                                                    initial={{ opacity: 0, scale: 0.9 }}
-                                                    animate={{ opacity: 1, scale: 1 }}
+                                                    initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
+                                                    style={{ textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.1)', paddingRight: '20px' }}
+                                                >
+                                                    <div style={{ fontSize: '11px', color: '#00f3ff', letterSpacing: '0.2em', marginBottom: '24px', fontFamily: 'monospace' }}>MACHINE FEELING</div>
+
+                                                    {/* Primary Emotion (Large) - NOW USING KEYWORDS */}
+                                                    <div style={{
+                                                        fontSize: '32px', lineHeight: '1.2', color: '#fff', marginBottom: '24px',
+                                                        fontFamily: 'monospace', textTransform: 'uppercase',
+                                                        display: 'flex', flexDirection: 'column', gap: '8px'
+                                                    }}>
+                                                        {aiReport?.ai_feeling_keywords && Array.isArray(aiReport.ai_feeling_keywords) ? (
+                                                            aiReport.ai_feeling_keywords.slice(0, 3).map((k, i) => (
+                                                                <span key={i}>{k}</span>
+                                                            ))
+                                                        ) : (
+                                                            <span>{aiReport?.dominant_emotion || "ANALYZING"}</span>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Secondary Emotions (Keywords) - REMOVED for clean trinity focus per user request */}
+                                                    {/* 
+                                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center' }}>
+                                                        {aiReport?.ai_emotions?.slice(0, 3).map((e, i) => (
+                                                            <span key={i} style={{
+                                                                color: '#00f3ff', fontSize: '12px', border: '1px solid rgba(0, 243, 255, 0.3)',
+                                                                padding: '6px 14px', borderRadius: '100px', background: 'rgba(0, 243, 255, 0.05)', fontFamily: 'monospace'
+                                                            }}>
+                                                                {e}
+                                                            </span>
+                                                        ))}
+                                                    </div> 
+                                                    */}
+                                                </motion.div>
+
+                                                {/* Divider Line (Grid Column 2) */}
+                                                <div style={{ height: '60%', width: '1px', background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.2), transparent)' }} />
+
+                                                {/* HUMAN SIDE (Right) - STRICTLY EMOTION ONLY */}
+                                                <motion.div
+                                                    initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
+                                                    style={{ textAlign: 'center', paddingLeft: '20px' }}
+                                                >
+                                                    <div style={{ fontSize: '11px', color: '#ff0055', letterSpacing: '0.2em', marginBottom: '24px', fontFamily: 'monospace' }}>HUMAN FEELING</div>
+
+                                                    {/* Primary Emotion (Large) - NOW USING KEYWORDS */}
+                                                    <div style={{
+                                                        fontSize: '32px', lineHeight: '1.2', color: '#fff', marginBottom: '24px',
+                                                        fontFamily: 'monospace', textTransform: 'uppercase',
+                                                        display: 'flex', flexDirection: 'column', gap: '8px'
+                                                    }}>
+                                                        {keywords && keywords.length > 0 ? (
+                                                            keywords.slice(0, 3).map((k, i) => (
+                                                                <span key={i}>{k}</span>
+                                                            ))
+                                                        ) : (
+                                                            <span>{userInput || "COLLECTIVE"}</span>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Secondary Emotions (Keywords) - REMOVED for clean trinity focus per user request */}
+                                                    {/* 
+                                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center' }}>
+                                                        {keywords.slice(0, 3).map((k, i) => (
+                                                            <span key={i} style={{
+                                                                color: '#ff0055', fontSize: '12px', border: '1px solid rgba(255,0,85,0.3)',
+                                                                padding: '6px 14px', borderRadius: '100px', background: 'rgba(255, 0, 85, 0.05)', fontFamily: 'monospace'
+                                                            }}>
+                                                                {k}
+                                                            </span>
+                                                        ))}
+                                                    </div> 
+                                                    */}
+                                                </motion.div>
+                                            </div>
+                                        )}
+
+                                        {/* STAGE 3: CONSENSUS RESULT (Direct Display - No Toggle) */}
+                                        {step === 'analysis-synthesis' && (
+                                            <motion.div
+                                                initial={{ opacity: 0 }}
+                                                animate={{ opacity: 1 }}
+                                                style={{
+                                                    width: '100%', height: '100%',
+                                                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                                                    padding: '20px'
+                                                }}
+                                            >
+                                                <div style={{ fontSize: '12px', color: '#888', letterSpacing: '0.2em', marginBottom: '20px', fontFamily: 'monospace' }}>SEMANTIC CONSENSUS</div>
+
+                                                <div style={{
+                                                    fontSize: '120px', fontWeight: 800, lineHeight: 1,
+                                                    color: consensusData?.consensus_score > 50 ? '#00ff66' : '#ff4444',
+                                                    textShadow: '0 0 50px rgba(0,0,0,0.5)', fontFamily: 'monospace'
+                                                }}>
+                                                    {consensusData?.consensus_score}%
+                                                </div>
+
+                                                {/* Gap Analysis */}
+                                                <div style={{
+                                                    fontSize: '18px', maxWidth: '600px', textAlign: 'center',
+                                                    color: '#fff', fontFamily: 'monospace',
+                                                    margin: '30px 0', lineHeight: '1.6'
+                                                }}>
+                                                    "{consensusData?.gap_analysis}"
+                                                </div>
+
+                                                {/* Social Context Score */}
+                                                <div style={{
+                                                    fontSize: '12px', color: '#888', letterSpacing: '0.1em',
+                                                    border: '1px solid #333', padding: '10px 20px', borderRadius: '50px',
+                                                    fontFamily: 'monospace', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px'
+                                                }}>
+                                                    <div>
+                                                        UNIVERSAL RESONANCE: <span style={{ color: '#00f3ff' }}>{consensusData?.social_context_score || 0}%</span>
+                                                    </div>
+                                                    <div style={{ fontSize: '10px', color: '#555' }}>
+                                                        {(consensusData?.social_context_score || 0) > 60
+                                                            ? "(LOW CONTEXT REQUIRED - EASILY UNDERSTOOD)"
+                                                            : "(HIGH CONTEXT REQUIRED - COMPLEX EMOTION)"}
+                                                    </div>
+                                                </div>
+
+                                                <button
+                                                    onClick={() => window.location.reload()}
+                                                    className="hover-btn"
                                                     style={{
-                                                        position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-                                                        width: '300px', background: 'rgba(10,10,10,0.95)', border: '1px solid #fff',
-                                                        borderRadius: '12px', padding: '24px', textAlign: 'center',
-                                                        boxShadow: '0 0 50px rgba(0,0,0,0.8)', zIndex: 10
+                                                        marginTop: '20px', padding: '16px 48px',
+                                                        background: '#fff', color: '#000', borderRadius: '100px',
+                                                        fontSize: '14px', fontWeight: 600, letterSpacing: '0.1em', cursor: 'pointer'
                                                     }}
                                                 >
-                                                    <div style={{ fontSize: '10px', color: '#888', letterSpacing: '0.2em', marginBottom: '12px' }}>CONSENSUS SCORE</div>
-                                                    <div style={{ fontSize: '48px', fontWeight: 700, color: consensusData?.consensus_score > 50 ? '#00ff66' : '#ff4444', marginBottom: '8px' }}>
-                                                        {consensusData?.consensus_score}%
-                                                    </div>
-                                                    <div style={{ fontSize: '12px', color: '#fff', fontStyle: 'italic', fontFamily: '"Cormorant Garamond", serif', lineHeight: '1.4', marginBottom: '20px' }}>
-                                                        "{consensusData?.gap_analysis}"
-                                                    </div>
-                                                    <div style={{ fontSize: '9px', color: '#444', fontFamily: 'monospace' }}>
-                                                        SYNTHESIS ENGINE: <span style={{ color: '#666' }}>[{consensusData?.model_used}]</span>
-                                                    </div>
-                                                </motion.div>
-                                            )}
-                                        </div>
+                                                    START NEW EXPERIMENT
+                                                </button>
+                                            </motion.div>
+                                        )}
+
 
                                         {/* FOOTER - Trainability & Actions */}
                                         <motion.div
@@ -1454,87 +1948,52 @@ export default function PunctumGame() {
                                                 textAlign: 'center', marginTop: '20px', flexShrink: 0
                                             }}
                                         >
-                                            <div style={{
-                                                display: 'inline-flex', alignItems: 'center', gap: '12px',
-                                                padding: '8px 16px', borderRadius: '100px',
-                                                background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)',
-                                                marginBottom: '32px'
-                                            }}>
-                                                <span style={{
-                                                    width: '8px', height: '8px', borderRadius: '50%',
-                                                    background: aiReport?.trainability_score > 50 ? '#00ff00' : '#ff4444'
-                                                }} />
-                                                <span style={{ fontSize: '12px', color: '#888', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-                                                    Analysis: {aiReport?.trainability_score > 50 ? 'Pattern Recognized' : 'High Divergence'}
-                                                </span>
-                                            </div>
 
                                             <div style={{ marginTop: '0px', marginBottom: '30px' }}>
-                                                {/* ERROR UI */}
-                                                {error && (
-                                                    <motion.div
-                                                        initial={{ opacity: 0, scale: 0.95 }}
-                                                        animate={{ opacity: 1, scale: 1 }}
-                                                        style={{
-                                                            marginTop: '20px',
-                                                            padding: '24px',
-                                                            background: 'rgba(255, 68, 68, 0.1)',
-                                                            border: '1px solid #ff4444',
-                                                            borderRadius: '12px',
-                                                            maxWidth: '400px',
-                                                            margin: '0 auto'
-                                                        }}
-                                                    >
-                                                        <div style={{ fontFamily: 'Poppins, sans-serif', fontWeight: 600, color: '#ff4444', marginBottom: '8px' }}>
-                                                            CONNECTION INTERRUPTED
-                                                        </div>
-                                                        <div style={{ fontFamily: 'Inconsolata, monospace', fontSize: '12px', color: '#ccc', marginBottom: '16px', lineHeight: '1.4' }}>
-                                                            The neural link was severed. AI multi-model analysis is complex and sometimes fragile.
-                                                        </div>
-                                                        <button
-                                                            onClick={() => {
-                                                                setError(null);
-                                                                if (step === 'analysis-ai') analyzeAI();
-                                                                else if (step === 'analysis-human') analyzeHumans();
-                                                                else if (step === 'analysis-synthesis') synthesize();
-                                                            }}
-                                                            className="hover-btn"
-                                                            style={{
-                                                                background: '#ff4444',
-                                                                color: '#fff',
-                                                                border: 'none',
-                                                                padding: '10px 24px',
-                                                                borderRadius: '50px',
-                                                                fontSize: '12px',
-                                                                fontWeight: 600,
-                                                                cursor: 'pointer',
-                                                                letterSpacing: '0.05em'
-                                                            }}
-                                                        >
-                                                            RE-ESTABLISH LINK
-                                                        </button>
-                                                    </motion.div>
-                                                )}
+                                                {/* OLD ERROR UI REMOVED */}
                                             </div>
 
-                                            {/* MULTI-STAGE NAVIGATION BUTTONS */}
-                                            <div style={{ display: 'flex', gap: '20px', justifyContent: 'center' }}>
+                                            {/* PRIMARY ACTION BUTTONS (RESTORED) */}
+                                            <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', marginTop: '40px' }}>
                                                 {step === 'analysis-ai' && (
-                                                    <button onClick={analyzeHumans} className="hover-btn" style={{ padding: '16px 40px', background: '#ff0055', color: '#fff', border: 'none', borderRadius: '100px', fontWeight: 600, fontSize: '13px', letterSpacing: '0.1em', cursor: 'pointer', boxShadow: '0 0 20px rgba(255,0,85,0.3)' }}>
-                                                        SEE HUMAN PERSPECTIVE →
+                                                    <button
+                                                        onClick={analyzeHumans}
+                                                        className="hover-btn"
+                                                        style={{
+                                                            padding: '16px 48px',
+                                                            background: '#ff0055', color: '#fff',
+                                                            border: 'none', borderRadius: '100px',
+                                                            fontWeight: 600, fontSize: '13px', letterSpacing: '0.1em',
+                                                            cursor: 'pointer', boxShadow: '0 0 20px rgba(255,0,85,0.3)'
+                                                        }}
+                                                    >
+                                                        REVEAL HUMAN PERSPECTIVE
                                                     </button>
                                                 )}
                                                 {step === 'analysis-human' && (
-                                                    <button onClick={synthesize} className="hover-btn" style={{ padding: '16px 40px', background: '#fff', color: '#000', border: 'none', borderRadius: '100px', fontWeight: 600, fontSize: '13px', letterSpacing: '0.1em', cursor: 'pointer', boxShadow: '0 0 30px rgba(255,255,255,0.2)' }}>
-                                                        COMPARE & SYNTHESIZE →
+                                                    <button
+                                                        onClick={synthesize}
+                                                        className="hover-btn"
+                                                        style={{
+                                                            padding: '16px 48px',
+                                                            background: '#fff', color: '#000',
+                                                            border: 'none', borderRadius: '100px',
+                                                            fontWeight: 600, fontSize: '13px', letterSpacing: '0.1em',
+                                                            cursor: 'pointer', boxShadow: '0 0 30px rgba(255,255,255,0.2)'
+                                                        }}
+                                                    >
+                                                        CALCULATE CONSENSUS
                                                     </button>
                                                 )}
                                                 {step === 'analysis-synthesis' && (
-                                                    <button onClick={reset} className="hover-btn" style={{ padding: '16px 40px', background: 'transparent', border: '1px solid #666', color: '#888', borderRadius: '100px', fontWeight: 600, fontSize: '13px', letterSpacing: '0.1em', cursor: 'pointer' }}>
-                                                        TRY ANOTHER IMAGE
-                                                    </button>
+                                                    /* Synthesis has its own reload button in main block, no extra button needed here */
+                                                    null
                                                 )}
                                             </div>
+
+                                            {/* Punctum Reference Link */}
+
+                                            {/* Punctum Reference Link */}
 
                                             {/* Punctum Reference Link */}
                                             <div style={{
@@ -1563,10 +2022,10 @@ export default function PunctumGame() {
                                     </>
                                 )}
                             </motion.div>
-                        )
-                    }
-                </AnimatePresence >
-            </div >
-        </div >
+                        )}
+                </AnimatePresence>
+            </div>
+        </div>
     );
-};
+}
+

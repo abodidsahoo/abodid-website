@@ -79,9 +79,9 @@ const NewsletterPopup = () => {
 
                     {/* Popup Modal */}
                     <motion.div
-                        initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 20, scale: 0.95 }}
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
                         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
                         className="newsletter-popup-wrapper"
                     >
@@ -102,14 +102,13 @@ const NewsletterPopup = () => {
             
             .newsletter-popup-wrapper {
                  position: fixed;
-                 top: 50%;
-                 left: 50%;
-                 transform: translate(-50%, -50%) !important;
+                 inset: 0; /* Replaces top/left/width/height 100% */
                  z-index: 99999;
-                 width: 100%;
                  display: flex;
+                 align-items: center;
                  justify-content: center;
-                 pointer-events: none; /* Let clicks pass through wrapper to backdrop if clicked outside form */
+                 pointer-events: none;
+                 padding: 1rem; /* Prevent touching edges on small screens */
             }
             
             .newsletter-popup-wrapper > * {

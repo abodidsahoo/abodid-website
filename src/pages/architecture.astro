@@ -38,6 +38,11 @@ const techStack = [
         tech: "Web Audio API",
         purpose: "Native browser audio processing without bloat",
     },
+    {
+        component: "AI Apps",
+        tech: "OpenRouter (Ensemble)",
+        purpose: "Multi-model consensus for aesthetic judgment",
+    },
 ];
 ---
 
@@ -417,6 +422,62 @@ const techStack = [
                     </div>
                 </section>
 
+                {/* Punctum AI Architecture */}
+                <section class="arch-section two-col">
+                    <div class="col-content">
+                        <h2 class="section-title">
+                            10 // Punctum AI Architecture
+                        </h2>
+                        <ul class="feature-list">
+                            <li>
+                                <span class="bullet">→</span>
+                                <div>
+                                    <strong>Neuro-Symbolic Pipeline</strong>
+                                    <p>
+                                        A multi-stage AI reasoning engine that
+                                        mimics human aesthetic judgment.
+                                        Combines <code
+                                            style="font-family: 'Inconsolata';"
+                                            >NVIDIA Vision</code
+                                        > for raw perception with <code
+                                            style="font-family: 'Inconsolata';"
+                                            >Gemini Pro</code
+                                        > for poetic synthesis.
+                                    </p>
+                                </div>
+                            </li>
+                            <li>
+                                <span class="bullet">→</span>
+                                <div>
+                                    <strong>Consensus Engine</strong>
+                                    <p>
+                                        The system doesn't just "see"—it
+                                        compares. It actively calculates the
+                                        semantic distance between Machine
+                                        Interpretation (AI) and Human Feeling
+                                        (User Input) to generate a "Consensus
+                                        Score."
+                                    </p>
+                                </div>
+                            </li>
+                            <li>
+                                <span class="bullet">→</span>
+                                <div>
+                                    <strong>Deep Dive</strong>
+                                    <p>
+                                        <a
+                                            href="/architecture/punctum"
+                                            class="underline hover:text-white transition-colors"
+                                        >
+                                            View the full schematic &rarr;
+                                        </a>
+                                    </p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </section>
+
                 {/* CTA */}
                 <section class="arch-cta">
                     <p class="cta-text">
@@ -532,20 +593,20 @@ const techStack = [
 
     .arch-title {
         font-family: var(--font-mono);
-        font-size: clamp(2rem, 5vw, 4rem);
+        font-size: clamp(3.5rem, 8vw, 6rem);
         font-weight: 400;
         text-transform: uppercase;
-        letter-spacing: -0.02em;
+        letter-spacing: -0.04em;
         margin: 0 0 1.5rem 0;
-        line-height: 1;
+        line-height: 0.9;
     }
 
     .arch-intro {
         font-family: var(--font-serif);
-        font-size: 1.25rem;
-        line-height: 1.6;
+        font-size: 1.5rem;
+        line-height: 1.4;
         color: var(--text-muted);
-        max-width: 600px;
+        max-width: 800px;
         font-style: italic;
     }
 
@@ -553,20 +614,21 @@ const techStack = [
     .arch-grid {
         display: flex;
         flex-direction: column;
-        gap: 6rem;
+        gap: 8rem; /* Increased gap for better separation */
         margin-bottom: 6rem;
     }
 
     .section-title {
         font-family: var(--font-mono);
-        font-size: 0.9rem;
+        font-size: clamp(1.5rem, 3vw, 2.5rem); /* Much larger */
         text-transform: uppercase;
-        letter-spacing: 0.1em;
+        letter-spacing: -0.02em;
         color: var(--text-muted);
-        margin-bottom: 2rem;
+        margin-bottom: 3rem;
         display: block;
-        border-left: 2px solid var(--accent);
-        padding-left: 1rem;
+        border-left: 4px solid var(--accent); /* Thicker border */
+        padding-left: 1.5rem;
+        opacity: 0.8;
     }
 
     /* TABLE */
@@ -608,7 +670,7 @@ const techStack = [
     /* FEATURE LISTS */
     .two-col {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr;
         gap: 4rem;
     }
 
@@ -634,9 +696,10 @@ const techStack = [
     .feature-list strong {
         display: block;
         color: var(--text-main);
-        margin-bottom: 0.25rem;
+        margin-bottom: 0.5rem;
         font-family: var(--font-mono);
-        font-size: 0.95rem;
+        font-size: 1.2rem; /* Increased from 0.95rem */
+        letter-spacing: -0.02em;
     }
 
     .feature-list p {
