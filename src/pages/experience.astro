@@ -1,0 +1,451 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { getWorkExperience } from "../lib/services/content";
+import type { WorkExperience } from "../lib/services/types";
+
+const pageTitle = "Experience";
+const allExperience = await getWorkExperience();
+
+// Group data by category for initial static rendering (opt) or just pass all to client
+// We will pass all data to a client component or handle it via vanilla JS in script tag
+// For simplicity and interaction speed, we'll use vanilla JS for tabs.
+
+const categories = [
+    { id: "work", label: "Experience" },
+    { id: "education", label: "Education" },
+    { id: "award", label: "Awards" },
+];
+---
+
+<BaseLayout title={pageTitle}>
+    <div class="page-container">
+        <header class="page-header">
+            <h1>Experience</h1>
+            <p class="subtitle">
+                A glimpse into my work experience, education, and awards in a
+                single place.
+            </p>
+
+            <div class="tabs-container">
+                <div class="tabs-nav" role="tablist">
+                    {
+                        categories.map((cat, index) => (
+                            <button
+                                class={`tab-btn ${index === 0 ? "active" : ""}`}
+                                data-tab={cat.id}
+                                role="tab"
+                                aria-selected={index === 0}
+                                aria-controls={`panel-${cat.id}`}
+                            >
+                                {cat.label}
+                            </button>
+                        ))
+                    }
+                    <div class="tab-glider"></div>
+                </div>
+            </div>
+        </header>
+
+        <div class="content-area">
+            {
+                allExperience.map((item) => (
+                    <article
+                        class="experience-item"
+                        data-category={item.category || "work"}
+                    >
+                        <div class="role-header">
+                            <h2 class="role">{item.role}</h2>
+                        </div>
+                        <div class="meta-row">
+                            <span class="company">{item.company}</span>
+                            <span class="duration">({item.duration})</span>
+                        </div>
+                        <p class="description">{item.description}</p>
+                    </article>
+                ))
+            }
+
+            <p id="no-content-msg" class="no-content hidden">
+                No entries found for this category.
+            </p>
+        </div>
+    </div>
+</BaseLayout>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const tabsContainer = document.querySelector(".tabs-nav");
+        const tabs = document.querySelectorAll(".tab-btn");
+        const glider = document.querySelector(".tab-glider") as HTMLElement;
+        const items = document.querySelectorAll(".experience-item");
+        const noContentMsg = document.getElementById("no-content-msg");
+
+        // Initialize state
+        let currentTab: HTMLElement | null = null;
+        // let isAnimating = false; // Removed unused var
+
+        function updateGlider(targetTab: HTMLElement) {
+            // Added explicit check for tabsContainer to fix lint
+            if (!glider || !targetTab || !tabsContainer) return;
+
+            const tabRect = targetTab.getBoundingClientRect();
+            const navRect = tabsContainer.getBoundingClientRect();
+
+            // Calculate new position and dimensions
+            const left = tabRect.left - navRect.left;
+            const width = tabRect.width;
+
+            // Get current state (or default if first run)
+            const currentLeft = parseFloat(
+                glider.dataset.prevLeft || String(left),
+            );
+            const currentWidth = parseFloat(
+                glider.dataset.prevWidth || String(width),
+            );
+
+            // If no movement, just set and return
+            if (currentLeft === left && currentWidth === width) {
+                glider.style.width = `${width}px`;
+                glider.style.transform = `translateX(${left}px)`;
+                return;
+            }
+
+            // Determine direction
+            const isMovingRight = left > currentLeft;
+
+            // Expected physics (Enhanced Jelly):
+            // Intensity multipliers for "squash a bit more"
+            const skewAmount = isMovingRight ? -25 : 25; // Increased skew from 15 to 25
+            const stretchAmount = 1.15; // Increased stretch
+            const squashAmount = 0.85; // Increased squash (more compression)
+
+            // Use WAAPI for precise control over keyframes
+            const animation = glider.animate(
+                [
+                    {
+                        width: `${currentWidth}px`,
+                        transform: `translateX(${currentLeft}px) scale(1, 1) skewX(0deg)`,
+                    },
+                    {
+                        // Mid-flight: High distortion
+                        width: `${width * 0.9}px`,
+                        offset: 0.4, // Peak slightly earlier than half
+                        transform: `translateX(${currentLeft + (left - currentLeft) * 0.4}px) scale(${stretchAmount}, ${squashAmount}) skewX(${skewAmount}deg)`,
+                    },
+                    {
+                        // Overshoot / Settlement preparation
+                        offset: 0.7,
+                        transform: `translateX(${currentLeft + (left - currentLeft) * 0.8}px) scale(${stretchAmount - 0.05}, ${squashAmount + 0.05}) skewX(${skewAmount * 0.3}deg)`,
+                    },
+                    {
+                        // Arrival
+                        width: `${width}px`,
+                        transform: `translateX(${left}px) scale(1, 1) skewX(0deg)`,
+                    },
+                ],
+                {
+                    duration: 600, // Slightly longer for visibility of effect
+                    easing: "cubic-bezier(0.175, 0.885, 0.32, 1.275)", // Elastic-like ease
+                    fill: "forwards",
+                },
+            );
+
+            // Commit final state
+            animation.onfinish = () => {
+                glider.style.width = `${width}px`;
+                glider.style.transform = `translateX(${left}px)`;
+            };
+
+            // Store new position
+            glider.dataset.prevLeft = left.toString();
+            glider.dataset.prevWidth = width.toString();
+            currentTab = targetTab;
+        }
+
+        // Initialize Glider on the active tab
+        const initialActive = document.querySelector(
+            ".tab-btn.active",
+        ) as HTMLElement;
+        if (initialActive) {
+            requestAnimationFrame(() => {
+                // Check if tabsContainer exists for safety in init
+                if (!tabsContainer) return;
+
+                // Initial setup without animation
+                const tabRect = initialActive.getBoundingClientRect();
+                const navRect = tabsContainer.getBoundingClientRect();
+                const left = tabRect.left - navRect.left;
+                const width = tabRect.width;
+
+                glider.style.width = `${width}px`;
+                glider.style.transform = `translateX(${left}px)`;
+
+                glider.dataset.prevLeft = left.toString();
+                glider.dataset.prevWidth = width.toString();
+                currentTab = initialActive;
+
+                // Reveal
+                requestAnimationFrame(() => {
+                    glider.style.opacity = "1";
+                });
+            });
+        }
+
+        function switchTab(categoryId: string) {
+            // Update Tab Styles
+            tabs.forEach((tab) => {
+                const isActive = tab.getAttribute("data-tab") === categoryId;
+                tab.classList.toggle("active", isActive);
+                tab.setAttribute("aria-selected", isActive ? "true" : "false");
+
+                if (isActive) {
+                    updateGlider(tab as HTMLElement);
+                }
+            });
+
+            // Filter Content (Logic remains same)
+            let hasVisibleItems = false;
+            items.forEach((item) => {
+                const itemCategory = item.getAttribute("data-category");
+                const isMatch =
+                    itemCategory === categoryId ||
+                    (categoryId === "award" && itemCategory === "conference");
+
+                if (isMatch) {
+                    item.classList.remove("hidden");
+                    (item as HTMLElement).style.animation = "none";
+                    (item as HTMLElement).offsetHeight;
+                    (item as HTMLElement).style.animation =
+                        "fadeInUp 0.4s ease-out forwards";
+                    hasVisibleItems = true;
+                } else {
+                    item.classList.add("hidden");
+                }
+            });
+
+            if (noContentMsg) {
+                if (hasVisibleItems) {
+                    noContentMsg.classList.add("hidden");
+                } else {
+                    noContentMsg.classList.remove("hidden");
+                }
+            }
+        }
+
+        // Add Click Listeners
+        tabs.forEach((tab) => {
+            tab.addEventListener("click", () => {
+                const category = tab.getAttribute("data-tab");
+                if (category) switchTab(category);
+            });
+        });
+
+        // Handle Resize to readjust glider
+        window.addEventListener("resize", () => {
+            const active = document.querySelector(
+                ".tab-btn.active",
+            ) as HTMLElement;
+            if (active) updateGlider(active);
+        });
+
+        // Initial Filter
+        switchTab("work");
+    });
+</script>
+
+<style>
+    .page-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding-bottom: 6rem;
+    }
+
+    .page-header {
+        margin-bottom: 4rem;
+        padding-top: var(--space-lg);
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        align-items: flex-start;
+    }
+
+    h1 {
+        font-size: 3.5rem;
+        margin: 0;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+    }
+
+    .subtitle {
+        font-size: 1.1rem;
+        color: var(--text-secondary);
+        max-width: 60ch;
+        line-height: 1.6;
+        margin-top: -0.5rem;
+    }
+
+    /* --- TABS --- */
+    .tabs-container {
+        margin-top: 1rem;
+        background: #f0f0f0; /* Light Gray Background for the container */
+        /* To match "All three of them could be within one big background" 
+           Assuming a pill shape or bar shape */
+        padding: 0.4rem;
+        border-radius: 100px; /* Pill shape container */
+        display: inline-flex;
+    }
+
+    .tabs-nav {
+        display: flex;
+        gap: 0; /* Gap handled by padding/layout */
+        position: relative;
+    }
+
+    .tab-btn {
+        background: transparent;
+        border: none;
+        padding: 0.8rem 2.5rem; /* Bigger buttons */
+        font-family: var(--font-sans);
+        font-size: 1.1rem;
+        font-weight: 500;
+        color: #666;
+        cursor: pointer;
+        position: relative;
+        z-index: 2; /* Above glider */
+        transition: color 0.3s ease;
+        outline: none;
+        border-radius: 100px;
+        white-space: nowrap;
+    }
+
+    .tab-btn:hover {
+        color: #000;
+    }
+
+    .tab-btn.active {
+        color: white !important;
+        font-weight: 600;
+    }
+
+    /* The Glider (Active Background) */
+    .tab-glider {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        background-color: #006400; /* Deep Green */
+        border-radius: 100px;
+        z-index: 1; /* Behind text */
+        transition:
+            transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1),
+            width 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+        pointer-events: none;
+        opacity: 0; /* Hidden initially until JS calculates pos */
+    }
+
+    /* --- CONTENT --- */
+    .content-area {
+        min-height: 400px;
+    }
+
+    .experience-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        padding-bottom: 3rem;
+        border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .experience-item.hidden {
+        display: none;
+    }
+
+    .experience-item:last-child {
+        border-bottom: none;
+    }
+
+    .role {
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0;
+        line-height: 1.2;
+    }
+
+    .meta-row {
+        display: flex;
+        align-items: baseline;
+        gap: 0.5rem;
+        font-family: var(--font-mono);
+        font-size: 0.9rem;
+        color: var(--text-tertiary);
+    }
+
+    .company {
+        color: var(--text-secondary);
+        font-weight: 500;
+        font-family: var(--font-sans);
+    }
+
+    .duration {
+        opacity: 0.8;
+    }
+
+    .description {
+        margin-top: 0.5rem;
+        font-size: 1.05rem;
+        line-height: 1.6;
+        color: var(--text-secondary);
+        max-width: 65ch;
+    }
+
+    .no-content {
+        color: var(--text-tertiary);
+        font-style: italic;
+        margin-top: 2rem;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @media (max-width: 600px) {
+        .tabs-container {
+            width: 100%;
+            overflow-x: auto;
+            border-radius: 12px;
+            padding: 0.3rem;
+        }
+
+        .tabs-nav {
+            width: 100%;
+        }
+
+        .tab-btn {
+            padding: 0.7rem 1.2rem;
+            font-size: 0.95rem;
+            flex: 1;
+            text-align: center;
+        }
+
+        .meta-row {
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .role {
+            font-size: 1.2rem;
+        }
+    }
+</style>

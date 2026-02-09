@@ -30,9 +30,10 @@ You are an expert in visual analysis.
 Your goal is to analyze the image and identify:
 1. visual_summary: A single concise sentence (MAX 15 WORDS) explaining exactly what you see.
 2. ai_feeling: A poetic sentence (MAX 10 WORDS) describing the specific emotion or mood you perceive.
-3. studium_description: The general interpretation (MAX 15 WORDS).
-4. punctum_element: The specific detail that pricks the viewer (MAX 5 WORDS).
-5. dominant_emotion: One single word representing the mood.
+3. ai_feeling_keywords: EXACTLY 3 distinct single words that capture the core emotion (e.g., ["Solitude", "Cold", "Silence"]).
+4. studium_description: The general interpretation (MAX 15 WORDS).
+5. punctum_element: The specific detail that pricks the viewer (MAX 5 WORDS).
+6. dominant_emotion: One single word representing the mood.
 
 Output strictly valid JSON:
 {
@@ -75,7 +76,8 @@ Output strictly valid JSON:
                 parsed = {
                     visual_summary: cleanRaw,
                     ai_feeling: "Analysis requires data refinement.",
-                    dominant_emotion: "Abstract"
+                    dominant_emotion: "Abstract",
+                    ai_feeling_keywords: ["Abstract", "Complex", "Undefined"]
                 };
             }
 
@@ -87,8 +89,23 @@ Output strictly valid JSON:
 
             // Ensure arrays are arrays
             if (!Array.isArray(parsed.ai_emotions)) parsed.ai_emotions = [parsed.dominant_emotion];
-            if (!Array.isArray(parsed.emotional_keywords)) parsed.emotional_keywords = [];
-            if (!Array.isArray(parsed.ai_feeling_keywords)) parsed.ai_feeling_keywords = [parsed.dominant_emotion];
+
+            // STRICTLY FORCE 3 KEYWORDS
+            if (!Array.isArray(parsed.ai_feeling_keywords) || parsed.ai_feeling_keywords.length < 3) {
+                // Try to split dominant emotion or ai_feeling if available
+                const candidates = [parsed.dominant_emotion, ...(parsed.ai_feeling || "").split(" ")].filter(w => w && w.length > 3);
+                parsed.ai_feeling_keywords = candidates.slice(0, 3);
+
+                // Pad with generic terms if still not enough. More unique/poetic defaults.
+                const fallbacks = ["Mystery", "Depth", "Silence", "Light", "Shadow", "Void"];
+                while (parsed.ai_feeling_keywords.length < 3) {
+                    parsed.ai_feeling_keywords.push(fallbacks.pop() || "Unknown");
+                }
+            }
+            // Limit to 3
+            parsed.ai_feeling_keywords = parsed.ai_feeling_keywords.slice(0, 3);
+
+            if (!Array.isArray(parsed.emotional_keywords)) parsed.emotional_keywords = parsed.ai_feeling_keywords;
 
             return parsed;
         }
@@ -250,19 +267,30 @@ function parseJSON(text: string) {
     return parsed;
 }
 
-// Helper: Fetch with Retry
-async function fetchWithRetry(url: string, options: RequestInit, retries = 1, delay = 1000): Promise<Response> {
+// Helper: Fetch with Retry with Timeout
+async function fetchWithRetry(url: string, options: RequestInit, retries = 1, delay = 1000, timeoutMs = 25000): Promise<Response> {
     for (let i = 0; i <= retries; i++) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
         try {
-            const res = await fetch(url, options);
+            const res = await fetch(url, {
+                ...options,
+                signal: controller.signal
+            });
+
+            clearTimeout(timeoutId);
+
             if (!res.ok && i < retries && res.status >= 500) {
-                // Only retry on server errors, not 4xx client errors
+                // Only retry on server errors
                 throw new Error(`Status ${res.status}`);
             }
             return res;
         } catch (err) {
+            clearTimeout(timeoutId);
             if (i === retries) throw err;
-            console.warn(`[Fetch Retry] Attempt ${i + 1} failed. Retrying in ${delay}ms...`);
+            const isTimeout = err instanceof Error && err.name === 'AbortError';
+            console.warn(`[Fetch Retry] Attempt ${i + 1} failed (${isTimeout ? 'Timeout' : 'Error'}). Retrying in ${delay}ms...`);
             await new Promise(r => setTimeout(r, delay));
         }
     }

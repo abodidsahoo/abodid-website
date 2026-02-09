@@ -74,8 +74,8 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                         transition={{ type: "spring", stiffness: 100, damping: 20, delay: 0.5 }}
                     >
                         <button className="start-btn" onClick={handleActivate}>
-                            <div className="start-label-small">Activate audio visual</div>
-                            <div className="start-label-large">Experience</div>
+                            <div className="start-label-large">Click here</div>
+                            <div className="start-label-small">FOR AN AUDIOVISUAL EXPERIENCE</div>
                         </button>
                     </motion.div>
                 )}
@@ -86,13 +86,13 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
                     z-index: 10000;
                     display: flex; justify-content: flex-end; align-items: flex-start;
-                    padding: 120px 4vw 0 0; /* Below header, right aligned */
+                    padding: 100px 4vw 0 0; /* Tighter top padding */
                     pointer-events: none; /* Pass through clicks when not on button */
                 }
                 .start-btn {
                     background: transparent;
-                    border: 1px solid rgba(255, 255, 255, 0.3);
-                    padding: 1.5rem 3rem;
+                    border: 1px solid rgba(255, 255, 255, 0.4);
+                    padding: 0.8rem 1.5rem; /* Compact Padding */
                     color: white;
                     cursor: pointer;
                     text-align: center;
@@ -102,20 +102,31 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                     overflow: hidden;
                     pointer-events: auto; /* Enable clicks on button */
                     background: transparent; /* Clean transparent */
-                    backdrop-filter: none;
+                    backdrop-filter: blur(4px); /* Subtle blur */
+                    border-radius: 10px; /* Slight Curve 1-2px */
+                    display: flex; 
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 0.6rem;
                 }
                 .start-btn:hover {
-                    border-color: rgba(255, 255, 255, 0.8);
-                    box-shadow: 0 0 25px rgba(255, 255, 255, 0.15), inset 0 0 15px rgba(255, 255, 255, 0.1);
-                    text-shadow: 0 0 8px rgba(255,255,255,0.5);
-                }
-                .start-label-small {
-                    font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em;
-                    opacity: 0.7; margin-bottom: 0.5rem;
+                    border-color: rgba(255, 255, 255, 0.9);
+                    background: rgba(255, 255, 255, 0.05);
+                    box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
                 }
                 .start-label-large {
-                    font-size: 1.5rem; text-transform: uppercase; letter-spacing: 0.2em;
-                    font-weight: 700;
+                    font-size: 1rem; 
+                    text-transform: uppercase; 
+                    letter-spacing: 0.1em;
+                    font-weight: 300;
+                    line-height: 1;
+                }
+                .start-label-small {
+                    font-size: 0.57rem; 
+                    text-transform: uppercase; 
+                    letter-spacing: 0.1em; /* Spacing to likely match width of Activate */
+                    opacity: 1; 
+                    line-height: 1;
                 }
 
                 /* Scroll Hint Styles */

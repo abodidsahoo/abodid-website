@@ -136,3 +136,22 @@ export interface PageMetadata extends BaseEntity {
     image?: string;
     is_active: boolean;
 }
+
+export interface WorkExperience extends BaseEntity {
+    role: string;
+    company: string;
+    duration: string;
+    description: string;
+    category: string;
+    sort_order: number;
+    published: boolean;
+}
+
+export interface ServiceItem extends BaseEntity {
+    category: 'offer' | 'skills' | 'tools';
+    title?: string;
+    content?: string;
+    items: string[]; // JSON array of strings
+    sort_order: number;
+    published: boolean;
+}

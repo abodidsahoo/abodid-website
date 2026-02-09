@@ -13,6 +13,7 @@
         />
         <button type="submit" aria-label="Subscribe">
             <svg
+                class="arrow-icon"
                 xmlns="http://www.w3.org/2000/svg"
                 width="20"
                 height="20"
@@ -41,9 +42,12 @@
 
             // Visual feedback
             const btn = form.querySelector("button");
-            const originalIcon = btn.innerHTML;
-            btn.innerHTML = "...";
-            btn.disabled = true;
+            if (!btn) return;
+
+            const originalContent = btn.innerHTML;
+
+            // Just show a simple dot or something minimal while loading, or keep arrow but stop animation
+            btn.classList.add("loading");
 
             try {
                 const response = await fetch("/api/subscribe", {
@@ -52,25 +56,30 @@
                 });
                 const data = await response.json();
 
-                messageEl.textContent = data.message;
-                messageEl.classList.add(response.ok ? "success" : "error");
+                if (messageEl) {
+                    messageEl.textContent = data.message;
+                    messageEl.classList.add(response.ok ? "success" : "error");
+                }
 
                 if (response.ok) {
                     (form as HTMLFormElement).reset();
                 }
             } catch (error) {
-                messageEl.textContent =
-                    "Something went wrong. Please try again.";
-                messageEl.classList.add("error");
+                if (messageEl) {
+                    messageEl.textContent =
+                        "Something went wrong. Please try again.";
+                    messageEl.classList.add("error");
+                }
             } finally {
-                btn.innerHTML = originalIcon;
-                btn.disabled = false;
+                btn.classList.remove("loading");
 
                 // Clear message after 5 seconds
-                setTimeout(() => {
-                    messageEl.textContent = "";
-                    messageEl.className = "message";
-                }, 5000);
+                if (messageEl) {
+                    setTimeout(() => {
+                        messageEl.textContent = "";
+                        messageEl.className = "message";
+                    }, 5000);
+                }
             }
         });
     }
@@ -79,18 +88,77 @@
 <style>
     .newsletter-form-wrapper {
         margin-top: 1rem;
-        max-width: 300px;
+        width: 100%;
+        max-width: 350px;
     }
 
     .newsletter-form {
         display: flex;
         align-items: center;
-        border-bottom: 1px solid var(--border-strong);
-        transition: border-color 0.3s ease;
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 4px; /* Clean box */
+        transition: all 0.3s ease;
+        padding: 0;
+        position: relative;
     }
 
     .newsletter-form:focus-within {
-        border-color: var(--text-primary);
+        border-color: #fff;
+        background: rgba(255, 255, 255, 0.05); /* Bit of glue/fill */
+    }
+
+    input {
+        flex: 1;
+        background: transparent;
+        border: none;
+        padding: 0.8rem 1rem;
+        color: #fff;
+        font-family: "Inconsolata", monospace; /* Monospace request */
+        font-size: 0.9rem;
+        outline: none;
+        min-width: 0; /* Prevent overflow */
+    }
+
+    input::placeholder {
+        color: rgba(255, 255, 255, 0.4);
+    }
+
+    button {
+        background: transparent;
+        border: none;
+        color: #fff;
+        cursor: pointer;
+        padding: 0.8rem 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: opacity 0.3s ease;
+    }
+
+    button:hover {
+        opacity: 0.8;
+    }
+
+    /* Animated Arrow logic */
+    .arrow-icon {
+        display: block;
+        animation: arrowMove 2s infinite ease-in-out;
+    }
+
+    @keyframes arrowMove {
+        0%,
+        100% {
+            transform: translateX(0);
+        }
+        50% {
+            transform: translateX(3px); /* Subtle right movement */
+        }
+    }
+
+    button.loading .arrow-icon {
+        animation: none;
+        opacity: 0.5;
     }
 
     .message {
@@ -98,6 +166,7 @@
         margin-top: 0.5rem;
         min-height: 1.2em; /* Prevent layout jump */
         transition: all 0.3s ease;
+        font-family: "Inconsolata", monospace;
     }
 
     .message.success {
@@ -105,38 +174,5 @@
     }
     .message.error {
         color: #e74c3c;
-    }
-
-    input {
-        flex: 1;
-        background: transparent;
-        border: none;
-        padding: 0.8rem 0;
-        color: var(--text-primary);
-        font-family: var(--font-sans);
-        font-size: 0.9rem;
-        outline: none;
-    }
-
-    input::placeholder {
-        color: var(--text-tertiary);
-    }
-
-    button {
-        background: transparent;
-        border: none;
-        color: var(--text-secondary);
-        cursor: pointer;
-        padding: 0.5rem;
-        transition: color 0.3s ease;
-    }
-
-    button:hover {
-        color: var(--text-primary);
-    }
-
-    button:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
     }
 </style>

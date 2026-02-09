@@ -486,7 +486,7 @@ const ExperienceModule = ({ src, captions = [], autoStart = false }) => {
             >
                 {/* 1. Lyrics Container - Dynamic Position */}
                 <AnimatePresence mode="wait">
-                    {isStarted && currentCaption && (
+                    {isStarted && isPlaying && currentCaption && (
                         <motion.div
                             key={activeIndex}
                             className="lyric-floating-container"

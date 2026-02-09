@@ -50,9 +50,8 @@ const Header = () => {
                 <div className="nav-grid">
                     {/* LEFT: Logo */}
                     <div className="nav-left">
-                        <a href="/" className="logo-text">
-                            <span className="desktop-logo">ABODID</span>
-                            <span className="mobile-logo">Abodid</span>
+                        <a href="/" className="logo-image-link" aria-label="Abodid Home">
+                            <img src="/images/signature-white.png" alt="Signature" className="header-logo-img" />
                         </a>
                     </div>
 
@@ -62,8 +61,10 @@ const Header = () => {
                     </div>
 
                     {/* RIGHT: Menu Toggle & Breadcrumbs */}
-                    <div className="nav-right desktop-only-breadcrumbs">
-                        <Breadcrumbs />
+                    <div className="nav-right">
+                        <div className="desktop-breadcrumbs">
+                            <Breadcrumbs />
+                        </div>
                         <button onClick={toggleMenu} className="menu-btn">
                             <span>{isOpen ? 'CLOSE' : 'MENU'}</span>
                         </button>
@@ -99,7 +100,6 @@ const Header = () => {
                             variants={menuPanelVariants}
                         >
                             <div className="menu-inner">
-
                                 {/* 
                                     PANEL 1: RED (MAIN MENU) (~40%)
                                     UPDATED: MAtch Header Red
@@ -207,14 +207,27 @@ const Header = () => {
                     background: rgba(5, 5, 5, 0.95); color: rgba(255, 255, 255, 0.9);
                 }
 
-                .desktop-logo { display: inline-block; }
-                .mobile-logo { display: none; }
+                .logo-image-link {
+                    display: block;
+                    position: relative; /* Ensure z-index works */
+                    z-index: 1100;
+                    width: fit-content;
+                    opacity: 0.9;
+                }
+                
+                .header-logo-img {
+                    height: 50px; /* Adjust this value to change logo size */
+                    width: auto;
+                    display: block;
+                    filter: brightness(1.2); /* Ensure white pops */
+                }
 
                 .nav-border { width: 100%; height: 1px; background: rgba(255,255,255, 0.15); }
-                .logo-text, .menu-btn {
+                .menu-btn {
                     font-family: 'Space Mono', monospace; font-size: 0.9rem; text-transform: uppercase;
                     color: white; background: none; border: none; cursor: pointer;
                     letter-spacing: 0.05em; mix-blend-mode: difference; z-index: 1100; text-decoration: none;
+                    display: block; /* Ensure it's block-level for visibility check */
                 }
 
                 /* BACKDROP */
@@ -356,15 +369,14 @@ const Header = () => {
                 }
 
                 @media (max-width: 768px) {
-                     .desktop-only-breadcrumbs { display: none !important; }
+                     .desktop-breadcrumbs { display: none !important; }
                      .mobile-breadcrumbs-row { display: block; }
                      .nav-grid { height: 70px; grid-template-columns: auto 1fr auto; display: flex; justify-content: space-between; }
-                     .desktop-logo { display: none; }
-                     .mobile-logo { display: inline-block; font-weight: 700; text-transform: capitalize; }
+                     
                      .nav-left { order: 1; }
                      .nav-center { order: 2; justify-content: flex-end; }
-                     .nav-right { display: none; } 
-                     .logo-text, .menu-btn { font-size: 1.1rem; font-weight: 700; }
+                     .nav-right { display: flex; order: 3; } 
+                     .menu-btn { font-size: 1.1rem; font-weight: 700; }
                 }
             `}</style>
         </React.Fragment>

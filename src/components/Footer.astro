@@ -17,104 +17,77 @@ const year = new Date().getFullYear();
     <div class="footer-grid">
       <!-- Left Main Column: The Signal (Brand & Newsletter) -->
       <div class="footer-col signal">
-        <div class="brand-block">
-          <a href="/" class="footer-logo" aria-label="Abodid Home">
-            <img
-              src="/images/signature-black.png"
-              alt="Abodid"
-              class="logo-img logo-black"
-            />
-            <img
-              src="/images/signature-white.png"
-              alt="Abodid"
-              class="logo-img logo-white"
-            />
-          </a>
-        </div>
-
         <div class="newsletter-section" id="newsletter">
-          <p class="section-title">
-            Subscribe to my newsletter <br /> for a monthly dose of creative inspiration.
-          </p>
+          <p class="section-title">Subscribe</p>
           <Newsletter />
+          <p class="newsletter-desc-text">
+            Subscribe to my newsletter to receive a curated list of useful and
+            interesting readings and resources I come across every week.
+          </p>
         </div>
       </div>
 
       <!-- Right Main Column: Links Sub-Grid -->
       <div class="links-grid-container">
-        <!-- Column 1: Work -->
+        <!-- Column 1: Dominant (Main Menu) -->
         <div class="footer-col links-col">
           <div class="nav-group">
             <span class="nav-header">Work</span>
+            <a href="/research">Research</a>
             <a href="/photography">Photography</a>
-            <a href="/films">Films</a>
+            <a href="/films">Filmmaking</a>
+            <a href="/blog">Writing</a>
           </div>
         </div>
 
-        <!-- Column 2: Recognition -->
+        <!-- Column 2: Resources -->
         <div class="footer-col links-col">
           <div class="nav-group">
-            <span class="nav-header">Recognition</span>
+            <span class="nav-header">Resources</span>
+            <a href="/resources">Curated Resources</a>
+            <a href="/research/obsidian-vault">Obsidian Vault (Notes)</a>
+            <a href="/research/second-brain">Second Brain Club</a>
+            <a href="/about">About</a>
+          </div>
+        </div>
+
+        <!-- Column 3: Work With Me -->
+        <div class="footer-col links-col">
+          <div class="nav-group">
+            <span class="nav-header">Work With Me</span>
+            <a href="/services">Services</a>
+            <a href="/fundraising">Sponsorship</a>
+          </div>
+        </div>
+
+        <!-- Column 4: Credentials -->
+        <div class="footer-col links-col">
+          <div class="nav-group">
+            <span class="nav-header">Credentials</span>
             <a href="/awards">Awards</a>
             <a href="/press">Press Mentions</a>
-            <a href="/work">Work Experience</a>
+            <a href="/experience">Experience</a>
             <a
               href="https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/cv/Abodid%20Sahoo%20-%20Photography%20&%20AI%20-%20CV.pdf"
               target="_blank"
               rel="noopener noreferrer">Resume</a
             >
-            <a href="/about">About Me</a>
-            <a href="/education">Education</a>
           </div>
         </div>
 
-        <!-- Column 3: The Lab -->
+        <!-- Column 5: Contact & Socials -->
         <div class="footer-col links-col">
           <div class="nav-group">
-            <span class="nav-header">The Lab</span>
-            <a href="/research">Research Projects</a>
-            <a href="/research-papers">Research Papers</a>
-            <a href="/research/obsidian-vault">Obsidian Vault</a>
-            <a href="/research/polaroid-hub">Polaroid Hub</a>
-          </div>
-        </div>
-
-        <!-- Column 4: Engage -->
-        <div class="footer-col links-col">
-          <div class="nav-group">
-            <span class="nav-header">Engage</span>
-            <a href="/blog">Blog</a>
-            <a href="/services">Services</a>
-            <a href="/workshops">Workshops</a>
-
-            <a href="/licensing">Licensing</a>
-          </div>
-        </div>
-
-        <!-- Column 5: Socials -->
-        <div class="footer-col links-col">
-          <div class="nav-group">
-            <span class="nav-header">Socials</span>
-            <a
-              href="https://instagram.com/abodid"
-              target="_blank"
-              rel="noopener noreferrer">Instagram</a
+            <span class="nav-header">Contact</span>
+            <a href="mailto:hello@abodid.com">Email</a>
+            <a href="https://www.instagram.com/abodid.sahoo" target="_blank"
+              >Instagram</a
             >
-            <a
-              href="https://linkedin.com/in/abodid"
-              target="_blank"
-              rel="noopener noreferrer">LinkedIn</a
+            <a href="https://uk.linkedin.com/in/abodidsahoo" target="_blank"
+              >LinkedIn</a
             >
-            <a
-              href="https://vimeo.com/abodid"
-              target="_blank"
-              rel="noopener noreferrer">Vimeo</a
-            >
-            <a
-              href="https://github.com/abodid"
-              target="_blank"
-              rel="noopener noreferrer">GitHub</a
-            >
+            <a href="https://vimeo.com/abodidsahoo" target="_blank">Vimeo</a>
+            <a href="https://github.com/abodidsahoo" target="_blank">GitHub</a>
           </div>
         </div>
       </div>
@@ -268,13 +241,17 @@ const year = new Date().getFullYear();
   /* Brand */
   .footer-logo {
     display: inline-block;
-    margin-bottom: 1rem;
+    margin-bottom: 0;
+    /* Shift logo a bit upwards and to the left */
+    margin-top: -10px;
+    margin-left: -10px;
   }
 
   .logo-img {
-    height: 140px;
+    height: 80px; /* Much smaller */
     width: auto;
     display: block;
+    opacity: 0.6; /* Slightly muted */
   }
 
   .logo-black {
@@ -286,13 +263,21 @@ const year = new Date().getFullYear();
 
   /* Newsletter */
   .section-title {
-    font-size: 0.7rem;
+    font-size: 1rem; /* Matched to .nav-header */
     text-transform: uppercase;
-    letter-spacing: 0.15em;
+    letter-spacing: 0.1em;
     font-weight: 700;
-    color: var(--sci-fi-cyan);
-    margin-bottom: 1rem;
-    max-width: 300px; /* constraining width of text */
+    color: var(--footer-text-header);
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.2rem;
+  }
+
+  .newsletter-desc-text {
+    font-size: 0.85rem;
+    color: var(--footer-text-dim);
+    margin-top: 0.8rem;
+    line-height: 1.5;
+    max-width: 320px;
   }
 
   /* Navigation Groups */

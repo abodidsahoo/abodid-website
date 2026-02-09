@@ -1,6 +1,6 @@
 import { supabase } from '../supabaseClient';
 import { isSupabaseConfigured } from './utils';
-import type { Project, PhotographyProject, BlogPost, Film, ResearchPaper } from './types';
+import type { Project, PhotographyProject, BlogPost, Film, ResearchPaper, WorkExperience, ServiceItem } from './types';
 import { featuredPhotography as mockPhotography, recentPosts as mockPosts } from '../../utils/mockData';
 
 // Mock Data for Research (from api.js)
@@ -384,4 +384,185 @@ export async function getResearchPapers(): Promise<ResearchPaper[]> { // Using a
     }
 
     return data;
+}
+
+// --- Work Experience ---
+export async function getWorkExperience(): Promise<WorkExperience[]> {
+    if (!isSupabaseConfigured() || !supabase) {
+        // Mock Data
+        return [
+            {
+                role: 'Exhibition Experience Designer',
+                company: 'Royal College of Art',
+                duration: '2023 - 2025',
+                description: 'Designed immersive physical and digital exhibition spaces for degree shows. Led the spatial planning and visitor journey for over 500 exhibits.',
+                category: 'work',
+                sort_order: 10,
+                published: true
+            },
+            {
+                role: 'Lead Photographer',
+                company: 'Royal College of Art',
+                duration: '2023 - 2025',
+                description: 'Documented high-end and creative venues including the British Film Institute, Ollama, London, Frameless, RCA Graduate shows, International Body of Art, and Flat Time House.',
+                category: 'work',
+                sort_order: 20,
+                published: true
+            },
+            {
+                role: 'Creative Producer, Director, and Editor',
+                company: 'Multiple Brands & MNCs',
+                duration: '2017 - 2021',
+                description: 'Produced content for select clients including Hermosa Art Design Studio, Wieden+Kennedy, Budweiser, Jawa Motorcycles, Pursuit of Portraits (New York), Uniqlo, and Odisha Tourism.',
+                category: 'work',
+                sort_order: 30,
+                published: true
+            },
+            {
+                role: 'Founder and Creative Director',
+                company: 'Visual Notes Creative Agency (India)',
+                duration: '2014 - 2017',
+                description: 'Led a creative agency focused on UX design, promotional content, photography, brand films, and logo design. Shutdown operations in 2017 upon relocating to Mumbai.',
+                category: 'work',
+                sort_order: 40,
+                published: true
+            },
+            {
+                role: 'MA Information Experience Design',
+                company: 'Royal College of Art',
+                duration: '2023 – 2025',
+                description: 'Exploring the intersection of data, design, and narrative. Focused on creating immersive installations and experimental interfaces that challenge traditional modes of information consumption.',
+                category: 'education',
+                sort_order: 10,
+                published: true
+            },
+            {
+                role: 'Master of Design',
+                company: 'National Institute of Design',
+                duration: '2019 - 2021',
+                description: 'Specialized in New Media Design. Developed a strong foundation in interaction design, creative coding, and user experience, culminating in projects that bridge physical and digital realms.',
+                category: 'education',
+                sort_order: 20,
+                published: true
+            },
+            {
+                role: 'Bachelor of Arts',
+                company: 'University of Creative Arts',
+                duration: '2015 - 2018',
+                description: 'Major in Film Making. Gained comprehensive experience in visual storytelling, cinematography, and post-production, laying the groundwork for a multidisciplinary creative practice.',
+                category: 'education',
+                sort_order: 30,
+                published: true
+            },
+            {
+                role: 'Apple Scholarship',
+                company: 'Royal College of Art',
+                duration: '2022',
+                description: 'Awarded a full scholarship covering the entire tuition fees of £20,000 for the MA program at the Royal College of Art.',
+                category: 'award',
+                sort_order: 10,
+                published: true
+            },
+            {
+                role: 'BSA Conference 2026',
+                company: 'University of Manchester',
+                duration: '2026',
+                description: 'Selected to present two papers at the British Sociological Association conference.',
+                category: 'conference',
+                sort_order: 20,
+                published: true
+            },
+            {
+                role: 'Cambridge Data School',
+                company: 'Cambridge University',
+                duration: '2026',
+                description: 'Participant in the Cambridge Data School program.',
+                category: 'conference',
+                sort_order: 30,
+                published: true
+            }
+        ] as WorkExperience[];
+    }
+
+    const { data, error } = await supabase
+        .from('work_experience')
+        .select('*')
+        .eq('published', true)
+        .order('sort_order', { ascending: true });
+
+    if (error) {
+        console.error('Error fetching work experience:', error);
+        return [];
+    }
+
+    return data as WorkExperience[];
+}
+
+// --- Services ---
+export async function getServices(): Promise<ServiceItem[]> {
+    if (!isSupabaseConfigured() || !supabase) {
+        return [
+            {
+                category: 'offer',
+                title: 'What I have to offer',
+                content: 'Comprehensive creative services bridging design, technology, and storytelling.',
+                items: [
+                    "Commissioned visual storytelling for brands, editorials, and projects.",
+                    "Visual narratives for publications and digital media.",
+                    "Brand identity and campaign photography.",
+                    "Intimate and honest captures of the human depth (Portrait).",
+                    "Immersive physical and digital exhibition spaces.",
+                    "UX Design and Prototyping for novel interactions."
+                ],
+                sort_order: 10,
+                published: true
+            },
+            {
+                category: 'skills',
+                title: 'Creative & Research',
+                items: [
+                    "Photography (portrait, documentary, product, events)",
+                    "Visual analysis",
+                    "Image annotation & descriptive writing",
+                    "Lighting",
+                    "Video Editing",
+                    "Metacognitive Communication",
+                    "Teaching"
+                ],
+                sort_order: 20,
+                published: true
+            },
+            {
+                category: 'tools',
+                title: 'Technical Toolkit',
+                items: [
+                    "Lightroom",
+                    "Photoshop",
+                    "Illustrator",
+                    "Premiere Pro",
+                    "DaVinci Resolve",
+                    "DSLR & mirrorless systems",
+                    "Colour grading",
+                    "Retouching",
+                    "HTML/CSS (working)",
+                    "Generative AI workflows (Midjourney, Veo)"
+                ],
+                sort_order: 30,
+                published: true
+            }
+        ] as ServiceItem[];
+    }
+
+    const { data, error } = await supabase
+        .from('services')
+        .select('*')
+        .eq('published', true)
+        .order('sort_order', { ascending: true });
+
+    if (error) {
+        console.error('Error fetching services:', error);
+        return [];
+    }
+
+    return data as ServiceItem[];
 }

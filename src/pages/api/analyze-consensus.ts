@@ -23,42 +23,53 @@ export const POST: APIRoute = async ({ request }) => {
             return new Response(JSON.stringify({ error: "Invalid input. Requires emotion data." }), { status: 400 });
         }
 
-        const systemPrompt = `
+        // BACKUP OF ORIGINAL COMPLEX PROMPT
+        const systemPromptBackup = `
 You are a precise semantic analyst. 
-Task: Compare two perspectives on an image (AI vs Human) to determine their "Consensus Score".
+Task: Compare 3 AI keywords vs 3 Human keywords to determine the "Semantic Consensus Percentage".
 
 INPUTS:
 1. AI Keywords: ${JSON.stringify(aiEmotions)}
 2. Human Keywords: ${JSON.stringify(humanEmotions)}
-3. AI Description: "${aiDescription || 'N/A'}"
-4. Human Text: "${humanText || 'N/A'}"
 
 RULES:
-1. Consensus Score (0-100): 
-   - Compare BOTH the keywords AND the descriptive text.
-   - NEVER 0 or 100. Always a realistic midway number (e.g., 15-85).
-   - High Score (>60): AI meaning is very close to Human feeling. Emotions are universally understood.
-   - Low Score (<60): AI meaning is different. Emotions are culturally complex.
-2. Gap Analysis:
-   - Explain *why* the score is what it is, citing specific differences or similarities in the text/keywords.
-3. Recommendation:
-   - If Low Score: State clearly that "Significant social data is needed to train the AI on this context."
-   - If High Score: State that "The visual semantics are universally aligned."
+1. Consensus Percentage (0-100): 
+   - 100 = Synonyms or identical emotions.
+   - 50 = Related but distinct.
+   - 0 = Opposite or unrelated.
+   - Just a number.
+2. Context Explanation (Max 2 sentences):
+   - If High Score (>60): State that "The AI model is catching up with human feeling." and briefly mention why.
+   - If Low Score (<60): State that "More social context is needed for the AI to understand." and briefly explain the divergence.
 
 Output strictly valid JSON:
 {
-    "consensus_score": 0,
-    "social_context_score": 0,
-    "gap_analysis": "string (Two sentences max)",
-    "trainability_score": 0
+    "consensus_percentage": 0,
+    "context_explanation": "string"
+}
+`;
+
+        // SIMPLIFIED PROMPT FOR TROUBLESHOOTING
+        const systemPrompt = `
+You are a helpful AI.
+AI Keywords: ${JSON.stringify(aiEmotions)}
+Human Keywords: ${JSON.stringify(humanEmotions)}
+
+Task: Write a simple 2-line summary of how these feelings relate. 
+Also provide a "consensus_percentage" (0-100) based on their similarity.
+
+Output strictly valid JSON:
+{
+    "consensus_percentage": 80,
+    "context_explanation": "Your 2-line summary here."
 }
 `;
 
         const userPrompt = `
-AI FELT: "${aiDescription || aiEmotions.join(', ')}"
-HUMANS FELT: "${humanText || humanEmotions.join(', ')}"
+AI: [${aiEmotions.join(', ')}]
+HUMAN: [${humanEmotions.join(', ')}]
 
-Compare these two emotional reactions.
+Compare.
 `;
 
         // STRATEGY 1: OpenRouter Models (Optimized for Speed)
@@ -141,7 +152,7 @@ function parseJSON(text: string) {
         parsed = JSON.parse(cleanedText);
     } catch (e) {
         // Fallback: Try to find JSON object structure
-        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        const jsonMatch = text.match(/\{.*\}/);
         if (jsonMatch) {
             try {
                 parsed = JSON.parse(jsonMatch[0]);
@@ -153,10 +164,13 @@ function parseJSON(text: string) {
         }
     }
 
-    // Defaults for Consensus
-    if (parsed.consensus_score === undefined) parsed.consensus_score = 50;
-    if (!parsed.gap_analysis) parsed.gap_analysis = "Analysis incomplete. Social context required.";
-    if (!parsed.social_context_score) parsed.social_context_score = 100 - parsed.consensus_score;
+    // Defaults for Consensus (Refined 3v3)
+    if (parsed.consensus_percentage === undefined) parsed.consensus_percentage = 50;
+    if (!parsed.context_explanation) parsed.context_explanation = "More social context is needed for the AI to understand.";
+
+    // Remove old fields
+    delete parsed.consensus_score;
+    delete parsed.gap_analysis;
 
     return parsed;
 }

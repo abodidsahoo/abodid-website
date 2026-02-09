@@ -67,43 +67,8 @@ const FALLBACK_IMAGES = [
     "https://images.unsplash.com/photo-1507608616759-54f48f0af0ee?q=80&w=800&auto=format&fit=crop", // Rain on glass
 ];
 
-const MOCK_AI_DATA = {
-    "default": {
-        ai_keywords: ["Calculated Symmetry", "Optimal Contrast", "Structural Calm", "Inorganic Peace", "Low Entropy State"],
-        trainability_score: 45,
-        analysis: "The machine detects strong structural lines and low ambiguity, contrasting sharply with the chaotic emotional variance of the human feedback.",
-        ai_feeling: "LOGIC STABILITY",
-        model_used: "Gemini 1.5 Pro + GPT-4o Vision"
-    },
-    0: {
-        ai_keywords: ["Fluid Coherence", "Spectral Peace", "Non-Rigid Flow", "Subsurface Glow", "Bioluminescent Calm"],
-        trainability_score: 62,
-        analysis: "Visual features suggest a state of flow. The machine registers a high probability of 'tranquility' based on spectral softness.",
-        ai_feeling: "LIQUID HARMONY",
-        model_used: "Gemini 1.5 Flash"
-    },
-    1: {
-        ai_keywords: ["Decay Vectors", "Static Isolation", "Concrete Solitude", "Grid Rigidity", "Desaturated Melancholy"],
-        trainability_score: 28,
-        analysis: "The AI interprets the lack of color and rigid geometry as a state of abandonment. It detects structure, but no life signs.",
-        ai_feeling: "STRUCTURAL MELANCHOLY",
-        model_used: "GPT-4o Vision"
-    },
-    2: {
-        ai_keywords: ["Recursive Joy", "High Entropy Delight", "Organic Loop", "Growth Algorithms", "Green Saturation"],
-        trainability_score: 75,
-        analysis: "The complex fractal patterns trigger a positive feedback loop in the pattern recognition layer. The machine describes this density as 'richness'.",
-        ai_feeling: "FRACTAL EUPHORIA",
-        model_used: "Gemini 1.5 Pro"
-    },
-    3: {
-        ai_keywords: ["Undefined Variance", "Focus Null", "Emotional Projection", "Blur Gradient", "System Confusion"],
-        trainability_score: 15,
-        analysis: "Pure abstraction. The machine fails to find a focal point and flags this entry as 'emotionally volatile' due to lack of defined edges.",
-        ai_feeling: "INPUT UNCERTAINTY",
-        model_used: "Ensemble: Gemini + Claude 3"
-    }
-};
+// MOCK DATA REMOVED PER USER REQUEST
+const MOCK_AI_DATA = null;
 
 const containerVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -498,7 +463,7 @@ export default function PunctumGame() {
                         userContext: userInput
                     })
                 }),
-                new Promise((_, reject) => setTimeout(() => reject(new Error("Analysis timed out (30s). The neural link was severed.")), 30000))
+                new Promise((_, reject) => setTimeout(() => reject(new Error("Analysis timed out (120s). The neural link was severed.")), 120000))
             ]);
 
             if (!visionRes.ok) {
@@ -542,37 +507,31 @@ export default function PunctumGame() {
                     displayMessage = parsedError.message || displayMessage;
 
                     if (parsedError.google_error) {
-                        detailedLogs.push(`Google: ${parsedError.google_error}`);
+                        // Parse specific error codes
+                        if (displayMessage.includes("429") || displayMessage.includes("Rate Limit")) {
+                            displayMessage = "System busy (Rate Limit). Please try again in a few seconds.";
+                        } else if (displayMessage.includes("402") || displayMessage.includes("Insufficient Credit")) {
+                            displayMessage = "AI Resource Limit Reached. Please check provider credits.";
+                        } else if (displayMessage.includes("401") || displayMessage.includes("Authentication Failed")) {
+                            displayMessage = "System Configuration Error (Auth Failed).";
+                        }
                     }
-                    if (parsedError.open_router_errors && Array.isArray(parsedError.open_router_errors)) {
-                        parsedError.open_router_errors.forEach(e => detailedLogs.push(`Provider: ${e}`));
+
+                    setError(displayMessage);
+                    addLog(`[CRITICAL] ${displayMessage}`, "error");
+                    detailedLogs.forEach(log => addLog(`[DEBUG] ${log}`, "error"));
+
+                    // Auto-open feedback modal for non-transient errors
+                    if (!displayMessage.includes("System busy")) {
+                        setTimeout(() => {
+                            const feedbackMsg = `Analysis Failed: ${displayMessage}\n\nDetails:\n${detailedLogs.join('\n')}`;
+                            openFeedback('error', feedbackMsg);
+                        }, 2000);
                     }
                 }
             } catch (e) {
-                // Not JSON, keep original message
-
-                // Parse specific error codes
-                if (displayMessage.includes("429") || displayMessage.includes("Rate Limit")) {
-                    displayMessage = "System busy (Rate Limit). Please try again in a few seconds.";
-                } else if (displayMessage.includes("402") || displayMessage.includes("Insufficient Credit")) {
-                    displayMessage = "AI Resource Limit Reached. Please check provider credits.";
-                } else if (displayMessage.includes("401") || displayMessage.includes("Authentication Failed")) {
-                    displayMessage = "System Configuration Error (Auth Failed).";
-                }
+                // If not JSON, we already have displayMessage fallback
             }
-
-            setError(displayMessage);
-            addLog(`[CRITICAL] ${displayMessage}`, "error");
-            detailedLogs.forEach(log => addLog(`[DEBUG] ${log}`, "error"));
-
-            // Auto-open feedback modal for non-transient errors
-            if (!displayMessage.includes("System busy")) {
-                setTimeout(() => {
-                    const feedbackMsg = `Analysis Failed: ${displayMessage}\n\nDetails:\n${detailedLogs.join('\n')}`;
-                    openFeedback('error', feedbackMsg);
-                }, 2000);
-            }
-
         } finally {
             setLoading(false);
             setCurrentStatus("");
@@ -649,15 +608,13 @@ export default function PunctumGame() {
             // Use user input if available, otherwise join top comments
             const humanDescriptionText = userInput || comments.slice(0, 3).map(c => c.feeling_text).join(". ");
 
-            // DIRECT FETCH (No Timeout Race)
+            // DIRECT FETCH (Refined 3v3 Analysis)
             const consensusRes = await fetch('/api/analyze-consensus', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     aiEmotions: aiKeywords,
-                    humanEmotions: humanKeywords,
-                    aiDescription: aiDescriptionText,
-                    humanText: humanDescriptionText
+                    humanEmotions: humanKeywords
                 })
             });
 
@@ -668,14 +625,14 @@ export default function PunctumGame() {
 
             const consensusData = await consensusRes.json();
             addLog(`[SYNTHESIS] Success. Model: ${consensusData.model_used}`, "success");
-            addLog(`[SYNTHESIS] Gap Analysis Complete.`, "info");
+            addLog(`[SYNTHESIS] Semantic Match: ${consensusData.consensus_percentage}%`, "info");
 
             // Update Report with Synthesis Data
             setAiReport(prev => ({
                 ...prev,
-                trainability_score: consensusData.trainability_score || 0,
-                consensus_score: consensusData.consensus_score || 0,
-                analysis: consensusData.gap_analysis,
+                consensus_score: consensusData.consensus_percentage || 0,
+                // Map context_explanation to the 'analysis' field expected by UI consumers
+                analysis: consensusData.context_explanation,
                 model_used: `${prev.model_used} + ${consensusData.model_used}`,
             }));
 
@@ -695,8 +652,7 @@ export default function PunctumGame() {
 
     // SMART RETRY HANDLER
     const handleRetry = () => {
-        if (!error) return;
-        setError(null); // Clear error
+        setError(null); // Clear error if any
 
         // Re-trigger the current step's function
         if (step === 'analysis-ai') {
@@ -1637,6 +1593,37 @@ export default function PunctumGame() {
                                                 {step === 'analysis-synthesis' && `[Divergence Check...]`}
                                             </div>
 
+                                            {/* MANUAL RESTART BRIDGE - For slow connections/model hangs */}
+                                            {progress > 50 && (
+                                                <motion.div
+                                                    initial={{ opacity: 0 }}
+                                                    animate={{ opacity: 1 }}
+                                                    style={{ marginTop: '30px' }}
+                                                >
+                                                    <p style={{ fontSize: '10px', color: '#444', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                                                        Taking longer than expected?
+                                                    </p>
+                                                    <button
+                                                        onClick={handleRetry}
+                                                        className="hover-btn"
+                                                        style={{
+                                                            padding: '10px 24px',
+                                                            background: 'rgba(255, 255, 255, 0.05)',
+                                                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                                                            color: '#888',
+                                                            borderRadius: '100px',
+                                                            fontSize: '11px',
+                                                            cursor: 'pointer',
+                                                            transition: 'all 0.3s'
+                                                        }}
+                                                        onMouseOver={e => { e.target.style.background = 'rgba(255,255,255,0.1)'; e.target.style.color = '#fff'; }}
+                                                        onMouseOut={e => { e.target.style.background = 'rgba(255,255,255,0.05)'; e.target.style.color = '#888'; }}
+                                                    >
+                                                        FORCE RESTART STEP
+                                                    </button>
+                                                </motion.div>
+                                            )}
+
                                             {/* REAL-TIME STATUS - Added per user request */}
                                             {/* REAL-TIME TERMINAL LOG */}
                                             <div
@@ -1892,35 +1879,19 @@ export default function PunctumGame() {
 
                                                 <div style={{
                                                     fontSize: '120px', fontWeight: 800, lineHeight: 1,
-                                                    color: consensusData?.consensus_score > 50 ? '#00ff66' : '#ff4444',
+                                                    color: consensusData?.consensus_percentage > 50 ? '#00ff66' : '#ff4444',
                                                     textShadow: '0 0 50px rgba(0,0,0,0.5)', fontFamily: 'monospace'
                                                 }}>
-                                                    {consensusData?.consensus_score}%
+                                                    {consensusData?.consensus_percentage}%
                                                 </div>
 
-                                                {/* Gap Analysis */}
+                                                {/* Context Explanation */}
                                                 <div style={{
                                                     fontSize: '18px', maxWidth: '600px', textAlign: 'center',
                                                     color: '#fff', fontFamily: 'monospace',
                                                     margin: '30px 0', lineHeight: '1.6'
                                                 }}>
-                                                    "{consensusData?.gap_analysis}"
-                                                </div>
-
-                                                {/* Social Context Score */}
-                                                <div style={{
-                                                    fontSize: '12px', color: '#888', letterSpacing: '0.1em',
-                                                    border: '1px solid #333', padding: '10px 20px', borderRadius: '50px',
-                                                    fontFamily: 'monospace', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px'
-                                                }}>
-                                                    <div>
-                                                        UNIVERSAL RESONANCE: <span style={{ color: '#00f3ff' }}>{consensusData?.social_context_score || 0}%</span>
-                                                    </div>
-                                                    <div style={{ fontSize: '10px', color: '#555' }}>
-                                                        {(consensusData?.social_context_score || 0) > 60
-                                                            ? "(LOW CONTEXT REQUIRED - EASILY UNDERSTOOD)"
-                                                            : "(HIGH CONTEXT REQUIRED - COMPLEX EMOTION)"}
-                                                    </div>
+                                                    {consensusData?.context_explanation}
                                                 </div>
 
                                                 <button

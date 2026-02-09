@@ -18,7 +18,8 @@
 
     /* Grainy Glitch Palette */
     --color-glitch-red: #FF4D30;
-    --color-glitch-dark: #111111;
+    --color-glitch-dark: #050505;
+    /* Matte Black User Request */
     --color-brand-red: #a30021;
     /* Menu Red */
     --color-glitch-text: #E0E0E0;
@@ -31,13 +32,14 @@
      * THEME: ARCADE (Dark/Default) 
      * Tech-noir, high contrast, deep blacks, glowing accents.
      */
-    --bg-canvas: #0a0a0a;
+    --bg-canvas: #050505;
+    /* Matte Black User Request */
     /* Main page background */
-    --bg-surface: #141414;
+    --bg-surface: #0f0f0f;
     /* Cards, sidebars, heavy UI elements */
-    --bg-surface-hover: #1f1f1f;
+    --bg-surface-hover: #1a1a1a;
     /* Interactive states */
-    --bg-overlay: rgba(0, 0, 0, 0.6);
+    --bg-overlay: rgba(0, 0, 0, 0.8);
     /* Backdrop for modals/overlays */
 
     --text-primary: #ffffff;
@@ -62,10 +64,12 @@
     /* Primary action color */
 
     /* Grid & Effect Tokens */
-    --grid-color-1: rgba(255, 255, 255, 0.10);
-    --grid-color-2: rgba(255, 255, 255, 0.015);
+    --grid-color-1: rgba(255, 255, 255, 0.05);
+    /* Darker Grid */
+    --grid-color-2: rgba(255, 255, 255, 0.008);
+    /* Darker Grid */
 
-    --bg-color: #0a0a0a;
+    --bg-color: #050505;
 
     /* Typography Scale (Fluid) */
     --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
