@@ -23,32 +23,6 @@ export const POST: APIRoute = async ({ request }) => {
             return new Response(JSON.stringify({ error: "Invalid input. Requires emotion data." }), { status: 400 });
         }
 
-        // BACKUP OF ORIGINAL COMPLEX PROMPT
-        const systemPromptBackup = `
-You are a precise semantic analyst. 
-Task: Compare 3 AI keywords vs 3 Human keywords to determine the "Semantic Consensus Percentage".
-
-INPUTS:
-1. AI Keywords: ${JSON.stringify(aiEmotions)}
-2. Human Keywords: ${JSON.stringify(humanEmotions)}
-
-RULES:
-1. Consensus Percentage (0-100): 
-   - 100 = Synonyms or identical emotions.
-   - 50 = Related but distinct.
-   - 0 = Opposite or unrelated.
-   - Just a number.
-2. Context Explanation (Max 2 sentences):
-   - If High Score (>60): State that "The AI model is catching up with human feeling." and briefly mention why.
-   - If Low Score (<60): State that "More social context is needed for the AI to understand." and briefly explain the divergence.
-
-Output strictly valid JSON:
-{
-    "consensus_percentage": 0,
-    "context_explanation": "string"
-}
-`;
-
         // SIMPLIFIED PROMPT FOR TROUBLESHOOTING
         const systemPrompt = `
 You are a helpful AI.
@@ -56,11 +30,11 @@ AI Keywords: ${JSON.stringify(aiEmotions)}
 Human Keywords: ${JSON.stringify(humanEmotions)}
 
 Task: Write a simple 2-line summary of how these feelings relate. 
-Also provide a "consensus_percentage" (0-100) based on their similarity.
+Also provide a "consensus_percentage" (an integer 0-100) based on their similarity.
 
 Output strictly valid JSON:
 {
-    "consensus_percentage": 80,
+    "consensus_percentage": number,
     "context_explanation": "Your 2-line summary here."
 }
 `;
