@@ -143,46 +143,102 @@ export const useHandTracking = ({
     const onResults = (results: Results) => {
         // Draw landmarks on canvas for visual feedback
         if (canvasRef.current && results.image) {
-            const ctx = canvasRef.current.getContext('2d');
+            const ctx = canvasRef.current.getContext('2d', { willReadFrequently: true });
             if (ctx) {
-                canvasRef.current.width = results.image.width;
-                canvasRef.current.height = results.image.height;
+                // Set smaller internal resolution for performance during pixel processing
+                const displayWidth = 480;
+                const displayHeight = (results.image.height / results.image.width) * displayWidth;
 
-                // Draw mirrored video feed
+                if (canvasRef.current.width !== displayWidth) {
+                    canvasRef.current.width = displayWidth;
+                    canvasRef.current.height = displayHeight;
+                }
+
+                // 1. Draw mirrored video feed
                 ctx.save();
                 ctx.scale(-1, 1);
                 ctx.translate(-canvasRef.current.width, 0);
                 ctx.drawImage(results.image, 0, 0, canvasRef.current.width, canvasRef.current.height);
                 ctx.restore();
 
-                // Draw hand landmarks if detected
+                // 2. APPLY STYLIZED LINE ART EFFECT (Thresholding)
+                const imageData = ctx.getImageData(0, 0, canvasRef.current.width, canvasRef.current.height);
+                const data = imageData.data;
+                const threshold = 100; // Adjust for "line art" sensitivity
+
+                for (let i = 0; i < data.length; i += 4) {
+                    const r = data[i];
+                    const g = data[i + 1];
+                    const b = data[i + 2];
+                    const gray = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+
+                    // High contrast B&W / Line art feel
+                    // We want "just a bit" visible but mostly dark/minimal
+                    const val = gray > threshold ? 45 : 15;
+                    data[i] = data[i + 1] = data[i + 2] = val;
+                }
+                ctx.putImageData(imageData, 0, 0);
+
+                // 3. Draw hand landmarks if detected
                 if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
                     const landmarks = results.multiHandLandmarks[0];
+                    const w = canvasRef.current.width;
+                    const h = canvasRef.current.height;
 
-                    // Draw connections
-                    ctx.strokeStyle = '#00FF00';
-                    ctx.lineWidth = 2;
-
-                    // Draw all landmarks as circles
-                    landmarks.forEach(landmark => {
-                        const x = (1 - landmark.x) * canvasRef.current!.width;
-                        const y = landmark.y * canvasRef.current!.height;
-
-                        ctx.beginPath();
-                        ctx.arc(x, y, 5, 0, 2 * Math.PI);
-                        ctx.fillStyle = '#00FF00';
-                        ctx.fill();
+                    // Helper to get pixel coords
+                    const getCoords = (idx: number) => ({
+                        x: (1 - landmarks[idx].x) * w,
+                        y: landmarks[idx].y * h
                     });
 
-                    // Highlight index finger tip (landmark 8)
-                    const indexTip = landmarks[8];
-                    const tipX = (1 - indexTip.x) * canvasRef.current.width;
-                    const tipY = indexTip.y * canvasRef.current.height;
+                    // Define hand connections for "finger outlines"
+                    const connections = [
+                        [0, 1], [1, 2], [2, 3], [3, 4],       // Thumb
+                        [0, 5], [5, 6], [6, 7], [7, 8],       // Index
+                        [0, 9], [9, 10], [10, 11], [11, 12],  // Middle
+                        [0, 13], [13, 14], [14, 15], [15, 16], // Ring
+                        [0, 17], [17, 18], [18, 19], [19, 20], // Pinky
+                        [5, 9], [9, 13], [13, 17]             // Palm
+                    ];
 
+                    // Draw Connections (White Outlines)
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+                    ctx.lineWidth = 1.5;
                     ctx.beginPath();
-                    ctx.arc(tipX, tipY, 10, 0, 2 * Math.PI);
-                    ctx.fillStyle = '#FF00FF';
-                    ctx.fill();
+                    connections.forEach(([i, j]) => {
+                        const start = getCoords(i);
+                        const end = getCoords(j);
+                        ctx.moveTo(start.x, start.y);
+                        ctx.lineTo(end.x, end.y);
+                    });
+                    ctx.stroke();
+
+                    // Draw all landmarks (Yellow Dots)
+                    landmarks.forEach((_, idx) => {
+                        const { x, y } = getCoords(idx);
+                        ctx.beginPath();
+                        // Smaller joints
+                        const isMain = [0, 4, 8, 12, 16, 20].includes(idx);
+                        ctx.arc(x, y, isMain ? 3 : 2, 0, 2 * Math.PI);
+                        ctx.fillStyle = '#FFD700'; // Bright Golden/Yellow
+                        ctx.fill();
+
+                        // Subtle glow
+                        if (isMain) {
+                            ctx.shadowBlur = 10;
+                            ctx.shadowColor = '#FFD700';
+                            ctx.fill();
+                            ctx.shadowBlur = 0;
+                        }
+                    });
+
+                    // Extra highlight for Index Tip (Control Point)
+                    const tip = getCoords(8);
+                    ctx.beginPath();
+                    ctx.arc(tip.x, tip.y, 6, 0, 2 * Math.PI);
+                    ctx.strokeStyle = '#FFD700';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
                 }
             }
         }

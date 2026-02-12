@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useHandTracking } from '../../hooks/hand-tracking-test/useHandTracking';
-import { useCardPhysics } from '../../hooks/hand-tracking-test/useCardPhysics';
-import HandTrackingCardStacker from './HandTrackingCardStacker';
+import { useHandTracking } from '../../hooks/useHandTracking';
+import { useCardPhysics } from '../../hooks/useCardPhysics';
+import CardStacker from '../CardStacker';
 
 const HandTrackingDemo = ({ images }) => {
     const [handControlEnabled, setHandControlEnabled] = useState(false);
@@ -9,30 +9,30 @@ const HandTrackingDemo = ({ images }) => {
 
     console.log('🎬 HandTrackingDemo rendering with', images?.length || 0, 'images');
 
-    const { stack, spawnCardFromGesture } = useCardPhysics({
+    // 1. Unified Physics
+    const { stack, lastAction, containerRef, spawnCardFromGesture } = useCardPhysics({
         initialImages: images,
-        isActive: true  // Mouse always active
+        isActive: true // Mouse always active in demo
     });
 
-    // Create ref to always have latest spawn function
+    // Create ref for gesture callback to always have latest spawn function
     const spawnRef = useRef(spawnCardFromGesture);
     useEffect(() => {
         spawnRef.current = spawnCardFromGesture;
     }, [spawnCardFromGesture]);
 
+    // 2. Hand Tracking Hook
     const {
         videoRef,
         canvasRef,
         onboardingState,
-        isTracking,
-        handDetected
     } = useHandTracking({
         onGesture: (dx, dy, angle) => {
-            console.log('👋 Hand gesture detected!', { dx, dy, angle });
+            console.log('👋 Demo gesture!', { dx, dy, angle });
             spawnRef.current(dx, dy, angle);
         },
         threshold: 150,
-        isActive: handControlEnabled  // Only active when enabled
+        isActive: handControlEnabled
     });
 
     // Track calibration progress
@@ -96,41 +96,17 @@ const HandTrackingDemo = ({ images }) => {
                     ) : (
                         <>
                             <span className="icon">✋</span>
-                            <span className="text">Click here to Activate Gesture Control</span>
+                            <span className="text">Activate Gesture Control</span>
                         </>
                     )}
                 </button>
-                {!handControlEnabled && (
-                    <p className="gesture-hint">
-                        Control the movement of cards with your hands
-                    </p>
-                )}
-                {handControlEnabled && onboardingState === 'ready' && (
-                    <p className="gesture-status active">
-                        ✓ {getStatusMessage()}
-                    </p>
-                )}
-            </div>
 
-            {/* Small Camera Preview Window - Keep visible when hand control enabled */}
-            {handControlEnabled && (
-                <div className="camera-preview">
-                    <video
-                        ref={videoRef}
-                        autoPlay
-                        playsInline
-                        muted
-                        style={{ display: 'none' }}
-                    />
-                    <canvas
-                        ref={canvasRef}
-                        className="preview-canvas"
-                    />
-                    <div className="preview-status">
-                        <div className="status-dot pulsing"></div>
-                        <span>{getStatusMessage()}</span>
+                {handControlEnabled && (
+                    <div className="status-indicator">
+                        <div className={`status-dot ${onboardingState === 'ready' ? 'ready' : 'waiting'}`} />
+                        <span className="status-text">{getStatusMessage()}</span>
                         {onboardingState === 'calibrating' && (
-                            <div className="calibration-bar">
+                            <div className="calibration-track">
                                 <div
                                     className="calibration-fill"
                                     style={{ width: `${calibrationProgress}%` }}
@@ -138,108 +114,135 @@ const HandTrackingDemo = ({ images }) => {
                             </div>
                         )}
                     </div>
+                )}
+            </div>
+
+            {/* Small Camera Preview Window */}
+            {handControlEnabled && (
+                <div className="camera-preview-window">
+                    <video ref={videoRef} autoPlay playsInline muted style={{ display: 'none' }} />
+                    <canvas ref={canvasRef} className="preview-canvas" />
+                    <div className="preview-status">
+                        <div className="status-dot pulsing"></div>
+                        <span>{getStatusMessage()}</span>
+                    </div>
                 </div>
             )}
 
-            {/* Card Stacker - Always visible, works with both mouse and hand gestures */}
-            <HandTrackingCardStacker
+            {/* Test Card Stacker - PASSIVE VERSION */}
+            <CardStacker
                 images={images}
                 anchorX="50%"
                 anchorY="50%"
                 active={true}
                 stack={stack}
-                lastAction="add"
+                lastAction={lastAction}
+                containerRef={containerRef}
             />
 
             <style>{`
                 .hand-tracking-demo {
-                    position: fixed;
-                    top: 0;
-                    left: 0;
                     width: 100vw;
                     height: 100vh;
-                    background: #000;
+                    background-color: #000;
+                    color: #fff;
+                    font-family: 'Space Mono', monospace;
                     overflow: hidden;
+                    position: relative;
                 }
 
-                /* Gesture Control Panel */
                 .gesture-control-panel {
                     position: fixed;
                     top: 32px;
                     right: 32px;
-                    z-index: 50;
-                    text-align: right;
+                    z-index: 1000;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: flex-end;
+                    gap: 16px;
                 }
 
                 .gesture-toggle {
+                    background: rgba(0, 0, 0, 0.8);
+                    border: 1px solid rgba(255, 255, 255, 0.4);
+                    padding: 12px 24px;
+                    color: #fff;
+                    border-radius: 8px;
+                    cursor: pointer;
                     display: flex;
                     align-items: center;
                     gap: 12px;
-                    padding: 16px 28px;
-                    font-size: 1rem;
-                    font-weight: 600;
-                    font-family: inherit;
-                    background: rgba(255, 255, 255, 0.08);
-                    border: 2px solid rgba(255, 255, 255, 0.2);
-                    border-radius: 50px;
-                    color: white;
-                    cursor: pointer;
-                    backdrop-filter: blur(10px);
+                    font-family: 'Space Mono', monospace;
                     transition: all 0.3s ease;
-                    white-space: nowrap;
+                    backdrop-filter: blur(10px);
                 }
 
                 .gesture-toggle:hover {
-                    background: rgba(255, 255, 255, 0.15);
-                    border-color: rgba(255, 255, 255, 0.4);
-                    transform: translateY(-2px);
-                    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+                    border-color: rgba(255, 255, 255, 0.8);
+                    background: rgba(255, 255, 255, 0.1);
                 }
 
                 .gesture-toggle.active {
-                    background: rgba(76, 175, 80, 0.2);
-                    border-color: rgba(76, 175, 80, 0.5);
+                    border-color: rgba(76, 175, 80, 0.6);
+                    background: rgba(76, 175, 80, 0.1);
                 }
 
-                .gesture-toggle.active:hover {
-                    background: rgba(76, 175, 80, 0.3);
+                .status-indicator {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    background: rgba(0, 0, 0, 0.6);
+                    padding: 8px 16px;
+                    border-radius: 20px;
+                    font-size: 0.8rem;
+                    position: relative;
                 }
 
-                .gesture-toggle .icon {
-                    font-size: 1.5rem;
+                .status-dot {
+                    width: 8px;
+                    height: 8px;
+                    border-radius: 50%;
                 }
 
-                .gesture-hint {
-                    margin-top: 8px;
-                    font-size: 0.85rem;
-                    color: rgba(255, 255, 255, 0.6);
-                    font-family: inherit;
+                .status-dot.waiting { background: #ff9800; animation: pulse 1s infinite; }
+                .status-dot.ready { background: #4caf50; }
+
+                .calibration-track {
+                    position: absolute;
+                    bottom: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 2px;
+                    background: rgba(255, 255, 255, 0.1);
+                    border-radius: 0 0 20px 20px;
+                    overflow: hidden;
                 }
 
-                .gesture-status {
-                    margin-top: 8px;
-                    font-size: 0.9rem;
-                    color: rgba(76, 175, 80, 1);
-                    font-family: inherit;
-                    font-weight: 600;
+                .calibration-fill {
+                    height: 100%;
+                    background: #4caf50;
+                    transition: width 0.1s linear;
                 }
 
                 /* Small Camera Preview Window */
-                .camera-preview {
+                .camera-preview-window {
                     position: fixed;
                     bottom: 32px;
                     right: 32px;
-                    width: 320px;
-                    height: 240px;
-                    z-index: 100;
+                    width: 240px;
+                    height: 180px;
+                    z-index: 1000;
                     background: rgba(0, 0, 0, 0.9);
-                    border: 2px solid rgba(255, 255, 255, 0.2);
-                    border-radius: 16px;
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    border-radius: 12px;
                     overflow: hidden;
                     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
                     backdrop-filter: blur(10px);
                 }
 
+                .camera-preview-window video {
+                    display: none;
+                }
                 .preview-canvas {
                     width: 100%;
                     height: 100%;
@@ -251,68 +254,25 @@ const HandTrackingDemo = ({ images }) => {
                     bottom: 0;
                     left: 0;
                     right: 0;
-                    padding: 12px 16px;
+                    padding: 8px 12px;
                     background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
-                    color: white;
-                    font-size: 0.85rem;
-                    font-weight: 600;
                     display: flex;
                     align-items: center;
                     gap: 8px;
-                }
-
-                .status-dot {
-                    width: 8px;
-                    height: 8px;
-                    border-radius: 50%;
-                    background: #4CAF50;
+                    font-size: 0.7rem;
                 }
 
                 .status-dot.pulsing {
                     animation: pulse 2s infinite;
+                    width: 6px;
+                    height: 6px;
+                    border-radius: 50%;
+                    background: #4CAF50;
                 }
 
                 @keyframes pulse {
                     0%, 100% { opacity: 1; transform: scale(1); }
-                    50% { opacity: 0.6; transform: scale(1.2); }
-                }
-
-                .calibration-bar {
-                    position: absolute;
-                    bottom: 0;
-                    left: 0;
-                    right: 0;
-                    height: 4px;
-                    background: rgba(255, 255, 255, 0.2);
-                }
-
-                .calibration-fill {
-                    height: 100%;
-                    background: linear-gradient(90deg, #00BCD4, #4CAF50);
-                    transition: width 0.1s linear;
-                }
-
-                @media (max-width: 768px) {
-                    .gesture-control-panel {
-                        top: 16px;
-                        right: 16px;
-                    }
-
-                    .gesture-toggle {
-                        padding: 12px 20px;
-                        font-size: 0.9rem;
-                    }
-
-                    .gesture-toggle .icon {
-                        font-size: 1.2rem;
-                    }
-
-                    .camera-preview {
-                        bottom: 16px;
-                        right: 16px;
-                        width: 240px;
-                        height: 180px;
-                    }
+                    50% { opacity: 0.5; transform: scale(1.2); }
                 }
             `}</style>
         </div>
