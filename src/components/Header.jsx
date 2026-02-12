@@ -182,9 +182,9 @@ const Header = () => {
                 .fixed-nav {
                     position: fixed; top: 0; left: 0; width: 100%;
                     z-index: 10005; /* Highest Priority */
-                    background: rgba(5, 5, 5, 0.85);
+                    background: rgba(163, 0, 33, 0.92);
                     backdrop-filter: blur(12px);
-                    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.18);
                 }
                 .nav-grid {
                     display: grid;
@@ -204,7 +204,7 @@ const Header = () => {
                 
                 .mobile-breadcrumbs-row {
                     display: none; padding: 0.5rem 4vw 0.5rem; width: 100%;
-                    background: rgba(5, 5, 5, 0.95); color: rgba(255, 255, 255, 0.9);
+                    background: rgba(163, 0, 33, 0.95); color: rgba(255, 255, 255, 0.95);
                 }
 
                 .logo-image-link {

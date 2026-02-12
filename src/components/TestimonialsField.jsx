@@ -179,7 +179,6 @@ const TestimonialsField = ({ testimonials = [] }) => {
                 justifyContent: 'center',
                 alignItems: 'center',
                 fontFamily: '"Inconsolata", monospace',
-                fontFamily: '"Inconsolata", monospace',
                 // Mask removed as requested
             }}
         >
