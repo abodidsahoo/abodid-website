@@ -321,5 +321,18 @@ export const useCardPhysics = ({ initialImages, isActive = true }: UseCardPhysic
         return () => window.removeEventListener('mousemove', handleMove);
     }, [isActive]);
 
-    return { stack, lastAction, containerRef };
+    // --- 6. GESTURES ---
+    const spawnCardFromGesture = (dx: number, dy: number, angle: number) => {
+        setLastAction('add');
+
+        // Gesture velocity based spawn
+        const spawnDist = 1200;
+        const ix = -Math.cos(angle) * spawnDist;
+        const iy = -Math.sin(angle) * spawnDist;
+
+        console.log('🚀 GESTURE SPANNING CARD...', { dx, dy, angle, ix, iy });
+        attemptSpawn(true, { x: ix, y: iy });
+    };
+
+    return { stack, lastAction, containerRef, spawnCardFromGesture };
 };

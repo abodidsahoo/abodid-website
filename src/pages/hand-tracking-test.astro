@@ -1,0 +1,66 @@
+---
+export const prerender = false;
+import HandTrackingDemo from "../components/hand-tracking-test/HandTrackingDemo.jsx";
+import { getFeaturedPhotography } from "../lib/api";
+
+const pageTitle = "Hand Tracking Test";
+
+// Fetch real photos from Supabase (same as landing page)
+const featuredPhotography = await getFeaturedPhotography();
+
+// Transform to match the format expected by the component
+const images = featuredPhotography.map((photo) => ({
+    image: photo.image, // cover_image from Supabase
+    title: photo.title,
+}));
+
+// Fallback to sample images if database is empty or fails
+if (images.length === 0) {
+    images.push(
+        {
+            image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800",
+            title: "Mountain Landscape",
+        },
+        {
+            image: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800",
+            title: "Forest Path",
+        },
+        {
+            image: "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=800",
+            title: "Ocean Waves",
+        },
+    );
+}
+---
+
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>{pageTitle}</title>
+        <style>
+            /* Complete reset for full-screen experience */
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            html,
+            body {
+                width: 100%;
+                height: 100%;
+                overflow: hidden;
+                background: #000;
+            }
+
+            body {
+                font-family: "Space Mono", monospace;
+            }
+        </style>
+    </head>
+    <body>
+        <HandTrackingDemo client:only="react" images={images} />
+    </body>
+</html>

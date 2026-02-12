@@ -1,22 +1,19 @@
+// ISOLATED COPY of CardStacker for hand tracking testing
+// Receives stack from parent instead of creating its own
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useCardPhysics } from '../hooks/useCardPhysics';
 
-const CardStacker = ({
+const HandTrackingCardStacker = ({
     images,
-    anchorX = '65%',
-    anchorY = '68%',
+    anchorX = '50%',
+    anchorY = '50%',
     active = true,
-    stack: propStack,
-    lastAction: propLastAction,
-    containerRef: propContainerRef
+    stack = [],  // Receive stack from parent
+    lastAction = 'add',  // Receive lastAction from parent
 }) => {
-    const localPhysics = useCardPhysics({ initialImages: images, isActive: active });
+    const containerRef = React.useRef(null);
 
-    // Choose between prop-provided stack/action or local hook
-    const stack = propStack || localPhysics.stack;
-    const lastAction = propLastAction || localPhysics.lastAction;
-    const containerRef = propContainerRef || localPhysics.containerRef;
+    console.log('🎴 HandTrackingCardStacker rendering with', stack.length, 'cards');
 
     return (
         <div
@@ -30,9 +27,6 @@ const CardStacker = ({
             <div className="stack-anchor" aria-hidden="true">
                 <AnimatePresence custom={lastAction}>
                     {stack.map(card => {
-                        // Determine initial state
-                        // If card has explicit initialPos (Mouse spawn), use it.
-                        // Else use default Fall from Top (Scroll/System spawn).
                         const initialAnim = card.initialPos ? {
                             opacity: 0,
                             scale: 0.9,
@@ -43,7 +37,7 @@ const CardStacker = ({
                             opacity: 0,
                             scale: 0.9,
                             x: 0,
-                            y: -1200, // Default Fall
+                            y: -1200,
                             rotate: (Math.random() - 0.5) * 15
                         };
 
@@ -100,9 +94,12 @@ const CardStacker = ({
             <style>{`
                 .card-stacker-container {
                     position: fixed; 
-                    top: 0; right: 0;
-                    width: 100%; height: 100vh;
-                    pointer-events: none; z-index: 50;
+                    top: 0; 
+                    left: 0;
+                    width: calc(100vw - 320px);
+                    height: 100vh;
+                    pointer-events: none; 
+                    z-index: 150;
                     will-change: transform, opacity;
                 }
                 .stack-anchor {
@@ -113,16 +110,16 @@ const CardStacker = ({
                 }
                 .stacked-card {
                     position: absolute;
-                    width: 559px; /* +10% from 508px */
+                    width: 559px;
                     aspect-ratio: 16/9;
                     background-color: #fff; 
                     padding: 16px; 
                     border-radius: 2px; 
                     box-shadow: 0 15px 50px rgba(0,0,0,0.15);
-                    top: -157px; left: -279px; /* Adjusted offsets for 559px width */
+                    top: -157px; left: -279px;
                     display: flex; align-items: center; justify-content: center;
                     overflow: hidden; backface-visibility: hidden;
-                    pointer-events: auto; /* Allow interactions with cards */
+                    pointer-events: auto;
                 }
                 .stacked-card img {
                     width: 100%; height: 100%;
@@ -134,4 +131,4 @@ const CardStacker = ({
     );
 };
 
-export default CardStacker;
+export default HandTrackingCardStacker;

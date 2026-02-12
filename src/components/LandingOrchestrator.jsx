@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import CardStacker from './CardStacker';
 import IntroSequence from './IntroSequence';
 import ExperienceModule from './ExperienceModule';
+import { useCardPhysics } from '../hooks/useCardPhysics';
+import { useHandTracking } from '../hooks/useHandTracking';
 
 const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) => {
     // 1. Intro Logic
@@ -17,7 +19,67 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
     // Actually EngagementCTA renders ExperienceModule which is usually hidden until started.
     const [experienceStarted, setExperienceStarted] = useState(false);
 
-    // 3. Scroll Lock Logic
+    // 3. Hand Tracking State
+    const [handControlEnabled, setHandControlEnabled] = useState(false);
+    const [calibrationProgress, setCalibrationProgress] = useState(0);
+
+    // 4. Unified Physics
+    const { stack, lastAction, containerRef, spawnCardFromGesture } = useCardPhysics({
+        initialImages: images,
+        isActive: introComplete
+    });
+
+    // Create ref for gesture callback
+    const spawnRef = useRef(spawnCardFromGesture);
+    useEffect(() => {
+        spawnRef.current = spawnCardFromGesture;
+    }, [spawnCardFromGesture]);
+
+    // 5. Hand Tracking Hook
+    const {
+        videoRef,
+        canvasRef,
+        onboardingState,
+        isTracking
+    } = useHandTracking({
+        onGesture: (dx, dy, angle) => {
+            console.log('👋 Landing Hand gesture!', { dx, dy, angle });
+            spawnRef.current(dx, dy, angle);
+        },
+        threshold: 150,
+        isActive: handControlEnabled
+    });
+
+    // Calibration Progress Tracker
+    useEffect(() => {
+        let interval;
+        if (onboardingState === 'calibrating') {
+            let progress = 0;
+            interval = setInterval(() => {
+                progress += 10;
+                setCalibrationProgress(progress);
+                if (progress >= 100) clearInterval(interval);
+            }, 100);
+        } else {
+            setCalibrationProgress(0);
+        }
+        return () => clearInterval(interval);
+    }, [onboardingState]);
+
+    const toggleHandControl = () => {
+        setHandControlEnabled(!handControlEnabled);
+    };
+
+    const getStatusMessage = () => {
+        switch (onboardingState) {
+            case 'requesting_camera': return 'Requesting camera...';
+            case 'waiting_for_hand': return 'Show your hand';
+            case 'calibrating': return 'Calibrating...';
+            case 'ready': return 'Gesture Control Active!';
+            case 'hand_lost_temporarily': return 'Hand lost';
+            default: return '';
+        }
+    };
     useEffect(() => {
         // Lock scroll initially
         if (!introComplete) {
@@ -63,9 +125,9 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
 
     return (
         <>
-            {/* ACTIVATE BUTTON (Visible when at top & intro complete) */}
+            {/* ACTIVATE BUTTONS */}
             <AnimatePresence>
-                {introComplete && !experienceStarted && !isScrolled && (
+                {introComplete && !isScrolled && (
                     <motion.div
                         className="start-overlay"
                         initial={{ y: -100, opacity: 0 }}
@@ -73,13 +135,54 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                         exit={{ y: -50, opacity: 0 }}
                         transition={{ type: "spring", stiffness: 100, damping: 20, delay: 0.5 }}
                     >
-                        <button className="start-btn" onClick={handleActivate}>
-                            <div className="start-label-large">Click here</div>
-                            <div className="start-label-small">FOR AN AUDIOVISUAL EXPERIENCE</div>
-                        </button>
+                        <div className="activation-stack">
+                            {/* Original Experience Button */}
+                            {!experienceStarted && (
+                                <button className="start-btn" onClick={handleActivate}>
+                                    <div className="start-label-large">Click here</div>
+                                    <div className="start-label-small">FOR AN AUDIOVISUAL EXPERIENCE</div>
+                                </button>
+                            )}
+
+                            {/* New Hand Control Button */}
+                            <button
+                                className={`start-btn gesture-btn ${handControlEnabled ? 'active' : ''}`}
+                                onClick={toggleHandControl}
+                            >
+                                <div className="start-label-large">
+                                    {handControlEnabled ? '👋 Hand Control ON' : '✋ Activate Hand Control'}
+                                </div>
+                                {handControlEnabled && onboardingState === 'ready' && (
+                                    <div className="start-label-small status-success">✓ Gesture Control Active!</div>
+                                )}
+                                {handControlEnabled && onboardingState !== 'ready' && (
+                                    <div className="start-label-small">{getStatusMessage()}</div>
+                                )}
+                                {!handControlEnabled && (
+                                    <div className="start-label-small">USE YOUR HANDS TO BROWSE</div>
+                                )}
+                            </button>
+                        </div>
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {/* Camera Preview Window */}
+            {handControlEnabled && (
+                <div className="camera-preview-landing">
+                    <video ref={videoRef} autoPlay playsInline muted style={{ display: 'none' }} />
+                    <canvas ref={canvasRef} className="preview-canvas" />
+                    <div className="preview-status">
+                        <div className="status-dot pulsing"></div>
+                        <span>{getStatusMessage()}</span>
+                        {onboardingState === 'calibrating' && (
+                            <div className="calibration-bar">
+                                <div className="calibration-fill" style={{ width: `${calibrationProgress}%` }} />
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
 
             <style>{`
                 .start-overlay {
@@ -89,25 +192,38 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                     padding: 100px 4vw 0 0; /* Tighter top padding */
                     pointer-events: none; /* Pass through clicks when not on button */
                 }
+                .activation-stack {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 16px;
+                    align-items: flex-end;
+                    pointer-events: auto;
+                }
                 .start-btn {
                     background: transparent;
                     border: 1px solid rgba(255, 255, 255, 0.4);
-                    padding: 0.8rem 1.5rem; /* Compact Padding */
+                    padding: 0.8rem 1.5rem;
                     color: white;
                     cursor: pointer;
                     text-align: center;
                     font-family: 'Space Mono', monospace;
                     transition: all 0.3s ease;
-                    position: relative;
-                    overflow: hidden;
-                    pointer-events: auto; /* Enable clicks on button */
-                    background: transparent; /* Clean transparent */
-                    backdrop-filter: blur(4px); /* Subtle blur */
-                    border-radius: 10px; /* Slight Curve 1-2px */
+                    background: transparent;
+                    backdrop-filter: blur(4px);
+                    border-radius: 10px;
                     display: flex; 
                     flex-direction: column;
                     align-items: center;
                     gap: 0.6rem;
+                    min-width: 280px;
+                }
+                .start-btn.gesture-btn.active {
+                    border-color: rgba(76, 175, 80, 0.6);
+                    background: rgba(76, 175, 80, 0.05);
+                }
+                .status-success {
+                    color: #4CAF50;
+                    font-weight: 600;
                 }
                 .start-btn:hover {
                     border-color: rgba(255, 255, 255, 0.9);
@@ -147,6 +263,67 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                     40% { transform: translateX(-50%) translateY(-10px); }
                     60% { transform: translateX(-50%) translateY(-5px); }
                 }
+
+                .camera-preview-landing {
+                    position: fixed;
+                    bottom: 32px;
+                    right: 32px;
+                    width: 240px;
+                    height: 180px;
+                    z-index: 10000;
+                    background: rgba(0, 0, 0, 0.9);
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    border-radius: 12px;
+                    overflow: hidden;
+                    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+                    backdrop-filter: blur(10px);
+                    pointer-events: none;
+                }
+                .preview-canvas {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                }
+                .preview-status {
+                    position: absolute;
+                    bottom: 0;
+                    left: 0;
+                    right: 0;
+                    padding: 8px 12px;
+                    background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+                    color: white;
+                    font-family: 'Space Mono', monospace;
+                    font-size: 0.7rem;
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                }
+                .status-dot {
+                    width: 6px;
+                    height: 6px;
+                    border-radius: 50%;
+                    background: #4CAF50;
+                }
+                .status-dot.pulsing {
+                    animation: pulse 2s infinite;
+                }
+                @keyframes pulse {
+                    0%, 100% { opacity: 1; transform: scale(1); }
+                    50% { opacity: 0.6; transform: scale(1.2); }
+                }
+                .calibration-bar {
+                    position: absolute;
+                    bottom: 0;
+                    left: 0;
+                    right: 0;
+                    height: 2px;
+                    background: rgba(255, 255, 255, 0.2);
+                }
+                .calibration-fill {
+                    height: 100%;
+                    background: #4CAF50;
+                    transition: width 0.1s linear;
+                }
             `}</style>
 
 
@@ -168,6 +345,9 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                 anchorX={anchorX}
                 anchorY={anchorY}
                 active={introComplete}
+                stack={stack}
+                lastAction={lastAction}
+                containerRef={containerRef}
             />
 
             {/* SCROLL HINT */}

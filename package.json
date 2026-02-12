@@ -23,6 +23,8 @@
     "@fontsource/inconsolata": "^5.2.8",
     "@google/generative-ai": "^0.24.1",
     "@huggingface/inference": "^4.13.10",
+    "@mediapipe/camera_utils": "^0.3.1675466862",
+    "@mediapipe/hands": "^0.4.1675469240",
     "@openrouter/sdk": "^0.5.1",
     "@react-email/components": "^1.0.7",
     "@supabase/supabase-js": "^2.90.1",
