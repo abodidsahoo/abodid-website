@@ -73,6 +73,11 @@ const finalType = type || dbMetadata?.og_type || "website";
       rel="stylesheet"
     />
 
+    <link
+      href="https://fonts.googleapis.com/css2?family=VT323&display=swap"
+      rel="stylesheet"
+    />
+
     <SEO
       title={finalTitle}
       description={finalDescription}
@@ -128,7 +133,7 @@ const finalType = type || dbMetadata?.og_type || "website";
     background-color: var(--color-glitch-dark) !important;
   }
 
-  <style > .page-content {
+  .page-content {
     /* Padding handled by .header-padding if header visible */
     padding-bottom: 22rem;
     position: relative;
@@ -233,6 +238,40 @@ const finalType = type || dbMetadata?.og_type || "website";
   .skip-link:focus {
     top: 0;
   }
+
+  :global(.global-stability-notice) {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10030;
+    pointer-events: none;
+    max-width: min(560px, 86vw);
+    padding: 16px 20px;
+    border-radius: 12px;
+    border: 1px solid rgba(0, 0, 0, 0.14);
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+    text-align: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.25s ease, visibility 0.25s ease;
+  }
+
+  :global(.global-stability-notice.visible) {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  :global(.global-stability-notice p) {
+    margin: 0;
+    color: rgba(0, 0, 0, 0.86);
+    font-family: "Space Mono", monospace;
+    font-size: 0.86rem;
+    letter-spacing: 0.03em;
+    line-height: 1.45;
+  }
 </style>
 
 <script>
@@ -303,5 +342,121 @@ const finalType = type || dbMetadata?.og_type || "website";
     document.addEventListener("DOMContentLoaded", initGlobalEffects);
   } else {
     initGlobalEffects();
+  }
+
+  function initRenderStabilityWatchdog() {
+    const main = document.getElementById("main-content");
+    if (!main) return;
+
+    const notice = document.createElement("div");
+    notice.className = "global-stability-notice";
+    notice.setAttribute("role", "status");
+    notice.setAttribute("aria-live", "polite");
+    notice.innerHTML =
+      "<p>Something looks off. Kindly refresh the page for a finetuned experience.</p>";
+    document.body.appendChild(notice);
+
+    let hadVisibleMainContent = false;
+    let runtimeErrorSeen = false;
+    let anomalyStreak = 0;
+    let healthyStreak = 0;
+
+    const showNotice = () => notice.classList.add("visible");
+    const hideNotice = () => notice.classList.remove("visible");
+
+    const onRuntimeError = () => {
+      runtimeErrorSeen = true;
+    };
+    window.addEventListener("error", onRuntimeError);
+    window.addEventListener("unhandledrejection", onRuntimeError);
+
+    const hasAnyVisibleContent = () => {
+      const rootStyles = window.getComputedStyle(main);
+      const rootRect = main.getBoundingClientRect();
+
+      if (
+        rootStyles.display === "none" ||
+        rootStyles.visibility === "hidden" ||
+        parseFloat(rootStyles.opacity || "1") < 0.05 ||
+        rootRect.width < 40 ||
+        rootRect.height < 40
+      ) {
+        return false;
+      }
+
+      const candidates = main.querySelectorAll(
+        "section, article, h1, h2, h3, p, img, video, canvas, svg, [class*='card'], [class*='grid'], [class*='hero'], [class*='content']",
+      );
+
+      for (const node of candidates) {
+        const el = node as HTMLElement;
+        const styles = window.getComputedStyle(el);
+        if (
+          styles.display === "none" ||
+          styles.visibility === "hidden" ||
+          parseFloat(styles.opacity || "1") < 0.05
+        ) {
+          continue;
+        }
+
+        const rect = el.getBoundingClientRect();
+        const hasSize = rect.width > 24 && rect.height > 16;
+        if (hasSize) {
+          return true;
+        }
+      }
+
+      return false;
+    };
+
+    const runCheck = () => {
+      const visibleNow = hasAnyVisibleContent();
+      if (visibleNow) hadVisibleMainContent = true;
+
+      const collapsedAfterRender = hadVisibleMainContent && !visibleNow;
+      const errorAndBlank = runtimeErrorSeen && !visibleNow;
+      const isAnomaly = collapsedAfterRender || errorAndBlank;
+
+      if (isAnomaly) {
+        anomalyStreak += 1;
+        healthyStreak = 0;
+      } else {
+        healthyStreak += 1;
+        anomalyStreak = 0;
+      }
+
+      if (anomalyStreak >= 2) showNotice();
+      if (healthyStreak >= 2) hideNotice();
+    };
+
+    // Allow initial render/hydration to settle before checks.
+    const initialDelay = setTimeout(() => {
+      runCheck();
+      const interval = window.setInterval(runCheck, 3000);
+
+      window.addEventListener(
+        "beforeunload",
+        () => {
+          clearInterval(interval);
+          window.removeEventListener("error", onRuntimeError);
+          window.removeEventListener("unhandledrejection", onRuntimeError);
+        },
+        { once: true },
+      );
+    }, 3500);
+
+    window.addEventListener(
+      "beforeunload",
+      () => {
+        clearTimeout(initialDelay);
+      },
+      { once: true },
+    );
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initRenderStabilityWatchdog);
+  } else {
+    initRenderStabilityWatchdog();
   }
 </script>

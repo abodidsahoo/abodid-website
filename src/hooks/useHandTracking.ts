@@ -20,17 +20,20 @@ export interface HandPosition {
 export interface UseHandTrackingProps {
     onGesture?: (dx: number, dy: number, angle: number) => void;
     threshold?: number;
+    gestureCooldownMs?: number;
     isActive?: boolean;
 }
 
 export const useHandTracking = ({
     onGesture,
     threshold = 150,
+    gestureCooldownMs = 130,
     isActive = true
 }: UseHandTrackingProps) => {
     const [onboardingState, setOnboardingState] = useState<OnboardingState>('requesting_camera');
     const [isTracking, setIsTracking] = useState(false);
     const [handDetected, setHandDetected] = useState(false);
+    const [indexTipPoint, setIndexTipPoint] = useState<{ x: number; y: number } | null>(null);
 
     // Update ref whenever state changes
     useEffect(() => {
@@ -48,6 +51,19 @@ export const useHandTracking = ({
     const calibrationStartRef = useRef<number | null>(null);
     const onboardingStateRef = useRef<OnboardingState>('requesting_camera');
     const handLossTimerRef = useRef<NodeJS.Timeout | null>(null);  // NEW: track hand loss duration
+    const lastIndexTipEmitRef = useRef(0);
+    const hasIndexTipPointRef = useRef(false);
+    const lastGestureTriggerRef = useRef(0);
+    const gestureThresholdRef = useRef(threshold);
+    const gestureCooldownRef = useRef(gestureCooldownMs);
+
+    useEffect(() => {
+        gestureThresholdRef.current = threshold;
+    }, [threshold]);
+
+    useEffect(() => {
+        gestureCooldownRef.current = gestureCooldownMs;
+    }, [gestureCooldownMs]);
 
     // Initialize MediaPipe Hands
     useEffect(() => {
@@ -184,12 +200,24 @@ export const useHandTracking = ({
                     const landmarks = results.multiHandLandmarks[0];
                     const w = canvasRef.current.width;
                     const h = canvasRef.current.height;
+                    const now = Date.now();
 
                     // Helper to get pixel coords
                     const getCoords = (idx: number) => ({
                         x: (1 - landmarks[idx].x) * w,
                         y: landmarks[idx].y * h
                     });
+
+                    // Track index tip in normalized preview space for UI guidance panel.
+                    const tipPoint = {
+                        x: Math.min(1, Math.max(0, 1 - landmarks[8].x)),
+                        y: Math.min(1, Math.max(0, landmarks[8].y))
+                    };
+                    if (now - lastIndexTipEmitRef.current > 80) {
+                        setIndexTipPoint(tipPoint);
+                        lastIndexTipEmitRef.current = now;
+                        hasIndexTipPointRef.current = true;
+                    }
 
                     // Define hand connections for "finger outlines"
                     const connections = [
@@ -293,6 +321,10 @@ export const useHandTracking = ({
         } else {
             console.log('❌ No hand detected in this frame, Current state:', currentState);
             setHandDetected(false);
+            if (hasIndexTipPointRef.current) {
+                setIndexTipPoint(null);
+                hasIndexTipPointRef.current = false;
+            }
 
             // If hand is lost while ready, give them 3 seconds before showing prompt
             if (currentState === 'ready') {
@@ -328,6 +360,8 @@ export const useHandTracking = ({
     // Track hand gestures using index finger tip
     const trackHandGesture = (landmarks: any[]) => {
         if (!onGesture) return;
+        const safeThreshold = Math.max(30, gestureThresholdRef.current);
+        const safeGestureCooldown = Math.max(0, gestureCooldownRef.current);
 
         const indexTip = landmarks[8]; // Index finger tip
         const currentX = (1 - indexTip.x) * window.innerWidth; // Mirror X
@@ -345,12 +379,19 @@ export const useHandTracking = ({
         const dy = currentY - lastHandPosRef.current.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
 
-        console.log('📏 Movement:', { dist: dist.toFixed(1), threshold, willSpawn: dist > threshold });
+        console.log('📏 Movement:', { dist: dist.toFixed(1), threshold: safeThreshold, willSpawn: dist > safeThreshold });
 
-        if (dist > threshold) {
+        if (dist > safeThreshold) {
+            if (now - lastGestureTriggerRef.current < safeGestureCooldown) {
+                // Consume movement while in cooldown so one long stroke doesn't produce repeated spawns.
+                lastHandPosRef.current = { x: currentX, y: currentY, timestamp: now };
+                return;
+            }
+
             const angle = Math.atan2(dy, dx);
             console.log('🚀 GESTURE DETECTED! Spawning card with angle:', angle);
             onGesture(dx, dy, angle);
+            lastGestureTriggerRef.current = now;
 
             lastHandPosRef.current = { x: currentX, y: currentY, timestamp: now };
         }
@@ -361,6 +402,7 @@ export const useHandTracking = ({
         canvasRef,
         onboardingState,
         isTracking,
-        handDetected
+        handDetected,
+        indexTipPoint
     };
 };

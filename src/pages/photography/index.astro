@@ -1,7 +1,6 @@
 ---
 export const prerender = false;
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import PhotographyCard from "../../components/PhotographyCard.astro";
 import PortfolioFilter from "../../components/PortfolioFilter.jsx";
 import { getAllPhotography } from "../../lib/api";
 import { featuredPhotography as mockPhotography } from "../../utils/mockData";
@@ -39,30 +38,24 @@ const pageTitle = "Photography";
 </BaseLayout>
 
 <style>
-
-  
   .divider {
-      text-align: center;
-      margin: 4rem 0 2rem;
-      border-top: 1px solid var(--border-subtle);
-      position: relative;
+    text-align: center;
+    margin: 4rem 0 2rem;
+    border-top: 1px solid var(--border-subtle);
+    position: relative;
   }
-  
+
   .divider span {
-      background: var(--bg-primary);
-      padding: 0 1rem;
-      position: relative;
-      top: -0.8rem;
-      font-size: 0.9rem;
-      color: var(--text-tertiary);
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
+    background: var(--bg-primary);
+    padding: 0 1rem;
+    position: relative;
+    top: -0.8rem;
+    font-size: 0.9rem;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
   }
 
-  .portfolio-container {
-</BaseLayout>
-
-<style>
   .portfolio-container {
     margin-bottom: var(--space-3xl);
   }

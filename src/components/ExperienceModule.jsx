@@ -444,30 +444,45 @@ const ExperienceModule = ({ src, captions = [], autoStart = false }) => {
         }
     };
 
-    const togglePlay = async (e) => {
-        if (e) e.stopPropagation();
-        if (!audioRef.current) return;
+    const handlePlaybackToggle = async () => {
+        if (!audioRef.current || !audioContextRef.current) return;
 
-        const willPlay = !isPlaying;
-        setIsPlaying(willPlay);
+        if (!isStarted) {
+            await handleStart();
+            return;
+        }
 
-        if (!willPlay) {
+        if (isPlaying) {
             try {
-                await fadeAudio(0, 1.0);
-                if (!isPlayingRef.current && audioRef.current) {
-                    audioRef.current.pause();
-                }
+                await fadeAudio(0, 0.35);
             } catch (err) {
-                console.error("Fade out failed", err);
+                console.warn("Fade out before pause failed:", err);
             }
-        } else {
+            audioRef.current.pause();
+            setIsPlaying(false);
+            currentVolumeRef.current = 0;
+            return;
+        }
+
+        try {
             if (audioContextRef.current.state === 'suspended') {
                 await audioContextRef.current.resume();
             }
-            if (audioRef.current.paused) {
-                await audioRef.current.play();
+
+            const playPromise = audioRef.current.play();
+            if (playPromise !== undefined) {
+                await playPromise;
             }
-            fadeAudio(1.0, 1.0).catch(err => console.error("Fade in failed:", err));
+
+            setIsPlaying(true);
+            if (gainNodeRef.current) {
+                gainNodeRef.current.gain.setValueAtTime(0, audioContextRef.current.currentTime);
+            }
+            currentVolumeRef.current = 0;
+            const resumeTarget = Math.max(0.05, targetVolumeRef.current || 1);
+            await fadeAudio(resumeTarget, 0.6);
+        } catch (err) {
+            console.error("Resume playback failed:", err);
         }
     };
 
@@ -507,14 +522,11 @@ const ExperienceModule = ({ src, captions = [], autoStart = false }) => {
                 <div className="controls-bottom-center">
                     <AnimatePresence>
                         {isStarted && (
-                            <motion.button
-                                className="spectrum-control-group"
+                            <motion.div
+                                className="spectrum-display-group"
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.8, delay: 0.2 }}
-                                onClick={togglePlay}
-                                type="button"
-                                aria-label={isPlaying ? "Pause Audio Experience" : "Resume Audio Experience"}
                             >
                                 <canvas
                                     ref={canvasRef}
@@ -523,10 +535,15 @@ const ExperienceModule = ({ src, captions = [], autoStart = false }) => {
                                     className="mirrored-spectrum-mini"
                                     aria-hidden="true"
                                 />
-                                <span className="experience-toggle-label">
-                                    {isPlaying ? "Pause Experience" : "Resume Experience"}
-                                </span>
-                            </motion.button>
+                                <button
+                                    type="button"
+                                    className="soundtrack-toggle-btn"
+                                    onClick={handlePlaybackToggle}
+                                    aria-label={isPlaying ? 'Pause soundtrack' : 'Play soundtrack'}
+                                >
+                                    {isPlaying ? 'Pause Soundtrack' : 'Play Soundtrack'}
+                                </button>
+                            </motion.div>
                         )}
                     </AnimatePresence>
                 </div>
@@ -604,40 +621,42 @@ const ExperienceModule = ({ src, captions = [], autoStart = false }) => {
                     z-index: 120;
                     display: flex;
                     justify-content: center;
-                    pointer-events: auto; /* Enable clicks */
+                    pointer-events: none;
                 }
 
-                .spectrum-control-group {
+                .spectrum-display-group {
                     display: flex;
                     flex-direction: column;
                     align-items: center;
-                    gap: 12px;
-                    cursor: pointer;
-                    padding: 1rem;
-                    background: transparent;
-                    border: none;
-                    transition: opacity 0.3s ease;
-                }
-                .spectrum-control-group:hover {
-                    opacity: 0.8;
+                    gap: 10px;
+                    pointer-events: auto;
                 }
 
                 .mirrored-spectrum-mini {
                     display: block;
                     filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.4));
-                    opacity: 0.6;
+                    opacity: 0.75;
                 }
 
-                .experience-toggle-label {
-                    font-family: 'Inconsolata', monospace;
-                    font-size: 0.75rem; 
+                .soundtrack-toggle-btn {
+                    border: 1px solid rgba(255, 255, 255, 0.55);
+                    background: rgba(0, 0, 0, 0.4);
+                    color: rgba(255, 255, 255, 0.96);
+                    border-radius: 9px;
+                    padding: 0.38rem 0.72rem;
+                    font-family: 'Space Mono', monospace;
+                    font-size: 0.62rem;
+                    letter-spacing: 0.05em;
                     text-transform: uppercase;
-                    letter-spacing: 0.15em;
-                    color: rgba(255, 255, 255, 0.6);
-                    transition: all 0.3s ease;
+                    cursor: pointer;
+                    pointer-events: auto;
+                    transition: border-color 220ms ease, background-color 220ms ease, color 220ms ease;
                 }
-                .spectrum-control-group:hover .experience-toggle-label {
-                    color: rgba(255, 255, 255, 0.9);
+
+                .soundtrack-toggle-btn:hover {
+                    border-color: rgba(56, 189, 248, 0.82);
+                    background: rgba(56, 189, 248, 0.2);
+                    color: #ffffff;
                 }
 
                 @media (max-width: 1024px) {

@@ -130,6 +130,8 @@ const SequenceTypewriter = ({ text, delay = 0, speed = 0.05, onTypingComplete, o
     const [showCursor, setShowCursor] = useState(false);
     const completionTriggered = useRef(false);
     const triggerRef = useRef(false); // Local ref to prevent double firing
+    const pauseBeforeDeleteMs = 650;
+    const endBufferMs = 50;
 
     useEffect(() => {
         let timeout;
@@ -144,13 +146,13 @@ const SequenceTypewriter = ({ text, delay = 0, speed = 0.05, onTypingComplete, o
                 if (idx >= text.length) {
                     clearInterval(interval);
 
-                    // Wait 1.5s before deleting
+                    // Brief hold before deleting
                     if (!completionTriggered.current) {
                         completionTriggered.current = true;
 
                         setTimeout(() => {
                             startDeletion();
-                        }, 1500);
+                        }, pauseBeforeDeleteMs);
                     }
                     return;
                 }
@@ -162,6 +164,7 @@ const SequenceTypewriter = ({ text, delay = 0, speed = 0.05, onTypingComplete, o
         const startDeletion = () => {
             let idx = text.length;
             const halfLength = Math.floor(text.length / 2);
+            const deleteIntervalMs = speed * 1000;
 
             delInterval = setInterval(() => {
                 setDisplay(text.substring(0, idx - 1));
@@ -183,9 +186,9 @@ const SequenceTypewriter = ({ text, delay = 0, speed = 0.05, onTypingComplete, o
                     // Small buffer before unmounting self
                     setTimeout(() => {
                         if (onSequenceEnd) onSequenceEnd();
-                    }, 100);
+                    }, endBufferMs);
                 }
-            }, 30); // Fast deletion
+            }, deleteIntervalMs); // Match typewriter reveal cadence
         };
 
         return () => {
@@ -193,7 +196,7 @@ const SequenceTypewriter = ({ text, delay = 0, speed = 0.05, onTypingComplete, o
             clearInterval(interval);
             clearInterval(delInterval);
         };
-    }, [text, delay, speed]);
+    }, [text, delay, speed, pauseBeforeDeleteMs, endBufferMs]);
 
     return (
         <span className="typewriter-container">
@@ -240,10 +243,10 @@ const IntroSequence = ({ onPhysicsStart, onSequenceEnd }) => {
                         className="intro-content"
                     >
                         <div className="line-welcome">
-                            <Typewriter text="Hi, I am Abodid" speed={0.03} />
+                            <Typewriter text="Hi I'm Abodid" speed={0.03} />
                         </div>
                         <div className="line-headline">
-                            <Typewriter text="Welcome to my Digital Garden" speed={0.04} delay={0.5} />
+                            <Typewriter text="Welcome to my Digital Garden" speed={0.04} delay={0.35} />
                         </div>
                     </motion.div>
                 )}
@@ -261,13 +264,13 @@ const IntroSequence = ({ onPhysicsStart, onSequenceEnd }) => {
                                 <SegmentedTypewriter
                                     segments={[
                                         {
-                                            text: 'here is a glimpse into my ', color: 'white'
+                                            text: "Here's a glimpse into three years of my ", color: 'white'
                                         },
                                         { text: '"high on art" ', color: '#37f147ff' },
                                         {
                                             text: 'life in ', color: 'white'
                                         },
-                                        { text: 'London.', color: 'white' }
+                                        { text: 'London', color: 'white' }
 
                                     ]}
                                     speed={0.04}
@@ -289,8 +292,8 @@ const IntroSequence = ({ onPhysicsStart, onSequenceEnd }) => {
                             {/* USE KEY TO FORCE REMOUNT IF NEEDED, BUT HERE PREVENTING DOUBLE RENDER */}
                             <SequenceTypewriter
                                 key="intro-sequence-typewriter"
-                                text="Keep hovering"
-                                speed={0.05}
+                                text="keep hovering"
+                                speed={0.04}
                                 onSequenceTrigger={() => {
                                     // Guard against double firing
                                     if (triggerRef.current.physicsStarted) return;
@@ -308,7 +311,8 @@ const IntroSequence = ({ onPhysicsStart, onSequenceEnd }) => {
                 .intro-sequence-container {
                     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
                     z-index: 9999; display: flex; align-items: center; justify-content: center;
-                    color: #fff; font-family: "Pixelify Sans", sans-serif; pointer-events: none;
+                    color: #fff; font-family: "VT323", monospace; pointer-events: none;
+                    --intro-text-size: 2rem;
                 }
                 .intro-content {
                     position: relative; width: 100%; max-width: 1200px;
@@ -316,20 +320,27 @@ const IntroSequence = ({ onPhysicsStart, onSequenceEnd }) => {
                     justify-content: center; text-align: center; padding: 2rem;
                 }
                 .line-welcome {
-                    font-size: 1.5rem; text-transform: uppercase; letter-spacing: 0.2rem;
-                    margin-bottom: 0.5rem; font-weight: 300; opacity: 0.8;
+                    font-size: var(--intro-text-size);
+                    margin-bottom: 0.25rem;
+                    font-weight: 400;
+                    letter-spacing: -0.02em;
+                    line-height: 1.1;
+                    opacity: 0.9;
                 }
                 .line-headline {
-                    font-size: 3rem; font-weight: 400; letter-spacing: -0.04em;
-                    line-height: 1.1; margin-bottom: 2rem;
-                    text-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+                    font-size: var(--intro-text-size);
+                    font-weight: 400;
+                    letter-spacing: -0.02em;
+                    line-height: 1.1;
+                    margin-bottom: 0;
+                    opacity: 0.9;
                 }
                 .line-narrative {
                     display: flex; flex-direction: column; align-items: center;
                     gap: 0px; max-width: 1200px; 
                 }
                 .narrative-large {
-                    font-size: 2rem;
+                    font-size: var(--intro-text-size);
                     line-height: 1.0; font-weight: 400; 
                     display: flex; 
                     flex-direction: row;
@@ -341,20 +352,14 @@ const IntroSequence = ({ onPhysicsStart, onSequenceEnd }) => {
                     max-width: 100vw;
                 }
                 .line-instruction-large {
-                    font-size: 2rem; text-transform: uppercase; font-weight: 400; letter-spacing: 0.05em;
+                    font-size: var(--intro-text-size);
+                    font-weight: 400;
+                    letter-spacing: -0.02em;
                 }
                 .typewriter-container { display: inline-block; white-space: pre-wrap; }
 
-                @media (max-width: 1024px) {
-                    .narrative-large { 
-                        font-size: 3.5rem; 
-                     }
-                }
                 @media (max-width: 768px) {
-                    .line-headline { font-size: 2.5rem; }
-                    .narrative-large { font-size: 2.0rem; }
-                    .line-instruction-large { font-size: 2.5rem; }
-                    .line-welcome { font-size: 1rem; margin-bottom: 1rem; }
+                    .intro-sequence-container { --intro-text-size: 1.8rem; }
                 }
             `}</style>
         </div>

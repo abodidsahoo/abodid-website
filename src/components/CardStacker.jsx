@@ -6,17 +6,24 @@ const CardStacker = ({
     images,
     anchorX = '65%',
     anchorY = '68%',
+    cardWidth = 559,
     active = true,
     stack: propStack,
     lastAction: propLastAction,
     containerRef: propContainerRef
 }) => {
-    const localPhysics = useCardPhysics({ initialImages: images, isActive: active });
+    const shouldUseLocalPhysics = !propStack || !propLastAction || !propContainerRef;
+    const localPhysics = useCardPhysics({
+        initialImages: shouldUseLocalPhysics ? images : [],
+        isActive: shouldUseLocalPhysics ? active : false,
+    });
 
     // Choose between prop-provided stack/action or local hook
     const stack = propStack || localPhysics.stack;
     const lastAction = propLastAction || localPhysics.lastAction;
     const containerRef = propContainerRef || localPhysics.containerRef;
+    const safeCardWidth = Math.max(100, Math.round(cardWidth));
+    const safeCardHeight = Math.round((safeCardWidth * 9) / 16);
 
     return (
         <div
@@ -24,7 +31,9 @@ const CardStacker = ({
             ref={containerRef}
             style={{
                 opacity: active ? 1 : 0,
-                transition: 'opacity 1.5s ease-in-out'
+                transition: 'opacity 1.5s ease-in-out',
+                '--card-width': `${safeCardWidth}px`,
+                '--card-height': `${safeCardHeight}px`
             }}
         >
             <div className="stack-anchor" aria-hidden="true">
@@ -113,13 +122,14 @@ const CardStacker = ({
                 }
                 .stacked-card {
                     position: absolute;
-                    width: 559px; /* +10% from 508px */
+                    width: var(--card-width, 559px);
                     aspect-ratio: 16/9;
                     background-color: #fff; 
-                    padding: 16px; 
+                    padding: clamp(4px, calc(var(--card-width, 559px) * 0.02), 16px);
                     border-radius: 2px; 
                     box-shadow: 0 15px 50px rgba(0,0,0,0.15);
-                    top: -157px; left: -279px; /* Adjusted offsets for 559px width */
+                    top: calc(var(--card-height, 314px) * -0.5);
+                    left: calc(var(--card-width, 559px) * -0.5);
                     display: flex; align-items: center; justify-content: center;
                     overflow: hidden; backface-visibility: hidden;
                     pointer-events: auto; /* Allow interactions with cards */
