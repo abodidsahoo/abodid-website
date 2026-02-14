@@ -32,9 +32,17 @@ const parseAnchorToPixels = (anchor, viewport, fallbackRatio) => {
 
 const DEFAULT_CATEGORY_FILTERS = ['art'];
 const INITIAL_CARD_SIZE_BOUNDS = { min: 120, max: 560 };
-const DEFAULT_CARD_SENSITIVITY = 50;
-const DEFAULT_CARD_WIDTH = Math.round(
-    (INITIAL_CARD_SIZE_BOUNDS.min + INITIAL_CARD_SIZE_BOUNDS.max) / 2,
+const DEFAULT_CARD_SIZE_SCALE = 1.1;
+const DEFAULT_CARD_SENSITIVITY = 45;
+const getDefaultCardWidth = (minSize, maxSize) => {
+    const midpoint = (minSize + maxSize) / 2;
+    return Math.round(
+        Math.max(minSize, Math.min(maxSize, midpoint * DEFAULT_CARD_SIZE_SCALE)),
+    );
+};
+const DEFAULT_CARD_WIDTH = getDefaultCardWidth(
+    INITIAL_CARD_SIZE_BOUNDS.min,
+    INITIAL_CARD_SIZE_BOUNDS.max,
 );
 const SIDE_PANEL_WIDTH_PX = 284;
 const HAND_FEEDBACK_TOP_PX = 120;
@@ -164,7 +172,7 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
         setShowStabilityNotice(false);
         setFeedMode('shuffle');
         setMediaFilters(DEFAULT_CATEGORY_FILTERS);
-        setCardWidth(Math.round((cardSizeBounds.min + cardSizeBounds.max) / 2));
+        setCardWidth(getDefaultCardWidth(cardSizeBounds.min, cardSizeBounds.max));
         setCardSensitivity(DEFAULT_CARD_SENSITIVITY);
         setStoryByPhotoUrl({});
         setLoadingStoryUrls({});
@@ -217,7 +225,7 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
             setCardWidth((prev) => {
                 if (!hasInitializedCardWidthRef.current) {
                     hasInitializedCardWidthRef.current = true;
-                    return Math.round((minSize + maxSize) / 2);
+                    return getDefaultCardWidth(minSize, maxSize);
                 }
                 return Math.max(minSize, Math.min(maxSize, prev));
             });
