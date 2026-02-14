@@ -6,6 +6,7 @@ import ListView from './ListView';
 import BrandManager from './BrandManager';
 import NewsletterSender from './NewsletterSender';
 import PhotoStoryManager from './PhotoStoryManager';
+import MoodboardManager from './MoodboardManager';
 
 const SECTIONS = [
     { id: 'dashboard', label: 'Overview', icon: '📊' },
@@ -13,6 +14,7 @@ const SECTIONS = [
     { id: 'brands', label: 'Brands', icon: '🏷️' },
     { id: 'photography', label: 'Photography', icon: '📸' },
     { id: 'photo_stories', label: 'Photo Stories', icon: '📝' },
+    { id: 'moodboard_items', label: 'Moodboard', icon: '🧩' },
     { id: 'films', label: 'Films', icon: '🎬' },
     { id: 'blog', label: 'Blog', icon: '✍️' },
     { id: 'research', label: 'Research', icon: '🔬' },
@@ -24,7 +26,7 @@ const SECTIONS = [
 export default function AdminDashboard() {
     const [session, setSession] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [stats, setStats] = useState({ photography: 0, photoStories: 0, films: 0, posts: 0, projects: 0, metadata: 0, users: 0, resources: 0, subscribers: 0 });
+    const [stats, setStats] = useState({ photography: 0, photoStories: 0, moodboard: 0, films: 0, posts: 0, projects: 0, metadata: 0, users: 0, resources: 0, subscribers: 0 });
     const [activeSection, setActiveSection] = useState('dashboard');
     const [recentActivity, setRecentActivity] = useState([]);
     const [connectionError, setConnectionError] = useState(null);
@@ -116,7 +118,7 @@ export default function AdminDashboard() {
 
     const fetchStats = async () => {
         if (!supabase) return;
-        const tableNames = ['photography', 'photo_stories', 'films', 'blog', 'research', 'hub_resources', 'page_metadata', 'profiles', 'subscribers'];
+        const tableNames = ['photography', 'photo_stories', 'moodboard_items', 'films', 'blog', 'research', 'hub_resources', 'page_metadata', 'profiles', 'subscribers'];
         const newStats = {};
         for (const name of tableNames) {
             const { count, error } = await supabase.from(name).select('*', { count: 'exact', head: true });
@@ -127,7 +129,9 @@ export default function AdminDashboard() {
                         ? 'users'
                         : (name === 'hub_resources'
                             ? 'resources'
-                            : (name === 'photo_stories' ? 'photoStories' : name)));
+                            : (name === 'photo_stories'
+                                ? 'photoStories'
+                                : (name === 'moodboard_items' ? 'moodboard' : name))));
                 newStats[key] = count;
             } else {
                 console.warn(`Error fetching count for ${name}:`, error.message);
@@ -337,6 +341,7 @@ export default function AdminDashboard() {
                                 <DashboardCard title="Users" count={stats.users} icon="👥" onClick={() => setActiveSection('users')} loading={loading} />
                                 <DashboardCard title="Photography" count={stats.photography} icon="📸" onClick={() => setActiveSection('photography')} loading={loading} />
                                 <DashboardCard title="Photo Stories" count={stats.photoStories} icon="📝" onClick={() => setActiveSection('photo_stories')} loading={loading} />
+                                <DashboardCard title="Moodboard" count={stats.moodboard} icon="🧩" onClick={() => setActiveSection('moodboard_items')} loading={loading} />
                                 <DashboardCard title="Films" count={stats.films} icon="🎬" onClick={() => setActiveSection('films')} loading={loading} />
                                 <DashboardCard title="Blog" count={stats.blog} icon="✍️" onClick={() => setActiveSection('blog')} loading={loading} />
                                 <DashboardCard title="Research" count={stats.research} icon="🔬" onClick={() => setActiveSection('research')} loading={loading} />
@@ -430,7 +435,16 @@ export default function AdminDashboard() {
                         </>
                     )}
 
-                    {activeSection !== 'dashboard' && activeSection !== 'users' && activeSection !== 'brands' && activeSection !== 'newsletter' && activeSection !== 'photo_stories' && (
+                    {activeSection === 'moodboard_items' && (
+                        <>
+                            <header className="content-header" style={{ marginBottom: '1rem' }}>
+                                <h2 className="section-title">Visual Moodboard</h2>
+                            </header>
+                            <MoodboardManager />
+                        </>
+                    )}
+
+                    {activeSection !== 'dashboard' && activeSection !== 'users' && activeSection !== 'brands' && activeSection !== 'newsletter' && activeSection !== 'photo_stories' && activeSection !== 'moodboard_items' && (
                         <ListView
                             table={activeSection}
                             title={SECTIONS.find(s => s.id === activeSection)?.label}

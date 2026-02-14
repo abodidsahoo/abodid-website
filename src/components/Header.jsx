@@ -126,6 +126,7 @@ const Header = () => {
                                             <div className="sidebar-block">
                                                 <div className="mono-label">Resources</div>
                                                 <MenuLink href="/resources" variants={itemVariants} className="mono-link">Curated Resources Mega Vault</MenuLink>
+                                                <MenuLink href="/research/visual-moodboard" variants={itemVariants} className="mono-link">Visual Moodboard</MenuLink>
                                                 <MenuLink href="/research/obsidian-vault" variants={itemVariants} className="mono-link">Personal Notes (Obsidian Vault)</MenuLink>
                                                 <MenuLink href="/research/second-brain" variants={itemVariants} className="mono-link">Second Brain Club Membership</MenuLink>
                                             </div>
