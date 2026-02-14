@@ -1,0 +1,221 @@
+---
+export const prerender = false;
+
+import LandingGridPrototype from "../components/landing/LandingGridPrototype.jsx";
+import {
+    getFilms,
+    getFeaturedPhotography,
+    getRecentPosts,
+    getResearchProjects,
+} from "../lib/api";
+import { getApprovedResources } from "../lib/resources/db";
+import { getVaultNotes, getVaultTags } from "../lib/github";
+
+const cleanText = (value = "") =>
+    String(value)
+        .replace(/[#>*_`[\]()~-]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+
+const safeFetch = async (label, fetcher, fallback = []) => {
+    try {
+        const result = await fetcher();
+        return Array.isArray(result) ? result : fallback;
+    } catch (error) {
+        console.error(`[landing-grid-test] ${label} fetch failed`, error);
+        return fallback;
+    }
+};
+
+const SHOWREEL_VIDEO_URL =
+    "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/films/videos/Showreel%202025%20compressed.mp4";
+
+const titleCase = (value = "") =>
+    value
+        .toLowerCase()
+        .split(" ")
+        .filter(Boolean)
+        .map((chunk) => chunk.charAt(0).toUpperCase() + chunk.slice(1))
+        .join(" ");
+
+const cleanNoteTitle = (raw = "") => {
+    const withoutExt = raw.replace(/\.md$/i, "");
+    const deSlugged = withoutExt
+        .replace(/[_-]+/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+
+    return titleCase(deSlugged || "Untitled Note");
+};
+
+const [
+    filmsRaw,
+    photographyRaw,
+    resourcesRaw,
+    researchRaw,
+    notesRaw,
+    tagsRaw,
+    newsRaw,
+] = await Promise.all([
+    safeFetch("films", getFilms, []),
+    safeFetch("photography", getFeaturedPhotography, []),
+    safeFetch("resources", () => getApprovedResources({ sort: "newest" }), []),
+    safeFetch("research", getResearchProjects, []),
+    safeFetch("obsidian notes", getVaultNotes, []),
+    safeFetch("obsidian tags", getVaultTags, []),
+    safeFetch("recent posts", getRecentPosts, []),
+]);
+
+const films = filmsRaw.slice(0, 18).map((film) => ({
+    title: film.title,
+    description: film.description,
+    image: film.image,
+    year: film.year,
+    videoUrl: film.videoUrl || "",
+    href: "/films",
+}));
+
+const photos = photographyRaw.slice(0, 24).map((item) => ({
+    title: item.title || "Photography",
+    summary: "Cover frame from photo stories archive.",
+    image: item.image,
+    href: item.href || "/photography",
+}));
+
+const resources = resourcesRaw.slice(0, 24).map((resource) => ({
+    title: resource.title || "Resource",
+    summary: cleanText(
+        resource.description ||
+            (resource.tags && resource.tags.length
+                ? `Tagged: ${resource.tags
+                      .map((tag) =>
+                          typeof tag === "string" ? tag : tag?.name || "",
+                      )
+                      .filter(Boolean)
+                      .join(", ")}`
+                : "Curated item from resource hub."),
+    ),
+    image: resource.thumbnail_url || "",
+    href: resource.url || "/resources",
+}));
+
+const researchProjects = researchRaw.slice(0, 20).map((project) => ({
+    title: project.title || "Research Project",
+    description: project.description || "",
+    summary: cleanText(project.description || ""),
+    image: project.image || "",
+    href: project.href || "/research/projects",
+}));
+
+const visualExperiments = researchRaw
+    .filter((project) =>
+        /(polaroid|visual|experiment|lab|punctum)/i.test(
+            `${project.title || ""} ${project.slug || ""} ${(project.tags || []).join(" ")}`,
+        ),
+    )
+    .slice(0, 14)
+    .map((project) => ({
+        title: project.title || "Visual Experiment",
+        description: project.description || "",
+        summary: cleanText(project.description || ""),
+        image: project.image || "",
+        href:
+            project.href ||
+            (project.slug ? `/research/${project.slug}` : "/research/polaroid-hub"),
+    }));
+
+const notes = notesRaw.slice(0, 30).map((note) => {
+    const rawName = (note.name || "untitled.md").replace(".md", "");
+    return {
+        title: cleanNoteTitle(note.name || rawName),
+        summary: `Vault path: ${note.path || "6 - Main Notes"}`,
+        href: `/research/obsidian-vault/${encodeURIComponent(rawName)}`,
+    };
+});
+
+const obsidianTags = tagsRaw
+    .map((tag) => {
+        const raw =
+            typeof tag === "string"
+                ? tag
+                : (tag?.name || tag?.slug || tag?.title || "");
+        const slug = String(raw).replace(/\.md$/i, "").trim();
+        if (!slug) return null;
+        return {
+            slug,
+            label: cleanNoteTitle(slug),
+            href: `/research/obsidian-vault/${encodeURIComponent(slug)}`,
+        };
+    })
+    .filter(Boolean)
+    .slice(0, 240);
+
+const fundraisingProjects = [
+    {
+        title: "Cambridge Data School Fundraiser",
+        image: "https://upload.wikimedia.org/wikipedia/commons/b/b4/KingsCollegeChapelWest.jpg",
+        summary: "From Odisha to Cambridge University.",
+        href: "/fundraising/cambridge-data-school",
+    },
+    {
+        title: "BSA Annual Conference Fundraiser",
+        image: "https://www.birmingham.ac.uk/Images/academic-services/RPC21250x633.jpg",
+        summary: "Support peer-reviewed papers at BSA 2026.",
+        href: "/fundraising/bsa-conference-2026",
+    },
+];
+
+const currentProjects = newsRaw
+    .filter((item) => item && item.title && item.href)
+    .slice(0, 4)
+    .map((item, index) => {
+        return {
+            title: item.title,
+            summary: cleanText(item.description || item.date || ""),
+            image: item.image || photos[index % Math.max(photos.length, 1)]?.image || "",
+            href: item.href || "/blog",
+        };
+    });
+---
+
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width" />
+        <title>Landing Grid Test</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;600;700&family=Space+Mono:wght@400;700&display=swap"
+            rel="stylesheet"
+        />
+    </head>
+    <body>
+        <LandingGridPrototype
+            client:load
+            showreelVideoUrl={SHOWREEL_VIDEO_URL}
+            films={films}
+            photos={photos}
+            notes={notes}
+            resources={resources}
+            researchProjects={researchProjects}
+            visualExperiments={visualExperiments}
+            fundraisingProjects={fundraisingProjects}
+            currentProjects={currentProjects}
+            obsidianTags={obsidianTags}
+        />
+    </body>
+</html>
+
+<style>
+    html,
+    body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #020202;
+        color: #fff;
+        font-family: "Space Mono", monospace;
+    }
+</style>
