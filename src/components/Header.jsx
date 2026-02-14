@@ -184,7 +184,8 @@ const Header = () => {
                 .fixed-nav {
                     position: fixed; top: 0; left: 0; width: 100%;
                     z-index: 10005; /* Highest Priority */
-                    background: rgba(0, 0, 0, 0.92);
+                    background: rgba(163, 0, 33, 0.92);
+                    background: color-mix(in srgb, var(--color-brand-red) 92%, transparent);
                     backdrop-filter: blur(12px);
                     border-bottom: 1px solid rgba(255, 255, 255, 0.18);
                 }
@@ -206,7 +207,9 @@ const Header = () => {
                 
                 .mobile-breadcrumbs-row {
                     display: none; padding: 0.5rem 4vw 0.5rem; width: 100%;
-                    background: rgba(0, 0, 0, 0.95); color: rgba(255, 255, 255, 0.95);
+                    background: rgba(163, 0, 33, 0.95);
+                    background: color-mix(in srgb, var(--color-brand-red) 95%, transparent);
+                    color: rgba(255, 255, 255, 0.95);
                 }
 
                 .logo-image-link {
@@ -262,7 +265,7 @@ const Header = () => {
 
                 /* --- PANEL 1: RED (LEFT) --- */
                 .left-panel {
-                    background-color: #a30021;
+                    background-color: var(--color-brand-red);
                     color: white;
                     display: flex; flex-direction: column;
                     justify-content: flex-start;
@@ -333,7 +336,7 @@ const Header = () => {
                 }
                 
                 .mono-link:hover .menu-text, .mono-text-link:hover {
-                    opacity: 0.6; color: #a30021;
+                    opacity: 0.6; color: var(--color-brand-red);
                 }
 
                 .country-label {

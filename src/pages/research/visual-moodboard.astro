@@ -44,24 +44,6 @@ const pageDescription =
 
 <style>
     :global(body[data-grid-variant="moodboard"]) {
-        --grid-color-1: rgba(255, 255, 255, 0.12);
-        --grid-color-2: rgba(255, 255, 255, 0.03);
-        --mood-page-bg: #0b0b0e;
-        --mood-title-color: rgba(249, 234, 230, 0.96);
-        --mood-title-border: rgba(255, 255, 255, 0.3);
-        --mood-title-bg: rgba(0, 0, 0, 0.24);
-        --mood-body-color: rgba(238, 224, 217, 0.9);
-        --mood-link-color: #ff6b4b;
-        --mood-link-border: rgba(255, 107, 75, 0.82);
-        --mood-link-bg: rgba(255, 107, 75, 0.2);
-        --mood-link-hover-color: #ff8a6f;
-        --mood-link-hover-border: rgba(255, 138, 111, 0.96);
-        --mood-link-shadow: rgba(255, 107, 75, 0.46);
-        background: var(--mood-page-bg) !important;
-        color: var(--mood-body-color);
-    }
-
-    :global(body[data-grid-variant="moodboard"][data-moodboard-surface="light"]) {
         --grid-color-1: rgba(45, 38, 30, 0.18);
         --grid-color-2: rgba(45, 38, 30, 0.07);
         --mood-page-bg: #f2e7d4;
@@ -75,6 +57,24 @@ const pageDescription =
         --mood-link-hover-color: #5f130a;
         --mood-link-hover-border: rgba(95, 19, 10, 0.88);
         --mood-link-shadow: rgba(95, 19, 10, 0.2);
+        background: var(--mood-page-bg) !important;
+        color: var(--mood-body-color);
+    }
+
+    :global(body[data-grid-variant="moodboard"][data-moodboard-surface="dark"]) {
+        --grid-color-1: rgba(255, 255, 255, 0.12);
+        --grid-color-2: rgba(255, 255, 255, 0.03);
+        --mood-page-bg: #0b0b0e;
+        --mood-title-color: rgba(249, 234, 230, 0.96);
+        --mood-title-border: rgba(255, 255, 255, 0.3);
+        --mood-title-bg: rgba(0, 0, 0, 0.24);
+        --mood-body-color: rgba(238, 224, 217, 0.9);
+        --mood-link-color: #ff6b4b;
+        --mood-link-border: rgba(255, 107, 75, 0.82);
+        --mood-link-bg: rgba(255, 107, 75, 0.2);
+        --mood-link-hover-color: #ff8a6f;
+        --mood-link-hover-border: rgba(255, 138, 111, 0.96);
+        --mood-link-shadow: rgba(255, 107, 75, 0.46);
     }
 
     :global(body[data-grid-variant="moodboard"] .global-grid-bg) {

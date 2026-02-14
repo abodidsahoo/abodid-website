@@ -252,6 +252,7 @@ function computeFloatingLayout(items, width, height, seedSalt = 0) {
         const driftY = Math.max(3, Math.min(rawDriftY, topRoom * 0.78, bottomRoom * 0.78));
         const driftXDirection = random() < 0.5 ? -1 : 1;
         const scrollStagger = (position.top / Math.max(height, 1)) * 0.14;
+        const horizontalStagger = (position.left / Math.max(width, 1)) * 0.04;
         const baseDuration = clamp(
             6.45 +
                 random() * 0.62 +
@@ -272,7 +273,7 @@ function computeFloatingLayout(items, width, height, seedSalt = 0) {
                 (motionTierRoll < 0.22 ? 1.55 : motionTierRoll < 0.58 ? 1.2 : 1),
             duration: baseDuration,
             motionDelay,
-            appearDelay: 0.04 + scrollStagger + random() * 0.08,
+            appearDelay: clamp(0.02 + scrollStagger + horizontalStagger, 0.02, 0.22),
             zIndex: (() => {
                 const layerRoll = random();
 
@@ -295,7 +296,7 @@ export default function VisualMoodboard({ items = [] }) {
     const [activeTag, setActiveTag] = useState('');
     const [filtersOpen, setFiltersOpen] = useState(false);
     const [tagsOpen, setTagsOpen] = useState(false);
-    const [surfaceMode, setSurfaceMode] = useState('dark');
+    const [surfaceMode, setSurfaceMode] = useState('light');
     const [stageSize, setStageSize] = useState({ width: 1200, height: 900, viewportHeight: 900 });
     const [imageRatios, setImageRatios] = useState({});
     const [layoutSeed, setLayoutSeed] = useState(0);
@@ -731,6 +732,24 @@ export default function VisualMoodboard({ items = [] }) {
         return Math.max(viewportFloor, stageContentBottom + tailBuffer);
     }, [stageContentBottom, stageSize.width, stageSize.viewportHeight]);
 
+    const priorityImageIds = useMemo(() => {
+        const ranked = boardItems
+            .map((item) => ({ id: item.id, layout: layoutMap.get(item.id) }))
+            .filter((entry) => Boolean(entry.layout))
+            .sort(
+                (a, b) =>
+                    a.layout.top - b.layout.top || a.layout.left - b.layout.left,
+            );
+
+        const foldThreshold = stageSize.viewportHeight * 1.15;
+        const foldCandidates = ranked
+            .filter((entry) => entry.layout.top < foldThreshold)
+            .slice(0, 12);
+        const selected = foldCandidates.length ? foldCandidates : ranked.slice(0, 10);
+
+        return new Set(selected.map((entry) => entry.id));
+    }, [boardItems, layoutMap, stageSize.viewportHeight]);
+
     return (
         <div className={`visual-moodboard-root ${surfaceMode === 'light' ? 'surface-light' : 'surface-dark'}`}>
             <div className="moodboard-toolbar">
@@ -849,6 +868,7 @@ export default function VisualMoodboard({ items = [] }) {
                             if (!idleLayout) return null;
                             const deployLayout = pendingLayoutMap.get(item.id) || idleLayout;
                             const activeLayout = shufflePhase === 'deploy' ? deployLayout : idleLayout;
+                            const isPriorityImage = priorityImageIds.has(item.id);
 
                             const stackCenterX = stageSize.width / 2;
                             const stackCenterY = clamp(stageSize.height * 0.3, 200, 380);
@@ -976,21 +996,29 @@ export default function VisualMoodboard({ items = [] }) {
                                 >
                                     <motion.div
                                         className="moodboard-card-entry"
-                                        initial={prefersReducedMotion ? false : { scale: 0.88, y: 18 }}
+                                        initial={
+                                            prefersReducedMotion
+                                                ? false
+                                                : { scale: 0.93, y: 18, opacity: 0 }
+                                        }
                                         whileInView={
                                             prefersReducedMotion || isShuffleActive
                                                 ? undefined
-                                                : { scale: 1, y: 0 }
+                                                : { scale: 1, y: 0, opacity: 1 }
                                         }
-                                        viewport={{ once: true, amount: 0.3, margin: '-8% 0px -8% 0px' }}
-                                        animate={isShuffleActive ? { scale: 1, y: 0 } : undefined}
+                                        viewport={{ once: true, amount: 0.2, margin: '0px 0px -10% 0px' }}
+                                        animate={
+                                            isShuffleActive
+                                                ? { scale: 1, y: 0, opacity: 1 }
+                                                : undefined
+                                        }
                                         transition={
                                             prefersReducedMotion
                                                 ? { duration: 0 }
                                                 : isShuffleActive
-                                                    ? { duration: 0.2, ease: 'easeOut' }
+                                                    ? { duration: 0.16, ease: 'easeOut' }
                                                     : {
-                                                        duration: 0.66,
+                                                        duration: 0.52,
                                                         ease: [0.22, 1, 0.36, 1],
                                                         delay: activeLayout.appearDelay,
                                                     }
@@ -999,7 +1027,9 @@ export default function VisualMoodboard({ items = [] }) {
                                         <motion.img
                                             src={item.imageUrl}
                                             alt={item.title}
-                                            loading="lazy"
+                                            loading={isPriorityImage ? 'eager' : 'lazy'}
+                                            decoding={isPriorityImage ? 'sync' : 'async'}
+                                            fetchPriority={isPriorityImage ? 'high' : 'low'}
                                             animate={
                                                 prefersReducedMotion
                                                     ? { y: 0, scale: 1 }
@@ -1065,8 +1095,11 @@ export default function VisualMoodboard({ items = [] }) {
                     --ui-active-text: rgba(255, 248, 244, 0.98);
                     --ui-focus-border: rgba(234, 42, 16, 0.9);
                     --ui-focus-ring: rgba(234, 42, 16, 0.22);
-                    --fab-text: rgba(250, 246, 240, 0.98);
-                    --fab-shadow: 0 1px 4px rgba(0, 0, 0, 0.55);
+                    --fab-bg: rgba(255, 255, 255, 0.98);
+                    --fab-border: rgba(255, 255, 255, 1);
+                    --fab-text: rgba(10, 10, 10, 0.96);
+                    --fab-shadow: 0 8px 18px rgba(0, 0, 0, 0.34);
+                    --fab-hover-shadow: 0 12px 22px rgba(0, 0, 0, 0.4);
                 }
 
                 .visual-moodboard-root.surface-light {
@@ -1081,8 +1114,11 @@ export default function VisualMoodboard({ items = [] }) {
                     --ui-active-text: rgba(250, 245, 237, 0.98);
                     --ui-focus-border: rgba(30, 25, 19, 0.92);
                     --ui-focus-ring: rgba(30, 25, 19, 0.2);
-                    --fab-text: rgba(22, 18, 14, 0.94);
-                    --fab-shadow: 0 1px 3px rgba(255, 248, 236, 0.56);
+                    --fab-bg: rgba(248, 241, 230, 0.98);
+                    --fab-border: rgba(225, 211, 188, 0.98);
+                    --fab-text: rgba(24, 20, 16, 0.96);
+                    --fab-shadow: 0 8px 16px rgba(62, 46, 26, 0.2);
+                    --fab-hover-shadow: 0 12px 20px rgba(62, 46, 26, 0.24);
                 }
 
                 .moodboard-controls {
@@ -1127,7 +1163,7 @@ export default function VisualMoodboard({ items = [] }) {
                     z-index: 2000;
                     min-height: 42px;
                     min-width: 142px;
-                    border: 0;
+                    border: 1px solid var(--fab-border);
                     border-radius: 12px;
                     padding: 0 1rem;
                     cursor: pointer;
@@ -1137,22 +1173,9 @@ export default function VisualMoodboard({ items = [] }) {
                     font-weight: 700;
                     text-transform: uppercase;
                     letter-spacing: 0.08em;
-                    background: linear-gradient(
-                        120deg,
-                        #ff3d00 0%,
-                        #ff9100 22%,
-                        #ffe600 38%,
-                        #00d084 56%,
-                        #00c8ff 72%,
-                        #7f5cff 86%,
-                        #ff3d00 100%
-                    );
-                    background-size: 260% 260%;
-                    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.28);
-                    isolation: isolate;
-                    overflow: hidden;
+                    background: var(--fab-bg);
+                    box-shadow: var(--fab-shadow);
                     transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
-                    animation: shuffleRainbowShift 6.8s ease-in-out infinite alternate;
                 }
 
                 .surface-toggle-btn {
@@ -1166,19 +1189,17 @@ export default function VisualMoodboard({ items = [] }) {
                     justify-content: center;
                     min-height: 42px;
                     color: var(--fab-text);
-                    text-shadow: var(--fab-shadow);
                 }
 
                 .shuffle-btn.busy {
                     cursor: wait;
-                    animation-duration: 3.4s;
-                    filter: saturate(1.15) brightness(1.06);
+                    filter: brightness(0.98);
                 }
 
                 .surface-toggle-btn:hover,
                 .shuffle-btn:hover:enabled {
                     transform: translateY(-1px);
-                    box-shadow: 0 12px 22px rgba(0, 0, 0, 0.34);
+                    box-shadow: var(--fab-hover-shadow);
                 }
 
                 .shuffle-btn:disabled {
@@ -1360,10 +1381,6 @@ export default function VisualMoodboard({ items = [] }) {
                     }
                 }
 
-                @keyframes shuffleRainbowShift {
-                    0% { background-position: 0% 50%; }
-                    100% { background-position: 100% 50%; }
-                }
             `}</style>
         </div>
     );
