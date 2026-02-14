@@ -30,7 +30,7 @@ const parseAnchorToPixels = (anchor, viewport, fallbackRatio) => {
     return viewport * fallbackRatio;
 };
 
-const DEFAULT_CATEGORY_FILTERS = [];
+const DEFAULT_CATEGORY_FILTERS = ['art'];
 const INITIAL_CARD_SIZE_BOUNDS = { min: 120, max: 560 };
 const DEFAULT_CARD_SENSITIVITY = 50;
 const DEFAULT_CARD_WIDTH = Math.round(
