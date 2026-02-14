@@ -172,10 +172,6 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
         forceReshuffle(null);
     };
 
-    const handleStoryPanelVisibilityToggle = () => {
-        setShowStoryPanel((prev) => !prev);
-    };
-
     useEffect(() => {
         const shouldRotate =
             handControlEnabled &&
@@ -728,13 +724,6 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                                 </div>
                             </div>
 
-                            <button
-                                className={`story-toggle-btn ${showStoryPanel ? 'active' : ''}`}
-                                onClick={handleStoryPanelVisibilityToggle}
-                            >
-                                {showStoryPanel ? 'Hide Story' : 'The Story Behind the Photo'}
-                            </button>
-
                             <button className="refresh-stack-btn" onClick={handleRefreshLoading}>
                                 Refresh Loading
                             </button>
@@ -997,30 +986,6 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                     background: rgba(56, 189, 248, 0.14);
                     color: #ffffff;
                 }
-                .story-toggle-btn {
-                    width: 284px;
-                    border: 1px solid rgba(255, 255, 255, 0.34);
-                    border-radius: 10px;
-                    background: rgba(0, 0, 0, 0.34);
-                    color: rgba(255, 255, 255, 0.9);
-                    font-family: 'Space Mono', monospace;
-                    font-size: 0.72rem;
-                    letter-spacing: 0.05em;
-                    text-transform: uppercase;
-                    padding: 0.58rem 0.72rem;
-                    cursor: pointer;
-                    transition: all 0.22s ease;
-                }
-                .story-toggle-btn:hover {
-                    border-color: rgba(56, 189, 248, 0.75);
-                    background: rgba(56, 189, 248, 0.14);
-                    color: #ffffff;
-                }
-                .story-toggle-btn.active {
-                    border-color: rgba(56, 189, 248, 0.82);
-                    background: rgba(56, 189, 248, 0.22);
-                    color: #e0f2fe;
-                }
                 .photo-story-live-header {
                     color: rgba(255, 255, 255, 0.95);
                     font-family: 'Space Mono', monospace;
@@ -1265,7 +1230,6 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                     }
                     .start-btn,
                     .size-control,
-                    .story-toggle-btn,
                     .refresh-stack-btn,
                     .feed-control-panel,
                     .filter-control-panel,
