@@ -140,10 +140,11 @@ const Header = () => {
                                             {/* Credentials */}
                                             <div className="sidebar-block">
                                                 <div className="mono-label">Credentials</div>
-                                                <MenuLink href="/awards" variants={itemVariants} className="mono-link">Awards & Recognition</MenuLink>
-                                                <MenuLink href="/press" variants={itemVariants} className="mono-link">Press Mentions</MenuLink>
+                                                <MenuLink href="/awards" variants={itemVariants} className="mono-link">Awards</MenuLink>
+                                                <MenuLink href="/experience" variants={itemVariants} className="mono-link">Experience</MenuLink>
+                                                <MenuLink href="/press" variants={itemVariants} className="mono-link">Press</MenuLink>
 
-                                                <MenuLink href="https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/cv/Abodid%20Sahoo%20-%20Photography%20&%20AI%20-%20CV.pdf" target="_blank" variants={itemVariants} className="mono-link">Resume</MenuLink>
+                                                <MenuLink href="https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/cv/Abodid%20Sahoo%20-%20Photography%20&%20AI%20-%20CV.pdf" target="_blank" variants={itemVariants} className="mono-link">CV</MenuLink>
                                             </div>
                                         </div>
 
@@ -182,7 +183,7 @@ const Header = () => {
                 .fixed-nav {
                     position: fixed; top: 0; left: 0; width: 100%;
                     z-index: 10005; /* Highest Priority */
-                    background: rgba(163, 0, 33, 0.92);
+                    background: rgba(0, 0, 0, 0.92);
                     backdrop-filter: blur(12px);
                     border-bottom: 1px solid rgba(255, 255, 255, 0.18);
                 }
@@ -204,7 +205,7 @@ const Header = () => {
                 
                 .mobile-breadcrumbs-row {
                     display: none; padding: 0.5rem 4vw 0.5rem; width: 100%;
-                    background: rgba(163, 0, 33, 0.95); color: rgba(255, 255, 255, 0.95);
+                    background: rgba(0, 0, 0, 0.95); color: rgba(255, 255, 255, 0.95);
                 }
 
                 .logo-image-link {

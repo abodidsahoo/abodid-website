@@ -5,12 +5,14 @@ import TagInput from '../resources/TagInput';
 import ListView from './ListView';
 import BrandManager from './BrandManager';
 import NewsletterSender from './NewsletterSender';
+import PhotoStoryManager from './PhotoStoryManager';
 
 const SECTIONS = [
     { id: 'dashboard', label: 'Overview', icon: '📊' },
     { id: 'users', label: 'Users', icon: '👥' },
     { id: 'brands', label: 'Brands', icon: '🏷️' },
     { id: 'photography', label: 'Photography', icon: '📸' },
+    { id: 'photo_stories', label: 'Photo Stories', icon: '📝' },
     { id: 'films', label: 'Films', icon: '🎬' },
     { id: 'blog', label: 'Blog', icon: '✍️' },
     { id: 'research', label: 'Research', icon: '🔬' },
@@ -22,7 +24,7 @@ const SECTIONS = [
 export default function AdminDashboard() {
     const [session, setSession] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [stats, setStats] = useState({ photography: 0, films: 0, posts: 0, projects: 0, metadata: 0, users: 0, resources: 0, subscribers: 0 });
+    const [stats, setStats] = useState({ photography: 0, photoStories: 0, films: 0, posts: 0, projects: 0, metadata: 0, users: 0, resources: 0, subscribers: 0 });
     const [activeSection, setActiveSection] = useState('dashboard');
     const [recentActivity, setRecentActivity] = useState([]);
     const [connectionError, setConnectionError] = useState(null);
@@ -114,12 +116,18 @@ export default function AdminDashboard() {
 
     const fetchStats = async () => {
         if (!supabase) return;
-        const tableNames = ['photography', 'films', 'blog', 'research', 'hub_resources', 'page_metadata', 'profiles', 'subscribers'];
+        const tableNames = ['photography', 'photo_stories', 'films', 'blog', 'research', 'hub_resources', 'page_metadata', 'profiles', 'subscribers'];
         const newStats = {};
         for (const name of tableNames) {
             const { count, error } = await supabase.from(name).select('*', { count: 'exact', head: true });
             if (!error) {
-                const key = name === 'page_metadata' ? 'metadata' : (name === 'profiles' ? 'users' : (name === 'hub_resources' ? 'resources' : name));
+                const key = name === 'page_metadata'
+                    ? 'metadata'
+                    : (name === 'profiles'
+                        ? 'users'
+                        : (name === 'hub_resources'
+                            ? 'resources'
+                            : (name === 'photo_stories' ? 'photoStories' : name)));
                 newStats[key] = count;
             } else {
                 console.warn(`Error fetching count for ${name}:`, error.message);
@@ -143,7 +151,6 @@ export default function AdminDashboard() {
                 { name: 'films', type: 'Film', icon: '🎬' },
                 { name: 'blog', type: 'Post', icon: '✍️' },
                 { name: 'research', type: 'Research', icon: '🔬' },
-                { name: 'research', type: 'Research', icon: '🔬' },
                 { name: 'hub_resources', type: 'Resource', icon: '📚' },
                 { name: 'subscribers', type: 'Subscriber', icon: '📧' },
                 { name: 'profiles', type: 'User', icon: '👤' }
@@ -152,14 +159,34 @@ export default function AdminDashboard() {
             let allActivities = [];
 
             for (const t of tables) {
-                const { data } = await supabase
+                let data = null;
+                let queryError = null;
+
+                // First try the default timeline field.
+                const primaryQuery = await supabase
                     .from(t.name)
                     .select('*')
-                    // Using created_at for "Activity". 
-                    // Note: If some tables use a different timestamp, handling might be needed.
-                    // Assuming standard 'created_at' exists.
                     .order('created_at', { ascending: false })
                     .limit(5);
+
+                data = primaryQuery.data;
+                queryError = primaryQuery.error;
+
+                // Some tables in this codebase use different timestamp columns.
+                // If ordering by created_at fails, fallback to a safe read.
+                if (queryError) {
+                    const fallbackQuery = await supabase
+                        .from(t.name)
+                        .select('*')
+                        .limit(5);
+                    data = fallbackQuery.data;
+                    queryError = fallbackQuery.error;
+                }
+
+                if (queryError) {
+                    console.warn(`Recent activity fallback failed for ${t.name}:`, queryError.message);
+                    continue;
+                }
 
                 if (data) {
                     const mapped = data.map(item => ({
@@ -167,7 +194,13 @@ export default function AdminDashboard() {
                         type: t.type,
                         icon: t.icon,
                         title: item.title || item.username || item.full_name || item.page_title || 'Untitled',
-                        date: new Date(item.created_at),
+                        date: new Date(
+                            item.created_at ||
+                            item.updated_at ||
+                            item.published_at ||
+                            item.subscribed_at ||
+                            Date.now()
+                        ),
                         original: item
                     }));
                     allActivities = [...allActivities, ...mapped];
@@ -303,6 +336,7 @@ export default function AdminDashboard() {
                             <div className="stats-grid">
                                 <DashboardCard title="Users" count={stats.users} icon="👥" onClick={() => setActiveSection('users')} loading={loading} />
                                 <DashboardCard title="Photography" count={stats.photography} icon="📸" onClick={() => setActiveSection('photography')} loading={loading} />
+                                <DashboardCard title="Photo Stories" count={stats.photoStories} icon="📝" onClick={() => setActiveSection('photo_stories')} loading={loading} />
                                 <DashboardCard title="Films" count={stats.films} icon="🎬" onClick={() => setActiveSection('films')} loading={loading} />
                                 <DashboardCard title="Blog" count={stats.blog} icon="✍️" onClick={() => setActiveSection('blog')} loading={loading} />
                                 <DashboardCard title="Research" count={stats.research} icon="🔬" onClick={() => setActiveSection('research')} loading={loading} />
@@ -387,7 +421,16 @@ export default function AdminDashboard() {
                         </div>
                     )}
 
-                    {activeSection !== 'dashboard' && activeSection !== 'users' && activeSection !== 'brands' && activeSection !== 'newsletter' && (
+                    {activeSection === 'photo_stories' && (
+                        <>
+                            <header className="content-header" style={{ marginBottom: '1rem' }}>
+                                <h2 className="section-title">Photo Stories</h2>
+                            </header>
+                            <PhotoStoryManager />
+                        </>
+                    )}
+
+                    {activeSection !== 'dashboard' && activeSection !== 'users' && activeSection !== 'brands' && activeSection !== 'newsletter' && activeSection !== 'photo_stories' && (
                         <ListView
                             table={activeSection}
                             title={SECTIONS.find(s => s.id === activeSection)?.label}
