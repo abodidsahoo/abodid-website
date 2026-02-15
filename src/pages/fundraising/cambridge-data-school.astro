@@ -1,506 +1,1233 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import PdfIcon from "../../components/PdfIcon.astro";
 
-const pageTitle = "Cambridge Data School Fundraiser";
+const pageTitle = "Cambridge Cultural Heritage Data School Partnership";
+const pageDescription =
+    "Selected for Cultural Heritage Data School (April 2026). Seeking partnership support for travel, visa, and accommodation.";
 
-// Project Data
-const goal = 1600;
-const raised = 820;
-const percentage = Math.min((raised / goal) * 100, 100);
+const heroImage =
+    "https://wallpapersok.com/images/high/cambridge-university-hall-7n378cd5chdvjxdg.jpg";
 
-// Cost Data
-const costs = [
-    { item: "International Flight (India ↔ UK)", cost: 500 },
-    { item: "Accommodation (5 nights @ Selwyn College)", cost: 500 },
-    { item: "Local Travel (London – Cambridge)", cost: 200 },
-    { item: "Food & Essentials", cost: 250 },
-    { item: "Insurance / Contingency", cost: 150 },
+const invitationImage =
+    "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/cv/Letter-of-Invitation_Abodid-Sahoo.jpg";
+const invitationPdfDownload =
+    "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/cv/Letter%20of%20Invitation_Abodid%20Sahoo.pdf?download=Letter-of-Invitation_Abodid-Sahoo.pdf";
+const invitationCompanionGif =
+    "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExM2Z6M3M2MTdkbTk4MTBmZ2tlOTd3MHZyMGtmNnVxYTlmcjRlb2w2ZCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/jIXcTEmU5RCpO/giphy.gif";
+
+const threeMinuteVideo =
+    "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/cambridge/3mins-Visual-Edit-Cambridge-V2-compressed.mp4";
+const fullStoryYoutube = "https://www.youtube.com/watch?v=ec4fWTv6hk4";
+const upiQrImage =
+    "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/cambridge/Screenshot%202026-02-16%20at%2004.51.12.png";
+
+const costRows = [
+    {
+        expense: "Travel",
+        amount: "GBP 800",
+    },
+    {
+        expense: "Accommodation",
+        amount: "GBP 700",
+    },
+    {
+        expense: "Visa",
+        amount: "GBP 200",
+    },
+    {
+        expense: "Misc (food, local travel)",
+        amount: "GBP 300",
+    },
 ];
+
+const partnershipOffers = [
+    {
+        title: "5-Part Cambridge Field Notes Series",
+        body: "Daily short videos with partner/<strong>backer credit</strong>.",
+    },
+    {
+        title: "3-Hour Hands-on Workshop",
+        body: "Plus, a 3-hour hands-on <strong>interactive workshop</strong> post-return for your team/students on cultural heritage data and visual storytelling. I will also share resources and tools for efficiently using AI to develop digital interfaces for research and archival purposes.",
+    },
+    {
+        title: "Public Write-up and Documentation",
+        body: "Detailed public write-up and output archive with transparent <strong>support mention</strong>.",
+    },
+    {
+        title: "Merchandise Collaboration",
+        body: "The Cambridge campus is beautiful, and I&apos;m excited to collaborate with fashion designers and help you elevate your brand presence internationally!",
+    },
+    {
+        title: "Personalized Student Guidance",
+        body: "I would love to offer transparent personalized <strong>guidance</strong> for your team members/students applying to similar opportunities, including a clear background of my <strong>full application process</strong>.",
+    },
+];
+
+const whoFor = [
+    "Foundations, museums, universities, and research institutions",
+    "Culture-tech, heritage-tech, and AI + data organisations",
+    "CSR teams and brands working in culture, education, and knowledge",
+    "Patrons and HNIs supporting arts, research, and culture",
+    "Alumni from NIT Rourkela, NID Ahmedabad, and Royal College of Art",
+    "Government of Odisha (Culture/Science Ministry)",
+];
+
 ---
 
-<BaseLayout title={pageTitle}>
-    <div class="campaign-page">
-        {/* --- HERO SECTION --- */}
-        <header class="campaign-hero">
-            <div class="hero-content">
-                <span class="eyebrow">Milestone Project</span>
-                <h1>From a small town in Odisha to Cambridge University.</h1>
-                <p class="subtitle">
-                    I’ve been awarded a <strong>full bursary</strong> to attend the
-                    Cambridge Cultural Heritage Data School. I’m raising <strong
-                        >£1,600</strong
-                    > to cover travel and living costs.
-                </p>
-            </div>
-        </header>
+<BaseLayout
+    title={pageTitle}
+    description={pageDescription}
+    fullWidth={true}
+    gridVariant="moodboard"
+>
+    <Fragment slot="head">
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Gochi+Hand&display=swap"
+            rel="stylesheet"
+        />
+    </Fragment>
+    <section class="cambridge-page">
+        <div class="page-shell">
+            <header class="hero panel">
+                <div class="hero-grid">
+                    <div class="hero-copy">
+                        <p class="eyebrow">Cambridge Partnership Invitation</p>
+                        <h1>
+                            Looking for Partners for Cultural Heritage Data School
+                        </h1>
+                        <p class="hero-date">April 13-17, 2026</p>
+                        <p class="hero-subtitle">
+                            I have been offered a place in the Cultural
+                            Heritage Data School happening in April 2026 at the
+                            University of Cambridge with a program fee bursary.
+                        </p>
+                        <p class="hero-ask">
+                            I am urgently looking for a partner or sponsor to support my travel, visa, and accommodation.
+                        </p>
+                        <div class="hero-actions">
+                            <a class="btn btn-primary" href="mailto:abodidsahoo@gmail.com?subject=Cambridge%20Partnership%20Discussion"
+                                >Contact Me</a
+                            >
+                            <a class="btn" href="#partnership-offers"
+                                >What am I offering?</a
+                            >
+                        </div>
+                    </div>
 
-        {/* --- TRUST / BURSARY CONFIRMATION --- */}
-        <section class="trust-section">
-            <div class="trust-card">
-                <div class="seal-icon">🏛️</div>
-                <blockquote>
-                    “We are delighted to offer you a bursary place at the
-                    Cultural Heritage Data School (CHDS), held in Cambridge from
-                    13–17 April 2026.”
-                </blockquote>
-                <div class="trust-meta">
-                    <span>✅ Full Bursary Awarded</span>
-                    <span>📅 13–17 April 2026</span>
-                    <span>📍 Cambridge, UK</span>
+                    <figure class="hero-photo panel-soft">
+                        <img
+                            src={heroImage}
+                            alt="Cambridge architecture"
+                            loading="lazy"
+                        />
+                        <figcaption class="meta">
+                            University of Cambridge, United Kingdom
+                        </figcaption>
+                    </figure>
                 </div>
-            </div>
-        </section>
+            </header>
 
-        {/* --- MAIN EDITORIAL CONTENT --- */}
-        <article class="story-content">
-            <div class="content-block">
-                <h2>Why This Matters</h2>
-                <p>
-                    I have been offered a fully funded bursary place at the <strong
-                        >Cambridge Cultural Heritage Data School (CHDS)</strong
-                    >. The tuition fee has been completely waived. The remaining
-                    challenge is covering travel, accommodation, and essential
-                    living expenses.
-                </p>
-                <p>
-                    The <strong>Cambridge Cultural Heritage Data School</strong> is
-                    an intensive, in-person program focused on experience design,
-                    cultural data, and digital humanities. The curriculum explores
-                    how data, culture, and storytelling can be transformed into meaningful
-                    public experiences.
-                </p>
-            </div>
+            <section class="section panel">
+                <div class="watch-grid">
+                    <article class="video-card">
+                        <div class="portrait-shell">
+                            <video
+                                data-brief-video
+                                autoplay
+                                muted
+                                playsinline
+                                loop
+                                controls
+                                preload="metadata"
+                            >
+                                <source src={threeMinuteVideo} type="video/mp4" />
+                            </video>
+                        </div>
+                        <div class="video-buttons">
+                            <button
+                                class="btn"
+                                type="button"
+                                data-brief-sound-toggle
+                                aria-pressed="false"
+                            >
+                                Enable Sound
+                            </button>
+                            <button class="btn btn-primary" type="button" data-video-restart>
+                                Start from Beginning
+                            </button>
+                        </div>
+                    </article>
 
-            <div class="content-block">
-                <h3>About the Program</h3>
-                <ul>
-                    <li>Experience design methodologies</li>
-                    <li>Prototyping digital & analogue games</li>
-                    <li>
-                        Interactive performance design & Co-design workshops
-                    </li>
-                    <li>Worldbuilding in 3D using Blender</li>
-                </ul>
-                <p>
-                    This program sits directly at the intersection of culture,
-                    technology, design and storytelling — exactly where my work
-                    lives.
-                </p>
-            </div>
+                    <article class="panel-soft why-card watch-why-card">
+                        <p class="meta">Why it is important to me</p>
+                        <h3>About the Program</h3>
+                        <p>
+                            The Cambridge Cultural Heritage Data School is an intensive,
+                            in-person programme focused on experience design, cultural
+                            data, and digital humanities. It explores how data,
+                            culture, and storytelling can be transformed into meaningful
+                            public experiences.
+                        </p>
+                        <div class="why-break" aria-hidden="true"></div>
+                        <h3>My Background</h3>
+                        <p>
+                            I was born and raised in <strong>Odisha</strong>, India, in a small town. I
+                            come from a middle-class family where education matters
+                            deeply, and where financial decisions are made carefully.
+                        </p>
+                        <p>
+                            I hold a Master&apos;s degree in Digital Direction from the
+                            <strong>Royal College of Art, London</strong>, supported by a full <strong>scholarship from Apple</strong>.
+                        </p>
+                        <p>
+                            Scholarships like this have paved my path from a small town
+                            to world-renowned institutions. In the future, I <strong>aspire to pursue a PhD at Cambridge</strong>, and this Data School feels like the <strong>perfect stepping stone</strong> to understand the school more
+                            closely, interact with mentors, and explore full funding
+                            opportunities for my doctorate.
+                        </p>
+                        <p>
+                            I want to bring in my real-life projects, my <strong>South Asian context</strong>,
+                            the deep-rooted human-ness I share with my local
+                            communities, and the stories I carry with me. My goal is to
+                            merge these with world-class technologies and social sciences
+                            to build products and organisations that truly make
+                            people&apos;s lives better.
+                        </p>
+                    </article>
+                </div>
+            </section>
 
-            <div class="content-block">
-                <h2>My Background</h2>
-                <p>
-                    I was born and raised in <strong>Odisha, India</strong>, in
-                    a small town. I come from a middle-class family where
-                    education matters deeply — and where financial decisions are
-                    made carefully.
-                </p>
-                <p>
-                    I hold a Master’s degree in <strong
-                        >Digital Direction</strong
-                    > from the <strong>Royal College of Art, London</strong>,
-                    supported by a <strong class="highlight-apple"
-                        >full scholarship from Apple</strong
-                    >.
-                </p>
-                <p>
-                    Scholarships like this have paved my path from a small town
-                    to world-renowned institutions. In the future, I aspire to
-                    pursue a <strong>PhD at Cambridge</strong>, and the Cultural
-                    Heritage Data School feels like the perfect stepping stone
-                    to understand exactly what this school entails, interact
-                    with mentors, and explore full funding opportunities for my
-                    doctorate.
-                </p>
-                <p>
-                    I want to bring in my real-life projects, my <strong
-                        >South Asian context</strong
-                    >, the <strong>deep-rooted human-ness</strong> I share with my
-                    local communities, and the stories I carry with me. My goal is
-                    to merge these with world-class technologies and social sciences
-                    to build amazing products and organizations that truly make people's
-                    lives better.
-                </p>
-            </div>
+            <section class="section panel">
+                <div class="section-header">
+                    <p class="meta">What Am I Raising?</p>
+                    <h2>Invitation Letter.</h2>
+                </div>
 
-            {/* --- TRANSPARENCY SECTION --- */}
-            <div class="transparency-block">
-                <h3>Transparent Cost Breakdown</h3>
-                <p class="transparency-intro">
-                    This amount covers only essential costs required to attend
-                    in person. The course itself is free.
-                </p>
+                <div class="raising-grid">
+                    <article class="invitation-card panel-soft">
+                        <div class="invitation-toolbar">
+                            <a
+                                class="btn btn-primary"
+                                href={invitationPdfDownload}
+                                download
+                            >
+                                Download Invitation Letter PDF File
+                            </a>
+                        </div>
 
-                <div class="cost-table-wrapper">
-                    <table class="cost-table">
-                        <thead>
-                            <tr>
-                                <th>Category</th>
-                                <th class="text-right">Estimated Cost</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+                        <div class="invitation-surface">
+                            <img
+                                src={invitationImage}
+                                alt="Invitation letter from Cambridge Cultural Heritage Data School"
+                                loading="lazy"
+                            />
+                        </div>
+                    </article>
+                    <article class="invitation-gif-card">
+                        <div class="invitation-gif-stack">
+                            <img
+                                src={invitationCompanionGif}
+                                alt="Animated visual complementing the invitation letter"
+                                loading="lazy"
+                            />
+                            <p class="invitation-gif-caption gochi-hand-regular">
+                                &ldquo;This part of my life, this little part, is called happiness.&rdquo;
+                            </p>
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+            <section class="section panel" id="partnership-offers">
+                <div class="support-layout">
+                    <div class="support-left">
+                        <div class="section-header support-head">
+                            <p class="meta">Support Snapshot</p>
+                            <h2>Funding breakdown.</h2>
+                        </div>
+                        <div class="cost-column">
+                            <article class="cost-card panel-soft">
+                                <p class="meta">Funding Breakdown</p>
+                                <div class="table-wrap compact-table-wrap">
+                                    <table class="cost-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Cost Head</th>
+                                                <th>Amount</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {
+                                                costRows.map((row) => (
+                                                    <tr>
+                                                        <td>{row.expense}</td>
+                                                        <td>{row.amount}</td>
+                                                    </tr>
+                                                ))
+                                            }
+                                            <tr class="total-row">
+                                                <td>Total Target</td>
+                                                <td>GBP 2,000</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </article>
+                            <aside class="panel-soft audience-card">
+                                <p class="meta">Who This Is For</p>
+                                <h3>Relevant partners and supporters</h3>
+                                <ul class="focus-list">
+                                    {
+                                        whoFor.map((item) => (
+                                            <li>{item}</li>
+                                        ))
+                                    }
+                                </ul>
+                            </aside>
+                        </div>
+                    </div>
+
+                    <div class="support-right">
+                        <div class="section-header support-head">
+                            <p class="meta">Partnership</p>
+                            <h2>What I am offering in return.</h2>
+                        </div>
+                        <div class="offers-grid">
                             {
-                                costs.map((row) => (
-                                    <tr>
-                                        <td>{row.item}</td>
-                                        <td class="text-right">£{row.cost}</td>
-                                    </tr>
+                                partnershipOffers.map((item) => (
+                                    <article class="offer-card panel-soft">
+                                        <h3>{item.title}</h3>
+                                        <p set:html={item.body}></p>
+                                    </article>
                                 ))
                             }
-                            <tr class="total-row">
-                                <td><strong>Total Goal</strong></td>
-                                <td class="text-right"
-                                    ><strong>£1,600</strong></td
-                                >
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            {/* --- REWARDS SECTION --- */}
-            <div class="rewards-block">
-                <div class="reward-card">
-                    <h4>🎁 In Gratitude</h4>
-                    <p>
-                        Supporters are not purchasing anything — this is
-                        appreciation-based.
-                    </p>
-                    <ul>
-                        <li>Name listed in credits of work produced at CHDS</li>
-                        <li>Updates on research workflows</li>
-                    </ul>
-                </div>
-            </div>
-        </article>
-
-        {/* --- STICKY DONATION WIDGET (Glassmorphism) --- */}
-        <div class="donation-widget">
-            <div class="widget-progress">
-                <div class="widget-header">
-                    <span class="amount-raised">£{raised}</span>
-                    <span class="amount-goal">raised of £{goal}</span>
-                </div>
-                <div class="progress-bar-bg">
-                    <div
-                        class="progress-bar-fill"
-                        style={`width: ${percentage}%`}
-                    >
+                        </div>
                     </div>
                 </div>
-                <div class="percentage-text">
-                    {Math.round(percentage)}% Funded
+            </section>
+
+            <section class="section panel">
+                <div class="section-header">
+                    <p class="meta">Full Story</p>
+                    <h2>15-minute full story video</h2>
                 </div>
-            </div>
 
-            <div class="widget-actions">
-                {/* PayPal SDK Script */}
-                <script
-                    is:inline
-                    src="https://www.paypal.com/sdk/js?client-id=BAAQE8TkamhCfaYjOOl_ZjtgKbY0ZCtyOzmdOe83xf_zWg30P2ZzyrL0_v1NsBdll_k9zw5wYPq9KJkXy8&components=hosted-buttons&disable-funding=venmo&currency=GBP"
-                ></script>
+                <article class="panel-soft full-story full-story-wide" id="full-story-video">
+                    <div class="full-story-head">
+                        <p class="meta">15-Min Full Story</p>
+                        <a class="btn" href={fullStoryYoutube}>Open on YouTube</a>
+                    </div>
+                    <div class="vertical-iframe">
+                        <iframe
+                            src="https://www.youtube.com/embed/ec4fWTv6hk4?rel=0&modestbranding=1"
+                            title="Cambridge full story video"
+                            loading="lazy"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            allowfullscreen
+                        ></iframe>
+                    </div>
+                </article>
+            </section>
 
-                <div id="paypal-container-22T4QFMFG6BDS"></div>
+            <section class="section panel">
+                <div class="section-header">
+                    <p class="meta">Bank Transfer Details</p>
+                    <h2>Direct transfer options</h2>
+                </div>
 
-                <script is:inline>
-                    const renderPayPal = () => {
-                        if (window.paypal && window.paypal.HostedButtons) {
-                            window.paypal
-                                .HostedButtons({
-                                    hostedButtonId: "22T4QFMFG6BDS",
-                                })
-                                .render("#paypal-container-22T4QFMFG6BDS");
-                            return true;
-                        }
-                        return false;
-                    };
-                    if (!renderPayPal()) {
-                        const intervalId = setInterval(() => {
-                            if (renderPayPal()) clearInterval(intervalId);
-                        }, 200);
-                        setTimeout(() => clearInterval(intervalId), 5000);
-                    }
-                </script>
-            </div>
+                <p class="mono-line">
+                    Transfer subject: Education Fees - Cambridge University
+                </p>
 
-            <p class="widget-footer">🔒 Secure payment via PayPal</p>
+                <div class="bank-grid">
+                    <article class="bank-card panel-soft">
+                        <h3>Access Bank (India)</h3>
+                        <dl>
+                            <div class="bank-row">
+                                <dt>Account Holder</dt>
+                                <dd>Abodid Sahoo</dd>
+                            </div>
+                            <div class="bank-row">
+                                <dt>Account Number</dt>
+                                <dd>912010033704055</dd>
+                            </div>
+                            <div class="bank-row">
+                                <dt>IFSC Code</dt>
+                                <dd>UTIB0003179</dd>
+                            </div>
+                        </dl>
+                    </article>
+
+                    <article class="bank-card panel-soft">
+                        <h3>Lloyds Bank (UK)</h3>
+                        <dl>
+                            <div class="bank-row">
+                                <dt>Name on Account</dt>
+                                <dd>Abodid Sahoo</dd>
+                            </div>
+                            <div class="bank-row">
+                                <dt>Sort Code</dt>
+                                <dd>30-90-89</dd>
+                            </div>
+                            <div class="bank-row">
+                                <dt>Account Number</dt>
+                                <dd>43644963</dd>
+                            </div>
+                        </dl>
+                    </article>
+
+                    <article class="bank-card panel-soft upi-card">
+                        <h3>UPI (India)</h3>
+                        <dl>
+                            <div class="bank-row">
+                                <dt>UPI ID</dt>
+                                <dd>
+                                    <strong class="upi-id">abodidsahoo@axl</strong>
+                                </dd>
+                            </div>
+                        </dl>
+                        <img
+                            class="upi-qr"
+                            src={upiQrImage}
+                            alt="UPI QR code for transfer"
+                            loading="lazy"
+                        />
+                    </article>
+                </div>
+            </section>
+
+            <section class="section panel contact-panel">
+                <div class="contact-layout">
+                    <div class="contact-copy">
+                        <div class="section-header">
+                            <p class="meta">Let's Talk</p>
+                            <h2>If you have reached this far, let&apos;s talk.</h2>
+                        </div>
+                        <p>
+                            I&apos;m sure someone would be willing to fund this anyway, so if you
+                            would not be funding, then perhaps someone else would be helping
+                            me out. Then why not you?
+                        </p>
+                        <div class="hero-actions">
+                            <a class="btn btn-primary" href="mailto:abodidsahoo@gmail.com"
+                                >abodidsahoo@gmail.com</a
+                            >
+                            <a class="btn" href="https://wa.me/919439094370"
+                                >WhatsApp / Phone: +91 9439094370</a
+                            >
+                        </div>
+                    </div>
+
+                    <figure class="contact-signature">
+                        <img
+                            src="/images/signature-black.png"
+                            alt="Signature of Abodid Sahoo"
+                        />
+                    </figure>
+                </div>
+            </section>
+
+            <div class="footer-spacer" aria-hidden="true"></div>
         </div>
-    </div>
+    </section>
 </BaseLayout>
 
 <style>
-    /* --- LAYOUT --- */
-    .campaign-page {
-        max-width: 800px; /* Editorial Width */
+    @import url("https://fonts.googleapis.com/css2?family=Gochi+Hand&display=swap");
+
+    .gochi-hand-regular {
+        font-family: "Gochi Hand", cursive;
+        font-weight: 400;
+        font-style: normal;
+    }
+
+    :global(body[data-grid-variant="moodboard"]) {
+        --grid-color-1: rgba(83, 62, 37, 0.28);
+        --grid-color-2: rgba(83, 62, 37, 0.09);
+        background: radial-gradient(circle at top, #fff8ea 0%, #f3e5cd 45%, #ecddc0 100%)
+            fixed !important;
+        color: #231a13;
+    }
+
+    :global(body[data-grid-variant="moodboard"] .global-grid-bg) {
+        display: none;
+    }
+
+    :global(body[data-grid-variant="moodboard"] .global-glow-bg) {
+        --glow-radius: 560px;
+        opacity: 1;
+        background-size: 52px 52px;
+    }
+
+    :global(body[data-grid-variant="moodboard"] .site-footer) {
+        background: rgba(243, 229, 205, 0.88);
+        border-top: 1px solid rgba(93, 67, 38, 0.26);
+    }
+
+    .cambridge-page {
+        width: 100%;
+        padding: clamp(2.4rem, 4vh, 3.4rem) 0 11rem;
+    }
+
+    .page-shell {
+        width: min(1490px, calc(100vw - 2.5rem));
         margin: 0 auto;
-        padding: 4rem 1.5rem 10rem 1.5rem;
-        position: relative;
+        display: grid;
+        gap: clamp(2rem, 2.7vw, 2.9rem);
     }
 
-    /* --- HERO --- */
-    .campaign-hero {
-        text-align: center;
-        margin-bottom: 4rem;
-
-        /* Hero Image Setup */
-        background-image:
-            linear-gradient(
-                to bottom,
-                rgba(15, 15, 16, 0.7),
-                rgba(15, 15, 16, 1)
-            ),
-            url("https://upload.wikimedia.org/wikipedia/commons/b/b4/KingsCollegeChapelWest.jpg");
-        background-size: cover;
-        background-position: center;
-        padding: 8rem 1.5rem 4rem 1.5rem; /* Increased top padding */
-        margin-top: -4rem; /* Pull up into header area if needed, or just standard */
-        border-radius: 0 0 24px 24px;
-        position: relative;
+    .panel {
+        background: rgba(255, 250, 243, 0.84);
+        border: 1px solid rgba(101, 75, 44, 0.28);
+        border-radius: 22px;
+        padding: clamp(1.55rem, 2.9vw, 2.8rem);
+        box-shadow: 0 18px 35px rgba(86, 59, 29, 0.1);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
     }
 
-    .eyebrow {
+    .panel-soft {
+        background: rgba(255, 255, 255, 0.72);
+        border: 1px solid rgba(117, 86, 52, 0.22);
+        border-radius: 18px;
+        padding: clamp(1.12rem, 1.65vw, 1.45rem);
+    }
+
+    .eyebrow,
+    .meta,
+    table thead th,
+    .mono-line,
+    .bank-row dt {
+        font-family: "Space Mono", monospace;
+        letter-spacing: 0.04em;
         text-transform: uppercase;
-        font-size: 0.85rem;
-        letter-spacing: 0.15em;
-        color: #4ade80; /* Accent Color */
-        font-weight: 600;
-        margin-bottom: 1rem;
-        display: block;
+        font-size: 0.73rem;
+        color: rgba(70, 45, 20, 0.82);
+    }
+
+    h1,
+    h2,
+    h3,
+    p,
+    li,
+    td,
+    dd,
+    th {
+        color: #241912;
+        font-family: "Poppins", sans-serif;
+    }
+
+    .hero {
+        background:
+            linear-gradient(125deg, rgba(255, 255, 255, 0.8), rgba(255, 235, 200, 0.78)),
+            linear-gradient(35deg, rgba(255, 220, 171, 0.4), rgba(255, 247, 231, 0.65));
+        padding: clamp(1.75rem, 3.1vw, 3.1rem);
+    }
+
+    .hero-grid {
+        display: grid;
+        grid-template-columns: 1.05fr 0.95fr;
+        gap: clamp(1.2rem, 2.15vw, 2rem);
+        align-items: center;
+    }
+
+    .hero-copy {
+        display: grid;
+        gap: 0.8rem;
+        align-content: start;
+        padding-block: 0.3rem;
     }
 
     h1 {
-        font-family: "Poppins", sans-serif;
-        font-size: 3rem; /* Large Display */
-        line-height: 1.1;
-        margin-bottom: 1.5rem;
-        font-weight: 700;
+        font-size: clamp(1.8rem, 3.3vw, 3.05rem);
+        margin: 0.15rem 0 0.35rem;
+        line-height: 1.08;
     }
 
-    .subtitle {
-        font-size: 1.25rem;
-        color: var(--text-secondary);
-        line-height: 1.6;
-        max-width: 600px;
-        margin: 0 auto;
-    }
-
-    strong {
-        color: #fff;
-        font-weight: 600;
-    }
-
-    .highlight-apple {
-        color: #fff;
-        text-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
-        font-weight: 700;
-    }
-
-    /* --- TRUST SECTION --- */
-    .trust-section {
-        margin-bottom: 4rem;
-    }
-
-    .trust-card {
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-left: 4px solid #4ade80;
-        padding: 2rem;
-        border-radius: 8px;
-        text-align: center;
-    }
-
-    .seal-icon {
-        font-size: 2rem;
-        margin-bottom: 1rem;
-    }
-
-    blockquote {
-        font-family: "Georgia", serif;
-        font-style: italic;
-        font-size: 1.1rem;
-        color: var(--text-secondary);
-        margin: 0 0 1.5rem 0;
-        line-height: 1.6;
-    }
-
-    .trust-meta {
-        display: flex;
-        justify-content: center;
-        gap: 1.5rem;
-        flex-wrap: wrap;
+    .hero-date {
+        margin: 0;
+        color: rgba(65, 42, 19, 0.78);
         font-size: 0.9rem;
-        font-weight: 600;
-        color: var(--text-primary);
-    }
-
-    /* --- EDITORIAL CONTENT --- */
-    .story-content {
-        font-size: 1.1rem;
-        line-height: 1.8;
-        color: var(--text-secondary);
-    }
-
-    .content-block {
-        margin-bottom: 3rem;
-    }
-
-    h2,
-    h3,
-    h4 {
-        color: var(--text-primary);
-        font-family: "Poppins", sans-serif;
-        margin-bottom: 1rem;
-    }
-
-    h2 {
-        font-size: 2rem;
-    }
-    h3 {
-        font-size: 1.5rem;
-    }
-
-    ul {
-        margin-bottom: 1.5rem;
-        padding-left: 1.5rem;
-    }
-
-    li {
-        margin-bottom: 0.5rem;
-    }
-
-    /* --- TRANSPARENCY TABLE --- */
-    .transparency-block {
-        background: var(--bg-surface);
-        padding: 2rem;
-        border-radius: 12px;
-        border: 1px solid var(--border-subtle);
-    }
-
-    .cost-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 1.5rem;
-        font-size: 0.95rem;
-    }
-
-    .cost-table th {
-        text-align: left;
-        padding-bottom: 1rem;
-        border-bottom: 1px solid var(--border-subtle);
-        color: var(--text-tertiary);
-        text-transform: uppercase;
-        font-size: 0.8rem;
-        letter-spacing: 0.05em;
-    }
-
-    .cost-table td {
-        padding: 1rem 0;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    }
-
-    .text-right {
-        text-align: right;
-    }
-
-    .total-row td {
-        border-bottom: none;
-        padding-top: 1.5rem;
-        font-size: 1.1rem;
-        color: #4ade80;
-    }
-
-    /* --- REWARDS --- */
-    .rewards-block {
-        margin-top: 6rem;
-    }
-
-    .reward-card {
-        background: linear-gradient(
-            145deg,
-            rgba(74, 222, 128, 0.1),
-            transparent
-        );
-        border: 1px solid rgba(74, 222, 128, 0.3);
-        padding: 2rem;
-        border-radius: 12px;
-    }
-
-    /* --- STICKY DONATION WIDGET --- */
-    .donation-widget {
-        position: fixed;
-        bottom: 2rem;
-        right: 2rem;
-        width: 320px;
-        background: rgba(15, 15, 16, 0.9); /* High contrast dark */
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        padding: 1.5rem;
-        border-radius: 16px;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
-        z-index: 100;
-    }
-
-    .widget-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: baseline;
-        margin-bottom: 0.8rem;
-    }
-
-    .amount-raised {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: #fff;
         font-family: "Space Mono", monospace;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
     }
 
-    .amount-goal {
-        font-size: 0.85rem;
-        color: var(--text-tertiary);
+    .hero-subtitle {
+        margin: 0.15rem 0 0;
+        font-size: clamp(1rem, 1.3vw, 1.15rem);
+        line-height: 1.62;
+        max-width: 66ch;
     }
 
-    .progress-bar-bg {
-        width: 100%;
-        height: 8px;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 4px;
-        margin-bottom: 0.5rem;
+    .hero-ask {
+        margin: 0.25rem 0 0;
+        font-size: clamp(1rem, 1.3vw, 1.15rem);
+        line-height: 1.62;
+        max-width: 66ch;
+    }
+
+    .hero-photo {
+        display: grid;
+        gap: 0.6rem;
+        padding: 0.65rem;
         overflow: hidden;
     }
 
-    .progress-bar-fill {
+    .hero-photo img {
+        width: 100%;
         height: 100%;
-        background: #4ade80;
-        border-radius: 4px;
+        max-height: 450px;
+        object-fit: cover;
+        border-radius: 14px;
+        border: 1px solid rgba(109, 79, 48, 0.28);
     }
 
-    .percentage-text {
-        font-size: 0.8rem;
-        color: #4ade80;
-        text-align: right;
-        margin-bottom: 1.5rem;
+    .hero-photo figcaption {
+        margin: 0;
+    }
+
+    .hero-actions {
+        margin-top: 1.4rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.8rem;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.58rem 0.94rem;
+        border: 1px solid rgba(87, 56, 26, 0.55);
+        border-radius: 999px;
+        text-decoration: none;
+        color: #27150a;
         font-family: "Space Mono", monospace;
+        font-size: 0.74rem;
+        line-height: 1.2;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+        background: rgba(255, 255, 255, 0.74);
+        cursor: pointer;
     }
 
-    .widget-footer {
+    .btn:hover,
+    .btn:focus-visible {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 18px rgba(89, 58, 29, 0.14);
+        outline: none;
+    }
+
+    .btn-primary {
+        background: #7a1b0f;
+        color: #fff8f1;
+        border-color: #7a1b0f;
+    }
+
+    .section {
+        display: grid;
+        gap: clamp(1.45rem, 1.9vw, 2rem);
+    }
+
+    .section-header {
+        display: grid;
+        gap: 0.6rem;
+    }
+
+    .section-header h2 {
+        margin: 0;
+        font-size: clamp(1.2rem, 2vw, 1.9rem);
+        line-height: 1.22;
+    }
+
+    .watch-grid,
+    .raising-grid,
+    .support-layout,
+    .bank-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: clamp(1.45rem, 2.2vw, 2.2rem);
+        align-items: stretch;
+    }
+
+    .raising-grid {
+        align-items: start;
+    }
+
+    .video-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1.1rem;
+        padding: clamp(1.15rem, 2vw, 1.65rem);
+        border-radius: 18px;
+        border: 1px solid rgba(117, 86, 52, 0.22);
+        background: rgba(255, 255, 255, 0.66);
+    }
+
+    .portrait-shell {
+        width: min(390px, 100%);
+        aspect-ratio: 9 / 16;
+        border-radius: 14px;
+        overflow: hidden;
+        border: 1px solid rgba(102, 74, 42, 0.22);
+        background: transparent;
+        box-shadow: 0 12px 26px rgba(41, 25, 11, 0.16);
+    }
+
+    .portrait-shell video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .video-buttons {
+        width: min(390px, 100%);
+        display: grid;
+        gap: 0.65rem;
+        justify-items: start;
+    }
+
+    .video-buttons .btn {
+        width: auto;
+    }
+
+    .invitation-card,
+    .offer-card,
+    .audience-card,
+    .why-card,
+    .bank-card {
+        height: 100%;
+    }
+
+    .why-card h3,
+    .offer-card h3,
+    .audience-card h3,
+    .bank-card h3 {
+        margin: 0 0 0.55rem;
+        font-size: 1rem;
+    }
+
+    .why-card p,
+    .offer-card p,
+    .bank-row dd {
+        margin: 0;
+        line-height: 1.6;
+    }
+
+    .focus-list {
+        margin: 0;
+        padding-left: 1.05rem;
+        display: grid;
+        gap: 0.48rem;
+    }
+
+    .table-wrap {
+        display: grid;
+        gap: 0.65rem;
+    }
+
+    .cost-column {
+        display: grid;
+        gap: 1.05rem;
+        align-content: start;
+        justify-items: stretch;
+        min-height: 100%;
+    }
+
+    .cost-card {
+        width: 100%;
+        display: grid;
+        gap: 0.55rem;
+        padding: 0.85rem;
+    }
+
+    .compact-table-wrap {
+        border: 1px solid rgba(121, 93, 62, 0.28);
+        border-radius: 14px;
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.88);
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        background: rgba(255, 255, 255, 0.8);
+        border: 1px solid rgba(121, 93, 62, 0.24);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    table thead th {
+        text-align: left;
+        padding: 0.9rem 0.95rem;
+        border-bottom: 1px solid rgba(121, 93, 62, 0.24);
+    }
+
+    table tbody td {
+        padding: 0.85rem 0.95rem;
+        border-bottom: 1px solid rgba(121, 93, 62, 0.16);
+        font-size: 0.95rem;
+        line-height: 1.45;
+        vertical-align: top;
+    }
+
+    table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .total-row td {
+        font-weight: 700;
+    }
+
+    .cost-table {
+        border: none;
+        border-radius: 0;
+        background: transparent;
+    }
+
+    .cost-table thead th {
+        background: rgba(118, 80, 43, 0.08);
+        font-size: 0.72rem;
+    }
+
+    .cost-table tbody td:last-child,
+    .cost-table thead th:last-child {
+        text-align: right;
+    }
+
+    .cost-table .total-row td {
+        background: rgba(122, 27, 15, 0.1);
+        color: #6f190e;
+        font-weight: 700;
+    }
+
+    .invitation-card {
+        display: grid;
+        gap: 1rem;
+        min-height: 70vh;
+    }
+
+    .invitation-gif-card {
+        min-height: 70vh;
+        display: grid;
+        place-items: center;
+        padding: 0;
+        background: transparent;
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    .invitation-gif-stack {
+        width: min(100%, 560px);
+        display: grid;
+        justify-items: center;
+        row-gap: 0.45rem;
+        transform: translateY(clamp(1.35rem, 3.1vh, 2.55rem));
+    }
+
+    .invitation-gif-card img {
+        width: min(100%, 560px);
+        max-height: clamp(460px, 68vh, 860px);
+        object-fit: contain;
+        margin-top: 0;
+        border: none;
+        box-shadow: none;
+    }
+
+    .invitation-gif-caption {
+        margin: 0;
+        width: 100%;
+        padding: 0 0.2rem;
+        font-size: clamp(0.8rem, 0.92vw, 0.94rem);
+        line-height: 1.2;
         text-align: center;
-        font-size: 0.75rem;
-        color: var(--text-tertiary);
-        margin-top: 1rem;
+        color: rgba(53, 33, 15, 0.88);
     }
 
-    /* Mobile Responsive for Widget */
-    @media (max-width: 850px) {
-        .donation-widget {
-            position: relative;
-            bottom: auto;
-            right: auto;
-            width: 100%;
-            margin-top: 3rem;
+    .invitation-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.65rem;
+        justify-content: flex-start;
+    }
+
+    .invitation-surface {
+        position: relative;
+        overflow: hidden;
+        border-radius: 14px;
+        border: 1px solid rgba(108, 80, 48, 0.32);
+        background: #fbf7f0;
+        min-height: clamp(460px, 70vh, 880px);
+        cursor: default;
+    }
+
+    .invitation-surface img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        background: #ffffff;
+        display: block;
+    }
+
+    .support-layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: clamp(1.45rem, 2.2vw, 2.2rem);
+        align-items: start;
+    }
+
+    .support-left,
+    .support-right {
+        display: grid;
+        gap: 1.1rem;
+        align-content: start;
+    }
+
+    .support-head {
+        gap: 0.3rem;
+    }
+
+    .offers-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1.05rem;
+    }
+
+    .offer-card h3 {
+        font-size: 1.14rem;
+        margin-bottom: 0.45rem;
+        font-weight: 700;
+        line-height: 1.3;
+    }
+
+    .audience-card h3 {
+        font-size: 1.14rem;
+        margin-bottom: 0.45rem;
+        font-weight: 700;
+        line-height: 1.3;
+    }
+
+    .audience-card {
+        display: grid;
+        gap: 0.65rem;
+        align-content: start;
+    }
+
+    .cost-column .audience-card {
+        width: 100%;
+        height: auto;
+    }
+
+    .why-card {
+        display: grid;
+        gap: 1.05rem;
+        align-content: start;
+    }
+
+    .watch-why-card {
+        padding: clamp(1.45rem, 2.3vw, 2rem);
+    }
+
+    .watch-why-card h3 {
+        margin: 1.05rem 0 0.42rem;
+        font-size: clamp(1.08rem, 1.45vw, 1.28rem);
+        font-weight: 700;
+        line-height: 1.28;
+    }
+
+    .watch-why-card .meta + h3 {
+        margin-top: 0.48rem;
+    }
+
+    .watch-why-card h3 + p {
+        margin-top: 0;
+    }
+
+    .watch-why-card p + p {
+        margin-top: 0.5rem;
+    }
+
+    .watch-why-card p {
+        max-width: 68ch;
+    }
+
+    .why-break {
+        height: 1px;
+        width: 100%;
+        margin: 0.2rem 0 0.15rem;
+        background: linear-gradient(
+            90deg,
+            rgba(112, 80, 48, 0.42),
+            rgba(112, 80, 48, 0.15)
+        );
+    }
+
+    .full-story {
+        display: grid;
+        gap: 0.7rem;
+    }
+
+    .full-story-wide {
+        width: 100%;
+    }
+
+    .full-story-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.6rem;
+    }
+
+    .vertical-iframe {
+        position: relative;
+        width: min(430px, 100%);
+        margin: 0 auto;
+        aspect-ratio: 9 / 16;
+        border-radius: 14px;
+        overflow: hidden;
+        border: 1px solid rgba(109, 81, 49, 0.3);
+        background: rgba(255, 255, 255, 0.74);
+    }
+
+    .vertical-iframe iframe {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        border: 0;
+    }
+
+    .mono-line {
+        margin: 0;
+    }
+
+    .bank-card dl {
+        margin: 0;
+        display: grid;
+        gap: 0.6rem;
+    }
+
+    .bank-row {
+        display: grid;
+        gap: 0.25rem;
+        padding-bottom: 0.45rem;
+        border-bottom: 1px solid rgba(121, 93, 62, 0.16);
+    }
+
+    .bank-row:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    .bank-row dd {
+        margin: 0;
+        font-family: "Space Mono", monospace;
+        font-size: 0.86rem;
+        letter-spacing: 0.02em;
+    }
+
+    .bank-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        align-items: start;
+        gap: clamp(0.75rem, 1.4vw, 1rem);
+    }
+
+    .bank-grid .bank-card {
+        padding: clamp(0.82rem, 1.15vw, 1rem);
+        border-radius: 14px;
+    }
+
+    .bank-grid .bank-card h3 {
+        font-size: 0.96rem;
+        margin-bottom: 0.42rem;
+    }
+
+    .bank-grid .bank-row dt {
+        font-size: 0.66rem;
+    }
+
+    .bank-grid .bank-row dd {
+        font-size: 0.8rem;
+        line-height: 1.35;
+        word-break: break-word;
+    }
+
+    .upi-card {
+        display: grid;
+        gap: 0.85rem;
+        align-content: start;
+    }
+
+    .upi-id {
+        display: inline-block;
+        font-family: "Space Mono", monospace;
+        font-size: 1.04rem;
+        font-weight: 700;
+        color: #6f190e;
+        letter-spacing: 0.02em;
+        line-height: 1.2;
+    }
+
+    .upi-qr {
+        width: min(160px, 100%);
+        border-radius: 14px;
+        border: 1px solid rgba(121, 93, 62, 0.2);
+        display: block;
+        margin-top: 0.15rem;
+    }
+
+    .contact-panel p {
+        max-width: 850px;
+        margin: 0;
+    }
+
+    .contact-layout {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: clamp(1.2rem, 2.3vw, 2.1rem);
+        align-items: end;
+    }
+
+    .contact-copy {
+        display: grid;
+        gap: 1rem;
+        align-content: start;
+    }
+
+    .contact-copy .hero-actions {
+        margin-top: 0.25rem;
+    }
+
+    .contact-signature {
+        margin: 0;
+        justify-self: end;
+        align-self: end;
+        transform: translateX(-26%);
+    }
+
+    .contact-signature img {
+        width: min(230px, 26vw);
+        display: block;
+    }
+
+    .footer-spacer {
+        height: clamp(8rem, 14vh, 11rem);
+    }
+
+    @media (max-width: 1220px) {
+        .hero-grid,
+        .watch-grid,
+        .raising-grid,
+        .support-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .bank-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .contact-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .contact-signature {
+            justify-self: start;
+            margin-top: 0.4rem;
+            transform: none;
+        }
+
+    }
+
+    @media (max-width: 820px) {
+        .page-shell {
+            width: calc(100vw - 1.1rem);
+            gap: 1.2rem;
+        }
+
+        .hero {
+            padding: 1.2rem;
+        }
+
+        .hero-copy {
+            gap: 0.65rem;
+            padding-block: 0;
+        }
+
+        .panel,
+        .panel-soft {
+            border-radius: 14px;
+        }
+
+        table thead th,
+        table tbody td {
+            padding: 0.75rem;
+        }
+
+        .offers-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .bank-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .hero-actions .btn,
+        .video-buttons .btn,
+        .invitation-toolbar .btn,
+        .full-story-head .btn {
+            width: auto;
+        }
+
+        .invitation-surface {
+            cursor: default;
+            min-height: clamp(400px, 65vh, 700px);
         }
     }
 </style>
+
+<script is:inline>
+    (() => {
+        const briefVideo = document.querySelector("[data-brief-video]");
+        const soundToggle = document.querySelector("[data-brief-sound-toggle]");
+        const restartButton = document.querySelector("[data-video-restart]");
+
+        if (briefVideo && soundToggle && restartButton) {
+            const syncButton = () => {
+                const muted = briefVideo.muted;
+                soundToggle.textContent = muted ? "Enable Sound" : "Sound On";
+                soundToggle.setAttribute("aria-pressed", muted ? "false" : "true");
+            };
+
+            syncButton();
+
+            soundToggle.addEventListener("click", async () => {
+                briefVideo.muted = !briefVideo.muted;
+                try {
+                    await briefVideo.play();
+                } catch {
+                    // Keep state if autoplay policy prevents playback.
+                }
+                syncButton();
+            });
+
+            restartButton.addEventListener("click", async () => {
+                briefVideo.currentTime = 0;
+                briefVideo.muted = false;
+                try {
+                    await briefVideo.play();
+                } catch {
+                    // Ignore blocked playback errors.
+                }
+                syncButton();
+            });
+
+            briefVideo.addEventListener("volumechange", syncButton);
+        }
+    })();
+</script>

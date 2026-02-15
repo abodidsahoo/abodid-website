@@ -225,17 +225,28 @@ const LiquidCursor = () => {
             }
             sizeScaleRef.current = clamp(sizeScaleRef.current, 1.06, 1.24);
 
-            if (speedFrame > 0.1) {
-                const targetAngle = Math.atan2(vy, vx);
-                angleRef.current = lerpAngle(angleRef.current, targetAngle, 0.2);
+            const pullGate = smoothstep(1.2, 26, distToMouse);
+            const hasDirectionalVelocity = speedFrame > 0.06;
+            const velocityAngle = hasDirectionalVelocity
+                ? Math.atan2(followVelRef.current.y, followVelRef.current.x)
+                : angleRef.current;
+            const pullAngle = distToMouse > 0.01 ? Math.atan2(dy, dx) : velocityAngle;
+            const targetAngle =
+                pullGate > 0.01
+                    ? lerpAngle(velocityAngle, pullAngle, pullGate)
+                    : velocityAngle;
+
+            if (hasDirectionalVelocity || pullGate > 0.01) {
+                const angleLerp = pullGate > 0.01 ? 0.62 : 0.2;
+                angleRef.current = lerpAngle(angleRef.current, targetAngle, angleLerp);
             }
 
             const angleDelta = angleDiff(angleRef.current, prevAngleRef.current);
             prevAngleRef.current = angleRef.current;
 
-            const dragGate = smoothstep(10, 58, distToMouse);
+            const dragGate = smoothstep(1.2, 40, distToMouse);
             const speedGate = smoothstep(0.55, 4.6, speedFrame);
-            let stretchTarget = Math.pow(Math.max(dragGate * 0.7, speedGate), 1.02);
+            let stretchTarget = Math.pow(Math.max(dragGate * 0.92, speedGate), 1.02);
 
             if (distToMouse < 8 && speedFrame < 0.6) {
                 stretchTarget *= 0.08;
