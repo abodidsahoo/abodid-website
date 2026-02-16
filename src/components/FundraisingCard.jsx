@@ -1,16 +1,12 @@
-import React, { useState } from 'react';
+import React from 'react';
 
 const FundraisingCard = ({
   title,
   description,
   image,
-  goal,
-  raised,
   href,
   customButtonAction = null
 }) => {
-  const percentage = Math.min((raised / goal) * 100, 100);
-
   return (
     <div className="fundraising-card">
       <a href={href} className="card-link">
@@ -25,25 +21,6 @@ const FundraisingCard = ({
           <h3>{title}</h3>
         </a>
         <p className="description">{description}</p>
-
-        <div className="progress-section">
-          <div className="progress-bar-bg">
-            <div
-              className="progress-bar-fill"
-              style={{ width: `${percentage}%` }}
-            ></div>
-          </div>
-          <div className="stats-row">
-            <div className="stat">
-              <span className="value">£{raised.toLocaleString()}</span>
-              <span className="label">Raised</span>
-            </div>
-            <div className="stat right">
-              <span className="value">£{goal.toLocaleString()}</span>
-              <span className="label">Goal</span>
-            </div>
-          </div>
-        </div>
 
         {customButtonAction ? (
           <button onClick={customButtonAction} className="btn-back">
@@ -127,53 +104,6 @@ const FundraisingCard = ({
           -webkit-line-clamp: 3;
           -webkit-box-orient: vertical;
           overflow: hidden;
-        }
-
-        .progress-section {
-          margin-bottom: 1.5rem;
-        }
-
-        .progress-bar-bg {
-          width: 100%;
-          height: 6px;
-          background: rgba(255,255,255,0.1);
-          border-radius: 3px;
-          overflow: hidden;
-          margin-bottom: 0.75rem;
-        }
-
-        .progress-bar-fill {
-          height: 100%;
-          background: #4ade80; /* Green accent */
-          border-radius: 3px;
-          transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .stats-row {
-          display: flex;
-          justify-content: space-between;
-          font-size: 0.85rem;
-          font-family: 'Space Mono', monospace;
-        }
-
-        .stat {
-          display: flex;
-          flex-direction: column;
-        }
-
-        .stat.right {
-          align-items: flex-end;
-          text-align: right;
-        }
-
-        .value {
-          color: #fff;
-          font-weight: 700;
-        }
-
-        .label {
-          color: #737373; /* text-tertiary */
-          font-size: 0.75rem;
         }
 
         .btn-back {

@@ -11,8 +11,6 @@ const projects = [
         description:
             "Help me cover travel and living costs to attend the Cambridge Cultural Heritage Data School, where I've been awarded a full tuition bursary.",
         image: "https://upload.wikimedia.org/wikipedia/commons/b/b4/KingsCollegeChapelWest.jpg",
-        goal: 1600,
-        raised: 820,
         href: "/fundraising/cambridge-data-school",
     },
     {
@@ -21,8 +19,6 @@ const projects = [
         description:
             "Presenting two peer-reviewed research papers (Poster & Roundtable) at the 75th Anniversary of the British Sociological Association Conference.",
         image: "https://www.birmingham.ac.uk/Images/academic-services/RPC21250x633.jpg",
-        goal: 1200,
-        raised: 420,
         href: "/fundraising/bsa-conference-2026",
     },
 ];
@@ -47,8 +43,6 @@ const projects = [
                         title={project.title}
                         description={project.description}
                         image={project.image}
-                        goal={project.goal}
-                        raised={project.raised}
                         href={project.href}
                     />
                 ))
@@ -59,9 +53,10 @@ const projects = [
 
 <style>
     .fundraising-hub {
+        width: 100%;
         max-width: 1200px;
         margin: 0 auto;
-        padding: 2rem 1rem 6rem 1rem;
+        padding: 2rem 0 6rem;
     }
 
     .hub-header {
@@ -90,13 +85,27 @@ const projects = [
 
     .projects-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 350px), 1fr));
         gap: 2rem;
+        width: 100%;
     }
 
     @media (max-width: 768px) {
+        .fundraising-hub {
+            padding: 2rem 0 4rem;
+        }
+
         h1 {
             font-size: 2.5rem;
+        }
+
+        .projects-grid {
+            grid-template-columns: 1fr;
+            gap: 1.25rem;
+        }
+
+        .projects-grid > * {
+            min-width: 0;
         }
     }
 </style>
