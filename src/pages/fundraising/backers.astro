@@ -1,0 +1,1130 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const pageTitle = "Backers - Cambridge and BSA Journey";
+const pageDescription =
+    "Support this work as a Patron or Sponsor using the same Cambridge fundraising visual system.";
+
+const heroImage =
+    "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/backers/lucky-camera.jpg";
+const upiQrImage =
+    "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/cambridge/Screenshot%202026-02-16%20at%2004.51.12.png";
+
+const decisionSteps = [
+    { title: "Choose Path", body: "Pick Patron or Sponsor." },
+    {
+        title: "Transfer Support",
+        body: "Use UPI, bank transfer, or international route.",
+    },
+    {
+        title: "Set Visibility",
+        body: "Credited by default, private only on request.",
+    },
+    {
+        title: "Receive Updates",
+        body: "Progress updates and outcomes are shared clearly.",
+    },
+];
+
+const supportPaths = [
+    {
+        label: "Patron",
+        title: "Patron (voluntary support)",
+        summary:
+            "For individuals who want to back this journey without deliverables.",
+        meaning: [
+            "Supports workshop, travel, and research progress",
+            "Non-transactional support",
+            "Best for pure backing of the journey",
+        ],
+        expectations: [
+            "No repayment, no equity, no profit return",
+            "No guaranteed service deliverable",
+            "Credited by default unless you request privacy",
+        ],
+        steps: [
+            "Send support (UPI / bank / international)",
+            "Share visibility preference (credited by default, private on request)",
+            "Receive confirmation and milestone updates",
+        ],
+    },
+    {
+        label: "Sponsor",
+        title: "Sponsor (structured support)",
+        summary:
+            "For teams and institutions that want clear deliverables in return.",
+        meaning: [
+            "Structured support with defined outcomes",
+            "Talk, workshop, or 2-3 day engagement",
+            "Best for organizational or institutional collaboration",
+        ],
+        expectations: [
+            "Scope and timeline aligned before payment",
+            "Support amount tied to format and effort",
+            "Credit can be tailored if it helps your institution",
+        ],
+        steps: [
+            "Share audience, goal, format, and date range",
+            "Align support amount and delivery plan",
+            "Confirm and execute delivery",
+        ],
+    },
+];
+---
+
+<BaseLayout
+    title={pageTitle}
+    description={pageDescription}
+    fullWidth={true}
+    gridVariant="moodboard"
+>
+    <section class="backers-page">
+        <div class="page-shell">
+            <header class="hero panel">
+                <div class="hero-grid">
+                    <div class="hero-copy">
+                        <p class="eyebrow">Backers Invitation</p>
+                        <h1>Patron or Sponsor</h1>
+                        <p class="hero-date">Cambridge + BSA Journey</p>
+                        <p class="hero-subtitle">
+                            Choose one path, complete transfer, and proceed with
+                            clear expectations.
+                        </p>
+                        <div class="hero-actions">
+                            <a class="btn btn-primary" href="#support-paths"
+                                >Choose your path</a
+                            >
+                            <a class="btn" href="#stay-updated">Stay updated</a>
+                            <a class="btn" href="#contact">Contact</a>
+                        </div>
+                    </div>
+
+                    <figure class="hero-photo panel-soft">
+                        <img
+                            src={heroImage}
+                            alt="Cambridge architecture"
+                            loading="lazy"
+                        />
+                        <figcaption class="image-note">
+                            Hi! That&apos;s me when I was 3.
+                        </figcaption>
+                    </figure>
+                </div>
+            </header>
+
+            <section class="section panel">
+                <div class="section-header">
+                    <p class="meta">Quick Decision Map</p>
+                    <h2>Choose and proceed</h2>
+                </div>
+
+                <div class="decision-grid">
+                    {
+                        decisionSteps.map((step, index) => (
+                            <article class="detail-item panel-soft">
+                                <p class="meta">Step {index + 1}</p>
+                                <h3>{step.title}</h3>
+                                <p>{step.body}</p>
+                            </article>
+                        ))
+                    }
+                </div>
+            </section>
+
+            <section class="section panel" id="support-paths">
+                <div class="section-header">
+                    <p class="meta">Support Paths</p>
+                    <h2>Patron and Sponsor</h2>
+                </div>
+
+                <div class="support-layout">
+                    {
+                        supportPaths.map((path) => (
+                            <article class="panel-soft path-card">
+                                <p class="meta">{path.label}</p>
+                                <h3>{path.title}</h3>
+                                <p class="path-summary">{path.summary}</p>
+
+                                <div class="path-block">
+                                    <p class="meta">What it means</p>
+                                    <ul class="focus-list">
+                                        {path.meaning.map((item) => (
+                                            <li>{item}</li>
+                                        ))}
+                                    </ul>
+                                </div>
+
+                                <div class="path-block">
+                                    <p class="meta">What to expect</p>
+                                    <ul class="focus-list">
+                                        {path.expectations.map((item) => (
+                                            <li>{item}</li>
+                                        ))}
+                                    </ul>
+                                </div>
+
+                                <div class="path-block">
+                                    <p class="meta">How to proceed</p>
+                                    <ol class="numbered-list">
+                                        {path.steps.map((item) => (
+                                            <li>{item}</li>
+                                        ))}
+                                    </ol>
+                                </div>
+                            </article>
+                        ))
+                    }
+                </div>
+            </section>
+
+            <section class="section panel key-note-section">
+                <article class="panel-soft key-note-card">
+                    <p class="meta">Important Note</p>
+                    <p class="key-note-text">
+                        Patrons can transfer directly as voluntary support.
+                    </p>
+                    <p class="key-note-text">
+                        Sponsors should contact me first to align talks,
+                        workshops, and engagement plans.
+                    </p>
+                </article>
+            </section>
+
+            <section class="section panel">
+                <div class="section-header">
+                    <p class="meta">Bank Transfer Details</p>
+                    <h2>Direct transfer options</h2>
+                </div>
+
+                <p class="mono-line">
+                    Transfer subject: Education Fees - Cambridge University
+                </p>
+
+                <div class="bank-grid">
+                    <article class="bank-card panel-soft">
+                        <h3>Axis Bank (India)</h3>
+                        <dl>
+                            <div class="bank-row">
+                                <dt>Account Holder</dt>
+                                <dd>Abodid Sahoo</dd>
+                            </div>
+                            <div class="bank-row">
+                                <dt>Account Number</dt>
+                                <dd>912010033704055</dd>
+                            </div>
+                            <div class="bank-row">
+                                <dt>IFSC Code</dt>
+                                <dd>UTIB0003179</dd>
+                            </div>
+                        </dl>
+                    </article>
+
+                    <article class="bank-card panel-soft">
+                        <h3>Lloyds Bank (UK)</h3>
+                        <dl>
+                            <div class="bank-row">
+                                <dt>Name on Account</dt>
+                                <dd>Abodid Sahoo</dd>
+                            </div>
+                            <div class="bank-row">
+                                <dt>Sort Code</dt>
+                                <dd>30-90-89</dd>
+                            </div>
+                            <div class="bank-row">
+                                <dt>Account Number</dt>
+                                <dd>43644963</dd>
+                            </div>
+                        </dl>
+                    </article>
+
+                    <article class="bank-card panel-soft upi-card">
+                        <h3>UPI (India)</h3>
+                        <dl>
+                            <div class="bank-row">
+                                <dt>UPI ID</dt>
+                                <dd>
+                                    <strong class="upi-id"
+                                        >abodidsahoo@axl</strong
+                                    >
+                                </dd>
+                            </div>
+                        </dl>
+                        <img
+                            class="upi-qr"
+                            src={upiQrImage}
+                            alt="UPI QR code for transfer"
+                            loading="lazy"
+                        />
+                    </article>
+                </div>
+
+                <article class="panel-soft transfer-followup">
+                    <p class="meta">Decide Later</p>
+                    <p>
+                        If you are still deciding how much to contribute, or
+                        planning to transfer later, kindly subscribe to my
+                        newsletter.
+                    </p>
+                    <p>
+                        I will share journey updates and send the bank details
+                        to your email so you can decide when and how much to
+                        transfer. Organizations are encouraged to subscribe too,
+                        since decision cycles take time and staying in the loop
+                        helps.
+                    </p>
+                    <a class="btn btn-followup" href="#stay-updated">
+                        Subscribe for updates
+                    </a>
+                </article>
+            </section>
+
+            <section class="section panel" id="stay-updated">
+                <div class="section-header">
+                    <p class="meta">Stay Updated</p>
+                    <h2>Stay updated on this journey.</h2>
+                </div>
+
+                <p class="updates-copy">
+                    Would you like to stay updated about this project and my
+                    proceedings across conferences, workshops, and ongoing
+                    learning?
+                </p>
+                <p class="updates-copy">
+                    I am happy to share practical insights from each stage.
+                </p>
+
+                <article class="panel-soft subscribe-card">
+                    <form data-backer-subscribe-form novalidate>
+                        <div data-form-body>
+                            <label for="backer-email" class="subscribe-label">
+                                Email Address
+                            </label>
+                            <input
+                                id="backer-email"
+                                data-backer-email
+                                type="email"
+                                inputmode="email"
+                                autocomplete="email"
+                                placeholder="you@domain.com"
+                                required
+                            />
+                            <button
+                                type="submit"
+                                class="btn-subscribe"
+                                data-backer-submit
+                            >
+                                Keep me updated
+                            </button>
+                            <p
+                                class="form-feedback"
+                                data-backer-feedback
+                                hidden
+                            >
+                            </p>
+                        </div>
+
+                        <div class="thank-you" data-backer-thank-you hidden>
+                            <p
+                                class="thank-you-main"
+                                data-backer-thank-you-main
+                            >
+                            </p>
+                            <p class="api-message" data-backer-api-message></p>
+                        </div>
+                    </form>
+                </article>
+            </section>
+
+            <section class="section panel contact-panel" id="contact">
+                <div class="contact-layout">
+                    <div class="contact-copy">
+                        <div class="section-header">
+                            <p class="meta">Final Note</p>
+                            <h2>Thank you for your support!</h2>
+                        </div>
+                        <div class="final-note-columns">
+                            <p class="final-note-text">
+                                Whether you support as a patron or sponsor,
+                                thank you. If any transfer fails or you need a
+                                specific credit format for your organization,
+                                message me and I will handle it quickly.
+                            </p>
+                        </div>
+                        <div class="hero-actions">
+                            <a
+                                class="btn btn-primary"
+                                href="mailto:abodidsahoo@gmail.com"
+                                >abodidsahoo@gmail.com</a
+                            >
+                            <a class="btn" href="https://wa.me/919439094370"
+                                >WhatsApp / Phone: +91 9439094370</a
+                            >
+                        </div>
+                    </div>
+
+                    <figure class="contact-signature">
+                        <img
+                            src="/images/signature-black.png"
+                            alt="Signature of Abodid Sahoo"
+                        />
+                    </figure>
+                </div>
+            </section>
+
+            <div class="footer-spacer" aria-hidden="true"></div>
+        </div>
+    </section>
+</BaseLayout>
+
+<style>
+    :global(body[data-grid-variant="moodboard"]) {
+        --grid-color-1: rgba(83, 62, 37, 0.28);
+        --grid-color-2: rgba(83, 62, 37, 0.09);
+        background: radial-gradient(
+                circle at top,
+                #fff8ea 0%,
+                #f3e5cd 45%,
+                #ecddc0 100%
+            )
+            fixed !important;
+        color: #231a13;
+    }
+
+    :global(body[data-grid-variant="moodboard"] .global-grid-bg) {
+        display: none;
+    }
+
+    :global(body[data-grid-variant="moodboard"] .global-glow-bg) {
+        --glow-radius: 560px;
+        opacity: 1;
+        background-size: 52px 52px;
+    }
+
+    :global(body[data-grid-variant="moodboard"] .site-footer) {
+        background: rgba(243, 229, 205, 0.88);
+        border-top: 1px solid rgba(93, 67, 38, 0.26);
+    }
+
+    .backers-page {
+        width: 100%;
+        padding: clamp(2.3rem, 3.8vh, 3.2rem) 0 10rem;
+    }
+
+    .page-shell {
+        width: min(1490px, calc(100vw - 2.5rem));
+        margin: 0 auto;
+        display: grid;
+        gap: clamp(1.45rem, 2vw, 2rem);
+    }
+
+    .panel {
+        background: rgba(255, 250, 243, 0.84);
+        border: 1px solid rgba(101, 75, 44, 0.28);
+        border-radius: 22px;
+        padding: clamp(1.45rem, 2.5vw, 2.4rem);
+        box-shadow: 0 18px 35px rgba(86, 59, 29, 0.1);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+    }
+
+    .panel-soft {
+        background: rgba(255, 255, 255, 0.72);
+        border: 1px solid rgba(117, 86, 52, 0.22);
+        border-radius: 18px;
+        padding: clamp(1rem, 1.5vw, 1.35rem);
+    }
+
+    .eyebrow,
+    .meta,
+    .mono-line,
+    .bank-row dt,
+    .subscribe-label {
+        font-family: "Space Mono", monospace;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        font-size: 0.73rem;
+        color: rgba(70, 45, 20, 0.82);
+    }
+
+    h1,
+    h2,
+    h3,
+    p,
+    li,
+    td,
+    dd,
+    dt,
+    input {
+        color: #241912;
+        font-family: "Poppins", sans-serif;
+    }
+
+    .hero {
+        background:
+            linear-gradient(
+                125deg,
+                rgba(255, 255, 255, 0.8),
+                rgba(255, 235, 200, 0.78)
+            ),
+            linear-gradient(
+                35deg,
+                rgba(255, 220, 171, 0.4),
+                rgba(255, 247, 231, 0.65)
+            );
+        padding: clamp(1.7rem, 3vw, 2.8rem);
+    }
+
+    .hero-grid {
+        display: grid;
+        grid-template-columns: 1.05fr 0.95fr;
+        gap: clamp(1.1rem, 2vw, 1.8rem);
+        align-items: center;
+    }
+
+    .hero-copy {
+        display: grid;
+        gap: 0.72rem;
+        align-content: start;
+        padding-block: 0.2rem;
+    }
+
+    h1 {
+        font-size: clamp(1.8rem, 3.2vw, 2.95rem);
+        margin: 0.1rem 0 0.25rem;
+        line-height: 1.08;
+    }
+
+    .hero-date {
+        margin: 0;
+        color: rgba(65, 42, 19, 0.78);
+        font-size: 0.88rem;
+        font-family: "Space Mono", monospace;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+
+    .hero-subtitle {
+        margin: 0.12rem 0 0;
+        font-size: clamp(0.98rem, 1.22vw, 1.08rem);
+        line-height: 1.58;
+        max-width: 64ch;
+    }
+
+    .hero-photo {
+        display: grid;
+        gap: 0.55rem;
+        padding: 0.62rem;
+        overflow: hidden;
+    }
+
+    .hero-photo img {
+        width: 100%;
+        height: 100%;
+        max-height: 430px;
+        object-fit: cover;
+        border-radius: 14px;
+        border: 1px solid rgba(109, 79, 48, 0.28);
+    }
+
+    .hero-photo figcaption {
+        margin: 0;
+    }
+
+    .image-note {
+        margin: 0;
+        font-size: 0.82rem;
+        line-height: 1.5;
+        color: rgba(61, 40, 20, 0.86);
+        font-family: "Space Mono", monospace !important;
+        letter-spacing: 0.02em;
+    }
+
+    .hero-actions {
+        margin-top: 1rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.7rem;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.62rem 1rem;
+        border: 1px solid rgba(96, 71, 43, 0.38);
+        border-radius: 12px;
+        text-decoration: none;
+        color: #332317;
+        font-family: "Space Mono", monospace;
+        font-size: 0.75rem;
+        letter-spacing: 0.01em;
+        line-height: 1.2;
+        transition:
+            transform 0.2s ease,
+            box-shadow 0.2s ease,
+            background 0.2s ease,
+            border-color 0.2s ease;
+        background: rgba(255, 251, 244, 0.9);
+        box-shadow: 0 2px 8px rgba(89, 58, 29, 0.08);
+        cursor: pointer;
+    }
+
+    .btn:hover,
+    .btn:focus-visible {
+        transform: translateY(-1px);
+        border-color: rgba(101, 70, 36, 0.52);
+        background: rgba(248, 238, 221, 0.96);
+        box-shadow: 0 8px 16px rgba(89, 58, 29, 0.12);
+        outline: none;
+    }
+
+    .btn-primary {
+        background: #5f4635;
+        color: #fff8ef;
+        border-color: #5f4635;
+        box-shadow: 0 6px 14px rgba(67, 48, 33, 0.2);
+    }
+
+    .btn-primary:hover,
+    .btn-primary:focus-visible {
+        background: #553d2e;
+        border-color: #553d2e;
+    }
+
+    .section {
+        display: grid;
+        gap: clamp(0.95rem, 1.4vw, 1.2rem);
+    }
+
+    #support-paths,
+    #stay-updated,
+    #contact {
+        scroll-margin-top: 150px;
+    }
+
+    .section-header {
+        display: grid;
+        gap: 0.45rem;
+    }
+
+    .section-header h2 {
+        margin: 0;
+        font-size: clamp(1.18rem, 1.85vw, 1.72rem);
+        line-height: 1.2;
+    }
+
+    .decision-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: clamp(0.72rem, 1.25vw, 0.95rem);
+    }
+
+    .detail-item {
+        height: 100%;
+        display: grid;
+        gap: 0.28rem;
+    }
+
+    .detail-item h3 {
+        margin: 0;
+        font-size: clamp(0.98rem, 1.3vw, 1.08rem);
+        line-height: 1.28;
+    }
+
+    .detail-item p {
+        margin: 0;
+        font-size: 0.88rem;
+        line-height: 1.42;
+    }
+
+    .support-layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: clamp(0.92rem, 1.4vw, 1.1rem);
+        align-items: stretch;
+    }
+
+    .key-note-section {
+        padding-top: clamp(1.1rem, 1.8vw, 1.45rem);
+        padding-bottom: clamp(1.1rem, 1.8vw, 1.45rem);
+    }
+
+    .key-note-card {
+        display: grid;
+        gap: 0.55rem;
+        border: 1px solid rgba(117, 86, 52, 0.34);
+        background: linear-gradient(
+            115deg,
+            rgba(255, 255, 255, 0.88),
+            rgba(248, 235, 212, 0.78)
+        );
+    }
+
+    .key-note-text {
+        margin: 0;
+        font-size: clamp(1.06rem, 1.55vw, 1.36rem);
+        font-weight: 700;
+        line-height: 1.32;
+        max-width: 58ch;
+    }
+
+    .path-card {
+        display: grid;
+        gap: 0.74rem;
+        align-content: start;
+        height: 100%;
+    }
+
+    .path-card h3 {
+        margin: 0;
+        font-size: clamp(1.03rem, 1.42vw, 1.2rem);
+        line-height: 1.3;
+    }
+
+    .path-summary {
+        margin: 0;
+        font-size: 0.91rem;
+        line-height: 1.45;
+    }
+
+    .path-block {
+        display: grid;
+        gap: 0.36rem;
+        padding-top: 0.12rem;
+    }
+
+    .focus-list,
+    .numbered-list {
+        margin: 0;
+        padding-left: 1rem;
+        display: grid;
+        gap: 0.38rem;
+    }
+
+    .focus-list li,
+    .numbered-list li {
+        line-height: 1.43;
+        font-size: 0.88rem;
+    }
+
+    .mono-line {
+        margin: 0;
+    }
+
+    .bank-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        align-items: stretch;
+        gap: clamp(0.75rem, 1.4vw, 1rem);
+    }
+
+    .bank-grid .bank-card {
+        padding: clamp(0.82rem, 1.15vw, 1rem);
+        border-radius: 14px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .bank-grid .bank-card h3 {
+        font-size: 0.96rem;
+        margin: 0 0 0.42rem;
+    }
+
+    .bank-card dl {
+        margin: 0;
+        display: grid;
+        gap: 0.6rem;
+        flex: 1;
+    }
+
+    .bank-row {
+        display: grid;
+        gap: 0.25rem;
+        padding-bottom: 0.45rem;
+        border-bottom: 1px solid rgba(121, 93, 62, 0.16);
+    }
+
+    .bank-row:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    .bank-grid .bank-row dt {
+        font-size: 0.66rem;
+    }
+
+    .bank-grid .bank-row dd {
+        margin: 0;
+        font-family: "Space Mono", monospace;
+        font-size: 0.8rem;
+        letter-spacing: 0.02em;
+        line-height: 1.35;
+        word-break: break-word;
+    }
+
+    .upi-card {
+        display: grid;
+        gap: 0.85rem;
+        align-content: start;
+    }
+
+    .upi-id {
+        display: inline-block;
+        font-family: "Space Mono", monospace;
+        font-size: 1.04rem;
+        font-weight: 700;
+        color: #6f190e;
+        letter-spacing: 0.02em;
+        line-height: 1.2;
+    }
+
+    .upi-qr {
+        width: min(160px, 100%);
+        border-radius: 14px;
+        border: 1px solid rgba(121, 93, 62, 0.2);
+        display: block;
+        margin-top: auto;
+    }
+
+    .transfer-followup {
+        margin-top: 0.15rem;
+        display: grid;
+        gap: 0.48rem;
+        border: 1px solid rgba(117, 86, 52, 0.3);
+        background: linear-gradient(
+            115deg,
+            rgba(255, 255, 255, 0.86),
+            rgba(245, 236, 220, 0.76)
+        );
+    }
+
+    .transfer-followup p {
+        margin: 0;
+        font-size: 0.9rem;
+        line-height: 1.52;
+        max-width: 90ch;
+    }
+
+    .btn-followup {
+        margin-top: 0.22rem;
+        width: fit-content;
+        border-color: rgba(113, 83, 49, 0.42);
+        background: rgba(255, 251, 243, 0.9);
+    }
+
+    .updates-copy {
+        margin: 0;
+        font-size: 0.92rem;
+        line-height: 1.53;
+        max-width: 76ch;
+    }
+
+    .subscribe-card {
+        width: min(720px, 100%);
+        display: grid;
+        gap: 0.6rem;
+    }
+
+    .subscribe-card form {
+        display: grid;
+        gap: 0.4rem;
+    }
+
+    .subscribe-card input {
+        width: 100%;
+        min-height: 44px;
+        border-radius: 10px;
+        border: 1px solid rgba(98, 66, 34, 0.3);
+        background: rgba(255, 255, 255, 0.95);
+        padding: 0.64rem 0.9rem;
+        font-size: 0.9rem;
+    }
+
+    .subscribe-card input:focus-visible {
+        outline: 2px solid rgba(122, 27, 15, 0.3);
+        outline-offset: 1px;
+        border-color: rgba(122, 27, 15, 0.52);
+    }
+
+    .btn-subscribe {
+        margin-top: 0.6rem;
+        width: fit-content;
+        min-width: 176px;
+        padding: 0.62rem 1rem;
+        border-radius: 10px;
+        border: 1px solid rgba(132, 99, 62, 0.52);
+        background: #f3e6cf;
+        color: #3d2817;
+        font-family: "Space Mono", monospace;
+        font-size: 0.77rem;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition:
+            transform 0.2s ease,
+            box-shadow 0.2s ease,
+            background 0.2s ease;
+    }
+
+    .btn-subscribe:hover,
+    .btn-subscribe:focus-visible {
+        background: #ebdcc1;
+        transform: translateY(-1px);
+        box-shadow: 0 10px 18px rgba(89, 58, 29, 0.14);
+        outline: none;
+    }
+
+    .btn-subscribe:disabled {
+        opacity: 0.68;
+        cursor: wait;
+    }
+
+    .form-feedback {
+        margin: 0.5rem 0 0;
+        font-size: 0.82rem;
+        line-height: 1.4;
+        color: #7a1b0f;
+        font-weight: 500;
+    }
+
+    .thank-you {
+        display: grid;
+        gap: 0.45rem;
+        margin-top: 0.95rem;
+        padding-top: 0.25rem;
+    }
+
+    .thank-you[hidden] {
+        display: none !important;
+    }
+
+    .thank-you-main,
+    .thank-you p {
+        margin: 0;
+        font-size: 0.9rem;
+        line-height: 1.56;
+    }
+
+    .thank-you-main {
+        font-weight: 600;
+    }
+
+    .thank-you-main:empty,
+    .api-message:empty {
+        display: none;
+    }
+
+    .api-message {
+        font-family: "Space Mono", monospace;
+        font-size: 0.72rem;
+        text-transform: none;
+        letter-spacing: 0.01em;
+        color: rgba(70, 45, 20, 0.84);
+        white-space: pre-line;
+    }
+
+    .contact-panel p {
+        max-width: 860px;
+        margin: 0;
+    }
+
+    .contact-layout {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: clamp(1.05rem, 2vw, 1.6rem);
+        align-items: end;
+    }
+
+    .contact-copy {
+        display: grid;
+        gap: 0.75rem;
+        align-content: start;
+    }
+
+    .final-note-columns {
+        display: grid;
+        grid-template-columns: minmax(0, 56ch) minmax(0, 1fr);
+    }
+
+    .final-note-text {
+        grid-column: 1;
+    }
+
+    .contact-copy .hero-actions {
+        margin-top: 0.2rem;
+    }
+
+    .contact-signature {
+        margin: 0;
+        justify-self: end;
+        align-self: end;
+        transform: translateX(-22%);
+    }
+
+    .contact-signature img {
+        width: min(220px, 24vw);
+        display: block;
+    }
+
+    .footer-spacer {
+        height: clamp(7rem, 12vh, 9rem);
+    }
+
+    @media (max-width: 1220px) {
+        .hero-grid,
+        .contact-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .decision-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .bank-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .contact-signature {
+            justify-self: start;
+            margin-top: 0.4rem;
+            transform: none;
+        }
+
+        .final-note-columns {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 920px) {
+        .support-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 820px) {
+        .page-shell {
+            width: calc(100vw - 1.1rem);
+            gap: 1.1rem;
+        }
+
+        .hero {
+            padding: 1.2rem;
+        }
+
+        .hero-copy {
+            gap: 0.62rem;
+            padding-block: 0;
+        }
+
+        .panel,
+        .panel-soft {
+            border-radius: 14px;
+        }
+
+        .decision-grid,
+        .bank-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .hero-actions .btn {
+            width: auto;
+        }
+
+        .btn-subscribe {
+            width: 100%;
+        }
+    }
+</style>
+
+<script is:inline>
+    (() => {
+        const form = document.querySelector("[data-backer-subscribe-form]");
+        if (!(form instanceof HTMLFormElement)) return;
+
+        const emailInput = form.querySelector("[data-backer-email]");
+        const submitButton = form.querySelector("[data-backer-submit]");
+        const feedbackNode = form.querySelector("[data-backer-feedback]");
+        const formBody = form.querySelector("[data-form-body]");
+        const thankYou = form.querySelector("[data-backer-thank-you]");
+        const thankYouMain = form.querySelector("[data-backer-thank-you-main]");
+        const apiMessage = form.querySelector("[data-backer-api-message]");
+
+        const setFeedback = (message) => {
+            if (!(feedbackNode instanceof HTMLElement)) return;
+            feedbackNode.textContent = message || "";
+            feedbackNode.hidden = !message;
+        };
+
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            setFeedback("");
+
+            if (!(emailInput instanceof HTMLInputElement)) return;
+            const email = emailInput.value.trim();
+
+            if (!email) {
+                setFeedback("Please enter your email.");
+                return;
+            }
+
+            if (!(submitButton instanceof HTMLButtonElement)) return;
+            submitButton.disabled = true;
+            const previousText = submitButton.textContent;
+            submitButton.textContent = "Submitting...";
+
+            try {
+                const payload = new FormData();
+                payload.append("email", email);
+                payload.append("source", "backers");
+
+                const response = await fetch("/api/subscribe", {
+                    method: "POST",
+                    body: payload,
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(
+                        result.message || "Could not subscribe right now.",
+                    );
+                }
+
+                if (formBody instanceof HTMLElement) {
+                    formBody.hidden = true;
+                }
+
+                if (thankYou instanceof HTMLElement) {
+                    thankYou.hidden = false;
+                }
+
+                if (
+                    thankYouMain instanceof HTMLElement &&
+                    apiMessage instanceof HTMLElement
+                ) {
+                    if (result?.isUpdate) {
+                        thankYouMain.textContent =
+                            "You are already subscribed.";
+                        apiMessage.textContent =
+                            "I will continue sharing project and research updates.";
+                    } else {
+                        thankYouMain.textContent =
+                            "Thank you for supporting me in this journey!";
+                        apiMessage.textContent =
+                            "I will keep you updated about my journey, work, and research in general.";
+                    }
+                }
+            } catch (error) {
+                const message =
+                    error instanceof Error
+                        ? error.message
+                        : "Could not subscribe right now.";
+                setFeedback(message);
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = previousText;
+            }
+        });
+    })();
+</script>
