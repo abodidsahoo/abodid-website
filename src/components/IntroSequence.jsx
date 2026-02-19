@@ -314,11 +314,11 @@ const IntroSequence = ({ onPhysicsStart, onSequenceEnd }) => {
                     color: var(--intro-text); font-family: "VT323", monospace; pointer-events: none;
                     --intro-text-size: 2rem;
                     --intro-text: #ffffff;
-                    --intro-accent: #37f147ff;
+                    --intro-accent: #ffff00;
                 }
                 
-                /* LIGHT MODE OVERRIDES */
-                :global([data-theme="light"]) .intro-sequence-container {
+                /* LIGHT MODE OVERRIDES - Using html selector as data-theme is on documentElement */
+                html[data-theme="light"] .intro-sequence-container {
                     --intro-text: #000000 !important;
                     --intro-accent: #0000ff; /* Blue accent for light mode */
                     background: rgba(255, 255, 255, 0.98);
@@ -377,9 +377,7 @@ const IntroSequence = ({ onPhysicsStart, onSequenceEnd }) => {
                     white-space: pre-wrap;
                     color: var(--intro-text) !important; /* FORCE INHERITANCE */
                 }
-                .typewriter-container span {
-                    color: var(--intro-text) !important;
-                }
+                /* Removed force-color override to allow segments to have their own colors */
 
                 @media (max-width: 768px) {
                     .intro-sequence-container { --intro-text-size: 1.8rem; }

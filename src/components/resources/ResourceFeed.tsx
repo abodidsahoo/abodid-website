@@ -504,9 +504,9 @@ export default function ResourceFeed({ initialResources, availableTags, showSear
             }
 
             .filter-chip.active {
-                background: var(--text-primary);
-                color: #000000;
-                border-color: var(--text-primary);
+                background: var(--chip-active-bg);
+                color: var(--chip-active-text);
+                border-color: var(--chip-active-bg);
                 box-shadow: 0 4px 12px rgba(0,0,0,0.15);
                 transform: scale(1.05);
             }
