@@ -236,12 +236,14 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
         return () => window.removeEventListener('resize', computeSizeBounds);
     }, []);
     useEffect(() => {
-        // Lock scroll initially
-        if (!introComplete) {
+        // Lock scroll initially ONLY ON DESKTOP
+        const isMobile = window.innerWidth <= 768;
+
+        if (!introComplete && !isMobile) {
             document.body.style.overflow = 'hidden';
             document.body.style.height = '100vh'; // Force lock
         } else {
-            // Unlock when cards drop (introComplete)
+            // Unlock when cards drop (introComplete) or if on mobile
             document.body.style.overflow = '';
             document.body.style.height = '';
         }
