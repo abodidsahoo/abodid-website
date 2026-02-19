@@ -333,7 +333,8 @@ const FilmsFilter = ({ items }) => {
                 }
 
                 .film-card:hover .film-title {
-                    color: var(--text-tertiary);
+                 font-weight: 700;   
+                color: var(--text-primary);
                 }
 
                 .film-roles {

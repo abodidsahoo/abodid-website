@@ -255,8 +255,8 @@ function computeFloatingLayout(items, width, height, seedSalt = 0) {
         const horizontalStagger = (position.left / Math.max(width, 1)) * 0.04;
         const baseDuration = clamp(
             6.45 +
-                random() * 0.62 +
-                (motionTierRoll < 0.24 ? -0.18 : motionTierRoll < 0.66 ? -0.04 : 0.11),
+            random() * 0.62 +
+            (motionTierRoll < 0.24 ? -0.18 : motionTierRoll < 0.66 ? -0.04 : 0.11),
             6.1,
             7.2,
         );
@@ -287,7 +287,7 @@ function computeFloatingLayout(items, width, height, seedSalt = 0) {
     return layout;
 }
 
-export default function VisualMoodboard({ items = [] }) {
+export default function VisualMoodboard({ items = [], enableGrain = true }) {
     const prefersReducedMotion = useReducedMotion();
     const stageRef = useRef(null);
     const probedIdsRef = useRef(new Set());

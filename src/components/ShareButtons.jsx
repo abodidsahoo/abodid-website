@@ -25,7 +25,6 @@ const ShareButtons = ({ title, url }) => {
 
     return (
         <div className="share-component">
-            <span className="share-label">Share</span>
             <div className="share-icons">
                 {/* Copy Link */}
                 <button

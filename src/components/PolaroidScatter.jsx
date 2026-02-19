@@ -363,7 +363,7 @@ const PolaroidCard = ({ item, isSelected, onSelect, onDragStart, onDragEnd, onRo
                 <div className="image-area" style={{ backgroundColor: shouldLoad ? '#222' : '#f0f0f0' }}>
                     {/* Only render SRC if permitted. Simulates prioritized download queue. */}
                     {shouldLoad ? (
-                        <img src={item.cover_image || item.image || item.url} alt={item.title} draggable="false" />
+                        <img src={item.cover_image || item.image || item.url} alt={item.title} draggable="false" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
                         <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             {/* Optional: Spinner or just blank */}

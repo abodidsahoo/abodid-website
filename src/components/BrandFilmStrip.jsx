@@ -93,8 +93,8 @@ export default function BrandFilmStrip() {
                     position: relative;
                     padding: 4rem 0; 
                     
-                    /* Theme Aware Background */
-                    background: var(--bg-canvas);
+                    /* Theme Aware Background - User requested PURE BLACK to match image backgrounds */
+                    background: #000000;
                     
                     /* Edge Fade Mask */
                     mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);

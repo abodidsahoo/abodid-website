@@ -56,9 +56,9 @@ const Header = () => {
                         </a>
                     </div>
 
-                    {/* CENTER: Empty (was Menu) */}
+                    {/* CENTER: Breadcrumbs (restored) */}
                     <div className="nav-center">
-                        {/* Spacer or empty */}
+                        <Breadcrumbs variant="header" />
                     </div>
 
                     {/* RIGHT: Menu Toggle & Breadcrumbs */}
@@ -134,7 +134,7 @@ const Header = () => {
                                             <div className="sidebar-block">
                                                 <div className="mono-label">Work With Me</div>
                                                 <MenuLink href="/services" variants={itemVariants} className="mono-link">Services</MenuLink>
-                                                <MenuLink href="/fundraising" variants={itemVariants} className="mono-link">Sponsorship</MenuLink>
+                                                <MenuLink href="/fundraising" variants={itemVariants} className="mono-link">Fundraising</MenuLink>
                                             </div>
 
                                             {/* Credentials */}
@@ -187,6 +187,7 @@ const Header = () => {
                     backdrop-filter: blur(12px);
                     border-bottom: 1px solid var(--nav-border);
                     transition: background 0.3s ease, border-color 0.3s ease;
+                    color: var(--nav-text); /* Enforce text color from theme, override body */
                 }
                 .nav-grid {
                     display: flex; /* Switch to Flex for simpler Left/Right push */
@@ -196,8 +197,13 @@ const Header = () => {
                     padding: 0 4vw;
                     width: 100%;
                 }
-                /* Remove grid specifics */
-                .nav-center { display: none; } 
+                /* Restored Grid/Flex Layout */
+                .nav-center { 
+                    display: flex; 
+                    justify-content: center; 
+                    align-items: center; 
+                    flex: 1; /* Take up remaining space */
+                } 
                 
                 .nav-left {
                     display: flex; 
@@ -210,7 +216,7 @@ const Header = () => {
                     align-items: center; 
                     gap: 1.5rem; 
                     height: 100%;
-                    color: var(--nav-text);
+                    /* color: var(--nav-text);  Removed redundant */
                     flex: 0 0 auto; /* Don't shrink */
                 }
                 
@@ -232,7 +238,7 @@ const Header = () => {
                 }
                 
                 .header-logo-img {
-                    height: 42px !important; /* FIXED HEIGHT */
+                    height: 62px !important; /* FIXED HEIGHT */
                     width: auto;
                     display: block;
                     filter: brightness(1.2); 
@@ -393,7 +399,7 @@ const Header = () => {
                      .nav-grid { height: 70px; grid-template-columns: auto 1fr auto; display: flex; justify-content: space-between; }
                      
                      .nav-left { order: 1; }
-                     .nav-center { order: 2; justify-content: flex-end; }
+                     .nav-center { display: none; }
                      .nav-right { display: flex; order: 3; } 
                      .menu-btn { font-size: 1.1rem; font-weight: 700; }
                 }

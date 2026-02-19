@@ -404,7 +404,9 @@ const odishaUrl = "https://vimeo.com/265220711";
     }
 
     .hero-title {
-        font-family: var(--font-headline); /* Inherit or specific font */
+        font-family: var(
+            --font-sans
+        ); /* Fixed: Was undefined --font-headline */
         font-size: 3.5rem;
         font-weight: 700; /* Ensure Bold */
         line-height: 1.1;

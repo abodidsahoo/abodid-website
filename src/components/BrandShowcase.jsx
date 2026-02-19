@@ -117,7 +117,7 @@ export default function BrandShowcase({ limit = null }) {
                             onMouseEnter={() => setHoveredBrand(brand)}
                             onMouseLeave={() => setHoveredBrand(null)}
                         >
-                            <img src={brand.logo_url} alt={brand.name} loading="lazy" />
+                            <img src={brand.logo_url} alt={brand.name} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                         </motion.div>
                     ))}
                 </AnimatePresence>

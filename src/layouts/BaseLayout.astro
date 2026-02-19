@@ -133,7 +133,8 @@ const finalType = type || dbMetadata?.og_type || "website";
     <!-- Global Liquid Cursor (Conditional) -->
     {/* {showCursor && <LiquidCursor client:only="react" />} */}
 
-    <NoiseOverlay client:only="react" opacity={0.05} />
+    {/* Global Grain Disabled by default, can be enabled via props if needed */}
+    {/* <NoiseOverlay client:only="react" opacity={0.05} /> */}
 
     <Footer />
   </body>

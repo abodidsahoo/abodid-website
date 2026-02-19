@@ -20,10 +20,10 @@ const pageDescription =
         <header class="moodboard-hero">
             <h1>An archive of impulses and instincts.</h1>
             <p>
-                A moodboard that's not about trends - it's about taste.
-                This is where fragments stay alive: posters, textures, forms,
-                and references that keep moving. Search by a keyword or tag,
-                and the board reorients in place.
+                A moodboard that's not about trends - it's about taste. This is
+                where fragments stay alive: posters, textures, forms, and
+                references that keep moving. Search by a keyword or tag, and the
+                board reorients in place.
             </p>
         </header>
 
@@ -35,8 +35,9 @@ const pageDescription =
                 for popularity. It's a visual diary, a living archive, a map
                 with no fixed route. It helps us reconnect with ideas, explore
                 what moves us, and trace the line between intention and impulse.
-                Explore our <a class="latest-work-link" href="/photography">latest work</a> to see how some
-                of these impulses turned into projects.
+                Explore our <a class="latest-work-link" href="/photography"
+                    >latest work</a
+                > to see how some of these impulses turned into projects.
             </p>
         </footer>
     </section>
@@ -61,7 +62,9 @@ const pageDescription =
         color: var(--mood-body-color);
     }
 
-    :global(body[data-grid-variant="moodboard"][data-moodboard-surface="dark"]) {
+    :global(
+        body[data-grid-variant="moodboard"][data-moodboard-surface="dark"]
+    ) {
         --grid-color-1: rgba(255, 255, 255, 0.12);
         --grid-color-2: rgba(255, 255, 255, 0.03);
         --mood-page-bg: #0b0b0e;
@@ -98,7 +101,10 @@ const pageDescription =
         background-position: center top;
     }
 
-    :global(body[data-grid-variant="moodboard"][data-moodboard-surface="light"] .global-glow-bg) {
+    :global(
+        body[data-grid-variant="moodboard"][data-moodboard-surface="light"]
+            .global-glow-bg
+    ) {
         --glow-radius: 460px;
         filter: saturate(1.06) brightness(1.04);
     }
@@ -152,8 +158,15 @@ const pageDescription =
         color: var(--mood-link-color);
         text-decoration: none;
         border-bottom: 1px solid var(--mood-link-border);
-        transition: color 0.2s ease, border-color 0.2s ease, text-shadow 0.2s ease, background-size 0.2s ease;
-        background-image: linear-gradient(var(--mood-link-bg), var(--mood-link-bg));
+        transition:
+            color 0.2s ease,
+            border-color 0.2s ease,
+            text-shadow 0.2s ease,
+            background-size 0.2s ease;
+        background-image: linear-gradient(
+            var(--mood-link-bg),
+            var(--mood-link-bg)
+        );
         background-repeat: no-repeat;
         background-size: 0% 100%;
         background-position: 0 50%;
