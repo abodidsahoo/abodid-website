@@ -123,19 +123,52 @@ export default function SubmissionForm() {
     // Not authenticated - show login prompt
     if (!isAuthenticated) {
         return (
-            <div className="hub-form text-center p-8">
-                <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔒</div>
-                <h3 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '8px' }}>Login Required</h3>
-                <p className="text-secondary mb-6">
-                    You need to be logged in to submit resources to the hub.
-                </p>
-                <a
-                    href="/login?redirect=/resources/submit"
-                    className="hub-btn"
-                    style={{ display: 'inline-block', textDecoration: 'none' }}
-                >
-                    Login to Submit
-                </a>
+            <div className="submission-card-container" style={{ padding: '4rem 1rem' }}>
+                <div className="submission-card" style={{
+                    maxWidth: '420px',
+                    margin: '0 auto',
+                    padding: '3.5rem 2.5rem',
+                    textAlign: 'center',
+                    background: 'var(--bg-surface)',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: '16px',
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.08)'
+                }}>
+                    <div style={{ fontSize: '42px', marginBottom: '20px', opacity: 0.9 }}>🔒</div>
+                    <h3 style={{
+                        fontFamily: 'var(--font-sans)',
+                        fontSize: '1.6rem',
+                        fontWeight: '700',
+                        marginBottom: '12px',
+                        color: 'var(--text-primary)',
+                        letterSpacing: '-0.02em'
+                    }}>
+                        Login Required
+                    </h3>
+                    <p style={{
+                        fontFamily: 'var(--font-sans)',
+                        fontSize: '1rem',
+                        color: 'var(--text-secondary)',
+                        lineHeight: '1.6',
+                        marginBottom: '32px'
+                    }}>
+                        You need to be logged in to submit resources to the hub.
+                    </p>
+                    <a
+                        href="/login?redirect=/resources/submit"
+                        className="hub-btn"
+                        style={{
+                            display: 'inline-flex',
+                            textDecoration: 'none',
+                            width: 'auto',
+                            padding: '10px 28px',
+                            fontSize: '0.95rem',
+                            borderRadius: '50px'
+                        }}
+                    >
+                        Login to Submit
+                    </a>
+                </div>
             </div>
         );
     }
