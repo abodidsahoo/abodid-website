@@ -56,6 +56,7 @@ export default function FilterBar({ initialQuery = '', initialAudience = '', ava
                 <button
                     className={`filter-chip ${audience === '' ? 'active' : ''}`}
                     onClick={() => setAudience('')}
+                    style={audience === '' ? { color: '#ffffff', borderColor: '#000000', backgroundColor: '#000000' } : {}}
                 >
                     All
                 </button>
@@ -64,6 +65,7 @@ export default function FilterBar({ initialQuery = '', initialAudience = '', ava
                         key={aud}
                         className={`filter-chip ${audience === aud ? 'active' : ''}`}
                         onClick={() => setAudience(aud === audience ? '' : aud)}
+                        style={audience === aud ? { color: '#ffffff', borderColor: '#000000', backgroundColor: '#000000' } : {}}
                     >
                         {aud}
                     </button>
@@ -140,9 +142,27 @@ export default function FilterBar({ initialQuery = '', initialAudience = '', ava
         }
 
         .filter-chip.active {
-            background: var(--text-primary);
-            color: var(--bg-color);
-            border-color: var(--text-primary);
+            background: var(--chip-active-bg);
+            color: var(--chip-active-text);
+            border-color: var(--chip-active-bg);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: scale(1.05);
+        }
+
+        /* FORCE VISIBILITY IN LIGHT MODE - Strict Override */
+        html[data-theme="light"] .audience-filters .filter-chip.active,
+        body[data-theme="light"] .audience-filters .filter-chip.active,
+        .filter-chip.active {
+            /* Active State Always High Contrast */
+            color: #ffffff !important; 
+            --chip-active-text: #ffffff !important;
+        }
+
+        /* Specific Light Mode Black Background / White Text Override */
+        html[data-theme="light"] .filter-chip.active {
+             background-color: #000000 !important;
+             color: #ffffff !important; 
+             border-color: #000000 !important;
         }
 
         @media (min-width: 768px) {

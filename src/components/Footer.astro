@@ -122,21 +122,23 @@ const year = new Date().getFullYear();
 <style>
   :root {
     --sci-fi-cyan: #00f3ff;
+    --footer-bg: #000000;
     --footer-text-header: rgba(255, 255, 255, 0.9);
     --footer-text-dim: rgba(255, 255, 255, 0.4);
     --footer-border: rgba(255, 255, 255, 0.15); /* Thin gray line */
   }
 
   :global([data-theme="light"]) {
-    --sci-fi-cyan: #d6b400;
-    --footer-text-header: var(--text-primary);
-    --footer-text-dim: var(--text-tertiary);
-    --footer-border: rgba(255, 255, 255, 0.15);
+    --sci-fi-cyan: #0000ff;
+    --footer-bg: #ffffff;
+    --footer-text-header: #000000;
+    --footer-text-dim: #555555;
+    --footer-border: #e0e0e0;
   }
 
   .site-footer {
-    background-color: #000000 !important; /* Pure Black */
-    color: #fff;
+    background-color: var(--footer-bg) !important;
+    color: var(--footer-text-header);
     padding: 0;
     margin-top: auto;
     font-family: "Inconsolata", monospace;
@@ -146,7 +148,7 @@ const year = new Date().getFullYear();
     /* Ensure no overflow issues */
     box-sizing: border-box;
     /* Create spacing for fade strip to sit in */
-    border-top: 10rem solid transparent;
+    border-top: 4rem solid transparent;
     background-clip: padding-box; /* Ensure bg doesn't bleed into border */
   }
 
@@ -161,10 +163,10 @@ const year = new Date().getFullYear();
   /* Fade Strip */
   .footer-fade-strip {
     width: 100%;
-    height: 18rem;
+    height: 10rem;
     background: linear-gradient(to bottom, transparent, #000);
     position: absolute;
-    top: -18rem;
+    top: -10rem;
     left: 0;
     pointer-events: none;
     z-index: 5;
@@ -376,5 +378,35 @@ const year = new Date().getFullYear();
     .footer-line.top-line {
       /* Keep it */
     }
+  }
+  /* LIGHT MODE SPECIFIC ADJUSTMENTS */
+  :global([data-theme="light"]) .footer-fade-strip {
+    background: linear-gradient(to bottom, transparent, #ffffff);
+  }
+
+  :global([data-theme="light"]) .footer-ticker-fullwidth,
+  :global([data-theme="light"]) .footer-bottom-full {
+    background: #ffffff;
+    color: var(--footer-text-dim);
+  }
+
+  :global([data-theme="light"]) .nav-group a {
+    color: #111111 !important; /* Almost black */
+    font-weight: 500;
+  }
+
+  :global([data-theme="light"]) .nav-group a:hover {
+    color: #000000 !important;
+    background: rgba(0, 0, 0, 0.05); /* Subtle highlight on hover */
+    padding-left: 4px; /* Little nudge */
+  }
+
+  :global([data-theme="light"]) .nav-header {
+    color: #000000 !important;
+  }
+
+  :global([data-theme="light"]) .logo-img {
+    filter: invert(1) !important;
+    opacity: 1 !important;
   }
 </style>

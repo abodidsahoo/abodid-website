@@ -186,6 +186,10 @@ const ExperienceModule = ({ src, captions = [], autoStart = false }) => {
             const barWidth = (availableWidth / numBins) - gap; // Ensure exact fit
             const centerX = canvas.width / 2;
 
+            // Theme Detection
+            const isLightMode = document.documentElement.getAttribute('data-theme') === 'light';
+            const barColor = isLightMode ? '#2a2a2a' : '#FFFFFF';
+
             for (let i = 0; i < numBins; i++) {
                 const val = dataArray[i];
                 const intensity = (val / 255);
@@ -198,7 +202,7 @@ const ExperienceModule = ({ src, captions = [], autoStart = false }) => {
                 const barHeight = Math.min(canvas.height * 0.8, Math.pow(intensity, 1.0) * canvas.height * 0.9 * damping);
 
                 if (barHeight > 0) {
-                    ctx.fillStyle = '#FFFFFF'; // Solid White
+                    ctx.fillStyle = barColor;
                     // Sharp edges (fillRect default)
                     ctx.fillRect(centerX + (i * (barWidth + gap)) + gap / 2, canvas.height - barHeight, barWidth, barHeight);
                     ctx.fillRect(centerX - ((i + 1) * (barWidth + gap)) + gap / 2, canvas.height - barHeight, barWidth, barHeight);
@@ -657,6 +661,34 @@ const ExperienceModule = ({ src, captions = [], autoStart = false }) => {
                     border-color: rgba(56, 189, 248, 0.82);
                     background: rgba(56, 189, 248, 0.2);
                     color: #ffffff;
+                }
+
+                /* --- Light Mode Overrides --- */
+                [data-theme="light"] .mirrored-spectrum-mini {
+                   /* Inverted filter might be too heavy, relying on fillStyle change in canvas */
+                   filter: none !important;
+                   opacity: 0.85;
+                }
+
+                [data-theme="light"] .lyric-text {
+                    color: #000000;
+                    text-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
+                    background: rgba(255, 255, 255, 0.5);
+                    border: 1px solid rgba(0,0,0,0.1);
+                }
+
+                [data-theme="light"] .soundtrack-toggle-btn {
+                    border: 1px solid #000000;
+                    background: rgba(255, 255, 255, 0.4);
+                    color: #000000;
+                    font-weight: 600;
+                }
+
+                [data-theme="light"] .soundtrack-toggle-btn:hover {
+                    background: #ffffff !important;
+                    color: #000000;
+                    border-color: #000000;
+                    box-shadow: 0 0 10px rgba(0,0,0,0.1);
                 }
 
                 @media (max-width: 1024px) {

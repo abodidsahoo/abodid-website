@@ -264,13 +264,13 @@ const IntroSequence = ({ onPhysicsStart, onSequenceEnd }) => {
                                 <SegmentedTypewriter
                                     segments={[
                                         {
-                                            text: "Here's a glimpse into three years of my ", color: 'white'
+                                            text: "Here's a glimpse into three years of my ", color: 'var(--intro-text)'
                                         },
-                                        { text: '"high on art" ', color: '#37f147ff' },
+                                        { text: '"high on art" ', color: 'var(--intro-accent)' },
                                         {
-                                            text: 'life in ', color: 'white'
+                                            text: 'life in ', color: 'var(--intro-text)'
                                         },
-                                        { text: 'London', color: 'white' }
+                                        { text: 'London', color: 'var(--intro-text)' }
 
                                     ]}
                                     speed={0.04}
@@ -311,13 +311,25 @@ const IntroSequence = ({ onPhysicsStart, onSequenceEnd }) => {
                 .intro-sequence-container {
                     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
                     z-index: 9999; display: flex; align-items: center; justify-content: center;
-                    color: #fff; font-family: "VT323", monospace; pointer-events: none;
+                    color: var(--intro-text); font-family: "VT323", monospace; pointer-events: none;
                     --intro-text-size: 2rem;
+                    --intro-text: #ffffff;
+                    --intro-accent: #37f147ff;
                 }
+                
+                /* LIGHT MODE OVERRIDES */
+                :global([data-theme="light"]) .intro-sequence-container {
+                    --intro-text: #000000 !important;
+                    --intro-accent: #0000ff; /* Blue accent for light mode */
+                    background: rgba(255, 255, 255, 0.98);
+                    color: #000000 !important;
+                }
+
                 .intro-content {
                     position: relative; width: 100%; max-width: 1200px;
                     display: flex; flex-direction: column; align-items: center;
                     justify-content: center; text-align: center; padding: 2rem;
+                    color: var(--intro-text); /* Ensure inheritance */
                 }
                 .line-welcome {
                     font-size: var(--intro-text-size);
@@ -326,6 +338,7 @@ const IntroSequence = ({ onPhysicsStart, onSequenceEnd }) => {
                     letter-spacing: -0.02em;
                     line-height: 1.1;
                     opacity: 0.9;
+                    color: var(--intro-text); /* Force color */
                 }
                 .line-headline {
                     font-size: var(--intro-text-size);
@@ -334,6 +347,7 @@ const IntroSequence = ({ onPhysicsStart, onSequenceEnd }) => {
                     line-height: 1.1;
                     margin-bottom: 0;
                     opacity: 0.9;
+                    color: var(--intro-text); /* Force color */
                 }
                 .line-narrative {
                     display: flex; flex-direction: column; align-items: center;
@@ -350,13 +364,22 @@ const IntroSequence = ({ onPhysicsStart, onSequenceEnd }) => {
                     flex-wrap: nowrap;
                     width: auto;
                     max-width: 100vw;
+                    color: var(--intro-text); /* Force color */
                 }
                 .line-instruction-large {
                     font-size: var(--intro-text-size);
                     font-weight: 400;
                     letter-spacing: -0.02em;
+                    color: var(--intro-text); /* Force color */
                 }
-                .typewriter-container { display: inline-block; white-space: pre-wrap; }
+                .typewriter-container { 
+                    display: inline-block; 
+                    white-space: pre-wrap;
+                    color: var(--intro-text) !important; /* FORCE INHERITANCE */
+                }
+                .typewriter-container span {
+                    color: var(--intro-text) !important;
+                }
 
                 @media (max-width: 768px) {
                     .intro-sequence-container { --intro-text-size: 1.8rem; }

@@ -13,7 +13,13 @@ export default function TagInput({ selectedTags, onChange, maxTags = 3 }: Props)
     const [suggestions, setSuggestions] = useState<HubTag[]>([]);
     const [tagObjects, setTagObjects] = useState<HubTag[]>([]); // Store full objects for display
     const [showSuggestions, setShowSuggestions] = useState(false);
+    const [focusedIndex, setFocusedIndex] = useState(-1);
     const containerRef = useRef<HTMLDivElement>(null);
+
+    // Reset focus when suggestions change
+    useEffect(() => {
+        setFocusedIndex(-1);
+    }, [suggestions]);
 
     // Debounce search
     useEffect(() => {
@@ -49,6 +55,7 @@ export default function TagInput({ selectedTags, onChange, maxTags = 3 }: Props)
         setTagObjects(prev => [...prev, tag]); // Optimistic add
         setInputValue('');
         setSuggestions([]);
+        setShowSuggestions(false);
     };
 
     const removeTag = (id: string) => {
@@ -58,9 +65,36 @@ export default function TagInput({ selectedTags, onChange, maxTags = 3 }: Props)
 
     const handleCreateTag = async () => {
         if (!inputValue.trim()) return;
+
+        // Optimistic check: if input matches a suggestion exactly (case-insensitive), use that instead
+        const exactMatch = suggestions.find(s => s.name.toLowerCase() === inputValue.trim().toLowerCase());
+        if (exactMatch) {
+            addTag(exactMatch);
+            return;
+        }
+
         const newTag = await createTag(inputValue.trim());
         if (newTag) {
             addTag(newTag);
+        }
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            setFocusedIndex(prev => (prev < suggestions.length - 1 ? prev + 1 : prev));
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            setFocusedIndex(prev => (prev > -1 ? prev - 1 : -1));
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (focusedIndex >= 0 && suggestions[focusedIndex]) {
+                addTag(suggestions[focusedIndex]);
+            } else if (inputValue.length > 1) {
+                handleCreateTag();
+            }
+        } else if (e.key === 'Escape') {
+            setShowSuggestions(false);
         }
     };
 
@@ -91,33 +125,26 @@ export default function TagInput({ selectedTags, onChange, maxTags = 3 }: Props)
                     value={inputValue}
                     onChange={e => setInputValue(e.target.value)}
                     disabled={selectedTags.length >= maxTags}
-                    onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                            e.preventDefault();
-                            if (suggestions.length > 0) {
-                                addTag(suggestions[0]);
-                            } else if (inputValue.length > 2) {
-                                handleCreateTag();
-                            }
-                        }
-                    }}
+                    onKeyDown={handleKeyDown}
+                    onFocus={() => inputValue.length > 1 && setShowSuggestions(true)}
                 />
 
                 {/* Suggestions Dropdown */}
                 {showSuggestions && inputValue.length > 1 && (
                     <div className="suggestions-dropdown">
-                        {suggestions.map(tag => (
+                        {suggestions.map((tag, index) => (
                             <button
                                 key={tag.id}
                                 type="button"
-                                className="suggestion-item"
+                                className={`suggestion-item ${index === focusedIndex ? 'focused' : ''}`}
                                 onClick={() => addTag(tag)}
+                                onMouseEnter={() => setFocusedIndex(index)}
                             >
                                 #{tag.name}
                             </button>
                         ))}
 
-                        {/* Create Option */}
+                        {/* Create Option - shown if no exact match or always at bottom? User said "Otherwise... create" */}
                         {suggestions.length === 0 && (
                             <button
                                 type="button"
@@ -196,6 +223,7 @@ export default function TagInput({ selectedTags, onChange, maxTags = 3 }: Props)
         .suggestion-item:last-child {
             border-bottom: none;
         }
+        .suggestion-item.focused,
         .suggestion-item:hover {
             background: var(--bg-surface-hover);
         }

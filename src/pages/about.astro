@@ -228,14 +228,16 @@ const clients = [
     }
 
     .intro-mission {
-        font-size: 1.2rem;
+        font-family: var(--font-sans); /* Unified Font */
+        font-size: 1.25rem;
         line-height: 1.6;
         color: var(--text-primary);
         max-width: 700px;
     }
 
     .intro-text {
-        font-size: 0.9rem;
+        font-family: var(--font-sans); /* Unified Font */
+        font-size: 1rem;
         line-height: 1.6;
         color: var(--text-secondary);
         margin-top: 1rem;
@@ -253,12 +255,13 @@ const clients = [
     }
 
     .info-label {
-        font-family: "Space Mono", monospace;
-        font-size: 0.85rem;
+        font-family: var(--font-sans); /* Unified Font */
+        font-size: 1rem; /* Larger */
         text-transform: uppercase;
         letter-spacing: 0.05em;
+        font-weight: 600; /* Bolder */
         color: var(--text-tertiary);
-        margin-bottom: 1rem;
+        margin-bottom: 1.5rem; /* More space */
         border-bottom: 1px solid var(--border-subtle);
         padding-bottom: 0.5rem;
     }
@@ -273,10 +276,10 @@ const clients = [
         position: relative;
         padding-left: 1.2rem;
         margin-bottom: 0.6rem;
-        font-family: "Poppins", sans-serif;
-        font-size: 0.9rem; /* Smaller as requested */
+        font-family: var(--font-sans);
+        font-size: 1rem; /* Consistent size */
         color: var(--text-secondary);
-        line-height: 1.4;
+        line-height: 1.5;
     }
 
     .bullet-list li::before {
@@ -292,10 +295,11 @@ const clients = [
     }
 
     .section-label {
-        font-family: "Space Mono", monospace;
-        font-size: 0.85rem;
+        font-family: var(--font-sans); /* Unified */
+        font-size: 1rem;
         text-transform: uppercase;
         letter-spacing: 0.05em;
+        font-weight: 600;
         color: var(--text-tertiary);
         margin-bottom: 2rem;
     }
@@ -329,7 +333,7 @@ const clients = [
     }
 
     .card-title {
-        font-family: "Inter", sans-serif;
+        font-family: var(--font-sans);
         font-size: 1rem;
         font-weight: 500;
         color: var(--text-primary);
@@ -357,10 +361,11 @@ const clients = [
     }
 
     .contact-wrapper h3 {
-        font-family: "Space Mono", monospace;
-        font-size: 0.85rem;
+        font-family: var(--font-sans); /* Unified */
+        font-size: 1rem;
         text-transform: uppercase;
         letter-spacing: 0.05em;
+        font-weight: 600;
         color: var(--text-tertiary);
         margin-bottom: 1.5rem;
     }

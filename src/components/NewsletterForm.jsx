@@ -396,6 +396,54 @@ const NewsletterForm = ({ onClose, variant = "popup" }) => {
                 color: #000;
                 border-color: #fff;
             }
+
+            @media (max-width: 600px) {
+              .newsletter-popup-container {
+                max-width: 95vw;
+                max-height: 85vh; /* prevent full viewport blockage */
+                border-radius: 12px;
+              }
+              
+              .newsletter-header {
+                padding: 1.5rem 1.25rem 1.25rem; /* Reduced padding */
+              }
+              
+              .newsletter-headline {
+                font-size: 1.25rem; /* Smaller headline */
+              }
+              
+              .newsletter-close-btn {
+                top: 0.5rem;
+                right: 0.5rem;
+                padding: 8px; /* Easier touch target but less intrusive position */
+              }
+              
+              .newsletter-body {
+                padding: 1.25rem; /* Reduced body padding */
+              }
+              
+              .newsletter-desc {
+                font-size: 0.85rem;
+                margin-bottom: 1.25rem;
+                line-height: 1.5;
+              }
+              
+              .newsletter-input {
+                padding: 0.75rem; /* Compact inputs */
+                font-size: 0.9rem;
+              }
+              
+              .newsletter-submit-btn {
+                padding: 0.75rem;
+                font-size: 0.8rem;
+                width: 100%;
+            }
+            
+            .trust-microcopy {
+                 font-size: 0.7rem;
+                 margin-top: 0.75rem;
+            }
+          }
           `}</style>
         </div>
     );

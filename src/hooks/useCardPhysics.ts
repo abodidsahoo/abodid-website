@@ -516,11 +516,29 @@ export const useCardPhysics = ({
 
             if (scrollAccumulatorRef.current > UNSTACK_THRESHOLD) {
                 const now = Date.now();
+
+                // CRITICAL FIX FOR WINDOWS MOUSE:
+                // Previously, we clamped the accumulator if we were in cooldown, effectively ignoring rapid "clicks".
+                // Now, we ONLY clamp if the delta was small (Trackpad drift).
+                // If the user does a big discrete scroll (e.g. 100px), we LET it accumulate so it triggers cleanly next frame.
+
                 if (now - lastActionTime.current < COOLDOWN_MS) {
-                    scrollAccumulatorRef.current = Math.min(
-                        scrollAccumulatorRef.current,
-                        UNSTACK_THRESHOLD * 1.1,
-                    );
+                    // Only clamp if it looks like continuous drift, not a deliberate click
+                    // A discrete click is usually > 40-50 modes.
+                    const isDiscreteClick = e.deltaY > 30;
+
+                    if (!isDiscreteClick) {
+                        scrollAccumulatorRef.current = Math.min(
+                            scrollAccumulatorRef.current,
+                            UNSTACK_THRESHOLD * 1.1,
+                        );
+                    }
+                    // If it IS a discrete click, let it ride. The accumulator will hold the value (> Threshold).
+                    // On the next wheel event (or a frame loop if we had one), it would re-trigger.
+                    // But since we are event-driven, we need to ensure we don't just lose it.
+                    // Actually, the logic below "if (potential > 0)" runs EVERY event.
+                    // So if we are in cooldown, we just skip the ACTION, but keep the ACCUMULATOR.
+
                 } else {
                     const potential = Math.floor(scrollAccumulatorRef.current / UNSTACK_THRESHOLD);
                     if (potential > 0) {

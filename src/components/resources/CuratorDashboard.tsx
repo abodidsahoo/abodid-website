@@ -640,59 +640,117 @@ export default function CuratorDashboard({ user, role }: Props) {
                     margin: 0;
                 }
 
-                .btn-submit-new {
-                    background: var(--text-primary);
-                    color: var(--bg-color);
-                    padding: 0.875rem 1.5rem;
+                /* Common Header Button Style */
+                .btn-refresh-text,
+                .btn-back-logo,
+                .btn-admin-panel,
+                .btn-logout-prominent {
+                    height: 42px; /* Fixed uniform height */
+                    padding: 0 1.25rem;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
                     border-radius: 8px;
+                    font-family: 'Space Mono', monospace; /* Monospace font */
+                    font-size: 0.85rem;
+                    font-weight: 500;
                     text-decoration: none;
-                    font-weight: 600;
-                    transition: opacity 0.2s;
+                    transition: all 0.2s;
                     white-space: nowrap;
+                    border: 1px solid transparent;
+                    box-sizing: border-box;
+                    cursor: pointer;
                 }
 
-                .btn-submit-new:hover {
-                    opacity: 0.9;
+                /* Refresh Button */
+                .btn-refresh-text {
+                    background: transparent;
+                    border-color: var(--border-subtle);
+                    color: var(--text-primary);
+                }
+                .btn-refresh-text:hover {
+                    background: var(--bg-surface-hover);
+                    border-color: var(--text-primary);
                 }
 
+                /* Back to Resources */
+                /* Light Mode: Black BG, White Text */
+                html[data-theme="light"] .btn-back-logo {
+                    background: #000000;
+                    color: #ffffff;
+                }
+                html[data-theme="light"] .btn-back-logo:hover {
+                     background: #333333;
+                }
+
+                /* Dark Mode: White BG, Black Text */
+                html[data-theme="dark"] .btn-back-logo {
+                    background: #ffffff;
+                    color: #000000;
+                }
+                html[data-theme="dark"] .btn-back-logo:hover {
+                     background: #e5e5e5;
+                }
+
+                /* Admin Panel */
                 .btn-admin-panel {
                     background: #334155;
                     color: white;
-                    padding: 0.875rem 1.5rem;
-                    border-radius: 8px;
-                    text-decoration: none;
-                    font-weight: 600;
-                    transition: all 0.2s;
-                    white-space: nowrap;
-                    border: 1px solid var(--border-subtle);
+                    border-color: var(--border-subtle);
                 }
-
                 .btn-admin-panel:hover {
                     background: #1e293b;
                     border-color: var(--text-primary);
                     transform: translateY(-1px);
                 }
 
-                .btn-logout {
-                    background: transparent;
-                    color: var(--text-secondary);
-                    padding: 0.875rem 1.5rem;
-                    border-radius: 8px;
-                    border: 1px solid var(--border-subtle);
-                    font-weight: 600;
-                    cursor: pointer;
-                    transition: all 0.2s;
-                    white-space: nowrap;
+                /* Sign Out */
+                .btn-logout-prominent {
+                    background: #EF4444; 
+                    color: white;
+                }
+                .btn-logout-prominent:hover {
+                    background: #DC2626;
                 }
 
-                .btn-logout:hover {
-                    border-color: var(--text-primary);
-                    color: var(--text-primary);
+                /* Submit Button - Reduced Size */
+                .btn-submit-new-prominent {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 0.75rem 1.5rem; /* Reduced padding */
+                    background: var(--text-primary);
+                    color: var(--bg-surface); /* Inverse Text */
+                    border-radius: 8px; /* Slightly smaller radius */
+                    text-decoration: none;
+                    font-weight: 600; /* Slightly lighter weight */
+                    font-size: 0.95rem; /* Reduced font size */
+                    transition: transform 0.2s, opacity 0.2s;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+                    font-family: 'Space Mono', monospace; /* Consistent font */
+                    width: auto; /* Allow auto width */
+                    min-width: 200px;
+                }
+                
+                /* Force Black Text on White Button (Dark Mode) */
+                html[data-theme="dark"] .btn-submit-new-prominent {
+                    background: #ffffff;
+                    color: #000000;
+                }
+                /* Force White Text on Black Button (Light Mode) */
+                html[data-theme="light"] .btn-submit-new-prominent {
+                    background: #000000;
+                    color: #ffffff;
+                }
+
+                .btn-submit-new-prominent:hover {
+                    transform: translateY(-1px);
+                    opacity: 0.95;
+                    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
                 }
 
                 .stats-grid {
                     display: grid;
-                    /* Ensure they fit in one row on desktop (pending count etc might make 5 items) */
                     grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
                     gap: 1rem;
                     margin-bottom: 2rem;
@@ -706,22 +764,10 @@ export default function CuratorDashboard({ user, role }: Props) {
                     text-align: center;
                 }
 
-                .stat-card.pending {
-                    border-color: #F59E0B;
-                }
-
-                .stat-card.approved {
-                    border-color: #10B981;
-                }
-
-                .stat-card.rejected {
-                    border-color: #EF4444;
-                }
-
-                .stat-card.deleted {
-                    border-color: #6B7280;
-                    opacity: 0.8;
-                }
+                .stat-card.pending { border-color: #F59E0B; }
+                .stat-card.approved { border-color: #10B981; }
+                .stat-card.rejected { border-color: #EF4444; }
+                .stat-card.deleted { border-color: #6B7280; opacity: 0.8; }
 
                 .stat-value {
                     font-size: 1.75rem;
@@ -743,7 +789,7 @@ export default function CuratorDashboard({ user, role }: Props) {
 
                 .section-header {
                     display: flex;
-                    flex-direction: column; /* Stack them */
+                    flex-direction: column;
                     align-items: flex-start;
                     gap: 1.5rem;
                     margin-bottom: 2rem;
@@ -751,16 +797,17 @@ export default function CuratorDashboard({ user, role }: Props) {
 
                 .section-header h2 {
                     margin: 0;
-                    font-size: 2.5rem; /* Larger font */
+                    font-size: 2.5rem;
                     font-weight: 700;
                     letter-spacing: -0.02em;
+                    color: var(--text-primary);
                 }
                 
                 .filter-tabs {
                     display: flex;
                     gap: 0.75rem;
                     flex-wrap: wrap;
-                    width: 100%; /* Full width for tabs */
+                    width: 100%;
                 }
 
                 .filter-tabs button {
@@ -781,9 +828,20 @@ export default function CuratorDashboard({ user, role }: Props) {
 
                 .filter-tabs button.active {
                     background: var(--text-primary);
-                    color: var(--bg-color);
+                    color: var(--bg-surface); /* Inverse */
                     border-color: var(--text-primary);
                 }
+
+                /* Filter Tabs Active Text Fix */
+                html[data-theme="dark"] .filter-tabs button.active {
+                    color: #000000;
+                    background: #ffffff;
+                }
+                html[data-theme="light"] .filter-tabs button.active {
+                    color: #ffffff;
+                    background: #000000;
+                }
+
 
                 .submissions-list {
                     display: grid;
@@ -895,7 +953,7 @@ export default function CuratorDashboard({ user, role }: Props) {
                 .submission-actions {
                     display: flex;
                     gap: 0.5rem;
-                    margin-top: auto; /* Push to bottom */
+                    margin-top: auto; 
                     flex-wrap: wrap;
                 }
 
@@ -908,9 +966,19 @@ export default function CuratorDashboard({ user, role }: Props) {
                     transition: opacity 0.2s;
                 }
 
+                /* View Resource Button - Strict Contrast */
                 .btn-view {
                     background: var(--text-primary);
-                    color: var(--bg-color);
+                    color: var(--bg-surface);
+                }
+                
+                html[data-theme="dark"] .btn-view {
+                    background: #ffffff;
+                    color: #000000;
+                }
+                html[data-theme="light"] .btn-view {
+                    background: #000000;
+                    color: #ffffff;
                 }
 
                 .btn-edit {
@@ -986,75 +1054,6 @@ export default function CuratorDashboard({ user, role }: Props) {
                     font-weight: 500;
                 }
 
-                    font-weight: 500;
-                }
-
-                .btn-refresh {
-                    background: #334155; /* Match Admin Panel */
-                    color: white;
-                    border: none;
-                    height: 48px;
-                    width: 48px;
-                    border-radius: 8px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    cursor: pointer;
-                    font-size: 1.25rem;
-                    transition: all 0.2s;
-                    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-                }
-                .btn-refresh:hover {
-                    background: #1e293b;
-                    transform: rotate(180deg);
-                }
-
-                .btn-refresh-text {
-                    background: transparent;
-                    border: 1px solid var(--border-subtle);
-                    color: var(--text-primary);
-                    padding: 0.8rem 1.5rem;
-                    border-radius: 8px;
-                    font-weight: 500;
-                    cursor: pointer;
-                    transition: all 0.2s;
-                }
-                .btn-refresh-text:hover {
-                    background: var(--bg-surface-hover);
-                    border-color: var(--text-primary);
-                }
-
-                .btn-logout-prominent {
-                    background: #EF4444;
-                    color: white;
-                    border: none;
-                    padding: 0.8rem 1.5rem;
-                    border-radius: 8px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    transition: all 0.2s;
-                }
-                .btn-logout-prominent:hover {
-                    background: #DC2626;
-                    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
-                }
-
-                .btn-back-logo {
-                    font-family: 'Space Mono', monospace;
-                    font-size: 0.9rem;
-                    text-transform: uppercase;
-                    color: white;
-                    text-decoration: none;
-                    letter-spacing: 0.05em;
-                    transition: opacity 0.2s;
-                    border-bottom: 1px solid transparent;
-                    padding-bottom: 2px;
-                }
-                .btn-back-logo:hover {
-                    opacity: 0.7;
-                    border-bottom-color: white;
-                }
-
                 .quick-nav-buttons {
                     display: grid;
                     grid-template-columns: 1fr 1fr;
@@ -1084,27 +1083,6 @@ export default function CuratorDashboard({ user, role }: Props) {
                     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
                 }
 
-                .btn-submit-new-prominent {
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    width: 100%;
-                    padding: 1.5rem;
-                    background: var(--text-primary);
-                    color: var(--bg-color);
-                    border-radius: 12px;
-                    text-decoration: none;
-                    font-weight: 700;
-                    font-size: 1.1rem;
-                    transition: transform 0.2s, opacity 0.2s;
-                    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-                }
-                .btn-submit-new-prominent:hover {
-                    transform: translateY(-2px);
-                    opacity: 0.95;
-                    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
-                }
-
                 .btn-delete {
                     display: inline-flex;
                     align-items: center;
@@ -1124,45 +1102,6 @@ export default function CuratorDashboard({ user, role }: Props) {
 
                 .btn-delete:hover {
                     opacity: 0.8;
-                }
-
-                .quick-links {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-                    gap: 1rem;
-                }
-
-                .link-card {
-                    display: flex;
-                    align-items: center;
-                    gap: 1rem;
-                    padding: 1.5rem;
-                    background: var(--bg-surface);
-                    border: 1px solid var(--border-subtle);
-                    border-radius: 12px;
-                    text-decoration: none;
-                    transition: all 0.2s;
-                }
-
-                .link-card:hover {
-                    border-color: var(--text-primary);
-                    transform: translateY(-2px);
-                }
-
-                .link-card .icon {
-                    font-size: 2rem;
-                }
-
-                .link-card h3 {
-                    margin: 0 0 0.25rem 0;
-                    font-size: 1rem;
-                    color: var(--text-primary);
-                }
-
-                .link-card p {
-                    margin: 0;
-                    font-size: 0.875rem;
-                    color: var(--text-secondary);
                 }
 
                 .loading {
@@ -1192,6 +1131,10 @@ export default function CuratorDashboard({ user, role }: Props) {
 
                     .filter-tabs button {
                         flex: 1;
+                    }
+                    
+                    .quick-nav-buttons {
+                         grid-template-columns: 1fr;
                     }
                 }
             `}</style>

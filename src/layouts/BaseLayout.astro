@@ -15,7 +15,7 @@ const {
   type,
   hideHeader = false,
   fullWidth = false,
-  showCursor = true, // Default to true for all pages
+  showCursor = false, // Default to false for all pages
   gridVariant = "default",
 } = Astro.props;
 
@@ -25,8 +25,6 @@ import NoiseOverlay from "../components/NoiseOverlay.jsx";
 // Fetch metadata from database if not provided via props
 const pagePath = Astro.url.pathname;
 const dbMetadata = await getPageMetadata(pagePath);
-
-// Props override database values
 const finalTitle = title || dbMetadata?.meta_title || dbMetadata?.page_title;
 const finalDescription = description || dbMetadata?.meta_description;
 const finalImage = image || dbMetadata?.og_image_url;
@@ -88,20 +86,32 @@ const finalType = type || dbMetadata?.og_type || "website";
     <!-- Dynamic SEO & Social Images applied -->
 
     <!-- Theme Initialization to prevent FOUC - ALWAYS DARK MODE -->
+    <!-- Theme Initialization to prevent FOUC -->
     <script is:inline>
-      // Force dark mode site-wide - ignore light mode preferences
-      // Only exception is reader-mode on blog posts (handled separately)
-      const theme = "dark";
+      (function () {
+        // Check for saved theme preference
+        const savedTheme =
+          typeof localStorage !== "undefined"
+            ? localStorage.getItem("theme")
+            : null;
 
-      document.documentElement.setAttribute("data-theme", "dark");
-
-      // Clear any old light mode preferences
-      if (typeof localStorage !== "undefined") {
-        const oldTheme = localStorage.getItem("theme");
-        if (oldTheme === "light") {
-          localStorage.removeItem("theme");
+        // If saved, use it
+        if (savedTheme) {
+          document.documentElement.setAttribute("data-theme", savedTheme);
+        } else {
+          // Check system preference
+          if (
+            window.matchMedia &&
+            window.matchMedia("(prefers-color-scheme: light)").matches
+          ) {
+            document.documentElement.setAttribute("data-theme", "light");
+            localStorage.setItem("theme", "light");
+          } else {
+            document.documentElement.setAttribute("data-theme", "dark");
+            localStorage.setItem("theme", "dark");
+          }
         }
-      }
+      })();
     </script>
   </head>
   <body data-grid-variant={gridVariant}>
@@ -121,7 +131,7 @@ const finalType = type || dbMetadata?.og_type || "website";
     <NewsletterPopup client:only="react" />
 
     <!-- Global Liquid Cursor (Conditional) -->
-    {showCursor && <LiquidCursor client:only="react" />}
+    {/* {showCursor && <LiquidCursor client:only="react" />} */}
 
     <NoiseOverlay client:only="react" opacity={0.05} />
 
@@ -131,12 +141,12 @@ const finalType = type || dbMetadata?.og_type || "website";
 
 <style>
   body {
-    background-color: var(--color-glitch-dark) !important;
+    /* Background handled by global.css theme variables */
   }
 
   .page-content {
     /* Padding handled by .header-padding if header visible */
-    padding-bottom: 22rem;
+    padding-bottom: 6rem;
     position: relative;
     z-index: 1; /* Ensure content is above grid */
   }
@@ -259,7 +269,9 @@ const finalType = type || dbMetadata?.og_type || "website";
     text-align: center;
     opacity: 0;
     visibility: hidden;
-    transition: opacity 0.25s ease, visibility 0.25s ease;
+    transition:
+      opacity 0.25s ease,
+      visibility 0.25s ease;
   }
 
   :global(.global-stability-notice.visible) {

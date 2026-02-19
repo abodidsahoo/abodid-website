@@ -183,7 +183,7 @@ const PortfolioFilter = ({ items }) => {
             position: relative;
             background: var(--bg-secondary);
             transition: transform 0.4s ease, box-shadow 0.4s ease;
-            cursor: none; /* Hide default cursor */
+            /* cursor: none; Removed for default cursor */
         }
 
         .image-wrapper:hover {
@@ -200,35 +200,6 @@ const PortfolioFilter = ({ items }) => {
 
         .photography-card:hover .image-wrapper img {
             transform: scale(1.05);
-        }
-
-        /* GLOBAL Glass Cursor */
-        .glass-cursor {
-            position: fixed;
-            top: 0; 
-            left: 0;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            pointer-events: none;
-            z-index: 9999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transform: scale(0.5);
-        }
-
-        .cursor-dot {
-            width: 6px;
-            height: 6px;
-            background: white;
-            border-radius: 50%;
-            box-shadow: 0 0 4px rgba(0,0,0,0.2);
         }
 
         .content {
@@ -284,13 +255,6 @@ const PortfolioFilter = ({ items }) => {
         @media (max-width: 768px) {
              .photography-grid {
                 gap: 3rem 0;
-             }
-             /* Disable custom cursor on touch devices */
-             .glass-cursor {
-                display: none;
-             }
-             .image-wrapper {
-                cursor: default;
              }
         }
 

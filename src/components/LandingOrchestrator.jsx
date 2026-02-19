@@ -1252,6 +1252,122 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                         left: 12px;
                     }
                 }
+
+                /* LIGHT MODE OVERRIDES - BRIGHT WHITE THEME */
+                [data-theme="light"] .start-btn, 
+                [data-theme="light"] .size-control,
+                [data-theme="light"] .feed-control-panel,
+                [data-theme="light"] .filter-control-panel,
+                [data-theme="light"] .hand-feedback-panel,
+                [data-theme="light"] .refresh-stack-btn {
+                    background: #ffffff !important;
+                    border: 1px solid #000000 !important;
+                    color: #000000 !important;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+                }
+
+                /* Force ALL text inside these controls to be black */
+                [data-theme="light"] .activation-stack * {
+                    color: #000000;
+                }
+
+                [data-theme="light"] .size-control-header,
+                [data-theme="light"] .photo-story-live-header,
+                [data-theme="light"] .size-control-scale span,
+                [data-theme="light"] .sensitivity-note {
+                    color: #000000 !important;
+                    font-weight: 600;
+                    opacity: 1;
+                }
+
+                [data-theme="light"] .size-control-value,
+                [data-theme="light"] .hand-feedback-status {
+                    color: #000000 !important;
+                    font-weight: 700;
+                }
+
+                /* High Contrast Hover States */
+                [data-theme="light"] .start-btn:hover,
+                [data-theme="light"] .refresh-stack-btn:hover {
+                    background: #000000 !important;
+                    border-color: #000000 !important;
+                    color: #ffffff !important;
+                    box-shadow: 0 6px 16px rgba(0,0,0,0.2) !important;
+                }
+                /* IMPORTANT: When button is hovered, ensure children (text) turn white */
+                [data-theme="light"] .start-btn:hover *,
+                [data-theme="light"] .refresh-stack-btn:hover * {
+                    color: #ffffff !important;
+                }
+
+                /* Sliders */
+                [data-theme="light"] .size-slider-segment {
+                    background: rgba(0, 0, 0, 0.2) !important;
+                }
+                [data-theme="light"] .size-slider-knob {
+                    background: #000000 !important;
+                    border: 2px solid #ffffff !important;
+                    color: #ffffff !important;
+                    box-shadow: 0 0 0 1px #000000 !important;
+                }
+                
+                /* EXPLICITLY FORCE SLIDER TEXT WHITE (Override blanket black rule) */
+                [data-theme="light"] .size-slider-knob-label {
+                    color: #ffffff !important;
+                    font-weight: 700;
+                    /* opacity handled by interaction classes */
+                }
+
+                /* Mode Buttons */
+                [data-theme="light"] .mode-btn {
+                    background: #ffffff !important;
+                    border: 1px solid #000000 !important;
+                    color: #000000 !important;
+                }
+                [data-theme="light"] .mode-btn:hover {
+                    background: #000000 !important;
+                    color: #ffffff !important;
+                }
+                [data-theme="light"] .mode-btn.active {
+                    background: #000000 !important;
+                    color: #ffffff !important;
+                    border-color: #000000 !important;
+                    font-weight: 700;
+                }
+
+                /* Category Buttons (Specific Colors - High Contrast) */
+                [data-theme="light"] .category-btn.art.active {
+                    background: #0000ff !important; /* Pure Blue */
+                    color: #ffffff !important;
+                    border-color: #0000ff !important;
+                }
+                [data-theme="light"] .category-btn.commercial.active {
+                    background: #ff6b00 !important; /* Deep Orange */
+                    color: #ffffff !important;
+                    border-color: #ff6b00 !important;
+                }
+
+                /* Left Story Panel */
+                [data-theme="light"]  .left-story-shell {
+                    background: rgba(255, 255, 255, 0.9);
+                    border: 1px solid rgba(0, 0, 0, 0.1);
+                    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+                }
+                [data-theme="light"] .left-story-title-row {
+                    color: #000000;
+                    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+                }
+                [data-theme="light"] .left-story-body-label {
+                    color: rgba(0, 0, 0, 0.6);
+                }
+                [data-theme="light"] .left-story-copy {
+                    color: #333333;
+                }
+
+                /* Scroll Hint */
+                [data-theme="light"] .scroll-hint {
+                    color: #000000;
+                }
             `}</style>
 
 

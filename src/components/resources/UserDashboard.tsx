@@ -75,6 +75,10 @@ export default function UserDashboard({ user: propUser }: UserDashboardProps) {
         }
     };
 
+    const handleRefresh = () => {
+        if (user) fetchData(user.id);
+    };
+
     if (loading) {
         return (
             <div className="curator-dashboard">
@@ -100,7 +104,10 @@ export default function UserDashboard({ user: propUser }: UserDashboardProps) {
                         </a>
                     </div>
                 </div>
-                <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                    <button onClick={handleRefresh} className="btn-refresh-text">
+                        Refresh
+                    </button>
                     <a href="/resources" className="btn-back-logo">
                         Back to Resources
                     </a>
@@ -255,74 +262,101 @@ export default function UserDashboard({ user: propUser }: UserDashboardProps) {
                     margin: 0;
                 }
 
-                .btn-submit-new {
-                    background: var(--text-primary);
-                    color: var(--bg-color);
-                    padding: 0.875rem 1.5rem;
-                    border-radius: 8px;
-                    text-decoration: none;
-                    font-weight: 600;
-                    transition: opacity 0.2s;
-                    white-space: nowrap;
-                }
-
-                .btn-submit-new:hover {
-                    opacity: 0.9;
-                }
-
+                 /* Common Header Button Style */
+                .btn-refresh-text,
+                .btn-back-logo,
                 .btn-logout-prominent {
-                    background: #EF4444;
-                    color: white;
-                    border: none;
-                    padding: 0.8rem 1.5rem;
+                    height: 42px; /* Fixed uniform height */
+                    padding: 0 1.25rem;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
                     border-radius: 8px;
-                    font-weight: 600;
-                    cursor: pointer;
+                    font-family: 'Space Mono', monospace; /* Monospace font */
+                    font-size: 0.85rem;
+                    font-weight: 500;
+                    text-decoration: none;
                     transition: all 0.2s;
                     white-space: nowrap;
+                    border: 1px solid transparent;
+                    box-sizing: border-box;
+                    cursor: pointer;
+                }
+
+                 /* Refresh Button */
+                .btn-refresh-text {
+                    background: transparent;
+                    border-color: var(--border-subtle);
+                    color: var(--text-primary);
+                }
+                .btn-refresh-text:hover {
+                    background: var(--bg-surface-hover);
+                    border-color: var(--text-primary);
+                }
+
+                 /* Back to Resources */
+                /* Light Mode: Black BG, White Text */
+                html[data-theme="light"] .btn-back-logo {
+                    background: #000000;
+                    color: #ffffff;
+                }
+                html[data-theme="light"] .btn-back-logo:hover {
+                     background: #333333;
+                }
+
+                /* Dark Mode: White BG, Black Text */
+                html[data-theme="dark"] .btn-back-logo {
+                    background: #ffffff;
+                    color: #000000;
+                }
+                html[data-theme="dark"] .btn-back-logo:hover {
+                     background: #e5e5e5;
+                }
+
+                /* Sign Out */
+                .btn-logout-prominent {
+                    background: #EF4444; 
+                    color: white;
                 }
                 .btn-logout-prominent:hover {
                     background: #DC2626;
-                    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
                 }
 
-                .btn-back-logo {
-                    font-family: 'Space Mono', monospace;
-                    font-size: 0.9rem;
-                    text-transform: uppercase;
-                    color: white;
-                    text-decoration: none;
-                    letter-spacing: 0.05em;
-                    transition: opacity 0.2s;
-                    border-bottom: 1px solid transparent;
-                    padding-bottom: 2px;
-                }
-                .btn-back-logo:hover {
-                    opacity: 0.7;
-                    border-bottom-color: white;
-                }
-
+                 /* Submit Button - Reduced Size */
                 .btn-submit-new-prominent {
-                    display: flex;
+                    display: inline-flex;
                     align-items: center;
                     justify-content: center;
-                    width: 100%;
-                    max-width: 400px;
-                    padding: 1rem 1.5rem;
+                    padding: 0.75rem 1.5rem; /* Reduced padding */
                     background: var(--text-primary);
-                    color: var(--bg-color);
-                    border-radius: 12px;
+                    color: var(--bg-surface); /* Inverse Text */
+                    border-radius: 8px; /* Slightly smaller radius */
                     text-decoration: none;
-                    font-weight: 700;
-                    font-size: 1.1rem;
+                    font-weight: 600; /* Slightly lighter weight */
+                    font-size: 0.95rem; /* Reduced font size */
                     transition: transform 0.2s, opacity 0.2s;
-                    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+                    font-family: 'Space Mono', monospace; /* Consistent font */
+                    width: auto; /* Allow auto width */
+                    min-width: 200px;
                 }
+
+                /* Force High Contrast for Submit Button */
+                html[data-theme="dark"] .btn-submit-new-prominent {
+                    background: #ffffff;
+                    color: #000000;
+                }
+                html[data-theme="light"] .btn-submit-new-prominent {
+                    background: #000000;
+                    color: #ffffff;
+                }
+
                 .btn-submit-new-prominent:hover {
-                    transform: translateY(-2px);
+                    transform: translateY(-1px);
                     opacity: 0.95;
-                    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+                    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
                 }
+
 
                 .stats-grid {
                     display: grid;
@@ -395,8 +429,18 @@ export default function UserDashboard({ user: propUser }: UserDashboardProps) {
 
                 .filter-tabs button.active {
                     background: var(--text-primary);
-                    color: var(--bg-color);
+                    color: var(--bg-surface); /* Inverse */
                     border-color: var(--text-primary);
+                }
+                
+                /* Filter Tabs Active Text Fix */
+                html[data-theme="dark"] .filter-tabs button.active {
+                    color: #000000;
+                    background: #ffffff;
+                }
+                html[data-theme="light"] .filter-tabs button.active {
+                    color: #ffffff;
+                    background: #000000;
                 }
 
                 .submissions-list {
@@ -473,9 +517,18 @@ export default function UserDashboard({ user: propUser }: UserDashboardProps) {
                     cursor: pointer;
                 }
 
+                /* View Button - Force Contrast */
                 .btn-view {
                     background: var(--text-primary);
-                    color: var(--bg-color);
+                    color: var(--bg-surface);
+                }
+                html[data-theme="dark"] .btn-view {
+                    background: #ffffff;
+                    color: #000000;
+                }
+                html[data-theme="light"] .btn-view {
+                    background: #000000;
+                    color: #ffffff;
                 }
 
                 .btn-edit {
@@ -530,4 +583,5 @@ export default function UserDashboard({ user: propUser }: UserDashboardProps) {
             `}</style>
         </div >
     );
+
 }

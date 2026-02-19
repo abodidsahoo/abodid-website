@@ -35,8 +35,8 @@ const FundraisingCard = ({
 
       <style jsx>{`
         .fundraising-card {
-          background: rgba(255, 255, 255, 0.03);
-          border: 1px solid rgba(255, 255, 255, 0.08); /* border-subtle */
+          background: var(--bg-surface);
+          border: 1px solid var(--border-subtle);
           border-radius: 12px;
           overflow: hidden;
           display: flex;
@@ -48,8 +48,8 @@ const FundraisingCard = ({
 
         .fundraising-card:hover {
           transform: translateY(-4px);
-          box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-          border-color: rgba(255, 255, 255, 0.2);
+          box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+          border-color: var(--border-strong);
         }
 
         .image-container {
@@ -81,7 +81,7 @@ const FundraisingCard = ({
           font-size: 1.25rem;
           font-weight: 600;
           margin: 0 0 0.5rem 0;
-          color: #fff; /* text-primary */
+          color: var(--text-primary);
           line-height: 1.3;
         }
 
@@ -91,12 +91,12 @@ const FundraisingCard = ({
         }
 
         .title-link:hover h3 {
-          color: #4ade80; /* lab-accent or similar green */
+          color: var(--color-brand-red, #ea2a10);
         }
 
         .description {
           font-size: 0.95rem;
-          color: #a3a3a3; /* text-secondary */
+          color: var(--text-secondary);
           line-height: 1.6;
           margin-bottom: 1.5rem;
           flex-grow: 1;
@@ -112,8 +112,8 @@ const FundraisingCard = ({
           padding: 0.8rem;
           text-align: center;
           background: transparent;
-          border: 1px solid rgba(255,255,255,0.2);
-          color: #fff;
+          border: 1px solid var(--border-strong);
+          color: var(--text-primary);
           font-family: 'Space Mono', monospace;
           font-weight: 700;
           font-size: 0.9rem;
@@ -124,9 +124,9 @@ const FundraisingCard = ({
         }
 
         .btn-back:hover {
-          background: #fff;
-          color: #000;
-          border-color: #fff;
+          background: var(--text-primary);
+          color: var(--bg-canvas);
+          border-color: var(--text-primary);
         }
       `}</style>
     </div>

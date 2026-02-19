@@ -93,15 +93,24 @@ export default function BrandFilmStrip() {
                     position: relative;
                     padding: 4rem 0; 
                     
-                    /* SOLID BLACK background */
-                    background: #000;
+                    /* Theme Aware Background */
+                    background: var(--bg-canvas);
                     
-                    /* Edge Fade Mask: Fades left and right edges to black/transparent */
-                    /* Since background is black, fading to transparent works if parent is black. Parent IS black. */
+                    /* Edge Fade Mask */
                     mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
                     -webkit-mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
                     
                     pointer-events: auto; 
+                }
+
+                /* Light Mode Logo Inversion */
+                [data-theme="light"] .brand-filmstrip {
+                    background: #ffffff !important;
+                }
+
+                [data-theme="light"] .filmstrip-item img {
+                    filter: invert(1) !important;
+                    opacity: 0.85 !important; 
                 }
 
                 .filmstrip-track {

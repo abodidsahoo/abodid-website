@@ -444,15 +444,15 @@ export default function ResourceFeed({ initialResources, availableTags, showSear
                 gap: 10px;
                 padding: 16px 32px;
                 border-radius: 12px;
-                background: var(--text-primary);
-                color: #000000;
+                background: var(--btn-primary-bg);
+                color: var(--btn-primary-text);
                 font-size: 1.05rem;
                 font-weight: 600;
                 text-decoration: none;
                 white-space: nowrap;
                 box-shadow: 0 4px 12px rgba(0,0,0,0.1);
                 transition: all 0.2s ease;
-                border: 1px solid var(--text-primary);
+                border: 1px solid var(--btn-primary-bg);
             }
 
             .submit-to-hub-btn:hover {

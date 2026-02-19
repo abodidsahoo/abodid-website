@@ -189,6 +189,9 @@ const odishaUrl = "https://vimeo.com/265220711";
         />
     </section>
 
+    <!-- MAJOR SPACER to separate sections completely -->
+    <div class="major-section-separator"></div>
+
     <!-- Blog Section -->
     <section class="section">
         <div class="section-header">
@@ -405,7 +408,7 @@ const odishaUrl = "https://vimeo.com/265220711";
         font-size: 3.5rem;
         font-weight: 700; /* Ensure Bold */
         line-height: 1.1;
-        color: #fff;
+        color: var(--text-primary); /* Theme Aware */
     }
 
     .bio-content p {
@@ -413,7 +416,7 @@ const odishaUrl = "https://vimeo.com/265220711";
         font-weight: 300; /* Increased from 400 */
         line-height: 1.2;
         max-width: 900px;
-        color: rgba(255, 255, 255, 0.95); /* Brighter/Bolder */
+        color: var(--text-secondary); /* Theme Aware */
     }
 
     /* ... type writer styles ... */
@@ -429,6 +432,19 @@ const odishaUrl = "https://vimeo.com/265220711";
     /* Spacer at bottom */
     .bottom-spacer {
         height: 25vh; /* Increased from 15vh for more gap before Showreel */
+    }
+
+    .major-section-separator {
+        height: 20vh;
+        min-height: 140px;
+        width: 100%;
+    }
+
+    @media (max-width: 768px) {
+        .major-section-separator {
+            height: 10vh;
+            min-height: 80px;
+        }
     }
 
     /* Typewriter Cursor */

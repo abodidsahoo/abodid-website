@@ -94,26 +94,25 @@ const contentHtml = marked.parse(project.content || "");
   .project-content {
     display: flex;
     flex-direction: column;
-    gap: var(
-      --space-2xl
-    ); /* Increased from lg to 2xl for more breathing room */
+    gap: var(--space-3xl);
   }
 
   .project-image {
     margin: 0;
-    /* Frame Styling */
-    background-color: #ffffff;
-    padding: 2.5rem; /* The white frame width */
-    /* Add a subtle shadow for the frame lift */
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+    width: 100%;
+    /* Frame Styling - Explicit Theme Support */
+    background-color: var(--text-primary);
+    padding: 4.5rem; /* Wider frame as requested */
+    box-sizing: border-box; /* Critical for frame */
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    display: block; /* Ensure block level */
   }
 
   .project-image img {
+    display: block;
     width: 100%;
     height: auto;
-    display: block;
-    /* Remove border radius from image as frame handles it (or keep rigid) */
-    /* box-shadow removed here as parent has it */
+    /* Ensure image fills the content box inside the padding */
   }
 
   .story-footer {
@@ -166,13 +165,12 @@ const contentHtml = marked.parse(project.content || "");
     }
 
     .project-content {
-      gap: 2rem; /* Increased spacing between photos as requested */
-      padding: 0; /* No extra padding - container handles it */
+      gap: var(--space-2xl);
     }
 
     .project-image {
-      padding: 0.6rem; /* Significantly reduced from 2.5rem (~10px) */
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); /* Softer shadow for mobile */
+      padding: 1rem; /* Visible but smaller frame on mobile */
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     }
 
     .project-header {

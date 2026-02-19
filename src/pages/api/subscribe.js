@@ -132,25 +132,33 @@ export const POST = async ({ request }) => {
                     to: email,
                     subject: 'Welcome back to the circle.',
                     html: `
-                    <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 40px; color: #333; max-width: 600px; margin: 0 auto; background-color: #f9f9f9; border-radius: 8px;">
-                        <h1 style="color: #a30021; margin-bottom: 24px; font-size: 24px;">Welcome back.</h1>
-                        <p style="font-size: 16px; line-height: 1.6; margin-bottom: 24px;">Thank you for ensuring your details are up to date! You will continue to receive a weekly curated list of useful and interesting readings and resources I come across.</p>
-                        
-                        <div style="margin-top: 32px; margin-bottom: 32px; text-align: left;">
-                            <a href="https://abodid.com/resources" style="background-color: #111111; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 16px; display: inline-block;">Explore Resources Hub</a>
-                        </div>
-                        
-                        <hr style="border: 0; border-top: 1px solid #eee; margin: 32px 0;">
+                <div style="font-family: Inter, 'Google Sans', 'Helvetica Neue', Arial, sans-serif; max-width: 660px; margin: 0 auto; color: #1f1f1f; background: #f7f7f7; padding: 24px;">
+                    <div style="background: linear-gradient(100deg, #dff3ff, #efe7ff, #ffeecf); border-radius: 14px; border: 1px solid #e5e1d7; padding: 20px 22px;">
+                        <p style="margin: 0 0 8px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #555;">Newsletter Update</p>
+                        <h1 style="margin: 0; font-size: 24px; line-height: 1.25; color: #202124;">Welcome back to the circle.</h1>
+                        <p style="margin: 12px 0 0; font-size: 14px; line-height: 1.6; color: #3c4043;">
+                            Thank you for ensuring your details are up to date! You will continue to receive a weekly curated list of useful and interesting readings and resources I come across.
+                        </p>
+                    </div>
 
-                        <p style="font-size: 15px; line-height: 1.6; color: #555;">
+                    <div style="background: #ffffff; border: 1px solid #e5e1d7; border-radius: 14px; padding: 18px 20px; margin-top: 14px;">
+                        <div style="margin-bottom: 20px;">
+                            <a href="https://abodid.com/resources" style="display: inline-block; background: #111111; color: #ffffff; border: 1px solid #000000; border-radius: 10px; padding: 10px 18px; font-size: 13px; text-decoration: none; font-weight: 600;">
+                                Explore Resources Hub
+                            </a>
+                        </div>
+                        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+                        <p style="margin: 0 0 6px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: #5f6368;">Share a Resource</p>
+                        <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #3c4043;">
                             <strong>Have an amazing resource in mind?</strong><br>
                             If you have a podcast, movie, website link, or YouTube channel that has been life-changing for you, I'd love for you to share it.
                         </p>
-                        <p style="font-size: 15px; margin-top: 12px;">
-                            <a href="https://abodid.com/login" style="color: #a30021; text-decoration: underline;">Log in as a curator</a> and add your favorite resource.
+                        <p style="margin: 12px 0 0; font-size: 14px;">
+                            <a href="https://abodid.com/login" style="color: #a30021; text-decoration: underline;">Log in as a curator</a> to add your favorite resource.
                         </p>
                     </div>
-                    `
+                </div>
+                `
                 });
             } catch (emailError) {
                 console.error("Failed to send welcome email (update):", emailError);
@@ -202,24 +210,31 @@ export const POST = async ({ request }) => {
             to: email,
             subject: 'Welcome to the tribe.',
             html: `
-            <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 40px; color: #333; max-width: 600px; margin: 0 auto; background-color: #f9f9f9; border-radius: 8px;">
-                <h1 style="color: #a30021; margin-bottom: 24px; font-size: 24px;">Welcome to the tribe.</h1>
-                <p style="font-size: 16px; line-height: 1.6; margin-bottom: 24px;">Thank you for subscribing! You are now part of a circle that values curated knowledge and creative inspiration.</p>
-                <p style="font-size: 16px; line-height: 1.6; margin-bottom: 24px;">Keep an eye on your inbox for the next email with a curated list of resources.</p>
-                
-                <div style="margin-top: 32px; margin-bottom: 32px; text-align: left;">
-                    <a href="https://abodid.com/resources" style="background-color: #111111; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 16px; display: inline-block;">Explore Resources Hub</a>
+            <div style="font-family: Inter, 'Google Sans', 'Helvetica Neue', Arial, sans-serif; max-width: 660px; margin: 0 auto; color: #1f1f1f; background: #f7f7f7; padding: 24px;">
+                <div style="background: linear-gradient(100deg, #dff3ff, #efe7ff, #ffeecf); border-radius: 14px; border: 1px solid #e5e1d7; padding: 20px 22px;">
+                    <h1 style="margin: 0; font-size: 24px; line-height: 1.25; color: #202124;">Welcome to the tribe.</h1>
+                    <p style="margin: 12px 0 0; font-size: 14px; line-height: 1.6; color: #3c4043;">
+                        Thank you for subscribing! You are now part of a circle that values curated knowledge and creative inspiration.
+                        Keep an eye on your inbox for the next email with a curated list of resources.
+                    </p>
                 </div>
 
-                <hr style="border: 0; border-top: 1px solid #eee; margin: 32px 0;">
-
-                <p style="font-size: 15px; line-height: 1.6; color: #555;">
-                    <strong>Have an amazing resource in mind?</strong><br>
-                    If you have a podcast, movie, website link, or YouTube channel that has been life-changing for you, I'd love for you to share it.
-                </p>
-                <p style="font-size: 15px; margin-top: 12px;">
-                    <a href="https://abodid.com/login" style="color: #a30021; text-decoration: underline;">Log in as a curator</a> and add your favorite resource.
-                </p>
+                <div style="background: #ffffff; border: 1px solid #e5e1d7; border-radius: 14px; padding: 18px 20px; margin-top: 14px;">
+                    <div style="margin-bottom: 20px;">
+                        <a href="https://abodid.com/resources" style="display: inline-block; background: #111111; color: #ffffff; border: 1px solid #000000; border-radius: 10px; padding: 10px 18px; font-size: 13px; text-decoration: none; font-weight: 600;">
+                            Explore Resources Hub
+                        </a>
+                    </div>
+                    <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+                    <p style="margin: 0 0 6px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: #5f6368;">Share a Resource</p>
+                    <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #3c4043;">
+                        <strong>Have an amazing resource in mind?</strong><br>
+                        If you have a podcast, movie, website link, or YouTube channel that has been life-changing for you, I'd love for you to share it.
+                    </p>
+                    <p style="margin: 12px 0 0; font-size: 14px;">
+                        <a href="https://abodid.com/login" style="color: #a30021; text-decoration: underline;">Log in as a curator</a> to add your favorite resource.
+                    </p>
+                </div>
             </div>
             `
         });

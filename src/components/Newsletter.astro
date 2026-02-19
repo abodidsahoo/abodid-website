@@ -175,4 +175,27 @@
     .message.error {
         color: #e74c3c;
     }
+
+    /* LIGHT MODE OVERRIDES */
+    :global([data-theme="light"]) .newsletter-form {
+        border-color: rgba(0, 0, 0, 0.2);
+        background: rgba(255, 255, 255, 0.5);
+    }
+    :global([data-theme="light"]) .newsletter-form:focus-within {
+        border-color: #000;
+        background: rgba(0, 0, 0, 0.05);
+    }
+    :global([data-theme="light"]) input {
+        color: #000;
+        font-weight: 500;
+    }
+    :global([data-theme="light"]) input::placeholder {
+        color: rgba(0, 0, 0, 0.5);
+    }
+    :global([data-theme="light"]) button {
+        color: #000;
+    }
+    :global([data-theme="light"]) .message {
+        color: #000;
+    }
 </style>

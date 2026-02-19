@@ -6,34 +6,21 @@ const title = "Login | Resource Hub";
 ---
 
 <BaseLayout title={title}>
-    <div
-        class="hub-container"
-        style="max-width: 500px; padding-top: 80px; margin: 0 auto;"
-    >
-        <div
-            class="hub-form"
-            style="text-align: center; font-family: 'Poppins', sans-serif;"
-        >
-            <h1 class="hub-title" style="margin-bottom: 8px;" id="page-title">
-                Curator Login
-            </h1>
-            <p
-                style="color: var(--text-secondary); margin-bottom: 32px; font-size: 14px;"
-                id="page-subtitle"
-            >
+    <div class="login-container">
+        <div class="login-card">
+            <h1 class="hub-title" id="page-title">Curator Login</h1>
+            <p class="hub-subtitle" id="page-subtitle">
                 Log in to continue your curation journey.
             </p>
 
-            <form id="auth-form" method="POST" style="text-align: left;">
+            <form id="auth-form" method="POST">
                 {/* Full Name - Hidden by default (Login Mode) */}
                 <div
                     class="hub-form-group"
                     id="name-group"
-                    style="display: none; margin-bottom: 24px;"
+                    style="display: none;"
                 >
-                    <label class="hub-label" style="margin-bottom: 4px;"
-                        >Full Name</label
-                    >
+                    <label class="hub-label">Full Name</label>
                     <input
                         type="text"
                         id="fullname"
@@ -42,10 +29,8 @@ const title = "Login | Resource Hub";
                     />
                 </div>
 
-                <div class="hub-form-group" style="margin-bottom: 24px;">
-                    <label class="hub-label" style="margin-bottom: 4px;"
-                        >Email Address</label
-                    >
+                <div class="hub-form-group">
+                    <label class="hub-label">Email Address</label>
                     <input
                         type="email"
                         id="email"
@@ -55,10 +40,8 @@ const title = "Login | Resource Hub";
                     />
                 </div>
 
-                <div class="hub-form-group" style="margin-bottom: 24px;">
-                    <label class="hub-label" style="margin-bottom: 4px;"
-                        >Password</label
-                    >
+                <div class="hub-form-group">
+                    <label class="hub-label">Password</label>
                     <input
                         type="password"
                         id="password"
@@ -69,44 +52,164 @@ const title = "Login | Resource Hub";
                     />
                 </div>
 
-                <button
-                    type="submit"
-                    class="hub-btn"
-                    id="submit-btn"
-                    style="width: 100%; margin-top: 16px;"
-                >
+                <button type="submit" class="hub-btn" id="submit-btn">
                     Log In
                 </button>
             </form>
 
-            <div
-                id="message"
-                style="margin-top: 24px; text-align: center; display: none; padding: 12px; border-radius: 8px; font-weight: 500; font-size: 14px;"
-            >
-            </div>
+            <div id="message" class="auth-message" style="display: none;"></div>
 
-            <div
-                style="margin-top: 32px; pt-4; border-top: 1px solid var(--border-subtle);"
-            >
-                <p style="font-size: 14px; color: var(--text-secondary);">
+            <div class="toggle-mode-wrapper">
+                <p class="toggle-text">
                     <span id="switch-text">Don't have an account?</span>
-                    <button
-                        id="mode-toggle"
-                        style="background: none; border: none; color: var(--text-primary); font-weight: 600; cursor: pointer; text-decoration: underline; margin-left: 4px;"
-                    >
-                        Sign Up
-                    </button>
+                    <button id="mode-toggle" class="toggle-btn">Sign Up</button>
                 </p>
             </div>
         </div>
     </div>
 </BaseLayout>
 
+<style>
+    .login-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 80vh;
+        padding: 24px;
+    }
+
+    .login-card {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-subtle);
+        border-radius: 24px;
+        padding: 64px;
+        width: 100%;
+        max-width: 580px;
+        text-align: center;
+        box-shadow: 0 4px 40px rgba(0, 0, 0, 0.08);
+    }
+
+    .hub-title {
+        font-family: var(--font-sans);
+        font-size: 3.5rem; /* Very Large Font */
+        font-weight: 800;
+        color: var(--text-primary);
+        margin-bottom: 16px;
+        letter-spacing: -0.04em;
+        line-height: 1.1;
+    }
+
+    .hub-subtitle {
+        font-family: var(--font-sans);
+        font-size: 1.1rem;
+        color: var(--text-secondary);
+        margin-bottom: 48px;
+        line-height: 1.6;
+    }
+
+    .hub-form-group {
+        margin-bottom: 24px;
+        text-align: left;
+    }
+
+    .hub-label {
+        display: block;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .hub-input {
+        width: 100%;
+        padding: 16px;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-subtle);
+        border-radius: 12px;
+        font-size: 1.1rem;
+        color: var(--text-primary);
+        transition: all 0.2s ease;
+    }
+
+    .hub-input:focus {
+        outline: none;
+        border-color: var(--text-primary);
+        box-shadow: 0 0 0 4px var(--bg-surface-hover);
+    }
+
+    .hub-btn {
+        width: 100%;
+        padding: 18px;
+        background: var(--text-primary);
+        color: var(--bg-surface);
+        font-size: 1.1rem;
+        font-weight: 600;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        margin-top: 16px;
+        transition: opacity 0.2s ease;
+    }
+
+    html[data-theme="light"] .hub-btn {
+        background-color: #000000;
+        color: #ffffff;
+    }
+    html[data-theme="dark"] .hub-btn {
+        background: #ffffff;
+        color: #000000;
+    }
+
+    .hub-btn:hover {
+        opacity: 0.9;
+    }
+
+    .auth-message {
+        margin-top: 24px;
+        padding: 16px;
+        border-radius: 12px;
+        font-weight: 500;
+        font-size: 0.95rem;
+    }
+
+    .toggle-mode-wrapper {
+        margin-top: 40px;
+        padding-top: 24px;
+        border-top: 1px solid var(--border-subtle);
+    }
+
+    .toggle-text {
+        font-size: 1rem;
+        color: var(--text-secondary);
+    }
+
+    .toggle-btn {
+        background: none;
+        border: none;
+        color: var(--text-primary);
+        font-weight: 700;
+        cursor: pointer;
+        text-decoration: underline;
+        margin-left: 8px;
+        font-size: inherit;
+    }
+
+    @media (max-width: 600px) {
+        .login-card {
+            padding: 40px 24px;
+        }
+        .hub-title {
+            font-size: 2.5rem;
+        }
+    }
+</style>
+
 <script>
     import { supabase } from "../lib/supabaseClient";
 
     // --- STATE ---
-    let captchaToken = ""; // Removed but needed for logic below? No, removing all logic.
     let isSignup = false;
     let isLinking = false;
 
@@ -155,7 +258,7 @@ const title = "Login | Resource Hub";
             fullNameInput?.setAttribute("required", "true");
         } else {
             nameGroup!.style.display = "none";
-            pageTitle!.innerText = "Welcome Back";
+            pageTitle!.innerText = "Curator Login";
             pageSubtitle!.innerText =
                 "Log in to continue your curation journey.";
             submitBtn!.innerText = "Log In";
@@ -266,8 +369,6 @@ const title = "Login | Resource Hub";
             } else {
                 showMsg(error.message, "error");
             }
-            submitBtn.disabled = false;
-            submitBtn.innerText = isSignup ? "Create Account" : "Log In";
             submitBtn.disabled = false;
             submitBtn.innerText = isSignup ? "Create Account" : "Log In";
         }

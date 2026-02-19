@@ -142,149 +142,251 @@ export default function SubmissionForm() {
 
     if (success) {
         return (
-            <div className="hub-form text-center p-8">
-                <div style={{ fontSize: '48px', marginBottom: '16px' }}>🎉</div>
-                <h3 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '8px' }}>
-                    {autoApproved ? 'Published!' : 'Submitted!'}
-                </h3>
-                <p className="text-secondary mb-6">
-                    {autoApproved
-                        ? 'Your resource is now live on the hub!'
-                        : 'Your resource is now pending review.'}
-                </p>
-                <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                    <button
-                        onClick={() => window.location.href = '/resources'}
-                        className="hub-btn"
-                    >
-                        View on Hub
-                    </button>
-                    <button
-                        onClick={() => setSuccess(false)}
-                        className="hub-btn"
-                        style={{ background: 'transparent', border: '1px solid var(--border-subtle)', color: 'var(--text-primary)' }}
-                    >
-                        Submit Another
-                    </button>
+            <div className="submission-card-container">
+                <div className="submission-card" style={{ maxWidth: '500px', margin: '0 auto', padding: '48px 32px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '48px', marginBottom: '24px' }}>🎉</div>
+                    <h3 style={{ fontFamily: 'var(--font-sans)', fontSize: '2rem', fontWeight: '700', marginBottom: '16px', color: 'var(--text-primary)' }}>
+                        {autoApproved ? 'Published!' : 'Submitted!'}
+                    </h3>
+                    <p style={{ fontFamily: 'var(--font-sans)', fontSize: '1.1rem', color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '32px' }}>
+                        {autoApproved
+                            ? 'Your resource is now live on the hub!'
+                            : 'Your submitted resource will be personally reviewed by Abodid and hopefully be live on the hub soon.'}
+                    </p>
+                    <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                        <button
+                            onClick={() => window.location.href = '/resources'}
+                            className="hub-btn"
+                        >
+                            View on Hub
+                        </button>
+                        <button
+                            onClick={() => setSuccess(false)}
+                            className="hub-btn"
+                            style={{ background: 'transparent', border: '1px solid var(--border-subtle)', color: 'var(--text-primary)' }}
+                        >
+                            Submit Another
+                        </button>
+                    </div>
                 </div>
+                <style>{`
+                    .submission-card {
+                        background: var(--bg-surface);
+                        border-radius: 12px;
+                        border: 1px solid var(--border-subtle);
+                        overflow: hidden;
+                        box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+                    }
+                `}</style>
             </div>
         );
     }
 
     return (
-        <form onSubmit={handleSubmit} className="hub-form">
+        <form onSubmit={handleSubmit} className="submission-card-container">
             {error && (
-                <div style={{ padding: '12px', background: '#fee2e2', color: '#b91c1c', borderRadius: '8px', marginBottom: '16px' }}>
+                <div style={{ padding: '12px', background: '#fee2e2', color: '#b91c1c', borderRadius: '8px', marginBottom: '16px', maxWidth: '800px', margin: '0 auto 24px' }}>
                     {error}
                 </div>
             )}
 
-            {/* Hero Copy inside form */}
-            <div style={{ marginBottom: '24px', textAlign: 'center' }}>
-                <h2 style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '4px' }}>Submit a Gem</h2>
-                <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>One resource you'd pass to your best friend.</p>
-            </div>
+            <div className="submission-card">
+                {/* Header Section with Pastel Background */}
+                <div className="form-header">
+                    <h2 style={{ fontFamily: 'var(--font-sans)', fontSize: '2rem', fontWeight: '700', marginBottom: '12px', letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
+                        Submit a resource
+                    </h2>
+                    <p style={{ fontFamily: 'var(--font-sans)', fontSize: '1rem', color: 'var(--text-secondary)', lineHeight: '1.5', maxWidth: '500px', margin: '0 auto' }}>
+                        Found something cool? Share it with the community! All submissions are reviewed before publishing.
+                    </p>
+                </div>
 
-            <div className="hub-form-group">
-                <label className="hub-label">URL *</label>
-                <div style={{ position: 'relative' }}>
-                    <input
-                        type="url"
-                        required
-                        className="hub-input"
-                        value={formData.url}
-                        onChange={handleUrlPaste}
-                        onBlur={handleUrlPaste}
-                        placeholder="Paste verified link..."
-                    />
-                    {fetchingMeta && (
-                        <div style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', fontSize: '12px', color: 'var(--text-tertiary)' }}>
-                            ✨ Fetching info...
+                {/* Form Content */}
+                <div className="form-body">
+                    {/* URL Route */}
+                    <div className="form-row">
+                        <div className="hub-form-group">
+                            <label className="hub-label">URL *</label>
+                            <div style={{ position: 'relative' }}>
+                                <input
+                                    type="url"
+                                    required
+                                    className="hub-input"
+                                    value={formData.url}
+                                    onChange={handleUrlPaste}
+                                    onBlur={handleUrlPaste}
+                                    placeholder="Paste verified link..."
+                                />
+                                {fetchingMeta && (
+                                    <div style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', fontSize: '14px' }}>✨</div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Compact Row: Title & Audience */}
+                    <div className="form-row-split">
+                        <div className="hub-form-group">
+                            <label className="hub-label">Title *</label>
+                            <input
+                                type="text"
+                                required
+                                className="hub-input"
+                                value={formData.title}
+                                onChange={e => setFormData({ ...formData, title: e.target.value })}
+                            />
+                        </div>
+
+                        <div className="hub-form-group">
+                            <label className="hub-label">Audience *</label>
+                            <select
+                                className="hub-select"
+                                value={formData.audience}
+                                onChange={e => setFormData({ ...formData, audience: e.target.value as ResourceAudience })}
+                            >
+                                <option value="General Audience">General Audience</option>
+                                <option value="Designer">Designer</option>
+                                <option value="Artist">Artist</option>
+                                <option value="Filmmaker">Filmmaker</option>
+                                <option value="Creative Technologist">Creative Technologist</option>
+                                <option value="Researcher">Researcher</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Description Route */}
+                    <div className="form-row">
+                        <div className="hub-form-group">
+                            <label className="hub-label">Description</label>
+                            <textarea
+                                className="hub-textarea"
+                                value={formData.description}
+                                onChange={e => setFormData({ ...formData, description: e.target.value })}
+                                placeholder="Why is it useful?"
+                                style={{ minHeight: '100px' }}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Compact Row: Tags & Thumbnail */}
+                    <div className="form-row-split">
+                        <div className="hub-form-group">
+                            <label className="hub-label">Tags (Max 3)</label>
+                            <TagInput
+                                selectedTags={formData.selectedTags}
+                                onChange={(newTags) => setFormData(prev => ({ ...prev, selectedTags: newTags }))}
+                                maxTags={3}
+                            />
+                        </div>
+
+                        <div className="hub-form-group">
+                            <label className="hub-label">Thumbnail URL (Optional)</label>
+                            <input
+                                type="url"
+                                className="hub-input"
+                                value={formData.thumbnail_url}
+                                onChange={e => setFormData({ ...formData, thumbnail_url: e.target.value })}
+                                placeholder="https://..."
+                            />
+                        </div>
+                    </div>
+
+                    {/* Preview */}
+                    {formData.thumbnail_url && (
+                        <div className="form-row" style={{ marginTop: '16px' }}>
+                            <label className="hub-label">Preview</label>
+                            <img src={formData.thumbnail_url} alt="Preview" style={{ width: '100%', height: '180px', objectFit: 'cover', borderRadius: '8px', border: '1px solid var(--border-subtle)' }} />
                         </div>
                     )}
+
+                    {/* Submit Button */}
+                    <div style={{ marginTop: '32px' }}>
+                        <button type="submit" className="hub-btn" disabled={loading}>
+                            {loading ? 'Submitting...' : 'Submit Resource'}
+                        </button>
+                    </div>
+
+                    {/* Honeypot */}
+                    <div style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', height: 0, width: 0, overflow: 'hidden' }}>
+                        <input type="text" tabIndex={-1} autoComplete="off" value={formData.honeypot} onChange={e => setFormData({ ...formData, honeypot: e.target.value })} />
+                    </div>
                 </div>
             </div>
 
-            <div className="hub-form-group">
-                <label className="hub-label">Title *</label>
-                <input
-                    type="text"
-                    required
-                    className="hub-input"
-                    value={formData.title}
-                    onChange={e => setFormData({ ...formData, title: e.target.value })}
-                />
-            </div>
+            <style>{`
+                .submission-card {
+                    background: var(--bg-surface);
+                    border-radius: 12px;
+                    border: 1px solid var(--border-subtle);
+                    overflow: hidden;
+                    max-width: 800px;
+                    margin: 0 auto;
+                    box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+                }
 
-            <div className="hub-form-group">
-                <label className="hub-label">Description</label>
-                <textarea
-                    className="hub-textarea"
-                    value={formData.description}
-                    onChange={e => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="Why is it useful?"
-                />
-            </div>
+                .form-header {
+                    padding: 40px 24px;
+                    text-align: center;
+                    border-bottom: 1px solid var(--border-subtle);
+                    background: var(--bg-surface-hover); /* Default fallback */
+                }
 
-            <div className="hub-form-group">
-                <label className="hub-label">Audience *</label>
-                <select
-                    className="hub-select"
-                    value={formData.audience}
-                    onChange={e => setFormData({ ...formData, audience: e.target.value as ResourceAudience })}
-                >
-                    <option value="General Audience">General Audience</option>
-                    <option value="Designer">Designer</option>
-                    <option value="Artist">Artist</option>
-                    <option value="Filmmaker">Filmmaker</option>
-                    <option value="Creative Technologist">Creative Technologist</option>
-                    <option value="Researcher">Researcher</option>
-                    <option value="Other">Other</option>
-                </select>
-            </div>
+                /* Layout Grids */
+                .form-body {
+                    padding: 40px;
+                }
 
-            {formData.thumbnail_url && (
-                <div style={{ marginBottom: '16px' }}>
-                    <label className="hub-label">Preview</label>
-                    <img src={formData.thumbnail_url} alt="Preview" style={{ width: '100%', height: '160px', objectFit: 'cover', borderRadius: '8px' }} />
-                </div>
-            )}
+                .form-row {
+                    margin-bottom: 24px;
+                }
 
-            <div className="hub-form-group">
-                <label className="hub-label">Thumbnail URL (Optional)</label>
-                <input
-                    type="url"
-                    className="hub-input"
-                    value={formData.thumbnail_url}
-                    onChange={e => setFormData({ ...formData, thumbnail_url: e.target.value })}
-                    placeholder="https://.../image.jpg"
-                />
-            </div>
+                .form-row-split {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 24px;
+                    margin-bottom: 24px;
+                }
 
-            <div className="hub-form-group">
-                <label className="hub-label">Tags (Max 3)</label>
-                <TagInput
-                    selectedTags={formData.selectedTags}
-                    onChange={(newTags) => setFormData(prev => ({ ...prev, selectedTags: newTags }))}
-                    maxTags={3}
-                />
-            </div>
+                .hub-form-group {
+                    margin-bottom: 0 !important; /* Reset component style if global interferes */
+                }
 
-            <button type="submit" className="hub-btn" disabled={loading}>
-                {loading ? 'Submitting...' : 'Submit Resource'}
-            </button>
+                .hub-label {
+                    margin-bottom: 8px !important;
+                    display: block;
+                    font-size: 0.9rem;
+                    font-weight: 500;
+                    color: var(--text-secondary);
+                }
 
-            {/* Honeypot Field */}
-            <div style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', height: 0, width: 0, overflow: 'hidden' }}>
-                <label>Website</label>
-                <input
-                    type="text"
-                    tabIndex={-1}
-                    autoComplete="off"
-                    value={formData.honeypot}
-                    onChange={e => setFormData({ ...formData, honeypot: e.target.value })}
-                />
-            </div>
+                .hub-input, .hub-select {
+                    padding: 12px;
+                }
+
+                /* Pastel Headers */
+                /* Light Mode: Subtle Warm/Cool tint */
+                html[data-theme="light"] .form-header {
+                    background: #fbfbfd;
+                    border-bottom: 1px solid #eaeaea;
+                }
+                
+                /* Dark Mode: Slightly lighter than black */
+                html[data-theme="dark"] .form-header {
+                    background: #0a0a0a;
+                    border-bottom: 1px solid #222;
+                }
+
+                @media (max-width: 768px) {
+                    .form-body {
+                        padding: 24px;
+                    }
+                    .form-row-split {
+                        grid-template-columns: 1fr;
+                        gap: 24px;
+                    }
+                }
+            `}</style>
         </form>
     );
 }

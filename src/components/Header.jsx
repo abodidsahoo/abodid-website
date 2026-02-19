@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Breadcrumbs from './Breadcrumbs';
+import ThemeToggle from './ThemeToggle';
 
 const Header = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -62,9 +63,7 @@ const Header = () => {
 
                     {/* RIGHT: Menu Toggle & Breadcrumbs */}
                     <div className="nav-right">
-                        <div className="desktop-breadcrumbs">
-                            <Breadcrumbs />
-                        </div>
+                        <ThemeToggle />
                         <button onClick={toggleMenu} className="menu-btn">
                             <span>{isOpen ? 'CLOSE' : 'MENU'}</span>
                         </button>
@@ -184,62 +183,78 @@ const Header = () => {
                 .fixed-nav {
                     position: fixed; top: 0; left: 0; width: 100%;
                     z-index: 10005; /* Highest Priority */
-                    background: rgba(163, 0, 33, 0.92);
-                    background: color-mix(in srgb, var(--color-brand-red) 92%, transparent);
+                    background: var(--nav-bg);
                     backdrop-filter: blur(12px);
-                    border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+                    border-bottom: 1px solid var(--nav-border);
+                    transition: background 0.3s ease, border-color 0.3s ease;
                 }
                 .nav-grid {
-                    display: grid;
-                    grid-template-columns: 1fr 1fr 1fr;
+                    display: flex; /* Switch to Flex for simpler Left/Right push */
+                    justify-content: space-between;
                     align-items: center;
                     height: 80px;
                     padding: 0 4vw;
+                    width: 100%;
                 }
-                .nav-center { display: flex; justify-content: center; }
-                .nav-right { 
-                    display: flex; align-items: center; justify-content: flex-end;
-                    gap: 2rem;
-                    color: rgba(255, 255, 255, 0.9);
-                }
+                /* Remove grid specifics */
+                .nav-center { display: none; } 
                 
-                /* REMOVED .say-hi-link */
+                .nav-left {
+                    display: flex; 
+                    align-items: center; 
+                    height: 100%;
+                    flex: 0 0 auto; /* Don't shrink */
+                }
+                .nav-right { 
+                    display: flex; 
+                    align-items: center; 
+                    gap: 1.5rem; 
+                    height: 100%;
+                    color: var(--nav-text);
+                    flex: 0 0 auto; /* Don't shrink */
+                }
                 
                 .mobile-breadcrumbs-row {
                     display: none; padding: 0.5rem 4vw 0.5rem; width: 100%;
-                    background: rgba(163, 0, 33, 0.95);
-                    background: color-mix(in srgb, var(--color-brand-red) 95%, transparent);
-                    color: rgba(255, 255, 255, 0.95);
+                    background: var(--nav-bg);
+                    color: var(--nav-text);
+                    border-bottom: 1px solid var(--nav-border);
                 }
 
                 .logo-image-link {
-                    display: block;
-                    position: relative; /* Ensure z-index works */
+                    display: flex; /* Flex here too */
+                    align-items: center;
+                    position: relative; 
                     z-index: 1100;
-                    width: fit-content;
+                    width: auto;
+                    height: 100%; /* Match parent height */
                     opacity: 0.9;
                 }
                 
                 .header-logo-img {
-                    height: 50px; /* Adjust this value to change logo size */
+                    height: 42px !important; /* FIXED HEIGHT */
                     width: auto;
                     display: block;
-                    filter: brightness(1.2); /* Ensure white pops */
+                    filter: brightness(1.2); 
+                    object-fit: contain;
                 }
 
                 .nav-border { width: 100%; height: 1px; background: rgba(255,255,255, 0.15); }
                 .menu-btn {
                     font-family: 'Space Mono', monospace; font-size: 0.9rem; text-transform: uppercase;
-                    color: white; background: none; border: none; cursor: pointer;
-                    letter-spacing: 0.05em; mix-blend-mode: difference; z-index: 1100; text-decoration: none;
-                    display: block; /* Ensure it's block-level for visibility check */
+                    color: var(--nav-text); 
+                    background: none; border: none; cursor: pointer;
+                    letter-spacing: 0.05em; 
+                    z-index: 1100; text-decoration: none;
+                    display: block; 
+                    /* Removed mix-blend-mode difference to avoid color conflicts in light mode */
                 }
 
                 /* BACKDROP */
                 .menu-backdrop {
                     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
                     background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); 
-                    z-index: 10000; /* Below Header + Menu */
+                    z-index: 10000; 
                 }
 
                 /* DRAWER CONTAINER */
@@ -248,20 +263,18 @@ const Header = () => {
                     width: 100%; height: auto; max-height: 90vh;
                     background-color: transparent; 
                     box-shadow: 0 10px 40px rgba(0,0,0,0.5); overflow-y: auto;
-                    z-index: 10001; /* Above Backdrop, Below Header (Header is 10005) */
-                    top: 80px; /* Below header */
+                    z-index: 10001; 
+                    top: 80px; 
                 }
 
                 .menu-inner {
                     display: grid;
-                    /* 2-PANEL LAYOUT: 40% Red | 60% White */
                     grid-template-columns: 40% 60%;
                     height: 100%;
                 }
 
                 /* --- PANEL COMMON STYLES --- */
-                .menu-panel { padding: 80px 3vw 4rem; height: 100%; } /* Reduced top padding since it's below header now? Or stick with full overlay? */
-                /* Let's keep it sticking to header */
+                .menu-panel { padding: 80px 3vw 4rem; height: 100%; } 
 
                 /* --- PANEL 1: RED (LEFT) --- */
                 .left-panel {
@@ -276,7 +289,7 @@ const Header = () => {
                 /* DOMINANT LINKS */
                 .dominant-links-wrapper {
                     display: flex; flex-direction: column; 
-                    gap: 0.5rem;
+                    gap: 1.5rem; /* Increased spacing */
                 }
 
                 .dominant-link {
@@ -285,10 +298,11 @@ const Header = () => {
 
                 .dominant-link .menu-text {
                     font-family: 'Poppins', sans-serif;
-                    font-weight: 600; 
-                    font-size: 3.5rem; 
+                    font-weight: 700; 
+                    font-size: 3.5rem; /* Reduced from 5.5rem for better balance */
                     color: white; 
-                    letter-spacing: -0.02em;
+                    letter-spacing: -0.03em;
+                    transition: all 0.2s ease;
                 }
 
                 /* --- PANEL 2: WHITE (RIGHT) --- */
@@ -307,13 +321,13 @@ const Header = () => {
                 
                 .secondary-col {
                     display: flex; flex-direction: column; 
-                    gap: 3rem; /* Block Gap */
+                    gap: 3rem; 
                 }
 
                 /* SECONDARY LINKS */
                 .sidebar-block { 
                     display: flex; flex-direction: column; 
-                    gap: 0.15rem; /* REDUCED line-to-line spacing (Verified Request) */
+                    gap: 0.15rem; 
                 }
 
                 .mono-label {
@@ -321,9 +335,9 @@ const Header = () => {
                     font-size: 1.1rem; 
                     font-weight: 800; 
                     color: #1a1a1a; 
-                    letter-spacing: 0.05em; /* REDUCED letter-spacing (Verified Request) */
+                    letter-spacing: 0.05em; 
                     text-transform: uppercase; 
-                    margin-bottom: 0.5rem; /* Reduced bottom margin */
+                    margin-bottom: 0.5rem; 
                 }
 
                 .mono-link { text-decoration: none; display: block; width: fit-content; }
@@ -345,7 +359,7 @@ const Header = () => {
                 
                 /* SOCIAL STACK (Vertical) */
                 .social-stack {
-                    display: flex; flex-direction: column; gap: 0.15rem; /* Reduced gap */
+                    display: flex; flex-direction: column; gap: 0.15rem; 
                 }
 
 
@@ -383,6 +397,8 @@ const Header = () => {
                      .nav-right { display: flex; order: 3; } 
                      .menu-btn { font-size: 1.1rem; font-weight: 700; }
                 }
+
+                /* LIGHT MODE LOGO INVERSION HANDLED IN GLOBAL.CSS */
             `}</style>
         </React.Fragment>
     );

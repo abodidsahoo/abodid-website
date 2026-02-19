@@ -128,8 +128,8 @@ export default function AuthHeader({ theme = 'default' }: Props) {
                 <a href="/login"
                     className={theme === 'scifi' ? 'scifi-login-btn' : ''}
                     style={theme === 'scifi' ? {} : {
-                        background: '#FFFFFF',
-                        color: '#000000',
+                        background: theme === 'scifi' ? '#FFFFFF' : 'var(--btn-primary-bg)',
+                        color: theme === 'scifi' ? '#000000' : 'var(--btn-primary-text)',
                         padding: '8px 20px',
                         borderRadius: '100px',
                         textDecoration: 'none',
@@ -138,7 +138,7 @@ export default function AuthHeader({ theme = 'default' }: Props) {
                         display: 'inline-block',
                         transition: 'all 0.2s ease',
                         fontFamily: quoteFont,
-                        border: '1px solid rgba(0,0,0,0.1)'
+                        border: '1px solid var(--btn-primary-bg)'
                     }}>
                     LOGIN
                 </a>
