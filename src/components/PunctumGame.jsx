@@ -686,7 +686,7 @@ export default function PunctumGame() {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            fontFamily: "'Inter', sans-serif",
+            fontFamily: 'var(--font-ui)',
             overflow: 'hidden',
             position: 'relative'
         }}>
@@ -716,7 +716,7 @@ export default function PunctumGame() {
                             }}
                         >
                             <h3 style={{
-                                fontFamily: "'Poppins', sans-serif", fontSize: '20px', fontWeight: 600,
+                                fontFamily: 'var(--font-display)', fontSize: '20px', fontWeight: 600,
                                 color: feedbackModal.type === 'error' ? '#ff4444' : '#fff', marginBottom: '24px',
                                 letterSpacing: '0.05em'
                             }}>
@@ -731,7 +731,7 @@ export default function PunctumGame() {
                                 textAlign: 'left'
                             }}>
                                 <p style={{
-                                    fontFamily: "'Inconsolata', monospace", color: '#ccc',
+                                    fontFamily: 'var(--font-mono)', color: '#ccc',
                                     marginBottom: '0', lineHeight: '1.6', fontSize: '11px', whiteSpace: 'pre-wrap'
                                 }}>
                                     {feedbackModal.type === 'error'
@@ -740,7 +740,7 @@ export default function PunctumGame() {
                                 </p>
                             </div>
 
-                            <p style={{ fontFamily: "'Poppins', sans-serif", fontSize: '14px', color: '#888', marginBottom: '16px' }}>
+                            <p style={{ fontFamily: 'var(--font-display)', fontSize: '14px', color: '#888', marginBottom: '16px' }}>
                                 Would you like to report this issue?
                             </p>
 
@@ -750,7 +750,7 @@ export default function PunctumGame() {
                                 placeholder="Additional context (optional)..."
                                 style={{
                                     width: '100%', height: '80px', background: '#222', border: '1px solid #333',
-                                    color: '#fff', borderRadius: '8px', padding: '12px', fontFamily: "'Inconsolata', monospace",
+                                    color: '#fff', borderRadius: '8px', padding: '12px', fontFamily: 'var(--font-mono)',
                                     marginBottom: '32px', resize: 'none', fontSize: '13px'
                                 }}
                             />
@@ -760,7 +760,7 @@ export default function PunctumGame() {
                                     className="hover-btn"
                                     style={{
                                         padding: '14px 32px', background: 'transparent', border: '1px solid #666',
-                                        color: '#aaa', borderRadius: '50px', cursor: 'pointer', fontFamily: "'Poppins', sans-serif",
+                                        color: '#aaa', borderRadius: '50px', cursor: 'pointer', fontFamily: 'var(--font-display)',
                                         fontSize: '12px', letterSpacing: '0.05em', transition: 'all 0.2s'
                                     }}
                                     onMouseOver={e => { e.currentTarget.style.borderColor = '#fff'; e.currentTarget.style.color = '#fff'; }}
@@ -777,7 +777,7 @@ export default function PunctumGame() {
                                         background: feedbackModal.type === 'error' ? '#ff4444' : '#fff',
                                         color: feedbackModal.type === 'error' ? '#fff' : '#000',
                                         border: 'none', borderRadius: '50px', cursor: 'pointer',
-                                        fontWeight: 600, fontFamily: "'Poppins', sans-serif",
+                                        fontWeight: 600, fontFamily: 'var(--font-display)',
                                         fontSize: '12px', letterSpacing: '0.05em', transition: 'transform 0.2s',
                                         opacity: sendingFeedback ? 0.7 : 1
                                     }}
@@ -820,7 +820,7 @@ export default function PunctumGame() {
                                 borderRadius: '4px',
                                 padding: '8px 16px',
                                 color: '#fff',
-                                fontFamily: "'Inconsolata', monospace",
+                                fontFamily: 'var(--font-mono)',
                                 fontSize: '11px',
                                 textTransform: 'uppercase',
                                 cursor: 'pointer',
@@ -858,7 +858,7 @@ export default function PunctumGame() {
                                     borderRadius: '4px',
                                     padding: '8px',
                                     color: (step === 'viz' || step === 'select') ? '#555' : '#fff',
-                                    fontFamily: "'Inconsolata', monospace",
+                                    fontFamily: 'var(--font-mono)',
                                     fontSize: '11px',
                                     cursor: (step === 'viz' || step === 'select') ? 'default' : 'pointer',
                                     backdropFilter: 'blur(5px)',
@@ -888,7 +888,7 @@ export default function PunctumGame() {
                                     borderRadius: '4px',
                                     padding: '8px',
                                     color: step === 'analysis-synthesis' ? '#555' : '#fff',
-                                    fontFamily: "'Inconsolata', monospace",
+                                    fontFamily: 'var(--font-mono)',
                                     fontSize: '11px',
                                     cursor: step === 'analysis-synthesis' ? 'default' : 'pointer',
                                     backdropFilter: 'blur(5px)',
@@ -938,7 +938,7 @@ export default function PunctumGame() {
                             border: '1px solid rgba(0, 255, 0, 0.2)',
                             borderRadius: '8px',
                             padding: '12px',
-                            fontFamily: "'Fira Code', monospace",
+                            fontFamily: 'var(--font-mono)',
                             fontSize: '10px',
                             color: '#0f0',
                             overflowY: 'auto',
@@ -1043,7 +1043,7 @@ export default function PunctumGame() {
                     top: '20px',
                     left: '20px',
                     zIndex: 100,
-                    fontFamily: 'Inconsolata, monospace',
+                    fontFamily: 'var(--font-mono)',
                     fontSize: '11px',
                     color: '#888',
                     textDecoration: 'none',
@@ -1085,7 +1085,7 @@ export default function PunctumGame() {
                                 style={{ textAlign: 'center', maxWidth: '640px', padding: '0 24px', position: 'relative', zIndex: 10 }}
                             >
                                 <h1 style={{
-                                    fontFamily: "'Poppins', sans-serif",
+                                    fontFamily: 'var(--font-display)',
                                     fontSize: '6rem',
                                     fontWeight: 900,
                                     letterSpacing: '-0.03em',
@@ -1097,7 +1097,7 @@ export default function PunctumGame() {
                                 }}>
                                     Invisible <span style={{ color: '#fff', backgroundColor: '#e60000', padding: '0 10px' }}>Punctums</span>
                                 </h1>
-                                <p style={{ fontFamily: "'Poppins', sans-serif", fontSize: '2rem', color: '#fff', lineHeight: 1.4, marginBottom: '56px', fontWeight: 700 }}>
+                                <p style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', color: '#fff', lineHeight: 1.4, marginBottom: '56px', fontWeight: 700 }}>
                                     Exploring the gap between human feeling and machine perception.</p>
                                 <button
                                     onClick={() => setStep('select')}
@@ -1133,7 +1133,7 @@ export default function PunctumGame() {
                             exit="exit"
                             style={{ width: '100%', maxWidth: '1400px', textAlign: 'center', padding: '40px' }}
                         >
-                            <h2 style={{ fontFamily: "'Poppins', sans-serif", fontSize: '2rem', fontWeight: 700, marginBottom: '60px', color: '#fff' }}>Select a photograph that catches your attention the most.</h2>
+                            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', fontWeight: 700, marginBottom: '60px', color: '#fff' }}>Select a photograph that catches your attention the most.</h2>
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '32px', justifyContent: 'center' }}>
                                 {images.map((img, i) => (
                                     <motion.div
@@ -1219,7 +1219,7 @@ export default function PunctumGame() {
                                     alignSelf: 'flex-end'
                                 }}>
                                     <p style={{
-                                        fontFamily: 'Inconsolata, monospace',
+                                        fontFamily: 'var(--font-mono)',
                                         fontSize: '9px',
                                         lineHeight: '1.6',
                                         color: '#888',
@@ -1242,7 +1242,7 @@ export default function PunctumGame() {
                             {/* Concept Text */}
                             <div style={{ maxWidth: '750px', marginBottom: '32px' }}>
                                 <p style={{
-                                    fontFamily: '"Cormorant Garamond", serif',
+                                    fontFamily: 'var(--font-body)',
                                     fontSize: '30px',
                                     lineHeight: '1.4',
                                     color: '#ccc',
@@ -1299,7 +1299,7 @@ export default function PunctumGame() {
 
                             <form onSubmit={handleInputSubmit} style={{ width: '100%', maxWidth: '900px', textAlign: 'center' }}>
                                 <h3 style={{
-                                    fontFamily: '"Cormorant Garamond", serif',
+                                    fontFamily: 'var(--font-body)',
                                     fontSize: '2.5rem',
                                     fontWeight: 300,
                                     fontStyle: 'italic',
@@ -1337,7 +1337,7 @@ export default function PunctumGame() {
                                                 border: 'none',
                                                 color: '#fff',
                                                 fontSize: '18px',
-                                                fontFamily: "'Inconsolata', monospace",
+                                                fontFamily: 'var(--font-mono)',
                                                 outline: 'none',
                                                 resize: 'none',
                                                 lineHeight: '1.6'
@@ -1442,7 +1442,7 @@ export default function PunctumGame() {
                                                     style={{
                                                         fontSize: '2.5rem',
                                                         color: '#444',
-                                                        fontFamily: "'Cormorant Garamond', serif",
+                                                        fontFamily: 'var(--font-body)',
                                                         fontStyle: 'italic',
                                                     }}
                                                 >
@@ -1480,7 +1480,7 @@ export default function PunctumGame() {
                                                 color: '#999',
                                                 borderRadius: '2px',
                                                 fontSize: '9px',
-                                                fontFamily: 'Inconsolata, monospace',
+                                                fontFamily: 'var(--font-mono)',
                                                 transition: 'all 0.2s',
                                                 cursor: 'default'
                                             }}
@@ -1568,7 +1568,7 @@ export default function PunctumGame() {
                                                 position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
                                                 display: 'flex', alignItems: 'center', justifyContent: 'center'
                                             }}>
-                                                <span style={{ fontFamily: 'Poppins, sans-serif', fontWeight: 700, fontSize: '24px', color: '#fff' }}>
+                                                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '24px', color: '#fff' }}>
                                                     {Math.round(progress)}%
                                                 </span>
                                             </div>
@@ -1576,12 +1576,12 @@ export default function PunctumGame() {
 
                                         {/* Status Sequence */}
                                         <div style={{ textAlign: 'center' }}>
-                                            <div style={{ fontFamily: 'Poppins, sans-serif', fontWeight: 600, fontSize: '18px', letterSpacing: '0.05em', color: '#fff', marginBottom: '8px' }}>
+                                            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '18px', letterSpacing: '0.05em', color: '#fff', marginBottom: '8px' }}>
                                                 {step === 'analysis-ai' ? (progress < 40 ? 'SCANNING PIXELS' : progress < 80 ? 'DETECTING CONTEXT' : 'SYNTHESIZING EMOTION') :
                                                     step === 'analysis-human' ? (progress < 50 ? 'READING MEMORIES' : 'EXTRACTING THEMES') :
                                                         'CALCULATING GAP'}
                                             </div>
-                                            <div style={{ fontFamily: 'Inconsolata, monospace', fontSize: '12px', color: '#666' }}>
+                                            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#666' }}>
                                                 {step === 'analysis-ai' && progress < 30 && `[Vectors: ${(progress * 124).toFixed(0)}]`}
                                                 {step === 'analysis-ai' && progress >= 30 && progress < 55 && `[Layer: Deep Convolution]`}
                                                 {step === 'analysis-ai' && progress >= 55 && progress < 75 && `[Layer: Multi-Head Attention]`}
@@ -1639,7 +1639,7 @@ export default function PunctumGame() {
                                                     padding: '12px',
                                                     overflowY: 'auto',
                                                     textAlign: 'left',
-                                                    fontFamily: "'Fira Code', monospace",
+                                                    fontFamily: 'var(--font-mono)',
                                                     fontSize: '11px',
                                                     boxShadow: '0 0 15px rgba(0, 243, 255, 0.1) inset'
                                                 }}
@@ -1655,7 +1655,7 @@ export default function PunctumGame() {
                                             {/* COMPACT ERROR UI */}
                                             {error && (
                                                 <div style={{ marginTop: '10px' }}>
-                                                    <div style={{ color: '#ff4444', fontSize: '11px', fontFamily: 'monospace', cursor: 'pointer', marginBottom: '4px', textDecoration: 'underline' }} onClick={() => navigator.clipboard.writeText(error)}>
+                                                    <div style={{ color: '#ff4444', fontSize: '11px', fontFamily: 'var(--font-mono)', cursor: 'pointer', marginBottom: '4px', textDecoration: 'underline' }} onClick={() => navigator.clipboard.writeText(error)}>
                                                         [COPY ERROR]
                                                     </div>
                                                     <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
@@ -1684,7 +1684,7 @@ export default function PunctumGame() {
                                                     }}
                                                 >
                                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                        <span style={{ fontFamily: 'monospace', fontSize: '10px', color: '#ff4444', textTransform: 'uppercase' }}>
+                                                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#ff4444', textTransform: 'uppercase' }}>
                                                             PROCESS FAILURE
                                                         </span>
                                                         <button
@@ -1695,7 +1695,7 @@ export default function PunctumGame() {
                                                         </button>
                                                     </div>
 
-                                                    <div style={{ fontFamily: 'monospace', fontSize: '11px', color: '#999', lineHeight: '1.4' }}>
+                                                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#999', lineHeight: '1.4' }}>
                                                         {error}
                                                     </div>
 
@@ -1731,7 +1731,7 @@ export default function PunctumGame() {
 
                                         {/* HEADER - Top Spacer */}
                                         <div style={{ textAlign: 'center', marginBottom: '20px', flexShrink: 0 }}>
-                                            <p style={{ color: '#666', fontSize: '11px', fontFamily: 'monospace', textTransform: 'uppercase' }}>
+                                            <p style={{ color: '#666', fontSize: '11px', fontFamily: 'var(--font-mono)', textTransform: 'uppercase' }}>
                                                 {step === 'analysis-ai' ? 'STAGE 1: MACHINE PERCEPTION' : (step === 'analysis-human' ? 'STAGE 2: HUMAN SENTIMENT' : 'STAGE 3: FINAL SYNTHESIS')}
                                             </p>
                                         </div>
@@ -1745,29 +1745,29 @@ export default function PunctumGame() {
                                             >
                                                 {/* SECTION A: WHAT AI SAW */}
                                                 <div>
-                                                    <div style={{ fontSize: '12px', color: '#00f3ff', letterSpacing: '0.2em', marginBottom: '12px', fontFamily: 'monospace', textTransform: 'uppercase' }}>
+                                                    <div style={{ fontSize: '12px', color: '#00f3ff', letterSpacing: '0.2em', marginBottom: '12px', fontFamily: 'var(--font-mono)', textTransform: 'uppercase' }}>
                                                         WHAT AI SAW
                                                     </div>
-                                                    <div style={{ fontSize: '14px', color: '#ccc', lineHeight: '1.6', fontFamily: 'monospace', maxWidth: '600px', margin: '0 auto' }}>
+                                                    <div style={{ fontSize: '14px', color: '#ccc', lineHeight: '1.6', fontFamily: 'var(--font-mono)', maxWidth: '600px', margin: '0 auto' }}>
                                                         "{aiReport?.visual_summary}"
                                                     </div>
                                                 </div>
 
                                                 {/* SECTION B: WHAT AI FELT */}
                                                 <div>
-                                                    <div style={{ fontSize: '12px', color: '#00f3ff', letterSpacing: '0.2em', marginBottom: '12px', fontFamily: 'monospace', textTransform: 'uppercase' }}>
+                                                    <div style={{ fontSize: '12px', color: '#00f3ff', letterSpacing: '0.2em', marginBottom: '12px', fontFamily: 'var(--font-mono)', textTransform: 'uppercase' }}>
                                                         WHAT AI FELT
                                                     </div>
                                                     <div style={{
                                                         fontSize: '24px', fontWeight: 300, color: '#fff',
-                                                        marginBottom: '16px', fontFamily: '"Cormorant Garamond", serif', fontStyle: 'italic', maxWidth: '600px'
+                                                        marginBottom: '16px', fontFamily: 'var(--font-body)', fontStyle: 'italic', maxWidth: '600px'
                                                     }}>
                                                         "{aiReport?.ai_feeling_description || aiReport?.ai_feeling || "Analyzing..."}"
                                                     </div>
                                                     <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
                                                         {aiReport?.ai_keywords?.slice(0, 3).map((kw, i) => (
                                                             <span key={i} style={{
-                                                                fontSize: '11px', fontFamily: 'monospace', color: '#00f3ff',
+                                                                fontSize: '11px', fontFamily: 'var(--font-mono)', color: '#00f3ff',
                                                                 padding: '6px 12px', background: 'rgba(0, 243, 255, 0.05)',
                                                                 border: '1px solid rgba(0, 243, 255, 0.2)', borderRadius: '100px'
                                                             }}>
@@ -1790,12 +1790,12 @@ export default function PunctumGame() {
                                                     initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
                                                     style={{ textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.1)', paddingRight: '20px' }}
                                                 >
-                                                    <div style={{ fontSize: '11px', color: '#00f3ff', letterSpacing: '0.2em', marginBottom: '24px', fontFamily: 'monospace' }}>MACHINE FEELING</div>
+                                                    <div style={{ fontSize: '11px', color: '#00f3ff', letterSpacing: '0.2em', marginBottom: '24px', fontFamily: 'var(--font-mono)' }}>MACHINE FEELING</div>
 
                                                     {/* Primary Emotion (Large) - NOW USING KEYWORDS */}
                                                     <div style={{
                                                         fontSize: '32px', lineHeight: '1.2', color: '#fff', marginBottom: '24px',
-                                                        fontFamily: 'monospace', textTransform: 'uppercase',
+                                                        fontFamily: 'var(--font-mono)', textTransform: 'uppercase',
                                                         display: 'flex', flexDirection: 'column', gap: '8px'
                                                     }}>
                                                         {aiReport?.ai_feeling_keywords && Array.isArray(aiReport.ai_feeling_keywords) ? (
@@ -1813,7 +1813,7 @@ export default function PunctumGame() {
                                                         {aiReport?.ai_emotions?.slice(0, 3).map((e, i) => (
                                                             <span key={i} style={{
                                                                 color: '#00f3ff', fontSize: '12px', border: '1px solid rgba(0, 243, 255, 0.3)',
-                                                                padding: '6px 14px', borderRadius: '100px', background: 'rgba(0, 243, 255, 0.05)', fontFamily: 'monospace'
+                                                                padding: '6px 14px', borderRadius: '100px', background: 'rgba(0, 243, 255, 0.05)', fontFamily: 'var(--font-mono)'
                                                             }}>
                                                                 {e}
                                                             </span>
@@ -1830,12 +1830,12 @@ export default function PunctumGame() {
                                                     initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
                                                     style={{ textAlign: 'center', paddingLeft: '20px' }}
                                                 >
-                                                    <div style={{ fontSize: '11px', color: '#ff0055', letterSpacing: '0.2em', marginBottom: '24px', fontFamily: 'monospace' }}>HUMAN FEELING</div>
+                                                    <div style={{ fontSize: '11px', color: '#ff0055', letterSpacing: '0.2em', marginBottom: '24px', fontFamily: 'var(--font-mono)' }}>HUMAN FEELING</div>
 
                                                     {/* Primary Emotion (Large) - NOW USING KEYWORDS */}
                                                     <div style={{
                                                         fontSize: '32px', lineHeight: '1.2', color: '#fff', marginBottom: '24px',
-                                                        fontFamily: 'monospace', textTransform: 'uppercase',
+                                                        fontFamily: 'var(--font-mono)', textTransform: 'uppercase',
                                                         display: 'flex', flexDirection: 'column', gap: '8px'
                                                     }}>
                                                         {keywords && keywords.length > 0 ? (
@@ -1853,7 +1853,7 @@ export default function PunctumGame() {
                                                         {keywords.slice(0, 3).map((k, i) => (
                                                             <span key={i} style={{
                                                                 color: '#ff0055', fontSize: '12px', border: '1px solid rgba(255,0,85,0.3)',
-                                                                padding: '6px 14px', borderRadius: '100px', background: 'rgba(255, 0, 85, 0.05)', fontFamily: 'monospace'
+                                                                padding: '6px 14px', borderRadius: '100px', background: 'rgba(255, 0, 85, 0.05)', fontFamily: 'var(--font-mono)'
                                                             }}>
                                                                 {k}
                                                             </span>
@@ -1875,12 +1875,12 @@ export default function PunctumGame() {
                                                     padding: '20px'
                                                 }}
                                             >
-                                                <div style={{ fontSize: '12px', color: '#888', letterSpacing: '0.2em', marginBottom: '20px', fontFamily: 'monospace' }}>SEMANTIC CONSENSUS</div>
+                                                <div style={{ fontSize: '12px', color: '#888', letterSpacing: '0.2em', marginBottom: '20px', fontFamily: 'var(--font-mono)' }}>SEMANTIC CONSENSUS</div>
 
                                                 <div style={{
                                                     fontSize: '120px', fontWeight: 800, lineHeight: 1,
                                                     color: consensusData?.consensus_percentage > 50 ? '#00ff66' : '#ff4444',
-                                                    textShadow: '0 0 50px rgba(0,0,0,0.5)', fontFamily: 'monospace'
+                                                    textShadow: '0 0 50px rgba(0,0,0,0.5)', fontFamily: 'var(--font-mono)'
                                                 }}>
                                                     {consensusData?.consensus_percentage}%
                                                 </div>
@@ -1888,7 +1888,7 @@ export default function PunctumGame() {
                                                 {/* Context Explanation */}
                                                 <div style={{
                                                     fontSize: '18px', maxWidth: '600px', textAlign: 'center',
-                                                    color: '#fff', fontFamily: 'monospace',
+                                                    color: '#fff', fontFamily: 'var(--font-mono)',
                                                     margin: '30px 0', lineHeight: '1.6'
                                                 }}>
                                                     {consensusData?.context_explanation}
@@ -1978,7 +1978,7 @@ export default function PunctumGame() {
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     style={{
-                                                        fontFamily: 'Inconsolata, monospace',
+                                                        fontFamily: 'var(--font-mono)',
                                                         color: '#444',
                                                         textDecoration: 'none',
                                                         transition: 'color 0.2s'

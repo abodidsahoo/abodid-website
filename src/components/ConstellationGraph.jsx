@@ -190,7 +190,7 @@ const ConstellationGraph = ({ consensusScore = 50, divergenceLabel = "MODERATE D
                         margin: '20px auto'
                     }} />
                     <p style={{
-                        color: '#888', fontSize: '11px', fontFamily: 'monospace',
+                        color: '#888', fontSize: '11px', fontFamily: 'var(--font-mono)',
                         textTransform: 'uppercase', letterSpacing: '0.2em'
                     }}>
                         Consensus Score: {consensusScore}%

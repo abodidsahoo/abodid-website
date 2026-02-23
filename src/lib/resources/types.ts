@@ -56,3 +56,9 @@ export interface CreateResourcePayload {
     credit_text?: string;
     tag_ids?: string[]; // IDs of tags to associate
 }
+
+export interface CuratorApprovalPayload {
+    thumbnail_url?: string | null;
+    tag_ids?: string[];
+    audience?: ResourceAudience;
+}

@@ -158,7 +158,7 @@ const CVListModal = ({ title, icon, cvs }) => {
                             margin-bottom: 1.5rem;
                             font-size: 1.5rem;
                             font-weight: 600;
-                            font-family: "Poppins", sans-serif;
+                            font-family: var(--font-display);
                             color: var(--text-primary, #000);
                         }
                         .cv-list {

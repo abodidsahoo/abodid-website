@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { approveResource, rejectResource, getPendingResources, deleteResource, restoreResource, permanentDeleteResource, getDeletedResources, getAllResourcesAdmin } from '../../lib/resources/db';
 import type { User } from '@supabase/supabase-js';
+import TagInput from './TagInput';
+import { uploadResourceThumbnail } from '../../lib/resources/storage';
 
 interface Profile {
     id: string;
@@ -15,12 +17,21 @@ interface Submission {
     url: string;
     description: string | null;
     thumbnail_url: string | null;
+    audience?: string | null;
+    tags?: Array<{ id: string; name: string }>;
     status: 'pending' | 'approved' | 'rejected' | 'deleted';
     created_at: string;
     reviewed_at: string | null;
     rejection_reason: string | null;
     submitted_by?: string;
     submitter_profile?: any;
+}
+
+interface CurationDraft {
+    selectedTags: string[];
+    thumbnailUrl: string;
+    isUploading: boolean;
+    uploadError: string | null;
 }
 
 // Add props interface
@@ -38,6 +49,7 @@ export default function CuratorDashboard({ user, role }: Props) {
     const [globalResources, setGlobalResources] = useState<Submission[]>([]);
     const [filter, setFilter] = useState('all'); // all, pending, approved, rejected, deleted, global
     const [error, setError] = useState<string | null>(null);
+    const [curationByResource, setCurationByResource] = useState<Record<string, CurationDraft>>({});
 
     const fetchData = async () => {
         if (!user) return;
@@ -63,6 +75,33 @@ export default function CuratorDashboard({ user, role }: Props) {
     useEffect(() => {
         fetchData();
     }, [user, role]);
+
+    useEffect(() => {
+        setCurationByResource(prev => {
+            const next: Record<string, CurationDraft> = { ...prev };
+            const pendingIds = new Set<string>();
+
+            pendingSubmissions.forEach(submission => {
+                pendingIds.add(submission.id);
+                if (!next[submission.id]) {
+                    next[submission.id] = {
+                        selectedTags: submission.tags?.map(tag => tag.id) || [],
+                        thumbnailUrl: submission.thumbnail_url || '',
+                        isUploading: false,
+                        uploadError: null
+                    };
+                }
+            });
+
+            Object.keys(next).forEach(resourceId => {
+                if (!pendingIds.has(resourceId)) {
+                    delete next[resourceId];
+                }
+            });
+
+            return next;
+        });
+    }, [pendingSubmissions]);
 
     const handleRefresh = () => {
         fetchData();
@@ -99,7 +138,64 @@ export default function CuratorDashboard({ user, role }: Props) {
         setGlobalResources(global as unknown as Submission[]);
     };
 
-    const handleApprove = async (resourceId: string) => {
+    const getDraft = (submission: Submission): CurationDraft => {
+        return curationByResource[submission.id] || {
+            selectedTags: submission.tags?.map(tag => tag.id) || [],
+            thumbnailUrl: submission.thumbnail_url || '',
+            isUploading: false,
+            uploadError: null
+        };
+    };
+
+    const setDraft = (resourceId: string, updates: Partial<CurationDraft>) => {
+        setCurationByResource(prev => {
+            const current = prev[resourceId] || {
+                selectedTags: [],
+                thumbnailUrl: '',
+                isUploading: false,
+                uploadError: null
+            };
+
+            return {
+                ...prev,
+                [resourceId]: {
+                    ...current,
+                    ...updates
+                }
+            };
+        });
+    };
+
+    const handleThumbnailUpload = async (submission: Submission, file: File | null) => {
+        if (!file) return;
+
+        const resourceId = submission.id;
+        setDraft(resourceId, { isUploading: true, uploadError: null });
+
+        try {
+            const { publicUrl } = await uploadResourceThumbnail(resourceId, file);
+            setDraft(resourceId, {
+                thumbnailUrl: publicUrl,
+                isUploading: false,
+                uploadError: null
+            });
+        } catch (uploadError: any) {
+            setDraft(resourceId, {
+                isUploading: false,
+                uploadError: uploadError?.message || 'Failed to upload thumbnail.'
+            });
+        }
+    };
+
+    const handleApprove = async (submission: Submission) => {
+        const resourceId = submission.id;
+        const draft = getDraft(submission);
+
+        if (draft.isUploading) {
+            alert('Thumbnail upload is still in progress. Please wait.');
+            return;
+        }
+
         // Optimistic Update
         const item = pendingSubmissions.find(s => s.id === resourceId);
         if (!item) return;
@@ -107,14 +203,23 @@ export default function CuratorDashboard({ user, role }: Props) {
         setPendingSubmissions(prev => prev.filter(s => s.id !== resourceId));
 
         // If it was my submission, update status in main list
-        setSubmissions(prev => prev.map(s => s.id === resourceId ? { ...s, status: 'approved' } : s));
+        setSubmissions(prev => prev.map(s => s.id === resourceId ? {
+            ...s,
+            status: 'approved',
+            thumbnail_url: draft.thumbnailUrl || null
+        } : s));
 
         // Attempt API
-        const result = await approveResource(resourceId);
+        const result = await approveResource(resourceId, {
+            tag_ids: draft.selectedTags,
+            thumbnail_url: draft.thumbnailUrl || null,
+            audience: 'Designer'
+        });
         if (!result.success) {
             // Revert on failure (simplified: just reload or show alert)
             alert('Failed to approve. Refreshing...');
             fetchPendingSubmissions();
+            if (user) fetchSubmissions(user.id);
         }
     };
 
@@ -514,6 +619,9 @@ export default function CuratorDashboard({ user, role }: Props) {
                                         <h3>{submission.title}</h3>
                                     </div>
                                     <p className="submission-url">{submission.url}</p>
+                                    {submission.description && (
+                                        <p className="submission-description">{submission.description}</p>
+                                    )}
                                     <div style={{ marginBottom: '1rem' }}>
                                         <span
                                             className="status-badge"
@@ -531,9 +639,48 @@ export default function CuratorDashboard({ user, role }: Props) {
                                             ⏱ pending
                                         </span>
                                     </div>
+                                    <div className="curation-box">
+                                        <div className="curation-row">
+                                            <label className="curation-label">Curator tags</label>
+                                            <TagInput
+                                                selectedTags={getDraft(submission).selectedTags}
+                                                onChange={(newTags) => setDraft(submission.id, { selectedTags: newTags })}
+                                                maxTags={5}
+                                            />
+                                        </div>
+
+                                        <div className="curation-row">
+                                            <label className="curation-label" htmlFor={`thumbnail-upload-${submission.id}`}>Add thumbnail</label>
+                                            <input
+                                                id={`thumbnail-upload-${submission.id}`}
+                                                type="file"
+                                                accept="image/*"
+                                                className="thumbnail-upload-input"
+                                                onChange={(e) => {
+                                                    const file = e.target.files?.[0] || null;
+                                                    handleThumbnailUpload(submission, file);
+                                                    e.currentTarget.value = '';
+                                                }}
+                                            />
+                                            {getDraft(submission).isUploading && (
+                                                <p className="thumbnail-upload-status">Uploading thumbnail...</p>
+                                            )}
+                                            {getDraft(submission).uploadError && (
+                                                <p className="thumbnail-upload-error">{getDraft(submission).uploadError}</p>
+                                            )}
+                                            {getDraft(submission).thumbnailUrl && (
+                                                <img
+                                                    src={getDraft(submission).thumbnailUrl}
+                                                    alt={`Thumbnail preview for ${submission.title}`}
+                                                    className="curation-thumbnail-preview"
+                                                    loading="lazy"
+                                                />
+                                            )}
+                                        </div>
+                                    </div>
                                     <div className="submission-actions">
                                         <button
-                                            onClick={() => handleApprove(submission.id)}
+                                            onClick={() => handleApprove(submission)}
                                             className="btn-approve"
                                         >
                                             ✓ Approve
@@ -651,7 +798,7 @@ export default function CuratorDashboard({ user, role }: Props) {
                     align-items: center;
                     justify-content: center;
                     border-radius: 8px;
-                    font-family: 'Space Mono', monospace; /* Monospace font */
+                    font-family: var(--font-ui); /* Monospace font */
                     font-size: 0.85rem;
                     font-weight: 500;
                     text-decoration: none;
@@ -727,7 +874,7 @@ export default function CuratorDashboard({ user, role }: Props) {
                     font-size: 0.95rem; /* Reduced font size */
                     transition: transform 0.2s, opacity 0.2s;
                     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-                    font-family: 'Space Mono', monospace; /* Consistent font */
+                    font-family: var(--font-ui); /* Consistent font */
                     width: auto; /* Allow auto width */
                     min-width: 200px;
                 }
@@ -1034,6 +1181,55 @@ export default function CuratorDashboard({ user, role }: Props) {
 
                 .pending-review {
                     border-left: 4px solid #F59E0B;
+                }
+
+                .curation-box {
+                    margin-bottom: 1rem;
+                    padding: 0.875rem;
+                    border: 1px solid var(--border-subtle);
+                    border-radius: 8px;
+                    background: var(--bg-surface-hover);
+                }
+
+                .curation-row + .curation-row {
+                    margin-top: 0.875rem;
+                }
+
+                .curation-label {
+                    display: block;
+                    margin-bottom: 0.5rem;
+                    font-size: 0.8rem;
+                    font-weight: 600;
+                    color: var(--text-secondary);
+                    text-transform: uppercase;
+                    letter-spacing: 0.04em;
+                }
+
+                .thumbnail-upload-input {
+                    width: 100%;
+                    font-size: 0.9rem;
+                    color: var(--text-primary);
+                }
+
+                .thumbnail-upload-status {
+                    margin: 0.5rem 0 0;
+                    font-size: 0.8rem;
+                    color: var(--text-secondary);
+                }
+
+                .thumbnail-upload-error {
+                    margin: 0.5rem 0 0;
+                    font-size: 0.8rem;
+                    color: #EF4444;
+                }
+
+                .curation-thumbnail-preview {
+                    margin-top: 0.625rem;
+                    width: 100%;
+                    max-height: 180px;
+                    object-fit: cover;
+                    border-radius: 6px;
+                    border: 1px solid var(--border-subtle);
                 }
 
                 .empty-state {

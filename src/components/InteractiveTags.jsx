@@ -309,7 +309,7 @@ const InteractiveTags = () => {
                     border-radius: 6px; 
                     background: transparent;
                     color: var(--text-primary, #333);
-                    font-family: 'Poppins', sans-serif;
+                    font-family: var(--font-display);
                     font-size: 0.85rem;
                     white-space: nowrap;
                     font-weight: 400;

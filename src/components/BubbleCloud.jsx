@@ -46,7 +46,7 @@ const BubbleCloud = ({ comments = [], onAskAI }) => {
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            fontFamily: "'Inter', sans-serif"
+            fontFamily: 'var(--font-ui)'
         }}>
 
             {/* Header Label */}

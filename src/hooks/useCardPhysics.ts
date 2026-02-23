@@ -26,6 +26,7 @@ type PoolItem = {
 };
 
 type PreloadStatus = 'loading' | 'loaded' | 'error';
+const EMPTY_MEDIA_FILTERS: MediaFilter[] = [];
 
 interface UseCardPhysicsProps {
     initialImages: any[];
@@ -90,7 +91,7 @@ export const useCardPhysics = ({
     initialImages,
     isActive = true,
     feedMode = 'shuffle',
-    mediaFilters = [],
+    mediaFilters = EMPTY_MEDIA_FILTERS,
     queueResetKey = 0,
     queueAnchorImage = null,
     cardSensitivity = 0.55,
@@ -255,13 +256,13 @@ export const useCardPhysics = ({
             queueAnchorImageRef.current,
         );
         playbackQueueRef.current = queue;
-        setEligibleCount(matchedCount);
+        setEligibleCount((prev) => (prev === matchedCount ? prev : matchedCount));
         scheduleQueuePreload();
     };
 
     const resetStack = () => {
         stackRef.current = [];
-        setStack([]);
+        setStack((prev) => (prev.length === 0 ? prev : []));
         scrollAccumulatorRef.current = 0;
     };
 

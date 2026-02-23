@@ -178,7 +178,7 @@ const TestimonialsField = ({ testimonials = [] }) => {
                 flexDirection: 'column',
                 justifyContent: 'center',
                 alignItems: 'center',
-                fontFamily: '"Inconsolata", monospace',
+                fontFamily: 'var(--font-mono)',
                 // Mask removed as requested
             }}
         >
@@ -264,7 +264,7 @@ const TestimonialCard = ({ data }) => {
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',
-                fontFamily: '"Inconsolata", monospace',
+                fontFamily: 'var(--font-mono)',
                 // Width handled by animate prop to avoid conflict with 'layout'
             }}
         >

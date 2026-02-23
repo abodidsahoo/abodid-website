@@ -716,7 +716,7 @@ export default function MoodboardManager() {
                     font-size: 0.72rem;
                     border: 1px solid var(--border-subtle);
                     background: rgba(255, 255, 255, 0.03);
-                    font-family: 'Space Mono', monospace;
+                    font-family: var(--font-ui);
                 }
 
                 .upload-panel,
@@ -769,7 +769,7 @@ export default function MoodboardManager() {
                     min-height: 40px;
                     padding: 0 1rem;
                     cursor: pointer;
-                    font-family: 'Space Mono', monospace;
+                    font-family: var(--font-ui);
                     font-size: 0.75rem;
                     text-transform: uppercase;
                 }
@@ -808,7 +808,7 @@ export default function MoodboardManager() {
                     min-height: 36px;
                     padding: 0 0.85rem;
                     font-size: 0.72rem;
-                    font-family: 'Space Mono', monospace;
+                    font-family: var(--font-ui);
                     text-transform: uppercase;
                     cursor: pointer;
                     background: rgba(255, 255, 255, 0.03);
@@ -906,7 +906,7 @@ export default function MoodboardManager() {
                     background: rgba(234, 42, 16, 0.18);
                     color: rgba(255, 255, 255, 0.92);
                     font-size: 0.68rem;
-                    font-family: 'Space Mono', monospace;
+                    font-family: var(--font-ui);
                 }
 
                 .queue-tag {

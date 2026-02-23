@@ -192,7 +192,7 @@
                 margin-top: 0; 
                 width: 100%; 
                 max-width: 600px;
-                font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', 'Droid Sans Mono', 'Source Code Pro', monospace;
+                font-family: var(--font-mono);
                 height: 200px;
                 overflow-y: auto;
                 padding: 16px;
@@ -1359,7 +1359,7 @@
         .um-loading-text { font-size: 12px; opacity: 0.6; font-style: italic; }
 
         /* DASHBOARD GRID */
-        .um-mock-dashboard { display: flex; flex-direction: column; gap: 24px; font-family: system-ui, sans-serif; }
+        .um-mock-dashboard { display: flex; flex-direction: column; gap: 24px; font-family: var(--font-ui); }
         
         .um-two-col-grid {
             display: grid;

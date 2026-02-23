@@ -2,6 +2,9 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCardPhysics } from '../hooks/useCardPhysics';
 
+const EMPTY_IMAGES = [];
+const EMPTY_FILTERS = [];
+
 const CardStacker = ({
     images,
     anchorX = '65%',
@@ -14,8 +17,9 @@ const CardStacker = ({
 }) => {
     const shouldUseLocalPhysics = !propStack || !propLastAction || !propContainerRef;
     const localPhysics = useCardPhysics({
-        initialImages: shouldUseLocalPhysics ? images : [],
+        initialImages: shouldUseLocalPhysics ? images : EMPTY_IMAGES,
         isActive: shouldUseLocalPhysics ? active : false,
+        mediaFilters: EMPTY_FILTERS,
     });
 
     // Choose between prop-provided stack/action or local hook

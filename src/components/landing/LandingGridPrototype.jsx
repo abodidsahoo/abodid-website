@@ -2132,7 +2132,7 @@ const LandingGridPrototype = ({
                     padding: 0;
                     background: #020202;
                     color: #f5f5f5;
-                    font-family: "Space Mono", monospace;
+                    font-family: var(--font-ui);
                     -webkit-font-smoothing: antialiased;
                 }
 
@@ -2376,7 +2376,7 @@ const LandingGridPrototype = ({
                     align-items: center;
                     padding: 3px 5px;
                     font-size: 8px;
-                    font-family: "Inconsolata", monospace;
+                    font-family: var(--font-mono);
                     text-transform: uppercase;
                     line-height: 1.1;
                 }
@@ -2427,7 +2427,7 @@ const LandingGridPrototype = ({
                     border: 1px solid rgba(255, 255, 255, 0.7);
                     background: transparent;
                     color: #fff;
-                    font-family: "Space Mono", monospace;
+                    font-family: var(--font-ui);
                     font-size: 8px;
                     letter-spacing: 0.08em;
                     text-transform: uppercase;
@@ -2623,7 +2623,7 @@ const LandingGridPrototype = ({
 
                 .cover-text-only-copy h4 {
                     margin: 0;
-                    font-family: "Inconsolata", monospace;
+                    font-family: var(--font-mono);
                     font-size: clamp(10px, 1vw, 13px);
                     font-weight: 600;
                     line-height: 1.15;
@@ -2677,7 +2677,7 @@ const LandingGridPrototype = ({
 
                 .photo-caption h4 {
                     margin: 0;
-                    font-family: "Inconsolata", monospace;
+                    font-family: var(--font-mono);
                     font-size: clamp(10px, 1vw, 13px);
                     font-weight: 600;
                     line-height: 1.1;
@@ -2914,7 +2914,7 @@ const LandingGridPrototype = ({
 
                 .bio-top h2 {
                     margin: 0;
-                    font-family: "Inconsolata", monospace;
+                    font-family: var(--font-mono);
                     font-size: clamp(18px, 1.95vw, 24px);
                     line-height: 1;
                     letter-spacing: 0.02em;
@@ -2947,7 +2947,7 @@ const LandingGridPrototype = ({
 
                 .bio-bottom p {
                     margin: 0;
-                    font-family: "Inconsolata", monospace;
+                    font-family: var(--font-mono);
                     font-size: clamp(10px, 0.95vw, 12px);
                     font-weight: 400;
                     line-height: 1.35;
@@ -2995,7 +2995,7 @@ const LandingGridPrototype = ({
                     padding: 2px 7px;
                     border: 1px solid rgba(255, 255, 255, 0.4);
                     border-radius: 1px;
-                    font-family: "Inconsolata", monospace;
+                    font-family: var(--font-mono);
                     font-size: clamp(8px, 0.76vw, 11px);
                     font-weight: 500;
                     line-height: 1.05;
@@ -3024,7 +3024,7 @@ const LandingGridPrototype = ({
                     border-radius: 1px;
                     background: rgba(0, 0, 0, 0.56);
                     color: rgba(255, 255, 255, 0.9);
-                    font-family: "Inconsolata", monospace;
+                    font-family: var(--font-mono);
                     font-size: 9px;
                     letter-spacing: 0.05em;
                     text-transform: uppercase;
@@ -3073,7 +3073,7 @@ const LandingGridPrototype = ({
                     padding: 7px 8px;
                     background: rgba(0, 0, 0, 0.5);
                     color: #fff;
-                    font-family: "Space Mono", monospace;
+                    font-family: var(--font-ui);
                     font-size: clamp(10px, 0.9vw, 12px);
                     outline: none;
                 }

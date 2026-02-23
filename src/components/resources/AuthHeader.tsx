@@ -146,7 +146,7 @@ export default function AuthHeader({ theme = 'default' }: Props) {
                 {theme === 'scifi' && (
                     <style>{`
                         .scifi-login-btn {
-                            font-family: "Inconsolata", monospace;
+                            font-family: var(--font-mono);
                             color: #00f3ff;
                             border: 1px solid rgba(0, 243, 255, 0.3);
                             padding: 8px 16px;

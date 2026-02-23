@@ -1,0 +1,394 @@
+---
+export const prerender = false;
+import BaseLayout from "../../../../layouts/BaseLayout.astro";
+
+const { tag } = Astro.params;
+
+if (!tag) {
+    return Astro.redirect("/research/obsidian-vault");
+}
+
+const activeTagSlug = decodeURIComponent(tag).replace(/\.md$/i, "");
+const activeTagName = activeTagSlug.replace(/-/g, " ");
+const pageTitle = `Tag: ${activeTagName}`;
+---
+
+<BaseLayout title={pageTitle}>
+    <div class="note-container">
+        <nav class="note-nav">
+            <a href="/research/obsidian-vault" class="back-pill">← Back to Vault</a>
+        </nav>
+
+        <article class="note-content">
+            <h1>{pageTitle}</h1>
+
+            <div
+                class="tag-results is-animating"
+                data-tag-view
+                data-tag-name={activeTagName}
+                data-tag-slug={activeTagSlug}
+            >
+                <div class="tag-search-console is-searching" aria-live="polite">
+                    <p class="search-line search-line-main" data-search-main>
+                        Preparing vault scan
+                    </p>
+                    <p class="search-line search-line-sub" data-search-sub>
+                        Loading note index and references...
+                    </p>
+                </div>
+
+                <div class="notes-column-preview">
+                    <div class="vault-list" data-results-list>
+                        <p class="search-pending">Waiting for vault scan...</p>
+                    </div>
+                </div>
+            </div>
+        </article>
+    </div>
+</BaseLayout>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const tagView = document.querySelector("[data-tag-view]");
+        if (!tagView) return;
+
+        const tagName = tagView.getAttribute("data-tag-name") || "this tag";
+        const tagSlug = tagView.getAttribute("data-tag-slug") || "";
+        const listNode = tagView.querySelector("[data-results-list]");
+        const mainLine = tagView.querySelector("[data-search-main]");
+        const subLine = tagView.querySelector("[data-search-sub]");
+        const searchConsole = tagView.querySelector(".tag-search-console");
+
+        const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+        const updateLines = (main, sub) => {
+            if (mainLine) mainLine.textContent = main;
+            if (subLine) subLine.textContent = sub;
+        };
+
+        const renderResults = (notes) => {
+            if (!listNode) return [];
+            listNode.innerHTML = "";
+
+            if (!notes.length) {
+                const empty = document.createElement("p");
+                empty.className = "no-results result-reveal";
+                empty.textContent = "No notes found referencing this tag.";
+                listNode.appendChild(empty);
+                return [empty];
+            }
+
+            const nodes = notes.map((note, index) => {
+                const card = document.createElement("a");
+                card.className = "note-card result-reveal";
+                card.href = note.href;
+                card.style.setProperty("--stagger-index", String(index));
+
+                const info = document.createElement("div");
+                info.className = "note-info";
+                const title = document.createElement("h3");
+                title.textContent = note.slug.replace(/-/g, " ");
+
+                info.appendChild(title);
+                card.appendChild(info);
+                listNode.appendChild(card);
+                return card;
+            });
+
+            return nodes;
+        };
+
+        const run = async () => {
+            let statusTimer = null;
+
+            if (searchConsole) searchConsole.classList.add("is-searching");
+
+            updateLines(
+                `Searching tag "${tagName}"...`,
+                "Extracting vault references and backlinks..."
+            );
+
+            const phases = [
+                {
+                    main: "Scanning note graph for exact tag matches...",
+                    sub: `Reading linked notes and metadata for "${tagName}"...`,
+                },
+                {
+                    main: "Compiling candidate notes...",
+                    sub: "Merging backlinks and wiki-link references...",
+                },
+                {
+                    main: "Finalizing ranked list...",
+                    sub: "Preparing the note stack for reveal...",
+                },
+            ];
+
+            let phaseIndex = 0;
+            statusTimer = window.setInterval(() => {
+                const phase = phases[phaseIndex % phases.length];
+                updateLines(phase.main, phase.sub);
+                phaseIndex += 1;
+            }, 900);
+
+            let payload = null;
+            let fetchError = null;
+            try {
+                const response = await fetch(
+                    `/api/vault-tag-search.json?tag=${encodeURIComponent(tagSlug || tagName)}`,
+                    { cache: "no-store" },
+                );
+                payload = await response.json();
+                if (!response.ok || !payload?.ok) {
+                    fetchError = payload?.error || "Search failed.";
+                }
+            } catch (error) {
+                fetchError = "Network error while searching the vault.";
+            }
+
+            if (statusTimer) window.clearInterval(statusTimer);
+
+            if (searchConsole) searchConsole.classList.remove("is-searching");
+
+            if (fetchError) {
+                updateLines("Search failed.", fetchError);
+                if (listNode) {
+                    listNode.innerHTML =
+                        '<p class="no-results result-reveal is-visible">Please retry in a moment.</p>';
+                }
+                return;
+            }
+
+            const notes = Array.isArray(payload?.notes) ? payload.notes : [];
+            const noteCount = typeof payload?.count === "number" ? payload.count : notes.length;
+
+            updateLines(
+                "Search complete.",
+                noteCount === 0
+                    ? `No matches found for "${tagName}".`
+                    : `Found ${noteCount} ${noteCount === 1 ? "note" : "notes"} with "${tagName}".`,
+            );
+
+            await pause(180);
+
+            const resultNodes = renderResults(notes);
+            resultNodes.forEach((node, index) => {
+                const delay = 170 * index;
+                window.setTimeout(() => {
+                    node.classList.add("is-visible");
+                }, delay);
+            });
+
+            window.setTimeout(() => {
+                tagView.classList.remove("is-animating");
+            }, Math.max(700, 170 * resultNodes.length + 240));
+        };
+
+        run();
+    });
+</script>
+
+<style>
+    :root {
+        --vault-pill-bg: rgba(0, 0, 0, 0.18);
+        --vault-pill-hover-bg: rgba(0, 0, 0, 0.26);
+    }
+
+    [data-theme="light"] {
+        --vault-pill-bg: rgba(255, 255, 255, 0.84);
+        --vault-pill-hover-bg: rgba(255, 255, 255, 0.95);
+    }
+
+    .note-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .note-nav {
+        margin-bottom: 2rem;
+    }
+
+    .back-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.25rem;
+        padding: 0.52rem 0.9rem;
+        border: 1px solid var(--border-subtle);
+        border-radius: 999px;
+        background: var(--bg-canvas);
+        color: var(--text-tertiary);
+        text-decoration: none;
+        font-size: 0.78rem;
+        font-family: var(--font-ui);
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        transition: color 0.2s, border-color 0.2s, background 0.2s, transform 0.2s;
+    }
+
+    .back-pill:hover {
+        color: var(--text-primary);
+        border-color: var(--text-secondary);
+        background: var(--bg-surface);
+        transform: translateY(-1px);
+    }
+
+    .note-content h1 {
+        font-size: 2.5rem;
+        margin-bottom: 2rem;
+        text-transform: capitalize;
+    }
+
+    .tag-search-console {
+        border: 1px solid var(--border-subtle);
+        border-radius: 10px;
+        background: var(--bg-canvas);
+        padding: 0.95rem 1rem;
+        margin-bottom: 1.1rem;
+        display: grid;
+        gap: 0.25rem;
+    }
+
+    .tag-search-console.is-searching {
+        animation: searchGlow 1.8s ease-in-out infinite;
+        border-color: rgba(120, 170, 255, 0.45);
+    }
+
+    .search-line {
+        margin: 0;
+        font-family: var(--font-ui);
+        letter-spacing: 0.02em;
+    }
+
+    .search-line-main {
+        color: var(--text-primary);
+        font-size: 0.85rem;
+    }
+
+    .tag-search-console.is-searching .search-line-main::after {
+        content: "...";
+        display: inline-block;
+        width: 0;
+        overflow: hidden;
+        vertical-align: bottom;
+        animation: scanDots 1.2s steps(4, end) infinite;
+    }
+
+    .search-line-sub {
+        color: var(--text-secondary);
+        font-size: 0.78rem;
+    }
+
+    @keyframes scanDots {
+        to {
+            width: 1.15em;
+        }
+    }
+
+    @keyframes searchGlow {
+        0% {
+            box-shadow: 0 0 0 rgba(120, 170, 255, 0);
+        }
+        50% {
+            box-shadow: 0 0 0.9rem rgba(120, 170, 255, 0.22);
+        }
+        100% {
+            box-shadow: 0 0 0 rgba(120, 170, 255, 0);
+        }
+    }
+
+    .notes-column-preview {
+        min-width: 0;
+        border-right: none;
+        padding: 0;
+    }
+
+    .vault-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1.2rem;
+    }
+
+    .search-pending {
+        margin: 0;
+        color: var(--text-tertiary);
+        border: 1px dashed var(--border-subtle);
+        border-radius: 8px;
+        padding: 0.95rem 1rem;
+        font-size: 0.82rem;
+        font-family: var(--font-ui);
+    }
+
+    .note-card {
+        display: block;
+        padding: 1.2rem;
+        border-radius: 8px;
+        text-decoration: none;
+        color: var(--text-primary);
+        transition: transform 0.2s, background 0.2s;
+        border: 1px solid var(--border-subtle);
+        background: var(--vault-pill-bg);
+        width: 100%;
+        margin-bottom: 0;
+    }
+
+    .note-card:hover {
+        transform: translateX(4px);
+        background: var(--vault-pill-hover-bg);
+        border-color: var(--text-secondary);
+    }
+
+    .note-info h3 {
+        font-family: var(--feature-obsidian-note-title-font, var(--font-display));
+        font-weight: var(--feature-obsidian-note-title-weight, 500);
+        font-size: var(--feature-obsidian-note-title-size, 1rem);
+        line-height: var(--feature-obsidian-note-title-line-height, 1.3);
+        letter-spacing: var(--feature-obsidian-note-title-letter-spacing, 0em);
+        margin: 0;
+        color: var(--feature-obsidian-note-title-color, #8a8a8a);
+        text-transform: capitalize;
+    }
+
+    .result-reveal {
+        opacity: 1;
+        transform: translateY(0);
+        filter: none;
+    }
+
+    .tag-results.is-animating .result-reveal {
+        opacity: 0;
+        transform: translateY(10px);
+        filter: blur(1px);
+    }
+
+    .tag-results.is-animating .result-reveal.is-visible {
+        opacity: 1;
+        transform: translateY(0);
+        filter: none;
+        transition:
+            opacity 0.45s ease,
+            transform 0.45s ease,
+            filter 0.45s ease;
+    }
+
+    .no-results {
+        margin: 0;
+        color: var(--text-secondary);
+        border: 1px solid var(--border-subtle);
+        border-radius: 8px;
+        background: var(--bg-canvas);
+        padding: 1rem;
+        font-family: var(--font-ui);
+        font-size: 0.86rem;
+    }
+
+    @media (max-width: 1100px) {
+        .note-container {
+            padding: 1rem;
+        }
+
+        .notes-column-preview {
+            padding: 0;
+        }
+    }
+</style>

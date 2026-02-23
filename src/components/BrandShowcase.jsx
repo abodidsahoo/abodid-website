@@ -284,7 +284,7 @@ export default function BrandShowcase({ limit = null }) {
                 }
 
                 .brand-category {
-                    font-family: 'Poppins', sans-serif;
+                    font-family: var(--font-display);
                     font-weight: 700;
                     font-size: 0.8rem;
                     color: #333;
@@ -292,7 +292,7 @@ export default function BrandShowcase({ limit = null }) {
                 }
 
                 .brand-role {
-                    font-family: 'Inconsolata', monospace;
+                    font-family: var(--font-mono);
                     font-size: 0.7rem;
                     color: #666;
                     font-weight: 500;

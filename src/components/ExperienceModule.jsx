@@ -581,7 +581,7 @@ const ExperienceModule = ({ src, captions = [], autoStart = false }) => {
                 }
 
                 .lyric-text {
-                    font-family: 'Inconsolata', monospace;
+                    font-family: var(--font-mono);
                     font-size: 1.1rem;
                     color: white;
                     letter-spacing: 0.05em;
@@ -648,7 +648,7 @@ const ExperienceModule = ({ src, captions = [], autoStart = false }) => {
                     color: rgba(255, 255, 255, 0.96);
                     border-radius: 9px;
                     padding: 0.38rem 0.72rem;
-                    font-family: 'Space Mono', monospace;
+                    font-family: var(--font-ui);
                     font-size: 0.62rem;
                     letter-spacing: 0.05em;
                     text-transform: uppercase;

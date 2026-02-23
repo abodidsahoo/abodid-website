@@ -77,7 +77,7 @@ const FundraisingCard = ({
         }
 
         h3 {
-          font-family: 'Poppins', sans-serif;
+          font-family: var(--font-display);
           font-size: 1.25rem;
           font-weight: 600;
           margin: 0 0 0.5rem 0;
@@ -114,7 +114,7 @@ const FundraisingCard = ({
           background: transparent;
           border: 1px solid var(--border-strong);
           color: var(--text-primary);
-          font-family: 'Space Mono', monospace;
+          font-family: var(--font-ui);
           font-weight: 700;
           font-size: 0.9rem;
           border-radius: 8px;

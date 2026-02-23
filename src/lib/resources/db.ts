@@ -1,5 +1,5 @@
 import { supabase } from '../supabaseClient';
-import type { HubResource, CreateResourcePayload, HubTag, Profile, ResourceAudience } from './types';
+import type { HubResource, CreateResourcePayload, CuratorApprovalPayload, HubTag, Profile, ResourceAudience } from './types';
 
 // --- Types for Filter Params ---
 export interface ResourceFilters {
@@ -187,8 +187,8 @@ export async function submitResource(payload: CreateResourcePayload): Promise<{ 
                 title: payload.title,
                 url: payload.url,
                 description: payload.description,
-                audience: payload.audience,
-                thumbnail_url: payload.thumbnail_url,
+                audience: 'Designer',
+                thumbnail_url: null,
                 credit_text: payload.credit_text,
                 submitted_by: user.id,
                 status: submissionStatus,
@@ -202,20 +202,6 @@ export async function submitResource(payload: CreateResourcePayload): Promise<{ 
             .single();
 
         if (insertError) throw insertError;
-
-        // 3. Insert Tags (if any)
-        if (payload.tag_ids && payload.tag_ids.length > 0) {
-            const tagInserts = payload.tag_ids.map(tagId => ({
-                resource_id: resource.id,
-                tag_id: tagId
-            }));
-
-            const { error: tagError } = await supabase
-                .from('hub_resource_tags')
-                .insert(tagInserts);
-
-            if (tagError) console.error('Error linking tags:', tagError);
-        }
 
         return { success: true, data: resource };
 
@@ -250,7 +236,11 @@ export async function getPendingResources(): Promise<HubResource[]> {
         .from('hub_resources')
         .select(`
       *,
-      submitter_profile:submitted_by (username, full_name, avatar_url)
+      submitter_profile:submitted_by (username, full_name, avatar_url),
+      tags:hub_resource_tags (
+        tag_id,
+        tag:hub_tags (id, name)
+      )
     `)
         .in('status', ['pending']) // Explicitly only pending
         .order('created_at', { ascending: true });
@@ -260,7 +250,12 @@ export async function getPendingResources(): Promise<HubResource[]> {
         return [];
     }
 
-    return data;
+    return data.map((item: any) => ({
+        ...item,
+        tags: item.tags
+            ?.map((t: any) => t.tag)
+            ?.filter((tag: any) => tag !== null) || []
+    }));
 }
 
 export async function updateResourceStatus(
@@ -532,8 +527,65 @@ export async function getUserStats(userId: string): Promise<{ recent_upvotes: nu
 
 // --- Curator Moderation Actions ---
 
-export async function approveResource(resourceId: string): Promise<{ success: boolean; error?: string }> {
-    return updateResourceStatus(resourceId, 'approved');
+export async function approveResource(
+    resourceId: string,
+    payload: CuratorApprovalPayload = {}
+): Promise<{ success: boolean; error?: string }> {
+    if (!supabase) return { success: false, error: 'Database not connected' };
+
+    try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return { success: false, error: 'Unauthorized' };
+
+        const updates: any = {
+            status: 'approved',
+            reviewed_at: new Date().toISOString(),
+            reviewed_by: user.id,
+            updated_at: new Date().toISOString()
+        };
+
+        if (payload.thumbnail_url !== undefined) {
+            updates.thumbnail_url = payload.thumbnail_url;
+        }
+
+        if (payload.audience) {
+            updates.audience = payload.audience;
+        }
+
+        const { error: resourceError } = await supabase
+            .from('hub_resources')
+            .update(updates)
+            .eq('id', resourceId);
+
+        if (resourceError) throw resourceError;
+
+        if (payload.tag_ids) {
+            const { error: deleteTagsError } = await supabase
+                .from('hub_resource_tags')
+                .delete()
+                .eq('resource_id', resourceId);
+
+            if (deleteTagsError) throw deleteTagsError;
+
+            if (payload.tag_ids.length > 0) {
+                const tagInserts = payload.tag_ids.map(tagId => ({
+                    resource_id: resourceId,
+                    tag_id: tagId
+                }));
+
+                const { error: insertTagsError } = await supabase
+                    .from('hub_resource_tags')
+                    .insert(tagInserts);
+
+                if (insertTagsError) throw insertTagsError;
+            }
+        }
+
+        return { success: true };
+    } catch (e: any) {
+        console.error('Approval failed:', e);
+        return { success: false, error: e.message };
+    }
 }
 
 export async function rejectResource(resourceId: string, reason?: string): Promise<{ success: boolean; error?: string }> {

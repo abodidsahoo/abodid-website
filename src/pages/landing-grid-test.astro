@@ -2,6 +2,7 @@
 export const prerender = false;
 
 import LandingGridPrototype from "../components/landing/LandingGridPrototype.jsx";
+import ExperimentLayout from "../layouts/ExperimentLayout.astro";
 import {
     getFilms,
     getFeaturedPhotography,
@@ -178,44 +179,35 @@ const currentProjects = newsRaw
     });
 ---
 
-<html lang="en">
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width" />
-        <title>Landing Grid Test</title>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link
-            href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;600;700&family=Space+Mono:wght@400;700&display=swap"
-            rel="stylesheet"
-        />
-    </head>
-    <body>
-        <LandingGridPrototype
-            client:load
-            showreelVideoUrl={SHOWREEL_VIDEO_URL}
-            films={films}
-            photos={photos}
-            notes={notes}
-            resources={resources}
-            researchProjects={researchProjects}
-            visualExperiments={visualExperiments}
-            fundraisingProjects={fundraisingProjects}
-            currentProjects={currentProjects}
-            obsidianTags={obsidianTags}
-        />
-    </body>
-</html>
+<ExperimentLayout
+    title="Landing Grid Test"
+    description="Interactive landing prototype with modular tiles and dynamic content streams."
+    lockViewport={true}
+    bodyClass="landing-grid-test-page"
+>
+    <LandingGridPrototype
+        client:load
+        showreelVideoUrl={SHOWREEL_VIDEO_URL}
+        films={films}
+        photos={photos}
+        notes={notes}
+        resources={resources}
+        researchProjects={researchProjects}
+        visualExperiments={visualExperiments}
+        fundraisingProjects={fundraisingProjects}
+        currentProjects={currentProjects}
+        obsidianTags={obsidianTags}
+    />
+</ExperimentLayout>
 
 <style>
-    html,
-    body {
-        margin: 0;
-        width: 100%;
-        height: 100%;
+    :global(body.landing-grid-test-page) {
         overflow: hidden;
         background: #020202;
         color: #fff;
-        font-family: "Space Mono", monospace;
+    }
+
+    :global(body.landing-grid-test-page #main-content) {
+        height: 100vh;
     }
 </style>

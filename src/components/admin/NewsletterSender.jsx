@@ -515,7 +515,7 @@ export default function NewsletterSender() {
                 .box-input:focus { border-color: var(--text-primary); outline: none; }
                 
                 .markdown-editor {
-                    font-family: 'Monaco', 'Menlo', monospace;
+                    font-family: var(--font-mono);
                     font-size: 0.9rem;
                     line-height: 1.6;
                     min-height: 400px;
@@ -563,7 +563,7 @@ export default function NewsletterSender() {
                     border: none;
                     border-radius: 8px;
                     padding: 20px;
-                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    font-family: var(--font-ui);
                     line-height: 1.6;
                     min-height: 600px;
                     box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);

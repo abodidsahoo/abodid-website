@@ -124,22 +124,25 @@ const { title, category, image, href } = Astro.props;
   }
 
   .title {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: #fff;
+    font-family: var(--feature-photo-overlay-title-font, var(--font-ui));
+    font-size: var(--feature-photo-overlay-title-size, 1.4rem);
+    font-weight: var(--feature-photo-overlay-title-weight, 700);
+    line-height: var(--feature-photo-overlay-title-line-height, 1.1);
+    letter-spacing: var(--feature-photo-overlay-title-letter-spacing, -0.02em);
+    color: var(--feature-photo-overlay-title-color, #fff);
     margin: 0 0 0.25rem 0;
-    font-family: "Space Mono", monospace;
     text-transform: uppercase;
-    letter-spacing: -0.02em;
     text-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
   }
 
   .category {
-    font-size: 0.8rem;
-    font-family: "Inconsolata", monospace;
+    font-family: var(--feature-photo-overlay-meta-font, var(--font-mono));
+    font-size: var(--feature-photo-overlay-meta-size, 0.8rem);
+    font-weight: var(--feature-photo-overlay-meta-weight, 400);
+    line-height: var(--feature-photo-overlay-meta-line-height, 1.2);
     text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--sci-fi-cyan, #00f3ff);
+    letter-spacing: var(--feature-photo-overlay-meta-letter-spacing, 0.1em);
+    color: var(--feature-photo-overlay-meta-color, var(--sci-fi-cyan, #00f3ff));
   }
 
   /* Corner Accents */

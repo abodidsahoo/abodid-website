@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import MoodboardPolaroidViewer from './MoodboardPolaroidViewer.jsx';
 
 const OVERLAP_LIMIT = 0.22;
 const EDGE_PADDING = 18;
@@ -287,7 +288,12 @@ function computeFloatingLayout(items, width, height, seedSalt = 0) {
     return layout;
 }
 
-export default function VisualMoodboard({ items = [], enableGrain = true }) {
+export default function VisualMoodboard({
+    items = [],
+    enableGrain = true,
+    enablePolaroidViewer = false,
+    deepLinkParam = '',
+}) {
     const prefersReducedMotion = useReducedMotion();
     const stageRef = useRef(null);
     const probedIdsRef = useRef(new Set());
@@ -307,6 +313,8 @@ export default function VisualMoodboard({ items = [], enableGrain = true }) {
     const [shuffleSequence, setShuffleSequence] = useState([]);
     const [stackFrameIndex, setStackFrameIndex] = useState(0);
     const [stackZFrames, setStackZFrames] = useState([]);
+    const deepLinkInitializedRef = useRef(false);
+    const [viewerActiveId, setViewerActiveId] = useState(null);
 
     useEffect(() => {
         return () => {
@@ -397,6 +405,17 @@ export default function VisualMoodboard({ items = [], enableGrain = true }) {
                         (typeof item.image_url === 'string' && item.image_url.trim()) ||
                         (typeof item.url === 'string' && item.url.trim()) ||
                         '';
+                    const itemHref =
+                        (typeof item.href === 'string' && item.href.trim()) ||
+                        (typeof item.link === 'string' && item.link.trim()) ||
+                        '';
+                    const itemCaption =
+                        (typeof item.caption === 'string' && item.caption.trim()) ||
+                        (typeof item.description === 'string' && item.description.trim()) ||
+                        '';
+                    const itemProjectHref =
+                        (typeof item.projectHref === 'string' && item.projectHref.trim()) ||
+                        itemHref;
 
                     const normalizedTags = normalizeTags(item.tags);
                     const ratioFromMeta =
@@ -417,6 +436,9 @@ export default function VisualMoodboard({ items = [], enableGrain = true }) {
                             `${titleValue.toLowerCase().replace(/\s+/g, '-')}-${index}`,
                         title: titleValue,
                         imageUrl,
+                        href: itemHref,
+                        projectHref: itemProjectHref,
+                        caption: itemCaption,
                         tags: normalizedTags,
                         aspectRatio,
                         searchText: `${titleValue} ${normalizedTags.join(' ')}`.toLowerCase(),
@@ -465,6 +487,69 @@ export default function VisualMoodboard({ items = [], enableGrain = true }) {
         const visibleCount = completeRowCount * laneCount;
         return filteredItems.slice(0, visibleCount);
     }, [filteredItems, stageSize.width]);
+
+    const deepLinkKey = deepLinkParam.trim();
+
+    const syncDeepLink = (itemId) => {
+        if (!enablePolaroidViewer || !deepLinkKey || typeof window === 'undefined') {
+            return;
+        }
+
+        const nextUrl = new URL(window.location.href);
+        if (itemId) {
+            nextUrl.searchParams.set(deepLinkKey, itemId);
+        } else {
+            nextUrl.searchParams.delete(deepLinkKey);
+        }
+        window.history.replaceState(
+            {},
+            '',
+            `${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`,
+        );
+    };
+
+    useEffect(() => {
+        if (!enablePolaroidViewer || !deepLinkKey || typeof window === 'undefined') {
+            return;
+        }
+        if (deepLinkInitializedRef.current) return;
+        if (!normalizedItems.length) return;
+
+        const requestedId = new URLSearchParams(window.location.search).get(
+            deepLinkKey,
+        );
+        if (requestedId && normalizedItems.some((item) => item.id === requestedId)) {
+            setViewerActiveId(requestedId);
+        } else if (requestedId) {
+            syncDeepLink('');
+        }
+
+        deepLinkInitializedRef.current = true;
+    }, [enablePolaroidViewer, deepLinkKey, normalizedItems]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    useEffect(() => {
+        if (!viewerActiveId) return;
+        if (boardItems.some((item) => item.id === viewerActiveId)) return;
+        setViewerActiveId(null);
+        syncDeepLink('');
+    }, [boardItems, viewerActiveId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    const handleViewerOpen = (itemId) => {
+        if (!itemId) return;
+        setViewerActiveId(itemId);
+        syncDeepLink(itemId);
+    };
+
+    const handleViewerClose = () => {
+        setViewerActiveId(null);
+        syncDeepLink('');
+    };
+
+    const handleViewerChange = (itemId) => {
+        if (!itemId) return;
+        setViewerActiveId(itemId);
+        syncDeepLink(itemId);
+    };
 
     const boardItemsKey = useMemo(
         () => boardItems.map((item) => item.id).join('|'),
@@ -869,6 +954,10 @@ export default function VisualMoodboard({ items = [], enableGrain = true }) {
                             const deployLayout = pendingLayoutMap.get(item.id) || idleLayout;
                             const activeLayout = shufflePhase === 'deploy' ? deployLayout : idleLayout;
                             const isPriorityImage = priorityImageIds.has(item.id);
+                            const shouldOpenViewer = enablePolaroidViewer;
+                            const cardHref =
+                                typeof item.href === 'string' && item.href.trim() ? item.href.trim() : '';
+                            const isClickable = shouldOpenViewer || Boolean(cardHref);
 
                             const stackCenterX = stageSize.width / 2;
                             const stackCenterY = clamp(stageSize.height * 0.3, 200, 380);
@@ -972,10 +1061,47 @@ export default function VisualMoodboard({ items = [], enableGrain = true }) {
                                     };
                             }
 
+                            const animatedImage = (
+                                <motion.img
+                                    src={item.imageUrl}
+                                    alt={item.title}
+                                    loading={isPriorityImage ? 'eager' : 'lazy'}
+                                    decoding={isPriorityImage ? 'sync' : 'async'}
+                                    fetchPriority={isPriorityImage ? 'high' : 'low'}
+                                    animate={
+                                        prefersReducedMotion
+                                            ? { y: 0, scale: 1 }
+                                            : {
+                                                y: [0, breathingY, 0, -breathingY * 0.36, 0],
+                                                scale: [
+                                                    1,
+                                                    1 + breathingScale,
+                                                    1,
+                                                    1 - breathingScale * 0.52,
+                                                    1,
+                                                ],
+                                            }
+                                    }
+                                    transition={
+                                        prefersReducedMotion
+                                            ? { duration: 0 }
+                                            : {
+                                                duration: breathingDuration,
+                                                ease: 'easeInOut',
+                                                repeat: Infinity,
+                                                repeatType: 'loop',
+                                                delay: breathingDelay,
+                                                times: [0, 0.32, 0.54, 0.78, 1],
+                                            }
+                                    }
+                                    style={{ transformOrigin: '50% 50%' }}
+                                />
+                            );
+
                             return (
                                 <motion.figure
                                     key={item.id}
-                                    className="moodboard-card"
+                                    className={`moodboard-card ${isClickable ? 'is-clickable' : ''}`}
                                     initial={false}
                                     exit={{ scale: 0.9, transition: { duration: 0.2 } }}
                                     animate={figureAnimate}
@@ -992,6 +1118,7 @@ export default function VisualMoodboard({ items = [], enableGrain = true }) {
                                             }
                                             return 420 + orderIndex;
                                         })(),
+                                        pointerEvents: isClickable ? 'auto' : 'none',
                                     }}
                                 >
                                     <motion.div
@@ -1024,40 +1151,26 @@ export default function VisualMoodboard({ items = [], enableGrain = true }) {
                                                     }
                                         }
                                     >
-                                        <motion.img
-                                            src={item.imageUrl}
-                                            alt={item.title}
-                                            loading={isPriorityImage ? 'eager' : 'lazy'}
-                                            decoding={isPriorityImage ? 'sync' : 'async'}
-                                            fetchPriority={isPriorityImage ? 'high' : 'low'}
-                                            animate={
-                                                prefersReducedMotion
-                                                    ? { y: 0, scale: 1 }
-                                                    : {
-                                                        y: [0, breathingY, 0, -breathingY * 0.36, 0],
-                                                        scale: [
-                                                            1,
-                                                            1 + breathingScale,
-                                                            1,
-                                                            1 - breathingScale * 0.52,
-                                                            1,
-                                                        ],
-                                                    }
-                                            }
-                                            transition={
-                                                prefersReducedMotion
-                                                    ? { duration: 0 }
-                                                    : {
-                                                        duration: breathingDuration,
-                                                        ease: 'easeInOut',
-                                                        repeat: Infinity,
-                                                        repeatType: 'loop',
-                                                        delay: breathingDelay,
-                                                        times: [0, 0.32, 0.54, 0.78, 1],
-                                                    }
-                                            }
-                                            style={{ transformOrigin: '50% 50%' }}
-                                        />
+                                        {shouldOpenViewer ? (
+                                            <button
+                                                type="button"
+                                                className="moodboard-card-link moodboard-card-link-button"
+                                                onClick={() => handleViewerOpen(item.id)}
+                                                aria-label={`Open ${item.title}`}
+                                            >
+                                                {animatedImage}
+                                            </button>
+                                        ) : isClickable ? (
+                                            <a
+                                                href={cardHref}
+                                                className="moodboard-card-link"
+                                                aria-label={`Open ${item.title}`}
+                                            >
+                                                {animatedImage}
+                                            </a>
+                                        ) : (
+                                            animatedImage
+                                        )}
                                     </motion.div>
                                 </motion.figure>
                             );
@@ -1070,6 +1183,15 @@ export default function VisualMoodboard({ items = [], enableGrain = true }) {
                         </div>
                     )}
                 </div>
+            )}
+
+            {enablePolaroidViewer && viewerActiveId && (
+                <MoodboardPolaroidViewer
+                    items={boardItems}
+                    activeId={viewerActiveId}
+                    onClose={handleViewerClose}
+                    onChange={handleViewerChange}
+                />
             )}
 
             <style>{`
@@ -1149,7 +1271,7 @@ export default function VisualMoodboard({ items = [], enableGrain = true }) {
                     min-height: 38px;
                     padding: 0 0.85rem;
                     cursor: pointer;
-                    font-family: 'Space Mono', monospace;
+                    font-family: var(--font-ui);
                     font-size: 0.68rem;
                     text-transform: uppercase;
                     letter-spacing: 0.08em;
@@ -1168,7 +1290,7 @@ export default function VisualMoodboard({ items = [], enableGrain = true }) {
                     padding: 0 1rem;
                     cursor: pointer;
                     color: var(--fab-text);
-                    font-family: 'Space Mono', monospace;
+                    font-family: var(--font-ui);
                     font-size: 0.68rem;
                     font-weight: 700;
                     text-transform: uppercase;
@@ -1236,7 +1358,7 @@ export default function VisualMoodboard({ items = [], enableGrain = true }) {
                     color: var(--ui-text-strong);
                     border-radius: 10px;
                     padding: 0.75rem 1rem;
-                    font-family: 'Space Mono', monospace;
+                    font-family: var(--font-ui);
                     font-size: 0.82rem;
                     letter-spacing: 0.02em;
                 }
@@ -1259,7 +1381,7 @@ export default function VisualMoodboard({ items = [], enableGrain = true }) {
                     min-height: 46px;
                     padding: 0 1rem;
                     cursor: pointer;
-                    font-family: 'Space Mono', monospace;
+                    font-family: var(--font-ui);
                     font-size: 0.72rem;
                     text-transform: uppercase;
                     letter-spacing: 0.08em;
@@ -1278,7 +1400,7 @@ export default function VisualMoodboard({ items = [], enableGrain = true }) {
                     color: var(--ui-text);
                     border-radius: 999px;
                     padding: 0.38rem 0.72rem;
-                    font-family: 'Space Mono', monospace;
+                    font-family: var(--font-ui);
                     font-size: 0.68rem;
                     letter-spacing: 0.05em;
                     text-transform: lowercase;
@@ -1311,10 +1433,37 @@ export default function VisualMoodboard({ items = [], enableGrain = true }) {
                     will-change: transform;
                 }
 
+                .moodboard-card.is-clickable {
+                    cursor: pointer;
+                }
+
                 .moodboard-card-entry {
                     width: 100%;
                     height: 100%;
                     will-change: transform, opacity;
+                }
+
+                .moodboard-card-link {
+                    display: block;
+                    width: 100%;
+                    height: 100%;
+                    pointer-events: auto;
+                    text-decoration: none;
+                }
+
+                .moodboard-card-link-button {
+                    appearance: none;
+                    border: 0;
+                    padding: 0;
+                    margin: 0;
+                    background: transparent;
+                    text-align: inherit;
+                    cursor: pointer;
+                }
+
+                .moodboard-card-link:focus-visible {
+                    outline: 2px solid var(--ui-focus-border);
+                    outline-offset: 2px;
                 }
 
                 .moodboard-card img {
@@ -1336,7 +1485,7 @@ export default function VisualMoodboard({ items = [], enableGrain = true }) {
                     color: var(--ui-text);
                     border-radius: 12px;
                     padding: 1rem 1.2rem;
-                    font-family: 'Space Mono', monospace;
+                    font-family: var(--font-ui);
                     font-size: 0.76rem;
                     letter-spacing: 0.03em;
                     text-align: center;

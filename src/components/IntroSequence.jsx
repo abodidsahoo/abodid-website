@@ -311,7 +311,7 @@ const IntroSequence = ({ onPhysicsStart, onSequenceEnd }) => {
                 .intro-sequence-container {
                     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
                     z-index: 9999; display: flex; align-items: center; justify-content: center;
-                    color: var(--intro-text); font-family: "VT323", monospace; pointer-events: none;
+                    color: var(--intro-text); font-family: var(--font-custom-3); pointer-events: none;
                     --intro-text-size: 2rem;
                     --intro-text: #ffffff;
                     --intro-accent: #ffff00;

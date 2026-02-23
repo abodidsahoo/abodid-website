@@ -125,7 +125,8 @@ const Header = () => {
                                             <div className="sidebar-block">
                                                 <div className="mono-label">Resources</div>
                                                 <MenuLink href="/resources" variants={itemVariants} className="mono-link">Curated Resources Mega Vault</MenuLink>
-                                                <MenuLink href="/research/visual-moodboard" variants={itemVariants} className="mono-link">Visual Moodboard</MenuLink>
+                                                <MenuLink href="/moodboard" variants={itemVariants} className="mono-link">Visual Moodboard</MenuLink>
+                                                <MenuLink href="/photography-portfolio" variants={itemVariants} className="mono-link">Photography Portfolio</MenuLink>
                                                 <MenuLink href="/research/obsidian-vault" variants={itemVariants} className="mono-link">Personal Notes (Obsidian Vault)</MenuLink>
                                                 <MenuLink href="/research/second-brain" variants={itemVariants} className="mono-link">Second Brain Club Membership</MenuLink>
                                             </div>
@@ -247,7 +248,7 @@ const Header = () => {
 
                 .nav-border { width: 100%; height: 1px; background: rgba(255,255,255, 0.15); }
                 .menu-btn {
-                    font-family: 'Space Mono', monospace; font-size: 0.9rem; text-transform: uppercase;
+                    font-family: var(--font-ui); font-size: 0.9rem; text-transform: uppercase;
                     color: var(--nav-text); 
                     background: none; border: none; cursor: pointer;
                     letter-spacing: 0.05em; 
@@ -303,7 +304,7 @@ const Header = () => {
                 }
 
                 .dominant-link .menu-text {
-                    font-family: 'Poppins', sans-serif;
+                    font-family: var(--font-display);
                     font-weight: 700; 
                     font-size: 3.5rem; /* Reduced from 5.5rem for better balance */
                     color: white; 
@@ -337,7 +338,7 @@ const Header = () => {
                 }
 
                 .mono-label {
-                    font-family: 'Inconsolata', monospace; 
+                    font-family: var(--font-mono); 
                     font-size: 1.1rem; 
                     font-weight: 800; 
                     color: #1a1a1a; 
@@ -349,7 +350,7 @@ const Header = () => {
                 .mono-link { text-decoration: none; display: block; width: fit-content; }
 
                 .mono-link .menu-text, .mono-text-link {
-                    font-family: 'Inconsolata', monospace; 
+                    font-family: var(--font-mono); 
                     font-size: 0.9rem;
                     color: #444;
                     text-decoration: none;

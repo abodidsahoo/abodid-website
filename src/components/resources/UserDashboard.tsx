@@ -272,7 +272,7 @@ export default function UserDashboard({ user: propUser }: UserDashboardProps) {
                     align-items: center;
                     justify-content: center;
                     border-radius: 8px;
-                    font-family: 'Space Mono', monospace; /* Monospace font */
+                    font-family: var(--font-ui); /* Monospace font */
                     font-size: 0.85rem;
                     font-weight: 500;
                     text-decoration: none;
@@ -336,7 +336,7 @@ export default function UserDashboard({ user: propUser }: UserDashboardProps) {
                     font-size: 0.95rem; /* Reduced font size */
                     transition: transform 0.2s, opacity 0.2s;
                     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-                    font-family: 'Space Mono', monospace; /* Consistent font */
+                    font-family: var(--font-ui); /* Consistent font */
                     width: auto; /* Allow auto width */
                     min-width: 200px;
                 }

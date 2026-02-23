@@ -58,7 +58,7 @@ const StickyMobileNav = () => {
                 .nav-btn {
                     color: white;
                     text-decoration: none;
-                    font-family: 'Space Mono', monospace;
+                    font-family: var(--font-ui);
                     font-size: 0.8rem;
                     text-transform: uppercase;
                     letter-spacing: 0.05em;

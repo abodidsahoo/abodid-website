@@ -227,20 +227,22 @@ const NewsletterForm = ({ onClose, variant = "popup" }) => {
             }
 
             .newsletter-headline {
-              font-family: 'Poppins', sans-serif;
-              font-weight: 700;
-              font-size: 1.75rem;
-              line-height: 1.1;
-              color: #fff;
+              font-family: var(--feature-newsletter-title-font, var(--font-display));
+              font-weight: var(--feature-newsletter-title-weight, 700);
+              font-size: var(--feature-newsletter-title-size, 1.75rem);
+              line-height: var(--feature-newsletter-title-line-height, 1.1);
+              letter-spacing: var(--feature-newsletter-title-letter-spacing, -0.03em);
+              color: var(--feature-newsletter-title-color, #fff);
               margin: 0;
-              letter-spacing: -0.03em;
             }
 
             .newsletter-desc {
-              font-family: 'Inter', sans-serif;
-              font-size: 0.95rem;
-              line-height: 1.6;
-              color: #a0a0a0;
+              font-family: var(--feature-newsletter-body-font, var(--font-ui));
+              font-size: var(--feature-newsletter-body-size, 0.95rem);
+              font-weight: var(--feature-newsletter-body-weight, 400);
+              line-height: var(--feature-newsletter-body-line-height, 1.6);
+              letter-spacing: var(--feature-newsletter-body-letter-spacing, 0em);
+              color: var(--feature-newsletter-body-color, #a0a0a0);
               margin-bottom: 2rem;
             }
 
@@ -258,10 +260,13 @@ const NewsletterForm = ({ onClose, variant = "popup" }) => {
               width: 100%;
               background: #111;
               border: 1px solid #333;
-              color: white;
+              color: var(--feature-newsletter-input-color, white);
               padding: 1.1rem;
-              font-family: 'Inter', sans-serif;
-              font-size: 0.95rem;
+              font-family: var(--feature-newsletter-input-font, var(--font-ui));
+              font-size: var(--feature-newsletter-input-size, 0.95rem);
+              font-weight: var(--feature-newsletter-input-weight, 400);
+              line-height: var(--feature-newsletter-input-line-height, 1.3);
+              letter-spacing: var(--feature-newsletter-input-letter-spacing, 0em);
               border-radius: 8px; /* Matching curvature */
               transition: border-color 0.2s, background 0.2s;
             }
@@ -294,14 +299,15 @@ const NewsletterForm = ({ onClose, variant = "popup" }) => {
             
             .newsletter-submit-btn {
               background: #a30021; /* Matching Red */
-              color: #fff;
+              color: var(--feature-newsletter-button-color, #fff);
               border: none;
               padding: 0.9rem 1.8rem;
-              font-family: 'Space Mono', monospace;
-              font-size: 0.85rem;
+              font-family: var(--feature-newsletter-button-font, var(--font-ui));
+              font-size: var(--feature-newsletter-button-size, 0.85rem);
               text-transform: uppercase;
-              letter-spacing: 0.05em;
-              font-weight: 700;
+              letter-spacing: var(--feature-newsletter-button-letter-spacing, 0.05em);
+              font-weight: var(--feature-newsletter-button-weight, 700);
+              line-height: var(--feature-newsletter-button-line-height, 1.2);
               cursor: pointer;
               border-radius: 8px; 
               transition: all 0.2s;
@@ -322,9 +328,12 @@ const NewsletterForm = ({ onClose, variant = "popup" }) => {
             }
 
             .secondary-link {
-              font-family: 'Inter', sans-serif;
-              font-size: 0.85rem;
-              color: #666;
+              font-family: var(--feature-newsletter-secondary-link-font, var(--font-ui));
+              font-size: var(--feature-newsletter-secondary-link-size, 0.85rem);
+              font-weight: var(--feature-newsletter-secondary-link-weight, 400);
+              line-height: var(--feature-newsletter-secondary-link-line-height, 1.2);
+              letter-spacing: var(--feature-newsletter-secondary-link-letter-spacing, 0em);
+              color: var(--feature-newsletter-secondary-link-color, #666);
               transition: color 0.2s;
               white-space: nowrap;
               text-decoration: none;
@@ -336,7 +345,7 @@ const NewsletterForm = ({ onClose, variant = "popup" }) => {
 
             .trust-microcopy {
               margin-top: 1rem;
-              font-family: 'Inter', sans-serif;
+              font-family: var(--font-ui);
               font-size: 0.75rem;
               color: #444;
             }
@@ -363,7 +372,7 @@ const NewsletterForm = ({ onClose, variant = "popup" }) => {
 
             .newsletter-success h3 {
                 color: #fff;
-                font-family: 'Poppins', sans-serif;
+                font-family: var(--font-display);
                 font-size: 1.75rem;
                 font-weight: 600;
                 margin: 0;
@@ -371,7 +380,7 @@ const NewsletterForm = ({ onClose, variant = "popup" }) => {
 
             .newsletter-success p {
                 color: #888;
-                font-family: 'Inter', sans-serif;
+                font-family: var(--font-ui);
                 margin-bottom: 1.5rem;
                 font-size: 1.1rem;
             }
@@ -381,7 +390,7 @@ const NewsletterForm = ({ onClose, variant = "popup" }) => {
                 border: 1px solid #333;
                 color: #fff;
                 padding: 0.8rem 1.5rem;
-                font-family: 'Space Mono', monospace;
+                font-family: var(--font-ui);
                 font-size: 0.85rem;
                 text-transform: uppercase;
                 cursor: pointer;

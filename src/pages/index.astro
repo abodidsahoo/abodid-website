@@ -177,7 +177,7 @@ const odishaUrl = "https://vimeo.com/265220711";
     <section class="section contained-section">
         <div class="section-header">
             <h2 class="section-title">Photography Projects</h2>
-            <a href="/photography" class="link-arrow mobile-btn">View All</a>
+            <a href="/photography" class="link-arrow mobile-btn section-cta photo-projects-cta">View All</a>
         </div>
 
         <!-- Contained Carousel Row 1 (Left) -->
@@ -196,7 +196,7 @@ const odishaUrl = "https://vimeo.com/265220711";
     <section class="section">
         <div class="section-header">
             <h2 class="section-title">Writings</h2>
-            <a href="/blog" class="link-arrow mobile-btn">Read All</a>
+            <a href="/blog" class="link-arrow mobile-btn section-cta">Read All</a>
         </div>
 
         <div class="blog-list">
@@ -272,7 +272,7 @@ const odishaUrl = "https://vimeo.com/265220711";
         top: 58%; /* Just below the center stack */
         left: 50%;
         transform: translateX(-50%);
-        font-family: "Courier New", Courier, monospace;
+        font-family: var(--font-mono);
         text-transform: uppercase;
         color: rgba(255, 255, 255, 0.4);
         font-size: 0.8rem;
@@ -331,7 +331,7 @@ const odishaUrl = "https://vimeo.com/265220711";
         }
 
         .hero-title {
-            font-size: 1.75rem !important; /* Reduced from 2rem */
+            font-size: min(calc(var(--feature-typewriter-main-size, 3.5rem) * 0.5), 2.5rem) !important;
             line-height: 1.3 !important;
             min-height: auto; /* Remove the flex/min-height hack on the container */
             display: block; /* Restore block layout */
@@ -354,7 +354,7 @@ const odishaUrl = "https://vimeo.com/265220711";
         }
 
         .bio-content p {
-            font-size: 1.125rem !important; /* 18px */
+            font-size: min(calc(var(--feature-typewriter-bio-size, 2.2rem) * 0.52), 1.125rem) !important;
             line-height: 1.5 !important;
         }
 
@@ -404,21 +404,22 @@ const odishaUrl = "https://vimeo.com/265220711";
     }
 
     .hero-title {
-        font-family: var(
-            --font-sans
-        ); /* Fixed: Was undefined --font-headline */
-        font-size: 3.5rem;
-        font-weight: 700; /* Ensure Bold */
-        line-height: 1.1;
-        color: var(--text-primary); /* Theme Aware */
+        font-family: var(--feature-typewriter-main-font, var(--font-sans));
+        font-size: var(--feature-typewriter-main-size, 3.5rem);
+        font-weight: var(--feature-typewriter-main-weight, 700);
+        line-height: var(--feature-typewriter-main-line-height, 1.1);
+        letter-spacing: var(--feature-typewriter-main-letter-spacing, 0em);
+        color: var(--feature-typewriter-main-color, var(--text-primary));
     }
 
     .bio-content p {
-        font-size: 2.2rem;
-        font-weight: 300; /* Increased from 400 */
-        line-height: 1.2;
+        font-family: var(--feature-typewriter-bio-font, var(--font-body));
+        font-size: var(--feature-typewriter-bio-size, 2.2rem);
+        font-weight: var(--feature-typewriter-bio-weight, 300);
+        line-height: var(--feature-typewriter-bio-line-height, 1.2);
+        letter-spacing: var(--feature-typewriter-bio-letter-spacing, 0em);
         max-width: 900px;
-        color: var(--text-secondary); /* Theme Aware */
+        color: var(--feature-typewriter-bio-color, var(--text-secondary));
     }
 
     /* ... type writer styles ... */
@@ -580,6 +581,16 @@ const odishaUrl = "https://vimeo.com/265220711";
         padding-right: 1.2em;
     }
 
+    .section-cta {
+        font-family: var(--feature-writing-action-font, var(--font-ui));
+        font-size: var(--feature-writing-action-size, 0.8rem);
+        font-weight: var(--feature-writing-action-weight, 500);
+        line-height: var(--feature-writing-action-line-height, 1.2);
+        letter-spacing: var(--feature-writing-action-letter-spacing, 0.05em);
+        text-transform: uppercase;
+        color: var(--feature-writing-action-color, var(--text-tertiary));
+    }
+
     .link-arrow::after {
         content: "→";
         position: absolute;
@@ -643,36 +654,47 @@ const odishaUrl = "https://vimeo.com/265220711";
     }
 
     .blog-date {
-        font-family: "Inconsolata", monospace;
-        font-size: 0.75rem;
+        font-family: var(--feature-writing-date-font, var(--font-mono));
+        font-size: var(--feature-writing-date-size, 0.75rem);
+        font-weight: var(--feature-writing-date-weight, 400);
+        line-height: var(--feature-writing-date-line-height, 1.2);
+        letter-spacing: var(--feature-writing-date-letter-spacing, 0.05em);
         text-transform: uppercase;
-        letter-spacing: 0.05em;
-        color: var(--text-tertiary);
+        color: var(--feature-writing-date-color, var(--text-tertiary));
         margin-bottom: 0.5rem;
     }
 
     .blog-title {
-        font-family: var(--font-serif);
-        font-size: 1.5rem;
-        font-weight: 400;
-        line-height: 1.2;
+        font-family: var(--feature-writing-title-font, var(--font-serif));
+        font-size: var(--feature-writing-title-size, 1.5rem);
+        font-weight: var(--feature-writing-title-weight, 400);
+        line-height: var(--feature-writing-title-line-height, 1.2);
+        letter-spacing: var(--feature-writing-title-letter-spacing, 0em);
+        color: var(--feature-writing-title-color, var(--text-primary));
         margin: 0 0 0.5rem 0;
         max-width: 38ch; /* Force wrapping after ~9-12 words */
     }
 
     .blog-category {
-        font-size: 0.85rem;
-        color: var(--text-secondary);
+        font-family: var(--feature-writing-category-font, var(--font-sans));
+        font-size: var(--feature-writing-category-size, 0.85rem);
+        font-weight: var(--feature-writing-category-weight, 400);
+        line-height: var(--feature-writing-category-line-height, 1.2);
+        letter-spacing: var(--feature-writing-category-letter-spacing, 0em);
+        color: var(--feature-writing-category-color, var(--text-secondary));
     }
 
     .blog-action {
         display: flex;
         align-items: center;
         gap: 0.5rem;
-        font-size: 0.8rem;
-        letter-spacing: 0.05em;
+        font-family: var(--feature-writing-action-font, var(--font-ui));
+        font-size: var(--feature-writing-action-size, 0.8rem);
+        font-weight: var(--feature-writing-action-weight, 500);
+        line-height: var(--feature-writing-action-line-height, 1.2);
+        letter-spacing: var(--feature-writing-action-letter-spacing, 0.05em);
         text-transform: uppercase;
-        color: var(--text-tertiary);
+        color: var(--feature-writing-action-color, var(--text-tertiary));
         transition: color 0.3s ease;
     }
 
@@ -687,7 +709,12 @@ const odishaUrl = "https://vimeo.com/265220711";
 
     /* Typewriter Text Styling */
     #typewriter-text {
-        font-size: 1.35em; /* Slightly reduced */
+        font-family: var(--feature-typewriter-text-font, var(--feature-typewriter-main-font, var(--font-sans)));
+        font-size: var(--feature-typewriter-text-size, 1.35em);
+        font-weight: var(--feature-typewriter-text-weight, var(--feature-typewriter-main-weight, 700));
+        line-height: var(--feature-typewriter-text-line-height, 1.1);
+        letter-spacing: var(--feature-typewriter-text-letter-spacing, 0em);
+        color: var(--feature-typewriter-text-color, var(--feature-typewriter-main-color, var(--text-primary)));
         display: inline-block;
         min-height: 1.2em; /* Reserve space */
         margin-top: 0;
@@ -750,7 +777,7 @@ const odishaUrl = "https://vimeo.com/265220711";
 
     @media (max-width: 768px) {
         .hero-title {
-            font-size: 2.5rem;
+            font-size: min(calc(var(--feature-typewriter-main-size, 3.5rem) * 0.72), 2.5rem);
             min-height: auto;
         }
         .intro-content p {
@@ -798,7 +825,7 @@ const odishaUrl = "https://vimeo.com/265220711";
     }
 
     .showreel-note {
-        font-family: "Inconsolata", monospace;
+        font-family: var(--font-mono);
         font-size: 0.95rem;
         line-height: 1.6;
 

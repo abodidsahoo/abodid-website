@@ -17,35 +17,42 @@ function getGradient(title: string) {
 }
 
 export function generateOgImage(title: string, image?: string) {
-    const background = getGradient(title);
-    const isCustomImage = !!image;
+    const safeTitle = typeof title === 'string' && title.trim().length > 0 ? title.trim() : 'Abodid Sahoo';
+    const safeImage = typeof image === 'string' && image.trim().length > 0 ? image.trim() : undefined;
+    const background = getGradient(safeTitle);
+    const isCustomImage = Boolean(safeImage);
 
     // Theme Colors based on mode
     const textColor = isCustomImage ? '#ffffff' : '#1a1a1a';
     const subTextColor = isCustomImage ? '#dddddd' : '#4a4a4a';
     const brandColor = isCustomImage ? '#ffffff' : '#1a1a1a';
 
+    const rootStyle: Record<string, string | number> = {
+        height: '100%',
+        width: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: isCustomImage ? '#1a1a1a' : '#fff',
+        color: textColor,
+        fontFamily: 'sans-serif',
+        position: 'relative',
+    };
+
+    if (!isCustomImage) {
+        rootStyle.backgroundImage = background;
+    }
+
     return new ImageResponse(
         (
             <div
-                style={{
-                    height: '100%',
-                    width: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    backgroundImage: isCustomImage ? undefined : background,
-                    backgroundColor: isCustomImage ? '#1a1a1a' : '#fff',
-                    color: textColor,
-                    fontFamily: 'sans-serif',
-                    position: 'relative',
-                }}
+                style={rootStyle}
             >
                 {/* Background Image if provided */}
                 {isCustomImage && (
                     <img
-                        src={image}
+                        src={safeImage}
                         style={{
                             position: 'absolute',
                             top: 0, left: 0,
@@ -110,7 +117,7 @@ export function generateOgImage(title: string, image?: string) {
                             textShadow: isCustomImage ? '0 4px 30px rgba(0,0,0,0.5)' : 'none',
                         }}
                     >
-                        {title}
+                        {safeTitle}
                     </div>
                 </div>
 

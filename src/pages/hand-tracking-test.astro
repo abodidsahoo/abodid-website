@@ -1,6 +1,7 @@
 ---
 export const prerender = false;
 import HandTrackingDemo from "../components/hand-tracking-test/HandTrackingDemo.jsx";
+import ExperimentLayout from "../layouts/ExperimentLayout.astro";
 import { getFeaturedPhotography } from "../lib/api";
 
 const pageTitle = "Hand Tracking Test";
@@ -33,34 +34,23 @@ if (images.length === 0) {
 }
 ---
 
-<!doctype html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>{pageTitle}</title>
-        <style>
-            /* Complete reset for full-screen experience */
-            * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-            }
+<ExperimentLayout
+    title={pageTitle}
+    description="Hand-tracking prototype for spawning and controlling visual cards."
+    lockViewport={true}
+    bodyClass="hand-tracking-page"
+>
+    <HandTrackingDemo client:only="react" images={images} />
+</ExperimentLayout>
 
-            html,
-            body {
-                width: 100%;
-                height: 100%;
-                overflow: hidden;
-                background: #000;
-            }
+<style>
+    :global(body.hand-tracking-page) {
+        background: #000;
+        color: #fff;
+        overflow: hidden;
+    }
 
-            body {
-                font-family: "Space Mono", monospace;
-            }
-        </style>
-    </head>
-    <body>
-        <HandTrackingDemo client:only="react" images={images} />
-    </body>
-</html>
+    :global(body.hand-tracking-page #main-content) {
+        height: 100vh;
+    }
+</style>

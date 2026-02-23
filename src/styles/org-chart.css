@@ -6,7 +6,7 @@
 	/* Constrain width for readability, but allow growth */
 	margin: 0 auto;
 	padding: 20px;
-	font-family: 'Space Mono', monospace;
+	font-family: var(--font-ui);
 	/* Enforce global mono if loaded, else fallback */
 }
 

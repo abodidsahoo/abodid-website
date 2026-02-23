@@ -1,0 +1,58 @@
+---
+import BaseLayout from "./BaseLayout.astro";
+
+const {
+    title,
+    description,
+    image,
+    type = "website",
+    bodyClass = "",
+    gridVariant = "default",
+    showGlobalGrid = false,
+    hideHeader = true,
+    hideFooter = true,
+    lockViewport = false,
+} = Astro.props;
+
+const mergedBodyClass = ["experiment-page", bodyClass].filter(Boolean).join(" ");
+---
+
+<BaseLayout
+    title={title}
+    description={description}
+    image={image}
+    type={type}
+    fullWidth={true}
+    hideHeader={hideHeader}
+    hideFooter={hideFooter}
+    showStickyNav={false}
+    showNewsletterPopup={false}
+    showGlobalGrid={showGlobalGrid}
+    gridVariant={gridVariant}
+    bodyClass={mergedBodyClass}
+>
+    <Fragment slot="head">
+        <slot name="head" />
+    </Fragment>
+
+    <section class={`experiment-shell ${lockViewport ? "is-locked" : ""}`}>
+        <slot />
+    </section>
+</BaseLayout>
+
+<style>
+    .experiment-shell {
+        position: relative;
+        width: 100vw;
+        min-height: 100vh;
+    }
+
+    .experiment-shell.is-locked {
+        height: 100vh;
+        overflow: hidden;
+    }
+
+    :global(body.experiment-page) {
+        background: var(--bg-canvas);
+    }
+</style>

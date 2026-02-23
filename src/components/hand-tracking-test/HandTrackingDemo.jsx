@@ -146,7 +146,7 @@ const HandTrackingDemo = ({ images }) => {
                     height: 100vh;
                     background-color: #000;
                     color: #fff;
-                    font-family: 'Space Mono', monospace;
+                    font-family: var(--font-ui);
                     overflow: hidden;
                     position: relative;
                 }
@@ -172,7 +172,7 @@ const HandTrackingDemo = ({ images }) => {
                     display: flex;
                     align-items: center;
                     gap: 12px;
-                    font-family: 'Space Mono', monospace;
+                    font-family: var(--font-ui);
                     transition: all 0.3s ease;
                     backdrop-filter: blur(10px);
                 }

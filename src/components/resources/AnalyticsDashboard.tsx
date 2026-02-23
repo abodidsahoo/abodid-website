@@ -163,7 +163,7 @@ export default function AnalyticsDashboard({ stats, topBookmarked, topUpvoted, a
                     font-weight: 700;
                     color: var(--text-primary);
                     margin: 8px 0;
-                    font-family: 'Poppins', sans-serif;
+                    font-family: var(--font-display);
                 }
 
                 .kpi-sub {
@@ -211,7 +211,7 @@ export default function AnalyticsDashboard({ stats, topBookmarked, topUpvoted, a
                     margin: 0 0 20px 0;
                     font-size: 1.25rem;
                     font-weight: 600;
-                    font-family: 'Poppins', sans-serif;
+                    font-family: var(--font-display);
                 }
 
                 /* Resource List */

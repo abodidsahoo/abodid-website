@@ -54,7 +54,7 @@ const VibeCheckWidget = () => {
                     padding: 0;    /* Removed padding */
                     border: none;  /* Removed border */
                     background: transparent; /* Transparent background */
-                    font-family: 'Space Mono', 'Courier New', monospace;
+                    font-family: var(--font-ui);
                     transition: all 0.3s ease;
                     max-width: none; /* No max width */
                     position: relative;

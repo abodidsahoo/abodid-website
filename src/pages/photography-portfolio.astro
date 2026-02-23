@@ -1,0 +1,329 @@
+---
+export const prerender = false;
+import BaseLayout from "../layouts/BaseLayout.astro";
+import VisualMoodboard from "../components/VisualMoodboard.jsx";
+import { listPhotoStoryAssets } from "../lib/services/photoStories";
+import { getAllPhotography } from "../lib/api";
+
+const pageTitle = "Photography Portfolio";
+const pageDescription =
+    "if tomorrow starts without me, this is all I have for you to cherish. The World Through My Eyes with a whole lot of heart and soul!";
+
+function hashString(value) {
+    let hash = 2166136261;
+    for (let i = 0; i < value.length; i += 1) {
+        hash ^= value.charCodeAt(i);
+        hash = Math.imul(hash, 16777619);
+    }
+    return (hash >>> 0).toString(36);
+}
+
+function normalizeKeyword(value) {
+    return typeof value === "string" ? value.trim().toLowerCase() : "";
+}
+
+function parseGenreKeywords(genre) {
+    if (typeof genre !== "string") return [];
+    return genre
+        .split(/[|,/]+/g)
+        .map((token) => normalizeKeyword(token))
+        .filter(Boolean);
+}
+
+function normalizeTagArray(raw) {
+    if (Array.isArray(raw)) {
+        return raw.map((value) => normalizeKeyword(value)).filter(Boolean);
+    }
+    const asKeyword = normalizeKeyword(raw);
+    return asKeyword ? [asKeyword] : [];
+}
+
+function toPlainText(value) {
+    if (typeof value !== "string") return "";
+    return value
+        .replace(/!\[[^\]]*\]\([^)]+\)/g, " ")
+        .replace(/\[[^\]]+\]\([^)]+\)/g, " ")
+        .replace(/[`*_>#~-]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
+function truncateText(value, limit = 92) {
+    if (!value || value.length <= limit) return value;
+    return `${value.slice(0, Math.max(0, limit - 1)).trim()}...`;
+}
+
+function shuffleArray(items) {
+    const shuffled = [...items];
+    for (let i = shuffled.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+}
+
+let photographyPortfolioItems = [];
+
+try {
+    const [photoStoryAssets, photographyProjects] = await Promise.all([
+        listPhotoStoryAssets(),
+        getAllPhotography().catch(() => []),
+    ]);
+
+    const projectKeywordMap = new Map();
+    for (const project of photographyProjects || []) {
+        projectKeywordMap.set(project.slug, [
+            ...normalizeTagArray(project.category),
+            ...normalizeTagArray(project.tags),
+        ]);
+    }
+
+    photographyPortfolioItems = shuffleArray(
+        (photoStoryAssets || [])
+            .filter((asset) => asset.photoUrl)
+            .map((asset, index) => {
+                const keywords = Array.from(
+                    new Set([
+                        ...parseGenreKeywords(asset.genre),
+                        ...(projectKeywordMap.get(asset.projectSlug) || []),
+                        asset.isArt ? "art" : "",
+                        asset.isCommercial ? "commercial" : "",
+                    ].filter(Boolean)),
+                );
+
+                if (!keywords.length) {
+                    keywords.push("photography");
+                }
+
+                return {
+                    id: `portfolio-${hashString(`${asset.photoUrl}:${asset.projectSlug}:${index}`)}`,
+                    title: asset.projectTitle || `Photo Story ${index + 1}`,
+                    imageUrl: asset.photoUrl,
+                    tags: keywords,
+                    caption: truncateText(
+                        toPlainText(asset.effectiveStoryMarkdown) ||
+                            asset.projectTitle ||
+                            "",
+                    ),
+                    href: asset.projectSlug
+                        ? `/photography/${asset.projectSlug}`
+                        : "/photography",
+                    projectHref: asset.projectSlug
+                        ? `/photography/${asset.projectSlug}`
+                        : "/photography",
+                };
+            }),
+    );
+} catch (error) {
+    console.error("Failed to load photography portfolio items:", error);
+    photographyPortfolioItems = [];
+}
+---
+
+<BaseLayout
+    title={pageTitle}
+    description={pageDescription}
+    fullWidth={true}
+    gridVariant="moodboard"
+>
+    <section class="visual-moodboard-page">
+        <header class="moodboard-hero">
+            <h1>The World Through My Eyes.</h1>
+            <p>{pageDescription}</p>
+        </header>
+
+        <VisualMoodboard
+            client:load
+            items={photographyPortfolioItems}
+            enablePolaroidViewer={true}
+            deepLinkParam="photo"
+        />
+
+        <footer class="moodboard-outro">
+            <p>
+                Every frame here comes from the original photography projects and
+                linked photo stories. Open any image to step into its full
+                project archive. Explore <a class="latest-work-link" href="/photography"
+                    >all photography projects</a
+                >.
+            </p>
+        </footer>
+    </section>
+</BaseLayout>
+
+<style>
+    :global(body[data-grid-variant="moodboard"]) {
+        --grid-color-1: rgba(45, 38, 30, 0.18);
+        --grid-color-2: rgba(45, 38, 30, 0.07);
+        --mood-page-bg: #f2e7d4;
+        --mood-title-color: rgba(30, 25, 19, 0.96);
+        --mood-title-border: rgba(30, 25, 19, 0.42);
+        --mood-title-bg: rgba(255, 251, 244, 0.74);
+        --mood-body-color: rgba(38, 32, 25, 0.94);
+        --mood-link-color: #7a1b0f;
+        --mood-link-border: rgba(122, 27, 15, 0.78);
+        --mood-link-bg: rgba(122, 27, 15, 0.14);
+        --mood-link-hover-color: #5f130a;
+        --mood-link-hover-border: rgba(95, 19, 10, 0.88);
+        --mood-link-shadow: rgba(95, 19, 10, 0.2);
+        background: var(--mood-page-bg) !important;
+        color: var(--mood-body-color);
+    }
+
+    :global(
+        body[data-grid-variant="moodboard"][data-moodboard-surface="dark"]
+    ) {
+        --grid-color-1: rgba(255, 255, 255, 0.12);
+        --grid-color-2: rgba(255, 255, 255, 0.03);
+        --mood-page-bg: #0b0b0e;
+        --mood-title-color: rgba(249, 234, 230, 0.96);
+        --mood-title-border: rgba(255, 255, 255, 0.3);
+        --mood-title-bg: rgba(0, 0, 0, 0.24);
+        --mood-body-color: rgba(238, 224, 217, 0.9);
+        --mood-link-color: #ff6b4b;
+        --mood-link-border: rgba(255, 107, 75, 0.82);
+        --mood-link-bg: rgba(255, 107, 75, 0.2);
+        --mood-link-hover-color: #ff8a6f;
+        --mood-link-hover-border: rgba(255, 138, 111, 0.96);
+        --mood-link-shadow: rgba(255, 107, 75, 0.46);
+    }
+
+    :global(body[data-grid-variant="moodboard"] .global-grid-bg) {
+        background-size: 56px 56px;
+        -webkit-mask-image: radial-gradient(
+            ellipse at center,
+            black 48%,
+            transparent 92%
+        );
+        mask-image: radial-gradient(
+            ellipse at center,
+            black 48%,
+            transparent 92%
+        );
+    }
+
+    :global(body[data-grid-variant="moodboard"] .global-glow-bg) {
+        --glow-radius: 420px;
+        filter: saturate(1.25) brightness(1.15);
+        background-size: 56px 56px;
+        background-position: center top;
+    }
+
+    :global(
+        body[data-grid-variant="moodboard"][data-moodboard-surface="light"]
+            .global-glow-bg
+    ) {
+        --glow-radius: 460px;
+        filter: saturate(1.06) brightness(1.04);
+    }
+
+    .visual-moodboard-page {
+        position: relative;
+        min-height: 100vh;
+        width: 100%;
+        z-index: 1;
+        padding-top: 1.25rem;
+    }
+
+    .moodboard-hero {
+        width: min(860px, calc(100vw - 2rem));
+        margin: 0 auto 1.25rem;
+        text-align: center;
+        padding: 0.25rem 0;
+    }
+
+    .moodboard-hero h1 {
+        margin: 0 auto;
+        width: fit-content;
+        max-width: calc(100vw - 2rem);
+        border: 1px solid var(--mood-title-border);
+        border-radius: 10px;
+        padding: clamp(0.75rem, 1.7vw, 1.2rem) clamp(1rem, 3.2vw, 2.7rem);
+        color: var(--mood-title-color);
+        background: var(--mood-title-bg);
+        font-family: var(--font-ui);
+        font-size: clamp(0.82rem, 2.05vw, 1.8rem);
+        font-weight: 500;
+        line-height: 1.1;
+        letter-spacing: 0.03em;
+        word-spacing: 0.2em;
+        white-space: nowrap;
+        text-transform: uppercase;
+    }
+
+    .moodboard-hero p {
+        margin: 1.1rem auto 0;
+        max-width: 700px;
+        color: var(--mood-body-color);
+        font-family: var(--font-ui);
+        font-size: clamp(0.72rem, 1.25vw, 0.9rem);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        line-height: 1.7;
+    }
+
+    .latest-work-link {
+        color: var(--mood-link-color);
+        text-decoration: none;
+        border-bottom: 1px solid var(--mood-link-border);
+        transition:
+            color 0.2s ease,
+            border-color 0.2s ease,
+            text-shadow 0.2s ease,
+            background-size 0.2s ease;
+        background-image: linear-gradient(
+            var(--mood-link-bg),
+            var(--mood-link-bg)
+        );
+        background-repeat: no-repeat;
+        background-size: 0% 100%;
+        background-position: 0 50%;
+        cursor: pointer;
+    }
+
+    .latest-work-link:hover,
+    .latest-work-link:focus-visible {
+        color: var(--mood-link-hover-color);
+        border-bottom-color: var(--mood-link-hover-border);
+        background-size: 100% 100%;
+        text-shadow: 0 0 12px var(--mood-link-shadow);
+        outline: none;
+    }
+
+    .moodboard-outro {
+        width: min(920px, calc(100vw - 2rem));
+        margin: 0.35rem auto 0;
+        text-align: center;
+        padding: 0.2rem 0 1.2rem;
+    }
+
+    .moodboard-outro p {
+        margin: 0;
+        color: var(--mood-body-color);
+        font-family: var(--font-ui);
+        font-size: clamp(0.72rem, 1.2vw, 0.9rem);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        line-height: 1.7;
+    }
+
+    @media (max-width: 768px) {
+        .moodboard-hero {
+            width: calc(100vw - 1.25rem);
+            margin-bottom: 1rem;
+        }
+
+        .moodboard-hero p {
+            line-height: 1.5;
+        }
+
+        .moodboard-outro {
+            width: calc(100vw - 1.25rem);
+            margin-top: 0.35rem;
+        }
+
+        .moodboard-outro p {
+            line-height: 1.5;
+        }
+    }
+</style>

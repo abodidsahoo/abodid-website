@@ -1,25 +1,15 @@
 ---
 export const prerender = false;
+import ExperimentLayout from "../../layouts/ExperimentLayout.astro";
 ---
 
-<!doctype html>
-<html lang="en">
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Invisible Punctums | Human vs AI Analysis</title>
-
-        <!-- Fonts & Styles -->
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
-            rel="stylesheet"
-        />
-        <link
-            rel="stylesheet"
-            href="/invisible-punctums/untrainable-tabs.css"
-        />
+<ExperimentLayout
+    title="Invisible Punctums | Human vs AI Analysis"
+    description="A photographic study exploring emotional responses between humans and AI."
+    bodyClass="invisible-punctum-page"
+>
+    <Fragment slot="head">
+        <link rel="stylesheet" href="/invisible-punctums/untrainable-tabs.css" />
 
         <!-- Scripts -->
         <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
@@ -36,8 +26,8 @@ export const prerender = false;
         <script is:inline defer src="/invisible-punctums/project-info.js"
         ></script>
         <script is:inline src="/invisible-punctums/audio-response.js"></script>
-    </head>
-    <body>
+    </Fragment>
+
         <!-- =========================
      UNTRAINABLE MEANINGS
      A Photographic Study of Human vs AI Responses
@@ -145,7 +135,7 @@ export const prerender = false;
 
             /* Credit Text */
             .um-credit-text {
-                font-family: "Courier New", "Courier", monospace;
+                font-family: var(--font-mono);
                 font-size: 9px;
                 font-weight: 300;
                 color: rgba(80, 60, 140, 0.7);
@@ -266,7 +256,7 @@ export const prerender = false;
             }
 
             .project-info-credit {
-                font-family: "Courier New", Courier, monospace;
+                font-family: var(--font-mono);
                 font-size: 11px;
                 color: rgba(0, 0, 0, 0.5);
                 margin-bottom: 12px;
@@ -738,5 +728,11 @@ export const prerender = false;
                 </div>
             </div>
         </div>
-    </body>
-</html>
+</ExperimentLayout>
+
+<style>
+    :global(body.invisible-punctum-page) {
+        background: #050505;
+        color: #fff;
+    }
+</style>

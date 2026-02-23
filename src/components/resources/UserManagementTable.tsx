@@ -278,7 +278,7 @@ export default function UserManagementTable({ initialUsers, currentUserId }: Pro
                 }
 
                 .management-header h2 {
-                    font-family: 'Poppins', sans-serif;
+                    font-family: var(--font-display);
                     font-size: 1.75rem;
                     font-weight: 600;
                     margin: 0;

@@ -55,7 +55,14 @@ const mapData = {
             name: "Photography",
             href: "/photography",
             desc: "Visual Stories",
-            children: limitItems(allPhotography, 5, "/photography"),
+            children: [
+                {
+                    name: "Photography Portfolio",
+                    href: "/photography-portfolio",
+                    desc: "Floating Archive",
+                },
+                ...limitItems(allPhotography, 5, "/photography"),
+            ],
         },
         {
             name: "Research",

@@ -72,7 +72,7 @@ const Breadcrumbs = ({ variant = 'default' }) => {
                     margin: 0;
                     padding: 0;
                     gap: 8px; /* Default gap */
-                    font-family: 'Space Mono', monospace;
+                    font-family: var(--font-ui);
                     font-size: 0.75rem;
                     text-transform: uppercase;
                     letter-spacing: 0.05em;

@@ -929,7 +929,7 @@ const Lightbox = ({ items, initialId, onClose }) => {
                         overflow: hidden;
                     }
                     .handwritten-title { 
-                        font-family: 'Reenie Beanie', cursive; 
+                        font-family: var(--font-custom-4); 
                         font-size: 2.2rem; 
                         font-weight: 500; 
                         margin: 0; 
@@ -948,7 +948,7 @@ const Lightbox = ({ items, initialId, onClose }) => {
                         bottom: 40px;
                         left: 50%;
                         transform: translateX(-50%);
-                        font-family: 'Space Mono', monospace;
+                        font-family: var(--font-ui);
                         font-size: 0.8rem;
                         color: rgba(255,255,255,0.6);
                         letter-spacing: 0.2em;

@@ -110,7 +110,7 @@ const pageTitle = "Obsidian Vault";
                     </div>
                     <div class="tag-cloud-wrapper">
                         {tags.map((tag) => (
-                            <a href={`/research/obsidian-vault/${tag.name.replace(".md", "")}`} class="vault-tag">
+                            <a href={`/research/obsidian-vault/tag/${encodeURIComponent(tag.name.replace(".md", ""))}`} class="vault-tag">
                                 {tag.name.replace(".md", "").replace(/-/g, " ")}
                             </a>
                         ))}
@@ -224,9 +224,16 @@ const pageTitle = "Obsidian Vault";
 <style is:global>
     /* VARIABLES */
     :root {
-        --vault-bg: #0f0f10;
-        --vault-text: #e0e0e0;
-        --vault-border: #333;
+        --vault-bg: var(--bg-surface);
+        --vault-text: var(--text-primary);
+        --vault-border: var(--border-subtle);
+        --vault-pill-bg: rgba(0, 0, 0, 0.18);
+        --vault-pill-hover-bg: rgba(0, 0, 0, 0.26);
+    }
+
+    [data-theme="light"] {
+        --vault-pill-bg: rgba(255, 255, 255, 0.84);
+        --vault-pill-hover-bg: rgba(255, 255, 255, 0.95);
     }
 
     .vault-container {
@@ -243,8 +250,9 @@ const pageTitle = "Obsidian Vault";
         gap: 0rem; /* Large gap between the two main columns */
         margin-top: 2rem;
         align-items: start;
-        border-top: 1px solid var(--border-subtle);
-        padding-top: 3rem;
+        background: transparent;
+        border-radius: 0;
+        padding: 1.2rem 0;
     }
     
     @media (max-width: 1100px) {
@@ -254,15 +262,14 @@ const pageTitle = "Obsidian Vault";
             display: none; /* Controlled by JS */
         }
         .tags-column {
-            border-top: none !important;
-            padding-top: 2rem;
             width: 100%;
-            border-left: none !important;
-            padding-left: 0 !important;
         }
-        .notes-column {
-            border-right: none !important;
-            padding-right: 0 !important;
+        .notes-column,
+        .tags-column {
+            border: none !important;
+            border-radius: 0 !important;
+            padding: 0 !important;
+            background: transparent !important;
         }
         
         .desktop-only { display: none; }
@@ -289,7 +296,7 @@ const pageTitle = "Obsidian Vault";
         }
         .choice-btn:active { background: var(--border-subtle); }
         .choice-btn .icon { font-size: 2rem; }
-        .choice-btn .label { font-family: 'Poppins',sans-serif; font-size: 1.2rem; font-weight: 500; color: var(--text-main); }
+        .choice-btn .label { font-family: var(--font-display); font-size: 1.2rem; font-weight: 500; color: var(--text-main); }
 
         /* Sticky Control */
         .mobile-sticky-header {
@@ -335,14 +342,12 @@ const pageTitle = "Obsidian Vault";
     .notes-column {
         min-width: 0;
         border-right: 1px solid var(--border-subtle);
-        /* 1. NARROWER NOTES: Huge padding on the right to keep away from center */
-        padding-right: 9rem; 
+        padding: 0.8rem 6rem 0.8rem 0.8rem;
     }
 
     /* TAGS COLUMN */
     .tags-column {
-        /* Default 1fr from grid */
-        padding-left: 6rem;
+        padding: 0.8rem 0.8rem 0.8rem 3.5rem;
     }
     
     .notes-header-small h2, .tags-header-small h2 {
@@ -374,7 +379,7 @@ const pageTitle = "Obsidian Vault";
     }
 
     h1 {
-        font-family: "Space Mono", monospace;
+        font-family: var(--font-ui);
         letter-spacing: -2px;
         margin-bottom: 0.5rem;
     }
@@ -406,7 +411,7 @@ const pageTitle = "Obsidian Vault";
     }
     
     .login-label {
-        font-family: 'Poppins', sans-serif;
+        font-family: var(--font-display);
         font-size: 1.8rem; /* Much bigger */
         font-weight: 800; /* Extra bold */
         letter-spacing: -0.5px;
@@ -431,7 +436,7 @@ const pageTitle = "Obsidian Vault";
         border-radius: 8px;
         font-size: 1rem;
         text-align: center; /* Centered input text */
-        font-family: 'Space Mono', monospace;
+        font-family: var(--font-ui);
         transition: all 0.3s ease;
     }
     
@@ -471,23 +476,24 @@ const pageTitle = "Obsidian Vault";
         display: inline-flex;
         align-items: center;
         padding: 0.5rem 1rem; /* Slightly larger pills */
-        background: transparent;
+        background: var(--vault-pill-bg);
         border: 1px solid var(--border-subtle);
         border-radius: 50px; 
-        font-size: 0.85rem; 
-        color: var(--text-secondary);
-        font-family: 'Poppins', sans-serif; 
-        font-weight: 300; 
+        font-family: var(--feature-obsidian-tag-font, var(--font-display)); 
+        font-size: var(--feature-obsidian-tag-size, 0.85rem); 
+        font-weight: var(--feature-obsidian-tag-weight, 300); 
+        line-height: var(--feature-obsidian-tag-line-height, 1);
+        letter-spacing: var(--feature-obsidian-tag-letter-spacing, 0em);
+        color: var(--feature-obsidian-tag-color, var(--text-secondary));
         text-decoration: none;
         cursor: pointer;
         transition: all 0.2s;
-        line-height: 1;
     }
     
     .vault-tag:hover {
-        border-color: var(--text-main);
-        color: var(--text-main);
-        background: var(--bg-surface-hover);
+        border-color: var(--text-primary);
+        color: var(--text-primary);
+        background: var(--vault-pill-hover-bg);
     }
 
     /* NOTE CARD */
@@ -498,29 +504,30 @@ const pageTitle = "Obsidian Vault";
         padding: 1.2rem; 
         border-radius: 8px; 
         text-decoration: none;
-        color: #e0e0e0; 
+        color: var(--text-primary);
         transition: transform 0.2s, background 0.2s;
         border: 1px solid var(--border-subtle); 
-        background: transparent;
+        background: var(--vault-pill-bg);
         width: 100%;
         margin-bottom: 0; 
     }
 
     .note-card:hover {
         transform: translateX(4px); 
-        background: rgba(255, 255, 255, 0.03); 
+        background: var(--vault-pill-hover-bg);
         border-color: var(--text-secondary);
     }
     
     .note-info h3 {
-        font-family: 'Poppins', sans-serif;
-        font-weight: 500; 
+        font-family: var(--feature-obsidian-note-title-font, var(--font-display));
+        font-weight: var(--feature-obsidian-note-title-weight, 500); 
         /* 4. TYPOGRAPHY: Smaller, Darker */
-        font-size: 1rem; 
+        font-size: var(--feature-obsidian-note-title-size, 1rem); 
+        line-height: var(--feature-obsidian-note-title-line-height, 1.3);
+        letter-spacing: var(--feature-obsidian-note-title-letter-spacing, 0em);
         margin: 0;
-        color: #8a8a8a; /* Darker/Greyer */
+        color: var(--feature-obsidian-note-title-color, #8a8a8a); /* Darker/Greyer */
         text-transform: capitalize;
-        line-height: 1.3;
     }
 
     /* Animation */
@@ -537,7 +544,7 @@ const pageTitle = "Obsidian Vault";
         margin-top: 2rem;
         text-align: center;
         color: var(--text-tertiary);
-        font-family: 'Space Mono', monospace;
+        font-family: var(--font-ui);
         grid-column: 1 / -1;
         font-size: 0.8rem;
     }

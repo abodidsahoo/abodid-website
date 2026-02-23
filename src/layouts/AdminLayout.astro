@@ -1,7 +1,14 @@
 ---
 import '../styles/global.css';
+import { getResolvedSiteDesignSettings } from "../lib/services/design";
+import { designSettingsToCssText, designSettingsToCssVariables } from "../lib/designTheme";
 const { title, fullWidth = false } = Astro.props;
 const overflowY = fullWidth ? 'hidden' : 'auto';
+const pagePath = Astro.url.pathname;
+const designSettings = await getResolvedSiteDesignSettings();
+const designCssText = designSettingsToCssText(designSettings);
+const designVariableKeys = Object.keys(designSettingsToCssVariables(designSettings));
+const designVariableKeysJson = JSON.stringify(designVariableKeys);
 ---
 
 <html lang="en">
@@ -14,8 +21,85 @@ const overflowY = fullWidth ? 'hidden' : 'auto';
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300..700;1,300..700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet" />
+    <style is:inline>{designCssText}</style>
+    <script is:inline define:vars={{ designVariableKeysJson }}>
+      (function () {
+        const PREVIEW_STORAGE_KEY = "design_live_preview_v1";
+        const PREVIEW_CHANNEL = "design-live-preview";
+        const previewKeys = JSON.parse(designVariableKeysJson);
+        const OVERRIDE_STYLE_ID = "design-text-overrides-preview";
+
+        const clearPreviewVars = (keys) => {
+          const targetKeys = Array.isArray(keys) && keys.length ? keys : previewKeys;
+          targetKeys.forEach((key) => {
+            if (typeof key === "string") {
+              document.documentElement.style.removeProperty(key);
+            }
+          });
+          const existing = document.getElementById(OVERRIDE_STYLE_ID);
+          if (existing) existing.remove();
+        };
+
+        const applyPreviewVars = (payload) => {
+          if (!payload || typeof payload !== "object") return;
+          const vars = payload.vars;
+          if (!vars || typeof vars !== "object") return;
+          Object.entries(vars).forEach(([key, value]) => {
+            if (typeof key === "string" && typeof value === "string") {
+              document.documentElement.style.setProperty(key, value);
+            }
+          });
+
+          const overrideCssText =
+            typeof payload.overrideCssText === "string"
+              ? payload.overrideCssText
+              : "";
+          const existing = document.getElementById(OVERRIDE_STYLE_ID);
+          if (!overrideCssText) {
+            if (existing) existing.remove();
+            return;
+          }
+          if (existing) {
+            existing.textContent = overrideCssText;
+            return;
+          }
+          const style = document.createElement("style");
+          style.id = OVERRIDE_STYLE_ID;
+          style.textContent = overrideCssText;
+          document.head.appendChild(style);
+        };
+
+        try {
+          const raw = localStorage.getItem(PREVIEW_STORAGE_KEY);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            applyPreviewVars(parsed);
+          }
+        } catch (_error) {
+          // no-op
+        }
+
+        if ("BroadcastChannel" in window) {
+          const channel = new BroadcastChannel(PREVIEW_CHANNEL);
+          channel.onmessage = (event) => {
+            const payload = event?.data;
+            if (payload?.action === "clear") {
+              clearPreviewVars(payload.keys);
+              return;
+            }
+            applyPreviewVars(payload);
+          };
+        }
+      })();
+    </script>
   </head>
-  <body>
+  <body data-page-path={pagePath}>
     <div class="admin-wrapper">
       <slot />
     </div>

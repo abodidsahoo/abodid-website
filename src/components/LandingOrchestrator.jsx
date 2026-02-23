@@ -801,10 +801,10 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                     background: transparent;
                     border: 1px solid rgba(255, 255, 255, 0.65);
                     padding: 0.68rem 1.05rem;
-                    color: white;
+                    color: var(--feature-stack-primary-btn-color, white);
                     cursor: pointer;
                     text-align: center;
-                    font-family: 'Space Mono', monospace;
+                    font-family: var(--feature-stack-primary-btn-font, var(--font-ui));
                     transition: all 0.3s ease;
                     background: rgba(0, 0, 0, 0.25);
                     backdrop-filter: blur(4px);
@@ -835,7 +835,7 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                     align-items: center;
                     margin-bottom: 6px;
                     color: rgba(255, 255, 255, 0.95);
-                    font-family: 'Space Mono', monospace;
+                    font-family: var(--font-ui);
                     text-transform: uppercase;
                     letter-spacing: 0.04em;
                     font-size: 0.62rem;
@@ -922,7 +922,7 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                 }
                 .size-slider-knob-label {
                     opacity: 0;
-                    font-family: 'Space Mono', monospace;
+                    font-family: var(--font-ui);
                     font-size: 0.43rem;
                     letter-spacing: 0.08em;
                     line-height: 1;
@@ -946,14 +946,14 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                     margin-top: 6px;
                     display: flex;
                     justify-content: space-between;
-                    font-family: 'Space Mono', monospace;
+                    font-family: var(--font-ui);
                     font-size: 0.56rem;
                     letter-spacing: 0.03em;
                     color: rgba(255, 255, 255, 0.65);
                 }
                 .sensitivity-note {
                     color: rgba(255, 255, 255, 0.82);
-                    font-family: 'Space Mono', monospace;
+                    font-family: var(--font-ui);
                     font-size: 0.62rem;
                     line-height: 1.35;
                     letter-spacing: 0.02em;
@@ -983,10 +983,12 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                     border: 1px solid rgba(255, 255, 255, 0.34);
                     border-radius: 10px;
                     background: rgba(0, 0, 0, 0.34);
-                    color: rgba(255, 255, 255, 0.9);
-                    font-family: 'Space Mono', monospace;
-                    font-size: 0.72rem;
-                    letter-spacing: 0.05em;
+                    color: var(--feature-stack-peel-btn-color, rgba(255, 255, 255, 0.9));
+                    font-family: var(--feature-stack-peel-btn-font, var(--font-ui));
+                    font-size: var(--feature-stack-peel-btn-size, 0.72rem);
+                    font-weight: var(--feature-stack-peel-btn-weight, 500);
+                    line-height: var(--feature-stack-peel-btn-line-height, 1.2);
+                    letter-spacing: var(--feature-stack-peel-btn-letter-spacing, 0.05em);
                     text-transform: uppercase;
                     padding: 0.58rem 0.72rem;
                     cursor: pointer;
@@ -998,7 +1000,7 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                 }
                 .photo-story-live-header {
                     color: rgba(255, 255, 255, 0.95);
-                    font-family: 'Space Mono', monospace;
+                    font-family: var(--font-ui);
                     text-transform: uppercase;
                     letter-spacing: 0.04em;
                     font-size: 0.66rem;
@@ -1030,8 +1032,8 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                 .left-story-title-row {
                     padding: 0.6rem 0.86rem 0.56rem;
                     border-bottom: 1px solid rgba(255, 255, 255, 0.22);
-                    color: rgba(255, 255, 255, 0.96);
-                    font-family: "Inconsolata", ui-monospace, SFMono-Regular, Menlo, monospace;
+                    color: var(--feature-stack-main-text-color, rgba(255, 255, 255, 0.96));
+                    font-family: var(--feature-stack-main-text-font, var(--font-mono));
                     font-size: 1rem;
                     line-height: 1.34;
                     white-space: normal;
@@ -1045,19 +1047,21 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                 }
                 .left-story-body-label {
                     color: rgba(255, 255, 255, 0.95);
-                    font-family: 'Space Mono', monospace;
+                    font-family: var(--font-ui);
                     text-transform: uppercase;
                     letter-spacing: 0.06em;
                     font-size: 0.62rem;
                     line-height: 1.2;
                 }
                 .left-story-copy {
-                    color: rgba(255, 255, 255, 0.9);
-                    font-family: "Inconsolata", ui-monospace, SFMono-Regular, Menlo, monospace;
+                    color: var(--feature-stack-main-text-color, rgba(255, 255, 255, 0.9));
+                    font-family: var(--feature-stack-main-text-font, var(--font-mono));
                     white-space: pre-wrap;
                     overflow-wrap: anywhere;
-                    font-size: 0.95rem;
-                    line-height: 1.62;
+                    font-size: var(--feature-stack-main-text-size, 0.95rem);
+                    font-weight: var(--feature-stack-main-text-weight, 500);
+                    line-height: var(--feature-stack-main-text-line-height, 1.62);
+                    letter-spacing: var(--feature-stack-main-text-letter-spacing, 0em);
                     opacity: 1;
                 }
                 .feed-control-panel,
@@ -1080,16 +1084,17 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                 .mode-btn {
                     border: 1px solid rgba(255, 255, 255, 0.32);
                     background: rgba(255, 255, 255, 0.04);
-                    color: rgba(255, 255, 255, 0.8);
+                    color: var(--feature-stack-secondary-btn-color, rgba(255, 255, 255, 0.8));
                     border-radius: 8px;
                     padding: 0.46rem 0.62rem;
-                    font-size: 0.69rem;
+                    font-size: var(--feature-stack-secondary-btn-size, 0.69rem);
+                    font-weight: var(--feature-stack-secondary-btn-weight, 500);
+                    line-height: var(--feature-stack-secondary-btn-line-height, 1.2);
                     text-transform: none;
-                    letter-spacing: 0.02em;
-                    font-family: 'Space Mono', monospace;
+                    letter-spacing: var(--feature-stack-secondary-btn-letter-spacing, 0.02em);
+                    font-family: var(--feature-stack-secondary-btn-font, var(--font-ui));
                     cursor: pointer;
                     text-align: center;
-                    line-height: 1.2;
                     white-space: nowrap;
                 }
                 .mode-btn.active {
@@ -1135,7 +1140,7 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                 }
                 .hand-feedback-status {
                     color: rgba(198, 255, 225, 0.96);
-                    font-family: "Inconsolata", ui-monospace, SFMono-Regular, Menlo, monospace;
+                    font-family: var(--font-mono);
                     font-size: 0.72rem;
                     line-height: 1.4;
                     min-height: 1.7em;
@@ -1173,11 +1178,11 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                     box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
                 }
                 .start-label-large {
-                    font-size: 0.98rem; 
+                    font-size: var(--feature-stack-primary-btn-size, 0.98rem); 
+                    font-weight: var(--feature-stack-primary-btn-weight, 600);
+                    line-height: var(--feature-stack-primary-btn-line-height, 1);
                     text-transform: uppercase; 
-                    letter-spacing: 0.05em;
-                    font-weight: 600;
-                    line-height: 1;
+                    letter-spacing: var(--feature-stack-primary-btn-letter-spacing, 0.05em);
                 }
                 .start-label-small {
                     font-size: 0.62rem; 
@@ -1193,7 +1198,7 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                     bottom: 5vh; 
                     left: 50%;
                     transform: translateX(-50%);
-                    font-family: "Space Mono", monospace;
+                    font-family: var(--font-ui);
                     font-size: 0.9rem;
                     color: rgba(255, 255, 255, 0.6);
                     animation: bounce 2s infinite;
@@ -1224,7 +1229,7 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                 .stability-notice p {
                     margin: 0;
                     color: rgba(0, 0, 0, 0.86);
-                    font-family: 'Space Mono', monospace;
+                    font-family: var(--font-ui);
                     font-size: 0.86rem;
                     letter-spacing: 0.03em;
                     line-height: 1.45;

@@ -47,7 +47,8 @@ const year = new Date().getFullYear();
             <a href="/resources">Curated Resources</a>
             <a href="/research/obsidian-vault">Obsidian Vault (Notes)</a>
             <a href="/research/second-brain">Second Brain Club</a>
-            <a href="/research/visual-moodboard">Visual Moodboard</a>
+            <a href="/moodboard">Visual Moodboard</a>
+            <a href="/photography-portfolio">Photography Portfolio</a>
           </div>
         </div>
 
@@ -122,19 +123,11 @@ const year = new Date().getFullYear();
 
 <style>
   :root {
-    --sci-fi-cyan: #00f3ff;
-    --footer-bg: #000000;
-    --footer-text-header: rgba(255, 255, 255, 0.9);
-    --footer-text-dim: rgba(255, 255, 255, 0.4);
-    --footer-border: rgba(255, 255, 255, 0.15); /* Thin gray line */
-  }
-
-  :global([data-theme="light"]) {
-    --sci-fi-cyan: #0000ff;
-    --footer-bg: #ffffff;
-    --footer-text-header: #000000;
-    --footer-text-dim: #555555;
-    --footer-border: #e0e0e0;
+    --sci-fi-cyan: var(--accent-primary);
+    --footer-bg: var(--footer-bg-color);
+    --footer-text-header: var(--footer-text-color);
+    --footer-text-dim: var(--text-secondary);
+    --footer-border: var(--footer-border-color);
   }
 
   .site-footer {
@@ -142,7 +135,7 @@ const year = new Date().getFullYear();
     color: var(--footer-text-header);
     padding: 0;
     margin-top: auto;
-    font-family: "Inconsolata", monospace;
+    font-family: var(--font-mono);
     position: relative;
     z-index: 10;
     width: 100%;
@@ -165,7 +158,7 @@ const year = new Date().getFullYear();
   .footer-fade-strip {
     width: 100%;
     height: 10rem;
-    background: linear-gradient(to bottom, transparent, #000);
+    background: linear-gradient(to bottom, transparent, var(--footer-bg));
     position: absolute;
     top: -10rem;
     left: 0;
@@ -208,7 +201,7 @@ const year = new Date().getFullYear();
   /* Ticker Full Width Wrapper */
   .footer-ticker-fullwidth {
     width: 100%;
-    background: #000;
+    background: var(--footer-bg);
   }
 
   .ticker-inner {
@@ -228,7 +221,7 @@ const year = new Date().getFullYear();
     text-transform: uppercase;
     letter-spacing: 0.1em;
     transition: color 0.3s ease;
-    background: #000;
+    background: var(--footer-bg);
     box-sizing: border-box;
   }
 
@@ -303,7 +296,7 @@ const year = new Date().getFullYear();
   }
 
   .nav-group a {
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--footer-text-dim);
     font-size: 0.85rem; /* Slightly smaller font */
     text-decoration: none;
     position: relative;
@@ -315,7 +308,7 @@ const year = new Date().getFullYear();
   }
 
   .nav-group a:hover {
-    color: #fff;
+    color: var(--footer-text-header);
     transform: translateX(4px);
   }
 
@@ -382,28 +375,13 @@ const year = new Date().getFullYear();
   }
   /* LIGHT MODE SPECIFIC ADJUSTMENTS */
   :global([data-theme="light"]) .footer-fade-strip {
-    background: linear-gradient(to bottom, transparent, #ffffff);
+    background: linear-gradient(to bottom, transparent, var(--footer-bg));
   }
 
   :global([data-theme="light"]) .footer-ticker-fullwidth,
   :global([data-theme="light"]) .footer-bottom-full {
-    background: #ffffff;
+    background: var(--footer-bg);
     color: var(--footer-text-dim);
-  }
-
-  :global([data-theme="light"]) .nav-group a {
-    color: #111111 !important; /* Almost black */
-    font-weight: 500;
-  }
-
-  :global([data-theme="light"]) .nav-group a:hover {
-    color: #000000 !important;
-    background: rgba(0, 0, 0, 0.05); /* Subtle highlight on hover */
-    padding-left: 4px; /* Little nudge */
-  }
-
-  :global([data-theme="light"]) .nav-header {
-    color: #000000 !important;
   }
 
   :global([data-theme="light"]) .logo-img {

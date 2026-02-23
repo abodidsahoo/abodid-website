@@ -112,7 +112,7 @@ export default function SyncDataPopup({ show, bookmarkCount, onCreateAccount, on
                 }
 
                 .popup-title {
-                    font-family: 'Poppins', sans-serif;
+                    font-family: var(--font-display);
                     font-size: 1.5rem;
                     font-weight: 700;
                     color: var(--text-primary);

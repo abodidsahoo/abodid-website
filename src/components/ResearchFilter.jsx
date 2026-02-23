@@ -211,7 +211,7 @@ const ResearchFilter = ({ papers }) => {
                 }
 
                 .paper-title {
-                    font-family: "Poppins", sans-serif;
+                    font-family: var(--font-display);
                     font-size: 2.2rem;
                     font-weight: 600;
                     margin: 0;

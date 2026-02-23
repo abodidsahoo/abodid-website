@@ -661,7 +661,7 @@ export default function PhotoStoryManager() {
                     border-radius: 10px;
                     background: rgba(0, 0, 0, 0.28);
                     color: #f8fafc;
-                    font-family: "Inconsolata", ui-monospace, SFMono-Regular, Menlo, monospace;
+                    font-family: var(--font-mono);
                     font-size: 0.9rem;
                     line-height: 1.55;
                     padding: 0.75rem;

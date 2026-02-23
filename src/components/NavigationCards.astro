@@ -95,12 +95,13 @@ const cards = [
     }
 
     .card-title {
-        font-family: "Inconsolata", monospace !important;
-        font-size: 1.1rem !important;
-        font-weight: 700 !important;
+        font-family: var(--feature-nav-card-title-font, var(--font-mono)) !important;
+        font-size: var(--feature-nav-card-title-size, 1.1rem) !important;
+        font-weight: var(--feature-nav-card-title-weight, 700) !important;
+        line-height: var(--feature-nav-card-title-line-height, 1.2) !important;
         text-transform: uppercase !important;
-        letter-spacing: 0.1em !important;
-        color: #fff !important;
+        letter-spacing: var(--feature-nav-card-title-letter-spacing, 0.1em) !important;
+        color: var(--feature-nav-card-title-color, #fff) !important;
         margin: 0 !important;
         text-shadow: 0 0 10px rgba(0, 0, 0, 0.5) !important;
     }
@@ -115,15 +116,17 @@ const cards = [
     }
 
     .card-link {
-        color: var(--text-secondary) !important;
+        color: var(--feature-nav-card-link-color, var(--text-secondary)) !important;
         text-decoration: none !important;
-        font-family: "Inconsolata", monospace !important;
-        font-size: 0.9rem !important;
+        font-family: var(--feature-nav-card-link-font, var(--font-mono)) !important;
+        font-size: var(--feature-nav-card-link-size, 0.9rem) !important;
+        font-weight: var(--feature-nav-card-link-weight, 400) !important;
+        line-height: var(--feature-nav-card-link-line-height, 1.3) !important;
         transition: all 0.2s ease !important;
         display: flex !important;
         align-items: center !important;
         gap: 8px !important;
-        letter-spacing: 0.02em !important;
+        letter-spacing: var(--feature-nav-card-link-letter-spacing, 0.02em) !important;
     }
 
     .link-arrow {

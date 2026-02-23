@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { submitResource } from '../../lib/resources/db';
 import { supabase } from '../../lib/supabaseClient';
-import type { ResourceAudience } from '../../lib/resources/types';
-import TagInput from './TagInput';
 
 export default function SubmissionForm() {
     const [loading, setLoading] = useState(false);
@@ -32,10 +30,6 @@ export default function SubmissionForm() {
         title: '',
         url: '',
         description: '',
-        audience: 'Designer' as ResourceAudience,
-        thumbnail_url: '',
-        credit_text: '',
-        selectedTags: [] as string[],
         honeypot: '' // Anti-spam
     });
 
@@ -54,9 +48,7 @@ export default function SubmissionForm() {
                 if (res.ok) {
                     setFormData(prev => ({
                         ...prev,
-                        title: prev.title || data.title || '',
-                        description: prev.description || data.description || '',
-                        thumbnail_url: prev.thumbnail_url || data.image || ''
+                        title: prev.title || data.title || ''
                     }));
                 }
             } catch (err) {
@@ -84,10 +76,7 @@ export default function SubmissionForm() {
             title: formData.title,
             url: formData.url,
             description: formData.description,
-            audience: formData.audience,
-            thumbnail_url: formData.thumbnail_url || undefined,
-            credit_text: formData.credit_text || undefined,
-            tag_ids: formData.selectedTags
+            audience: 'Designer'
         });
 
         setLoading(false);
@@ -100,10 +89,6 @@ export default function SubmissionForm() {
                 title: '',
                 url: '',
                 description: '',
-                audience: 'Designer',
-                thumbnail_url: '',
-                credit_text: '',
-                selectedTags: [],
                 honeypot: ''
             });
         } else {
@@ -230,7 +215,7 @@ export default function SubmissionForm() {
                         Submit a resource
                     </h2>
                     <p style={{ fontFamily: 'var(--font-sans)', fontSize: '1rem', color: 'var(--text-secondary)', lineHeight: '1.5', maxWidth: '500px', margin: '0 auto' }}>
-                        Found something cool? Share it with the community! All submissions are reviewed before publishing.
+                        Share a useful link. You write why it is useful, and the curator adds tags and thumbnail before publishing.
                     </p>
                 </div>
 
@@ -257,81 +242,34 @@ export default function SubmissionForm() {
                         </div>
                     </div>
 
-                    {/* Compact Row: Title & Audience */}
-                    <div className="form-row-split">
+                    <div className="form-row">
                         <div className="hub-form-group">
-                            <label className="hub-label">Title *</label>
+                            <label className="hub-label">Title (auto-generated) *</label>
                             <input
                                 type="text"
                                 required
                                 className="hub-input"
                                 value={formData.title}
                                 onChange={e => setFormData({ ...formData, title: e.target.value })}
+                                placeholder="Auto-filled from your URL"
                             />
-                        </div>
-
-                        <div className="hub-form-group">
-                            <label className="hub-label">Audience *</label>
-                            <select
-                                className="hub-select"
-                                value={formData.audience}
-                                onChange={e => setFormData({ ...formData, audience: e.target.value as ResourceAudience })}
-                            >
-                                <option value="General Audience">General Audience</option>
-                                <option value="Designer">Designer</option>
-                                <option value="Artist">Artist</option>
-                                <option value="Filmmaker">Filmmaker</option>
-                                <option value="Creative Technologist">Creative Technologist</option>
-                                <option value="Researcher">Researcher</option>
-                                <option value="Other">Other</option>
-                            </select>
                         </div>
                     </div>
 
                     {/* Description Route */}
                     <div className="form-row">
                         <div className="hub-form-group">
-                            <label className="hub-label">Description</label>
+                            <label className="hub-label">Why is it useful? *</label>
                             <textarea
+                                required
                                 className="hub-textarea"
                                 value={formData.description}
                                 onChange={e => setFormData({ ...formData, description: e.target.value })}
-                                placeholder="Why is it useful?"
+                                placeholder="Tell us why this is worth sharing."
                                 style={{ minHeight: '100px' }}
                             />
                         </div>
                     </div>
-
-                    {/* Compact Row: Tags & Thumbnail */}
-                    <div className="form-row-split">
-                        <div className="hub-form-group">
-                            <label className="hub-label">Tags (Max 3)</label>
-                            <TagInput
-                                selectedTags={formData.selectedTags}
-                                onChange={(newTags) => setFormData(prev => ({ ...prev, selectedTags: newTags }))}
-                                maxTags={3}
-                            />
-                        </div>
-
-                        <div className="hub-form-group">
-                            <label className="hub-label">Thumbnail URL (Optional)</label>
-                            <input
-                                type="url"
-                                className="hub-input"
-                                value={formData.thumbnail_url}
-                                onChange={e => setFormData({ ...formData, thumbnail_url: e.target.value })}
-                                placeholder="https://..."
-                            />
-                        </div>
-                    </div>
-
-                    {/* Preview */}
-                    {formData.thumbnail_url && (
-                        <div className="form-row" style={{ marginTop: '16px' }}>
-                            <label className="hub-label">Preview</label>
-                            <img src={formData.thumbnail_url} alt="Preview" style={{ width: '100%', height: '180px', objectFit: 'cover', borderRadius: '8px', border: '1px solid var(--border-subtle)' }} />
-                        </div>
-                    )}
 
                     {/* Submit Button */}
                     <div style={{ marginTop: '32px' }}>
