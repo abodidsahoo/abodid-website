@@ -137,6 +137,8 @@ try {
             items={photographyPortfolioItems}
             enablePolaroidViewer={true}
             deepLinkParam="photo"
+            enableQuickShuffle={true}
+            quickShuffleLimit={20}
         />
 
         <footer class="moodboard-outro">
@@ -190,16 +192,14 @@ try {
 
     :global(body[data-grid-variant="moodboard"] .global-grid-bg) {
         background-size: 56px 56px;
-        -webkit-mask-image: radial-gradient(
-            ellipse at center,
-            black 48%,
-            transparent 92%
-        );
-        mask-image: radial-gradient(
-            ellipse at center,
-            black 48%,
-            transparent 92%
-        );
+        -webkit-mask-image:
+            radial-gradient(ellipse at center, black 48%, transparent 92%),
+            linear-gradient(to bottom, black 0%, black 82%, transparent 100%);
+        mask-image:
+            radial-gradient(ellipse at center, black 48%, transparent 92%),
+            linear-gradient(to bottom, black 0%, black 82%, transparent 100%);
+        -webkit-mask-composite: source-in;
+        mask-composite: intersect;
     }
 
     :global(body[data-grid-variant="moodboard"] .global-glow-bg) {

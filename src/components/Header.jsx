@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Breadcrumbs from './Breadcrumbs';
-import ThemeToggle from './ThemeToggle';
+import ThemeToggle from './ThemeToggle.jsx';
 
 const Header = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -276,21 +276,22 @@ const Header = () => {
 
                 .menu-inner {
                     display: grid;
-                    grid-template-columns: 40% 60%;
+                    grid-template-columns: 60% 40%;
                     height: 100%;
                 }
 
                 /* --- PANEL COMMON STYLES --- */
                 .menu-panel { padding: 80px 3vw 4rem; height: 100%; } 
 
-                /* --- PANEL 1: RED (LEFT) --- */
+                /* --- PANEL 1: RED (RIGHT ON DESKTOP) --- */
                 .left-panel {
                     background-color: var(--color-brand-red);
                     color: white;
                     display: flex; flex-direction: column;
                     justify-content: flex-start;
-                    padding-left: 8vw; 
-                    padding-right: 2vw; 
+                    padding-left: 4vw; 
+                    padding-right: 6vw; 
+                    order: 2;
                 }
 
                 /* DOMINANT LINKS */
@@ -312,17 +313,19 @@ const Header = () => {
                     transition: all 0.2s ease;
                 }
 
-                /* --- PANEL 2: WHITE (RIGHT) --- */
+                /* --- PANEL 2: WHITE (LEFT ON DESKTOP) --- */
                 .right-panel {
                     background-color: #f5f5f5;
                     display: block;
-                    padding-left: 5vw;
+                    padding-left: clamp(2.5rem, 5.5vw, 6rem);
+                    padding-right: clamp(1.5rem, 2.2vw, 2.75rem);
+                    order: 1;
                 }
 
                 .secondary-columns-container {
                     display: grid;
                     grid-template-columns: 1fr 1fr;
-                    gap: 3rem; 
+                    gap: clamp(1.5rem, 2.4vw, 2.5rem); 
                     width: 100%;
                 }
                 
@@ -378,12 +381,14 @@ const Header = () => {
                     .left-panel {
                         padding: 120px 5vw 2rem;
                         flex: none;
+                        order: 1;
                     }
                     
                     .right-panel {
                         padding: 2rem 5vw 4rem;
                         background: #f5f5f5;
                         flex: 1;
+                        order: 2;
                     }
 
                     .secondary-columns-container {

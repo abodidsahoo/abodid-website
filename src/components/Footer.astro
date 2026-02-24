@@ -6,9 +6,6 @@ const year = new Date().getFullYear();
 ---
 
 <footer class="site-footer">
-  <!-- Top Fade Area: Extra space for fade-to-black transition -->
-  <div class="footer-fade-strip"></div>
-
   <!-- Top Full-Width Line -->
   <div class="footer-line top-line"></div>
 
@@ -141,9 +138,7 @@ const year = new Date().getFullYear();
     width: 100%;
     /* Ensure no overflow issues */
     box-sizing: border-box;
-    /* Create spacing for fade strip to sit in */
-    border-top: 4rem solid transparent;
-    background-clip: padding-box; /* Ensure bg doesn't bleed into border */
+    background-clip: padding-box;
   }
 
   /* Full Width Separator Lines */
@@ -152,18 +147,6 @@ const year = new Date().getFullYear();
     height: 1px;
     background-color: var(--footer-border);
     display: block;
-  }
-
-  /* Fade Strip */
-  .footer-fade-strip {
-    width: 100%;
-    height: 10rem;
-    background: linear-gradient(to bottom, transparent, var(--footer-bg));
-    position: absolute;
-    top: -10rem;
-    left: 0;
-    pointer-events: none;
-    z-index: 5;
   }
 
   .footer-main-content {
@@ -374,10 +357,6 @@ const year = new Date().getFullYear();
     }
   }
   /* LIGHT MODE SPECIFIC ADJUSTMENTS */
-  :global([data-theme="light"]) .footer-fade-strip {
-    background: linear-gradient(to bottom, transparent, var(--footer-bg));
-  }
-
   :global([data-theme="light"]) .footer-ticker-fullwidth,
   :global([data-theme="light"]) .footer-bottom-full {
     background: var(--footer-bg);
