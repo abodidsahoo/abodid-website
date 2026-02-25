@@ -7,6 +7,8 @@ const EDGE_PADDING = 18;
 const TOP_PADDING = 12;
 const BOTTOM_PADDING = 24;
 const SHUFFLE_ACTIVE_LIMIT = 20;
+const DEFAULT_INITIAL_VISIBLE_ROWS = 4;
+const DEFAULT_SCROLL_BATCH_ROWS = 1;
 
 const SIZE_PRESETS = [
     { scale: 0.24, weight: 0.06 },
@@ -90,6 +92,25 @@ function resolveLaneCount(width) {
     if (width < 1360) return 4;
     if (width < 1760) return 5;
     return 6;
+}
+
+function getInitialVisibleCount(totalCount, laneCount, initialRows) {
+    if (totalCount <= 0) return 0;
+    const safeLaneCount = Math.max(1, laneCount);
+    const safeRows = Math.max(1, initialRows);
+    const target = safeLaneCount * safeRows;
+    if (target >= totalCount) return totalCount;
+    return Math.max(safeLaneCount, Math.floor(target / safeLaneCount) * safeLaneCount);
+}
+
+function getNextVisibleCount(currentCount, totalCount, laneCount, batchRows) {
+    if (totalCount <= 0) return 0;
+    if (currentCount >= totalCount) return totalCount;
+    const safeLaneCount = Math.max(1, laneCount);
+    const safeBatchRows = Math.max(1, batchRows);
+    const target = currentCount + safeLaneCount * safeBatchRows;
+    if (target >= totalCount) return totalCount;
+    return Math.max(safeLaneCount, Math.ceil(target / safeLaneCount) * safeLaneCount);
 }
 
 function getBalancedCardSize(width, ratio, random) {
@@ -369,12 +390,17 @@ export default function VisualMoodboard({
     deepLinkParam = '',
     enableQuickShuffle = false,
     quickShuffleLimit = 18,
+    enableInfiniteScroll = false,
+    initialVisibleRows = DEFAULT_INITIAL_VISIBLE_ROWS,
+    rowsPerScrollBatch = DEFAULT_SCROLL_BATCH_ROWS,
 }) {
     const prefersReducedMotion = useReducedMotion();
     const stageRef = useRef(null);
     const layoutMapRef = useRef(new Map());
     const pointerRef = useRef({ x: 0, y: 0 });
     const probedIdsRef = useRef(new Set());
+    const userHasScrolledRef = useRef(false);
+    const lastInfiniteLoadScrollYRef = useRef(-Infinity);
     const shuffleTimersRef = useRef([]);
     const [query, setQuery] = useState('');
     const [activeTag, setActiveTag] = useState('');
@@ -393,10 +419,22 @@ export default function VisualMoodboard({
     const [stackZFrames, setStackZFrames] = useState([]);
     const [shuffleCenter, setShuffleCenter] = useState(null);
     const [quickBatchIds, setQuickBatchIds] = useState([]);
+    const [visibleCount, setVisibleCount] = useState(0);
     const deepLinkInitializedRef = useRef(false);
     const [viewerActiveId, setViewerActiveId] = useState(null);
     const quickModeEnabled = Boolean(enableQuickShuffle);
     const quickLimit = clamp(Math.round(Number(quickShuffleLimit) || 18), 15, 20);
+    const infiniteScrollEnabled = Boolean(enableInfiniteScroll) && !quickModeEnabled;
+    const normalizedInitialRows = clamp(
+        Math.round(Number(initialVisibleRows) || DEFAULT_INITIAL_VISIBLE_ROWS),
+        1,
+        10,
+    );
+    const normalizedBatchRows = clamp(
+        Math.round(Number(rowsPerScrollBatch) || DEFAULT_SCROLL_BATCH_ROWS),
+        1,
+        6,
+    );
 
     useEffect(() => {
         return () => {
@@ -577,6 +615,80 @@ export default function VisualMoodboard({
         });
     }, [normalizedItems, activeTag, normalizedQuery]);
 
+    const laneCount = useMemo(
+        () => resolveLaneCount(stageSize.width || 1200),
+        [stageSize.width],
+    );
+
+    useEffect(() => {
+        if (!infiniteScrollEnabled) {
+            setVisibleCount(0);
+            userHasScrolledRef.current = false;
+            lastInfiniteLoadScrollYRef.current = -Infinity;
+            return;
+        }
+
+        const nextVisibleCount = getInitialVisibleCount(
+            filteredItems.length,
+            laneCount,
+            normalizedInitialRows,
+        );
+        setVisibleCount(nextVisibleCount);
+        userHasScrolledRef.current = false;
+        lastInfiniteLoadScrollYRef.current = -Infinity;
+    }, [
+        infiniteScrollEnabled,
+        filteredItems.length,
+        laneCount,
+        normalizedInitialRows,
+        activeTag,
+        normalizedQuery,
+    ]);
+
+    const hasMoreItems = infiniteScrollEnabled && visibleCount < filteredItems.length;
+
+    useEffect(() => {
+        if (!infiniteScrollEnabled || !hasMoreItems || typeof window === 'undefined') {
+            return undefined;
+        }
+
+        const handleScroll = () => {
+            const currentScrollY = window.scrollY || 0;
+            if (!userHasScrolledRef.current && currentScrollY > 24) {
+                userHasScrolledRef.current = true;
+            }
+            if (!userHasScrolledRef.current) return;
+
+            const docHeight = Math.max(
+                document.documentElement?.scrollHeight || 0,
+                document.body?.scrollHeight || 0,
+            );
+            const distanceToBottom = docHeight - (currentScrollY + window.innerHeight);
+            if (distanceToBottom > 220) return;
+            if (currentScrollY <= lastInfiniteLoadScrollYRef.current + 16) return;
+
+            lastInfiniteLoadScrollYRef.current = currentScrollY;
+            setVisibleCount((current) =>
+                getNextVisibleCount(
+                    current,
+                    filteredItems.length,
+                    laneCount,
+                    normalizedBatchRows,
+                ),
+            );
+        };
+
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        handleScroll();
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, [
+        infiniteScrollEnabled,
+        hasMoreItems,
+        filteredItems.length,
+        laneCount,
+        normalizedBatchRows,
+    ]);
+
     useEffect(() => {
         if (!quickModeEnabled) {
             setQuickBatchIds([]);
@@ -610,13 +722,31 @@ export default function VisualMoodboard({
                 .sort((a, b) => (orderMap.get(a.id) || 0) - (orderMap.get(b.id) || 0));
         }
 
-        const laneCount = resolveLaneCount(stageSize.width || 1200);
-        if (filteredItems.length <= laneCount) return filteredItems;
+        if (infiniteScrollEnabled) {
+            const guaranteedVisibleCount = getInitialVisibleCount(
+                filteredItems.length,
+                laneCount,
+                normalizedInitialRows,
+            );
+            const cappedVisibleCount = clamp(
+                visibleCount || guaranteedVisibleCount,
+                0,
+                filteredItems.length,
+            );
+            return filteredItems.slice(0, cappedVisibleCount);
+        }
 
-        const completeRowCount = Math.floor(filteredItems.length / laneCount);
-        const visibleCount = completeRowCount * laneCount;
-        return filteredItems.slice(0, visibleCount);
-    }, [filteredItems, stageSize.width, quickModeEnabled, quickBatchIds, quickLimit]);
+        return filteredItems;
+    }, [
+        filteredItems,
+        quickModeEnabled,
+        quickBatchIds,
+        quickLimit,
+        infiniteScrollEnabled,
+        laneCount,
+        normalizedInitialRows,
+        visibleCount,
+    ]);
 
     const deepLinkKey = deepLinkParam.trim();
 
@@ -921,10 +1051,7 @@ export default function VisualMoodboard({
             const viewportHeight = window.innerHeight || 900;
             const laneCount = resolveLaneCount(width);
             const referenceSquare = clamp(width * 0.2, 170, 360);
-            const effectiveItemCount =
-                filteredItems.length > laneCount
-                    ? Math.floor(filteredItems.length / laneCount) * laneCount
-                    : filteredItems.length;
+            const effectiveItemCount = boardItems.length;
             const rowCount = Math.ceil(Math.max(effectiveItemCount, 1) / laneCount);
             const densityScale =
                 rowCount <= 2
@@ -1252,6 +1379,7 @@ export default function VisualMoodboard({
                                     : {
                                         duration: 0.2,
                                         ease: [0.2, 0.9, 0.28, 1],
+                                        delay: activeLayout.appearDelay || 0,
                                     };
                             }
 
@@ -1261,7 +1389,6 @@ export default function VisualMoodboard({
                                     alt={item.title}
                                     loading={isPriorityImage ? 'eager' : 'lazy'}
                                     decoding={isPriorityImage ? 'sync' : 'async'}
-                                    fetchPriority={isPriorityImage ? 'high' : 'low'}
                                     animate={
                                         prefersReducedMotion
                                             ? { y: 0, scale: 1 }
@@ -1296,7 +1423,11 @@ export default function VisualMoodboard({
                                 <motion.figure
                                     key={item.id}
                                     className={`moodboard-card ${isClickable ? 'is-clickable' : ''}`}
-                                    initial={false}
+                                    initial={
+                                        prefersReducedMotion
+                                            ? false
+                                            : { opacity: 0, scale: 0.92, y: 14 }
+                                    }
                                     exit={{ scale: 0.9, transition: { duration: 0.2 } }}
                                     animate={figureAnimate}
                                     transition={figureTransition}
@@ -1364,6 +1495,7 @@ export default function VisualMoodboard({
                             No matches. Try a shorter keyword or clear the tag filter.
                         </div>
                     )}
+
                 </div>
             )}
 

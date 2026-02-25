@@ -18,9 +18,8 @@ import Showreel from "../components/Showreel.astro";
 
 import PhotoGrid from "../components/PhotoGrid.astro";
 import NavigationCards from "../components/NavigationCards.astro";
-import BrandFilmStrip from "../components/BrandFilmStrip";
 // CardStacker replaced by LandingOrchestrator
-import LandingOrchestrator from "../components/LandingOrchestrator.jsx";
+import LandingStackShell from "../components/LandingStackShell.jsx";
 // LiquidCursor moved to BaseLayout
 // EngagementCTA moved to LandingOrchestrator
 import ForceDarkMode from "../components/ForceDarkMode.astro";
@@ -103,7 +102,7 @@ const odishaUrl = "https://vimeo.com/265220711";
     <!-- 1. Centered Card Stack (Hidden on Mobile via CSS, now also JS prevented) -->
     <div class="card-stack-wrapper">
         <div class="snap-top"></div>
-        <LandingOrchestrator
+        <LandingStackShell
             client:only="react"
             images={featuredPhotography}
             anchorX="50%"

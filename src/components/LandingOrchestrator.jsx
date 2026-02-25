@@ -49,6 +49,7 @@ const HAND_FEEDBACK_TOP_PX = 120;
 const HAND_FEEDBACK_ESTIMATED_HEIGHT_PX = 294;
 const STORY_GAP_BELOW_FEEDBACK_PX = 16;
 const STORY_BASE_OFFSET_PX = 156;
+const MAX_STACK_RECOVERY_ATTEMPTS = 1;
 const HAND_GUIDANCE_MESSAGES = [
     'Move your index finger slowly in any direction.',
     'Use a gentle flick to drop a new card.',
@@ -105,9 +106,11 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
         cardSensitivity: sensitivityProfile.normalized,
     });
     const [showStabilityNotice, setShowStabilityNotice] = useState(false);
+    const [stackRuntimeError, setStackRuntimeError] = useState(null);
     const anomalyStreakRef = useRef(0);
     const healthyStreakRef = useRef(0);
     const sawCardsRef = useRef(false);
+    const stackRecoveryAttemptsRef = useRef(0);
     const sizeSliderHitAreaRef = useRef(null);
     const sizeControlRef = useRef(null);
     const sensitivitySliderHitAreaRef = useRef(null);
@@ -168,8 +171,9 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
         forceReshuffle(anchorImage);
     };
 
-    const handleRefreshLoading = () => {
+    const handleRefreshLoading = ({ resetRecoveryAttempts = false } = {}) => {
         setShowStabilityNotice(false);
+        setStackRuntimeError(null);
         setFeedMode('shuffle');
         setMediaFilters(DEFAULT_CATEGORY_FILTERS);
         setCardWidth(getDefaultCardWidth(cardSizeBounds.min, cardSizeBounds.max));
@@ -178,6 +182,16 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
         setLoadingStoryUrls({});
         setShowStoryPanel(false);
         forceReshuffle(null);
+        if (resetRecoveryAttempts) {
+            stackRecoveryAttemptsRef.current = 0;
+        }
+    };
+
+    const handleRecoverFromError = () => {
+        handleRefreshLoading({ resetRecoveryAttempts: true });
+        window.setTimeout(() => {
+            window.location.reload();
+        }, 120);
     };
 
     useEffect(() => {
@@ -261,11 +275,72 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
         }
     }, [stack.length]);
 
+    useEffect(() => {
+        const stackRelatedTokens = [
+            'landingorchestrator',
+            'cardstacker',
+            'usehandtracking',
+            'mediapipe',
+            'hands_solution',
+            'stacked-card',
+            'card stack',
+        ];
+
+        const isStackRelatedError = (rawMessage = '', rawStack = '') => {
+            const haystack = `${rawMessage} ${rawStack}`.toLowerCase();
+            return stackRelatedTokens.some((token) => haystack.includes(token));
+        };
+
+        const reportStackRuntimeError = (message, detail = '') => {
+            const safeMessage = typeof message === 'string' && message.trim()
+                ? message.trim()
+                : 'A runtime glitch interrupted the photo stack.';
+            setStackRuntimeError({
+                message: safeMessage,
+                detail: typeof detail === 'string' ? detail : '',
+                ts: Date.now(),
+            });
+            setShowStabilityNotice(true);
+        };
+
+        const handleWindowError = (event) => {
+            const error = event?.error;
+            const message = event?.message || error?.message || '';
+            const stackTrace = error?.stack || '';
+            const filename = event?.filename || '';
+            const combinedDetail = [stackTrace, filename].filter(Boolean).join('\n');
+            if (!isStackRelatedError(message, combinedDetail)) return;
+            reportStackRuntimeError(message, combinedDetail);
+        };
+
+        const handleUnhandledRejection = (event) => {
+            const reason = event?.reason;
+            const message = typeof reason === 'string'
+                ? reason
+                : reason?.message || 'Promise rejection interrupted the photo stack.';
+            const stackTrace = reason?.stack || '';
+            if (!isStackRelatedError(message, stackTrace)) return;
+            reportStackRuntimeError(message, stackTrace);
+        };
+
+        window.addEventListener('error', handleWindowError);
+        window.addEventListener('unhandledrejection', handleUnhandledRejection);
+        return () => {
+            window.removeEventListener('error', handleWindowError);
+            window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+        };
+    }, []);
+
     // Lightweight health monitor: detect disappearing/glitchy stack and prompt refresh.
     useEffect(() => {
         if (!introComplete) return;
 
         const interval = setInterval(() => {
+            if (stackRuntimeError) {
+                setShowStabilityNotice(true);
+                return;
+            }
+
             if (window.scrollY > 180) {
                 anomalyStreakRef.current = 0;
                 healthyStreakRef.current += 1;
@@ -295,8 +370,17 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                     isTracking &&
                     sawCardsRef.current &&
                     stack.length === 0;
+                const unexpectedEmptyNearTop =
+                    sawCardsRef.current &&
+                    stack.length === 0 &&
+                    window.scrollY < 120;
 
-                if (hiddenContainer || missingRenderedCards || unexpectedEmptyWhileGesturing) {
+                if (
+                    hiddenContainer ||
+                    missingRenderedCards ||
+                    unexpectedEmptyWhileGesturing ||
+                    unexpectedEmptyNearTop
+                ) {
                     isAnomaly = true;
                 }
             }
@@ -310,15 +394,30 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
             }
 
             if (anomalyStreakRef.current >= 2) {
+                if (stackRecoveryAttemptsRef.current < MAX_STACK_RECOVERY_ATTEMPTS) {
+                    stackRecoveryAttemptsRef.current += 1;
+                    handleRefreshLoading();
+                    return;
+                }
                 setShowStabilityNotice(true);
             }
             if (healthyStreakRef.current >= 2) {
                 setShowStabilityNotice(false);
+                if (stack.length > 0) {
+                    stackRecoveryAttemptsRef.current = 0;
+                }
             }
         }, 3000);
 
         return () => clearInterval(interval);
-    }, [introComplete, containerRef, stack.length, handControlEnabled, isTracking]);
+    }, [
+        introComplete,
+        containerRef,
+        stack.length,
+        handControlEnabled,
+        isTracking,
+        stackRuntimeError,
+    ]);
 
     // 4. Scroll Logic (Hint & Button Visibility)
     const [isScrolled, setIsScrolled] = useState(false); // Toggle for button
@@ -517,9 +616,10 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                 ? 'Show your hand to start tracking.'
                 : onboardingState === 'requesting_camera'
                     ? 'Requesting camera access...'
-                    : onboardingState === 'calibrating'
-                        ? 'Calibrating tracking...'
-                        : 'Initializing hand controls...';
+                : onboardingState === 'calibrating'
+                    ? 'Calibrating tracking...'
+                    : 'Initializing hand controls...';
+    const recoveryMessage = stackRuntimeError?.message || 'The photo stack looks stuck right now.';
 
     useEffect(() => {
         if (!activePhotoUrl) return;
@@ -734,10 +834,6 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                                 </div>
                             </div>
 
-                            <button className="refresh-stack-btn" onClick={handleRefreshLoading}>
-                                Refresh Loading
-                            </button>
-
                         </div>
                     </motion.div>
                 )}
@@ -777,8 +873,14 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
             )}
 
             {showStabilityNotice && (
-                <div className="stability-notice" role="status" aria-live="polite">
-                    <p>Something looks off. Kindly refresh the page for a finetuned experience.</p>
+                <div className="stability-notice" role="alert" aria-live="assertive">
+                    <p>{recoveryMessage}</p>
+                    <p className="stability-subtext">
+                        Could you please refresh the page? It should bring the stack back smoothly.
+                    </p>
+                    <button className="stability-refresh-btn" onClick={handleRecoverFromError}>
+                        Refresh Page
+                    </button>
                 </div>
             )}
 
@@ -977,26 +1079,6 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                     opacity: 1;
                     transform: translateY(0);
                     margin-top: 6px;
-                }
-                .refresh-stack-btn {
-                    width: 284px;
-                    border: 1px solid rgba(255, 255, 255, 0.34);
-                    border-radius: 10px;
-                    background: rgba(0, 0, 0, 0.34);
-                    color: var(--feature-stack-peel-btn-color, rgba(255, 255, 255, 0.9));
-                    font-family: var(--feature-stack-peel-btn-font, var(--font-ui));
-                    font-size: var(--feature-stack-peel-btn-size, 0.72rem);
-                    font-weight: var(--feature-stack-peel-btn-weight, 500);
-                    line-height: var(--feature-stack-peel-btn-line-height, 1.2);
-                    letter-spacing: var(--feature-stack-peel-btn-letter-spacing, 0.05em);
-                    text-transform: uppercase;
-                    padding: 0.58rem 0.72rem;
-                    cursor: pointer;
-                }
-                .refresh-stack-btn:hover {
-                    border-color: rgba(56, 189, 248, 0.75);
-                    background: rgba(56, 189, 248, 0.14);
-                    color: #ffffff;
                 }
                 .photo-story-live-header {
                     color: rgba(255, 255, 255, 0.95);
@@ -1216,7 +1298,7 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                     left: 50%;
                     transform: translate(-50%, -50%);
                     z-index: 10020;
-                    pointer-events: none;
+                    pointer-events: auto;
                     max-width: min(560px, 86vw);
                     padding: 16px 20px;
                     border-radius: 12px;
@@ -1225,6 +1307,10 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                     backdrop-filter: blur(10px);
                     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
                     text-align: center;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 8px;
+                    align-items: center;
                 }
                 .stability-notice p {
                     margin: 0;
@@ -1233,6 +1319,28 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                     font-size: 0.86rem;
                     letter-spacing: 0.03em;
                     line-height: 1.45;
+                }
+                .stability-notice .stability-subtext {
+                    font-size: 0.79rem;
+                    color: rgba(0, 0, 0, 0.7);
+                }
+                .stability-refresh-btn {
+                    border: 1px solid rgba(0, 0, 0, 0.45);
+                    border-radius: 8px;
+                    background: #ffffff;
+                    color: rgba(0, 0, 0, 0.86);
+                    font-family: var(--font-ui);
+                    font-size: 0.74rem;
+                    font-weight: 600;
+                    line-height: 1.1;
+                    letter-spacing: 0.04em;
+                    text-transform: uppercase;
+                    padding: 0.54rem 0.86rem;
+                    cursor: pointer;
+                }
+                .stability-refresh-btn:hover {
+                    border-color: rgba(56, 189, 248, 0.86);
+                    background: rgba(56, 189, 248, 0.12);
                 }
                 .preview-canvas {
                     width: 100%;
@@ -1245,7 +1353,6 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                     }
                     .start-btn,
                     .size-control,
-                    .refresh-stack-btn,
                     .feed-control-panel,
                     .filter-control-panel,
                     .hand-feedback-panel {
@@ -1265,8 +1372,7 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                 [data-theme="light"] .size-control,
                 [data-theme="light"] .feed-control-panel,
                 [data-theme="light"] .filter-control-panel,
-                [data-theme="light"] .hand-feedback-panel,
-                [data-theme="light"] .refresh-stack-btn {
+                [data-theme="light"] .hand-feedback-panel {
                     background: #ffffff !important;
                     border: 1px solid #000000 !important;
                     color: #000000 !important;
@@ -1294,16 +1400,14 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                 }
 
                 /* High Contrast Hover States */
-                [data-theme="light"] .start-btn:hover,
-                [data-theme="light"] .refresh-stack-btn:hover {
+                [data-theme="light"] .start-btn:hover {
                     background: #000000 !important;
                     border-color: #000000 !important;
                     color: #ffffff !important;
                     box-shadow: 0 6px 16px rgba(0,0,0,0.2) !important;
                 }
                 /* IMPORTANT: When button is hovered, ensure children (text) turn white */
-                [data-theme="light"] .start-btn:hover *,
-                [data-theme="light"] .refresh-stack-btn:hover * {
+                [data-theme="light"] .start-btn:hover * {
                     color: #ffffff !important;
                 }
 

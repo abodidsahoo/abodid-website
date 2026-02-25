@@ -741,8 +741,8 @@ export default function MoodboardManager() {
                 }
 
                 .dropzone.dragging {
-                    border-color: #ea2a10;
-                    background: rgba(234, 42, 16, 0.12);
+                    border-color: var(--color-brand-red);
+                    background: rgba(163, 0, 33, 0.12);
                     transform: translateY(-1px);
                 }
 

@@ -137,8 +137,9 @@ try {
             items={photographyPortfolioItems}
             enablePolaroidViewer={true}
             deepLinkParam="photo"
-            enableQuickShuffle={true}
-            quickShuffleLimit={20}
+            enableInfiniteScroll={true}
+            initialVisibleRows={4}
+            rowsPerScrollBatch={1}
         />
 
         <footer class="moodboard-outro">

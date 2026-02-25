@@ -2,11 +2,78 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { motion } from 'framer-motion';
 
+const stripBlackMatte = (src) =>
+    new Promise((resolve) => {
+        const image = new Image();
+        image.crossOrigin = 'anonymous';
+        image.decoding = 'async';
+        image.referrerPolicy = 'no-referrer';
+
+        image.onload = () => {
+            try {
+                const width = image.naturalWidth || image.width;
+                const height = image.naturalHeight || image.height;
+                if (!width || !height) {
+                    resolve(src);
+                    return;
+                }
+
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+
+                const context = canvas.getContext('2d', { willReadFrequently: true });
+                if (!context) {
+                    resolve(src);
+                    return;
+                }
+
+                context.drawImage(image, 0, 0, width, height);
+                const imageData = context.getImageData(0, 0, width, height);
+                const { data } = imageData;
+
+                // Chroma-key style cleanup for logos exported on black JPEG mattes.
+                const matteCutoff = 0.09; // remove near-black background + jpeg halos
+                for (let i = 0; i < data.length; i += 4) {
+                    const r = data[i];
+                    const g = data[i + 1];
+                    const b = data[i + 2];
+                    const a = data[i + 3];
+                    if (a === 0) continue;
+
+                    const max = Math.max(r, g, b) / 255;
+                    if (max <= matteCutoff) {
+                        data[i + 3] = 0;
+                        continue;
+                    }
+
+                    const alpha = Math.max(0, Math.min(1, (max - matteCutoff) / (1 - matteCutoff)));
+                    const inv = max > 0 ? 1 / max : 1;
+
+                    data[i] = Math.min(255, Math.round(r * inv));
+                    data[i + 1] = Math.min(255, Math.round(g * inv));
+                    data[i + 2] = Math.min(255, Math.round(b * inv));
+                    data[i + 3] = Math.round(alpha * 255);
+                }
+
+                context.putImageData(imageData, 0, 0);
+                resolve(canvas.toDataURL('image/png'));
+            } catch (error) {
+                console.warn('Failed to remove logo matte:', error);
+                resolve(src);
+            }
+        };
+
+        image.onerror = () => resolve(src);
+        image.src = src;
+    });
+
 export default function BrandFilmStrip() {
     const [brands, setBrands] = useState([]);
     const [loading, setLoading] = useState(true);
     const [hoveredBrand, setHoveredBrand] = useState(null);
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+    const [logoSrcByUrl, setLogoSrcByUrl] = useState({});
 
     useEffect(() => {
         const fetchBrands = async () => {
@@ -25,6 +92,33 @@ export default function BrandFilmStrip() {
         };
         fetchBrands();
     }, []);
+
+    useEffect(() => {
+        if (!brands.length) return;
+
+        let cancelled = false;
+        const logoUrls = [...new Set(brands.map((brand) => brand.logo_url).filter(Boolean))];
+
+        const processLogos = async () => {
+            const processedEntries = await Promise.all(
+                logoUrls.map(async (logoUrl) => [logoUrl, await stripBlackMatte(logoUrl)]),
+            );
+
+            if (cancelled) return;
+            setLogoSrcByUrl((prev) => {
+                const next = { ...prev };
+                for (const [logoUrl, processedUrl] of processedEntries) {
+                    next[logoUrl] = processedUrl;
+                }
+                return next;
+            });
+        };
+
+        processLogos();
+        return () => {
+            cancelled = true;
+        };
+    }, [brands]);
 
     const handleMouseMove = (e) => {
         setMousePos({ x: e.clientX, y: e.clientY });
@@ -49,7 +143,11 @@ export default function BrandFilmStrip() {
                             onMouseEnter={() => setHoveredBrand(brand)}
                             onMouseLeave={() => setHoveredBrand(null)}
                         >
-                            <img src={brand.logo_url} alt={brand.name} loading="lazy" />
+                            <img
+                                src={logoSrcByUrl[brand.logo_url] || brand.logo_url}
+                                alt={brand.name}
+                                loading="lazy"
+                            />
                         </div>
                     ))}
                 </div>
@@ -93,8 +191,10 @@ export default function BrandFilmStrip() {
                     position: relative;
                     padding: 4rem 0; 
                     
-                    /* Theme Aware Background - User requested PURE BLACK to match image backgrounds */
-                    background: #000000;
+                    /* Let footer/site background pass through */
+                    background: transparent;
+                    mix-blend-mode: normal;
+                    opacity: 1;
                     
                     /* Edge Fade Mask */
                     mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
@@ -105,12 +205,9 @@ export default function BrandFilmStrip() {
 
                 /* Light Mode Logo Inversion */
                 [data-theme="light"] .brand-filmstrip {
-                    background: #ffffff !important;
-                }
-
-                [data-theme="light"] .filmstrip-item img {
-                    filter: invert(1) !important;
-                    opacity: 0.85 !important; 
+                    background: transparent !important;
+                    mix-blend-mode: normal !important;
+                    opacity: 1 !important;
                 }
 
                 .filmstrip-track {
@@ -152,9 +249,19 @@ export default function BrandFilmStrip() {
                     max-width: 120px;
                     object-fit: contain;
 
-                    /* RAW IMAGE DISPLAY */
-                    filter: none;
-                    opacity: 1; 
+                    mix-blend-mode: normal;
+                    filter: brightness(1.03) contrast(1.08);
+                    opacity: 0.94;
+                }
+
+                [data-theme="light"] .filmstrip-item img {
+                    /*
+                     * Light mode should not pop as pure white:
+                     * keep marks darker so they blend into the footer tone.
+                     */
+                    mix-blend-mode: normal !important;
+                    filter: invert(1) grayscale(1) brightness(0.32) contrast(1.18) !important;
+                    opacity: 0.78 !important;
                 }
 
                 /* Popup Card */

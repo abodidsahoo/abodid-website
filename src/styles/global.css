@@ -26,66 +26,82 @@
     /* Menu Red */
     --color-glitch-text: #E0E0E0;
 
-    /* FONTS - GLOBAL */
-    --font-h1: "Satoshi-Variable", "Poppins", sans-serif;
-    --font-h2: "Satoshi-Variable", "Poppins", sans-serif;
-    --font-h3: "Satoshi-Variable", "Poppins", sans-serif;
-    --font-h4: "Satoshi-Variable", "Poppins", sans-serif;
-    --font-h5: "Satoshi-Variable", "Poppins", sans-serif;
-    --font-h6: "Satoshi-Variable", "Poppins", sans-serif;
-    --font-body: "Crimson Pro", Georgia, serif;
-    --font-ui: "Space Mono", "Inconsolata", monospace;
-    --font-custom-1: "Satoshi-Variable", "Poppins", sans-serif;
-    --font-custom-2: "Space Mono", "Inconsolata", monospace;
-    --font-custom-3: "Inconsolata", monospace;
-    --font-custom-4: "Crimson Pro", Georgia, serif;
-    --font-serif: "Crimson Pro", Georgia, serif;
+    /* FONTS - GLOBAL DEFAULTS */
+    --font-h1: "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
+    --font-h2: "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
+    --font-h3: "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
+    --font-h4: "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
+    --font-h5: "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
+    --font-h6: "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
+    --font-body: "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
+    --font-ui: "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
+    --font-custom-1: "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
+    --font-custom-2: "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
+    --font-custom-3: "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
+    --font-custom-4: "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
+    --font-serif: "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
     --font-display: var(--font-h1);
-    --font-sans: "Satoshi-Variable", "Poppins", sans-serif;
-    --font-mono: var(--font-ui);
+    --font-sans: "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
+    --font-mono: "Satoshi-Variable", "Satoshi-Regular", "Space Mono", "Inconsolata", monospace;
 
     /* LAYOUT VARIABLES */
     --max-width: 1400px;
-    /* Global Container Constraint */
-    --space-3xl: 6rem;
-    /* define if missing to be safe */
+    --space-xs: 0.5rem;
+    --space-sm: 0.75rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2rem;
+    --space-2xl: 3rem;
+    --space-3xl: 4rem;
+    --space-l: var(--space-lg);
+    --radius-sm: 8px;
+    --radius-base: 10px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --text-xs: 0.75rem;
+    --text-sm: 0.875rem;
+    --text-base: 1rem;
+    --text-lg: 1.125rem;
+    --text-xl: 1.25rem;
+    --text-2xl: 1.5rem;
+    --text-3xl: 2rem;
 
     /* MODE TOKENS (Dark + Light) */
-    --dark-page-bg: #050505;
-    --dark-surface-bg: #0f0f0f;
-    --dark-surface-hover-bg: #1a1a1a;
-    --dark-text-primary: #ffffff;
-    --dark-text-secondary: #a0a0a0;
-    --dark-text-tertiary: #555555;
-    --dark-border-subtle: #222222;
-    --dark-border-strong: #444444;
-    --dark-header-bg: #050505;
-    --dark-header-text: #ffffff;
-    --dark-header-border: #2e2e2e;
-    --dark-footer-bg: #000000;
-    --dark-footer-text: #ffffff;
-    --dark-footer-border: #2e2e2e;
-    --dark-link-color: #ea2a10;
-    --dark-link-hover-color: #ff4d30;
-    --dark-selection-bg: #ff4d30;
+    --dark-page-bg: #0b0f14;
+    --dark-surface-bg: #141b24;
+    --dark-surface-hover-bg: #1d2733;
+    --dark-text-primary: #f8fafc;
+    --dark-text-secondary: #d3dce8;
+    --dark-text-tertiary: #9ba9bb;
+    --dark-border-subtle: #2b3646;
+    --dark-border-strong: #425167;
+    --dark-header-bg: #0b0f14;
+    --dark-header-text: #f8fafc;
+    --dark-header-border: #2b3646;
+    --dark-footer-bg: #090d12;
+    --dark-footer-text: #edf2f8;
+    --dark-footer-border: #2b3646;
+    --dark-link-color: var(--color-brand-red);
+    --dark-link-hover-color: #c21c3e;
+    --dark-selection-bg: var(--color-brand-red);
 
-    --light-page-bg: #ffffff;
+    --light-page-bg: #f8fafc;
     --light-surface-bg: #ffffff;
-    --light-surface-hover-bg: #f4f4f4;
-    --light-text-primary: #000000;
-    --light-text-secondary: #333333;
-    --light-text-tertiary: #555555;
-    --light-border-subtle: #e0e0e0;
-    --light-border-strong: #000000;
+    --light-surface-hover-bg: #eff3f8;
+    --light-text-primary: #0f172a;
+    --light-text-secondary: #334155;
+    --light-text-tertiary: #64748b;
+    --light-border-subtle: #dbe3ec;
+    --light-border-strong: #0f172a;
     --light-header-bg: #ffffff;
-    --light-header-text: #000000;
-    --light-header-border: #d8d8d8;
-    --light-footer-bg: #ffffff;
-    --light-footer-text: #111111;
-    --light-footer-border: #d8d8d8;
-    --light-link-color: #ea2a10;
-    --light-link-hover-color: #ff4d30;
-    --light-selection-bg: #ea2a10;
+    --light-header-text: #0f172a;
+    --light-header-border: #d0d9e3;
+    --light-footer-bg: #f8fafc;
+    --light-footer-text: #0f172a;
+    --light-footer-border: #d0d9e3;
+    --light-link-color: var(--color-brand-red);
+    --light-link-hover-color: #7d0018;
+    --light-selection-bg: var(--color-brand-red);
 
     /* Runtime Theme Variables (default: dark) */
     --bg-canvas: var(--dark-page-bg);
@@ -98,6 +114,8 @@
     --text-secondary: var(--dark-text-secondary);
     --text-tertiary: var(--dark-text-tertiary);
     --text-inverse: #000000;
+    --text-main: var(--text-primary);
+    --text-muted: var(--text-secondary);
 
     --border-subtle: var(--dark-border-subtle);
     --border-strong: var(--dark-border-strong);
@@ -110,11 +128,11 @@
     --footer-text-color: var(--dark-footer-text);
     --footer-border-color: var(--dark-footer-border);
 
-    --theme-color-primary: #ea2a10;
+    --theme-color-primary: var(--color-brand-red);
     --theme-color-secondary: #f9f8f3;
     --theme-color-tertiary: #9e9992;
-    --theme-color-accent: #ff4d30;
-    --custom-color-1: #ea2a10;
+    --theme-color-accent: var(--color-brand-red);
+    --custom-color-1: var(--color-brand-red);
     --custom-color-2: #f9f8f3;
     --custom-color-3: #9e9992;
 
@@ -332,8 +350,6 @@
     --link-underline: none;
     --link-hover-underline: none;
 
-    --radius-base: 10px;
-
     /* Grid & Glow Tokens - Increased Visibility */
     --grid-color-1: rgba(255, 255, 255, 0.08);
     /* Brighter for glow */
@@ -341,17 +357,15 @@
     /* Subtle background */
 
     /* COMPONENT TOKENS (Default Dark Mode) */
-    --btn-primary-bg: transparent;
-    /* Dark Mode: White Button */
-    --btn-primary-text: var(--theme-color-primary);
+    --btn-primary-bg: var(--theme-color-primary);
+    --btn-primary-text: #ffffff;
     --btn-primary-border: var(--theme-color-primary);
     --btn-secondary-bg: transparent;
-    --btn-secondary-text: var(--theme-color-primary);
+    --btn-secondary-text: var(--text-primary);
     --btn-secondary-border: var(--border-strong);
-    --theme-transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-    /* Dark Mode: Black Text */
+    --theme-transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
     --chip-active-bg: var(--accent-primary);
-    --chip-active-text: #000000;
+    --chip-active-text: #ffffff;
 }
 
 /* ==========================================================================
@@ -378,7 +392,7 @@
 
     --border-subtle: var(--light-border-subtle);
     --border-strong: var(--light-border-strong);
-    --border-focus: #0000ff;
+    --border-focus: #2563eb;
 
     --accent-glow: rgba(0, 0, 0, 0.05);
     --accent-primary: var(--theme-color-accent);
@@ -396,6 +410,11 @@
     --link-color: var(--light-link-color);
     --link-hover-color: var(--light-link-hover-color);
     --selection-bg: var(--light-selection-bg);
+    --btn-primary-bg: var(--light-text-primary);
+    --btn-primary-text: #ffffff;
+    --btn-primary-border: var(--light-text-primary);
+    --btn-secondary-text: var(--light-text-primary);
+    --btn-secondary-border: var(--light-border-strong);
     --chip-active-bg: var(--accent-primary);
     --chip-active-text: #ffffff;
 }
@@ -407,7 +426,7 @@ html {
     font-family: var(--font-sans);
     background-color: var(--bg-canvas);
     color: var(--text-primary);
-    line-height: 1.7;
+    line-height: 1.65;
     -webkit-font-smoothing: antialiased;
     scroll-behavior: smooth;
     transition: var(--theme-transition);
@@ -428,10 +447,12 @@ body {
 
 ::selection {
     background: var(--selection-bg);
+    color: var(--text-inverse);
 }
 
 ::-moz-selection {
     background: var(--selection-bg);
+    color: var(--text-inverse);
 }
 
 [data-theme="light"] body {
@@ -553,6 +574,28 @@ textarea {
 
 button {
     font-family: var(--font-ui, var(--font-mono));
+}
+
+input,
+select,
+textarea {
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    border: 1px solid var(--border-subtle);
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: var(--text-tertiary);
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: 2px solid var(--border-focus);
+    outline-offset: 2px;
 }
 
 .ui-mono {

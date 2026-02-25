@@ -33,7 +33,7 @@ const FundraisingCard = ({
         )}
       </div>
 
-      <style jsx>{`
+      <style>{`
         .fundraising-card {
           background: var(--bg-surface);
           border: 1px solid var(--border-subtle);
@@ -91,7 +91,7 @@ const FundraisingCard = ({
         }
 
         .title-link:hover h3 {
-          color: var(--color-brand-red, #ea2a10);
+          color: var(--color-brand-red, #a30021);
         }
 
         .description {

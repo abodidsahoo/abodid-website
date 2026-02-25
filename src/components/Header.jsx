@@ -210,7 +210,7 @@ const Header = () => {
                     display: flex; 
                     align-items: center; 
                     height: 100%;
-                    flex: 0 0 auto; /* Don't shrink */
+                    flex: 0 0 auto; /* Do not shrink */
                 }
                 .nav-right { 
                     display: flex; 
@@ -218,7 +218,7 @@ const Header = () => {
                     gap: 1.5rem; 
                     height: 100%;
                     /* color: var(--nav-text);  Removed redundant */
-                    flex: 0 0 auto; /* Don't shrink */
+                    flex: 0 0 auto; /* Do not shrink */
                 }
                 
                 .mobile-breadcrumbs-row {

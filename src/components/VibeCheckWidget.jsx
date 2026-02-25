@@ -48,7 +48,7 @@ const VibeCheckWidget = () => {
 
             {/* Progress bar removed as requested for a cleaner look */}
 
-            <style jsx>{`
+            <style>{`
                 .vibe-check-widget {
                     margin-top: 0; /* Removed top margin */
                     padding: 0;    /* Removed padding */

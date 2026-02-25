@@ -17,10 +17,5 @@ export default defineConfig({
     resolve: {
       dedupe: ['react', 'react-dom'],
     },
-    optimizeDeps: {
-      // Prevent stale pre-bundles from breaking admin hydration when dnd-kit updates.
-      include: ['react', 'react-dom'],
-      exclude: ['@dnd-kit/core', '@dnd-kit/sortable', '@dnd-kit/utilities'],
-    },
   },
 });

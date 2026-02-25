@@ -6,7 +6,6 @@ import BrandManager from './BrandManager';
 import NewsletterSender from './NewsletterSender';
 import PhotoStoryManager from './PhotoStoryManager';
 import MoodboardManager from './MoodboardManager';
-import DesignManager from './DesignManager';
 
 const ListView = lazy(() => import('./ListView'));
 
@@ -14,7 +13,6 @@ const SECTIONS = [
     { id: 'dashboard', label: 'Overview', icon: '📊' },
     { id: 'users', label: 'Users', icon: '👥' },
     { id: 'brands', label: 'Brands', icon: '🏷️' },
-    { id: 'design', label: 'Design', icon: '🎨' },
     { id: 'photography', label: 'Photography', icon: '📸' },
     { id: 'photo_stories', label: 'Photo Stories', icon: '📝' },
     { id: 'moodboard_items', label: 'Moodboard', icon: '🧩' },
@@ -25,6 +23,7 @@ const SECTIONS = [
     { id: 'newsletter', label: 'Newsletter', icon: '📧' },
     { id: 'page_metadata', label: 'Metadata', icon: '⚙️' },
 ];
+const VALID_SECTION_IDS = new Set(SECTIONS.map((section) => section.id));
 
 export default function AdminDashboard() {
     const [session, setSession] = useState(null);
@@ -40,8 +39,10 @@ export default function AdminDashboard() {
         console.log("AdminDashboard: Mounted");
         // URL State Sync
         const params = new URLSearchParams(window.location.search);
-        const section = params.get('section');
-        if (section) setActiveSection(section);
+        const sectionFromUrl = params.get('section');
+        if (sectionFromUrl && VALID_SECTION_IDS.has(sectionFromUrl)) {
+            setActiveSection(sectionFromUrl);
+        }
 
         // Simple, robust auth check
         const checkAuth = async () => {
@@ -429,12 +430,6 @@ export default function AdminDashboard() {
                         </div>
                     )}
 
-                    {activeSection === 'design' && (
-                        <div className="design-section">
-                            <DesignManager />
-                        </div>
-                    )}
-
                     {activeSection === 'photo_stories' && (
                         <>
                             <header className="content-header" style={{ marginBottom: '1rem' }}>
@@ -453,7 +448,7 @@ export default function AdminDashboard() {
                         </>
                     )}
 
-                    {activeSection !== 'dashboard' && activeSection !== 'users' && activeSection !== 'brands' && activeSection !== 'design' && activeSection !== 'newsletter' && activeSection !== 'photo_stories' && activeSection !== 'moodboard_items' && (
+                    {activeSection !== 'dashboard' && activeSection !== 'users' && activeSection !== 'brands' && activeSection !== 'newsletter' && activeSection !== 'photo_stories' && activeSection !== 'moodboard_items' && (
                         <Suspense fallback={<LoadingState message="Loading Section..." />}>
                             <ListView
                                 table={activeSection}

@@ -19,7 +19,7 @@ export default function AuthHeader({ theme = 'default' }: Props) {
     const [loading, setLoading] = useState(true);
 
     // Determine base font based on theme
-    const quoteFont = theme === 'scifi' ? '"Inconsolata", monospace' : "'Poppins', sans-serif";
+    const quoteFont = theme === 'scifi' ? '"Inconsolata", monospace' : 'var(--font-sans)';
 
     // Determine base font based on theme - Moved inside component or passed to styles
     // But since we use it in render, let's keep it derived.
@@ -128,8 +128,8 @@ export default function AuthHeader({ theme = 'default' }: Props) {
                 <a href="/login"
                     className={theme === 'scifi' ? 'scifi-login-btn' : ''}
                     style={theme === 'scifi' ? {} : {
-                        background: theme === 'scifi' ? '#FFFFFF' : 'var(--btn-primary-bg)',
-                        color: theme === 'scifi' ? '#000000' : 'var(--btn-primary-text)',
+                        background: 'var(--btn-primary-bg)',
+                        color: 'var(--btn-primary-text)',
                         padding: '8px 20px',
                         borderRadius: '100px',
                         textDecoration: 'none',
@@ -138,7 +138,7 @@ export default function AuthHeader({ theme = 'default' }: Props) {
                         display: 'inline-block',
                         transition: 'all 0.2s ease',
                         fontFamily: quoteFont,
-                        border: '1px solid var(--btn-primary-bg)'
+                        border: '1px solid var(--btn-primary-border)'
                     }}>
                     LOGIN
                 </a>
@@ -177,9 +177,8 @@ export default function AuthHeader({ theme = 'default' }: Props) {
 
     // Render Logged In State
     const displayName = activeData.full_name || activeData.username;
-    const fontFamily = theme === 'scifi' ? '"Inconsolata", monospace' : "'Poppins', sans-serif";
+    const fontFamily = theme === 'scifi' ? '"Inconsolata", monospace' : 'var(--font-sans)';
     const textColor = theme === 'scifi' ? '#fff' : 'var(--text-primary)';
-    const accentColor = theme === 'scifi' ? '#00f3ff' : 'var(--text-primary)';
 
     return (
         <div style={{ textAlign: 'right', animation: 'fadeIn 0.3s ease', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '12px' }}>
@@ -209,14 +208,14 @@ export default function AuthHeader({ theme = 'default' }: Props) {
                     href="/resources/dashboard"
                     className="auth-dashboard-btn-box"
                     style={{
-                        background: '#334155',
-                        color: '#FFFFFF',
+                        background: theme === 'scifi' ? '#334155' : 'var(--btn-primary-bg)',
+                        color: theme === 'scifi' ? '#ffffff' : 'var(--btn-primary-text)',
                         padding: '12px 20px',
                         borderRadius: '12px',
                         textDecoration: 'none',
                         transition: 'all 0.2s ease',
                         fontFamily,
-                        border: '1px solid rgba(255,255,255,0.1)',
+                        border: theme === 'scifi' ? '1px solid rgba(255,255,255,0.1)' : '1px solid var(--btn-primary-border)',
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
@@ -241,10 +240,9 @@ export default function AuthHeader({ theme = 'default' }: Props) {
 
             <style>{`
                 .auth-dashboard-btn-box:hover {
-                    background: #1e293b !important;
                     transform: translateY(-2px);
+                    filter: brightness(0.92);
                     box-shadow: 0 6px 15px rgba(0,0,0,0.2) !important;
-                    border-color: rgba(255,255,255,0.3) !important;
                 }
                 .auth-dashboard-btn-box:active {
                     transform: translateY(0);
