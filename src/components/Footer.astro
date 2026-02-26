@@ -6,8 +6,11 @@ const year = new Date().getFullYear();
 ---
 
 <footer class="site-footer">
-  <!-- Top Full-Width Line -->
-  <div class="footer-line top-line"></div>
+  <section class="brands-zone">
+    <div class="brands-zone-strip">
+      <BrandFilmStrip client:only="react" />
+    </div>
+  </section>
 
   <!-- Main Content Grid -->
   <div class="footer-main-content">
@@ -92,16 +95,7 @@ const year = new Date().getFullYear();
       </div>
     </div>
   </div>
-
-  <!-- Ticker Section (Full Width) -->
-  <div class="footer-line ticker-top-line"></div>
-  <div class="footer-ticker-fullwidth">
-    <!-- Wrapper to ensure component is clean -->
-    <div class="ticker-inner">
-      <BrandFilmStrip client:only="react" />
-    </div>
-  </div>
-  <div class="footer-line ticker-bottom-line"></div>
+  <div class="footer-line main-content-bottom-line"></div>
 
   <!-- Bottom Bar (Full Width content) -->
   <div class="footer-bottom-full">
@@ -121,10 +115,11 @@ const year = new Date().getFullYear();
 <style>
   :root {
     --sci-fi-cyan: var(--accent-primary);
-    --footer-bg: var(--footer-bg-color);
-    --footer-text-header: var(--footer-text-color);
-    --footer-text-dim: var(--text-secondary);
-    --footer-border: var(--footer-border-color);
+    --footer-bg: var(--color-brand-red);
+    --footer-text-header: #ffffff;
+    --footer-text-dim: rgba(255, 255, 255, 0.84);
+    --footer-border: rgba(255, 255, 255, 0.28);
+    --footer-grid-line: rgba(255, 255, 255, 0.085);
   }
 
   .site-footer {
@@ -139,6 +134,54 @@ const year = new Date().getFullYear();
     /* Ensure no overflow issues */
     box-sizing: border-box;
     background-clip: padding-box;
+    isolation: isolate;
+  }
+
+  .site-footer::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(to right, var(--footer-grid-line) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--footer-grid-line) 1px, transparent 1px);
+    background-size: 60px 60px;
+    background-position: center top;
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      black 0%,
+      black 86%,
+      transparent 100%
+    );
+    mask-image: linear-gradient(to bottom, black 0%, black 86%, transparent 100%);
+  }
+
+  .site-footer > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .brands-zone {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(180deg, #050505 0%, #060606 62%, #0a0a0a 100%);
+    padding: clamp(1.2rem, 3vh, 2rem) 0;
+  }
+
+  .brands-zone-strip {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: stretch;
+    border-top: 1px solid rgba(255, 255, 255, 0.55);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.55);
+    padding: clamp(0.75rem, 2vh, 1.15rem) 0;
+  }
+
+  .brands-zone-strip :global(.brand-filmstrip-wrapper) {
+    width: 100%;
   }
 
   /* Full Width Separator Lines */
@@ -181,16 +224,6 @@ const year = new Date().getFullYear();
     gap: 1rem; /* "Compact" spacing between menu blocks */
   }
 
-  /* Ticker Full Width Wrapper */
-  .footer-ticker-fullwidth {
-    width: 100%;
-    background: var(--footer-bg);
-  }
-
-  .ticker-inner {
-    width: 100%;
-  }
-
   /* Bottom Bar Full Width */
   .footer-bottom-full {
     display: flex;
@@ -200,11 +233,11 @@ const year = new Date().getFullYear();
     /* Match the main content padding horizontally */
     padding: 2rem 8%;
     font-size: 0.75rem;
-    color: var(--footer-text-dim);
+    color: #ffffff;
     text-transform: uppercase;
     letter-spacing: 0.1em;
     transition: color 0.3s ease;
-    background: var(--footer-bg);
+    background: var(--color-brand-red);
     box-sizing: border-box;
   }
 
@@ -306,13 +339,22 @@ const year = new Date().getFullYear();
     gap: 1.5rem;
   }
 
+  .footer-bottom-full .legal-links a {
+    color: #ffffff;
+  }
+
+  .footer-bottom-full .legal-links a:visited {
+    color: #ffffff;
+  }
+
   .legal-links a:hover {
-    color: var(--sci-fi-cyan);
+    color: #ffffff;
+    opacity: 0.85;
   }
 
   .separator {
-    color: var(--sci-fi-cyan);
-    opacity: 0.5;
+    color: #ffffff;
+    opacity: 0.75;
   }
 
   /* Responsive */
@@ -327,6 +369,10 @@ const year = new Date().getFullYear();
   }
 
   @media (max-width: 1100px) {
+    .brands-zone {
+      padding: 1rem 0;
+    }
+
     .footer-grid {
       grid-template-columns: 1fr;
       gap: 4rem;
@@ -341,6 +387,14 @@ const year = new Date().getFullYear();
   }
 
   @media (max-width: 600px) {
+    .brands-zone {
+      padding: 0.75rem 0;
+    }
+
+    .brands-zone-strip {
+      padding: 0.65rem 0;
+    }
+
     .footer-main-content {
       padding: 4rem 1rem 3rem;
     }
@@ -362,10 +416,18 @@ const year = new Date().getFullYear();
     }
   }
   /* LIGHT MODE SPECIFIC ADJUSTMENTS */
-  :global([data-theme="light"]) .footer-ticker-fullwidth,
+  :global([data-theme="light"]) .brands-zone,
+  :global([data-theme="light"]) .site-footer,
   :global([data-theme="light"]) .footer-bottom-full {
-    background: var(--footer-bg);
-    color: var(--footer-text-dim);
+    color: #ffffff;
+  }
+
+  :global([data-theme="light"]) .site-footer {
+    background: var(--color-brand-red) !important;
+  }
+
+  :global([data-theme="light"]) .footer-bottom-full {
+    background: var(--color-brand-red);
   }
 
   :global([data-theme="light"]) .logo-img {

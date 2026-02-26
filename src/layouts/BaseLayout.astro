@@ -6,6 +6,7 @@ import Footer from "../components/Footer.astro";
 import SEO from "../components/SEO.astro";
 import StickyMobileNav from "../components/StickyMobileNav.jsx";
 import NewsletterPopup from "../components/NewsletterPopup.jsx";
+import MagneticCursorFollower from "../components/MagneticCursorFollower.jsx";
 import { getPageMetadata } from "../lib/api";
 
 const {
@@ -20,12 +21,13 @@ const {
   showNewsletterPopup = true,
   showGlobalGrid = true,
   bodyClass = "",
-  showCursor = false, // Default to false for all pages
+  showCursor,
+  showCursorFollower = true,
   gridVariant = "default",
 } = Astro.props;
-
-import LiquidCursor from "../components/LiquidCursor.jsx";
 import NoiseOverlay from "../components/NoiseOverlay.jsx";
+const cursorFollowerEnabled =
+  typeof showCursor === "boolean" ? showCursor : showCursorFollower;
 
 // Fetch metadata from database if not provided via props
 const pagePath = Astro.url.pathname;
@@ -141,9 +143,7 @@ const finalType = type || dbMetadata?.og_type || "website";
     </main>
     {showStickyNav && <StickyMobileNav client:idle />}
     {showNewsletterPopup && <NewsletterPopup client:only="react" />}
-
-    <!-- Global Liquid Cursor (Conditional) -->
-    {/* {showCursor && <LiquidCursor client:only="react" />} */}
+    {cursorFollowerEnabled && <MagneticCursorFollower client:load />}
 
     {/* Global Grain Disabled by default, can be enabled via props if needed */}
     {/* <NoiseOverlay client:only="react" opacity={0.05} /> */}

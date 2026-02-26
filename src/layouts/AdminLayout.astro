@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import MagneticCursorFollower from "../components/MagneticCursorFollower.jsx";
 const { title, fullWidth = false } = Astro.props;
 const pagePath = Astro.url.pathname;
 ---
@@ -54,6 +55,7 @@ const pagePath = Astro.url.pathname;
     <div class="admin-wrapper">
       <slot />
     </div>
+    <MagneticCursorFollower client:load />
   </body>
 </html>
 

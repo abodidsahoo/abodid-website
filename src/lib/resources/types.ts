@@ -58,7 +58,7 @@ export interface CreateResourcePayload {
 }
 
 export interface CuratorApprovalPayload {
-    curator_note: string;
+    curator_note?: string;
     thumbnail_url?: string | null;
     tag_ids?: string[];
     audience?: ResourceAudience;

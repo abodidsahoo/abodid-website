@@ -53,6 +53,11 @@ export default function AdminReviewList() {
     const [resources, setResources] = useState<HubResource[]>([]);
     const [loading, setLoading] = useState(true);
     const [curationByResource, setCurationByResource] = useState<Record<string, CurationDraft>>({});
+    const [moderationAction, setModerationAction] = useState<'approve' | 'reject' | null>(null);
+    const [moderationTarget, setModerationTarget] = useState<HubResource | null>(null);
+    const [curatorMessage, setCuratorMessage] = useState('');
+    const [isModerating, setIsModerating] = useState(false);
+    const [moderationError, setModerationError] = useState<string | null>(null);
 
     useEffect(() => {
         loadResources();
@@ -138,37 +143,77 @@ export default function AdminReviewList() {
         }
     };
 
-    const handleApprove = async (resource: HubResource) => {
+    const handleApprove = async (resource: HubResource, note?: string): Promise<{ success: boolean; error?: string }> => {
         const draft = getDraft(resource);
 
         if (draft.isUploading) {
-            alert('Thumbnail upload is still in progress. Please wait.');
-            return;
+            return { success: false, error: 'Thumbnail upload is still in progress. Please wait.' };
         }
 
         const result = await approveResource(resource.id, {
             tag_ids: draft.selectedTags,
             thumbnail_url: draft.thumbnailUrl || null,
-            audience: 'Designer'
+            audience: 'Designer',
+            curator_note: note?.trim() || ''
         });
 
         if (result.success) {
             setResources(prev => prev.filter(r => r.id !== resource.id));
+            return { success: true };
         } else {
-            alert('Error: ' + result.error);
+            return { success: false, error: result.error || 'Failed to approve' };
         }
     };
 
-    const handleReject = async (resource: HubResource) => {
-        const reason = prompt('Reason for rejection?');
-        if (reason === null) return;
-
-        const result = await rejectResource(resource.id, reason);
+    const handleReject = async (resource: HubResource, reason?: string): Promise<{ success: boolean; error?: string }> => {
+        const result = await rejectResource(resource.id, reason || '');
         if (result.success) {
             setResources(prev => prev.filter(r => r.id !== resource.id));
+            return { success: true };
         } else {
-            alert('Error: ' + result.error);
+            return { success: false, error: result.error || 'Failed to reject' };
         }
+    };
+
+    const openModerationDialog = (resource: HubResource, action: 'approve' | 'reject') => {
+        const draft = getDraft(resource);
+        if (action === 'approve' && draft.isUploading) {
+            alert('Thumbnail upload is still in progress. Please wait.');
+            return;
+        }
+
+        setModerationAction(action);
+        setModerationTarget(resource);
+        setCuratorMessage('');
+        setModerationError(null);
+    };
+
+    const closeModerationDialog = () => {
+        if (isModerating) return;
+        setModerationAction(null);
+        setModerationTarget(null);
+        setCuratorMessage('');
+        setModerationError(null);
+    };
+
+    const confirmModeration = async () => {
+        if (!moderationAction || !moderationTarget) return;
+        setIsModerating(true);
+        setModerationError(null);
+
+        const note = curatorMessage.trim();
+        const result = moderationAction === 'approve'
+            ? await handleApprove(moderationTarget, note)
+            : await handleReject(moderationTarget, note);
+
+        if (!result.success) {
+            setModerationError(result.error || 'Action failed. Please try again.');
+            setIsModerating(false);
+            return;
+        }
+
+        setIsModerating(false);
+        closeModerationDialog();
     };
 
     if (loading) return <div>Loading...</div>;
@@ -247,7 +292,7 @@ export default function AdminReviewList() {
                             <button
                                 className="btn-approve"
                                 style={{ padding: '12px 24px', fontSize: '14px' }}
-                                onClick={() => handleApprove(resource)}
+                                onClick={() => openModerationDialog(resource, 'approve')}
                                 disabled={draft.isUploading}
                             >
                                 Approve & Publish
@@ -255,7 +300,7 @@ export default function AdminReviewList() {
                             <button
                                 className="btn-reject"
                                 style={{ padding: '12px 24px', fontSize: '14px', background: 'transparent', color: '#ef4444', border: '1px solid #ef4444' }}
-                                onClick={() => handleReject(resource)}
+                                onClick={() => openModerationDialog(resource, 'reject')}
                             >
                                 Reject
                             </button>
@@ -263,6 +308,86 @@ export default function AdminReviewList() {
                     </div>
                 );
             })}
+
+            {moderationAction && moderationTarget && (
+                <div
+                    onClick={closeModerationDialog}
+                    style={{
+                        position: 'fixed',
+                        inset: 0,
+                        background: 'rgba(0,0,0,0.45)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 1000,
+                        padding: '1rem'
+                    }}
+                >
+                    <div
+                        role="dialog"
+                        aria-modal="true"
+                        onClick={(e) => e.stopPropagation()}
+                        style={{
+                            width: 'min(560px, 100%)',
+                            background: 'var(--bg-surface)',
+                            border: '1px solid var(--border-subtle)',
+                            borderRadius: '12px',
+                            padding: '1rem',
+                            boxShadow: '0 20px 50px rgba(0,0,0,0.25)'
+                        }}
+                    >
+                        <h3 style={{ margin: '0 0 8px 0', color: 'var(--text-primary)' }}>
+                            {moderationAction === 'approve' ? 'Approve Submission' : 'Reject Submission'}
+                        </h3>
+                        <p style={{ margin: '0 0 12px 0', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                            Add a curator message (optional). Email is sent only when this message is provided.
+                        </p>
+                        <p style={{ margin: '0 0 12px 0', color: 'var(--text-primary)', fontSize: '0.9rem' }}>
+                            <strong>Resource:</strong> {moderationTarget.title}
+                        </p>
+                        <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.8rem', color: 'var(--text-secondary)', textTransform: 'uppercase', fontWeight: 600 }}>
+                            Curator message
+                        </label>
+                        <textarea
+                            value={curatorMessage}
+                            onChange={(e) => setCuratorMessage(e.target.value)}
+                            placeholder="Write why you are approving or rejecting (optional)"
+                            rows={5}
+                            disabled={isModerating}
+                            style={{
+                                width: '100%',
+                                border: '1px solid var(--border-subtle)',
+                                borderRadius: '8px',
+                                background: 'var(--bg-surface-hover)',
+                                color: 'var(--text-primary)',
+                                padding: '0.75rem',
+                                resize: 'vertical',
+                                minHeight: '120px',
+                                fontSize: '0.95rem'
+                            }}
+                        />
+                        {moderationError && (
+                            <p style={{ margin: '12px 0 0', color: '#EF4444', fontSize: '0.85rem' }}>
+                                {moderationError}
+                            </p>
+                        )}
+                        <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'flex-end', gap: '8px', flexWrap: 'wrap' }}>
+                            <button className="btn-preview" onClick={closeModerationDialog} disabled={isModerating}>
+                                Cancel
+                            </button>
+                            <button
+                                className={moderationAction === 'approve' ? 'btn-approve' : 'btn-reject'}
+                                onClick={confirmModeration}
+                                disabled={isModerating}
+                            >
+                                {isModerating
+                                    ? (moderationAction === 'approve' ? 'Approving...' : 'Rejecting...')
+                                    : (moderationAction === 'approve' ? 'Confirm Approve' : 'Confirm Reject')}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

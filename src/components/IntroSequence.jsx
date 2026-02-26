@@ -2,6 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // --- SUB-COMPONENTS EXTRACTED TO PREVENT RE-MOUNT ON PARENT RENDER ---
+const STAGE_TWO_SEGMENTS = [
+    { text: "Here's a glimpse into my ", color: 'var(--intro-text)' },
+    { text: '"high on art" ', color: 'var(--intro-accent)' },
+    { text: 'life in ', color: 'var(--intro-text)' },
+    { text: 'London', color: 'var(--intro-text)' },
+];
 
 const Typewriter = ({ text, delay = 0, speed = 0.04, className = "" }) => {
     const [displayedText, setDisplayedText] = useState('');
@@ -54,64 +60,187 @@ const Typewriter = ({ text, delay = 0, speed = 0.04, className = "" }) => {
     );
 };
 
-const SegmentedTypewriter = ({ segments, delay = 0, speed = 0.04, className = "" }) => {
-    const [visibleSegments, setVisibleSegments] = useState([]);
+const SegmentedSequenceTypewriter = ({
+    segments,
+    delay = 0,
+    speed = 0.04,
+    className = "",
+    preDeleteCursorFlickers = 3,
+    cursorFlickerMs = 180,
+    triggerAtDeleteRatio = 0.5,
+    triggerAtRemainingChars = null,
+    deleteMinSpeedFactor = 0.35,
+    deleteAccelerationExponent = 1.7,
+    onSequenceTrigger,
+    onSequenceEnd,
+}) => {
+    const [visibleCharCount, setVisibleCharCount] = useState(0);
+    const [showCursor, setShowCursor] = useState(false);
     const [started, setStarted] = useState(false);
-    const [isComplete, setIsComplete] = useState(false);
+    const triggerRef = useRef(false);
+    const onSequenceTriggerRef = useRef(onSequenceTrigger);
+    const onSequenceEndRef = useRef(onSequenceEnd);
 
     useEffect(() => {
-        let intervalId;
-        const startTimeout = setTimeout(() => {
-            setStarted(true);
-            let segIdx = 0;
-            let charIdx = 0;
-            setVisibleSegments([{ ...segments[0], text: '' }]);
+        onSequenceTriggerRef.current = onSequenceTrigger;
+        onSequenceEndRef.current = onSequenceEnd;
+    }, [onSequenceTrigger, onSequenceEnd]);
 
-            intervalId = setInterval(() => {
-                if (segIdx >= segments.length) {
-                    clearInterval(intervalId);
-                    setIsComplete(true);
+    useEffect(() => {
+        const totalLength = segments.reduce(
+            (sum, segment) => sum + ((segment?.text || '').length),
+            0,
+        );
+        const cadenceMs = Math.max(12, speed * 1000);
+
+        let typingIntervalId;
+        let deletionTimeoutId;
+        let destroyed = false;
+        const timeoutIds = [];
+
+        const startDeletion = () => {
+            if (destroyed) return;
+            let remaining = totalLength;
+            const minDeleteCadenceMs = Math.max(
+                8,
+                cadenceMs * Math.max(0.12, Math.min(1, deleteMinSpeedFactor)),
+            );
+
+            const scheduleDeleteTick = () => {
+                if (destroyed) return;
+                remaining = Math.max(0, remaining - 1);
+                setVisibleCharCount(remaining);
+
+                const deleteProgress = totalLength > 0
+                    ? 1 - (remaining / totalLength)
+                    : 1;
+                const triggerByRemaining =
+                    Number.isFinite(triggerAtRemainingChars) &&
+                    triggerAtRemainingChars >= 0 &&
+                    remaining <= triggerAtRemainingChars;
+                const triggerByRatio = deleteProgress >= triggerAtDeleteRatio;
+
+                if (!triggerRef.current && (triggerByRemaining || triggerByRatio)) {
+                    triggerRef.current = true;
+                    if (onSequenceTriggerRef.current) onSequenceTriggerRef.current();
+                }
+
+                if (remaining <= 0) {
+                    setShowCursor(false);
+                    if (onSequenceEndRef.current) onSequenceEndRef.current();
                     return;
                 }
 
-                const targetSegment = segments[segIdx];
-                if (charIdx < targetSegment.text.length) {
-                    const char = targetSegment.text.charAt(charIdx);
-                    setVisibleSegments(prev => {
-                        const newSegs = [...prev];
-                        newSegs[segIdx] = { ...newSegs[segIdx], text: newSegs[segIdx].text + char };
-                        return newSegs;
-                    });
-                    charIdx++;
-                } else {
-                    segIdx++;
-                    charIdx = 0;
-                    if (segIdx < segments.length) {
-                        setVisibleSegments(prev => [...prev, { ...segments[segIdx], text: '' }]);
-                    }
-                }
-            }, speed * 1000);
+                const easedProgress = Math.pow(
+                    Math.max(0, Math.min(1, deleteProgress)),
+                    Math.max(1, deleteAccelerationExponent),
+                );
+                const nextDelayMs =
+                    cadenceMs - ((cadenceMs - minDeleteCadenceMs) * easedProgress);
+                deletionTimeoutId = setTimeout(
+                    scheduleDeleteTick,
+                    Math.max(minDeleteCadenceMs, nextDelayMs),
+                );
+            };
 
+            deletionTimeoutId = setTimeout(scheduleDeleteTick, cadenceMs);
+        };
+
+        const startCursorFlickerThenDeletion = () => {
+            if (destroyed) return;
+            const flickers = Math.max(0, preDeleteCursorFlickers);
+            if (flickers === 0) {
+                startDeletion();
+                return;
+            }
+
+            let togglesRemaining = flickers * 2;
+            let cursorVisible = true;
+
+            const flickerTick = () => {
+                if (destroyed) return;
+                if (togglesRemaining <= 0) {
+                    setShowCursor(true);
+                    startDeletion();
+                    return;
+                }
+
+                cursorVisible = !cursorVisible;
+                setShowCursor(cursorVisible);
+                togglesRemaining -= 1;
+                timeoutIds.push(setTimeout(flickerTick, cursorFlickerMs));
+            };
+
+            timeoutIds.push(setTimeout(flickerTick, cursorFlickerMs));
+        };
+
+        const startTimeoutId = setTimeout(() => {
+            if (destroyed) return;
+
+            setStarted(true);
+            setShowCursor(true);
+            setVisibleCharCount(0);
+
+            if (totalLength === 0) {
+                startCursorFlickerThenDeletion();
+                return;
+            }
+
+            let typed = 0;
+            typingIntervalId = setInterval(() => {
+                typed += 1;
+                if (typed >= totalLength) {
+                    typed = totalLength;
+                    setVisibleCharCount(typed);
+                    clearInterval(typingIntervalId);
+                    startCursorFlickerThenDeletion();
+                    return;
+                }
+                setVisibleCharCount(typed);
+            }, cadenceMs);
         }, delay * 1000);
 
-        return () => {
-            clearTimeout(startTimeout);
-            if (intervalId) clearInterval(intervalId);
-        };
-    }, [segments, delay, speed]);
+        timeoutIds.push(startTimeoutId);
 
-    const showCursor = started && !isComplete;
+        return () => {
+            destroyed = true;
+            clearInterval(typingIntervalId);
+            clearTimeout(deletionTimeoutId);
+            timeoutIds.forEach(clearTimeout);
+        };
+    }, [
+        segments,
+        delay,
+        speed,
+        preDeleteCursorFlickers,
+        cursorFlickerMs,
+        triggerAtDeleteRatio,
+        triggerAtRemainingChars,
+        deleteMinSpeedFactor,
+        deleteAccelerationExponent,
+    ]);
+
+    let startCursor = 0;
 
     return (
         <span className={`${className} typewriter-container`}>
-            {visibleSegments.map((seg, i) => (
-                <span key={i} style={{ color: seg.color || 'inherit' }}>
-                    {seg.text}
-                </span>
-            ))}
+            {segments.map((segment, i) => {
+                const text = segment?.text || '';
+                const start = startCursor;
+                startCursor += text.length;
+                const visibleCountForSegment = Math.max(
+                    0,
+                    Math.min(text.length, visibleCharCount - start),
+                );
+                return (
+                    <span key={i} style={{ color: segment?.color || 'inherit' }}>
+                        {text.slice(0, visibleCountForSegment)}
+                    </span>
+                );
+            })}
             <span
                 style={{
-                    opacity: showCursor ? 1 : 0,
+                    opacity: started && showCursor ? 1 : 0,
                     display: 'inline-block',
                     marginLeft: '1px',
                     fontWeight: 200,
@@ -120,88 +249,6 @@ const SegmentedTypewriter = ({ segments, delay = 0, speed = 0.04, className = ""
             >
                 _
             </span>
-        </span>
-    );
-};
-
-// 3. Sequence Typewriter (Deletes itself)
-const SequenceTypewriter = ({ text, delay = 0, speed = 0.05, onTypingComplete, onSequenceTrigger, onSequenceEnd }) => {
-    const [display, setDisplay] = useState('');
-    const [showCursor, setShowCursor] = useState(false);
-    const completionTriggered = useRef(false);
-    const triggerRef = useRef(false); // Local ref to prevent double firing
-    const pauseBeforeDeleteMs = 650;
-    const endBufferMs = 50;
-
-    useEffect(() => {
-        let timeout;
-        let interval;
-        let delInterval;
-
-        timeout = setTimeout(() => {
-            setShowCursor(true);
-            let idx = 0;
-
-            interval = setInterval(() => {
-                if (idx >= text.length) {
-                    clearInterval(interval);
-
-                    // Brief hold before deleting
-                    if (!completionTriggered.current) {
-                        completionTriggered.current = true;
-
-                        setTimeout(() => {
-                            startDeletion();
-                        }, pauseBeforeDeleteMs);
-                    }
-                    return;
-                }
-                setDisplay(text.substring(0, idx + 1));
-                idx++;
-            }, speed * 1000);
-        }, delay * 1000);
-
-        const startDeletion = () => {
-            let idx = text.length;
-            const halfLength = Math.floor(text.length / 2);
-            const deleteIntervalMs = speed * 1000;
-
-            delInterval = setInterval(() => {
-                setDisplay(text.substring(0, idx - 1));
-                idx--;
-
-                // TRIGGER PHYSICS: When text is deleted halfway
-                // "By the time it gets deleted halfway, the card drops."
-                if (idx <= halfLength) {
-                    if (!triggerRef.current) {
-                        triggerRef.current = true;
-                        if (onSequenceTrigger) onSequenceTrigger();
-                    }
-                }
-
-                // Cleanup when text is fully GONE
-                if (idx <= 0) {
-                    clearInterval(delInterval);
-
-                    // Small buffer before unmounting self
-                    setTimeout(() => {
-                        if (onSequenceEnd) onSequenceEnd();
-                    }, endBufferMs);
-                }
-            }, deleteIntervalMs); // Match typewriter reveal cadence
-        };
-
-        return () => {
-            clearTimeout(timeout);
-            clearInterval(interval);
-            clearInterval(delInterval);
-        };
-    }, [text, delay, speed, pauseBeforeDeleteMs, endBufferMs]);
-
-    return (
-        <span className="typewriter-container">
-            {display}
-            <span style={{ opacity: showCursor ? 1 : 0, display: 'inline-block', marginLeft: '1px', fontWeight: 200 }}>_</span>
         </span>
     );
 };
@@ -221,7 +268,6 @@ const IntroSequence = ({ onPhysicsStart, onSequenceEnd }) => {
         const timeline = [
             { delay: 300, action: () => setStage(1) },
             { delay: 2500, action: () => setStage(2) },
-            { delay: 7000, action: () => setStage(3) }
         ];
 
         let timeouts = [];
@@ -243,10 +289,10 @@ const IntroSequence = ({ onPhysicsStart, onSequenceEnd }) => {
                         className="intro-content"
                     >
                         <div className="line-welcome">
-                            <Typewriter text="Hi I'm Abodid" speed={0.03} />
+                            <Typewriter text="Hi, I'm about it." speed={0.03} />
                         </div>
                         <div className="line-headline">
-                            <Typewriter text="Welcome to my Digital Garden" speed={0.04} delay={0.35} />
+                            <Typewriter text="Welcome to my digital garden." speed={0.04} delay={0.35} />
                         </div>
                     </motion.div>
                 )}
@@ -261,47 +307,25 @@ const IntroSequence = ({ onPhysicsStart, onSequenceEnd }) => {
                     >
                         <div className="line-narrative">
                             <div className="narrative-large">
-                                <SegmentedTypewriter
-                                    segments={[
-                                        {
-                                            text: "Here's a glimpse into three years of my ", color: 'var(--intro-text)'
-                                        },
-                                        { text: '"high on art" ', color: 'var(--intro-accent)' },
-                                        {
-                                            text: 'life in ', color: 'var(--intro-text)'
-                                        },
-                                        { text: 'London', color: 'var(--intro-text)' }
-
-                                    ]}
+                                <SegmentedSequenceTypewriter
+                                    segments={STAGE_TWO_SEGMENTS}
                                     speed={0.04}
                                     delay={0.2}
+                                    preDeleteCursorFlickers={3}
+                                    cursorFlickerMs={170}
+                                    triggerAtDeleteRatio={1}
+                                    triggerAtRemainingChars={0}
+                                    deleteMinSpeedFactor={0.3}
+                                    deleteAccelerationExponent={1.9}
+                                    onSequenceEnd={() => {
+                                        if (!triggerRef.current.physicsStarted) {
+                                            triggerRef.current.physicsStarted = true;
+                                            if (onPhysicsStart) onPhysicsStart();
+                                        }
+                                        if (onSequenceEnd) onSequenceEnd();
+                                    }}
                                 />
                             </div>
-                        </div>
-                    </motion.div>
-                )}
-
-                {stage === 3 && (
-                    <motion.div
-                        key="stage3"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="intro-content center-focus"
-                    >
-                        <div className="line-instruction-large">
-                            {/* USE KEY TO FORCE REMOUNT IF NEEDED, BUT HERE PREVENTING DOUBLE RENDER */}
-                            <SequenceTypewriter
-                                key="intro-sequence-typewriter"
-                                text="keep hovering"
-                                speed={0.04}
-                                onSequenceTrigger={() => {
-                                    // Guard against double firing
-                                    if (triggerRef.current.physicsStarted) return;
-                                    triggerRef.current.physicsStarted = true;
-                                    if (onPhysicsStart) onPhysicsStart();
-                                }}
-                                onSequenceEnd={onSequenceEnd}
-                            />
                         </div>
                     </motion.div>
                 )}

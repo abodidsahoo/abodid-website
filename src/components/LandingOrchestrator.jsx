@@ -50,6 +50,15 @@ const HAND_FEEDBACK_ESTIMATED_HEIGHT_PX = 294;
 const STORY_GAP_BELOW_FEEDBACK_PX = 16;
 const STORY_BASE_OFFSET_PX = 156;
 const MAX_STACK_RECOVERY_ATTEMPTS = 1;
+const POINTER_INSTRUCTION_TEXT = 'KEEP HOVERING AROUND SLOWLY\nTO REVEAL MORE PHOTOS';
+const POINTER_INSTRUCTION_ARM_DELAY_MS = 900;
+const POINTER_INSTRUCTION_NUDGE_DISTANCE_PX = 10;
+const POINTER_INSTRUCTION_DWELL_MS = 3600;
+const POINTER_INSTRUCTION_MIN_STACK_TO_DISMISS = 3;
+const POINTER_INSTRUCTION_AUTO_HIDE_MS = 9000;
+const POINTER_INSTRUCTION_OFFSET_X = 28;
+const POINTER_INSTRUCTION_OFFSET_Y = 18;
+const POINTER_INSTRUCTION_MAX_WIDTH_PX = 320;
 const HAND_GUIDANCE_MESSAGES = [
     'Move your index finger slowly in any direction.',
     'Use a gentle flick to drop a new card.',
@@ -88,6 +97,9 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
     const [queueAnchorImage, setQueueAnchorImage] = useState(null);
     const [showStoryPanel, setShowStoryPanel] = useState(false);
     const [leftStoryPanelTop, setLeftStoryPanelTop] = useState(140);
+    const [supportsFinePointer, setSupportsFinePointer] = useState(false);
+    const [pointerInstructionDismissed, setPointerInstructionDismissed] = useState(false);
+    const [pointerInstructionEligible, setPointerInstructionEligible] = useState(false);
     const [handGuidanceIndex, setHandGuidanceIndex] = useState(0);
     const [showHandGuidanceMessage, setShowHandGuidanceMessage] = useState(true);
     const sensitivityProfile = useMemo(
@@ -119,6 +131,12 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
     const hasInitializedCardWidthRef = useRef(false);
     const inFlightStoryUrlsRef = useRef(new Set());
     const handGuidanceSwapTimeoutRef = useRef(null);
+    const pointerInstructionRef = useRef(null);
+    const pointerInstructionDwellRef = useRef(0);
+    const pointerInstructionLastMoveRef = useRef(0);
+    const pointerInstructionHideTriggeredRef = useRef(false);
+    const pointerLastPositionRef = useRef({ x: 0, y: 0 });
+    const stackLengthRef = useRef(stack.length);
 
     // Create ref for gesture callback
     const spawnRef = useRef(spawnCardFromGesture);
@@ -270,10 +288,29 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
     }, [introComplete]);
 
     useEffect(() => {
+        stackLengthRef.current = stack.length;
         if (stack.length > 0) {
             sawCardsRef.current = true;
         }
     }, [stack.length]);
+
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        const query = window.matchMedia('(pointer: fine)');
+        const handleChange = () => {
+            setSupportsFinePointer(query.matches);
+        };
+
+        handleChange();
+
+        if (typeof query.addEventListener === 'function') {
+            query.addEventListener('change', handleChange);
+            return () => query.removeEventListener('change', handleChange);
+        }
+
+        query.addListener(handleChange);
+        return () => query.removeListener(handleChange);
+    }, []);
 
     useEffect(() => {
         const stackRelatedTokens = [
@@ -423,6 +460,94 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
     const [isScrolled, setIsScrolled] = useState(false); // Toggle for button
     const [hintDismissed, setHintDismissed] = useState(false); // One-way latch for hint
 
+    const positionPointerInstruction = (clientX, clientY) => {
+        const node = pointerInstructionRef.current;
+        if (!node || typeof window === 'undefined') return;
+
+        const maxX = Math.max(12, window.innerWidth - POINTER_INSTRUCTION_MAX_WIDTH_PX - 16);
+        const maxY = Math.max(12, window.innerHeight - 54);
+        const nextX = Math.max(
+            12,
+            Math.min(maxX, clientX + POINTER_INSTRUCTION_OFFSET_X),
+        );
+        const nextY = Math.max(
+            12,
+            Math.min(maxY, clientY + POINTER_INSTRUCTION_OFFSET_Y),
+        );
+
+        node.style.transform = `translate3d(${nextX}px, ${nextY}px, 0)`;
+    };
+
+    const showPointerInstruction =
+        supportsFinePointer &&
+        introComplete &&
+        !isScrolled &&
+        !handControlEnabled &&
+        !pointerInstructionDismissed &&
+        pointerInstructionEligible &&
+        stack.length > 0;
+
+    useEffect(() => {
+        const canArmInstruction =
+            supportsFinePointer &&
+            introComplete &&
+            !isScrolled &&
+            !handControlEnabled &&
+            !pointerInstructionDismissed &&
+            stack.length > 0;
+
+        if (!canArmInstruction || pointerInstructionEligible) {
+            if (!canArmInstruction && pointerInstructionEligible) {
+                setPointerInstructionEligible(false);
+            }
+            return;
+        }
+
+        if (typeof window === 'undefined') return;
+
+        let armed = false;
+        let nudged = false;
+        let originX = pointerLastPositionRef.current.x || window.innerWidth * 0.54;
+        let originY = pointerLastPositionRef.current.y || window.innerHeight * 0.52;
+
+        const armTimer = window.setTimeout(() => {
+            armed = true;
+            originX = pointerLastPositionRef.current.x || originX;
+            originY = pointerLastPositionRef.current.y || originY;
+        }, POINTER_INSTRUCTION_ARM_DELAY_MS);
+
+        const handlePointerMove = (event) => {
+            pointerLastPositionRef.current = { x: event.clientX, y: event.clientY };
+
+            if (!armed || nudged) return;
+
+            const deltaX = event.clientX - originX;
+            const deltaY = event.clientY - originY;
+            const travel = Math.hypot(deltaX, deltaY);
+
+            if (travel >= POINTER_INSTRUCTION_NUDGE_DISTANCE_PX) {
+                nudged = true;
+                setPointerInstructionEligible(true);
+                positionPointerInstruction(event.clientX, event.clientY);
+            }
+        };
+
+        window.addEventListener('pointermove', handlePointerMove, { passive: true });
+
+        return () => {
+            window.clearTimeout(armTimer);
+            window.removeEventListener('pointermove', handlePointerMove);
+        };
+    }, [
+        supportsFinePointer,
+        introComplete,
+        isScrolled,
+        handControlEnabled,
+        pointerInstructionDismissed,
+        pointerInstructionEligible,
+        stack.length,
+    ]);
+
     useEffect(() => {
         if (!introComplete) return;
 
@@ -435,6 +560,56 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
         window.addEventListener('scroll', handleScroll, { passive: true });
         return () => window.removeEventListener('scroll', handleScroll);
     }, [introComplete]);
+
+    useEffect(() => {
+        if (!showPointerInstruction) return;
+        if (typeof window === 'undefined') return;
+
+        pointerInstructionHideTriggeredRef.current = false;
+        pointerInstructionLastMoveRef.current = 0;
+        pointerInstructionDwellRef.current = 0;
+
+        const seedX = pointerLastPositionRef.current.x || window.innerWidth * 0.54;
+        const seedY = pointerLastPositionRef.current.y || window.innerHeight * 0.52;
+        positionPointerInstruction(seedX, seedY);
+
+        const handlePointerMove = (event) => {
+            pointerLastPositionRef.current = { x: event.clientX, y: event.clientY };
+            positionPointerInstruction(event.clientX, event.clientY);
+
+            const now = performance.now();
+            if (pointerInstructionLastMoveRef.current > 0) {
+                const dt = Math.min(120, now - pointerInstructionLastMoveRef.current);
+                if (dt > 0) {
+                    pointerInstructionDwellRef.current += dt;
+                }
+            }
+            pointerInstructionLastMoveRef.current = now;
+
+            const shouldDismissByDwell =
+                pointerInstructionDwellRef.current >= POINTER_INSTRUCTION_DWELL_MS &&
+                stackLengthRef.current >= POINTER_INSTRUCTION_MIN_STACK_TO_DISMISS;
+
+            if (shouldDismissByDwell && !pointerInstructionHideTriggeredRef.current) {
+                pointerInstructionHideTriggeredRef.current = true;
+                setPointerInstructionDismissed(true);
+            }
+        };
+
+        window.addEventListener('pointermove', handlePointerMove, { passive: true });
+        const autoHideTimeout = window.setTimeout(() => {
+            if (pointerInstructionHideTriggeredRef.current) return;
+            if (stackLengthRef.current >= 2) {
+                pointerInstructionHideTriggeredRef.current = true;
+                setPointerInstructionDismissed(true);
+            }
+        }, POINTER_INSTRUCTION_AUTO_HIDE_MS);
+
+        return () => {
+            window.clearTimeout(autoHideTimeout);
+            window.removeEventListener('pointermove', handlePointerMove);
+        };
+    }, [showPointerInstruction]);
 
     const handleActivate = () => {
         // CRITICAL: Call this inside the user click handler to unlock Audio Context
@@ -678,6 +853,26 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
 
     return (
         <>
+            <AnimatePresence>
+                {showPointerInstruction && (
+                    <motion.div
+                        ref={pointerInstructionRef}
+                        className="pointer-instruction"
+                        style={{ transform: 'translate3d(-9999px, -9999px, 0)' }}
+                        initial={{ opacity: 0, y: 6, scale: 0.96 }}
+                        animate={{
+                            opacity: 1,
+                            y: 0,
+                            scale: 1,
+                            transition: { duration: 0.85, ease: [0.22, 1, 0.36, 1] },
+                        }}
+                        exit={{ opacity: 0, y: 4, scale: 0.98, transition: { duration: 0.35 } }}
+                    >
+                        <span className="pointer-instruction-label">{POINTER_INSTRUCTION_TEXT}</span>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             {/* ACTIVATE BUTTONS */}
             <AnimatePresence>
                 {introComplete && !isScrolled && (
@@ -885,6 +1080,35 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
             )}
 
             <style>{`
+                .pointer-instruction {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    z-index: 10012;
+                    pointer-events: none;
+                    will-change: transform, opacity;
+                }
+                .pointer-instruction-label {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    max-width: min(78vw, ${POINTER_INSTRUCTION_MAX_WIDTH_PX}px);
+                    padding: 0.66rem 0.9rem;
+                    border-radius: 12px;
+                    border: 1px solid rgba(255, 255, 255, 0.36);
+                    background: rgba(8, 8, 10, 0.58);
+                    backdrop-filter: blur(8px);
+                    font-family: "Satoshi-Variable", "Satoshi-Regular", var(--font-ui);
+                    font-size: 0.56rem;
+                    font-weight: 480;
+                    line-height: 1.4;
+                    letter-spacing: 0.11em;
+                    text-transform: uppercase;
+                    white-space: pre-line;
+                    text-align: left;
+                    color: rgba(255, 255, 255, 0.95);
+                    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.34);
+                }
                 .start-overlay {
                     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
                     z-index: 10000;
@@ -1348,6 +1572,12 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                     object-fit: cover;
                 }
                 @media (max-width: 900px) {
+                    .pointer-instruction-label {
+                        max-width: min(78vw, 240px);
+                        white-space: pre-line;
+                        line-height: 1.4;
+                        letter-spacing: 0.1em;
+                    }
                     .start-overlay {
                         padding: 100px 12px 0 0;
                     }
@@ -1368,6 +1598,13 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                 }
 
                 /* LIGHT MODE OVERRIDES - BRIGHT WHITE THEME */
+                [data-theme="light"] .pointer-instruction-label {
+                    color: rgba(18, 18, 18, 0.95);
+                    border-color: rgba(0, 0, 0, 0.2);
+                    background: rgba(255, 255, 255, 0.84);
+                    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+                }
+
                 [data-theme="light"] .start-btn, 
                 [data-theme="light"] .size-control,
                 [data-theme="light"] .feed-control-panel,

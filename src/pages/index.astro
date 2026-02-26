@@ -169,7 +169,7 @@ const supportProjects = [
     <div class="bottom-spacer"></div>
 
     <!-- Showreel Section - Wrapped for Alignment -->
-    <section class="section">
+    <section class="section writings-section">
         <Showreel
             vh1Url={vh1Url}
             rollingStoneUrl={rollingStoneUrl}
@@ -255,6 +255,8 @@ const supportProjects = [
             }
         </div>
     </section>
+
+    <div class="major-section-separator writing-support-separator"></div>
 
     <section class="section support-section">
         <div class="section-header">
@@ -768,8 +770,13 @@ const supportProjects = [
         transition: transform 0.2s ease;
     }
 
+    .writings-section {
+        margin-bottom: 0;
+    }
+
     .support-section {
-        margin-top: var(--space-xl);
+        margin-top: 0;
+        margin-bottom: clamp(8rem, 18vh, 15rem);
     }
 
     .support-projects {
@@ -945,6 +952,15 @@ const supportProjects = [
         }
         .support-project-title {
             font-size: 1.25rem;
+        }
+
+        .writings-section {
+            margin-bottom: 0;
+        }
+
+        .support-section {
+            margin-top: 0;
+            margin-bottom: 6rem;
         }
         /* Hide Vibe Check on mobile */
         .vibe-check-wrapper {

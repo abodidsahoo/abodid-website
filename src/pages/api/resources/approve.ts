@@ -154,13 +154,6 @@ export const POST: APIRoute = async ({ request }) => {
             });
         }
 
-        if (!curatorNote) {
-            return new Response(JSON.stringify({ error: 'Curator note is required for approval.' }), {
-                status: 400,
-                headers: { 'Content-Type': 'application/json' }
-            });
-        }
-
         const { data: resource, error: fetchError } = await supabase
             .from('hub_resources')
             .select(`
@@ -188,7 +181,7 @@ export const POST: APIRoute = async ({ request }) => {
             reviewed_at: new Date().toISOString(),
             reviewed_by: authData.user.id,
             updated_at: new Date().toISOString(),
-            admin_notes: curatorNote,
+            admin_notes: curatorNote || null,
             rejection_reason: null
         };
 
@@ -244,11 +237,11 @@ export const POST: APIRoute = async ({ request }) => {
             }
         }
 
-        let emailResult = { sent: false, reason: 'No submitter email found' };
+        let emailResult = { sent: false, reason: 'Skipped: no curator note provided' };
         const { data: userLookup, error: userLookupError } = await supabase.auth.admin.getUserById(resource.submitted_by);
         const submitterEmail = userLookupError ? null : userLookup.user?.email?.trim().toLowerCase();
 
-        if (submitterEmail && resendKey) {
+        if (curatorNote && submitterEmail && resendKey) {
             try {
                 const resend = new Resend(resendKey);
                 const baseUrl = new URL(request.url).origin;
@@ -279,8 +272,10 @@ export const POST: APIRoute = async ({ request }) => {
                 console.error('Failed to send approval email:', emailError);
                 emailResult = { sent: false, reason: emailError?.message || 'Unknown email error' };
             }
-        } else if (!resendKey) {
+        } else if (curatorNote && submitterEmail && !resendKey) {
             emailResult = { sent: false, reason: 'Server config error: missing RESEND_API_KEY' };
+        } else if (curatorNote && !submitterEmail) {
+            emailResult = { sent: false, reason: 'No submitter email found' };
         }
 
         return new Response(JSON.stringify({ success: true, emailResult }), {

@@ -192,9 +192,9 @@ export default function UserDashboard({ user: propUser }: UserDashboardProps) {
                                     </div>
                                     <p className="submission-url">{sub.url}</p>
 
-                                    {sub.status === 'rejected' && sub.rejection_reason && (
+                                    {(sub.admin_notes || sub.rejection_reason) && (
                                         <div className="rejection-reason">
-                                            <strong>⚠️ Rejection Reason:</strong> {sub.rejection_reason}
+                                            <strong>Curator note:</strong> {sub.admin_notes || sub.rejection_reason}
                                         </div>
                                     )}
 
@@ -494,8 +494,10 @@ export default function UserDashboard({ user: propUser }: UserDashboardProps) {
                 }
 
                 .rejection-reason {
-                    background: #FEE2E2;
-                    color: #991B1B;
+                    background: var(--bg-surface-hover);
+                    color: var(--text-secondary);
+                    border: 1px solid var(--border-subtle);
+                    border-left: 3px solid var(--border-strong);
                     padding: 0.75rem;
                     border-radius: 6px;
                     font-size: 0.875rem;

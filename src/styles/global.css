@@ -67,20 +67,20 @@
     --text-3xl: 2rem;
 
     /* MODE TOKENS (Dark + Light) */
-    --dark-page-bg: #0b0f14;
-    --dark-surface-bg: #141b24;
-    --dark-surface-hover-bg: #1d2733;
+    --dark-page-bg: #040404;
+    --dark-surface-bg: #0a0a0a;
+    --dark-surface-hover-bg: #151515;
     --dark-text-primary: #f8fafc;
     --dark-text-secondary: #d3dce8;
     --dark-text-tertiary: #9ba9bb;
-    --dark-border-subtle: #2b3646;
-    --dark-border-strong: #425167;
-    --dark-header-bg: #0b0f14;
+    --dark-border-subtle: #2a2a2a;
+    --dark-border-strong: #3f3f3f;
+    --dark-header-bg: #050505;
     --dark-header-text: #f8fafc;
-    --dark-header-border: #2b3646;
-    --dark-footer-bg: #090d12;
+    --dark-header-border: #2a2a2a;
+    --dark-footer-bg: #060606;
     --dark-footer-text: #edf2f8;
-    --dark-footer-border: #2b3646;
+    --dark-footer-border: #2a2a2a;
     --dark-link-color: var(--color-brand-red);
     --dark-link-hover-color: #c21c3e;
     --dark-selection-bg: var(--color-brand-red);

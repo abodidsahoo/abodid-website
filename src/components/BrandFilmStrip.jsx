@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import { motion } from 'framer-motion';
 
 const stripBlackMatte = (src) =>
     new Promise((resolve) => {
@@ -32,8 +31,8 @@ const stripBlackMatte = (src) =>
                 const imageData = context.getImageData(0, 0, width, height);
                 const { data } = imageData;
 
-                // Chroma-key style cleanup for logos exported on black JPEG mattes.
-                const matteCutoff = 0.09; // remove near-black background + jpeg halos
+                // Remove black matte by shaping alpha only; preserve original logo colors.
+                const matteCutoff = 0.09;
                 for (let i = 0; i < data.length; i += 4) {
                     const r = data[i];
                     const g = data[i + 1];
@@ -47,13 +46,8 @@ const stripBlackMatte = (src) =>
                         continue;
                     }
 
-                    const alpha = Math.max(0, Math.min(1, (max - matteCutoff) / (1 - matteCutoff)));
-                    const inv = max > 0 ? 1 / max : 1;
-
-                    data[i] = Math.min(255, Math.round(r * inv));
-                    data[i + 1] = Math.min(255, Math.round(g * inv));
-                    data[i + 2] = Math.min(255, Math.round(b * inv));
-                    data[i + 3] = Math.round(alpha * 255);
+                    const alphaFactor = Math.max(0, Math.min(1, (max - matteCutoff) / (1 - matteCutoff)));
+                    data[i + 3] = Math.round(a * alphaFactor);
                 }
 
                 context.putImageData(imageData, 0, 0);
@@ -68,12 +62,29 @@ const stripBlackMatte = (src) =>
         image.src = src;
     });
 
+const INERTIA_FRICTION = 0.94;
+const MIN_INERTIA_SPEED = 0.08;
+const AUTO_DRIFT_SPEED = 0.18;
+
 export default function BrandFilmStrip() {
     const [brands, setBrands] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [hoveredBrand, setHoveredBrand] = useState(null);
-    const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
     const [logoSrcByUrl, setLogoSrcByUrl] = useState({});
+    const [isDragging, setIsDragging] = useState(false);
+
+    const viewportRef = useRef(null);
+    const trackRef = useRef(null);
+    const minOffsetRef = useRef(0);
+    const maxOffsetRef = useRef(0);
+    const positionRef = useRef(0);
+    const velocityRef = useRef(0);
+    const driftDirectionRef = useRef(-1);
+    const pointerActiveRef = useRef(false);
+    const isDraggingRef = useRef(false);
+    const activePointerIdRef = useRef(null);
+    const lastPointerXRef = useRef(0);
+    const lastMoveTimeRef = useRef(0);
+    const animationFrameRef = useRef(null);
 
     useEffect(() => {
         const fetchBrands = async () => {
@@ -120,28 +131,149 @@ export default function BrandFilmStrip() {
         };
     }, [brands]);
 
-    const handleMouseMove = (e) => {
-        setMousePos({ x: e.clientX, y: e.clientY });
+    const clampPosition = useCallback(
+        (nextPosition) => Math.min(maxOffsetRef.current, Math.max(minOffsetRef.current, nextPosition)),
+        [],
+    );
+
+    const applyPosition = useCallback((nextPosition) => {
+        const clampedPosition = clampPosition(nextPosition);
+        positionRef.current = clampedPosition;
+
+        if (trackRef.current) {
+            trackRef.current.style.transform = `translate3d(${clampedPosition}px, 0, 0)`;
+        }
+
+        return clampedPosition;
+    }, [clampPosition]);
+
+    useEffect(() => {
+        if (!trackRef.current || !viewportRef.current || !brands.length) return undefined;
+
+        const measureTrack = () => {
+            if (!trackRef.current || !viewportRef.current) return;
+
+            const viewportWidth = viewportRef.current.clientWidth;
+            const trackWidth = trackRef.current.scrollWidth;
+            minOffsetRef.current = Math.min(0, viewportWidth - trackWidth);
+            maxOffsetRef.current = 0;
+            applyPosition(positionRef.current);
+        };
+
+        measureTrack();
+        const resizeObserver = new ResizeObserver(measureTrack);
+        resizeObserver.observe(trackRef.current);
+        resizeObserver.observe(viewportRef.current);
+
+        return () => resizeObserver.disconnect();
+    }, [brands.length, applyPosition]);
+
+    useEffect(() => {
+        if (!brands.length) return undefined;
+
+        const tick = () => {
+            if (!pointerActiveRef.current) {
+                if (Math.abs(velocityRef.current) > MIN_INERTIA_SPEED) {
+                    const attemptedPosition = positionRef.current + velocityRef.current;
+                    const appliedPosition = applyPosition(attemptedPosition);
+                    if (Math.abs(appliedPosition - attemptedPosition) > 0.1) {
+                        velocityRef.current *= 0.45;
+                        driftDirectionRef.current = velocityRef.current >= 0 ? 1 : -1;
+                    }
+                    velocityRef.current *= INERTIA_FRICTION;
+                } else {
+                    velocityRef.current = 0;
+                    const attemptedPosition =
+                        positionRef.current + (AUTO_DRIFT_SPEED * driftDirectionRef.current);
+                    const appliedPosition = applyPosition(attemptedPosition);
+                    if (Math.abs(appliedPosition - attemptedPosition) > 0.05) {
+                        driftDirectionRef.current *= -1;
+                    }
+                }
+            }
+
+            animationFrameRef.current = requestAnimationFrame(tick);
+        };
+
+        animationFrameRef.current = requestAnimationFrame(tick);
+
+        return () => {
+            if (animationFrameRef.current) {
+                cancelAnimationFrame(animationFrameRef.current);
+                animationFrameRef.current = null;
+            }
+        };
+    }, [brands.length, applyPosition]);
+
+    const handlePointerDown = (event) => {
+        if (event.pointerType === 'mouse' && event.button !== 0) return;
+
+        pointerActiveRef.current = true;
+        activePointerIdRef.current = event.pointerId;
+        lastPointerXRef.current = event.clientX;
+        lastMoveTimeRef.current = performance.now();
+        velocityRef.current = 0;
+        isDraggingRef.current = false;
+        setIsDragging(true);
+        event.currentTarget.setPointerCapture?.(event.pointerId);
     };
 
-    // Duplicate brands for seamless loop
-    const duplicatedBrands = [...brands, ...brands];
+    const handlePointerMove = (event) => {
+        if (!pointerActiveRef.current || activePointerIdRef.current !== event.pointerId) return;
+
+        const now = performance.now();
+        const deltaX = event.clientX - lastPointerXRef.current;
+        const deltaTime = Math.max(1, now - lastMoveTimeRef.current);
+
+        if (Math.abs(deltaX) > 0.1) {
+            isDraggingRef.current = true;
+            driftDirectionRef.current = deltaX > 0 ? 1 : -1;
+        }
+
+        applyPosition(positionRef.current + deltaX);
+
+        const sampledVelocity = (deltaX / deltaTime) * 16;
+        velocityRef.current = (velocityRef.current * 0.7) + (sampledVelocity * 0.3);
+
+        lastPointerXRef.current = event.clientX;
+        lastMoveTimeRef.current = now;
+
+        if (event.cancelable && Math.abs(deltaX) > 0) {
+            event.preventDefault();
+        }
+    };
+
+    const handlePointerEnd = (event) => {
+        if (!pointerActiveRef.current) return;
+        if (activePointerIdRef.current !== null && activePointerIdRef.current !== event.pointerId) return;
+
+        pointerActiveRef.current = false;
+        activePointerIdRef.current = null;
+        isDraggingRef.current = false;
+        setIsDragging(false);
+
+        if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
+            event.currentTarget.releasePointerCapture(event.pointerId);
+        }
+    };
 
     if (loading || brands.length === 0) return null;
 
     return (
-        <div
-            className="brand-filmstrip-wrapper"
-            onMouseMove={handleMouseMove}
-        >
-            <div className="brand-filmstrip">
-                <div className="filmstrip-track">
-                    {duplicatedBrands.map((brand, index) => (
+        <div className="brand-filmstrip-wrapper">
+            <div
+                className={`brand-filmstrip ${isDragging ? 'is-dragging' : ''}`}
+                ref={viewportRef}
+                onPointerDown={handlePointerDown}
+                onPointerMove={handlePointerMove}
+                onPointerUp={handlePointerEnd}
+                onPointerCancel={handlePointerEnd}
+            >
+                <div className="filmstrip-track" ref={trackRef}>
+                    {brands.map((brand) => (
                         <div
-                            key={`${brand.id}-${index}`}
+                            key={brand.id}
                             className="filmstrip-item"
-                            onMouseEnter={() => setHoveredBrand(brand)}
-                            onMouseLeave={() => setHoveredBrand(null)}
                         >
                             <img
                                 src={logoSrcByUrl[brand.logo_url] || brand.logo_url}
@@ -153,28 +285,6 @@ export default function BrandFilmStrip() {
                 </div>
             </div>
 
-            {/* Hover Popup Card */}
-            {hoveredBrand && (
-                <motion.div
-                    className="brand-popup-card"
-                    initial={{ opacity: 0, scale: 0.9, x: -10, y: 10 }} // Starts slightly bottom-left
-                    animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.9, x: -5, y: 5 }}
-                    transition={{ duration: 0.15, ease: "easeOut" }}
-                    style={{
-                        /* Position: Top-Right of pointer, extremely close */
-                        top: mousePos.y - 10,
-                        left: mousePos.x + 15,
-                        /* Ensure it doesn't flip off screen if too close to edge (basic check logic could be added but stick to request first) */
-                    }}
-                >
-                    <div className="popup-content">
-                        <h3 className="popup-category">{hoveredBrand.category}</h3>
-                        <span className="popup-role">{hoveredBrand.role}</span>
-                    </div>
-                </motion.div>
-            )}
-
             <style>{`
                 .brand-filmstrip-wrapper {
                     position: relative;
@@ -182,32 +292,27 @@ export default function BrandFilmStrip() {
                     /* Removed breakout hacks */
                     z-index: 10;
                     margin: 0;
-                    pointer-events: none;
+                    pointer-events: auto;
                 }
 
                 .brand-filmstrip {
                     width: 100%;
                     overflow: hidden;
                     position: relative;
-                    padding: 4rem 0; 
+                    padding: 0;
+                    cursor: grab;
+                    touch-action: pan-y;
+                    user-select: none;
+                    -webkit-user-select: none;
                     
-                    /* Let footer/site background pass through */
                     background: transparent;
                     mix-blend-mode: normal;
                     opacity: 1;
-                    
-                    /* Edge Fade Mask */
-                    mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
-                    -webkit-mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
-                    
                     pointer-events: auto; 
                 }
 
-                /* Light Mode Logo Inversion */
-                [data-theme="light"] .brand-filmstrip {
-                    background: transparent !important;
-                    mix-blend-mode: normal !important;
-                    opacity: 1 !important;
+                .brand-filmstrip.is-dragging {
+                    cursor: grabbing;
                 }
 
                 .filmstrip-track {
@@ -215,104 +320,55 @@ export default function BrandFilmStrip() {
                     align-items: center;
                     gap: 6rem; /* Decent enough spacing between logos */
                     width: max-content;
-                    animation: scrollFilm 120s linear infinite;
+                    padding: 0 4rem 0 2rem;
                     will-change: transform;
-                }
-
-                .filmstrip-track:hover {
-                    animation-play-state: paused;
-                }
-
-                @keyframes scrollFilm {
-                    0% { transform: translateX(0); }
-                    100% { transform: translateX(-50%); }
                 }
 
                 .filmstrip-item {
                     flex-shrink: 0;
                     width: auto;
-                    height: 120px; 
+                    height: 132px; 
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    cursor: pointer;
                     transition: transform 0.3s ease;
+                    position: relative;
+                    z-index: 1;
+                    pointer-events: none;
                 }
 
                 .filmstrip-item:hover {
                     transform: scale(1.05);
                 }
 
+                .brand-filmstrip.is-dragging .filmstrip-item:hover {
+                    transform: none;
+                }
+
                 .filmstrip-item img {
                     height: 100%;
                     width: auto;
-                    max-width: 120px;
+                    max-width: 132px;
                     object-fit: contain;
-
-                    mix-blend-mode: normal;
-                    filter: brightness(1.03) contrast(1.08);
-                    opacity: 0.94;
-                }
-
-                [data-theme="light"] .filmstrip-item img {
-                    /*
-                     * Light mode should not pop as pure white:
-                     * keep marks darker so they blend into the footer tone.
-                     */
                     mix-blend-mode: normal !important;
-                    filter: invert(1) grayscale(1) brightness(0.32) contrast(1.18) !important;
-                    opacity: 0.78 !important;
-                }
-
-                /* Popup Card */
-                .brand-popup-card {
-                    position: fixed;
-                    z-index: 9999; 
-                    background: rgba(10, 15, 22, 0.95);
-                    backdrop-filter: blur(12px);
-                    border: 1px solid var(--sci-fi-cyan, #00f3ff);
-                    border-radius: 4px;
+                    filter: none;
+                    opacity: 1;
                     pointer-events: none;
-                    box-shadow: 0 0 35px rgba(0, 243, 255, 0.35);
-                    padding: 0.8rem 1.4rem;
-                    min-width: 170px;
-                    
-                    /* Prevent text wrap generally */
-                    white-space: nowrap;
-                }
-
-                .popup-category {
-                    font-family: var(--font-display);
-                    font-weight: 700;
-                    font-size: 0.95rem;
-                    color: var(--sci-fi-cyan, #00f3ff);
-                    text-transform: uppercase;
-                    letter-spacing: 0.12em;
-                    margin: 0;
-                }
-
-                .popup-role {
-                    font-family: var(--font-mono);
-                    font-size: 0.85rem;
-                    color: rgba(255, 255, 255, 0.9);
-                    margin-top: 0.4rem;
-                    display: block;
-                    border-top: 1px solid rgba(0, 243, 255, 0.25);
-                    padding-top: 0.4rem;
+                    user-select: none;
+                    -webkit-user-select: none;
+                    -webkit-user-drag: none;
                 }
 
                 @media (max-width: 768px) {
                     .brand-filmstrip {
-                        padding: 4rem 0;
-                        /* Reduce fade on mobile to maximize visible area */
-                         mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
-                        -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+                        padding: 0;
                     }
                     .filmstrip-track {
-                        gap: 4rem; 
+                        gap: 3.2rem;
+                        padding: 0 2rem 0 1rem;
                     }
                     .filmstrip-item { 
-                        height: 70px;
+                        height: 77px;
                     }
                 }
             `}</style>

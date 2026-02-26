@@ -153,9 +153,7 @@ export const POST: APIRoute = async ({ request }) => {
         }
 
         const { resourceId, reason } = await request.json();
-        const rejectionReason = typeof reason === 'string' && reason.trim().length > 0
-            ? reason.trim()
-            : 'No specific note was provided for this review.';
+        const rejectionReason = typeof reason === 'string' ? reason.trim() : '';
 
         if (!resourceId) {
             return new Response(JSON.stringify({ error: 'Missing resourceId' }), {
@@ -192,7 +190,8 @@ export const POST: APIRoute = async ({ request }) => {
                 status: 'rejected',
                 reviewed_at: new Date().toISOString(),
                 reviewed_by: authData.user.id,
-                rejection_reason: rejectionReason
+                rejection_reason: rejectionReason || null,
+                admin_notes: rejectionReason || null
             })
             .eq('id', resourceId);
 
@@ -203,7 +202,7 @@ export const POST: APIRoute = async ({ request }) => {
             });
         }
 
-        let emailResult = { sent: false, reason: 'No submitter email found' };
+        let emailResult = { sent: false, reason: 'Skipped: no curator note provided' };
         const submitterName =
             resource.submitter_profile?.full_name ||
             resource.submitter_profile?.username ||
@@ -215,7 +214,7 @@ export const POST: APIRoute = async ({ request }) => {
         const dashboardUrl = `${baseUrl}/resources/dashboard`;
         const hubUrl = `${baseUrl}/resources`;
 
-        if (submitterEmail && resendKey) {
+        if (rejectionReason && submitterEmail && resendKey) {
             try {
                 const resend = new Resend(resendKey);
                 const fromAddress = 'Abodid <newsletter@abodid.com>';
@@ -245,9 +244,11 @@ export const POST: APIRoute = async ({ request }) => {
                 console.error('Failed to send rejection email:', emailError);
                 emailResult = { sent: false, reason: emailError?.message || 'Unknown email error' };
             }
-        } else if (!resendKey) {
+        } else if (rejectionReason && submitterEmail && !resendKey) {
             console.error('Missing RESEND_API_KEY');
             emailResult = { sent: false, reason: 'Server config error: missing RESEND_API_KEY' };
+        } else if (rejectionReason && !submitterEmail) {
+            emailResult = { sent: false, reason: 'No submitter email found' };
         }
 
         return new Response(JSON.stringify({

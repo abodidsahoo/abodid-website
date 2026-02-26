@@ -589,10 +589,7 @@ export async function approveResource(
     if (!supabase) return { success: false, error: 'Database not connected' };
 
     try {
-        const note = payload.curator_note?.trim();
-        if (!note) {
-            return { success: false, error: 'Curator note is required for approval.' };
-        }
+        const note = payload.curator_note?.trim() || '';
 
         const requestApprove = async (token: string) => {
             return fetch('/api/resources/approve', {
@@ -628,7 +625,7 @@ export async function approveResource(
             return { success: false, error: result?.error || 'Failed to approve resource' };
         }
 
-        if (result?.emailResult && result.emailResult.sent === false) {
+        if (note && result?.emailResult && result.emailResult.sent === false) {
             console.warn('Approval email not sent:', result.emailResult.reason);
         }
 
@@ -639,14 +636,11 @@ export async function approveResource(
     }
 }
 
-export async function rejectResource(resourceId: string, reason: string): Promise<{ success: boolean; error?: string }> {
+export async function rejectResource(resourceId: string, reason?: string): Promise<{ success: boolean; error?: string }> {
     if (!supabase) return { success: false, error: 'Database not connected' };
 
     try {
-        const trimmedReason = reason?.trim();
-        if (!trimmedReason) {
-            return { success: false, error: 'Curator note is required for rejection.' };
-        }
+        const trimmedReason = reason?.trim() || '';
 
         const requestReject = async (token: string) => {
             return fetch('/api/resources/reject', {
@@ -676,7 +670,7 @@ export async function rejectResource(resourceId: string, reason: string): Promis
             return { success: false, error: payload?.error || 'Failed to reject resource' };
         }
 
-        if (payload?.emailResult && payload.emailResult.sent === false) {
+        if (trimmedReason && payload?.emailResult && payload.emailResult.sent === false) {
             console.warn('Rejection email not sent:', payload.emailResult.reason);
         }
 

@@ -23,6 +23,7 @@ interface Submission {
     created_at: string;
     reviewed_at: string | null;
     rejection_reason: string | null;
+    admin_notes?: string | null;
     submitted_by?: string;
     submitter_profile?: any;
 }
@@ -50,6 +51,11 @@ export default function CuratorDashboard({ user, role }: Props) {
     const [filter, setFilter] = useState('all'); // all, pending, approved, rejected, deleted, global
     const [error, setError] = useState<string | null>(null);
     const [curationByResource, setCurationByResource] = useState<Record<string, CurationDraft>>({});
+    const [moderationAction, setModerationAction] = useState<'approve' | 'reject' | null>(null);
+    const [moderationTarget, setModerationTarget] = useState<Submission | null>(null);
+    const [curatorMessage, setCuratorMessage] = useState('');
+    const [isModerating, setIsModerating] = useState(false);
+    const [moderationError, setModerationError] = useState<string | null>(null);
 
     const fetchData = async () => {
         if (!user) return;
@@ -187,18 +193,17 @@ export default function CuratorDashboard({ user, role }: Props) {
         }
     };
 
-    const handleApprove = async (submission: Submission) => {
+    const handleApprove = async (submission: Submission, curatorNote?: string): Promise<{ success: boolean; error?: string }> => {
         const resourceId = submission.id;
         const draft = getDraft(submission);
 
         if (draft.isUploading) {
-            alert('Thumbnail upload is still in progress. Please wait.');
-            return;
+            return { success: false, error: 'Thumbnail upload is still in progress. Please wait.' };
         }
 
         // Optimistic Update
         const item = pendingSubmissions.find(s => s.id === resourceId);
-        if (!item) return;
+        if (!item) return { success: false, error: 'Submission not found in pending list.' };
 
         setPendingSubmissions(prev => prev.filter(s => s.id !== resourceId));
 
@@ -213,29 +218,72 @@ export default function CuratorDashboard({ user, role }: Props) {
         const result = await approveResource(resourceId, {
             tag_ids: draft.selectedTags,
             thumbnail_url: draft.thumbnailUrl || null,
-            audience: 'Designer'
+            audience: 'Designer',
+            curator_note: curatorNote?.trim() || ''
         });
         if (!result.success) {
             // Revert on failure (simplified: just reload or show alert)
-            alert('Failed to approve. Refreshing...');
             fetchPendingSubmissions();
             if (user) fetchSubmissions(user.id);
+            return { success: false, error: result.error || 'Failed to approve.' };
         }
+
+        return { success: true };
     };
 
-    const handleReject = async (resourceId: string) => {
-        const reason = prompt('Reason for rejection?');
-        if (reason === null) return;
-
+    const handleReject = async (resourceId: string, reason?: string): Promise<{ success: boolean; error?: string }> => {
         // Optimistic Update
         setPendingSubmissions(prev => prev.filter(s => s.id !== resourceId));
         setSubmissions(prev => prev.map(s => s.id === resourceId ? { ...s, status: 'rejected' } : s));
 
-        const result = await rejectResource(resourceId, reason);
+        const result = await rejectResource(resourceId, reason || '');
         if (!result.success) {
-            alert('Failed to reject. Refreshing...');
             fetchPendingSubmissions();
+            return { success: false, error: result.error || 'Failed to reject.' };
         }
+
+        return { success: true };
+    };
+
+    const openModerationDialog = (submission: Submission, action: 'approve' | 'reject') => {
+        if (action === 'approve' && getDraft(submission).isUploading) {
+            alert('Thumbnail upload is still in progress. Please wait.');
+            return;
+        }
+
+        setModerationAction(action);
+        setModerationTarget(submission);
+        setCuratorMessage('');
+        setModerationError(null);
+    };
+
+    const closeModerationDialog = () => {
+        if (isModerating) return;
+        setModerationAction(null);
+        setModerationTarget(null);
+        setCuratorMessage('');
+        setModerationError(null);
+    };
+
+    const confirmModeration = async () => {
+        if (!moderationAction || !moderationTarget) return;
+
+        setIsModerating(true);
+        setModerationError(null);
+
+        const note = curatorMessage.trim();
+        const result = moderationAction === 'approve'
+            ? await handleApprove(moderationTarget, note)
+            : await handleReject(moderationTarget.id, note);
+
+        if (!result.success) {
+            setModerationError(result.error || 'Action failed. Please try again.');
+            setIsModerating(false);
+            return;
+        }
+
+        setIsModerating(false);
+        closeModerationDialog();
     };
 
     const handleDelete = async (resourceId: string) => {
@@ -569,9 +617,9 @@ export default function CuratorDashboard({ user, role }: Props) {
                                         </div>
                                         <p className="submission-url">{submission.url}</p>
 
-                                        {submission.rejection_reason && (
+                                        {(submission.admin_notes || submission.rejection_reason) && (
                                             <div className="rejection-reason">
-                                                <strong>Rejection reason:</strong> {submission.rejection_reason}
+                                                <strong>Curator note:</strong> {submission.admin_notes || submission.rejection_reason}
                                             </div>
                                         )}
                                         <div className="submission-actions">
@@ -680,13 +728,13 @@ export default function CuratorDashboard({ user, role }: Props) {
                                     </div>
                                     <div className="submission-actions">
                                         <button
-                                            onClick={() => handleApprove(submission)}
+                                            onClick={() => openModerationDialog(submission, 'approve')}
                                             className="btn-approve"
                                         >
                                             ✓ Approve
                                         </button>
                                         <button
-                                            onClick={() => handleReject(submission.id)}
+                                            onClick={() => openModerationDialog(submission, 'reject')}
                                             className="btn-reject"
                                         >
                                             ✗ Reject
@@ -713,6 +761,47 @@ export default function CuratorDashboard({ user, role }: Props) {
                                 </div>
                             </div>
                         ))}
+                    </div>
+                </div>
+            )}
+
+            {moderationAction && moderationTarget && (
+                <div className="moderation-modal-backdrop" onClick={closeModerationDialog}>
+                    <div className="moderation-modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+                        <h3>{moderationAction === 'approve' ? 'Approve Submission' : 'Reject Submission'}</h3>
+                        <p className="moderation-modal-subtitle">
+                            Add a curator message (optional). An email is sent only when this message is provided.
+                        </p>
+                        <p className="moderation-modal-resource">
+                            <strong>Resource:</strong> {moderationTarget.title}
+                        </p>
+                        <label className="curation-label" htmlFor="moderation-note-input">Curator message</label>
+                        <textarea
+                            id="moderation-note-input"
+                            className="moderation-note-input"
+                            value={curatorMessage}
+                            onChange={(e) => setCuratorMessage(e.target.value)}
+                            placeholder="Write why you are approving or rejecting (optional)"
+                            rows={5}
+                            disabled={isModerating}
+                        />
+                        {moderationError && (
+                            <p className="moderation-error">{moderationError}</p>
+                        )}
+                        <div className="moderation-actions">
+                            <button className="btn-preview" onClick={closeModerationDialog} disabled={isModerating}>
+                                Cancel
+                            </button>
+                            <button
+                                className={moderationAction === 'approve' ? 'btn-approve' : 'btn-delete'}
+                                onClick={confirmModeration}
+                                disabled={isModerating}
+                            >
+                                {isModerating
+                                    ? (moderationAction === 'approve' ? 'Approving...' : 'Rejecting...')
+                                    : (moderationAction === 'approve' ? 'Confirm Approve' : 'Confirm Reject')}
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
@@ -1089,8 +1178,10 @@ export default function CuratorDashboard({ user, role }: Props) {
                 }
 
                 .rejection-reason {
-                    background: #FEE2E2;
-                    color: #991B1B;
+                    background: var(--bg-surface-hover);
+                    color: var(--text-secondary);
+                    border: 1px solid var(--border-subtle);
+                    border-left: 3px solid var(--border-strong);
                     padding: 0.75rem;
                     border-radius: 6px;
                     font-size: 0.875rem;
@@ -1298,6 +1389,75 @@ export default function CuratorDashboard({ user, role }: Props) {
 
                 .btn-delete:hover {
                     opacity: 0.8;
+                }
+
+                .moderation-modal-backdrop {
+                    position: fixed;
+                    inset: 0;
+                    background: rgba(0, 0, 0, 0.45);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 1000;
+                    padding: 1rem;
+                }
+
+                .moderation-modal {
+                    width: min(560px, 100%);
+                    background: var(--bg-surface);
+                    border: 1px solid var(--border-subtle);
+                    border-radius: 12px;
+                    padding: 1rem;
+                    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+                }
+
+                .moderation-modal h3 {
+                    margin: 0 0 0.5rem;
+                    font-size: 1.2rem;
+                    color: var(--text-primary);
+                }
+
+                .moderation-modal-subtitle {
+                    margin: 0 0 0.75rem;
+                    color: var(--text-secondary);
+                    font-size: 0.9rem;
+                }
+
+                .moderation-modal-resource {
+                    margin: 0 0 0.75rem;
+                    color: var(--text-primary);
+                    font-size: 0.9rem;
+                }
+
+                .moderation-note-input {
+                    width: 100%;
+                    border: 1px solid var(--border-subtle);
+                    border-radius: 8px;
+                    background: var(--bg-surface-hover);
+                    color: var(--text-primary);
+                    padding: 0.75rem;
+                    resize: vertical;
+                    min-height: 120px;
+                    font-size: 0.95rem;
+                }
+
+                .moderation-note-input:focus {
+                    outline: 1px solid var(--text-primary);
+                    border-color: var(--text-primary);
+                }
+
+                .moderation-error {
+                    margin: 0.75rem 0 0;
+                    color: #EF4444;
+                    font-size: 0.85rem;
+                }
+
+                .moderation-actions {
+                    margin-top: 1rem;
+                    display: flex;
+                    justify-content: flex-end;
+                    gap: 0.5rem;
+                    flex-wrap: wrap;
                 }
 
                 .loading {
