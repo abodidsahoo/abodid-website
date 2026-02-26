@@ -1,0 +1,72 @@
+---
+import { TechAtlasDeck } from "../../components/tech-atlas/TechAtlasDeck";
+import rawData from "../../data/technology_course_refined.json";
+import "@fontsource/inconsolata"; // Default fallback, but we use Satoshi
+import "../../styles/global.css";
+// We don't import BaseLayout to keep it clean and fullscreen.
+---
+
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+        />
+        <title>Creative Tech Toolkit</title>
+
+        <!-- Load Satoshi Variable Font -->
+        <link
+            href="https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,300,400&display=swap"
+            rel="stylesheet"
+        />
+
+        <!-- Use locally compiled Tailwind for stability and caching -->
+        <link rel="stylesheet" href="/tech-atlas-tw.css" />
+
+        <style>
+            body {
+                margin: 0;
+                padding: 0;
+                background-color: #0a0a0a; /* very dark neutral */
+                color: white;
+                /* Prevent bounce scrolling on iOS to feel more app-like */
+                overscroll-behavior: none;
+            }
+
+            /* Hide scrollbar for tabs */
+            .scrollbar-hide::-webkit-scrollbar {
+                display: none;
+            }
+            .scrollbar-hide {
+                -ms-overflow-style: none;
+                scrollbar-width: none;
+            }
+
+            /* Custom scrollbar for tab panels */
+            .custom-scrollbar::-webkit-scrollbar {
+                width: 4px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-track {
+                background: rgba(0, 0, 0, 0.05);
+                border-radius: 4px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-thumb {
+                background: rgba(0, 0, 0, 0.15);
+                border-radius: 4px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                background: rgba(0, 0, 0, 0.25);
+            }
+        </style>
+    </head>
+    <body>
+        <main
+            class="w-full h-[100dvh] overflow-hidden bg-[#0A0A0A] fixed inset-0"
+        >
+            <!-- Pass data to React Component -->
+            <TechAtlasDeck rawData={rawData} client:load />
+        </main>
+    </body>
+</html>

@@ -1,0 +1,254 @@
+[
+    {
+        "Technology": "A-Frame",
+        "Origin_Company_KeyPeople_Place_and_Year": "Developed by Mozilla’s VR team (USA) and later maintained by Supermedium and Google; initial release December 2015",
+        "Simple_Utility": "Open-source JavaScript framework for building WebXR/VR scenes with HTML and Three.js.",
+        "Real_Life_Example": "Used in Mozilla Hubs to create immersive chat rooms.",
+        "Intro_Video_or_Tutorial_Link": "https://www.youtube.com/watch?v=0c_yW5AJ9gY",
+        "Key_Skills_Thought_Process": "Basic HTML, JavaScript and 3D concepts; think in entities and components to compose immersive scenes; analyze scene graph and performance.",
+        "Real_World_Implementation": "Interactive VR websites, virtual exhibitions and education apps run directly in the browser."
+    },
+    {
+        "Technology": "ActionScript 3",
+        "Origin_Company_KeyPeople_Place_and_Year": "Adobe Systems (USA); evolved from Macromedia Flash; AS3 introduced with Flash Player 9 in 2006",
+        "Simple_Utility": "Programming language used to build interactive Flash applications and games (now legacy).",
+        "Real_Life_Example": "Early browser games and interactive websites built in Flash.",
+        "Intro_Video_or_Tutorial_Link": "https://www.youtube.com/watch?v=5lL4O9dxWhA",
+        "Key_Skills_Thought_Process": "Object-oriented programming, event-driven logic; think in timelines, movie clips, and user interaction handlers.",
+        "Real_World_Implementation": "Legacy maintenance or porting Flash projects into modern HTML5/JS equivalents."
+    },
+    {
+        "Technology": "Adobe After Effects",
+        "Origin_Company_KeyPeople_Place_and_Year": "Originally by CoSA (USA) in 1993; acquired by Adobe in 1994; key figures include David Simons and CoSA founders",
+        "Simple_Utility": "Motion graphics and compositing software used for animation, VFX, and visual storytelling.",
+        "Real_Life_Example": "Used for title sequences, explainer animations, and composited VFX shots.",
+        "Intro_Video_or_Tutorial_Link": "https://www.youtube.com/watch?v=HBKxBzG8G9E",
+        "Key_Skills_Thought_Process": "Keyframing, easing, compositing, masking; think in layers and timing; plan motion beats and visual hierarchy.",
+        "Real_World_Implementation": "Social campaigns, brand films, UI motion prototypes, and VFX for video production."
+    },
+    {
+        "Technology": "Adobe Illustrator",
+        "Origin_Company_KeyPeople_Place_and_Year": "Adobe Systems (USA); first released 1987; key figure: John Warnock (Adobe co-founder)",
+        "Simple_Utility": "Vector design tool for creating scalable illustrations, icons, and typography.",
+        "Real_Life_Example": "Logo design systems and icon libraries for products.",
+        "Intro_Video_or_Tutorial_Link": "https://www.youtube.com/watch?v=Ib8UBwu3yGA",
+        "Key_Skills_Thought_Process": "Vector paths, bezier curves, shape building; think in scalable components and clean geometry.",
+        "Real_World_Implementation": "Brand identity work, illustration assets, UI iconography, print and digital creative."
+    },
+    {
+        "Technology": "Adobe Photoshop",
+        "Origin_Company_KeyPeople_Place_and_Year": "Developed by Thomas and John Knoll (USA) in 1987–1988; acquired by Adobe in 1988; first release 1990",
+        "Simple_Utility": "Raster image editing for compositing, retouching, and graphic creation.",
+        "Real_Life_Example": "Photo retouching and campaign key art composites.",
+        "Intro_Video_or_Tutorial_Link": "https://www.youtube.com/watch?v=IyR_uYsRdPs",
+        "Key_Skills_Thought_Process": "Layers, masks, selections, color correction; think non-destructively with adjustment layers and smart objects.",
+        "Real_World_Implementation": "Marketing visuals, asset production, creative experimentation, mockups and image manipulation."
+    },
+    {
+        "Technology": "AI Storyboarding (Midjourney / DALL·E)",
+        "Origin_Company_KeyPeople_Place_and_Year": "Midjourney (USA) founded by David Holz (2021); DALL·E by OpenAI (USA) announced 2021; diffusion models popularized 2020s",
+        "Simple_Utility": "Generate visual frames quickly to explore narrative beats, composition, and mood for video/ads.",
+        "Real_Life_Example": "Rapid moodboards and shot concepts for brand campaigns before production.",
+        "Intro_Video_or_Tutorial_Link": "https://www.youtube.com/watch?v=opqQ0tWfJ4M",
+        "Key_Skills_Thought_Process": "Prompt writing, art direction, iteration; think in shot language (lens, lighting, framing) and consistent style prompts.",
+        "Real_World_Implementation": "Pre-production planning, creative exploration, and pitch decks with fast visual iteration."
+    },
+    {
+        "Technology": "Android Studio",
+        "Origin_Company_KeyPeople_Place_and_Year": "Google (USA); announced 2013; based on IntelliJ IDEA by JetBrains",
+        "Simple_Utility": "Official IDE for Android app development with Kotlin/Java and debugging tools.",
+        "Real_Life_Example": "Building Android prototypes for product demos and experiments.",
+        "Intro_Video_or_Tutorial_Link": "https://www.youtube.com/watch?v=F7B4vO1OQfg",
+        "Key_Skills_Thought_Process": "Mobile UI architecture, Gradle builds, debugging; think componentized screens and device constraints.",
+        "Real_World_Implementation": "Android apps, ARCore demos, mobile utilities and experimental prototypes."
+    },
+    {
+        "Technology": "Arduino",
+        "Origin_Company_KeyPeople_Place_and_Year": "Originated at Interaction Design Institute Ivrea (Italy) in 2005; key figures: Massimo Banzi, David Cuartielles, Tom Igoe, Gianluca Martino, David Mellis",
+        "Simple_Utility": "Open-source electronics platform for building interactive hardware prototypes with microcontrollers.",
+        "Real_Life_Example": "Interactive installations with sensors and LEDs.",
+        "Intro_Video_or_Tutorial_Link": "https://www.youtube.com/watch?v=fJWR7dBuc18",
+        "Key_Skills_Thought_Process": "Basic circuits, microcontroller programming; think input→process→output loops and physical interaction design.",
+        "Real_World_Implementation": "Prototyping IoT devices, interactive art, tangible interfaces for installations and demos."
+    },
+    {
+        "Technology": "ARCore",
+        "Origin_Company_KeyPeople_Place_and_Year": "Google (USA); announced 2017",
+        "Simple_Utility": "Google’s SDK for building augmented reality experiences on Android devices.",
+        "Real_Life_Example": "AR try-on experiences or interactive product demos.",
+        "Intro_Video_or_Tutorial_Link": "https://www.youtube.com/watch?v=DW7a9n7a5cM",
+        "Key_Skills_Thought_Process": "3D math basics, plane detection, anchors; think environment understanding and stable placement.",
+        "Real_World_Implementation": "Retail AR previews, interactive learning overlays, branded AR activations."
+    },
+    {
+        "Technology": "AutoDesk Maya",
+        "Origin_Company_KeyPeople_Place_and_Year": "Originally by Alias Systems (Canada/USA); later acquired by Autodesk (USA) in 2005; first released 1998",
+        "Simple_Utility": "3D modeling, animation, and rendering software for character and environment production.",
+        "Real_Life_Example": "Character animation for film and game cinematics.",
+        "Intro_Video_or_Tutorial_Link": "https://www.youtube.com/watch?v=IYQmHf4zKxU",
+        "Key_Skills_Thought_Process": "Modeling, rigging, animation curves; think in 3D pipelines and scene optimization.",
+        "Real_World_Implementation": "High-end 3D assets for film/TV, game production, product visualization."
+    },
+    {
+        "Technology": "Babel",
+        "Origin_Company_KeyPeople_Place_and_Year": "Created by Sebastian McKenzie (Australia) in 2014 as 6to5; renamed Babel in 2015; open-source community maintained",
+        "Simple_Utility": "JavaScript compiler that transforms modern JS into backwards-compatible versions.",
+        "Real_Life_Example": "Using ESNext syntax while supporting older browsers in web apps.",
+        "Intro_Video_or_Tutorial_Link": "https://www.youtube.com/watch?v=R1F6xM4q3vI",
+        "Key_Skills_Thought_Process": "Tooling, build pipelines, JS syntax; think compatibility and modular builds.",
+        "Real_World_Implementation": "Modern web development workflows, bundling, and code transpilation in production apps."
+    },
+    {
+        "Technology": "Blender",
+        "Origin_Company_KeyPeople_Place_and_Year": "Created by Ton Roosendaal (Netherlands) in 1994; Blender Foundation established 2002",
+        "Simple_Utility": "Free, open-source 3D creation suite for modeling, animation, simulation, and rendering.",
+        "Real_Life_Example": "3D motion graphics for product launches.",
+        "Intro_Video_or_Tutorial_Link": "https://www.youtube.com/watch?v=TPrnSACiTJ4",
+        "Key_Skills_Thought_Process": "3D modeling, shading, lighting; think node-based materials and efficient workflows.",
+        "Real_World_Implementation": "3D assets for web/AR, animation for brand films, interactive 3D prototypes."
+    },
+    {
+        "Technology": "C++",
+        "Origin_Company_KeyPeople_Place_and_Year": "Developed by Bjarne Stroustrup at Bell Labs (USA) beginning 1979; first commercial release 1985",
+        "Simple_Utility": "High-performance programming language used for systems, graphics, and game engines.",
+        "Real_Life_Example": "Core components of Unreal Engine and many rendering systems.",
+        "Intro_Video_or_Tutorial_Link": "https://www.youtube.com/watch?v=vLnPwxZdW4Y",
+        "Key_Skills_Thought_Process": "Memory management, OOP, performance profiling; think low-level optimization and safe resource handling.",
+        "Real_World_Implementation": "Graphics engines, creative coding tools, realtime systems, performance-critical applications."
+    },
+    {
+        "Technology": "Cinema 4D",
+        "Origin_Company_KeyPeople_Place_and_Year": "Maxon (Germany); first released 1990; key figure: Maxon development team",
+        "Simple_Utility": "3D modeling and motion graphics software popular for design and broadcast.",
+        "Real_Life_Example": "Motion design for brand campaigns and product animations.",
+        "Intro_Video_or_Tutorial_Link": "https://www.youtube.com/watch?v=Qw5Vh1w3fJc",
+        "Key_Skills_Thought_Process": "3D fundamentals, MoGraph, rendering; think procedural animation and design iteration.",
+        "Real_World_Implementation": "Brand motion, explainer visuals, 3D social content, product renders."
+    },
+    {
+        "Technology": "Cloud Functions",
+        "Origin_Company_KeyPeople_Place_and_Year": "Google Cloud (USA); Cloud Functions announced 2017; serverless paradigm popularized mid-2010s",
+        "Simple_Utility": "Serverless compute to run event-driven functions without managing servers.",
+        "Real_Life_Example": "Triggering image processing when a file uploads to cloud storage.",
+        "Intro_Video_or_Tutorial_Link": "https://www.youtube.com/watch?v=ZK5j9jC9NWI",
+        "Key_Skills_Thought_Process": "Event-driven architecture, cloud permissions; think small single-purpose functions and observability.",
+        "Real_World_Implementation": "APIs, automation pipelines, background tasks, integration glue for creative tools."
+    },
+    {
+        "Technology": "D3.js",
+        "Origin_Company_KeyPeople_Place_and_Year": "Created by Mike Bostock (USA) in 2011 at Stanford; open-source community maintained",
+        "Simple_Utility": "JavaScript library for creating interactive data visualizations using web standards (SVG, Canvas).",
+        "Real_Life_Example": "Interactive infographic for climate data storytelling.",
+        "Intro_Video_or_Tutorial_Link": "https://www.youtube.com/watch?v=_8V5o2UHG0E",
+        "Key_Skills_Thought_Process": "Data binding, SVG, scales; think declarative mapping from data → visuals and interaction.",
+        "Real_World_Implementation": "Interactive dashboards, narrative visualizations, rich web data stories."
+    },
+    {
+        "Technology": "Docker",
+        "Origin_Company_KeyPeople_Place_and_Year": "Docker, Inc. (USA); launched 2013; founders include Solomon Hykes",
+        "Simple_Utility": "Containerization platform to package and run applications consistently across environments.",
+        "Real_Life_Example": "Running a creative web app locally with identical dependencies as production.",
+        "Intro_Video_or_Tutorial_Link": "https://www.youtube.com/watch?v=pTFZFxd4hOI",
+        "Key_Skills_Thought_Process": "Containers, images, networking; think reproducible environments and minimal images.",
+        "Real_World_Implementation": "Deploying creative tools, data pipelines, reproducible dev setups, scalable services."
+    },
+    {
+        "Technology": "Figma",
+        "Origin_Company_KeyPeople_Place_and_Year": "Figma, Inc. (USA); founded 2012 by Dylan Field and Evan Wallace; launched 2016",
+        "Simple_Utility": "Collaborative interface design tool for UI/UX prototyping and design systems.",
+        "Real_Life_Example": "Building a design system and interactive prototype for a product.",
+        "Intro_Video_or_Tutorial_Link": "https://www.youtube.com/watch?v=FTFaQWZBqQ8",
+        "Key_Skills_Thought_Process": "Design systems, auto-layout, components; think reusable UI patterns and collaborative iteration.",
+        "Real_World_Implementation": "Product design, rapid prototyping, handoff to dev with specs and components."
+    },
+    {
+        "Technology": "Flutter",
+        "Origin_Company_KeyPeople_Place_and_Year": "Google (USA); first announced 2015; Flutter 1.0 released 2018",
+        "Simple_Utility": "Cross-platform UI toolkit for building native apps from a single Dart codebase.",
+        "Real_Life_Example": "Prototype a cross-platform experience for mobile and web demos.",
+        "Intro_Video_or_Tutorial_Link": "https://www.youtube.com/watch?v=1gDhl4leEzA",
+        "Key_Skills_Thought_Process": "Widget composition, state management; think reactive UI and performance constraints.",
+        "Real_World_Implementation": "Mobile apps, rapid prototypes, interactive experiences on multiple platforms."
+    },
+    {
+        "Technology": "Framer Motion",
+        "Origin_Company_KeyPeople_Place_and_Year": "Developed by Framer (Netherlands/UK); Framer Motion released 2018; key contributors: Matt Perry and open-source community",
+        "Simple_Utility": "Animation library for React to create smooth UI transitions and gesture-driven motion.",
+        "Real_Life_Example": "Swipeable card deck interaction in a web prototype.",
+        "Intro_Video_or_Tutorial_Link": "https://www.youtube.com/watch?v=1vKiPwEYbyk",
+        "Key_Skills_Thought_Process": "Animation principles, React components; think motion as feedback and use spring/easing intentionally.",
+        "Real_World_Implementation": "Interactive UI, scroll/gesture animations, playful transitions for product experiences."
+    },
+    {
+        "Technology": "GANs (Generative Adversarial Networks)",
+        "Origin_Company_KeyPeople_Place_and_Year": "Introduced by Ian Goodfellow and colleagues (USA) in 2014 at Université de Montréal / Stanford collaborations",
+        "Simple_Utility": "Machine learning framework for generating realistic images/data via generator vs discriminator training.",
+        "Real_Life_Example": "Style transfer and synthetic portrait generation experiments.",
+        "Intro_Video_or_Tutorial_Link": "https://www.youtube.com/watch?v=8L11aMN5KY8",
+        "Key_Skills_Thought_Process": "Deep learning basics, training stability; think adversarial objectives, dataset bias, and evaluation.",
+        "Real_World_Implementation": "Creative generative visuals, synthetic datasets, experimental content creation pipelines."
+    },
+    {
+        "Technology": "GCP (Google Cloud Platform)",
+        "Origin_Company_KeyPeople_Place_and_Year": "Google (USA); Google Cloud Platform launched 2008–2011 era; expanded significantly mid-2010s",
+        "Simple_Utility": "Suite of cloud services for compute, storage, AI, and data processing.",
+        "Real_Life_Example": "Hosting a web app and running ML inference for creative tools.",
+        "Intro_Video_or_Tutorial_Link": "https://www.youtube.com/watch?v=IUU6OR8yHCk",
+        "Key_Skills_Thought_Process": "Cloud architecture, IAM, scalability; think modular services and cost-aware design.",
+        "Real_World_Implementation": "Deploying creative products, data pipelines, serverless backends, AI services."
+    },
+    {
+        "Technology": "Git",
+        "Origin_Company_KeyPeople_Place_and_Year": "Created by Linus Torvalds (Finland) in 2005 for Linux development; open source",
+        "Simple_Utility": "Version control system to track code changes and collaborate safely.",
+        "Real_Life_Example": "Managing a team project’s codebase with branching and pull requests.",
+        "Intro_Video_or_Tutorial_Link": "https://www.youtube.com/watch?v=8JJ101D3knE",
+        "Key_Skills_Thought_Process": "Branching, merging, commit hygiene; think collaboration workflows and history clarity.",
+        "Real_World_Implementation": "Any software project collaboration, CI/CD integration, artifact versioning."
+    },
+    {
+        "Technology": "Google Earth Studio",
+        "Origin_Company_KeyPeople_Place_and_Year": "Google (USA); Earth Studio launched publicly 2018",
+        "Simple_Utility": "Web-based animation tool for creating Google Earth imagery animations.",
+        "Real_Life_Example": "Flyover animations in documentaries and brand explainers.",
+        "Intro_Video_or_Tutorial_Link": "https://www.youtube.com/watch?v=7F7Up5kqY5U",
+        "Key_Skills_Thought_Process": "Camera paths, timing, export pipeline; think geographic storytelling and smooth transitions.",
+        "Real_World_Implementation": "Location-based storytelling, product explainers, event recaps with geographic context."
+    },
+    {
+        "Technology": "Google Maps APIs",
+        "Origin_Company_KeyPeople_Place_and_Year": "Google (USA); Google Maps launched 2005; APIs evolved mid-2000s onward",
+        "Simple_Utility": "APIs for embedding maps, geocoding, routing, and location data into apps.",
+        "Real_Life_Example": "Interactive map-based storytelling experience with custom markers.",
+        "Intro_Video_or_Tutorial_Link": "https://www.youtube.com/watch?v=Zxf1mnP5zcw",
+        "Key_Skills_Thought_Process": "API integration, geospatial thinking; think user context and map UX clarity.",
+        "Real_World_Implementation": "Location products, interactive experiences, data visualization overlays on maps."
+    },
+    {
+        "Technology": "Google Street View",
+        "Origin_Company_KeyPeople_Place_and_Year": "Google (USA); launched 2007",
+        "Simple_Utility": "Panoramic street-level imagery platform used for navigation and exploration.",
+        "Real_Life_Example": "Interactive cultural tours using Street View imagery.",
+        "Intro_Video_or_Tutorial_Link": "https://www.youtube.com/watch?v=2qKZQ7C2oF4",
+        "Key_Skills_Thought_Process": "Spatial storytelling, embedding; think scene navigation and guiding attention.",
+        "Real_World_Implementation": "Virtual tours, education experiences, cultural archives, location-based narratives."
+    },
+    {
+        "Technology": "GraphQL",
+        "Origin_Company_KeyPeople_Place_and_Year": "Developed internally at Facebook (USA) in 2012; released open source 2015",
+        "Simple_Utility": "API query language allowing clients to request exactly the data they need.",
+        "Real_Life_Example": "Frontend requesting a single structured payload for a complex UI card.",
+        "Intro_Video_or_Tutorial_Link": "https://www.youtube.com/watch?v=Y0lDGjwRYKw",
+        "Key_Skills_Thought_Process": "Schema design, resolvers; think client-driven data needs and performance.",
+        "Real_World_Implementation": "Efficient APIs for apps, content systems, and complex data-driven UIs."
+    },
+    {
+        "Technology": "HTML5",
+        "Origin_Company_KeyPeople_Place_and_Year": "Standardized by W3C/WHATWG; HTML5 milestone spec 2014; developed by global web standards community",
+        "Simple_Utility": "Core markup language for structuring modern web content and media.",
+        "Real_Life_Example": "Interactive microsites with video, canvas, and semantic layout.",
+        "Intro_Video_or_Tutorial_Link": "https://www.youtube.com/watch?v=qz0aGYrrlhU",
+        "Key_Skills_Thought_Process": "Semantic markup, accessibility; think structure-first and progressive enhancement.",
+        "Real_World_Implementation": "Websites, interactive experiences, content-driven applications."
+    }
+]

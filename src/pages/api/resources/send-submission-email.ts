@@ -32,7 +32,8 @@ const buildSubmissionEmail = ({
     description,
     status,
     dashboardUrl,
-    hubUrl
+    hubUrl,
+    moodboardUrl
 }: {
     submitterName: string;
     title: string;
@@ -41,12 +42,14 @@ const buildSubmissionEmail = ({
     status: 'approved' | 'pending' | 'rejected' | 'deleted' | string;
     dashboardUrl: string;
     hubUrl: string;
+    moodboardUrl: string;
 }) => {
     const safeName = escapeHtml(submitterName);
     const safeTitle = escapeHtml(title);
     const safeDescription = escapeHtml(description || 'No description provided.');
     const safeDashboardUrl = escapeHtml(dashboardUrl);
     const safeHubUrl = escapeHtml(hubUrl);
+    const safeMoodboardUrl = escapeHtml(moodboardUrl);
     const safeResourceUrl = resourceUrl ? escapeHtml(resourceUrl) : '';
     const now = new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
 
@@ -70,7 +73,7 @@ Submission details:
 - Why it is useful: ${description || 'No description provided'}
 - Submitted: ${now}
 
-This is a personal note from Abodid. If you would like to add more context, you can reply to this email.
+You might also like to explore my mood board to get a better sense of my taste: ${moodboardUrl}
 
 Dashboard: ${dashboardUrl}
 Resource Hub: ${hubUrl}
@@ -84,8 +87,8 @@ Abodid`;
             <!doctype html>
             <html>
                 <body style="margin:0;padding:0;background:#f6f7f9;color:#1f2937;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-                    <div style="max-width:620px;margin:24px auto;padding:0 16px;">
-                        <div style="background:#ffffff;border:1px solid #e5e7eb;border-radius:14px;padding:28px;">
+                    <div style="max-width:620px;margin:36px auto;padding:0 16px;">
+                        <div style="background:#ffffff;border:1px solid #e5e7eb;border-radius:14px;padding:38px 28px 36px;">
                             <p style="margin:0 0 14px 0;">Hi ${safeName},</p>
                             <p style="margin:0 0 14px 0;">Thank you for submitting <strong>"${safeTitle}"</strong> to the Resource Hub.</p>
                             <p style="margin:0 0 14px 0;">${escapeHtml(statusLine)}</p>
@@ -96,7 +99,7 @@ Abodid`;
                                 <p style="margin:0 0 6px 0;"><strong>Why it is useful:</strong> ${safeDescription}</p>
                                 <p style="margin:0;"><strong>Submitted:</strong> ${escapeHtml(now)}</p>
                             </div>
-                            <p style="margin:0 0 14px 0;">This is a personal note from Abodid. If you want to add context or updates, just reply to this email.</p>
+                            <p style="margin:0 0 14px 0;">You might also like to explore my <a href="${safeMoodboardUrl}" style="color:#111827;text-decoration:underline;font-weight:600;">mood board</a> to get a better sense of my taste.</p>
                             <p style="margin:0 0 18px 0;">
                                 <a href="${safeDashboardUrl}" style="display:inline-block;background:#111827;color:#ffffff;text-decoration:none;padding:10px 16px;border-radius:8px;font-weight:600;">Open Dashboard</a>
                             </p>
@@ -195,6 +198,7 @@ export const POST: APIRoute = async ({ request }) => {
             const baseUrl = new URL(request.url).origin;
             const dashboardUrl = `${baseUrl}/resources/dashboard`;
             const hubUrl = `${baseUrl}/resources`;
+            const moodboardUrl = `${baseUrl}/moodboard`;
             const emailContent = buildSubmissionEmail({
                 submitterName,
                 title: safeTitle,
@@ -202,7 +206,8 @@ export const POST: APIRoute = async ({ request }) => {
                 description: safeDescription,
                 status: safeStatus,
                 dashboardUrl,
-                hubUrl
+                hubUrl,
+                moodboardUrl
             });
 
             try {

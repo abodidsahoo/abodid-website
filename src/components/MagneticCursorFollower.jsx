@@ -51,8 +51,10 @@ const MagneticCursorFollower = () => {
   const layerRef = useRef(null);
   const dotRef = useRef(null);
   const ringRef = useRef(null);
+  const [mounted, setMounted] = React.useState(false);
 
   useEffect(() => {
+    setMounted(true);
     if (typeof window === "undefined") return undefined;
     if (window.matchMedia("(pointer: coarse)").matches) return undefined;
 
@@ -157,7 +159,7 @@ const MagneticCursorFollower = () => {
     };
   }, []);
 
-  if (typeof document === "undefined") return null;
+  if (!mounted || typeof document === "undefined") return null;
 
   return createPortal(
     <div ref={layerRef} aria-hidden="true" style={layerStyle}>

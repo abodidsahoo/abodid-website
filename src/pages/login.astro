@@ -28,11 +28,18 @@ const title = "Login | Resource Hub";
                         placeholder="Jane Doe"
                         maxlength="80"
                     />
-                    <p class="field-hint">Use letters, spaces, apostrophes, or hyphens.</p>
-                    <p id="name-error" class="field-error" style="display: none;"></p>
+                    <p class="field-hint">
+                        Use letters, spaces, apostrophes, or hyphens.
+                    </p>
+                    <p
+                        id="name-error"
+                        class="field-error"
+                        style="display: none;"
+                    >
+                    </p>
                 </div>
 
-                <div class="hub-form-group">
+                <div class="hub-form-group" id="email-group">
                     <label class="hub-label">Email Address</label>
                     <input
                         type="email"
@@ -41,12 +48,20 @@ const title = "Login | Resource Hub";
                         required
                         placeholder="you@example.com"
                     />
-                    <p class="field-hint">Email can include numbers and symbols.</p>
-                    <p id="email-error" class="field-error" style="display: none;"></p>
+                    <p class="field-hint">
+                        Email can include numbers and symbols.
+                    </p>
+                    <p
+                        id="email-error"
+                        class="field-error"
+                        style="display: none;"
+                    >
+                    </p>
                 </div>
 
-                <div class="hub-form-group">
-                    <label class="hub-label">Password</label>
+                <div class="hub-form-group" id="password-group">
+                    <label class="hub-label" id="password-label">Password</label
+                    >
                     <div class="password-field">
                         <input
                             type="password"
@@ -73,7 +88,9 @@ const title = "Login | Resource Hub";
                                 stroke-linecap="round"
                                 stroke-linejoin="round"
                             >
-                                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"></path>
+                                <path
+                                    d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"
+                                ></path>
                                 <circle cx="12" cy="12" r="3"></circle>
                             </svg>
                             <svg
@@ -88,13 +105,57 @@ const title = "Login | Resource Hub";
                             >
                                 <path d="M3 3l18 18"></path>
                                 <path d="M10.6 10.6a2 2 0 1 0 2.8 2.8"></path>
-                                <path d="M9.4 5.2A10.6 10.6 0 0 1 12 5c6.5 0 10 7 10 7a16.5 16.5 0 0 1-3.2 4.3"></path>
-                                <path d="M6.7 6.7C4.3 8.2 2.8 10.7 2 12c0 0 3.5 7 10 7 1.7 0 3.2-.5 4.5-1.2"></path>
+                                <path
+                                    d="M9.4 5.2A10.6 10.6 0 0 1 12 5c6.5 0 10 7 10 7a16.5 16.5 0 0 1-3.2 4.3"
+                                ></path>
+                                <path
+                                    d="M6.7 6.7C4.3 8.2 2.8 10.7 2 12c0 0 3.5 7 10 7 1.7 0 3.2-.5 4.5-1.2"
+                                ></path>
                             </svg>
                         </button>
                     </div>
-                    <p id="password-hint" class="field-hint">Minimum 6 characters.</p>
-                    <p id="password-error" class="field-error" style="display: none;"></p>
+                    <p id="password-hint" class="field-hint">
+                        Minimum 6 characters.
+                    </p>
+                    <p
+                        id="password-error"
+                        class="field-error"
+                        style="display: none;"
+                    >
+                    </p>
+                </div>
+
+                <div
+                    class="hub-form-group"
+                    id="confirm-password-group"
+                    style="display: none;"
+                >
+                    <label class="hub-label">Confirm New Password</label>
+                    <input
+                        type="password"
+                        id="confirm-password"
+                        class="hub-input"
+                        placeholder="••••••••"
+                        minlength="6"
+                        autocomplete="new-password"
+                    />
+                    <p class="field-hint">Re-enter your new password.</p>
+                    <p
+                        id="confirm-password-error"
+                        class="field-error"
+                        style="display: none;"
+                    >
+                    </p>
+                </div>
+
+                <div class="form-actions-row" id="forgot-action-row">
+                    <button
+                        type="button"
+                        id="forgot-password-btn"
+                        class="inline-action-btn"
+                    >
+                        Forgot password?
+                    </button>
                 </div>
 
                 <button type="submit" class="hub-btn" id="submit-btn">
@@ -104,7 +165,7 @@ const title = "Login | Resource Hub";
 
             <div id="message" class="auth-message" style="display: none;"></div>
 
-            <div class="toggle-mode-wrapper">
+            <div class="toggle-mode-wrapper" id="toggle-mode-wrapper">
                 <p class="toggle-text">
                     <span id="switch-text">Don't have an account?</span>
                     <button id="mode-toggle" class="toggle-btn">Sign Up</button>
@@ -274,6 +335,28 @@ const title = "Login | Resource Hub";
         opacity: 0.9;
     }
 
+    .form-actions-row {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: -8px;
+        margin-bottom: 8px;
+    }
+
+    .inline-action-btn {
+        background: none;
+        border: none;
+        color: var(--text-primary);
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: underline;
+        padding: 0;
+    }
+
+    .inline-action-btn:hover {
+        opacity: 0.8;
+    }
+
     .auth-message {
         margin-top: 24px;
         padding: 16px;
@@ -317,8 +400,10 @@ const title = "Login | Resource Hub";
 <script>
     import { supabase } from "../lib/supabaseClient";
 
+    type AuthMode = "login" | "signup" | "forgot" | "reset";
+
     // --- STATE ---
-    let isSignup = false;
+    let authMode: AuthMode = "login";
     let isLinking = false;
 
     // --- ELEMENTS ---
@@ -329,7 +414,16 @@ const title = "Login | Resource Hub";
     ) as HTMLButtonElement;
 
     const toggleBtn = document.getElementById("mode-toggle");
+    const toggleWrapper = document.getElementById("toggle-mode-wrapper");
     const nameGroup = document.getElementById("name-group");
+    const emailGroup = document.getElementById("email-group");
+    const passwordGroup = document.getElementById("password-group");
+    const passwordLabel = document.getElementById("password-label");
+    const confirmPasswordGroup = document.getElementById(
+        "confirm-password-group",
+    );
+    const forgotActionRow = document.getElementById("forgot-action-row");
+    const forgotPasswordBtn = document.getElementById("forgot-password-btn");
     const pageTitle = document.getElementById("page-title");
     const pageSubtitle = document.getElementById("page-subtitle");
     const switchText = document.getElementById("switch-text");
@@ -337,10 +431,18 @@ const title = "Login | Resource Hub";
         "fullname",
     ) as HTMLInputElement;
     const emailInput = document.getElementById("email") as HTMLInputElement;
-    const passwordInput = document.getElementById("password") as HTMLInputElement;
+    const passwordInput = document.getElementById(
+        "password",
+    ) as HTMLInputElement;
+    const confirmPasswordInput = document.getElementById(
+        "confirm-password",
+    ) as HTMLInputElement;
     const nameErrorEl = document.getElementById("name-error");
     const emailErrorEl = document.getElementById("email-error");
     const passwordErrorEl = document.getElementById("password-error");
+    const confirmPasswordErrorEl = document.getElementById(
+        "confirm-password-error",
+    );
     const passwordHintEl = document.getElementById("password-hint");
     const passwordToggleBtn = document.getElementById(
         "password-toggle",
@@ -387,10 +489,20 @@ const title = "Login | Resource Hub";
         }
     };
 
+    const setVisibility = (
+        element: HTMLElement | null,
+        visible: boolean,
+        visibleDisplay: string = "block",
+    ) => {
+        if (!element) return;
+        element.style.display = visible ? visibleDisplay : "none";
+    };
+
     const clearAllFieldErrors = () => {
         clearFieldError(fullNameInput, nameErrorEl);
         clearFieldError(emailInput, emailErrorEl);
         clearFieldError(passwordInput, passwordErrorEl);
+        clearFieldError(confirmPasswordInput, confirmPasswordErrorEl);
     };
 
     const updatePasswordHint = (passwordLength: number) => {
@@ -423,41 +535,162 @@ const title = "Login | Resource Hub";
             "aria-pressed",
             isPasswordVisible ? "true" : "false",
         );
-        if (eyeOpenEl) eyeOpenEl.style.display = isPasswordVisible ? "none" : "block";
+        if (eyeOpenEl)
+            eyeOpenEl.style.display = isPasswordVisible ? "none" : "block";
         if (eyeClosedEl)
             eyeClosedEl.style.display = isPasswordVisible ? "block" : "none";
     };
 
-    const validateForm = (email: string, password: string, fullName: string) => {
+    const getSubmitText = (mode: AuthMode, isLoading: boolean = false) => {
+        if (mode === "signup")
+            return isLoading ? "Creating..." : "Create Account";
+        if (mode === "forgot")
+            return isLoading ? "Sending..." : "Send Reset Link";
+        if (mode === "reset")
+            return isLoading ? "Saving..." : "Save New Password";
+        return isLoading ? "Logging in..." : "Log In";
+    };
+
+    const setMode = (
+        mode: AuthMode,
+        options?: { preserveMessage?: boolean },
+    ) => {
+        authMode = mode;
+
+        const showName = mode === "signup";
+        const showEmail = mode !== "reset";
+        const showPassword = mode !== "forgot";
+        const showConfirmPassword = mode === "reset";
+        const showForgotAction = mode === "login";
+        const showToggle = mode !== "reset";
+
+        setVisibility(nameGroup, showName);
+        setVisibility(emailGroup, showEmail);
+        setVisibility(passwordGroup, showPassword);
+        setVisibility(confirmPasswordGroup, showConfirmPassword);
+        setVisibility(forgotActionRow, showForgotAction, "flex");
+        setVisibility(toggleWrapper, showToggle);
+
+        if (fullNameInput) {
+            if (showName) fullNameInput.setAttribute("required", "true");
+            else fullNameInput.removeAttribute("required");
+        }
+
+        if (emailInput) {
+            if (showEmail) emailInput.setAttribute("required", "true");
+            else emailInput.removeAttribute("required");
+        }
+
+        if (passwordInput) {
+            if (showPassword) passwordInput.setAttribute("required", "true");
+            else passwordInput.removeAttribute("required");
+
+            passwordInput.setAttribute(
+                "autocomplete",
+                mode === "login" ? "current-password" : "new-password",
+            );
+        }
+
+        if (confirmPasswordInput) {
+            if (showConfirmPassword) {
+                confirmPasswordInput.setAttribute("required", "true");
+                confirmPasswordInput.value = "";
+            } else {
+                confirmPasswordInput.removeAttribute("required");
+            }
+        }
+
+        if (mode === "signup") {
+            if (!isLinking) {
+                if (pageTitle) pageTitle.innerText = "Join the Ecosystem";
+                if (pageSubtitle) {
+                    pageSubtitle.innerText =
+                        "Create an account to save and share resources.";
+                }
+            }
+            if (switchText) switchText.innerText = "Already have an account?";
+            if (toggleBtn) toggleBtn.innerText = "Log In";
+            if (passwordLabel) passwordLabel.innerText = "Password";
+        } else if (mode === "forgot") {
+            if (pageTitle) pageTitle.innerText = "Reset Your Password";
+            if (pageSubtitle) {
+                pageSubtitle.innerText =
+                    "Enter your email and we will send a secure reset link.";
+            }
+            if (switchText) switchText.innerText = "Remembered your password?";
+            if (toggleBtn) toggleBtn.innerText = "Log In";
+            if (passwordLabel) passwordLabel.innerText = "Password";
+        } else if (mode === "reset") {
+            if (pageTitle) pageTitle.innerText = "Set New Password";
+            if (pageSubtitle) {
+                pageSubtitle.innerText =
+                    "Choose a strong new password for your account.";
+            }
+            if (passwordLabel) passwordLabel.innerText = "New Password";
+        } else {
+            if (pageTitle) pageTitle.innerText = "Curator Login";
+            if (pageSubtitle) {
+                pageSubtitle.innerText =
+                    "Log in to continue your curation journey.";
+            }
+            if (switchText) switchText.innerText = "Don't have an account?";
+            if (toggleBtn) toggleBtn.innerText = "Sign Up";
+            if (passwordLabel) passwordLabel.innerText = "Password";
+        }
+
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerText = getSubmitText(mode);
+        }
+
+        clearAllFieldErrors();
+        if (!options?.preserveMessage) clearMsg();
+        updatePasswordHint(passwordInput?.value.length || 0);
+    };
+
+    const validateForm = (
+        email: string,
+        password: string,
+        fullName: string,
+        confirmPassword: string,
+    ) => {
         clearAllFieldErrors();
         let isValid = true;
 
-        if (!email) {
-            setFieldError(emailInput, emailErrorEl, "Email is required.");
-            isValid = false;
-        } else if (!emailInput?.checkValidity()) {
-            setFieldError(
-                emailInput,
-                emailErrorEl,
-                "Enter a valid email address (numbers are allowed).",
-            );
-            isValid = false;
+        if (authMode !== "reset") {
+            if (!email) {
+                setFieldError(emailInput, emailErrorEl, "Email is required.");
+                isValid = false;
+            } else if (!emailInput?.checkValidity()) {
+                setFieldError(
+                    emailInput,
+                    emailErrorEl,
+                    "Enter a valid email address (numbers are allowed).",
+                );
+                isValid = false;
+            }
         }
 
-        if (password.length < 6) {
-            setFieldError(
-                passwordInput,
-                passwordErrorEl,
-                "Password must be at least 6 characters.",
-            );
-            isValid = false;
+        if (authMode !== "forgot") {
+            if (password.length < 6) {
+                setFieldError(
+                    passwordInput,
+                    passwordErrorEl,
+                    "Password must be at least 6 characters.",
+                );
+                isValid = false;
+            }
         }
 
-        if (isSignup) {
+        if (authMode === "signup") {
             const fullNamePattern = /^[A-Za-z][A-Za-z\s'-]*$/;
 
             if (!fullName) {
-                setFieldError(fullNameInput, nameErrorEl, "Full name is required.");
+                setFieldError(
+                    fullNameInput,
+                    nameErrorEl,
+                    "Full name is required.",
+                );
                 isValid = false;
             } else if (fullName.length < 2) {
                 setFieldError(
@@ -476,15 +709,29 @@ const title = "Login | Resource Hub";
             }
         }
 
+        if (authMode === "reset" && password !== confirmPassword) {
+            setFieldError(
+                confirmPasswordInput,
+                confirmPasswordErrorEl,
+                "Passwords do not match.",
+            );
+            isValid = false;
+        }
+
         updatePasswordHint(password.length);
         return isValid;
     };
 
-    const getFriendlyAuthError = (error: any, signupMode: boolean) => {
-        const message = error?.message || "Authentication failed. Please try again.";
+    const getFriendlyAuthError = (error: any, mode: AuthMode) => {
+        const message =
+            error?.message || "Authentication failed. Please try again.";
+
+        if (message.includes("Auth session missing")) {
+            return "This reset link is expired or invalid. Request a new one.";
+        }
 
         if (message.includes("Invalid login credentials")) {
-            return signupMode
+            return mode === "signup"
                 ? "This email is already in use or the password is invalid."
                 : "Invalid email or password.";
         }
@@ -499,6 +746,10 @@ const title = "Login | Resource Hub";
 
         if (message.includes("Database error saving new user")) {
             return "Signup failed while creating your profile. Please try again.";
+        }
+
+        if (message.includes("security purposes")) {
+            return "Please wait before requesting another reset email.";
         }
 
         return message;
@@ -550,39 +801,18 @@ const title = "Login | Resource Hub";
         return `${base.slice(0, 18)}${Date.now().toString().slice(-6)}`;
     };
 
-    const toggleMode = (forceSignup?: boolean) => {
-        if (forceSignup !== undefined) {
-            isSignup = forceSignup;
-        } else {
-            isSignup = !isSignup;
+    const toggleMode = (forceMode?: AuthMode) => {
+        if (forceMode) {
+            setMode(forceMode);
+            return;
         }
 
-        if (isSignup) {
-            nameGroup!.style.display = "block";
-            if (!isLinking) {
-                pageTitle!.innerText = "Join the Ecosystem";
-                pageSubtitle!.innerText =
-                    "Create an account to save and share resources.";
-            }
-            submitBtn!.innerText = "Create Account";
-            switchText!.innerText = "Already have an account?";
-            toggleBtn!.innerText = "Log In";
-            fullNameInput?.setAttribute("required", "true");
-            passwordInput?.setAttribute("autocomplete", "new-password");
-        } else {
-            nameGroup!.style.display = "none";
-            pageTitle!.innerText = "Curator Login";
-            pageSubtitle!.innerText =
-                "Log in to continue your curation journey.";
-            submitBtn!.innerText = "Log In";
-            switchText!.innerText = "Don't have an account?";
-            toggleBtn!.innerText = "Sign Up";
-            fullNameInput?.removeAttribute("required");
-            passwordInput?.setAttribute("autocomplete", "current-password");
+        if (authMode === "signup") {
+            setMode("login");
+            return;
         }
 
-        clearAllFieldErrors();
-        clearMsg();
+        setMode("signup");
     };
 
     form?.addEventListener("submit", async (e) => {
@@ -598,22 +828,56 @@ const title = "Login | Resource Hub";
         const email = emailInput?.value.trim() || "";
         const password = passwordInput?.value || "";
         const fullName = fullNameInput?.value.trim() || "";
+        const confirmPassword = confirmPasswordInput?.value || "";
 
-        if (!validateForm(email, password, fullName)) {
+        if (!validateForm(email, password, fullName, confirmPassword)) {
             return;
         }
 
         submitBtn.disabled = true;
-        submitBtn.innerText = isSignup ? "Creating..." : "Logging in...";
+        submitBtn.innerText = getSubmitText(authMode, true);
 
         let result;
 
         try {
-            const safeUsername = isSignup
-                ? await ensureUniqueUsername(email)
-                : undefined;
+            const safeUsername =
+                authMode === "signup"
+                    ? await ensureUniqueUsername(email)
+                    : undefined;
 
-            if (isSignup) {
+            if (authMode === "forgot") {
+                const { error } = await supabase.auth.resetPasswordForEmail(
+                    email,
+                    {
+                        redirectTo: `${window.location.origin}/login?mode=reset`,
+                    },
+                );
+                if (error) throw error;
+
+                showMsg(
+                    "Reset email sent. Open your inbox and follow the secure link.",
+                    "success",
+                );
+                submitBtn.disabled = false;
+                submitBtn.innerText = getSubmitText("forgot");
+                return;
+            }
+
+            if (authMode === "reset") {
+                const { error } = await supabase.auth.updateUser({ password });
+                if (error) throw error;
+
+                showMsg("Password updated. Redirecting to login...", "success");
+                submitBtn.innerText = "Saved";
+
+                setTimeout(async () => {
+                    await supabase.auth.signOut();
+                    window.location.assign("/login");
+                }, 1000);
+                return;
+            }
+
+            if (authMode === "signup") {
                 if (isLinking) {
                     // Upgrade Anonymous -> Real
                     result = await supabase.auth.updateUser({
@@ -647,7 +911,7 @@ const title = "Login | Resource Hub";
 
             const hasSession = (data as any).session || isLinking;
 
-            if (isSignup && !hasSession && !isLinking) {
+            if (authMode === "signup" && !hasSession && !isLinking) {
                 showMsg(
                     "Account created! Please check your email to confirm.",
                     "success",
@@ -706,18 +970,30 @@ const title = "Login | Resource Hub";
                 );
             } else if (
                 rawMessage.includes("User already registered") ||
-                (isSignup && rawMessage.includes("Invalid login credentials"))
+                (authMode === "signup" &&
+                    rawMessage.includes("Invalid login credentials"))
             ) {
                 setFieldError(
                     emailInput,
                     emailErrorEl,
                     "This email is already registered. Please log in instead.",
                 );
+            } else if (
+                authMode === "login" &&
+                rawMessage.includes("Invalid login credentials")
+            ) {
+                setFieldError(
+                    passwordInput,
+                    passwordErrorEl,
+                    "Wrong email or password. Please re-enter the password.",
+                );
+                // Also clear the password so they actually have to re-enter it
+                passwordInput.value = "";
             }
 
-            showMsg(getFriendlyAuthError(error, isSignup), "error");
+            showMsg(getFriendlyAuthError(error, authMode), "error");
             submitBtn.disabled = false;
-            submitBtn.innerText = isSignup ? "Create Account" : "Log In";
+            submitBtn.innerText = getSubmitText(authMode);
         }
     });
 
@@ -742,21 +1018,49 @@ const title = "Login | Resource Hub";
         clearMsg();
     });
 
+    confirmPasswordInput?.addEventListener("input", () => {
+        clearFieldError(confirmPasswordInput, confirmPasswordErrorEl);
+        clearMsg();
+    });
+
     toggleBtn?.addEventListener("click", (e) => {
         e.preventDefault();
-        toggleMode();
+        if (authMode === "forgot") {
+            setMode("login");
+            return;
+        }
+
+        toggleMode(authMode === "signup" ? "login" : "signup");
+    });
+
+    forgotPasswordBtn?.addEventListener("click", (e) => {
+        e.preventDefault();
+        setMode("forgot");
     });
 
     // --- INIT ---
     const initPage = async () => {
         if (!supabase) return;
 
+        setMode("login");
         syncPasswordVisibility();
         updatePasswordHint(passwordInput?.value.length || 0);
+
+        supabase.auth.onAuthStateChange((event) => {
+            if (event === "PASSWORD_RECOVERY") {
+                setMode("reset", { preserveMessage: true });
+                showMsg(
+                    "Recovery verified. Enter your new password to continue.",
+                    "success",
+                );
+            }
+        });
 
         const params = new URLSearchParams(window.location.search);
         const mode = params.get("mode");
         const link = params.get("link");
+        const hashParams = new URLSearchParams(window.location.hash.slice(1));
+        const hashType = hashParams.get("type");
 
         const {
             data: { session },
@@ -771,8 +1075,12 @@ const title = "Login | Resource Hub";
             if (pageSubtitle)
                 pageSubtitle.innerText =
                     "Create an account to save your bookmarks & upvotes forever.";
+        } else if (mode === "reset" || hashType === "recovery") {
+            setMode("reset");
+        } else if (mode === "forgot") {
+            setMode("forgot");
         } else if (mode === "signup") {
-            toggleMode(true);
+            setMode("signup");
         }
     };
 

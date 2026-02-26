@@ -289,7 +289,7 @@ const IntroSequence = ({ onPhysicsStart, onSequenceEnd }) => {
                         className="intro-content"
                     >
                         <div className="line-welcome">
-                            <Typewriter text="Hi, I'm about it." speed={0.03} />
+                            <Typewriter text="Hi, I'm Abodid." speed={0.03} />
                         </div>
                         <div className="line-headline">
                             <Typewriter text="Welcome to my digital garden." speed={0.04} delay={0.35} />
