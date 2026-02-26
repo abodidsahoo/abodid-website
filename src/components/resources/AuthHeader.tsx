@@ -206,7 +206,7 @@ export default function AuthHeader({ theme = 'default' }: Props) {
             }}>
                 <a
                     href="/resources/dashboard"
-                    className="auth-dashboard-btn-box"
+                    className={`auth-dashboard-btn-box ${theme === 'scifi' ? 'theme-scifi' : 'theme-default'}`}
                     style={{
                         background: theme === 'scifi' ? '#334155' : 'var(--btn-primary-bg)',
                         color: theme === 'scifi' ? '#ffffff' : 'var(--btn-primary-text)',
@@ -240,9 +240,13 @@ export default function AuthHeader({ theme = 'default' }: Props) {
 
             <style>{`
                 .auth-dashboard-btn-box:hover {
-                    transform: translateY(-2px);
-                    filter: brightness(0.92);
+                    transform: translateY(-1px);
                     box-shadow: 0 6px 15px rgba(0,0,0,0.2) !important;
+                }
+                .auth-dashboard-btn-box.theme-default:hover {
+                    background: color-mix(in srgb, var(--btn-primary-bg) 88%, black) !important;
+                    border-color: color-mix(in srgb, var(--btn-primary-bg) 88%, black) !important;
+                    color: var(--btn-primary-text) !important;
                 }
                 .auth-dashboard-btn-box:active {
                     transform: translateY(0);

@@ -34,11 +34,45 @@
 <script>
     const form = document.getElementById("newsletter-form");
     const messageEl = document.getElementById("newsletter-message");
+    const defaultSource = "footer-newsletter";
+    const trackGaEvent = (eventName, params = {}) => {
+        try {
+            if (typeof window.gtag === "function") {
+                window.gtag("event", eventName, params);
+            }
+        } catch (_error) {
+            // no-op
+        }
+    };
+
+    const getJourneyTracking = () => {
+        try {
+            if (
+                window.__abodidJourney &&
+                typeof window.__abodidJourney.getSnapshot === "function"
+            ) {
+                return window.__abodidJourney.getSnapshot();
+            }
+        } catch (_error) {
+            // no-op
+        }
+
+        return {
+            currentPath: window.location.pathname,
+            initialReferrer: document.referrer || "",
+        };
+    };
 
     if (form) {
         form.addEventListener("submit", async (e) => {
             e.preventDefault();
             const formData = new FormData(form as HTMLFormElement);
+            formData.append("source", defaultSource);
+
+            const tracking = getJourneyTracking();
+            if (tracking) {
+                formData.append("tracking", JSON.stringify(tracking));
+            }
 
             // Visual feedback
             const btn = form.querySelector("button");
@@ -63,6 +97,14 @@
 
                 if (response.ok) {
                     (form as HTMLFormElement).reset();
+                    trackGaEvent("sign_up", {
+                        method: "newsletter",
+                        source_page:
+                            tracking?.lastSourcePage ||
+                            tracking?.currentPath ||
+                            window.location.pathname,
+                        destination_page: window.location.pathname,
+                    });
                 }
             } catch (error) {
                 if (messageEl) {
@@ -87,7 +129,7 @@
 
 <style>
     .newsletter-form-wrapper {
-        margin-top: 1rem;
+        margin-top: 0.5rem;
         width: 100%;
         max-width: 350px;
     }
@@ -162,11 +204,17 @@
     }
 
     .message {
-        font-size: 0.75rem;
-        margin-top: 0.5rem;
-        min-height: 1.2em; /* Prevent layout jump */
+        font-size: 0.78rem;
+        margin-top: 0.35rem;
+        min-height: 1.1em; /* Keep slight reserved space when message exists */
         transition: all 0.3s ease;
         font-family: var(--font-mono);
+    }
+
+    .message:empty {
+        display: none;
+        margin-top: 0;
+        min-height: 0;
     }
 
     .message.success {

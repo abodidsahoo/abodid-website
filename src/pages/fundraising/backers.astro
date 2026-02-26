@@ -1049,6 +1049,33 @@ const supportPaths = [
         const thankYou = form.querySelector("[data-backer-thank-you]");
         const thankYouMain = form.querySelector("[data-backer-thank-you-main]");
         const apiMessage = form.querySelector("[data-backer-api-message]");
+        const trackGaEvent = (eventName, params = {}) => {
+            try {
+                if (typeof window.gtag === "function") {
+                    window.gtag("event", eventName, params);
+                }
+            } catch (_error) {
+                // no-op
+            }
+        };
+
+        const getJourneyTracking = () => {
+            try {
+                if (
+                    window.__abodidJourney &&
+                    typeof window.__abodidJourney.getSnapshot === "function"
+                ) {
+                    return window.__abodidJourney.getSnapshot();
+                }
+            } catch (_error) {
+                // no-op
+            }
+
+            return {
+                currentPath: window.location.pathname,
+                initialReferrer: document.referrer || "",
+            };
+        };
 
         const setFeedback = (message) => {
             if (!(feedbackNode instanceof HTMLElement)) return;
@@ -1077,6 +1104,11 @@ const supportPaths = [
                 const payload = new FormData();
                 payload.append("email", email);
                 payload.append("source", "backers");
+
+                const tracking = getJourneyTracking();
+                if (tracking) {
+                    payload.append("tracking", JSON.stringify(tracking));
+                }
 
                 const response = await fetch("/api/subscribe", {
                     method: "POST",
@@ -1115,6 +1147,16 @@ const supportPaths = [
                             "I will keep you updated about my journey, work, and research in general.";
                     }
                 }
+
+                trackGaEvent("sign_up", {
+                    method: "newsletter",
+                    source_page:
+                        tracking?.lastSourcePage ||
+                        tracking?.currentPath ||
+                        window.location.pathname,
+                    destination_page: window.location.pathname,
+                    form_variant: "backers",
+                });
             } catch (error) {
                 const message =
                     error instanceof Error

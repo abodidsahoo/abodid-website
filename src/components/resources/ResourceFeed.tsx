@@ -1,23 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import type { HubResource, ResourceAudience } from '../../lib/resources/types';
-import { toggleBookmark, toggleUpvote, getMyBookmarks, getMyUpvotes, getApprovedResources } from '../../lib/resources/db';
-import { supabase } from '../../lib/supabaseClient'; // Need to check auth state
-import { ensureSession, isAnonymousSession, getUserBookmarkCount } from '../../lib/anonymousAuth';
-import SyncDataPopup from './SyncDataPopup';
+import type { HubResource } from '../../lib/resources/types';
+import { getApprovedResources } from '../../lib/resources/db';
 
 // --- Re-implementing Resource Card (React) ---
 const ReactResourceCard = ({
-    resource,
-    isBookmarked,
-    isUpvoted,
-    onToggleBookmark,
-    onToggleUpvote
+    resource
 }: {
     resource: HubResource;
-    isBookmarked: boolean;
-    isUpvoted: boolean;
-    onToggleBookmark: () => void;
-    onToggleUpvote: () => void;
 }) => {
     const getAudienceColor = (audience: string | null) => {
         switch (audience) {
@@ -32,27 +21,30 @@ const ReactResourceCard = ({
     };
     const accentColor = getAudienceColor(resource.audience);
 
+    const handleMouseMove = (e: React.MouseEvent<HTMLElement>) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        e.currentTarget.style.setProperty('--cursor-x', `${e.clientX - rect.left}px`);
+        e.currentTarget.style.setProperty('--cursor-y', `${e.clientY - rect.top}px`);
+    };
+
     return (
-        <div
+        <a
+            href={`/resources/${resource.id}`}
             className="resource-card-react"
             style={{ '--accent-color': accentColor } as any}
+            onMouseMove={handleMouseMove}
         >
             {/* Thumbnail - Clean, no overlay */}
-            <a href={`/resources/${resource.id}`} className="card-link-wrapper">
-                <div className="thumbnail-container">
-                    {resource.thumbnail_url ? (
-                        <img src={resource.thumbnail_url} alt={resource.title || 'Resource'} className="thumbnail" loading="lazy" />
-                    ) : (
-                        <div className="thumbnail-placeholder">🔗</div>
-                    )}
-                </div>
-            </a>
+            <div className="thumbnail-container">
+                {resource.thumbnail_url ? (
+                    <img src={resource.thumbnail_url} alt={resource.title || 'Resource'} className="thumbnail" loading="lazy" />
+                ) : (
+                    <div className="thumbnail-placeholder">🔗</div>
+                )}
+            </div>
 
             <div className="content">
-                {/* Title - Bold, clean, NO dot */}
-                <a href={`/resources/${resource.id}`} className="title-link">
-                    <h3 className="title">{resource.title}</h3>
-                </a>
+                <h3 className="title">{resource.title}</h3>
 
                 {resource.description && <p className="description">{resource.description}</p>}
 
@@ -63,31 +55,11 @@ const ReactResourceCard = ({
                         ))}
                     </div>
 
-                    {/* Social Actions Row - Clean design with emoji */}
-                    <div className="actions-row">
-                        <button
-                            className={`action-btn upvote-btn ${isUpvoted ? 'active' : ''}`}
-                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleUpvote(); }}
-                            title="Upvote this resource"
-                        >
-                            <span>👍</span> {resource.upvotes_count || 0}
-                        </button>
-
-                        <button
-                            className={`action-btn bookmark-btn ${isBookmarked ? 'active' : ''}`}
-                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleBookmark(); }}
-                            title="Bookmark"
-                        >
-                            <span>🔖</span> {isBookmarked ? 'Saved' : 'Save'}
-                        </button>
-
-                        <a href={`/resources/${resource.id}`} className="view-details-link">
-                            View Details
-                        </a>
-                    </div>
                 </div>
             </div>
-        </div>
+
+            <span className="hover-cue" aria-hidden="true">👆 Click to view details</span>
+        </a>
     );
 };
 
@@ -99,156 +71,9 @@ interface Props {
     showSearch?: boolean;
 }
 
-export default function ResourceFeed({ initialResources, availableTags, showSearch = true }: Props) {
+export default function ResourceFeed({ initialResources, showSearch = true }: Props) {
     // Store ALL resources for client-side filtering
     const [allResources, setAllResources] = useState<HubResource[]>(initialResources);
-
-    // User State
-    const [myBookmarks, setMyBookmarks] = useState<string[]>([]);
-    const [myUpvotes, setMyUpvotes] = useState<string[]>([]);
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-    // Sync Popup State
-    const [showSyncPopup, setShowSyncPopup] = useState(false);
-    const [bookmarkCount, setBookmarkCount] = useState(0);
-
-    const SYNC_POPUP_KEY = 'sync_popup_shown_at';
-
-    useEffect(() => {
-        // Check auth and fetch user state
-        const initUser = async () => {
-            if (!supabase) return;
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
-                setIsAuthenticated(true);
-                const [bookmarks, upvotes] = await Promise.all([getMyBookmarks(), getMyUpvotes()]);
-                setMyBookmarks(bookmarks);
-                setMyUpvotes(upvotes);
-                setBookmarkCount(bookmarks.length);
-            }
-        };
-        initUser();
-    }, []);
-
-    const shouldShowSyncPopup = (count: number): boolean => {
-        const milestones = [1, 3, 10, 25];
-        const lastShown = localStorage.getItem(SYNC_POPUP_KEY);
-
-        if (milestones.includes(count) && lastShown !== String(count)) {
-            localStorage.setItem(SYNC_POPUP_KEY, String(count));
-            return true;
-        }
-
-        return false;
-    };
-
-    const handleToggleBookmark = async (resourceId: string) => {
-        // Ensure we have a session (anonymous or real)
-        const session = await ensureSession();
-        if (!session) {
-            return alert('Unable to create session. Please try again.');
-        }
-
-        // Optimistic UI
-        const isBookmarked = myBookmarks.includes(resourceId);
-        setMyBookmarks(prev => isBookmarked ? prev.filter(id => id !== resourceId) : [...prev, resourceId]);
-
-        try {
-            await toggleBookmark(resourceId);
-
-            // Update count and check if we should show popup
-            if (!isBookmarked) {
-                const newCount = myBookmarks.length + 1;
-                setBookmarkCount(newCount);
-
-                // Show popup if anonymous and at milestone
-                const isAnon = await isAnonymousSession();
-                if (isAnon && shouldShowSyncPopup(newCount)) {
-                    setShowSyncPopup(true);
-                }
-            } else {
-                setBookmarkCount(prev => Math.max(0, prev - 1));
-            }
-        } catch (e) {
-            // Revert on error
-            setMyBookmarks(prev => isBookmarked ? [...prev, resourceId] : prev.filter(id => id !== resourceId));
-            console.error(e);
-        }
-    };
-
-    const handleToggleUpvote = async (resourceId: string) => {
-        // Ensure we have a session (anonymous or real)
-        const session = await ensureSession();
-        if (!session) {
-            return alert('Unable to create session. Please try again.');
-        }
-
-        const isUpvoted = myUpvotes.includes(resourceId);
-
-        // Optimistic UI
-        setMyUpvotes(prev => isUpvoted ? prev.filter(id => id !== resourceId) : [...prev, resourceId]);
-
-        // Update Resource Count locally (optimistic update)
-        setAllResources(prev => [...prev.map(res => {
-            if (res.id === resourceId) {
-                const newCount = (res.upvotes_count || 0) + (isUpvoted ? -1 : 1);
-                return { ...res, upvotes_count: newCount };
-            }
-            return res;
-        })]);
-
-        try {
-            await toggleUpvote(resourceId);
-
-            // Allow upvotes to also trigger the "Save your progress" popup
-            if (!isUpvoted) {
-                // We rely on Bookmark count for the milestone logic roughly, 
-                // but let's just trigger it if they are engaging.
-                // Actually, let's track "interactions" or just reuse the bookmark count state 
-                // (since bookmarks are the primary value to save).
-                // However, spec says "bookmark/upvote".
-                // Let's check session and trigger if it's their first time engaging.
-
-                const isAnon = await isAnonymousSession();
-                // We use the same 'sync_popup_shown_at' logic. 
-                // If they just upvoted and haven't seen popup, maybe show it?
-                // Simple approach: Check if it's 1st interaction?
-                // For now, let's Reuse the milestones based on bookmark count OR just checking if we showed it.
-                // But simply: If they upvote, let's treat it as an engagement that might prompt upgrade.
-
-                if (isAnon && shouldShowSyncPopup(bookmarkCount + (myBookmarks.length > 0 ? 0 : 1))) {
-                    // We bias towards bookmarks for the count, but if count is 0 and they upvote, treat as 1?
-                    // Let's just simply trigger if milestones hit.
-                    // A safer bet: Only trigger on Bookmarks as that's "Saving data".
-                    // Upvoting is less "I need to save this".
-                    // BUT spec says "bookmark/upvote".
-                    // Let's show it if they have at least 1 bookmark or just upvoted.
-                    setShowSyncPopup(true);
-                }
-            }
-
-        } catch (e) {
-            // Revert on error
-            setMyUpvotes(prev => isUpvoted ? [...prev, resourceId] : prev.filter(id => id !== resourceId));
-            setAllResources(prev => [...prev.map(res => {
-                if (res.id === resourceId) {
-                    const newCount = (res.upvotes_count || 0) + (isUpvoted ? 1 : -1);
-                    return { ...res, upvotes_count: newCount };
-                }
-                return res;
-            })]);
-        }
-    };
-
-    // Sync Popup Handlers
-    const handleCreateAccount = () => {
-        // Redirect to signup with link parameter
-        window.location.href = '/login?mode=signup&link=true';
-    };
-
-    const handleDismissPopup = () => {
-        setShowSyncPopup(false);
-    };
 
     const [query, setQuery] = useState('');
     const [audience, setAudience] = useState('');
@@ -355,13 +180,7 @@ export default function ResourceFeed({ initialResources, availableTags, showSear
             <div className="resource-grid">
                 {filteredResources.map(res => (
                     <div key={res.id} style={{ height: '100%', animation: 'fadeIn 0.3s ease' }}>
-                        <ReactResourceCard
-                            resource={res}
-                            isBookmarked={myBookmarks.includes(res.id)}
-                            isUpvoted={myUpvotes.includes(res.id)}
-                            onToggleBookmark={() => handleToggleBookmark(res.id)}
-                            onToggleUpvote={() => handleToggleUpvote(res.id)}
-                        />
+                        <ReactResourceCard resource={res} />
                     </div>
                 ))}
             </div>
@@ -377,14 +196,6 @@ export default function ResourceFeed({ initialResources, availableTags, showSear
                     </button>
                 </div>
             )}
-
-            {/* Sync Data Popup */}
-            <SyncDataPopup
-                show={showSyncPopup}
-                bookmarkCount={bookmarkCount}
-                onCreateAccount={handleCreateAccount}
-                onDismiss={handleDismissPopup}
-            />
 
             <style>{`
             .feed-container {
@@ -455,10 +266,22 @@ export default function ResourceFeed({ initialResources, availableTags, showSear
                 border: 1px solid var(--btn-primary-bg);
             }
 
-            .submit-to-hub-btn:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-                opacity: 0.95;
+            a.submit-to-hub-btn:link,
+            a.submit-to-hub-btn:visited,
+            a.submit-to-hub-btn:hover,
+            a.submit-to-hub-btn:focus-visible {
+                color: #ffffff;
+                text-decoration: none;
+                -webkit-text-fill-color: #ffffff;
+            }
+
+            a.submit-to-hub-btn:hover,
+            a.submit-to-hub-btn:focus-visible {
+                transform: translateY(-1px);
+                background: color-mix(in srgb, var(--btn-primary-bg) 88%, black);
+                border-color: color-mix(in srgb, var(--btn-primary-bg) 88%, black);
+                color: #ffffff;
+                box-shadow: 0 6px 16px rgba(0,0,0,0.15);
             }
 
             .submit-to-hub-btn svg {
@@ -537,6 +360,7 @@ export default function ResourceFeed({ initialResources, availableTags, showSear
                 text-decoration: none;
                 position: relative;
                 border-left: 4px solid var(--accent-color);
+                cursor: pointer;
             }
 
             .resource-card-react:hover {
@@ -575,77 +399,6 @@ export default function ResourceFeed({ initialResources, availableTags, showSear
                 font-size: 2rem;
                 opacity: 0.3;
             }
-            /* Hover Overlay */
-            .card-overlay {
-                position: absolute;
-                inset: 0;
-                background: rgba(0, 0, 0, 0.6);
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                gap: 16px;
-                opacity: 0;
-                transition: opacity 0.3s ease;
-                backdrop-filter: blur(4px);
-            }
-
-            .resource-card-react:hover .card-overlay {
-                opacity: 1;
-            }
-
-            .visit-obj {
-                z-index: 2;
-            }
-
-            .visit-btn {
-                background: white;
-                color: black;
-                padding: 10px 20px;
-                border-radius: 100px;
-                font-size: 14px;
-                font-weight: 700;
-                text-decoration: none;
-                display: inline-flex;
-                align-items: center;
-                gap: 8px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-                transform: translateY(10px);
-                transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-            }
-            
-            .visit-btn:hover {
-                background: var(--text-primary);
-                color: var(--bg-color);
-                transform: scale(1.05); 
-            }
-
-            .view-btn {
-                background: rgba(255, 255, 255, 0.2);
-                color: white;
-                padding: 8px 16px;
-                border-radius: 100px;
-                font-size: 13px;
-                font-weight: 500;
-                display: inline-flex;
-                align-items: center;
-                gap: 6px;
-                backdrop-filter: blur(4px);
-                border: 1px solid rgba(255, 255, 255, 0.3);
-                transform: translateY(10px);
-                transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            }
-            
-            .resource-card-react:hover .visit-btn,
-            .resource-card-react:hover .view-btn {
-                transform: translateY(0);
-            }
-
-            .arrow {
-                font-size: 1.2em;
-                line-height: 1;
-            }
-
             .content {
                 padding: 16px;
                 display: flex;
@@ -713,69 +466,40 @@ export default function ResourceFeed({ initialResources, availableTags, showSear
                 font-weight: 500;
             }
 
-            /* New Card Styles for React Version with Actions */
-            .resource-card-react a {
-                text-decoration: none;
-                color: inherit;
-            }
-            
-            .card-link-wrapper {
-                display: block;
-            }
-
-            .title-link {
-                 text-decoration: none;
-                 color: inherit;
-            }
-            .title-link:hover .title {
+            .resource-card-react:hover .title {
                 color: var(--accent-color);
             }
 
-            .actions-row {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                margin-top: 12px;
-                padding-top: 12px;
-                border-top: 1px solid var(--border-subtle);
-            }
-
-            .action-btn {
-                display: inline-flex;
-                align-items: center;
-                gap: 4px;
-                padding: 4px 8px;
-                border-radius: 4px;
-                border: none;
-                background: transparent;
-                color: var(--text-secondary);
-                font-size: 12px;
-                font-weight: 500;
-                cursor: pointer;
-                transition: all 0.2s ease;
-            }
-
-            .action-btn:hover {
-                background: var(--bg-surface-hover);
-                color: var(--text-primary);
-            }
-
-            .action-btn.active {
-                color: var(--text-primary);
+            .hover-cue {
+                position: absolute;
+                left: var(--cursor-x, 50%);
+                top: var(--cursor-y, 50%);
+                transform: translate(14px, -18px) scale(0.95);
+                pointer-events: none;
+                opacity: 0;
+                transition: opacity 0.15s ease, transform 0.15s ease;
+                background: rgba(17, 24, 39, 0.9);
+                color: #f9fafb;
+                border: 1px solid rgba(255, 255, 255, 0.25);
+                border-radius: 999px;
+                padding: 6px 10px;
+                font-size: 11px;
                 font-weight: 600;
+                letter-spacing: 0.01em;
+                white-space: nowrap;
+                z-index: 4;
             }
 
-            .view-details-link {
-                margin-left: auto;
-                font-size: 12px;
-                color: var(--text-secondary);
-                text-decoration: underline;
-                transition: color 0.2s ease;
-            }
-            .view-details-link:hover {
-                color: var(--text-primary);
+            .resource-card-react:hover .hover-cue {
+                opacity: 1;
+                transform: translate(14px, -18px) scale(1);
             }
 
+            @media (hover: none), (pointer: coarse) {
+                .hover-cue {
+                    display: none;
+                }
+            }
 
         `}</style>
         </div>

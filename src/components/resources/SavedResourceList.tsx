@@ -48,7 +48,7 @@ export default function SavedResourceList() {
             <div style={{ padding: '4rem', textAlign: 'center' }}>
                 <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>No saved resources yet.</h2>
                 <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>
-                    Browse the hub and click the star icon to save items for later.
+                    Browse the hub, open any resource, then tap Save to keep it for later.
                 </p>
                 <a href="/resources" className="hub-btn-primary">Browse Hub</a>
                 {/* Internal style for button since we are in React and might not have global css scope for this class if valid, but assuming it exists or inline it */}

@@ -38,6 +38,13 @@ const finalType = type || dbMetadata?.og_type || "website";
 
 <html lang="en">
   <head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-V07Z22DSVH"></script>
+    <script is:inline>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-V07Z22DSVH');
+    </script>
     <meta charset="utf-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width" />
@@ -141,6 +148,7 @@ const finalType = type || dbMetadata?.og_type || "website";
     {/* Global Grain Disabled by default, can be enabled via props if needed */}
     {/* <NoiseOverlay client:only="react" opacity={0.05} /> */}
 
+    <script src="/scripts/journey-tracker.js" defer></script>
     {!hideFooter && <Footer />}
   </body>
 </html>

@@ -20,32 +20,35 @@ const toSafeHttpUrl = (value: string | null | undefined): string | null => {
             return parsed.toString();
         }
     } catch {
-        // Ignore malformed URL
+        // Ignore malformed URLs
     }
     return null;
 };
 
-const buildRejectionEmail = ({
+const buildApprovalEmail = ({
     submitterName,
     resourceTitle,
-    rejectionReason,
+    curatorNote,
     dashboardUrl,
+    resourceUrl,
     hubUrl
 }: {
     submitterName: string;
     resourceTitle: string;
-    rejectionReason: string;
+    curatorNote: string;
     dashboardUrl: string;
+    resourceUrl: string | null;
     hubUrl: string;
 }) => {
     const safeName = escapeHtml(submitterName);
     const safeTitle = escapeHtml(resourceTitle);
-    const safeReason = escapeHtml(rejectionReason);
+    const safeNote = escapeHtml(curatorNote);
     const safeDashboardUrl = escapeHtml(dashboardUrl);
     const safeHubUrl = escapeHtml(hubUrl);
+    const safeResourceUrl = resourceUrl ? escapeHtml(resourceUrl) : null;
 
     return {
-        subject: 'A quick update on your Resource Hub submission',
+        subject: 'Your Resource Hub submission has been approved',
         html: `
             <!doctype html>
             <html>
@@ -54,21 +57,15 @@ const buildRejectionEmail = ({
                         <div style="background:#ffffff;border:1px solid #e5e7eb;border-radius:14px;padding:28px;">
                             <p style="margin:0 0 14px 0;">Hi ${safeName},</p>
                             <p style="margin:0 0 14px 0;">Thank you for submitting <strong>"${safeTitle}"</strong> to the Resource Hub.</p>
-                            <p style="margin:0 0 14px 0;">For this current curation round, we are not including this resource. This is not a final no, and we may reconsider it in a future round.</p>
-                            <div style="margin:18px 0;padding:14px;border-radius:10px;background:#fff8f3;border:1px solid #f7d9c4;">
-                                <p style="margin:0 0 8px 0;font-weight:600;">Current review note</p>
-                                <p style="margin:0;">${safeReason}</p>
+                            <p style="margin:0 0 14px 0;">Great news: it has been accepted and is now part of this curation round.</p>
+                            <div style="margin:18px 0;padding:14px;border-radius:10px;background:#f3faf5;border:1px solid #bde7c7;">
+                                <p style="margin:0 0 8px 0;font-weight:600;">Curator note</p>
+                                <p style="margin:0;">${safeNote}</p>
                             </div>
-                            <p style="margin:0 0 10px 0;">If you are open to it, please share anything you would like us to consider, such as:</p>
-                            <ul style="margin:8px 0 14px 20px;padding:0;">
-                                <li style="margin-bottom:6px;">the intended audience and context</li>
-                                <li style="margin-bottom:6px;">what makes this especially useful or unique</li>
-                                <li style="margin-bottom:6px;">a practical use case or example outcome</li>
-                                <li style="margin-bottom:0;">any updates made since submission</li>
-                            </ul>
-                            <p style="margin:0 0 18px 0;">You can edit and resubmit anytime from your dashboard.</p>
+                            <p style="margin:0 0 18px 0;">Thank you again for contributing. You can continue sharing more resources anytime.</p>
                             <p style="margin:0 0 18px 0;">
                                 <a href="${safeDashboardUrl}" style="display:inline-block;background:#111827;color:#ffffff;text-decoration:none;padding:10px 16px;border-radius:8px;font-weight:600;">Open Dashboard</a>
+                                ${safeResourceUrl ? `<a href="${safeResourceUrl}" style="display:inline-block;margin-left:8px;background:#ffffff;color:#111827;text-decoration:none;padding:10px 16px;border-radius:8px;font-weight:600;border:1px solid #d1d5db;">View Resource</a>` : ''}
                             </p>
                             <p style="margin:0 0 4px 0;">With regards,</p>
                             <p style="margin:0;">Abodid</p>
@@ -82,18 +79,13 @@ const buildRejectionEmail = ({
 
 Thank you for submitting "${resourceTitle}" to the Resource Hub.
 
-For this current curation round, we are not including this resource. This is not a final no, and we may reconsider it in a future round.
+Great news: it has been accepted and is now part of this curation round.
 
-Current review note:
-${rejectionReason}
+Curator note:
+${curatorNote}
 
-If you are open to it, please share anything you would like us to consider, such as:
-- intended audience and context
-- what makes this especially useful or unique
-- a practical use case or example outcome
-- any updates made since submission
-
-You can edit and resubmit anytime from your dashboard: ${dashboardUrl}
+You can view your dashboard here: ${dashboardUrl}
+${resourceUrl ? `Resource link: ${resourceUrl}` : ''}
 
 With regards,
 Abodid`
@@ -152,13 +144,18 @@ export const POST: APIRoute = async ({ request }) => {
             });
         }
 
-        const { resourceId, reason } = await request.json();
-        const rejectionReason = typeof reason === 'string' && reason.trim().length > 0
-            ? reason.trim()
-            : 'No specific note was provided for this review.';
+        const { resourceId, payload } = await request.json();
+        const curatorNote = typeof payload?.curator_note === 'string' ? payload.curator_note.trim() : '';
 
         if (!resourceId) {
             return new Response(JSON.stringify({ error: 'Missing resourceId' }), {
+                status: 400,
+                headers: { 'Content-Type': 'application/json' }
+            });
+        }
+
+        if (!curatorNote) {
+            return new Response(JSON.stringify({ error: 'Curator note is required for approval.' }), {
                 status: 400,
                 headers: { 'Content-Type': 'application/json' }
             });
@@ -186,14 +183,26 @@ export const POST: APIRoute = async ({ request }) => {
             });
         }
 
+        const updates: Record<string, any> = {
+            status: 'approved',
+            reviewed_at: new Date().toISOString(),
+            reviewed_by: authData.user.id,
+            updated_at: new Date().toISOString(),
+            admin_notes: curatorNote,
+            rejection_reason: null
+        };
+
+        if (payload?.thumbnail_url !== undefined) {
+            updates.thumbnail_url = payload.thumbnail_url;
+        }
+
+        if (payload?.audience) {
+            updates.audience = payload.audience;
+        }
+
         const { error: updateError } = await supabase
             .from('hub_resources')
-            .update({
-                status: 'rejected',
-                reviewed_at: new Date().toISOString(),
-                reviewed_by: authData.user.id,
-                rejection_reason: rejectionReason
-            })
+            .update(updates)
             .eq('id', resourceId);
 
         if (updateError) {
@@ -203,32 +212,57 @@ export const POST: APIRoute = async ({ request }) => {
             });
         }
 
-        let emailResult = { sent: false, reason: 'No submitter email found' };
-        const submitterName =
-            resource.submitter_profile?.full_name ||
-            resource.submitter_profile?.username ||
-            'there';
+        if (Array.isArray(payload?.tag_ids)) {
+            const { error: deleteTagsError } = await supabase
+                .from('hub_resource_tags')
+                .delete()
+                .eq('resource_id', resourceId);
 
+            if (deleteTagsError) {
+                return new Response(JSON.stringify({ error: deleteTagsError.message }), {
+                    status: 500,
+                    headers: { 'Content-Type': 'application/json' }
+                });
+            }
+
+            if (payload.tag_ids.length > 0) {
+                const tagRows = payload.tag_ids.map((tagId: string) => ({
+                    resource_id: resourceId,
+                    tag_id: tagId
+                }));
+
+                const { error: insertTagsError } = await supabase
+                    .from('hub_resource_tags')
+                    .insert(tagRows);
+
+                if (insertTagsError) {
+                    return new Response(JSON.stringify({ error: insertTagsError.message }), {
+                        status: 500,
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                }
+            }
+        }
+
+        let emailResult = { sent: false, reason: 'No submitter email found' };
         const { data: userLookup, error: userLookupError } = await supabase.auth.admin.getUserById(resource.submitted_by);
         const submitterEmail = userLookupError ? null : userLookup.user?.email?.trim().toLowerCase();
-        const baseUrl = new URL(request.url).origin;
-        const dashboardUrl = `${baseUrl}/resources/dashboard`;
-        const hubUrl = `${baseUrl}/resources`;
 
         if (submitterEmail && resendKey) {
             try {
                 const resend = new Resend(resendKey);
-                const fromAddress = 'Abodid <newsletter@abodid.com>';
-                const emailContent = buildRejectionEmail({
-                    submitterName,
+                const baseUrl = new URL(request.url).origin;
+                const emailContent = buildApprovalEmail({
+                    submitterName: resource.submitter_profile?.full_name || resource.submitter_profile?.username || 'there',
                     resourceTitle: resource.title || 'your resource',
-                    rejectionReason,
-                    dashboardUrl,
-                    hubUrl
+                    curatorNote,
+                    dashboardUrl: `${baseUrl}/resources/dashboard`,
+                    resourceUrl: toSafeHttpUrl(resource.url),
+                    hubUrl: `${baseUrl}/resources`
                 });
 
                 await resend.emails.send({
-                    from: fromAddress,
+                    from: 'Abodid <newsletter@abodid.com>',
                     to: submitterEmail,
                     bcc:
                         ownerNotificationEmail && ownerNotificationEmail !== submitterEmail
@@ -242,24 +276,19 @@ export const POST: APIRoute = async ({ request }) => {
 
                 emailResult = { sent: true, reason: `Sent to ${submitterEmail}` };
             } catch (emailError: any) {
-                console.error('Failed to send rejection email:', emailError);
+                console.error('Failed to send approval email:', emailError);
                 emailResult = { sent: false, reason: emailError?.message || 'Unknown email error' };
             }
         } else if (!resendKey) {
-            console.error('Missing RESEND_API_KEY');
             emailResult = { sent: false, reason: 'Server config error: missing RESEND_API_KEY' };
         }
 
-        return new Response(JSON.stringify({
-            success: true,
-            emailResult,
-            resourceUrl: toSafeHttpUrl(resource.url)
-        }), {
+        return new Response(JSON.stringify({ success: true, emailResult }), {
             status: 200,
             headers: { 'Content-Type': 'application/json' }
         });
     } catch (error: any) {
-        console.error('Rejection API error:', error);
+        console.error('Approval API error:', error);
         return new Response(JSON.stringify({ error: error?.message || 'Internal server error' }), {
             status: 500,
             headers: { 'Content-Type': 'application/json' }

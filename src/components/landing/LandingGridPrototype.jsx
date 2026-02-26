@@ -207,6 +207,45 @@ const truncate = (value, limit = 88) => {
     return `${cleaned.slice(0, Math.max(0, limit - 3)).trimEnd()}...`;
 };
 
+const appendJourneyTrackingToForm = (form) => {
+    if (!(form instanceof HTMLFormElement)) return;
+
+    const upsertHiddenField = (name, value) => {
+        const safeValue = String(value || '');
+        let input = form.querySelector(`input[name="${name}"]`);
+        if (!(input instanceof HTMLInputElement)) {
+            input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = name;
+            form.appendChild(input);
+        }
+        input.value = safeValue;
+    };
+
+    upsertHiddenField('source', 'landing-grid-newsletter');
+
+    let trackingPayload = null;
+    try {
+        if (
+            window.__abodidJourney &&
+            typeof window.__abodidJourney.getSnapshot === 'function'
+        ) {
+            trackingPayload = window.__abodidJourney.getSnapshot();
+        }
+    } catch (_error) {
+        trackingPayload = null;
+    }
+
+    if (!trackingPayload) {
+        trackingPayload = {
+            currentPath: window.location.pathname,
+            initialReferrer: document.referrer || '',
+        };
+    }
+
+    upsertHiddenField('tracking', JSON.stringify(trackingPayload));
+};
+
 const snapSpan = (rawValue, maxValue) => {
     const rounded = clamp(Math.round(rawValue), 1, maxValue);
     const availableSteps = SPAN_STEPS.filter((step) => step <= maxValue);
@@ -1901,6 +1940,21 @@ const LandingGridPrototype = ({
                             className="newsletter-form"
                             action="/api/subscribe"
                             method="POST"
+                            onSubmit={(event) => {
+                                appendJourneyTrackingToForm(event.currentTarget);
+                                try {
+                                    if (typeof window.gtag === 'function') {
+                                        window.gtag('event', 'sign_up', {
+                                            method: 'newsletter',
+                                            source_page: window.location.pathname,
+                                            destination_page: window.location.pathname,
+                                            form_variant: 'landing-grid',
+                                        });
+                                    }
+                                } catch (_error) {
+                                    // no-op
+                                }
+                            }}
                             onPointerDown={(event) => event.stopPropagation()}
                         >
                             <input

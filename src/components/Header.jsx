@@ -124,17 +124,19 @@ const Header = () => {
                                             {/* Resources */}
                                             <div className="sidebar-block">
                                                 <div className="mono-label">Resources</div>
-                                                <MenuLink href="/resources" variants={itemVariants} className="mono-link">Curated Resources Mega Vault</MenuLink>
+                                                <MenuLink href="/resources" variants={itemVariants} className="mono-link">Curated Resources</MenuLink>
+                                                <MenuLink href="/bsa-schedule" variants={itemVariants} className="mono-link">BSA Conference</MenuLink>
                                                 <MenuLink href="/moodboard" variants={itemVariants} className="mono-link">Visual Moodboard</MenuLink>
                                                 <MenuLink href="/photography-portfolio" variants={itemVariants} className="mono-link">Photography Portfolio</MenuLink>
-                                                <MenuLink href="/research/obsidian-vault" variants={itemVariants} className="mono-link">Personal Notes (Obsidian Vault)</MenuLink>
-                                                <MenuLink href="/research/second-brain" variants={itemVariants} className="mono-link">Second Brain Club Membership</MenuLink>
+                                                <MenuLink href="/research/obsidian-vault" variants={itemVariants} className="mono-link">Obsidian Vault</MenuLink>
+                                                <MenuLink href="/research/second-brain" variants={itemVariants} className="mono-link">Second Brain Club</MenuLink>
                                             </div>
 
                                             {/* Work With Me */}
                                             <div className="sidebar-block">
                                                 <div className="mono-label">Work With Me</div>
                                                 <MenuLink href="/services" variants={itemVariants} className="mono-link">Services</MenuLink>
+                                                <MenuLink href="/workshops" variants={itemVariants} className="mono-link">Workshops</MenuLink>
                                                 <MenuLink href="/fundraising" variants={itemVariants} className="mono-link">Fundraising</MenuLink>
                                             </div>
 

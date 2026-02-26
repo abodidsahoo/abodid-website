@@ -9,6 +9,12 @@ const BOTTOM_PADDING = 24;
 const SHUFFLE_ACTIVE_LIMIT = 20;
 const DEFAULT_INITIAL_VISIBLE_ROWS = 4;
 const DEFAULT_SCROLL_BATCH_ROWS = 1;
+const SCROLL_START_THRESHOLD = 8;
+const STAGE_PREFETCH_VIEWPORT_RATIO = 0.82;
+const MIN_STAGE_PREFETCH_DISTANCE = 280;
+const FALLBACK_DOC_PREFETCH_DISTANCE = 220;
+const SCROLL_LOAD_STEP_MIN_PX = 42;
+const SCROLL_LOAD_STEP_VIEWPORT_RATIO = 0.055;
 
 const SIZE_PRESETS = [
     { scale: 0.24, weight: 0.06 },
@@ -401,6 +407,7 @@ export default function VisualMoodboard({
     const probedIdsRef = useRef(new Set());
     const userHasScrolledRef = useRef(false);
     const lastInfiniteLoadScrollYRef = useRef(-Infinity);
+    const lastObservedScrollYRef = useRef(0);
     const shuffleTimersRef = useRef([]);
     const [query, setQuery] = useState('');
     const [activeTag, setActiveTag] = useState('');
@@ -625,6 +632,7 @@ export default function VisualMoodboard({
             setVisibleCount(0);
             userHasScrolledRef.current = false;
             lastInfiniteLoadScrollYRef.current = -Infinity;
+            lastObservedScrollYRef.current = typeof window === 'undefined' ? 0 : (window.scrollY || 0);
             return;
         }
 
@@ -636,6 +644,7 @@ export default function VisualMoodboard({
         setVisibleCount(nextVisibleCount);
         userHasScrolledRef.current = false;
         lastInfiniteLoadScrollYRef.current = -Infinity;
+        lastObservedScrollYRef.current = typeof window === 'undefined' ? 0 : (window.scrollY || 0);
     }, [
         infiniteScrollEnabled,
         filteredItems.length,
@@ -652,20 +661,51 @@ export default function VisualMoodboard({
             return undefined;
         }
 
+        lastObservedScrollYRef.current = window.scrollY || 0;
+
         const handleScroll = () => {
             const currentScrollY = window.scrollY || 0;
-            if (!userHasScrolledRef.current && currentScrollY > 24) {
+            const previousScrollY = lastObservedScrollYRef.current;
+            lastObservedScrollYRef.current = currentScrollY;
+
+            if (!userHasScrolledRef.current && currentScrollY > SCROLL_START_THRESHOLD) {
                 userHasScrolledRef.current = true;
             }
             if (!userHasScrolledRef.current) return;
+            if (currentScrollY <= previousScrollY) return;
 
-            const docHeight = Math.max(
-                document.documentElement?.scrollHeight || 0,
-                document.body?.scrollHeight || 0,
+            const viewportHeight = window.innerHeight || 0;
+            let shouldLoadMore = false;
+            const stageElement = stageRef.current;
+
+            if (stageElement && viewportHeight > 0) {
+                const stageRect = stageElement.getBoundingClientRect();
+                const stageHasEnteredViewport = stageRect.top < viewportHeight + 32;
+                if (stageHasEnteredViewport) {
+                    const stagePrefetchDistance = Math.max(
+                        MIN_STAGE_PREFETCH_DISTANCE,
+                        viewportHeight * STAGE_PREFETCH_VIEWPORT_RATIO,
+                    );
+                    const distanceToStageBottom = stageRect.bottom - viewportHeight;
+                    shouldLoadMore = distanceToStageBottom <= stagePrefetchDistance;
+                }
+            }
+
+            if (!shouldLoadMore) {
+                const docHeight = Math.max(
+                    document.documentElement?.scrollHeight || 0,
+                    document.body?.scrollHeight || 0,
+                );
+                const distanceToBottom = docHeight - (currentScrollY + viewportHeight);
+                shouldLoadMore = distanceToBottom <= FALLBACK_DOC_PREFETCH_DISTANCE;
+            }
+
+            if (!shouldLoadMore) return;
+            const scrollLoadStep = Math.max(
+                SCROLL_LOAD_STEP_MIN_PX,
+                Math.round(viewportHeight * SCROLL_LOAD_STEP_VIEWPORT_RATIO),
             );
-            const distanceToBottom = docHeight - (currentScrollY + window.innerHeight);
-            if (distanceToBottom > 220) return;
-            if (currentScrollY <= lastInfiniteLoadScrollYRef.current + 16) return;
+            if (currentScrollY < lastInfiniteLoadScrollYRef.current + scrollLoadStep) return;
 
             lastInfiniteLoadScrollYRef.current = currentScrollY;
             setVisibleCount((current) =>
@@ -679,7 +719,6 @@ export default function VisualMoodboard({
         };
 
         window.addEventListener('scroll', handleScroll, { passive: true });
-        handleScroll();
         return () => window.removeEventListener('scroll', handleScroll);
     }, [
         infiniteScrollEnabled,

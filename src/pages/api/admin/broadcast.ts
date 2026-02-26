@@ -54,6 +54,13 @@ export const POST: APIRoute = async ({ request }) => {
         const effectiveSenderName = senderName || 'Abodid';
         const effectiveSenderEmail = senderEmail || 'newsletter@abodid.com';
         const fromAddress = `${effectiveSenderName} <${effectiveSenderEmail}>`;
+        const ownerNotificationEmail = (
+            import.meta.env.OWNER_NOTIFICATION_EMAIL ||
+            process.env.OWNER_NOTIFICATION_EMAIL ||
+            import.meta.env.CONTACT_FORM_TO_EMAIL ||
+            process.env.CONTACT_FORM_TO_EMAIL ||
+            'hello@abodid.com'
+        ).trim().toLowerCase();
 
         if (!subject || !message) {
             return new Response(JSON.stringify({ error: 'Missing fields' }), { status: 400 });
@@ -159,6 +166,12 @@ export const POST: APIRoute = async ({ request }) => {
                 return {
                     from: fromAddress,
                     to: recipient.email,
+                    bcc:
+                        ownerNotificationEmail &&
+                        String(recipient.email || '').trim().toLowerCase() !==
+                            ownerNotificationEmail
+                            ? [ownerNotificationEmail]
+                            : undefined,
                     subject: subject,
                     html: htmlContent
                 };
@@ -203,6 +216,7 @@ export const POST: APIRoute = async ({ request }) => {
             failures: failCount,
             mode: isTest ? 'test' : 'broadcast',
             analytics: broadcastId ? 'active' : 'disabled',
+            ownerMirrorEnabled: Boolean(ownerNotificationEmail),
             errors: errors.length > 0 ? errors : undefined
         }), {
             status: 200,

@@ -12,6 +12,50 @@ const pageTitle = "Contact";
         </header>
 
         <section class="contact-content">
+            <section class="contact-form-section">
+                <h2>Send A Message</h2>
+                <form id="contact-form" class="contact-form">
+                    <label for="contact-name">Name</label>
+                    <input
+                        id="contact-name"
+                        name="name"
+                        type="text"
+                        autocomplete="name"
+                        required
+                        maxlength="120"
+                        placeholder="Your name"
+                    />
+
+                    <label for="contact-email">Email ID</label>
+                    <input
+                        id="contact-email"
+                        name="email"
+                        type="email"
+                        autocomplete="email"
+                        required
+                        maxlength="254"
+                        placeholder="you@example.com"
+                    />
+
+                    <label for="contact-message">Your Message</label>
+                    <textarea
+                        id="contact-message"
+                        name="message"
+                        rows="6"
+                        required
+                        maxlength="5000"
+                        placeholder="Tell me what you want to build."
+                    ></textarea>
+
+                    <button type="submit" class="send-button">Send</button>
+                    <p
+                        id="contact-form-status"
+                        class="form-status"
+                        aria-live="polite"
+                    ></p>
+                </form>
+            </section>
+
             <div class="contact-grid">
                 <!-- Email -->
                 <div class="contact-card">
@@ -94,6 +138,116 @@ const pageTitle = "Contact";
             </div>
         </section>
     </div>
+
+    <script is:inline>
+        const contactForm = document.getElementById("contact-form");
+        const statusNode = document.getElementById("contact-form-status");
+        const trackGaEvent = (eventName, params = {}) => {
+            try {
+                if (typeof window.gtag === "function") {
+                    window.gtag("event", eventName, params);
+                }
+            } catch (_error) {
+                // no-op
+            }
+        };
+
+        const getJourneyTracking = () => {
+            try {
+                if (
+                    window.__abodidJourney &&
+                    typeof window.__abodidJourney.getSnapshot === "function"
+                ) {
+                    return window.__abodidJourney.getSnapshot();
+                }
+            } catch (_error) {
+                // no-op
+            }
+
+            const params = new URLSearchParams(window.location.search);
+            return {
+                currentPath: window.location.pathname,
+                initialReferrer: document.referrer || "",
+                lastSourcePage:
+                    params.get("from") || params.get("source_page") || "",
+                lastSourceName: params.get("source_name") || "",
+                lastCta: params.get("cta") || "",
+            };
+        };
+
+        if (contactForm && statusNode) {
+            contactForm.addEventListener("submit", async (event) => {
+                event.preventDefault();
+
+                const submitButton = contactForm.querySelector(
+                    "button[type='submit']"
+                );
+                const defaultButtonText = submitButton?.textContent || "Send";
+
+                const formData = new FormData(contactForm);
+                const payload = {
+                    name: String(formData.get("name") || "").trim(),
+                    email: String(formData.get("email") || "").trim(),
+                    message: String(formData.get("message") || "").trim(),
+                    tracking: getJourneyTracking(),
+                };
+
+                statusNode.textContent = "";
+                statusNode.className = "form-status";
+
+                if (submitButton) {
+                    submitButton.disabled = true;
+                    submitButton.textContent = "Sending...";
+                }
+
+                try {
+                    const response = await fetch("/api/contact", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify(payload),
+                    });
+
+                    const result = await response
+                        .json()
+                        .catch(() => ({ error: "Unable to send your message." }));
+
+                    if (!response.ok) {
+                        throw new Error(
+                            result.error || "Unable to send your message."
+                        );
+                    }
+
+                    contactForm.reset();
+                    statusNode.textContent =
+                        "Message sent successfully. I will get back to you soon.";
+                    statusNode.classList.add("success");
+                    trackGaEvent("generate_lead", {
+                        event_category: "contact",
+                        event_label: "contact-form-submit",
+                        source_page:
+                            payload.tracking?.lastSourcePage ||
+                            payload.tracking?.currentPath ||
+                            "unknown",
+                        destination_page: window.location.pathname,
+                    });
+                } catch (error) {
+                    const errorMessage =
+                        error && typeof error === "object" && "message" in error
+                            ? String(error.message)
+                            : "Unable to send your message right now.";
+                    statusNode.textContent = errorMessage;
+                    statusNode.classList.add("error");
+                } finally {
+                    if (submitButton) {
+                        submitButton.disabled = false;
+                        submitButton.textContent = defaultButtonText;
+                    }
+                }
+            });
+        }
+    </script>
 </BaseLayout>
 
 <style>
@@ -126,6 +280,107 @@ const pageTitle = "Contact";
 
     .contact-content {
         padding-bottom: 6rem;
+    }
+
+    .contact-form-section {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-subtle);
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 3rem;
+    }
+
+    .contact-form-section h2 {
+        font-family: var(--font-display);
+        font-size: 1.6rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        letter-spacing: -0.01em;
+        margin: 0 0 1.25rem 0;
+    }
+
+    .contact-form {
+        display: flex;
+        flex-direction: column;
+        gap: 0.9rem;
+    }
+
+    .contact-form label {
+        font-size: 0.88rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        letter-spacing: 0.02em;
+    }
+
+    .contact-form input,
+    .contact-form textarea {
+        width: 100%;
+        font: inherit;
+        color: var(--text-primary);
+        background: var(--bg-color);
+        border: 1px solid var(--border-subtle);
+        border-radius: 10px;
+        padding: 0.78rem 0.85rem;
+        transition:
+            border-color 0.2s ease,
+            box-shadow 0.2s ease;
+    }
+
+    .contact-form textarea {
+        resize: vertical;
+        min-height: 140px;
+        line-height: 1.55;
+    }
+
+    .contact-form input:focus,
+    .contact-form textarea:focus {
+        outline: none;
+        border-color: var(--text-secondary);
+        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08);
+    }
+
+    .send-button {
+        align-self: flex-start;
+        margin-top: 0.25rem;
+        border: 1px solid var(--border-subtle);
+        border-radius: 999px;
+        background: transparent;
+        color: var(--text-primary);
+        font-family: var(--font-ui);
+        font-size: 0.92rem;
+        font-weight: 600;
+        padding: 0.6rem 1.1rem;
+        cursor: pointer;
+        transition:
+            background-color 0.2s ease,
+            border-color 0.2s ease,
+            color 0.2s ease;
+    }
+
+    .send-button:hover:not(:disabled) {
+        background: var(--bg-surface-hover);
+        border-color: var(--text-primary);
+    }
+
+    .send-button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .form-status {
+        min-height: 1.3rem;
+        margin: 0.25rem 0 0;
+        font-size: 0.92rem;
+        line-height: 1.4;
+        color: var(--text-secondary);
+    }
+
+    .form-status.success {
+        color: #49c673;
+    }
+
+    .form-status.error {
+        color: #ff7f7f;
     }
 
     .contact-grid {
@@ -241,6 +496,10 @@ const pageTitle = "Contact";
 
         .contact-grid {
             grid-template-columns: 1fr;
+        }
+
+        .contact-form-section {
+            padding: 1.5rem;
         }
 
         .contact-card {

@@ -7,6 +7,7 @@ import "../../../styles/resources.css";
 import { getCurrentProfile } from "../../../lib/resources/db";
 import AdminEditButton from "../../../components/resources/AdminEditButton";
 import AdminTrashActions from "../../../components/resources/AdminTrashActions";
+import ResourceDetailActions from "../../../components/resources/ResourceDetailActions";
 
 const { id } = Astro.params;
 
@@ -266,6 +267,12 @@ const accentColor = getAudienceColor(resource.audience);
                         </div>
                     )
                 }
+
+                <ResourceDetailActions
+                    client:only="react"
+                    resourceId={resource.id}
+                    initialUpvotes={resource.upvotes_count || 0}
+                />
 
                 {/* CTA Button */}
                 <div

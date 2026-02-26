@@ -26,7 +26,10 @@ const title = "Login | Resource Hub";
                         id="fullname"
                         class="hub-input"
                         placeholder="Jane Doe"
+                        maxlength="80"
                     />
+                    <p class="field-hint">Use letters, spaces, apostrophes, or hyphens.</p>
+                    <p id="name-error" class="field-error" style="display: none;"></p>
                 </div>
 
                 <div class="hub-form-group">
@@ -38,18 +41,60 @@ const title = "Login | Resource Hub";
                         required
                         placeholder="you@example.com"
                     />
+                    <p class="field-hint">Email can include numbers and symbols.</p>
+                    <p id="email-error" class="field-error" style="display: none;"></p>
                 </div>
 
                 <div class="hub-form-group">
                     <label class="hub-label">Password</label>
-                    <input
-                        type="password"
-                        id="password"
-                        class="hub-input"
-                        required
-                        placeholder="••••••••"
-                        minlength="6"
-                    />
+                    <div class="password-field">
+                        <input
+                            type="password"
+                            id="password"
+                            class="hub-input"
+                            required
+                            placeholder="••••••••"
+                            minlength="6"
+                            autocomplete="current-password"
+                        />
+                        <button
+                            type="button"
+                            id="password-toggle"
+                            class="password-toggle"
+                            aria-label="Show password"
+                            aria-pressed="false"
+                        >
+                            <svg
+                                id="eye-open"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            >
+                                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                            <svg
+                                id="eye-closed"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                style="display: none;"
+                            >
+                                <path d="M3 3l18 18"></path>
+                                <path d="M10.6 10.6a2 2 0 1 0 2.8 2.8"></path>
+                                <path d="M9.4 5.2A10.6 10.6 0 0 1 12 5c6.5 0 10 7 10 7a16.5 16.5 0 0 1-3.2 4.3"></path>
+                                <path d="M6.7 6.7C4.3 8.2 2.8 10.7 2 12c0 0 3.5 7 10 7 1.7 0 3.2-.5 4.5-1.2"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <p id="password-hint" class="field-hint">Minimum 6 characters.</p>
+                    <p id="password-error" class="field-error" style="display: none;"></p>
                 </div>
 
                 <button type="submit" class="hub-btn" id="submit-btn">
@@ -137,6 +182,69 @@ const title = "Login | Resource Hub";
         outline: none;
         border-color: var(--text-primary);
         box-shadow: 0 0 0 4px var(--bg-surface-hover);
+    }
+
+    .hub-input.is-invalid {
+        border-color: #dc2626;
+        box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.12);
+    }
+
+    .field-hint {
+        margin-top: 8px;
+        margin-bottom: 0;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        line-height: 1.4;
+    }
+
+    .field-hint.is-warning {
+        color: #b45309;
+    }
+
+    .field-hint.is-success {
+        color: #15803d;
+    }
+
+    .field-error {
+        margin-top: 8px;
+        margin-bottom: 0;
+        color: #dc2626;
+        font-size: 0.85rem;
+        line-height: 1.4;
+    }
+
+    .password-field {
+        position: relative;
+    }
+
+    .password-field .hub-input {
+        padding-right: 52px;
+    }
+
+    .password-toggle {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        border: none;
+        background: transparent;
+        color: var(--text-secondary);
+        cursor: pointer;
+        padding: 6px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .password-toggle:hover {
+        color: var(--text-primary);
+        background: var(--bg-surface-hover);
+    }
+
+    .password-toggle svg {
+        width: 18px;
+        height: 18px;
     }
 
     .hub-btn {
@@ -228,6 +336,18 @@ const title = "Login | Resource Hub";
     const fullNameInput = document.getElementById(
         "fullname",
     ) as HTMLInputElement;
+    const emailInput = document.getElementById("email") as HTMLInputElement;
+    const passwordInput = document.getElementById("password") as HTMLInputElement;
+    const nameErrorEl = document.getElementById("name-error");
+    const emailErrorEl = document.getElementById("email-error");
+    const passwordErrorEl = document.getElementById("password-error");
+    const passwordHintEl = document.getElementById("password-hint");
+    const passwordToggleBtn = document.getElementById(
+        "password-toggle",
+    ) as HTMLButtonElement;
+    const eyeOpenEl = document.getElementById("eye-open");
+    const eyeClosedEl = document.getElementById("eye-closed");
+    let isPasswordVisible = false;
 
     // --- HELPERS ---
     const showMsg = (msg: string, type: "success" | "error") => {
@@ -236,6 +356,198 @@ const title = "Login | Resource Hub";
         messageEl.innerText = msg;
         messageEl.style.background = type === "error" ? "#fee2e2" : "#dcfce7";
         messageEl.style.color = type === "error" ? "#b91c1c" : "#166534";
+    };
+
+    const clearMsg = () => {
+        if (!messageEl) return;
+        messageEl.style.display = "none";
+        messageEl.innerText = "";
+    };
+
+    const setFieldError = (
+        input: HTMLInputElement | null,
+        errorEl: HTMLElement | null,
+        message: string,
+    ) => {
+        if (input) input.classList.add("is-invalid");
+        if (errorEl) {
+            errorEl.innerText = message;
+            errorEl.style.display = "block";
+        }
+    };
+
+    const clearFieldError = (
+        input: HTMLInputElement | null,
+        errorEl: HTMLElement | null,
+    ) => {
+        if (input) input.classList.remove("is-invalid");
+        if (errorEl) {
+            errorEl.innerText = "";
+            errorEl.style.display = "none";
+        }
+    };
+
+    const clearAllFieldErrors = () => {
+        clearFieldError(fullNameInput, nameErrorEl);
+        clearFieldError(emailInput, emailErrorEl);
+        clearFieldError(passwordInput, passwordErrorEl);
+    };
+
+    const updatePasswordHint = (passwordLength: number) => {
+        if (!passwordHintEl) return;
+        passwordHintEl.classList.remove("is-warning", "is-success");
+
+        if (passwordLength === 0) {
+            passwordHintEl.innerText = "Minimum 6 characters.";
+            return;
+        }
+
+        if (passwordLength < 6) {
+            passwordHintEl.innerText = `Minimum 6 characters (${passwordLength}/6).`;
+            passwordHintEl.classList.add("is-warning");
+            return;
+        }
+
+        passwordHintEl.innerText = `Password length looks good (${passwordLength} characters).`;
+        passwordHintEl.classList.add("is-success");
+    };
+
+    const syncPasswordVisibility = () => {
+        if (!passwordInput || !passwordToggleBtn) return;
+        passwordInput.type = isPasswordVisible ? "text" : "password";
+        passwordToggleBtn.setAttribute(
+            "aria-label",
+            isPasswordVisible ? "Hide password" : "Show password",
+        );
+        passwordToggleBtn.setAttribute(
+            "aria-pressed",
+            isPasswordVisible ? "true" : "false",
+        );
+        if (eyeOpenEl) eyeOpenEl.style.display = isPasswordVisible ? "none" : "block";
+        if (eyeClosedEl)
+            eyeClosedEl.style.display = isPasswordVisible ? "block" : "none";
+    };
+
+    const validateForm = (email: string, password: string, fullName: string) => {
+        clearAllFieldErrors();
+        let isValid = true;
+
+        if (!email) {
+            setFieldError(emailInput, emailErrorEl, "Email is required.");
+            isValid = false;
+        } else if (!emailInput?.checkValidity()) {
+            setFieldError(
+                emailInput,
+                emailErrorEl,
+                "Enter a valid email address (numbers are allowed).",
+            );
+            isValid = false;
+        }
+
+        if (password.length < 6) {
+            setFieldError(
+                passwordInput,
+                passwordErrorEl,
+                "Password must be at least 6 characters.",
+            );
+            isValid = false;
+        }
+
+        if (isSignup) {
+            const fullNamePattern = /^[A-Za-z][A-Za-z\s'-]*$/;
+
+            if (!fullName) {
+                setFieldError(fullNameInput, nameErrorEl, "Full name is required.");
+                isValid = false;
+            } else if (fullName.length < 2) {
+                setFieldError(
+                    fullNameInput,
+                    nameErrorEl,
+                    "Full name should be at least 2 characters.",
+                );
+                isValid = false;
+            } else if (!fullNamePattern.test(fullName)) {
+                setFieldError(
+                    fullNameInput,
+                    nameErrorEl,
+                    "Use letters, spaces, apostrophes, or hyphens only.",
+                );
+                isValid = false;
+            }
+        }
+
+        updatePasswordHint(password.length);
+        return isValid;
+    };
+
+    const getFriendlyAuthError = (error: any, signupMode: boolean) => {
+        const message = error?.message || "Authentication failed. Please try again.";
+
+        if (message.includes("Invalid login credentials")) {
+            return signupMode
+                ? "This email is already in use or the password is invalid."
+                : "Invalid email or password.";
+        }
+
+        if (message.includes("Password should be at least 6 characters")) {
+            return "Password must be at least 6 characters.";
+        }
+
+        if (message.includes("User already registered")) {
+            return "This email is already registered. Please log in instead.";
+        }
+
+        if (message.includes("Database error saving new user")) {
+            return "Signup failed while creating your profile. Please try again.";
+        }
+
+        return message;
+    };
+
+    const buildBaseUsername = (email: string) => {
+        const localPart = email.split("@")[0] || "user";
+        const cleaned = localPart
+            .toLowerCase()
+            .replace(/[^a-z0-9_]/g, "")
+            .replace(/_+/g, "_")
+            .replace(/^_+|_+$/g, "");
+
+        const base = cleaned.length >= 3 ? cleaned : `${cleaned || "user"}user`;
+        return base.slice(0, 24);
+    };
+
+    const createUsernameCandidate = (base: string) => {
+        const suffix = Math.floor(1000 + Math.random() * 9000).toString();
+        const prefixMax = Math.max(3, 24 - suffix.length);
+        return `${base.slice(0, prefixMax)}${suffix}`;
+    };
+
+    const ensureUniqueUsername = async (email: string) => {
+        const base = buildBaseUsername(email);
+        if (!supabase) return createUsernameCandidate(base);
+
+        let candidate = base;
+
+        for (let i = 0; i < 10; i++) {
+            const { data, error } = await supabase
+                .from("profiles")
+                .select("id")
+                .eq("username", candidate)
+                .limit(1);
+
+            if (error) {
+                // If read policy is tighter than expected, still avoid collisions probabilistically.
+                return createUsernameCandidate(base);
+            }
+
+            if (!data || data.length === 0) {
+                return candidate;
+            }
+
+            candidate = createUsernameCandidate(base);
+        }
+
+        return `${base.slice(0, 18)}${Date.now().toString().slice(-6)}`;
     };
 
     const toggleMode = (forceSignup?: boolean) => {
@@ -256,6 +568,7 @@ const title = "Login | Resource Hub";
             switchText!.innerText = "Already have an account?";
             toggleBtn!.innerText = "Log In";
             fullNameInput?.setAttribute("required", "true");
+            passwordInput?.setAttribute("autocomplete", "new-password");
         } else {
             nameGroup!.style.display = "none";
             pageTitle!.innerText = "Curator Login";
@@ -265,34 +578,48 @@ const title = "Login | Resource Hub";
             switchText!.innerText = "Don't have an account?";
             toggleBtn!.innerText = "Sign Up";
             fullNameInput?.removeAttribute("required");
+            passwordInput?.setAttribute("autocomplete", "current-password");
         }
 
-        if (messageEl) messageEl.style.display = "none";
+        clearAllFieldErrors();
+        clearMsg();
     };
 
     form?.addEventListener("submit", async (e) => {
         e.preventDefault();
-        if (!supabase) return;
+        if (!supabase) {
+            showMsg(
+                "Authentication service is not available right now. Please try again.",
+                "error",
+            );
+            return;
+        }
+
+        const email = emailInput?.value.trim() || "";
+        const password = passwordInput?.value || "";
+        const fullName = fullNameInput?.value.trim() || "";
+
+        if (!validateForm(email, password, fullName)) {
+            return;
+        }
 
         submitBtn.disabled = true;
         submitBtn.innerText = isSignup ? "Creating..." : "Logging in...";
 
-        const email = (document.getElementById("email") as HTMLInputElement)
-            .value;
-        const password = (
-            document.getElementById("password") as HTMLInputElement
-        ).value;
-        const fullName = fullNameInput.value;
         let result;
 
         try {
+            const safeUsername = isSignup
+                ? await ensureUniqueUsername(email)
+                : undefined;
+
             if (isSignup) {
                 if (isLinking) {
                     // Upgrade Anonymous -> Real
                     result = await supabase.auth.updateUser({
                         email,
                         password,
-                        data: { full_name: fullName },
+                        data: { full_name: fullName, username: safeUsername },
                     });
                 } else {
                     // New Signup
@@ -300,7 +627,10 @@ const title = "Login | Resource Hub";
                         email,
                         password,
                         options: {
-                            data: { full_name: fullName },
+                            data: {
+                                full_name: fullName,
+                                username: safeUsername,
+                            },
                         },
                     });
                 }
@@ -326,12 +656,18 @@ const title = "Login | Resource Hub";
             } else {
                 if (isLinking) {
                     // Manually ensure profile exists (upsert)
-                    await supabase.from("profiles").upsert({
-                        id: (data.user as any)?.id,
-                        username: email.split("@")[0],
-                        full_name: fullName,
-                        role: "user",
-                    });
+                    const { error: upsertError } = await supabase
+                        .from("profiles")
+                        .upsert({
+                            id: (data.user as any)?.id,
+                            username: safeUsername || buildBaseUsername(email),
+                            full_name: fullName,
+                            role: "user",
+                        });
+
+                    if (upsertError) {
+                        console.error("Profile upsert failed:", upsertError);
+                    }
                 }
 
                 showMsg("Success! Redirecting...", "success");
@@ -359,19 +695,51 @@ const title = "Login | Resource Hub";
                 }
             }
         } catch (error: any) {
-            if (error.message.includes("Invalid login credentials")) {
-                showMsg(
-                    isSignup
-                        ? "Error: This email might already be in use."
-                        : "Invalid email or password.",
-                    "error",
+            const rawMessage = error?.message || "";
+            if (
+                rawMessage.includes("Password should be at least 6 characters")
+            ) {
+                setFieldError(
+                    passwordInput,
+                    passwordErrorEl,
+                    "Password must be at least 6 characters.",
                 );
-            } else {
-                showMsg(error.message, "error");
+            } else if (
+                rawMessage.includes("User already registered") ||
+                (isSignup && rawMessage.includes("Invalid login credentials"))
+            ) {
+                setFieldError(
+                    emailInput,
+                    emailErrorEl,
+                    "This email is already registered. Please log in instead.",
+                );
             }
+
+            showMsg(getFriendlyAuthError(error, isSignup), "error");
             submitBtn.disabled = false;
             submitBtn.innerText = isSignup ? "Create Account" : "Log In";
         }
+    });
+
+    passwordToggleBtn?.addEventListener("click", () => {
+        isPasswordVisible = !isPasswordVisible;
+        syncPasswordVisibility();
+    });
+
+    fullNameInput?.addEventListener("input", () => {
+        clearFieldError(fullNameInput, nameErrorEl);
+        clearMsg();
+    });
+
+    emailInput?.addEventListener("input", () => {
+        clearFieldError(emailInput, emailErrorEl);
+        clearMsg();
+    });
+
+    passwordInput?.addEventListener("input", () => {
+        clearFieldError(passwordInput, passwordErrorEl);
+        updatePasswordHint(passwordInput.value.length);
+        clearMsg();
     });
 
     toggleBtn?.addEventListener("click", (e) => {
@@ -382,6 +750,9 @@ const title = "Login | Resource Hub";
     // --- INIT ---
     const initPage = async () => {
         if (!supabase) return;
+
+        syncPasswordVisibility();
+        updatePasswordHint(passwordInput?.value.length || 0);
 
         const params = new URLSearchParams(window.location.search);
         const mode = params.get("mode");

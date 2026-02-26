@@ -1,6 +1,37 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
+const getJourneyTrackingSnapshot = () => {
+    if (typeof window === "undefined") return null;
+
+    try {
+        if (
+            window.__abodidJourney &&
+            typeof window.__abodidJourney.getSnapshot === "function"
+        ) {
+            return window.__abodidJourney.getSnapshot();
+        }
+    } catch (_error) {
+        // no-op
+    }
+
+    return {
+        currentPath: window.location.pathname,
+        initialReferrer: document.referrer || "",
+    };
+};
+
+const trackGaEvent = (eventName, params = {}) => {
+    if (typeof window === "undefined") return;
+    try {
+        if (typeof window.gtag === "function") {
+            window.gtag("event", eventName, params);
+        }
+    } catch (_error) {
+        // no-op
+    }
+};
+
 const NewsletterForm = ({ onClose, variant = "popup" }) => {
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -18,6 +49,15 @@ const NewsletterForm = ({ onClose, variant = "popup" }) => {
             const formData = new FormData();
             formData.append("email", email);
             if (name) formData.append("name", name);
+            formData.append(
+                "source",
+                variant === "page" ? "newsletter-page" : "newsletter-popup",
+            );
+
+            const tracking = getJourneyTrackingSnapshot();
+            if (tracking) {
+                formData.append("tracking", JSON.stringify(tracking));
+            }
 
             const response = await fetch("/api/subscribe", {
                 method: "POST",
@@ -33,6 +73,15 @@ const NewsletterForm = ({ onClose, variant = "popup" }) => {
             // Success
             setSuccessMsg(result.message);
             setIsSubmitted(true);
+            trackGaEvent("sign_up", {
+                method: "newsletter",
+                source_page:
+                    tracking?.lastSourcePage ||
+                    tracking?.currentPath ||
+                    window.location.pathname,
+                destination_page: window.location.pathname,
+                form_variant: variant,
+            });
             if (variant === "popup") {
                 localStorage.setItem("newsletter_popup_dismissed", "true");
                 // Auto close popup after success message

@@ -1,0 +1,33 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import BsaScheduleApp from "../components/BsaScheduleApp.jsx";
+
+const title = "BSA Conference Schedule";
+const description =
+  "Filterable BSA conference schedule with live now panel, day/theme filters, and room-based agenda view.";
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  fullWidth={true}
+  showGlobalGrid={false}
+  showNewsletterPopup={false}
+>
+  <section class="bsa-schedule-page-wrap">
+    <BsaScheduleApp client:only="react" />
+  </section>
+</BaseLayout>
+
+<style>
+  .bsa-schedule-page-wrap {
+    width: 100%;
+    padding: 0 0 2rem;
+    background:
+      radial-gradient(
+        1200px 460px at top center,
+        color-mix(in srgb, var(--accent-primary) 8%, transparent),
+        transparent
+      );
+  }
+</style>

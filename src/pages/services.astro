@@ -7,16 +7,18 @@ const title = "Services";
 const services = await getServices();
 
 // Helper to get styling based on category
-function getCategoryStyle(category: string) {
+function getCategoryStyle(category: string, index: number) {
+    const fallbackTones = ["tone-offer", "tone-skills", "tone-tools"];
+
     switch (category) {
         case "offer":
-            return "bg-white text-black border-subtle";
+            return "tone-offer";
         case "skills":
-            return "bg-red text-white border-transparent";
+            return "tone-skills";
         case "tools":
-            return "bg-black text-white border-transparent";
+            return "tone-tools";
         default:
-            return "bg-white text-black border-subtle";
+            return fallbackTones[index % fallbackTones.length];
     }
 }
 ---
@@ -33,8 +35,11 @@ function getCategoryStyle(category: string) {
 
         <div class="services-grid-layout">
             {
-                services.map((service) => {
-                    const styleClass = getCategoryStyle(service.category);
+                services.map((service, index) => {
+                    const styleClass = getCategoryStyle(
+                        service.category,
+                        index,
+                    );
 
                     return (
                         <div class={`service-box ${styleClass}`}>
@@ -106,29 +111,30 @@ function getCategoryStyle(category: string) {
                 transition: transform 0.2s ease;
                 font-family:
                     "Inconsolata", monospace; /* Explicitly requested font */
+                color: #1f2937;
+                box-shadow: 0 1px 0 rgba(15, 23, 42, 0.05);
             }
 
-            .bg-white {
-                background: #fff;
-                border: 1px solid var(--border-subtle);
-                color: #000; /* Explicit black text */
+            .tone-offer {
+                background: #edf4ff;
+                border: 1px solid #ccdcf5;
             }
 
-            .bg-red {
-                background: #d93025;
-                color: white;
+            .tone-skills {
+                background: #fff2e8;
+                border: 1px solid #efd4be;
             }
 
-            .bg-black {
-                background: #000;
-                color: white;
+            .tone-tools {
+                background: #eef8f0;
+                border: 1px solid #cfe4d3;
             }
 
             .box-header {
                 margin-bottom: 2rem;
-                border-bottom: 1px solid currentColor; /* Add a subtle separator line */
+                border-bottom: 1px solid rgba(31, 41, 55, 0.24); /* Softer but clearer separator */
                 padding-bottom: 1rem;
-                opacity: 0.9;
+                opacity: 1;
             }
 
             .box-header h2 {
@@ -137,6 +143,7 @@ function getCategoryStyle(category: string) {
                 font-weight: 700;
                 letter-spacing: 0.05em;
                 text-transform: uppercase;
+                color: #0f172a !important;
             }
 
             .service-desc {
@@ -145,6 +152,7 @@ function getCategoryStyle(category: string) {
                 line-height: 1.5;
                 max-width: 60ch;
                 font-weight: 400;
+                color: #1f2937;
             }
 
             .items-list {
@@ -161,6 +169,7 @@ function getCategoryStyle(category: string) {
                 line-height: 1.4;
                 display: flex;
                 gap: 0.75rem;
+                color: #1f2937;
             }
 
             .items-list.two-col {
@@ -172,7 +181,8 @@ function getCategoryStyle(category: string) {
             /* Custom bullet for list items */
             .items-list li::before {
                 content: "→"; /* Arrow bullet */
-                opacity: 0.6;
+                color: #334155;
+                opacity: 0.75;
                 font-weight: 300;
             }
 

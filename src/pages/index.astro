@@ -84,6 +84,27 @@ const wiedenUrl = findLink("Wieden");
 const animalUrl = findLink("Animal");
 const jawaUrl = "http://youtube.com/watch?v=CSmZHXpr13E";
 const odishaUrl = "https://vimeo.com/265220711";
+
+const supportProjects = [
+    {
+        id: "cambridge-data-school",
+        href: "/fundraising/cambridge-data-school",
+        image: "https://wallpapersok.com/images/high/cambridge-university-hall-7n378cd5chdvjxdg.jpg",
+        imageAlt: "University of Cambridge, United Kingdom",
+        title: "Looking for Partners for Cultural Heritage Data School",
+        description:
+            "I have been offered a place in the Cultural Heritage Data School happening in April 2026 at the University of Cambridge with a program fee bursary.",
+    },
+    {
+        id: "bsa-conference-2026",
+        href: "/fundraising/bsa-conference-2026",
+        image: "https://sociology.plus/wp-content/uploads/2022/07/British-Sociological-Association.png",
+        imageAlt: "BSA Annual Conference 2026",
+        title: "Looking for partners to support my BSA Conference 2026 journey",
+        description:
+            "Two peer-reviewed research works have been accepted at the BSA Annual Conference. My conference registration fee is already funded.",
+    },
+];
 ---
 
 <BaseLayout title={pageTitle}>
@@ -230,6 +251,47 @@ const odishaUrl = "https://vimeo.com/265220711";
                             <span class="arrow">→</span>
                         </div>
                     </a>
+                ))
+            }
+        </div>
+    </section>
+
+    <section class="section support-section">
+        <div class="section-header">
+            <h2 class="section-title">Support Me</h2>
+            <a href="/fundraising" class="link-arrow mobile-btn section-cta">View All</a>
+        </div>
+
+        <div class="support-projects">
+            {
+                supportProjects.map((project) => (
+                    <article class="support-project" id={project.id}>
+                        <a href={project.href} class="support-project-image-link">
+                            <img
+                                src={project.image}
+                                alt={project.imageAlt}
+                                class="support-project-image"
+                                loading="lazy"
+                            />
+                        </a>
+
+                        <div class="support-project-content">
+                            <a
+                                href={project.href}
+                                class="support-project-title-link"
+                            >
+                                <h3 class="support-project-title">
+                                    {project.title}
+                                </h3>
+                            </a>
+                            <p class="support-project-description">
+                                {project.description}
+                            </p>
+                            <a href={project.href} class="support-project-action"
+                                >View support details →</a
+                            >
+                        </div>
+                    </article>
                 ))
             }
         </div>
@@ -706,6 +768,86 @@ const odishaUrl = "https://vimeo.com/265220711";
         transition: transform 0.2s ease;
     }
 
+    .support-section {
+        margin-top: var(--space-xl);
+    }
+
+    .support-projects {
+        display: flex;
+        flex-direction: column;
+        gap: 1.75rem;
+    }
+
+    .support-project {
+        display: grid;
+        grid-template-columns: 320px 1fr;
+        gap: 1.5rem;
+        align-items: center;
+        padding: 1.25rem;
+        border: 1px solid var(--border-subtle);
+        border-radius: 10px;
+        background: var(--bg-surface);
+    }
+
+    .support-project-image-link {
+        display: block;
+        width: 100%;
+        border-radius: 8px;
+        overflow: hidden;
+        background: var(--bg-surface);
+    }
+
+    .support-project-image {
+        width: 100%;
+        height: 100%;
+        aspect-ratio: 16 / 9;
+        object-fit: cover;
+        display: block;
+    }
+
+    .support-project-content {
+        display: flex;
+        flex-direction: column;
+        gap: 0.65rem;
+    }
+
+    .support-project-title-link {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .support-project-title {
+        margin: 0;
+        font-family: var(--feature-writing-title-font, var(--font-serif));
+        font-size: 1.45rem;
+        line-height: 1.2;
+        color: var(--feature-writing-title-color, var(--text-primary));
+    }
+
+    .support-project-description {
+        margin: 0;
+        font-family: var(--feature-writing-category-font, var(--font-sans));
+        font-size: 0.96rem;
+        line-height: 1.55;
+        color: var(--feature-writing-category-color, var(--text-secondary));
+        max-width: 58ch;
+    }
+
+    .support-project-action {
+        margin-top: 0.25rem;
+        display: inline-block;
+        text-decoration: none;
+        font-family: var(--feature-writing-action-font, var(--font-ui));
+        font-size: var(--feature-writing-action-size, 0.8rem);
+        letter-spacing: var(--feature-writing-action-letter-spacing, 0.05em);
+        text-transform: uppercase;
+        color: var(--feature-writing-action-color, var(--text-tertiary));
+    }
+
+    .support-project-action:hover {
+        color: var(--text-primary);
+    }
+
     /* Typewriter Text Styling */
     #typewriter-text {
         font-family: var(--feature-typewriter-text-font, var(--feature-typewriter-main-font, var(--font-sans)));
@@ -797,6 +939,13 @@ const odishaUrl = "https://vimeo.com/265220711";
         .blog-title {
             font-size: 1.2rem;
         }
+        .support-project {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        .support-project-title {
+            font-size: 1.25rem;
+        }
         /* Hide Vibe Check on mobile */
         .vibe-check-wrapper {
             display: none;
@@ -811,6 +960,12 @@ const odishaUrl = "https://vimeo.com/265220711";
         .blog-image-wrapper {
             width: 100%;
             height: 200px;
+        }
+
+        .support-project {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            padding: 1rem;
         }
     }
 

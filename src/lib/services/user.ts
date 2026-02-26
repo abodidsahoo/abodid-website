@@ -2,6 +2,23 @@ import { supabase } from '../supabaseClient';
 import { isSupabaseConfigured } from './utils';
 import type { MediaMention, Award, Education, TimelineCard, CV, PageMetadata } from './types';
 
+const defaultAwards: Award[] = [
+    {
+        title: 'Apple Scholarship',
+        organization: 'Apple / Royal College of Art',
+        year: '2019 - 2021',
+        description: 'A prestigious full scholarship covering the entire tuition fees and a £28,000 stipend for the Master’s degree in Digital Direction at the Royal College of Art, London.',
+        published: true
+    },
+    {
+        title: 'Winner - Best Cinematography',
+        organization: 'National Film Festival',
+        year: '2023',
+        description: 'Awarded for exceptional visual storytelling in the short film "Echoes".',
+        published: true
+    }
+];
+
 export async function getMediaMentions(): Promise<MediaMention[]> {
     if (!isSupabaseConfigured() || !supabase) {
         // Mock Data
@@ -51,49 +68,59 @@ export async function getMediaMentions(): Promise<MediaMention[]> {
 
 export async function getAwards(): Promise<Award[]> {
     if (!isSupabaseConfigured() || !supabase) {
-        // Mock Data
-        return [
-            {
-                title: 'Apple Scholarship',
-                organization: 'Apple / Royal College of Art',
-                year: '2019 - 2021',
-                description: 'A prestigious full scholarship covering the entire tuition fees and a £28,000 stipend for the Master’s degree in Digital Direction at the Royal College of Art, London.',
-                published: true
-            },
-            {
-                title: 'Winner - Best Cinematography',
-                organization: 'National Film Festival',
-                year: '2023',
-                description: 'Awarded for exceptional visual storytelling in the short film "Echoes".',
-                published: true
-            }
-        ];
+        return defaultAwards;
     }
 
+    // Primary source: unified work_experience table (award + conference categories)
+    const { data: workExperienceData, error: workExperienceError } = await supabase
+        .from('work_experience')
+        .select('*')
+        .in('category', ['award', 'conference'])
+        .eq('published', true)
+        .order('sort_order', { ascending: true });
+
+    if (!workExperienceError && workExperienceData?.length) {
+        return workExperienceData.map((item: any) => ({
+            id: item.id,
+            title: item.role || item.title || 'Untitled Award',
+            organization: item.company || item.organization || '',
+            year: item.duration || item.year || '',
+            category: item.category,
+            description: item.description || '',
+            published: item.published !== false
+        } as Award));
+    }
+
+    if (workExperienceError) {
+        console.warn('Error fetching awards from work_experience:', workExperienceError);
+    }
+
+    // Backward-compatible fallback: legacy awards table.
     const { data, error } = await supabase
         .from('awards')
         .select('*')
-        .eq('published', true)
-        .order('year', { ascending: false })
         .order('created_at', { ascending: false });
 
     if (error) {
         console.error('Error fetching awards:', error);
-        return [];
+        return defaultAwards;
     }
 
-    return data.map((item: any) => ({
+    const mappedAwards = (data || []).map((item: any) => ({
         id: item.id,
-        title: item.title,
-        organization: item.organization,
-        year: item.year,
+        title: item.title || 'Untitled Award',
+        organization: item.organization || '',
+        year: item.year || (item.date ? new Date(item.date).getFullYear().toString() : ''),
         category: item.category,
         value: item.value,
         date: item.date,
         url: item.url,
-        description: item.description,
-        published: item.published
+        description: item.description || '',
+        published: item.published !== false
     } as Award));
+
+    const publishedAwards = mappedAwards.filter((item) => item.published !== false);
+    return publishedAwards.length ? publishedAwards : defaultAwards;
 }
 
 export async function getEducation(): Promise<Education[]> {

@@ -1,0 +1,41 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import BsaNetworkingApp from "../components/BsaNetworkingApp.jsx";
+import networkingData from "../data/bsa-networking.json";
+
+const title = "BSA Conference Networking";
+const description =
+  "Explore BSA conference presenter names by topic stream with multi-select filters and alphabetical networking lists.";
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  fullWidth={true}
+  showGlobalGrid={false}
+  showNewsletterPopup={false}
+>
+  <section class="bsa-networking-page-wrap">
+    <BsaNetworkingApp
+      topics={networkingData.topics}
+      totalPeople={networkingData.total_people}
+      topicCount={networkingData.topic_count}
+      location={networkingData.location}
+      timezone={networkingData.timezone}
+      client:only="react"
+    />
+  </section>
+</BaseLayout>
+
+<style>
+  .bsa-networking-page-wrap {
+    width: 100%;
+    padding: 0 0 2rem;
+    background:
+      radial-gradient(
+        1200px 460px at top center,
+        color-mix(in srgb, var(--accent-primary) 8%, transparent),
+        transparent
+      );
+  }
+</style>

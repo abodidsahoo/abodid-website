@@ -1,0 +1,305 @@
+.bsa-net-app {
+  --bsa-net-border: var(--border-subtle);
+  --bsa-net-border-strong: var(--border-strong);
+  --bsa-net-surface: var(--bg-surface);
+  --bsa-net-text: var(--text-primary);
+  --bsa-net-muted: var(--text-secondary);
+  --bsa-net-dim: var(--text-tertiary);
+  --bsa-net-accent: var(--accent-primary);
+
+  width: min(1120px, 100% - 2rem);
+  margin: 0 auto;
+  padding: 0.5rem 0 4rem;
+  color: var(--bsa-net-text);
+}
+
+.bsa-net-hero {
+  margin-bottom: 1.2rem;
+}
+
+.bsa-net-hero-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
+}
+
+.bsa-net-hero-title-wrap {
+  min-width: 0;
+}
+
+.bsa-net-eyebrow {
+  margin: 0;
+  color: var(--bsa-net-dim);
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.bsa-net-hero h1 {
+  margin: 0.35rem 0 0.5rem;
+  font-size: clamp(1.9rem, 3vw, 2.8rem);
+  letter-spacing: -0.02em;
+}
+
+.bsa-net-hero p {
+  margin: 0;
+  max-width: 34ch;
+  color: var(--bsa-net-muted);
+  line-height: 1.5;
+}
+
+.bsa-net-page-link-btn {
+  border: 1px solid color-mix(in srgb, var(--bsa-net-accent) 60%, var(--bsa-net-border));
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--bsa-net-accent) 16%, transparent);
+  color: var(--bsa-net-text);
+  text-decoration: none;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 0.48rem 0.7rem;
+  white-space: nowrap;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.bsa-net-page-link-btn:hover {
+  border-color: color-mix(in srgb, var(--bsa-net-accent) 78%, var(--bsa-net-border));
+  background: color-mix(in srgb, var(--bsa-net-accent) 24%, transparent);
+}
+
+.bsa-net-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 0.8rem;
+}
+
+.bsa-net-meta span {
+  border: 1px solid var(--bsa-net-border);
+  border-radius: 999px;
+  padding: 0.25rem 0.65rem;
+  font-size: 0.72rem;
+  font-family: var(--font-mono);
+  color: var(--bsa-net-dim);
+}
+
+.bsa-net-controls {
+  position: sticky;
+  top: 86px;
+  z-index: 24;
+  border: 1px solid var(--bsa-net-border);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--bsa-net-surface) 94%, transparent);
+  backdrop-filter: blur(12px);
+  padding: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.bsa-net-control-row {
+  display: grid;
+  gap: 0.35rem;
+  margin-bottom: 0.65rem;
+}
+
+.bsa-net-control-row label {
+  font-size: 0.71rem;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--bsa-net-dim);
+}
+
+.bsa-net-control-row input {
+  border: 1px solid var(--bsa-net-border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--bsa-net-surface) 92%, transparent);
+  color: var(--bsa-net-text);
+  font-size: 0.9rem;
+  padding: 0.58rem 0.65rem;
+}
+
+.bsa-net-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.2rem 0 0.75rem;
+}
+
+.bsa-net-actions button {
+  border: 1px solid var(--bsa-net-border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--bsa-net-muted);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.38rem 0.62rem;
+  cursor: pointer;
+}
+
+.bsa-net-actions button:hover:not(:disabled) {
+  color: var(--bsa-net-text);
+  border-color: var(--bsa-net-border-strong);
+}
+
+.bsa-net-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.bsa-net-pill-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.bsa-net-pill {
+  border: 1px solid var(--bsa-net-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--bsa-net-muted);
+  padding: 0.42rem 0.76rem;
+  font-size: 0.76rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.bsa-net-pill:hover {
+  border-color: var(--bsa-net-border-strong);
+  color: var(--bsa-net-text);
+}
+
+.bsa-net-pill.is-active {
+  color: var(--bsa-net-text);
+  border-color: color-mix(in srgb, var(--bsa-net-accent) 60%, var(--bsa-net-border));
+  background: color-mix(in srgb, var(--bsa-net-accent) 16%, transparent);
+}
+
+.bsa-net-pill-label {
+  line-height: 1;
+}
+
+.bsa-net-pill-count {
+  font-family: var(--font-mono);
+  font-size: 0.67rem;
+  color: var(--bsa-net-dim);
+}
+
+.bsa-net-results {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.bsa-net-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.bsa-net-summary p {
+  margin: 0;
+  border: 1px solid var(--bsa-net-border);
+  border-radius: 8px;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.82rem;
+  color: var(--bsa-net-muted);
+}
+
+.bsa-net-empty {
+  margin: 0;
+  border: 1px dashed var(--bsa-net-border);
+  border-radius: 10px;
+  padding: 0.8rem;
+  color: var(--bsa-net-muted);
+}
+
+.bsa-net-topic-block {
+  border: 1px solid var(--bsa-net-border);
+  border-radius: 14px;
+  padding: 0.8rem;
+  background: color-mix(in srgb, var(--bsa-net-surface) 94%, transparent);
+}
+
+.bsa-net-topic-block header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.7rem;
+  margin-bottom: 0.6rem;
+}
+
+.bsa-net-topic-block h2 {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
+.bsa-net-topic-block header span {
+  font-size: 0.72rem;
+  color: var(--bsa-net-dim);
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.bsa-net-topic-block ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 0.4rem;
+}
+
+.bsa-net-topic-block li {
+  border: 1px solid var(--bsa-net-border);
+  border-radius: 8px;
+  padding: 0.45rem 0.55rem;
+  background: color-mix(in srgb, var(--bsa-net-surface) 92%, transparent);
+  font-size: 0.86rem;
+  line-height: 1.3;
+}
+
+.bsa-net-pill:focus-visible,
+.bsa-net-actions button:focus-visible,
+.bsa-net-control-row input:focus-visible,
+.bsa-net-page-link-btn:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--bsa-net-accent) 72%, white);
+  outline-offset: 2px;
+}
+
+@media (max-width: 980px) {
+  .bsa-net-hero-top {
+    align-items: flex-start;
+  }
+
+  .bsa-net-controls {
+    top: 78px;
+  }
+}
+
+@media (max-width: 640px) {
+  .bsa-net-app {
+    width: calc(100% - 1rem);
+  }
+
+  .bsa-net-hero-top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6rem;
+  }
+
+  .bsa-net-page-link-btn {
+    white-space: normal;
+  }
+
+  .bsa-net-topic-block ul {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,4 +1,5 @@
--- MIGRATION: Improve New User Handling (Name & Username)
+-- Harden profile provisioning during auth signup.
+-- Prevents auth/v1/signup 500 errors caused by profile constraint failures.
 
 create or replace function public.handle_new_user()
 returns trigger
@@ -61,6 +62,7 @@ begin
   return new;
 exception
   when others then
+    -- Never block auth user creation due to profile insert edge cases.
     begin
       insert into public.profiles (id, username, full_name, role)
       values (
@@ -77,4 +79,19 @@ exception
 
     return new;
 end;
+$$;
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_trigger
+    where tgname = 'on_auth_user_created'
+      and tgrelid = 'auth.users'::regclass
+  ) then
+    create trigger on_auth_user_created
+      after insert on auth.users
+      for each row execute function public.handle_new_user();
+  end if;
+end
 $$;

@@ -10,6 +10,59 @@ export interface ResourceFilters {
     username?: string; // Filter by curator/submitter
 }
 
+async function getAccessToken(): Promise<string | null> {
+    if (!supabase) return null;
+
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.access_token) return session.access_token;
+
+    const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+    if (refreshError || !refreshData.session?.access_token) {
+        return null;
+    }
+
+    return refreshData.session.access_token;
+}
+
+async function sendSubmissionConfirmationEmail(resource: any): Promise<void> {
+    if (!supabase || !resource?.id) return;
+
+    const token = await getAccessToken();
+    if (!token) {
+        console.warn('Submission confirmation email skipped: missing auth token');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/resources/send-submission-email', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                resourceId: resource.id,
+                title: resource.title,
+                url: resource.url,
+                description: resource.description,
+                status: resource.status
+            })
+        });
+
+        const payload = await response.json().catch(() => null);
+        if (!response.ok) {
+            console.warn('Submission confirmation email failed:', payload?.error || response.statusText);
+            return;
+        }
+
+        if (payload?.emailResult && payload.emailResult.sent === false) {
+            console.warn('Submission confirmation email not sent:', payload.emailResult.reason);
+        }
+    } catch (error) {
+        console.warn('Submission confirmation email request failed:', error);
+    }
+}
+
 // --- Public Access ---
 
 export async function getApprovedResources(filters: ResourceFilters = {}): Promise<HubResource[]> {
@@ -202,6 +255,8 @@ export async function submitResource(payload: CreateResourcePayload): Promise<{ 
             .single();
 
         if (insertError) throw insertError;
+
+        await sendSubmissionConfirmationEmail(resource);
 
         return { success: true, data: resource };
 
@@ -534,51 +589,47 @@ export async function approveResource(
     if (!supabase) return { success: false, error: 'Database not connected' };
 
     try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return { success: false, error: 'Unauthorized' };
+        const note = payload.curator_note?.trim();
+        if (!note) {
+            return { success: false, error: 'Curator note is required for approval.' };
+        }
 
-        const updates: any = {
-            status: 'approved',
-            reviewed_at: new Date().toISOString(),
-            reviewed_by: user.id,
-            updated_at: new Date().toISOString()
+        const requestApprove = async (token: string) => {
+            return fetch('/api/resources/approve', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    resourceId,
+                    payload: {
+                        ...payload,
+                        curator_note: note
+                    }
+                })
+            });
         };
 
-        if (payload.thumbnail_url !== undefined) {
-            updates.thumbnail_url = payload.thumbnail_url;
-        }
+        let token = await getAccessToken();
+        if (!token) return { success: false, error: 'Unauthorized' };
 
-        if (payload.audience) {
-            updates.audience = payload.audience;
-        }
-
-        const { error: resourceError } = await supabase
-            .from('hub_resources')
-            .update(updates)
-            .eq('id', resourceId);
-
-        if (resourceError) throw resourceError;
-
-        if (payload.tag_ids) {
-            const { error: deleteTagsError } = await supabase
-                .from('hub_resource_tags')
-                .delete()
-                .eq('resource_id', resourceId);
-
-            if (deleteTagsError) throw deleteTagsError;
-
-            if (payload.tag_ids.length > 0) {
-                const tagInserts = payload.tag_ids.map(tagId => ({
-                    resource_id: resourceId,
-                    tag_id: tagId
-                }));
-
-                const { error: insertTagsError } = await supabase
-                    .from('hub_resource_tags')
-                    .insert(tagInserts);
-
-                if (insertTagsError) throw insertTagsError;
+        let response = await requestApprove(token);
+        if (response.status === 401) {
+            const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+            if (!refreshError && refreshData.session?.access_token) {
+                token = refreshData.session.access_token;
+                response = await requestApprove(token);
             }
+        }
+
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            return { success: false, error: result?.error || 'Failed to approve resource' };
+        }
+
+        if (result?.emailResult && result.emailResult.sent === false) {
+            console.warn('Approval email not sent:', result.emailResult.reason);
         }
 
         return { success: true };
@@ -588,26 +639,47 @@ export async function approveResource(
     }
 }
 
-export async function rejectResource(resourceId: string, reason?: string): Promise<{ success: boolean; error?: string }> {
+export async function rejectResource(resourceId: string, reason: string): Promise<{ success: boolean; error?: string }> {
     if (!supabase) return { success: false, error: 'Database not connected' };
 
     try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return { success: false, error: 'Unauthorized' };
+        const trimmedReason = reason?.trim();
+        if (!trimmedReason) {
+            return { success: false, error: 'Curator note is required for rejection.' };
+        }
 
-        const updates: any = {
-            status: 'rejected',
-            reviewed_at: new Date().toISOString(),
-            reviewed_by: user.id,
-            rejection_reason: reason || 'No reason provided'
+        const requestReject = async (token: string) => {
+            return fetch('/api/resources/reject', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ resourceId, reason: trimmedReason })
+            });
         };
 
-        const { error } = await supabase
-            .from('hub_resources')
-            .update(updates)
-            .eq('id', resourceId);
+        let token = await getAccessToken();
+        if (!token) return { success: false, error: 'Unauthorized' };
 
-        if (error) throw error;
+        let response = await requestReject(token);
+        if (response.status === 401) {
+            const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+            if (!refreshError && refreshData.session?.access_token) {
+                token = refreshData.session.access_token;
+                response = await requestReject(token);
+            }
+        }
+
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            return { success: false, error: payload?.error || 'Failed to reject resource' };
+        }
+
+        if (payload?.emailResult && payload.emailResult.sent === false) {
+            console.warn('Rejection email not sent:', payload.emailResult.reason);
+        }
+
         return { success: true };
 
     } catch (e: any) {

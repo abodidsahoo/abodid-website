@@ -1,73 +1,125 @@
 import type { APIRoute } from 'astro';
 import { Resend } from 'resend';
 
-const resend = new Resend(import.meta.env.RESEND_API_KEY);
+export const prerender = false;
+
+const escapeHtml = (value: string) =>
+    value
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+
+const ownerNotificationEmail = (
+    import.meta.env.OWNER_NOTIFICATION_EMAIL ||
+    process.env.OWNER_NOTIFICATION_EMAIL ||
+    import.meta.env.CONTACT_FORM_TO_EMAIL ||
+    process.env.CONTACT_FORM_TO_EMAIL ||
+    'hello@abodid.com'
+).trim().toLowerCase();
+
+const buildLegacyRejectionEmail = ({
+    submitterName,
+    resourceTitle,
+    rejectionReason,
+    dashboardUrl,
+    hubUrl
+}: {
+    submitterName: string;
+    resourceTitle: string;
+    rejectionReason: string;
+    dashboardUrl: string;
+    hubUrl: string;
+}) => {
+    const safeName = escapeHtml(submitterName);
+    const safeTitle = escapeHtml(resourceTitle);
+    const safeReason = escapeHtml(rejectionReason);
+    const safeDashboardUrl = escapeHtml(dashboardUrl);
+    const safeHubUrl = escapeHtml(hubUrl);
+
+    return {
+        subject: 'A quick update on your Resource Hub submission',
+        html: `
+            <!doctype html>
+            <html>
+                <body style="margin:0;padding:0;background:#f6f7f9;color:#1f2937;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+                    <div style="max-width:620px;margin:24px auto;padding:0 16px;">
+                        <div style="background:#ffffff;border:1px solid #e5e7eb;border-radius:14px;padding:28px;">
+                            <p style="margin:0 0 14px 0;">Hi ${safeName},</p>
+                            <p style="margin:0 0 14px 0;">Thank you for submitting <strong>"${safeTitle}"</strong> to the Resource Hub.</p>
+                            <p style="margin:0 0 14px 0;">For this current curation round, we are not including this resource. This is not a final no, and we may reconsider it in a future round.</p>
+                            <div style="margin:18px 0;padding:14px;border-radius:10px;background:#fff8f3;border:1px solid #f7d9c4;">
+                                <p style="margin:0 0 8px 0;font-weight:600;">Current review note</p>
+                                <p style="margin:0;">${safeReason}</p>
+                            </div>
+                            <p style="margin:0 0 10px 0;">If you are open to it, please share anything you would like us to consider, such as audience context, uniqueness, practical use case, or updates made since submission.</p>
+                            <p style="margin:0 0 18px 0;">
+                                <a href="${safeDashboardUrl}" style="display:inline-block;background:#111827;color:#ffffff;text-decoration:none;padding:10px 16px;border-radius:8px;font-weight:600;">Open Dashboard</a>
+                            </p>
+                            <p style="margin:0 0 4px 0;">With regards,</p>
+                            <p style="margin:0;">Abodid</p>
+                        </div>
+                        <p style="margin:12px 2px 0;color:#6b7280;font-size:12px;">Resource Hub: <a href="${safeHubUrl}" style="color:#6b7280;">${safeHubUrl}</a></p>
+                    </div>
+                </body>
+            </html>
+        `
+    };
+};
 
 export const POST: APIRoute = async ({ request }) => {
     try {
-        const { to, resourceTitle, rejectionReason, submitterName } = await request.json();
+        const resendKey = import.meta.env.RESEND_API_KEY || process.env.RESEND_API_KEY;
+        if (!resendKey) {
+            return new Response(JSON.stringify({ error: 'Missing RESEND_API_KEY' }), {
+                status: 500,
+                headers: { 'Content-Type': 'application/json' }
+            });
+        }
 
-        if (!to || !resourceTitle) {
+        const { to, resourceTitle, rejectionReason, submitterName } = await request.json();
+        const recipientEmail = typeof to === 'string' ? to.trim().toLowerCase() : '';
+        const safeTitle = typeof resourceTitle === 'string' ? resourceTitle.trim() : '';
+        const safeReason = typeof rejectionReason === 'string' && rejectionReason.trim()
+            ? rejectionReason.trim()
+            : 'No specific note was provided for this review.';
+        const safeName = typeof submitterName === 'string' && submitterName.trim()
+            ? submitterName.trim()
+            : 'there';
+
+        if (!recipientEmail || !safeTitle) {
             return new Response(JSON.stringify({ error: 'Missing required fields' }), {
                 status: 400,
                 headers: { 'Content-Type': 'application/json' }
             });
         }
 
-        // Send email using Resend
+        const baseUrl = new URL(request.url).origin;
+        const dashboardUrl = `${baseUrl}/resources/dashboard`;
+        const hubUrl = `${baseUrl}/resources`;
+        const emailContent = buildLegacyRejectionEmail({
+            submitterName: safeName,
+            resourceTitle: safeTitle,
+            rejectionReason: safeReason,
+            dashboardUrl,
+            hubUrl
+        });
+
+        const resend = new Resend(resendKey);
         const { data, error } = await resend.emails.send({
-            from: 'Resource Hub <noreply@abodidsahoo.zip>',
-            to: to,
-            subject: `Your Resource Hub submission was reviewed`,
-            html: `
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <style>
-                        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; }
-                        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 8px 8px 0 0; }
-                        .content { background: #f9fafb; padding: 30px; border-radius: 0 0 8px 8px; }
-                        .feedback-box { background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; border-radius: 4px; }
-                        .button { display: inline-block; background: #667eea; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin-top: 20px; }
-                        .footer { text-align: center; color: #6b7280; font-size: 14px; margin-top: 30px; }
-                    </style>
-                </head>
-                <body>
-                    <div class="container">
-                        <div class="header">
-                            <h1 style="margin: 0; font-size: 24px;">Resource Hub Update</h1>
-                        </div>
-                        <div class="content">
-                            <p>Hi ${submitterName || 'there'},</p>
-                            
-                            <p>Thank you for submitting <strong>"${resourceTitle}"</strong> to the Resource Hub.</p>
-                            
-                            <p>After review, we've decided not to approve this submission at this time.</p>
-                            
-                            ${rejectionReason ? `
-                                <div class="feedback-box">
-                                    <strong>📝 Curator Feedback:</strong>
-                                    <p style="margin: 10px 0 0 0;">${rejectionReason}</p>
-                                </div>
-                            ` : ''}
-                            
-                            <p>You can edit and resubmit your resource anytime. We encourage you to address the feedback and try again!</p>
-                            
-                            <a href="https://abodidsahoo.zip/resources/curator" class="button">View Your Dashboard</a>
-                            
-                            <div class="footer">
-                                <p>Questions? Reply to this email or visit our <a href="https://abodidsahoo.zip/resources">Resource Hub</a></p>
-                            </div>
-                        </div>
-                    </div>
-                </body>
-                </html>
-            `
+            from: 'Abodid <newsletter@abodid.com>',
+            to: recipientEmail,
+            bcc:
+                ownerNotificationEmail && ownerNotificationEmail !== recipientEmail
+                    ? [ownerNotificationEmail]
+                    : undefined,
+            replyTo: ownerNotificationEmail || undefined,
+            subject: emailContent.subject,
+            html: emailContent.html
         });
 
         if (error) {
-            console.error('Resend error:', error);
             return new Response(JSON.stringify({ error: error.message }), {
                 status: 500,
                 headers: { 'Content-Type': 'application/json' }
@@ -78,10 +130,9 @@ export const POST: APIRoute = async ({ request }) => {
             status: 200,
             headers: { 'Content-Type': 'application/json' }
         });
-
-    } catch (e: any) {
-        console.error('Email send error:', e);
-        return new Response(JSON.stringify({ error: e.message }), {
+    } catch (error: any) {
+        console.error('Legacy rejection email error:', error);
+        return new Response(JSON.stringify({ error: error?.message || 'Internal server error' }), {
             status: 500,
             headers: { 'Content-Type': 'application/json' }
         });
