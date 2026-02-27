@@ -3,23 +3,83 @@ const OPENROUTER_API_KEY = import.meta.env.OPENROUTER_API_KEY;
 const SITE_URL = import.meta.env.SITE || 'https://abodid.com';
 const SITE_NAME = 'Abodid Personal Site';
 
-// Priority 1: OpenRouter Free Models (Must be Multimodal)
-// Priority 1: OpenRouter Free Models (Must be Multimodal)
-const VISION_MODELS = [
-    'nvidia/nemotron-nano-12b-v2-vl:free',            // Priority 1: Nvidia (Vision)
-    'meta-llama/llama-3.2-11b-vision-instruct:free',  // Priority 2: Llama 3.2 Vision (Small)
-    'meta-llama/llama-3.2-90b-vision-instruct:free',  // Priority 3: Llama 3.2 Vision (Large)
-    'qwen/qwen-2-vl-7b-instruct:free',                // Priority 4: Qwen Vision
-    'openrouter/free'                                  // Priority 5: Fallback Router
+const AUTO_VISION_MODELS = [
+    'openrouter/auto'
 ];
+
+const PAID_VISION_MODELS = parseModelEnv(
+    import.meta.env.OPENROUTER_PAID_VISION_MODELS,
+    [
+        'openai/gpt-4o-mini',
+        'openai/gpt-4o',
+        'anthropic/claude-3.5-sonnet',
+        'google/gemini-1.5-pro',
+    ]
+);
+
+const FREE_VISION_MODELS = parseModelEnv(
+    import.meta.env.OPENROUTER_FREE_VISION_MODELS,
+    [
+        'nvidia/nemotron-nano-12b-v2-vl:free',            // Priority 1: Nvidia (Vision)
+        'meta-llama/llama-3.2-11b-vision-instruct:free',  // Priority 2: Llama 3.2 Vision (Small)
+        'meta-llama/llama-3.2-90b-vision-instruct:free',  // Priority 3: Llama 3.2 Vision (Large)
+        'qwen/qwen-2-vl-7b-instruct:free',                // Priority 4: Qwen Vision
+        'openrouter/free'                                  // Priority 5: Fallback Router
+    ]
+);
+
+const VISION_MODELS = Array.from(new Set([
+    ...AUTO_VISION_MODELS,
+    ...PAID_VISION_MODELS,
+    ...FREE_VISION_MODELS,
+]));
+
+const MODEL_TIERS: Record<string, 'auto' | 'paid' | 'free'> = {};
+AUTO_VISION_MODELS.forEach(m => MODEL_TIERS[m] = 'auto');
+PAID_VISION_MODELS.forEach(m => MODEL_TIERS[m] = 'paid');
+FREE_VISION_MODELS.forEach(m => {
+    if (!MODEL_TIERS[m]) MODEL_TIERS[m] = 'free';
+});
 
 // Internal Scoreboard for Model Reliability (In-Memory Hot Cache)
 const MODEL_SCORES: Record<string, number> = {};
 VISION_MODELS.forEach(m => MODEL_SCORES[m] = 0);
 
+function parseModelEnv(value: string | undefined, fallback: string[]): string[] {
+    if (!value) return fallback;
+    return value
+        .split(',')
+        .map(v => v.trim())
+        .filter(Boolean);
+}
+
+function parseModelMode(value: any): 'free' | 'paid' {
+    return value === 'paid' ? 'paid' : 'free';
+}
+
+function sortByScore(models: string[]) {
+    return [...models].sort((a, b) => (MODEL_SCORES[b] || 0) - (MODEL_SCORES[a] || 0));
+}
+
+function getOrderedModels(mode: 'free' | 'paid') {
+    if (mode === 'paid') {
+        return [
+            ...sortByScore(AUTO_VISION_MODELS),
+            ...sortByScore(PAID_VISION_MODELS),
+        ];
+    }
+
+    return [
+        ...sortByScore(FREE_VISION_MODELS),
+        ...sortByScore(AUTO_VISION_MODELS),
+        ...sortByScore(PAID_VISION_MODELS),
+    ];
+}
+
 export const POST: APIRoute = async ({ request }) => {
     try {
-        const { imageUrl, userContext } = await request.json();
+        const { imageUrl, userContext, modelMode } = await request.json();
+        const mode = parseModelMode(modelMode);
 
         if (!imageUrl) {
             return new Response(JSON.stringify({ error: "Image URL is required" }), { status: 400 });
@@ -118,9 +178,8 @@ Output strictly valid JSON:
 
         // STRATEGY 1: Try OpenRouter Models
         if (OPENROUTER_API_KEY) {
-            // Dynamic Sort: Prioritize models with higher scores
-            const sortedModels = [...VISION_MODELS].sort((a, b) => (MODEL_SCORES[b] || 0) - (MODEL_SCORES[a] || 0));
-            console.log("[Vision Analysis] Model Priority:", sortedModels.map(m => `${m} (${MODEL_SCORES[m]})`));
+            const sortedModels = getOrderedModels(mode);
+            console.log(`[Vision Analysis] Mode ${mode.toUpperCase()} Model Priority:`, sortedModels.map(m => `${m} (${MODEL_SCORES[m]})`));
 
             for (const model of sortedModels) {
                 console.log(`[Vision Analysis] Attempting OpenRouter model: ${model}`);
@@ -173,14 +232,16 @@ Output strictly valid JSON:
                     }
 
                     try {
+                        const usedModel = data.model || model;
                         const parsed = parseJSON(content);
-                        console.log(`[Vision Analysis] Success with OpenRouter model: ${model}`);
+                        console.log(`[Vision Analysis] Success with OpenRouter model: ${usedModel}`);
                         // Increment Score for Reliability
                         MODEL_SCORES[model] = (MODEL_SCORES[model] || 0) + 1;
 
                         return new Response(JSON.stringify({
                             success: true,
-                            model_used: model,
+                            model_used: usedModel,
+                            model_tier: MODEL_TIERS[model] || 'free',
                             ...parsed
                         }), { status: 200 });
                     } catch (parseErr) {

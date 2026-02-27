@@ -104,7 +104,7 @@ export default function UserDashboard({ user: propUser }: UserDashboardProps) {
                         </a>
                     </div>
                 </div>
-                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                <div className="dashboard-header-actions">
                     <button onClick={handleRefresh} className="btn-refresh-text">
                         Refresh
                     </button>
@@ -260,6 +260,13 @@ export default function UserDashboard({ user: propUser }: UserDashboardProps) {
                 .welcome {
                     color: var(--text-secondary);
                     margin: 0;
+                }
+
+                .dashboard-header-actions {
+                    display: flex;
+                    gap: 1rem;
+                    align-items: center;
+                    flex-wrap: wrap;
                 }
 
                  /* Common Header Button Style */
@@ -570,6 +577,17 @@ export default function UserDashboard({ user: propUser }: UserDashboardProps) {
                 @media (max-width: 768px) {
                     .curator-header {
                         flex-direction: column;
+                    }
+
+                    .dashboard-header-actions {
+                        width: 100%;
+                        flex-direction: column;
+                        align-items: stretch;
+                    }
+
+                    .dashboard-header-actions > * {
+                        width: 100%;
+                        justify-content: center;
                     }
 
                     .btn-submit-new {

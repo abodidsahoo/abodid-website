@@ -1,14 +1,19 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
 import PaletteExtractor, { analyzeImage } from "./PaletteExtractor.jsx";
+import MoodboardPolaroidViewer from "./MoodboardPolaroidViewer.jsx";
 
-const PolaroidScatter = ({ items, immersive = false }) => {
+const PolaroidScatter = ({ items, immersive = false, deepLinkParam = '' }) => {
     const [selectedId, setSelectedId] = useState(null);
     const containerRef = useRef(null);
     const [scatteredItems, setScatteredItems] = useState([]);
     const [maxZIndex, setMaxZIndex] = useState(10);
     const [isDarkBg, setIsDarkBg] = useState(true);
+    const assetCacheRef = useRef({});
+    const probedUrlsRef = useRef(new Set());
+    const deepLinkInitializedRef = useRef(false);
+    const [visibleRange, setVisibleRange] = useState({ top: -Infinity, bottom: Infinity });
 
     // Track Background Brightness for UI Adaptivity
     useEffect(() => {
@@ -40,6 +45,63 @@ const PolaroidScatter = ({ items, immersive = false }) => {
         const interval = setInterval(checkBg, 1000);
         return () => clearInterval(interval);
     }, []);
+
+    // Pre-probe all images like VisualMoodboard (warm cache + dimensions)
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        let cancelled = false;
+        const list = Array.isArray(items) ? items : [];
+
+        list.forEach((item) => {
+            const imageUrl = item?.cover_image || item?.image || item?.url;
+            if (!imageUrl) return;
+            if (probedUrlsRef.current.has(imageUrl)) return;
+            probedUrlsRef.current.add(imageUrl);
+
+            const probe = new window.Image();
+            probe.decoding = 'async';
+            probe.loading = 'eager';
+            probe.onload = () => {
+                if (cancelled) return;
+                const dimensions = {
+                    width: probe.naturalWidth || 1,
+                    height: probe.naturalHeight || 1,
+                };
+                const existing = assetCacheRef.current[imageUrl] || {};
+                assetCacheRef.current[imageUrl] = { ...existing, dimensions };
+            };
+            probe.onerror = () => {
+                if (cancelled) return;
+                if (!assetCacheRef.current[imageUrl]) {
+                    assetCacheRef.current[imageUrl] = {
+                        dimensions: { width: 1, height: 1 },
+                    };
+                }
+            };
+            probe.src = imageUrl;
+        });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [items]);
+
+    const deepLinkKey = deepLinkParam.trim();
+
+    const syncDeepLink = (itemId) => {
+        if (!deepLinkKey || typeof window === 'undefined') return;
+        const nextUrl = new URL(window.location.href);
+        if (itemId) {
+            nextUrl.searchParams.set(deepLinkKey, itemId);
+        } else {
+            nextUrl.searchParams.delete(deepLinkKey);
+        }
+        window.history.replaceState(
+            {},
+            '',
+            `${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`,
+        );
+    };
 
     // Initial random scatter (Pre-Chunked Units + Spiral Wave)
     useEffect(() => {
@@ -195,11 +257,76 @@ const PolaroidScatter = ({ items, immersive = false }) => {
         }
     }, [items, scatteredItems.length, immersive]);
 
+    useEffect(() => {
+        if (!deepLinkKey || typeof window === 'undefined') return;
+        if (deepLinkInitializedRef.current) return;
+        if (!scatteredItems.length) return;
+
+        const requestedId = new URLSearchParams(window.location.search).get(deepLinkKey);
+        if (requestedId && scatteredItems.some((item) => item.id === requestedId)) {
+            setSelectedId(requestedId);
+        } else if (requestedId) {
+            syncDeepLink('');
+        }
+        deepLinkInitializedRef.current = true;
+    }, [deepLinkKey, scatteredItems]);
+
+    useEffect(() => {
+        if (!selectedId) return;
+        if (scatteredItems.some((item) => item.id === selectedId)) return;
+        setSelectedId(null);
+        syncDeepLink('');
+    }, [selectedId, scatteredItems]);
+
+    // PERF NOTE: Rendering every polaroid at once is expensive (hundreds of images + shadows).
+    // Culling offscreen cards keeps pointer/scroll smooth without changing the visual layout.
+    useEffect(() => {
+        if (!immersive || typeof window === 'undefined') {
+            setVisibleRange({ top: -Infinity, bottom: Infinity });
+            return () => {};
+        }
+
+        let rafId = 0;
+        const updateRange = () => {
+            const containerTop = containerRef.current?.offsetTop ?? 0;
+            const scrollY = window.scrollY || 0;
+            const viewportH = window.innerHeight || 0;
+            const buffer = Math.max(1200, viewportH * 1.5);
+            setVisibleRange({
+                top: scrollY - buffer - containerTop,
+                bottom: scrollY + viewportH + buffer - containerTop,
+            });
+        };
+
+        const onScroll = () => {
+            if (rafId) return;
+            rafId = window.requestAnimationFrame(() => {
+                rafId = 0;
+                updateRange();
+            });
+        };
+
+        updateRange();
+        window.addEventListener('scroll', onScroll, { passive: true });
+        window.addEventListener('resize', onScroll);
+        return () => {
+            if (rafId) window.cancelAnimationFrame(rafId);
+            window.removeEventListener('scroll', onScroll);
+            window.removeEventListener('resize', onScroll);
+        };
+    }, [immersive]);
+
     // --- SMART LOADING CONTROLLER ---
     // Gradually release priorities to ensure "Top 30" load before "Buried 30"
     const [maxPriorityAllowed, setMaxPriorityAllowed] = useState(0);
+    const smartLoadingEnabled = !immersive;
 
     useEffect(() => {
+        if (!smartLoadingEnabled) {
+            setMaxPriorityAllowed(Number.POSITIVE_INFINITY);
+            return () => {};
+        }
+
         // Start cascading the loads
         const interval = setInterval(() => {
             setMaxPriorityAllowed(prev => {
@@ -211,13 +338,13 @@ const PolaroidScatter = ({ items, immersive = false }) => {
                 }
                 return prev + 1;
             });
-        }, 800); // New batch every 800ms? 
+        }, 200); // New batch every 200ms
         // Priority 0: Instant.
-        // Priority 1: 800ms.
-        // Priority 2: 1600ms.
+        // Priority 1: 200ms.
+        // Priority 2: 400ms.
 
         return () => clearInterval(interval);
-    }, []);
+    }, [smartLoadingEnabled]);
 
     // ... handlers ...
     const handleSelect = (id) => {
@@ -227,55 +354,112 @@ const PolaroidScatter = ({ items, immersive = false }) => {
         // ANY click on a card should just close the lightbox, not switch.
         if (selectedId) {
             setSelectedId(null);
+            syncDeepLink('');
             return;
+        }
+
+        const selectedItem = scatteredItems.find((item) => item.id === id);
+        if (selectedItem) {
+            const imageUrl = selectedItem.cover_image || selectedItem.image || selectedItem.url;
+            if (imageUrl) {
+                const preloadImage = new Image();
+                preloadImage.src = imageUrl;
+            }
+            if (typeof selectedItem.priority === 'number') {
+                setMaxPriorityAllowed((prev) => Math.max(prev, selectedItem.priority));
+            }
         }
 
         // Otherwise open the clicked one
         setSelectedId(id);
+        syncDeepLink(id);
     };
 
-    const handleDragStart = (index) => {
+    const handleDragStart = (id) => {
         const newMax = maxZIndex + 1;
         setMaxZIndex(newMax);
         setScatteredItems(prev => {
             const next = [...prev];
-            next[index] = { ...next[index], zIndex: newMax };
+            const idx = next.findIndex((item) => item.id === id);
+            if (idx === -1) return prev;
+            next[idx] = { ...next[idx], zIndex: newMax };
             return next;
         });
     };
 
-    const handleRotate = (index, deltaRotation) => {
+    const handleRotate = (id, deltaRotation) => {
         setScatteredItems(prev => {
             const next = [...prev];
-            next[index] = { ...next[index], rotation: next[index].rotation + deltaRotation };
+            const idx = next.findIndex((item) => item.id === id);
+            if (idx === -1) return prev;
+            next[idx] = { ...next[idx], rotation: next[idx].rotation + deltaRotation };
             return next;
         });
     };
 
-    const handleDragEnd = (index, info) => {
+    const handleDragEnd = (id, info) => {
         setScatteredItems(prev => {
             const next = [...prev];
-            next[index] = {
-                ...next[index],
-                x: next[index].x + info.offset.x,
-                y: next[index].y + info.offset.y
+            const idx = next.findIndex((item) => item.id === id);
+            if (idx === -1) return prev;
+            next[idx] = {
+                ...next[idx],
+                x: next[idx].x + info.offset.x,
+                y: next[idx].y + info.offset.y
             };
             return next;
         });
     };
 
     // STRICT ID MATCHING ONLY. No slug fallback.
-    const selectedItem = scatteredItems.find(i => i.id === selectedId);
     const maxY = scatteredItems.length > 0 ? Math.max(...scatteredItems.map(i => i.y)) : 2000;
     // Note: We don't need padding-top 0 anymore if we aren't managing background here, but keeping basic layout is fine
     const dynamicStyle = immersive ? { minHeight: `${maxY + 600}px`, alignItems: 'flex-start' } : {};
 
+    const viewerItems = useMemo(
+        () =>
+            scatteredItems
+                .map((item) => {
+                    const imageUrl = item.cover_image || item.image || item.url;
+                    if (!imageUrl) return null;
+                    const projectHref = item.link || item.projectHref || item.href || '';
+                    return {
+                        id: item.id,
+                        title: item.title || 'Untitled',
+                        imageUrl,
+                        caption: item.caption || '',
+                        projectHref,
+                        href: projectHref,
+                    };
+                })
+                .filter(Boolean),
+        [scatteredItems],
+    );
+
+    const visibleItems = useMemo(() => {
+        if (!immersive) return scatteredItems;
+        return scatteredItems.filter(
+            (item) => item.y >= visibleRange.top && item.y <= visibleRange.bottom,
+        );
+    }, [immersive, scatteredItems, visibleRange]);
+
+    const handleViewerClose = () => {
+        setSelectedId(null);
+        syncDeepLink('');
+    };
+
+    const handleViewerChange = (id) => {
+        if (!id) return;
+        setSelectedId(id);
+        syncDeepLink(id);
+    };
+
     return (
         // REMOVED 'cutting-mat' class - background is now in parent Astro page for instant load
-        <div className={`polaroid-scatter-container ${immersive ? 'immersive' : ''}`} ref={containerRef} style={dynamicStyle} onClick={() => setSelectedId(null)}>
+        <div className={`polaroid-scatter-container ${immersive ? 'immersive' : ''}`} ref={containerRef} style={dynamicStyle} onClick={handleViewerClose}>
             {/* REMOVED grid-overlay - moved to parent CSS */}
 
-            {scatteredItems.map((item, index) => {
+            {visibleItems.map((item) => {
                 // strict ID match
                 const isSelected = selectedId === item.id;
                 return (
@@ -285,18 +469,24 @@ const PolaroidScatter = ({ items, immersive = false }) => {
                         isSelected={isSelected}
                         onSelect={() => handleSelect(item.id)} // use strict ID
                         dragConstraints={containerRef}
-                        onDragStart={() => handleDragStart(index)}
-                        onDragEnd={(_, info) => handleDragEnd(index, info)}
-                        onRotate={(delta) => handleRotate(index, delta)}
+                        onDragStart={() => handleDragStart(item.id)}
+                        onDragEnd={(_, info) => handleDragEnd(item.id, info)}
+                        onRotate={(delta) => handleRotate(item.id, delta)}
                         isDarkBg={isDarkBg}
                         maxPriorityAllowed={maxPriorityAllowed}
+                        smartLoadingEnabled={smartLoadingEnabled}
                     />
                 );
             })}
 
-            <AnimatePresence>
-                {selectedId && <Lightbox items={scatteredItems} initialId={selectedId} onClose={() => setSelectedId(null)} />}
-            </AnimatePresence>
+            {selectedId && (
+                <MoodboardPolaroidViewer
+                    items={viewerItems}
+                    activeId={selectedId}
+                    onClose={handleViewerClose}
+                    onChange={handleViewerChange}
+                />
+            )}
 
             <style>{`
                 .polaroid-scatter-container {
@@ -320,14 +510,15 @@ const PolaroidScatter = ({ items, immersive = false }) => {
     );
 };
 
-const PolaroidCard = ({ item, isSelected, onSelect, onDragStart, onDragEnd, onRotate, isDarkBg, maxPriorityAllowed }) => {
+const PolaroidCard = ({ item, isSelected, onSelect, onDragStart, onDragEnd, onRotate, isDarkBg, maxPriorityAllowed, smartLoadingEnabled }) => {
     // Track drag state to prevent triggering click (select) after a drag
     const isDraggingRef = useRef(false);
+    const isPriorityImage = item?.isCover || item?.priority === 0;
 
     // --- SMART LOADING CHECK ---
     // If item.priority is undefined, load by default (legacy/fallback).
     // If defined, check against threshold.
-    const shouldLoad = (item.priority === undefined) || (item.priority <= maxPriorityAllowed);
+    const shouldLoad = !smartLoadingEnabled || (item.priority === undefined) || (item.priority <= maxPriorityAllowed);
 
     return (
         <motion.div
@@ -363,7 +554,14 @@ const PolaroidCard = ({ item, isSelected, onSelect, onDragStart, onDragEnd, onRo
                 <div className="image-area" style={{ backgroundColor: shouldLoad ? '#222' : '#f0f0f0' }}>
                     {/* Only render SRC if permitted. Simulates prioritized download queue. */}
                     {shouldLoad ? (
-                        <img src={item.cover_image || item.image || item.url} alt={item.title} draggable="false" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <img
+                            src={item.cover_image || item.image || item.url}
+                            alt={item.title}
+                            loading={isPriorityImage ? 'eager' : 'lazy'}
+                            decoding={isPriorityImage ? 'sync' : 'async'}
+                            draggable="false"
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
                     ) : (
                         <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             {/* Optional: Spinner or just blank */}
@@ -514,7 +712,7 @@ const RotationHandle = ({ position, onRotate, isDarkBg }) => {
 };
 
 
-const Lightbox = ({ items, initialId, onClose }) => {
+const Lightbox = ({ items, initialId, onClose, assetCacheRef }) => {
     const initialIndex = items.findIndex(i => i.id === initialId);
     const [currentIndex, setCurrentIndex] = useState(initialIndex !== -1 ? initialIndex : 0);
     const [mounted, setMounted] = useState(false);
@@ -522,15 +720,16 @@ const Lightbox = ({ items, initialId, onClose }) => {
     // --- INTRODUCING ASSET CACHE ---
     // Stores: { [url]: { dimensions: {w, h}, palette: [...], bg: 'rgb(...)' } }
     // This allows us to "predict" the future.
-    const assetCache = useRef({});
-    // We can populate this cache from the parent too if we wanted, but for now we build it here.
+    const fallbackCacheRef = useRef({});
+    const cacheRef = assetCacheRef || fallbackCacheRef;
 
     // Calculate URL for current item
     const currentItem = items[currentIndex];
     const imageUrl = currentItem.cover_image || currentItem.image || currentItem.url;
+    const projectHref = currentItem.link || currentItem.projectHref || currentItem.href || '';
 
     // Check Cache for INITIAL STATE
-    const cachedData = assetCache.current[imageUrl];
+    const cachedData = cacheRef.current[imageUrl];
 
     // If we have cached dimensions, calculating width is deterministic math, not DOM reading.
     // Assume max height is roughly 85vh (Need to match CSS).
@@ -568,9 +767,8 @@ const Lightbox = ({ items, initialId, onClose }) => {
             // If we guessed wrong with cache, or if no cache, correct it now.
             if (newWidth !== layoutWidth) {
                 setLayoutWidth(newWidth);
-            } else {
-                setIsLayoutStable(true);
             }
+            setIsLayoutStable(true);
         }
     };
 
@@ -587,26 +785,7 @@ const Lightbox = ({ items, initialId, onClose }) => {
     }, [isLayoutStable, shutterState]);
 
 
-    // Buffer to prevent visual "jumping" from center to right
-    useEffect(() => {
-        let t;
-        if (layoutWidth === 'auto') {
-            setIsLayoutStable(false);
-            // FAILSAFE: Force visibility after 500ms even if layout math fails
-            // This prevents "Invisible Lightbox" bug
-            const check = setTimeout(() => {
-                if (layoutWidth === 'auto') {
-                    setIsLayoutStable(true);
-                    setLayoutWidth('100%'); // Fallback width
-                }
-            }, 500);
-            return () => clearTimeout(check);
-        } else {
-            // 150ms buffer to allow the modal to physically expand before revealing UI
-            t = setTimeout(() => setIsLayoutStable(true), 150);
-        }
-        return () => clearTimeout(t);
-    }, [layoutWidth]);
+    // (Removed extra layout buffering to match VisualMoodboard speed.)
 
     // Reset state on image change (When currentIndex actually updates)
     useEffect(() => {
@@ -615,7 +794,7 @@ const Lightbox = ({ items, initialId, onClose }) => {
         // --- INSTANT RESIZE FROM CACHE ---
         const currentItem = items[currentIndex];
         const url = currentItem.cover_image || currentItem.image || currentItem.url;
-        const cachedData = assetCache.current[url];
+        const cachedData = cacheRef.current[url];
 
         if (cachedData && cachedData.dimensions) {
             // Match CSS: max-height: 65vh, max-width: 80vw
@@ -719,7 +898,7 @@ const Lightbox = ({ items, initialId, onClose }) => {
             const item = items[idx];
             if (item) {
                 const url = item.cover_image || item.image || item.url;
-                if (url && !assetCache.current[url]) {
+                if (url && !cacheRef.current[url]) {
                     // 1. Trigger network request (Browser Cache)
                     const link = document.createElement('link');
                     link.rel = 'preload';
@@ -729,7 +908,7 @@ const Lightbox = ({ items, initialId, onClose }) => {
 
                     // 2. Trigger CPU Analysis (Data Cache)
                     analyzeImage(url).then(data => {
-                        assetCache.current[url] = data;
+                        cacheRef.current[url] = data;
                         // console.log("Cached asset:", url);
                     }).catch(e => { /* Ignore errors for background tasks */ });
                 }
@@ -759,6 +938,7 @@ const Lightbox = ({ items, initialId, onClose }) => {
                 animate={{ opacity: 1, backgroundColor: overlayColor }}
                 exit={{ opacity: 0 }}
                 style={{ backgroundColor: overlayColor }}
+                onClick={onClose}
             >
                 {/* GLOBAL NAVIGATION ARROWS */}
                 <button className="global-nav-btn prev" onClick={prevImage} title="Previous (Left Arrow)">
@@ -769,9 +949,21 @@ const Lightbox = ({ items, initialId, onClose }) => {
                     <svg viewBox="0 0 24 24" width="24" height="24" stroke="white" strokeWidth="2" fill="none"><path d="M9 18l6-6-6-6" /></svg>
                 </button>
 
+                <button
+                    type="button"
+                    className="close-viewer-btn"
+                    onClick={(event) => {
+                        event.stopPropagation();
+                        onClose();
+                    }}
+                    aria-label="Close photo viewer"
+                >
+                    x
+                </button>
+
                 <motion.div
                     className="lightbox-polaroid"
-                    onClick={onClose}
+                    onClick={(event) => event.stopPropagation()}
                     initial={{ scale: 0.9, opacity: 0, y: 20 }}
                     // CONTAINER ANIMATION: Collapses to a strip on close, Expands on open
                     animate={{
@@ -831,6 +1023,8 @@ const Lightbox = ({ items, initialId, onClose }) => {
                                     ref={imgRef}
                                     src={imageUrl}
                                     alt={currentItem.title}
+                                    loading="eager"
+                                    decoding="async"
                                     onLoad={handleImageLoad}
                                     onError={() => {
                                         setLoading(false);
@@ -853,7 +1047,9 @@ const Lightbox = ({ items, initialId, onClose }) => {
                                 transition: 'opacity 0.1s'
                             }}
                         >
-                            <h3 className="handwritten-title">{currentItem.title}</h3>
+                            <div className="caption-copy">
+                                <h3 className="lightbox-title" title={currentItem.title}>{currentItem.title}</h3>
+                            </div>
                             {/* Palette inside the border, beside caption */}
                             <PaletteExtractor
                                 imageUrl={imageUrl}
@@ -862,6 +1058,11 @@ const Lightbox = ({ items, initialId, onClose }) => {
                                 initialPalette={cachedData?.palette}
                             />
                         </div>
+                        {projectHref && (
+                            <a className="project-link" href={projectHref}>
+                                Open Project
+                            </a>
+                        )}
                     </div>
                 </motion.div>
 
@@ -876,25 +1077,23 @@ const Lightbox = ({ items, initialId, onClose }) => {
                     .lightbox-overlay {
                         position: fixed; 
                         top: 0; left: 0; width: 100vw; height: 100dvh; 
-                        z-index: 999999; 
+                        z-index: 10050; 
                         /* High opacity solid color */
                         background: rgba(10,10,10,0.95); 
                         backdrop-filter: blur(0px);
                         display: flex; align-items: center; justify-content: center;
-                        pointer-events: none;
                         /* REMOVED TRANSITION for instant feel */
                     }
                     .lightbox-polaroid {
                         background: #fdfdfd;  
                         /* Classic Polaroid proportions: thin sides/top, thick bottom */
                         padding: 24px; 
-                        padding-bottom: 70px; 
-                        pointer-events: auto; 
+                        padding-bottom: 64px; 
                         width: fit-content;
                         max-width: 90vw; max-height: 90vh; 
                         display: flex; flex-direction: column;
                         border-radius: 2px; 
-                        box-shadow: 0 50px 100px rgba(0,0,0,0.5); cursor: zoom-out; 
+                        box-shadow: 0 50px 100px rgba(0,0,0,0.5); 
                         margin: auto;
                     }
                     .lightbox-inner { 
@@ -928,24 +1127,38 @@ const Lightbox = ({ items, initialId, onClose }) => {
                         gap: 2rem;
                         overflow: hidden;
                     }
-                    .handwritten-title { 
-                        font-family: var(--font-custom-4); 
-                        font-size: 2.2rem; 
-                        font-weight: 500; 
+
+                    .caption-copy { min-width: 0; flex: 1; }
+                    .lightbox-title { 
+                        font-family: var(--font-ui); 
+                        font-size: 0.86rem; 
+                        font-weight: 700; 
                         margin: 0; 
                         color: #2a2a2a; 
-                        line-height: 1; 
-                        letter-spacing: 0.02em;
-                        /* DE-PRIORITIZE TEXT: Truncation is high-priority */
+                        line-height: 1.35; 
+                        letter-spacing: 0.08em;
+                        text-transform: uppercase;
                         white-space: nowrap;
                         overflow: hidden;
                         text-overflow: ellipsis;
-                        flex: 1;
-                        min-width: 0;
+                    }
+                    .project-link {
+                        margin-top: 0.85rem;
+                        font-family: var(--font-ui);
+                        font-size: 0.68rem;
+                        text-transform: uppercase;
+                        letter-spacing: 0.08em;
+                        color: #1d1d1d;
+                        text-decoration: none;
+                        border-bottom: 1px solid rgba(29, 29, 29, 0.45);
+                        align-self: flex-start;
+                    }
+                    .project-link:hover {
+                        border-bottom-color: rgba(29, 29, 29, 0.9);
                     }
                     .global-counter-external {
                         position: absolute;
-                        bottom: 40px;
+                        bottom: 36px;
                         left: 50%;
                         transform: translateX(-50%);
                         font-family: var(--font-ui);
@@ -973,9 +1186,8 @@ const Lightbox = ({ items, initialId, onClose }) => {
                         align-items: center;
                         justify-content: center;
                         cursor: pointer;
-                        pointer-events: auto;
                         transition: all 0.2s;
-                        z-index: 1000000;
+                        z-index: 10051;
                     }
                     .global-nav-btn:hover {
                         background: rgba(255,255,255,0.15);
@@ -983,6 +1195,38 @@ const Lightbox = ({ items, initialId, onClose }) => {
                     }
                     .global-nav-btn.prev { left: 40px; }
                     .global-nav-btn.next { right: 40px; }
+
+                    .close-viewer-btn {
+                        position: absolute;
+                        top: 20px;
+                        right: 22px;
+                        border: 1px solid rgba(255, 255, 255, 0.2);
+                        background: rgba(0, 0, 0, 0.22);
+                        color: rgba(255, 255, 255, 0.92);
+                        width: 36px;
+                        height: 36px;
+                        border-radius: 999px;
+                        font-family: var(--font-ui);
+                        font-size: 0.92rem;
+                        cursor: pointer;
+                        text-transform: uppercase;
+                        z-index: 10051;
+                    }
+                    .close-viewer-btn:hover {
+                        background: rgba(255, 255, 255, 0.12);
+                    }
+
+                    @media (max-width: 900px) {
+                        .global-nav-btn.prev { left: 14px; }
+                        .global-nav-btn.next { right: 14px; }
+                        .close-viewer-btn { right: 14px; top: 14px; }
+                        .lightbox-caption {
+                            flex-direction: column;
+                            align-items: flex-start;
+                            gap: 0.9rem;
+                        }
+                        .lightbox-title { font-size: 0.78rem; }
+                    }
                 `}</style>
             </motion.div>
         </AnimatePresence>,

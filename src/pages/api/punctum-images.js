@@ -1,25 +1,16 @@
-// Initialize Supabase Client (Server-Side)
-import { supabase } from '../../lib/supabase';
+import { listPhotoStoryAssets } from '../../lib/services/photoStories';
 
 export const prerender = false;
 
 export async function GET() {
     try {
-        // Logic: Fetch images for the game.
-        // Fetch images directly from the main 'photography' table
-        // This is the "Clean Supabase Content" source.
-        let { data: images, error } = await supabase
-            .from('photography')
-            .select('cover_image, title, id')
-            .not('cover_image', 'is', null);
-
-        if (error) throw error;
-
-        // Normalize to expected format
-        const formattedImages = images.map(img => ({
-            id: img.id,
-            url: img.cover_image, // Frontend expects 'url'
-            title: img.title
+        // Pull ALL photo story assets (covers + gallery images)
+        const assets = await listPhotoStoryAssets();
+        const formattedImages = (assets || []).map(asset => ({
+            id: asset.photoUrl,
+            url: asset.photoUrl,
+            title: asset.projectTitle,
+            source: asset.sourceType
         }));
 
         return new Response(JSON.stringify(formattedImages), {

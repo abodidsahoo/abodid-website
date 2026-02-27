@@ -2,28 +2,61 @@ import type { APIRoute } from 'astro';
 
 export const prerender = false;
 
-// Free-tier models to try in order
-// Free-tier models to try in order
-const FREE_MODELS = [
-    'google/gemini-2.0-flash-lite-preview-02-05:free', // Keep high priority if available
-    'mistralai/mistral-small-3.1-24b-instruct:free', // Verified free text model
-    'google/gemma-3-27b-it:free', // Verified free text model
-    'openrouter/free'
+const AUTO_MODELS = [
+    'openrouter/auto'
 ];
+
+const PAID_MODELS = parseModelEnv(
+    import.meta.env.OPENROUTER_PAID_TEXT_MODELS,
+    [
+        'openai/gpt-4o-mini',
+        'anthropic/claude-3.5-sonnet',
+        'google/gemini-1.5-pro',
+    ]
+);
+
+const FREE_MODELS = parseModelEnv(
+    import.meta.env.OPENROUTER_FREE_TEXT_MODELS,
+    [
+        'google/gemini-2.0-flash-lite-preview-02-05:free', // Keep high priority if available
+        'mistralai/mistral-small-3.1-24b-instruct:free', // Verified free text model
+        'google/gemma-3-27b-it:free', // Verified free text model
+        'openrouter/free'
+    ]
+);
+
+function parseModelEnv(value: string | undefined, fallback: string[]): string[] {
+    if (!value) return fallback;
+    return value
+        .split(',')
+        .map(v => v.trim())
+        .filter(Boolean);
+}
+
+function parseModelMode(value: any): 'free' | 'paid' {
+    return value === 'paid' ? 'paid' : 'free';
+}
 
 async function delay(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-async function callOpenRouter(apiKey: string, prompt: string, modelIndex: number = 0, retryCount: number = 0, logs: string[] = []): Promise<{ content: string, model: string, logs: string[] }> {
-    if (modelIndex >= FREE_MODELS.length) {
-        logs.push(`[Error] All ${FREE_MODELS.length} models exhausted.`);
+async function callOpenRouter(
+    apiKey: string,
+    prompt: string,
+    models: string[],
+    modelIndex: number = 0,
+    retryCount: number = 0,
+    logs: string[] = []
+): Promise<{ content: string, model: string, logs: string[] }> {
+    if (modelIndex >= models.length) {
+        logs.push(`[Error] All ${models.length} models exhausted.`);
         throw new Error('All models exhausted');
     }
 
-    const model = FREE_MODELS[modelIndex];
+    const model = models[modelIndex];
     const attemptLabel = retryCount > 0 ? `(Retry ${retryCount})` : '';
-    const startMsg = `Attempting model ${modelIndex + 1}/${FREE_MODELS.length}: ${model} ${attemptLabel}`;
+    const startMsg = `Attempting model ${modelIndex + 1}/${models.length}: ${model} ${attemptLabel}`;
     console.log(`[EXTRACT-EMOTIONS] ${startMsg}`);
     logs.push(startMsg);
 
@@ -57,12 +90,12 @@ async function callOpenRouter(apiKey: string, prompt: string, modelIndex: number
                 const retryMsg = `Self-healing: Retrying ${model} in 2s...`;
                 logs.push(retryMsg);
                 await delay(2000);
-                return await callOpenRouter(apiKey, prompt, modelIndex, retryCount + 1, logs);
+                return await callOpenRouter(apiKey, prompt, models, modelIndex, retryCount + 1, logs);
             }
 
             const nextMsg = `Switching to fallback model...`;
             logs.push(nextMsg);
-            return await callOpenRouter(apiKey, prompt, modelIndex + 1, 0, logs);
+            return await callOpenRouter(apiKey, prompt, models, modelIndex + 1, 0, logs);
         }
 
         const data = await response.json();
@@ -83,16 +116,17 @@ async function callOpenRouter(apiKey: string, prompt: string, modelIndex: number
         if (retryCount < 1) {
             logs.push(`Retrying once...`);
             await delay(1000);
-            return await callOpenRouter(apiKey, prompt, modelIndex, retryCount + 1, logs);
+            return await callOpenRouter(apiKey, prompt, models, modelIndex, retryCount + 1, logs);
         }
         logs.push(`Moving to next model...`);
-        return await callOpenRouter(apiKey, prompt, modelIndex + 1, 0, logs);
+        return await callOpenRouter(apiKey, prompt, models, modelIndex + 1, 0, logs);
     }
 }
 
 export const POST: APIRoute = async ({ request }) => {
     try {
-        const { comments } = await request.json();
+        const { comments, modelMode } = await request.json();
+        const mode = parseModelMode(modelMode);
 
         // Return empty keywords if no comments
         if (!comments || !Array.isArray(comments) || comments.length === 0) {
@@ -124,8 +158,31 @@ export const POST: APIRoute = async ({ request }) => {
         console.log('[EXTRACT-EMOTIONS] Searching for keywords from', comments.length, 'inputs...');
         console.log('[EXTRACT-EMOTIONS] Generated Prompt:\n', prompt);
 
-        // Call OpenRouter API with fallback logic
-        const { content, model, logs } = await callOpenRouter(apiKey, prompt);
+        const logs: string[] = [];
+        let content = '';
+        let model = '';
+
+        if (mode === 'paid') {
+            logs.push('[Mode] PAID (Auto Router)');
+            try {
+                ({ content, model } = await callOpenRouter(apiKey, prompt, AUTO_MODELS, 0, 0, logs));
+            } catch (err) {
+                logs.push('Auto router failed. Switching to paid model list...');
+                ({ content, model } = await callOpenRouter(apiKey, prompt, PAID_MODELS, 0, 0, logs));
+            }
+        } else {
+            logs.push('[Mode] FREE (Paid Fallback)');
+            try {
+                ({ content, model } = await callOpenRouter(apiKey, prompt, FREE_MODELS, 0, 0, logs));
+            } catch (err) {
+                logs.push('Free models exhausted. Switching to paid fallback...');
+                try {
+                    ({ content, model } = await callOpenRouter(apiKey, prompt, AUTO_MODELS, 0, 0, logs));
+                } catch (err2) {
+                    ({ content, model } = await callOpenRouter(apiKey, prompt, PAID_MODELS, 0, 0, logs));
+                }
+            }
+        }
 
         // Parse the response
         const keywords = content

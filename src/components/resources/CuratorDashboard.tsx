@@ -426,7 +426,7 @@ export default function CuratorDashboard({ user, role }: Props) {
                         </a>
                     </div>
                 </div>
-                <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+                <div className="dashboard-header-actions">
                     <button onClick={handleRefresh} className="btn-refresh-text">
                         Refresh
                     </button>
@@ -874,6 +874,13 @@ export default function CuratorDashboard({ user, role }: Props) {
                 .welcome {
                     color: var(--text-secondary);
                     margin: 0;
+                }
+
+                .dashboard-header-actions {
+                    display: flex;
+                    gap: 1.5rem;
+                    align-items: center;
+                    flex-wrap: wrap;
                 }
 
                 /* Common Header Button Style */
@@ -1469,6 +1476,17 @@ export default function CuratorDashboard({ user, role }: Props) {
                 @media (max-width: 768px) {
                     .curator-header {
                         flex-direction: column;
+                    }
+
+                    .dashboard-header-actions {
+                        width: 100%;
+                        flex-direction: column;
+                        align-items: stretch;
+                    }
+
+                    .dashboard-header-actions > * {
+                        width: 100%;
+                        justify-content: center;
                     }
 
                     .btn-submit-new {

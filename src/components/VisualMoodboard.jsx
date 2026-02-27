@@ -15,6 +15,7 @@ const MIN_STAGE_PREFETCH_DISTANCE = 280;
 const FALLBACK_DOC_PREFETCH_DISTANCE = 220;
 const SCROLL_LOAD_STEP_MIN_PX = 42;
 const SCROLL_LOAD_STEP_VIEWPORT_RATIO = 0.055;
+const SHUFFLE_VIEWPORT_MARGIN = 140;
 
 const SIZE_PRESETS = [
     { scale: 0.24, weight: 0.06 },
@@ -217,6 +218,74 @@ function pickViewportCandidateIds({ items, layoutMap, stageElement, pointer, lim
     });
 
     return scored.slice(0, safeLimit).map((entry) => entry.id);
+}
+
+function pickViewportVisibleIds({ items, layoutMap, stageElement, pointer, margin = SHUFFLE_VIEWPORT_MARGIN }) {
+    if (!Array.isArray(items) || !items.length) return [];
+    if (!stageElement || !layoutMap || layoutMap.size === 0 || typeof window === 'undefined') {
+        return [];
+    }
+
+    const stageRect = stageElement.getBoundingClientRect();
+    const viewportHeight = window.innerHeight || 900;
+    const viewportWidth = window.innerWidth || 1400;
+    const px = Number(pointer?.x) || viewportWidth * 0.5;
+    const py = Number(pointer?.y) || viewportHeight * 0.5;
+    const pad = Math.max(0, margin);
+    const scored = [];
+
+    for (const item of items) {
+        const layout = layoutMap.get(item.id);
+        if (!layout) continue;
+
+        const top = stageRect.top + layout.top;
+        const left = stageRect.left + layout.left;
+        const width = layout.width;
+        const height = layout.height;
+        const right = left + width;
+        const bottom = top + height;
+
+        const intersectsViewport =
+            right >= -pad &&
+            left <= viewportWidth + pad &&
+            bottom >= -pad &&
+            top <= viewportHeight + pad;
+
+        if (!intersectsViewport) continue;
+
+        const cx = left + width * 0.5;
+        const cy = top + height * 0.5;
+        const distance = Math.hypot(cx - px, cy - py);
+
+        scored.push({
+            id: item.id,
+            distance,
+        });
+    }
+
+    if (!scored.length) return [];
+
+    scored.sort((a, b) => a.distance - b.distance);
+    return scored.map((entry) => entry.id);
+}
+
+function resolveShuffleTiming(count, prefersReducedMotion) {
+    const safeCount = Math.max(1, count);
+    const fadeDuration = prefersReducedMotion ? 0.12 : 0.28;
+    const fadeStep = prefersReducedMotion ? 0 : clamp(1.05 / safeCount, 0.015, 0.045);
+    const deployDuration = prefersReducedMotion ? 0.14 : 0.36;
+    const deployStep = prefersReducedMotion ? 0 : clamp(0.8 / safeCount, 0.01, 0.03);
+    const fadeTotal = fadeDuration + fadeStep * Math.max(0, safeCount - 1);
+    const deployTotal = deployDuration + deployStep * Math.max(0, safeCount - 1);
+
+    return {
+        fadeDuration,
+        fadeStep,
+        deployDuration,
+        deployStep,
+        fadeTotal,
+        deployTotal,
+    };
 }
 
 function computeFloatingLayout(items, width, height, seedSalt = 0) {
@@ -425,6 +494,8 @@ export default function VisualMoodboard({
     const [stackFrameIndex, setStackFrameIndex] = useState(0);
     const [stackZFrames, setStackZFrames] = useState([]);
     const [shuffleCenter, setShuffleCenter] = useState(null);
+    const [shuffleTiming, setShuffleTiming] = useState(() => resolveShuffleTiming(1, false));
+    const [shuffleSafetyMs, setShuffleSafetyMs] = useState(2800);
     const [quickBatchIds, setQuickBatchIds] = useState([]);
     const [visibleCount, setVisibleCount] = useState(0);
     const deepLinkInitializedRef = useRef(false);
@@ -887,10 +958,10 @@ export default function VisualMoodboard({
             setStackZFrames([]);
             setShuffleCenter(null);
             setShufflePhase('idle');
-        }, 2800);
+        }, shuffleSafetyMs);
 
         return () => clearTimeout(safetyTimer);
-    }, [shufflePhase]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [shufflePhase, shuffleSafetyMs]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const shuffleOrderMap = useMemo(() => {
         const orderMap = new Map();
@@ -962,13 +1033,29 @@ export default function VisualMoodboard({
 
         const randomSeedBump = Math.floor(Math.random() * 1000000000);
         const nextSeed = (layoutSeed + randomSeedBump + 1) >>> 0;
-        const candidateIds = pickViewportCandidateIds({
+        const visibleIds = pickViewportVisibleIds({
             items: boardItems,
             layoutMap: layoutMapRef.current,
             stageElement: stageRef.current,
             pointer: pointerRef.current,
-            limit: quickModeEnabled ? quickLimit : SHUFFLE_ACTIVE_LIMIT,
         });
+        const candidateIds = quickModeEnabled
+            ? pickViewportCandidateIds({
+                items: boardItems,
+                layoutMap: layoutMapRef.current,
+                stageElement: stageRef.current,
+                pointer: pointerRef.current,
+                limit: quickLimit,
+            })
+            : visibleIds.length >= 2
+                ? visibleIds
+                : pickViewportCandidateIds({
+                    items: boardItems,
+                    layoutMap: layoutMapRef.current,
+                    stageElement: stageRef.current,
+                    pointer: pointerRef.current,
+                    limit: SHUFFLE_ACTIVE_LIMIT,
+                });
         const ordered = shuffleValues(candidateIds);
 
         if (ordered.length < 2) return;
@@ -1038,13 +1125,26 @@ export default function VisualMoodboard({
             frameOrder = next;
         }
 
+        const timing = resolveShuffleTiming(ordered.length, prefersReducedMotion);
+        const fadePadding = prefersReducedMotion ? 40 : 80;
+        const collectDuration = prefersReducedMotion ? 120 : 240;
+        const stackDuration = prefersReducedMotion ? 240 : 560;
+        const deployPad = prefersReducedMotion ? 80 : 140;
+        const fadeOutFinishAt = timing.fadeTotal + fadePadding;
+        const collectStartAt = fadeOutFinishAt;
+        const stackStartAt = collectStartAt + collectDuration;
+        const deployStartAt = stackStartAt + stackDuration;
+        const finishAt = deployStartAt + timing.deployTotal + deployPad;
+
         clearShuffleTimers();
         setPendingSeed(nextSeed);
         setPendingOrder(ordered);
         setShuffleSequence(ordered);
         setStackZFrames(stackFrames);
         setStackFrameIndex(0);
-        setShufflePhase('collect');
+        setShuffleTiming(timing);
+        setShuffleSafetyMs(Math.max(2800, finishAt + 320));
+        setShufflePhase('fadeOut');
 
         let stackTicker = null;
         if (!prefersReducedMotion && stackFrames.length > 1) {
@@ -1056,14 +1156,18 @@ export default function VisualMoodboard({
 
         const collectTimer = window.setTimeout(() => {
             setShufflePhase('stack');
-        }, 260);
+        }, stackStartAt);
+
+        const fadeTimer = window.setTimeout(() => {
+            setShufflePhase('collect');
+        }, collectStartAt);
 
         const deployTimer = window.setTimeout(() => {
             if (stackTicker !== null) {
                 clearInterval(stackTicker);
             }
             setShufflePhase('deploy');
-        }, 980);
+        }, deployStartAt);
 
         const finishTimer = window.setTimeout(() => {
             setLayoutSeed(nextSeed);
@@ -1076,9 +1180,9 @@ export default function VisualMoodboard({
             setShuffleCenter(null);
             setShufflePhase('idle');
             clearShuffleTimers();
-        }, 1500);
+        }, finishAt);
 
-        shuffleTimersRef.current.push(collectTimer, deployTimer, finishTimer);
+        shuffleTimersRef.current.push(fadeTimer, collectTimer, deployTimer, finishTimer);
     };
 
     useEffect(() => {
@@ -1359,7 +1463,24 @@ export default function VisualMoodboard({
                             let figureAnimate;
                             let figureTransition;
 
-                            if (shufflePhase === 'collect') {
+                            if (shufflePhase === 'fadeOut') {
+                                figureAnimate = {
+                                    x: 0,
+                                    y: shuffleIsActiveForItem ? -6 : 0,
+                                    scale: shuffleIsActiveForItem ? 0.96 : 1,
+                                    rotate: 0,
+                                    opacity: shuffleIsActiveForItem ? 0 : 1,
+                                };
+                                figureTransition = prefersReducedMotion
+                                    ? { duration: 0.12 }
+                                    : {
+                                        duration: shuffleTiming.fadeDuration,
+                                        ease: [0.28, 0.9, 0.4, 1],
+                                        delay: shuffleIsActiveForItem
+                                            ? orderIndex * shuffleTiming.fadeStep
+                                            : 0,
+                                    };
+                            } else if (shufflePhase === 'collect') {
                                 figureAnimate = {
                                     x: shuffleIsActiveForItem ? collectDx + stackAnchorX : 0,
                                     y: shuffleIsActiveForItem ? collectDy + stackAnchorY : 0,
@@ -1400,9 +1521,11 @@ export default function VisualMoodboard({
                                 figureTransition = prefersReducedMotion
                                     ? { duration: 0.14 }
                                     : {
-                                        duration: 0.36,
+                                        duration: shuffleTiming.deployDuration,
                                         ease: [0.2, 0.9, 0.28, 1],
-                                        delay: 0,
+                                        delay: shuffleIsActiveForItem
+                                            ? orderIndex * shuffleTiming.deployStep
+                                            : 0,
                                         times: [0, 0.86, 1],
                                     };
                             } else {

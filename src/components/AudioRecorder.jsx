@@ -1,12 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-const AudioRecorder = ({ onRecordingComplete }) => {
+const AudioRecorder = ({ onRecordingComplete, onTranscript, onTranscriptionState }) => {
     const [isRecording, setIsRecording] = useState(false);
     const [isCountdown, setIsCountdown] = useState(false);
     const [countdownVal, setCountdownVal] = useState(3);
     const [audioBlob, setAudioBlob] = useState(null);
     const [duration, setDuration] = useState(0);
     const [mimeType, setMimeType] = useState('audio/webm');
+    const [isTranscribing, setIsTranscribing] = useState(false);
+    const [transcriptionSupported, setTranscriptionSupported] = useState(false);
 
     // Playback State
     const [isPlaying, setIsPlaying] = useState(false);
@@ -15,6 +17,13 @@ const AudioRecorder = ({ onRecordingComplete }) => {
     const mediaRecorderRef = useRef(null);
     const chunksRef = useRef([]);
     const timerRef = useRef(null);
+    const recognitionRef = useRef(null);
+    const finalTranscriptRef = useRef('');
+    const allowRestartRef = useRef(false);
+    const isRecordingRef = useRef(false);
+    const recognitionActiveRef = useRef(false);
+    const onTranscriptRef = useRef(onTranscript);
+    const onTranscriptionStateRef = useRef(onTranscriptionState);
     const audioContextRef = useRef(null);
     const sourceRef = useRef(null);
     const analyserRef = useRef(null);
@@ -28,8 +37,100 @@ const AudioRecorder = ({ onRecordingComplete }) => {
             if (audioContextRef.current) audioContextRef.current.close().catch(e => console.error(e));
             if (timerRef.current) clearInterval(timerRef.current);
             if (currentAudio) { currentAudio.pause(); }
+            if (recognitionRef.current) {
+                try { recognitionRef.current.stop(); } catch { }
+            }
         };
     }, []);
+
+    useEffect(() => {
+        isRecordingRef.current = isRecording;
+    }, [isRecording]);
+
+    useEffect(() => {
+        onTranscriptRef.current = onTranscript;
+    }, [onTranscript]);
+
+    useEffect(() => {
+        onTranscriptionStateRef.current = onTranscriptionState;
+    }, [onTranscriptionState]);
+
+    useEffect(() => {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) return;
+
+        const recognition = new SpeechRecognition();
+        recognition.lang = navigator.language || 'en-US';
+        recognition.interimResults = true;
+        recognition.continuous = true;
+
+        recognition.onresult = (event) => {
+            let interim = '';
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                const transcript = event.results[i][0]?.transcript || '';
+                if (event.results[i].isFinal) {
+                    finalTranscriptRef.current += transcript + ' ';
+                } else {
+                    interim += transcript;
+                }
+            }
+
+            const combined = `${finalTranscriptRef.current}${interim}`.trim();
+            if (onTranscriptRef.current) onTranscriptRef.current(combined, { isFinal: false });
+        };
+
+        recognition.onerror = () => {
+            recognitionActiveRef.current = false;
+            setIsTranscribing(false);
+            if (onTranscriptionStateRef.current) onTranscriptionStateRef.current('error');
+        };
+
+        recognition.onend = () => {
+            recognitionActiveRef.current = false;
+            setIsTranscribing(false);
+            if (onTranscriptionStateRef.current) onTranscriptionStateRef.current('end');
+            if (allowRestartRef.current && isRecordingRef.current) {
+                setTimeout(() => {
+                    try {
+                        recognition.start();
+                        recognitionActiveRef.current = true;
+                        setIsTranscribing(true);
+                        if (onTranscriptionStateRef.current) onTranscriptionStateRef.current('listening');
+                    } catch { }
+                }, 300);
+            }
+        };
+
+        recognitionRef.current = recognition;
+        setTranscriptionSupported(true);
+    }, []);
+
+    const startTranscription = () => {
+        if (!recognitionRef.current) return;
+        finalTranscriptRef.current = '';
+        allowRestartRef.current = true;
+        try {
+            recognitionRef.current.start();
+            recognitionActiveRef.current = true;
+            setIsTranscribing(true);
+            if (onTranscriptionStateRef.current) onTranscriptionStateRef.current('listening');
+        } catch { }
+    };
+
+    const stopTranscription = () => {
+        allowRestartRef.current = false;
+        if (!recognitionRef.current || !recognitionActiveRef.current) return;
+        try {
+            recognitionRef.current.stop();
+        } catch { }
+        recognitionActiveRef.current = false;
+        setIsTranscribing(false);
+        if (onTranscriptRef.current) {
+            const finalText = finalTranscriptRef.current.trim();
+            if (finalText) onTranscriptRef.current(finalText, { isFinal: true });
+        }
+        if (onTranscriptionStateRef.current) onTranscriptionStateRef.current('stop');
+    };
 
     const ensureAudioContext = async () => {
         if (!audioContextRef.current) {
@@ -78,6 +179,7 @@ const AudioRecorder = ({ onRecordingComplete }) => {
                 setAudioBlob(blob);
                 onRecordingComplete(blob, duration, type);
                 chunksRef.current = [];
+                stopTranscription();
 
                 // Cleanup Visualizer
                 if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
@@ -90,6 +192,7 @@ const AudioRecorder = ({ onRecordingComplete }) => {
             mediaRecorderRef.current.start();
             setIsRecording(true);
             setDuration(0);
+            if (transcriptionSupported) startTranscription();
 
             // 2. Setup Audio Visualizer
             const analyser = ctx.createAnalyser();
@@ -153,6 +256,7 @@ const AudioRecorder = ({ onRecordingComplete }) => {
             mediaRecorderRef.current.stop();
             setIsRecording(false);
             clearInterval(timerRef.current);
+            stopTranscription();
         }
     };
 
@@ -164,6 +268,8 @@ const AudioRecorder = ({ onRecordingComplete }) => {
             setCurrentAudio(null);
         }
         setIsPlaying(false);
+        finalTranscriptRef.current = '';
+        stopTranscription();
         onRecordingComplete(null, 0, null);
     };
 
@@ -206,6 +312,9 @@ const AudioRecorder = ({ onRecordingComplete }) => {
             {/* 1. INITIAL STATE */}
             {!isRecording && !isCountdown && !audioBlob && (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ fontSize: '11px', color: '#666', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                        OR RECORD YOUR VOICE
+                    </div>
                     <button
                         type="button"
                         onClick={startCountdown}
@@ -234,11 +343,15 @@ const AudioRecorder = ({ onRecordingComplete }) => {
             {/* 2. COUNTDOWN OVERLAY */}
             {isCountdown && (
                 <div style={{
-                    fontSize: '60px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    fontSize: '76px',
                     fontWeight: 900,
                     color: '#fff',
                     animation: 'pulse 0.5s infinite alternate'
                 }}>
+                    <span className="blink-dot" style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#ff4444' }}></span>
                     {countdownVal}
                 </div>
             )}
@@ -246,19 +359,6 @@ const AudioRecorder = ({ onRecordingComplete }) => {
             {/* 3. RECORDING STATE */}
             {isRecording && (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
-
-                    {/* VISUALIZER CANVAS - CLEARLY VISIBLE BOX */}
-                    <div style={{
-                        width: '240px', height: '60px',
-                        background: '#000', // Explicit black background for high contrast
-                        border: '1px solid rgba(255,255,255,0.2)',
-                        borderRadius: '8px',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        overflow: 'hidden'
-                    }}>
-                        <canvas ref={canvasRef} width="240" height="60" />
-                    </div>
-
                     <div style={{
                         color: '#ff4444', fontWeight: 600, fontSize: '14px',
                         display: 'flex', alignItems: 'center', gap: '8px'
@@ -285,6 +385,11 @@ const AudioRecorder = ({ onRecordingComplete }) => {
                     >
                         STOP RECORDING
                     </button>
+                    {transcriptionSupported && (
+                        <div style={{ fontSize: '11px', color: isTranscribing ? '#00ff66' : '#666', letterSpacing: '0.08em' }}>
+                            {isTranscribing ? 'LIVE TRANSCRIPTION' : 'TRANSCRIPTION READY'}
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -292,13 +397,32 @@ const AudioRecorder = ({ onRecordingComplete }) => {
             {audioBlob && (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
                     <div style={{
-                        width: '100%', height: '32px',
-                        background: 'rgba(255,255,255,0.1)',
-                        marginBottom: '16px',
-                        borderRadius: '4px',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center'
+                        padding: '6px 10px',
+                        background: 'rgba(0,255,102,0.15)',
+                        border: '1px solid rgba(0,255,102,0.5)',
+                        color: '#00ff66',
+                        borderRadius: '999px',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        marginBottom: '14px',
+                        fontSize: '10px',
+                        letterSpacing: '0.1em',
+                        fontWeight: 600
                     }}>
-                        <span style={{ fontSize: '11px', color: '#fff', letterSpacing: '0.1em', fontWeight: 600 }}>RECORDING CAPTURED</span>
+                        <span style={{
+                            width: '14px',
+                            height: '14px',
+                            borderRadius: '50%',
+                            background: '#00ff66',
+                            color: '#000',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '10px',
+                            fontWeight: 900
+                        }}>✓</span>
+                        RECORDING CAPTURED
                     </div>
 
                     <div style={{ display: 'flex', gap: '12px' }}>

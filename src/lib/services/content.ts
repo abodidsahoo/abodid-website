@@ -35,8 +35,8 @@ const mockResearchProjects: Project[] = [
     {
         title: "Invisible Punctums",
         description: "An AI-driven exploration of human memory, data, and the gaps in our digital archives.",
-        slug: "invisible-punctum-explanation",
-        href: "/research/invisible-punctum-explanation",
+        slug: "invisible-punctum",
+        href: "/research/invisible-punctum",
         image: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=1000",
         tags: ["AI", "Memory", "Data Vis"],
         published: true,
@@ -70,12 +70,19 @@ export async function getResearchProjects(): Promise<Project[]> {
         return mockResearchProjects;
     }
 
-    return data.map((p: any) => ({
-        ...p,
-        href: `/research/${p.slug}`,
-        tags: Array.isArray(p.tags) ? p.tags : (p.tags ? p.tags.split(',') : []),
-        image: p.cover_image
-    }));
+    return data.map((p: any) => {
+        const normalizedSlug =
+            p.slug === 'invisible-punctum-explanation'
+                ? 'invisible-punctum'
+                : p.slug;
+        return {
+            ...p,
+            slug: normalizedSlug,
+            href: `/research/${normalizedSlug}`,
+            tags: Array.isArray(p.tags) ? p.tags : (p.tags ? p.tags.split(',') : []),
+            image: p.cover_image
+        };
+    });
 }
 
 export async function getProjects(): Promise<Project[]> {
@@ -92,16 +99,25 @@ export async function getProjects(): Promise<Project[]> {
         return [];
     }
 
-    return data.map((p: any) => ({
-        title: p.title,
-        description: p.description,
-        tags: p.tags || [],
-        href: p.slug === 'obsidian-vault' ? '/research/obsidian-vault' : `/research/${p.slug}`,
-        link: p.link || p.repo_link,
-        slug: p.slug,
-        image: p.cover_image,
-        published: p.published
-    } as Project));
+    return data.map((p: any) => {
+        const normalizedSlug =
+            p.slug === 'invisible-punctum-explanation'
+                ? 'invisible-punctum'
+                : p.slug;
+        return {
+            title: p.title,
+            description: p.description,
+            tags: p.tags || [],
+            href:
+                normalizedSlug === 'obsidian-vault'
+                    ? '/research/obsidian-vault'
+                    : `/research/${normalizedSlug}`,
+            link: p.link || p.repo_link,
+            slug: normalizedSlug,
+            image: p.cover_image,
+            published: p.published
+        } as Project;
+    });
 }
 
 export async function getProjectBySlug(slug: string): Promise<Project | null> {

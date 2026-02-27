@@ -2,7 +2,11 @@ import { getAuthHeaders, GITHUB_API_BASE, REPO_OWNER, REPO_NAME } from './github
 
 // Cache structure: { timestamp: number, notes: Array<{path, content, name}> }
 let vaultCache = null;
+// Tag index cache: { timestamp: number, index: Map<string, Set<number>> }
+let tagIndexCache = null;
 const CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
+
+const isCacheFresh = (cache) => cache && (Date.now() - cache.timestamp < CACHE_TTL_MS);
 
 /**
  * Fetch all markdown notes from '6 - Main Notes' recursively using User Tree API
@@ -10,7 +14,7 @@ const CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
  */
 export async function getAllVaultNotes() {
     // 1. Check Cache
-    if (vaultCache && (Date.now() - vaultCache.timestamp < CACHE_TTL_MS)) {
+    if (isCacheFresh(vaultCache)) {
 
         return vaultCache.notes;
     }
@@ -78,6 +82,7 @@ export async function getAllVaultNotes() {
             timestamp: Date.now(),
             notes: notes
         };
+        tagIndexCache = null;
 
 
         return notes;
@@ -94,38 +99,66 @@ export async function getAllVaultNotes() {
  * @param {string} tagName - The name of the tag (without brackets)
  */
 export async function findNotesReferencing(tagName) {
-    const allNotes = await getAllVaultNotes();
+    const target = normalizeTagKey(tagName);
+    if (!target) return [];
 
-    // Normalize tagName (remove .md extension if present)
-    const target = tagName.replace(".md", "").toLowerCase();
+    const { index, notes } = await getVaultTagIndex();
+    const matched = index.get(target);
+    if (!matched || matched.size === 0) return [];
 
-    return allNotes.filter(note => {
-        // Simple case-insensitive check first for performance
-        const lowerContent = note.content.toLowerCase();
-
-        // Check for wikilinks: [[target]] or [[target|...]]
-        // We need to be careful with regex to match exact tag name boundaries.
-        // Regex: \[\[\s*target\s*(?:\|[^\]]*)?\]\]
-        // escaping for regex: \[\[\s*target\s*(?:\|[^\]]*)?\]\]
-
-        // Explanation:
-        // \[\[ : starts with [[
-        // \s* : optional whitespace
-        // target : our tag name
-        // \s* : optional whitespace
-        // (?:\|[^\]]*)? : optional alias starting with | and not containing ]
-        // \]\] : ends with ]]
-
-        const wikiLinkRegex = new RegExp(`\\[\\[\\s*${escapeRegExp(target)}\\s*(?:\\|[^\\]]*)?\\]\\]`, 'i');
-
-        // Also check for hashtags if desired? 
-        // User asked for "double brackets", so we prioritize that. 
-        // But Obsidian often uses #tag too. Let's stick to user request: "I put double brackets and put the tags"
-
-        return wikiLinkRegex.test(note.content);
-    });
+    return Array.from(matched)
+        .map((idx) => notes[idx])
+        .filter(Boolean);
 }
 
-function escapeRegExp(string) {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+function normalizeTagKey(tagName) {
+    return (tagName || "").replace(/\.md$/i, "").trim().toLowerCase();
+}
+
+function extractWikiTagKeys(content) {
+    if (!content) return [];
+    const tags = new Set();
+    const wikiLinkRegex = /\[\[([^\]]+)\]\]/g;
+    let match = wikiLinkRegex.exec(content);
+    while (match) {
+        const raw = match[1];
+        if (raw) {
+            const target = raw.split("|")[0].trim();
+            const normalized = normalizeTagKey(target);
+            if (normalized) tags.add(normalized);
+        }
+        match = wikiLinkRegex.exec(content);
+    }
+    return Array.from(tags);
+}
+
+function buildTagIndex(notes) {
+    const index = new Map();
+    notes.forEach((note, idx) => {
+        const tags = extractWikiTagKeys(note.content);
+        tags.forEach((tag) => {
+            let bucket = index.get(tag);
+            if (!bucket) {
+                bucket = new Set();
+                index.set(tag, bucket);
+            }
+            bucket.add(idx);
+        });
+    });
+    return index;
+}
+
+export async function getVaultTagIndex() {
+    const notes = await getAllVaultNotes();
+    if (isCacheFresh(tagIndexCache) && tagIndexCache.index) {
+        return { index: tagIndexCache.index, notes };
+    }
+
+    const index = buildTagIndex(notes);
+    tagIndexCache = {
+        timestamp: Date.now(),
+        index,
+    };
+
+    return { index, notes };
 }

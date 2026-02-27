@@ -18,16 +18,25 @@ const safeFetch = async (fn, fallback) => {
 
 const portfolioProjects = await safeFetch(getAllPhotography, mockPhotography);
 
+function hashString(value) {
+    let hash = 2166136261;
+    for (let i = 0; i < value.length; i += 1) {
+        hash ^= value.charCodeAt(i);
+        hash = Math.imul(hash, 16777619);
+    }
+    return (hash >>> 0).toString(36);
+}
+
 // Flatten into a single list of EVERY image
 let allImages = [];
-let globalIdCounter = 0; // Ensure absolute uniqueness across all projects
 
 portfolioProjects.forEach((project) => {
+    const projectKey = project.slug || project.title || 'project';
     // Add cover image
     if (project.image) {
+        const stableId = `polaroid-${hashString(`${projectKey}:cover:${project.image}`)}`;
         allImages.push({
-            // Use a composite ID that is guaranteed unique: slug + type + simple counter
-            id: `img-${globalIdCounter++}-${project.slug}-cover`,
+            id: stableId,
             title: project.title,
             image: project.image,
             slug: project.slug,
@@ -38,8 +47,9 @@ portfolioProjects.forEach((project) => {
     // Add gallery images
     if (project.images && project.images.length > 0) {
         project.images.forEach((imgUrl, idx) => {
+            const stableId = `polaroid-${hashString(`${projectKey}:gallery:${imgUrl}`)}`;
             allImages.push({
-                id: `img-${globalIdCounter++}-${project.slug}-${idx}`,
+                id: stableId,
                 title: project.title,
                 image: imgUrl,
                 slug: project.slug,
@@ -65,7 +75,7 @@ const pageTitle = "Polaroid Hub - Polaroid Scatter";
     <ThemeWidget client:idle />
     <main class="polaroid-hub-immersive">
         {/* Pass ALL images */}
-        <PolaroidScatter items={allImages} client:load immersive={true} />
+        <PolaroidScatter items={allImages} client:load immersive={true} deepLinkParam="photo" />
     </main>
 </BaseLayout>
 
@@ -88,6 +98,8 @@ const pageTitle = "Polaroid Hub - Polaroid Scatter";
         /* --- OPTION B: DARK TEXTURED STUDIO (ACTIVE - INFINITE SCROLL) --- */
         background-color: var(--polaroid-hub-bg, #080808);
 
+        /* PERF NOTE: This many layered gradients + noise can be GPU/paint heavy,
+           especially with hundreds of moving/shadowed elements on top. */
         background-image: 
             /* LAYER 1: THE GRID (Moved to Top! White, Higher Opacity, Thicker) */
             linear-gradient(

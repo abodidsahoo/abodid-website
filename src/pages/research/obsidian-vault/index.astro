@@ -118,6 +118,16 @@ const pageTitle = "Obsidian Vault";
                 </aside>
             </div>
         </section>
+
+        <div class="vault-toast" id="vault-toast" role="status" aria-live="polite">
+            <div class="vault-toast__body">
+                <p class="vault-toast__title">Super fast search is enabled.</p>
+                <p class="vault-toast__text">Click any tag to jump to the relevant notes.</p>
+            </div>
+            <button class="vault-toast__close" type="button" aria-label="Dismiss notification">
+                x
+            </button>
+        </div>
     </div>
 </BaseLayout>
 
@@ -164,6 +174,86 @@ const pageTitle = "Obsidian Vault";
         }
     </script>
 )}
+
+<script>
+    // Warm the vault cache in the background after the initial render.
+    document.addEventListener("DOMContentLoaded", () => {
+        if (typeof window === "undefined") return;
+        if ("connection" in navigator && navigator.connection?.saveData) return;
+
+        const schedule =
+            window.requestIdleCallback ||
+            ((fn) => window.setTimeout(fn, 600));
+
+        const toast = document.getElementById("vault-toast");
+
+        let warmReady = false;
+        let interactionSeen = false;
+        let toastScheduled = false;
+
+        const showToast = () => {
+            if (!toast) return;
+
+            let hideTimer = null;
+
+            const hideToast = () => {
+                toast.classList.remove("is-visible");
+                toast.classList.add("is-hiding");
+                window.setTimeout(() => {
+                    toast.classList.remove("is-hiding");
+                }, 260);
+                if (hideTimer) window.clearTimeout(hideTimer);
+                hideTimer = null;
+            };
+
+            toast.classList.add("is-visible");
+            const closeBtn = toast.querySelector(".vault-toast__close");
+
+            hideTimer = window.setTimeout(() => {
+                hideToast();
+            }, 5200);
+
+            if (closeBtn) {
+                closeBtn.addEventListener("click", hideToast, { once: true });
+            }
+        };
+
+        const scheduleToast = () => {
+            if (toastScheduled) return;
+            if (!warmReady || !interactionSeen) return;
+            toastScheduled = true;
+            window.setTimeout(() => {
+                showToast();
+            }, 3000);
+        };
+
+        const markInteraction = () => {
+            interactionSeen = true;
+            scheduleToast();
+        };
+
+        window.addEventListener("scroll", markInteraction, { passive: true, once: true });
+        window.addEventListener("mousemove", markInteraction, { passive: true, once: true });
+        window.addEventListener("touchmove", markInteraction, { passive: true, once: true });
+
+        schedule(() => {
+            fetch("/api/vault-warm.json", {
+                cache: "no-store",
+                keepalive: true,
+            })
+                .then((res) => res.json())
+                .then((payload) => {
+                    if (payload?.ok) {
+                        warmReady = true;
+                        scheduleToast();
+                    }
+                })
+                .catch(() => {
+                    // Silent failure: warming is best-effort.
+                });
+        }, { timeout: 2000 });
+    });
+</script>
 
 <script>
     // MOBILE IA LOGIC
@@ -547,5 +637,88 @@ const pageTitle = "Obsidian Vault";
         font-family: var(--font-ui);
         grid-column: 1 / -1;
         font-size: 0.8rem;
+    }
+
+    .vault-toast {
+        position: fixed;
+        top: 140px;
+        right: 36px;
+        z-index: 40;
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        max-width: 480px;
+        padding: 1.1rem 1.3rem;
+        border-radius: 16px;
+        border: 1px solid rgba(120, 255, 170, 0.85);
+        background-color: rgba(6, 10, 8, 0.25);
+        color: #f3f3f3;
+        box-shadow:
+            0 0 18px rgba(120, 255, 170, 0.3),
+            0 12px 32px rgba(0, 0, 0, 0.45);
+        backdrop-filter: blur(6px);
+        opacity: 0;
+        transform: translateY(-12px);
+        pointer-events: none;
+        transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+
+    .vault-toast.is-visible {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+    }
+
+    .vault-toast.is-hiding {
+        opacity: 0;
+        transform: translateY(14px);
+    }
+
+    .vault-toast__body {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        background: rgba(0, 0, 0, 0.72);
+        padding: 0.85rem 1rem;
+        border-radius: 12px;
+    }
+
+    .vault-toast__title {
+        margin: 0;
+        font-size: 1.08rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        color: #ffffff;
+    }
+
+    .vault-toast__text {
+        margin: 0;
+        font-size: 0.95rem;
+        line-height: 1.45;
+        color: rgba(255, 255, 255, 0.82);
+    }
+
+    .vault-toast__close {
+        border: 0;
+        background: transparent;
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 1rem;
+        line-height: 1;
+        cursor: pointer;
+        padding: 0.2rem;
+        transition: color 0.2s ease;
+    }
+
+    .vault-toast__close:hover {
+        color: #ffffff;
+    }
+
+    @media (max-width: 700px) {
+        .vault-toast {
+            top: 120px;
+            left: 18px;
+            right: 18px;
+            max-width: none;
+        }
     }
 </style>

@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { motion, AnimatePresence, useMotionValue } from 'framer-motion';
 import CardStacker from './CardStacker';
 import IntroSequence from './IntroSequence';
 import ExperienceModule from './ExperienceModule';
@@ -51,11 +51,9 @@ const STORY_GAP_BELOW_FEEDBACK_PX = 16;
 const STORY_BASE_OFFSET_PX = 156;
 const MAX_STACK_RECOVERY_ATTEMPTS = 1;
 const POINTER_INSTRUCTION_TEXT = 'KEEP HOVERING AROUND SLOWLY\nTO REVEAL MORE PHOTOS';
-const POINTER_INSTRUCTION_ARM_DELAY_MS = 900;
-const POINTER_INSTRUCTION_NUDGE_DISTANCE_PX = 10;
-const POINTER_INSTRUCTION_DWELL_MS = 3600;
-const POINTER_INSTRUCTION_MIN_STACK_TO_DISMISS = 3;
-const POINTER_INSTRUCTION_AUTO_HIDE_MS = 9000;
+const POINTER_INSTRUCTION_MIN_STACK = 3;
+const POINTER_INSTRUCTION_SHOW_DELAY_MS = 2600;
+const POINTER_INSTRUCTION_VISIBLE_MS = 7000;
 const POINTER_INSTRUCTION_OFFSET_X = 28;
 const POINTER_INSTRUCTION_OFFSET_Y = 18;
 const POINTER_INSTRUCTION_MAX_WIDTH_PX = 320;
@@ -99,7 +97,7 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
     const [leftStoryPanelTop, setLeftStoryPanelTop] = useState(140);
     const [supportsFinePointer, setSupportsFinePointer] = useState(false);
     const [pointerInstructionDismissed, setPointerInstructionDismissed] = useState(false);
-    const [pointerInstructionEligible, setPointerInstructionEligible] = useState(false);
+    const [pointerInstructionVisible, setPointerInstructionVisible] = useState(false);
     const [handGuidanceIndex, setHandGuidanceIndex] = useState(0);
     const [showHandGuidanceMessage, setShowHandGuidanceMessage] = useState(true);
     const sensitivityProfile = useMemo(
@@ -132,11 +130,11 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
     const inFlightStoryUrlsRef = useRef(new Set());
     const handGuidanceSwapTimeoutRef = useRef(null);
     const pointerInstructionRef = useRef(null);
-    const pointerInstructionDwellRef = useRef(0);
-    const pointerInstructionLastMoveRef = useRef(0);
-    const pointerInstructionHideTriggeredRef = useRef(false);
     const pointerLastPositionRef = useRef({ x: 0, y: 0 });
-    const stackLengthRef = useRef(stack.length);
+    const pointerInstructionShowTimeoutRef = useRef(null);
+    const pointerInstructionHideTimeoutRef = useRef(null);
+    const pointerInstructionX = useMotionValue(-9999);
+    const pointerInstructionY = useMotionValue(-9999);
 
     // Create ref for gesture callback
     const spawnRef = useRef(spawnCardFromGesture);
@@ -288,7 +286,6 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
     }, [introComplete]);
 
     useEffect(() => {
-        stackLengthRef.current = stack.length;
         if (stack.length > 0) {
             sawCardsRef.current = true;
         }
@@ -461,8 +458,7 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
     const [hintDismissed, setHintDismissed] = useState(false); // One-way latch for hint
 
     const positionPointerInstruction = (clientX, clientY) => {
-        const node = pointerInstructionRef.current;
-        if (!node || typeof window === 'undefined') return;
+        if (typeof window === 'undefined') return;
 
         const maxX = Math.max(12, window.innerWidth - POINTER_INSTRUCTION_MAX_WIDTH_PX - 16);
         const maxY = Math.max(12, window.innerHeight - 54);
@@ -475,68 +471,64 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
             Math.min(maxY, clientY + POINTER_INSTRUCTION_OFFSET_Y),
         );
 
-        node.style.transform = `translate3d(${nextX}px, ${nextY}px, 0)`;
+        pointerInstructionX.set(nextX);
+        pointerInstructionY.set(nextY);
     };
 
-    const showPointerInstruction =
-        supportsFinePointer &&
-        introComplete &&
-        !isScrolled &&
-        !handControlEnabled &&
-        !pointerInstructionDismissed &&
-        pointerInstructionEligible &&
-        stack.length > 0;
+    const dismissPointerInstruction = useCallback((options = {}) => {
+        const { force = false } = options;
+        if (pointerInstructionShowTimeoutRef.current) {
+            window.clearTimeout(pointerInstructionShowTimeoutRef.current);
+            pointerInstructionShowTimeoutRef.current = null;
+        }
+        if (pointerInstructionHideTimeoutRef.current) {
+            window.clearTimeout(pointerInstructionHideTimeoutRef.current);
+            pointerInstructionHideTimeoutRef.current = null;
+        }
+        if (pointerInstructionVisible) {
+            setPointerInstructionVisible(false);
+        }
+        if (force || !pointerInstructionDismissed) {
+            setPointerInstructionDismissed(true);
+        }
+    }, [pointerInstructionDismissed, pointerInstructionVisible]);
+
+    const showPointerInstruction = pointerInstructionVisible;
 
     useEffect(() => {
-        const canArmInstruction =
+        const canScheduleInstruction =
             supportsFinePointer &&
             introComplete &&
             !isScrolled &&
             !handControlEnabled &&
             !pointerInstructionDismissed &&
-            stack.length > 0;
+            stack.length >= POINTER_INSTRUCTION_MIN_STACK;
 
-        if (!canArmInstruction || pointerInstructionEligible) {
-            if (!canArmInstruction && pointerInstructionEligible) {
-                setPointerInstructionEligible(false);
+        if (!canScheduleInstruction) {
+            const hadScheduledInstruction = Boolean(pointerInstructionShowTimeoutRef.current);
+            if (pointerInstructionVisible || hadScheduledInstruction) {
+                dismissPointerInstruction({ force: true });
+            } else {
+                dismissPointerInstruction();
             }
             return;
         }
 
         if (typeof window === 'undefined') return;
 
-        let armed = false;
-        let nudged = false;
-        let originX = pointerLastPositionRef.current.x || window.innerWidth * 0.54;
-        let originY = pointerLastPositionRef.current.y || window.innerHeight * 0.52;
+        if (pointerInstructionShowTimeoutRef.current || pointerInstructionVisible) return;
 
-        const armTimer = window.setTimeout(() => {
-            armed = true;
-            originX = pointerLastPositionRef.current.x || originX;
-            originY = pointerLastPositionRef.current.y || originY;
-        }, POINTER_INSTRUCTION_ARM_DELAY_MS);
-
-        const handlePointerMove = (event) => {
-            pointerLastPositionRef.current = { x: event.clientX, y: event.clientY };
-
-            if (!armed || nudged) return;
-
-            const deltaX = event.clientX - originX;
-            const deltaY = event.clientY - originY;
-            const travel = Math.hypot(deltaX, deltaY);
-
-            if (travel >= POINTER_INSTRUCTION_NUDGE_DISTANCE_PX) {
-                nudged = true;
-                setPointerInstructionEligible(true);
-                positionPointerInstruction(event.clientX, event.clientY);
-            }
-        };
-
-        window.addEventListener('pointermove', handlePointerMove, { passive: true });
+        pointerInstructionShowTimeoutRef.current = window.setTimeout(() => {
+            pointerInstructionShowTimeoutRef.current = null;
+            if (pointerInstructionDismissed) return;
+            setPointerInstructionVisible(true);
+        }, POINTER_INSTRUCTION_SHOW_DELAY_MS);
 
         return () => {
-            window.clearTimeout(armTimer);
-            window.removeEventListener('pointermove', handlePointerMove);
+            if (pointerInstructionShowTimeoutRef.current) {
+                window.clearTimeout(pointerInstructionShowTimeoutRef.current);
+                pointerInstructionShowTimeoutRef.current = null;
+            }
         };
     }, [
         supportsFinePointer,
@@ -544,9 +536,36 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
         isScrolled,
         handControlEnabled,
         pointerInstructionDismissed,
-        pointerInstructionEligible,
+        pointerInstructionVisible,
         stack.length,
+        dismissPointerInstruction,
     ]);
+
+    useEffect(() => {
+        if (!pointerInstructionVisible) return;
+        if (typeof window === 'undefined') return;
+
+        const seedX = pointerLastPositionRef.current.x || window.innerWidth * 0.54;
+        const seedY = pointerLastPositionRef.current.y || window.innerHeight * 0.52;
+        positionPointerInstruction(seedX, seedY);
+
+        if (pointerInstructionHideTimeoutRef.current) {
+            window.clearTimeout(pointerInstructionHideTimeoutRef.current);
+        }
+
+        pointerInstructionHideTimeoutRef.current = window.setTimeout(() => {
+            pointerInstructionHideTimeoutRef.current = null;
+            setPointerInstructionVisible(false);
+            setPointerInstructionDismissed(true);
+        }, POINTER_INSTRUCTION_VISIBLE_MS);
+
+        return () => {
+            if (pointerInstructionHideTimeoutRef.current) {
+                window.clearTimeout(pointerInstructionHideTimeoutRef.current);
+                pointerInstructionHideTimeoutRef.current = null;
+            }
+        };
+    }, [pointerInstructionVisible]);
 
     useEffect(() => {
         if (!introComplete) return;
@@ -562,54 +581,45 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
     }, [introComplete]);
 
     useEffect(() => {
-        if (!showPointerInstruction) return;
+        if (!supportsFinePointer || !introComplete) return;
         if (typeof window === 'undefined') return;
-
-        pointerInstructionHideTriggeredRef.current = false;
-        pointerInstructionLastMoveRef.current = 0;
-        pointerInstructionDwellRef.current = 0;
-
-        const seedX = pointerLastPositionRef.current.x || window.innerWidth * 0.54;
-        const seedY = pointerLastPositionRef.current.y || window.innerHeight * 0.52;
-        positionPointerInstruction(seedX, seedY);
 
         const handlePointerMove = (event) => {
             pointerLastPositionRef.current = { x: event.clientX, y: event.clientY };
-            positionPointerInstruction(event.clientX, event.clientY);
-
-            const now = performance.now();
-            if (pointerInstructionLastMoveRef.current > 0) {
-                const dt = Math.min(120, now - pointerInstructionLastMoveRef.current);
-                if (dt > 0) {
-                    pointerInstructionDwellRef.current += dt;
-                }
+            const isOutsideViewport =
+                event.clientX < 0 ||
+                event.clientX > window.innerWidth ||
+                event.clientY < 0 ||
+                event.clientY > window.innerHeight;
+            if (isOutsideViewport) {
+                dismissPointerInstruction({ force: true });
+                return;
             }
-            pointerInstructionLastMoveRef.current = now;
-
-            const shouldDismissByDwell =
-                pointerInstructionDwellRef.current >= POINTER_INSTRUCTION_DWELL_MS &&
-                stackLengthRef.current >= POINTER_INSTRUCTION_MIN_STACK_TO_DISMISS;
-
-            if (shouldDismissByDwell && !pointerInstructionHideTriggeredRef.current) {
-                pointerInstructionHideTriggeredRef.current = true;
-                setPointerInstructionDismissed(true);
+            if (pointerInstructionVisible) {
+                positionPointerInstruction(event.clientX, event.clientY);
             }
+        };
+
+        const handleMouseOut = (event) => {
+            if (event.relatedTarget == null) {
+                dismissPointerInstruction({ force: true });
+            }
+        };
+
+        const handleWindowBlur = () => {
+            dismissPointerInstruction({ force: true });
         };
 
         window.addEventListener('pointermove', handlePointerMove, { passive: true });
-        const autoHideTimeout = window.setTimeout(() => {
-            if (pointerInstructionHideTriggeredRef.current) return;
-            if (stackLengthRef.current >= 2) {
-                pointerInstructionHideTriggeredRef.current = true;
-                setPointerInstructionDismissed(true);
-            }
-        }, POINTER_INSTRUCTION_AUTO_HIDE_MS);
+        document.addEventListener('mouseout', handleMouseOut, { passive: true });
+        window.addEventListener('blur', handleWindowBlur, { passive: true });
 
         return () => {
-            window.clearTimeout(autoHideTimeout);
             window.removeEventListener('pointermove', handlePointerMove);
+            document.removeEventListener('mouseout', handleMouseOut);
+            window.removeEventListener('blur', handleWindowBlur);
         };
-    }, [showPointerInstruction]);
+    }, [supportsFinePointer, introComplete, pointerInstructionVisible, dismissPointerInstruction]);
 
     const handleActivate = () => {
         // CRITICAL: Call this inside the user click handler to unlock Audio Context
@@ -858,15 +868,20 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                     <motion.div
                         ref={pointerInstructionRef}
                         className="pointer-instruction"
-                        style={{ transform: 'translate3d(-9999px, -9999px, 0)' }}
+                        style={{ x: pointerInstructionX, y: pointerInstructionY }}
                         initial={{ opacity: 0, y: 6, scale: 0.96 }}
                         animate={{
                             opacity: 1,
                             y: 0,
                             scale: 1,
-                            transition: { duration: 0.85, ease: [0.22, 1, 0.36, 1] },
+                            transition: { duration: 1.1, ease: [0.22, 1, 0.36, 1] },
                         }}
-                        exit={{ opacity: 0, y: 4, scale: 0.98, transition: { duration: 0.35 } }}
+                        exit={{
+                            opacity: 0,
+                            y: 4,
+                            scale: 0.98,
+                            transition: { duration: 2.4, ease: [0.16, 1, 0.3, 1] },
+                        }}
                     >
                         <span className="pointer-instruction-label">{POINTER_INSTRUCTION_TEXT}</span>
                     </motion.div>
