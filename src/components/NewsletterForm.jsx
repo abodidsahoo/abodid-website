@@ -249,7 +249,7 @@ const NewsletterForm = ({ onClose, variant = "popup" }) => {
             }
 
             .newsletter-body {
-                padding: 2.5rem;
+                padding: 2.5rem 2.5rem 3rem;
                 overflow-y: auto; /* Allow scrolling within the body */
             }
 
@@ -386,6 +386,7 @@ const NewsletterForm = ({ onClose, variant = "popup" }) => {
               transition: color 0.2s;
               white-space: nowrap;
               text-decoration: none;
+              max-width: 100%;
             }
 
             .secondary-link:hover {
@@ -408,7 +409,7 @@ const NewsletterForm = ({ onClose, variant = "popup" }) => {
             /* Success State */
             .newsletter-success {
                 text-align: center;
-                padding: 4rem 2.5rem;
+                padding: 4rem 2.5rem 3.5rem;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
@@ -477,7 +478,7 @@ const NewsletterForm = ({ onClose, variant = "popup" }) => {
               }
               
               .newsletter-body {
-                padding: 1.25rem; /* Reduced body padding */
+                padding: 1.5rem 1.25rem 2rem; /* Keep breathing room at the bottom */
               }
               
               .newsletter-desc {
@@ -495,6 +496,14 @@ const NewsletterForm = ({ onClose, variant = "popup" }) => {
                 padding: 0.75rem;
                 font-size: 0.8rem;
                 width: 100%;
+            }
+
+            .secondary-link {
+                white-space: normal;
+            }
+
+            .newsletter-success {
+                padding: 3rem 1.5rem 2.5rem;
             }
             
             .trust-microcopy {

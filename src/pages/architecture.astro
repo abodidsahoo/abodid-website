@@ -101,11 +101,13 @@ const consultationHref =
                                 {
                                     techStack.map((item) => (
                                         <tr>
-                                            <td>{item.component}</td>
-                                            <td class="highlight">
+                                            <td data-label="Component">
+                                                {item.component}
+                                            </td>
+                                            <td data-label="Technology" class="highlight">
                                                 {item.tech}
                                             </td>
-                                            <td class="muted">
+                                            <td data-label="Purpose" class="muted">
                                                 {item.purpose}
                                             </td>
                                         </tr>
@@ -717,12 +719,15 @@ const consultationHref =
     .feature-list code {
         font-family: var(--font-mono);
         font-size: 0.95em;
+        overflow-wrap: anywhere;
+        word-break: break-word;
     }
 
     .feature-list a {
         color: var(--text-primary);
         text-decoration: underline;
         text-underline-offset: 0.16em;
+        overflow-wrap: anywhere;
     }
 
     .feature-list a:hover {
@@ -867,6 +872,68 @@ const consultationHref =
             right: 1rem;
             bottom: clamp(2rem, 10vh, 4rem);
             width: min(300px, calc(100vw - 2rem));
+        }
+    }
+
+    @media (max-width: 900px) {
+        .table-container {
+            border: none;
+            background: transparent;
+            overflow-x: visible;
+        }
+
+        .tech-table {
+            min-width: 0;
+            border-collapse: separate;
+            border-spacing: 0 0.75rem;
+        }
+
+        .tech-table thead {
+            display: none;
+        }
+
+        .tech-table tbody tr {
+            display: block;
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            background: var(--bg-surface);
+            padding: 0.85rem 1rem;
+        }
+
+        .tech-table td {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.35rem;
+            padding: 0.45rem 0;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .tech-table td:last-child {
+            border-bottom: none;
+        }
+
+        .tech-table td::before {
+            content: attr(data-label);
+            font-family: var(--font-ui);
+            font-size: 0.72rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: var(--text-tertiary);
+        }
+    }
+
+    @media (max-width: 560px) {
+        .floating-consult-copy {
+            white-space: normal;
+            text-align: center;
+        }
+
+        .floating-consult-button {
+            height: auto;
+            padding: 0.65rem 0.9rem;
+            font-size: 1rem;
+            white-space: normal;
+            text-align: center;
         }
     }
 

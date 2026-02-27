@@ -4,7 +4,6 @@ import "../styles/brands.css";
 import Header from "../components/Header.jsx";
 import Footer from "../components/Footer.astro";
 import SEO from "../components/SEO.astro";
-import StickyMobileNav from "../components/StickyMobileNav.jsx";
 import NewsletterPopup from "../components/NewsletterPopup.jsx";
 import MagneticCursorFollower from "../components/MagneticCursorFollower.jsx";
 import { getPageMetadata } from "../lib/api";
@@ -17,7 +16,6 @@ const {
   hideHeader = false,
   hideFooter = false,
   fullWidth = false,
-  showStickyNav = true,
   showNewsletterPopup = true,
   showGlobalGrid = true,
   bodyClass = "",
@@ -141,7 +139,6 @@ const finalType = type || dbMetadata?.og_type || "website";
     >
       <slot />
     </main>
-    {showStickyNav && <StickyMobileNav client:idle />}
     {showNewsletterPopup && <NewsletterPopup client:only="react" />}
     {cursorFollowerEnabled && <MagneticCursorFollower client:load />}
 
@@ -167,7 +164,8 @@ const finalType = type || dbMetadata?.og_type || "website";
 
   .page-content-full {
     padding: 0;
-    width: 100vw;
+    width: 100%;
+    max-width: 100%;
     position: relative;
     z-index: 1;
   }
