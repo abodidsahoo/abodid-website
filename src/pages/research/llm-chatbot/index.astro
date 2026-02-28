@@ -4,319 +4,373 @@ const pageTitle = "LLM-based Chatbot";
 ---
 
 <BaseLayout title={pageTitle}>
-    <article class="research-page">
-        <header class="project-header">
-            <h1>LLM-based Chatbot</h1>
-            <p class="status-tag">In Progress</p>
-        </header>
+    <div class="explanation-page">
+        <div class="explanation-content">
+            <div class="header-section">
+                <div class="header-text">
+                    <h1>LLM-based Chatbot</h1>
+                    <p class="subtitle">
+                        A research companion that explores how large language
+                        models can index my archive and answer with context.
+                        <br />
+                        Built with OpenRouter for model diversity and cost control.
+                    </p>
+                    <a
+                        href="/llm-testing"
+                        class="launch-button secondary launch-inline"
+                    >
+                        Launch the experiment →
+                    </a>
+                </div>
+            </div>
 
-        <section class="introduction">
-            <p class="lead">
-                Experimenting with <strong>OpenRouter API</strong> to build an internal
-                chatbot that understands my research papers, creative work, and personal
-                knowledge systems. This is a playground for understanding how AI can
-                augment creative research and make sense of social data.
-            </p>
-        </section>
+            <aside class="comparison-float">
+                <div class="comparison-card">
+                    <p>
+                        <span class="selected-text">
+                            <strong>A model can answer.</strong><br />
+                            <em>The question is: does it remember?</em>
+                        </span>
+                    </p>
 
-        <section class="details">
-            <h2>What is this?</h2>
-            <p>
-                This project explores the integration of <strong
-                    >OpenRouter API</strong
-                >—a unified gateway to multiple Large Language Models (LLMs). By
-                using selective free-tier models, I'm building AI-driven tools
-                without the cost overhead, making experimentation accessible and
-                sustainable.
-            </p>
+                    <p>
+                        <span class="selected-text">
+                            <strong>When it speaks, whose voice is it echoing?</strong>
+                        </span>
+                    </p>
 
-            <h3>Why OpenRouter?</h3>
-            <ul>
-                <li>
-                    <strong>Model diversity</strong> – Access to 30+ free models from
-                    Meta, Google, and others
-                </li>
-                <li>
-                    <strong>Free-first routing</strong> – Intelligent fallback system
-                    prioritizes free models
-                </li>
-                <li>
-                    <strong>No vendor lock-in</strong> – Switch between models seamlessly
-                </li>
-                <li>
-                    <strong>Cost transparency</strong> – Built-in quota management
-                    and usage tracking
-                </li>
-            </ul>
+                    <p class="note">
+                        <span class="selected-text">
+                            This experiment tests memory, not novelty.
+                        </span>
+                    </p>
+                </div>
+            </aside>
 
-            <h3>Technical Architecture</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Component</th>
-                        <th>Purpose</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><code>OpenRouter Client</code></td>
-                        <td>HTTP wrapper for API communication</td>
-                    </tr>
-                    <tr>
-                        <td><code>Model Catalog</code></td>
-                        <td>Discovers and caches available models</td>
-                    </tr>
-                    <tr>
-                        <td><code>Quota Manager</code></td>
-                        <td>Enforces rate limits (20/min, 1000/day)</td>
-                    </tr>
-                    <tr>
-                        <td><code>Policy Engine</code></td>
-                        <td>Routes requests to optimal free models</td>
-                    </tr>
-                    <tr>
-                        <td><code>Executor</code></td>
-                        <td>Handles retries and intelligent failover</td>
-                    </tr>
-                </tbody>
-            </table>
+            <section class="content-section">
+                <h2>The Idea</h2>
+                <p>
+                    This is not a generic chatbot. It is a lens on my research
+                    papers, creative work, and personal knowledge systems.
+                </p>
 
-            <h3>Current Capabilities</h3>
-            <ul>
-                <li>Real-time conversational AI with context memory</li>
-                <li>Response latency tracking (typically 1.4–1.9s)</li>
-                <li>Transparent model identification in every response</li>
-                <li>Automatic quota management and rate limiting</li>
-                <li>Graceful error handling with model failover</li>
-            </ul>
+                <p>
+                    The goal is to see how AI can surface patterns without
+                    flattening nuance, and how it can become a thinking partner
+                    rather than a replacement.
+                </p>
+            </section>
 
-            <h3>Future Vision</h3>
-            <p>
-                The long-term goal is to train this chatbot on my research
-                papers, photography notes, and creative writings. Imagine
-                asking: <em
-                    >"What are the recurring themes in my grief photography?"</em
-                > or <em
-                    >"How does my work on memory connect to my emotional
-                    research?"</em
-                >
-            </p>
-            <p class="small-note">
-                This is still early-stage exploration. Right now, it's a
-                general-purpose chat interface—think of it as a testing ground
-                for understanding how LLMs can become thought partners for
-                creative research.
-            </p>
-        </section>
+            <section class="content-section">
+                <h2>The Core Question</h2>
+                <p>
+                    Can a model hold context without erasing lived experience?
+                    Can it help me think, without deciding for me?
+                </p>
 
-        <section class="experiment-launch">
-            <a href="/llm-testing" class="launch-button">
-                Launch the experiment →
-            </a>
-        </section>
-    </article>
+                <p class="emphasis">
+                    The work is less about answers, more about how answers are
+                    formed.
+                </p>
+            </section>
+
+            <section class="content-section">
+                <h2>How It Works</h2>
+                <ul class="feature-list">
+                    <li>OpenRouter gateway for access to multiple LLMs</li>
+                    <li>Free-first routing with quota guardrails</li>
+                    <li>Context memory and conversation state</li>
+                    <li>Latency tracking and model attribution</li>
+                    <li>Retries and graceful failover</li>
+                </ul>
+
+                <p>
+                    OpenRouter lets me test many models without lock-in and keep
+                    costs predictable while exploring.
+                </p>
+            </section>
+
+            <section class="content-section">
+                <h2>Current Capabilities</h2>
+                <ul class="feature-list">
+                    <li>Real-time conversational AI with short-term memory</li>
+                    <li>Transparent model identification in each response</li>
+                    <li>Quota management with rate limits</li>
+                    <li>Basic logging for latency and failures</li>
+                    <li>Stable baseline prompt for consistent outputs</li>
+                </ul>
+            </section>
+
+            <section class="content-section">
+                <h2>Next Build</h2>
+                <ul class="feature-list">
+                    <li>Retrieval over papers, notes, and project archives</li>
+                    <li>Source-aware responses and citations</li>
+                    <li>Personal prompt templates for research workflows</li>
+                    <li>Evaluation set for measuring drift and bias</li>
+                    <li>Long-term memory experiments and user controls</li>
+                </ul>
+
+                <p class="emphasis">
+                    The goal is not automation - the goal is reflection.
+                </p>
+            </section>
+
+            <div class="action-section dual-buttons">
+                <a href="/llm-testing" class="launch-button secondary">
+                    Launch the experiment →
+                </a>
+            </div>
+        </div>
+    </div>
 </BaseLayout>
 
 <style>
-    .research-page {
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 3rem 2rem 6rem;
-        font-family: var(--font-sans);
-    }
-
-    .project-header {
-        margin-bottom: 3rem;
-        padding-bottom: 2rem;
-        border-bottom: 1px solid var(--border-subtle);
-    }
-
-    .project-header h1 {
-        font-family: var(--font-display);
-        font-size: 3rem;
-        font-weight: 600;
-        margin-bottom: 1rem;
-        letter-spacing: -0.02em;
+    .explanation-page {
+        min-height: 100vh;
+        padding: 4rem 2rem;
         color: var(--text-primary);
     }
 
-    .status-tag {
-        display: inline-block;
-        padding: 0.4rem 1rem;
-        background: rgba(102, 126, 234, 0.1);
-        color: #667eea;
-        border-radius: 20px;
-        font-size: 0.85rem;
-        font-weight: 500;
-        font-family: var(--font-mono);
+    .explanation-content {
+        max-width: 800px;
+        margin: 0 auto;
     }
 
-    .introduction {
+    .header-section {
+        margin-bottom: 2.5rem;
+        text-align: left;
+    }
+
+    .header-text {
+        max-width: 720px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    h1 {
+        font-family: var(--font-display);
+        font-size: 3.5rem;
+        font-weight: 700;
+        margin: 0 0 1.5rem 0;
+        line-height: 1.1;
+    }
+
+    .subtitle {
+        font-size: 1.25rem;
+        line-height: 1.6;
+        color: var(--text-secondary);
+        margin-bottom: 0.5rem;
+    }
+
+    .launch-inline {
+        margin-top: 1rem;
+        align-self: flex-start;
+    }
+
+    .content-section {
         margin-bottom: 3rem;
     }
 
-    .lead {
-        font-size: 1.25rem;
-        line-height: 1.7;
-        color: var(--text-secondary);
-    }
-
-    .details h2 {
+    h2 {
         font-family: var(--font-display);
         font-size: 1.75rem;
         font-weight: 600;
-        margin: 2.5rem 0 1rem;
+        margin: 0 0 1.5rem 0;
         color: var(--text-primary);
     }
 
-    .details h3 {
-        font-family: var(--font-display);
-        font-size: 1.25rem;
-        font-weight: 500;
-        margin: 2rem 0 1rem;
-        color: var(--text-primary);
-    }
-
-    .details p {
-        font-size: 1rem;
-        line-height: 1.7;
+    p {
+        font-size: 1.1rem;
+        line-height: 1.8;
+        margin-bottom: 1.5rem;
         color: var(--text-secondary);
-        margin-bottom: 1.25rem;
     }
 
-    .details ul {
+    .emphasis {
+        font-style: italic;
+        color: var(--text-primary);
+        font-weight: 500;
+    }
+
+    .feature-list {
         list-style: none;
-        padding-left: 0;
+        padding: 0;
         margin: 1.5rem 0;
     }
 
-    .details ul li {
-        padding-left: 1.75rem;
-        margin-bottom: 0.75rem;
+    .feature-list li {
         position: relative;
+        padding-left: 1.5rem;
+        margin-bottom: 0.75rem;
+        font-size: 1.1rem;
         line-height: 1.6;
         color: var(--text-secondary);
     }
 
-    .details ul li::before {
+    .feature-list li::before {
         content: "→";
         position: absolute;
         left: 0;
-        color: #667eea;
+        color: var(--accent-purple);
         font-weight: 600;
     }
 
-    .details strong {
-        color: var(--text-primary);
-        font-weight: 600;
-    }
-
-    .details em {
-        font-style: italic;
-        color: var(--text-secondary);
-    }
-
-    .details code {
-        font-family: var(--font-mono);
-        font-size: 0.9em;
-        padding: 0.2em 0.4em;
-        background: rgba(0, 0, 0, 0.05);
-        border-radius: 3px;
-        color: #667eea;
-    }
-
-    :global(.dark) .details code {
-        background: rgba(255, 255, 255, 0.1);
-    }
-
-    .small-note {
-        font-size: 0.9rem;
-        color: var(--text-tertiary);
-        font-style: italic;
-        margin-top: 1.5rem;
-    }
-
-    table {
-        width: 100%;
-        border-collapse: collapse;
+    .numbered-list {
+        list-style: none;
+        counter-reset: item;
+        padding: 0;
         margin: 1.5rem 0;
-        font-size: 0.95rem;
     }
 
-    thead {
-        border-bottom: 2px solid var(--border-subtle);
-    }
-
-    th {
-        text-align: left;
-        padding: 0.75rem;
-        font-weight: 600;
-        color: var(--text-primary);
-        font-family: var(--font-display);
-    }
-
-    td {
-        padding: 0.75rem;
-        border-bottom: 1px solid var(--border-subtle);
+    .numbered-list li {
+        position: relative;
+        padding-left: 2rem;
+        margin-bottom: 0.75rem;
+        font-size: 1.1rem;
+        line-height: 1.6;
         color: var(--text-secondary);
+        counter-increment: item;
     }
 
-    tbody tr:last-child td {
-        border-bottom: none;
+    .numbered-list li::before {
+        content: counter(item) ".";
+        position: absolute;
+        left: 0;
+        color: var(--accent-purple);
+        font-weight: 600;
     }
 
-    .experiment-launch {
-        margin-top: 4rem;
-        padding-top: 2rem;
-        border-top: 1px solid var(--border-subtle);
-        text-align: center;
+    .comparison-float {
+        position: relative;
+        width: min(46vw, 520px);
+        max-width: 100%;
+        aspect-ratio: 5 / 3;
+        background: var(--color-brand-red);
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.08);
+        padding: 1.5rem;
+        display: flex;
+        align-items: flex-start;
+        justify-content: flex-start;
+        margin: 2.5rem auto 3rem 0;
+        z-index: 2;
+    }
+
+    .comparison-card {
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+    }
+
+    .comparison-card p {
+        margin-bottom: 1rem;
+        color: #000000;
+    }
+
+    .note {
+        font-size: 0.95rem;
+        font-style: italic;
+        color: #000000;
+    }
+
+    .action-section {
+        display: flex;
+        justify-content: center;
+        margin: 3rem 0;
+    }
+
+    .dual-buttons {
+        gap: 1rem;
+        flex-wrap: wrap;
     }
 
     .launch-button {
-        display: inline-block;
         padding: 1rem 2.5rem;
         background: transparent;
         color: var(--text-primary);
         border: 1px solid var(--border-subtle);
         border-radius: 6px;
-        text-decoration: none;
         font-family: var(--font-mono);
         font-size: 0.95rem;
-        font-weight: 500;
+        text-decoration: none;
         transition: all 0.25s ease;
-        letter-spacing: 0.02em;
+        display: inline-block;
     }
 
-    .launch-button:hover {
+    .launch-button.secondary:hover {
         border-color: var(--text-primary);
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     }
 
-    @media (max-width: 600px) {
-        .research-page {
-            padding: 2rem 1.5rem 4rem;
+    .selected-text {
+        background: var(--color-brand-red);
+        color: #ffffff;
+        padding: 0.08em 0.22em;
+        border-radius: 2px;
+        box-decoration-break: clone;
+        -webkit-box-decoration-break: clone;
+        display: inline;
+    }
+
+    .selected-text em,
+    .selected-text strong {
+        color: #ffffff;
+    }
+
+    .selected-text::selection {
+        background: var(--color-brand-red);
+        color: #ffffff;
+    }
+
+    .comparison-float .selected-text {
+        background: #ffffff;
+        color: #000000;
+    }
+
+    .comparison-float .selected-text em,
+    .comparison-float .selected-text strong {
+        color: #000000;
+    }
+
+    @media (max-width: 1200px) {
+        .comparison-float {
+            margin: 2.5rem auto 3rem;
+            width: min(92vw, 520px);
+            aspect-ratio: 5 / 3;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .explanation-page {
+            padding: 2rem 1.5rem;
         }
 
-        .project-header h1 {
-            font-size: 2.25rem;
+        h1 {
+            font-size: 2.5rem;
         }
 
-        .details h2 {
-            font-size: 1.5rem;
+        .subtitle {
+            font-size: 1.1rem;
         }
 
-        .details h3 {
-            font-size: 1.15rem;
+        .comparison-float {
+            width: 100%;
+            max-width: 520px;
+            aspect-ratio: auto;
+            margin: 2rem auto 2.5rem;
         }
 
-        table {
-            font-size: 0.85rem;
+        .dual-buttons {
+            flex-direction: column;
+            align-items: stretch;
         }
 
-        th,
-        td {
-            padding: 0.5rem;
+        .launch-button {
+            width: 100%;
+            text-align: center;
         }
     }
 </style>

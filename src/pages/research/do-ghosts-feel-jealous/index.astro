@@ -7,197 +7,366 @@ const pageTitle =
 ---
 
 <BaseLayout title="Do ghosts feel jealous?">
-    <div class="project-container">
-        <header class="project-header">
-            <h1 class="title">{pageTitle}</h1>
-            <p class="subtitle">
-                Graduation Project at Royal College of Art, London / 2022-
-                Ongoing <br />
-                <span class="medium"
-                    >Medium: Photography, Writing, Performance, Film, Print,
-                    Installation</span
-                >
-            </p>
-        </header>
-
-        <section class="content-body">
-            <p>
-                Blurring the lines between the living and the dead, this project
-                was a way to decode my minute emotional gestures around the
-                dissonance between absence and presence, while I desperately
-                longed for the presence of the people I have loved and lost.
-            </p>
-            <p>
-                The project seeks to illuminate the transformative power of love
-                and death and shed light on the haunting allure of unrequited
-                love and grief.
-            </p>
-        </section>
-
-        <section class="keywords-section">
-            <h3>Keywords</h3>
-            <div class="tags">
-                <span class="tag">Unresolved Emotions</span>
-                <span class="tag">Abandonment</span>
-                <span class="tag">Rejection</span>
-                <span class="tag">Fear</span>
-                <span class="tag">Grief</span>
-                <span class="tag">Death</span>
-                <span class="tag">Funeral</span>
-                <span class="tag">Love</span>
-                <span class="tag">Unrequited Love</span>
-                <span class="tag">Imagined Interactions</span>
-                <span class="tag">Autoethnography</span>
-                <span class="tag">Conversations</span>
-                <span class="tag">Hauntology</span>
-                <span class="tag">Longing</span>
-                <span class="tag">Journaling</span>
-                <span class="tag">Mental Health</span>
-                <span class="tag">Therapy</span>
-                <span class="tag">Innerchild Work</span>
-                <span class="tag">Psychotherapy</span>
-                <span class="tag">Phototherapy</span>
-                <span class="tag">Healing</span>
-                <span class="tag">Catharsis</span>
+    <div class="explanation-page">
+        <div class="explanation-content">
+            <div class="header-section">
+                <div class="header-text">
+                    <h1>Do ghosts feel jealous if you miss the living ones more than them?</h1>
+                    <p class="subtitle">
+                        Graduation project at Royal College of Art, London
+                        (2022 - ongoing).
+                        <br />
+                        Medium: Photography, writing, performance, film, print,
+                        installation.
+                    </p>
+                    <a
+                        href="https://inlovewithaghost.webflow.io/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="launch-button secondary launch-inline"
+                    >
+                        Enter the work →
+                    </a>
+                </div>
             </div>
-        </section>
 
-        <section class="cta-section">
-            <a
-                href="https://www.whydidyoucry.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="external-btn"
-            >
-                Go through the body of work <span class="arrow">→</span>
-            </a>
-            <p class="url-text">www.whydidyoucry.com</p>
-        </section>
+            <aside class="comparison-float">
+                <div class="comparison-card">
+                    <p>
+                        <span class="selected-text">
+                            <strong>Absence is not silence.</strong><br />
+                            <em>It is a conversation you keep having.</em>
+                        </span>
+                    </p>
 
-        <ShareButtons
-            client:only="react"
-            title={pageTitle}
-            url={Astro.url.href}
-        />
+                    <p>
+                        <span class="selected-text">
+                            <strong>Grief is a room you return to.</strong>
+                        </span>
+                    </p>
+
+                    <p class="note">
+                        <span class="selected-text">
+                            This work lives in the space between presence and loss.
+                        </span>
+                    </p>
+                </div>
+            </aside>
+
+            <section class="content-section">
+                <h2>The Idea</h2>
+                <p>
+                    This project decodes my minute emotional gestures around the
+                    dissonance between absence and presence, while longing for
+                    people I have loved and lost.
+                </p>
+
+                <p>
+                    It explores the haunting pull of unrequited love and grief,
+                    and the ways memory keeps the dead alive in the living.
+                </p>
+            </section>
+
+            <section class="content-section">
+                <h2>What It Examines</h2>
+                <ul class="feature-list">
+                    <li>Unresolved emotions and imagined conversations</li>
+                    <li>Abandonment, rejection, and fear</li>
+                    <li>Grief, mourning, and longing</li>
+                    <li>Hauntology and inner child work</li>
+                    <li>Therapy, healing, and catharsis</li>
+                </ul>
+            </section>
+
+            <section class="content-section">
+                <h2>Forms</h2>
+                <ul class="feature-list">
+                    <li>Photography and photo-text</li>
+                    <li>Writing and journaling</li>
+                    <li>Performance and film</li>
+                    <li>Print and installation</li>
+                </ul>
+            </section>
+
+            <section class="content-section">
+                <h2>Why It Matters</h2>
+                <p>
+                    Love and death are not opposites - they are entangled.
+                    This work gives language to the rituals we perform with memory,
+                    and the private negotiations we make with absence.
+                </p>
+
+                <p class="emphasis">
+                    It is a study in how we keep speaking to those who cannot answer.
+                </p>
+            </section>
+
+            <div class="action-section dual-buttons">
+                <a
+                    href="https://inlovewithaghost.webflow.io/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="launch-button secondary"
+                >
+                    Enter the work →
+                </a>
+            </div>
+
+            <ShareButtons
+                client:only="react"
+                title={pageTitle}
+                url={Astro.url.href}
+            />
+        </div>
     </div>
 </BaseLayout>
 
 <style>
-    .project-container {
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 4rem 1rem;
-    }
-
-    .project-header {
-        margin-bottom: 3rem;
-        border-bottom: 1px solid var(--border-subtle);
-        padding-bottom: 2rem;
-    }
-
-    .title {
-        font-family: var(--font-display);
-        font-size: 2.5rem;
-        font-weight: 500;
-        line-height: 1.2;
-        margin-bottom: 1.5rem;
+    .explanation-page {
+        min-height: 100vh;
+        padding: 4rem 2rem;
         color: var(--text-primary);
     }
 
-    .subtitle {
-        font-family: var(--font-mono);
-        font-size: 0.9rem;
-        color: var(--text-secondary);
-        line-height: 1.6;
+    .explanation-content {
+        max-width: 800px;
+        margin: 0 auto;
     }
 
-    .medium {
-        display: block;
-        margin-top: 0.5rem;
-        color: var(--text-tertiary);
-        font-style: italic;
+    .header-section {
+        margin-bottom: 2.5rem;
+        text-align: left;
     }
 
-    .content-body p {
-        font-family: var(--font-serif, Georgia, serif); /* Serif for reading */
-        font-size: 1.15rem;
-        line-height: 1.8;
-        color: var(--text-secondary);
-        margin-bottom: 1.5rem;
-    }
-
-    .keywords-section {
-        margin: 3rem 0;
-        background: var(--bg-surface);
-        padding: 2rem;
-        border-radius: 8px;
-        border: 1px solid var(--border-subtle);
-    }
-
-    .keywords-section h3 {
-        font-family: var(--font-display);
-        font-size: 1rem;
-        text-transform: uppercase;
-        margin: 0 0 1rem 0;
-        color: var(--text-tertiary);
-    }
-
-    .tags {
+    .header-text {
+        max-width: 720px;
         display: flex;
-        flex-wrap: wrap;
-        gap: 0.8rem;
+        flex-direction: column;
+        align-items: flex-start;
     }
 
-    .tag {
-        font-family: var(--font-mono);
-        font-size: 0.8rem;
-        color: var(--text-secondary);
-        background: rgba(0, 0, 0, 0.05);
-        padding: 4px 10px;
-        border-radius: 4px;
-    }
-
-    :global(.dark) .tag {
-        background: rgba(255, 255, 255, 0.1);
-    }
-
-    .cta-section {
-        text-align: center;
-        margin-top: 4rem;
-    }
-
-    .external-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
+    h1 {
         font-family: var(--font-display);
-        font-size: 1.1rem;
-        font-weight: 500;
-        color: #fff;
-        background: var(--accent-primary, #007aff);
-        padding: 1rem 2rem;
-        border-radius: 100px; /* Pill */
-        text-decoration: none;
-        transition:
-            transform 0.2s,
-            box-shadow 0.2s;
+        font-size: 3.5rem;
+        font-weight: 700;
+        margin: 0 0 1.5rem 0;
+        line-height: 1.1;
     }
 
-    .external-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 20px rgba(0, 122, 255, 0.3);
+    .subtitle {
+        font-size: 1.25rem;
+        line-height: 1.6;
+        color: var(--text-secondary);
+        margin-bottom: 0.5rem;
     }
 
-    .url-text {
-        font-family: var(--font-mono);
-        font-size: 0.9rem;
-        color: var(--text-tertiary);
+    .launch-inline {
         margin-top: 1rem;
+        align-self: flex-start;
     }
 
-    @media (max-width: 600px) {
-        .title {
-            font-size: 2rem;
+    .content-section {
+        margin-bottom: 3rem;
+    }
+
+    h2 {
+        font-family: var(--font-display);
+        font-size: 1.75rem;
+        font-weight: 600;
+        margin: 0 0 1.5rem 0;
+        color: var(--text-primary);
+    }
+
+    p {
+        font-size: 1.1rem;
+        line-height: 1.8;
+        margin-bottom: 1.5rem;
+        color: var(--text-secondary);
+    }
+
+    .emphasis {
+        font-style: italic;
+        color: var(--text-primary);
+        font-weight: 500;
+    }
+
+    .feature-list {
+        list-style: none;
+        padding: 0;
+        margin: 1.5rem 0;
+    }
+
+    .feature-list li {
+        position: relative;
+        padding-left: 1.5rem;
+        margin-bottom: 0.75rem;
+        font-size: 1.1rem;
+        line-height: 1.6;
+        color: var(--text-secondary);
+    }
+
+    .feature-list li::before {
+        content: "→";
+        position: absolute;
+        left: 0;
+        color: var(--accent-purple);
+        font-weight: 600;
+    }
+
+    .numbered-list {
+        list-style: none;
+        counter-reset: item;
+        padding: 0;
+        margin: 1.5rem 0;
+    }
+
+    .numbered-list li {
+        position: relative;
+        padding-left: 2rem;
+        margin-bottom: 0.75rem;
+        font-size: 1.1rem;
+        line-height: 1.6;
+        color: var(--text-secondary);
+        counter-increment: item;
+    }
+
+    .numbered-list li::before {
+        content: counter(item) ".";
+        position: absolute;
+        left: 0;
+        color: var(--accent-purple);
+        font-weight: 600;
+    }
+
+    .comparison-float {
+        position: relative;
+        width: min(46vw, 520px);
+        max-width: 100%;
+        aspect-ratio: 5 / 3;
+        background: var(--color-brand-red);
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.08);
+        padding: 1.5rem;
+        display: flex;
+        align-items: flex-start;
+        justify-content: flex-start;
+        margin: 2.5rem auto 3rem 0;
+        z-index: 2;
+    }
+
+    .comparison-card {
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+    }
+
+    .comparison-card p {
+        margin-bottom: 1rem;
+        color: #000000;
+    }
+
+    .note {
+        font-size: 0.95rem;
+        font-style: italic;
+        color: #000000;
+    }
+
+    .action-section {
+        display: flex;
+        justify-content: center;
+        margin: 3rem 0;
+    }
+
+    .dual-buttons {
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .launch-button {
+        padding: 1rem 2.5rem;
+        background: transparent;
+        color: var(--text-primary);
+        border: 1px solid var(--border-subtle);
+        border-radius: 6px;
+        font-family: var(--font-mono);
+        font-size: 0.95rem;
+        text-decoration: none;
+        transition: all 0.25s ease;
+        display: inline-block;
+    }
+
+    .launch-button.secondary:hover {
+        border-color: var(--text-primary);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .selected-text {
+        background: var(--color-brand-red);
+        color: #ffffff;
+        padding: 0.08em 0.22em;
+        border-radius: 2px;
+        box-decoration-break: clone;
+        -webkit-box-decoration-break: clone;
+        display: inline;
+    }
+
+    .selected-text em,
+    .selected-text strong {
+        color: #ffffff;
+    }
+
+    .selected-text::selection {
+        background: var(--color-brand-red);
+        color: #ffffff;
+    }
+
+    .comparison-float .selected-text {
+        background: #ffffff;
+        color: #000000;
+    }
+
+    .comparison-float .selected-text em,
+    .comparison-float .selected-text strong {
+        color: #000000;
+    }
+
+    @media (max-width: 1200px) {
+        .comparison-float {
+            margin: 2.5rem auto 3rem;
+            width: min(92vw, 520px);
+            aspect-ratio: 5 / 3;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .explanation-page {
+            padding: 2rem 1.5rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+        }
+
+        .comparison-float {
+            width: 100%;
+            max-width: 520px;
+            aspect-ratio: auto;
+            margin: 2rem auto 2.5rem;
+        }
+
+        .dual-buttons {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .launch-button {
+            width: 100%;
+            text-align: center;
         }
     }
 </style>

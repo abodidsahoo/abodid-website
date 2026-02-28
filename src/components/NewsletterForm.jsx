@@ -128,59 +128,59 @@ const NewsletterForm = ({ onClose, variant = "popup" }) => {
 
             {!isSubmitted ? (
                 <div className="newsletter-main-content">
-                    <div className="newsletter-header">
-                        <h2 className="newsletter-headline">
-                            Get a curated set of super useful resources to boost your creative cells every week.
-                        </h2>
+                    <h2 className="newsletter-headline">Get the Weekly Creative Drop.</h2>
+                    <p className="newsletter-subhead">
+                        10 handpicked resources to 10× your output—tools, references, workflows,
+                        and ideas. Curated by designers, artists, and technologists from
+                        Cambridge, Harvard, Google, RCA, NID + more.
+                    </p>
+
+                    <div className="newsletter-offer">
+                        <p className="newsletter-label">What you’ll get:</p>
+                        <ul className="newsletter-list">
+                            <li>10 high-signal links (no fluff)</li>
+                            <li>1 “steal this workflow” productivity upgrade</li>
+                            <li>Occasional interviews with reputed practicing artists & designers</li>
+                        </ul>
                     </div>
-                    <div className="newsletter-body">
-                        <p className="newsletter-desc">
-                            Read with me. Every month, designers, artists, and technologists from
-                            places like Cambridge, Harvard, Google, RCA, NID, and more share the
-                            best ideas and resources they’ve discovered. We filter the noise and
-                            send you only what’s genuinely worth your time.
-                        </p>
 
-                        <form className="newsletter-form" onSubmit={handleSubmit}>
-                            <div className="form-group">
-                                <input
-                                    type="text"
-                                    placeholder="Name (Optional)"
-                                    value={name}
-                                    onChange={(e) => setName(e.target.value)}
-                                    className="newsletter-input"
-                                />
-                            </div>
-                            <div className="form-group">
-                                <input
-                                    type="email"
-                                    placeholder="Email Address"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    required
-                                    className="newsletter-input"
-                                />
-                            </div>
+                    <form className="newsletter-form" onSubmit={handleSubmit}>
+                        <div className="form-group">
+                            <input
+                                type="text"
+                                placeholder="Name (Optional)"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                className="newsletter-input"
+                            />
+                        </div>
+                        <div className="form-group">
+                            <input
+                                type="email"
+                                placeholder="Email Address"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
+                                className="newsletter-input"
+                            />
+                        </div>
 
-                            {errorMsg && <p className="error-msg">{errorMsg}</p>}
+                        {errorMsg && <p className="error-msg">{errorMsg}</p>}
 
-                            <div className="form-actions">
-                                <button
-                                    type="submit"
-                                    disabled={isLoading}
-                                    className="newsletter-submit-btn"
-                                >
-                                    {isLoading ? "Subscribing..." : "Subscribe"}
-                                </button>
-                                <a href="/resources" className="secondary-link">
-                                    Preview the Curation Hub →
-                                </a>
-                            </div>
-                            <p className="trust-microcopy">
-                                No spam. Ever. Just high-signal resources, once a month.
-                            </p>
-                        </form>
-                    </div>
+                        <div className="form-actions">
+                            <button
+                                type="submit"
+                                disabled={isLoading}
+                                className="newsletter-submit-btn"
+                            >
+                                {isLoading ? "Sending..." : "Send me the Weekly Drop"}
+                            </button>
+                            <a href="/resources" className="secondary-link">
+                                Preview the Curation Hub →
+                            </a>
+                        </div>
+                        <p className="trust-microcopy">No spam. Unsubscribe anytime.</p>
+                    </form>
                 </div>
             ) : (
                 <div className="newsletter-success">
@@ -216,23 +216,18 @@ const NewsletterForm = ({ onClose, variant = "popup" }) => {
 
             <style>{`
             .newsletter-container {
-               overflow: hidden; 
                display: flex;
                flex-direction: column;
-               border-radius: 16px; 
+               border-radius: 16px;
                background: #0a0a0a;
-               border: 1px solid rgba(255, 255, 255, 0.1); 
+               border: 1px solid rgba(255, 255, 255, 0.12);
                position: relative;
-               box-shadow: 
-                 0 20px 40px rgba(0,0,0,0.8),
-                 0 0 0 1px rgba(255, 255, 255, 0.05), 
-                 0 0 30px rgba(255, 255, 255, 0.08); 
-               max-height: 90vh; /* New: Prevent exceeding viewport */
+               box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
             }
 
             .newsletter-popup-container {
-              width: 90%;
-              max-width: 500px;
+              width: 92%;
+              max-width: 560px;
             }
 
              .newsletter-page-container {
@@ -241,25 +236,13 @@ const NewsletterForm = ({ onClose, variant = "popup" }) => {
                 margin: 0 auto;
             }
 
-            .newsletter-header {
-                background: #a30021; /* Menu Red */
-                padding: 3rem 2.5rem 2.5rem;
-                margin-bottom: 0;
-                position: relative;
-            }
-
-            .newsletter-body {
-                padding: 2.5rem 2.5rem 3rem;
-                overflow-y: auto; /* Allow scrolling within the body */
-            }
-
             .newsletter-close-btn {
               position: absolute;
-              top: 1.25rem;
-              right: 1.25rem;
-              background: rgba(0,0,0,0.2);
+              top: 1rem;
+              right: 1rem;
+              background: rgba(255, 255, 255, 0.06);
               border: none;
-              color: rgba(255,255,255,0.8);
+              color: rgba(255, 255, 255, 0.8);
               cursor: pointer;
               transition: all 0.2s;
               padding: 6px;
@@ -271,34 +254,85 @@ const NewsletterForm = ({ onClose, variant = "popup" }) => {
             }
 
             .newsletter-close-btn:hover {
-              background: rgba(0,0,0,0.4);
+              background: rgba(255, 255, 255, 0.12);
               color: #fff;
             }
 
+            .newsletter-main-content {
+              padding: 2.5rem 2.5rem 2.75rem;
+              display: flex;
+              flex-direction: column;
+              gap: 1.5rem;
+            }
+
             .newsletter-headline {
-              font-family: var(--feature-newsletter-title-font, var(--font-display));
-              font-weight: var(--feature-newsletter-title-weight, 700);
-              font-size: var(--feature-newsletter-title-size, 1.75rem);
-              line-height: var(--feature-newsletter-title-line-height, 1.1);
-              letter-spacing: var(--feature-newsletter-title-letter-spacing, -0.03em);
-              color: var(--feature-newsletter-title-color, #fff);
+              font-family: var(--font-h2);
+              font-weight: 600;
+              font-size: 1.85rem;
+              line-height: 1.15;
+              letter-spacing: -0.02em;
+              color: #f5f5f5;
               margin: 0;
             }
 
-            .newsletter-desc {
-              font-family: var(--feature-newsletter-body-font, var(--font-ui));
-              font-size: var(--feature-newsletter-body-size, 0.95rem);
-              font-weight: var(--feature-newsletter-body-weight, 400);
-              line-height: var(--feature-newsletter-body-line-height, 1.6);
-              letter-spacing: var(--feature-newsletter-body-letter-spacing, 0em);
-              color: var(--feature-newsletter-body-color, #a0a0a0);
-              margin-bottom: 2rem;
+            .newsletter-subhead {
+              font-family: var(--font-ui);
+              font-size: 0.98rem;
+              font-weight: 400;
+              line-height: 1.6;
+              letter-spacing: 0em;
+              color: #b6b6b6;
+              margin: 0;
+            }
+
+            .newsletter-offer {
+              display: flex;
+              flex-direction: column;
+              gap: 0.75rem;
+            }
+
+            .newsletter-label {
+              font-family: var(--font-ui);
+              font-size: 0.8rem;
+              font-weight: 600;
+              letter-spacing: 0.08em;
+              text-transform: uppercase;
+              color: #7f7f7f;
+              margin: 0;
+            }
+
+            .newsletter-list {
+              list-style: none;
+              padding: 0;
+              margin: 0;
+              display: grid;
+              gap: 0.5rem;
+              color: #d0d0d0;
+              font-family: var(--font-ui);
+              font-size: 0.95rem;
+              line-height: 1.45;
+            }
+
+            .newsletter-list li {
+              position: relative;
+              padding-left: 1rem;
+            }
+
+            .newsletter-list li::before {
+              content: "";
+              position: absolute;
+              left: 0;
+              top: 0.6rem;
+              width: 6px;
+              height: 6px;
+              border-radius: 50%;
+              background: #a30021;
             }
 
             .newsletter-form {
               display: flex;
               flex-direction: column;
-              gap: 1rem;
+              gap: 0.85rem;
             }
 
             .form-group {
@@ -307,58 +341,58 @@ const NewsletterForm = ({ onClose, variant = "popup" }) => {
 
             .newsletter-input {
               width: 100%;
-              background: #111;
-              border: 1px solid #333;
-              color: var(--feature-newsletter-input-color, white);
-              padding: 1.1rem;
-              font-family: var(--feature-newsletter-input-font, var(--font-ui));
-              font-size: var(--feature-newsletter-input-size, 0.95rem);
-              font-weight: var(--feature-newsletter-input-weight, 400);
-              line-height: var(--feature-newsletter-input-line-height, 1.3);
-              letter-spacing: var(--feature-newsletter-input-letter-spacing, 0em);
-              border-radius: 8px; /* Matching curvature */
+              background: #0f0f0f;
+              border: 1px solid rgba(255, 255, 255, 0.14);
+              color: #f5f5f5;
+              padding: 0.9rem 1rem;
+              font-family: var(--font-ui);
+              font-size: 0.95rem;
+              font-weight: 400;
+              line-height: 1.3;
+              letter-spacing: 0em;
+              border-radius: 10px;
               transition: border-color 0.2s, background 0.2s;
             }
 
             .newsletter-input:focus {
               outline: none;
-              border-color: #666;
-              background: #161616;
+              border-color: rgba(255, 255, 255, 0.35);
+              background: #141414;
             }
 
             .newsletter-input::placeholder {
-              color: #555;
+              color: #6b6b6b;
             }
 
             .form-actions {
               display: flex;
               flex-direction: column;
-              gap: 1rem;
+              gap: 0.75rem;
               align-items: flex-start;
-              margin-top: 0.5rem;
+              margin-top: 0.25rem;
             }
 
             @media(min-width: 600px) {
                 .form-actions {
                     flex-direction: row;
                     align-items: center;
-                    justify-content: space-between;
+                    gap: 1.25rem;
                 }
             }
             
             .newsletter-submit-btn {
-              background: #a30021; /* Matching Red */
-              color: var(--feature-newsletter-button-color, #fff);
+              background: #a30021;
+              color: #fff;
               border: none;
-              padding: 0.9rem 1.8rem;
-              font-family: var(--feature-newsletter-button-font, var(--font-ui));
-              font-size: var(--feature-newsletter-button-size, 0.85rem);
+              padding: 0.85rem 1.6rem;
+              font-family: var(--font-ui);
+              font-size: 0.85rem;
               text-transform: uppercase;
-              letter-spacing: var(--feature-newsletter-button-letter-spacing, 0.05em);
-              font-weight: var(--feature-newsletter-button-weight, 700);
-              line-height: var(--feature-newsletter-button-line-height, 1.2);
+              letter-spacing: 0.08em;
+              font-weight: 700;
+              line-height: 1.2;
               cursor: pointer;
-              border-radius: 8px; 
+              border-radius: 10px;
               transition: all 0.2s;
             }
 
@@ -377,12 +411,12 @@ const NewsletterForm = ({ onClose, variant = "popup" }) => {
             }
 
             .secondary-link {
-              font-family: var(--feature-newsletter-secondary-link-font, var(--font-ui));
-              font-size: var(--feature-newsletter-secondary-link-size, 0.85rem);
-              font-weight: var(--feature-newsletter-secondary-link-weight, 400);
-              line-height: var(--feature-newsletter-secondary-link-line-height, 1.2);
-              letter-spacing: var(--feature-newsletter-secondary-link-letter-spacing, 0em);
-              color: var(--feature-newsletter-secondary-link-color, #666);
+              font-family: var(--font-ui);
+              font-size: 0.85rem;
+              font-weight: 500;
+              line-height: 1.2;
+              letter-spacing: 0em;
+              color: #8d8d8d;
               transition: color 0.2s;
               white-space: nowrap;
               text-decoration: none;
@@ -390,14 +424,14 @@ const NewsletterForm = ({ onClose, variant = "popup" }) => {
             }
 
             .secondary-link:hover {
-              color: #aaa;
+              color: #d1d1d1;
             }
 
             .trust-microcopy {
-              margin-top: 1rem;
+              margin-top: 0.5rem;
               font-family: var(--font-ui);
-              font-size: 0.75rem;
-              color: #444;
+              font-size: 0.74rem;
+              color: #6d6d6d;
             }
 
             .error-msg {
@@ -409,7 +443,7 @@ const NewsletterForm = ({ onClose, variant = "popup" }) => {
             /* Success State */
             .newsletter-success {
                 text-align: center;
-                padding: 4rem 2.5rem 3.5rem;
+                padding: 3rem 2.5rem 3rem;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
@@ -422,24 +456,24 @@ const NewsletterForm = ({ onClose, variant = "popup" }) => {
 
             .newsletter-success h3 {
                 color: #fff;
-                font-family: var(--font-display);
-                font-size: 1.75rem;
+                font-family: var(--font-h2);
+                font-size: 1.6rem;
                 font-weight: 600;
                 margin: 0;
             }
 
             .newsletter-success p {
-                color: #888;
+                color: #9a9a9a;
                 font-family: var(--font-ui);
-                margin-bottom: 1.5rem;
-                font-size: 1.1rem;
+                margin-bottom: 1.25rem;
+                font-size: 1rem;
             }
 
             .newsletter-close-text-btn {
                 background: transparent;
-                border: 1px solid #333;
+                border: 1px solid rgba(255, 255, 255, 0.2);
                 color: #fff;
-                padding: 0.8rem 1.5rem;
+                padding: 0.75rem 1.4rem;
                 font-family: var(--font-ui);
                 font-size: 0.85rem;
                 text-transform: uppercase;
@@ -447,7 +481,7 @@ const NewsletterForm = ({ onClose, variant = "popup" }) => {
                 transition: all 0.2s;
                 text-decoration: none;
                 display: inline-block;
-                border-radius: 8px;
+                border-radius: 10px;
             }
 
             .newsletter-close-text-btn:hover {
@@ -458,58 +492,47 @@ const NewsletterForm = ({ onClose, variant = "popup" }) => {
 
             @media (max-width: 600px) {
               .newsletter-popup-container {
-                max-width: 95vw;
-                max-height: 85vh; /* prevent full viewport blockage */
+                max-width: 94vw;
                 border-radius: 12px;
               }
               
-              .newsletter-header {
-                padding: 1.5rem 1.25rem 1.25rem; /* Reduced padding */
+              .newsletter-main-content {
+                padding: 1.75rem 1.25rem 2rem;
+                gap: 1.2rem;
               }
               
               .newsletter-headline {
-                font-size: 1.25rem; /* Smaller headline */
+                font-size: 1.4rem;
               }
-              
-              .newsletter-close-btn {
-                top: 0.5rem;
-                right: 0.5rem;
-                padding: 8px; /* Easier touch target but less intrusive position */
-              }
-              
-              .newsletter-body {
-                padding: 1.5rem 1.25rem 2rem; /* Keep breathing room at the bottom */
-              }
-              
-              .newsletter-desc {
-                font-size: 0.85rem;
-                margin-bottom: 1.25rem;
-                line-height: 1.5;
-              }
-              
-              .newsletter-input {
-                padding: 0.75rem; /* Compact inputs */
+
+              .newsletter-subhead,
+              .newsletter-list {
                 font-size: 0.9rem;
               }
-              
+
+              .newsletter-input {
+                padding: 0.8rem 0.9rem;
+                font-size: 0.9rem;
+              }
+
               .newsletter-submit-btn {
-                padding: 0.75rem;
+                padding: 0.75rem 1rem;
                 font-size: 0.8rem;
                 width: 100%;
-            }
+              }
 
-            .secondary-link {
+              .secondary-link {
                 white-space: normal;
-            }
+              }
 
-            .newsletter-success {
-                padding: 3rem 1.5rem 2.5rem;
-            }
-            
-            .trust-microcopy {
-                 font-size: 0.7rem;
-                 margin-top: 0.75rem;
-            }
+              .newsletter-success {
+                padding: 2.5rem 1.5rem 2.5rem;
+              }
+
+              .trust-microcopy {
+                font-size: 0.7rem;
+                margin-top: 0.65rem;
+              }
           }
           `}</style>
         </div>

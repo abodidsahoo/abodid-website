@@ -50,13 +50,13 @@ const HAND_FEEDBACK_ESTIMATED_HEIGHT_PX = 294;
 const STORY_GAP_BELOW_FEEDBACK_PX = 16;
 const STORY_BASE_OFFSET_PX = 156;
 const MAX_STACK_RECOVERY_ATTEMPTS = 1;
-const POINTER_INSTRUCTION_TEXT = 'KEEP HOVERING AROUND SLOWLY\nTO REVEAL MORE PHOTOS';
-const POINTER_INSTRUCTION_MIN_STACK = 3;
-const POINTER_INSTRUCTION_SHOW_DELAY_MS = 2600;
-const POINTER_INSTRUCTION_VISIBLE_MS = 7000;
-const POINTER_INSTRUCTION_OFFSET_X = 28;
-const POINTER_INSTRUCTION_OFFSET_Y = 18;
-const POINTER_INSTRUCTION_MAX_WIDTH_PX = 320;
+const POINTER_INSTRUCTION_TEXT = 'Move the pointer across the screen\nto see more photos';
+const POINTER_INSTRUCTION_MIN_STACK = 1;
+const POINTER_INSTRUCTION_SHOW_DELAY_MS = 900;
+const POINTER_INSTRUCTION_VISIBLE_MS = 3600;
+const POINTER_INSTRUCTION_OFFSET_X = 36;
+const POINTER_INSTRUCTION_OFFSET_Y = 24;
+const POINTER_INSTRUCTION_MAX_WIDTH_PX = 360;
 const HAND_GUIDANCE_MESSAGES = [
     'Move your index finger slowly in any direction.',
     'Use a gentle flick to drop a new card.',
@@ -130,6 +130,7 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
     const inFlightStoryUrlsRef = useRef(new Set());
     const handGuidanceSwapTimeoutRef = useRef(null);
     const pointerInstructionRef = useRef(null);
+    const pointerInstructionHasShownRef = useRef(false);
     const pointerLastPositionRef = useRef({ x: 0, y: 0 });
     const pointerInstructionShowTimeoutRef = useRef(null);
     const pointerInstructionHideTimeoutRef = useRef(null);
@@ -477,6 +478,14 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
 
     const dismissPointerInstruction = useCallback((options = {}) => {
         const { force = false } = options;
+        if (
+            force &&
+            !pointerInstructionVisible &&
+            !pointerInstructionShowTimeoutRef.current &&
+            !pointerInstructionHasShownRef.current
+        ) {
+            return;
+        }
         if (pointerInstructionShowTimeoutRef.current) {
             window.clearTimeout(pointerInstructionShowTimeoutRef.current);
             pointerInstructionShowTimeoutRef.current = null;
@@ -497,19 +506,16 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
 
     useEffect(() => {
         const canScheduleInstruction =
-            supportsFinePointer &&
             introComplete &&
             !isScrolled &&
             !handControlEnabled &&
-            !pointerInstructionDismissed &&
+            !pointerInstructionHasShownRef.current &&
             stack.length >= POINTER_INSTRUCTION_MIN_STACK;
 
         if (!canScheduleInstruction) {
             const hadScheduledInstruction = Boolean(pointerInstructionShowTimeoutRef.current);
             if (pointerInstructionVisible || hadScheduledInstruction) {
                 dismissPointerInstruction({ force: true });
-            } else {
-                dismissPointerInstruction();
             }
             return;
         }
@@ -520,7 +526,7 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
 
         pointerInstructionShowTimeoutRef.current = window.setTimeout(() => {
             pointerInstructionShowTimeoutRef.current = null;
-            if (pointerInstructionDismissed) return;
+            pointerInstructionHasShownRef.current = true;
             setPointerInstructionVisible(true);
         }, POINTER_INSTRUCTION_SHOW_DELAY_MS);
 
@@ -531,11 +537,9 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
             }
         };
     }, [
-        supportsFinePointer,
         introComplete,
         isScrolled,
         handControlEnabled,
-        pointerInstructionDismissed,
         pointerInstructionVisible,
         stack.length,
         dismissPointerInstruction,
@@ -581,7 +585,7 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
     }, [introComplete]);
 
     useEffect(() => {
-        if (!supportsFinePointer || !introComplete) return;
+        if (!introComplete) return;
         if (typeof window === 'undefined') return;
 
         const handlePointerMove = (event) => {
@@ -619,7 +623,7 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
             document.removeEventListener('mouseout', handleMouseOut);
             window.removeEventListener('blur', handleWindowBlur);
         };
-    }, [supportsFinePointer, introComplete, pointerInstructionVisible, dismissPointerInstruction]);
+    }, [introComplete, pointerInstructionVisible, dismissPointerInstruction]);
 
     const handleActivate = () => {
         // CRITICAL: Call this inside the user click handler to unlock Audio Context
@@ -880,7 +884,7 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                             opacity: 0,
                             y: 4,
                             scale: 0.98,
-                            transition: { duration: 2.4, ease: [0.16, 1, 0.3, 1] },
+                            transition: { duration: 1.1, ease: [0.16, 1, 0.3, 1] },
                         }}
                     >
                         <span className="pointer-instruction-label">{POINTER_INSTRUCTION_TEXT}</span>
@@ -1108,17 +1112,17 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                     align-items: center;
                     justify-content: center;
                     max-width: min(78vw, ${POINTER_INSTRUCTION_MAX_WIDTH_PX}px);
-                    padding: 0.66rem 0.9rem;
-                    border-radius: 12px;
-                    border: 1px solid rgba(255, 255, 255, 0.36);
-                    background: rgba(8, 8, 10, 0.58);
-                    backdrop-filter: blur(8px);
+                    padding: 0.95rem 1.2rem;
+                    border-radius: 16px;
+                    border: 1px solid rgba(255, 255, 255, 0.75);
+                    background: rgba(8, 8, 10, 0.42);
+                    backdrop-filter: blur(10px);
                     font-family: "Satoshi-Variable", "Satoshi-Regular", var(--font-ui);
-                    font-size: 0.56rem;
-                    font-weight: 480;
-                    line-height: 1.4;
-                    letter-spacing: 0.11em;
-                    text-transform: uppercase;
+                    font-size: 0.92rem;
+                    font-weight: 500;
+                    line-height: 1.35;
+                    letter-spacing: 0.01em;
+                    text-transform: none;
                     white-space: pre-line;
                     text-align: left;
                     color: rgba(255, 255, 255, 0.95);
