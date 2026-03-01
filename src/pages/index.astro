@@ -128,7 +128,7 @@ const supportProjects = [
             images={featuredPhotography}
             anchorX="50%"
             anchorY="50%"
-            audioSrc="https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/music/landing-page-audio-01.mp3"
+            audioSrc="/audio/landing-page-audio.mp3"
             captions={captionData}
         />
         <div class="landing-overlays">
@@ -229,6 +229,7 @@ const supportProjects = [
                                     src={post.image}
                                     alt={post.title}
                                     class="blog-image"
+                                    loading="lazy"
                                 />
                             ) : (
                                 <div class="blog-image-placeholder" />
