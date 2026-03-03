@@ -3,8 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 
 const GAP_PX = 10;
 const SPAN_STEPS = [1, 2, 4, 8];
-const DEFAULT_SHOWREEL_VIDEO_URL =
-    'https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/films/videos/Showreel%202025%20compressed.mp4';
+const DEFAULT_SHOWREEL_VIDEO_URL = '/videos/showreel-2025.mp4';
 
 const MODE_CONFIG = {
     desktop: { cols: 8, rows: 7 },
@@ -1522,37 +1521,37 @@ const LandingGridPrototype = ({
         return tags.length
             ? tags
             : [
-                  {
-                      id: 'tag-memory-fallback',
-                      slug: 'memory',
-                      label: 'Memory',
-                      href: '/research/obsidian-vault/memory',
-                  },
-                  {
-                      id: 'tag-archive-fallback',
-                      slug: 'archive',
-                      label: 'Archive',
-                      href: '/research/obsidian-vault/archive',
-                  },
-                  {
-                      id: 'tag-story-fallback',
-                      slug: 'story',
-                      label: 'Story',
-                      href: '/research/obsidian-vault/story',
-                  },
-                  {
-                      id: 'tag-identity-fallback',
-                      slug: 'identity',
-                      label: 'Identity',
-                      href: '/research/obsidian-vault/identity',
-                  },
-                  {
-                      id: 'tag-ritual-fallback',
-                      slug: 'ritual',
-                      label: 'Ritual',
-                      href: '/research/obsidian-vault/ritual',
-                  },
-              ];
+                {
+                    id: 'tag-memory-fallback',
+                    slug: 'memory',
+                    label: 'Memory',
+                    href: '/research/obsidian-vault/memory',
+                },
+                {
+                    id: 'tag-archive-fallback',
+                    slug: 'archive',
+                    label: 'Archive',
+                    href: '/research/obsidian-vault/archive',
+                },
+                {
+                    id: 'tag-story-fallback',
+                    slug: 'story',
+                    label: 'Story',
+                    href: '/research/obsidian-vault/story',
+                },
+                {
+                    id: 'tag-identity-fallback',
+                    slug: 'identity',
+                    label: 'Identity',
+                    href: '/research/obsidian-vault/identity',
+                },
+                {
+                    id: 'tag-ritual-fallback',
+                    slug: 'ritual',
+                    label: 'Ritual',
+                    href: '/research/obsidian-vault/ritual',
+                },
+            ];
     }, [obsidianTags]);
 
     const gapFillers = useMemo(() => {

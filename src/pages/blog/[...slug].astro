@@ -65,7 +65,7 @@ const contentHtml = marked.parse(post.content || "");
     {
       post.cover_image && (
         <div class="cover-image">
-          <img src={post.cover_image} alt={post.title} />
+          <img src={post.cover_image} alt={post.title} loading="lazy" />
         </div>
       )
     }
@@ -87,6 +87,7 @@ const contentHtml = marked.parse(post.content || "");
                   src={relatedPost.image}
                   alt={relatedPost.title}
                   class="related-image"
+                  loading="lazy"
                 />
               ) : (
                 <div class="related-image-placeholder" />

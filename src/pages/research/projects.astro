@@ -1,4 +1,5 @@
 ---
+export const prerender = true;
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { getResearchProjects } from "../../lib/api";
 
@@ -25,6 +26,7 @@ const pageTitle = "Research Projects";
                                 src={project.image}
                                 alt={project.title}
                                 class="card-image"
+                                loading="lazy"
                             />
                         </div>
                     )}

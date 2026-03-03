@@ -29,8 +29,7 @@ const {
     odishaUrl = "#",
 } = Astro.props;
 
-const videoUrl =
-    "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/films/videos/Showreel%202025%20compressed.mp4";
+const videoUrl = "/videos/showreel-2025.mp4";
 ---
 
 <div class="showreel-container">
@@ -41,7 +40,7 @@ const videoUrl =
         muted
         playsinline
         webkit-playsinline
-        preload="auto"
+        preload="metadata"
         autoplay
     >
         <!-- Source will be added via JS with proper type -->
