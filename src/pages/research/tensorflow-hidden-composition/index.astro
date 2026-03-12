@@ -1,0 +1,236 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+const pageTitle = "TensorFlow Hidden Composition";
+---
+
+<BaseLayout title={pageTitle}>
+    <div class="explanation-page">
+        <div class="explanation-content">
+            <div class="header-section">
+                <div class="header-text">
+                    <p class="eyebrow">Research</p>
+                    <h1>TensorFlow Hidden Composition</h1>
+                    <p class="subtitle">
+                        A TensorFlow.js research project for reading photographs
+                        through abstraction, alignment, and gradual reveal.
+                        <br />
+                        The launch build is now live as a TensorFlow experiment
+                        scaffold.
+                    </p>
+                    <div class="header-actions">
+                        <a
+                            href="/research/tensorflow-hidden-composition/launch"
+                            class="launch-button secondary"
+                        >
+                            Launch the experiment →
+                        </a>
+                        <a
+                            href="/research/tensorflow-gesture-controls"
+                            class="text-link"
+                        >
+                            View the earlier TensorFlow controls study →
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <section class="content-section">
+                <h2>What This Project Is</h2>
+                <p>
+                    TensorFlow Hidden Composition is a new browser-based
+                    experiment in which a photograph is approached as structure
+                    before it is recognized as image. Each work begins as a
+                    reduced composition of color, line, and target geometry.
+                </p>
+            </section>
+
+            <section class="content-section">
+                <h2>What TensorFlow Does Here</h2>
+                <ul class="feature-list">
+                    <li>Tracks body, hand, and face geometry in the browser</li>
+                    <li>Supports live alignment scoring and reveal thresholds</li>
+                    <li>Creates a practical base for future abstraction-specific models</li>
+                </ul>
+            </section>
+
+            <section class="content-section">
+                <h2>Current Launch Build</h2>
+                <p>
+                    The current launch route is wired to the existing
+                    TensorFlow experiment shell so the project can be explored,
+                    shared, and iterated as the full Hidden Composition
+                    interaction is built out.
+                </p>
+            </section>
+
+            <div class="action-section">
+                <a
+                    href="/research/tensorflow-hidden-composition/launch"
+                    class="launch-button secondary"
+                >
+                    Launch the experiment →
+                </a>
+            </div>
+        </div>
+    </div>
+</BaseLayout>
+
+<style>
+    .explanation-page {
+        min-height: 100vh;
+        padding: 4rem 2rem;
+        color: var(--text-primary);
+    }
+
+    .explanation-content {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .header-section {
+        margin-bottom: 2.5rem;
+        text-align: left;
+    }
+
+    .header-text {
+        max-width: 720px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--text-tertiary);
+        margin-bottom: 1rem;
+    }
+
+    h1 {
+        font-family: var(--font-display);
+        font-size: 3.5rem;
+        font-weight: 700;
+        margin: 0 0 1.5rem 0;
+        line-height: 1.1;
+    }
+
+    .subtitle {
+        font-size: 1.25rem;
+        line-height: 1.6;
+        color: var(--text-secondary);
+        margin-bottom: 0;
+    }
+
+    .header-actions {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.9rem;
+        margin-top: 1.5rem;
+    }
+
+    .content-section {
+        margin-bottom: 2.5rem;
+    }
+
+    h2 {
+        font-family: var(--font-display);
+        font-size: 1.75rem;
+        font-weight: 600;
+        margin: 0 0 1.5rem 0;
+        color: var(--text-primary);
+    }
+
+    p {
+        font-size: 1.1rem;
+        line-height: 1.8;
+        margin-bottom: 1.5rem;
+        color: var(--text-secondary);
+    }
+
+    .feature-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .feature-list li {
+        position: relative;
+        padding-left: 1.5rem;
+        margin-bottom: 0.75rem;
+        font-size: 1.1rem;
+        line-height: 1.6;
+        color: var(--text-secondary);
+    }
+
+    .feature-list li::before {
+        content: "→";
+        position: absolute;
+        left: 0;
+        color: var(--accent-purple);
+        font-weight: 600;
+    }
+
+    .action-section {
+        display: flex;
+        justify-content: center;
+        margin: 3rem 0;
+    }
+
+    .launch-button {
+        padding: 1rem 2.5rem;
+        background: transparent;
+        color: var(--text-primary);
+        border: 1px solid var(--border-subtle);
+        border-radius: 6px;
+        font-family: var(--font-mono);
+        font-size: 0.95rem;
+        text-decoration: none;
+        transition: all 0.25s ease;
+        display: inline-block;
+    }
+
+    .launch-button.secondary:hover {
+        border-color: var(--text-primary);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .text-link {
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-size: 0.95rem;
+        line-height: 1.4;
+        transition: color 0.2s ease;
+    }
+
+    .text-link:hover {
+        color: var(--text-primary);
+    }
+
+    @media (max-width: 768px) {
+        .explanation-page {
+            padding: 2rem 1.5rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+        }
+
+        .header-actions,
+        .action-section {
+            align-items: stretch;
+        }
+
+        .launch-button {
+            width: 100%;
+            text-align: center;
+        }
+    }
+</style>

@@ -57,6 +57,10 @@ const POINTER_INSTRUCTION_VISIBLE_MS = 3600;
 const POINTER_INSTRUCTION_OFFSET_X = 36;
 const POINTER_INSTRUCTION_OFFSET_Y = 24;
 const POINTER_INSTRUCTION_MAX_WIDTH_PX = 360;
+const PHONE_BREAKPOINT_PX = 768;
+const TABLET_BREAKPOINT_PX = 1180;
+const TABLET_STACK_PANEL_GAP_PX = 32;
+const TABLET_STACK_SHIFT_MAX_PX = 220;
 const HAND_GUIDANCE_MESSAGES = [
     'Move your index finger slowly in any direction.',
     'Use a gentle flick to drop a new card.',
@@ -100,6 +104,14 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
     const [pointerInstructionVisible, setPointerInstructionVisible] = useState(false);
     const [handGuidanceIndex, setHandGuidanceIndex] = useState(0);
     const [showHandGuidanceMessage, setShowHandGuidanceMessage] = useState(true);
+    const [isControlPanelOpen, setIsControlPanelOpen] = useState(false);
+    const [viewportWidth, setViewportWidth] = useState(() => (
+        typeof window === 'undefined' ? TABLET_BREAKPOINT_PX + 1 : window.innerWidth
+    ));
+    const isPhoneViewport = viewportWidth <= PHONE_BREAKPOINT_PX;
+    const isTabletViewport =
+        viewportWidth > PHONE_BREAKPOINT_PX &&
+        viewportWidth <= TABLET_BREAKPOINT_PX;
     const sensitivityProfile = useMemo(
         () => buildCardSensitivityProfile(cardSensitivity / 100),
         [cardSensitivity],
@@ -108,7 +120,7 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
     // 4. Unified Physics
     const { stack, lastAction, containerRef, spawnCardFromGesture } = useCardPhysics({
         initialImages: images,
-        isActive: introComplete,
+        isActive: introComplete && !isPhoneViewport,
         feedMode,
         mediaFilters,
         queueResetKey,
@@ -156,7 +168,7 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
         },
         threshold: sensitivityProfile.gestureThreshold,
         gestureCooldownMs: sensitivityProfile.gestureCooldownMs,
-        isActive: handControlEnabled
+        isActive: handControlEnabled && !isPhoneViewport
     });
 
     const toggleHandControl = () => {
@@ -248,10 +260,12 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
     useEffect(() => {
         const computeSizeBounds = () => {
             const minSize = INITIAL_CARD_SIZE_BOUNDS.min;
-            const maxByWidth = Math.round(window.innerWidth * 0.7);
+            const nextViewportWidth = window.innerWidth;
+            const maxByWidth = Math.round(nextViewportWidth * 0.7);
             const maxByHeight = Math.round(window.innerHeight * 0.7 * (16 / 9));
             const maxSize = Math.max(minSize + 40, Math.min(maxByWidth, maxByHeight));
 
+            setViewportWidth(nextViewportWidth);
             setCardSizeBounds({ min: minSize, max: maxSize });
             setCardWidth((prev) => {
                 if (!hasInitializedCardWidthRef.current) {
@@ -266,9 +280,17 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
         window.addEventListener('resize', computeSizeBounds);
         return () => window.removeEventListener('resize', computeSizeBounds);
     }, []);
+
+    useEffect(() => {
+        if (!isPhoneViewport) return;
+        setIsControlPanelOpen(false);
+        setHandControlEnabled(false);
+        setShowStoryPanel(false);
+    }, [isPhoneViewport]);
+
     useEffect(() => {
         // Lock scroll initially ONLY ON DESKTOP
-        const isMobile = window.innerWidth <= 768;
+        const isMobile = window.innerWidth <= PHONE_BREAKPOINT_PX;
 
         if (!introComplete && !isMobile) {
             document.body.style.overflow = 'hidden';
@@ -368,7 +390,7 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
 
     // Lightweight health monitor: detect disappearing/glitchy stack and prompt refresh.
     useEffect(() => {
-        if (!introComplete) return;
+        if (!introComplete || isPhoneViewport) return;
 
         const interval = setInterval(() => {
             if (stackRuntimeError) {
@@ -452,6 +474,7 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
         handControlEnabled,
         isTracking,
         stackRuntimeError,
+        isPhoneViewport,
     ]);
 
     // 4. Scroll Logic (Hint & Button Visibility)
@@ -507,6 +530,7 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
     useEffect(() => {
         const canScheduleInstruction =
             introComplete &&
+            !isPhoneViewport &&
             !isScrolled &&
             !handControlEnabled &&
             !pointerInstructionHasShownRef.current &&
@@ -543,10 +567,11 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
         pointerInstructionVisible,
         stack.length,
         dismissPointerInstruction,
+        isPhoneViewport,
     ]);
 
     useEffect(() => {
-        if (!pointerInstructionVisible) return;
+        if (!pointerInstructionVisible || isPhoneViewport) return;
         if (typeof window === 'undefined') return;
 
         const seedX = pointerLastPositionRef.current.x || window.innerWidth * 0.54;
@@ -569,10 +594,10 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                 pointerInstructionHideTimeoutRef.current = null;
             }
         };
-    }, [pointerInstructionVisible]);
+    }, [pointerInstructionVisible, isPhoneViewport]);
 
     useEffect(() => {
-        if (!introComplete) return;
+        if (!introComplete || isPhoneViewport) return;
 
         const handleScroll = () => {
             const scrolled = window.scrollY > 100; // Threshold for hiding button
@@ -582,10 +607,10 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
 
         window.addEventListener('scroll', handleScroll, { passive: true });
         return () => window.removeEventListener('scroll', handleScroll);
-    }, [introComplete]);
+    }, [introComplete, isPhoneViewport]);
 
     useEffect(() => {
-        if (!introComplete) return;
+        if (!introComplete || isPhoneViewport) return;
         if (typeof window === 'undefined') return;
 
         const handlePointerMove = (event) => {
@@ -623,7 +648,7 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
             document.removeEventListener('mouseout', handleMouseOut);
             window.removeEventListener('blur', handleWindowBlur);
         };
-    }, [introComplete, pointerInstructionVisible, dismissPointerInstruction]);
+    }, [introComplete, pointerInstructionVisible, dismissPointerInstruction, isPhoneViewport]);
 
     const handleActivate = () => {
         // CRITICAL: Call this inside the user click handler to unlock Audio Context
@@ -735,6 +760,8 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
     }, []);
 
     useEffect(() => {
+        if (isPhoneViewport) return undefined;
+
         const computeLeftStoryPanelTop = () => {
             const viewportH = window.innerHeight;
             const anchorYPx = parseAnchorToPixels(anchorY, viewportH, 0.68);
@@ -755,7 +782,7 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
         computeLeftStoryPanelTop();
         window.addEventListener('resize', computeLeftStoryPanelTop);
         return () => window.removeEventListener('resize', computeLeftStoryPanelTop);
-    }, [anchorY, handControlEnabled, introComplete, isScrolled]);
+    }, [anchorY, handControlEnabled, introComplete, isScrolled, isPhoneViewport]);
 
     const sliderPercent = cardSizeBounds.max > cardSizeBounds.min
         ? Math.max(0, Math.min(100, ((cardWidth - cardSizeBounds.min) / (cardSizeBounds.max - cardSizeBounds.min)) * 100))
@@ -791,8 +818,13 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
             : hasManualStory
                 ? currentPhotoStory
                 : 'No story added yet.';
-    const isHandFeedbackVisible = handControlEnabled && introComplete && !isScrolled;
-    const showLeftStoryPanel = introComplete && !isScrolled && showStoryPanel;
+    const isControlSurfaceVisible =
+        introComplete &&
+        !isScrolled &&
+        isControlPanelOpen &&
+        !isPhoneViewport;
+    const isHandFeedbackVisible = handControlEnabled && isControlSurfaceVisible;
+    const showLeftStoryPanel = isControlSurfaceVisible && showStoryPanel;
     const shouldRotateHandGuidance =
         handControlEnabled &&
         onboardingState === 'ready' &&
@@ -805,10 +837,45 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                 ? 'Show your hand to start tracking.'
                 : onboardingState === 'requesting_camera'
                     ? 'Requesting camera access...'
-                : onboardingState === 'calibrating'
-                    ? 'Calibrating tracking...'
-                    : 'Initializing hand controls...';
+                    : onboardingState === 'calibrating'
+                        ? 'Calibrating tracking...'
+                        : 'Initializing hand controls...';
     const recoveryMessage = stackRuntimeError?.message || 'The photo stack looks stuck right now.';
+    const effectiveAnchorX = useMemo(() => {
+        if (isPhoneViewport || !isTabletViewport || !isControlSurfaceVisible || viewportWidth <= 0) {
+            return anchorX;
+        }
+
+        const baseAnchorX = parseAnchorToPixels(anchorX, viewportWidth, 0.5);
+        const panelWidth = viewportWidth <= 900
+            ? Math.min(viewportWidth * 0.92, SIDE_PANEL_WIDTH_PX)
+            : SIDE_PANEL_WIDTH_PX;
+        const panelRightInset = viewportWidth <= 900 ? 12 : viewportWidth * 0.04;
+        const panelLeftEdge = viewportWidth - panelRightInset - panelWidth;
+        const desiredRightEdge = panelLeftEdge - TABLET_STACK_PANEL_GAP_PX;
+        const cardHalfWidth = Math.round(cardWidth / 2);
+        const currentRightEdge = baseAnchorX + cardHalfWidth;
+        const overlap = currentRightEdge - desiredRightEdge;
+
+        if (overlap <= 0) {
+            return anchorX;
+        }
+
+        const minAnchorX = cardHalfWidth + 24;
+        const shiftedAnchorX = Math.max(
+            minAnchorX,
+            Math.round(baseAnchorX - Math.min(overlap, TABLET_STACK_SHIFT_MAX_PX)),
+        );
+
+        return `${shiftedAnchorX}px`;
+    }, [
+        anchorX,
+        cardWidth,
+        isControlSurfaceVisible,
+        isPhoneViewport,
+        isTabletViewport,
+        viewportWidth,
+    ]);
 
     useEffect(() => {
         if (!activePhotoUrl) return;
@@ -868,7 +935,7 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
     return (
         <>
             <AnimatePresence>
-                {showPointerInstruction && (
+                {!isPhoneViewport && showPointerInstruction && (
                     <motion.div
                         ref={pointerInstructionRef}
                         className="pointer-instruction"
@@ -894,7 +961,7 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
 
             {/* ACTIVATE BUTTONS */}
             <AnimatePresence>
-                {introComplete && !isScrolled && (
+                {introComplete && !isScrolled && !isPhoneViewport && (
                     <motion.div
                         className="start-overlay"
                         initial={{ y: -100, opacity: 0 }}
@@ -902,158 +969,196 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                         exit={{ y: -50, opacity: 0 }}
                         transition={{ type: "spring", stiffness: 100, damping: 20, delay: 0.5 }}
                     >
-                        <div className="activation-stack">
-                            {!experienceStarted && (
-                                <button className="start-btn" onClick={handleActivate}>
-                                    <div className="start-label-large">Play soundtrack</div>
-                                </button>
-                            )}
-
-                            {/* New Hand Control Button */}
+                        <div className={`control-panel-dock ${isControlPanelOpen ? 'open' : ''}`}>
                             <button
-                                className={`start-btn gesture-btn ${handControlEnabled ? 'active' : ''}`}
-                                onClick={toggleHandControl}
+                                type="button"
+                                className={`control-panel-toggle ${isControlPanelOpen ? 'open' : ''}`}
+                                aria-expanded={isControlPanelOpen}
+                                aria-controls="landing-control-panel"
+                                onClick={() => setIsControlPanelOpen((prev) => !prev)}
                             >
-                                <div className="start-label-large">
-                                    {handControlEnabled ? 'Disable Hand Controls' : 'Activate Hand Control'}
-                                </div>
-                                {handControlEnabled && (
-                                    <div className="start-label-small status-success">Gesture Control is active now.</div>
-                                )}
+                                <span className="control-panel-toggle-label">
+                                    {isControlPanelOpen ? 'Hide control panel' : 'Show control panel'}
+                                </span>
                             </button>
 
-                            <div
-                                className={`size-control ${isSizeSliderDragging ? 'dragging' : ''}`}
-                                ref={sizeControlRef}
-                                onPointerDown={handleSizeSliderPointerDown}
-                            >
-                                <div className="size-control-header">
-                                    <span className="size-control-label">Image Size</span>
-                                    <span className="size-control-value">{cardWidth}px</span>
-                                </div>
-                                <div
-                                    className={`size-slider-hit-area ${isSizeSliderDragging ? 'dragging' : ''} ${(isSizeSliderHovered || isSizeSliderDragging) ? 'expanded' : ''}`}
-                                    ref={sizeSliderHitAreaRef}
-                                    onPointerEnter={() => setIsSizeSliderHovered(true)}
-                                    onPointerLeave={() => setIsSizeSliderHovered(false)}
-                                    style={{ '--slider-percent': `${sliderPercent}%` }}
-                                >
-                                    <div className="size-slider-visual" aria-hidden="true">
-                                        <span className="size-slider-segment left"></span>
-                                        <span className="size-slider-segment right"></span>
-                                        <span className="size-slider-knob">
-                                            <span className="size-slider-knob-label">SLIDE</span>
-                                        </span>
-                                    </div>
-                                    <input
-                                        className="size-slider"
-                                        type="range"
-                                        min={cardSizeBounds.min}
-                                        max={cardSizeBounds.max}
-                                        step="1"
-                                        value={cardWidth}
-                                        onInput={(e) => setCardWidth(Number(e.currentTarget.value))}
-                                        onChange={(e) => setCardWidth(Number(e.target.value))}
-                                        aria-label="Adjust card image size"
-                                    />
-                                </div>
-                                <div className="size-control-scale">
-                                    <span>{cardSizeBounds.min}px</span>
-                                    <span>{cardSizeBounds.max}px</span>
-                                </div>
-                            </div>
-                            <div
-                                className={`size-control sensitivity-control ${isSensitivitySliderDragging ? 'dragging' : ''} ${showSensitivityHint ? 'hint-visible' : ''}`}
-                                ref={sensitivityControlRef}
-                                onPointerDown={handleSensitivitySliderPointerDown}
-                            >
-                                <div className="size-control-header">
-                                    <span className="size-control-label">Card Drop Speed</span>
-                                    <span className="size-control-value">{sensitivityLabel}</span>
-                                </div>
-                                <div
-                                    className={`size-slider-hit-area ${isSensitivitySliderDragging ? 'dragging' : ''} ${(isSensitivitySliderHovered || isSensitivitySliderDragging) ? 'expanded' : ''}`}
-                                    ref={sensitivitySliderHitAreaRef}
-                                    onPointerEnter={() => setIsSensitivitySliderHovered(true)}
-                                    onPointerLeave={() => setIsSensitivitySliderHovered(false)}
-                                    style={{ '--slider-percent': `${sensitivitySliderPercent}%` }}
-                                >
-                                    <div className="size-slider-visual" aria-hidden="true">
-                                        <span className="size-slider-segment left"></span>
-                                        <span className="size-slider-segment right"></span>
-                                        <span className="size-slider-knob">
-                                            <span className="size-slider-knob-label">SLIDE</span>
-                                        </span>
-                                    </div>
-                                    <input
-                                        className="size-slider"
-                                        type="range"
-                                        min="0"
-                                        max="100"
-                                        step="1"
-                                        value={cardSensitivity}
-                                        onInput={(e) => {
-                                            showSensitivityHintTemporarily();
-                                            setCardSensitivity(Number(e.currentTarget.value));
+                            <AnimatePresence initial={false}>
+                                {isControlPanelOpen && (
+                                    <motion.div
+                                        id="landing-control-panel"
+                                        className="control-panel-shell"
+                                        initial={{ opacity: 0, y: -18 }}
+                                        animate={{
+                                            opacity: 1,
+                                            y: 0,
+                                            transition: { duration: 0.42, ease: [0.22, 1, 0.36, 1] },
                                         }}
-                                        onChange={(e) => {
-                                            setCardSensitivity(Number(e.target.value));
-                                            hideSensitivityHintWithDelay(1000);
+                                        exit={{
+                                            opacity: 0,
+                                            y: -24,
+                                            transition: { duration: 0.32, ease: [0.4, 0, 0.2, 1] },
                                         }}
-                                        aria-label="Adjust card drop speed"
-                                    />
-                                </div>
-                                <div className="size-control-scale">
-                                    <span>Slow</span>
-                                    <span>Fast</span>
-                                </div>
-                                <div className={`sensitivity-note-wrap ${showSensitivityHint ? 'visible' : ''}`}>
-                                    <div className="sensitivity-note">{sensitivityHint}</div>
-                                </div>
-                            </div>
+                                    >
+                                        <div className="activation-stack">
+                                            {!experienceStarted && (
+                                                <button type="button" className="start-btn" onClick={handleActivate}>
+                                                    <div className="start-label-large">Play soundtrack</div>
+                                                </button>
+                                            )}
 
-                            <div className="feed-control-panel">
-                                <div className="photo-story-live-header">Images appear</div>
-                                <div className="mode-toggle-row">
-                                    <button
-                                        className={`mode-btn ${feedMode === 'story' ? 'active' : ''}`}
-                                        onClick={() => handleFeedModeChange('story')}
-                                    >
-                                        Story-wise
-                                    </button>
-                                    <button
-                                        className={`mode-btn ${feedMode === 'shuffle' ? 'active' : ''}`}
-                                        onClick={() => handleFeedModeChange('shuffle')}
-                                    >
-                                        Random
-                                    </button>
-                                </div>
-                            </div>
+                                            <button
+                                                type="button"
+                                                className={`start-btn gesture-btn ${handControlEnabled ? 'active' : ''}`}
+                                                onClick={toggleHandControl}
+                                            >
+                                                <div className="start-label-large">
+                                                    {handControlEnabled ? 'Disable Hand Controls' : 'Activate Hand Control'}
+                                                </div>
+                                                {handControlEnabled && (
+                                                    <div className="start-label-small status-success">Gesture control is active now.</div>
+                                                )}
+                                            </button>
 
-                            <div className="filter-control-panel">
-                                <div className="photo-story-live-header">Category</div>
-                                <div className="category-grid">
-                                    <button
-                                        className={`mode-btn category-btn art ${mediaFilters.includes('art') ? 'active' : ''}`}
-                                        onClick={() => handleCategoryToggle('art')}
-                                    >
-                                        Art
-                                    </button>
-                                    <button
-                                        className={`mode-btn category-btn commercial ${mediaFilters.includes('commercial') ? 'active' : ''}`}
-                                        onClick={() => handleCategoryToggle('commercial')}
-                                    >
-                                        Commercial
-                                    </button>
-                                </div>
-                            </div>
+                                            <div
+                                                className={`size-control ${isSizeSliderDragging ? 'dragging' : ''}`}
+                                                ref={sizeControlRef}
+                                                onPointerDown={handleSizeSliderPointerDown}
+                                            >
+                                                <div className="size-control-header">
+                                                    <span className="size-control-label">Image Size</span>
+                                                    <span className="size-control-value">{cardWidth}px</span>
+                                                </div>
+                                                <div
+                                                    className={`size-slider-hit-area ${isSizeSliderDragging ? 'dragging' : ''} ${(isSizeSliderHovered || isSizeSliderDragging) ? 'expanded' : ''}`}
+                                                    ref={sizeSliderHitAreaRef}
+                                                    onPointerEnter={() => setIsSizeSliderHovered(true)}
+                                                    onPointerLeave={() => setIsSizeSliderHovered(false)}
+                                                    style={{ '--slider-percent': `${sliderPercent}%` }}
+                                                >
+                                                    <div className="size-slider-visual" aria-hidden="true">
+                                                        <span className="size-slider-segment left"></span>
+                                                        <span className="size-slider-segment right"></span>
+                                                        <span className="size-slider-knob">
+                                                            <span className="size-slider-knob-label">SLIDE</span>
+                                                        </span>
+                                                    </div>
+                                                    <input
+                                                        className="size-slider"
+                                                        type="range"
+                                                        min={cardSizeBounds.min}
+                                                        max={cardSizeBounds.max}
+                                                        step="1"
+                                                        value={cardWidth}
+                                                        onInput={(e) => setCardWidth(Number(e.currentTarget.value))}
+                                                        onChange={(e) => setCardWidth(Number(e.target.value))}
+                                                        aria-label="Adjust card image size"
+                                                    />
+                                                </div>
+                                                <div className="size-control-scale">
+                                                    <span>{cardSizeBounds.min}px</span>
+                                                    <span>{cardSizeBounds.max}px</span>
+                                                </div>
+                                            </div>
 
+                                            <div
+                                                className={`size-control sensitivity-control ${isSensitivitySliderDragging ? 'dragging' : ''} ${showSensitivityHint ? 'hint-visible' : ''}`}
+                                                ref={sensitivityControlRef}
+                                                onPointerDown={handleSensitivitySliderPointerDown}
+                                            >
+                                                <div className="size-control-header">
+                                                    <span className="size-control-label">Card Drop Speed</span>
+                                                    <span className="size-control-value">{sensitivityLabel}</span>
+                                                </div>
+                                                <div
+                                                    className={`size-slider-hit-area ${isSensitivitySliderDragging ? 'dragging' : ''} ${(isSensitivitySliderHovered || isSensitivitySliderDragging) ? 'expanded' : ''}`}
+                                                    ref={sensitivitySliderHitAreaRef}
+                                                    onPointerEnter={() => setIsSensitivitySliderHovered(true)}
+                                                    onPointerLeave={() => setIsSensitivitySliderHovered(false)}
+                                                    style={{ '--slider-percent': `${sensitivitySliderPercent}%` }}
+                                                >
+                                                    <div className="size-slider-visual" aria-hidden="true">
+                                                        <span className="size-slider-segment left"></span>
+                                                        <span className="size-slider-segment right"></span>
+                                                        <span className="size-slider-knob">
+                                                            <span className="size-slider-knob-label">SLIDE</span>
+                                                        </span>
+                                                    </div>
+                                                    <input
+                                                        className="size-slider"
+                                                        type="range"
+                                                        min="0"
+                                                        max="100"
+                                                        step="1"
+                                                        value={cardSensitivity}
+                                                        onInput={(e) => {
+                                                            showSensitivityHintTemporarily();
+                                                            setCardSensitivity(Number(e.currentTarget.value));
+                                                        }}
+                                                        onChange={(e) => {
+                                                            setCardSensitivity(Number(e.target.value));
+                                                            hideSensitivityHintWithDelay(1000);
+                                                        }}
+                                                        aria-label="Adjust card drop speed"
+                                                    />
+                                                </div>
+                                                <div className="size-control-scale">
+                                                    <span>Slow</span>
+                                                    <span>Fast</span>
+                                                </div>
+                                                <div className={`sensitivity-note-wrap ${showSensitivityHint ? 'visible' : ''}`}>
+                                                    <div className="sensitivity-note">{sensitivityHint}</div>
+                                                </div>
+                                            </div>
+
+                                            <div className="feed-control-panel">
+                                                <div className="photo-story-live-header">Images appear</div>
+                                                <div className="mode-toggle-row">
+                                                    <button
+                                                        type="button"
+                                                        className={`mode-btn ${feedMode === 'story' ? 'active' : ''}`}
+                                                        onClick={() => handleFeedModeChange('story')}
+                                                    >
+                                                        Story-wise
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        className={`mode-btn ${feedMode === 'shuffle' ? 'active' : ''}`}
+                                                        onClick={() => handleFeedModeChange('shuffle')}
+                                                    >
+                                                        Random
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div className="filter-control-panel">
+                                                <div className="photo-story-live-header">Category</div>
+                                                <div className="category-grid">
+                                                    <button
+                                                        type="button"
+                                                        className={`mode-btn category-btn art ${mediaFilters.includes('art') ? 'active' : ''}`}
+                                                        onClick={() => handleCategoryToggle('art')}
+                                                    >
+                                                        Art
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        className={`mode-btn category-btn commercial ${mediaFilters.includes('commercial') ? 'active' : ''}`}
+                                                        onClick={() => handleCategoryToggle('commercial')}
+                                                    >
+                                                        Commercial
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                         </div>
                     </motion.div>
                 )}
             </AnimatePresence>
 
-            {handControlEnabled && introComplete && !isScrolled && (
+            {handControlEnabled && isControlSurfaceVisible && (
                 <div className="hand-feedback-panel hand-feedback-floating" aria-live="polite">
                     <div className="photo-story-live-header">Hand Feedback</div>
                     <div
@@ -1086,13 +1191,13 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                 </aside>
             )}
 
-            {showStabilityNotice && (
+            {!isPhoneViewport && showStabilityNotice && (
                 <div className="stability-notice" role="alert" aria-live="assertive">
                     <p>{recoveryMessage}</p>
                     <p className="stability-subtext">
                         Could you please refresh the page? It should bring the stack back smoothly.
                     </p>
-                    <button className="stability-refresh-btn" onClick={handleRecoverFromError}>
+                    <button type="button" className="stability-refresh-btn" onClick={handleRecoverFromError}>
                         Refresh Page
                     </button>
                 </div>
@@ -1135,14 +1240,65 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                     padding: 120px 4vw 0 0; /* Clear fixed header and keep visible below it */
                     pointer-events: none; /* Pass through clicks when not on button */
                 }
+                .control-panel-dock {
+                    width: ${SIDE_PANEL_WIDTH_PX}px;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: stretch;
+                    pointer-events: auto;
+                }
+                .control-panel-toggle {
+                    width: 100%;
+                    border: 1px solid rgba(255, 255, 255, 0.45);
+                    border-radius: 10px;
+                    background: rgba(0, 0, 0, 0.22);
+                    backdrop-filter: blur(4px);
+                    color: rgba(255, 255, 255, 0.92);
+                    cursor: pointer;
+                    padding: 0.78rem 1rem;
+                    text-align: center;
+                    transition:
+                        border-color 220ms ease,
+                        background-color 220ms ease,
+                        box-shadow 220ms ease,
+                        transform 220ms ease;
+                    position: relative;
+                    z-index: 2;
+                }
+                .control-panel-toggle:hover {
+                    border-color: rgba(255, 255, 255, 0.78);
+                    background: rgba(255, 255, 255, 0.08);
+                    box-shadow: 0 0 18px rgba(255, 255, 255, 0.08);
+                }
+                .control-panel-toggle.open {
+                    border-color: rgba(255, 255, 255, 0.7);
+                    background: rgba(0, 0, 0, 0.34);
+                }
+                .control-panel-toggle-label {
+                    display: block;
+                    font-family: var(--feature-stack-primary-btn-font, var(--font-ui));
+                    font-size: 0.78rem;
+                    font-weight: 600;
+                    line-height: 1;
+                    letter-spacing: 0.08em;
+                    text-transform: uppercase;
+                }
+                .control-panel-shell {
+                    width: 100%;
+                    margin-top: 10px;
+                    transform-origin: top right;
+                    position: relative;
+                    z-index: 1;
+                }
                 .activation-stack {
                     display: flex;
                     flex-direction: column;
                     gap: 12px;
-                    align-items: flex-end;
-                    pointer-events: auto;
+                    align-items: stretch;
+                    width: 100%;
                 }
                 .start-btn {
+                    width: 100%;
                     background: transparent;
                     border: 1px solid rgba(255, 255, 255, 0.65);
                     padding: 0.68rem 1.05rem;
@@ -1158,10 +1314,10 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                     flex-direction: column;
                     align-items: center;
                     gap: 0.48rem;
-                    min-width: 284px;
+                    min-width: 0;
                 }
                 .size-control {
-                    width: 284px;
+                    width: 100%;
                     border: 1px solid rgba(255, 255, 255, 0.3);
                     border-radius: 10px;
                     background: rgba(0, 0, 0, 0.32);
@@ -1391,7 +1547,7 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                 }
                 .feed-control-panel,
                 .filter-control-panel {
-                    width: 284px;
+                    width: 100%;
                     border: 1px solid rgba(255, 255, 255, 0.3);
                     border-radius: 10px;
                     background: rgba(0, 0, 0, 0.35);
@@ -1600,10 +1756,7 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                     .start-overlay {
                         padding: 100px 12px 0 0;
                     }
-                    .start-btn,
-                    .size-control,
-                    .feed-control-panel,
-                    .filter-control-panel,
+                    .control-panel-dock,
                     .hand-feedback-panel {
                         width: min(92vw, 284px);
                     }
@@ -1625,6 +1778,7 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                 }
 
                 [data-theme="light"] .start-btn, 
+                [data-theme="light"] .control-panel-toggle,
                 [data-theme="light"] .size-control,
                 [data-theme="light"] .feed-control-panel,
                 [data-theme="light"] .filter-control-panel,
@@ -1636,7 +1790,8 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                 }
 
                 /* Force ALL text inside these controls to be black */
-                [data-theme="light"] .activation-stack * {
+                [data-theme="light"] .activation-stack *,
+                [data-theme="light"] .control-panel-toggle * {
                     color: #000000;
                 }
 
@@ -1656,14 +1811,16 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                 }
 
                 /* High Contrast Hover States */
-                [data-theme="light"] .start-btn:hover {
+                [data-theme="light"] .start-btn:hover,
+                [data-theme="light"] .control-panel-toggle:hover {
                     background: #000000 !important;
                     border-color: #000000 !important;
                     color: #ffffff !important;
                     box-shadow: 0 6px 16px rgba(0,0,0,0.2) !important;
                 }
                 /* IMPORTANT: When button is hovered, ensure children (text) turn white */
-                [data-theme="light"] .start-btn:hover * {
+                [data-theme="light"] .start-btn:hover *,
+                [data-theme="light"] .control-panel-toggle:hover * {
                     color: #ffffff !important;
                 }
 
@@ -1739,7 +1896,7 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
 
 
             {/* INTRO SEQUENCE */}
-            {introVisible && (
+            {introVisible && !isPhoneViewport && (
                 <IntroSequence
                     onPhysicsStart={() => {
                         setIntroComplete(true);
@@ -1751,20 +1908,22 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
             )}
 
             {/* CARD STACKER */}
-            <CardStacker
-                images={images}
-                anchorX={anchorX}
-                anchorY={anchorY}
-                cardWidth={cardWidth}
-                active={introComplete}
-                stack={stack}
-                lastAction={lastAction}
-                containerRef={containerRef}
-            />
+            {!isPhoneViewport && (
+                <CardStacker
+                    images={images}
+                    anchorX={effectiveAnchorX}
+                    anchorY={anchorY}
+                    cardWidth={cardWidth}
+                    active={introComplete}
+                    stack={stack}
+                    lastAction={lastAction}
+                    containerRef={containerRef}
+                />
+            )}
 
             {/* SCROLL HINT */}
             <AnimatePresence>
-                {introComplete && !hintDismissed && (
+                {introComplete && !hintDismissed && !isPhoneViewport && (
                     <motion.div
                         className="scroll-hint"
                         initial={{ opacity: 0 }}
@@ -1780,11 +1939,13 @@ const LandingOrchestrator = ({ images, anchorX, anchorY, audioSrc, captions }) =
                 ALWAYS MOUNTED (to register window.triggerAudio) 
                 but visual state controlled by experienceStarted
             */}
-            <ExperienceModule
-                autoStart={experienceStarted}
-                src={audioSrc}
-                captions={captions}
-            />
+            {!isPhoneViewport && (
+                <ExperienceModule
+                    autoStart={experienceStarted}
+                    src={audioSrc}
+                    captions={captions}
+                />
+            )}
         </>
     );
 };

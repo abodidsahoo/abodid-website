@@ -1,4 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
+import {
+    useState,
+    useEffect,
+    useLayoutEffect,
+    useRef,
+    useCallback,
+    type RefObject,
+} from 'react';
 import { getAllPhotography } from '../lib/services/content';
 import { getPhotoStoryMetaByUrls } from '../lib/services/photoStories';
 import { buildCardSensitivityProfile } from '../lib/cardSensitivity';
@@ -12,6 +19,7 @@ export interface Card {
     y: number;
     zIndex: number;
     initialPos: { x: number; y: number } | null;
+    revealOrder: number;
 }
 
 type FeedMode = 'shuffle' | 'story';
@@ -27,6 +35,17 @@ type PoolItem = {
 
 type PreloadStatus = 'loading' | 'loaded' | 'error';
 const EMPTY_MEDIA_FILTERS: MediaFilter[] = [];
+const SPAWN_DISTANCE_PX = 1200;
+
+export type CardStackAction =
+    | 'add'
+    | 'overflow-trim'
+    | 'exit-up'
+    | 'exit-down'
+    | 'exit-up-soft'
+    | 'exit-down-soft';
+export type CardSpawnEdge = 'top' | 'bottom' | 'left' | 'right';
+export type CardReleaseDirection = 'up' | 'down';
 
 interface UseCardPhysicsProps {
     initialImages: any[];
@@ -36,6 +55,11 @@ interface UseCardPhysicsProps {
     queueResetKey?: number;
     queueAnchorImage?: string | null;
     cardSensitivity?: number;
+    interactionRef?: RefObject<HTMLElement | null>;
+    enableKickstart?: boolean;
+    enableWheel?: boolean;
+    enablePointer?: boolean;
+    maxStackSize?: number;
 }
 
 const shuffle = <T,>(items: T[]): T[] => {
@@ -86,6 +110,9 @@ const asStringArray = (value: unknown): string[] => {
 
 const normalizeUrl = (value: unknown): string => (typeof value === 'string' ? value.trim() : '');
 const PRELOAD_AHEAD_COUNT = 24;
+const SOFT_EXIT_CARD_THRESHOLD = 2;
+const useIsomorphicLayoutEffect =
+    typeof window === 'undefined' ? useEffect : useLayoutEffect;
 
 export const useCardPhysics = ({
     initialImages,
@@ -95,10 +122,15 @@ export const useCardPhysics = ({
     queueResetKey = 0,
     queueAnchorImage = null,
     cardSensitivity = 0.55,
+    interactionRef,
+    enableKickstart = true,
+    enableWheel = true,
+    enablePointer = true,
+    maxStackSize = 6,
 }: UseCardPhysicsProps) => {
     // --- STATE ---
     const [stack, setStack] = useState<Card[]>([]);
-    const [lastAction, setLastAction] = useState<'unstack' | 'restack' | 'add'>('unstack');
+    const [lastAction, setLastAction] = useState<CardStackAction>('add');
     const [eligibleCount, setEligibleCount] = useState(0);
 
     // --- REFS ---
@@ -111,6 +143,7 @@ export const useCardPhysics = ({
     const zIndexCounter = useRef(100);
     const lastActionTime = useRef(0);
     const totalRevealsRef = useRef(0);
+    const cycleRevealCountRef = useRef(0);
     const firstInteractionTimeRef = useRef<number | null>(null);
 
     const masterPoolRef = useRef<PoolItem[]>([]);
@@ -120,8 +153,10 @@ export const useCardPhysics = ({
     const feedModeRef = useRef<FeedMode>(feedMode);
     const mediaFiltersRef = useRef<MediaFilter[]>(mediaFilters);
     const queueAnchorImageRef = useRef<string | null>(queueAnchorImage);
+    const queueResetKeyRef = useRef(queueResetKey);
 
     const sensitivityProfile = buildCardSensitivityProfile(cardSensitivity);
+    const safeMaxStackSize = Math.max(1, Math.round(maxStackSize));
 
     // ASYMMETRIC PHYSICS
     const UNSTACK_THRESHOLD = sensitivityProfile.unstackThreshold;
@@ -129,6 +164,37 @@ export const useCardPhysics = ({
     const COOLDOWN_MS = sensitivityProfile.wheelCooldownMs;
     const MOUSE_MOVE_THRESHOLD = sensitivityProfile.mouseThreshold;
     const SPAWN_COOLDOWN_MS = sensitivityProfile.spawnCooldownMs;
+
+    const getInteractionState = () => {
+        if (typeof window === 'undefined') {
+            return {
+                isInteractiveZone: false,
+                isPointerZone: false,
+            };
+        }
+
+        const interactionEl = interactionRef?.current;
+        if (!interactionEl) {
+            return {
+                isInteractiveZone: window.scrollY < 800,
+                isPointerZone: window.scrollY < 800,
+            };
+        }
+
+        const rect = interactionEl.getBoundingClientRect();
+        const viewportH = Math.max(window.innerHeight, 1);
+
+        // Section is visible if any part of it overlaps the viewport.
+        // When sticky-pinned, rect.top <= 0 and rect.bottom >= viewportH.
+        const isSectionVisible =
+            rect.top <= viewportH * 0.9 &&
+            rect.bottom >= viewportH * 0.1;
+
+        return {
+            isInteractiveZone: isSectionVisible,
+            isPointerZone: isSectionVisible,
+        };
+    };
 
     const buildQueue = (mode: FeedMode, filters: MediaFilter[], anchorImage: string | null) => {
         const source = masterPoolRef.current;
@@ -161,20 +227,24 @@ export const useCardPhysics = ({
                 grouped.get(key)?.push(item);
             }
 
-            let orderedGroups = Array.from(grouped.entries());
             if (anchorImage) {
                 const anchorItem = matched.find((item) => item.image === anchorImage);
-                const anchorKey = anchorItem?.storyKey || '';
-                const anchorIndex = orderedGroups.findIndex(([key]) => key === anchorKey);
+                const anchorKey = anchorItem?.storyKey || null;
+                const anchorGroup = anchorKey ? grouped.get(anchorKey) ?? [] : [];
 
-                if (anchorIndex > 0) {
-                    orderedGroups = [
-                        ...orderedGroups.slice(anchorIndex),
-                        ...orderedGroups.slice(0, anchorIndex),
-                    ];
+                if (anchorItem && anchorGroup.length > 0) {
+                    const anchorIndexInGroup = anchorGroup.findIndex(
+                        (item) => item.image === anchorItem.image,
+                    );
+                    const queue = anchorIndexInGroup >= 0
+                        ? anchorGroup.slice(anchorIndexInGroup + 1)
+                        : anchorGroup;
+
+                    return { queue, matchedCount: queue.length };
                 }
             }
 
+            const orderedGroups = Array.from(grouped.entries());
             const queue: PoolItem[] = [];
             for (const [, group] of orderedGroups) {
                 // Story mode is deterministic: complete one story before moving to the next.
@@ -264,6 +334,11 @@ export const useCardPhysics = ({
         stackRef.current = [];
         setStack((prev) => (prev.length === 0 ? prev : []));
         scrollAccumulatorRef.current = 0;
+        lastSpawnTime.current = 0;
+        lastActionTime.current = 0;
+        lastMousePosRef.current = { x: 0, y: 0 };
+        cycleRevealCountRef.current = 0;
+        setLastAction('add');
     };
 
     const normalizeInitialImages = (rawImages: any[]): PoolItem[] => {
@@ -325,10 +400,12 @@ export const useCardPhysics = ({
             return null;
         }
 
+        queueAnchorImageRef.current = next.image;
         scheduleQueuePreload();
 
         zIndexCounter.current += 1;
         totalRevealsRef.current += 1;
+        cycleRevealCountRef.current += 1;
         if (!firstInteractionTimeRef.current) {
             firstInteractionTimeRef.current = now;
         }
@@ -350,10 +427,11 @@ export const useCardPhysics = ({
             y: Math.random() * 60 - 30,
             zIndex: zIndexCounter.current,
             initialPos: initialOverride,
+            revealOrder: cycleRevealCountRef.current,
         };
     };
 
-    const attemptSpawn = (
+    const attemptSpawn = useCallback((
         force = false,
         initialOverride: { x: number; y: number } | null = null,
     ): boolean => {
@@ -366,22 +444,90 @@ export const useCardPhysics = ({
         lastSpawnTime.current = now;
         const newStack = [...stackRef.current, card];
 
-        if (newStack.length > 6) {
-            newStack.splice(0, newStack.length - 6);
+        if (newStack.length > safeMaxStackSize) {
+            setLastAction('overflow-trim');
+            newStack.splice(0, newStack.length - safeMaxStackSize);
         }
         stackRef.current = newStack;
         setStack(newStack);
         return true;
-    };
+    }, [SPAWN_COOLDOWN_MS, safeMaxStackSize]);
 
-    // Keep refs in sync for queue building.
-    useEffect(() => {
+    const spawnCardFromVector = useCallback((
+        x: number,
+        y: number,
+        options: { force?: boolean; action?: CardStackAction } = {},
+    ) => {
+        const { force = true, action = 'add' } = options;
+        setLastAction(action);
+        return attemptSpawn(force, { x, y });
+    }, [attemptSpawn]);
+
+    const spawnCardFromEdge = useCallback((
+        edge: CardSpawnEdge,
+        options: { force?: boolean; action?: CardStackAction } = {},
+    ) => {
+        switch (edge) {
+            case 'bottom':
+                return spawnCardFromVector(0, SPAWN_DISTANCE_PX, options);
+            case 'left':
+                return spawnCardFromVector(-SPAWN_DISTANCE_PX, 0, options);
+            case 'right':
+                return spawnCardFromVector(SPAWN_DISTANCE_PX, 0, options);
+            case 'top':
+            default:
+                return spawnCardFromVector(0, -SPAWN_DISTANCE_PX, options);
+        }
+    }, [spawnCardFromVector]);
+
+    const removeTopCard = useCallback((direction: CardReleaseDirection = 'up') => {
+        if (stackRef.current.length === 0) {
+            scrollAccumulatorRef.current = 0;
+            return false;
+        }
+
+        const useSoftRelease = stackRef.current.length <= SOFT_EXIT_CARD_THRESHOLD;
+        setLastAction(
+            direction === 'down'
+                ? (useSoftRelease ? 'exit-down-soft' : 'exit-down')
+                : (useSoftRelease ? 'exit-up-soft' : 'exit-up'),
+        );
+        lastActionTime.current = Date.now();
+        scrollAccumulatorRef.current = 0;
+
+        const newStack = stackRef.current.slice(0, -1);
+        stackRef.current = newStack;
+        setStack(newStack);
+        return true;
+    }, []);
+
+    useIsomorphicLayoutEffect(() => {
         feedModeRef.current = feedMode;
         mediaFiltersRef.current = mediaFilters;
         queueAnchorImageRef.current = queueAnchorImage;
         rebuildPlaybackQueue();
+
+        const shouldPreserveVisibleStack =
+            feedMode === 'story' &&
+            !!queueAnchorImage &&
+            stackRef.current.length > 0;
+
+        if (!shouldPreserveVisibleStack) {
+            resetStack();
+        }
+    }, [feedMode, mediaFilters, queueAnchorImage]);
+
+    useIsomorphicLayoutEffect(() => {
+        queueResetKeyRef.current = queueResetKey;
+        rebuildPlaybackQueue();
         resetStack();
-    }, [feedMode, mediaFilters, queueResetKey, queueAnchorImage]);
+    }, [queueResetKey]);
+
+    useIsomorphicLayoutEffect(() => {
+        if (!isActive) {
+            resetStack();
+        }
+    }, [isActive]);
 
     // Seed with initial images (fallback) before full dataset loads.
     useEffect(() => {
@@ -468,11 +614,13 @@ export const useCardPhysics = ({
 
     // Kickstart spawns; rerun when mode/filter changes for instant reshuffle.
     useEffect(() => {
+        if (!enableKickstart) return undefined;
+
         let misses = 0;
         const kickstart = setInterval(() => {
             if (!isActive) return;
 
-            if (window.scrollY < 50 && stackRef.current.length < 4) {
+            if (stackRef.current.length < 4 && getInteractionState().isPointerZone) {
                 setLastAction('add');
                 const spawned = attemptSpawn(true);
                 if (!spawned) {
@@ -488,15 +636,17 @@ export const useCardPhysics = ({
         }, 200);
 
         return () => clearInterval(kickstart);
-    }, [isActive, feedMode, mediaFilters, queueResetKey, eligibleCount]);
+    }, [isActive, feedMode, mediaFilters, queueResetKey, eligibleCount, interactionRef, enableKickstart]);
 
-    // --- EVENT LOOP ---
+    // --- WHEEL ---
     useEffect(() => {
+        if (!enableWheel) return undefined;
+
         const handleWheel = (e: WheelEvent) => {
             if (!isActive) return;
 
-            const isVisible = window.scrollY < 800;
-            if (!isVisible) return;
+            const { isInteractiveZone } = getInteractionState();
+            if (!isInteractiveZone) return;
 
             if (e.deltaY > 0 && stackRef.current.length > 0) {
                 e.preventDefault();
@@ -510,9 +660,9 @@ export const useCardPhysics = ({
             scrollAccumulatorRef.current += e.deltaY;
 
             if (e.deltaY > 0) {
-                setLastAction('unstack');
+                setLastAction('exit-up');
             } else if (e.deltaY < 0) {
-                setLastAction('restack');
+                setLastAction('add');
             }
 
             if (scrollAccumulatorRef.current > UNSTACK_THRESHOLD) {
@@ -544,12 +694,12 @@ export const useCardPhysics = ({
                     const potential = Math.floor(scrollAccumulatorRef.current / UNSTACK_THRESHOLD);
                     if (potential > 0) {
                         if (stackRef.current.length > 0) {
-                            setLastAction('unstack');
-                            lastActionTime.current = now;
-                            const newStack = stackRef.current.slice(0, -1);
-                            stackRef.current = newStack;
-                            setStack(newStack);
-                            scrollAccumulatorRef.current -= UNSTACK_THRESHOLD;
+                            if (removeTopCard('up')) {
+                                scrollAccumulatorRef.current = Math.max(
+                                    0,
+                                    scrollAccumulatorRef.current - UNSTACK_THRESHOLD,
+                                );
+                            }
                         } else {
                             scrollAccumulatorRef.current = 0;
                         }
@@ -560,36 +710,69 @@ export const useCardPhysics = ({
                     Math.abs(scrollAccumulatorRef.current) / RESTACK_THRESHOLD,
                 );
                 if (potential > 0) {
-                    setLastAction('restack');
+                    setLastAction('add');
                     attemptSpawn(true);
                     scrollAccumulatorRef.current += RESTACK_THRESHOLD;
                 }
             }
         };
 
+        window.addEventListener('wheel', handleWheel, { passive: false });
+
+        return () => {
+            window.removeEventListener('wheel', handleWheel);
+        };
+    }, [
+        isActive,
+        enableWheel,
+        UNSTACK_THRESHOLD,
+        RESTACK_THRESHOLD,
+        COOLDOWN_MS,
+        interactionRef,
+        attemptSpawn,
+        removeTopCard,
+    ]);
+
+    // --- SCROLL VISUALS ---
+    useEffect(() => {
         const handleScroll = () => {
-            const y = window.scrollY;
             if (containerRef.current) {
+                if (interactionRef?.current) {
+                    containerRef.current.style.transform = '';
+                    containerRef.current.style.opacity = '1';
+                    return;
+                }
+
+                const y = window.scrollY;
                 containerRef.current.style.transform = `translateY(-${y * 0.5}px)`;
                 const newOp = Math.max(0, 1 - y / 700);
                 containerRef.current.style.opacity = newOp.toString();
             }
         };
 
-        window.addEventListener('wheel', handleWheel, { passive: false });
+        handleScroll();
         window.addEventListener('scroll', handleScroll);
 
         return () => {
-            window.removeEventListener('wheel', handleWheel);
             window.removeEventListener('scroll', handleScroll);
         };
-    }, [isActive, UNSTACK_THRESHOLD, RESTACK_THRESHOLD, COOLDOWN_MS]);
+    }, [isActive, interactionRef]);
 
     // --- MOUSE ---
     useEffect(() => {
+        if (!enablePointer) {
+            lastMousePosRef.current = { x: 0, y: 0 };
+            return undefined;
+        }
+
         const handleMove = (e: MouseEvent) => {
             if (!isActive) return;
-            if (window.scrollY > 10) return;
+            if (!getInteractionState().isPointerZone) return;
+
+            if (lastMousePosRef.current.x === 0 && lastMousePosRef.current.y === 0) {
+                lastMousePosRef.current = { x: e.clientX, y: e.clientY };
+                return;
+            }
 
             const dx = e.clientX - lastMousePosRef.current.x;
             const dy = e.clientY - lastMousePosRef.current.y;
@@ -599,36 +782,50 @@ export const useCardPhysics = ({
                 setLastAction('add');
 
                 const angle = Math.atan2(dy, dx);
-                const spawnDist = 1200;
-                const ix = -Math.cos(angle) * spawnDist;
-                const iy = -Math.sin(angle) * spawnDist;
+                const ix = -Math.cos(angle) * SPAWN_DISTANCE_PX;
+                const iy = -Math.sin(angle) * SPAWN_DISTANCE_PX;
 
-                attemptSpawn(false, { x: ix, y: iy });
+                spawnCardFromVector(ix, iy, { force: false, action: 'add' });
                 lastMousePosRef.current = { x: e.clientX, y: e.clientY };
             }
         };
 
         window.addEventListener('mousemove', handleMove);
         return () => window.removeEventListener('mousemove', handleMove);
-    }, [isActive, MOUSE_MOVE_THRESHOLD, SPAWN_COOLDOWN_MS]);
+    }, [
+        isActive,
+        enablePointer,
+        MOUSE_MOVE_THRESHOLD,
+        interactionRef,
+        spawnCardFromVector,
+    ]);
 
     // --- GESTURES ---
-    const spawnCardFromGesture = (dx: number, dy: number, angle: number) => {
-        setLastAction('add');
-
-        const spawnDist = 1200;
-        const ix = -Math.cos(angle) * spawnDist;
-        const iy = -Math.sin(angle) * spawnDist;
+    const spawnCardFromGesture = useCallback((dx: number, dy: number, angle: number) => {
+        const ix = -Math.cos(angle) * SPAWN_DISTANCE_PX;
+        const iy = -Math.sin(angle) * SPAWN_DISTANCE_PX;
 
         console.log('🚀 GESTURE SPANNING CARD...', { dx, dy, angle, ix, iy });
-        attemptSpawn(true, { x: ix, y: iy });
-    };
+        spawnCardFromVector(ix, iy, { force: true, action: 'add' });
+    }, [spawnCardFromVector]);
+
+    let shouldHideRenderedStack = !isActive;
+    if (queueResetKeyRef.current !== queueResetKey) {
+        queueResetKeyRef.current = queueResetKey;
+        shouldHideRenderedStack = true;
+    }
+
+    const renderedStack = shouldHideRenderedStack ? [] : stack;
+    const renderedLastAction = shouldHideRenderedStack ? 'add' : lastAction;
 
     return {
-        stack,
-        lastAction,
+        stack: renderedStack,
+        lastAction: renderedLastAction,
         containerRef,
         spawnCardFromGesture,
+        spawnCardFromEdge,
+        spawnCardFromVector,
+        removeTopCard,
         eligibleCount,
     };
 };

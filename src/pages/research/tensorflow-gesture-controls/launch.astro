@@ -1,0 +1,85 @@
+---
+export const prerender = false;
+import ExperimentLayout from "../../../layouts/ExperimentLayout.astro";
+import TensorFlowGestureControlsLab from "../../../components/experiments/TensorFlowGestureControlsLab.jsx";
+import ForceDarkMode from "../../../components/ForceDarkMode.astro";
+import { getAllPhotography } from "../../../lib/api";
+
+const pageTitle = "TensorFlow Gesture Controls";
+const pageDescription = "Launch page for the TensorFlow.js gesture photo-stack experiment.";
+
+const photographyProjects = await getAllPhotography();
+const images = [];
+
+for (const project of photographyProjects) {
+    if (project.image) {
+        images.push({
+            image: project.image,
+            title: project.title,
+            slug: project.slug,
+            category: project.category,
+            tags: project.tags,
+            storyKey: project.slug,
+        });
+    }
+
+    if (Array.isArray(project.images)) {
+        for (const galleryImage of project.images) {
+            if (!galleryImage || galleryImage === project.image) continue;
+            images.push({
+                image: galleryImage,
+                title: project.title,
+                slug: project.slug,
+                category: project.category,
+                tags: project.tags,
+                storyKey: project.slug,
+            });
+        }
+    }
+}
+
+if (images.length === 0) {
+    images.push(
+        {
+            image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&q=80&w=1200",
+            title: "Coastline",
+            slug: "coastline",
+        },
+        {
+            image: "https://images.unsplash.com/photo-1493246507139-91e8fad9978e?auto=format&fit=crop&q=80&w=1200",
+            title: "Forest",
+            slug: "forest",
+        },
+        {
+            image: "https://images.unsplash.com/photo-1511300636408-a63a89df3482?auto=format&fit=crop&q=80&w=1200",
+            title: "Studio light",
+            slug: "studio-light",
+        },
+    );
+}
+---
+
+<ExperimentLayout
+    title={pageTitle}
+    description={pageDescription}
+    lockViewport={true}
+    bodyClass="tensorflow-gesture-controls-page"
+>
+    <Fragment slot="head">
+        <ForceDarkMode />
+    </Fragment>
+
+    <TensorFlowGestureControlsLab client:load images={images} />
+</ExperimentLayout>
+
+<style>
+    :global(body.tensorflow-gesture-controls-page) {
+        background: #040404;
+        color: #f8fafc;
+        overflow: hidden;
+    }
+
+    :global(body.tensorflow-gesture-controls-page #main-content) {
+        height: 100vh;
+    }
+</style>

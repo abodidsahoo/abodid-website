@@ -223,25 +223,30 @@ export default function PunctumGame() {
 
 
 
-    // Auto-scroll ref for terminal
-    const logEndRef = useRef(null);
+    const logContainerRef = useRef(null);
+    const [viewportSize, setViewportSize] = useState(() => ({
+        width: typeof window === 'undefined' ? 1440 : window.innerWidth,
+        height: typeof window === 'undefined' ? 900 : window.innerHeight
+    }));
 
-    // Auto-scroll to bottom of logs
+    // Keep terminal scrolled to the latest line without moving the page itself.
     useEffect(() => {
-        if (logEndRef.current) {
-            logEndRef.current.scrollIntoView({ behavior: "smooth" });
+        if (logContainerRef.current) {
+            logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
         }
     }, [logs]);
 
-    // Responsive display count (10 desktop, 8 otherwise)
+    // Responsive display count and viewport flags.
     useEffect(() => {
-        const updateCount = () => {
+        const updateViewport = () => {
             const width = window.innerWidth;
+            const height = window.innerHeight;
+            setViewportSize({ width, height });
             setDisplayCount(width >= 1200 ? 10 : 8);
         };
-        updateCount();
-        window.addEventListener('resize', updateCount);
-        return () => window.removeEventListener('resize', updateCount);
+        updateViewport();
+        window.addEventListener('resize', updateViewport);
+        return () => window.removeEventListener('resize', updateViewport);
     }, []);
 
     useEffect(() => {
@@ -1149,6 +1154,244 @@ export default function PunctumGame() {
         });
     };
 
+    const isExperimentStage = step.startsWith('analysis') || step === 'viz' || step === 'consensus';
+    const isMobileViewport = viewportSize.width <= 767;
+    const isTabletViewport = viewportSize.width > 767 && viewportSize.width <= 1180;
+    const useStackedExperimentLayout = isExperimentStage && viewportSize.width <= 1180;
+    const showSelectedImagePanel = Boolean(selectedImage?.url) && isExperimentStage;
+    const showStatusPanels = logs.length > 0 && isExperimentStage;
+    const compactStageMaxWidth = isMobileViewport ? '100%' : '920px';
+    const compactStagePadding = `${isMobileViewport ? 16 : 20}px`;
+    const desktopLeftClearance = showSelectedImagePanel && !useStackedExperimentLayout ? 360 : 40;
+    const desktopRightClearance = showStatusPanels && !useStackedExperimentLayout ? 360 : 40;
+    const desktopCenterLaneWidth = Math.max(360, viewportSize.width - desktopLeftClearance - desktopRightClearance);
+    const modelBadgeStyle = {
+        display: 'block',
+        width: '100%',
+        boxSizing: 'border-box',
+        padding: '6px 12px',
+        borderRadius: '6px',
+        border: '1px solid rgba(255,255,255,0.2)',
+        background: 'rgba(255,255,255,0.05)',
+        color: '#fff',
+        fontSize: isMobileViewport ? '12px' : '13px',
+        lineHeight: '1.5',
+        fontFamily: "'Courier New', 'Inconsolata', var(--font-mono), monospace",
+        overflowWrap: 'anywhere',
+        wordBreak: 'break-word',
+        whiteSpace: 'normal'
+    };
+    const getExperimentStageWidth = (preferredWidth) => {
+        if (useStackedExperimentLayout) return compactStageMaxWidth;
+        if (!isExperimentStage) return preferredWidth;
+        return Math.min(preferredWidth, desktopCenterLaneWidth);
+    };
+
+    const renderSelectedImagePanel = (mode = 'fixed') => {
+        if (!showSelectedImagePanel) return null;
+
+        const inlineMode = mode === 'inline';
+
+        return (
+            <div
+                style={inlineMode ? {
+                    width: '100%',
+                    maxWidth: compactStageMaxWidth,
+                    padding: `0 ${compactStagePadding}`,
+                    marginTop: isMobileViewport ? '92px' : '104px',
+                    marginBottom: isMobileViewport ? '20px' : '28px',
+                    boxSizing: 'border-box',
+                    zIndex: 2
+                } : {
+                    position: 'fixed',
+                    top: '108px',
+                    left: '20px',
+                    width: '300px',
+                    maxWidth: '34vw',
+                    zIndex: 110
+                }}
+            >
+                <div
+                    style={{
+                        position: 'relative',
+                        borderRadius: '12px',
+                        overflow: 'hidden',
+                        border: inlineMode ? 'none' : '1px solid rgba(255,255,255,0.2)',
+                        boxShadow: inlineMode ? '0 18px 40px rgba(0,0,0,0.38)' : '0 10px 30px rgba(0,0,0,0.35)',
+                        background: inlineMode ? 'transparent' : '#000'
+                    }}
+                >
+                    {inlineMode ? (
+                        <div
+                            style={{
+                                width: '100%',
+                                height: isMobileViewport ? 'clamp(220px, 34vh, 320px)' : 'clamp(240px, 36vh, 360px)'
+                            }}
+                        >
+                            <img
+                                src={selectedImage.url}
+                                alt="Selected"
+                                style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    objectFit: 'cover',
+                                    display: 'block'
+                                }}
+                            />
+                        </div>
+                    ) : (
+                        <img
+                            src={selectedImage.url}
+                            alt="Selected"
+                            style={{ width: '100%', height: 'auto', display: 'block' }}
+                        />
+                    )}
+
+                    {showLoader && step === 'analysis-ai' && loading && (
+                        <div
+                            className="image-scan-line"
+                            style={{
+                                position: 'absolute',
+                                left: '6px',
+                                right: '6px',
+                                top: '6px',
+                                height: '2px',
+                                background: 'linear-gradient(90deg, rgba(0,255,102,0) 0%, rgba(0,255,102,0.75) 18%, rgba(0,255,102,1) 50%, rgba(0,255,102,0.75) 82%, rgba(0,255,102,0) 100%)',
+                                boxShadow: '0 0 14px rgba(0,255,102,0.6), 0 0 28px rgba(0,255,102,0.35)',
+                                borderRadius: '999px',
+                                pointerEvents: 'none'
+                            }}
+                        />
+                    )}
+                </div>
+            </div>
+        );
+    };
+
+    const renderStatusPanel = (mode = 'fixed') => {
+        if (!showStatusPanels) return null;
+
+        const inlineMode = mode === 'inline';
+
+        return (
+            <motion.div
+                initial={{ opacity: 0, x: inlineMode ? 0 : 20, y: inlineMode ? 16 : 0 }}
+                animate={{ opacity: 1, x: 0, y: 0 }}
+                exit={{ opacity: 0, x: inlineMode ? 0 : 20, y: inlineMode ? 16 : 0 }}
+                style={inlineMode ? {
+                    width: '100%',
+                    maxWidth: compactStageMaxWidth,
+                    padding: `0 ${compactStagePadding} ${isMobileViewport ? 32 : 40}px`,
+                    marginTop: isMobileViewport ? '20px' : '24px',
+                    boxSizing: 'border-box',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '10px',
+                    zIndex: 2
+                } : {
+                    position: 'fixed',
+                    top: '70px',
+                    right: '20px',
+                    width: '300px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '10px',
+                    zIndex: 9999
+                }}
+            >
+                <div
+                    ref={logContainerRef}
+                    style={{
+                        width: '100%',
+                        maxHeight: inlineMode ? (isMobileViewport ? '260px' : '320px') : '400px',
+                        background: 'rgba(0, 0, 0, 0.85)',
+                        border: '1px solid rgba(0, 255, 0, 0.2)',
+                        borderRadius: '8px',
+                        padding: '12px',
+                        fontFamily: "'Courier New', 'Inconsolata', var(--font-mono), monospace",
+                        fontSize: isMobileViewport ? '12px' : '13px',
+                        color: '#0f0',
+                        overflowY: 'auto',
+                        boxShadow: '0 0 20px rgba(0, 255, 0, 0.1)',
+                        backdropFilter: 'blur(5px)'
+                    }}
+                >
+                    <div style={{
+                        borderBottom: '1px solid rgba(0,255,0,0.2)',
+                        paddingBottom: '4px',
+                        marginBottom: '8px',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        fontWeight: 'bold',
+                        letterSpacing: '0.1em'
+                    }}>
+                        <span>TERMINAL_LOG</span>
+                        <span style={{ width: '6px', height: '6px', background: '#0f0', borderRadius: '50%', boxShadow: '0 0 5px #0f0' }}></span>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        {logs.map((log, i) => (
+                            <div key={i} style={{
+                                opacity: 0,
+                                animation: 'fadeIn 0.2s forwards',
+                                animationDelay: `${i * 0.05}s`,
+                                color: log.type === 'error' ? '#ff4444' : (log.type === 'success' ? '#00ff00' : '#888'),
+                                fontFamily: "'Courier New', 'Inconsolata', var(--font-mono), monospace",
+                                lineHeight: '1.5',
+                                whiteSpace: 'pre-wrap',
+                                wordBreak: 'break-word'
+                            }}>
+                                <span style={{ opacity: 0.5 }}>[{log.timestamp.toLocaleTimeString().split(' ')[0]}]</span>{' '}
+                                {log.message}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '10px', width: '100%', flexWrap: 'wrap' }}>
+                    <div style={{
+                        flex: '1 1 260px',
+                        background: 'rgba(0,0,0,0.75)',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        borderRadius: '8px',
+                        padding: '10px 12px',
+                        fontFamily: 'var(--font-ui)',
+                        fontSize: '12px',
+                        color: '#bbb',
+                        fontWeight: 500,
+                        lineHeight: '1.5',
+                        boxShadow: '0 0 18px rgba(0,0,0,0.3)',
+                        backdropFilter: 'blur(6px)'
+                    }}>
+                        <div style={{ fontSize: '10px', letterSpacing: '0.12em', color: '#888', marginBottom: '6px', textTransform: 'uppercase', fontWeight: 600 }}>
+                            Models Used
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+                            <div>
+                                <div style={{ color: '#888', fontSize: '11px', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '6px' }}>Human response analysis</div>
+                                <div style={modelBadgeStyle}>
+                                    {keywordModel || 'Pending'}
+                                </div>
+                            </div>
+                            <div>
+                                <div style={{ color: '#888', fontSize: '11px', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '6px' }}>Image analysis</div>
+                                <div style={modelBadgeStyle}>
+                                    {getPrimaryModel(aiReport?.vision_analysis?.model_used || aiReport?.model_used) || 'Pending'}
+                                </div>
+                            </div>
+                            <div>
+                                <div style={{ color: '#888', fontSize: '11px', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '6px' }}>Consensus analysis</div>
+                                <div style={modelBadgeStyle}>
+                                    {consensusData?.model_used || 'Pending'}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </motion.div>
+        );
+    };
+
 
 
     return (
@@ -1162,7 +1405,8 @@ export default function PunctumGame() {
             alignItems: 'center',
             justifyContent: 'center',
             fontFamily: 'var(--font-ui)',
-            overflow: 'hidden',
+            overflowX: 'hidden',
+            overflowY: useStackedExperimentLayout ? 'auto' : 'hidden',
             position: 'relative'
         }}>
             {/* FEEDBACK MODAL / TOAST */}
@@ -1383,140 +1627,7 @@ export default function PunctumGame() {
 
             {/* STATUS LOG - TOP RIGHT (Below Restart Button) */}
             <AnimatePresence>
-                {(logs.length > 0 && (step.startsWith('analysis') || step === 'viz' || step === 'consensus')) && (
-                    <motion.div
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: 20 }}
-                        style={{
-                            position: 'fixed',
-                            top: '70px', /* Shifted down to avoid overlap with Restart Button */
-                            right: '20px',
-                            width: '300px',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: '10px',
-                            zIndex: 9999,
-                        }}
-                    >
-                        {/* TERMINAL CONTAINER */}
-                        <div style={{
-                            width: '100%',
-                            maxHeight: '400px',
-                            background: 'rgba(0, 0, 0, 0.85)',
-                            border: '1px solid rgba(0, 255, 0, 0.2)',
-                            borderRadius: '8px',
-                            padding: '12px',
-                            fontFamily: "'Courier New', 'Inconsolata', var(--font-mono), monospace",
-                            fontSize: '13px',
-                            color: '#0f0',
-                            overflowY: 'auto',
-                            boxShadow: '0 0 20px rgba(0, 255, 0, 0.1)',
-                            backdropFilter: 'blur(5px)'
-                        }}>
-                            <div style={{
-                                borderBottom: '1px solid rgba(0,255,0,0.2)',
-                                paddingBottom: '4px',
-                                marginBottom: '8px',
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'center',
-                                fontWeight: 'bold',
-                                letterSpacing: '0.1em'
-                            }}>
-                                <span>TERMINAL_LOG</span>
-                                <span style={{ width: '6px', height: '6px', background: '#0f0', borderRadius: '50%', boxShadow: '0 0 5px #0f0' }}></span>
-                            </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                {logs.map((log, i) => (
-                                    <div key={i} style={{
-                                        opacity: 0,
-                                        animation: 'fadeIn 0.2s forwards',
-                                        animationDelay: `${i * 0.05}s`,
-                                        color: log.type === 'error' ? '#ff4444' : (log.type === 'success' ? '#00ff00' : '#888'),
-                                        fontFamily: "'Courier New', 'Inconsolata', var(--font-mono), monospace",
-                                        lineHeight: '1.5',
-                                        whiteSpace: 'pre-wrap',
-                                        wordBreak: 'break-word'
-                                    }}>
-                                        <span style={{ opacity: 0.5 }}>[{log.timestamp.toLocaleTimeString().split(' ')[0]}]</span>{' '}
-                                        {log.message}
-                                    </div>
-                                ))}
-                                <div style={{ height: '10px' }} />
-                            </div>
-                        </div>
-
-                        {/* MODELS (Side by Side) */}
-                        <div style={{ display: 'flex', gap: '10px', width: '100%', flexWrap: 'wrap' }}>
-                            <div style={{
-                                flex: '1 1 260px',
-                                background: 'rgba(0,0,0,0.75)',
-                                border: '1px solid rgba(255,255,255,0.08)',
-                                borderRadius: '8px',
-                                padding: '10px 12px',
-                                fontFamily: 'var(--font-ui)',
-                                fontSize: '12px',
-                                color: '#bbb',
-                                fontWeight: 500,
-                                lineHeight: '1.5',
-                                boxShadow: '0 0 18px rgba(0,0,0,0.3)',
-                                backdropFilter: 'blur(6px)'
-                            }}>
-                                <div style={{ fontSize: '10px', letterSpacing: '0.12em', color: '#888', marginBottom: '6px', textTransform: 'uppercase', fontWeight: 600 }}>
-                                    Models Used
-                                </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-                                    <div>
-                                        <div style={{ color: '#888', fontSize: '11px', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '6px' }}>Human response analysis</div>
-                                        <div style={{
-                                            display: 'inline-block',
-                                            padding: '6px 12px',
-                                            borderRadius: '6px',
-                                            border: '1px solid rgba(255,255,255,0.2)',
-                                            background: 'rgba(255,255,255,0.05)',
-                                            color: '#fff',
-                                            fontSize: '13px',
-                                            fontFamily: "'Courier New', 'Inconsolata', var(--font-mono), monospace"
-                                        }}>
-                                            {keywordModel || 'Pending'}
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div style={{ color: '#888', fontSize: '11px', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '6px' }}>Image analysis</div>
-                                        <div style={{
-                                            display: 'inline-block',
-                                            padding: '6px 12px',
-                                            borderRadius: '6px',
-                                            border: '1px solid rgba(255,255,255,0.2)',
-                                            background: 'rgba(255,255,255,0.05)',
-                                            color: '#fff',
-                                            fontSize: '13px',
-                                            fontFamily: "'Courier New', 'Inconsolata', var(--font-mono), monospace"
-                                        }}>
-                                            {getPrimaryModel(aiReport?.vision_analysis?.model_used || aiReport?.model_used) || 'Pending'}
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div style={{ color: '#888', fontSize: '11px', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '6px' }}>Consensus analysis</div>
-                                        <div style={{
-                                            display: 'inline-block',
-                                            padding: '6px 12px',
-                                            borderRadius: '6px',
-                                            border: '1px solid rgba(255,255,255,0.2)',
-                                            background: 'rgba(255,255,255,0.05)',
-                                            color: '#fff',
-                                            fontSize: '13px',
-                                            fontFamily: "'Courier New', 'Inconsolata', var(--font-mono), monospace"
-                                        }}>
-                                            {consensusData?.model_used || 'Pending'}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </motion.div>
-                )}
+                {showStatusPanels && !useStackedExperimentLayout && renderStatusPanel('fixed')}
             </AnimatePresence>
 
             <style>{`
@@ -1703,47 +1814,10 @@ export default function PunctumGame() {
                 )}
             </div>
 
-            {selectedImage?.url && (step?.startsWith('analysis') || step === 'viz' || step === 'consensus') && (
-                <div
-                    style={{
-                        position: 'fixed',
-                        top: '108px',
-                        left: '20px',
-                        width: '300px',
-                        maxWidth: '34vw',
-                        borderRadius: '12px',
-                        overflow: 'hidden',
-                        border: '1px solid rgba(255,255,255,0.2)',
-                        boxShadow: '0 10px 30px rgba(0,0,0,0.35)',
-                        zIndex: 110,
-                        background: '#000'
-                    }}
-                >
-                    <img
-                        src={selectedImage.url}
-                        alt="Selected"
-                        style={{ width: '100%', height: 'auto', display: 'block' }}
-                    />
-                    {showLoader && step === 'analysis-ai' && loading && (
-                        <div
-                            className="image-scan-line"
-                            style={{
-                                position: 'absolute',
-                                left: '6px',
-                                right: '6px',
-                                top: '6px',
-                                height: '2px',
-                                background: 'linear-gradient(90deg, rgba(0,255,102,0) 0%, rgba(0,255,102,0.75) 18%, rgba(0,255,102,1) 50%, rgba(0,255,102,0.75) 82%, rgba(0,255,102,0) 100%)',
-                                boxShadow: '0 0 14px rgba(0,255,102,0.6), 0 0 28px rgba(0,255,102,0.35)',
-                                borderRadius: '999px',
-                                pointerEvents: 'none'
-                            }}
-                        />
-                    )}
-                </div>
-            )}
+            {showSelectedImagePanel && !useStackedExperimentLayout && renderSelectedImagePanel('fixed')}
 
-            <div style={{ position: 'relative', zIndex: 1, width: '100%', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ position: 'relative', zIndex: 1, width: '100%', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: useStackedExperimentLayout ? 'flex-start' : 'center' }}>
+                {showSelectedImagePanel && useStackedExperimentLayout && renderSelectedImagePanel('inline')}
                 <AnimatePresence mode="wait">
 
                     {/* INTRO */}
@@ -2200,19 +2274,30 @@ export default function PunctumGame() {
                             exit="exit"
                             style={{
                                 width: '100%',
-                                minHeight: '100vh',
+                                minHeight: useStackedExperimentLayout ? 'auto' : '100vh',
                                 display: 'flex',
                                 flexDirection: 'column',
                                 alignItems: 'center',
                                 justifyContent: 'flex-start',
-                                paddingTop: '14vh',
-                                paddingBottom: '6vh',
-                                padding: '14vh 20px 6vh',
+                                paddingTop: useStackedExperimentLayout ? '0' : '14vh',
+                                paddingBottom: useStackedExperimentLayout ? '0' : '6vh',
+                                padding: useStackedExperimentLayout
+                                    ? `0 ${compactStagePadding} ${isMobileViewport ? 28 : 36}px`
+                                    : '14vh 20px 6vh',
                                 textAlign: 'center',
-                                overflow: 'auto'
+                                overflow: useStackedExperimentLayout ? 'visible' : 'auto',
+                                boxSizing: 'border-box'
                             }}
                         >
-                            <div style={{ position: 'relative', width: '100%', maxWidth: '980px', minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <div style={{
+                                position: 'relative',
+                                width: '100%',
+                                maxWidth: getExperimentStageWidth(980),
+                                minHeight: useStackedExperimentLayout ? 'auto' : '60vh',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }}>
                                 <AnimatePresence mode="wait">
                                     {!showCollectiveAnalysis ? (
                                         <motion.div
@@ -2225,11 +2310,13 @@ export default function PunctumGame() {
                                         >
                                             {/* 1. HUMAN RESPONSES (Shown First) */}
                                             <div style={{
-                                                marginBottom: '36px',
-                                                maxWidth: '900px',
-                                                maxHeight: '22vh',
-                                                overflowY: 'auto',
-                                                padding: '0 10px'
+                                                marginBottom: isMobileViewport ? '28px' : '36px',
+                                                width: '100%',
+                                                maxWidth: getExperimentStageWidth(900),
+                                                maxHeight: useStackedExperimentLayout ? 'none' : '22vh',
+                                                overflowY: useStackedExperimentLayout ? 'visible' : 'auto',
+                                                padding: 0,
+                                                boxSizing: 'border-box'
                                             }}>
                                                 <h4 style={{
                                                     fontSize: '12px', letterSpacing: '0.28em', color: '#666',
@@ -2237,7 +2324,12 @@ export default function PunctumGame() {
                                                 }}>
                                                     Human Responses
                                                 </h4>
-                                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center' }}>
+                                                <div style={{
+                                                    display: 'flex',
+                                                    flexWrap: 'wrap',
+                                                    gap: '8px',
+                                                    justifyContent: isMobileViewport ? 'flex-start' : 'center'
+                                                }}>
                                                     {comments.map((comment, i) => (
                                                         <React.Fragment key={`comment-${i}`}>
                                                             {comment.feeling_text && (
@@ -2304,8 +2396,9 @@ export default function PunctumGame() {
                                             {/* HUMAN INPUTS NOTE (Moved from sidebar) */}
                                             {!loadingKeywords && (
                                                 <div style={{
-                                                    marginBottom: '34px',
-                                                    maxWidth: '620px',
+                                                    marginBottom: isMobileViewport ? '28px' : '34px',
+                                                    width: '100%',
+                                                    maxWidth: getExperimentStageWidth(620),
                                                     textAlign: 'center',
                                                     background: 'rgba(255,255,255,0.06)',
                                                     border: '1px solid rgba(255,255,255,0.18)',
@@ -2331,7 +2424,7 @@ export default function PunctumGame() {
                                             )}
 
                                             {/* 3. ANALYSIS DRUM + PROGRESS */}
-                                            <div style={{ marginBottom: '36px', width: '100%', maxWidth: '900px' }}>
+                                            <div style={{ marginBottom: isMobileViewport ? '28px' : '36px', width: '100%', maxWidth: getExperimentStageWidth(900) }}>
                                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '18px', justifyContent: 'center', alignItems: 'center' }}>
                                                     <div style={{ display: 'flex', justifyContent: 'center' }}>
                                                         <div className="progress-orbit" style={{ position: 'relative', width: '190px', height: '190px' }}>
@@ -2432,7 +2525,7 @@ export default function PunctumGame() {
                                                     onClick={() => setShowCollectiveAnalysis(true)}
                                                     className="hover-btn"
                                                     style={{
-                                                        padding: '16px 48px',
+                                                        padding: isMobileViewport ? '15px 24px' : '16px 48px',
                                                         background: 'var(--color-brand-red)',
                                                         color: '#fff',
                                                         border: 'none',
@@ -2443,7 +2536,9 @@ export default function PunctumGame() {
                                                         letterSpacing: '0.1em',
                                                         textTransform: 'uppercase',
                                                         transition: 'all 0.3s',
-                                                        boxShadow: '0 0 20px rgba(163, 0, 33, 0.35)'
+                                                        boxShadow: '0 0 20px rgba(163, 0, 33, 0.35)',
+                                                        width: isMobileViewport ? '100%' : 'auto',
+                                                        maxWidth: isMobileViewport ? '420px' : 'none'
                                                     }}
                                                     onMouseOver={(e) => { e.target.style.background = '#c1002f'; }}
                                                     onMouseOut={(e) => { e.target.style.background = 'var(--color-brand-red)'; }}
@@ -2459,10 +2554,17 @@ export default function PunctumGame() {
                                             animate={{ opacity: 1 }}
                                             exit={{ opacity: 0 }}
                                             transition={{ duration: 0.35 }}
-                                            style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '50vh' }}
+                                            style={{
+                                                width: '100%',
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                minHeight: useStackedExperimentLayout ? 'auto' : '50vh'
+                                            }}
                                         >
                                             {/* 4. COLLECTIVE ANALYSIS (Final Three) */}
-                                            <div style={{ marginBottom: '48px', maxWidth: '900px' }}>
+                                            <div style={{ marginBottom: isMobileViewport ? '32px' : '48px', width: '100%', maxWidth: getExperimentStageWidth(900) }}>
                                                 <h4 style={{
                                                     fontSize: '12px', letterSpacing: '0.28em', color: '#666',
                                                     textTransform: 'uppercase', marginBottom: '28px'
@@ -2475,10 +2577,10 @@ export default function PunctumGame() {
                                                     <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
                                                         {keywords.slice(0, 3).map((k, i) => (
                                                             <span key={i} style={{
-                                                                fontSize: '20px',
+                                                                fontSize: isMobileViewport ? '15px' : '20px',
                                                                 fontFamily: 'var(--font-mono)',
                                                                 color: '#00f3ff',
-                                                                padding: '20px 30px',
+                                                                padding: isMobileViewport ? '14px 18px' : '20px 30px',
                                                                 background: 'rgba(0, 243, 255, 0.12)',
                                                                 border: '1px solid rgba(0, 243, 255, 0.35)',
                                                                 borderRadius: '999px',
@@ -2500,7 +2602,7 @@ export default function PunctumGame() {
                                                 className="hover-btn"
                                                 disabled={loading}
                                                 style={{
-                                                    padding: '16px 48px',
+                                                    padding: isMobileViewport ? '15px 24px' : '16px 48px',
                                                     background: loading ? 'rgba(163, 0, 33, 0.45)' : 'var(--color-brand-red)',
                                                     color: '#fff',
                                                     border: 'none',
@@ -2512,7 +2614,9 @@ export default function PunctumGame() {
                                                     textTransform: 'uppercase',
                                                     transition: 'all 0.3s',
                                                     boxShadow: '0 0 20px rgba(163, 0, 33, 0.35)',
-                                                    opacity: loading ? 0.6 : 1
+                                                    opacity: loading ? 0.6 : 1,
+                                                    width: isMobileViewport ? '100%' : 'auto',
+                                                    maxWidth: isMobileViewport ? '420px' : 'none'
                                                 }}
                                                 onMouseOver={(e) => { if (!loading) e.target.style.background = '#c1002f'; }}
                                                 onMouseOut={(e) => { if (!loading) e.target.style.background = 'var(--color-brand-red)'; }}
@@ -2540,14 +2644,17 @@ export default function PunctumGame() {
                                 exit="exit"
                                 style={{
                                     width: '100%',
-                                    height: '100vh',
+                                    minHeight: useStackedExperimentLayout ? 'auto' : '100vh',
+                                    height: useStackedExperimentLayout ? 'auto' : '100vh',
                                     display: 'flex',
                                     flexDirection: 'column',
                                     alignItems: 'center',
-                                    justifyContent: 'space-between',
-                                    padding: '4vh 20px 4vh',
+                                    justifyContent: useStackedExperimentLayout ? 'flex-start' : 'space-between',
+                                    padding: useStackedExperimentLayout
+                                        ? `0 ${compactStagePadding} ${isMobileViewport ? 28 : 40}px`
+                                        : '4vh 20px 4vh',
                                     boxSizing: 'border-box',
-                                    overflow: 'hidden'
+                                    overflow: useStackedExperimentLayout ? 'visible' : 'hidden'
                                 }}
                             >
                                 {/* Removed Top Right Controls (Restart + Nav) - Moved to Persistent Left Side */}
@@ -2751,7 +2858,16 @@ export default function PunctumGame() {
                                             <motion.div
                                                 initial={{ opacity: 0, scale: 0.95 }}
                                                 animate={{ opacity: 1, scale: 1 }}
-                                                style={{ textAlign: 'center', maxWidth: '900px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '24px' }}
+                                                style={{
+                                                    textAlign: 'center',
+                                                    width: '100%',
+                                                    maxWidth: getExperimentStageWidth(900),
+                                                    flex: useStackedExperimentLayout ? '0 0 auto' : 1,
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    justifyContent: 'center',
+                                                    gap: isMobileViewport ? '20px' : '24px'
+                                                }}
                                             >
                                                 {aiViewMode === 'visual' ? (
                                                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '18px' }}>
@@ -2765,7 +2881,7 @@ export default function PunctumGame() {
                                                                     onClick={() => setAiVisualRevealed(true)}
                                                                     className="hover-btn"
                                                                     style={{
-                                                                        padding: '14px 34px',
+                                                                        padding: isMobileViewport ? '14px 20px' : '14px 34px',
                                                                         background: 'rgba(255,255,255,0.08)',
                                                                         color: '#fff',
                                                                         border: '1px solid rgba(255,255,255,0.2)',
@@ -2773,7 +2889,9 @@ export default function PunctumGame() {
                                                                         fontWeight: 600,
                                                                         fontSize: '12px',
                                                                         letterSpacing: '0.12em',
-                                                                        cursor: 'pointer'
+                                                                        cursor: 'pointer',
+                                                                        width: isMobileViewport ? '100%' : 'auto',
+                                                                        maxWidth: isMobileViewport ? '420px' : 'none'
                                                                     }}
                                                                 >
                                                                     CLICK TO REVIEW WHAT AI SAW
@@ -2782,7 +2900,7 @@ export default function PunctumGame() {
                                                         ) : (
                                                             <>
                                                                 <div style={{
-                                                                    fontSize: '28px',
+                                                                    fontSize: isMobileViewport ? '20px' : (isTabletViewport ? '24px' : '28px'),
                                                                     color: '#fff',
                                                                     lineHeight: '1.5',
                                                                     fontFamily: 'var(--font-ui)',
@@ -2805,7 +2923,7 @@ export default function PunctumGame() {
                                                                     onClick={() => setAiViewMode('feeling')}
                                                                     className="hover-btn"
                                                                     style={{
-                                                                        padding: '14px 38px',
+                                                                        padding: isMobileViewport ? '14px 20px' : '14px 38px',
                                                                         background: 'var(--color-brand-red)',
                                                                         color: '#fff',
                                                                         border: 'none',
@@ -2814,7 +2932,9 @@ export default function PunctumGame() {
                                                                         fontSize: '12px',
                                                                         letterSpacing: '0.12em',
                                                                         cursor: 'pointer',
-                                                                        boxShadow: '0 0 20px rgba(163, 0, 33, 0.35)'
+                                                                        boxShadow: '0 0 20px rgba(163, 0, 33, 0.35)',
+                                                                        width: isMobileViewport ? '100%' : 'auto',
+                                                                        maxWidth: isMobileViewport ? '420px' : 'none'
                                                                     }}
                                                                 >
                                                                     WHAT AI FELT
@@ -2828,7 +2948,7 @@ export default function PunctumGame() {
                                                             What AI felt
                                                         </div>
                                                         <div style={{
-                                                            fontSize: '34px', fontWeight: 300, color: '#fff',
+                                                            fontSize: isMobileViewport ? '24px' : (isTabletViewport ? '28px' : '34px'), fontWeight: 300, color: '#fff',
                                                             marginBottom: '18px', fontFamily: 'var(--font-body)', fontStyle: 'italic'
                                                         }}>
                                                             "{aiReport?.ai_feeling_description || aiReport?.ai_feeling || "Analyzing..."}"
@@ -2839,8 +2959,8 @@ export default function PunctumGame() {
                                                                 : aiReport?.ai_keywords || []
                                                             ).slice(0, 3).map((kw, i) => (
                                                                 <span key={i} style={{
-                                                                    fontSize: '20px', fontFamily: 'var(--font-mono)', color: '#00f3ff',
-                                                                    padding: '20px 30px', background: 'rgba(0, 243, 255, 0.12)',
+                                                                    fontSize: isMobileViewport ? '15px' : '20px', fontFamily: 'var(--font-mono)', color: '#00f3ff',
+                                                                    padding: isMobileViewport ? '14px 18px' : '20px 30px', background: 'rgba(0, 243, 255, 0.12)',
                                                                     border: '1px solid rgba(0, 243, 255, 0.35)', borderRadius: '999px'
                                                                 }}>
                                                                     {kw}
@@ -2853,11 +2973,13 @@ export default function PunctumGame() {
                                                                 onClick={analyzeHumans}
                                                                 className="hover-btn"
                                                                 style={{
-                                                                    padding: '16px 48px',
+                                                                    padding: isMobileViewport ? '15px 24px' : '16px 48px',
                                                                     background: 'var(--color-brand-red)', color: '#fff',
                                                                     border: 'none', borderRadius: '100px',
                                                                     fontWeight: 600, fontSize: '13px', letterSpacing: '0.1em',
-                                                                    cursor: 'pointer', boxShadow: '0 0 20px rgba(163, 0, 33, 0.35)'
+                                                                    cursor: 'pointer', boxShadow: '0 0 20px rgba(163, 0, 33, 0.35)',
+                                                                    width: isMobileViewport ? '100%' : 'auto',
+                                                                    maxWidth: isMobileViewport ? '420px' : 'none'
                                                                 }}
                                                             >
                                                                 COMPARE HUMAN/AI
@@ -2871,21 +2993,27 @@ export default function PunctumGame() {
                                         {/* STAGE 2 & 3: COMPARATIVE VIEW (Side-by-Side, EMOTION ONLY) */}
                                         {(step === 'analysis-human' || step === 'analysis-synthesis') && (
                                             <div style={{
-                                                display: 'grid', gridTemplateColumns: '1fr 1px 1fr', gap: '40px', width: '100%', maxWidth: '1000px',
-                                                flex: 1, alignItems: 'center', padding: '0 20px'
+                                                display: 'grid',
+                                                gridTemplateColumns: isMobileViewport ? '1fr' : '1fr 1px 1fr',
+                                                gap: isMobileViewport ? '24px' : '40px',
+                                                width: '100%',
+                                                maxWidth: getExperimentStageWidth(1000),
+                                                flex: useStackedExperimentLayout ? '0 0 auto' : 1,
+                                                alignItems: 'center',
+                                                padding: isMobileViewport ? '0' : '0 20px'
                                             }}>
                                                 {/* AI SIDE (Left) - STRICTLY EMOTION ONLY */}
                                                 <motion.div
                                                     initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
-                                                    style={{ textAlign: 'center', paddingRight: '20px', borderRight: 'none' }}
+                                                    style={{ textAlign: 'center', paddingRight: isMobileViewport ? 0 : '20px', borderRight: 'none' }}
                                                 >
-                                                    <div style={{ fontSize: '11px', color: '#00f3ff', letterSpacing: '0.2em', marginBottom: '24px', fontFamily: 'var(--font-mono)' }}>MACHINE FEELING</div>
+                                                    <div style={{ fontSize: '11px', color: '#00f3ff', letterSpacing: '0.2em', marginBottom: isMobileViewport ? '16px' : '24px', fontFamily: 'var(--font-mono)' }}>MACHINE FEELING</div>
 
                                                     {/* Primary Emotion (Large) - NOW USING KEYWORDS */}
                                                     <div style={{
-                                                        fontSize: '32px', lineHeight: '1.2', color: '#fff', marginBottom: '24px',
+                                                        fontSize: isMobileViewport ? '24px' : '32px', lineHeight: '1.2', color: '#fff', marginBottom: isMobileViewport ? '16px' : '24px',
                                                         fontFamily: 'var(--font-mono)', textTransform: 'uppercase',
-                                                        display: 'flex', flexDirection: 'column', gap: '8px'
+                                                        display: 'flex', flexDirection: 'column', gap: isMobileViewport ? '6px' : '8px'
                                                     }}>
                                                         {aiReport?.ai_feeling_keywords && Array.isArray(aiReport.ai_feeling_keywords) ? (
                                                             aiReport.ai_feeling_keywords.slice(0, 3).map((k, i) => (
@@ -2912,20 +3040,25 @@ export default function PunctumGame() {
                                                 </motion.div>
 
                                                 {/* Divider Line (Grid Column 2) */}
-                                                <div style={{ height: '70%', width: '1px', margin: '0 auto', background: 'rgba(255,255,255,0.2)' }} />
+                                                <div style={{
+                                                    height: isMobileViewport ? '1px' : '70%',
+                                                    width: isMobileViewport ? '100%' : '1px',
+                                                    margin: '0 auto',
+                                                    background: 'rgba(255,255,255,0.2)'
+                                                }} />
 
                                                 {/* HUMAN SIDE (Right) - STRICTLY EMOTION ONLY */}
                                                 <motion.div
                                                     initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
-                                                    style={{ textAlign: 'center', paddingLeft: '20px', borderLeft: 'none' }}
+                                                    style={{ textAlign: 'center', paddingLeft: isMobileViewport ? 0 : '20px', borderLeft: 'none' }}
                                                 >
-                                                    <div style={{ fontSize: '11px', color: '#ff0055', letterSpacing: '0.2em', marginBottom: '24px', fontFamily: 'var(--font-mono)' }}>HUMAN FEELING</div>
+                                                    <div style={{ fontSize: '11px', color: '#ff0055', letterSpacing: '0.2em', marginBottom: isMobileViewport ? '16px' : '24px', fontFamily: 'var(--font-mono)' }}>HUMAN FEELING</div>
 
                                                     {/* Primary Emotion (Large) - NOW USING KEYWORDS */}
                                                     <div style={{
-                                                        fontSize: '32px', lineHeight: '1.2', color: '#fff', marginBottom: '24px',
+                                                        fontSize: isMobileViewport ? '24px' : '32px', lineHeight: '1.2', color: '#fff', marginBottom: isMobileViewport ? '16px' : '24px',
                                                         fontFamily: 'var(--font-mono)', textTransform: 'uppercase',
-                                                        display: 'flex', flexDirection: 'column', gap: '8px'
+                                                        display: 'flex', flexDirection: 'column', gap: isMobileViewport ? '6px' : '8px'
                                                     }}>
                                                         {keywords && keywords.length > 0 ? (
                                                             keywords.slice(0, 3).map((k, i) => (
@@ -2959,7 +3092,7 @@ export default function PunctumGame() {
                                                     onClick={synthesize}
                                                     className="hover-btn"
                                                     style={{
-                                                        padding: '16px 48px',
+                                                        padding: isMobileViewport ? '15px 24px' : '16px 48px',
                                                         background: 'var(--color-brand-red)',
                                                         color: '#fff',
                                                         border: 'none',
@@ -2968,7 +3101,9 @@ export default function PunctumGame() {
                                                         fontSize: '13px',
                                                         letterSpacing: '0.1em',
                                                         cursor: 'pointer',
-                                                        boxShadow: '0 0 20px rgba(163, 0, 33, 0.35)'
+                                                        boxShadow: '0 0 20px rgba(163, 0, 33, 0.35)',
+                                                        width: isMobileViewport ? '100%' : 'auto',
+                                                        maxWidth: isMobileViewport ? '420px' : 'none'
                                                     }}
                                                 >
                                                     ANALYZE CONSENSUS
@@ -2982,15 +3117,15 @@ export default function PunctumGame() {
                                                 initial={{ opacity: 0 }}
                                                 animate={{ opacity: 1 }}
                                                 style={{
-                                                    width: '100%', height: '100%',
+                                                    width: '100%', height: useStackedExperimentLayout ? 'auto' : '100%',
                                                     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                                                    padding: '20px'
+                                                    padding: isMobileViewport ? '8px 0 0' : '20px'
                                                 }}
                                             >
                                                 <div style={{ fontSize: '12px', color: '#888', letterSpacing: '0.2em', marginBottom: '20px', fontFamily: 'var(--font-mono)' }}>SEMANTIC CONSENSUS</div>
 
                                                 <div style={{
-                                                    fontSize: '120px', fontWeight: 800, lineHeight: 1,
+                                                    fontSize: isMobileViewport ? '72px' : (isTabletViewport ? '96px' : '120px'), fontWeight: 800, lineHeight: 1,
                                                     color: consensusData?.consensus_percentage > 50 ? '#00ff66' : '#ff4444',
                                                     textShadow: '0 0 50px rgba(0,0,0,0.5)', fontFamily: 'var(--font-mono)'
                                                 }}>
@@ -2999,7 +3134,7 @@ export default function PunctumGame() {
 
                                                 {/* Context Explanation */}
                                                 <div style={{
-                                                    fontSize: '18px', maxWidth: '600px', textAlign: 'center',
+                                                    fontSize: isMobileViewport ? '15px' : '18px', maxWidth: isMobileViewport ? '100%' : '600px', textAlign: 'center',
                                                     color: '#fff', fontFamily: 'var(--font-mono)',
                                                     margin: '30px 0', lineHeight: '1.6'
                                                 }}>
@@ -3010,9 +3145,11 @@ export default function PunctumGame() {
                                                     onClick={() => window.location.reload()}
                                                     className="hover-btn"
                                                     style={{
-                                                        marginTop: '20px', padding: '16px 48px',
+                                                        marginTop: '20px', padding: isMobileViewport ? '15px 24px' : '16px 48px',
                                                         background: '#fff', color: '#000', borderRadius: '100px',
-                                                        fontSize: '14px', fontWeight: 600, letterSpacing: '0.1em', cursor: 'pointer'
+                                                        fontSize: '14px', fontWeight: 600, letterSpacing: '0.1em', cursor: 'pointer',
+                                                        width: isMobileViewport ? '100%' : 'auto',
+                                                        maxWidth: isMobileViewport ? '420px' : 'none'
                                                     }}
                                                 >
                                                     START NEW EXPERIMENT
@@ -3051,6 +3188,9 @@ export default function PunctumGame() {
                                 )}
                             </motion.div>
                         )}
+                </AnimatePresence>
+                <AnimatePresence>
+                    {showStatusPanels && useStackedExperimentLayout && renderStatusPanel('inline')}
                 </AnimatePresence>
             </div>
         </div>

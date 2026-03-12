@@ -1,14 +1,129 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 
-const ExperienceModule = ({ src, captions = [], autoStart = false }) => {
+const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+const DEFAULT_PLAYBACK_VOLUME = 1;
+const MIN_PLAYBACK_VOLUME = 0.12;
+
+const parseAnchorToPixels = (anchor, viewport, fallbackRatio) => {
+    if (typeof anchor === 'number' && Number.isFinite(anchor)) {
+        return anchor;
+    }
+
+    if (typeof anchor === 'string') {
+        const trimmed = anchor.trim();
+        if (trimmed.endsWith('%')) {
+            const pct = Number(trimmed.slice(0, -1));
+            if (Number.isFinite(pct)) return (pct / 100) * viewport;
+        }
+        if (trimmed.endsWith('px')) {
+            const px = Number(trimmed.slice(0, -2));
+            if (Number.isFinite(px)) return px;
+        }
+        const raw = Number(trimmed);
+        if (Number.isFinite(raw)) return raw;
+    }
+
+    return viewport * fallbackRatio;
+};
+
+const rectsOverlap = (a, b) => (
+    a.left < b.right &&
+    a.right > b.left &&
+    a.top < b.bottom &&
+    a.bottom > b.top
+);
+
+const buildAnchoredPlacement = ({
+    x,
+    y,
+    width,
+    height,
+    viewportWidth,
+    viewportHeight,
+    anchorX = 'left',
+    anchorY = 'center',
+    textAlign = 'left',
+}) => {
+    const minX = anchorX === 'center'
+        ? (width / 2) + 24
+        : anchorX === 'right'
+            ? width + 24
+            : 24;
+    const maxX = anchorX === 'center'
+        ? viewportWidth - (width / 2) - 24
+        : anchorX === 'right'
+            ? viewportWidth - 24
+            : viewportWidth - width - 24;
+    const clampedX = clamp(x, minX, maxX);
+
+    const minY = anchorY === 'center'
+        ? (height / 2) + 132
+        : 136;
+    const maxY = anchorY === 'center'
+        ? viewportHeight - (height / 2) - 36
+        : viewportHeight - height - 36;
+    const clampedY = clamp(y, minY, maxY);
+
+    const left = anchorX === 'center'
+        ? clampedX - (width / 2)
+        : anchorX === 'right'
+            ? clampedX - width
+            : clampedX;
+    const top = anchorY === 'center'
+        ? clampedY - (height / 2)
+        : clampedY;
+
+    const transformX = anchorX === 'center'
+        ? '-50%'
+        : anchorX === 'right'
+            ? '-100%'
+            : '0';
+    const transformY = anchorY === 'center' ? '-50%' : '0';
+
+    return {
+        rect: {
+            left,
+            right: left + width,
+            top,
+            bottom: top + height,
+        },
+        style: {
+            left: `${anchorX === 'center' ? clampedX : anchorX === 'right' ? clampedX : left}px`,
+            top: `${anchorY === 'center' ? clampedY : top}px`,
+            transform: `translate(${transformX}, ${transformY})`,
+            textAlign,
+            width: `${width}px`,
+            maxWidth: `${width}px`,
+        },
+    };
+};
+
+const ExperienceModule = ({
+    src,
+    captions = [],
+    autoStart = false,
+    onPlaybackChange,
+    layout = 'default',
+    stackAnchorX = '50%',
+    stackAnchorY = '53%',
+    stackCardWidth = 559,
+    controlPanelOpen = false,
+    controlPanelMetrics = null,
+    visible = true,
+    showVisualizer = true,
+    showLyrics = true,
+}) => {
     const [isPlaying, setIsPlaying] = useState(false);
     const [isStarted, setIsStarted] = useState(false);
     const [activeIndex, setActiveIndex] = useState(-1);
-
-    // Lyric Position State: 'top', 'left', 'right'
-    const [lyricPosition, setLyricPosition] = useState('top');
-    const [lyricStyle, setLyricStyle] = useState({}); // Fixed ReferenceError
+    const [lyricStyle, setLyricStyle] = useState({});
+    const [scrollOpacity, setScrollOpacity] = useState(1);
+    const [isMounted, setIsMounted] = useState(false);
+    const [viewportSize, setViewportSize] = useState(() => ({
+        width: typeof window === 'undefined' ? 1440 : window.innerWidth,
+        height: typeof window === 'undefined' ? 900 : window.innerHeight,
+    }));
 
     const audioRef = useRef(null);
     const audioContextRef = useRef(null);
@@ -18,141 +133,280 @@ const ExperienceModule = ({ src, captions = [], autoStart = false }) => {
     const canvasRef = useRef(null);
     const animationFrameRef = useRef(null);
     const isPlayingRef = useRef(false);
-    const [scrollOpacity, setScrollOpacity] = useState(1);
-    const [isMounted, setIsMounted] = useState(false);
+    const isStartedRef = useRef(false);
+    const currentVolumeRef = useRef(DEFAULT_PLAYBACK_VOLUME);
+    const targetVolumeRef = useRef(DEFAULT_PLAYBACK_VOLUME);
+    const mousePos = useRef({ x: -1, y: -1 });
 
-    // Audio Ducking Refs
-    const currentVolumeRef = useRef(0.5);
-    const targetVolumeRef = useRef(0.5);
+    const isStackLayout = layout === 'stack-left';
+    const visualOpacity = isStackLayout ? (visible ? 1 : 0) : scrollOpacity;
+
+    const stackLayoutMetrics = useMemo(() => {
+        if (!isStackLayout) return null;
+
+        const viewportWidth = viewportSize.width;
+        const viewportHeight = viewportSize.height;
+        const stackCenterX = parseAnchorToPixels(stackAnchorX, viewportWidth, 0.5);
+        const stackCenterY = parseAnchorToPixels(stackAnchorY, viewportHeight, 0.53);
+        const stackCardHeight = Math.round((stackCardWidth * 9) / 16);
+        const captionWidth = clamp(Math.round(viewportWidth * 0.24), 250, 360);
+        const captionHeight = 118;
+        const spectrumWidth = clamp(Math.round(stackCardWidth * 0.44), 220, 300);
+
+        const stackRect = {
+            left: stackCenterX - (stackCardWidth / 2) - 56,
+            right: stackCenterX + (stackCardWidth / 2) + 56,
+            top: stackCenterY - (stackCardHeight / 2) - 52,
+            bottom: stackCenterY + (stackCardHeight / 2) + 60,
+        };
+
+        const controlsTop = clamp(
+            Math.round(stackRect.bottom + 36),
+            Math.round(stackRect.bottom + 28),
+            viewportHeight - 168,
+        );
+        const controlsWidth = clamp(Math.round(stackCardWidth * 0.56), 270, 360);
+        const controlsHeight = 132;
+        const controlsRect = {
+            left: stackCenterX - (controlsWidth / 2),
+            right: stackCenterX + (controlsWidth / 2),
+            top: controlsTop,
+            bottom: controlsTop + controlsHeight,
+        };
+
+        const panelRect = controlPanelOpen && controlPanelMetrics
+            ? {
+                left: Math.max(0, controlPanelMetrics.left - 18),
+                right: viewportWidth - 12,
+                top: Math.max(136, controlPanelMetrics.top - 18),
+                bottom: viewportHeight - 32,
+            }
+            : null;
+
+        const safeRightAnchor = panelRect
+            ? panelRect.left - 28
+            : viewportWidth - 28;
+        const leftAnchor = 28;
+        const candidatePlacements = [
+            buildAnchoredPlacement({
+                x: leftAnchor,
+                y: Math.max(166, stackRect.top - 18),
+                width: captionWidth,
+                height: captionHeight,
+                viewportWidth,
+                viewportHeight,
+                anchorX: 'left',
+                anchorY: 'top',
+                textAlign: 'left',
+            }),
+            buildAnchoredPlacement({
+                x: leftAnchor,
+                y: stackCenterY - 36,
+                width: captionWidth,
+                height: captionHeight,
+                viewportWidth,
+                viewportHeight,
+                anchorX: 'left',
+                anchorY: 'center',
+                textAlign: 'left',
+            }),
+            buildAnchoredPlacement({
+                x: leftAnchor + 22,
+                y: Math.min(viewportHeight - 212, controlsTop - 34),
+                width: captionWidth,
+                height: captionHeight,
+                viewportWidth,
+                viewportHeight,
+                anchorX: 'left',
+                anchorY: 'top',
+                textAlign: 'left',
+            }),
+            buildAnchoredPlacement({
+                x: stackCenterX,
+                y: 150,
+                width: captionWidth,
+                height: captionHeight,
+                viewportWidth,
+                viewportHeight,
+                anchorX: 'center',
+                anchorY: 'top',
+                textAlign: 'center',
+            }),
+            buildAnchoredPlacement({
+                x: safeRightAnchor,
+                y: Math.max(172, stackRect.top + 12),
+                width: captionWidth,
+                height: captionHeight,
+                viewportWidth,
+                viewportHeight,
+                anchorX: 'right',
+                anchorY: 'top',
+                textAlign: 'right',
+            }),
+            buildAnchoredPlacement({
+                x: safeRightAnchor,
+                y: stackCenterY - 18,
+                width: captionWidth,
+                height: captionHeight,
+                viewportWidth,
+                viewportHeight,
+                anchorX: 'right',
+                anchorY: 'center',
+                textAlign: 'right',
+            }),
+            buildAnchoredPlacement({
+                x: safeRightAnchor,
+                y: Math.min(viewportHeight - 214, controlsTop - 28),
+                width: captionWidth,
+                height: captionHeight,
+                viewportWidth,
+                viewportHeight,
+                anchorX: 'right',
+                anchorY: 'top',
+                textAlign: 'right',
+            }),
+            buildAnchoredPlacement({
+                x: viewportWidth * 0.2,
+                y: viewportHeight * 0.72,
+                width: captionWidth,
+                height: captionHeight,
+                viewportWidth,
+                viewportHeight,
+                anchorX: 'left',
+                anchorY: 'center',
+                textAlign: 'left',
+            }),
+        ];
+
+        const captionPlacements = candidatePlacements
+            .filter(({ rect }) => {
+                if (rectsOverlap(rect, stackRect)) return false;
+                if (rectsOverlap(rect, controlsRect)) return false;
+                if (panelRect && rectsOverlap(rect, panelRect)) return false;
+                return true;
+            })
+            .map((placement) => placement.style);
+
+        const fallbackPlacement = buildAnchoredPlacement({
+            x: stackCenterX,
+            y: 152,
+            width: captionWidth,
+            height: captionHeight,
+            viewportWidth,
+            viewportHeight,
+            anchorX: 'center',
+            anchorY: 'top',
+            textAlign: 'center',
+        }).style;
+
+        return {
+            captionPlacements: captionPlacements.length > 0 ? captionPlacements : [fallbackPlacement],
+            controlsStyle: {
+                left: `${stackCenterX}px`,
+                top: `${controlsTop}px`,
+                transform: 'translate(-50%, 0)',
+            },
+            controlsCanvasWidth: spectrumWidth,
+        };
+    }, [
+        controlPanelMetrics,
+        controlPanelOpen,
+        isStackLayout,
+        stackAnchorX,
+        stackAnchorY,
+        stackCardWidth,
+        viewportSize,
+    ]);
 
     useEffect(() => {
         setIsMounted(true);
-        if (autoStart) {
-            handleStart();
-        }
-    }, [autoStart]);
+    }, []);
+
+
+    useEffect(() => {
+        if (typeof window === 'undefined') return undefined;
+
+        const updateViewport = () => {
+            setViewportSize({
+                width: window.innerWidth,
+                height: window.innerHeight,
+            });
+        };
+
+        updateViewport();
+        window.addEventListener('resize', updateViewport);
+        return () => window.removeEventListener('resize', updateViewport);
+    }, []);
 
     useEffect(() => {
         isPlayingRef.current = isPlaying;
     }, [isPlaying]);
 
-    // Scroll Fade Logic & Audio Ducking Logic
     useEffect(() => {
+        isStartedRef.current = isStarted;
+    }, [isStarted]);
+
+    useEffect(() => {
+        onPlaybackChange?.(isPlaying);
+    }, [isPlaying, onPlaybackChange]);
+
+    useEffect(() => {
+        if (typeof window === 'undefined') return undefined;
+
         let rafId;
-        const FADE_SPEED = 0.1; // Smooth volume transition
+        const fadeSpeed = 0.1;
 
         const handleScrollAndVolume = () => {
             const y = window.scrollY;
             const windowHeight = window.innerHeight;
 
-            // 1. Visual Opacity (Fade out visual module)
-            const opacity = Math.max(0, 1 - (y / 600));
-            setScrollOpacity(opacity);
+            setScrollOpacity(Math.max(0, 1 - (y / 600)));
 
-            // 2. Audio Ducking Logic
-            const zone1End = windowHeight * 0.9;   // Photos area
-            const zone2End = windowHeight * 1.5;   // Bio area
-
-            let scrollBasedVolume = 1.0;
+            const zone1End = windowHeight * 0.9;
+            const zone2End = windowHeight * 1.5;
+            let scrollBasedVolume = DEFAULT_PLAYBACK_VOLUME;
 
             if (y < zone1End) {
-                scrollBasedVolume = 1.0;
+                scrollBasedVolume = DEFAULT_PLAYBACK_VOLUME;
             } else if (y < zone2End) {
-                // Fade to 40%
-                const progress = (y - zone1End) / (zone2End - zone1End);
-                scrollBasedVolume = 1.0 - (progress * 0.6);
+                const progress = (y - zone1End) / Math.max(zone2End - zone1End, 1);
+                scrollBasedVolume = DEFAULT_PLAYBACK_VOLUME - (progress * 0.46);
             } else {
-                // Fade to 2%
-                const fadeStart = zone2End;
                 const fadeDistance = windowHeight * 0.5;
-                const progress = Math.min((y - fadeStart) / fadeDistance, 1);
-                scrollBasedVolume = 0.4 - (progress * 0.38);
+                const progress = Math.min((y - zone2End) / Math.max(fadeDistance, 1), 1);
+                scrollBasedVolume = 0.4 - (progress * 0.28);
             }
 
-            // Check Showreel
             const showreelVideo = document.getElementById('showreel-video');
             const isShowreelPlaying = showreelVideo && !showreelVideo.paused && !showreelVideo.muted;
+            targetVolumeRef.current = isShowreelPlaying
+                ? 0
+                : clamp(scrollBasedVolume, MIN_PLAYBACK_VOLUME, DEFAULT_PLAYBACK_VOLUME);
 
-            targetVolumeRef.current = isShowreelPlaying ? 0 : scrollBasedVolume;
-
-            // Apply Volume
-            if (gainNodeRef.current && isPlayingRef.current) {
+            if (gainNodeRef.current && isPlayingRef.current && audioContextRef.current) {
                 const diff = targetVolumeRef.current - currentVolumeRef.current;
                 if (Math.abs(diff) > 0.001) {
-                    currentVolumeRef.current += diff * FADE_SPEED;
-                    gainNodeRef.current.gain.setTargetAtTime(currentVolumeRef.current, audioContextRef.current.currentTime, 0.1);
+                    currentVolumeRef.current += diff * fadeSpeed;
+                    gainNodeRef.current.gain.setTargetAtTime(
+                        currentVolumeRef.current,
+                        audioContextRef.current.currentTime,
+                        0.1,
+                    );
                 }
             }
 
-            rafId = requestAnimationFrame(handleScrollAndVolume);
+            rafId = window.requestAnimationFrame(handleScrollAndVolume);
         };
 
-        // Start loop
-        rafId = requestAnimationFrame(handleScrollAndVolume);
+        rafId = window.requestAnimationFrame(handleScrollAndVolume);
 
         return () => {
-            if (rafId) cancelAnimationFrame(rafId);
+            if (rafId) window.cancelAnimationFrame(rafId);
         };
-    }, [isStarted]); // Re-bind if started/stopped? Actually safer to run always or when isStarted
+    }, []);
 
-    // Initialize Audio and Web Audio API
     useEffect(() => {
-        if (!src) return;
-
-        const audio = new Audio(src);
-        audio.crossOrigin = "anonymous";
-        audio.loop = true;
-        audio.volume = 1.0; // We control actual volume via GainNode
-        audioRef.current = audio;
-
-        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-        const audioContext = new AudioContextClass();
-        audioContextRef.current = audioContext;
-
-        const analyzer = audioContext.createAnalyser();
-        analyzer.fftSize = 256;
-        analyzer.smoothingTimeConstant = 0.92; // Less sensitive
-        analyzerRef.current = analyzer;
-
-        const source = audioContext.createMediaElementSource(audio);
-        sourceRef.current = source;
-
-        const gainNode = audioContext.createGain();
-        gainNode.gain.setValueAtTime(0, audioContext.currentTime); // Start at 0 for fade in
-        gainNodeRef.current = gainNode;
-
-        source.connect(analyzer);
-        analyzer.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-
-        window.landingAudio = audio;
-        window.landingAudioGain = gainNode;
-        window.triggerAudio = () => {
-            if (!isPlayingRef.current) {
-                handleStart();
-            }
-        };
-
-        return () => {
-            delete window.triggerAudio;
-            delete window.landingAudio;
-            delete window.landingAudioGain;
-            if (audioRef.current) {
-                audioRef.current.pause();
-                audioRef.current = null;
-            }
-            if (audioContextRef.current) {
-                audioContextRef.current.close();
-            }
-            if (animationFrameRef.current) {
-                cancelAnimationFrame(animationFrameRef.current);
-            }
-        };
-    }, [src]);
-
-    // Spectrum Drawing Logic
-    useEffect(() => {
-        if (!isStarted || !analyzerRef.current) return;
+        if (!isStarted || !analyzerRef.current) return undefined;
 
         const bufferLength = analyzerRef.current.frequencyBinCount;
         const dataArray = new Uint8Array(bufferLength);
@@ -162,6 +416,7 @@ const ExperienceModule = ({ src, captions = [], autoStart = false }) => {
                 animationFrameRef.current = requestAnimationFrame(draw);
                 return;
             }
+
             const canvas = canvasRef.current;
             const ctx = canvas.getContext('2d');
             if (!ctx) {
@@ -171,42 +426,41 @@ const ExperienceModule = ({ src, captions = [], autoStart = false }) => {
 
             animationFrameRef.current = requestAnimationFrame(draw);
             analyzerRef.current.getByteFrequencyData(dataArray);
-
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // Subtle Baseline - Removed for cleaner look or kept minimal?
-            // Keeping it very subtle
             ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
             ctx.fillRect(0, canvas.height - 1, canvas.width, 1);
 
-            // Mirrored Spectrum Refined
             const numBins = 16;
-            const gap = 1; // Tighter gap (was 4)
+            const gap = 1;
             const availableWidth = canvas.width / 2;
-            const barWidth = (availableWidth / numBins) - gap; // Ensure exact fit
+            const barWidth = (availableWidth / numBins) - gap;
             const centerX = canvas.width / 2;
-
-            // Theme Detection
             const isLightMode = document.documentElement.getAttribute('data-theme') === 'light';
             const barColor = isLightMode ? '#2a2a2a' : '#FFFFFF';
 
-            for (let i = 0; i < numBins; i++) {
-                const val = dataArray[i];
-                const intensity = (val / 255);
+            for (let i = 0; i < numBins; i += 1) {
+                const intensity = dataArray[i] / 255;
+                const damping = 1 - ((i / numBins) * 0.5);
+                const barHeight = Math.min(
+                    canvas.height * 0.8,
+                    Math.pow(intensity, 1) * canvas.height * 0.9 * damping,
+                );
 
-                // Damping for high frequencies (Treble)
-                // As 'i' increases, we reduce the multiplier slightly
-                const damping = 1 - (i / numBins) * 0.5; // Up to 50% reduction at highest bin
+                if (barHeight <= 0) continue;
 
-                // Linear height (power of 1.0) and capped at 0.8 height
-                const barHeight = Math.min(canvas.height * 0.8, Math.pow(intensity, 1.0) * canvas.height * 0.9 * damping);
-
-                if (barHeight > 0) {
-                    ctx.fillStyle = barColor;
-                    // Sharp edges (fillRect default)
-                    ctx.fillRect(centerX + (i * (barWidth + gap)) + gap / 2, canvas.height - barHeight, barWidth, barHeight);
-                    ctx.fillRect(centerX - ((i + 1) * (barWidth + gap)) + gap / 2, canvas.height - barHeight, barWidth, barHeight);
-                }
+                ctx.fillStyle = barColor;
+                ctx.fillRect(
+                    centerX + (i * (barWidth + gap)) + (gap / 2),
+                    canvas.height - barHeight,
+                    barWidth,
+                    barHeight,
+                );
+                ctx.fillRect(
+                    centerX - ((i + 1) * (barWidth + gap)) + (gap / 2),
+                    canvas.height - barHeight,
+                    barWidth,
+                    barHeight,
+                );
             }
         };
 
@@ -214,257 +468,144 @@ const ExperienceModule = ({ src, captions = [], autoStart = false }) => {
         return () => cancelAnimationFrame(animationFrameRef.current);
     }, [isStarted]);
 
-    // Mouse Position Tracking
-    const mousePos = useRef({ x: -1, y: -1 });
-
     useEffect(() => {
-        const handleMouseMove = (e) => {
-            mousePos.current = { x: e.clientX, y: e.clientY };
+        if (typeof window === 'undefined') return undefined;
+
+        const handleMouseMove = (event) => {
+            mousePos.current = { x: event.clientX, y: event.clientY };
         };
+
         window.addEventListener('mousemove', handleMouseMove);
         return () => window.removeEventListener('mousemove', handleMouseMove);
     }, []);
 
-    // Lyric Tracking Logic & Spawning
     useEffect(() => {
-        if (!isStarted || !audioRef.current) return;
+        if (!isStarted || !audioRef.current) return undefined;
 
-        const interval = setInterval(() => {
-            if (audioRef.current && !audioRef.current.paused) {
-                const currentTime = audioRef.current.currentTime;
-                const newIndex = captions.findIndex(
-                    (cap) => currentTime >= cap.start && currentTime < cap.end
-                );
+        const interval = window.setInterval(() => {
+            if (!audioRef.current || audioRef.current.paused) return;
 
-                // Only change position if valid lyric found
-                if (newIndex !== activeIndex) {
-                    setActiveIndex(newIndex);
+            const currentTime = audioRef.current.currentTime;
+            const newIndex = captions.findIndex(
+                (caption) => currentTime >= caption.start && currentTime < caption.end,
+            );
 
-                    if (newIndex !== -1) {
-                        const { x, y } = mousePos.current;
-                        const w = window.innerWidth;
-                        const h = window.innerHeight;
-                        const hasMouse = x !== -1 && y !== -1;
+            if (newIndex === activeIndex) return;
 
-                        // Fallback if no mouse detected yet
-                        let targetX = hasMouse ? x : w / 2;
-                        let targetY = hasMouse ? y : h / 2;
+            setActiveIndex(newIndex);
 
-                        // --- CONTENT AVOIDANCE ZONES ---
-                        // 1. Header Area: Top 150px
-                        const isHeader = targetY < 150;
+            if (newIndex === -1) return;
 
-                        // 2. Card Stack Area: Center ~600x400 (Card is 560x315) + padding
-                        const stackW = 600;
-                        const stackH = 400;
-                        const centerX = w / 2;
-                        const centerY = h / 2;
-
-                        // UNSAFE: Directly over the stack
-                        const isStack =
-                            targetX > centerX - stackW / 2 - 50 &&
-                            targetX < centerX + stackW / 2 + 50 &&
-                            targetY > centerY - stackH / 2 - 50 &&
-                            targetY < centerY + stackH / 2 + 50;
-
-                        // 3. Audio Spectrum/Controls: Bottom Center
-                        const isControls =
-                            targetY > h * 0.8 &&
-                            targetX > centerX - 250 &&
-                            targetX < centerX + 250;
-
-                        const isUnsafe = !hasMouse || isHeader || isStack || isControls;
-
-                        let newStyle = {};
-
-                        if (!isUnsafe) {
-                            // --- REFINED SAFE ZONE LOGIC (STRICT) ---
-                            let textAlign = 'left';
-                            let transformX = '0';
-                            let offsetX = 60;
-
-                            // 1. STACK AVOIDANCE
-                            // Stack is ~600px wide. Treat as 700px for safety.
-                            const safeStackWidth = 700;
-                            const stackLeft = centerX - safeStackWidth / 2;
-                            const stackRight = centerX + safeStackWidth / 2;
-
-                            // Zones: Increased approach range (200px)
-                            const nearStackLeft = targetX < stackLeft && targetX > stackLeft - 200;
-                            const nearStackRight = targetX > stackRight && targetX < stackRight + 200;
-
-                            // 2. RIGHT EDGE AVOIDANCE (Aggressive)
-                            // "Left side of pointer with enough space" -> Shift LEFT by 300px
-                            const farRightStart = w * 0.8; // 20% from right edge
-                            const isFarRight = targetX > farRightStart;
-
-                            if (nearStackLeft) {
-                                // STRICT LEFT FLIP: Force text to LEFT of cursor
-                                // And push it further left (-120px) to clear any rotation
-                                textAlign = 'right';
-                                transformX = '-100%';
-                                offsetX = -120;
-                            } else if (nearStackRight) {
-                                // STRICT RIGHT FLIP
-                                textAlign = 'left';
-                                transformX = '0';
-                                offsetX = 120;
-                            } else if (isFarRight) {
-                                // STRICT RIGHT EDGE: Force text FAR LEFT
-                                // "Almost behind the right-hand side of card stacker"
-                                // Use huge offset
-                                textAlign = 'right';
-                                transformX = '-100%';
-                                offsetX = -300;
-                            } else {
-                                // Standard: Flip at center
-                                if (targetX > w * 0.5) {
-                                    textAlign = 'right';
-                                    transformX = '-100%';
-                                    offsetX = -60;
-                                } else {
-                                    textAlign = 'left';
-                                    transformX = '0';
-                                    offsetX = 60;
-                                }
-                            }
-
-                            // Vertical Logic (Keep simple)
-                            const isBottomHalf = targetY > h * 0.8;
-                            const offsetY = isBottomHalf ? -50 : 40;
-
-                            newStyle = {
-                                top: `${targetY + offsetY}px`,
-                                left: `${targetX + offsetX}px`,
-                                transform: `translate(${transformX}, -50%)`,
-                                textAlign: textAlign
-                            };
-
-                        } else {
-                            // --- UNSAFE ZONE: Snap to Nearest Safe Edge ---
-
-                            let safeX = targetX;
-                            let safeY = targetY;
-                            let anchorX = 'center'; // transform-x
-                            let anchorY = 'center'; // transform-y
-                            let align = 'center';   // text-align
-
-                            if (isHeader) {
-                                safeY = 180;
-                                align = 'center';
-                                anchorX = 'center';
-                                anchorY = 'top';
-                            } else if (isControls) {
-                                safeY = h * 0.8 - 60;
-                                align = 'center';
-                                anchorX = 'center';
-                                anchorY = 'bottom';
-                            } else if (isStack) {
-                                // Find nearest edge of stack
-                                const distLeft = targetX - (centerX - stackW / 2 - 50);
-                                const distRight = (centerX + stackW / 2 + 50) - targetX;
-                                const distTop = targetY - (centerY - stackH / 2 - 50);
-                                const distBottom = (centerY + stackH / 2 + 50) - targetY;
-
-                                const min = Math.min(distLeft, distRight, distTop, distBottom);
-
-                                if (min === distLeft) {
-                                    safeX = centerX - stackW / 2 - 120; // Increased pushout
-                                    align = 'right';
-                                    anchorX = 'right';
-                                } else if (min === distRight) {
-                                    safeX = centerX + stackW / 2 + 120; // Increased pushout
-                                    align = 'left';
-                                    anchorX = 'left';
-                                } else if (min === distTop) {
-                                    safeY = centerY - stackH / 2 - 80;
-                                    align = 'center';
-                                    anchorY = 'bottom';
-                                } else {
-                                    safeY = centerY + stackH / 2 + 80;
-                                    align = 'center';
-                                    anchorY = 'top';
-                                }
-                            }
-
-                            // Map anchors to translate values
-                            const transX = anchorX === 'right' ? '-100%' : anchorX === 'center' ? '-50%' : '0';
-                            const transY = anchorY === 'bottom' ? '-100%' : anchorY === 'center' ? '-50%' : '0';
-
-                            newStyle = {
-                                top: `${safeY}px`,
-                                left: `${safeX}px`,
-                                transform: `translate(${transX}, ${transY})`,
-                                textAlign: align
-                            };
-                        }
-
-                        setLyricStyle(newStyle);
-                    }
-                }
+            if (isStackLayout && stackLayoutMetrics) {
+                const nextPlacement = stackLayoutMetrics.captionPlacements[
+                    newIndex % stackLayoutMetrics.captionPlacements.length
+                ];
+                setLyricStyle(nextPlacement);
+                return;
             }
+
+            const hasMouse = mousePos.current.x >= 0 && mousePos.current.y >= 0;
+            const fallbackWidth = clamp(Math.round(viewportSize.width * 0.22), 240, 340);
+            const fallbackHeight = 110;
+            const fallbackPlacement = buildAnchoredPlacement({
+                x: hasMouse ? mousePos.current.x : viewportSize.width * 0.5,
+                y: hasMouse ? mousePos.current.y - 48 : viewportSize.height * 0.32,
+                width: fallbackWidth,
+                height: fallbackHeight,
+                viewportWidth: viewportSize.width,
+                viewportHeight: viewportSize.height,
+                anchorX: 'center',
+                anchorY: 'center',
+                textAlign: 'center',
+            });
+            setLyricStyle(fallbackPlacement.style);
         }, 100);
 
-        return () => clearInterval(interval);
-    }, [isStarted, captions, activeIndex]);
+        return () => window.clearInterval(interval);
+    }, [activeIndex, captions, isStackLayout, isStarted, stackLayoutMetrics, viewportSize]);
 
+    const setGainValue = useCallback((nextVolume) => {
+        const clampedVolume = clamp(nextVolume, 0, DEFAULT_PLAYBACK_VOLUME);
 
-    const fadeAudio = (targetVolume, duration = 1.0) => {
-        if (!gainNodeRef.current || !audioContextRef.current) return;
+        if (gainNodeRef.current && audioContextRef.current) {
+            gainNodeRef.current.gain.cancelScheduledValues(audioContextRef.current.currentTime);
+            gainNodeRef.current.gain.setValueAtTime(
+                clampedVolume,
+                audioContextRef.current.currentTime,
+            );
+        }
+
+        currentVolumeRef.current = clampedVolume;
+    }, []);
+
+    const fadeAudio = useCallback((targetVolume, duration = 1) => {
+        if (!gainNodeRef.current || !audioContextRef.current) return Promise.resolve();
+
         const gainNode = gainNodeRef.current;
         const currentTime = audioContextRef.current.currentTime;
-
+        const currentVolume = clamp(currentVolumeRef.current, 0, DEFAULT_PLAYBACK_VOLUME);
+        const clampedTarget = clamp(targetVolume, 0, DEFAULT_PLAYBACK_VOLUME);
         gainNode.gain.cancelScheduledValues(currentTime);
-        gainNode.gain.setValueAtTime(gainNode.gain.value, currentTime);
-        gainNode.gain.linearRampToValueAtTime(targetVolume, currentTime + duration);
+        gainNode.gain.setValueAtTime(currentVolume, currentTime);
+        gainNode.gain.linearRampToValueAtTime(clampedTarget, currentTime + duration);
 
-        return new Promise(resolve => setTimeout(resolve, duration * 1000));
-    };
+        return new Promise((resolve) => {
+            window.setTimeout(() => {
+                currentVolumeRef.current = clampedTarget;
+                resolve();
+            }, duration * 1000);
+        });
+    }, []);
 
-    const handleStart = async () => {
+    const handleStart = useCallback(async () => {
         if (!audioRef.current || !audioContextRef.current) return;
 
         if (audioContextRef.current.state === 'suspended') {
             try {
                 await audioContextRef.current.resume();
-            } catch (e) {
-                console.error("Audio Context Resume Failed:", e);
+            } catch (error) {
+                console.error('Audio context resume failed:', error);
             }
         }
 
         try {
             const playPromise = audioRef.current.play();
             if (playPromise !== undefined) {
-                playPromise.then(() => {
-                    setIsStarted(true);
-                    setIsPlaying(true);
-                    fadeAudio(1.0, 1.5).catch(err => console.error("Fade in failed:", err));
-                }).catch(err => {
-                    console.error("Auto-Play Blocked/Failed:", err);
-                });
+                await playPromise;
             }
-        } catch (err) {
-            console.error("Audio failed:", err);
-        }
-    };
 
-    const handlePlaybackToggle = async () => {
+            setIsStarted(true);
+            setIsPlaying(true);
+            setGainValue(0);
+            await fadeAudio(targetVolumeRef.current, 0.9);
+        } catch (error) {
+            console.error('Audio playback failed:', error);
+        }
+    }, [fadeAudio, setGainValue]);
+
+    useEffect(() => {
+        if (autoStart && !isStartedRef.current) {
+            void handleStart();
+        }
+    }, [autoStart, handleStart]);
+
+    const handlePlaybackToggle = useCallback(async () => {
         if (!audioRef.current || !audioContextRef.current) return;
 
-        if (!isStarted) {
+        if (!isStartedRef.current) {
             await handleStart();
             return;
         }
 
-        if (isPlaying) {
+        if (isPlayingRef.current) {
             try {
                 await fadeAudio(0, 0.35);
-            } catch (err) {
-                console.warn("Fade out before pause failed:", err);
+            } catch (error) {
+                console.warn('Fade out before pause failed:', error);
             }
             audioRef.current.pause();
             setIsPlaying(false);
-            currentVolumeRef.current = 0;
+            setGainValue(0);
             return;
         }
 
@@ -479,16 +620,103 @@ const ExperienceModule = ({ src, captions = [], autoStart = false }) => {
             }
 
             setIsPlaying(true);
-            if (gainNodeRef.current) {
-                gainNodeRef.current.gain.setValueAtTime(0, audioContextRef.current.currentTime);
-            }
-            currentVolumeRef.current = 0;
-            const resumeTarget = Math.max(0.05, targetVolumeRef.current || 1);
-            await fadeAudio(resumeTarget, 0.6);
-        } catch (err) {
-            console.error("Resume playback failed:", err);
+            setGainValue(0);
+            await fadeAudio(targetVolumeRef.current, 0.45);
+        } catch (error) {
+            console.error('Resume playback failed:', error);
         }
-    };
+    }, [fadeAudio, handleStart, setGainValue]);
+
+    const handleRestart = useCallback(async () => {
+        if (!audioRef.current || !audioContextRef.current) return;
+
+        try {
+            if (audioContextRef.current.state === 'suspended') {
+                await audioContextRef.current.resume();
+            }
+
+            audioRef.current.currentTime = 0;
+
+            if (!isStartedRef.current || !isPlayingRef.current) {
+                const playPromise = audioRef.current.play();
+                if (playPromise !== undefined) {
+                    await playPromise;
+                }
+
+                setIsStarted(true);
+                setIsPlaying(true);
+                setGainValue(0);
+                await fadeAudio(targetVolumeRef.current, 0.45);
+                return;
+            }
+
+            setGainValue(targetVolumeRef.current);
+        } catch (error) {
+            console.error('Restart playback failed:', error);
+        }
+    }, [fadeAudio, setGainValue]);
+
+    useEffect(() => {
+        if (typeof window === 'undefined' || !src) return undefined;
+
+        const audio = new Audio(src);
+        audio.crossOrigin = 'anonymous';
+        audio.loop = true;
+        audio.volume = 1;
+        audioRef.current = audio;
+
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        const audioContext = new AudioContextClass();
+        audioContextRef.current = audioContext;
+
+        const analyzer = audioContext.createAnalyser();
+        analyzer.fftSize = 256;
+        analyzer.smoothingTimeConstant = 0.92;
+        analyzerRef.current = analyzer;
+
+        const source = audioContext.createMediaElementSource(audio);
+        sourceRef.current = source;
+
+        const gainNode = audioContext.createGain();
+        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+        gainNodeRef.current = gainNode;
+
+        source.connect(analyzer);
+        analyzer.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        window.landingAudio = audio;
+        window.landingAudioGain = gainNode;
+        window.triggerAudio = () => {
+            if (!isPlayingRef.current) {
+                void handleStart();
+            }
+        };
+        window.toggleLandingAudio = () => {
+            void handlePlaybackToggle();
+        };
+        window.restartLandingAudio = () => {
+            void handleRestart();
+        };
+
+        return () => {
+            delete window.triggerAudio;
+            delete window.toggleLandingAudio;
+            delete window.restartLandingAudio;
+            delete window.landingAudio;
+            delete window.landingAudioGain;
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current = null;
+            }
+            if (audioContextRef.current) {
+                void audioContextRef.current.close();
+            }
+            if (animationFrameRef.current) {
+                cancelAnimationFrame(animationFrameRef.current);
+            }
+        };
+    }, [handlePlaybackToggle, handleRestart, handleStart, src]);
 
     const currentCaption = activeIndex >= 0 ? captions[activeIndex] : null;
 
@@ -499,21 +727,20 @@ const ExperienceModule = ({ src, captions = [], autoStart = false }) => {
             <motion.div
                 className="experience-layout-layer"
                 initial={{ opacity: 0 }}
-                animate={{ opacity: scrollOpacity }}
-                style={{ opacity: scrollOpacity, pointerEvents: scrollOpacity < 0.1 ? 'none' : 'auto' }}
+                animate={{ opacity: visualOpacity }}
+                style={{ opacity: visualOpacity, pointerEvents: 'none' }}
                 transition={{ duration: 1 }}
             >
-                {/* 1. Lyrics Container - Dynamic Position */}
                 <AnimatePresence mode="wait">
-                    {isStarted && isPlaying && currentCaption && (
+                    {isStarted && isPlaying && showLyrics && currentCaption && (
                         <motion.div
                             key={activeIndex}
-                            className="lyric-floating-container"
+                            className={`lyric-floating-container ${isStackLayout ? 'stack-layout' : ''}`}
                             style={lyricStyle}
-                            initial={{ opacity: 0, filter: 'blur(4px)', scale: 0.95 }}
+                            initial={{ opacity: 0, filter: 'blur(4px)', scale: 0.96 }}
                             animate={{ opacity: 1, filter: 'blur(0px)', scale: 1 }}
-                            exit={{ opacity: 0, filter: 'blur(4px)', scale: 1.05 }}
-                            transition={{ duration: 0.5, ease: "easeOut" }}
+                            exit={{ opacity: 0, filter: 'blur(4px)', scale: 1.04 }}
+                            transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
                         >
                             <span className="lyric-text">
                                 {currentCaption.text}
@@ -522,45 +749,39 @@ const ExperienceModule = ({ src, captions = [], autoStart = false }) => {
                     )}
                 </AnimatePresence>
 
-                {/* 2. Audio Controls - Bottom Center */}
-                <div className="controls-bottom-center">
+                <div
+                    className={`controls-bottom-center ${isStackLayout ? 'stack-layout' : ''}`}
+                    style={isStackLayout ? stackLayoutMetrics?.controlsStyle : undefined}
+                >
                     <AnimatePresence>
-                        {isStarted && (
+                        {isStarted && isPlaying && showVisualizer && (
                             <motion.div
-                                className="spectrum-display-group"
+                                className={`spectrum-display-group ${isStackLayout ? 'stack-layout' : ''}`}
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.8, delay: 0.2 }}
+                                exit={{ opacity: 0, y: 14 }}
+                                transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
                             >
                                 <canvas
                                     ref={canvasRef}
-                                    width={200}
-                                    height={24}
+                                    width={isStackLayout ? stackLayoutMetrics?.controlsCanvasWidth || 240 : 200}
+                                    height={isStackLayout ? 34 : 24}
                                     className="mirrored-spectrum-mini"
                                     aria-hidden="true"
                                 />
-                                <button
-                                    type="button"
-                                    className="soundtrack-toggle-btn"
-                                    onClick={handlePlaybackToggle}
-                                    aria-label={isPlaying ? 'Pause soundtrack' : 'Play soundtrack'}
-                                >
-                                    {isPlaying ? 'Pause Soundtrack' : 'Play Soundtrack'}
-                                </button>
                             </motion.div>
                         )}
                     </AnimatePresence>
                 </div>
             </motion.div>
 
-            <style>{`
+            <style suppressHydrationWarning>{`
                 .experience-module-container {
                     position: fixed;
-                    top: 0;
-                    left: 0;
+                    inset: 0;
                     width: 100vw;
                     height: 100vh;
-                    z-index: 100; /* Behind actual stack (10005) */
+                    z-index: 100;
                     pointer-events: none;
                 }
 
@@ -570,7 +791,6 @@ const ExperienceModule = ({ src, captions = [], autoStart = false }) => {
                     height: 100%;
                 }
 
-                /* --- Lyrics Positioning --- */
                 .lyric-floating-container {
                     position: absolute;
                     pointer-events: none;
@@ -580,47 +800,31 @@ const ExperienceModule = ({ src, captions = [], autoStart = false }) => {
                     width: max-content;
                 }
 
+                .lyric-floating-container.stack-layout {
+                    z-index: 136;
+                }
+
                 .lyric-text {
+                    display: inline-block;
                     font-family: var(--font-mono);
-                    font-size: 1.1rem;
-                    color: white;
-                    letter-spacing: 0.05em;
-                    font-weight: 300;
-                    text-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
-                    background: rgba(0, 0, 0, 0.3); /* Slight sweet background for readability */
-                    padding: 0.5rem 1rem;
-                    border-radius: 4px;
-                    backdrop-filter: blur(2px);
+                    font-size: 1rem;
+                    line-height: 1.5;
+                    letter-spacing: 0.03em;
+                    font-weight: 400;
+                    color: rgba(255, 255, 255, 0.98);
+                    text-shadow: 0 0 14px rgba(255, 255, 255, 0.24);
+                    background: rgba(8, 10, 16, 0.58);
+                    padding: 0.72rem 0.96rem;
+                    border-radius: 14px;
+                    border: 1px solid rgba(255, 255, 255, 0.14);
+                    backdrop-filter: blur(10px);
+                    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.24);
                 }
 
-                /* Top */
-                .pos-top {
-                    top: 25%;
-                    left: 50%;
-                    transform: translateX(-50%);
-                }
-
-                /* Left */
-                .pos-left {
-                    top: 50%;
-                    left: 15%; 
-                    transform: translateY(-50%);
-                    text-align: right;
-                }
-
-                /* Right */
-                .pos-right {
-                    top: 50%;
-                    right: 15%;
-                    transform: translateY(-50%);
-                    text-align: left;
-                }
-
-                /* --- Audio Controls --- */
                 .controls-bottom-center {
                     position: absolute;
-                    bottom: 12%; 
                     left: 50%;
+                    bottom: 12%;
                     transform: translateX(-50%);
                     z-index: 120;
                     display: flex;
@@ -628,67 +832,52 @@ const ExperienceModule = ({ src, captions = [], autoStart = false }) => {
                     pointer-events: none;
                 }
 
+                .controls-bottom-center.stack-layout {
+                    bottom: auto;
+                    z-index: 134;
+                }
+
                 .spectrum-display-group {
                     display: flex;
                     flex-direction: column;
                     align-items: center;
-                    gap: 10px;
+                    gap: 0;
                     pointer-events: auto;
+                }
+
+                .spectrum-display-group.stack-layout {
+                    min-width: 280px;
+                    padding: 0.96rem 1.08rem 1.04rem;
+                    border-radius: 20px;
+                    border: 1px solid rgba(255, 255, 255, 0.14);
+                    background: linear-gradient(180deg, rgba(11, 14, 20, 0.88), rgba(8, 9, 14, 0.8));
+                    box-shadow: 0 18px 38px rgba(0, 0, 0, 0.26);
+                    backdrop-filter: blur(14px);
                 }
 
                 .mirrored-spectrum-mini {
                     display: block;
                     filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.4));
-                    opacity: 0.75;
+                    opacity: 0.92;
                 }
 
-                .soundtrack-toggle-btn {
-                    border: 1px solid rgba(255, 255, 255, 0.55);
-                    background: rgba(0, 0, 0, 0.4);
-                    color: rgba(255, 255, 255, 0.96);
-                    border-radius: 9px;
-                    padding: 0.38rem 0.72rem;
-                    font-family: var(--font-ui);
-                    font-size: 0.62rem;
-                    letter-spacing: 0.05em;
-                    text-transform: uppercase;
-                    cursor: pointer;
-                    pointer-events: auto;
-                    transition: border-color 220ms ease, background-color 220ms ease, color 220ms ease;
-                }
-
-                .soundtrack-toggle-btn:hover {
-                    border-color: rgba(56, 189, 248, 0.82);
-                    background: rgba(56, 189, 248, 0.2);
-                    color: #ffffff;
-                }
-
-                /* --- Light Mode Overrides --- */
                 [data-theme="light"] .mirrored-spectrum-mini {
-                   /* Inverted filter might be too heavy, relying on fillStyle change in canvas */
-                   filter: none !important;
-                   opacity: 0.85;
+                    filter: none !important;
+                    opacity: 0.85;
                 }
 
                 [data-theme="light"] .lyric-text {
-                    color: #000000;
-                    text-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
-                    background: rgba(255, 255, 255, 0.5);
-                    border: 1px solid rgba(0,0,0,0.1);
+                    color: rgba(0, 0, 0, 0.88);
+                    text-shadow: 0 0 15px rgba(255, 255, 255, 0.72);
+                    background: rgba(255, 255, 255, 0.76);
+                    border-color: rgba(0, 0, 0, 0.08);
+                    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.1);
                 }
 
-                [data-theme="light"] .soundtrack-toggle-btn {
-                    border: 1px solid #000000;
-                    background: rgba(255, 255, 255, 0.4);
-                    color: #000000;
-                    font-weight: 600;
-                }
-
-                [data-theme="light"] .soundtrack-toggle-btn:hover {
-                    background: #ffffff !important;
-                    color: #000000;
-                    border-color: #000000;
-                    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+                [data-theme="light"] .spectrum-display-group.stack-layout {
+                    background: rgba(255, 255, 255, 0.88);
+                    border-color: rgba(0, 0, 0, 0.1);
+                    box-shadow: 0 18px 38px rgba(0, 0, 0, 0.1);
                 }
 
                 @media (max-width: 1024px) {

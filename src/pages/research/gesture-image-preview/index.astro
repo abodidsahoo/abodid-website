@@ -1,0 +1,468 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+const pageTitle = "Gesture Photo Stack";
+---
+
+<BaseLayout title={pageTitle}>
+    <div class="explanation-page">
+        <div class="explanation-content">
+            <div class="header-section">
+                <div class="header-text">
+                    <p class="eyebrow">Research</p>
+                    <h1>Gesture Photo Stack</h1>
+                    <p class="subtitle">
+                        A research prototype for browsing photographs like a
+                        physical stack.
+                        <br />
+                        Gesture-controlled photo stack study.
+                        <br />
+                        Move with a cursor, hand, or voice to release images
+                        into view.
+                    </p>
+                    <a
+                        href="/research/gesture-image-preview/launch"
+                        class="launch-button secondary launch-inline"
+                    >
+                        Launch the experiment →
+                    </a>
+                </div>
+            </div>
+
+            <aside class="comparison-float">
+                <div class="comparison-card">
+                    <p>
+                        <span class="selected-text">
+                            <strong>Inclusive interaction starts with choice.</strong><br />
+                            <em>More than one way to browse should feel native.</em>
+                        </span>
+                    </p>
+
+                    <p>
+                        <span class="selected-text">
+                            <strong>Testing with people defines what feels intuitive.</strong>
+                        </span>
+                    </p>
+
+                    <p class="note">
+                        <span class="selected-text">
+                            This project keeps that question open.
+                        </span>
+                    </p>
+                </div>
+            </aside>
+
+            <section class="content-section">
+                <h2>Overview</h2>
+                <p>
+                    Most image previews turn photographs into flat tiles. This
+                    project explores a moving stack of image cards that feels
+                    slightly physical, where images are released into view
+                    rather than simply clicked open.
+                </p>
+
+                <p>
+                    The same interaction can be performed with a cursor, a
+                    tracked hand, or an optional voice trigger. The aim is to
+                    make image browsing feel more natural, more inclusive, and
+                    less dependent on constant mouse and keyboard use.
+                </p>
+            </section>
+
+            <section class="content-section">
+                <h2>Inclusive Interaction</h2>
+                <p>
+                    This began as an interaction experiment, but it quickly
+                    became a broader interface question: can image browsing ask
+                    less from hardware and more from movement, attention, and
+                    intent?
+                </p>
+
+                <p>
+                    Repeated clicking, dragging, and holding can be tiring for
+                    some people and a barrier for others. This prototype is not
+                    trying to replace every input. It is opening more than one
+                    way to interact with the same visual space.
+                </p>
+            </section>
+
+            <section class="content-section">
+                <h2>The Core Question</h2>
+                <p>
+                    <strong>
+                        What feels intuitive in a tactile image interface, and
+                        what does not?
+                    </strong>
+                </p>
+
+                <p>
+                    This project studies how gesture, card physics, pacing, and
+                    light multimodal input affect the way people browse
+                    photographs.
+                </p>
+
+                <p class="emphasis">
+                    It is less about novelty and more about making image preview
+                    feel embodied, readable, and easy to use.
+                </p>
+            </section>
+
+            <section class="content-section">
+                <h2>How It Works</h2>
+                <ul class="feature-list">
+                    <li>
+                        Photographs appear as a physics-based card stack inside
+                        a single viewport
+                    </li>
+                    <li>Cursor movement can release new cards into the stack</li>
+                    <li>
+                        A tracked index finger can act like a live pointer, so
+                        the same motion works through hand movement
+                    </li>
+                    <li>
+                        Pinch-based resizing stays secondary and only activates
+                        when thumb-and-index intent is clear
+                    </li>
+                    <li>
+                        Left-right pinch changes image size through relative
+                        motion rather than fixed screen position
+                    </li>
+                    <li>
+                        An optional voice trigger can release another card
+                        without taking over the interface
+                    </li>
+                </ul>
+
+                <p>
+                    The resize interaction is designed to feel eased and
+                    slightly inertial, so it reads as a deliberate mode rather
+                    than an always-on gesture.
+                </p>
+            </section>
+
+            <section class="content-section">
+                <h2>What Testing Changed</h2>
+                <p>
+                    Testing the prototype with people became one of the most
+                    important parts of the project. Watching how others
+                    approached the system made it clear which interactions felt
+                    immediate and which ones created hesitation.
+                </p>
+
+                <ul class="feature-list">
+                    <li>Card release is the main action people understand fastest</li>
+                    <li>
+                        Hand movement works best when it behaves like direct
+                        pointer movement
+                    </li>
+                    <li>
+                        Resize becomes more trustworthy when pinch is a clear
+                        secondary mode
+                    </li>
+                    <li>
+                        Voice input works better as lightweight optional support
+                        than as a primary controller
+                    </li>
+                    <li>
+                        The screen needs to stay visually quiet so motion
+                        remains legible
+                    </li>
+                </ul>
+
+                <p class="emphasis">
+                    The interface became simpler because testing showed where
+                    confidence dropped.
+                </p>
+            </section>
+
+            <section class="content-section">
+                <h2>What Is Being Studied</h2>
+                <ul class="feature-list">
+                    <li>How gesture changes image preview</li>
+                    <li>What kinds of motion feel intuitive</li>
+                    <li>Whether light friction improves attention</li>
+                    <li>How sequencing affects the meaning of photographs</li>
+                    <li>How multiple input methods can coexist on one screen</li>
+                    <li>
+                        How a browsing interface can reduce reliance on
+                        repetitive hardware actions
+                    </li>
+                </ul>
+            </section>
+
+            <section class="content-section">
+                <h2>Current Build</h2>
+                <p>
+                    The current build is intentionally compact: one screen, one
+                    image stack, and one clear interaction space. That keeps the
+                    prototype focused on motion, release, resizing, and input
+                    behavior.
+                </p>
+
+                <p>
+                    The visual system stays minimal with a dark background, a
+                    subtle grid, and quiet typography. The interface supports
+                    the experience rather than competing with it.
+                </p>
+            </section>
+
+            <section class="content-section">
+                <h2>Why It Matters</h2>
+                <p>
+                    This project is grounded in a simple belief: interacting
+                    with images does not always need to begin with clicks.
+                    Browsing can be guided by motion, and control can come from
+                    the hand, the body, or a small signal.
+                </p>
+
+                <p class="emphasis">
+                    This prototype is one step toward a browsing interface that
+                    asks for less strain, offers more flexibility, and makes
+                    inclusive interaction part of the default experience.
+                </p>
+            </section>
+
+            <div class="action-section dual-buttons">
+                <a
+                    href="/research/gesture-image-preview/launch"
+                    class="launch-button secondary"
+                >
+                    Launch the experiment →
+                </a>
+            </div>
+        </div>
+    </div>
+</BaseLayout>
+
+<style>
+    .explanation-page {
+        min-height: 100vh;
+        padding: 4rem 2rem;
+        color: var(--text-primary);
+    }
+
+    .explanation-content {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .header-section {
+        margin-bottom: 2.5rem;
+        text-align: left;
+    }
+
+    .header-text {
+        max-width: 720px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--text-tertiary);
+        margin-bottom: 1rem;
+    }
+
+    h1 {
+        font-family: var(--font-display);
+        font-size: 3.5rem;
+        font-weight: 700;
+        margin: 0 0 1.5rem 0;
+        line-height: 1.1;
+    }
+
+    .subtitle {
+        font-size: 1.25rem;
+        line-height: 1.6;
+        color: var(--text-secondary);
+        margin-bottom: 0.5rem;
+    }
+
+    .launch-inline {
+        margin-top: 1rem;
+        align-self: flex-start;
+    }
+
+    .content-section {
+        margin-bottom: 3rem;
+    }
+
+    h2 {
+        font-family: var(--font-display);
+        font-size: 1.75rem;
+        font-weight: 600;
+        margin: 0 0 1.5rem 0;
+        color: var(--text-primary);
+    }
+
+    p {
+        font-size: 1.1rem;
+        line-height: 1.8;
+        margin-bottom: 1.5rem;
+        color: var(--text-secondary);
+    }
+
+    .emphasis {
+        font-style: italic;
+        color: var(--text-primary);
+        font-weight: 500;
+    }
+
+    .feature-list {
+        list-style: none;
+        padding: 0;
+        margin: 1.5rem 0;
+    }
+
+    .feature-list li {
+        position: relative;
+        padding-left: 1.5rem;
+        margin-bottom: 0.75rem;
+        font-size: 1.1rem;
+        line-height: 1.6;
+        color: var(--text-secondary);
+    }
+
+    .feature-list li::before {
+        content: "→";
+        position: absolute;
+        left: 0;
+        color: var(--accent-purple);
+        font-weight: 600;
+    }
+
+    .comparison-float {
+        position: relative;
+        width: min(46vw, 520px);
+        max-width: 100%;
+        aspect-ratio: 5 / 3;
+        background: var(--color-brand-red);
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.08);
+        padding: 1.5rem;
+        display: flex;
+        align-items: flex-start;
+        justify-content: flex-start;
+        margin: 2.5rem auto 3rem 0;
+        z-index: 2;
+    }
+
+    .comparison-card {
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+    }
+
+    .comparison-card p {
+        margin-bottom: 1rem;
+        color: #000000;
+    }
+
+    .note {
+        font-size: 0.95rem;
+        font-style: italic;
+        color: #000000;
+    }
+
+    .action-section {
+        display: flex;
+        justify-content: center;
+        margin: 3rem 0;
+    }
+
+    .dual-buttons {
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .launch-button {
+        padding: 1rem 2.5rem;
+        background: transparent;
+        color: var(--text-primary);
+        border: 1px solid var(--border-subtle);
+        border-radius: 6px;
+        font-family: var(--font-mono);
+        font-size: 0.95rem;
+        text-decoration: none;
+        transition: all 0.25s ease;
+        display: inline-block;
+    }
+
+    .launch-button.secondary:hover {
+        border-color: var(--text-primary);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .selected-text {
+        background: var(--color-brand-red);
+        color: #ffffff;
+        padding: 0.08em 0.22em;
+        border-radius: 2px;
+        box-decoration-break: clone;
+        -webkit-box-decoration-break: clone;
+        display: inline;
+    }
+
+    .selected-text em,
+    .selected-text strong {
+        color: #ffffff;
+    }
+
+    .selected-text::selection {
+        background: var(--color-brand-red);
+        color: #ffffff;
+    }
+
+    .comparison-float .selected-text {
+        background: #ffffff;
+        color: #000000;
+    }
+
+    .comparison-float .selected-text em,
+    .comparison-float .selected-text strong {
+        color: #000000;
+    }
+
+    @media (max-width: 1200px) {
+        .comparison-float {
+            margin: 2.5rem auto 3rem;
+            width: min(92vw, 520px);
+            aspect-ratio: 5 / 3;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .explanation-page {
+            padding: 2rem 1.5rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+        }
+
+        .comparison-float {
+            width: 100%;
+            max-width: 520px;
+            aspect-ratio: auto;
+            margin: 2rem auto 2.5rem;
+        }
+
+        .dual-buttons {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .launch-button {
+            width: 100%;
+            text-align: center;
+        }
+    }
+</style>
