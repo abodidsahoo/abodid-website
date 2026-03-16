@@ -1,0 +1,483 @@
+---
+export const prerender = false;
+
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const pageTitle = "Tailor Measurements";
+
+const contact = {
+  name: "Abodid Sahoo",
+  email: "abodidsahoo@gmail.com",
+  phone: "+91 9439094370",
+};
+
+const profiles = [
+  {
+    name: "Yashaswinee Sahoo",
+    height: `5'6"`,
+    bodyType: "Pear-shaped",
+    note: "Master record containing confirmed measurements and clearly marked estimates.",
+    measurements: [
+      { label: "Chest / Bust", value: "38 in", estimated: false },
+      { label: "Waist", value: "32 in", estimated: false },
+      { label: "Sleeve Length", value: "24 in", estimated: false },
+      { label: "Wrist / Sleeve Mahuri", value: "7.5 in", estimated: false },
+      { label: "High Hip", value: "38 in", estimated: false },
+      { label: "Full Hip / Seat", value: "45 in", estimated: false },
+      { label: "Pant Length (outseam)", value: "40 in", estimated: false },
+      { label: "Shoulder", value: "16 in", estimated: true },
+      { label: "Neck", value: "15.5 in", estimated: true },
+      { label: "Armhole", value: "18 in", estimated: true },
+    ],
+  },
+  {
+    name: "Abodid Sahoo",
+    height: `5'10"`,
+    bodyType: "Average to slightly athletic, broad shoulders",
+    note: "Use these as the current tailoring baseline for shirts and trousers.",
+    measurements: [
+      { label: "Chest", value: "42 in", estimated: false },
+      { label: "Shoulder", value: "20 in", estimated: false },
+      { label: "Shirt Length", value: "28 in", estimated: false },
+      { label: "Sleeve Length", value: "24 in", estimated: false },
+      { label: "Collar / Neck", value: "16 in", estimated: false },
+      { label: "Waist", value: "37.5 in", estimated: false },
+      { label: "Seat / Hip", value: "44 in", estimated: false },
+      { label: "Pant Length (outseam)", value: "40 in", estimated: false },
+      { label: "Full Crotch Length", value: "26 in", estimated: false },
+      { label: "Thigh", value: "27 in", estimated: false },
+      { label: "Pant Mahuri / Bottom Opening", value: "14 in", estimated: false },
+      { label: "Armhole", value: "20 in", estimated: true },
+    ],
+  },
+];
+---
+
+<BaseLayout title={pageTitle} description="Tailoring measurements shared by direct link." showNewsletterPopup={false}>
+  <Fragment slot="head">
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="googlebot" content="noindex, nofollow" />
+  </Fragment>
+
+  <section class="measurements-page">
+    <header class="page-header">
+      <p class="eyebrow">Collaboration / Internal</p>
+      <h1>Tailor Measurements</h1>
+      <p class="section-intro">
+        A clean measurement record prepared for tailoring conversations, fittings, and quick reference across devices.
+      </p>
+    </header>
+
+    <section class="intro-panel" aria-label="Contact and reference note">
+      <div class="intro-copy">
+        <p class="intro-kicker">Measurement Sheet</p>
+        <p class="intro-title">Confirmed dimensions first. Estimates clearly marked.</p>
+        <p class="intro-text">
+          This page is designed as an internal handoff sheet for stylists and tailors, with the most important numbers surfaced quickly and the full measurement list kept easy to scan.
+        </p>
+      </div>
+
+      <div class="contact-card">
+        <p class="contact-label">Primary contact</p>
+        <h2>{contact.name}</h2>
+        <a href={`mailto:${contact.email}`}>{contact.email}</a>
+        <a href={`tel:${contact.phone.replace(/\s+/g, "")}`}>{contact.phone}</a>
+      </div>
+    </section>
+
+    <div class="profile-grid">
+      {profiles.map((profile) => {
+        const estimatedCount = profile.measurements.filter((item) => item.estimated).length;
+
+        return (
+          <article class="profile-card">
+            <div class="profile-card__header">
+              <div>
+                <p class="profile-label">Tailoring profile</p>
+                <h2>{profile.name}</h2>
+              </div>
+              <span class="status-pill">{estimatedCount > 0 ? `${estimatedCount} estimated` : "All confirmed"}</span>
+            </div>
+
+            <div class="profile-meta">
+              <div class="meta-chip">
+                <span class="meta-chip__label">Height</span>
+                <span class="meta-chip__value">{profile.height}</span>
+              </div>
+              <div class="meta-chip meta-chip--wide">
+                <span class="meta-chip__label">Body Type</span>
+                <span class="meta-chip__value">{profile.bodyType}</span>
+              </div>
+            </div>
+
+            <p class="profile-note">{profile.note}</p>
+
+            <div class="measurements-table" role="table" aria-label={`${profile.name} measurements`}>
+              <div class="table-head" role="rowgroup">
+                <div class="table-row table-row--head" role="row">
+                  <span role="columnheader">Measurement</span>
+                  <span role="columnheader">Dimension</span>
+                </div>
+              </div>
+
+              <div class="table-body" role="rowgroup">
+                {profile.measurements.map((measurement) => (
+                  <div class="table-row" role="row">
+                    <div class="measurement-name" role="cell">
+                      <span>{measurement.label}</span>
+                      {measurement.estimated && <span class="estimate-tag">Estimated</span>}
+                    </div>
+                    <span class="measurement-value" role="cell">{measurement.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </article>
+        );
+      })}
+    </div>
+
+    <aside class="footnote-card">
+      <p class="footnote-label">Notes</p>
+      <p>
+        “Mahuri / Mohri” refers to the opening at the end of sleeves or pants. Pant length is listed as outseam. Only provided values or explicitly estimated values are included here.
+      </p>
+    </aside>
+  </section>
+</BaseLayout>
+
+<style>
+  .measurements-page {
+    padding-bottom: var(--space-3xl);
+  }
+
+  .page-header {
+    margin-bottom: 4rem;
+    padding-top: 2rem;
+    text-align: left;
+  }
+
+  .eyebrow {
+    margin: 0 0 0.85rem;
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+  }
+
+  h1 {
+    font-family: var(--font-display);
+    font-size: 3.5rem;
+    font-weight: 600;
+    margin: 0 0 1rem;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+  }
+
+  .section-intro {
+    font-family: var(--font-sans);
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    max-width: 52rem;
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  .intro-panel {
+    display: grid;
+    grid-template-columns: minmax(0, 1.55fr) minmax(18rem, 0.9fr);
+    gap: 1.2rem;
+    align-items: stretch;
+    margin-bottom: 1.5rem;
+  }
+
+  .intro-copy,
+  .contact-card,
+  .profile-card,
+  .footnote-card {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--border-subtle) 88%, transparent);
+    border-radius: 28px;
+    background:
+      linear-gradient(145deg, color-mix(in srgb, var(--bg-surface) 92%, white 8%), color-mix(in srgb, var(--bg-surface) 97%, transparent)),
+      radial-gradient(circle at top right, color-mix(in srgb, var(--theme-color-primary) 12%, transparent), transparent 35%);
+    box-shadow: 0 22px 60px rgba(0, 0, 0, 0.16);
+    backdrop-filter: blur(18px);
+  }
+
+  .intro-copy {
+    padding: 1.75rem;
+    min-height: 100%;
+  }
+
+  .intro-kicker,
+  .contact-label,
+  .profile-label,
+  .footnote-label {
+    margin: 0 0 0.85rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+  }
+
+  .intro-title {
+    margin: 0 0 0.9rem;
+    font-family: var(--font-display);
+    font-size: clamp(1.65rem, 2.3vw, 2.25rem);
+    line-height: 1.08;
+    letter-spacing: -0.03em;
+    color: var(--text-primary);
+  }
+
+  .intro-text,
+  .profile-note,
+  .footnote-card p:last-child {
+    margin: 0;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    font-size: 0.98rem;
+  }
+
+  .contact-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 1.75rem;
+    gap: 0.45rem;
+  }
+
+  .contact-card h2 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    letter-spacing: -0.02em;
+  }
+
+  .contact-card a {
+    width: fit-content;
+    color: var(--text-secondary);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s ease, color 0.2s ease;
+  }
+
+  .contact-card a:hover {
+    color: var(--text-primary);
+    border-color: var(--text-primary);
+  }
+
+  .profile-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.2rem;
+  }
+
+  .profile-card {
+    padding: 1.5rem;
+  }
+
+  .profile-card__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.1rem;
+  }
+
+  .profile-card__header h2 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(1.6rem, 2vw, 2rem);
+    line-height: 1.08;
+    letter-spacing: -0.025em;
+  }
+
+  .status-pill,
+  .estimate-tag {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: fit-content;
+    border-radius: 999px;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .status-pill {
+    padding: 0.5rem 0.75rem;
+    color: var(--text-primary);
+    background: color-mix(in srgb, var(--theme-color-primary) 14%, var(--bg-surface));
+    border: 1px solid color-mix(in srgb, var(--theme-color-primary) 26%, transparent);
+    flex-shrink: 0;
+  }
+
+  .profile-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .meta-chip {
+    display: grid;
+    gap: 0.2rem;
+    min-width: 8rem;
+    padding: 0.9rem 1rem;
+    border-radius: 18px;
+    background: color-mix(in srgb, var(--bg-surface) 72%, transparent);
+    border: 1px solid color-mix(in srgb, var(--border-subtle) 80%, transparent);
+  }
+
+  .meta-chip--wide {
+    flex: 1 1 16rem;
+  }
+
+  .meta-chip__label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+  }
+
+  .meta-chip__value {
+    color: var(--text-primary);
+    line-height: 1.45;
+    font-weight: 500;
+  }
+
+  .profile-note {
+    margin-bottom: 1.25rem;
+  }
+
+  .measurements-table {
+    border-radius: 22px;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--border-subtle) 92%, transparent);
+    background: color-mix(in srgb, var(--bg-surface) 85%, transparent);
+  }
+
+  .table-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 1rem;
+    align-items: center;
+    padding: 0.95rem 1.15rem;
+  }
+
+  .table-row--head {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    background: color-mix(in srgb, var(--bg-surface-hover) 70%, transparent);
+  }
+
+  .table-body .table-row {
+    border-top: 1px solid color-mix(in srgb, var(--border-subtle) 84%, transparent);
+  }
+
+  .table-body .table-row:nth-child(odd) {
+    background: color-mix(in srgb, var(--bg-surface) 88%, transparent);
+  }
+
+  .measurement-name {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.65rem;
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+
+  .measurement-value {
+    color: var(--text-primary);
+    font-weight: 700;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .estimate-tag {
+    padding: 0.28rem 0.48rem;
+    background: color-mix(in srgb, #f59e0b 20%, transparent);
+    border: 1px solid color-mix(in srgb, #f59e0b 38%, transparent);
+    color: color-mix(in srgb, var(--text-primary) 86%, #f59e0b 14%);
+  }
+
+  .footnote-card {
+    margin-top: 1.2rem;
+    padding: 1.2rem 1.4rem;
+  }
+
+  @media (max-width: 1100px) {
+    .profile-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 820px) {
+    .intro-panel {
+      grid-template-columns: 1fr;
+    }
+
+    h1 {
+      font-size: clamp(2.5rem, 11vw, 3.5rem);
+    }
+
+    .page-header {
+      margin-bottom: 2.75rem;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .intro-copy,
+    .contact-card,
+    .profile-card,
+    .footnote-card {
+      border-radius: 22px;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.14);
+    }
+
+    .intro-copy,
+    .contact-card,
+    .profile-card {
+      padding: 1.1rem;
+    }
+
+    .profile-card__header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .table-row {
+      grid-template-columns: 1fr;
+      gap: 0.45rem;
+      padding: 0.85rem 0.95rem;
+    }
+
+    .table-row--head {
+      display: none;
+    }
+
+    .table-body .table-row:first-child {
+      border-top: 0;
+    }
+
+    .measurement-value {
+      text-align: left;
+      font-size: 0.95rem;
+    }
+
+    .measurement-name {
+      gap: 0.5rem;
+    }
+  }
+</style>
