@@ -4,6 +4,16 @@
 
 <div class="newsletter-form-wrapper">
     <form class="newsletter-form" id="newsletter-form">
+        <div class="newsletter-honeypot" aria-hidden="true">
+            <label for="newsletter-company">Company</label>
+            <input
+                id="newsletter-company"
+                type="text"
+                name="company"
+                tabindex="-1"
+                autocomplete="off"
+            />
+        </div>
         <input
             type="email"
             name="email"
@@ -35,6 +45,7 @@
     const form = document.getElementById("newsletter-form");
     const messageEl = document.getElementById("newsletter-message");
     const defaultSource = "footer-newsletter";
+    const formRenderedAt = Date.now();
     const trackGaEvent = (eventName, params = {}) => {
         try {
             if (typeof window.gtag === "function") {
@@ -68,6 +79,8 @@
             e.preventDefault();
             const formData = new FormData(form as HTMLFormElement);
             formData.append("source", defaultSource);
+            formData.append("jsEnabled", "1");
+            formData.append("formStartedAt", String(formRenderedAt));
 
             const tracking = getJourneyTracking();
             if (tracking) {
@@ -164,6 +177,16 @@
 
     input::placeholder {
         color: rgba(255, 255, 255, 0.4);
+    }
+
+    .newsletter-honeypot {
+        position: absolute;
+        left: -9999px;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        opacity: 0;
+        pointer-events: none;
     }
 
     button {

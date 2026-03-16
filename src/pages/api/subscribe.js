@@ -6,6 +6,7 @@ const backersPageUrl = "https://abodid.com/fundraising/backers";
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_RECENT_PAGES = 8;
 const MAX_TOP_PAGES = 6;
+const FOOTER_SPAM_MIN_SUBMISSION_MS = 1500;
 const OWNER_NOTIFICATION_EMAIL =
     import.meta.env.OWNER_NOTIFICATION_EMAIL ||
     process.env.OWNER_NOTIFICATION_EMAIL ||
@@ -15,6 +16,7 @@ const OWNER_NOTIFICATION_EMAIL =
 
 const clean = (value) => (typeof value === "string" ? value.trim() : "");
 const cleanLimited = (value, maxLength) => clean(value).slice(0, maxLength);
+const isFooterNewsletterSource = (source) => source === "footer-newsletter";
 const getOwnerBcc = (recipientEmail) => {
     const ownerEmail = clean(OWNER_NOTIFICATION_EMAIL).toLowerCase();
     const recipient = clean(recipientEmail).toLowerCase();
@@ -34,6 +36,12 @@ const toPositiveInt = (value) => {
     const parsed = Number(value);
     if (!Number.isFinite(parsed) || parsed <= 0) return 0;
     return Math.round(parsed);
+};
+
+const getSubmissionTiming = (value) => {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed) || parsed <= 0) return 0;
+    return parsed;
 };
 
 const escapeHtml = (value) =>
@@ -243,6 +251,46 @@ const parseTrackingFromFormData = (formData, request, sourceName) => {
     }
 
     return parsedTracking || buildFallbackTracking(request, sourceName);
+};
+
+const shouldSilentlyBlockFooterSubmission = ({
+    request,
+    data,
+    source,
+    tracking,
+}) => {
+    if (!isFooterNewsletterSource(source)) {
+        return null;
+    }
+
+    const honeypot = clean(data.get("company"));
+    if (honeypot) {
+        return "honeypot_filled";
+    }
+
+    const jsEnabled = clean(data.get("jsEnabled"));
+    if (jsEnabled !== "1") {
+        return "missing_js_signal";
+    }
+
+    const formStartedAt = getSubmissionTiming(data.get("formStartedAt"));
+    const submittedAt = Date.now();
+    if (!formStartedAt || submittedAt - formStartedAt < FOOTER_SPAM_MIN_SUBMISSION_MS) {
+        return "submitted_too_quickly";
+    }
+
+    const referer = clean(request.headers.get("referer"));
+    const hasJourneySignals =
+        Boolean(tracking?.sessionId) ||
+        Boolean(tracking?.currentPath) ||
+        Boolean(tracking?.lastSourcePage) ||
+        Boolean(referer);
+
+    if (!hasJourneySignals) {
+        return "missing_journey_signals";
+    }
+
+    return null;
 };
 
 const buildVisitSequenceText = (visitSequence) => {
@@ -555,6 +603,23 @@ export const POST = async ({ request }) => {
                 message: "Invalid email address",
             }),
             { status: 400 }
+        );
+    }
+
+    const blockedReason = shouldSilentlyBlockFooterSubmission({
+        request,
+        data,
+        source,
+        tracking,
+    });
+
+    if (blockedReason) {
+        console.warn(`[subscribe] Blocked footer newsletter spam candidate: ${blockedReason}`);
+        return new Response(
+            JSON.stringify({
+                message: "Successfully subscribed!",
+            }),
+            { status: 200 }
         );
     }
 
