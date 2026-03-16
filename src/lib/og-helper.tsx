@@ -28,7 +28,9 @@ export function generateOgImage(title: string, image?: string, description?: str
     // Theme Colors based on mode
     const textColor = isCustomImage ? '#ffffff' : '#1a1a1a';
     const subTextColor = isCustomImage ? '#dddddd' : '#4a4a4a';
-    const brandColor = isCustomImage ? '#ffffff' : '#1a1a1a';
+    const descriptionBoxBackground = isCustomImage ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.78)';
+    const descriptionBoxBorder = isCustomImage ? '1px solid rgba(255,255,255,0.3)' : '1px solid rgba(26,26,26,0.08)';
+    const descriptionTextColor = '#1f2937';
 
     const rootStyle: Record<string, string | number> = {
         height: '100%',
@@ -112,64 +114,58 @@ export function generateOgImage(title: string, image?: string, description?: str
                     </>
                 )}
 
-                {/* Decorative Elements */}
-                <div style={{
-                    position: 'absolute',
-                    top: '62px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    zIndex: 10
-                }}>
-                    <div style={{
-                        fontSize: '18px',
-                        fontWeight: 600,
-                        textTransform: 'uppercase',
-                        letterSpacing: '5px',
-                        color: brandColor,
-                        opacity: isCustomImage ? 0.9 : 0.8,
-                    }}>
-                        Portfolio
-                    </div>
-                </div>
-
                 <div style={{
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    padding: '0 110px',
+                    padding: '56px 110px 48px',
                     textAlign: 'center',
                     zIndex: 10,
-                    width: '100%'
+                    width: '100%',
+                    maxWidth: '1000px'
                 }}>
                     <div
                         style={{
-                            fontSize: 82,
-                            fontWeight: 800,
+                            fontSize: 88,
+                            fontWeight: 850,
                             letterSpacing: '-0.04em',
                             fontFamily: 'sans-serif',
-                            lineHeight: 1,
+                            lineHeight: 0.95,
                             textWrap: 'balance',
                             color: textColor,
                             textShadow: isCustomImage ? '0 4px 30px rgba(0,0,0,0.5)' : 'none',
-                            maxWidth: '960px',
+                            maxWidth: '900px',
+                            textAlign: 'center',
                         }}
                     >
                         {safeTitle}
                     </div>
                     <div
                         style={{
-                            marginTop: '28px',
-                            maxWidth: '780px',
-                            fontSize: '28px',
-                            lineHeight: 1.35,
-                            color: subTextColor,
-                            textWrap: 'balance',
-                            opacity: isCustomImage ? 0.96 : 0.88,
+                            marginTop: '34px',
+                            maxWidth: '760px',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            padding: '18px 24px',
+                            borderRadius: '22px',
+                            background: descriptionBoxBackground,
+                            border: descriptionBoxBorder,
+                            boxShadow: isCustomImage ? '0 12px 32px rgba(0,0,0,0.18)' : '0 10px 26px rgba(255,255,255,0.24)',
                         }}
                     >
-                        {safeDescription}
+                        <div
+                            style={{
+                                fontSize: '27px',
+                                fontWeight: 560,
+                                lineHeight: 1.34,
+                                color: descriptionTextColor,
+                                textWrap: 'balance',
+                                textAlign: 'center',
+                            }}
+                        >
+                            {safeDescription}
+                        </div>
                     </div>
                 </div>
 
