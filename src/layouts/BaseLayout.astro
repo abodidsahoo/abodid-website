@@ -14,6 +14,7 @@ const {
   image,
   imageAlt,
   type,
+  useDynamicOgImage = true,
   hideHeader = false,
   hideFooter = false,
   fullWidth = false,
@@ -100,6 +101,7 @@ const finalType = type || dbMetadata?.og_type || "website";
       image={finalImage}
       imageAlt={imageAlt}
       type={finalType}
+      useDynamicOgImage={useDynamicOgImage}
     />
     <!-- Dynamic SEO & Social Images applied -->
     <slot name="head" />
