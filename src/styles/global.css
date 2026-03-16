@@ -333,9 +333,9 @@
     --feature-obsidian-note-title-color: var(--text-secondary);
     --feature-obsidian-tag-font: var(--font-display);
     --feature-obsidian-tag-size: 0.85rem;
-    --feature-obsidian-tag-weight: 300;
+    --feature-obsidian-tag-weight: 420;
     --feature-obsidian-tag-line-height: 1;
-    --feature-obsidian-tag-letter-spacing: 0em;
+    --feature-obsidian-tag-letter-spacing: 0.015em;
     --feature-obsidian-tag-color: var(--text-secondary);
     --feature-obsidian-note-body-font: var(--font-body);
     --feature-obsidian-note-body-size: 1.05rem;

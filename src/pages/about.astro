@@ -10,28 +10,13 @@ const { artistCV, professionalCVs } = await getCVs();
 
 const hubs = [
     {
-        title: "Work Experience",
-        link: "/work",
-        icon: "→",
-    },
-    {
-        title: "Curriculum Vitae",
-        link: "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/cv/Abodid%20Sahoo%20-%20Photography%20&%20AI%20-%20CV.pdf",
-        icon: "→",
-    },
-    {
-        title: "Media Mentions",
-        link: "/press",
-        icon: "→",
-    },
-    {
-        title: "Research Papers",
-        link: "/research-papers",
-        icon: "→",
-    },
-    {
         title: "Awards",
         link: "/awards",
+        icon: "→",
+    },
+    {
+        title: "Experience",
+        link: "/experience",
         icon: "→",
     },
     {
@@ -40,8 +25,13 @@ const hubs = [
         icon: "→",
     },
     {
-        title: "Fundraising",
-        link: "/fundraising",
+        title: "Media Mentions",
+        link: "/press",
+        icon: "→",
+    },
+    {
+        title: "Curriculum Vitae",
+        link: "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/cv/Abodid%20Sahoo%20-%20Photography%20&%20AI%20-%20CV.pdf",
         icon: "→",
     },
     {
@@ -88,7 +78,7 @@ const clients = [
 
             <div class="info-grid">
                 <div class="info-column">
-                    <h3 class="info-label">What I Do</h3>
+                    <h3 class="info-label">Experience</h3>
                     <ul class="bullet-list">
                         {competencies.map((item) => <li>{item}</li>)}
                     </ul>

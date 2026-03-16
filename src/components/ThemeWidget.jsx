@@ -3,22 +3,55 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const COLORS = [
     { name: 'Matte Black', value: '#080808' },
-    { name: 'Dark Gray', value: '#1a1a1a' },
-    { name: 'Studio Green', value: '#2e4c36' },
-    { name: 'Navy Blue', value: '#1a2c36' },
-    { name: 'Deep Red', value: '#2c1a1a' },
     { name: 'Soft Beige', value: '#e0d8cc' },
-    /* --- NEW POP COLORS --- */
-    { name: 'Pop Yellow', value: '#ffc800' },
-    { name: 'Warm Orange', value: '#ff5e00' },
-    { name: 'LinkedIn Blue', value: '#0077b5' },
-    { name: 'Vibrant Purple', value: '#8a2be2' },
+    { name: 'Brand Red', value: '#a30021' },
+    { name: 'Deep Navy', value: '#1a2c36' },
 ];
+
+const CONTROL_WIDTH = '16.25rem';
 
 const ThemeWidget = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [activeColor, setActiveColor] = useState('#080808');
     const containerRef = useRef(null);
+
+    const applyTheme = (color) => {
+        const hex = color.replace('#', '');
+        const normalizedHex = hex.length === 3
+            ? hex.split('').map((char) => char + char).join('')
+            : hex;
+        const r = parseInt(normalizedHex.slice(0, 2), 16);
+        const g = parseInt(normalizedHex.slice(2, 4), 16);
+        const b = parseInt(normalizedHex.slice(4, 6), 16);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        const isDark = brightness < 150;
+
+        document.documentElement.style.setProperty('--polaroid-hub-bg', color);
+        document.documentElement.style.setProperty(
+            '--polaroid-hub-control-text',
+            isDark ? 'rgba(255, 255, 255, 0.92)' : 'rgba(17, 17, 17, 0.92)',
+        );
+        document.documentElement.style.setProperty(
+            '--polaroid-hub-control-border',
+            isDark ? 'rgba(255, 255, 255, 0.34)' : 'rgba(0, 0, 0, 0.2)',
+        );
+        document.documentElement.style.setProperty(
+            '--polaroid-hub-control-bg',
+            isDark ? 'rgba(10, 10, 10, 0.18)' : 'rgba(255, 255, 255, 0.5)',
+        );
+        document.documentElement.style.setProperty(
+            '--polaroid-hub-control-shadow',
+            isDark ? '0 4px 16px rgba(0, 0, 0, 0.16)' : '0 4px 16px rgba(0, 0, 0, 0.08)',
+        );
+        document.documentElement.style.setProperty(
+            '--polaroid-hub-panel-bg',
+            isDark ? 'rgba(12, 12, 12, 0.92)' : 'rgba(255, 255, 255, 0.94)',
+        );
+    };
+
+    useEffect(() => {
+        applyTheme(activeColor);
+    }, []);
 
     // Click Outside Handling
     useEffect(() => {
@@ -38,8 +71,7 @@ const ThemeWidget = () => {
 
     const handleColorChange = (color) => {
         setActiveColor(color);
-        // Update the CSS variable globally
-        document.documentElement.style.setProperty('--polaroid-hub-bg', color);
+        applyTheme(color);
     };
 
     return (
@@ -47,14 +79,14 @@ const ThemeWidget = () => {
             ref={containerRef}
             style={{
                 position: 'fixed',
-                /* Moved to Top Right, below Home button (which is usually top: 2rem) */
-                top: '5.5rem',
+                top: '2rem',
                 right: '2rem',
                 zIndex: 1000,
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'flex-end',
-                gap: '1rem'
+                gap: '0.7rem',
+                width: CONTROL_WIDTH,
             }}
         >
 
@@ -65,16 +97,17 @@ const ThemeWidget = () => {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: -10, scale: 0.9 }}
                         style={{
-                            /* Darker backdrop to make colors pop */
-                            background: 'rgba(20,20,20,0.85)',
+                            order: 2,
+                            background: 'var(--polaroid-hub-panel-bg, rgba(12, 12, 12, 0.92))',
                             backdropFilter: 'blur(12px)',
-                            padding: '1rem',
+                            width: '100%',
+                            padding: '0.9rem 1rem',
                             borderRadius: '12px',
-                            border: '1px solid rgba(255,255,255,0.15)',
+                            border: '1px solid var(--polaroid-hub-control-border, rgba(255,255,255,0.2))',
                             display: 'grid',
-                            gridTemplateColumns: 'repeat(2, 1fr)',
-                            gap: '12px',
-                            boxShadow: '0 10px 40px rgba(0,0,0,0.6)'
+                            gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+                            gap: '0.7rem',
+                            boxShadow: '0 12px 32px rgba(0,0,0,0.28)'
                         }}
                     >
                         {COLORS.map((c) => (
@@ -83,17 +116,20 @@ const ThemeWidget = () => {
                                 onClick={() => handleColorChange(c.value)}
                                 title={c.name}
                                 style={{
-                                    width: '36px',
-                                    height: '36px',
-                                    borderRadius: '50%',
+                                    width: '100%',
+                                    aspectRatio: '1 / 1',
+                                    minHeight: '2.9rem',
+                                    borderRadius: '999px',
                                     background: c.value,
-                                    border: activeColor === c.value ? '2px solid white' : '1px solid rgba(255,255,255,0.2)',
+                                    border: activeColor === c.value ? '2px solid rgba(255,255,255,0.95)' : '1px solid rgba(255,255,255,0.26)',
                                     cursor: 'pointer',
-                                    boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
-                                    transition: 'transform 0.1s'
+                                    boxShadow: activeColor === c.value
+                                        ? '0 0 0 2px rgba(255,255,255,0.18), 0 6px 16px rgba(0,0,0,0.3)'
+                                        : '0 4px 12px rgba(0,0,0,0.22)',
+                                    transition: 'transform 0.14s ease, box-shadow 0.14s ease, border-color 0.14s ease'
                                 }}
-                                whileHover={{ scale: 1.15 }}
-                                whileTap={{ scale: 0.9 }}
+                                whileHover={{ scale: 1.07 }}
+                                whileTap={{ scale: 0.94 }}
                             />
                         ))}
                     </motion.div>
@@ -105,20 +141,27 @@ const ThemeWidget = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 style={{
-                    width: '46px',
-                    height: '46px',
-                    borderRadius: '50%',
-                    background: activeColor,
-                    border: '2px solid rgba(255,255,255,0.3)',
+                    order: 1,
+                    width: '100%',
+                    padding: '0.8rem 1.2rem',
+                    borderRadius: '6px',
+                    background: 'var(--polaroid-hub-control-bg, rgba(10, 10, 10, 0.18))',
+                    color: 'var(--polaroid-hub-control-text, rgba(255, 255, 255, 0.92))',
+                    border: '1px solid var(--polaroid-hub-control-border, rgba(255, 255, 255, 0.34))',
                     cursor: 'pointer',
-                    boxShadow: '0 4px 15px rgba(0,0,0,0.4)',
+                    boxShadow: 'var(--polaroid-hub-control-shadow, 0 4px 16px rgba(0,0,0,0.16))',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: '1.2rem'
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '0.95rem',
+                    fontWeight: 400,
+                    lineHeight: 1.1,
+                    backdropFilter: 'blur(8px)',
+                    WebkitBackdropFilter: 'blur(8px)'
                 }}
             >
-                🎨
+                Change background color
             </motion.button>
         </div>
     );

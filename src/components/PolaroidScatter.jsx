@@ -1,8 +1,74 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { memo, useCallback, useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
 import PaletteExtractor, { analyzeImage } from "./PaletteExtractor.jsx";
 import MoodboardPolaroidViewer from "./MoodboardPolaroidViewer.jsx";
+
+const parseColorString = (value) => {
+    if (typeof value !== 'string') return null;
+
+    const normalized = value.trim();
+    if (!normalized) return null;
+
+    if (normalized.startsWith('#')) {
+        const hex = normalized.slice(1);
+        const expanded = hex.length === 3
+            ? hex.split('').map((char) => char + char).join('')
+            : hex;
+        if (expanded.length !== 6) return null;
+
+        return [
+            parseInt(expanded.slice(0, 2), 16),
+            parseInt(expanded.slice(2, 4), 16),
+            parseInt(expanded.slice(4, 6), 16),
+        ];
+    }
+
+    const match = normalized.match(/\d+(\.\d+)?/g);
+    if (!match || match.length < 3) return null;
+    return match.slice(0, 3).map(Number);
+};
+
+const mixChannel = (base, target, amount) =>
+    Math.round((base * (1 - amount)) + (target * amount));
+
+const formatRgba = (channels, alpha = 1) =>
+    `rgba(${channels.map((value) => Math.round(value)).join(', ')}, ${alpha})`;
+
+const INSTRUCTION_THEME_COMMIT_DELAY_MS = 650;
+const INSTRUCTION_THEME_BLEND_MS = 2800;
+
+const buildInstructionTheme = (accentColor) => {
+    const rgb = parseColorString(accentColor);
+    if (!rgb) return null;
+
+    const [r, g, b] = rgb;
+    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+    const darknessStrength =
+        brightness > 200 ? 0.9 :
+        brightness > 165 ? 0.84 :
+        brightness > 125 ? 0.76 :
+        0.68;
+
+    const secondaryStrength = Math.max(0.56, darknessStrength - 0.12);
+
+    const gradientFrom = [
+        mixChannel(r, 8, darknessStrength),
+        mixChannel(g, 8, darknessStrength),
+        mixChannel(b, 8, darknessStrength),
+    ];
+
+    const gradientTo = [
+        mixChannel(r, 26, secondaryStrength),
+        mixChannel(g, 26, secondaryStrength),
+        mixChannel(b, 26, secondaryStrength),
+    ];
+
+    return {
+        from: gradientFrom,
+        to: gradientTo,
+    };
+};
 
 const PolaroidScatter = ({ items, immersive = false, deepLinkParam = '' }) => {
     const [selectedId, setSelectedId] = useState(null);
@@ -13,7 +79,18 @@ const PolaroidScatter = ({ items, immersive = false, deepLinkParam = '' }) => {
     const assetCacheRef = useRef({});
     const probedUrlsRef = useRef(new Set());
     const deepLinkInitializedRef = useRef(false);
-    const [visibleRange, setVisibleRange] = useState({ top: -Infinity, bottom: Infinity });
+    const instructionAccentSourceRef = useRef('');
+    const instructionAccentFrameRef = useRef(0);
+    const instructionThemeAnimationRef = useRef(0);
+    const instructionThemeCommitTimeoutRef = useRef(0);
+    const instructionThemeCurrentRef = useRef(null);
+    const instructionThemePendingRef = useRef(null);
+    const instructionThemeTargetRef = useRef(null);
+    const instructionThemeLastFrameRef = useRef(0);
+    const lastInstructionScrollYRef = useRef(0);
+    const activeInstructionImageRef = useRef('');
+    const selectedIdRef = useRef(null);
+    const scatteredItemsRef = useRef([]);
 
     // Track Background Brightness for UI Adaptivity
     useEffect(() => {
@@ -88,7 +165,7 @@ const PolaroidScatter = ({ items, immersive = false, deepLinkParam = '' }) => {
 
     const deepLinkKey = deepLinkParam.trim();
 
-    const syncDeepLink = (itemId) => {
+    const syncDeepLink = useCallback((itemId) => {
         if (!deepLinkKey || typeof window === 'undefined') return;
         const nextUrl = new URL(window.location.href);
         if (itemId) {
@@ -101,7 +178,7 @@ const PolaroidScatter = ({ items, immersive = false, deepLinkParam = '' }) => {
             '',
             `${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`,
         );
-    };
+    }, [deepLinkKey]);
 
     // Initial random scatter (Pre-Chunked Units + Spiral Wave)
     useEffect(() => {
@@ -278,43 +355,267 @@ const PolaroidScatter = ({ items, immersive = false, deepLinkParam = '' }) => {
         syncDeepLink('');
     }, [selectedId, scatteredItems]);
 
-    // PERF NOTE: Rendering every polaroid at once is expensive (hundreds of images + shadows).
-    // Culling offscreen cards keeps pointer/scroll smooth without changing the visual layout.
     useEffect(() => {
-        if (!immersive || typeof window === 'undefined') {
-            setVisibleRange({ top: -Infinity, bottom: Infinity });
-            return () => {};
-        }
+        selectedIdRef.current = selectedId;
+    }, [selectedId]);
 
-        let rafId = 0;
-        const updateRange = () => {
-            const containerTop = containerRef.current?.offsetTop ?? 0;
-            const scrollY = window.scrollY || 0;
-            const viewportH = window.innerHeight || 0;
-            const buffer = Math.max(1200, viewportH * 1.5);
-            setVisibleRange({
-                top: scrollY - buffer - containerTop,
-                bottom: scrollY + viewportH + buffer - containerTop,
+    useEffect(() => {
+        scatteredItemsRef.current = scatteredItems;
+    }, [scatteredItems]);
+
+    useEffect(() => {
+        if (!immersive || typeof window === 'undefined') return () => {};
+
+        const root = document.documentElement;
+        lastInstructionScrollYRef.current = window.scrollY || 0;
+
+        const applyInstructionGradient = (theme) => {
+            root.style.setProperty(
+                '--polaroid-hub-instruction-current-from',
+                formatRgba(theme.from, 0.88),
+            );
+            root.style.setProperty(
+                '--polaroid-hub-instruction-current-to',
+                formatRgba(theme.to, 0.94),
+            );
+        };
+
+        const ensureInstructionAnimation = () => {
+            if (instructionThemeAnimationRef.current) return;
+
+            const tick = (timestamp) => {
+                const currentTheme = instructionThemeCurrentRef.current;
+                const targetTheme = instructionThemeTargetRef.current;
+
+                if (!currentTheme || !targetTheme) {
+                    instructionThemeAnimationRef.current = 0;
+                    instructionThemeLastFrameRef.current = 0;
+                    return;
+                }
+
+                const previousTimestamp =
+                    instructionThemeLastFrameRef.current || timestamp;
+                const elapsed = Math.min(
+                    80,
+                    Math.max(16, timestamp - previousTimestamp),
+                );
+                const blendAmount =
+                    1 - Math.exp(-elapsed / INSTRUCTION_THEME_BLEND_MS);
+                instructionThemeLastFrameRef.current = timestamp;
+
+                let isSettled = true;
+                const nextTheme = {
+                    from: currentTheme.from.map((value, index) => {
+                        const delta = targetTheme.from[index] - value;
+                        const nextValue = value + (delta * blendAmount);
+                        if (Math.abs(delta) > 0.18) isSettled = false;
+                        return nextValue;
+                    }),
+                    to: currentTheme.to.map((value, index) => {
+                        const delta = targetTheme.to[index] - value;
+                        const nextValue = value + (delta * blendAmount);
+                        if (Math.abs(delta) > 0.18) isSettled = false;
+                        return nextValue;
+                    }),
+                };
+
+                instructionThemeCurrentRef.current = isSettled ? {
+                    from: [...targetTheme.from],
+                    to: [...targetTheme.to],
+                } : nextTheme;
+
+                applyInstructionGradient(instructionThemeCurrentRef.current);
+
+                if (isSettled) {
+                    instructionThemeAnimationRef.current = 0;
+                    instructionThemeLastFrameRef.current = 0;
+                    return;
+                }
+
+                instructionThemeAnimationRef.current = window.requestAnimationFrame(tick);
+            };
+
+            instructionThemeAnimationRef.current = window.requestAnimationFrame(tick);
+        };
+
+        const applyInstructionTheme = (imageUrl, analysis) => {
+            const palette = analysis?.palette || [];
+            const accentColor =
+                palette[3] || palette[1] || analysis?.bg || '';
+            const theme = buildInstructionTheme(accentColor);
+            if (!theme) return;
+
+            if (!instructionThemeCurrentRef.current) {
+                instructionThemeCurrentRef.current = {
+                    from: [...theme.from],
+                    to: [...theme.to],
+                };
+                instructionThemeTargetRef.current = {
+                    from: [...theme.from],
+                    to: [...theme.to],
+                };
+                applyInstructionGradient(instructionThemeCurrentRef.current);
+                activeInstructionImageRef.current = imageUrl;
+            } else {
+                instructionThemePendingRef.current = {
+                    imageUrl,
+                    theme: {
+                        from: [...theme.from],
+                        to: [...theme.to],
+                    },
+                };
+
+                if (instructionThemeCommitTimeoutRef.current) {
+                    window.clearTimeout(instructionThemeCommitTimeoutRef.current);
+                }
+
+                instructionThemeCommitTimeoutRef.current = window.setTimeout(() => {
+                    const pendingTheme = instructionThemePendingRef.current;
+                    instructionThemeCommitTimeoutRef.current = 0;
+                    if (!pendingTheme) return;
+
+                    instructionThemeTargetRef.current = {
+                        from: [...pendingTheme.theme.from],
+                        to: [...pendingTheme.theme.to],
+                    };
+                    activeInstructionImageRef.current = pendingTheme.imageUrl;
+                    ensureInstructionAnimation();
+                }, INSTRUCTION_THEME_COMMIT_DELAY_MS);
+            }
+
+            instructionAccentSourceRef.current = imageUrl;
+        };
+
+        const updateInstructionTheme = () => {
+            const instructionsNode = document.querySelector('.hub-instructions');
+            const containerNode = containerRef.current;
+            if (!instructionsNode || !containerNode) return;
+
+            const instructionRect = instructionsNode.getBoundingClientRect();
+            const cards = Array.from(
+                containerNode.querySelectorAll('.polaroid-card[data-polaroid-id]'),
+            );
+
+            const viewportWidth = window.innerWidth || 0;
+            const viewportHeight = window.innerHeight || 0;
+            const currentScrollY = window.scrollY || 0;
+            const scrollDirection =
+                currentScrollY >= lastInstructionScrollYRef.current ? 1 : -1;
+            lastInstructionScrollYRef.current = currentScrollY;
+
+            const verticalLookahead = Math.max(220, viewportHeight * 0.24);
+            const horizontalLookahead = 165;
+            const targetX = Math.min(
+                viewportWidth - 120,
+                instructionRect.right + horizontalLookahead,
+            );
+            const targetY =
+                instructionRect.top +
+                (instructionRect.height * 0.5) +
+                (scrollDirection * verticalLookahead * 0.55);
+
+            let bestMatch = null;
+            let bestScore = Number.POSITIVE_INFINITY;
+
+            cards.forEach((cardNode) => {
+                const rect = cardNode.getBoundingClientRect();
+                if (
+                    rect.bottom < -verticalLookahead ||
+                    rect.top > viewportHeight + verticalLookahead ||
+                    rect.right < -120 ||
+                    rect.left > viewportWidth + 260
+                ) {
+                    return;
+                }
+
+                const centerX = rect.left + (rect.width * 0.5);
+                const centerY = rect.top + (rect.height * 0.5);
+                const horizontalDistance = Math.abs(centerX - targetX);
+                const verticalDistance = Math.abs(centerY - targetY);
+                const overlapPenalty = rect.left < instructionRect.right ? 110 : 0;
+                const directionPenalty =
+                    scrollDirection > 0
+                        ? Math.max(0, (instructionRect.top + 20) - centerY) * 0.55
+                        : Math.max(0, centerY - (instructionRect.bottom - 20)) * 0.55;
+                const score =
+                    (horizontalDistance * 1.12) +
+                    (verticalDistance * 0.74) +
+                    overlapPenalty +
+                    directionPenalty;
+
+                if (score < bestScore) {
+                    bestScore = score;
+                    bestMatch = cardNode;
+                }
+            });
+
+            const matchedId = bestMatch?.getAttribute('data-polaroid-id');
+            if (!matchedId) return;
+
+            const matchedItem = scatteredItems.find((item) => item.id === matchedId);
+            const imageUrl =
+                matchedItem?.cover_image ||
+                matchedItem?.image ||
+                matchedItem?.url ||
+                matchedItem?.fallbackImage ||
+                '';
+
+            if (!imageUrl) return;
+            if (activeInstructionImageRef.current === imageUrl) return;
+
+            const cached = assetCacheRef.current[imageUrl];
+            if (cached?.palette?.length || cached?.bg) {
+                applyInstructionTheme(imageUrl, cached);
+                return;
+            }
+
+            if (instructionAccentSourceRef.current === imageUrl) return;
+            instructionAccentSourceRef.current = imageUrl;
+
+            analyzeImage(imageUrl)
+                .then((analysis) => {
+                    const existing = assetCacheRef.current[imageUrl] || {};
+                    assetCacheRef.current[imageUrl] = { ...existing, ...analysis };
+                    if (instructionAccentSourceRef.current !== imageUrl) return;
+                    applyInstructionTheme(imageUrl, assetCacheRef.current[imageUrl]);
+                })
+                .catch(() => {
+                    if (instructionAccentSourceRef.current === imageUrl) {
+                        instructionAccentSourceRef.current = '';
+                    }
+                });
+        };
+
+        const scheduleInstructionThemeUpdate = () => {
+            if (instructionAccentFrameRef.current) return;
+            instructionAccentFrameRef.current = window.requestAnimationFrame(() => {
+                instructionAccentFrameRef.current = 0;
+                updateInstructionTheme();
             });
         };
 
-        const onScroll = () => {
-            if (rafId) return;
-            rafId = window.requestAnimationFrame(() => {
-                rafId = 0;
-                updateRange();
-            });
-        };
+        scheduleInstructionThemeUpdate();
+        window.addEventListener('scroll', scheduleInstructionThemeUpdate, { passive: true });
+        window.addEventListener('resize', scheduleInstructionThemeUpdate);
 
-        updateRange();
-        window.addEventListener('scroll', onScroll, { passive: true });
-        window.addEventListener('resize', onScroll);
         return () => {
-            if (rafId) window.cancelAnimationFrame(rafId);
-            window.removeEventListener('scroll', onScroll);
-            window.removeEventListener('resize', onScroll);
+            if (instructionAccentFrameRef.current) {
+                window.cancelAnimationFrame(instructionAccentFrameRef.current);
+                instructionAccentFrameRef.current = 0;
+            }
+            if (instructionThemeAnimationRef.current) {
+                window.cancelAnimationFrame(instructionThemeAnimationRef.current);
+                instructionThemeAnimationRef.current = 0;
+            }
+            if (instructionThemeCommitTimeoutRef.current) {
+                window.clearTimeout(instructionThemeCommitTimeoutRef.current);
+                instructionThemeCommitTimeoutRef.current = 0;
+            }
+            instructionThemeLastFrameRef.current = 0;
+            window.removeEventListener('scroll', scheduleInstructionThemeUpdate);
+            window.removeEventListener('resize', scheduleInstructionThemeUpdate);
         };
-    }, [immersive]);
+    }, [immersive, scatteredItems]);
 
     // --- SMART LOADING CONTROLLER ---
     // Gradually release priorities to ensure "Top 30" load before "Buried 30"
@@ -347,18 +648,18 @@ const PolaroidScatter = ({ items, immersive = false, deepLinkParam = '' }) => {
     }, [smartLoadingEnabled]);
 
     // ... handlers ...
-    const handleSelect = (id) => {
+    const handleSelect = useCallback((id) => {
         if (!id) return;
 
         // If something is already selected (lightbox open), 
         // ANY click on a card should just close the lightbox, not switch.
-        if (selectedId) {
+        if (selectedIdRef.current) {
             setSelectedId(null);
             syncDeepLink('');
             return;
         }
 
-        const selectedItem = scatteredItems.find((item) => item.id === id);
+        const selectedItem = scatteredItemsRef.current.find((item) => item.id === id);
         if (selectedItem) {
             const imageUrl = selectedItem.cover_image || selectedItem.image || selectedItem.url;
             if (imageUrl) {
@@ -373,32 +674,35 @@ const PolaroidScatter = ({ items, immersive = false, deepLinkParam = '' }) => {
         // Otherwise open the clicked one
         setSelectedId(id);
         syncDeepLink(id);
-    };
+    }, [syncDeepLink]);
 
-    const handleDragStart = (id) => {
-        const newMax = maxZIndex + 1;
-        setMaxZIndex(newMax);
-        setScatteredItems(prev => {
+    const handleDragStart = useCallback((id) => {
+        let newMax = 0;
+        setMaxZIndex((prev) => {
+            newMax = prev + 1;
+            return newMax;
+        });
+        setScatteredItems((prev) => {
             const next = [...prev];
             const idx = next.findIndex((item) => item.id === id);
             if (idx === -1) return prev;
             next[idx] = { ...next[idx], zIndex: newMax };
             return next;
         });
-    };
+    }, []);
 
-    const handleRotate = (id, deltaRotation) => {
-        setScatteredItems(prev => {
+    const handleRotate = useCallback((id, deltaRotation) => {
+        setScatteredItems((prev) => {
             const next = [...prev];
             const idx = next.findIndex((item) => item.id === id);
             if (idx === -1) return prev;
             next[idx] = { ...next[idx], rotation: next[idx].rotation + deltaRotation };
             return next;
         });
-    };
+    }, []);
 
-    const handleDragEnd = (id, info) => {
-        setScatteredItems(prev => {
+    const handleDragEnd = useCallback((id, _event, info) => {
+        setScatteredItems((prev) => {
             const next = [...prev];
             const idx = next.findIndex((item) => item.id === id);
             if (idx === -1) return prev;
@@ -409,7 +713,7 @@ const PolaroidScatter = ({ items, immersive = false, deepLinkParam = '' }) => {
             };
             return next;
         });
-    };
+    }, []);
 
     // STRICT ID MATCHING ONLY. No slug fallback.
     const maxY = scatteredItems.length > 0 ? Math.max(...scatteredItems.map(i => i.y)) : 2000;
@@ -436,23 +740,18 @@ const PolaroidScatter = ({ items, immersive = false, deepLinkParam = '' }) => {
         [scatteredItems],
     );
 
-    const visibleItems = useMemo(() => {
-        if (!immersive) return scatteredItems;
-        return scatteredItems.filter(
-            (item) => item.y >= visibleRange.top && item.y <= visibleRange.bottom,
-        );
-    }, [immersive, scatteredItems, visibleRange]);
+    const visibleItems = useMemo(() => scatteredItems, [scatteredItems]);
 
-    const handleViewerClose = () => {
+    const handleViewerClose = useCallback(() => {
         setSelectedId(null);
         syncDeepLink('');
-    };
+    }, [syncDeepLink]);
 
-    const handleViewerChange = (id) => {
+    const handleViewerChange = useCallback((id) => {
         if (!id) return;
         setSelectedId(id);
         syncDeepLink(id);
-    };
+    }, [syncDeepLink]);
 
     return (
         // REMOVED 'cutting-mat' class - background is now in parent Astro page for instant load
@@ -466,15 +765,16 @@ const PolaroidScatter = ({ items, immersive = false, deepLinkParam = '' }) => {
                     <PolaroidCard
                         key={item.id} // use strict ID
                         item={item}
+                        itemId={item.id}
                         isSelected={isSelected}
-                        onSelect={() => handleSelect(item.id)} // use strict ID
-                        dragConstraints={containerRef}
-                        onDragStart={() => handleDragStart(item.id)}
-                        onDragEnd={(_, info) => handleDragEnd(item.id, info)}
-                        onRotate={(delta) => handleRotate(item.id, delta)}
+                        onSelect={handleSelect}
+                        onDragStart={handleDragStart}
+                        onDragEnd={handleDragEnd}
+                        onRotate={handleRotate}
                         isDarkBg={isDarkBg}
                         maxPriorityAllowed={maxPriorityAllowed}
                         smartLoadingEnabled={smartLoadingEnabled}
+                        immersive={immersive}
                     />
                 );
             })}
@@ -503,51 +803,160 @@ const PolaroidScatter = ({ items, immersive = false, deepLinkParam = '' }) => {
                     user-select: none;
                 }
                 .polaroid-scatter-container.immersive { overflow: visible; margin-bottom: 0; }
-                
-                /* Removed .cutting-mat and .grid-overlay styles */
+                .polaroid-card {
+                    position: absolute;
+                    width: 300px;
+                    box-sizing: border-box;
+                    background: #fdfdfd;
+                    padding: 18px;
+                    padding-bottom: 85px;
+                    cursor: grab;
+                    border-radius: 2px;
+                    transform-origin: center center;
+                    box-shadow:
+                        1px 2px 4px rgba(60,60,60,0.08),
+                        4px 7px 20px rgba(0,0,0,0.32);
+                    will-change: transform;
+                    touch-action: none;
+                    content-visibility: auto;
+                    contain: layout paint style;
+                    contain-intrinsic-size: 300px 403px;
+                    backface-visibility: hidden;
+                }
+                .polaroid-card:hover {
+                    cursor: pointer;
+                }
+                .polaroid-card:active {
+                    cursor: grabbing;
+                }
+                .polaroid-inner {
+                    position: relative;
+                    width: 100%;
+                    height: 100%;
+                }
+                .image-area {
+                    width: 100%;
+                    aspect-ratio: 1 / 1;
+                    background: #222;
+                    overflow: hidden;
+                    position: relative;
+                }
+                .image-area img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    display: block;
+                    transform: translateZ(0);
+                }
+                .rotation-handle {
+                    position: absolute;
+                    width: 38px;
+                    height: 38px;
+                    z-index: 100;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: crosshair;
+                }
+                .rotation-handle .arrow-container {
+                    position: absolute;
+                    opacity: 0;
+                    transition: opacity 0.2s, transform 0.2s;
+                    pointer-events: none;
+                    transform-origin: center;
+                }
+                .rotation-handle:hover .arrow-container,
+                .rotation-handle.active .arrow-container {
+                    opacity: 1;
+                }
+                .h-top-left { top: -15px; left: -15px; }
+                .h-top-left .arrow-container { top: -25px; left: -25px; transform: rotate(0deg); }
+                .h-top-right { top: -15px; right: -15px; }
+                .h-top-right .arrow-container { top: -25px; right: -25px; transform: rotate(90deg); }
+                .h-bottom-left { bottom: -15px; left: -15px; }
+                .h-bottom-left .arrow-container { bottom: -25px; left: -25px; transform: rotate(270deg); }
+                .h-bottom-right { bottom: -15px; right: -15px; }
+                .h-bottom-right .arrow-container { bottom: -25px; right: -25px; transform: rotate(180deg); }
             `}</style>
         </div>
     );
 };
 
-const PolaroidCard = ({ item, isSelected, onSelect, onDragStart, onDragEnd, onRotate, isDarkBg, maxPriorityAllowed, smartLoadingEnabled }) => {
+const PolaroidCard = memo(function PolaroidCard({
+    item,
+    itemId,
+    isSelected,
+    onSelect,
+    onDragStart,
+    onDragEnd,
+    onRotate,
+    isDarkBg,
+    maxPriorityAllowed,
+    smartLoadingEnabled,
+    immersive = false,
+}) {
     // Track drag state to prevent triggering click (select) after a drag
     const isDraggingRef = useRef(false);
     const isPriorityImage = item?.isCover || item?.priority === 0;
+    const primaryImageSrc = item?.cover_image || item?.image || item?.url || '';
+    const fallbackImageSrc = item?.fallbackImage || '';
+    const [imageSrc, setImageSrc] = useState(primaryImageSrc);
+    const [usedFallback, setUsedFallback] = useState(false);
+    const [isBroken, setIsBroken] = useState(!primaryImageSrc && !fallbackImageSrc);
+    const handleRotateDelta = useCallback((delta) => {
+        onRotate(itemId, delta);
+    }, [itemId, onRotate]);
 
     // --- SMART LOADING CHECK ---
     // If item.priority is undefined, load by default (legacy/fallback).
     // If defined, check against threshold.
     const shouldLoad = !smartLoadingEnabled || (item.priority === undefined) || (item.priority <= maxPriorityAllowed);
 
+    useEffect(() => {
+        const nextPrimary = item?.cover_image || item?.image || item?.url || '';
+        const nextFallback = item?.fallbackImage || '';
+        setImageSrc(nextPrimary || nextFallback);
+        setUsedFallback(false);
+        setIsBroken(!nextPrimary && !nextFallback);
+    }, [item?.cover_image, item?.image, item?.url, item?.fallbackImage, item?.id]);
+
+    const handleImageError = () => {
+        if (!usedFallback && fallbackImageSrc && fallbackImageSrc !== imageSrc) {
+            setImageSrc(fallbackImageSrc);
+            setUsedFallback(true);
+            return;
+        }
+        setIsBroken(true);
+    };
+
+    if (isBroken || !imageSrc) return null;
+
     return (
         <motion.div
             className='polaroid-card'
+            data-polaroid-id={itemId}
             drag
             dragMomentum={false}
-            whileDrag={{ scale: 1.05, zIndex: 9999, cursor: 'grabbing', boxShadow: "0 40px 80px rgba(0,0,0,0.5)" }}
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ x: item.x, y: item.y, rotate: item.rotation, scale: item.scale, zIndex: item.zIndex, opacity: 1, boxShadow: "2px 3px 10px rgba(0,0,0,0.25)" }}
-            transition={{ duration: 0.2 }}
+            whileDrag={{ scale: 1.03, zIndex: 9999, cursor: 'grabbing' }}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ x: item.x, y: item.y, rotate: item.rotation, scale: item.scale, zIndex: item.zIndex, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 26, mass: 0.55 }}
 
             // Handlers
             onDragStart={(e, info) => {
                 isDraggingRef.current = true;
-                onDragStart && onDragStart(e, info);
+                onDragStart && onDragStart(itemId, e, info);
             }}
             onDragEnd={(e, info) => {
                 // Short timeout prevents the immediate 'click' event from firing on release
                 setTimeout(() => { isDraggingRef.current = false; }, 200);
-                onDragEnd && onDragEnd(e, info);
+                onDragEnd && onDragEnd(itemId, e, info);
             }}
-
-            // Use onClick for clicks - standard React event better for stopPropagation
             onClick={(event) => {
                 if (isDraggingRef.current) return; // Ignore if it was a drag
 
-                // STOP PROPAGATION to prevent clicking "through" the card to the container
                 if (event && event.stopPropagation) event.stopPropagation();
-                onSelect();
+                onSelect(itemId);
             }}
         >
             <div className="polaroid-inner">
@@ -555,10 +964,11 @@ const PolaroidCard = ({ item, isSelected, onSelect, onDragStart, onDragEnd, onRo
                     {/* Only render SRC if permitted. Simulates prioritized download queue. */}
                     {shouldLoad ? (
                         <img
-                            src={item.cover_image || item.image || item.url}
+                            src={imageSrc}
                             alt={item.title}
-                            loading={isPriorityImage ? 'eager' : 'lazy'}
-                            decoding={isPriorityImage ? 'sync' : 'async'}
+                            loading={immersive || isPriorityImage ? 'eager' : 'lazy'}
+                            decoding={immersive ? 'async' : isPriorityImage ? 'sync' : 'async'}
+                            onError={handleImageError}
                             draggable="false"
                             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         />
@@ -570,85 +980,14 @@ const PolaroidCard = ({ item, isSelected, onSelect, onDragStart, onDragEnd, onRo
                 </div>
 
                 {/* ROTATION HANDLES - Positioned strictly on white border corners */}
-                <RotationHandle position="top-left" onRotate={onRotate} isDarkBg={isDarkBg} />
-                <RotationHandle position="top-right" onRotate={onRotate} isDarkBg={isDarkBg} />
-                <RotationHandle position="bottom-left" onRotate={onRotate} isDarkBg={isDarkBg} />
-                <RotationHandle position="bottom-right" onRotate={onRotate} isDarkBg={isDarkBg} />
+                <RotationHandle position="top-left" onRotate={handleRotateDelta} isDarkBg={isDarkBg} />
+                <RotationHandle position="top-right" onRotate={handleRotateDelta} isDarkBg={isDarkBg} />
+                <RotationHandle position="bottom-left" onRotate={handleRotateDelta} isDarkBg={isDarkBg} />
+                <RotationHandle position="bottom-right" onRotate={handleRotateDelta} isDarkBg={isDarkBg} />
             </div>
-            <style>{`
-                .polaroid-card {
-                    position: absolute;
-                    width: 300px; /* Standardized width */
-                    box-sizing: border-box; 
-                    background: #fdfdfd; /* Pure white paper */
-                    padding: 18px; padding-bottom: 85px; /* Real 6% side border ratio */
-                    cursor: grab; border-radius: 2px;
-                    transform-origin: center center;
-                    
-                    /* Real 3D Stuff: Deeper, darker shadow for lift */
-                    box-shadow: 
-                        1px 2px 4px rgba(60,60,60,0.1), /* Ambient contact shadow */
-                        5px 8px 24px rgba(0,0,0,0.5); /* Deep lift shadow */
-                        
-                    /* Hardware accel */
-                    will-change: transform;
-                    touch-action: none;
-                }
-                .polaroid-card:hover {
-                    cursor: pointer;
-                }
-                .polaroid-card:active {
-                    cursor: grabbing;
-                }
-
-                .polaroid-inner { position: relative; width: 100%; height: 100%; }
-                .image-area { width: 100%; aspect-ratio: 1/1; background: #222; overflow: hidden; position: relative; }
-                .image-area img { width: 100%; height: 100%; object-fit: cover; }
-
-                /* ROTATION HANDLE STYLES */
-                .rotation-handle {
-                    position: absolute;
-                    /* Smaller hit area, push it to the absolute tips */
-                    width: 38px;
-                    height: 38px;
-                    z-index: 100;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    cursor: crosshair; /* Fallback but mostly hidden */
-                }
-                
-                .rotation-handle .arrow-container {
-                    position: absolute;
-                    opacity: 0;
-                    transition: opacity 0.2s, transform 0.2s;
-                    pointer-events: none;
-                    transform-origin: center;
-                }
-
-                /* Show arrows only on corner interaction */
-                .rotation-handle:hover .arrow-container,
-                .rotation-handle.active .arrow-container {
-                    opacity: 1;
-                }
-
-                /* Positioning handles strictly at the corners. 
-                   Pushing them out even more to be "outside" the card. */
-                .h-top-left { top: -15px; left: -15px; }
-                .h-top-left .arrow-container { top: -25px; left: -25px; transform: rotate(0deg); }
-                
-                .h-top-right { top: -15px; right: -15px; }
-                .h-top-right .arrow-container { top: -25px; right: -25px; transform: rotate(90deg); }
-                
-                .h-bottom-left { bottom: -15px; left: -15px; }
-                .h-bottom-left .arrow-container { bottom: -25px; left: -25px; transform: rotate(270deg); }
-                
-                .h-bottom-right { bottom: -15px; right: -15px; }
-                .h-bottom-right .arrow-container { bottom: -25px; right: -25px; transform: rotate(180deg); }
-            `}</style>
         </motion.div>
     );
-};
+});
 
 // SVG for the double-headed curved arrow (Photoshop style)
 const CurvedArrow = ({ isDarkBg }) => (

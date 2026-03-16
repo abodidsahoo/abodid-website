@@ -132,6 +132,8 @@ const videoUrl = "/videos/showreel-2025.mp4";
             "icon-exit-fullscreen",
         );
         let userPausedVideo = false;
+        let lastFinePointerPosition = null;
+        const playbackTogglePointerOffsetY = 12;
 
         if (!container || !video) return;
 
@@ -159,7 +161,7 @@ const videoUrl = "/videos/showreel-2025.mp4";
             const horizontalPadding = buttonWidth / 2 + 16;
             const verticalPadding = buttonHeight / 2 + 16;
             const relativeX = clientX - rect.left;
-            const relativeY = clientY - rect.top;
+            const relativeY = clientY - rect.top - playbackTogglePointerOffsetY;
             const clampedX = Math.min(
                 Math.max(relativeX, horizontalPadding),
                 rect.width - horizontalPadding,
@@ -203,8 +205,36 @@ const videoUrl = "/videos/showreel-2025.mp4";
             }
         };
 
+        const syncPlaybackToggleToPointer = () => {
+            if (!lastFinePointerPosition) {
+                hidePlaybackToggle();
+                return;
+            }
+
+            if (
+                !isPointerInsideContainer(
+                    lastFinePointerPosition.clientX,
+                    lastFinePointerPosition.clientY,
+                )
+            ) {
+                hidePlaybackToggle();
+                return;
+            }
+
+            setPointerInside(true);
+            updatePlaybackTogglePosition(
+                lastFinePointerPosition.clientX,
+                lastFinePointerPosition.clientY,
+            );
+        };
+
         const handlePointerUpdate = (event) => {
             if (event.pointerType === "touch") return;
+
+            lastFinePointerPosition = {
+                clientX: event.clientX,
+                clientY: event.clientY,
+            };
 
             if (!isPointerInsideContainer(event.clientX, event.clientY)) {
                 hidePlaybackToggle();
@@ -219,18 +249,36 @@ const videoUrl = "/videos/showreel-2025.mp4";
 
         container.addEventListener("pointerenter", handlePointerUpdate);
         container.addEventListener("pointermove", handlePointerUpdate);
-        container.addEventListener("pointerleave", hidePlaybackToggle);
-        container.addEventListener("mouseleave", hidePlaybackToggle);
+        container.addEventListener("pointerleave", () => {
+            lastFinePointerPosition = null;
+            hidePlaybackToggle();
+        });
+        container.addEventListener("mouseleave", () => {
+            lastFinePointerPosition = null;
+            hidePlaybackToggle();
+        });
 
         document.addEventListener("pointermove", (event) => {
             if (event.pointerType === "touch") return;
+
+            lastFinePointerPosition = {
+                clientX: event.clientX,
+                clientY: event.clientY,
+            };
 
             if (!isPointerInsideContainer(event.clientX, event.clientY)) {
                 hidePlaybackToggle();
             }
         });
 
-        window.addEventListener("blur", hidePlaybackToggle);
+        window.addEventListener("scroll", syncPlaybackToggleToPointer, {
+            passive: true,
+        });
+        window.addEventListener("resize", syncPlaybackToggleToPointer);
+        window.addEventListener("blur", () => {
+            lastFinePointerPosition = null;
+            hidePlaybackToggle();
+        });
 
         if (playbackToggleBtn) {
             playbackToggleBtn.addEventListener("click", (event) => {

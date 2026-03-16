@@ -1,7 +1,7 @@
 -- Insert research projects into Supabase
--- This will add 5 key research projects to your CMS
+-- This will add 4 key research projects to your CMS
 
--- Insert only the 5 key research projects
+-- Insert only the 4 key research projects
 -- These lead to explanation pages first, which then have buttons to launch experiments
 INSERT INTO research (title, description, slug, cover_image, tags, published, visible, sort_order)
 VALUES
@@ -41,19 +41,7 @@ VALUES
         3
     ),
     
-    -- 4. LLM-based Chatbot (this IS the experiment page directly)
-    (
-        'LLM-based Chatbot',
-        'Experimenting with OpenRouter API to build an internal chatbot trained on my research papers and creative work. Using selective free-tier models to create AI-driven tools for analyzing social data.',
-        'llm-chatbot',
-        'https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&q=80&w=1000',
-        ARRAY['OpenRouter API', 'AI Tools', 'In Progress'],
-        true,
-        true,
-        4
-    ),
-    
-    -- 5. Do ghosts feel jealous? (explanation page exists with "Go through the body of work" button)
+    -- 4. Do ghosts feel jealous? (explanation page exists with "Go through the body of work" button)
     (
         'Do ghosts feel jealous if you miss the living ones more than them?',
         'Blurring the lines between the living and the dead, this project was a way to decode my minute emotional gestures around the dissonance between absence and presence.',
@@ -62,7 +50,7 @@ VALUES
         ARRAY['Photography', 'Writing', 'Performance', 'Film'],
         true,
         true,
-        5
+        4
     )
 
 ON CONFLICT (slug) DO UPDATE SET
@@ -73,6 +61,9 @@ ON CONFLICT (slug) DO UPDATE SET
     published = EXCLUDED.published,
     visible = EXCLUDED.visible,
     sort_order = EXCLUDED.sort_order;
+
+DELETE FROM research
+WHERE slug = 'llm-chatbot';
 
 -- Verify the data was inserted
 SELECT id, title, slug, visible, sort_order FROM research ORDER BY sort_order;

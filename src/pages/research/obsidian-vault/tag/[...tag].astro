@@ -28,18 +28,34 @@ const pageTitle = `Tag: ${activeTagName}`;
                 data-tag-name={activeTagName}
                 data-tag-slug={activeTagSlug}
             >
-                <div class="tag-search-console is-searching" aria-live="polite">
-                    <p class="search-line search-line-main" data-search-main>
-                        Preparing vault scan
-                    </p>
-                    <p class="search-line search-line-sub" data-search-sub>
-                        Loading note index and references...
-                    </p>
-                </div>
+                <div class="results-rail">
+                    <div class="tag-search-console is-searching" aria-live="polite">
+                        <p class="search-line search-line-main" data-search-main>
+                            Preparing vault scan
+                        </p>
+                        <p class="search-line search-line-sub" data-search-sub>
+                            Loading note index and references...
+                        </p>
+                    </div>
 
-                <div class="notes-column-preview">
-                    <div class="vault-list" data-results-list>
-                        <p class="search-pending">Waiting for vault scan...</p>
+                    <div
+                        class="search-results-divider"
+                        data-results-divider
+                        aria-hidden="true"
+                    ></div>
+
+                    <div class="results-section-heading" aria-hidden="true">
+                        <h2 data-results-heading>Notes</h2>
+                    </div>
+
+                    <div class="notes-column-preview">
+                        <div class="vault-list" data-results-list>
+                            <p class="search-pending">Waiting for vault scan...</p>
+                        </div>
+                    </div>
+
+                    <div class="results-end-nav">
+                        <a href="/research/obsidian-vault" class="back-pill">← Back to Vault</a>
                     </div>
                 </div>
             </div>
@@ -48,9 +64,28 @@ const pageTitle = `Tag: ${activeTagName}`;
 </BaseLayout>
 
 <script>
-    document.addEventListener("DOMContentLoaded", () => {
+    (() => {
+        let activeRunToken = 0;
+        let activeController = null;
+        let lastStartedAt = 0;
+
+        const SEARCH_TIMEOUT_MS = 9000;
+        const RETRY_LOCK_MS = 1200;
+
+        const createRetryMarkup = (message) => `
+            <div class="search-retry-card result-reveal is-visible">
+                <p class="search-retry-card__text">${message}</p>
+                <button class="search-retry-card__button" type="button" data-search-retry>
+                    Search again
+                </button>
+            </div>
+        `;
+
+        const initTagSearch = () => {
         const tagView = document.querySelector("[data-tag-view]");
         if (!tagView) return;
+        if (tagView.dataset.searchInitialized === "true") return;
+        tagView.dataset.searchInitialized = "true";
 
         const tagName = tagView.getAttribute("data-tag-name") || "this tag";
         const tagSlug = tagView.getAttribute("data-tag-slug") || "";
@@ -58,6 +93,7 @@ const pageTitle = `Tag: ${activeTagName}`;
         const mainLine = tagView.querySelector("[data-search-main]");
         const subLine = tagView.querySelector("[data-search-sub]");
         const searchConsole = tagView.querySelector(".tag-search-console");
+        const resultsHeading = tagView.querySelector("[data-results-heading]");
 
         const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -66,17 +102,25 @@ const pageTitle = `Tag: ${activeTagName}`;
             if (subLine) subLine.textContent = sub;
         };
 
+        const updateResultsHeading = (count) => {
+            if (!resultsHeading) return;
+            resultsHeading.textContent = `Notes [${count}]`;
+        };
+
         const renderResults = (notes) => {
             if (!listNode) return [];
             listNode.innerHTML = "";
 
             if (!notes.length) {
+                updateResultsHeading(0);
                 const empty = document.createElement("p");
                 empty.className = "no-results result-reveal";
                 empty.textContent = "No notes found referencing this tag.";
                 listNode.appendChild(empty);
                 return [empty];
             }
+
+            updateResultsHeading(notes.length);
 
             const nodes = notes.map((note, index) => {
                 const card = document.createElement("a");
@@ -98,10 +142,46 @@ const pageTitle = `Tag: ${activeTagName}`;
             return nodes;
         };
 
-        const run = async () => {
+        const setRetryState = (message) => {
+            if (!listNode) return;
+            updateResultsHeading(0);
+            listNode.innerHTML = createRetryMarkup(message);
+            const retryButton = listNode.querySelector("[data-search-retry]");
+            if (retryButton) {
+                retryButton.addEventListener("click", () => {
+                    run({ force: true });
+                }, { once: true });
+            }
+        };
+
+        const resetPendingState = () => {
+            if (!listNode) return;
+            listNode.innerHTML = '<p class="search-pending">Waiting for vault scan...</p>';
+        };
+
+        const run = async ({ force = false } = {}) => {
+            const now = Date.now();
+            if (!force && now - lastStartedAt < RETRY_LOCK_MS) return;
+            lastStartedAt = now;
+
+            const runToken = ++activeRunToken;
             let statusTimer = null;
 
+            if (activeController) {
+                activeController.abort();
+            }
+
+            const controller = new AbortController();
+            activeController = controller;
+            const timeoutId = window.setTimeout(() => {
+                controller.abort("timeout");
+            }, SEARCH_TIMEOUT_MS);
+
+            tagView.classList.add("is-animating");
+            tagView.classList.remove("is-complete");
             if (searchConsole) searchConsole.classList.add("is-searching");
+            resetPendingState();
+            updateResultsHeading("...");
 
             updateLines(
                 `Searching tag "${tagName}"...`,
@@ -135,31 +215,44 @@ const pageTitle = `Tag: ${activeTagName}`;
             try {
                 const response = await fetch(
                     `/api/vault-tag-search.json?tag=${encodeURIComponent(tagSlug || tagName)}`,
-                    { cache: "no-store" },
+                    { cache: "no-store", signal: controller.signal },
                 );
                 payload = await response.json();
                 if (!response.ok || !payload?.ok) {
                     fetchError = payload?.error || "Search failed.";
                 }
             } catch (error) {
-                fetchError = "Network error while searching the vault.";
+                fetchError = error?.name === "AbortError"
+                    ? "Search took too long."
+                    : "Network error while searching the vault.";
+            } finally {
+                window.clearTimeout(timeoutId);
             }
 
             if (statusTimer) window.clearInterval(statusTimer);
+            if (runToken !== activeRunToken) return;
 
             if (searchConsole) searchConsole.classList.remove("is-searching");
+            activeController = null;
 
             if (fetchError) {
-                updateLines("Search failed.", fetchError);
-                if (listNode) {
-                    listNode.innerHTML =
-                        '<p class="no-results result-reveal is-visible">Please retry in a moment.</p>';
-                }
+                updateLines(
+                    fetchError === "Search took too long." ? "Search paused." : "Search failed.",
+                    fetchError === "Search took too long."
+                        ? "The vault scan stalled. You can run the search again."
+                        : fetchError,
+                );
+                setRetryState(
+                    fetchError === "Search took too long."
+                        ? "The search seems stuck. Try running it again."
+                        : "The search hit a network problem. Please try again."
+                );
                 return;
             }
 
             const notes = Array.isArray(payload?.notes) ? payload.notes : [];
             const noteCount = typeof payload?.count === "number" ? payload.count : notes.length;
+            updateResultsHeading(noteCount);
 
             updateLines(
                 "Search complete.",
@@ -167,6 +260,7 @@ const pageTitle = `Tag: ${activeTagName}`;
                     ? `No matches found for "${tagName}".`
                     : `Found ${noteCount} ${noteCount === 1 ? "note" : "notes"} with "${tagName}".`,
             );
+            tagView.classList.add("is-complete");
 
             await pause(180);
 
@@ -184,24 +278,45 @@ const pageTitle = `Tag: ${activeTagName}`;
         };
 
         run();
-    });
+
+        window.addEventListener("pageshow", (event) => {
+            if (event.persisted) {
+                run({ force: true });
+            }
+        });
+    };
+
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", initTagSearch, { once: true });
+        } else {
+            initTagSearch();
+        }
+    })();
 </script>
 
 <style>
     :root {
         --vault-pill-bg: rgba(0, 0, 0, 0.18);
         --vault-pill-hover-bg: rgba(0, 0, 0, 0.26);
+        --vault-note-pattern-dot: rgba(255, 255, 255, 0.08);
+        --vault-note-sheen: rgba(255, 255, 255, 0.03);
     }
 
     [data-theme="light"] {
         --vault-pill-bg: rgba(255, 255, 255, 0.84);
         --vault-pill-hover-bg: rgba(255, 255, 255, 0.95);
+        --vault-note-pattern-dot: rgba(15, 23, 42, 0.08);
+        --vault-note-sheen: rgba(255, 255, 255, 0.58);
     }
 
     .note-container {
         max-width: 800px;
         margin: 0 auto;
         padding: 2rem 1rem;
+    }
+
+    .results-rail {
+        width: min(100%, 34rem);
     }
 
     .note-nav {
@@ -217,10 +332,11 @@ const pageTitle = `Tag: ${activeTagName}`;
         border: 1px solid var(--border-subtle);
         border-radius: 999px;
         background: var(--bg-canvas);
-        color: var(--text-tertiary);
+        color: color-mix(in srgb, var(--text-primary) 74%, var(--text-secondary) 26%);
         text-decoration: none;
         font-size: 0.78rem;
         font-family: var(--font-ui);
+        font-weight: 550;
         letter-spacing: 0.05em;
         text-transform: uppercase;
         transition: color 0.2s, border-color 0.2s, background 0.2s, transform 0.2s;
@@ -244,7 +360,6 @@ const pageTitle = `Tag: ${activeTagName}`;
         border-radius: 10px;
         background: var(--bg-canvas);
         padding: 0.95rem 1rem;
-        margin-bottom: 1.1rem;
         display: grid;
         gap: 0.25rem;
     }
@@ -303,6 +418,56 @@ const pageTitle = `Tag: ${activeTagName}`;
         padding: 0;
     }
 
+    .results-end-nav {
+        display: flex;
+        justify-content: center;
+        margin-top: 4rem;
+        margin-bottom: 2.75rem;
+        padding-top: 0.75rem;
+    }
+
+    .results-section-heading {
+        margin: 0 0 2rem;
+        opacity: 0;
+        transform: translateY(6px);
+        transition:
+            opacity 0.24s ease,
+            transform 0.24s ease;
+        pointer-events: none;
+    }
+
+    .results-section-heading h2 {
+        margin: 0;
+        font-size: 1.2rem;
+        text-transform: uppercase;
+        color: #9aa6bf;
+        letter-spacing: 1px;
+        font-weight: 500;
+    }
+
+    .search-results-divider {
+        width: 100%;
+        height: 0;
+        margin: 0;
+        background: rgba(255, 255, 255, 0.94);
+        opacity: 0;
+        transition:
+            height 0.24s ease,
+            margin 0.24s ease,
+            opacity 0.24s ease;
+    }
+
+    .tag-results.is-complete .search-results-divider {
+        height: 3px;
+        margin: 2rem 0 2rem;
+        opacity: 1;
+    }
+
+    .tag-results.is-complete .results-section-heading {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
     .vault-list {
         display: flex;
         flex-direction: column;
@@ -317,28 +482,58 @@ const pageTitle = `Tag: ${activeTagName}`;
         padding: 0.95rem 1rem;
         font-size: 0.82rem;
         font-family: var(--font-ui);
+        background: rgba(255, 255, 255, 0.02);
     }
 
-    .note-card {
+    /* Result cards are injected client-side, so their selectors need to stay global. */
+    :global(.tag-results .note-card) {
         display: block;
+        position: relative;
+        overflow: hidden;
+        isolation: isolate;
         padding: 1.2rem;
         border-radius: 8px;
         text-decoration: none;
         color: var(--text-primary);
-        transition: transform 0.2s, background 0.2s;
+        transition: transform 0.2s, background 0.2s, border-color 0.2s;
         border: 1px solid var(--border-subtle);
-        background: var(--vault-pill-bg);
+        background:
+            linear-gradient(135deg, var(--vault-note-sheen), transparent 48%),
+            var(--vault-pill-bg);
         width: 100%;
         margin-bottom: 0;
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
     }
 
-    .note-card:hover {
+    :global(.tag-results .note-card::before) {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        opacity: 0.32;
+        background-image:
+            radial-gradient(circle, var(--vault-note-pattern-dot) 0.8px, transparent 0.9px);
+        background-size: 10px 10px;
+        background-position: 0 0;
+        -webkit-mask-image: linear-gradient(112deg, transparent 0%, rgba(0, 0, 0, 0.42) 30%, rgba(0, 0, 0, 0.92) 100%);
+        mask-image: linear-gradient(112deg, transparent 0%, rgba(0, 0, 0, 0.42) 30%, rgba(0, 0, 0, 0.92) 100%);
+    }
+
+    :global(.tag-results .note-card:hover) {
         transform: translateX(4px);
-        background: var(--vault-pill-hover-bg);
+        background:
+            linear-gradient(135deg, var(--vault-note-sheen), transparent 48%),
+            var(--vault-pill-hover-bg);
         border-color: var(--text-secondary);
     }
 
-    .note-info h3 {
+    :global(.tag-results .note-info) {
+        position: relative;
+        z-index: 1;
+    }
+
+    :global(.tag-results .note-info h3) {
         font-family: var(--feature-obsidian-note-title-font, var(--font-display));
         font-weight: var(--feature-obsidian-note-title-weight, 500);
         font-size: var(--feature-obsidian-note-title-size, 1rem);
@@ -349,19 +544,19 @@ const pageTitle = `Tag: ${activeTagName}`;
         text-transform: capitalize;
     }
 
-    .result-reveal {
+    :global(.tag-results .result-reveal) {
         opacity: 1;
         transform: translateY(0);
         filter: none;
     }
 
-    .tag-results.is-animating .result-reveal {
+    :global(.tag-results.is-animating .result-reveal) {
         opacity: 0;
         transform: translateY(10px);
         filter: blur(1px);
     }
 
-    .tag-results.is-animating .result-reveal.is-visible {
+    :global(.tag-results.is-animating .result-reveal.is-visible) {
         opacity: 1;
         transform: translateY(0);
         filter: none;
@@ -371,15 +566,57 @@ const pageTitle = `Tag: ${activeTagName}`;
             filter 0.45s ease;
     }
 
-    .no-results {
+    :global(.tag-results .no-results) {
         margin: 0;
         color: var(--text-secondary);
         border: 1px solid var(--border-subtle);
         border-radius: 8px;
-        background: var(--bg-canvas);
+        background:
+            linear-gradient(135deg, var(--vault-note-sheen), transparent 48%),
+            var(--vault-pill-bg);
         padding: 1rem;
         font-family: var(--font-ui);
         font-size: 0.86rem;
+    }
+
+    :global(.tag-results .search-retry-card) {
+        display: grid;
+        gap: 0.9rem;
+        margin: 0;
+        padding: 1rem;
+        border: 1px solid var(--border-subtle);
+        border-radius: 8px;
+        background:
+            linear-gradient(135deg, var(--vault-note-sheen), transparent 48%),
+            var(--vault-pill-bg);
+    }
+
+    :global(.tag-results .search-retry-card__text) {
+        margin: 0;
+        color: var(--text-secondary);
+        font-family: var(--font-ui);
+        font-size: 0.86rem;
+    }
+
+    :global(.tag-results .search-retry-card__button) {
+        justify-self: start;
+        border: 1px solid var(--border-subtle);
+        border-radius: 999px;
+        background: var(--bg-canvas);
+        color: var(--text-primary);
+        padding: 0.55rem 0.95rem;
+        font-family: var(--font-ui);
+        font-size: 0.8rem;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+    }
+
+    :global(.tag-results .search-retry-card__button:hover) {
+        border-color: var(--text-secondary);
+        background: var(--bg-surface);
+        transform: translateY(-1px);
     }
 
     @media (max-width: 1100px) {

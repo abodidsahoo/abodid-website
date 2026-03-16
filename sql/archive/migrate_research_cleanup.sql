@@ -4,7 +4,7 @@
 -- This script will:
 -- 1. Add visibility column (if not exists)
 -- 2. Remove redundant href column
--- 3. Insert/update the 5 key research projects
+-- 3. Insert/update the 4 key research projects
 -- 4. Set correct slugs that match your Astro pages
 -- ============================================
 
@@ -25,7 +25,7 @@ DROP COLUMN IF EXISTS href;
 -- First, delete all existing research projects to start fresh
 TRUNCATE TABLE research;
 
--- Step 5: Insert the 5 key research projects with correct slugs
+-- Step 5: Insert the 4 key research projects with correct slugs
 INSERT INTO research (title, description, slug, cover_image, tags, published, visible, sort_order)
 VALUES
     -- 1. Polaroids Table (experiment page)
@@ -64,19 +64,7 @@ VALUES
         3
     ),
     
-    -- 4. LLM-based Chatbot (experiment page)
-    (
-        'LLM-based Chatbot',
-        'Experimenting with OpenRouter API to build an internal chatbot trained on my research papers and creative work. Using selective free-tier models to create AI-driven tools for analyzing social data.',
-        'llm-chatbot',
-        'https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&q=80&w=1000',
-        ARRAY['OpenRouter API', 'AI Tools', 'In Progress'],
-        true,
-        true,
-        4
-    ),
-    
-    -- 5. Do Ghosts Feel Jealous? (explanation page → launches external case study)
+    -- 4. Do Ghosts Feel Jealous? (explanation page → launches external case study)
     (
         'Do ghosts feel jealous if you miss the living ones more than them?',
         'Blurring the lines between the living and the dead, this project was a way to decode my minute emotional gestures around the dissonance between absence and presence.',
@@ -85,8 +73,11 @@ VALUES
         ARRAY['Photography', 'Writing', 'Performance', 'Film'],
         true,
         true,
-        5
+        4
     );
+
+DELETE FROM research
+WHERE slug = 'llm-chatbot';
 
 -- Step 6: Verify the changes
 SELECT 
@@ -102,7 +93,7 @@ ORDER BY sort_order;
 -- ============================================
 -- Summary of URL Structure:
 -- ============================================
--- ALL 5 projects in the research gallery are EXPLANATION PAGES
+-- ALL 4 projects in the research gallery are EXPLANATION PAGES
 -- Each explanation page has a button/link to launch the actual experiment
 -- 
 -- Card clicks go to: /research/{slug}
@@ -118,16 +109,12 @@ ORDER BY sort_order;
 --     - "Explore the old version →" to /research/invisible-punctum
 --     - "Explore new version (Gamified) →" to /research/invisible-punctum-game)
 -- 
--- 4. llm-chatbot → /research/llm-chatbot
---    (Explanation page with "Launch the experiment →" button to /llm-testing)
--- 
--- 5. do-ghosts-feel-jealous → /research/do-ghosts-feel-jealous
+-- 4. do-ghosts-feel-jealous → /research/do-ghosts-feel-jealous
 --    (Explanation page with "Go through the body of work →" button to www.whydidyoucry.com)
 -- 
 -- Hidden experiments (not shown in research gallery, only accessible via launch buttons):
 -- - /research/obsidian-vault (Obsidian vault experiment)
 -- - /research/invisible-punctum (Old version of Invisible Punctum)
 -- - /research/invisible-punctum-game (Gamified version of Invisible Punctum)
--- - /llm-testing (LLM chatbot experiment)
 -- - www.whydidyoucry.com (External case study)
 -- ============================================

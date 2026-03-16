@@ -3,17 +3,28 @@ import { isSupabaseConfigured } from './utils';
 import type { Project, PhotographyProject, BlogPost, Film, ResearchPaper, WorkExperience, ServiceItem } from './types';
 import { featuredPhotography as mockPhotography, recentPosts as mockPosts } from '../../utils/mockData';
 
+const normalizeImageUrl = (value: unknown): string =>
+    typeof value === 'string' ? value.trim() : '';
+
+const normalizeGalleryImages = (value: unknown): string[] =>
+    Array.isArray(value)
+        ? value
+              .map((entry: any) =>
+                  typeof entry === 'string'
+                      ? normalizeImageUrl(entry)
+                      : normalizeImageUrl(entry?.url),
+              )
+              .filter(Boolean)
+        : [];
+
+const isRemovedResearchProject = (project: Partial<Project> & { slug?: string; title?: string }) => {
+    const slug = (project.slug || '').toLowerCase();
+    const title = (project.title || '').toLowerCase();
+    return slug === 'llm-chatbot' || title === 'llm-based chatbot';
+};
+
 // Mock Data for Research (from api.js)
 const mockResearchProjects: Project[] = [
-    {
-        title: "LLM-based Chatbot",
-        description: "Experimenting with OpenRouter API to build an internal chatbot trained on my research papers and creative work. Using selective free-tier models to create AI-driven tools for analyzing social data.",
-        slug: "llm-chatbot",
-        href: "/research/llm-chatbot",
-        image: "https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&q=80&w=1000",
-        tags: ["OpenRouter API", "AI Tools", "In Progress"],
-        published: true,
-    },
     {
         title: "Polaroid Hub",
         description: "An interactive photo arrangement experiment—handle photographs like physical objects, sequence them on a digital table, and feel how their order changes meaning. A stepping stone for designing photo books.",
@@ -82,7 +93,7 @@ const mockResearchProjects: Project[] = [
 // --- Research ---
 export async function getResearchProjects(): Promise<Project[]> {
     if (!isSupabaseConfigured() || !supabase) {
-        return mockResearchProjects;
+        return mockResearchProjects.filter((project) => !isRemovedResearchProject(project));
     }
 
     const { data, error } = await supabase
@@ -94,22 +105,24 @@ export async function getResearchProjects(): Promise<Project[]> {
 
     if (error || !data || data.length === 0) {
         console.warn("Using mock research data due to DB error or empty table:", error);
-        return mockResearchProjects;
+        return mockResearchProjects.filter((project) => !isRemovedResearchProject(project));
     }
 
-    return data.map((p: any) => {
-        const normalizedSlug =
-            p.slug === 'invisible-punctum-explanation'
-                ? 'invisible-punctum'
-                : p.slug;
-        return {
-            ...p,
-            slug: normalizedSlug,
-            href: `/research/${normalizedSlug}`,
-            tags: Array.isArray(p.tags) ? p.tags : (p.tags ? p.tags.split(',') : []),
-            image: p.cover_image
-        };
-    });
+    return data
+        .map((p: any) => {
+            const normalizedSlug =
+                p.slug === 'invisible-punctum-explanation'
+                    ? 'invisible-punctum'
+                    : p.slug;
+            return {
+                ...p,
+                slug: normalizedSlug,
+                href: `/research/${normalizedSlug}`,
+                tags: Array.isArray(p.tags) ? p.tags : (p.tags ? p.tags.split(',') : []),
+                image: p.cover_image
+            };
+        })
+        .filter((project) => !isRemovedResearchProject(project));
 }
 
 export async function getProjects(): Promise<Project[]> {
@@ -126,25 +139,27 @@ export async function getProjects(): Promise<Project[]> {
         return [];
     }
 
-    return data.map((p: any) => {
-        const normalizedSlug =
-            p.slug === 'invisible-punctum-explanation'
-                ? 'invisible-punctum'
-                : p.slug;
-        return {
-            title: p.title,
-            description: p.description,
-            tags: p.tags || [],
-            href:
-                normalizedSlug === 'obsidian-vault'
-                    ? '/research/obsidian-vault'
-                    : `/research/${normalizedSlug}`,
-            link: p.link || p.repo_link,
-            slug: normalizedSlug,
-            image: p.cover_image,
-            published: p.published
-        } as Project;
-    });
+    return data
+        .map((p: any) => {
+            const normalizedSlug =
+                p.slug === 'invisible-punctum-explanation'
+                    ? 'invisible-punctum'
+                    : p.slug;
+            return {
+                title: p.title,
+                description: p.description,
+                tags: p.tags || [],
+                href:
+                    normalizedSlug === 'obsidian-vault'
+                        ? '/research/obsidian-vault'
+                        : `/research/${normalizedSlug}`,
+                link: p.link || p.repo_link,
+                slug: normalizedSlug,
+                image: p.cover_image,
+                published: p.published
+            } as Project;
+        })
+        .filter((project) => !isRemovedResearchProject(project));
 }
 
 export async function getProjectBySlug(slug: string): Promise<Project | null> {
@@ -183,7 +198,7 @@ export async function getFeaturedPhotography(): Promise<PhotographyProject[]> {
     return data.map((project: any) => ({
         title: project.title,
         category: project.category,
-        image: project.cover_image,
+        image: normalizeImageUrl(project.cover_image),
         href: `/photography/${project.slug}`,
         slug: project.slug,
         published: project.published
@@ -208,9 +223,9 @@ export async function getAllPhotography(): Promise<PhotographyProject[]> {
     return data.map((project: any) => ({
         title: project.title,
         category: project.category,
-        image: project.cover_image,
+        image: normalizeImageUrl(project.cover_image),
         tags: project.tags || [],
-        images: (project.gallery_images || []).map((p: any) => p.url),
+        images: normalizeGalleryImages(project.gallery_images),
         href: `/photography/${project.slug}`,
         slug: project.slug,
         published: project.published
@@ -232,8 +247,8 @@ export async function getPhotographyBySlug(slug: string): Promise<PhotographyPro
 
     return {
         ...project,
-        image: project.cover_image,
-        images: photos.map((p: any) => p.url)
+        image: normalizeImageUrl(project.cover_image),
+        images: normalizeGalleryImages(photos)
     } as PhotographyProject;
 }
 

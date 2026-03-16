@@ -27,18 +27,23 @@ function hashString(value) {
     return (hash >>> 0).toString(36);
 }
 
+function normalizeImageUrl(value) {
+    return typeof value === "string" ? value.trim() : "";
+}
+
 // Flatten into a single list of EVERY image
 let allImages = [];
 
 portfolioProjects.forEach((project) => {
     const projectKey = project.slug || project.title || 'project';
+    const coverImage = normalizeImageUrl(project.image);
     // Add cover image
-    if (project.image) {
-        const stableId = `polaroid-${hashString(`${projectKey}:cover:${project.image}`)}`;
+    if (coverImage) {
+        const stableId = `polaroid-${hashString(`${projectKey}:cover:${coverImage}`)}`;
         allImages.push({
             id: stableId,
             title: project.title,
-            image: project.image,
+            image: coverImage,
             slug: project.slug,
             link: project.href,
             isCover: true, // Priority Flag
@@ -46,12 +51,16 @@ portfolioProjects.forEach((project) => {
     }
     // Add gallery images
     if (project.images && project.images.length > 0) {
-        project.images.forEach((imgUrl, idx) => {
-            const stableId = `polaroid-${hashString(`${projectKey}:gallery:${imgUrl}`)}`;
+        project.images.forEach((imgUrl) => {
+            const normalizedImage = normalizeImageUrl(imgUrl);
+            if (!normalizedImage) return;
+
+            const stableId = `polaroid-${hashString(`${projectKey}:gallery:${normalizedImage}`)}`;
             allImages.push({
                 id: stableId,
                 title: project.title,
-                image: imgUrl,
+                image: normalizedImage,
+                fallbackImage: coverImage || undefined,
                 slug: project.slug,
                 link: project.href,
                 isCover: false,
@@ -70,7 +79,13 @@ const pageTitle = "Polaroid Hub - Polaroid Scatter";
 ---
 
 <BaseLayout title={pageTitle} hideHeader={true} fullWidth={true}>
-    <a href="/" class="home-button">Home</a>
+    <div class="hub-controls">
+        <a href="/" class="home-button">Home</a>
+        <div class="hub-instructions" aria-label="How to use Polaroid Hub">
+            <p>Click and drag to uncover more portraits beneath the stack.</p>
+            <p>Click any photograph to enlarge it and view its color palette.</p>
+        </div>
+    </div>
 
     <ThemeWidget client:idle />
     <main class="polaroid-hub-immersive">
@@ -180,22 +195,95 @@ const pageTitle = "Polaroid Hub - Polaroid Scatter";
     }
 
     .home-button {
-        position: fixed;
-        top: 2rem;
-        right: 2rem;
-        z-index: 1000;
-        background: #fff;
-        color: #000;
-        padding: 0.5rem 1rem;
-        font-family: var(--font-ui);
+        display: inline-block;
+        background: var(--polaroid-hub-control-bg, rgba(10, 10, 10, 0.18));
+        color: var(--polaroid-hub-control-text, rgba(255, 255, 255, 0.92));
+        padding: 0.8rem 1.2rem;
+        font-family: var(--font-mono);
         text-decoration: none;
-        font-weight: bold;
-        border-radius: 4px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-        transition: transform 0.2s;
+        font-weight: 400;
+        font-size: 0.95rem;
+        line-height: 1.1;
+        border-radius: 6px;
+        border: 1px solid
+            var(--polaroid-hub-control-border, rgba(255, 255, 255, 0.34));
+        box-shadow: var(--polaroid-hub-control-shadow, 0 4px 16px rgba(0, 0, 0, 0.16));
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        transition:
+            transform 0.2s ease,
+            border-color 0.2s ease;
     }
 
     .home-button:hover {
-        transform: scale(1.05);
+        transform: translateY(-2px);
+        border-color: var(--polaroid-hub-control-text, rgba(255, 255, 255, 0.92));
+    }
+
+    .hub-controls {
+        position: fixed;
+        top: 2rem;
+        left: 2rem;
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.65rem;
+        max-width: min(20rem, calc(100vw - 4rem));
+    }
+
+    .hub-instructions {
+        margin-left: 0;
+        padding: 0.72rem 0.85rem 0.78rem;
+        position: relative;
+        overflow: hidden;
+        isolation: isolate;
+        background: transparent;
+        color: rgba(255, 255, 255, 0.92);
+        font-family: var(--font-mono);
+        font-size: 0.52rem;
+        line-height: 1.42;
+        letter-spacing: 0.03em;
+        opacity: 0.94;
+        text-wrap: balance;
+        pointer-events: none;
+        max-width: 18rem;
+        border-radius: 8px;
+        border: none;
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.14);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+    }
+
+    .hub-instructions::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        z-index: 0;
+        pointer-events: none;
+        background: linear-gradient(
+            135deg,
+            var(
+                --polaroid-hub-instruction-current-from,
+                color-mix(in srgb, var(--color-brand-red) 78%, #ffffff 22%)
+            )
+                0%,
+            var(
+                --polaroid-hub-instruction-current-to,
+                color-mix(in srgb, var(--color-brand-red) 52%, #ffffff 48%)
+            )
+                100%
+        );
+    }
+
+    .hub-instructions p {
+        margin: 0;
+        position: relative;
+        z-index: 1;
+    }
+
+    .hub-instructions p + p {
+        margin-top: 1rem;
     }
 </style>

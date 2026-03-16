@@ -90,6 +90,10 @@ try {
                 title={title.replace(/-/g, " ")}
                 url={Astro.url.href}
             />
+
+            <div class="note-end-nav">
+                <a href="/research/obsidian-vault" class="back-pill">← Back to Vault</a>
+            </div>
         </article>
     </div>
 </BaseLayout>
@@ -114,10 +118,11 @@ try {
         border: 1px solid var(--border-subtle);
         border-radius: 999px;
         background: var(--bg-canvas);
-        color: var(--text-tertiary);
+        color: color-mix(in srgb, var(--text-primary) 74%, var(--text-secondary) 26%);
         text-decoration: none;
         font-size: 0.78rem;
         font-family: var(--font-ui);
+        font-weight: 550;
         letter-spacing: 0.05em;
         text-transform: uppercase;
         transition: color 0.2s, border-color 0.2s, background 0.2s, transform 0.2s;
@@ -134,6 +139,13 @@ try {
         font-size: 2.5rem;
         margin-bottom: 2rem;
         text-transform: capitalize;
+    }
+
+    .note-end-nav {
+        display: flex;
+        justify-content: center;
+        margin-top: 3rem;
+        padding-top: 1.25rem;
     }
 
     .markdown-body {

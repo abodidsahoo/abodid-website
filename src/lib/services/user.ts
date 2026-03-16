@@ -157,12 +157,47 @@ export async function getEducation(): Promise<Education[]> {
         .order('sort_order', { ascending: true })
         .order('end_year', { ascending: false });
 
+    if (!error && data?.length) {
+        return data as Education[];
+    }
+
     if (error) {
-        console.error('Error fetching education:', error);
+        console.warn('Error fetching education from education table:', error);
+    }
+
+    // Fallback to the unified work_experience table, where education entries
+    // now live for the experience page.
+    const { data: workExperienceData, error: workExperienceError } = await supabase
+        .from('work_experience')
+        .select('*')
+        .eq('category', 'education')
+        .eq('published', true)
+        .order('sort_order', { ascending: true });
+
+    if (workExperienceError) {
+        console.error('Error fetching education from work_experience:', workExperienceError);
         return [];
     }
 
-    return data as Education[];
+    return (workExperienceData || []).map((item: any) => {
+        const [startYear = '', endYear = ''] = String(item.duration || '')
+            .split(/[–-]/)
+            .map((part) => part.trim());
+
+        return {
+            id: item.id,
+            institution: item.company || '',
+            location: item.location || '',
+            degree: item.role || '',
+            course: item.course || '',
+            start_year: startYear,
+            end_year: endYear || startYear,
+            details: item.description || '',
+            specialization: item.specialization || item.description || '',
+            sort_order: item.sort_order,
+            published: item.published !== false,
+        } as Education;
+    });
 }
 
 export async function getTimelineCards(): Promise<TimelineCard[]> {
