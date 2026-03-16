@@ -29,3 +29,6 @@ pnpm-debug.log*
 # Playwright
 playwright-report/
 test-results/
+
+# large local portfolio export
+public/downloads/photography-portfolios/collections/abodid-complete-photography-portfolio.pdf

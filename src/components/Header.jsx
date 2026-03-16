@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Breadcrumbs from './Breadcrumbs';
 import ThemeToggle from './ThemeToggle.jsx';
 
 const Header = () => {
     const [isOpen, setIsOpen] = useState(false);
+    const progressBarRef = useRef(null);
 
     const toggleMenu = () => {
         setIsOpen(!isOpen);
@@ -19,6 +20,50 @@ const Header = () => {
         }
         return () => { document.body.style.overflow = ''; };
     }, [isOpen]);
+
+    useEffect(() => {
+        const progressBar = progressBarRef.current;
+        if (!progressBar || typeof window === 'undefined') return undefined;
+
+        let frameId = 0;
+        let resizeObserver;
+
+        const updateProgress = () => {
+            frameId = 0;
+
+            const doc = document.documentElement;
+            const maxScroll = Math.max(doc.scrollHeight - doc.clientHeight, 0);
+            const progress = maxScroll > 0 ? window.scrollY / maxScroll : 0;
+            const clampedProgress = Math.min(Math.max(progress, 0), 1);
+
+            progressBar.style.transform = `scaleX(${clampedProgress})`;
+        };
+
+        const requestProgressUpdate = () => {
+            if (frameId) return;
+            frameId = window.requestAnimationFrame(updateProgress);
+        };
+
+        requestProgressUpdate();
+        window.addEventListener('scroll', requestProgressUpdate, { passive: true });
+        window.addEventListener('resize', requestProgressUpdate);
+        window.addEventListener('load', requestProgressUpdate);
+
+        if (typeof ResizeObserver !== 'undefined') {
+            resizeObserver = new ResizeObserver(requestProgressUpdate);
+            resizeObserver.observe(document.body);
+        }
+
+        return () => {
+            if (frameId) {
+                window.cancelAnimationFrame(frameId);
+            }
+            resizeObserver?.disconnect();
+            window.removeEventListener('scroll', requestProgressUpdate);
+            window.removeEventListener('resize', requestProgressUpdate);
+            window.removeEventListener('load', requestProgressUpdate);
+        };
+    }, []);
 
     // --- ANIMATION VARIANTS ---
     const menuPanelVariants = {
@@ -73,6 +118,10 @@ const Header = () => {
                 {/* MOBILE BREADCRUMBS ROW */}
                 <div className="mobile-breadcrumbs-row">
                     <Breadcrumbs />
+                </div>
+
+                <div className="scroll-progress-track" aria-hidden="true">
+                    <div ref={progressBarRef} className="scroll-progress-bar" />
                 </div>
             </div>
 
@@ -230,6 +279,25 @@ const Header = () => {
                     border-bottom: 1px solid var(--nav-border);
                 }
 
+                .scroll-progress-track {
+                    position: absolute;
+                    left: 0;
+                    bottom: 0;
+                    width: 100%;
+                    height: 5px;
+                    pointer-events: none;
+                    overflow: hidden;
+                }
+
+                .scroll-progress-bar {
+                    width: 100%;
+                    height: 100%;
+                    background: var(--color-brand-red);
+                    transform: scaleX(0);
+                    transform-origin: left center;
+                    will-change: transform;
+                }
+
                 .logo-image-link {
                     display: flex; /* Flex here too */
                     align-items: center;
@@ -269,9 +337,11 @@ const Header = () => {
                 /* DRAWER CONTAINER */
                 .mega-menu {
                     position: fixed; top: 0; right: 0; 
-                    width: 100%; height: auto; max-height: 90vh;
+                    width: 100%;
+                    max-height: calc(100vh - 80px);
                     background-color: transparent; 
-                    box-shadow: 0 10px 40px rgba(0,0,0,0.5); overflow-y: auto;
+                    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+                    overflow-y: auto;
                     z-index: 10001; 
                     top: 80px; 
                 }
@@ -279,11 +349,11 @@ const Header = () => {
                 .menu-inner {
                     display: grid;
                     grid-template-columns: 60% 40%;
-                    height: 100%;
+                    min-height: 100%;
                 }
 
                 /* --- PANEL COMMON STYLES --- */
-                .menu-panel { padding: 80px 3vw 4rem; height: 100%; } 
+                .menu-panel { padding: 80px 3vw 4rem; min-height: 100%; } 
 
                 /* --- PANEL 1: RED (RIGHT ON DESKTOP) --- */
                 .left-panel {
@@ -377,8 +447,16 @@ const Header = () => {
 
                 /* MOBILE */
                 @media (max-width: 1024px) {
-                    .mega-menu { height: 100vh; }
-                    .menu-inner { display: flex; flex-direction: column; }
+                    .mega-menu {
+                        top: 80px;
+                        max-height: calc(100vh - 80px);
+                    }
+
+                    .menu-inner {
+                        display: flex;
+                        flex-direction: column;
+                        min-height: 100%;
+                    }
 
                     .left-panel {
                         padding: 120px 5vw 2rem;
@@ -389,7 +467,8 @@ const Header = () => {
                     .right-panel {
                         padding: 2rem 5vw 4rem;
                         background: #f5f5f5;
-                        flex: 1;
+                        flex: none;
+                        min-height: 0;
                         order: 2;
                     }
 
@@ -405,6 +484,10 @@ const Header = () => {
                      .desktop-breadcrumbs { display: none !important; }
                      .mobile-breadcrumbs-row { display: block; }
                      .nav-grid { height: 70px; grid-template-columns: auto 1fr auto; display: flex; justify-content: space-between; }
+                     .mega-menu {
+                        top: 70px;
+                        max-height: calc(100vh - 70px);
+                     }
                      
                      .nav-left { order: 1; }
                      .nav-center { display: none; }

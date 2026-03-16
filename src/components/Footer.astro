@@ -199,7 +199,7 @@ const year = new Date().getFullYear();
   .links-grid-container {
     display: grid;
     /* 5 Columns for the links: Work, Recog, Lab, Engage, Socials */
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 1rem; /* "Compact" spacing between menu blocks */
   }
 
@@ -304,6 +304,7 @@ const year = new Date().getFullYear();
     transition: all 0.3s ease;
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    font-weight: 500;
     white-space: nowrap;
   }
 
@@ -337,6 +338,13 @@ const year = new Date().getFullYear();
   }
 
   /* Responsive */
+  @media (min-width: 1101px) {
+    .nav-group a {
+      font-size: 0.8rem;
+      font-weight: 550;
+    }
+  }
+
   @media (max-width: 1400px) {
     .footer-grid {
       grid-template-columns: 300px 1fr;
@@ -344,6 +352,19 @@ const year = new Date().getFullYear();
     }
     .links-grid-container {
       gap: 1.5rem;
+    }
+  }
+
+  @media (max-width: 1320px) {
+    .footer-grid {
+      grid-template-columns: 280px 1fr;
+      gap: 2.5rem;
+    }
+
+    .links-grid-container {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      row-gap: 2.5rem;
+      column-gap: 2rem;
     }
   }
 
@@ -357,7 +378,7 @@ const year = new Date().getFullYear();
       gap: 4rem;
     }
     .links-grid-container {
-      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       row-gap: 3rem;
     }
     .footer-main-content {

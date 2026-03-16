@@ -1,0 +1,470 @@
+{
+  "generatedAt": "2026-03-16T07:40:49.856Z",
+  "summary": {
+    "seriesCount": 24,
+    "totalImages": 404,
+    "artImageCount": 22,
+    "commercialImageCount": 25
+  },
+  "collections": [
+    {
+      "id": "art",
+      "title": "Art Portfolio",
+      "description": "Art-tagged photographs drawn from the wider portfolio, centered on experimentation, exhibitions, and image-making as a visual language.",
+      "labels": [
+        "Art",
+        "Experimental",
+        "Exhibition"
+      ],
+      "imageCount": 22,
+      "downloadName": "abodid-art-portfolio.pdf",
+      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/collections/abodid-art-portfolio.pdf?download=abodid-art-portfolio.pdf"
+    },
+    {
+      "id": "commercial",
+      "title": "Commercial Portfolio",
+      "description": "Commercial-tagged photographs spanning fashion, events, commissioned portraiture, and work shaped for collaborators and clients.",
+      "labels": [
+        "Commercial",
+        "Fashion",
+        "Events"
+      ],
+      "imageCount": 25,
+      "downloadName": "abodid-commercial-portfolio.pdf",
+      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/collections/abodid-commercial-portfolio.pdf?download=abodid-commercial-portfolio.pdf"
+    },
+    {
+      "id": "complete",
+      "title": "Complete Portfolio",
+      "description": "The full 404-image photography archive across experimental work, fashion-led frames, events, portraits, and street observation.",
+      "labels": [
+        "Experimental",
+        "Fashion",
+        "Events",
+        "Street"
+      ],
+      "imageCount": 404,
+      "downloadName": "abodid-complete-photography-portfolio.pdf",
+      "downloadUrl": "https://drive.google.com/file/d/1bU6WqxZvVAakmhWrQwXGhVNtiUdm9DMO/view?usp=sharing"
+    }
+  ],
+  "stories": [
+    {
+      "slug": "cries-of-an-unmarried-widow",
+      "title": "Cries of an Unmarried Widow",
+      "projectHref": "/photography/cries-of-an-unmarried-widow",
+      "coverImage": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/photography/covers/1769334000552_lxy8xf4yz.jpg",
+      "imageCount": 21,
+      "downloadName": "abodid-cries-of-an-unmarried-widow.pdf",
+      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/stories/abodid-cries-of-an-unmarried-widow.pdf?download=abodid-cries-of-an-unmarried-widow.pdf",
+      "labels": [
+        "Art",
+        "Fashion",
+        "Experimental",
+        "Conceptual"
+      ],
+      "hasArt": true,
+      "hasCommercial": false
+    },
+    {
+      "slug": "into-the-flux",
+      "title": "Into the Flux",
+      "projectHref": "/photography/into-the-flux",
+      "coverImage": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/photography/photography/covers/1768216682836-into-the-flux-iba-london88.jpg",
+      "imageCount": 21,
+      "downloadName": "abodid-into-the-flux.pdf",
+      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/stories/abodid-into-the-flux.pdf?download=abodid-into-the-flux.pdf",
+      "labels": [
+        "Art",
+        "Commercial",
+        "Exhibition",
+        "Exhibitions",
+        "Contemporary Art",
+        "Experimental"
+      ],
+      "hasArt": true,
+      "hasCommercial": true
+    },
+    {
+      "slug": "british-film-institute-london",
+      "title": "British Film Institute - London",
+      "projectHref": "/photography/british-film-institute-london",
+      "coverImage": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/photography/covers/1769335964323_qjq8j2g9q.jpg",
+      "imageCount": 24,
+      "downloadName": "abodid-british-film-institute-london.pdf",
+      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/stories/abodid-british-film-institute-london.pdf?download=abodid-british-film-institute-london.pdf",
+      "labels": [
+        "Commercial",
+        "Experimental",
+        "London",
+        "Events",
+        "Lifestyle"
+      ],
+      "hasArt": false,
+      "hasCommercial": true
+    },
+    {
+      "slug": "outernet-london-2025",
+      "title": "Outernet London 2025",
+      "projectHref": "/photography/outernet-london-2025",
+      "coverImage": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/photography/covers/1769335283887_0d9he7ekd.jpg",
+      "imageCount": 27,
+      "downloadName": "abodid-outernet-london-2025.pdf",
+      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/stories/abodid-outernet-london-2025.pdf?download=abodid-outernet-london-2025.pdf",
+      "labels": [
+        "Art",
+        "Commercial",
+        "Experimental",
+        "London",
+        "Events"
+      ],
+      "hasArt": true,
+      "hasCommercial": true
+    },
+    {
+      "slug": "uncanny-comforts-with-emma",
+      "title": "Uncanny Comforts with Emma",
+      "projectHref": "/photography/uncanny-comforts-with-emma",
+      "coverImage": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/photography/covers/1769334469551_eirffhdfg.jpg",
+      "imageCount": 19,
+      "downloadName": "abodid-uncanny-comforts-with-emma.pdf",
+      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/stories/abodid-uncanny-comforts-with-emma.pdf?download=abodid-uncanny-comforts-with-emma.pdf",
+      "labels": [
+        "Fashion",
+        "Experimental"
+      ],
+      "hasArt": false,
+      "hasCommercial": false
+    },
+    {
+      "slug": "rca-gradshow-in-london",
+      "title": "RCA Gradshow in London",
+      "projectHref": "/photography/rca-gradshow-in-london",
+      "coverImage": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/photography/photography/covers/1768231586703-rca-grad-show-truman-brewery-abodid-118.jpg",
+      "imageCount": 19,
+      "downloadName": "abodid-rca-gradshow-in-london.pdf",
+      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/stories/abodid-rca-gradshow-in-london.pdf?download=abodid-rca-gradshow-in-london.pdf",
+      "labels": [
+        "Art",
+        "Exhibition",
+        "Higher Studies",
+        "Exhibitions",
+        "London",
+        "Gradshow"
+      ],
+      "hasArt": true,
+      "hasCommercial": false
+    },
+    {
+      "slug": "england-women-football-team-wins",
+      "title": "England Women Football Team Wins",
+      "projectHref": "/photography/england-women-football-team-wins",
+      "coverImage": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/photography/covers/1769337200583_hlj8143r8.jpg",
+      "imageCount": 18,
+      "downloadName": "abodid-england-women-football-team-wins.pdf",
+      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/stories/abodid-england-women-football-team-wins.pdf?download=abodid-england-women-football-team-wins.pdf",
+      "labels": [
+        "Commercial",
+        "Travel",
+        "Cityscape",
+        "London",
+        "Events"
+      ],
+      "hasArt": false,
+      "hasCommercial": true
+    },
+    {
+      "slug": "rca-gradshow-in-white-city-london",
+      "title": "RCA Gradshow in White City London",
+      "projectHref": "/photography/rca-gradshow-in-white-city-london",
+      "coverImage": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/photography/covers/1769336344719_zx30xag3d.JPG",
+      "imageCount": 15,
+      "downloadName": "abodid-rca-gradshow-in-white-city-london.pdf",
+      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/stories/abodid-rca-gradshow-in-white-city-london.pdf?download=abodid-rca-gradshow-in-white-city-london.pdf",
+      "labels": [
+        "Travel",
+        "Gradshow",
+        "RCA",
+        "Art"
+      ],
+      "hasArt": false,
+      "hasCommercial": false
+    },
+    {
+      "slug": "navratti-sharma-in-london",
+      "title": "Navratti Sharma in London",
+      "projectHref": "/photography/navratti-sharma-in-london",
+      "coverImage": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/photography/covers/1769338431988_1k8a0ahpa.jpg",
+      "imageCount": 15,
+      "downloadName": "abodid-navratti-sharma-in-london.pdf",
+      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/stories/abodid-navratti-sharma-in-london.pdf?download=abodid-navratti-sharma-in-london.pdf",
+      "labels": [
+        "Art",
+        "Experimental",
+        "Conceptual"
+      ],
+      "hasArt": true,
+      "hasCommercial": false
+    },
+    {
+      "slug": "digital-direction-rca-gradshow-in-white-city",
+      "title": "Digital Direction - RCA Gradshow in White City",
+      "projectHref": "/photography/digital-direction-rca-gradshow-in-white-city",
+      "coverImage": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/photography/covers/1769336672550_zvjw1wyos.jpg",
+      "imageCount": 17,
+      "downloadName": "abodid-digital-direction-rca-gradshow-in-white-city.pdf",
+      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/stories/abodid-digital-direction-rca-gradshow-in-white-city.pdf?download=abodid-digital-direction-rca-gradshow-in-white-city.pdf",
+      "labels": [
+        "Art",
+        "Commercial",
+        "Travel",
+        "Gradshow",
+        "RCA",
+        "London"
+      ],
+      "hasArt": true,
+      "hasCommercial": true
+    },
+    {
+      "slug": "yu-ting-blinded-in-london-overground",
+      "title": "Yu-Ting Blinded in London Overground",
+      "projectHref": "/photography/yu-ting-blinded-in-london-overground",
+      "coverImage": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/photography/covers/1769342406110_82o2dyerw.jpg",
+      "imageCount": 7,
+      "downloadName": "abodid-yu-ting-blinded-in-london-overground.pdf",
+      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/stories/abodid-yu-ting-blinded-in-london-overground.pdf?download=abodid-yu-ting-blinded-in-london-overground.pdf",
+      "labels": [
+        "Street",
+        "London",
+        "Art"
+      ],
+      "hasArt": false,
+      "hasCommercial": false
+    },
+    {
+      "slug": "portobello-market-london",
+      "title": "Portobello Market in London",
+      "projectHref": "/photography/portobello-market-london",
+      "coverImage": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/photography/covers/1769343390576_surk7j2vw.jpg",
+      "imageCount": 15,
+      "downloadName": "abodid-portobello-market-london.pdf",
+      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/stories/abodid-portobello-market-london.pdf?download=abodid-portobello-market-london.pdf",
+      "labels": [
+        "Art",
+        "Street",
+        "Streets",
+        "People",
+        "London"
+      ],
+      "hasArt": true,
+      "hasCommercial": false
+    },
+    {
+      "slug": "frameless-london-rca-exhibition",
+      "title": "Frameless London - RCA Exhibition",
+      "projectHref": "/photography/frameless-london-rca-exhibition",
+      "coverImage": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/photography/covers/1769337032383_i3aprdkwj.jpg",
+      "imageCount": 17,
+      "downloadName": "abodid-frameless-london-rca-exhibition.pdf",
+      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/stories/abodid-frameless-london-rca-exhibition.pdf?download=abodid-frameless-london-rca-exhibition.pdf",
+      "labels": [
+        "Exhibition",
+        "Exhibitions",
+        "London"
+      ],
+      "hasArt": false,
+      "hasCommercial": false
+    },
+    {
+      "slug": "navratti-in-london-underground",
+      "title": "Navratti in London Underground",
+      "projectHref": "/photography/navratti-in-london-underground",
+      "coverImage": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/photography/covers/1769338616509_8tonfg5kc.jpg",
+      "imageCount": 17,
+      "downloadName": "abodid-navratti-in-london-underground.pdf",
+      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/stories/abodid-navratti-in-london-underground.pdf?download=abodid-navratti-in-london-underground.pdf",
+      "labels": [
+        "Art",
+        "Commercial",
+        "Fashion",
+        "London"
+      ],
+      "hasArt": true,
+      "hasCommercial": true
+    },
+    {
+      "slug": "prakruti-mishra-in-london",
+      "title": "Prakruti Mishra in London",
+      "projectHref": "/photography/prakruti-mishra-in-london",
+      "coverImage": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/photography/covers/1769334962085_2u7h3o4ya.jpg",
+      "imageCount": 12,
+      "downloadName": "abodid-prakruti-mishra-in-london.pdf",
+      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/stories/abodid-prakruti-mishra-in-london.pdf?download=abodid-prakruti-mishra-in-london.pdf",
+      "labels": [
+        "Art",
+        "Commercial",
+        "Fashion",
+        "Lifestyle"
+      ],
+      "hasArt": true,
+      "hasCommercial": true
+    },
+    {
+      "slug": "suheda-in-primrose-hill-london",
+      "title": "Suheda in Primrose Hill London",
+      "projectHref": "/photography/suheda-in-primrose-hill-london",
+      "coverImage": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/photography/covers/1769340645812_55ffuwlkt.jpg",
+      "imageCount": 25,
+      "downloadName": "abodid-suheda-in-primrose-hill-london.pdf",
+      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/stories/abodid-suheda-in-primrose-hill-london.pdf?download=abodid-suheda-in-primrose-hill-london.pdf",
+      "labels": [
+        "Art",
+        "Commercial",
+        "Fashion",
+        "Editorial"
+      ],
+      "hasArt": true,
+      "hasCommercial": true
+    },
+    {
+      "slug": "rca-battersea-exhibiton-arts-and-humanities",
+      "title": "RCA Battersea Exhibiton - Arts and Humanities",
+      "projectHref": "/photography/rca-battersea-exhibiton-arts-and-humanities",
+      "coverImage": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/photography/covers/1769337848429_hfxl06q5o.jpg",
+      "imageCount": 22,
+      "downloadName": "abodid-rca-battersea-exhibiton-arts-and-humanities.pdf",
+      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/stories/abodid-rca-battersea-exhibiton-arts-and-humanities.pdf?download=abodid-rca-battersea-exhibiton-arts-and-humanities.pdf",
+      "labels": [
+        "Art",
+        "Exhibition",
+        "London",
+        "Exhibitions"
+      ],
+      "hasArt": true,
+      "hasCommercial": false
+    },
+    {
+      "slug": "outernet-london-2024",
+      "title": "Outernet London 2024",
+      "projectHref": "/photography/outernet-london-2024",
+      "coverImage": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/photography/covers/1769340174794_75msx21ap.jpg",
+      "imageCount": 13,
+      "downloadName": "abodid-outernet-london-2024.pdf",
+      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/stories/abodid-outernet-london-2024.pdf?download=abodid-outernet-london-2024.pdf",
+      "labels": [
+        "Art",
+        "Commercial",
+        "Experimental",
+        "London",
+        "Events"
+      ],
+      "hasArt": true,
+      "hasCommercial": true
+    },
+    {
+      "slug": "portobello-art-fair-london",
+      "title": "Portobello Art Fair London",
+      "projectHref": "/photography/portobello-art-fair-london",
+      "coverImage": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/photography/covers/1769340045141_gx2ddwpnx.jpg",
+      "imageCount": 15,
+      "downloadName": "abodid-portobello-art-fair-london.pdf",
+      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/stories/abodid-portobello-art-fair-london.pdf?download=abodid-portobello-art-fair-london.pdf",
+      "labels": [
+        "Art",
+        "Commercial",
+        "Street",
+        "London",
+        "Streets"
+      ],
+      "hasArt": true,
+      "hasCommercial": true
+    },
+    {
+      "slug": "outernet-london-rca-2023",
+      "title": "Outernet London RCA 2023",
+      "projectHref": "/photography/outernet-london-rca-2023",
+      "coverImage": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/photography/covers/1769342668087_aox524mid.jpg",
+      "imageCount": 12,
+      "downloadName": "abodid-outernet-london-rca-2023.pdf",
+      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/stories/abodid-outernet-london-rca-2023.pdf?download=abodid-outernet-london-rca-2023.pdf",
+      "labels": [
+        "Commercial",
+        "Exhibition",
+        "London",
+        "Exhibitions"
+      ],
+      "hasArt": false,
+      "hasCommercial": true
+    },
+    {
+      "slug": "breathe-variations-london-exhibition",
+      "title": "Breathe Variations - London Exhibition",
+      "projectHref": "/photography/breathe-variations-london-exhibition",
+      "coverImage": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/photography/covers/1769343069955_agd0nns2m.jpg",
+      "imageCount": 11,
+      "downloadName": "abodid-breathe-variations-london-exhibition.pdf",
+      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/stories/abodid-breathe-variations-london-exhibition.pdf?download=abodid-breathe-variations-london-exhibition.pdf",
+      "labels": [
+        "Exhibition",
+        "London",
+        "Exhibitions"
+      ],
+      "hasArt": false,
+      "hasCommercial": false
+    },
+    {
+      "slug": "bus-ride-in-london",
+      "title": "Bus ride in London",
+      "projectHref": "/photography/bus-ride-in-london",
+      "coverImage": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/photography/covers/1769341505016_naqb3bdx3.jpg",
+      "imageCount": 16,
+      "downloadName": "abodid-bus-ride-in-london.pdf",
+      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/stories/abodid-bus-ride-in-london.pdf?download=abodid-bus-ride-in-london.pdf",
+      "labels": [
+        "Art",
+        "Street",
+        "Streets",
+        "London"
+      ],
+      "hasArt": true,
+      "hasCommercial": false
+    },
+    {
+      "slug": "mary-and-her-daughter-in-london-exhibitions",
+      "title": "Mary and her daughter in London Exhibitions",
+      "projectHref": "/photography/mary-and-her-daughter-in-london-exhibitions",
+      "coverImage": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/photography/covers/1769341682288_yze3hx1pk.jpg",
+      "imageCount": 14,
+      "downloadName": "abodid-mary-and-her-daughter-in-london-exhibitions.pdf",
+      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/stories/abodid-mary-and-her-daughter-in-london-exhibitions.pdf?download=abodid-mary-and-her-daughter-in-london-exhibitions.pdf",
+      "labels": [
+        "Art",
+        "Commercial",
+        "Exhibition",
+        "People",
+        "London",
+        "Kids"
+      ],
+      "hasArt": true,
+      "hasCommercial": true
+    },
+    {
+      "slug": "vaneesha-birthday-in-kent",
+      "title": "Vaneesha birthday in Kent",
+      "projectHref": "/photography/vaneesha-birthday-in-kent",
+      "coverImage": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/photography/covers/1769341088685_pv1i08koe.jpg",
+      "imageCount": 12,
+      "downloadName": "abodid-vaneesha-birthday-in-kent.pdf",
+      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/stories/abodid-vaneesha-birthday-in-kent.pdf?download=abodid-vaneesha-birthday-in-kent.pdf",
+      "labels": [
+        "Art",
+        "Commercial",
+        "Portrait",
+        "Portraits",
+        "People"
+      ],
+      "hasArt": true,
+      "hasCommercial": true
+    }
+  ]
+}

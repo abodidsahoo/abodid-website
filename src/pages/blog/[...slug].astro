@@ -41,6 +41,7 @@ const contentHtml = marked.parse(post.content || "");
   description={post.excerpt || post.description}
   image={post.cover_image}
   type="article"
+  bodyClass="blog-post-page"
 >
   <article class="post-container">
     <header class="post-header">
@@ -448,5 +449,9 @@ const contentHtml = marked.parse(post.content || "");
 
   .next-link {
     text-align: right;
+  }
+
+  :global(body.blog-post-page .site-footer .brands-zone) {
+    display: none;
   }
 </style>

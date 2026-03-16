@@ -78,10 +78,10 @@ const ShareButtons = ({ title, url }) => {
                     display: flex;
                     align-items: center;
                     gap: 1.5rem;
-                    padding: 2rem 0;
+                    padding: 1.75rem 0 2rem;
                     border-top: 1px solid var(--border-subtle);
-                    margin-top: 3rem;
-                    margin-bottom: 3rem;
+                    margin-top: 2.25rem;
+                    margin-bottom: 2.5rem;
                     font-family: var(--font-sans);
                     justify-content: center; /* Centered by default */
                 }
