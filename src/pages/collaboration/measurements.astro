@@ -2,55 +2,10 @@
 export const prerender = false;
 
 import BaseLayout from "../../layouts/BaseLayout.astro";
+import { tailorMeasurementsPage } from "../../data/tailorMeasurements";
 
-const pageTitle = "Tailor Measurements";
-
-const contact = {
-  name: "Abodid Sahoo",
-  email: "abodidsahoo@gmail.com",
-  phone: "+91 9439094370",
-};
-
-const profiles = [
-  {
-    name: "Yashaswinee Sahoo",
-    height: `5'6"`,
-    bodyType: "Pear-shaped",
-    note: "Master record containing confirmed measurements and clearly marked estimates.",
-    measurements: [
-      { label: "Chest / Bust", value: "38 in", estimated: false },
-      { label: "Waist", value: "32 in", estimated: false },
-      { label: "Sleeve Length", value: "24 in", estimated: false },
-      { label: "Wrist / Sleeve Mahuri", value: "7.5 in", estimated: false },
-      { label: "High Hip", value: "38 in", estimated: false },
-      { label: "Full Hip / Seat", value: "45 in", estimated: false },
-      { label: "Pant Length (outseam)", value: "40 in", estimated: false },
-      { label: "Shoulder", value: "16 in", estimated: true },
-      { label: "Neck", value: "15.5 in", estimated: true },
-      { label: "Armhole", value: "18 in", estimated: true },
-    ],
-  },
-  {
-    name: "Abodid Sahoo",
-    height: `5'10"`,
-    bodyType: "Average to slightly athletic, broad shoulders",
-    note: "Use these as the current tailoring baseline for shirts and trousers.",
-    measurements: [
-      { label: "Chest", value: "42 in", estimated: false },
-      { label: "Shoulder", value: "20 in", estimated: false },
-      { label: "Shirt Length", value: "28 in", estimated: false },
-      { label: "Sleeve Length", value: "24 in", estimated: false },
-      { label: "Collar / Neck", value: "16 in", estimated: false },
-      { label: "Waist", value: "37.5 in", estimated: false },
-      { label: "Seat / Hip", value: "44 in", estimated: false },
-      { label: "Pant Length (outseam)", value: "40 in", estimated: false },
-      { label: "Full Crotch Length", value: "26 in", estimated: false },
-      { label: "Thigh", value: "27 in", estimated: false },
-      { label: "Pant Mahuri / Bottom Opening", value: "14 in", estimated: false },
-      { label: "Armhole", value: "20 in", estimated: true },
-    ],
-  },
-];
+const { title: pageTitle, description, contact, profiles, notes, pdfPath } =
+  tailorMeasurementsPage;
 ---
 
 <BaseLayout title={pageTitle} description="Tailoring measurements shared by direct link." showNewsletterPopup={false}>
@@ -64,8 +19,13 @@ const profiles = [
       <p class="eyebrow">Collaboration / Internal</p>
       <h1>Tailor Measurements</h1>
       <p class="section-intro">
-        A clean measurement record prepared for tailoring conversations, fittings, and quick reference across devices.
+        {description}
       </p>
+      <div class="page-actions">
+        <a class="download-button" href={pdfPath} download="tailor-measurements.pdf">
+          Download PDF
+        </a>
+      </div>
     </header>
 
     <section class="intro-panel" aria-label="Contact and reference note">
@@ -140,7 +100,7 @@ const profiles = [
     <aside class="footnote-card">
       <p class="footnote-label">Notes</p>
       <p>
-        “Mahuri / Mohri” refers to the opening at the end of sleeves or pants. Pant length is listed as outseam. Only provided values or explicitly estimated values are included here.
+        {notes}
       </p>
     </aside>
   </section>
@@ -183,6 +143,37 @@ const profiles = [
     max-width: 52rem;
     margin: 0;
     line-height: 1.6;
+  }
+
+  .page-actions {
+    margin-top: 1.35rem;
+  }
+
+  .download-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 3rem;
+    padding: 0.85rem 1.2rem;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--theme-color-primary) 28%, transparent);
+    background:
+      linear-gradient(135deg, color-mix(in srgb, var(--theme-color-primary) 18%, transparent), color-mix(in srgb, var(--bg-surface) 90%, white 10%));
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.14);
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .download-button:hover {
+    transform: translateY(-1px);
+    border-color: color-mix(in srgb, var(--theme-color-primary) 50%, transparent);
+    box-shadow: 0 18px 34px rgba(0, 0, 0, 0.18);
   }
 
   .intro-panel {
