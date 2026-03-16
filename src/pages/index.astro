@@ -21,7 +21,9 @@ import PhotoGrid from "../components/PhotoGrid.astro";
 // EngagementCTA moved to LandingOrchestrator
 import ForceDarkMode from "../components/ForceDarkMode.astro";
 
-const pageTitle = "Home";
+const pageTitle = "Portfolio";
+const pageDescription =
+    "Portfolio of Abodid Sahoo, a photographer, researcher, and creative technologist building work across images, code, culture, and interactive media.";
 
 // Helper to safely fetch data
 const safeFetch = async (fn, fallback) => {
@@ -116,7 +118,11 @@ const heroBioWords =
 const heroTextEffect = "smooth-blur";
 ---
 
-<BaseLayout title={pageTitle}>
+<BaseLayout
+    title={pageTitle}
+    description={pageDescription}
+    imageAlt="Portfolio preview for Abodid Sahoo"
+>
     <Fragment slot="head">
         {
             featuredPhotography.slice(0, 4).map((project) => {

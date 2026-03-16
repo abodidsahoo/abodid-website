@@ -4,6 +4,7 @@ export interface Props {
     description?: string;
     image?: string;
     type?: "website" | "article";
+    imageAlt?: string;
 }
 
 const {
@@ -11,6 +12,7 @@ const {
     description = "Abodid Sahoo's personal digital garden. Research, photography, and creative technologies.",
     image,
     type = "website",
+    imageAlt,
 } = Astro.props;
 
 const siteName = "Abodid Sahoo";
@@ -20,10 +22,13 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 // We always use the proxy logic to ensure consistent styling and cropping (1200x630)
 const ogImageUrl = new URL(`/api/og`, Astro.url);
 ogImageUrl.searchParams.set("title", title || "Abodid Sahoo");
+ogImageUrl.searchParams.set("description", description);
 if (image) {
     ogImageUrl.searchParams.set("image", image);
 }
 const ogImage = ogImageUrl.toString();
+const socialImageAlt =
+    imageAlt || `${title ? `${title} | ${siteName}` : siteName} preview image`;
 ---
 
 <!-- Global Metadata -->
@@ -47,6 +52,7 @@ const ogImage = ogImageUrl.toString();
 />
 <meta property="og:description" content={description} />
 <meta property="og:image" content={ogImage} />
+<meta property="og:image:alt" content={socialImageAlt} />
 
 <!-- Twitter -->
 <meta property="twitter:card" content="summary_large_image" />
@@ -57,3 +63,4 @@ const ogImage = ogImageUrl.toString();
 />
 <meta property="twitter:description" content={description} />
 <meta property="twitter:image" content={ogImage} />
+<meta property="twitter:image:alt" content={socialImageAlt} />

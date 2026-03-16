@@ -20,6 +20,13 @@ function sanitizeImage(raw: string | null): string | undefined {
     return cleaned;
 }
 
+function sanitizeDescription(raw: string | null): string | undefined {
+    if (typeof raw !== 'string') return undefined;
+    const cleaned = raw.replace(/[\u0000-\u001F\u007F]/g, ' ').replace(/\s+/g, ' ').trim();
+    if (!cleaned) return undefined;
+    return cleaned.slice(0, 220);
+}
+
 function svgFallback(title: string): Response {
     const escaped = title
         .replace(/&/g, '&amp;')
@@ -52,6 +59,7 @@ function svgFallback(title: string): Response {
 export async function GET({ request }: { request: Request }) {
     const { searchParams } = new URL(request.url);
     const title = sanitizeTitle(searchParams.get('title'));
+    const description = sanitizeDescription(searchParams.get('description'));
     const image = sanitizeImage(searchParams.get('image'));
 
     // Keep local development stable: skip @vercel/og rendering in dev
@@ -61,13 +69,13 @@ export async function GET({ request }: { request: Request }) {
     }
 
     try {
-        return generateOgImage(title, image);
+        return generateOgImage(title, image, description);
     } catch (error) {
         console.error('[api/og] OG render failed with image, retrying without image.', error);
     }
 
     try {
-        return generateOgImage(title);
+        return generateOgImage(title, undefined, description);
     } catch (error) {
         console.error('[api/og] OG render fallback failed; returning SVG fallback.', error);
         return svgFallback(title);

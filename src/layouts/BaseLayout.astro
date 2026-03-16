@@ -12,6 +12,7 @@ const {
   title,
   description,
   image,
+  imageAlt,
   type,
   hideHeader = false,
   hideFooter = false,
@@ -97,6 +98,7 @@ const finalType = type || dbMetadata?.og_type || "website";
       title={finalTitle}
       description={finalDescription}
       image={finalImage}
+      imageAlt={imageAlt}
       type={finalType}
     />
     <!-- Dynamic SEO & Social Images applied -->

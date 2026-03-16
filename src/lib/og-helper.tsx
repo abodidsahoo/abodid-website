@@ -16,9 +16,12 @@ function getGradient(title: string) {
     return gradients[index];
 }
 
-export function generateOgImage(title: string, image?: string) {
+export function generateOgImage(title: string, image?: string, description?: string) {
     const safeTitle = typeof title === 'string' && title.trim().length > 0 ? title.trim() : 'Abodid Sahoo';
     const safeImage = typeof image === 'string' && image.trim().length > 0 ? image.trim() : undefined;
+    const safeDescription = typeof description === 'string' && description.trim().length > 0
+        ? description.trim()
+        : 'Research, photography, films, and creative technology.';
     const background = getGradient(safeTitle);
     const isCustomImage = Boolean(safeImage);
 
@@ -73,24 +76,60 @@ export function generateOgImage(title: string, image?: string) {
                     />
                 )}
 
+                {!isCustomImage && (
+                    <>
+                        <div
+                            style={{
+                                position: 'absolute',
+                                inset: '40px',
+                                borderRadius: '36px',
+                                border: '1px solid rgba(26,26,26,0.08)',
+                                background: 'rgba(255,255,255,0.52)',
+                            }}
+                        />
+                        <div
+                            style={{
+                                position: 'absolute',
+                                top: '-120px',
+                                right: '-40px',
+                                width: '520px',
+                                height: '520px',
+                                borderRadius: '9999px',
+                                background: 'radial-gradient(circle, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0) 72%)',
+                            }}
+                        />
+                        <div
+                            style={{
+                                position: 'absolute',
+                                bottom: '-160px',
+                                left: '-100px',
+                                width: '520px',
+                                height: '520px',
+                                borderRadius: '9999px',
+                                background: 'radial-gradient(circle, rgba(255,255,255,0.72) 0%, rgba(255,255,255,0) 72%)',
+                            }}
+                        />
+                    </>
+                )}
+
                 {/* Decorative Elements */}
                 <div style={{
                     position: 'absolute',
-                    top: '60px',
+                    top: '62px',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
                     zIndex: 10
                 }}>
                     <div style={{
-                        fontSize: '24px',
+                        fontSize: '18px',
                         fontWeight: 600,
                         textTransform: 'uppercase',
-                        letterSpacing: '4px',
+                        letterSpacing: '5px',
                         color: brandColor,
                         opacity: isCustomImage ? 0.9 : 0.8,
                     }}>
-                        Abodid Sahoo
+                        Portfolio
                     </div>
                 </div>
 
@@ -99,39 +138,67 @@ export function generateOgImage(title: string, image?: string) {
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    padding: '0 100px',
+                    padding: '0 110px',
                     textAlign: 'center',
                     zIndex: 10,
                     width: '100%'
                 }}>
                     <div
                         style={{
-                            fontSize: 84, // Bigger font
-                            fontWeight: 800, // Bold
+                            fontSize: 82,
+                            fontWeight: 800,
                             letterSpacing: '-0.04em',
                             fontFamily: 'sans-serif',
                             lineHeight: 1,
                             textWrap: 'balance',
                             color: textColor,
-                            // Text shadow only needed for image overlays
                             textShadow: isCustomImage ? '0 4px 30px rgba(0,0,0,0.5)' : 'none',
+                            maxWidth: '960px',
                         }}
                     >
                         {safeTitle}
+                    </div>
+                    <div
+                        style={{
+                            marginTop: '28px',
+                            maxWidth: '780px',
+                            fontSize: '28px',
+                            lineHeight: 1.35,
+                            color: subTextColor,
+                            textWrap: 'balance',
+                            opacity: isCustomImage ? 0.96 : 0.88,
+                        }}
+                    >
+                        {safeDescription}
                     </div>
                 </div>
 
                 <div style={{
                     position: 'absolute',
-                    bottom: '50px',
-                    fontSize: '20px',
-                    fontWeight: 500,
-                    opacity: 0.7,
+                    bottom: '48px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '16px',
+                    padding: '14px 20px',
+                    borderRadius: '9999px',
+                    background: isCustomImage ? 'rgba(17,17,17,0.34)' : 'rgba(255,255,255,0.7)',
+                    border: isCustomImage ? '1px solid rgba(255,255,255,0.14)' : '1px solid rgba(26,26,26,0.08)',
+                    fontSize: '18px',
+                    fontWeight: 600,
+                    opacity: 0.92,
                     fontFamily: 'sans-serif',
-                    letterSpacing: '1px',
+                    letterSpacing: '0.04em',
                     color: subTextColor,
                     zIndex: 10
                 }}>
+                    <div
+                        style={{
+                            width: '10px',
+                            height: '10px',
+                            borderRadius: '9999px',
+                            background: isCustomImage ? '#ffffff' : '#1a1a1a',
+                        }}
+                    />
                     abodid.com
                 </div>
             </div>
