@@ -122,6 +122,7 @@ const heroTextEffect = "smooth-blur";
     title={pageTitle}
     description={pageDescription}
     imageAlt="Portfolio preview for Abodid Sahoo"
+    bodyClass="landing-page"
 >
     <Fragment slot="head">
         {
@@ -324,6 +325,10 @@ const heroTextEffect = "smooth-blur";
 </BaseLayout>
 
 <style>
+    :global(body.landing-page .header-padding) {
+        padding-top: 140px !important;
+    }
+
     .narrative-section {
         position: relative;
         z-index: 100;
@@ -434,9 +439,13 @@ const heroTextEffect = "smooth-blur";
     }
 
     @media (max-width: 768px) {
+        :global(body.landing-page .header-padding) {
+            padding-top: 112px !important;
+        }
+
         .narrative-section {
             min-height: auto;
-            padding-top: 100px;
+            padding-top: 2.75rem;
             padding-left: 0;
             padding-right: 0;
             padding-bottom: 2.5rem;
