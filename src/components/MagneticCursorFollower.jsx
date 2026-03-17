@@ -1,11 +1,32 @@
 import React, { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 
-const DOT_FOLLOW_LAMBDA = 26;
 const RING_POSITION_LAMBDA = 10;
 const RING_VISUAL_LAMBDA = 14;
 const HOTSPOT_OFFSET_X = -1;
 const HOTSPOT_OFFSET_Y = -1;
+const CUSTOM_CURSOR_ATTR = "data-custom-cursor";
+const HIDE_NATIVE_CURSOR_SELECTOR = [
+  "body",
+  "a[href]",
+  "button",
+  "summary",
+  "label[for]",
+  "[role='button']",
+  "[data-cursor-hide-native]",
+].join(", ");
+const NATIVE_CURSOR_SELECTOR = [
+  "input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='button']):not([type='submit']):not([type='reset'])",
+  "textarea",
+  "select",
+  "[contenteditable='true']",
+  "[data-native-cursor]",
+  "[data-native-cursor] *",
+  ".cursor-revealed",
+  ".cursor-revealed *",
+  "iframe",
+  "video[controls]",
+].join(", ");
 
 const layerStyle = {
   position: "fixed",
@@ -30,9 +51,9 @@ const dotStyle = {
   height: "5px",
   borderRadius: "999px",
   transform: "translate(-50%, -50%)",
-  background: "rgba(255, 255, 255, 0.92)",
+  background: "var(--cursor-dot-bg)",
   boxShadow:
-    "0 0 0 1px rgba(255, 255, 255, 0.18), 0 0 7px rgba(255, 255, 255, 0.36), 0 0 2px rgba(0, 0, 0, 0.65)",
+    "0 0 0 1px var(--cursor-dot-outline), 0 0 7px var(--cursor-dot-glow), 0 0 2px var(--cursor-shadow)",
 };
 
 const ringStyle = {
@@ -42,8 +63,8 @@ const ringStyle = {
   width: "26px",
   height: "26px",
   borderRadius: "999px",
-  border: "1px solid rgba(255, 255, 255, 0.52)",
-  boxShadow: "0 0 2px rgba(0, 0, 0, 0.55)",
+  border: "1px solid var(--cursor-ring-border)",
+  boxShadow: "0 0 2px var(--cursor-shadow)",
   willChange: "transform, opacity",
 };
 
@@ -57,6 +78,19 @@ const MagneticCursorFollower = () => {
     setMounted(true);
     if (typeof window === "undefined") return undefined;
     if (window.matchMedia("(pointer: coarse)").matches) return undefined;
+
+    const styleEl = document.createElement("style");
+    styleEl.textContent = `
+      html[${CUSTOM_CURSOR_ATTR}="active"] ${HIDE_NATIVE_CURSOR_SELECTOR} {
+        cursor: none !important;
+      }
+
+      html[${CUSTOM_CURSOR_ATTR}="active"] ${NATIVE_CURSOR_SELECTOR} {
+        cursor: auto !important;
+      }
+    `;
+    document.head.appendChild(styleEl);
+    document.documentElement.setAttribute(CUSTOM_CURSOR_ATTR, "active");
 
     const target = { x: -1000, y: -1000 };
     const dot = { x: -1000, y: -1000 };
@@ -84,21 +118,38 @@ const MagneticCursorFollower = () => {
       ringRef.current.style.opacity = String(ringVisual.opacity);
     };
 
-    const onPointerMove = (event) => {
+    const updatePointer = (event) => {
+      if (
+        !event ||
+        typeof event.clientX !== "number" ||
+        typeof event.clientY !== "number"
+      ) {
+        return;
+      }
+
       target.x = event.clientX + HOTSPOT_OFFSET_X;
       target.y = event.clientY + HOTSPOT_OFFSET_Y;
+      dot.x = target.x;
+      dot.y = target.y;
 
       if (!initialized) {
-        dot.x = target.x;
-        dot.y = target.y;
         ring.x = target.x;
         ring.y = target.y;
         initialized = true;
         lastTime = performance.now();
-        sync();
       }
 
+      sync();
       setVisible(true);
+    };
+
+    const onPointerMove = (event) => {
+      if (event.pointerType === "touch") return;
+      updatePointer(event);
+    };
+
+    const onMouseMove = (event) => {
+      updatePointer(event);
     };
 
     const onPointerLeaveWindow = (event) => {
@@ -108,20 +159,21 @@ const MagneticCursorFollower = () => {
     };
 
     const onBlur = () => setVisible(false);
+    const teardownCursorMode = () => {
+      document.documentElement.removeAttribute(CUSTOM_CURSOR_ATTR);
+      styleEl.remove();
+    };
 
     const loop = (now) => {
       if (initialized) {
         const dtSeconds = Math.min(0.034, Math.max(0.001, (now - lastTime) / 1000));
         lastTime = now;
 
-        dot.x = smoothDamp(dot.x, target.x, DOT_FOLLOW_LAMBDA, dtSeconds);
-        dot.y = smoothDamp(dot.y, target.y, DOT_FOLLOW_LAMBDA, dtSeconds);
-        ring.x = smoothDamp(ring.x, dot.x, RING_POSITION_LAMBDA, dtSeconds);
-        ring.y = smoothDamp(ring.y, dot.y, RING_POSITION_LAMBDA, dtSeconds);
+        ring.x = smoothDamp(ring.x, target.x, RING_POSITION_LAMBDA, dtSeconds);
+        ring.y = smoothDamp(ring.y, target.y, RING_POSITION_LAMBDA, dtSeconds);
 
-        const dotGap = Math.hypot(target.x - dot.x, target.y - dot.y);
-        const ringGap = Math.hypot(dot.x - ring.x, dot.y - ring.y);
-        const movingRatio = Math.min(1, Math.max(dotGap / 24, ringGap / 20));
+        const ringGap = Math.hypot(target.x - ring.x, target.y - ring.y);
+        const movingRatio = Math.min(1, ringGap / 20);
         const targetRingScale = movingRatio > 0.03 ? 1 : 1.18;
         const targetRingOpacity = movingRatio > 0.03 ? 0.52 : 0.34;
 
@@ -145,14 +197,27 @@ const MagneticCursorFollower = () => {
     };
 
     window.addEventListener("pointermove", onPointerMove, { passive: true });
+    document.addEventListener("pointermove", onPointerMove, true);
+    window.addEventListener("mousemove", onMouseMove, { passive: true });
+    document.addEventListener("mousemove", onMouseMove, true);
+    window.addEventListener("pointerdown", onPointerMove, { passive: true, capture: true });
+    window.addEventListener("pointerup", onPointerMove, { passive: true, capture: true });
     window.addEventListener("mouseout", onPointerLeaveWindow, { passive: true });
     window.addEventListener("blur", onBlur);
+    window.addEventListener("pagehide", teardownCursorMode);
     rafId = window.requestAnimationFrame(loop);
 
     return () => {
       window.removeEventListener("pointermove", onPointerMove);
+      document.removeEventListener("pointermove", onPointerMove, true);
+      window.removeEventListener("mousemove", onMouseMove);
+      document.removeEventListener("mousemove", onMouseMove, true);
+      window.removeEventListener("pointerdown", onPointerMove, true);
+      window.removeEventListener("pointerup", onPointerMove, true);
       window.removeEventListener("mouseout", onPointerLeaveWindow);
       window.removeEventListener("blur", onBlur);
+      window.removeEventListener("pagehide", teardownCursorMode);
+      teardownCursorMode();
       if (rafId) {
         window.cancelAnimationFrame(rafId);
       }

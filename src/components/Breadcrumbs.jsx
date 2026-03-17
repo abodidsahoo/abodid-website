@@ -60,6 +60,7 @@ const Breadcrumbs = ({ variant = 'default' }) => {
                     );
                 })}
             </ol>
+            {variant === 'vertical' && <div className="vertical-separator-line" aria-hidden="true" />}
             <style>{`
                 .breadcrumbs-nav {
                     display: flex;
@@ -137,6 +138,83 @@ const Breadcrumbs = ({ variant = 'default' }) => {
                     opacity: 1; /* Full visibility for active */
                     font-weight: 700;
                     border-bottom: 1px solid transparent; /* Stabilize layout */
+                }
+
+                /* VERTICAL VARIANT Overrides */
+                .breadcrumbs-nav.vertical {
+                    display: flex;
+                    flex-direction: column; /* Stack top to bottom relative to rail space */
+                    align-items: center;
+                    gap: 1.5rem; /* Adequate spacing above the white line */
+                    width: 100%;
+                }
+
+                .breadcrumbs-nav.vertical .breadcrumb-list {
+                    writing-mode: vertical-rl;
+                    transform: rotate(180deg);
+                    gap: 0.6rem; /* compact spacing between breadcrumb items */
+                    letter-spacing: 0.03em; /* No massive spacing between letters, readable and compact */
+                    align-items: center;
+                    justify-content: flex-start;
+                }
+                
+                .breadcrumbs-nav.vertical .breadcrumb-item {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.6rem;
+                    font-weight: 700;
+                    opacity: 0.85;
+                    color: #ffffff;
+                }
+                
+                .breadcrumbs-nav.vertical .breadcrumb-link {
+                    color: inherit !important;
+                }
+
+                .breadcrumbs-nav.vertical .breadcrumb-item:hover {
+                    opacity: 1;
+                }
+                
+                .breadcrumbs-nav.vertical .breadcrumb-link,
+                .breadcrumbs-nav.vertical .current-page {
+                    position: relative;
+                }
+                
+                /* Animated Underline along text direction */
+                .breadcrumbs-nav.vertical .breadcrumb-link::after,
+                .breadcrumbs-nav.vertical .current-page::after {
+                    content: '';
+                    position: absolute;
+                    top: 0; /* Starts at local start of text */
+                    left: -4px; /* Offset below the text baseline */
+                    width: 1px; /* Line thickness */
+                    height: 0; /* Initial line length */
+                    background-color: #ffffff;
+                    transition: height 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+                }
+                
+                .breadcrumbs-nav.vertical .breadcrumb-item:hover .breadcrumb-link::after,
+                .breadcrumbs-nav.vertical .breadcrumb-item:hover .current-page::after {
+                    height: 100%; /* Grows to word length */
+                }
+                
+                .breadcrumbs-nav.vertical .current-page {
+                    opacity: 1;
+                    color: #ffffff;
+                    font-weight: 800;
+                }
+                
+                .breadcrumbs-nav.vertical .separator {
+                    margin: 0;
+                    opacity: 0.5;
+                    font-size: 0.85em;
+                }
+
+                .vertical-separator-line {
+                    width: 1px;
+                    height: 40px; /* Thin white line above Menu */
+                    background: rgba(255, 255, 255, 0.4);
+                    margin: 0 auto;
                 }
 
                 @media (max-width: 768px) {

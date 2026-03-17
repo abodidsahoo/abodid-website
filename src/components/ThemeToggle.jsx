@@ -36,132 +36,111 @@ const ThemeToggle = () => {
     return (
         <>
             <button
+                className={`elegant-theme-toggle ${theme}`}
+                aria-label={`Current mode: ${theme}`}
+                title="Toggle Website Theme"
                 onClick={toggleTheme}
-                className="theme-toggle-btn"
-                aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-                title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
             >
-                <div className={`toggle-track ${theme}`}>
-                    <div className="toggle-thumb">
-                        {/* Sun Icon (Visible in Light Mode) */}
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className={`icon sun-icon ${theme === 'light' ? 'visible' : ''}`}
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                        >
-                            <circle cx="12" cy="12" r="5"></circle>
-                            <line x1="12" y1="1" x2="12" y2="3"></line>
-                            <line x1="12" y1="21" x2="12" y2="23"></line>
-                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                            <line x1="1" y1="12" x2="3" y2="12"></line>
-                            <line x1="21" y1="12" x2="23" y2="12"></line>
-                            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                        </svg>
-
-                        {/* Moon Icon (Visible in Dark Mode) */}
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className={`icon moon-icon ${theme === 'dark' ? 'visible' : ''}`}
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                        >
-                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                        </svg>
-                    </div>
-                </div>
+                <div className="toggle-slider"></div>
+                <span className="toggle-label light-label">
+                    LIGHT
+                </span>
+                <span className="toggle-label dark-label">
+                    DARK
+                </span>
             </button>
             <style>{`
-                .theme-toggle-btn {
-                    background: transparent;
-                    border: none;
+                .elegant-theme-toggle {
+                    background: rgba(0, 0, 0, 0.4);
+                    backdrop-filter: blur(10px);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
                     cursor: pointer;
-                    padding: 0;
+                    padding: 4px;
                     margin: 0;
                     display: flex;
                     align-items: center;
+                    justify-content: space-between;
                     position: relative;
-                    opacity: 0.9;
-                    transition: opacity 0.2s ease;
-                    z-index: 2000; /* FORCE CLICKABILITY */
+                    width: 110px;
+                    height: 36px;
+                    border-radius: 40px;
+                    transition: all 0.4s cubic-bezier(0.85, 0, 0.15, 1);
+                    z-index: 2000;
                     pointer-events: auto;
-                }
-                .theme-toggle-btn:hover {
-                    opacity: 1;
-                }
-                .toggle-track {
-                    width: 44px;
-                    height: 24px;
-                    background-color: var(--border-subtle, #333);
-                    border-radius: 12px;
-                    position: relative;
-                    transition: background-color 0.3s ease, border-color 0.3s ease;
-                    border: 1px solid var(--border-strong, #555);
-                }
-                /* Light Mode Track Override based on props */
-                .toggle-track.light {
-                    background-color: #e0e0e0;
-                    border-color: #ccc;
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
                 }
 
-                .toggle-thumb {
-                    width: 20px;
-                    height: 20px;
-                    background-color: var(--text-primary, #fff);
-                    border-radius: 50%;
+                .elegant-theme-toggle.light {
+                    background: rgba(255, 255, 255, 0.7);
+                    border: 1px solid rgba(0, 0, 0, 0.1);
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+                }
+
+                .toggle-slider {
                     position: absolute;
-                    top: 1px;
-                    left: 1px;
-                    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), background-color 0.3s ease;
+                    top: 4px;
+                    left: 4px;
+                    width: calc(50% - 4px);
+                    height: 26px;
+                    background: #ffffff;
+                    border-radius: 40px;
+                    transition: transform 0.4s cubic-bezier(0.85, 0, 0.15, 1), background 0.4s ease;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+                    z-index: 1;
+                }
+
+                /* In DARK mode, the slider should be on the DARK label (right side) */
+                .elegant-theme-toggle.dark .toggle-slider {
+                    transform: translateX(100%);
+                    background: #222222;
+                }
+                
+                /* In LIGHT mode, the slider should be on the LIGHT label (left side) */
+                .elegant-theme-toggle.light .toggle-slider {
+                    transform: translateX(0);
+                    background: #ffffff;
+                }
+
+                .toggle-label {
+                    flex: 1;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-                    color: var(--bg-canvas, #000);
+                    text-align: center;
+                    font-family: var(--font-ui, 'Inter', sans-serif);
+                    font-size: 0.65rem;
+                    font-weight: 700;
+                    letter-spacing: 0.1em;
+                    z-index: 2;
+                    transition: color 0.4s ease;
+                    user-select: none;
+                    background: none;
+                    border: none;
+                    cursor: pointer;
+                    height: 100%;
+                    outline: none;
+                    padding: 0;
+                    margin: 0;
                 }
 
-                /* Move thumb in light mode */
-                .toggle-track.light .toggle-thumb {
-                    transform: translateX(20px);
-                    background-color: #FDB813; /* Sun Yellow */
-                    color: #fff;
+                /* In DARK mode */
+                .elegant-theme-toggle.dark .light-label {
+                    color: rgba(255, 255, 255, 0.6); /* Inactive */
                 }
-                
-                .icon {
-                    width: 12px;
-                    height: 12px;
-                    position: absolute;
-                    opacity: 0;
-                    transition: opacity 0.2s ease, transform 0.2s ease;
+                .elegant-theme-toggle.dark .dark-label {
+                    color: #ffffff; /* Active - slider is underneath */
                 }
-                
-                .icon.visible {
-                    opacity: 1;
+
+                /* In LIGHT mode */
+                .elegant-theme-toggle.light .light-label {
+                    color: #111111; /* Active - slider is underneath */
                 }
-                
-                .sun-icon {
-                    transform: rotate(-90deg) scale(0.5);
+                .elegant-theme-toggle.light .dark-label {
+                    color: rgba(0, 0, 0, 0.5); /* Inactive */
                 }
-                .sun-icon.visible {
-                    transform: rotate(0) scale(1);
-                }
-                
-                .moon-icon {
-                    transform: rotate(90deg) scale(0.5);
-                }
-                .moon-icon.visible {
-                    transform: rotate(0) scale(1);
-                    fill: currentColor;
+
+                .elegant-theme-toggle:hover {
+                    transform: scale(1.03);
                 }
             `}</style>
         </>

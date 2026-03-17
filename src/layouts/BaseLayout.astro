@@ -2,6 +2,7 @@
 import "../styles/global.css";
 import "../styles/brands.css";
 import Header from "../components/Header.jsx";
+import SideMenuRail from "../components/SideMenuRail.jsx";
 import Footer from "../components/Footer.astro";
 import SEO from "../components/SEO.astro";
 import NewsletterPopup from "../components/NewsletterPopup.jsx";
@@ -18,6 +19,8 @@ const {
   hideHeader = false,
   hideFooter = false,
   fullWidth = false,
+  hideThemeToggle = false,
+  altTextLogo = null,
   showNewsletterPopup = true,
   showGlobalGrid = true,
   bodyClass = "",
@@ -134,7 +137,8 @@ const finalType = type || dbMetadata?.og_type || "website";
     <a href="#main-content" class="skip-link">Skip to main content</a>
     <!-- <Header /> -->
     <!-- Header: client:load for immediate hydration priority -->
-    {!hideHeader && <Header client:load />}
+    {!hideHeader && <Header hideThemeToggle={hideThemeToggle} altTextLogo={altTextLogo} client:load />}
+    {!hideHeader && <SideMenuRail client:load />}
     {showGlobalGrid && <div class="global-grid-bg"></div>}
     {showGlobalGrid && <div class="global-glow-bg"></div>}
     <main
@@ -177,7 +181,7 @@ const finalType = type || dbMetadata?.og_type || "website";
   /* Universal Header Clearance Rule */
   /* Applied if !hideHeader is true */
   .header-padding {
-    padding-top: 140px !important; /* 80px header + 60px safe buffer */
+    padding-top: 0 !important; /* Header is now a floating add-on, no padding needed */
   }
 
   .global-grid-bg {
@@ -194,7 +198,7 @@ const finalType = type || dbMetadata?.og_type || "website";
       linear-gradient(to right, var(--grid-color-2) 1px, transparent 1px),
       linear-gradient(to bottom, var(--grid-color-2) 1px, transparent 1px);
     background-size: 60px 60px; /* PERFECT SQUARE as requested */
-    background-position: center top;
+    background-position: center -1px;
 
     /* Soft fade on edges */
     -webkit-mask-image: radial-gradient(
@@ -228,7 +232,7 @@ const finalType = type || dbMetadata?.og_type || "website";
       linear-gradient(to right, var(--grid-color-1) 1px, transparent 1px),
       linear-gradient(to bottom, var(--grid-color-1) 1px, transparent 1px);
     background-size: 60px 60px; /* PERFECT SQUARE */
-    background-position: center top;
+    background-position: center -1px;
 
     /* Reveal only near mouse AND faded at edges (Global Mask) */
     -webkit-mask-image:
@@ -255,7 +259,7 @@ const finalType = type || dbMetadata?.og_type || "website";
 
   .skip-link {
     position: absolute;
-    top: -40px;
+    top: -200px;
     left: 0;
     background: #000;
     color: #fff;

@@ -173,6 +173,11 @@ const PortfolioFilter = ({ items }) => {
             gap: 1.5rem;
             text-decoration: none;
             color: inherit;
+            --portfolio-image-scale-hover: 1.018;
+            --portfolio-image-zoom-in-duration: 1100ms;
+            --portfolio-image-zoom-out-duration: 2400ms;
+            --portfolio-image-zoom-in-ease: cubic-bezier(0.22, 1, 0.36, 1);
+            --portfolio-image-zoom-out-ease: cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .image-wrapper {
@@ -182,24 +187,32 @@ const PortfolioFilter = ({ items }) => {
             border-radius: var(--radius-sm);
             position: relative;
             background: var(--bg-secondary);
-            transition: transform 0.4s ease, box-shadow 0.4s ease;
+            transition: box-shadow 0.45s ease;
             /* cursor: none; Removed for default cursor */
         }
 
         .image-wrapper:hover {
-             transform: translateY(-4px);
-             box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+             box-shadow: 0 10px 24px rgba(0,0,0,0.12);
         }
 
         .image-wrapper img {
+            display: block;
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transition: transform 0.6s ease;
+            transform: scale(1);
+            transform-origin: center center;
+            transition-property: transform;
+            transition-duration: var(--portfolio-image-zoom-out-duration);
+            transition-timing-function: var(--portfolio-image-zoom-out-ease);
+            will-change: transform;
+            backface-visibility: hidden;
         }
 
         .photography-card:hover .image-wrapper img {
-            transform: scale(1.05);
+            transform: scale(var(--portfolio-image-scale-hover));
+            transition-duration: var(--portfolio-image-zoom-in-duration);
+            transition-timing-function: var(--portfolio-image-zoom-in-ease);
         }
 
         .content {
@@ -269,6 +282,18 @@ const PortfolioFilter = ({ items }) => {
             }
             .filter-scroll::-webkit-scrollbar {
                 display: none;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .image-wrapper,
+            .image-wrapper img,
+            h3.photo-title::after {
+                transition-duration: 0.01ms !important;
+            }
+
+            .photography-card:hover .image-wrapper img {
+                transform: scale(1);
             }
         }
       `}</style>

@@ -77,6 +77,8 @@ const supportPaths = [
     description={pageDescription}
     fullWidth={true}
     gridVariant="moodboard"
+    hideThemeToggle={true}
+    altTextLogo="Home"
 >
     <section class="backers-page">
         <div class="page-shell">
@@ -388,6 +390,11 @@ const supportPaths = [
             )
             fixed !important;
         color: #231a13;
+        --cursor-dot-bg: rgba(0, 0, 0, 0.92);
+        --cursor-dot-outline: rgba(0, 0, 0, 0.14);
+        --cursor-dot-glow: rgba(0, 0, 0, 0.22);
+        --cursor-ring-border: rgba(0, 0, 0, 0.58);
+        --cursor-shadow: rgba(15, 23, 42, 0.18);
     }
 
     :global(body[data-grid-variant="moodboard"] .global-grid-bg) {

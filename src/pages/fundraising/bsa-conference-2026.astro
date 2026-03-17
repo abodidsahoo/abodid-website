@@ -119,6 +119,8 @@ const whoFor = [
     description={pageDescription}
     fullWidth={true}
     gridVariant="moodboard"
+    hideThemeToggle={true}
+    altTextLogo="Home"
 >
     <section class="bsa-page">
         <div class="page-shell">
@@ -451,6 +453,11 @@ const whoFor = [
         background: radial-gradient(circle at top, #fff8ea 0%, #f3e5cd 45%, #ecddc0 100%)
             fixed !important;
         color: #231a13;
+        --cursor-dot-bg: rgba(0, 0, 0, 0.92);
+        --cursor-dot-outline: rgba(0, 0, 0, 0.14);
+        --cursor-dot-glow: rgba(0, 0, 0, 0.22);
+        --cursor-ring-border: rgba(0, 0, 0, 0.58);
+        --cursor-shadow: rgba(15, 23, 42, 0.18);
     }
 
     :global(body[data-grid-variant="moodboard"] .global-grid-bg) {

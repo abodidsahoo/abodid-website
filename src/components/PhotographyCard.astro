@@ -36,6 +36,21 @@ const { title, category, image, href } = Astro.props;
     display: block;
     cursor: pointer;
     position: relative;
+    --photo-card-image-scale-hover: 1.01;
+    --photo-card-image-transition:
+      transform 1.35s cubic-bezier(0.23, 1, 0.32, 1);
+    --photo-card-hover-border: var(--sci-fi-cyan, #00f3ff);
+    --photo-card-hover-shadow: 0 0 15px rgba(0, 243, 255, 0.15);
+    --photo-card-image-filter: brightness(0.6);
+    --photo-card-overlay-bg: rgba(10, 15, 20, 0.8);
+    --photo-card-overlay-border: rgba(0, 243, 255, 0.3);
+    --photo-card-overlay-shadow:
+      0 12px 30px rgba(0, 0, 0, 0.28),
+      0 0 18px rgba(0, 243, 255, 0.12);
+    --photo-card-title-color: #fff;
+    --photo-card-title-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
+    --photo-card-category-color: var(--sci-fi-cyan, #00f3ff);
+    --photo-card-corner-color: var(--sci-fi-cyan, #00f3ff);
   }
 
   .image-container {
@@ -44,9 +59,12 @@ const { title, category, image, href } = Astro.props;
     border-radius: 6px;
     aspect-ratio: 16/9; /* Reverted to 16:9 Landscape as requested */
     border: 1px solid var(--border-subtle);
-    transition: border-color 0.3s ease;
+    transition:
+      border-color 0.35s ease,
+      box-shadow 0.7s ease-in-out;
     position: relative;
     height: auto;
+    will-change: box-shadow;
   }
 
   /* Revert mobile to 16:9 or keep same as desktop */
@@ -58,21 +76,22 @@ const { title, category, image, href } = Astro.props;
   }
 
   .photography-card:hover .image-container {
-    border-color: var(--sci-fi-cyan, #00f3ff);
-    box-shadow: 0 0 15px rgba(0, 243, 255, 0.15);
+    border-color: var(--photo-card-hover-border);
+    box-shadow: var(--photo-card-hover-shadow);
   }
 
   .slide-image {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition:
-      transform 0.6s cubic-bezier(0.165, 0.84, 0.44, 1),
-      opacity 2s ease-in-out;
+    transform: scale(1);
+    transform-origin: center center;
+    transition: var(--photo-card-image-transition), opacity 2s ease-in-out;
     position: absolute;
     top: 0;
     left: 0;
     opacity: 0;
+    will-change: transform, opacity;
   }
 
   .slide-image.active {
@@ -80,10 +99,9 @@ const { title, category, image, href } = Astro.props;
     pointer-events: none; /* Prevent images from interfering with hover */
   }
 
-  /* Dim image on hover to make text pop */
+  /* Slow image-only zoom with a single stable transition */
   .photography-card:hover .slide-image {
-    transform: scale(1.05);
-    filter: brightness(0.6);
+    transform: scale(var(--photo-card-image-scale-hover));
   }
 
   /* Overlay Styling (Hidden by default) */
@@ -103,15 +121,16 @@ const { title, category, image, href } = Astro.props;
     padding: 1rem 1.5rem;
     min-width: 60%;
 
-    background: rgba(10, 15, 20, 0.8); /* Darker backdrop for text */
+    background: var(--photo-card-overlay-bg);
     backdrop-filter: blur(4px);
-    border: 1px solid rgba(0, 243, 255, 0.3);
+    border: 1px solid var(--photo-card-overlay-border);
     border-radius: 4px;
+    box-shadow: var(--photo-card-overlay-shadow);
 
     opacity: 0; /* Hidden */
     transition:
-      opacity 0.3s ease,
-      transform 0.3s ease;
+      opacity 0.45s ease,
+      transform 0.45s ease;
     pointer-events: none; /* Let clicks pass through to link */
 
     /* Prevent overlay from being affected by image transitions */
@@ -120,7 +139,7 @@ const { title, category, image, href } = Astro.props;
 
   .photography-card:hover .meta-overlay {
     opacity: 1;
-    transform: translate(-50%, -50%) scale(1.05);
+    transform: translate(-50%, -50%);
   }
 
   .title {
@@ -129,10 +148,13 @@ const { title, category, image, href } = Astro.props;
     font-weight: var(--feature-photo-overlay-title-weight, 700);
     line-height: var(--feature-photo-overlay-title-line-height, 1.1);
     letter-spacing: var(--feature-photo-overlay-title-letter-spacing, -0.02em);
-    color: var(--feature-photo-overlay-title-color, #fff);
+    color: var(
+      --feature-photo-overlay-title-color,
+      var(--photo-card-title-color)
+    );
     margin: 0 0 0.25rem 0;
     text-transform: uppercase;
-    text-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
+    text-shadow: var(--photo-card-title-shadow);
   }
 
   .category {
@@ -142,7 +164,10 @@ const { title, category, image, href } = Astro.props;
     line-height: var(--feature-photo-overlay-meta-line-height, 1.2);
     text-transform: uppercase;
     letter-spacing: var(--feature-photo-overlay-meta-letter-spacing, 0.1em);
-    color: var(--feature-photo-overlay-meta-color, var(--sci-fi-cyan, #00f3ff));
+    color: var(
+      --feature-photo-overlay-meta-color,
+      var(--photo-card-category-color)
+    );
   }
 
   /* Corner Accents */
@@ -157,14 +182,40 @@ const { title, category, image, href } = Astro.props;
   .corner.top-left {
     top: -1px;
     left: -1px;
-    border-top: 2px solid var(--sci-fi-cyan);
-    border-left: 2px solid var(--sci-fi-cyan);
+    border-top: 2px solid var(--photo-card-corner-color);
+    border-left: 2px solid var(--photo-card-corner-color);
   }
 
   .corner.bottom-right {
     bottom: -1px;
     right: -1px;
-    border-bottom: 2px solid var(--sci-fi-cyan);
-    border-right: 2px solid var(--sci-fi-cyan);
+    border-bottom: 2px solid var(--photo-card-corner-color);
+    border-right: 2px solid var(--photo-card-corner-color);
+  }
+
+  :global([data-theme="light"]) .photography-card {
+    --feature-photo-overlay-title-color: #fff;
+    --feature-photo-overlay-meta-color: #fff;
+    --photo-card-image-scale-hover: 1.008;
+    --photo-card-hover-border: rgba(15, 23, 42, 0.18);
+    --photo-card-hover-shadow:
+      0 16px 34px rgba(15, 23, 42, 0.12),
+      0 0 18px rgba(255, 255, 255, 0.18);
+    --photo-card-image-filter: brightness(0.72) saturate(0.92);
+    --photo-card-overlay-bg: linear-gradient(
+      180deg,
+      rgba(163, 0, 33, 0.76) 0%,
+      rgba(163, 0, 33, 0.84) 100%
+    );
+    --photo-card-overlay-border: rgba(255, 255, 255, 0.22);
+    --photo-card-overlay-shadow:
+      0 14px 30px rgba(163, 0, 33, 0.2),
+      0 10px 22px rgba(15, 23, 42, 0.12),
+      0 0 18px rgba(255, 255, 255, 0.14),
+      0 0 6px rgba(255, 255, 255, 0.1);
+    --photo-card-title-color: #fff;
+    --photo-card-title-shadow: 0 0 8px rgba(255, 255, 255, 0.12);
+    --photo-card-category-color: #fff;
+    --photo-card-corner-color: rgba(255, 255, 255, 0.55);
   }
 </style>

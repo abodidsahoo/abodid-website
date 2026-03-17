@@ -107,7 +107,7 @@ const supportProjects = [
 
 const heroHeadingLines = [
     ["Hi,", "I", "am", "Abodid."],
-    ["I", "have", "worked", "across..."],
+    ["I", "work", "at", "the", "intersection", "of", "..."],
 ];
 const heroBioWords =
     "With over 8+ years of experience in photography, film and interactive media, I design authentic creative experiences for brands and organizations working in the culture and technology space.".split(
@@ -167,15 +167,19 @@ const heroTextEffect = "smooth-blur";
             </h1>
             <div class="bio-content">
                 <p class="hero-bio-line" data-hero-word-line>
-                    {heroBioWords.map((word) => (
-                        <span class="hero-word hero-bio-word" data-hero-word>
-                            {word}
-                        </span>
-                    ))}
+                    {
+                        heroBioWords.map((word) => (
+                            <span
+                                class="hero-word hero-bio-word"
+                                data-hero-word
+                            >
+                                {word}
+                            </span>
+                        ))
+                    }
                 </p>
             </div>
         </div>
-
     </section>
 
     <!-- Showreel Section - Wrapped for Alignment -->
@@ -327,7 +331,7 @@ const heroTextEffect = "smooth-blur";
 
 <style>
     :global(body.landing-page .header-padding) {
-        padding-top: 140px !important;
+        padding-top: clamp(112px, 8vw, 140px) !important;
     }
 
     .narrative-section {
@@ -337,8 +341,8 @@ const heroTextEffect = "smooth-blur";
         display: flex;
         flex-direction: column;
         justify-content: flex-start;
-        gap: clamp(2rem, 5vh, 4rem);
-        padding: clamp(7rem, 14vh, 9rem) 24px clamp(1.5rem, 4vh, 2.5rem);
+        gap: clamp(1.5rem, 3.5vh, 3rem);
+        padding: clamp(6.5rem, 13vh, 10.5rem) 24px clamp(1.5rem, 4vh, 2.5rem);
         max-width: 1100px;
         margin-left: auto;
         margin-right: auto;
@@ -351,13 +355,9 @@ const heroTextEffect = "smooth-blur";
         z-index: 2;
         display: flex;
         flex-direction: column;
-        gap: clamp(2rem, 5vh, 4rem);
-        max-width: 980px;
-        transform: translate3d(
-            0,
-            calc(var(--hero-copy-stage-shift) * -1),
-            0
-        );
+        gap: clamp(2.5rem, 5vh, 4.5rem);
+        max-width: min(100%, 980px);
+        transform: translate3d(0, calc(var(--hero-copy-stage-shift) * -1), 0);
         transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
         will-change: transform;
     }
@@ -367,12 +367,16 @@ const heroTextEffect = "smooth-blur";
         display: grid;
         gap: 0.06em;
         font-family: var(--feature-typewriter-main-font, var(--font-sans));
-        font-size: var(--feature-typewriter-main-size, 3.5rem);
+        font-size: clamp(
+            2.35rem,
+            1.35rem + 2.55vw,
+            var(--feature-typewriter-main-size, 3.5rem)
+        );
         font-weight: var(--feature-typewriter-main-weight, 700);
         line-height: var(--feature-typewriter-main-line-height, 1.1);
         letter-spacing: var(--feature-typewriter-main-letter-spacing, 0em);
         color: var(--feature-typewriter-main-color, var(--text-primary));
-        width: fit-content;
+        width: 100%;
         max-width: 100%;
     }
 
@@ -381,7 +385,8 @@ const heroTextEffect = "smooth-blur";
         flex-wrap: wrap;
         align-items: baseline;
         gap: 0.12em 0.18em;
-        width: fit-content;
+        width: 100%;
+        min-width: 0;
         max-width: 100%;
     }
 
@@ -389,6 +394,8 @@ const heroTextEffect = "smooth-blur";
         --hero-dynamic-shift: 0px;
         --hero-dynamic-opacity: 1;
         --hero-dynamic-blur: 0px;
+        width: 100%;
+        max-width: min(100%, calc(100vw - 48px));
         opacity: var(--hero-dynamic-opacity);
         transform: translate3d(0, calc(var(--hero-dynamic-shift) * -1), 0);
         filter: blur(var(--hero-dynamic-blur));
@@ -416,7 +423,7 @@ const heroTextEffect = "smooth-blur";
     }
 
     .bio-content {
-        max-width: 900px;
+        max-width: min(100%, 840px);
     }
 
     .hero-bio-line {
@@ -426,17 +433,89 @@ const heroTextEffect = "smooth-blur";
         align-items: baseline;
         gap: 0.16em 0.24em;
         font-family: var(--feature-typewriter-bio-font, var(--font-body));
-        font-size: var(--feature-typewriter-bio-size, 2.2rem);
+        font-size: clamp(
+            1.2rem,
+            0.78rem + 1.58vw,
+            var(--feature-typewriter-bio-size, 2.2rem)
+        );
         font-weight: var(--feature-typewriter-bio-weight, 300);
         line-height: var(--feature-typewriter-bio-line-height, 1.2);
         letter-spacing: var(--feature-typewriter-bio-letter-spacing, 0em);
         color: var(--feature-typewriter-bio-color, var(--text-secondary));
     }
 
+    @media (max-width: 1800px) and (min-width: 980px) {
+        :global(body.landing-page .header-padding) {
+            padding-top: 134px !important;
+        }
+
+        .narrative-section {
+            gap: clamp(1.6rem, 3vh, 2.6rem);
+            padding-top: clamp(7rem, 12.5vh, 9rem);
+            padding-bottom: clamp(2.4rem, 5.5vh, 4rem);
+            max-width: 1100px;
+        }
+
+        .hero-content {
+            gap: clamp(2.7rem, 4.8vh, 4.1rem);
+            max-width: min(100%, 1020px);
+        }
+
+        .hero-title {
+            font-size: clamp(2.96rem, 2.16rem + 1.98vw, 3.9rem);
+        }
+
+        .bio-content {
+            max-width: min(100%, 940px);
+        }
+
+        .hero-bio-line {
+            font-size: clamp(1.92rem, 1.39rem + 1.29vw, 2.52rem);
+        }
+
+        #typewriter-text {
+            font-size: 1.56em;
+        }
+
+        .writings-section {
+            padding-top: clamp(6rem, 11vh, 8.75rem);
+        }
+    }
+
+    @media (max-width: 979px) {
+        :global(body.landing-page .header-padding) {
+            padding-top: 108px !important;
+        }
+
+        .narrative-section {
+            gap: 1.25rem;
+            padding-top: clamp(5rem, 8.5vh, 6.5rem);
+        }
+
+        .hero-content {
+            gap: 1.9rem;
+            max-width: min(100%, 780px);
+        }
+
+        .hero-title {
+            font-size: clamp(2rem, 1.4rem + 1.6vw, 2.55rem);
+        }
+
+        .hero-bio-line {
+            font-size: clamp(1.34rem, 1rem + 1.05vw, 1.78rem);
+        }
+    }
+
     .major-section-separator {
-        height: 20vh;
-        min-height: 140px;
+        height: 30vh;
+        min-height: 220px;
         width: 100%;
+    }
+
+    :global(body.landing-page .contained-section .photography-card) {
+        --photo-card-image-scale-hover: 1.006;
+        --photo-card-image-transition: transform 1.5s
+            cubic-bezier(0.23, 1, 0.32, 1);
     }
 
     @media (max-width: 768px) {
@@ -446,12 +525,12 @@ const heroTextEffect = "smooth-blur";
 
         .narrative-section {
             min-height: auto;
-            padding-top: 3rem;
+            padding-top: 4.5rem;
             padding-left: 0;
             padding-right: 0;
             padding-bottom: 2.5rem;
             margin-bottom: 1.5rem;
-            gap: 2.5rem;
+            gap: 3.25rem;
         }
 
         .hero-title {
@@ -493,7 +572,7 @@ const heroTextEffect = "smooth-blur";
         }
 
         .section {
-            margin-bottom: 4rem;
+            margin-bottom: 5rem;
         }
 
         .blog-card {
@@ -540,8 +619,8 @@ const heroTextEffect = "smooth-blur";
 
     @media (max-width: 768px) {
         .major-section-separator {
-            height: 10vh;
-            min-height: 80px;
+            height: 16vh;
+            min-height: 128px;
         }
     }
 
@@ -551,7 +630,7 @@ const heroTextEffect = "smooth-blur";
     }
 
     .section {
-        margin-bottom: var(--space-2xl);
+        margin-bottom: clamp(5rem, 10vh, 7.5rem);
         /* Ensure sections align with the grid */
         max-width: 1100px;
         margin-left: auto;
@@ -874,8 +953,11 @@ const heroTextEffect = "smooth-blur";
         margin-top: 0;
         position: relative;
         top: -2px; /* Shift upwards to balance */
-        width: fit-content;
-        max-width: 100%;
+        width: 100%;
+        min-width: 0;
+        max-width: min(100%, calc(100vw - 48px));
+        white-space: normal;
+        overflow-wrap: break-word;
     }
 
     [data-theme="light"] #typewriter-text {
@@ -898,7 +980,8 @@ const heroTextEffect = "smooth-blur";
 
     #typewriter-text[data-text-effect="typewriter"] {
         display: inline-block;
-        white-space: nowrap; /* Prevent wrapping to next line */
+        max-width: 100%;
+        white-space: normal;
         transition: opacity 0.1s ease; /* Makes disappearance smoother */
     }
 
@@ -907,8 +990,12 @@ const heroTextEffect = "smooth-blur";
         grid-template-areas: "stack";
         align-items: baseline;
         vertical-align: top;
-        white-space: nowrap;
+        width: 100%;
+        white-space: normal;
         isolation: isolate;
+        overflow: visible;
+        padding-top: 0.14em;
+        padding-bottom: 0.18em;
     }
 
     @media (max-width: 600px) {
@@ -930,7 +1017,9 @@ const heroTextEffect = "smooth-blur";
             4px 3px 0 rgba(0, 0, 0, 0.18);
     }
 
-    [data-theme="light"] #typewriter-text[data-text-effect="typewriter"] :global(span) {
+    [data-theme="light"]
+        #typewriter-text[data-text-effect="typewriter"]
+        :global(span) {
         text-shadow:
             2px 2px 0 rgba(15, 23, 42, 0.42),
             4px 3px 0 rgba(15, 23, 42, 0.22);
@@ -963,11 +1052,15 @@ const heroTextEffect = "smooth-blur";
         grid-area: stack;
         position: relative;
         display: inline-flex;
-        flex-wrap: nowrap;
+        flex-wrap: wrap;
         align-items: baseline;
+        align-content: flex-start;
+        justify-content: flex-start;
         gap: 0.14em 0.2em;
-        width: fit-content;
+        width: 100%;
         max-width: 100%;
+        white-space: normal;
+        overflow: visible;
         opacity: 0;
         filter: blur(12px);
         transform: translate3d(0, 0.18em, 0);
@@ -982,23 +1075,7 @@ const heroTextEffect = "smooth-blur";
 
     #typewriter-text[data-text-effect="smooth-blur"]
         :global(.smooth-blur-phrase)::after {
-        content: "";
-        position: absolute;
-        inset: -0.3em -0.45em;
-        background: linear-gradient(
-            90deg,
-            var(--smooth-blur-mask-start) 0%,
-            var(--smooth-blur-mask-mid) 34%,
-            var(--smooth-blur-mask-end) 72%,
-            transparent 100%
-        );
-        filter: blur(12px);
-        opacity: 0.58;
-        transform: translate3d(0, 0, 0);
-        transition:
-            transform 2.8s cubic-bezier(0.22, 1, 0.36, 1),
-            opacity 1.6s ease;
-        pointer-events: none;
+        content: none;
     }
 
     #typewriter-text[data-text-effect="smooth-blur"]
@@ -1024,6 +1101,8 @@ const heroTextEffect = "smooth-blur";
     #typewriter-text[data-text-effect="smooth-blur"]
         :global(.smooth-blur-word) {
         display: inline-block;
+        flex: 0 1 auto;
+        max-width: 100%;
         opacity: 0;
         filter: blur(8px);
         transform: translate3d(-0.24em, 0.15em, 0);
@@ -1043,6 +1122,7 @@ const heroTextEffect = "smooth-blur";
         --smooth-blur-scroll-opacity: 1;
         --smooth-blur-scroll-blur: 0px;
         display: inline-block;
+        max-width: 100%;
         opacity: var(--smooth-blur-scroll-opacity);
         filter: blur(var(--smooth-blur-scroll-blur));
         transform: translate3d(
@@ -1050,6 +1130,7 @@ const heroTextEffect = "smooth-blur";
             calc(var(--smooth-blur-scroll-shift) * -1),
             0
         );
+        overflow-wrap: break-word;
         transition:
             opacity 0.32s linear,
             transform 0.58s cubic-bezier(0.22, 1, 0.36, 1),
@@ -1393,19 +1474,20 @@ const heroTextEffect = "smooth-blur";
         heroWordLines.forEach((line, lineIndex) => {
             const words = Array.from(line.querySelectorAll("[data-hero-word]"));
             const lineStart = lineIndex * 0.18;
-            const lineWindow = lineIndex === heroWordLines.length - 1 ? 0.52 : 0.42;
+            const lineWindow =
+                lineIndex === heroWordLines.length - 1 ? 0.52 : 0.42;
             const wordSpread = Math.min(0.18, words.length * 0.028);
             const wordStep =
-                words.length > 1 ? wordSpread / Math.max(words.length - 1, 1) : 0;
+                words.length > 1
+                    ? wordSpread / Math.max(words.length - 1, 1)
+                    : 0;
 
             words.forEach((word, wordIndex) => {
                 const start = lineStart + wordIndex * wordStep;
                 const wordProgress = smoothstep(
                     (progress - start) / Math.max(lineWindow, 0.01),
                 );
-                const blurProgress = smoothstep(
-                    (wordProgress - 0.64) / 0.3,
-                );
+                const blurProgress = smoothstep((wordProgress - 0.64) / 0.3);
                 const shift =
                     progress * 16 + wordProgress * 24 + blurProgress * 6;
                 const opacity = clampProgress(

@@ -96,6 +96,7 @@ const LiquidCursor = () => {
 
     const hoverRef = useRef(false);
     const hoverMixRef = useRef(0);
+    const hiddenRef = useRef(false);
     const rippleElsRef = useRef([]);
     const rippleStateRef = useRef(
         Array.from({ length: RIPPLE_POOL }, () => ({
@@ -115,7 +116,7 @@ const LiquidCursor = () => {
 
         const styleEl = document.createElement('style');
         styleEl.innerHTML = `
-            * { cursor: none !important; }
+            * { cursor: none; }
             .liquid-cursor-layer {
                 pointer-events: none;
                 position: fixed;
@@ -125,6 +126,16 @@ const LiquidCursor = () => {
                 width: 100vw;
                 height: 100vh;
                 overflow: hidden;
+            }
+            body.cursor-revealed,
+            body.cursor-revealed * {
+                cursor: auto !important;
+            }
+            body.cursor-revealed a,
+            body.cursor-revealed button,
+            body.cursor-revealed .mono-link,
+            body.cursor-revealed [role="button"] {
+                cursor: pointer !important;
             }
         `;
         document.head.appendChild(styleEl);
@@ -150,6 +161,15 @@ const LiquidCursor = () => {
             lastMouseRef.current = { x: clientX, y: clientY, t: now };
 
             const target = event.target;
+            
+            if (target instanceof Element && target.closest('.right-panel')) {
+               hiddenRef.current = true;
+               document.body.classList.add("cursor-revealed");
+            } else {
+               hiddenRef.current = false;
+               document.body.classList.remove("cursor-revealed");
+            }
+
             hoverRef.current =
                 target instanceof Element &&
                 !!target.closest(
@@ -326,6 +346,7 @@ const LiquidCursor = () => {
             blobRef.current.setAttribute('d', buildSmoothClosedPath(points));
 
             layerRef.current.style.transform = `translate3d(${posRef.current.x}px, ${posRef.current.y}px, 0)`;
+            layerRef.current.style.opacity = hiddenRef.current ? 0 : 1;
 
             const frontX = SHAPE_CENTER + Math.cos(angleRef.current) * (baseRadius * 2.3 + stretch * 6);
             const frontY = SHAPE_CENTER + Math.sin(angleRef.current) * (baseRadius * 2.3 + stretch * 6);
@@ -422,7 +443,7 @@ const LiquidCursor = () => {
     if (typeof document === 'undefined') return null;
 
     return createPortal(
-        <div className="liquid-cursor-layer">
+        <div className="liquid-cursor-layer" style={{ transition: "opacity 0.2s ease" }}>
             <div
                 ref={layerRef}
                 style={{
