@@ -361,13 +361,6 @@ const supportPaths = [
                             >
                         </div>
                     </div>
-
-                    <figure class="contact-signature">
-                        <img
-                            src="/images/signature-black.png"
-                            alt="Signature of Abodid Sahoo"
-                        />
-                    </figure>
                 </div>
             </section>
 
@@ -839,9 +832,9 @@ const supportPaths = [
 
     .contact-layout {
         display: grid;
-        grid-template-columns: 1fr auto;
+        grid-template-columns: 1fr;
         gap: clamp(1.05rem, 2vw, 1.6rem);
-        align-items: end;
+        align-items: start;
     }
 
     .contact-copy {
@@ -863,17 +856,7 @@ const supportPaths = [
         margin-top: 0.2rem;
     }
 
-    .contact-signature {
-        margin: 0;
-        justify-self: end;
-        align-self: end;
-        transform: translateX(-22%);
-    }
 
-    .contact-signature img {
-        width: min(220px, 24vw);
-        display: block;
-    }
 
     .footer-spacer {
         height: clamp(7rem, 12vh, 9rem);
@@ -893,11 +876,7 @@ const supportPaths = [
             grid-template-columns: repeat(3, minmax(0, 1fr));
         }
 
-        .contact-signature {
-            justify-self: start;
-            margin-top: 0.4rem;
-            transform: none;
-        }
+
 
         .final-note-columns {
             grid-template-columns: 1fr;
