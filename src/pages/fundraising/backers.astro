@@ -76,8 +76,6 @@ const supportPaths = [
     title={pageTitle}
     description={pageDescription}
     fullWidth={true}
-    gridVariant="moodboard"
-    hideThemeToggle={true}
     altTextLogo="Home"
 >
     <section class="backers-page">
@@ -379,38 +377,7 @@ const supportPaths = [
 </BaseLayout>
 
 <style>
-    :global(body[data-grid-variant="moodboard"]) {
-        --grid-color-1: rgba(83, 62, 37, 0.28);
-        --grid-color-2: rgba(83, 62, 37, 0.09);
-        background: radial-gradient(
-                circle at top,
-                #fff8ea 0%,
-                #f3e5cd 45%,
-                #ecddc0 100%
-            )
-            fixed !important;
-        color: #231a13;
-        --cursor-dot-bg: rgba(0, 0, 0, 0.92);
-        --cursor-dot-outline: rgba(0, 0, 0, 0.14);
-        --cursor-dot-glow: rgba(0, 0, 0, 0.22);
-        --cursor-ring-border: rgba(0, 0, 0, 0.58);
-        --cursor-shadow: rgba(15, 23, 42, 0.18);
-    }
 
-    :global(body[data-grid-variant="moodboard"] .global-grid-bg) {
-        display: none;
-    }
-
-    :global(body[data-grid-variant="moodboard"] .global-glow-bg) {
-        --glow-radius: 560px;
-        opacity: 1;
-        background-size: 52px 52px;
-    }
-
-    :global(body[data-grid-variant="moodboard"] .site-footer) {
-        background: rgba(243, 229, 205, 0.88);
-        border-top: 1px solid rgba(93, 67, 38, 0.26);
-    }
 
     .backers-page {
         width: 100%;
@@ -418,25 +385,25 @@ const supportPaths = [
     }
 
     .page-shell {
-        width: min(1490px, calc(100vw - 2.5rem));
+        width: min(1490px, calc(100% - 3rem));
         margin: 0 auto;
         display: grid;
         gap: clamp(1.45rem, 2vw, 2rem);
     }
 
     .panel {
-        background: rgba(255, 250, 243, 0.84);
-        border: 1px solid rgba(101, 75, 44, 0.28);
+        background: var(--bg-surface);
+        border: 1px solid var(--border-subtle);
         border-radius: 22px;
         padding: clamp(1.45rem, 2.5vw, 2.4rem);
-        box-shadow: 0 18px 35px rgba(86, 59, 29, 0.1);
+        box-shadow: 0 18px 35px rgba(0, 0, 0, 0.05);
         backdrop-filter: blur(6px);
         -webkit-backdrop-filter: blur(6px);
     }
 
     .panel-soft {
-        background: rgba(255, 255, 255, 0.72);
-        border: 1px solid rgba(117, 86, 52, 0.22);
+        background: var(--bg-surface-hover);
+        border: 1px solid var(--border-subtle);
         border-radius: 18px;
         padding: clamp(1rem, 1.5vw, 1.35rem);
     }
@@ -450,7 +417,7 @@ const supportPaths = [
         letter-spacing: 0.04em;
         text-transform: uppercase;
         font-size: 0.73rem;
-        color: rgba(70, 45, 20, 0.82);
+        color: var(--text-tertiary);
     }
 
     h1,
@@ -462,22 +429,12 @@ const supportPaths = [
     dd,
     dt,
     input {
-        color: #241912;
+        color: var(--text-primary);
         font-family: var(--font-display);
     }
 
     .hero {
-        background:
-            linear-gradient(
-                125deg,
-                rgba(255, 255, 255, 0.8),
-                rgba(255, 235, 200, 0.78)
-            ),
-            linear-gradient(
-                35deg,
-                rgba(255, 220, 171, 0.4),
-                rgba(255, 247, 231, 0.65)
-            );
+        background: var(--bg-surface);
         padding: clamp(1.7rem, 3vw, 2.8rem);
     }
 
@@ -503,7 +460,7 @@ const supportPaths = [
 
     .hero-date {
         margin: 0;
-        color: rgba(65, 42, 19, 0.78);
+        color: var(--text-tertiary);
         font-size: 0.88rem;
         font-family: var(--font-ui);
         text-transform: uppercase;
@@ -530,7 +487,7 @@ const supportPaths = [
         max-height: 430px;
         object-fit: cover;
         border-radius: 14px;
-        border: 1px solid rgba(109, 79, 48, 0.28);
+        border: 1px solid var(--border-subtle);
     }
 
     .hero-photo figcaption {
@@ -541,7 +498,7 @@ const supportPaths = [
         margin: 0;
         font-size: 0.82rem;
         line-height: 1.5;
-        color: rgba(61, 40, 20, 0.86);
+        color: var(--text-tertiary);
         font-family: var(--font-ui) !important;
         letter-spacing: 0.02em;
     }
@@ -551,51 +508,6 @@ const supportPaths = [
         display: flex;
         flex-wrap: wrap;
         gap: 0.7rem;
-    }
-
-    .btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0.62rem 1rem;
-        border: 1px solid rgba(96, 71, 43, 0.38);
-        border-radius: 12px;
-        text-decoration: none;
-        color: #332317;
-        font-family: var(--font-ui);
-        font-size: 0.75rem;
-        letter-spacing: 0.01em;
-        line-height: 1.2;
-        transition:
-            transform 0.2s ease,
-            box-shadow 0.2s ease,
-            background 0.2s ease,
-            border-color 0.2s ease;
-        background: rgba(255, 251, 244, 0.9);
-        box-shadow: 0 2px 8px rgba(89, 58, 29, 0.08);
-        cursor: pointer;
-    }
-
-    .btn:hover,
-    .btn:focus-visible {
-        transform: translateY(-1px);
-        border-color: rgba(101, 70, 36, 0.52);
-        background: rgba(248, 238, 221, 0.96);
-        box-shadow: 0 8px 16px rgba(89, 58, 29, 0.12);
-        outline: none;
-    }
-
-    .btn-primary {
-        background: #5f4635;
-        color: #fff8ef;
-        border-color: #5f4635;
-        box-shadow: 0 6px 14px rgba(67, 48, 33, 0.2);
-    }
-
-    .btn-primary:hover,
-    .btn-primary:focus-visible {
-        background: #553d2e;
-        border-color: #553d2e;
     }
 
     .section {
@@ -659,12 +571,8 @@ const supportPaths = [
     .key-note-card {
         display: grid;
         gap: 0.55rem;
-        border: 1px solid rgba(117, 86, 52, 0.34);
-        background: linear-gradient(
-            115deg,
-            rgba(255, 255, 255, 0.88),
-            rgba(248, 235, 212, 0.78)
-        );
+        border: 1px solid var(--border-subtle);
+        background: var(--bg-surface-hover);
     }
 
     .key-note-text {
@@ -749,7 +657,7 @@ const supportPaths = [
         display: grid;
         gap: 0.25rem;
         padding-bottom: 0.45rem;
-        border-bottom: 1px solid rgba(121, 93, 62, 0.16);
+        border-bottom: 1px solid var(--border-subtle);
     }
 
     .bank-row:last-child {
@@ -781,7 +689,7 @@ const supportPaths = [
         font-family: var(--font-ui);
         font-size: 1.04rem;
         font-weight: 700;
-        color: #6f190e;
+        color: var(--text-primary);
         letter-spacing: 0.02em;
         line-height: 1.2;
     }
@@ -789,7 +697,7 @@ const supportPaths = [
     .upi-qr {
         width: min(160px, 100%);
         border-radius: 14px;
-        border: 1px solid rgba(121, 93, 62, 0.2);
+        border: 1px solid var(--border-subtle);
         display: block;
         margin-top: auto;
     }
@@ -798,12 +706,8 @@ const supportPaths = [
         margin-top: 0.15rem;
         display: grid;
         gap: 0.48rem;
-        border: 1px solid rgba(117, 86, 52, 0.3);
-        background: linear-gradient(
-            115deg,
-            rgba(255, 255, 255, 0.86),
-            rgba(245, 236, 220, 0.76)
-        );
+        border: 1px solid var(--border-subtle);
+        background: var(--bg-surface);
     }
 
     .transfer-followup p {
@@ -816,8 +720,6 @@ const supportPaths = [
     .btn-followup {
         margin-top: 0.22rem;
         width: fit-content;
-        border-color: rgba(113, 83, 49, 0.42);
-        background: rgba(255, 251, 243, 0.9);
     }
 
     .updates-copy {
@@ -842,16 +744,16 @@ const supportPaths = [
         width: 100%;
         min-height: 44px;
         border-radius: 10px;
-        border: 1px solid rgba(98, 66, 34, 0.3);
-        background: rgba(255, 255, 255, 0.95);
+        border: 1px solid var(--border-subtle);
+        background: var(--bg-surface);
         padding: 0.64rem 0.9rem;
         font-size: 0.9rem;
     }
 
     .subscribe-card input:focus-visible {
-        outline: 2px solid rgba(122, 27, 15, 0.3);
+        outline: 2px solid var(--border-subtle);
         outline-offset: 1px;
-        border-color: rgba(122, 27, 15, 0.52);
+        border-color: var(--border-subtle);
     }
 
     .btn-subscribe {
@@ -860,9 +762,9 @@ const supportPaths = [
         min-width: 176px;
         padding: 0.62rem 1rem;
         border-radius: 10px;
-        border: 1px solid rgba(132, 99, 62, 0.52);
-        background: #f3e6cf;
-        color: #3d2817;
+        border: 1px solid var(--btn-primary-border);
+        background: var(--btn-primary-bg);
+        color: var(--btn-primary-text);
         font-family: var(--font-ui);
         font-size: 0.77rem;
         letter-spacing: 0.02em;
@@ -876,9 +778,8 @@ const supportPaths = [
 
     .btn-subscribe:hover,
     .btn-subscribe:focus-visible {
-        background: #ebdcc1;
         transform: translateY(-1px);
-        box-shadow: 0 10px 18px rgba(89, 58, 29, 0.14);
+        box-shadow: 0 10px 18px rgba(0, 0, 0, 0.08);
         outline: none;
     }
 
@@ -1011,7 +912,7 @@ const supportPaths = [
 
     @media (max-width: 820px) {
         .page-shell {
-            width: calc(100vw - 1.1rem);
+            width: calc(100% - 2.4rem);
             gap: 1.1rem;
         }
 
