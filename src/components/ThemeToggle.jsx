@@ -36,111 +36,136 @@ const ThemeToggle = () => {
     return (
         <>
             <button
-                className={`elegant-theme-toggle ${theme}`}
+                className={`rail-theme-toggle ${theme}`}
                 aria-label={`Current mode: ${theme}`}
                 title="Toggle Website Theme"
                 onClick={toggleTheme}
             >
-                <div className="toggle-slider"></div>
-                <span className="toggle-label light-label">
-                    LIGHT
-                </span>
-                <span className="toggle-label dark-label">
-                    DARK
-                </span>
+                <div className="rail-toggle-slider"></div>
+                <div className="rail-toggle-icons">
+                    {/* Sun Icon */}
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="rail-icon rail-sun-icon">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    {/* Moon Icon */}
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="rail-icon rail-moon-icon">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </div>
             </button>
             <style>{`
-                .elegant-theme-toggle {
-                    background: rgba(0, 0, 0, 0.4);
-                    backdrop-filter: blur(10px);
-                    border: 1px solid rgba(255, 255, 255, 0.1);
+                .rail-theme-toggle {
+                    box-sizing: border-box;
+                    background: transparent;
+                    border: 2.5px solid rgba(255, 255, 255, 0.6);
                     cursor: pointer;
-                    padding: 4px;
+                    padding: 0;
                     margin: 0;
                     display: flex;
+                    flex-direction: column;
                     align-items: center;
                     justify-content: space-between;
                     position: relative;
-                    width: 110px;
-                    height: 36px;
-                    border-radius: 40px;
+                    width: 34px; /* Matches hamburger-line 34px */
+                    height: 64px;
+                    border-radius: 34px;
                     transition: all 0.4s cubic-bezier(0.85, 0, 0.15, 1);
                     z-index: 2000;
                     pointer-events: auto;
-                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
                 }
 
-                .elegant-theme-toggle.light {
-                    background: rgba(255, 255, 255, 0.7);
-                    border: 1px solid rgba(0, 0, 0, 0.1);
-                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+                .rail-theme-toggle.light {
+                    border: 3px solid rgba(0, 0, 0, 0.3);
                 }
 
-                .toggle-slider {
+                .rail-toggle-slider {
                     position: absolute;
-                    top: 4px;
-                    left: 4px;
-                    width: calc(50% - 4px);
-                    height: 26px;
+                    top: 2px;
+                    left: 50%;
+                    width: 24px;
+                    height: 24px;
                     background: #ffffff;
-                    border-radius: 40px;
+                    border-radius: 50%;
                     transition: transform 0.4s cubic-bezier(0.85, 0, 0.15, 1), background 0.4s ease;
-                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
                     z-index: 1;
                 }
 
-                /* In DARK mode, the slider should be on the DARK label (right side) */
-                .elegant-theme-toggle.dark .toggle-slider {
-                    transform: translateX(100%);
-                    background: #222222;
-                }
-                
-                /* In LIGHT mode, the slider should be on the LIGHT label (left side) */
-                .elegant-theme-toggle.light .toggle-slider {
-                    transform: translateX(0);
+                .rail-theme-toggle.dark .rail-toggle-slider {
+                    transform: translateX(-50%) translateY(30px);
                     background: #ffffff;
                 }
 
-                .toggle-label {
-                    flex: 1;
+                .rail-theme-toggle.light .rail-toggle-slider {
+                    transform: translateX(-50%) translateY(0);
+                    background: #111111;
+                }
+
+                .rail-toggle-icons {
+                    position: absolute;
+                    inset: 0;
                     display: flex;
+                    flex-direction: column;
                     align-items: center;
-                    justify-content: center;
-                    text-align: center;
-                    font-family: var(--font-ui, 'Inter', sans-serif);
-                    font-size: 0.65rem;
-                    font-weight: 700;
-                    letter-spacing: 0.1em;
-                    z-index: 2;
-                    transition: color 0.4s ease;
-                    user-select: none;
-                    background: none;
-                    border: none;
-                    cursor: pointer;
-                    height: 100%;
-                    outline: none;
-                    padding: 0;
-                    margin: 0;
+                    justify-content: space-between;
+                    padding: 7px 0;
+                    z-index: 0;
+                    pointer-events: none;
                 }
 
-                /* In DARK mode */
-                .elegant-theme-toggle.dark .light-label {
-                    color: rgba(255, 255, 255, 0.6); /* Inactive */
-                }
-                .elegant-theme-toggle.dark .dark-label {
-                    color: #ffffff; /* Active - slider is underneath */
+                .rail-icon {
+                    width: 14px;
+                    height: 14px;
+                    transition: opacity 0.4s ease, color 0.4s ease;
                 }
 
-                /* In LIGHT mode */
-                .elegant-theme-toggle.light .light-label {
-                    color: #111111; /* Active - slider is underneath */
+                .rail-theme-toggle.dark .rail-sun-icon {
+                    opacity: 1;
+                    color: rgba(255, 255, 255, 0.6);
                 }
-                .elegant-theme-toggle.light .dark-label {
-                    color: rgba(0, 0, 0, 0.5); /* Inactive */
+                .rail-theme-toggle.dark .rail-moon-icon {
+                    opacity: 0;
                 }
 
-                .elegant-theme-toggle:hover {
-                    transform: scale(1.03);
+                .rail-theme-toggle.light .rail-sun-icon {
+                    opacity: 0;
+                }
+                .rail-theme-toggle.light .rail-moon-icon {
+                    opacity: 1;
+                    color: rgba(0, 0, 0, 0.6);
+                }
+
+                .rail-theme-toggle:hover {
+                    opacity: 0.8;
+                }
+
+                @media (max-width: 768px) {
+                    .rail-theme-toggle {
+                        width: 28px; /* Matches hamburger-line 28px on mobile */
+                        height: 52px;
+                    }
+                    .rail-toggle-slider {
+                        top: 1.5px;
+                        width: 19px;
+                        height: 19px;
+                    }
+                    .rail-theme-toggle.dark .rail-toggle-slider {
+                        transform: translateX(-50%) translateY(24px);
+                    }
+                    .rail-toggle-icons {
+                        padding: 5px 0;
+                    }
+                    .rail-icon {
+                        width: 12px;
+                        height: 12px;
+                    }
                 }
             `}</style>
         </>

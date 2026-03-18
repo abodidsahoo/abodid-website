@@ -1,5 +1,4 @@
 import React from 'react';
-import ThemeToggle from './ThemeToggle.jsx';
 
 const Header = ({ hideThemeToggle = false, altTextLogo = null }) => {
     return (
@@ -16,13 +15,6 @@ const Header = ({ hideThemeToggle = false, altTextLogo = null }) => {
                         )}
                     </a>
                 </div>
-
-                {/* Bottom Right Theme Toggle */}
-                {!hideThemeToggle && (
-                    <div className="floating-theme-toggle-wrapper">
-                        <ThemeToggle />
-                    </div>
-                )}
             </div>
 
             <style>{`
@@ -88,24 +80,9 @@ const Header = ({ hideThemeToggle = false, altTextLogo = null }) => {
                     border-color: #000;
                 }
 
-                .floating-theme-toggle-wrapper {
-                    position: absolute;
-                    bottom: 25px;
-                    right: 4vw;
-                    z-index: 1100;
-                }
-
-                @media (max-width: 768px) {
-                    .floating-logo-wrapper {
-                        top: 20px;
-                        right: 5vw;
                     }
                     .header-logo-img {
                         height: 60px !important;
-                    }
-                    .floating-theme-toggle-wrapper {
-                        bottom: 20px;
-                        right: 5vw;
                     }
                 }
             `}</style>

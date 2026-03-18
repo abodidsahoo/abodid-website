@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Breadcrumbs from "./Breadcrumbs";
+import ThemeToggle from "./ThemeToggle.jsx";
 
 const primaryLinks = [
   { href: "/research", label: "Research" },
@@ -189,20 +190,23 @@ const SideMenuRail = () => {
         }}
       >
         <div className="side-menu-rail">
-          <button
-            type="button"
-            className="rail-action-btn rail-action-top"
-            aria-controls="side-menu-panel"
-            aria-expanded={isOpen}
-            aria-label={isOpen ? "Close site menu" : "Open site menu"}
-            onClick={toggleMenu}
-          >
-            <span className="side-menu-rail-top" aria-hidden="true">
-              <span className="hamburger-line" />
-              <span className="hamburger-line" />
-              <span className="hamburger-line" />
-            </span>
-          </button>
+          <div className="rail-top-group">
+            <button
+              type="button"
+              className="rail-action-btn rail-action-top"
+              aria-controls="side-menu-panel"
+              aria-expanded={isOpen}
+              aria-label={isOpen ? "Close site menu" : "Open site menu"}
+              onClick={toggleMenu}
+            >
+              <span className="side-menu-rail-top" aria-hidden="true">
+                <span className="hamburger-line" />
+                <span className="hamburger-line" />
+                <span className="hamburger-line" />
+              </span>
+            </button>
+            <ThemeToggle />
+          </div>
 
           <div className="rail-bottom-group">
             <div className="vertical-breadcrumbs-wrapper">
@@ -448,6 +452,14 @@ const SideMenuRail = () => {
           display: flex;
           align-items: center;
           justify-content: center;
+        }
+
+        .rail-top-group {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 2.4rem;
+          width: 100%;
         }
 
         .rail-bottom-group {

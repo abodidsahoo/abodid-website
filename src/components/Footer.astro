@@ -154,8 +154,7 @@ const year = new Date().getFullYear();
     display: flex;
     align-items: center;
     justify-content: stretch;
-    border-top: 1px solid rgba(255, 255, 255, 0.55);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.55);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
     padding: clamp(0.75rem, 2vh, 1.15rem) 0;
   }
 
@@ -198,9 +197,13 @@ const year = new Date().getFullYear();
   /* Right Column: Links Sub-Grid */
   .links-grid-container {
     display: grid;
-    /* 5 Columns for the links: Work, Recog, Lab, Engage, Socials */
+    /* 5 Columns for the links by default when width allows */
     grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 1rem; /* "Compact" spacing between menu blocks */
+    gap: 2.5rem 2vw; /* "Compact" spacing between menu blocks */
+  }
+
+  .links-col {
+    min-width: 0;
   }
 
   /* Bottom Bar Full Width */
@@ -212,6 +215,7 @@ const year = new Date().getFullYear();
     /* Match the main content padding horizontally */
     padding: 2rem 8%;
     font-size: 0.75rem;
+    font-weight: 500;
     color: #ffffff;
     text-transform: uppercase;
     letter-spacing: 0.1em;
@@ -270,6 +274,7 @@ const year = new Date().getFullYear();
 
   .newsletter-desc-text {
     font-size: 0.98rem;
+    font-weight: 500;
     color: var(--footer-text-dim);
     margin-top: 1.1rem;
     line-height: 1.5;
@@ -345,13 +350,16 @@ const year = new Date().getFullYear();
     }
   }
 
-  @media (max-width: 1400px) {
+  @media (max-width: 1600px) {
     .footer-grid {
-      grid-template-columns: 300px 1fr;
+      grid-template-columns: 320px 1fr;
       gap: 4vw;
     }
+
     .links-grid-container {
-      gap: 1.5rem;
+      /* Drop to 3-column layout earlier so long button texts don't run out of space */
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 2.5rem 2rem;
     }
   }
 
@@ -359,12 +367,6 @@ const year = new Date().getFullYear();
     .footer-grid {
       grid-template-columns: 280px 1fr;
       gap: 2.5rem;
-    }
-
-    .links-grid-container {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      row-gap: 2.5rem;
-      column-gap: 2rem;
     }
   }
 
@@ -379,7 +381,7 @@ const year = new Date().getFullYear();
     }
     .links-grid-container {
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      row-gap: 3rem;
+      gap: 3rem 2rem;
     }
     .footer-main-content {
       padding: 6rem 5% 5rem;
