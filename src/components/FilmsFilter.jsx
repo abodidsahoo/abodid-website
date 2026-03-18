@@ -348,8 +348,26 @@ const FilmsFilter = ({ items }) => {
                         grid-template-columns: 1fr;
                         gap: 3rem;
                     }
+                    .filter-bar {
+                        flex-direction: row;
+                        flex-wrap: nowrap;
+                        overflow-x: auto;
+                        -webkit-overflow-scrolling: touch;
+                        scrollbar-width: none;
+                        padding-bottom: 0.5rem;
+                        gap: 0.4rem;
+                        margin-left: -1rem; /* Adjust padding to allow full bleed scroll on mobile if needed, or keep padding */
+                        padding-left: 1rem;
+                        padding-right: 1rem;
+                        width: calc(100% + 2rem);
+                    }
+                    .filter-bar::-webkit-scrollbar {
+                        display: none;
+                    }
                     .filter-row {
                         gap: 0.4rem;
+                        flex-wrap: nowrap;
+                        flex-shrink: 0;
                     }
                 }
             `}</style>
