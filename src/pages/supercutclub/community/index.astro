@@ -1,0 +1,963 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import RouteQuickGuide from "../../../components/supercutclub/RouteQuickGuide.astro";
+import CommunityFeedbackLoop from "../../../components/supercutclub/CommunityFeedbackLoop.jsx";
+
+const pageTitle = "Supercut Club Community";
+const pageDescription =
+  "A closed editor community blueprint for Supercut Club, covering secure feedback loops, referrals, resources, and collaboration systems.";
+
+const collaborationPillars = [
+  {
+    eyebrow: "Resource sharing",
+    title: "A private commons for tools",
+    description:
+      "LUT packs, hardware notes, and delivery checklists stay inside the club instead of leaking into public feeds.",
+  },
+  {
+    eyebrow: "Meet people online",
+    title: "Live rooms for low-pressure networking",
+    description:
+      "Small calls and critique salons help editors build trust before they ever work together offline.",
+  },
+  {
+    eyebrow: "Feedback forum",
+    title: "Secure critique with timeline context",
+    description:
+      "Watermarked clips live in private rooms, and every note stays tied to the frame or timestamp it answers.",
+  },
+  {
+    eyebrow: "Closed collaboration",
+    title: "Open exchange inside a trusted boundary",
+    description:
+      "The system stays generous and experimental because access is approved, paid, and accountable.",
+  },
+];
+
+const accessFlow = [
+  "An existing member can nominate only one new editor per month.",
+  "The invited editor applies, pays to enter, and joins the closed feedback environment.",
+  "Every clip room gets access controls, watermark protection, and visible accountability.",
+  "Trust expands slowly, which keeps the community useful instead of noisy.",
+];
+
+const buildNeeds = [
+  {
+    title: "Membership and referrals",
+    description:
+      "Track paid membership status, invite history, sponsor relationships, and the one-referral-per-month rule.",
+  },
+  {
+    title: "Secure clip review",
+    description:
+      "Generate expiring links, watermark overlays, and room-level permissions before a clip becomes reviewable.",
+  },
+  {
+    title: "Timecoded comments",
+    description:
+      "Anchor feedback to timeline moments so notes are reviewable, searchable, and actionable.",
+  },
+  {
+    title: "Resource exchange",
+    description:
+      "Support resource posts, saved collections, and category tags for gear, workflows, and vendor knowledge.",
+  },
+  {
+    title: "Realtime community presence",
+    description:
+      "Surface live rooms, notifications, and activity feeds so editors can respond quickly without leaving the platform.",
+  },
+  {
+    title: "Moderation and trust logs",
+    description:
+      "Keep abuse reporting, room access logs, and sponsor trails visible enough to defend the integrity of the club.",
+  },
+];
+
+const quickGuideItems = [
+  {
+    path: "/supercutclub",
+    eyebrow: "For clients",
+    title: "Project overview",
+    description: "Return to the main Supercut Club story.",
+  },
+  {
+    path: "/supercutclub/editors",
+    eyebrow: "For editors",
+    title: "Editor profiles",
+    description: "Browse the live profile feed.",
+  },
+  {
+    path: "/supercutclub/matching",
+    eyebrow: "For developers",
+    title: "Matching engine",
+    description: "Read how the search algorithm works.",
+  },
+];
+---
+
+<BaseLayout
+  title={pageTitle}
+  description={pageDescription}
+  imageAlt="Supercut Club community blueprint"
+  useDynamicOgImage={false}
+  fullWidth={true}
+  hideHeader={true}
+  showGlobalGrid={false}
+  showNewsletterPopup={false}
+  showCursorFollower={false}
+  bodyClass="sccm-page"
+>
+  <div class="sccm-shell">
+    <header class="sccm-masthead">
+      <div class="sccm-masthead-inner">
+        <a class="sccm-wordmark" href="/supercutclub">
+          <span class="sccm-wordmark-kicker">Supercut Club</span>
+          <span class="sccm-wordmark-title">Community Blueprint</span>
+        </a>
+
+        <nav class="sccm-nav" aria-label="Community sections">
+          <a href="#loop">Feedback loop</a>
+          <a href="#pillars">Community model</a>
+          <a href="#access">Access logic</a>
+          <a href="#build">Developer build</a>
+        </nav>
+      </div>
+    </header>
+
+    <section class="sccm-hero">
+      <div class="sccm-hero-grid">
+        <div class="sccm-hero-copy">
+          <p class="sccm-eyebrow">Closed editor network</p>
+          <h1>
+            Community should feel
+            <span>safe enough to share unfinished work.</span>
+          </h1>
+          <p class="sccm-lead">
+            This page frames Supercut Club as a protected collaboration layer:
+            editors share resources, meet online, ask for critique, and build
+            trust inside a private network that grows carefully through referrals.
+          </p>
+
+          <div class="sccm-stat-row">
+            <article class="sccm-stat-card">
+              <strong>1/mo</strong>
+              <span>Each editor can invite only one new member per month</span>
+            </article>
+            <article class="sccm-stat-card sccm-stat-card-accent">
+              <strong>Private</strong>
+              <span>Feedback happens in secure rooms with watermark-aware review links</span>
+            </article>
+          </div>
+        </div>
+
+        <aside class="sccm-hero-panel">
+          <p class="sccm-panel-kicker">Community principle</p>
+          <h2>Open collaboration only works here because the boundary is closed.</h2>
+          <p>
+            The goal is not a public social network. It is a tightly scoped editor
+            club where critique, referrals, and resource exchange stay useful because
+            admission is slow, traceable, and trust-based.
+          </p>
+          <div class="sccm-panel-list">
+            <div>
+              <span>Feedback without leakage</span>
+              <p>Watermarked review rooms make unfinished work safer to circulate.</p>
+            </div>
+            <div>
+              <span>Membership with accountability</span>
+              <p>Referral rules give every member a stake in who enters next.</p>
+            </div>
+            <div>
+              <span>Collaboration with context</span>
+              <p>Editors can meet, share tools, and ask for help inside one coherent product surface.</p>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="loop" class="sccm-section sccm-section-stack">
+      <div class="sccm-section-heading">
+        <p class="sccm-eyebrow">Feedback loop</p>
+        <h2>The core interaction is a secure frame-by-frame critique room.</h2>
+        <p>
+          The experience should make it obvious how feedback appears: a protected
+          clip gets shared, the reviewer hovers the timeline, and comments surface
+          against precise moments without turning the room into a public free-for-all.
+        </p>
+      </div>
+
+      <CommunityFeedbackLoop client:load />
+    </section>
+
+    <div class="sccm-divider" aria-hidden="true">
+      <span></span>
+      <i>↓</i>
+      <span></span>
+    </div>
+
+    <section id="pillars" class="sccm-section sccm-section-stack">
+      <div class="sccm-section-heading">
+        <p class="sccm-eyebrow">Community model</p>
+        <h2>What members actually come here to do.</h2>
+        <p>
+          The page should communicate that this is more than a forum. It is part
+          workshop, part network, part protected review room.
+        </p>
+      </div>
+
+      <div class="sccm-pillars-grid">
+        {
+          collaborationPillars.map((pillar, index) => (
+            <article class="sccm-card sccm-pillar-card">
+              <div
+                class={`sccm-pillar-illustration sccm-pillar-illustration-${index + 1}`}
+                aria-hidden="true"
+              >
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+              <p class="sccm-card-kicker">{pillar.eyebrow}</p>
+              <h3>{pillar.title}</h3>
+              <p>{pillar.description}</p>
+            </article>
+          ))
+        }
+      </div>
+    </section>
+
+    <div class="sccm-divider" aria-hidden="true">
+      <span></span>
+      <i>↓</i>
+      <span></span>
+    </div>
+
+    <section id="access" class="sccm-section sccm-access-layout">
+      <div class="sccm-section-heading sccm-copy-panel">
+        <p class="sccm-eyebrow">Access logic</p>
+        <h2>A paid, referral-led club grows slower on purpose.</h2>
+        <p>
+          Buying into the community should not mean bypassing trust. A member can
+          only personally add one editor per month, which keeps growth deliberate and
+          gives the network time to absorb each new person well.
+        </p>
+      </div>
+
+      <article class="sccm-card sccm-flow-card">
+        <div class="sccm-card-head">
+          <p class="sccm-card-kicker">Referral system</p>
+          <h3>The gate is the feature, not the bug.</h3>
+        </div>
+        <ol class="sccm-flow-list">
+          {
+            accessFlow.map((step, index) => (
+              <li>
+                <span>{String(index + 1).padStart(2, "0")}</span>
+                <p>{step}</p>
+              </li>
+            ))
+          }
+        </ol>
+      </article>
+    </section>
+
+    <div class="sccm-divider" aria-hidden="true">
+      <span></span>
+      <i>↓</i>
+      <span></span>
+    </div>
+
+    <section id="build" class="sccm-section sccm-section-stack">
+      <div class="sccm-section-heading">
+        <p class="sccm-eyebrow">Developer build surface</p>
+        <h2>What needs to exist for editors to actually connect through the product.</h2>
+        <p>
+          This is where the community stops being a moodboard and becomes an
+          implementable system: access control, realtime room behavior, secure media
+          review, and a model for trust that can be enforced in product logic.
+        </p>
+      </div>
+
+      <div class="sccm-build-grid">
+        {
+          buildNeeds.map((item) => (
+            <article class="sccm-card sccm-build-card">
+              <h3>{item.title}</h3>
+              <p>{item.description}</p>
+            </article>
+          ))
+        }
+      </div>
+    </section>
+
+    <section class="sccm-cta-band">
+      <div class="sccm-cta-copy">
+        <p class="sccm-eyebrow sccm-eyebrow-dark">Next routes</p>
+        <h2>Move between discovery, matching, and community.</h2>
+        <p>
+          These public routes should read like one product surface: discover the
+          editor, understand the matching logic, then see how trust continues after
+          the shortlist is made.
+        </p>
+        <div class="sccm-cta-flow" aria-hidden="true">
+          <span>Discover</span>
+          <i>-></i>
+          <span>Match</span>
+          <i>-></i>
+          <span>Collaborate</span>
+        </div>
+      </div>
+
+      <div class="sccm-cta-actions">
+        <a class="sccm-cta-link sccm-cta-link-solid" href="/supercutclub/editors">
+          <span>Editor profiles</span>
+          <strong>Open Discover Interface</strong>
+        </a>
+        <a class="sccm-cta-link" href="/supercutclub/matching">
+          <span>Matching engine</span>
+          <strong>Open Developer PRD</strong>
+        </a>
+      </div>
+    </section>
+
+    <RouteQuickGuide
+      currentLabel="Community blueprint"
+      items={quickGuideItems}
+      theme="dark"
+      introTail="Use this page to understand the trust layer, then jump back to the client, editor, or developer view."
+    />
+  </div>
+</BaseLayout>
+
+<style>
+  :global(body.sccm-page) {
+    background:
+      radial-gradient(circle at top left, rgba(15, 118, 110, 0.18), transparent 24%),
+      radial-gradient(circle at top right, rgba(238, 90, 54, 0.12), transparent 24%),
+      #080b12;
+    color: #fff8ee;
+  }
+
+  .sccm-shell {
+    width: min(100%, 1460px);
+    margin: 0 auto;
+    padding: 0 clamp(1rem, 3vw, 2.2rem) clamp(5rem, 8vw, 7rem);
+  }
+
+  .sccm-masthead {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    padding: 1rem 0 0;
+  }
+
+  .sccm-masthead-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.9rem 1.2rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+    background: rgba(8, 11, 18, 0.84);
+    backdrop-filter: blur(18px);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
+  }
+
+  .sccm-wordmark {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .sccm-wordmark-kicker,
+  .sccm-eyebrow,
+  .sccm-card-kicker,
+  .sccm-panel-kicker {
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(232, 229, 223, 0.7);
+  }
+
+  .sccm-wordmark-title {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+  }
+
+  .sccm-nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 1rem;
+  }
+
+  .sccm-nav a,
+  .sccm-cta-link {
+    color: rgba(232, 229, 223, 0.78);
+    text-decoration: none;
+  }
+
+  .sccm-nav a {
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition:
+      color 0.2s ease,
+      background-color 0.2s ease,
+      border-color 0.2s ease,
+      transform 0.2s ease;
+  }
+
+  .sccm-nav a:hover,
+  .sccm-nav a:focus-visible {
+    color: #fff8ee;
+  }
+
+  .sccm-hero,
+  .sccm-section {
+    padding: clamp(2rem, 5vw, 4rem) 0;
+  }
+
+  .sccm-hero-grid,
+  .sccm-stat-row,
+  .sccm-pillars-grid,
+  .sccm-build-grid,
+  .sccm-access-layout {
+    display: grid;
+  }
+
+  .sccm-hero-grid {
+    grid-template-columns: minmax(0, 1.18fr) minmax(320px, 0.82fr);
+    gap: clamp(1.5rem, 3vw, 2.5rem);
+    align-items: stretch;
+  }
+
+  .sccm-hero-copy h1,
+  .sccm-section-heading h2,
+  .sccm-cta-band h2 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 900;
+    line-height: 0.95;
+    letter-spacing: -0.05em;
+  }
+
+  .sccm-hero-copy h1 {
+    font-size: clamp(3.4rem, 8vw, 6.7rem);
+    max-width: 11ch;
+  }
+
+  .sccm-hero-copy h1 span {
+    display: block;
+    background: linear-gradient(120deg, #0f766e 0%, #2563eb 50%, #ee5a36 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .sccm-lead,
+  .sccm-section-heading p,
+  .sccm-card p,
+  .sccm-hero-panel p,
+  .sccm-cta-band p {
+    margin: 0;
+    color: rgba(232, 229, 223, 0.82);
+    font-size: 1.02rem;
+    line-height: 1.78;
+    text-wrap: pretty;
+  }
+
+  .sccm-lead {
+    margin-top: 1.4rem;
+    max-width: 60ch;
+    font-size: clamp(1.08rem, 2vw, 1.22rem);
+  }
+
+  .sccm-stat-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+
+  .sccm-stat-card,
+  .sccm-hero-panel,
+  .sccm-card,
+  .sccm-copy-panel,
+  .sccm-cta-band {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 1.7rem;
+    background: rgba(14, 18, 28, 0.82);
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2);
+  }
+
+  .sccm-stat-card {
+    padding: 1.3rem;
+  }
+
+  .sccm-stat-card strong {
+    display: block;
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 5vw, 3rem);
+    line-height: 0.95;
+  }
+
+  .sccm-stat-card span {
+    display: block;
+    margin-top: 0.5rem;
+    color: rgba(232, 229, 223, 0.78);
+  }
+
+  .sccm-stat-card-accent {
+    background: linear-gradient(135deg, rgba(15, 118, 110, 0.9), rgba(10, 86, 81, 0.9));
+  }
+
+  .sccm-hero-panel {
+    padding: clamp(1.5rem, 3vw, 2rem);
+  }
+
+  .sccm-hero-panel h2 {
+    margin: 0.55rem 0 1rem;
+    font-family: var(--font-display);
+    font-size: clamp(1.8rem, 4vw, 2.5rem);
+    line-height: 1;
+    letter-spacing: -0.04em;
+  }
+
+  .sccm-panel-list {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+
+  .sccm-panel-list div {
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .sccm-panel-list span {
+    display: block;
+    margin-bottom: 0.35rem;
+    color: #fff8ee;
+    font-weight: 700;
+  }
+
+  .sccm-section-heading {
+    display: grid;
+    gap: 1rem;
+    max-width: 56rem;
+    margin-bottom: 1.8rem;
+  }
+
+  .sccm-section-heading p {
+    max-width: 46ch;
+  }
+
+  .sccm-section-heading h2,
+  .sccm-cta-band h2 {
+    font-size: clamp(2.2rem, 4.8vw, 4.2rem);
+  }
+
+  .sccm-divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: clamp(1.2rem, 4vw, 2.6rem) auto;
+    width: min(100%, 780px);
+    color: rgba(232, 229, 223, 0.7);
+  }
+
+  .sccm-divider span {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.16), transparent);
+  }
+
+  .sccm-divider i {
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    font-style: normal;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    background: rgba(14, 18, 28, 0.82);
+  }
+
+  .sccm-pillars-grid,
+  .sccm-build-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1.4rem;
+  }
+
+  .sccm-card,
+  .sccm-copy-panel {
+    padding: 1.35rem;
+  }
+
+  .sccm-card h3,
+  .sccm-flow-card h3 {
+    margin: 0.45rem 0 0.6rem;
+    color: #fff8ee;
+    font-family: var(--font-display);
+    font-size: clamp(1.25rem, 2vw, 1.75rem);
+    line-height: 1.06;
+    letter-spacing: -0.03em;
+  }
+
+  .sccm-pillar-card {
+    display: grid;
+    gap: 0.75rem;
+    align-content: start;
+    min-height: 320px;
+    padding: 1.5rem;
+  }
+
+  .sccm-pillar-card p:last-child {
+    max-width: 24ch;
+  }
+
+  .sccm-pillar-illustration {
+    position: relative;
+    width: 100%;
+    height: 110px;
+    margin-bottom: 0.15rem;
+    border-radius: 1.2rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+    overflow: hidden;
+  }
+
+  .sccm-pillar-illustration span {
+    position: absolute;
+    display: block;
+  }
+
+  .sccm-pillar-illustration-1 span:nth-child(1) {
+    left: 16px;
+    top: 22px;
+    width: 52px;
+    height: 66px;
+    border-radius: 0.95rem;
+    background: rgba(37, 99, 235, 0.2);
+    border: 2px solid #2563eb;
+  }
+
+  .sccm-pillar-illustration-1 span:nth-child(2) {
+    left: 50%;
+    top: 30px;
+    width: 60px;
+    height: 14px;
+    transform: translateX(-10%);
+    border-radius: 999px;
+    background: rgba(255, 248, 238, 0.82);
+  }
+
+  .sccm-pillar-illustration-1 span:nth-child(3) {
+    right: 18px;
+    bottom: 24px;
+    width: 64px;
+    height: 18px;
+    border-radius: 999px;
+    background: rgba(15, 118, 110, 0.88);
+  }
+
+  .sccm-pillar-illustration-2 span:nth-child(1),
+  .sccm-pillar-illustration-2 span:nth-child(2),
+  .sccm-pillar-illustration-2 span:nth-child(3) {
+    bottom: 24px;
+    width: 34px;
+    height: 34px;
+    border-radius: 999px;
+    border: 2px solid rgba(255, 248, 238, 0.82);
+  }
+
+  .sccm-pillar-illustration-2 span:nth-child(1) {
+    left: 22px;
+    background: rgba(37, 99, 235, 0.22);
+  }
+
+  .sccm-pillar-illustration-2 span:nth-child(2) {
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(15, 118, 110, 0.24);
+  }
+
+  .sccm-pillar-illustration-2 span:nth-child(3) {
+    right: 22px;
+    background: rgba(238, 90, 54, 0.24);
+  }
+
+  .sccm-pillar-illustration-3 span:nth-child(1) {
+    left: 18px;
+    right: 18px;
+    top: 22px;
+    height: 34px;
+    border-radius: 0.9rem;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .sccm-pillar-illustration-3 span:nth-child(2) {
+    left: 24px;
+    right: 24px;
+    bottom: 22px;
+    height: 2px;
+    background:
+      linear-gradient(90deg, rgba(37, 99, 235, 0.5), rgba(238, 90, 54, 0.6), rgba(15, 118, 110, 0.5));
+  }
+
+  .sccm-pillar-illustration-3 span:nth-child(3) {
+    left: 50%;
+    bottom: 12px;
+    width: 18px;
+    height: 18px;
+    transform: translateX(-50%);
+    border-radius: 999px;
+    background: #fff8ee;
+  }
+
+  .sccm-pillar-illustration-4 span:nth-child(1) {
+    left: 18px;
+    top: 24px;
+    width: 82px;
+    height: 62px;
+    border-radius: 1rem;
+    background: rgba(15, 118, 110, 0.2);
+    border: 2px solid #0f766e;
+  }
+
+  .sccm-pillar-illustration-4 span:nth-child(2) {
+    right: 18px;
+    top: 30px;
+    width: 48px;
+    height: 48px;
+    border-radius: 1rem;
+    background: rgba(238, 90, 54, 0.2);
+    border: 2px solid #ee5a36;
+  }
+
+  .sccm-pillar-illustration-4 span:nth-child(3) {
+    left: 102px;
+    top: 54px;
+    width: 42px;
+    height: 2px;
+    background: rgba(255, 248, 238, 0.9);
+  }
+
+  .sccm-access-layout {
+    grid-template-columns: minmax(0, 0.82fr) minmax(320px, 1.18fr);
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .sccm-flow-card {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sccm-card-head {
+    display: grid;
+    gap: 0.45rem;
+    margin-bottom: 1rem;
+  }
+
+  .sccm-flow-list {
+    display: grid;
+    gap: 0.9rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .sccm-flow-list li {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.9rem;
+    align-items: start;
+    padding: 1rem;
+    border-radius: 1.1rem;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .sccm-flow-list span {
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.7rem;
+    background: linear-gradient(135deg, #0f766e, #2563eb);
+    color: #fff8ee;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+  }
+
+  .sccm-flow-list p {
+    color: rgba(232, 229, 223, 0.84);
+    line-height: 1.64;
+  }
+
+  .sccm-build-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .sccm-build-card {
+    min-height: 220px;
+  }
+
+  .sccm-cta-band {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    margin-top: clamp(2rem, 5vw, 4rem);
+    padding: clamp(1.8rem, 4vw, 2.8rem);
+    background:
+      radial-gradient(circle at top right, rgba(37, 99, 235, 0.18), transparent 30%),
+      linear-gradient(145deg, rgba(14, 18, 28, 0.98), rgba(23, 29, 44, 0.98));
+  }
+
+  .sccm-eyebrow-dark {
+    color: rgba(232, 229, 223, 0.74);
+  }
+
+  .sccm-cta-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(220px, 1fr));
+    gap: 1rem;
+    align-items: stretch;
+    justify-content: end;
+  }
+
+  .sccm-cta-link {
+    display: grid;
+    gap: 0.28rem;
+    min-height: 100%;
+    text-align: left;
+    padding: 1rem 1.15rem;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 1.2rem;
+    background: rgba(255, 255, 255, 0.06);
+    color: #fff8ee;
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.16);
+    transition:
+      color 0.2s ease,
+      background-color 0.2s ease,
+      border-color 0.2s ease,
+      transform 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+
+  .sccm-cta-link span {
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(232, 229, 223, 0.72);
+  }
+
+  .sccm-cta-link strong {
+    font-size: 1rem;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    color: #fff8ee;
+  }
+
+  .sccm-cta-link-solid {
+    background: rgba(15, 118, 110, 0.72);
+    border-color: rgba(15, 118, 110, 0.82);
+  }
+
+  .sccm-cta-copy {
+    display: grid;
+    gap: 0.8rem;
+    max-width: 36rem;
+  }
+
+  .sccm-cta-copy p {
+    max-width: 38ch;
+  }
+
+  .sccm-cta-flow {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.7rem;
+    width: fit-content;
+    padding: 0.78rem 1rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.04);
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(232, 229, 223, 0.82);
+  }
+
+  .sccm-cta-flow i {
+    font-style: normal;
+    color: rgba(232, 229, 223, 0.54);
+  }
+
+  .sccm-cta-link:hover,
+  .sccm-cta-link:focus-visible {
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.24);
+  }
+
+  @media (max-width: 1120px) {
+    .sccm-hero-grid,
+    .sccm-pillars-grid,
+    .sccm-access-layout,
+    .sccm-build-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .sccm-cta-band {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .sccm-cta-actions {
+      width: 100%;
+      grid-template-columns: 1fr;
+      justify-content: flex-start;
+    }
+  }
+
+  @media (max-width: 780px) {
+    .sccm-shell {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+
+    .sccm-masthead-inner {
+      flex-direction: column;
+      align-items: flex-start;
+      border-radius: 1.4rem;
+    }
+
+    .sccm-nav {
+      width: 100%;
+      justify-content: flex-start;
+      gap: 0.8rem 1rem;
+    }
+
+    .sccm-stat-row {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

@@ -1,0 +1,597 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import RouteQuickGuide from "../../../components/supercutclub/RouteQuickGuide.astro";
+import EditorDiscoveryInterface from "../../../components/supercutclub/EditorDiscoveryInterface.jsx";
+
+const pageTitle = "Supercut Club Editor Profiles";
+const pageDescription =
+  "A dark-mode editor discovery interface for Supercut Club, featuring live taste filters, profile cards, and next-editor transitions.";
+
+const discoveryBarItems = [
+  {
+    label: "Aesthetic vibe",
+    detail: "Dropdown or vector-driven prompt",
+    body: 'Choose signals like "Gritty," "Neon," "Minimalist," or "Golden Hour."',
+  },
+  {
+    label: "Rhythm",
+    detail: "Slider or genre toggle",
+    body: "Move between slow-burn documentary pacing and hyper-edited commercial tempo.",
+  },
+  {
+    label: "Tech spec",
+    detail: "Toggle filter",
+    body: 'Switch between "Fixed Workstation" and "On-Site Mobile" depending on the production need.',
+  },
+  {
+    label: "Location",
+    detail: "City search",
+    body: "Filter around hubs like Mumbai, New Delhi, Bengaluru, and Kolkata in real time.",
+  },
+];
+
+const uxFlowItems = [
+  {
+    title: "The Next loop",
+    description:
+      'A floating "Next Editor" action cycles only through the currently matching pool.',
+  },
+  {
+    title: "Instant filter logic",
+    description:
+      "As the search changes, the eligible list updates immediately and the loop narrows with it.",
+  },
+  {
+    title: "Taste match score",
+    description:
+      "Every profile carries a visible percentage that translates vector closeness into a simple decision signal.",
+  },
+];
+
+const quickGuideItems = [
+  {
+    path: "/supercutclub",
+    eyebrow: "For clients",
+    title: "Project overview",
+    description: "Return to the main Supercut Club story.",
+  },
+  {
+    path: "/supercutclub/matching",
+    eyebrow: "For developers",
+    title: "Matching engine",
+    description: "Read how the search algorithm works.",
+  },
+  {
+    path: "/supercutclub/community",
+    eyebrow: "For members",
+    title: "Community systems",
+    description: "See the rules for invites and trust.",
+  },
+];
+---
+
+<BaseLayout
+  title={pageTitle}
+  description={pageDescription}
+  imageAlt="Supercut Club editor discovery interface"
+  useDynamicOgImage={false}
+  fullWidth={true}
+  hideHeader={true}
+  showGlobalGrid={false}
+  showNewsletterPopup={false}
+  showCursorFollower={false}
+  bodyClass="sce-page"
+>
+  <div class="sce-shell">
+    <header class="sce-masthead">
+      <div class="sce-masthead-inner">
+        <a class="sce-wordmark" href="/supercutclub">
+          <span class="sce-wordmark-kicker">Supercut Club</span>
+          <span class="sce-wordmark-title">Editor Discovery Interface</span>
+        </a>
+
+        <nav class="sce-nav" aria-label="Editor profile sections">
+          <a href="#interface">Live Interface</a>
+          <a href="#discovery-bar">Discovery Bar</a>
+          <a href="#ux-flow">UX Flow</a>
+          <a href="#handover">Handover</a>
+        </nav>
+      </div>
+    </header>
+
+    <section class="sce-hero">
+      <div class="sce-hero-grid">
+        <div class="sce-hero-copy">
+          <p class="sce-eyebrow">Editor blueprint</p>
+          <h1>
+            Discovery should feel
+            <span>like taste, not paperwork.</span>
+          </h1>
+          <p class="sce-lead">
+            This page turns the matching logic into a profile-first interface.
+            The search is live, the card is visual, and the experience is built
+            around taste match instead of scrolling through a dead list of names.
+          </p>
+
+          <div class="sce-stat-row">
+            <article class="sce-stat-card">
+              <strong>60/40</strong>
+              <span>Profile card split between identity and portfolio</span>
+            </article>
+            <article class="sce-stat-card sce-stat-card-accent">
+              <strong>SPA</strong>
+              <span>Designed to behave like a real-time discovery surface</span>
+            </article>
+          </div>
+        </div>
+
+        <aside class="sce-hero-panel">
+          <p class="sce-panel-kicker">What matters here</p>
+          <h2>The taste match drives the whole interface.</h2>
+          <p>
+            The interface is dark-mode-first, highly visual, and built so that a
+            director can understand the editor before they even click deeper.
+          </p>
+          <div class="sce-panel-list">
+            <div>
+              <span>Identity and specs</span>
+              <p>Name, city, tags, hardware, and pricing stay visible at all times.</p>
+            </div>
+            <div>
+              <span>Portfolio-first reading</span>
+              <p>Official portfolio films and local reels sit side by side so each profile feels grounded in a real body of work.</p>
+            </div>
+            <div>
+              <span>Live filtering</span>
+              <p>The profile pool updates instantly as rhythm, city, and production constraints shift.</p>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="interface" class="sce-interface-section">
+      <div class="sce-section-heading">
+        <p class="sce-eyebrow">Interactive prototype</p>
+        <h2>The editor profile card, built as a live discovery surface.</h2>
+        <p>
+          This is the actual discovery interaction, not just the spec for it.
+          Filters update the pool, the profile animates between candidates, and
+          the card balances taste, logistics, and portfolio evidence across
+          documentary, fashion, showreel, and experimental edit samples.
+        </p>
+      </div>
+
+      <EditorDiscoveryInterface client:load />
+    </section>
+
+    <div class="sce-divider" aria-hidden="true">
+      <span></span>
+      <i>↓</i>
+      <span></span>
+    </div>
+
+    <section id="discovery-bar" class="sce-section sce-section-stack">
+      <div class="sce-section-heading">
+        <p class="sce-eyebrow">Discovery bar</p>
+        <h2>The top filter bar should feel alive, not form-like.</h2>
+        <p>
+          The core job of the top navigation is to keep the editor card reacting
+          to taste, rhythm, production mode, and city with almost no delay.
+        </p>
+      </div>
+
+      <div class="sce-discovery-grid">
+        {
+          discoveryBarItems.map((item) => (
+            <article class="sce-card">
+              <p class="sce-card-kicker">{item.label}</p>
+              <h3>{item.detail}</h3>
+              <p>{item.body}</p>
+            </article>
+          ))
+        }
+      </div>
+    </section>
+
+    <div class="sce-divider" aria-hidden="true">
+      <span></span>
+      <i>↓</i>
+      <span></span>
+    </div>
+
+    <section id="ux-flow" class="sce-section sce-section-stack">
+      <div class="sce-section-heading">
+        <p class="sce-eyebrow">UX flow</p>
+        <h2>The motion logic should make the interface feel like a supercut.</h2>
+        <p>
+          The interaction is simple on purpose: one card, one clear next action,
+          and a loop that always reflects the live filtered pool.
+        </p>
+      </div>
+
+      <div class="sce-ux-grid">
+        {
+          uxFlowItems.map((item, index) => (
+            <article class="sce-card sce-ux-card">
+              <span class="sce-step-number">{String(index + 1).padStart(2, "0")}</span>
+              <h3>{item.title}</h3>
+              <p>{item.description}</p>
+            </article>
+          ))
+        }
+      </div>
+    </section>
+
+    <div class="sce-divider" aria-hidden="true">
+      <span></span>
+      <i>↓</i>
+      <span></span>
+    </div>
+
+    <section id="handover" class="sce-handover-band">
+      <div>
+        <p class="sce-eyebrow sce-eyebrow-dark">Developer handover</p>
+        <h2>Build this like a fast SPA, even when the content feels cinematic.</h2>
+        <p>
+          Use Framer Motion for card transitions, keep videos lazy and muted, and
+          let a single Supabase query combine vector similarity with relational
+          filters so the surface keeps the 200ms discovery feel.
+        </p>
+      </div>
+
+      <div class="sce-handover-note">
+        <p class="sce-card-kicker">Implementation note</p>
+        <p>
+          The profile data should be fetched through one query path that handles
+          city, hardware, pricing logic, and taste vectors together instead of
+          splitting the search across disconnected layers.
+        </p>
+      </div>
+    </section>
+
+    <RouteQuickGuide
+      currentLabel="Editor profiles"
+      items={quickGuideItems}
+      theme="dark"
+      introTail="Jump to the client overview, the developer PRD, or the community blueprint from here."
+    />
+  </div>
+</BaseLayout>
+
+<style>
+  :global(body.sce-page) {
+    background:
+      radial-gradient(circle at top left, rgba(37, 99, 235, 0.16), transparent 24%),
+      radial-gradient(circle at top right, rgba(238, 90, 54, 0.12), transparent 24%),
+      #080b12;
+    color: #fff8ee;
+  }
+
+  .sce-shell {
+    width: min(100%, 1460px);
+    margin: 0 auto;
+    padding: 0 clamp(1rem, 3vw, 2.2rem) clamp(5rem, 8vw, 7rem);
+  }
+
+  .sce-masthead {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    padding: 1rem 0 0;
+  }
+
+  .sce-masthead-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.9rem 1.2rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+    background: rgba(8, 11, 18, 0.84);
+    backdrop-filter: blur(18px);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
+  }
+
+  .sce-wordmark {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .sce-wordmark-kicker,
+  .sce-eyebrow,
+  .sce-card-kicker,
+  .sce-panel-kicker,
+  .sce-step-number {
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(232, 229, 223, 0.7);
+  }
+
+  .sce-wordmark-title {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+  }
+
+  .sce-nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 1rem;
+  }
+
+  .sce-nav a {
+    color: rgba(232, 229, 223, 0.76);
+    text-decoration: none;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: color 0.2s ease;
+  }
+
+  .sce-nav a:hover,
+  .sce-nav a:focus-visible {
+    color: #fff8ee;
+  }
+
+  .sce-hero,
+  .sce-interface-section,
+  .sce-section {
+    padding: clamp(2rem, 5vw, 4rem) 0;
+  }
+
+  .sce-hero-grid,
+  .sce-stat-row,
+  .sce-discovery-grid,
+  .sce-ux-grid {
+    display: grid;
+  }
+
+  .sce-hero-grid {
+    grid-template-columns: minmax(0, 1.22fr) minmax(320px, 0.78fr);
+    gap: clamp(1.5rem, 3vw, 2.5rem);
+    align-items: stretch;
+  }
+
+  .sce-hero-copy h1,
+  .sce-section-heading h2,
+  .sce-handover-band h2 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 900;
+    line-height: 0.95;
+    letter-spacing: -0.05em;
+  }
+
+  .sce-hero-copy h1 {
+    font-size: clamp(3.4rem, 8vw, 6.7rem);
+    max-width: 11ch;
+  }
+
+  .sce-hero-copy h1 span {
+    display: block;
+    background: linear-gradient(120deg, #ee5a36 0%, #2563eb 50%, #0f766e 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .sce-lead,
+  .sce-section-heading p,
+  .sce-card p,
+  .sce-hero-panel p,
+  .sce-handover-band p {
+    margin: 0;
+    color: rgba(232, 229, 223, 0.82);
+    font-size: 1.02rem;
+    line-height: 1.72;
+  }
+
+  .sce-lead {
+    margin-top: 1.4rem;
+    max-width: 60ch;
+    font-size: clamp(1.08rem, 2vw, 1.22rem);
+  }
+
+  .sce-stat-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+
+  .sce-stat-card,
+  .sce-hero-panel,
+  .sce-card,
+  .sce-handover-band {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 1.7rem;
+    background: rgba(14, 18, 28, 0.82);
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2);
+  }
+
+  .sce-stat-card {
+    padding: 1.3rem;
+  }
+
+  .sce-stat-card strong {
+    display: block;
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 5vw, 3rem);
+    line-height: 0.95;
+  }
+
+  .sce-stat-card span {
+    display: block;
+    margin-top: 0.5rem;
+    color: rgba(232, 229, 223, 0.78);
+  }
+
+  .sce-stat-card-accent {
+    background: linear-gradient(135deg, rgba(204, 70, 38, 0.88), rgba(184, 56, 28, 0.88));
+  }
+
+  .sce-hero-panel {
+    padding: clamp(1.5rem, 3vw, 2rem);
+  }
+
+  .sce-hero-panel h2 {
+    margin: 0.55rem 0 1rem;
+    font-family: var(--font-display);
+    font-size: clamp(1.8rem, 4vw, 2.5rem);
+    line-height: 1;
+    letter-spacing: -0.04em;
+  }
+
+  .sce-panel-list {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+
+  .sce-panel-list div {
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .sce-panel-list span {
+    display: block;
+    margin-bottom: 0.35rem;
+    color: #fff8ee;
+    font-weight: 700;
+  }
+
+  .sce-section-heading {
+    display: grid;
+    gap: 1rem;
+    max-width: 64rem;
+    margin-bottom: 1.3rem;
+  }
+
+  .sce-section-heading h2,
+  .sce-handover-band h2 {
+    font-size: clamp(2.2rem, 4.8vw, 4.2rem);
+  }
+
+  .sce-divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: clamp(1.2rem, 4vw, 2.6rem) auto;
+    width: min(100%, 780px);
+    color: rgba(232, 229, 223, 0.7);
+  }
+
+  .sce-divider span {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.16), transparent);
+  }
+
+  .sce-divider i {
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    font-style: normal;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    background: rgba(14, 18, 28, 0.82);
+  }
+
+  .sce-discovery-grid,
+  .sce-ux-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .sce-card {
+    padding: 1.25rem;
+  }
+
+  .sce-card h3 {
+    margin: 0.4rem 0 0.65rem;
+    color: #fff8ee;
+    font-family: var(--font-display);
+    font-size: clamp(1.2rem, 2vw, 1.7rem);
+    line-height: 1.04;
+    letter-spacing: -0.03em;
+  }
+
+  .sce-ux-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    min-height: 220px;
+  }
+
+  .sce-step-number {
+    display: inline-flex;
+    width: fit-content;
+    padding: 0.32rem 0.55rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .sce-handover-band {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+    gap: 1rem;
+    padding: clamp(1.5rem, 4vw, 2.3rem);
+    background:
+      radial-gradient(circle at top right, rgba(37, 99, 235, 0.18), transparent 28%),
+      linear-gradient(145deg, rgba(14, 18, 28, 0.96), rgba(23, 29, 44, 0.96));
+  }
+
+  .sce-eyebrow-dark {
+    color: rgba(232, 229, 223, 0.74);
+  }
+
+  .sce-handover-note {
+    padding: 1rem;
+    border-radius: 1.2rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  @media (max-width: 1120px) {
+    .sce-hero-grid,
+    .sce-discovery-grid,
+    .sce-ux-grid,
+    .sce-handover-band {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 780px) {
+    .sce-shell {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+
+    .sce-masthead-inner {
+      flex-direction: column;
+      align-items: flex-start;
+      border-radius: 1.4rem;
+    }
+
+    .sce-nav {
+      width: 100%;
+      justify-content: flex-start;
+      gap: 0.8rem 1rem;
+    }
+
+    .sce-stat-row {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

@@ -1,0 +1,1253 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import RouteQuickGuide from "../../../components/supercutclub/RouteQuickGuide.astro";
+
+const pageTitle = "Supercut Club Matching Engine";
+const pageDescription =
+  "A developer-facing PRD for the Supercut Club matching engine, covering triple mapping, extraction logic, database strategy, and discovery UX.";
+
+const tripleMappingItems = [
+  {
+    label: "Taste",
+    title: "Subjective creative fit",
+    description:
+      "Aesthetic, mood, tempo, and visual rhythm extracted from reels instead of manually typed bios.",
+    tech: "CLIP embeddings + audio analysis",
+  },
+  {
+    label: "Resources",
+    title: "Objective production reality",
+    description:
+      "Location, storage, workstation power, turnaround constraints, and pricing bands stored as structured filters.",
+    tech: "Relational data model",
+  },
+  {
+    label: "Availability",
+    title: "Real-time bookability",
+    description:
+      "A strong match is only useful if the editor is actually free when the project lands.",
+    tech: "Availability toggles or calendar sync",
+  },
+];
+
+const extractionCards = [
+  {
+    eyebrow: "Visual extraction",
+    title: "The mood sensor",
+    tool: "OpenAI CLIP + pgvector",
+    body:
+      "Frame snapshots from a reel become vectors. That lets the system compare a director’s visual reference against what an editor actually cuts, not just what they call themselves.",
+  },
+  {
+    eyebrow: "Rhythmic extraction",
+    title: "The pulse sensor",
+    tool: "Cyanite or Sonoteller",
+    body:
+      "Music BPM, energy level, and pacing become machine-readable signals. High-BPM commercial editors separate naturally from slower documentary and narrative editors.",
+  },
+];
+
+const blueprintCards = [
+  {
+    title: "Capabilities engine",
+    description:
+      "Treat hardware, city, price tier, and turnaround strength as a search substrate, not profile decoration.",
+  },
+  {
+    title: "Reference-first interface",
+    description:
+      "Let the director upload a mood board or reference track so the grid reorders around the brief’s taste profile.",
+  },
+  {
+    title: "Proof over proximity",
+    description:
+      "The system should help a strong editor in a smaller city surface beside big-network names if the work and setup match.",
+  },
+];
+
+const quickGuideItems = [
+  {
+    path: "/supercutclub",
+    eyebrow: "For clients",
+    title: "Project overview",
+    description: "Return to the main Supercut Club story.",
+  },
+  {
+    path: "/supercutclub/editors",
+    eyebrow: "For editors",
+    title: "Editor profiles",
+    description: "Browse the live profile feed.",
+  },
+  {
+    path: "/supercutclub/community",
+    eyebrow: "For members",
+    title: "Community systems",
+    description: "See the rules for invites and trust.",
+  },
+];
+---
+
+<BaseLayout
+  title={pageTitle}
+  description={pageDescription}
+  imageAlt="Supercut Club matching engine blueprint"
+  useDynamicOgImage={false}
+  fullWidth={true}
+  hideHeader={true}
+  showGlobalGrid={false}
+  showNewsletterPopup={false}
+  showCursorFollower={false}
+  bodyClass="scm-page"
+>
+  <div class="scm-shell">
+    <header class="scm-masthead">
+      <div class="scm-masthead-inner">
+        <a class="scm-wordmark" href="/supercutclub">
+          <span class="scm-wordmark-kicker">Supercut Club</span>
+          <span class="scm-wordmark-title">Matching Engine PRD</span>
+        </a>
+
+        <nav class="scm-nav" aria-label="Matching engine sections">
+          <a href="#logic">Core logic</a>
+          <a href="#extraction">Extraction</a>
+          <a href="#discovery">Discovery</a>
+          <a href="#blueprint">Blueprint</a>
+        </nav>
+      </div>
+    </header>
+
+    <section class="scm-hero">
+      <div class="scm-hero-grid">
+        <div class="scm-hero-copy">
+          <p class="scm-eyebrow">Developer-facing blueprint</p>
+          <h1>
+            <span class="scm-hero-title-line">Super Cut Club</span>
+            <span class="scm-hero-title-line scm-hero-title-line-accent">is a matching engine,</span>
+            <span class="scm-hero-title-line scm-hero-title-line-muted">not a job board.</span>
+          </h1>
+          <p class="scm-lead">
+            In film, word of mouth is a wall that new talent cannot easily
+            climb. This product turns professional intuition into a system: taste,
+            resources, and availability get queried together so a director can find
+            the right editor, not just the most connected one.
+          </p>
+
+          <div class="scm-stat-row">
+            <article class="scm-stat-card">
+              <strong>3</strong>
+              <span>Data layers queried together</span>
+            </article>
+            <article class="scm-stat-card scm-stat-card-accent">
+              <strong>1</strong>
+              <span>Unified match score for taste, resources, and timing</span>
+            </article>
+          </div>
+        </div>
+
+        <aside class="scm-hero-panel">
+          <p class="scm-panel-kicker">The product bet</p>
+          <h2>Creative vibes become functional search data.</h2>
+          <p>
+            A director does not just need “an editor.” They need somebody whose
+            rhythmic DNA aligns with the film, who can technically handle the
+            footage, and who is free at the moment the project appears.
+          </p>
+          <div class="scm-panel-list">
+            <div>
+              <span>Taste match</span>
+              <p>How the work feels.</p>
+            </div>
+            <div>
+              <span>Capability match</span>
+              <p>Whether the editor can actually execute it.</p>
+            </div>
+            <div>
+              <span>Timing match</span>
+              <p>Whether the shortlist is truly bookable now.</p>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="logic" class="scm-section scm-section-stack">
+      <div class="scm-section-heading scm-section-heading-center">
+        <p class="scm-eyebrow">1. Core logic</p>
+        <h2>The triple mapping system</h2>
+        <p>
+          The search layer needs to map three data types at once. If any one of
+          them is missing, the shortlist feels incomplete or misleading.
+        </p>
+      </div>
+
+      <div class="scm-mapping-grid">
+        {
+          tripleMappingItems.map((item) => (
+            <article class="scm-card scm-mapping-card">
+              <p class="scm-chip">{item.label}</p>
+              <h3>{item.title}</h3>
+              <p>{item.description}</p>
+              <div class="scm-tech-line">
+                <span>Tech layer</span>
+                <strong>{item.tech}</strong>
+              </div>
+            </article>
+          ))
+        }
+      </div>
+
+      <article class="scm-card scm-card-chart">
+        <div class="scm-card-head">
+          <p class="scm-card-kicker">Search composition</p>
+          <h3>How the engine assembles a match score</h3>
+          <p>
+            Taste should lead the shortlist, but it must stay grounded by production
+            reality and actual availability.
+          </p>
+        </div>
+        <div class="scm-chart-wrap">
+          <canvas id="matchWeightChart" aria-label="Matching score composition chart"></canvas>
+        </div>
+      </article>
+    </section>
+
+    <section id="extraction" class="scm-section scm-section-stack">
+      <div class="scm-section-heading">
+        <p class="scm-eyebrow">2. Extraction logic</p>
+        <h2>Let the system read the work instead of asking for essays.</h2>
+        <p>
+          Editors should not have to over-explain themselves in a text bio if the
+          platform can analyze their reels directly and recover visual and rhythmic
+          signatures from the actual work.
+        </p>
+      </div>
+
+      <div class="scm-extraction-grid">
+        {
+          extractionCards.map((card) => (
+            <article class="scm-card scm-extraction-card">
+              <p class="scm-card-kicker">{card.eyebrow}</p>
+              <h3>{card.title}</h3>
+              <p>{card.body}</p>
+              <div class="scm-tool-pill">{card.tool}</div>
+            </article>
+          ))
+        }
+      </div>
+
+      <div class="scm-dual-chart-grid">
+        <article class="scm-card scm-card-chart">
+          <div class="scm-card-head">
+            <p class="scm-card-kicker">Visual matching</p>
+            <h3>CLIP turns mood into vectors</h3>
+            <p>
+              Similar-looking work begins to cluster, which makes “moody neon” or
+              “clean documentary realism” searchable without keyword stuffing.
+            </p>
+          </div>
+          <div class="scm-chart-wrap scm-chart-wrap-medium">
+            <canvas id="vectorClusterChart" aria-label="Visual cluster chart"></canvas>
+          </div>
+        </article>
+
+        <article class="scm-card scm-card-chart">
+          <div class="scm-card-head">
+            <p class="scm-card-kicker">Rhythmic matching</p>
+            <h3>Audio analysis becomes pace metadata</h3>
+            <p>
+              BPM and energy help the system separate slow-burn editors from
+              high-tempo commercial and music-video specialists.
+            </p>
+          </div>
+          <div class="scm-chart-wrap scm-chart-wrap-medium">
+            <canvas id="pulseProfileChart" aria-label="Pulse profile chart"></canvas>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section id="discovery" class="scm-section scm-contrast-block">
+      <div class="scm-contrast-copy">
+        <p class="scm-eyebrow scm-eyebrow-dark">3. Why this exists</p>
+        <h2>Discovery platform beats word of mouth.</h2>
+        <p>
+          Word of mouth is slow, biased, and geographically narrow. A matching
+          engine gives clients a better fit while giving overlooked talent a
+          chance to surface through the quality of the work itself.
+        </p>
+        <p>
+          The platform becomes useful to both sides at once: clients get a more
+          precise shortlist, and editors outside the usual production circles get
+          a fairer route into the room.
+        </p>
+      </div>
+
+      <div class="scm-contrast-chart">
+        <canvas id="discoveryImpactChart" aria-label="Discovery platform impact chart"></canvas>
+      </div>
+    </section>
+
+    <section id="blueprint" class="scm-section scm-section-stack">
+      <div class="scm-section-heading">
+        <p class="scm-eyebrow">4. Functional blueprint</p>
+        <h2>Build a capabilities engine, then wrap it in a visual-first interface.</h2>
+        <p>
+          The database should not stop at “users.” It should model practical
+          constraints, while the front end should let reference media reshape the
+          shortlist in real time.
+        </p>
+      </div>
+
+      <div class="scm-blueprint-grid">
+        <article class="scm-card scm-card-chart">
+          <div class="scm-card-head">
+            <p class="scm-card-kicker">Database strategy</p>
+            <h3>Capabilities, not just profiles</h3>
+          </div>
+          <div class="scm-capability-list">
+            <div>
+              <span>Location and hardware</span>
+              <p>Store city, travel radius, machine strength, storage, and software stack as structured filters.</p>
+            </div>
+            <div>
+              <span>Price brackets</span>
+              <p>Use pricing tiers so basic reels and high-end commercial edits do not collapse into one vague rate field.</p>
+            </div>
+            <div>
+              <span>Availability state</span>
+              <p>Offer simple toggles first, then calendar sync later if the product proves the need.</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="scm-card scm-card-chart scm-card-chart-large">
+          <div class="scm-card-head">
+            <p class="scm-card-kicker">Speed-dating interface</p>
+            <h3>Reference media should rearrange the grid instantly</h3>
+            <p>
+              The UI should feel visual-first: upload a reference track or mood
+              board, then let the ranking shift around taste, not just text filters.
+            </p>
+          </div>
+          <div class="scm-chart-wrap">
+            <canvas id="interfaceFlowChart" aria-label="Interface flow chart"></canvas>
+          </div>
+        </article>
+      </div>
+
+      <div class="scm-principles-grid">
+        {
+          blueprintCards.map((card) => (
+            <article class="scm-card scm-principle-card">
+              <h3>{card.title}</h3>
+              <p>{card.description}</p>
+            </article>
+          ))
+        }
+      </div>
+    </section>
+
+    <section class="scm-cta-band">
+      <div>
+        <p class="scm-eyebrow scm-eyebrow-dark">Next design layer</p>
+        <h2>The next useful page is the onboarding flow.</h2>
+        <p>
+          We can turn this PRD into a concrete editor onboarding sequence next:
+          what to ask, in what order, and how to capture signal without exhausting
+          the user.
+        </p>
+      </div>
+
+      <a class="scm-cta-link" href="/supercutclub">Back to Supercut Club</a>
+    </section>
+
+    <RouteQuickGuide
+      currentLabel="Developer PRD"
+      items={quickGuideItems}
+      theme="light"
+      introTail="Use this page as the build spec, then jump sideways into the client, editor, or community view."
+    />
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.9/dist/chart.umd.min.js"></script>
+
+  <script is:inline>
+    function wrapLabel(label, maxChars = 16) {
+      const words = label.split(" ");
+      const lines = [];
+      let currentLine = "";
+
+      words.forEach((word) => {
+        if ((currentLine + word).length > maxChars) {
+          if (currentLine) {
+            lines.push(currentLine.trim());
+          }
+          currentLine = `${word} `;
+          return;
+        }
+
+        currentLine += `${word} `;
+      });
+
+      if (currentLine) {
+        lines.push(currentLine.trim());
+      }
+
+      return lines;
+    }
+
+    function createCharts() {
+      if (!window.Chart) {
+        return;
+      }
+
+      const Chart = window.Chart;
+      Chart.defaults.font.family =
+        "'Satoshi-Variable', 'Satoshi-Regular', 'Poppins', sans-serif";
+      Chart.defaults.color = "#4b433b";
+
+      const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            labels: {
+              color: "#4b433b",
+              usePointStyle: true,
+              boxWidth: 12,
+              boxHeight: 12,
+            },
+          },
+        },
+      };
+
+      const matchCanvas = document.getElementById("matchWeightChart");
+      if (matchCanvas) {
+        new Chart(matchCanvas, {
+          type: "bar",
+          data: {
+            labels: [
+              wrapLabel("Taste similarity"),
+              wrapLabel("Resource fit"),
+              wrapLabel("Availability confidence"),
+            ],
+            datasets: [
+              {
+                label: "Contribution to final match score",
+                data: [45, 35, 20],
+                backgroundColor: ["#ee5a36", "#2563eb", "#0f766e"],
+                borderRadius: 16,
+                maxBarThickness: 64,
+              },
+            ],
+          },
+          options: {
+            ...commonOptions,
+            indexAxis: "y",
+            plugins: {
+              ...commonOptions.plugins,
+              legend: { display: false },
+            },
+            scales: {
+              x: {
+                beginAtZero: true,
+                max: 50,
+                grid: {
+                  color: "rgba(22, 22, 22, 0.08)",
+                },
+              },
+              y: {
+                grid: {
+                  display: false,
+                },
+              },
+            },
+          },
+        });
+      }
+
+      const vectorCanvas = document.getElementById("vectorClusterChart");
+      if (vectorCanvas) {
+        new Chart(vectorCanvas, {
+          type: "scatter",
+          data: {
+            datasets: [
+              {
+                label: "Moody neon reels",
+                data: [
+                  { x: 78, y: 68 },
+                  { x: 82, y: 72 },
+                  { x: 74, y: 65 },
+                  { x: 86, y: 75 },
+                ],
+                backgroundColor: "#2563eb",
+              },
+              {
+                label: "Documentary realism",
+                data: [
+                  { x: 22, y: 30 },
+                  { x: 28, y: 36 },
+                  { x: 18, y: 24 },
+                  { x: 30, y: 32 },
+                ],
+                backgroundColor: "#0f766e",
+              },
+              {
+                label: "Commercial gloss",
+                data: [
+                  { x: 58, y: 52 },
+                  { x: 63, y: 56 },
+                  { x: 67, y: 48 },
+                  { x: 61, y: 60 },
+                ],
+                backgroundColor: "#ee5a36",
+              },
+            ],
+          },
+          options: {
+            ...commonOptions,
+            scales: {
+              x: {
+                title: {
+                  display: true,
+                  text: "Mood intensity",
+                },
+                min: 0,
+                max: 100,
+                grid: {
+                  color: "rgba(22, 22, 22, 0.08)",
+                },
+              },
+              y: {
+                title: {
+                  display: true,
+                  text: "Visual style proximity",
+                },
+                min: 0,
+                max: 100,
+                grid: {
+                  color: "rgba(22, 22, 22, 0.08)",
+                },
+              },
+            },
+          },
+        });
+      }
+
+      const pulseCanvas = document.getElementById("pulseProfileChart");
+      if (pulseCanvas) {
+        new Chart(pulseCanvas, {
+          type: "line",
+          data: {
+            labels: ["Doc cut", "Narrative", "Fashion", "Commercial", "Music video"],
+            datasets: [
+              {
+                label: "Typical BPM",
+                data: [60, 78, 112, 126, 138],
+                borderColor: "#ee5a36",
+                backgroundColor: "rgba(238, 90, 54, 0.16)",
+                tension: 0.35,
+                fill: true,
+              },
+              {
+                label: "Energy score",
+                data: [25, 40, 72, 84, 92],
+                borderColor: "#2563eb",
+                backgroundColor: "rgba(37, 99, 235, 0.08)",
+                tension: 0.35,
+              },
+            ],
+          },
+          options: {
+            ...commonOptions,
+            scales: {
+              y: {
+                beginAtZero: true,
+                grid: {
+                  color: "rgba(22, 22, 22, 0.08)",
+                },
+              },
+              x: {
+                grid: {
+                  display: false,
+                },
+              },
+            },
+          },
+        });
+      }
+
+      const impactCanvas = document.getElementById("discoveryImpactChart");
+      if (impactCanvas) {
+        new Chart(impactCanvas, {
+          type: "bar",
+          data: {
+            labels: [
+              wrapLabel("Fit to project vibe"),
+              wrapLabel("Visibility for new talent"),
+              wrapLabel("Search speed"),
+            ],
+            datasets: [
+              {
+                label: "Word of mouth",
+                data: [45, 28, 32],
+                backgroundColor: "#c9bfb2",
+                borderRadius: 12,
+              },
+              {
+                label: "Matching engine",
+                data: [88, 84, 79],
+                backgroundColor: "#ee5a36",
+                borderRadius: 12,
+              },
+            ],
+          },
+          options: {
+            ...commonOptions,
+            scales: {
+              y: {
+                beginAtZero: true,
+                max: 100,
+                grid: {
+                  color: "rgba(255, 250, 244, 0.12)",
+                },
+                ticks: {
+                  color: "#ddd7cf",
+                },
+              },
+              x: {
+                grid: {
+                  display: false,
+                },
+                ticks: {
+                  color: "#ddd7cf",
+                },
+              },
+            },
+            plugins: {
+              ...commonOptions.plugins,
+              legend: {
+                labels: {
+                  color: "#fff7ef",
+                  usePointStyle: true,
+                },
+              },
+            },
+          },
+        });
+      }
+
+      const interfaceCanvas = document.getElementById("interfaceFlowChart");
+      if (interfaceCanvas) {
+        new Chart(interfaceCanvas, {
+          type: "radar",
+          data: {
+            labels: [
+              wrapLabel("Reference media"),
+              wrapLabel("Taste score"),
+              wrapLabel("Machine readiness"),
+              wrapLabel("Location fit"),
+              wrapLabel("Price tier"),
+              wrapLabel("Availability"),
+            ],
+            datasets: [
+              {
+                label: "Fashion campaign brief",
+                data: [9, 9, 8, 6, 7, 8],
+                backgroundColor: "rgba(238, 90, 54, 0.16)",
+                borderColor: "#ee5a36",
+                pointBackgroundColor: "#ee5a36",
+                borderWidth: 2,
+              },
+              {
+                label: "Documentary brief",
+                data: [7, 8, 6, 8, 6, 9],
+                backgroundColor: "rgba(15, 118, 110, 0.14)",
+                borderColor: "#0f766e",
+                pointBackgroundColor: "#0f766e",
+                borderWidth: 2,
+              },
+            ],
+          },
+          options: {
+            ...commonOptions,
+            scales: {
+              r: {
+                min: 0,
+                max: 10,
+                ticks: {
+                  display: false,
+                },
+                angleLines: {
+                  color: "rgba(22, 22, 22, 0.08)",
+                },
+                grid: {
+                  color: "rgba(22, 22, 22, 0.08)",
+                },
+                pointLabels: {
+                  color: "#4b433b",
+                  font: {
+                    size: 11,
+                  },
+                },
+              },
+            },
+          },
+        });
+      }
+    }
+
+    if (document.readyState === "complete") {
+      createCharts();
+    } else {
+      window.addEventListener("load", createCharts, { once: true });
+    }
+  </script>
+</BaseLayout>
+
+<style>
+  :global(body.scm-page) {
+    background:
+      radial-gradient(circle at top left, rgba(37, 99, 235, 0.12), transparent 24%),
+      radial-gradient(circle at top right, rgba(238, 90, 54, 0.12), transparent 24%),
+      #f7f4ee;
+    color: #161616;
+  }
+
+  .scm-shell {
+    width: min(100%, 1440px);
+    margin: 0 auto;
+    padding: 0 clamp(1rem, 3vw, 2.2rem) clamp(5rem, 8vw, 7rem);
+  }
+
+  .scm-masthead {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    padding: 1rem 0 0;
+  }
+
+  .scm-masthead-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.9rem 1.2rem;
+    border: 1px solid rgba(22, 22, 22, 0.08);
+    border-radius: 999px;
+    background: rgba(255, 250, 244, 0.84);
+    backdrop-filter: blur(18px);
+    box-shadow: 0 16px 40px rgba(22, 22, 22, 0.08);
+  }
+
+  .scm-wordmark {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .scm-wordmark-kicker,
+  .scm-eyebrow,
+  .scm-card-kicker,
+  .scm-chip,
+  .scm-panel-kicker {
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #6f675f;
+  }
+
+  .scm-wordmark-title {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+  }
+
+  .scm-nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 1rem;
+  }
+
+  .scm-nav a,
+  .scm-cta-link {
+    text-decoration: none;
+    transition:
+      color 0.2s ease,
+      transform 0.2s ease,
+      background-color 0.2s ease,
+      border-color 0.2s ease;
+  }
+
+  .scm-nav a {
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #5d564f;
+  }
+
+  .scm-nav a:hover,
+  .scm-nav a:focus-visible {
+    color: #ee5a36;
+  }
+
+  .scm-hero {
+    position: relative;
+    margin-top: clamp(0.8rem, 2vw, 1.3rem);
+    padding: clamp(1.8rem, 4vw, 2.8rem);
+    border-radius: 2.3rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+    background:
+      radial-gradient(circle at top left, rgba(37, 99, 235, 0.3), transparent 30%),
+      radial-gradient(circle at top right, rgba(238, 90, 54, 0.22), transparent 28%),
+      linear-gradient(135deg, #07101f 0%, #101827 52%, #17111a 100%);
+    box-shadow: 0 28px 58px rgba(7, 12, 24, 0.32);
+    color: #fffaf4;
+  }
+
+  .scm-hero-grid,
+  .scm-section,
+  .scm-mapping-grid,
+  .scm-extraction-grid,
+  .scm-dual-chart-grid,
+  .scm-blueprint-grid,
+  .scm-principles-grid,
+  .scm-stat-row {
+    display: grid;
+  }
+
+  .scm-hero-grid {
+    grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.82fr);
+    gap: clamp(1.5rem, 3vw, 2.5rem);
+    align-items: stretch;
+  }
+
+  .scm-hero-copy h1,
+  .scm-section-heading h2,
+  .scm-contrast-copy h2,
+  .scm-cta-band h2 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 900;
+    line-height: 0.95;
+    letter-spacing: -0.05em;
+  }
+
+  .scm-hero-copy h1 {
+    font-size: clamp(3.1rem, 6.6vw, 5.5rem);
+    max-width: 14ch;
+    line-height: 0.92;
+    text-wrap: balance;
+    color: #fffaf4;
+  }
+
+  .scm-hero-title-line {
+    display: block;
+    text-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
+  }
+
+  .scm-hero-title-line-accent {
+    font-size: 0.92em;
+    color: #81a8ff;
+    background: linear-gradient(120deg, #ff7a57 0%, #aa7dff 36%, #4d86ff 68%, #48c3de 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .scm-hero-title-line-muted {
+    font-size: 0.92em;
+    color: #f2dcc4;
+  }
+
+  .scm-eyebrow {
+    margin: 0 0 1rem;
+  }
+
+  .scm-hero .scm-eyebrow {
+    color: rgba(255, 250, 244, 0.68);
+  }
+
+  .scm-eyebrow-dark {
+    color: rgba(255, 250, 244, 0.74);
+  }
+
+  .scm-lead,
+  .scm-section-heading p,
+  .scm-card p,
+  .scm-contrast-copy p,
+  .scm-panel-list p,
+  .scm-hero-panel p {
+    margin: 0;
+    font-size: 1.02rem;
+    line-height: 1.8;
+    color: #413932;
+    text-wrap: pretty;
+  }
+
+  .scm-lead {
+    max-width: 62ch;
+    margin-top: 1.4rem;
+    font-size: clamp(1.08rem, 2vw, 1.22rem);
+    color: rgba(255, 250, 244, 0.84);
+  }
+
+  .scm-stat-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+
+  .scm-stat-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    padding: 1.35rem;
+    border-radius: 1.5rem;
+    background: linear-gradient(135deg, #0f766e, #1c9a88);
+    color: #fff8f1;
+    box-shadow: 0 18px 34px rgba(22, 22, 22, 0.12);
+  }
+
+  .scm-stat-card-accent {
+    background: linear-gradient(135deg, #cc4626, #b8381c);
+  }
+
+  .scm-stat-card strong {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 5vw, 3rem);
+    line-height: 0.95;
+    letter-spacing: -0.05em;
+  }
+
+  .scm-stat-card span {
+    color: rgba(255, 248, 241, 0.84);
+  }
+
+  .scm-hero-panel,
+  .scm-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1.8rem;
+    border: 1px solid rgba(22, 22, 22, 0.08);
+    background: rgba(255, 250, 244, 0.88);
+    box-shadow: 0 22px 48px rgba(22, 22, 22, 0.08);
+  }
+
+  .scm-hero-panel::after,
+  .scm-card::after {
+    content: "";
+    position: absolute;
+    inset: auto -15% -55% auto;
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(37, 99, 235, 0.1), transparent 68%);
+    pointer-events: none;
+  }
+
+  .scm-hero-panel {
+    padding: clamp(1.5rem, 3vw, 2rem);
+    border-color: rgba(255, 255, 255, 0.08);
+    background:
+      linear-gradient(180deg, rgba(13, 18, 29, 0.84), rgba(10, 14, 24, 0.92)),
+      rgba(13, 18, 29, 0.88);
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2);
+  }
+
+  .scm-hero-panel h2 {
+    margin: 0.55rem 0 1rem;
+    font-family: var(--font-display);
+    font-size: clamp(1.8rem, 4vw, 2.5rem);
+    line-height: 1;
+    letter-spacing: -0.04em;
+    color: #fffaf4;
+  }
+
+  .scm-panel-kicker,
+  .scm-hero-panel p,
+  .scm-panel-list p {
+    color: rgba(255, 250, 244, 0.78);
+  }
+
+  .scm-panel-list {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1.6rem;
+  }
+
+  .scm-panel-list div {
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .scm-panel-list span {
+    display: block;
+    margin-bottom: 0.35rem;
+    font-weight: 700;
+    color: #fffaf4;
+  }
+
+  .scm-section {
+    grid-template-columns: 1fr;
+    gap: clamp(1.2rem, 3vw, 2rem);
+    padding: clamp(1rem, 4vw, 2rem) 0;
+  }
+
+  .scm-section-heading {
+    display: grid;
+    gap: 1rem;
+    max-width: 64rem;
+  }
+
+  .scm-section-heading-center {
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .scm-section-heading h2,
+  .scm-contrast-copy h2,
+  .scm-cta-band h2 {
+    font-size: clamp(2.2rem, 4.8vw, 4.3rem);
+  }
+
+  .scm-mapping-grid,
+  .scm-principles-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .scm-card {
+    display: flex;
+    flex-direction: column;
+    padding: clamp(1.35rem, 3vw, 1.9rem);
+  }
+
+  .scm-mapping-card h3,
+  .scm-extraction-card h3,
+  .scm-card-head h3,
+  .scm-principle-card h3 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(1.4rem, 2vw, 1.9rem);
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    color: #17120e;
+  }
+
+  .scm-chip {
+    display: inline-flex;
+    width: fit-content;
+    padding: 0.36rem 0.7rem;
+    border-radius: 999px;
+    background: rgba(22, 22, 22, 0.06);
+  }
+
+  .scm-tech-line {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    margin-top: auto;
+    padding-top: 1rem;
+  }
+
+  .scm-tech-line span {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #6f675f;
+  }
+
+  .scm-tech-line strong {
+    color: #1f2a44;
+    font-size: 0.98rem;
+  }
+
+  .scm-card-head {
+    display: grid;
+    gap: 0.45rem;
+    margin-bottom: 1rem;
+  }
+
+  .scm-chart-wrap {
+    position: relative;
+    min-height: 380px;
+    height: 46vh;
+    max-height: 480px;
+  }
+
+  .scm-chart-wrap-medium {
+    min-height: 340px;
+    max-height: 420px;
+  }
+
+  .scm-card-chart-large .scm-chart-wrap {
+    min-height: 430px;
+    height: 52vh;
+    max-height: 540px;
+  }
+
+  .scm-extraction-grid,
+  .scm-dual-chart-grid,
+  .scm-blueprint-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .scm-tool-pill {
+    display: inline-flex;
+    width: fit-content;
+    margin-top: auto;
+    padding: 0.55rem 0.8rem;
+    border-radius: 999px;
+    background: rgba(37, 99, 235, 0.08);
+    border: 1px solid rgba(37, 99, 235, 0.12);
+    color: #1d4ed8;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .scm-contrast-block {
+    grid-template-columns: minmax(0, 0.8fr) minmax(360px, 1.2fr);
+    align-items: center;
+    padding: clamp(1.8rem, 4vw, 2.5rem);
+    margin: clamp(1rem, 3vw, 2rem) 0;
+    border-radius: 2rem;
+    background:
+      radial-gradient(circle at top right, rgba(37, 99, 235, 0.18), transparent 28%),
+      linear-gradient(135deg, #101522 0%, #171d2c 55%, #0f1724 100%);
+    color: #fffaf4;
+    box-shadow: 0 28px 56px rgba(16, 21, 34, 0.32);
+  }
+
+  .scm-contrast-copy p {
+    color: rgba(255, 250, 244, 0.78);
+  }
+
+  .scm-contrast-chart {
+    position: relative;
+    min-height: 360px;
+    height: 48vh;
+    max-height: 460px;
+  }
+
+  .scm-capability-list {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .scm-capability-list div {
+    padding: 1rem 0;
+    border-top: 1px solid rgba(22, 22, 22, 0.08);
+  }
+
+  .scm-capability-list span {
+    display: block;
+    margin-bottom: 0.35rem;
+    font-weight: 700;
+    color: #17120e;
+  }
+
+  .scm-principle-card {
+    min-height: 100%;
+    justify-content: flex-start;
+  }
+
+  .scm-cta-band {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    margin-top: clamp(2rem, 5vw, 4rem);
+    padding: clamp(1.6rem, 4vw, 2.4rem);
+    border-radius: 2rem;
+    background:
+      linear-gradient(135deg, rgba(238, 90, 54, 0.94), rgba(37, 99, 235, 0.92)),
+      #ee5a36;
+    color: #fffaf4;
+    box-shadow: 0 26px 48px rgba(37, 99, 235, 0.16);
+  }
+
+  .scm-cta-band p {
+    color: rgba(255, 250, 244, 0.88);
+  }
+
+  .scm-cta-link {
+    flex-shrink: 0;
+    padding: 0.95rem 1.35rem;
+    border: 1px solid rgba(255, 250, 244, 0.42);
+    border-radius: 999px;
+    background: rgba(255, 250, 244, 0.14);
+    color: #fffaf4;
+    font-family: var(--font-mono);
+    font-size: 0.84rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .scm-cta-link:hover,
+  .scm-cta-link:focus-visible {
+    transform: translateY(-2px);
+    background: rgba(255, 250, 244, 0.24);
+    border-color: rgba(255, 250, 244, 0.6);
+  }
+
+  @media (max-width: 1080px) {
+    .scm-hero-grid,
+    .scm-extraction-grid,
+    .scm-dual-chart-grid,
+    .scm-blueprint-grid,
+    .scm-contrast-block {
+      grid-template-columns: 1fr;
+    }
+
+    .scm-mapping-grid,
+    .scm-principles-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .scm-cta-band {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+
+  @media (max-width: 780px) {
+    .scm-shell {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+
+    .scm-masthead-inner {
+      flex-direction: column;
+      align-items: flex-start;
+      border-radius: 1.4rem;
+    }
+
+    .scm-nav {
+      width: 100%;
+      justify-content: flex-start;
+      gap: 0.8rem 1rem;
+    }
+
+    .scm-stat-row {
+      grid-template-columns: 1fr;
+    }
+
+    .scm-chart-wrap,
+    .scm-contrast-chart {
+      min-height: 300px;
+      height: 340px;
+    }
+  }
+</style>

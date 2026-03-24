@@ -1,0 +1,310 @@
+---
+const {
+  currentLabel = "Overview",
+  items = [],
+  theme = "light",
+  panelLabel = "Quick access",
+  title = "Choose the next useful page.",
+  introLead = "You are reading",
+  introTail = "Jump directly into the route that matches your role.",
+  triggerLabel = "Quick paths",
+} = Astro.props;
+---
+
+<div class={`scq-guide scq-guide-${theme}`} data-quick-guide>
+  <aside class="scq-panel" id="supercutQuickGuidePanel" aria-label="Quick access menu">
+    <div class="scq-head">
+      <div>
+        <p class="scq-label">{panelLabel}</p>
+        <h3>{title}</h3>
+      </div>
+
+      <button
+        type="button"
+        class="scq-close"
+        data-guide-close
+        aria-label="Collapse quick access menu"
+      >
+        Hide
+      </button>
+    </div>
+
+    <p class="scq-copy">
+      {introLead} <strong data-guide-current>{currentLabel}</strong>. {introTail}
+    </p>
+
+    <div class="scq-links">
+      {
+        items.map((item: any) => (
+          <a class="scq-link" href={item.path}>
+            <span>{item.eyebrow}</span>
+            <strong>{item.title}</strong>
+            <p>{item.description}</p>
+          </a>
+        ))
+      }
+    </div>
+  </aside>
+
+  <button
+    type="button"
+    class="scq-trigger"
+    data-guide-toggle
+    aria-controls="supercutQuickGuidePanel"
+    aria-expanded="true"
+  >
+    <span class="scq-trigger-label">{triggerLabel}</span>
+    <strong data-guide-current>{currentLabel}</strong>
+  </button>
+</div>
+
+<script is:inline>
+  (() => {
+    const guides = document.querySelectorAll("[data-quick-guide]");
+
+    guides.forEach((quickGuide) => {
+      if (quickGuide.dataset.quickGuideReady === "true") {
+        return;
+      }
+
+      quickGuide.dataset.quickGuideReady = "true";
+
+      const toggleButton = quickGuide.querySelector("[data-guide-toggle]");
+      const closeButton = quickGuide.querySelector("[data-guide-close]");
+
+      if (!toggleButton) {
+        return;
+      }
+
+      const updateGuideVisibility = () => {
+        const scrollPos = window.scrollY;
+        const pageHeight = document.documentElement.scrollHeight;
+        const windowHeight = window.innerHeight;
+        
+        // Show after scrolling at least 45% of the page
+        const showGuide = scrollPos > (pageHeight - windowHeight) * 0.45;
+        quickGuide.classList.toggle("is-visible", showGuide);
+      };
+
+      const setCollapsed = (collapsed) => {
+        quickGuide.classList.toggle("is-collapsed", collapsed);
+        toggleButton.setAttribute("aria-expanded", String(!collapsed));
+      };
+
+      setCollapsed(false);
+      updateGuideVisibility();
+
+      toggleButton.addEventListener("click", () => {
+        setCollapsed(!quickGuide.classList.contains("is-collapsed"));
+      });
+
+      closeButton?.addEventListener("click", () => {
+        setCollapsed(true);
+      });
+
+      window.addEventListener("scroll", updateGuideVisibility, { passive: true });
+      window.addEventListener("resize", updateGuideVisibility);
+    });
+  })();
+</script>
+
+<style>
+  .scq-guide {
+    --scq-line: rgba(22, 17, 13, 0.12);
+    --scq-bg: rgba(255, 253, 249, 0.95);
+    --scq-bg-strong: rgba(255, 255, 252, 0.98);
+    --scq-text: #16110d;
+    --scq-text-soft: #362e28;
+    --scq-muted: #665b50;
+    --scq-shadow: 0 20px 42px rgba(22, 17, 13, 0.1);
+    position: fixed;
+    right: clamp(1rem, 2vw, 1.8rem);
+    bottom: clamp(1rem, 2vw, 1.8rem);
+    z-index: 35;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.75rem;
+    width: min(360px, calc(100vw - 2rem));
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(1rem);
+    transition:
+      opacity 0.24s ease,
+      transform 0.24s ease;
+  }
+
+  .scq-guide-dark {
+    --scq-line: rgba(255, 255, 255, 0.1);
+    --scq-bg: rgba(8, 11, 18, 0.94);
+    --scq-bg-strong: rgba(12, 16, 24, 0.98);
+    --scq-text: #fff8ee;
+    --scq-text-soft: rgba(232, 229, 223, 0.82);
+    --scq-muted: rgba(232, 229, 223, 0.72);
+    --scq-shadow: 0 22px 44px rgba(0, 0, 0, 0.24);
+  }
+
+  .scq-guide.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+
+  .scq-panel,
+  .scq-trigger {
+    width: 100%;
+    border: 1px solid var(--scq-line);
+    background: var(--scq-bg);
+    backdrop-filter: blur(18px);
+    box-shadow: var(--scq-shadow);
+  }
+
+  .scq-panel {
+    display: grid;
+    gap: 0.95rem;
+    padding: 1rem;
+    border-radius: 1.35rem;
+    transition:
+      opacity 0.2s ease,
+      transform 0.2s ease,
+      max-height 0.2s ease,
+      padding 0.2s ease,
+      margin 0.2s ease,
+      border-color 0.2s ease;
+  }
+
+  .scq-guide.is-collapsed .scq-panel {
+    opacity: 0;
+    transform: translateY(0.5rem);
+    max-height: 0;
+    margin: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    overflow: hidden;
+    pointer-events: none;
+    border-color: transparent;
+  }
+
+  .scq-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+  .scq-head h3 {
+    margin: 0.45rem 0 0;
+    color: var(--scq-text);
+    font-family: var(--font-display);
+    font-size: clamp(1.3rem, 3vw, 1.8rem);
+    line-height: 1;
+    letter-spacing: -0.04em;
+  }
+
+  .scq-label,
+  .scq-link span,
+  .scq-trigger-label,
+  .scq-close {
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .scq-label,
+  .scq-link span,
+  .scq-trigger-label {
+    color: var(--scq-muted);
+  }
+
+  .scq-close,
+  .scq-trigger {
+    font: inherit;
+    color: inherit;
+  }
+
+  .scq-close {
+    border: 0;
+    padding: 0.45rem 0.7rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--scq-text) 6%, transparent);
+    color: var(--scq-muted);
+    cursor: pointer;
+  }
+
+  .scq-copy {
+    margin: 0;
+    color: var(--scq-text-soft);
+    line-height: 1.65;
+  }
+
+  .scq-copy strong,
+  .scq-link strong,
+  .scq-trigger strong {
+    color: var(--scq-text);
+    font-size: 0.98rem;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+
+  .scq-links {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .scq-link {
+    display: grid;
+    gap: 0.28rem;
+    padding: 0.88rem 0.92rem;
+    border-radius: 1rem;
+    border: 1px solid var(--scq-line);
+    background: color-mix(in srgb, var(--scq-bg-strong) 92%, transparent);
+    box-shadow: 0 10px 20px rgba(22, 17, 13, 0.05);
+    color: inherit;
+    text-decoration: none;
+    transition:
+      transform 0.2s ease,
+      border-color 0.2s ease,
+      background-color 0.2s ease;
+  }
+
+  .scq-guide-dark .scq-link {
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18);
+  }
+
+  .scq-link p {
+    margin: 0;
+    color: var(--scq-text-soft);
+    line-height: 1.55;
+  }
+
+  .scq-link:hover,
+  .scq-link:focus-visible {
+    transform: translateY(-2px);
+    border-color: rgba(37, 99, 235, 0.26);
+    background: var(--scq-bg-strong);
+  }
+
+  .scq-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+    padding: 0.9rem 1rem;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+
+  @media (max-width: 780px) {
+    .scq-guide {
+      left: 1rem;
+      right: 1rem;
+      width: auto;
+      align-items: stretch;
+    }
+
+    .scq-trigger {
+      border-radius: 1rem;
+    }
+  }
+</style>

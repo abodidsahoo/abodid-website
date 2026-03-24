@@ -1,0 +1,2330 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import RouteQuickGuide from "../../components/supercutclub/RouteQuickGuide.astro";
+
+const pageTitle = "Supercut Club";
+const pageDescription =
+  "An infographic-style landing page for Supercut Club, an AI-assisted network for sourcing and matching video editors across India.";
+
+const statCards = [
+  {
+    value: "70+",
+    label: "Founding editors",
+    tone: "emerald",
+  },
+  {
+    value: "10x",
+    label: "Faster sourcing",
+    tone: "blue",
+  },
+  {
+    value: "100%",
+    label: "Creative-fit focus",
+    tone: "amber",
+  },
+];
+
+const painPoints = [
+  "Geographically restricted networks",
+  "Unknown hardware and workflow readiness",
+  "Mismatch between musical taste and pacing instincts",
+];
+
+const flowSteps = [
+  "Client enters the brief, delivery timeline, and budget range.",
+  "The project gets paired with mood boards, reference cuts, and soundtrack cues.",
+  "The matching engine reads timing, taste, and technical constraints together.",
+  "A shortlist of available editors appears by region, rig, and creative fit.",
+];
+
+const communityItems = [
+  {
+    eyebrow: "Reputation layer",
+    title: "Two-way testimonials",
+    description:
+      "Editors review clients and clients review editors, so strong working relationships become visible over time.",
+    illustration: "reputation",
+  },
+  {
+    eyebrow: "Risk signaling",
+    title: "Quiet red-flag system",
+    description:
+      "The platform can surface patterns around payment issues, broken briefs, or communication failures before a match is made.",
+    illustration: "risk",
+  },
+  {
+    eyebrow: "Inclusive hiring",
+    title: "Signals beyond the reel",
+    description:
+      "Profiles can highlight identity-safe hiring preferences and working styles that matter in real production environments.",
+    illustration: "inclusive",
+  },
+];
+
+const futureModules = [
+  {
+    path: "/supercutclub/editors",
+    eyebrow: "For editors",
+    title: "Editor profiles",
+    description:
+      "Verified portfolios, workstation specs, software stack, and availability windows.",
+    available: true,
+    cta: "Open editor profiles",
+    illustration: "editors",
+  },
+  {
+    path: "/supercutclub/matching",
+    eyebrow: "For developers",
+    title: "Matching engine",
+    description:
+      "A developer-facing explanation of how briefs, reference media, and filters shape the shortlist.",
+    available: true,
+    cta: "Open matching PRD",
+    illustration: "matching",
+  },
+  {
+    path: "/supercutclub/community",
+    eyebrow: "For members",
+    title: "Community systems",
+    description:
+      "Reputation, subscriptions, moderation rules, and why the platform avoids a race-to-the-bottom marketplace.",
+    available: true,
+    cta: "Open community blueprint",
+    illustration: "community",
+  },
+];
+
+const sectionNavItems = [
+  { id: "overview", label: "Overview" },
+  { id: "problem", label: "Problem" },
+  { id: "solution", label: "How it works" },
+  { id: "vibe", label: "Creative fit" },
+  { id: "community", label: "Community" },
+  { id: "paths", label: "Get involved" },
+];
+
+const quickAccessItems = [
+  {
+    path: "/supercutclub/editors",
+    eyebrow: "Editors",
+    title: "Go to editor profiles",
+    description: "For profile browsing and editor onboarding.",
+  },
+  {
+    path: "/supercutclub/matching",
+    eyebrow: "Developers",
+    title: "Go to matching PRD",
+    description: "For product logic and build planning.",
+  },
+  {
+    path: "/supercutclub/community",
+    eyebrow: "Members",
+    title: "Go to community blueprint",
+    description: "For referrals, trust, and feedback systems.",
+  },
+];
+
+const quickGuideItems = [
+  {
+    path: "/supercutclub/editors",
+    eyebrow: "For editors",
+    title: "Editor profiles",
+    description: "Browse the live profile feed.",
+  },
+  {
+    path: "/supercutclub/matching",
+    eyebrow: "For developers",
+    title: "Matching engine",
+    description: "Read how the search algorithm works.",
+  },
+  {
+    path: "/supercutclub/community",
+    eyebrow: "For members",
+    title: "Community systems",
+    description: "See the rules for invites and trust.",
+  },
+];
+
+const quickGuideIntroTail = "Choose the route that matches what you need.";
+
+const genreLegendItems = [
+  {
+    percentage: "20%",
+    title: "Documentary",
+    description:
+      "Long-form editors focused on interviews, observation, and slower pacing.",
+    swatchClass: "scc-swatch-docu",
+    barClass: "scc-bar-docu",
+  },
+  {
+    percentage: "25%",
+    title: "Fashion and beauty",
+    description:
+      "Editors shaping rhythm-heavy cuts for campaigns, talent reels, and style films.",
+    swatchClass: "scc-swatch-fashion",
+    barClass: "scc-bar-fashion",
+  },
+  {
+    percentage: "30%",
+    title: "Commercial and ad",
+    description:
+      "Fast-turnaround editors for branded storytelling, launch films, and ad spots.",
+    swatchClass: "scc-swatch-commercial",
+    barClass: "scc-bar-commercial",
+  },
+  {
+    percentage: "10%",
+    title: "Narrative shorts",
+    description:
+      "Editors tuned to scene construction, emotional beats, and cinematic pacing.",
+    swatchClass: "scc-swatch-narrative",
+    barClass: "scc-bar-narrative",
+  },
+  {
+    percentage: "15%",
+    title: "Social media and reels",
+    description:
+      "Editors specialising in vertical formats, high-density hooks, and creator-led edits.",
+    swatchClass: "scc-swatch-social",
+    barClass: "scc-bar-social",
+  },
+];
+---
+
+<BaseLayout
+  title={pageTitle}
+  description={pageDescription}
+  imageAlt="Supercut Club project overview"
+  useDynamicOgImage={false}
+  fullWidth={true}
+  hideHeader={true}
+  showGlobalGrid={false}
+  showNewsletterPopup={false}
+  showCursorFollower={false}
+  bodyClass="supercutclub-page"
+>
+  <div class="scc-shell">
+    <header class="scc-masthead">
+      <div class="scc-masthead-inner">
+        <a class="scc-wordmark" href="/">
+          <span class="scc-wordmark-kicker">abodid.com</span>
+          <span class="scc-wordmark-title">Supercut Club</span>
+        </a>
+
+        <div class="scc-masthead-actions">
+          <nav class="scc-nav" aria-label="Supercut Club sections">
+            {
+              sectionNavItems.map((item) => (
+                <a href={`#${item.id}`} data-section-link={item.id}>
+                  {item.label}
+                </a>
+              ))
+            }
+          </nav>
+
+          <div class="scc-role-shortcuts" aria-label="Role-based quick paths">
+            {
+              quickAccessItems.map((item) => (
+                <a class="scc-role-shortcut" href={item.path}>
+                  <span>{item.eyebrow}</span>
+                  <strong>{item.title}</strong>
+                </a>
+              ))
+            }
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section id="overview" class="scc-hero" data-nav-section="Overview">
+      <div class="scc-hero-grid">
+        <div class="scc-hero-copy">
+          <p class="scc-eyebrow">Client-facing overview</p>
+          <h1>
+            Stop searching.
+            <span>Start cutting with the right editor.</span>
+          </h1>
+          <p class="scc-lead">
+            Supercut Club is a focused matching layer for directors, producers,
+            and hiring managers who need video editors with the right location,
+            machine setup, budget fit, and aesthetic language, not just somebody
+            who was forwarded in a WhatsApp group.
+          </p>
+
+          <div class="scc-stat-grid">
+            {
+              statCards.map((card) => (
+                <article class={`scc-stat-card scc-stat-card-${card.tone}`}>
+                  <strong>{card.value}</strong>
+                  <span>{card.label}</span>
+                </article>
+              ))
+            }
+          </div>
+        </div>
+
+        <aside class="scc-hero-panel">
+          <div class="scc-panel-label">What this page is doing</div>
+          <h2>Version one is an infographic.</h2>
+          <p>
+            This route now works as the client-facing concept page for the
+            project, and the folder structure leaves space for editor,
+            developer, and community pages underneath <code>/supercutclub</code
+            >.
+          </p>
+
+          <div class="scc-signal-list">
+            <div>
+              <span>Region-aware</span>
+              <p>Search by city, travel needs, or on-site presence.</p>
+            </div>
+            <div>
+              <span>Hardware-aware</span>
+              <p>Filter editors by workstation strength and software stack.</p>
+            </div>
+            <div>
+              <span>Taste-aware</span>
+              <p>Use reference cuts and music to find the right rhythm.</p>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="problem" class="scc-section" data-nav-section="Problem">
+      <div class="scc-section-copy scc-copy-panel">
+        <p class="scc-eyebrow">The problem</p>
+        <h2>The friction of word-of-mouth hiring</h2>
+        <p>
+          The current search process still depends on personal circles, last
+          minute referrals, and partial information. That works until you need a
+          very specific editor in a very specific place with a very specific
+          sense of rhythm.
+        </p>
+        <p>
+          Supercut Club turns a scattered recommendation hunt into a structured,
+          filterable match process that can happen in minutes instead of weeks.
+        </p>
+
+        <ul class="scc-pain-list">
+          {painPoints.map((point) => <li>{point}</li>)}
+        </ul>
+      </div>
+
+      <article class="scc-card scc-card-chart">
+        <div class="scc-card-head">
+          <p class="scc-card-kicker">Speed comparison</p>
+          <h3>Average time to hire</h3>
+          <p>
+            A verified match shortens the search because location, availability,
+            technical setup, and creative fit are already part of the first
+            pass.
+          </p>
+        </div>
+        <div class="scc-chart-wrap">
+          <canvas id="timeToHireChart" aria-label="Average time to hire chart"
+          ></canvas>
+        </div>
+      </article>
+    </section>
+
+    <section
+      id="solution"
+      class="scc-section scc-section-stack"
+      data-nav-section="How it works"
+    >
+      <div class="scc-section-heading scc-section-heading-center">
+        <p class="scc-eyebrow">The solution</p>
+        <h2>The architecture of a match</h2>
+        <p>
+          The platform reads technical requirements and creative references at
+          the same time, so the shortlist reflects both production reality and
+          aesthetic compatibility.
+        </p>
+      </div>
+
+      <div class="scc-solution-grid">
+        <article class="scc-card scc-flow-card">
+          <div class="scc-card-head">
+            <p class="scc-card-kicker">Routing flow</p>
+            <h3>How the brief gets translated</h3>
+            <p>
+              A cleaner four-step handoff from brief to shortlist, designed to
+              explain the logic without overwhelming the page.
+            </p>
+          </div>
+
+          <ol class="scc-flow-list">
+            {
+              flowSteps.map((step, index) => (
+                <li>
+                  <span>{String(index + 1).padStart(2, "0")}</span>
+                  <p>{step}</p>
+                </li>
+              ))
+            }
+          </ol>
+        </article>
+
+        <article class="scc-card scc-card-chart scc-card-chart-large">
+          <div class="scc-card-head">
+            <p class="scc-card-kicker">Calibrated editor skills profile</p>
+            <h3>What the shortlist actually tells a producer</h3>
+            <p>
+              This view compares secondary strengths across two editor types so
+              a hiring team can quickly see whether they need an all-round
+              operator or a specialist whose main strength is narrative rhythm.
+            </p>
+          </div>
+          <div class="scc-chart-wrap">
+            <canvas id="skillsRadarChart" aria-label="Editor skills radar chart"
+            ></canvas>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section
+      id="vibe"
+      class="scc-section scc-vibe-block"
+      data-nav-section="Creative fit"
+    >
+      <div class="scc-vibe-copy">
+        <p class="scc-eyebrow scc-eyebrow-dark">The vibe matrix</p>
+        <h2>Creative taste becomes a usable signal</h2>
+        <p>
+          Aesthetics are subjective, but portfolios still reveal measurable
+          patterns. Music tempo, cut density, energy level, and pacing style can
+          help cluster editors for documentary work, fashion edits, slow-burn
+          narratives, or high-energy commercial jobs.
+        </p>
+        <p>
+          The chart below visualizes how a reference soundtrack and editorial
+          rhythm could help narrow the shortlist before anybody sends another
+          desperate message asking who is free this week.
+        </p>
+        <div class="scc-vibe-helper">
+          Hover over a dot to meet a sample editor persona and see what kind of
+          project they would be strongest on.
+        </div>
+      </div>
+
+      <div class="scc-vibe-chart">
+        <canvas id="vibeScatterChart" aria-label="Editor vibe scatter plot"
+        ></canvas>
+      </div>
+    </section>
+
+    <div class="scc-section-divider" aria-hidden="true">
+      <span></span>
+      <i>↓</i>
+      <span></span>
+    </div>
+
+    <section
+      id="community"
+      class="scc-section scc-section-stack scc-community-graph-section"
+      data-nav-section="Community"
+    >
+      <article class="scc-card scc-card-chart scc-card-chart-full">
+        <div class="scc-card-head">
+          <p class="scc-card-kicker">Community makeup</p>
+          <h3>Platform talent distribution</h3>
+          <p>
+            An early snapshot of how the founding editor pool could be
+            distributed across specialties.
+          </p>
+        </div>
+        <div class="scc-chart-wrap scc-chart-wrap-community">
+          <canvas
+            id="genreDistributionChart"
+            aria-label="Editor genre distribution chart"></canvas>
+        </div>
+        <div class="scc-community-bar-grid" aria-label="Editor genre legend">
+          {
+            genreLegendItems.map((item) => (
+              <article class="scc-community-bar-card">
+                <div class="scc-genre-heading">
+                  <strong>{item.title}</strong>
+                  <span>{item.percentage}</span>
+                </div>
+                <div class="scc-community-bar-track">
+                  <div
+                    class={`scc-community-bar-fill ${item.barClass}`}
+                    style={`width:${item.percentage};`}
+                  />
+                </div>
+                <p>{item.description}</p>
+              </article>
+            ))
+          }
+        </div>
+      </article>
+    </section>
+
+    <div class="scc-section-divider" aria-hidden="true">
+      <span></span>
+      <i>↓</i>
+      <span></span>
+    </div>
+
+    <section class="scc-section scc-section-stack scc-values-section">
+      <div class="scc-section-copy scc-copy-panel scc-values-copy">
+        <p class="scc-eyebrow">Why it matters</p>
+        <h2>A community, not a commodity directory</h2>
+        <p>
+          Supercut Club is imagined as a high-trust network rather than an open
+          bidding pit. Subscription logic, mutual feedback, and shared standards
+          create a marketplace where good collaboration is part of the product.
+        </p>
+      </div>
+
+      <div class="scc-community-grid">
+        {
+          communityItems.map((item) => (
+            <article class="scc-community-card">
+              <div
+                class={`scc-community-illustration scc-community-illustration-${item.illustration}`}
+              >
+                <span />
+                <span />
+                <span />
+              </div>
+              <p class="scc-community-eyebrow">{item.eyebrow}</p>
+              <h3>{item.title}</h3>
+              <p>{item.description}</p>
+            </article>
+          ))
+        }
+      </div>
+    </section>
+
+    <div class="scc-section-divider" aria-hidden="true">
+      <span></span>
+      <i>↓</i>
+      <span></span>
+    </div>
+
+    <section
+      id="paths"
+      class="scc-section scc-section-stack scc-future-section"
+      data-nav-section="Get involved"
+    >
+      <div class="scc-section-heading scc-section-heading-center">
+        <p class="scc-eyebrow">Product parts</p>
+        <h2>Three routes, one product.</h2>
+        <p>
+          This landing page tells the client story. The three routes below open
+          the editor-facing interface, the developer PRD, and the community
+          system without over-explaining the path structure.
+        </p>
+      </div>
+
+      <div class="scc-future-grid">
+        {
+          futureModules.map((module) =>
+            module.available ? (
+              <a
+                class="scc-future-card scc-future-card-link"
+                href={module.path}
+              >
+                <div
+                  class={`scc-future-illustration scc-future-illustration-${module.illustration}`}
+                  aria-hidden="true"
+                >
+                  <span />
+                  <span />
+                  <span />
+                </div>
+                <div class="scc-future-card-headline">
+                  <span class="scc-future-card-eyebrow">{module.eyebrow}</span>
+                </div>
+                <h3>{module.title}</h3>
+                <p>{module.description}</p>
+                <span class="scc-card-link-cta">{module.cta}</span>
+              </a>
+            ) : (
+              <article class="scc-future-card">
+                <div
+                  class={`scc-future-illustration scc-future-illustration-${module.illustration}`}
+                  aria-hidden="true"
+                >
+                  <span />
+                  <span />
+                  <span />
+                </div>
+                <div class="scc-future-card-headline">
+                  <span class="scc-future-card-eyebrow">{module.eyebrow}</span>
+                </div>
+                <h3>{module.title}</h3>
+                <p>{module.description}</p>
+                <span class="scc-card-link-cta scc-card-link-cta-muted">
+                  {module.cta}
+                </span>
+              </article>
+            ),
+          )
+        }
+      </div>
+    </section>
+
+    <RouteQuickGuide
+      currentLabel="Overview"
+      items={quickGuideItems}
+      theme="light"
+      panelLabel="Route picker"
+      title="Pick a route."
+      introLead="You are on"
+      introTail={quickGuideIntroTail}
+    />
+
+    <section class="scc-cta-band">
+      <div class="scc-cta-copy">
+        <p class="scc-eyebrow scc-eyebrow-dark">Next step</p>
+        <h2>Ready to shape the full Supercut Club surface?</h2>
+        <p>
+          This first pass gives you a polished landing page. The next layer can
+          be product docs, profile architecture, or interactive editor search.
+        </p>
+      </div>
+
+      <div class="scc-cta-actions">
+        <a class="scc-cta-link scc-cta-link-solid" href="/supercutclub/editors"
+          >Open Editor Profiles</a
+        >
+        <a class="scc-cta-link" href="/supercutclub/matching"
+          >Open Matching Engine</a
+        >
+        <a class="scc-cta-link" href="/supercutclub/community"
+          >Open Community Page</a
+        >
+      </div>
+    </section>
+  </div>
+
+  <script
+    src="https://cdn.jsdelivr.net/npm/chart.js@4.4.9/dist/chart.umd.min.js"
+  ></script>
+
+  <script is:inline>
+    function wrapLabel(label, maxChars = 16) {
+      const words = label.split(" ");
+      const lines = [];
+      let currentLine = "";
+
+      words.forEach((word) => {
+        if ((currentLine + word).length > maxChars) {
+          if (currentLine) {
+            lines.push(currentLine.trim());
+          }
+          currentLine = `${word} `;
+          return;
+        }
+
+        currentLine += `${word} `;
+      });
+
+      if (currentLine) {
+        lines.push(currentLine.trim());
+      }
+
+      return lines;
+    }
+
+    function createCharts() {
+      if (!window.Chart) {
+        return;
+      }
+
+      const Chart = window.Chart;
+      Chart.defaults.font.family =
+        "'Satoshi-Variable', 'Satoshi-Regular', 'Poppins', sans-serif";
+      Chart.defaults.color = "#4b433b";
+
+      const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            labels: {
+              color: "#5e5b57",
+              boxWidth: 14,
+              boxHeight: 14,
+              usePointStyle: true,
+            },
+          },
+        },
+      };
+
+      const timeCanvas = document.getElementById("timeToHireChart");
+      if (timeCanvas) {
+        new Chart(timeCanvas, {
+          type: "bar",
+          data: {
+            labels: [
+              wrapLabel("Traditional networking"),
+              wrapLabel("Cold emailing"),
+              wrapLabel("Supercut Club AI"),
+            ],
+            datasets: [
+              {
+                label: "Average search and hire time (days)",
+                data: [14, 21, 2],
+                backgroundColor: ["#d3cbc0", "#b9c9d6", "#ee5a36"],
+                borderRadius: 14,
+                maxBarThickness: 72,
+              },
+            ],
+          },
+          options: {
+            ...commonOptions,
+            plugins: {
+              ...commonOptions.plugins,
+              legend: { display: false },
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                grid: {
+                  color: "rgba(22, 22, 22, 0.08)",
+                },
+                ticks: {
+                  color: "#5e5b57",
+                },
+              },
+              x: {
+                grid: {
+                  display: false,
+                },
+                ticks: {
+                  color: "#5e5b57",
+                },
+              },
+            },
+          },
+        });
+      }
+
+      const radarCanvas = document.getElementById("skillsRadarChart");
+      if (radarCanvas) {
+        new Chart(radarCanvas, {
+          type: "radar",
+          data: {
+            labels: [
+              wrapLabel("Motion graphics"),
+              wrapLabel("Color grading"),
+              wrapLabel("Sound design"),
+              wrapLabel("Narrative pacing"),
+              wrapLabel("Montage speed"),
+              wrapLabel("VFX cleanups"),
+            ],
+            datasets: [
+              {
+                label: "One-man-army editor",
+                data: [8, 7, 8, 6, 7, 5],
+                backgroundColor: "rgba(37, 99, 235, 0.16)",
+                borderColor: "#2563eb",
+                pointBackgroundColor: "#2563eb",
+                pointBorderColor: "#fffaf4",
+                borderWidth: 2,
+              },
+              {
+                label: "Pure cinematic cutter",
+                data: [2, 4, 3, 10, 4, 1],
+                backgroundColor: "rgba(15, 118, 110, 0.16)",
+                borderColor: "#0f766e",
+                pointBackgroundColor: "#0f766e",
+                pointBorderColor: "#fffaf4",
+                borderWidth: 2,
+              },
+            ],
+          },
+          options: {
+            ...commonOptions,
+            scales: {
+              r: {
+                min: 0,
+                max: 10,
+                ticks: {
+                  display: false,
+                },
+                angleLines: {
+                  color: "rgba(22, 22, 22, 0.09)",
+                },
+                grid: {
+                  color: "rgba(22, 22, 22, 0.09)",
+                },
+                pointLabels: {
+                  color: "#5e5b57",
+                  font: {
+                    size: 11,
+                  },
+                },
+              },
+            },
+          },
+        });
+      }
+
+      const vibeCanvas = document.getElementById("vibeScatterChart");
+      if (vibeCanvas) {
+        new Chart(vibeCanvas, {
+          type: "scatter",
+          data: {
+            datasets: [
+              {
+                label: "Editor portfolios",
+                data: [
+                  {
+                    x: 60,
+                    y: 20,
+                    name: "Aarav Mehta",
+                    city: "Mumbai",
+                    role: "Documentary editor",
+                    summary:
+                      "Uses patient pacing, ambient sound beds, and long emotional holds.",
+                    bestFor:
+                      "Best for social documentaries, interviews, and NGO films.",
+                  },
+                  {
+                    x: 75,
+                    y: 30,
+                    name: "Ishita Nair",
+                    city: "Kochi",
+                    role: "Human-story editor",
+                    summary:
+                      "Balances warmth and clarity with steady rhythm and softer transitions.",
+                    bestFor:
+                      "Best for portraits, cultural stories, and education films.",
+                  },
+                  {
+                    x: 85,
+                    y: 45,
+                    name: "Rohan Kulkarni",
+                    city: "Pune",
+                    role: "Narrative short editor",
+                    summary:
+                      "Keeps scenes breathing while still sharpening emotional turning points.",
+                    bestFor:
+                      "Best for indie shorts, dramatic scenes, and performance-led films.",
+                  },
+                  {
+                    x: 95,
+                    y: 50,
+                    name: "Sneha Verma",
+                    city: "Delhi",
+                    role: "Story-first editor",
+                    summary:
+                      "Works with mid-tempo music and clean continuity-focused cuts.",
+                    bestFor:
+                      "Best for branded mini-films and scripted digital stories.",
+                  },
+                  {
+                    x: 120,
+                    y: 80,
+                    name: "Tara Singh",
+                    city: "Chandigarh",
+                    role: "Fashion editor",
+                    summary:
+                      "Builds energy through music-led edits, beauty inserts, and stylised motion.",
+                    bestFor:
+                      "Best for fashion campaigns, lookbooks, and launch teasers.",
+                  },
+                  {
+                    x: 125,
+                    y: 85,
+                    name: "Kabir Rao",
+                    city: "Bengaluru",
+                    role: "Commercial rhythm editor",
+                    summary:
+                      "Cuts fast with product emphasis, sync-heavy beats, and polished transitions.",
+                    bestFor:
+                      "Best for startup ads, product films, and performance marketing.",
+                  },
+                  {
+                    x: 140,
+                    y: 90,
+                    name: "Ananya Ghosh",
+                    city: "Kolkata",
+                    role: "High-energy commercial editor",
+                    summary:
+                      "Pushes pace with dense cuts, sound hits, and energetic visual punctuation.",
+                    bestFor:
+                      "Best for youth campaigns, trailers, and music-driven ads.",
+                  },
+                  {
+                    x: 150,
+                    y: 95,
+                    name: "Dev Malhotra",
+                    city: "Jaipur",
+                    role: "Reels and promo editor",
+                    summary:
+                      "Optimised for sharp hooks, punchy captions, and high-retention short edits.",
+                    bestFor:
+                      "Best for creator campaigns, reels, and launch bursts.",
+                  },
+                ],
+                backgroundColor: "#e9b949",
+                borderColor: "#101522",
+                borderWidth: 2,
+                pointRadius: 7,
+                pointHoverRadius: 10,
+              },
+            ],
+          },
+          options: {
+            ...commonOptions,
+            plugins: {
+              ...commonOptions.plugins,
+              legend: {
+                labels: {
+                  color: "#d9d5ce",
+                  usePointStyle: true,
+                },
+              },
+              tooltip: {
+                callbacks: {
+                  title: function (tooltipItems) {
+                    const item = tooltipItems[0];
+                    return `${item.raw.name} / ${item.raw.city}`;
+                  },
+                  label: function (context) {
+                    return [
+                      `${context.raw.role}`,
+                      `${context.raw.summary}`,
+                      `${context.raw.bestFor}`,
+                      `Signal: ${context.raw.x} BPM / pace score ${context.raw.y}`,
+                    ];
+                  },
+                },
+              },
+            },
+            scales: {
+              x: {
+                title: {
+                  display: true,
+                  text: "Average audio BPM",
+                  color: "#d9d5ce",
+                },
+                grid: {
+                  color: "rgba(255, 250, 244, 0.12)",
+                },
+                ticks: {
+                  color: "#d9d5ce",
+                },
+              },
+              y: {
+                title: {
+                  display: true,
+                  text: "Cut density / pacing score",
+                  color: "#d9d5ce",
+                },
+                grid: {
+                  color: "rgba(255, 250, 244, 0.12)",
+                },
+                ticks: {
+                  color: "#d9d5ce",
+                },
+              },
+            },
+          },
+        });
+      }
+
+      const communityCanvas = document.getElementById("genreDistributionChart");
+      if (communityCanvas) {
+        new Chart(communityCanvas, {
+          type: "bar",
+          data: {
+            labels: [
+              wrapLabel("Documentary"),
+              wrapLabel("Fashion and beauty"),
+              wrapLabel("Commercial and ad"),
+              wrapLabel("Narrative shorts"),
+              wrapLabel("Social media and reels"),
+            ],
+            datasets: [
+              {
+                data: [20, 25, 30, 10, 15],
+                backgroundColor: [
+                  "#2563eb",
+                  "#0f766e",
+                  "#ee5a36",
+                  "#e9b949",
+                  "#334155",
+                ],
+                borderRadius: 16,
+                maxBarThickness: 40,
+              },
+            ],
+          },
+          options: {
+            ...commonOptions,
+            indexAxis: "y",
+            plugins: {
+              ...commonOptions.plugins,
+              legend: {
+                display: false,
+              },
+            },
+            scales: {
+              x: {
+                beginAtZero: true,
+                max: 35,
+                grid: {
+                  color: "rgba(22, 22, 22, 0.08)",
+                },
+                ticks: {
+                  callback: function (value) {
+                    return `${value}%`;
+                  },
+                },
+              },
+              y: {
+                grid: {
+                  display: false,
+                },
+                ticks: {
+                  color: "#2f2a25",
+                },
+              },
+            },
+          },
+        });
+      }
+    }
+
+    function setupSectionGuide() {
+      const trackedSections = Array.from(
+        document.querySelectorAll("[data-nav-section]"),
+      );
+      const navLinks = Array.from(
+        document.querySelectorAll("[data-section-link]"),
+      );
+      const currentSectionNodes = Array.from(
+        document.querySelectorAll("[data-guide-current]"),
+      );
+
+      if (!trackedSections.length) {
+        return;
+      }
+
+      const setActiveSection = (section) => {
+        const activeId = section.id;
+        const activeLabel = section.dataset.navSection || "Overview";
+
+        navLinks.forEach((link) => {
+          link.classList.toggle(
+            "is-active",
+            link.dataset.sectionLink === activeId,
+          );
+        });
+
+        currentSectionNodes.forEach((node) => {
+          node.textContent = activeLabel;
+        });
+      };
+
+      const updateGuideVisibility = () => {
+        const showGuide =
+          window.scrollY > Math.max(window.innerHeight * 0.35, 220);
+        quickGuide.classList.toggle("is-visible", showGuide);
+      };
+
+      const setCollapsed = (collapsed) => {
+        quickGuide.classList.toggle("is-collapsed", collapsed);
+        toggleButton.setAttribute("aria-expanded", String(!collapsed));
+      };
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          const activeEntry = entries
+            .filter((entry) => entry.isIntersecting)
+            .sort((a, b) => {
+              if (b.intersectionRatio !== a.intersectionRatio) {
+                return b.intersectionRatio - a.intersectionRatio;
+              }
+
+              return a.boundingClientRect.top - b.boundingClientRect.top;
+            })[0];
+
+          if (activeEntry) {
+            setActiveSection(activeEntry.target);
+          }
+        },
+        {
+          rootMargin: "-30% 0px -52% 0px",
+          threshold: [0.2, 0.45, 0.7],
+        },
+      );
+
+      trackedSections.forEach((section) => observer.observe(section));
+
+      setActiveSection(trackedSections[0]);
+    }
+
+    function initPage() {
+      createCharts();
+      setupSectionGuide();
+    }
+
+    if (document.readyState === "complete") {
+      initPage();
+    } else {
+      window.addEventListener("load", initPage, { once: true });
+    }
+  </script>
+</BaseLayout>
+
+<style>
+  :global(body.supercutclub-page) {
+    --scc-bg: #f4ede4;
+    --scc-surface: rgba(255, 253, 249, 0.94);
+    --scc-surface-strong: rgba(255, 253, 250, 0.985);
+    --scc-surface-warm: rgba(247, 239, 229, 0.98);
+    --scc-ink: #16110d;
+    --scc-ink-soft: #362e28;
+    --scc-muted: #5f554a;
+    --scc-muted-soft: #74695e;
+    --scc-line: rgba(22, 17, 13, 0.12);
+    --scc-shadow: 0 24px 54px rgba(22, 17, 13, 0.09);
+    background:
+      radial-gradient(
+        circle at top left,
+        rgba(233, 185, 73, 0.13),
+        transparent 24%
+      ),
+      radial-gradient(
+        circle at top right,
+        rgba(37, 99, 235, 0.12),
+        transparent 22%
+      ),
+      linear-gradient(180deg, #f6efe6 0%, #f2ebe2 100%);
+    color: var(--scc-ink);
+  }
+
+  .scc-shell {
+    width: min(100%, 1440px);
+    margin: 0 auto;
+    padding: 0 clamp(1.2rem, 3vw, 2.4rem) clamp(5rem, 8vw, 7rem);
+  }
+
+  [data-nav-section] {
+    scroll-margin-top: 8rem;
+  }
+
+  .scc-masthead {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    padding: 1rem 0 0;
+  }
+
+  .scc-masthead-inner {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 1rem 1.2rem;
+    padding: 0.9rem 1.2rem;
+    border: 1px solid var(--scc-line);
+    border-radius: 1.6rem;
+    background: rgba(255, 253, 249, 0.88);
+    backdrop-filter: blur(18px);
+    box-shadow: 0 16px 40px rgba(22, 17, 13, 0.08);
+  }
+
+  .scc-masthead-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.8rem 0.9rem;
+  }
+
+  .scc-wordmark {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .scc-wordmark-kicker,
+  .scc-eyebrow,
+  .scc-card-kicker,
+  .scc-community-eyebrow,
+  .scc-panel-label {
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .scc-wordmark-kicker,
+  .scc-panel-label,
+  .scc-card-kicker,
+  .scc-community-eyebrow {
+    color: var(--scc-muted);
+  }
+
+  .scc-wordmark-title {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+  }
+
+  .scc-nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.55rem;
+  }
+
+  .scc-nav a,
+  .scc-cta-link {
+    color: inherit;
+    text-decoration: none;
+    transition:
+      transform 0.2s ease,
+      color 0.2s ease,
+      background-color 0.2s ease,
+      border-color 0.2s ease;
+  }
+
+  .scc-nav a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.4rem;
+    padding: 0.58rem 0.82rem;
+    border-radius: 999px;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--scc-muted);
+  }
+
+  .scc-nav a:hover,
+  .scc-nav a:focus-visible,
+  .scc-nav a.is-active {
+    color: #ee5a36;
+    background: rgba(22, 17, 13, 0.06);
+  }
+
+  .scc-nav a.is-active {
+    box-shadow: inset 0 0 0 1px var(--scc-line);
+  }
+
+  .scc-role-shortcuts {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.6rem;
+  }
+
+  .scc-role-shortcut {
+    color: inherit;
+    text-decoration: none;
+    transition:
+      transform 0.2s ease,
+      border-color 0.2s ease,
+      background-color 0.2s ease;
+  }
+
+  .scc-role-shortcut {
+    display: flex;
+    flex-direction: column;
+    gap: 0.16rem;
+    min-width: 126px;
+    padding: 0.72rem 0.88rem;
+    border-radius: 1rem;
+    border: 1px solid var(--scc-line);
+    background: var(--scc-surface);
+    box-shadow: 0 10px 20px rgba(22, 17, 13, 0.05);
+  }
+
+  .scc-role-shortcut span {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--scc-muted);
+  }
+
+  .scc-role-shortcut strong {
+    font-size: 0.96rem;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    color: var(--scc-ink);
+  }
+
+  .scc-role-shortcut:hover,
+  .scc-role-shortcut:focus-visible {
+    transform: translateY(-2px);
+    border-color: rgba(37, 99, 235, 0.22);
+    background: var(--scc-surface-strong);
+  }
+
+  .scc-hero {
+    padding: clamp(2.5rem, 6vw, 5rem) 0 clamp(2rem, 5vw, 4rem);
+  }
+
+  .scc-hero-grid,
+  .scc-section,
+  .scc-solution-grid,
+  .scc-future-grid,
+  .scc-community-grid,
+  .scc-stat-grid {
+    display: grid;
+  }
+
+  .scc-hero-grid {
+    grid-template-columns: minmax(0, 1.3fr) minmax(320px, 0.8fr);
+    gap: clamp(1.5rem, 3vw, 2.5rem);
+    align-items: stretch;
+  }
+
+  .scc-hero-copy h1,
+  .scc-section-copy h2,
+  .scc-section-heading h2,
+  .scc-vibe-copy h2,
+  .scc-cta-band h2 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 900;
+    letter-spacing: -0.05em;
+    line-height: 0.95;
+    color: var(--scc-ink);
+  }
+
+  .scc-hero-copy h1 {
+    font-size: clamp(3.5rem, 9vw, 7.3rem);
+    max-width: 12ch;
+  }
+
+  .scc-hero-copy h1 span {
+    display: block;
+    background: linear-gradient(120deg, #ee5a36 0%, #2563eb 55%, #0f766e 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .scc-eyebrow,
+  .scc-eyebrow-dark {
+    margin: 0 0 1rem;
+    color: var(--scc-muted);
+  }
+
+  .scc-eyebrow-dark {
+    color: rgba(255, 250, 244, 0.72);
+  }
+
+  .scc-lead,
+  .scc-section-copy p,
+  .scc-section-heading p,
+  .scc-card-head p,
+  .scc-vibe-copy p,
+  .scc-community-card p,
+  .scc-future-card p,
+  .scc-cta-band p,
+  .scc-hero-panel p,
+  .scc-signal-list p {
+    margin: 0;
+    font-size: 1.02rem;
+    line-height: 1.78;
+    color: var(--scc-ink-soft);
+    text-wrap: pretty;
+  }
+
+  .scc-lead {
+    max-width: 60ch;
+    margin-top: 1.5rem;
+    font-size: clamp(1.08rem, 2vw, 1.22rem);
+  }
+
+  .scc-copy-panel {
+    height: 100%;
+    padding: clamp(1.4rem, 3vw, 2rem);
+    border-radius: 1.8rem;
+    border: 1px solid var(--scc-line);
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 252, 0.98),
+      rgba(247, 239, 229, 0.95)
+    );
+    box-shadow: var(--scc-shadow);
+  }
+
+  .scc-stat-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+
+  .scc-stat-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1.35rem;
+    border-radius: 1.5rem;
+    color: #fffaf4;
+    box-shadow: 0 18px 34px rgba(22, 22, 22, 0.12);
+  }
+
+  .scc-stat-card strong {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    line-height: 0.95;
+    letter-spacing: -0.05em;
+  }
+
+  .scc-stat-card span {
+    font-size: 0.95rem;
+    color: rgba(255, 250, 244, 0.78);
+  }
+
+  .scc-stat-card-emerald {
+    background: linear-gradient(135deg, #0f766e, #1f9d85);
+  }
+
+  .scc-stat-card-blue {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  }
+
+  .scc-stat-card-amber {
+    background: linear-gradient(135deg, #f0ca7a, #d79a35);
+  }
+
+  .scc-stat-card-amber,
+  .scc-stat-card-amber strong,
+  .scc-stat-card-amber span {
+    color: #2b1d13;
+  }
+
+  .scc-stat-card-amber span {
+    color: rgba(43, 29, 19, 0.82);
+  }
+
+  .scc-hero-panel,
+  .scc-card,
+  .scc-community-card,
+  .scc-future-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1.8rem;
+    border: 1px solid var(--scc-line);
+    background: var(--scc-surface-strong);
+    box-shadow: var(--scc-shadow);
+  }
+
+  .scc-hero-panel {
+    padding: clamp(1.5rem, 3vw, 2rem);
+    background:
+      linear-gradient(
+        180deg,
+        rgba(255, 255, 252, 0.98),
+        rgba(246, 238, 228, 0.96)
+      ),
+      var(--scc-surface);
+  }
+
+  .scc-hero-panel::after,
+  .scc-card::after,
+  .scc-community-card::after,
+  .scc-future-card::after {
+    content: "";
+    position: absolute;
+    inset: auto -15% -55% auto;
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    background: radial-gradient(
+      circle,
+      rgba(37, 99, 235, 0.12),
+      transparent 68%
+    );
+    pointer-events: none;
+  }
+
+  .scc-hero-panel h2 {
+    margin: 0.55rem 0 1rem;
+    font-family: var(--font-display);
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    line-height: 1;
+    letter-spacing: -0.04em;
+  }
+
+  .scc-signal-list {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1.8rem;
+  }
+
+  .scc-signal-list div {
+    padding-top: 1rem;
+    border-top: 1px solid var(--scc-line);
+  }
+
+  .scc-signal-list span {
+    display: block;
+    margin-bottom: 0.35rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .scc-section {
+    grid-template-columns: minmax(0, 0.9fr) minmax(320px, 1.1fr);
+    gap: clamp(1.5rem, 3vw, 2.5rem);
+    align-items: stretch;
+    padding: clamp(1.5rem, 5vw, 3rem) 0;
+  }
+
+  .scc-section-stack {
+    grid-template-columns: 1fr;
+  }
+
+  .scc-section-copy,
+  .scc-section-heading,
+  .scc-vibe-copy {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .scc-section-copy h2,
+  .scc-section-heading h2,
+  .scc-vibe-copy h2,
+  .scc-cta-band h2 {
+    font-size: clamp(2.2rem, 4.8vw, 4.4rem);
+  }
+
+  .scc-section-heading-center {
+    max-width: 58rem;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .scc-pain-list {
+    display: grid;
+    gap: 0.9rem;
+    margin: 1rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .scc-pain-list li {
+    position: relative;
+    padding: 1rem 1rem 1rem 3.25rem;
+    border-radius: 1rem;
+    background: rgba(255, 253, 249, 0.9);
+    border: 1px solid var(--scc-line);
+    font-weight: 500;
+    color: #2f2a25;
+  }
+
+  .scc-pain-list li::before {
+    content: "x";
+    position: absolute;
+    top: 50%;
+    left: 1.1rem;
+    display: grid;
+    place-items: center;
+    width: 1.4rem;
+    height: 1.4rem;
+    border-radius: 999px;
+    background: rgba(238, 90, 54, 0.14);
+    color: #ee5a36;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    transform: translateY(-50%);
+  }
+
+  .scc-card {
+    display: flex;
+    flex-direction: column;
+    padding: clamp(1.4rem, 3vw, 2rem);
+  }
+
+  .scc-card-head {
+    display: grid;
+    gap: 0.45rem;
+    margin-bottom: 1rem;
+  }
+
+  .scc-card-head h3,
+  .scc-community-card h3,
+  .scc-future-card h3 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(1.35rem, 2vw, 1.9rem);
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    color: var(--scc-ink);
+  }
+
+  .scc-chart-wrap {
+    position: relative;
+    min-height: 380px;
+    height: 45vh;
+    max-height: 470px;
+  }
+
+  .scc-solution-grid {
+    grid-template-columns: 1fr;
+    gap: 1.4rem;
+  }
+
+  .scc-flow-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .scc-flow-list li {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 1rem;
+    align-items: start;
+    padding: 1.1rem;
+    border-radius: 1.2rem;
+    background: rgba(255, 253, 249, 0.78);
+    border: 1px solid var(--scc-line);
+  }
+
+  .scc-flow-list li:not(:last-child)::after {
+    display: none;
+  }
+
+  .scc-flow-list span {
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    margin-top: 0.15rem;
+    border-radius: 0.7rem;
+    background: linear-gradient(135deg, #ee5a36, #2563eb);
+    color: #fffaf4;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+  }
+
+  .scc-flow-list p {
+    color: #2f2a25;
+    font-size: 1rem;
+    line-height: 1.65;
+  }
+
+  .scc-card-chart-large .scc-chart-wrap {
+    min-height: 440px;
+    height: 52vh;
+    max-height: 540px;
+  }
+
+  .scc-card-chart-full .scc-chart-wrap {
+    min-height: 360px;
+    height: 44vh;
+    max-height: 430px;
+  }
+
+  .scc-vibe-block {
+    grid-template-columns: minmax(0, 0.75fr) minmax(360px, 1.25fr);
+    padding: clamp(1.8rem, 4vw, 2.5rem);
+    margin: clamp(1rem, 3vw, 2rem) 0;
+    border-radius: 2rem;
+    background:
+      radial-gradient(
+        circle at top right,
+        rgba(37, 99, 235, 0.18),
+        transparent 28%
+      ),
+      linear-gradient(135deg, #101522 0%, #171d2c 55%, #0f1724 100%);
+    color: #fffaf4;
+    box-shadow: 0 28px 56px rgba(16, 21, 34, 0.32);
+  }
+
+  .scc-vibe-copy p {
+    color: rgba(255, 250, 244, 0.78);
+  }
+
+  .scc-vibe-copy h2 {
+    color: #fffaf4;
+  }
+
+  .scc-vibe-helper {
+    display: inline-flex;
+    width: fit-content;
+    padding: 0.85rem 1rem;
+    border: 1px solid rgba(255, 250, 244, 0.18);
+    border-radius: 1rem;
+    background: rgba(255, 250, 244, 0.08);
+    color: #fff7eb;
+    font-size: 0.98rem;
+    line-height: 1.6;
+  }
+
+  .scc-vibe-chart {
+    position: relative;
+    min-height: 360px;
+    height: 50vh;
+    max-height: 460px;
+  }
+
+  .scc-section-divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: clamp(1.2rem, 4vw, 2.6rem) auto;
+    width: min(100%, 780px);
+    color: var(--scc-muted-soft);
+  }
+
+  .scc-section-divider span {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(22, 17, 13, 0.14),
+      transparent
+    );
+  }
+
+  .scc-section-divider i {
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 999px;
+    border: 1px solid rgba(22, 17, 13, 0.1);
+    font-style: normal;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    background: rgba(255, 253, 249, 0.78);
+  }
+
+  .scc-community-graph-section {
+    padding-top: clamp(2rem, 5vw, 3.5rem);
+  }
+
+  .scc-chart-wrap-community {
+    min-height: 380px;
+    height: 48vh;
+    max-height: 500px;
+  }
+
+  .scc-community-bar-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+
+  .scc-community-bar-card {
+    padding: 1rem 1.05rem;
+    border-radius: 1.1rem;
+    border: 1px solid var(--scc-line);
+    background: rgba(255, 253, 249, 0.86);
+  }
+
+  .scc-community-bar-card p {
+    margin: 0.7rem 0 0;
+    color: var(--scc-ink-soft);
+    line-height: 1.65;
+  }
+
+  .scc-community-bar-track {
+    margin-top: 0.7rem;
+    width: 100%;
+    height: 0.7rem;
+    border-radius: 999px;
+    background: rgba(22, 22, 22, 0.08);
+    overflow: hidden;
+  }
+
+  .scc-community-bar-fill {
+    height: 100%;
+    border-radius: inherit;
+  }
+
+  .scc-bar-docu {
+    background: #2563eb;
+  }
+  .scc-bar-fashion {
+    background: #0f766e;
+  }
+  .scc-bar-commercial {
+    background: #ee5a36;
+  }
+  .scc-bar-narrative {
+    background: #d3921e;
+  }
+  .scc-bar-social {
+    background: #334155;
+  }
+
+  .scc-community-grid,
+  .scc-future-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.2rem;
+    margin-top: 1rem;
+    align-items: stretch;
+  }
+
+  .scc-values-section {
+    padding-top: clamp(1rem, 4vw, 2rem);
+  }
+
+  .scc-values-copy {
+    max-width: 62rem;
+  }
+
+  .scc-community-card,
+  .scc-future-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding: 1.5rem;
+    min-height: 100%;
+  }
+
+  .scc-future-card {
+    gap: 0.85rem;
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 252, 0.99),
+      rgba(246, 238, 229, 0.99)
+    );
+  }
+
+  .scc-community-card p:last-child,
+  .scc-future-card p:last-child {
+    margin-top: 0.6rem;
+  }
+
+  .scc-community-card {
+    gap: 0.55rem;
+    padding-top: 1.1rem;
+    min-height: 320px;
+  }
+
+  .scc-community-card h3,
+  .scc-future-card h3 {
+    color: var(--scc-ink);
+  }
+
+  .scc-community-illustration {
+    position: relative;
+    width: 100%;
+    height: 108px;
+    margin-bottom: 0.35rem;
+    border-radius: 1.2rem;
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 252, 0.98),
+      rgba(244, 236, 226, 0.98)
+    );
+    border: 1px solid var(--scc-line);
+    overflow: hidden;
+  }
+
+  .scc-community-illustration span {
+    position: absolute;
+    display: block;
+    border-radius: 999px;
+  }
+
+  .scc-community-illustration-reputation span:nth-child(1) {
+    width: 44px;
+    height: 44px;
+    left: 18px;
+    top: 34px;
+    background: rgba(37, 99, 235, 0.16);
+    border: 2px solid #2563eb;
+  }
+
+  .scc-community-illustration-reputation span:nth-child(2) {
+    width: 44px;
+    height: 44px;
+    right: 18px;
+    top: 34px;
+    background: rgba(15, 118, 110, 0.16);
+    border: 2px solid #0f766e;
+  }
+
+  .scc-community-illustration-reputation span:nth-child(3) {
+    width: 72px;
+    height: 2px;
+    left: 50%;
+    top: 54px;
+    transform: translateX(-50%);
+    background: #17120e;
+    border-radius: 0;
+  }
+
+  .scc-community-illustration-risk span:nth-child(1) {
+    width: 56px;
+    height: 56px;
+    left: 50%;
+    top: 22px;
+    transform: translateX(-50%);
+    background: rgba(238, 90, 54, 0.14);
+    border: 2px solid #ee5a36;
+    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+    border-radius: 0;
+  }
+
+  .scc-community-illustration-risk span:nth-child(2) {
+    width: 6px;
+    height: 20px;
+    left: 50%;
+    top: 40px;
+    transform: translateX(-50%);
+    background: #17120e;
+    border-radius: 999px;
+  }
+
+  .scc-community-illustration-risk span:nth-child(3) {
+    width: 6px;
+    height: 6px;
+    left: 50%;
+    top: 66px;
+    transform: translateX(-50%);
+    background: #17120e;
+  }
+
+  .scc-community-illustration-inclusive span:nth-child(1),
+  .scc-community-illustration-inclusive span:nth-child(2),
+  .scc-community-illustration-inclusive span:nth-child(3) {
+    width: 42px;
+    height: 42px;
+    top: 34px;
+    background: rgba(22, 22, 22, 0.03);
+    border: 2px solid #17120e;
+  }
+
+  .scc-community-illustration-inclusive span:nth-child(1) {
+    left: 18px;
+    border-color: #2563eb;
+  }
+
+  .scc-community-illustration-inclusive span:nth-child(2) {
+    left: 50%;
+    transform: translateX(-50%);
+    border-color: #ee5a36;
+  }
+
+  .scc-community-illustration-inclusive span:nth-child(3) {
+    right: 18px;
+    border-color: #0f766e;
+  }
+
+  .scc-future-card-link {
+    text-decoration: none;
+    color: inherit;
+    transition:
+      transform 0.22s ease,
+      box-shadow 0.22s ease,
+      border-color 0.22s ease;
+  }
+
+  .scc-future-card-link:hover,
+  .scc-future-card-link:focus-visible {
+    transform: translateY(-4px);
+    border-color: rgba(37, 99, 235, 0.26);
+    box-shadow: 0 26px 54px rgba(22, 17, 13, 0.12);
+  }
+
+  .scc-community-card p,
+  .scc-future-card p,
+  .scc-genre-copy p {
+    color: var(--scc-ink-soft);
+  }
+
+  .scc-genre-heading {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: baseline;
+  }
+
+  .scc-genre-heading strong {
+    font-size: 1rem;
+    color: var(--scc-ink);
+  }
+
+  .scc-genre-heading span {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--scc-muted);
+  }
+
+  .scc-future-section {
+    padding-top: clamp(1.5rem, 4vw, 3rem);
+  }
+
+  .scc-future-card-headline {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .scc-future-card-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #1d4ed8;
+  }
+
+  .scc-card-link-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    width: 100%;
+    min-height: 3.2rem;
+    margin-top: auto;
+    padding: 0.82rem 1rem;
+    border-radius: 999px;
+    background: #17120e;
+    border: 1px solid #17120e;
+    color: #fffaf4;
+    box-shadow: 0 14px 24px rgba(22, 17, 13, 0.14);
+    transition:
+      transform 0.22s ease,
+      background-color 0.22s ease,
+      box-shadow 0.22s ease;
+  }
+
+  .scc-card-link-cta-muted {
+    background: rgba(22, 17, 13, 0.08);
+    border-color: rgba(22, 17, 13, 0.08);
+    color: var(--scc-muted);
+    box-shadow: none;
+  }
+
+  .scc-future-illustration {
+    position: relative;
+    width: 4.3rem;
+    height: 4.3rem;
+    margin-bottom: 0.4rem;
+    border-radius: 1.05rem;
+    border: 1px solid var(--scc-line);
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 252, 0.98),
+      rgba(244, 236, 226, 0.98)
+    );
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82);
+    overflow: hidden;
+    transition: border-color 0.22s ease;
+  }
+
+  .scc-future-illustration span {
+    position: absolute;
+    display: block;
+    background: #17120e;
+    opacity: 0.92;
+  }
+
+  .scc-future-illustration-editors span:nth-child(1) {
+    left: 0.86rem;
+    top: 0.95rem;
+    width: 0.95rem;
+    height: 0.95rem;
+    border-radius: 999px;
+  }
+
+  .scc-future-illustration-editors span:nth-child(2) {
+    left: 0.72rem;
+    top: 2.02rem;
+    width: 1.24rem;
+    height: 0.86rem;
+    border-radius: 0.7rem;
+  }
+
+  .scc-future-illustration-editors span:nth-child(3) {
+    right: 0.78rem;
+    top: 1.32rem;
+    width: 1.6rem;
+    height: 0.16rem;
+    border-radius: 999px;
+    box-shadow:
+      0 0.52rem 0 #17120e,
+      0 1.04rem 0 rgba(23, 18, 14, 0.72);
+  }
+
+  .scc-future-illustration-matching::before,
+  .scc-future-illustration-matching::after,
+  .scc-future-illustration-community::before,
+  .scc-future-illustration-community::after {
+    content: "";
+    position: absolute;
+    display: block;
+    background: rgba(23, 18, 14, 0.32);
+  }
+
+  .scc-future-illustration-matching span:nth-child(1) {
+    left: 0.82rem;
+    top: 1.62rem;
+    width: 0.78rem;
+    height: 0.78rem;
+    border-radius: 999px;
+  }
+
+  .scc-future-illustration-matching span:nth-child(2) {
+    left: 50%;
+    top: 1.18rem;
+    width: 0.92rem;
+    height: 1.68rem;
+    transform: translateX(-50%);
+    border-radius: 0.8rem;
+  }
+
+  .scc-future-illustration-matching span:nth-child(3) {
+    right: 0.82rem;
+    top: 1.62rem;
+    width: 0.78rem;
+    height: 0.78rem;
+    border-radius: 999px;
+  }
+
+  .scc-future-illustration-matching::before {
+    left: 1.52rem;
+    right: 1.52rem;
+    top: 1.93rem;
+    height: 0.12rem;
+    border-radius: 999px;
+  }
+
+  .scc-future-illustration-matching::after {
+    left: 50%;
+    top: 0.94rem;
+    width: 0.42rem;
+    height: 0.42rem;
+    transform: translateX(-50%);
+    border-radius: 999px;
+  }
+
+  .scc-future-illustration-community span:nth-child(1) {
+    left: 0.7rem;
+    top: 2.02rem;
+    width: 0.8rem;
+    height: 0.8rem;
+    border-radius: 999px;
+  }
+
+  .scc-future-illustration-community span:nth-child(2) {
+    left: 50%;
+    top: 0.98rem;
+    width: 0.8rem;
+    height: 0.8rem;
+    transform: translateX(-50%);
+    border-radius: 999px;
+  }
+
+  .scc-future-illustration-community span:nth-child(3) {
+    right: 0.7rem;
+    top: 2.02rem;
+    width: 0.8rem;
+    height: 0.8rem;
+    border-radius: 999px;
+  }
+
+  .scc-future-illustration-community::before {
+    left: 1.18rem;
+    top: 1.64rem;
+    width: 1.64rem;
+    height: 0.12rem;
+    transform: rotate(-32deg);
+    border-radius: 999px;
+  }
+
+  .scc-future-illustration-community::after {
+    right: 1.18rem;
+    top: 1.64rem;
+    width: 1.64rem;
+    height: 0.12rem;
+    transform: rotate(32deg);
+    border-radius: 999px;
+  }
+
+  .scc-future-card-link:hover .scc-future-illustration,
+  .scc-future-card-link:focus-visible .scc-future-illustration {
+    border-color: rgba(37, 99, 235, 0.24);
+  }
+
+  .scc-future-card-link:hover .scc-card-link-cta,
+  .scc-future-card-link:focus-visible .scc-card-link-cta {
+    background: #0f1724;
+  }
+
+  .scc-future-card p {
+    max-width: 30ch;
+  }
+
+  .scc-cta-band {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    margin-top: clamp(2rem, 5vw, 4rem);
+    padding: clamp(1.6rem, 4vw, 2.4rem);
+    border-radius: 2rem;
+    background:
+      radial-gradient(
+        circle at top right,
+        rgba(238, 90, 54, 0.34),
+        transparent 32%
+      ),
+      linear-gradient(135deg, #121a28 0%, #223764 58%, #142236 100%);
+    color: #fffaf4;
+    box-shadow: 0 26px 48px rgba(18, 26, 40, 0.24);
+  }
+
+  .scc-cta-copy {
+    display: grid;
+    gap: 0.78rem;
+    max-width: 40rem;
+  }
+
+  .scc-cta-copy .scc-eyebrow {
+    margin-bottom: 0;
+  }
+
+  .scc-cta-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.85rem;
+    align-items: center;
+    justify-content: flex-end;
+  }
+
+  .scc-cta-band p {
+    color: rgba(255, 250, 244, 0.86);
+    max-width: 48ch;
+    line-height: 1.84;
+  }
+
+  .scc-cta-band h2 {
+    max-width: 14ch;
+    line-height: 1.02;
+    text-wrap: balance;
+    color: #fffaf4;
+  }
+
+  .scc-cta-link {
+    flex-shrink: 0;
+    padding: 0.95rem 1.35rem;
+    border: 1px solid rgba(255, 250, 244, 0.42);
+    border-radius: 999px;
+    background: rgba(255, 250, 244, 0.14);
+    font-family: var(--font-mono);
+    font-size: 0.84rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #fffaf4;
+  }
+
+  .scc-cta-link-solid {
+    background: rgba(9, 14, 26, 0.82);
+    border-color: rgba(9, 14, 26, 0.92);
+  }
+
+  .scc-cta-link:hover,
+  .scc-cta-link:focus-visible {
+    transform: translateY(-2px);
+    background: rgba(255, 250, 244, 0.24);
+    border-color: rgba(255, 250, 244, 0.6);
+  }
+
+  @media (max-width: 1080px) {
+    .scc-hero-grid,
+    .scc-section,
+    .scc-solution-grid,
+    .scc-vibe-block {
+      grid-template-columns: 1fr;
+    }
+
+    .scc-community-grid,
+    .scc-future-grid,
+    .scc-community-bar-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .scc-flow-list {
+      grid-template-columns: 1fr;
+    }
+
+    .scc-future-card-headline {
+      justify-content: flex-start;
+    }
+
+    .scc-cta-band {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .scc-cta-actions {
+      justify-content: flex-start;
+    }
+
+    .scc-masthead-inner {
+      grid-template-columns: 1fr;
+    }
+
+    .scc-masthead-actions,
+    .scc-nav,
+    .scc-role-shortcuts {
+      justify-content: flex-start;
+    }
+  }
+
+  @media (max-width: 780px) {
+    .scc-shell {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+
+    .scc-masthead-inner {
+      align-items: flex-start;
+      border-radius: 1.4rem;
+    }
+
+    .scc-nav {
+      width: 100%;
+      justify-content: flex-start;
+      gap: 0.8rem 1rem;
+    }
+
+    .scc-role-shortcuts {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .scc-role-shortcut {
+      min-width: 0;
+    }
+    .scc-stat-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .scc-flow-list {
+      grid-template-columns: 1fr;
+    }
+
+    .scc-chart-wrap,
+    .scc-vibe-chart {
+      min-height: 300px;
+      height: 340px;
+    }
+  }
+</style>
