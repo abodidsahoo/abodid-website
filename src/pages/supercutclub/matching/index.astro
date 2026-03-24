@@ -35,15 +35,13 @@ const extractionCards = [
     eyebrow: "Visual extraction",
     title: "The mood sensor",
     tool: "OpenAI CLIP + pgvector",
-    body:
-      "Frame snapshots from a reel become vectors. That lets the system compare a director’s visual reference against what an editor actually cuts, not just what they call themselves.",
+    body: "Frame snapshots from a reel become vectors. That lets the system compare a director’s visual reference against what an editor actually cuts, not just what they call themselves.",
   },
   {
     eyebrow: "Rhythmic extraction",
     title: "The pulse sensor",
     tool: "Cyanite or Sonoteller",
-    body:
-      "Music BPM, energy level, and pacing become machine-readable signals. High-BPM commercial editors separate naturally from slower documentary and narrative editors.",
+    body: "Music BPM, energy level, and pacing become machine-readable signals. High-BPM commercial editors separate naturally from slower documentary and narrative editors.",
   },
 ];
 
@@ -122,14 +120,18 @@ const quickGuideItems = [
           <p class="scm-eyebrow">Developer-facing blueprint</p>
           <h1>
             <span class="scm-hero-title-line">Super Cut Club</span>
-            <span class="scm-hero-title-line scm-hero-title-line-accent">is a matching engine,</span>
-            <span class="scm-hero-title-line scm-hero-title-line-muted">not a job board.</span>
+            <span class="scm-hero-title-line scm-hero-title-line-accent"
+              >is a matching engine,</span
+            >
+            <span class="scm-hero-title-line scm-hero-title-line-muted"
+              >not a job board.</span
+            >
           </h1>
           <p class="scm-lead">
             In film, word of mouth is a wall that new talent cannot easily
-            climb. This product turns professional intuition into a system: taste,
-            resources, and availability get queried together so a director can find
-            the right editor, not just the most connected one.
+            climb. This product turns professional intuition into a system:
+            taste, resources, and availability get queried together so a
+            director can find the right editor, not just the most connected one.
           </p>
 
           <div class="scm-stat-row">
@@ -201,12 +203,14 @@ const quickGuideItems = [
           <p class="scm-card-kicker">Search composition</p>
           <h3>How the engine assembles a match score</h3>
           <p>
-            Taste should lead the shortlist, but it must stay grounded by production
-            reality and actual availability.
+            Taste should lead the shortlist, but it must stay grounded by
+            production reality and actual availability.
           </p>
         </div>
         <div class="scm-chart-wrap">
-          <canvas id="matchWeightChart" aria-label="Matching score composition chart"></canvas>
+          <canvas
+            id="matchWeightChart"
+            aria-label="Matching score composition chart"></canvas>
         </div>
       </article>
     </section>
@@ -216,9 +220,9 @@ const quickGuideItems = [
         <p class="scm-eyebrow">2. Extraction logic</p>
         <h2>Let the system read the work instead of asking for essays.</h2>
         <p>
-          Editors should not have to over-explain themselves in a text bio if the
-          platform can analyze their reels directly and recover visual and rhythmic
-          signatures from the actual work.
+          Editors should not have to over-explain themselves in a text bio if
+          the platform can analyze their reels directly and recover visual and
+          rhythmic signatures from the actual work.
         </p>
       </div>
 
@@ -241,12 +245,14 @@ const quickGuideItems = [
             <p class="scm-card-kicker">Visual matching</p>
             <h3>CLIP turns mood into vectors</h3>
             <p>
-              Similar-looking work begins to cluster, which makes “moody neon” or
-              “clean documentary realism” searchable without keyword stuffing.
+              Similar-looking work begins to cluster, which makes “moody neon”
+              or “clean documentary realism” searchable without keyword
+              stuffing.
             </p>
           </div>
           <div class="scm-chart-wrap scm-chart-wrap-medium">
-            <canvas id="vectorClusterChart" aria-label="Visual cluster chart"></canvas>
+            <canvas id="vectorClusterChart" aria-label="Visual cluster chart"
+            ></canvas>
           </div>
         </article>
 
@@ -260,7 +266,8 @@ const quickGuideItems = [
             </p>
           </div>
           <div class="scm-chart-wrap scm-chart-wrap-medium">
-            <canvas id="pulseProfileChart" aria-label="Pulse profile chart"></canvas>
+            <canvas id="pulseProfileChart" aria-label="Pulse profile chart"
+            ></canvas>
           </div>
         </article>
       </div>
@@ -277,24 +284,28 @@ const quickGuideItems = [
         </p>
         <p>
           The platform becomes useful to both sides at once: clients get a more
-          precise shortlist, and editors outside the usual production circles get
-          a fairer route into the room.
+          precise shortlist, and editors outside the usual production circles
+          get a fairer route into the room.
         </p>
       </div>
 
       <div class="scm-contrast-chart">
-        <canvas id="discoveryImpactChart" aria-label="Discovery platform impact chart"></canvas>
+        <canvas
+          id="discoveryImpactChart"
+          aria-label="Discovery platform impact chart"></canvas>
       </div>
     </section>
 
     <section id="blueprint" class="scm-section scm-section-stack">
       <div class="scm-section-heading">
         <p class="scm-eyebrow">4. Functional blueprint</p>
-        <h2>Build a capabilities engine, then wrap it in a visual-first interface.</h2>
+        <h2>
+          Build a capabilities engine, then wrap it in a visual-first interface.
+        </h2>
         <p>
           The database should not stop at “users.” It should model practical
-          constraints, while the front end should let reference media reshape the
-          shortlist in real time.
+          constraints, while the front end should let reference media reshape
+          the shortlist in real time.
         </p>
       </div>
 
@@ -307,15 +318,24 @@ const quickGuideItems = [
           <div class="scm-capability-list">
             <div>
               <span>Location and hardware</span>
-              <p>Store city, travel radius, machine strength, storage, and software stack as structured filters.</p>
+              <p>
+                Store city, travel radius, machine strength, storage, and
+                software stack as structured filters.
+              </p>
             </div>
             <div>
               <span>Price brackets</span>
-              <p>Use pricing tiers so basic reels and high-end commercial edits do not collapse into one vague rate field.</p>
+              <p>
+                Use pricing tiers so basic reels and high-end commercial edits
+                do not collapse into one vague rate field.
+              </p>
             </div>
             <div>
               <span>Availability state</span>
-              <p>Offer simple toggles first, then calendar sync later if the product proves the need.</p>
+              <p>
+                Offer simple toggles first, then calendar sync later if the
+                product proves the need.
+              </p>
             </div>
           </div>
         </article>
@@ -326,11 +346,13 @@ const quickGuideItems = [
             <h3>Reference media should rearrange the grid instantly</h3>
             <p>
               The UI should feel visual-first: upload a reference track or mood
-              board, then let the ranking shift around taste, not just text filters.
+              board, then let the ranking shift around taste, not just text
+              filters.
             </p>
           </div>
           <div class="scm-chart-wrap">
-            <canvas id="interfaceFlowChart" aria-label="Interface flow chart"></canvas>
+            <canvas id="interfaceFlowChart" aria-label="Interface flow chart"
+            ></canvas>
           </div>
         </article>
       </div>
@@ -353,8 +375,8 @@ const quickGuideItems = [
         <h2>The next useful page is the onboarding flow.</h2>
         <p>
           We can turn this PRD into a concrete editor onboarding sequence next:
-          what to ask, in what order, and how to capture signal without exhausting
-          the user.
+          what to ask, in what order, and how to capture signal without
+          exhausting the user.
         </p>
       </div>
 
@@ -369,7 +391,9 @@ const quickGuideItems = [
     />
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.9/dist/chart.umd.min.js"></script>
+  <script
+    src="https://cdn.jsdelivr.net/npm/chart.js@4.4.9/dist/chart.umd.min.js"
+  ></script>
 
   <script is:inline>
     function wrapLabel(label, maxChars = 16) {
@@ -539,7 +563,13 @@ const quickGuideItems = [
         new Chart(pulseCanvas, {
           type: "line",
           data: {
-            labels: ["Doc cut", "Narrative", "Fashion", "Commercial", "Music video"],
+            labels: [
+              "Doc cut",
+              "Narrative",
+              "Fashion",
+              "Commercial",
+              "Music video",
+            ],
             datasets: [
               {
                 label: "Typical BPM",
@@ -708,8 +738,16 @@ const quickGuideItems = [
 <style>
   :global(body.scm-page) {
     background:
-      radial-gradient(circle at top left, rgba(37, 99, 235, 0.12), transparent 24%),
-      radial-gradient(circle at top right, rgba(238, 90, 54, 0.12), transparent 24%),
+      radial-gradient(
+        circle at top left,
+        rgba(37, 99, 235, 0.12),
+        transparent 24%
+      ),
+      radial-gradient(
+        circle at top right,
+        rgba(238, 90, 54, 0.12),
+        transparent 24%
+      ),
       #f7f4ee;
     color: #161616;
   }
@@ -805,8 +843,16 @@ const quickGuideItems = [
     border: 1px solid rgba(255, 255, 255, 0.08);
     overflow: hidden;
     background:
-      radial-gradient(circle at top left, rgba(37, 99, 235, 0.3), transparent 30%),
-      radial-gradient(circle at top right, rgba(238, 90, 54, 0.22), transparent 28%),
+      radial-gradient(
+        circle at top left,
+        rgba(37, 99, 235, 0.3),
+        transparent 30%
+      ),
+      radial-gradient(
+        circle at top right,
+        rgba(238, 90, 54, 0.22),
+        transparent 28%
+      ),
       linear-gradient(135deg, #07101f 0%, #101827 52%, #17111a 100%);
     box-shadow: 0 28px 58px rgba(7, 12, 24, 0.32);
     color: #fffaf4;
@@ -856,10 +902,18 @@ const quickGuideItems = [
   .scm-hero-title-line-accent {
     font-size: 0.92em;
     color: #81a8ff;
-    background: linear-gradient(120deg, #ff7a57 0%, #aa7dff 36%, #4d86ff 68%, #48c3de 100%);
+    background: linear-gradient(
+      120deg,
+      #ff7a57 0%,
+      #aa7dff 36%,
+      #4d86ff 68%,
+      #48c3de 100%
+    );
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    padding-bottom: 0.25em;
+    margin-bottom: -0.15em;
   }
 
   .scm-hero-title-line-muted {
@@ -949,7 +1003,11 @@ const quickGuideItems = [
     width: 220px;
     height: 220px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(37, 99, 235, 0.1), transparent 68%);
+    background: radial-gradient(
+      circle,
+      rgba(37, 99, 235, 0.1),
+      transparent 68%
+    );
     pointer-events: none;
   }
 
@@ -1124,7 +1182,11 @@ const quickGuideItems = [
     margin: clamp(1rem, 3vw, 2rem) 0;
     border-radius: 2rem;
     background:
-      radial-gradient(circle at top right, rgba(37, 99, 235, 0.18), transparent 28%),
+      radial-gradient(
+        circle at top right,
+        rgba(37, 99, 235, 0.18),
+        transparent 28%
+      ),
       linear-gradient(135deg, #101522 0%, #171d2c 55%, #0f1724 100%);
     color: #fffaf4;
     box-shadow: 0 28px 56px rgba(16, 21, 34, 0.32);

@@ -80,9 +80,20 @@ const {
         const scrollPos = window.scrollY;
         const pageHeight = document.documentElement.scrollHeight;
         const windowHeight = window.innerHeight;
+        const maxScroll = pageHeight - windowHeight;
+        
+        const footer = document.querySelector(".site-footer");
+        // Hide the guide 80px before the footer enters the viewport
+        const fadeOutScrollPos = footer 
+          ? footer.offsetTop - windowHeight - 80 
+          : maxScroll - 100;
         
         // Show after scrolling at least 45% of the page
-        const showGuide = scrollPos > (pageHeight - windowHeight) * 0.45;
+        const isPastStart = scrollPos > maxScroll * 0.45;
+        // Hide before the footer
+        const isBeforeEnd = scrollPos < fadeOutScrollPos;
+        
+        const showGuide = isPastStart && isBeforeEnd;
         quickGuide.classList.toggle("is-visible", showGuide);
       };
 

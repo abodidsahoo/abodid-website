@@ -23,17 +23,25 @@ const editorProfiles = [
     portraitSrc: "https://randomuser.me/api/portraits/men/32.jpg",
     portraitTone: "blue",
     portraitPosition: "50% 24%",
-    featuredMediaType: "embed",
-    featuredUrl: "https://vimeo.com/265220711",
-    featuredLabel: "Documentary sample",
     featuredSourceLabel: "Official portfolio / Vimeo",
     featuredSourceUrl: "https://vimeo.com/265220711",
     featuredNote:
-      "This profile uses the Odisha Tourism Vimeo piece from your official site because the pacing is observational, scenic, and built for longer breaths.",
+      "Observational pacing, scenic wide frames, and slow natural-light edits — the core competency of this profile.",
     projects: [
-      { title: "Odisha Horizon", type: "Documentary", accent: "doc" },
-      { title: "Still Monsoon", type: "Narrative Short", accent: "narrative" },
-      { title: "Founder's Letter", type: "Branded Documentary", accent: "brand" },
+      {
+        title: "Odisha Horizon",
+        type: "Documentary",
+        accent: "doc",
+        mediaType: "embed",
+        mediaUrl: "https://vimeo.com/265220711",
+      },
+      {
+        title: "Founder's Letter",
+        type: "Branded Documentary",
+        accent: "brand",
+        mediaType: "embed",
+        mediaUrl: "https://www.youtube.com/watch?v=fooE0W_mFSY",
+      },
     ],
   },
   {
@@ -57,17 +65,25 @@ const editorProfiles = [
     portraitSrc: "https://randomuser.me/api/portraits/women/44.jpg",
     portraitTone: "red",
     portraitPosition: "50% 20%",
-    featuredMediaType: "embed",
-    featuredUrl: "https://www.youtube.com/watch?v=EMsZT9PCFms",
-    featuredLabel: "Fashion film sample",
     featuredSourceLabel: "Official portfolio / YouTube",
     featuredSourceUrl: "https://www.youtube.com/watch?v=EMsZT9PCFms",
     featuredNote:
-      "This profile uses the Hermosa Design YouTube link from your site because it carries the cleaner fashion-film rhythm and saturated commercial finish.",
+      "Fashion-film rhythm with a saturated commercial finish — this profile is defined by speed and visual punch.",
     projects: [
-      { title: "Hermosa Pulse", type: "Fashion Film", accent: "fashion" },
-      { title: "Pulse Room", type: "Music Video", accent: "music" },
-      { title: "Arc Runner", type: "Launch Reel", accent: "social" },
+      {
+        title: "Hermosa Pulse",
+        type: "Fashion Film",
+        accent: "fashion",
+        mediaType: "embed",
+        mediaUrl: "https://www.youtube.com/watch?v=EMsZT9PCFms",
+      },
+      {
+        title: "Jawa Nightcut",
+        type: "Commercial Reel",
+        accent: "brand",
+        mediaType: "embed",
+        mediaUrl: "https://www.youtube.com/watch?v=CSmZHXpr13E",
+      },
     ],
   },
   {
@@ -91,16 +107,24 @@ const editorProfiles = [
     portraitSrc: "https://randomuser.me/api/portraits/men/68.jpg",
     portraitTone: "green",
     portraitPosition: "50% 18%",
-    featuredMediaType: "local",
-    featuredVideo: "/videos/showreel-2025.mp4",
-    featuredLabel: "Showreel sample",
     featuredSourceLabel: "Local archive / Showreel",
     featuredNote:
-      "This profile keeps your local showreel in view to signal range, premium finish, and cinematic highlight-cut storytelling.",
+      "The showreel signals range, premium finish, and cinematic highlight-cut storytelling.",
     projects: [
-      { title: "Goldlight 2025", type: "Showreel", accent: "wedding" },
-      { title: "Royal Jaipur", type: "Wedding Film", accent: "brand" },
-      { title: "Temple Procession", type: "Cultural Film", accent: "doc" },
+      {
+        title: "Showreel 2025",
+        type: "Showreel",
+        accent: "wedding",
+        mediaType: "local",
+        mediaUrl: "/videos/showreel-2025.mp4",
+      },
+      {
+        title: "Odisha Horizon",
+        type: "Documentary",
+        accent: "doc",
+        mediaType: "embed",
+        mediaUrl: "https://vimeo.com/265220711",
+      },
     ],
   },
   {
@@ -124,16 +148,25 @@ const editorProfiles = [
     portraitSrc: "https://randomuser.me/api/portraits/women/29.jpg",
     portraitTone: "mono",
     portraitPosition: "50% 20%",
-    featuredMediaType: "embed",
-    featuredUrl: "https://vimeo.com/265220711",
-    featuredLabel: "Experimental landscape sample",
     featuredSourceLabel: "Official portfolio / Vimeo",
+    featuredSourceUrl: "https://vimeo.com/265220711",
     featuredNote:
-      "This profile uses a landscape textural sample to fill the frame edge-to-edge, avoiding the pillarbox white spaces from portrait formatting.",
+      "Landscape textural pacing — fills the frame edge-to-edge with observational energy and raw mixed-media texture.",
     projects: [
-      { title: "Street Syntax", type: "Experimental Reel", accent: "experimental" },
-      { title: "Open City", type: "Campaign Film", accent: "doc" },
-      { title: "Noise Study", type: "Art Reel", accent: "social" },
+      {
+        title: "Street Syntax",
+        type: "Experimental Reel",
+        accent: "experimental",
+        mediaType: "embed",
+        mediaUrl: "https://vimeo.com/265220711",
+      },
+      {
+        title: "Show Me the Way",
+        type: "Music Video",
+        accent: "music",
+        mediaType: "embed",
+        mediaUrl: "https://www.youtube.com/watch?v=fooE0W_mFSY",
+      },
     ],
   },
   {
@@ -157,17 +190,25 @@ const editorProfiles = [
     portraitSrc: "https://randomuser.me/api/portraits/men/21.jpg",
     portraitTone: "blue",
     portraitPosition: "50% 18%",
-    featuredMediaType: "embed",
-    featuredUrl: "https://www.youtube.com/watch?v=CSmZHXpr13E",
-    featuredLabel: "Commercial sample",
     featuredSourceLabel: "Official portfolio / YouTube",
     featuredSourceUrl: "https://www.youtube.com/watch?v=CSmZHXpr13E",
     featuredNote:
-      "This profile uses the Jawa Motorcycles YouTube link from your site because the motion language reads like a crisp commercial cut.",
+      "The Jawa Motorcycles film reads as a crisp commercial cut — precision motion and a clean mechanical rhythm.",
     projects: [
-      { title: "Jawa Cutdown", type: "Commercial Film", accent: "brand" },
-      { title: "Midnight Metal", type: "Launch Film", accent: "fashion" },
-      { title: "Torque 15", type: "Promo Reel", accent: "social" },
+      {
+        title: "Jawa Cutdown",
+        type: "Commercial Film",
+        accent: "brand",
+        mediaType: "embed",
+        mediaUrl: "https://www.youtube.com/watch?v=CSmZHXpr13E",
+      },
+      {
+        title: "Hermosa Launch",
+        type: "Launch Film",
+        accent: "fashion",
+        mediaType: "embed",
+        mediaUrl: "https://www.youtube.com/watch?v=EMsZT9PCFms",
+      },
     ],
   },
   {
@@ -191,20 +232,29 @@ const editorProfiles = [
     portraitSrc: "https://randomuser.me/api/portraits/women/65.jpg",
     portraitTone: "red",
     portraitPosition: "50% 18%",
-    featuredMediaType: "embed",
-    featuredUrl: "https://www.youtube.com/watch?v=fooE0W_mFSY",
-    featuredLabel: "Music video sample",
     featuredSourceLabel: "Official portfolio / YouTube",
     featuredSourceUrl: "https://www.youtube.com/watch?v=fooE0W_mFSY",
     featuredNote:
-      "This profile pulls the Show Me the Way YouTube film from your official portfolio because it reads as a music-led rhythm test rather than a generic reel.",
+      "Show Me the Way reads as a music-led rhythm test — the edit language is stylish, structured, and performance-first.",
     projects: [
-      { title: "Show Me the Way", type: "Music Video", accent: "music" },
-      { title: "Velvet Rush", type: "Performance Film", accent: "fashion" },
-      { title: "Night Window", type: "Artist Reel", accent: "social" },
+      {
+        title: "Show Me the Way",
+        type: "Music Video",
+        accent: "music",
+        mediaType: "embed",
+        mediaUrl: "https://www.youtube.com/watch?v=fooE0W_mFSY",
+      },
+      {
+        title: "Showreel Cut",
+        type: "Highlight Reel",
+        accent: "fashion",
+        mediaType: "local",
+        mediaUrl: "/videos/showreel-2025.mp4",
+      },
     ],
   },
 ];
+
 
 const vibeOptions = ["All", "Gritty", "Neon", "Minimalist", "Golden Hour", "Muted"];
 const techOptions = ["All", "Fixed Workstation", "On-Site Mobile"];
@@ -284,6 +334,7 @@ export default function EditorDiscoveryInterface() {
     city: "All",
   });
   const [activeIndex, setActiveIndex] = useState(0);
+  const [projectIndex, setProjectIndex] = useState(0);
 
   const deferredFilters = useDeferredValue(filters);
 
@@ -323,9 +374,11 @@ export default function EditorDiscoveryInterface() {
 
   const safeIndex = filteredProfiles.length === 0 ? 0 : activeIndex % filteredProfiles.length;
   const activeProfile = filteredProfiles[safeIndex];
+  const safeProjectIndex = projectIndex % activeProfile.projects.length;
+  const activeProject = activeProfile.projects[safeProjectIndex];
   const embeddedMediaUrl =
-    activeProfile.featuredMediaType === "embed"
-      ? getEmbeddedMediaUrl(activeProfile.featuredUrl)
+    activeProject.mediaType === "embed"
+      ? getEmbeddedMediaUrl(activeProject.mediaUrl)
       : "";
 
   const updateFilter = (key, value) => {
@@ -335,15 +388,18 @@ export default function EditorDiscoveryInterface() {
         [key]: value,
       }));
       setActiveIndex(0);
+      setProjectIndex(0);
     });
   };
 
   const nextEditor = () => {
-    if (!filteredProfiles.length) {
-      return;
-    }
-
+    if (!filteredProfiles.length) return;
     setActiveIndex((current) => (current + 1) % filteredProfiles.length);
+    setProjectIndex(0);
+  };
+
+  const nextProject = () => {
+    setProjectIndex((current) => (current + 1) % activeProfile.projects.length);
   };
 
   return (
@@ -524,21 +580,21 @@ export default function EditorDiscoveryInterface() {
               </div>
 
               <div className="sced-video-frame">
-                {activeProfile.featuredMediaType === "embed" ? (
+                {activeProject.mediaType === "embed" ? (
                   <iframe
-                    key={activeProfile.featuredUrl}
+                    key={activeProject.mediaUrl}
                     className="sced-video sced-video-embed"
                     src={embeddedMediaUrl}
-                    title={`${activeProfile.name} featured sample`}
+                    title={`${activeProfile.name} — ${activeProject.title}`}
                     loading="lazy"
                     allow="autoplay; fullscreen; picture-in-picture"
                     allowFullScreen
                   />
                 ) : (
                   <video
-                    key={activeProfile.featuredVideo}
+                    key={activeProject.mediaUrl}
                     className="sced-video"
-                    src={activeProfile.featuredVideo}
+                    src={activeProject.mediaUrl}
                     autoPlay
                     muted
                     loop
@@ -548,23 +604,21 @@ export default function EditorDiscoveryInterface() {
                 )}
                 <div className="sced-video-overlay">
                   <div>
-                    <p className="sced-mono">{activeProfile.featuredLabel}</p>
-                    <h4>{activeProfile.projects[0].title}</h4>
+                    <p className="sced-mono">{activeProject.type}</p>
+                    <h4>{activeProject.title}</h4>
                   </div>
-                  <span>{activeProfile.city}</span>
+                  <div className="sced-overlay-right">
+                    <span className="sced-overlay-city">{activeProfile.city}</span>
+                    <button
+                      type="button"
+                      className="sced-next-project-btn"
+                      onClick={nextProject}
+                    >
+                      Next project
+                      <em>{safeProjectIndex + 1}&thinsp;/&thinsp;{activeProfile.projects.length}</em>
+                    </button>
+                  </div>
                 </div>
-              </div>
-
-              <div className="sced-project-grid">
-                {activeProfile.projects.map((project) => (
-                  <article
-                    key={project.title}
-                    className={`sced-project-card ${projectAccentClass(project.accent)}`}
-                  >
-                    <p className="sced-mono">{project.type}</p>
-                    <h5>{project.title}</h5>
-                  </article>
-                ))}
               </div>
             </div>
           </motion.article>
@@ -897,6 +951,7 @@ export default function EditorDiscoveryInterface() {
         .sced-source-link {
           color: #fff8ee;
           background: rgba(255, 255, 255, 0.08);
+          border-color: rgba(255, 255, 255, 0.08);
           transition: background-color 0.2s ease, transform 0.2s ease;
         }
 
@@ -939,9 +994,52 @@ export default function EditorDiscoveryInterface() {
           display: flex;
           justify-content: space-between;
           gap: 1rem;
-          align-items: end;
+          align-items: flex-end;
           padding: 1rem;
           background: linear-gradient(180deg, transparent, rgba(4, 5, 10, 0.86));
+        }
+
+        .sced-overlay-right {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-end;
+          gap: 0.5rem;
+          flex-shrink: 0;
+        }
+
+        .sced-overlay-city {
+          color: rgba(255, 250, 244, 0.72);
+          font-family: var(--font-mono);
+          font-size: 0.76rem;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+        }
+
+        .sced-next-project-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.45rem;
+          padding: 0.46rem 0.78rem;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          border-radius: 999px;
+          background: rgba(255, 255, 255, 0.1);
+          color: #fff8ee;
+          font-family: var(--font-mono);
+          font-size: 0.74rem;
+          letter-spacing: 0.07em;
+          text-transform: uppercase;
+          cursor: pointer;
+          transition: background-color 0.18s ease, transform 0.18s ease;
+        }
+
+        .sced-next-project-btn em {
+          font-style: normal;
+          color: rgba(255, 250, 244, 0.6);
+        }
+
+        .sced-next-project-btn:hover {
+          background: rgba(255, 255, 255, 0.2);
+          transform: translateY(-1px);
         }
 
         .sced-video-overlay h4 {
@@ -957,26 +1055,24 @@ export default function EditorDiscoveryInterface() {
           text-transform: uppercase;
         }
 
-        .sced-project-grid {
-          display: grid;
-          grid-template-columns: repeat(3, minmax(0, 1fr));
-          gap: 0.9rem;
-        }
-
-        .sced-project-card {
-          min-height: 170px;
-          padding: 1rem;
+        .sced-active-project {
+          padding: 1rem 1.1rem;
           border-radius: 1.25rem;
           border: 1px solid rgba(255, 255, 255, 0.08);
           display: flex;
           flex-direction: column;
           justify-content: flex-end;
-          background: rgba(255, 255, 255, 0.04);
+          gap: 0.4rem;
+          min-height: 80px;
         }
 
-        .sced-project-card h5 {
-          font-size: 1.1rem;
-          line-height: 1.04;
+        .sced-active-project h5 {
+          margin: 0;
+          color: #fff8ee;
+          font-family: var(--font-display);
+          font-size: 1.15rem;
+          line-height: 1.06;
+          letter-spacing: -0.03em;
         }
 
         .sced-project-doc { background: linear-gradient(160deg, rgba(15, 118, 110, 0.18), rgba(255,255,255,0.04)); }

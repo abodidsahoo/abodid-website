@@ -104,8 +104,8 @@ const quickGuideItems = [
         <div class="sce-hero-copy">
           <p class="sce-eyebrow">Editor blueprint</p>
           <h1>
-            Discovery should feel
-            <span>like taste, not paperwork.</span>
+            Discovery should feel like taste,
+            <span>not paperwork.</span>
           </h1>
           <p class="sce-lead">
             This page turns the matching logic into a profile-first interface.
@@ -262,8 +262,16 @@ const quickGuideItems = [
 <style>
   :global(body.sce-page) {
     background:
-      radial-gradient(circle at top left, rgba(37, 99, 235, 0.16), transparent 24%),
-      radial-gradient(circle at top right, rgba(238, 90, 54, 0.12), transparent 24%),
+      radial-gradient(
+        circle at top left,
+        rgba(37, 99, 235, 0.16),
+        transparent 24%
+      ),
+      radial-gradient(
+        circle at top right,
+        rgba(238, 90, 54, 0.12),
+        transparent 24%
+      ),
       #080b12;
     color: #fff8ee;
   }
@@ -374,7 +382,8 @@ const quickGuideItems = [
 
   .sce-hero-copy h1 {
     font-size: clamp(3.4rem, 8vw, 6.7rem);
-    max-width: 11ch;
+    max-width: 14ch;
+    text-wrap: balance;
   }
 
   .sce-hero-copy h1 span {
@@ -382,6 +391,8 @@ const quickGuideItems = [
     background: linear-gradient(120deg, #ee5a36 0%, #2563eb 50%, #0f766e 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    padding-bottom: 0.15em;
+    margin-bottom: -0.15em;
   }
 
   .sce-lead,
