@@ -17,11 +17,6 @@ const statCards = [
     label: "Faster sourcing",
     tone: "blue",
   },
-  {
-    value: "100%",
-    label: "Creative-fit focus",
-    tone: "amber",
-  },
 ];
 
 const painPoints = [
@@ -212,6 +207,17 @@ const genreLegendItems = [
         </a>
 
         <div class="scc-masthead-actions">
+          <button
+            type="button"
+            class="scc-menu-toggle"
+            aria-label="Toggle menu"
+            aria-expanded="false"
+          >
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+
           <nav class="scc-nav" aria-label="Supercut Club sections">
             {
               sectionNavItems.map((item) => (
@@ -221,17 +227,6 @@ const genreLegendItems = [
               ))
             }
           </nav>
-
-          <div class="scc-role-shortcuts" aria-label="Role-based quick paths">
-            {
-              quickAccessItems.map((item) => (
-                <a class="scc-role-shortcut" href={item.path}>
-                  <span>{item.eyebrow}</span>
-                  <strong>{item.title}</strong>
-                </a>
-              ))
-            }
-          </div>
         </div>
       </div>
     </header>
@@ -239,11 +234,13 @@ const genreLegendItems = [
     <section id="overview" class="scc-hero" data-nav-section="Overview">
       <div class="scc-hero-grid">
         <div class="scc-hero-copy">
-          <p class="scc-eyebrow">Client-facing overview</p>
-          <h1>
-            Stop searching.
-            <span>Start cutting with the right editor.</span>
+          <h1 class="scc-hero-brand">
+            <span>Supercut</span>
+            <span class="scc-brand-alt">Club</span>
           </h1>
+          <p class="scc-hero-tagline">
+            Stop searching and start cutting with the right editor.
+          </p>
           <p class="scc-lead">
             Supercut Club is a focused matching layer for directors, producers,
             and hiring managers who need video editors with the right location,
@@ -264,8 +261,7 @@ const genreLegendItems = [
         </div>
 
         <aside class="scc-hero-panel">
-          <div class="scc-panel-label">What this page is doing</div>
-          <h2>Version one is an infographic.</h2>
+          <h2>100% creative fit focus.</h2>
           <p>
             This route now works as the client-facing concept page for the
             project, and the folder structure leaves space for editor,
@@ -1057,9 +1053,30 @@ const genreLegendItems = [
       setActiveSection(trackedSections[0]);
     }
 
+    function setupMobileMenu() {
+      const masthead = document.querySelector(".scc-masthead-inner");
+      const toggle = document.querySelector(".scc-menu-toggle");
+      if (!toggle || !masthead) return;
+
+      toggle.addEventListener("click", () => {
+        masthead.classList.toggle("is-open");
+        const isOpen = masthead.classList.contains("is-open");
+        toggle.setAttribute("aria-expanded", String(isOpen));
+      });
+
+      const links = masthead.querySelectorAll(".scc-nav a");
+      links.forEach((link) => {
+        link.addEventListener("click", () => {
+          masthead.classList.remove("is-open");
+          toggle.setAttribute("aria-expanded", "false");
+        });
+      });
+    }
+
     function initPage() {
       createCharts();
       setupSectionGuide();
+      setupMobileMenu();
     }
 
     if (document.readyState === "complete") {
@@ -1071,6 +1088,10 @@ const genreLegendItems = [
 </BaseLayout>
 
 <style>
+  :global(html) {
+    scroll-behavior: smooth;
+  }
+
   :global(body.supercutclub-page) {
     --scc-bg: #f4ede4;
     --scc-surface: rgba(255, 253, 249, 0.94);
@@ -1110,21 +1131,47 @@ const genreLegendItems = [
   .scc-masthead {
     position: sticky;
     top: 0;
-    z-index: 20;
-    padding: 1rem 0 0;
+    z-index: 1000;
+    padding: 1.25rem 0 0;
   }
 
   .scc-masthead-inner {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
+    display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 1rem 1.2rem;
-    padding: 0.9rem 1.2rem;
-    border: 1px solid var(--scc-line);
-    border-radius: 1.6rem;
-    background: rgba(255, 253, 249, 0.88);
-    backdrop-filter: blur(18px);
-    box-shadow: 0 16px 40px rgba(22, 17, 13, 0.08);
+    gap: 1.2rem;
+    padding: 0.85rem 1.6rem;
+    border: 1px solid rgba(22, 17, 13, 0.07);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.64);
+    backdrop-filter: blur(20px) saturate(140%);
+    box-shadow:
+      0 12px 34px rgba(22, 17, 13, 0.05),
+      0 1px 2px rgba(22, 17, 13, 0.02);
+  }
+
+  .scc-menu-toggle {
+    display: none;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 1.4rem;
+    height: 1rem;
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    z-index: 1001;
+  }
+
+  .scc-menu-toggle span {
+    display: block;
+    width: 100%;
+    height: 2px;
+    background: var(--scc-ink);
+    border-radius: 99px;
+    transition:
+      transform 0.3s ease,
+      opacity 0.2s ease;
   }
 
   .scc-masthead-actions {
@@ -1261,7 +1308,7 @@ const genreLegendItems = [
   }
 
   .scc-hero {
-    padding: clamp(2.5rem, 6vw, 5rem) 0 clamp(2rem, 5vw, 4rem);
+    padding: clamp(1.5rem, 4vw, 3rem) 0 clamp(2rem, 5vw, 4rem);
   }
 
   .scc-hero-grid,
@@ -1292,6 +1339,55 @@ const genreLegendItems = [
     color: var(--scc-ink);
   }
 
+  .scc-hero-brand {
+    margin: 0 0 3.2rem;
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: clamp(6.2rem, 18vw, 14.5rem);
+    letter-spacing: -0.06em;
+    line-height: 0.82;
+    color: var(--scc-ink);
+  }
+
+  .scc-hero-brand span {
+    display: block;
+    background: linear-gradient(
+      135deg,
+      #121a28 0%,
+      #2563eb 32%,
+      #ee5a36 62%,
+      #ee5a36 100%
+    );
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .scc-brand-alt {
+    padding-left: 0.04em;
+    margin-top: -0.04em;
+    background: linear-gradient(
+      135deg,
+      #2563eb 0%,
+      #ee5a36 50%,
+      #0f766e 100%
+    ) !important;
+    background-size: 200% auto !important;
+    -webkit-background-clip: text !important;
+  }
+
+  .scc-hero-tagline {
+    margin: 0 0 2.4rem;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(1.4rem, 3.5vw, 2.4rem);
+    line-height: 1.12;
+    letter-spacing: -0.02em;
+    color: var(--scc-muted);
+    max-width: 34ch;
+    text-wrap: balance;
+  }
+
   .scc-hero-copy h1 {
     font-size: clamp(3.5rem, 9vw, 7.3rem);
     max-width: 12ch;
@@ -1308,7 +1404,7 @@ const genreLegendItems = [
 
   .scc-eyebrow,
   .scc-eyebrow-dark {
-    margin: 0 0 1rem;
+    margin: 0 0 0.5rem;
     color: var(--scc-muted);
   }
 
@@ -1353,7 +1449,7 @@ const genreLegendItems = [
   }
 
   .scc-stat-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1rem;
     margin-top: 2rem;
   }
@@ -1449,6 +1545,8 @@ const genreLegendItems = [
     font-size: clamp(1.8rem, 4vw, 2.6rem);
     line-height: 1;
     letter-spacing: -0.04em;
+    color: #000;
+    font-weight: 800;
   }
 
   .scc-signal-list {
@@ -2267,15 +2365,57 @@ const genreLegendItems = [
       padding-right: 1rem;
     }
 
+    .scc-menu-toggle {
+      display: flex;
+    }
+
     .scc-masthead-inner {
-      align-items: flex-start;
-      border-radius: 1.4rem;
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.95rem 1.3rem;
+      border-radius: 2rem;
+      transition: border-radius 0.3s ease;
+    }
+
+    .scc-masthead-inner.is-open {
+      border-radius: 1.6rem;
     }
 
     .scc-nav {
-      width: 100%;
+      display: none;
+      flex-basis: 100%;
+      margin-top: 1.2rem;
+      padding-top: 1.2rem;
+      border-top: 1px solid var(--scc-line);
       justify-content: flex-start;
-      gap: 0.8rem 1rem;
+      animation: sccMenuSlideDown 0.3s ease forwards;
+    }
+
+    .scc-masthead-inner.is-open .scc-nav {
+      display: flex;
+    }
+
+    .scc-masthead-inner.is-open .scc-menu-toggle span:nth-child(1) {
+      transform: translateY(0.48rem) rotate(45deg);
+    }
+    .scc-masthead-inner.is-open .scc-menu-toggle span:nth-child(2) {
+      opacity: 0;
+    }
+    .scc-masthead-inner.is-open .scc-menu-toggle span:nth-child(3) {
+      transform: translateY(-0.48rem) rotate(-45deg);
+    }
+
+    @keyframes sccMenuSlideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .scc-role-shortcuts {

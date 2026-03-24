@@ -90,6 +90,17 @@ const quickGuideItems = [
           <span class="sce-wordmark-title">Editor Discovery Interface</span>
         </a>
 
+        <button
+          type="button"
+          class="sce-menu-toggle"
+          aria-label="Toggle menu"
+          aria-expanded="false"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+
         <nav class="sce-nav" aria-label="Editor profile sections">
           <a href="#interface">Live Interface</a>
           <a href="#discovery-bar">Discovery Bar</a>
@@ -104,8 +115,8 @@ const quickGuideItems = [
         <div class="sce-hero-copy">
           <p class="sce-eyebrow">Editor blueprint</p>
           <h1>
-            Discovery should feel like taste,
-            <span>not paperwork.</span>
+            Start cutting with
+            <span>the right editor.</span>
           </h1>
           <p class="sce-lead">
             This page turns the matching logic into a profile-first interface.
@@ -250,13 +261,37 @@ const quickGuideItems = [
       </div>
     </section>
 
-    <RouteQuickGuide
-      currentLabel="Editor profiles"
-      items={quickGuideItems}
-      theme="dark"
-      introTail="Jump to the client overview, the developer PRD, or the community blueprint from here."
+    introTail="Jump to the client overview, the developer PRD, or the community blueprint from here."
     />
   </div>
+
+  <script is:inline>
+    function setupMobileMenu() {
+      const masthead = document.querySelector(".sce-masthead-inner");
+      const toggle = document.querySelector(".sce-menu-toggle");
+      if (!toggle || !masthead) return;
+
+      toggle.addEventListener("click", () => {
+        masthead.classList.toggle("is-open");
+        const isOpen = masthead.classList.contains("is-open");
+        toggle.setAttribute("aria-expanded", String(isOpen));
+      });
+
+      const links = masthead.querySelectorAll(".sce-nav a");
+      links.forEach((link) => {
+        link.addEventListener("click", () => {
+          masthead.classList.remove("is-open");
+          toggle.setAttribute("aria-expanded", "false");
+        });
+      });
+    }
+
+    if (document.readyState === "complete") {
+      setupMobileMenu();
+    } else {
+      window.addEventListener("load", setupMobileMenu, { once: true });
+    }
+  </script>
 </BaseLayout>
 
 <style>
@@ -329,6 +364,30 @@ const quickGuideItems = [
     letter-spacing: -0.03em;
   }
 
+  .sce-menu-toggle {
+    display: none;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 1.4rem;
+    height: 1rem;
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    z-index: 1001;
+  }
+
+  .sce-menu-toggle span {
+    display: block;
+    width: 100%;
+    height: 2px;
+    background: #fff8ee;
+    border-radius: 99px;
+    transition:
+      transform 0.3s ease,
+      opacity 0.2s ease;
+  }
+
   .sce-nav {
     display: flex;
     flex-wrap: wrap;
@@ -376,7 +435,7 @@ const quickGuideItems = [
     margin: 0;
     font-family: var(--font-display);
     font-weight: 900;
-    line-height: 0.95;
+    line-height: 1.05;
     letter-spacing: -0.05em;
   }
 
@@ -589,16 +648,57 @@ const quickGuideItems = [
       padding-right: 1rem;
     }
 
+    .sce-menu-toggle {
+      display: flex;
+    }
+
     .sce-masthead-inner {
-      flex-direction: column;
-      align-items: flex-start;
-      border-radius: 1.4rem;
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.95rem 1.3rem;
+      border-radius: 2rem;
+      transition: border-radius 0.3s ease;
+    }
+
+    .sce-masthead-inner.is-open {
+      border-radius: 1.6rem;
     }
 
     .sce-nav {
-      width: 100%;
+      display: none;
+      flex-basis: 100%;
+      margin-top: 1.2rem;
+      padding-top: 1.2rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
       justify-content: flex-start;
-      gap: 0.8rem 1rem;
+      animation: sceMenuSlideDown 0.3s ease forwards;
+    }
+
+    .sce-masthead-inner.is-open .sce-nav {
+      display: flex;
+    }
+
+    .sce-masthead-inner.is-open .sce-menu-toggle span:nth-child(1) {
+      transform: translateY(0.48rem) rotate(45deg);
+    }
+    .sce-masthead-inner.is-open .sce-menu-toggle span:nth-child(2) {
+      opacity: 0;
+    }
+    .sce-masthead-inner.is-open .sce-menu-toggle span:nth-child(3) {
+      transform: translateY(-0.48rem) rotate(-45deg);
+    }
+
+    @keyframes sceMenuSlideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .sce-stat-row {

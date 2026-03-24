@@ -105,6 +105,17 @@ const quickGuideItems = [
           <span class="scm-wordmark-title">Matching Engine PRD</span>
         </a>
 
+        <button
+          type="button"
+          class="scm-menu-toggle"
+          aria-label="Toggle menu"
+          aria-expanded="false"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+
         <nav class="scm-nav" aria-label="Matching engine sections">
           <a href="#logic">Core logic</a>
           <a href="#extraction">Extraction</a>
@@ -733,6 +744,33 @@ const quickGuideItems = [
       window.addEventListener("load", createCharts, { once: true });
     }
   </script>
+  <script is:inline>
+    function setupMobileMenu() {
+      const masthead = document.querySelector(".scm-masthead-inner");
+      const toggle = document.querySelector(".scm-menu-toggle");
+      if (!toggle || !masthead) return;
+
+      toggle.addEventListener("click", () => {
+        masthead.classList.toggle("is-open");
+        const isOpen = masthead.classList.contains("is-open");
+        toggle.setAttribute("aria-expanded", String(isOpen));
+      });
+
+      const links = masthead.querySelectorAll(".scm-nav a");
+      links.forEach((link) => {
+        link.addEventListener("click", () => {
+          masthead.classList.remove("is-open");
+          toggle.setAttribute("aria-expanded", "false");
+        });
+      });
+    }
+
+    if (document.readyState === "complete") {
+      setupMobileMenu();
+    } else {
+      window.addEventListener("load", setupMobileMenu, { once: true });
+    }
+  </script>
 </BaseLayout>
 
 <style>
@@ -803,6 +841,30 @@ const quickGuideItems = [
     font-size: 1.15rem;
     font-weight: 800;
     letter-spacing: -0.03em;
+  }
+
+  .scm-menu-toggle {
+    display: none;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 1.4rem;
+    height: 1rem;
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    z-index: 1001;
+  }
+
+  .scm-menu-toggle span {
+    display: block;
+    width: 100%;
+    height: 2px;
+    background: #161616;
+    border-radius: 99px;
+    transition:
+      transform 0.3s ease,
+      opacity 0.2s ease;
   }
 
   .scm-nav {
@@ -1290,10 +1352,57 @@ const quickGuideItems = [
       padding-right: 1rem;
     }
 
+    .scm-menu-toggle {
+      display: flex;
+    }
+
     .scm-masthead-inner {
-      flex-direction: column;
-      align-items: flex-start;
-      border-radius: 1.4rem;
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.95rem 1.3rem;
+      border-radius: 2rem;
+      transition: border-radius 0.3s ease;
+    }
+
+    .scm-masthead-inner.is-open {
+      border-radius: 1.6rem;
+    }
+
+    .scm-nav {
+      display: none;
+      flex-basis: 100%;
+      margin-top: 1.2rem;
+      padding-top: 1.2rem;
+      border-top: 1px solid rgba(22, 22, 22, 0.08);
+      justify-content: flex-start;
+      animation: scmMenuSlideDown 0.3s ease forwards;
+    }
+
+    .scm-masthead-inner.is-open .scm-nav {
+      display: flex;
+    }
+
+    .scm-masthead-inner.is-open .scm-menu-toggle span:nth-child(1) {
+      transform: translateY(0.48rem) rotate(45deg);
+    }
+    .scm-masthead-inner.is-open .scm-menu-toggle span:nth-child(2) {
+      opacity: 0;
+    }
+    .scm-masthead-inner.is-open .scm-menu-toggle span:nth-child(3) {
+      transform: translateY(-0.48rem) rotate(-45deg);
+    }
+
+    @keyframes scmMenuSlideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .scm-nav {

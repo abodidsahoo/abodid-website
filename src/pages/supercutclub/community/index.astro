@@ -116,6 +116,17 @@ const quickGuideItems = [
           <span class="sccm-wordmark-title">Community Blueprint</span>
         </a>
 
+        <button
+          type="button"
+          class="sccm-menu-toggle"
+          aria-label="Toggle menu"
+          aria-expanded="false"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+
         <nav class="sccm-nav" aria-label="Community sections">
           <a href="#loop">Feedback loop</a>
           <a href="#pillars">Community model</a>
@@ -329,6 +340,34 @@ const quickGuideItems = [
       introTail="Use this page to understand the trust layer, then jump back to the client, editor, or developer view."
     />
   </div>
+
+  <script is:inline>
+    function setupMobileMenu() {
+      const masthead = document.querySelector(".sccm-masthead-inner");
+      const toggle = document.querySelector(".sccm-menu-toggle");
+      if (!toggle || !masthead) return;
+
+      toggle.addEventListener("click", () => {
+        masthead.classList.toggle("is-open");
+        const isOpen = masthead.classList.contains("is-open");
+        toggle.setAttribute("aria-expanded", String(isOpen));
+      });
+
+      const links = masthead.querySelectorAll(".sccm-nav a");
+      links.forEach((link) => {
+        link.addEventListener("click", () => {
+          masthead.classList.remove("is-open");
+          toggle.setAttribute("aria-expanded", "false");
+        });
+      });
+    }
+
+    if (document.readyState === "complete") {
+      setupMobileMenu();
+    } else {
+      window.addEventListener("load", setupMobileMenu, { once: true });
+    }
+  </script>
 </BaseLayout>
 
 <style>
@@ -390,6 +429,30 @@ const quickGuideItems = [
     font-size: 1.15rem;
     font-weight: 800;
     letter-spacing: -0.03em;
+  }
+
+  .sccm-menu-toggle {
+    display: none;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 1.4rem;
+    height: 1rem;
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    z-index: 1001;
+  }
+
+  .sccm-menu-toggle span {
+    display: block;
+    width: 100%;
+    height: 2px;
+    background: #fff8ee;
+    border-radius: 999px;
+    transition:
+      transform 0.3s ease,
+      opacity 0.2s ease;
   }
 
   .sccm-nav {
@@ -947,19 +1010,65 @@ const quickGuideItems = [
       padding-right: 1rem;
     }
 
+    .sccm-menu-toggle {
+      display: flex;
+    }
+
     .sccm-masthead-inner {
-      flex-direction: column;
-      align-items: flex-start;
-      border-radius: 1.4rem;
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.95rem 1.3rem;
+      border-radius: 2rem;
+      transition: border-radius 0.3s ease;
+    }
+
+    .sccm-masthead-inner.is-open {
+      border-radius: 1.6rem;
     }
 
     .sccm-nav {
-      width: 100%;
+      display: none;
+      flex-basis: 100%;
+      margin-top: 1.2rem;
+      padding-top: 1.2rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
       justify-content: flex-start;
-      gap: 0.8rem 1rem;
+      animation: sccmMenuSlideDown 0.3s ease forwards;
+    }
+
+    .sccm-masthead-inner.is-open .sccm-nav {
+      display: flex;
+    }
+
+    .sccm-masthead-inner.is-open .sccm-menu-toggle span:nth-child(1) {
+      transform: translateY(0.48rem) rotate(45deg);
+    }
+    .sccm-masthead-inner.is-open .sccm-menu-toggle span:nth-child(2) {
+      opacity: 0;
+    }
+    .sccm-masthead-inner.is-open .sccm-menu-toggle span:nth-child(3) {
+      transform: translateY(-0.48rem) rotate(-45deg);
+    }
+
+    @keyframes sccmMenuSlideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .sccm-stat-row {
+      grid-template-columns: 1fr;
+    }
+
+    .sccm-pillars-grid,
+    .sccm-build-grid {
       grid-template-columns: 1fr;
     }
   }
