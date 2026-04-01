@@ -39,6 +39,20 @@ const pageTitle = "Research Papers";
                 <span class="arrow-icon">→</span>
             </div>
         </a>
+
+        <!-- Research Workspace Card -->
+        <a href="/research-workspace" class="paper-category-card">
+            <div class="card-content">
+                <div class="icon">🧭</div>
+                <h2>Research Workspace</h2>
+                <p class="description">
+                    A focused workspace for finding papers, cleaning filenames,
+                    and preparing insight summaries before the deeper product
+                    phases arrive.
+                </p>
+                <span class="arrow-icon">→</span>
+            </div>
+        </a>
     </div>
 </BaseLayout>
 
@@ -69,7 +83,7 @@ const pageTitle = "Research Papers";
 
     .papers-grid {
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
         gap: 2rem;
         padding-bottom: 4rem;
         max-width: 1000px;
@@ -139,10 +153,6 @@ const pageTitle = "Research Papers";
     }
 
     @media (max-width: 768px) {
-        .papers-grid {
-            grid-template-columns: 1fr;
-        }
-
         h1 {
             font-size: 2.5rem;
         }

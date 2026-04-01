@@ -1,0 +1,22 @@
+---
+import BaseLayout from "../../../../layouts/BaseLayout.astro";
+import CompactInsightsPage from "../../../../components/research-workspace/CompactInsightsPage";
+import "../../../../styles/research-workspace.css";
+
+export const prerender = false;
+
+const title = "Paper Insights";
+const description =
+    "Generate a compact, paper-grounded insight view for a renamed research paper.";
+const paperId = Astro.params.paperId || null;
+---
+
+<BaseLayout
+    title={title}
+    description={description}
+    showGlobalGrid={false}
+    showCursorFollower={false}
+    bodyClass="research-workspace-route"
+>
+    <CompactInsightsPage client:load paperId={paperId} />
+</BaseLayout>

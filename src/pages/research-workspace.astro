@@ -1,0 +1,19 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import MinimalRenamerPage from "../components/research-workspace/MinimalRenamerPage";
+import "../styles/research-workspace.css";
+
+const title = "Research Paper Renamer";
+const description =
+    "Upload PDF papers, rename them automatically, and download the cleaned files.";
+---
+
+<BaseLayout
+    title={title}
+    description={description}
+    showGlobalGrid={false}
+    showCursorFollower={false}
+    bodyClass="research-workspace-route"
+>
+    <MinimalRenamerPage client:load />
+</BaseLayout>

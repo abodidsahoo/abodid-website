@@ -352,7 +352,7 @@ const SideMenuRail = () => {
         </AnimatePresence>
       </div>
 
-      <style>{`
+      <style suppressHydrationWarning>{`
         :root {
           --app-rail-width: 76px;
         }

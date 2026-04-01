@@ -136,8 +136,7 @@ const finalType = type || dbMetadata?.og_type || "website";
   <body data-grid-variant={gridVariant} data-page-path={pagePath} class={bodyClass}>
     <a href="#main-content" class="skip-link">Skip to main content</a>
     <!-- <Header /> -->
-    <!-- Header: client:load for immediate hydration priority -->
-    {!hideHeader && <Header hideThemeToggle={hideThemeToggle} altTextLogo={altTextLogo} client:load />}
+    {!hideHeader && <Header hideThemeToggle={hideThemeToggle} altTextLogo={altTextLogo} />}
     {!hideHeader && <SideMenuRail client:load />}
     {showGlobalGrid && <div class="global-grid-bg"></div>}
     {showGlobalGrid && <div class="global-glow-bg"></div>}

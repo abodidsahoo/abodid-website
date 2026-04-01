@@ -1,0 +1,19 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import CompactInsightsPage from "../../components/research-workspace/CompactInsightsPage";
+import "../../styles/research-workspace.css";
+
+const title = "Paper Insights";
+const description =
+    "Generate a compact, paper-grounded insight view for a renamed research paper.";
+---
+
+<BaseLayout
+    title={title}
+    description={description}
+    showGlobalGrid={false}
+    showCursorFollower={false}
+    bodyClass="research-workspace-route"
+>
+    <CompactInsightsPage client:load />
+</BaseLayout>
