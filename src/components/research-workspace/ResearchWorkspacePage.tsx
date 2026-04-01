@@ -8,9 +8,9 @@ export default function ResearchWorkspacePage() {
                 <header className="rw-hero rw-hero--landing">
                     <div className="rw-eyebrow">
                         <Compass size={14} />
-                        <span>Abodid Research Workspace</span>
+                        <span>Abodid Paper Renamer</span>
                     </div>
-                    <h1>Research papers, made easier</h1>
+                    <h1>Paper Renamer</h1>
                     <p>
                         Choose a dedicated path for renaming papers cleanly or generating structured insights from a PDF.
                     </p>

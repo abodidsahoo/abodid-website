@@ -52,7 +52,7 @@ export const POST: APIRoute = async ({ params, request }) => {
 
         return json(payload, 200);
     } catch (error) {
-        console.error('[research-workspace/papers/rename] failed:', error);
+        console.error('[paper-renamer/papers/rename] failed:', error);
         return json(
             {
                 error:

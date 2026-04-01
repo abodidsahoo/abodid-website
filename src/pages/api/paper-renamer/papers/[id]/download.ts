@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { sanitizeFilename } from '../../../../../lib/research-workspace/paper-utils';
+import { rewritePdfDownloadMetadata } from '../../../../../lib/research-workspace/pdf-metadata';
 import {
     downloadPaperBlob,
     getPaperRecord,
@@ -22,7 +23,7 @@ export const GET: APIRoute = async ({ params, request }) => {
         const admin = getResearchWorkspaceAdminClient();
         const paper = await getPaperRecord(admin, paperId);
         const blob = await downloadPaperBlob(admin, paper);
-        const buffer = await blob.arrayBuffer();
+        const originalBuffer = new Uint8Array(await blob.arrayBuffer());
 
         const targetFileName =
             variant === 'clean'
@@ -34,7 +35,25 @@ export const GET: APIRoute = async ({ params, request }) => {
                 )
                 : preserveOriginalFilename(paper.original_filename);
 
-        return new Response(buffer, {
+        const responseBuffer =
+            variant === 'clean'
+                ? await rewritePdfDownloadMetadata(originalBuffer, {
+                    displayTitle: paper.display_title,
+                    preferredFileName: paper.preferred_filename,
+                    cleanFileName: paper.cleaned_filename,
+                    originalFileName: paper.original_filename,
+                    authors: Array.isArray(paper.authors_json)
+                        ? paper.authors_json.map((item) => String(item))
+                        : [],
+                    abstract: paper.abstract,
+                    journal: paper.journal,
+                    doi: paper.doi,
+                    extractedPaper: paper.extracted_paper_json,
+                    metadata: paper.metadata_json
+                }, targetFileName)
+                : originalBuffer;
+
+        return new Response(responseBuffer, {
             status: 200,
             headers: {
                 'Content-Type': 'application/pdf',
@@ -43,7 +62,7 @@ export const GET: APIRoute = async ({ params, request }) => {
             }
         });
     } catch (error) {
-        console.error('[research-workspace/papers/download] failed:', error);
+        console.error('[paper-renamer/papers/download] failed:', error);
         return json(
             {
                 error:

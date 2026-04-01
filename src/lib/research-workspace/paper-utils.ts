@@ -84,16 +84,38 @@ export function extractFirstAuthorLastName(authors: string[]): string | null {
         return null;
     }
 
-    const parts = firstAuthor
+    const normalized = normalizeWhitespace(firstAuthor);
+    const suffixes = new Set(['jr', 'sr', 'ii', 'iii', 'iv']);
+
+    if (normalized.includes(',')) {
+        const leadingSegment = normalized
+            .split(',')
+            .map((part) => normalizeWhitespace(part))
+            .find(Boolean);
+        const leadingParts = leadingSegment?.split(/\s+/).filter(Boolean) || [];
+        const leadingLastName = leadingParts
+            .filter((part) => !suffixes.has(part.toLowerCase()))
+            .at(-1);
+
+        if (leadingLastName) {
+            return slugify(leadingLastName) || null;
+        }
+    }
+
+    const parts = normalized
         .replace(/[.,]/g, ' ')
         .split(/\s+/)
-        .filter(Boolean);
+        .filter(Boolean)
+        .filter((part) => !suffixes.has(part.toLowerCase()));
 
     if (parts.length === 0) {
         return null;
     }
 
-    return slugify(parts[parts.length - 1]) || null;
+    const nonInitialParts = parts.filter((part) => !/^[A-Z]$/i.test(part));
+    const lastName = nonInitialParts.at(-1) || parts.at(-1);
+
+    return lastName ? slugify(lastName) || null : null;
 }
 
 export function buildCleanFilename(
@@ -165,7 +187,7 @@ export function buildDownloadUrl(
     paperId: string,
     variant: 'original' | 'clean'
 ): string {
-    return `/api/research-workspace/papers/${paperId}/download?variant=${variant}`;
+    return `/api/paper-renamer/papers/${paperId}/download?variant=${variant}`;
 }
 
 export function buildPrintTitle(summary: PaperInsightSummary | null, title: string): string {

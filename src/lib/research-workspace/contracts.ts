@@ -120,6 +120,14 @@ export type InsightSnapshotGroup = {
     fields: InsightSnapshotField[];
 };
 
+export type CuratedPdfMetadataPreview = {
+    publisher: string | null;
+    authorsLine: string | null;
+    doi: string | null;
+    abstract: string | null;
+    rightsMessage: string;
+};
+
 export type PaperInsightSummary = {
     generatedAt: string;
     modelLabel: string | null;
@@ -154,6 +162,7 @@ export type UploadedPaper = {
         original: string;
         clean: string;
     };
+    curation: CuratedPdfMetadataPreview | null;
     insights: PaperInsightSummary | null;
 };
 

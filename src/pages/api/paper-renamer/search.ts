@@ -40,7 +40,7 @@ export const GET: APIRoute = async ({ request }) => {
             }
         });
     } catch (error) {
-        console.error('[research-workspace/search] ERROR:', error);
+        console.error('[paper-renamer/search] ERROR:', error);
 
         return new Response(
             JSON.stringify({

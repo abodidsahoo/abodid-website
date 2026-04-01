@@ -725,7 +725,7 @@ function getContactEmail(): string {
 }
 
 function buildUserAgent(contactEmail: string): string {
-    const appName = import.meta.env.PUBLIC_SITE_NAME || 'Abodid Research Workspace';
+    const appName = import.meta.env.PUBLIC_SITE_NAME || 'Abodid Paper Renamer';
     const siteUrl = import.meta.env.PUBLIC_SITE_URL || 'https://abodid.com';
 
     return contactEmail

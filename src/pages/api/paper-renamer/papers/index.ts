@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { APIRoute } from 'astro';
 import type { UploadPaperResponse } from '../../../../lib/research-workspace/contracts';
+import { buildCuratedPdfMetadataPreview } from '../../../../lib/research-workspace/pdf-metadata';
 import {
     preparePaperFromLink,
     preparePaperFromUpload
@@ -32,7 +33,7 @@ export const GET: APIRoute = async () => {
             200
         );
     } catch (error) {
-        console.error('[research-workspace/papers] list failed:', error);
+        console.error('[paper-renamer/papers] list failed:', error);
         return json(
             {
                 error:
@@ -131,6 +132,18 @@ export const POST: APIRoute = async ({ request }) => {
             insightStatus: 'idle',
             metadata: {
                 ...processed.metadata,
+                curation: buildCuratedPdfMetadataPreview({
+                    displayTitle: renameResult.displayTitle,
+                    preferredFileName,
+                    cleanFileName,
+                    originalFileName: processed.originalFileName,
+                    authors: processed.authors,
+                    abstract: processed.abstract,
+                    journal: processed.journal,
+                    doi: processed.doi,
+                    extractedPaper: processed.extractedPaper,
+                    metadata: processed.metadata
+                }),
                 linkResolvedFrom: processed.linkResolvedFrom,
                 renameMeta: {
                     usedOpenRouter: renameResult.usedOpenRouter,
@@ -155,7 +168,7 @@ export const POST: APIRoute = async ({ request }) => {
 
         return json(payload, 200);
     } catch (error) {
-        console.error('[research-workspace/papers] upload failed:', error);
+        console.error('[paper-renamer/papers] upload failed:', error);
         return json(
             {
                 error:

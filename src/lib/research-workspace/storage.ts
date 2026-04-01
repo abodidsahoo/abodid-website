@@ -1,5 +1,6 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type {
+    CuratedPdfMetadataPreview,
     ExtractedPage,
     PaperInsightSummary,
     UploadedPaper,
@@ -80,7 +81,7 @@ export function getResearchWorkspaceAdminClient(): SupabaseClient {
 
     if (!supabaseUrl || !serviceRoleKey) {
         throw new Error(
-            'Research Workspace requires PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.'
+            'Paper Renamer requires PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.'
         );
     }
 
@@ -361,6 +362,30 @@ export function coerceInsights(value: Json | null): PaperInsightSummary | null {
     return candidate;
 }
 
+function coerceCuratedMetadataPreview(value: Json): CuratedPdfMetadataPreview | null {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+        return null;
+    }
+
+    const metadata = value as Record<string, unknown>;
+    const curation = metadata.curation;
+
+    if (!curation || typeof curation !== 'object' || Array.isArray(curation)) {
+        return null;
+    }
+
+    const candidate = curation as Record<string, unknown>;
+
+    return {
+        publisher: typeof candidate.publisher === 'string' ? candidate.publisher : null,
+        authorsLine: typeof candidate.authorsLine === 'string' ? candidate.authorsLine : null,
+        doi: typeof candidate.doi === 'string' ? candidate.doi : null,
+        abstract: typeof candidate.abstract === 'string' ? candidate.abstract : null,
+        rightsMessage:
+            typeof candidate.rightsMessage === 'string' ? candidate.rightsMessage : ''
+    };
+}
+
 export function toClientPaper(row: ResearchPaperRow): UploadedPaper {
     const authors = coerceStringArray(row.authors_json);
     const warnings = coerceStringList(row.warnings_json);
@@ -391,6 +416,7 @@ export function toClientPaper(row: ResearchPaperRow): UploadedPaper {
             original: buildDownloadUrl(row.id, 'original'),
             clean: buildDownloadUrl(row.id, 'clean')
         },
+        curation: coerceCuratedMetadataPreview(row.metadata_json),
         insights: coerceInsights(row.insights_json)
     };
 }

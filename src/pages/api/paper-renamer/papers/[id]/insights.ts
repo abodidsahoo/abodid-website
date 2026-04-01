@@ -5,7 +5,6 @@ import {
     coercePageMap,
     coerceStringArray,
     coerceStringList,
-    coerceInsights,
     getPaperRecord,
     getResearchWorkspaceAdminClient,
     toClientPaper,
@@ -24,23 +23,6 @@ export const POST: APIRoute = async ({ params }) => {
 
     try {
         const current = await getPaperRecord(admin, paperId);
-        const cachedInsights = coerceInsights(current.insights_json);
-        const hasCompactSnapshot = Boolean(
-            cachedInsights?.snapshot && cachedInsights.snapshot.length > 0
-        );
-
-        if (current.insight_status === 'ready' && cachedInsights && hasCompactSnapshot) {
-            const payload: GenerateInsightsResponse = {
-                paper: toClientPaper(current),
-                insights: cachedInsights,
-                meta: {
-                    usedOpenRouter: false,
-                    fallbackUsed: false
-                }
-            };
-
-            return json(payload, 200);
-        }
 
         await updatePaperRecord(admin, paperId, {
             insightStatus: 'processing'
@@ -87,7 +69,7 @@ export const POST: APIRoute = async ({ params }) => {
             insightStatus: 'failed'
         }).catch(() => undefined);
 
-        console.error('[research-workspace/papers/insights] failed:', error);
+        console.error('[paper-renamer/papers/insights] failed:', error);
         return json(
             {
                 error:

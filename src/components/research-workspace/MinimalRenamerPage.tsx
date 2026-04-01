@@ -8,13 +8,18 @@ import {
 } from 'react';
 import {
     AlertCircle,
+    ChevronDown,
     CheckCircle2,
     FileText,
     LoaderCircle,
     UploadCloud
 } from 'lucide-react';
 import { slugify } from '../../lib/research-workspace/name-utils';
-import type { UploadPaperResponse, UploadedPaper } from './types';
+import type {
+    CuratedPdfMetadataPreview,
+    UploadPaperResponse,
+    UploadedPaper
+} from './types';
 
 type UploadItemState = 'uploading' | 'ready' | 'error';
 
@@ -92,7 +97,7 @@ export default function MinimalRenamerPage() {
                 formData.append('sourceType', 'file');
                 formData.append('file', file);
 
-                const response = await fetch('/api/research-workspace/papers', {
+                const response = await fetch('/api/paper-renamer/papers', {
                     method: 'POST',
                     body: formData
                 });
@@ -156,12 +161,13 @@ export default function MinimalRenamerPage() {
                     <header className="rw-mini-hero">
                         <div className="rw-eyebrow">
                             <UploadCloud size={14} />
-                            <span>Research Paper Renamer</span>
+                            <span>Paper Renamer</span>
                         </div>
-                        <h1>Upload a PDF. Download the renamed file.</h1>
+                        <h1>Paper Renamer</h1>
                         <p>
-                            Drop or select one or more PDFs. Each file uploads automatically,
-                            gets renamed, and becomes ready to download.
+                            Upload a research paper PDF and this tool reads its details,
+                            gives it a clean filename, and prepares a renamed download.
+                            You can also open a short insight view and review the added metadata.
                         </p>
                     </header>
 
@@ -238,7 +244,14 @@ function UploadResultCard({ item }: { item: UploadItem }) {
                         <LoaderCircle size={15} className="rw-spin" />
                         <span>Uploading</span>
                     </div>
-                    <h3>{item.originalFileName}</h3>
+                    <div className="rw-mini-result-card__mapping">
+                        <div className="rw-mini-result-card__field">
+                            <span className="rw-mini-result-card__label">Original file</span>
+                            <p className="rw-mini-result-card__file-name">
+                                {item.originalFileName}
+                            </p>
+                        </div>
+                    </div>
                     <p>Renaming this PDF now.</p>
                 </div>
             </article>
@@ -253,7 +266,14 @@ function UploadResultCard({ item }: { item: UploadItem }) {
                         <AlertCircle size={15} />
                         <span>Could not process</span>
                     </div>
-                    <h3>{item.originalFileName}</h3>
+                    <div className="rw-mini-result-card__mapping">
+                        <div className="rw-mini-result-card__field">
+                            <span className="rw-mini-result-card__label">Original file</span>
+                            <p className="rw-mini-result-card__file-name">
+                                {item.originalFileName}
+                            </p>
+                        </div>
+                    </div>
                     <p>{item.errorMessage || 'This PDF could not be processed.'}</p>
                 </div>
             </article>
@@ -268,7 +288,7 @@ function UploadResultCard({ item }: { item: UploadItem }) {
 
     const renamedFile = paper.preferredFileName || paper.cleanFileName;
     const downloadUrl = `${paper.downloadUrls.clean}&filename=${encodeURIComponent(renamedFile)}`;
-    const insightsUrl = `/research-workspace/insights/${paper.id}/${slugify(
+    const insightsUrl = `/paper-renamer/insights/${paper.id}/${slugify(
         renamedFile.replace(/\.pdf$/i, '')
     ) || 'paper-insights'}`;
 
@@ -277,20 +297,72 @@ function UploadResultCard({ item }: { item: UploadItem }) {
             <div className="rw-mini-result-card__copy">
                 <div className="rw-mini-result-card__status rw-mini-result-card__status--ready">
                     <CheckCircle2 size={15} />
-                    <span>Ready</span>
+                    <span>Ready to download</span>
                 </div>
-                <h3>{renamedFile}</h3>
-            </div>
-
-            <div className="rw-mini-result-card__actions">
-                <a className="rw-button rw-button--secondary" href={insightsUrl}>
-                    Show Insights
-                </a>
-                <a className="rw-button rw-button--primary" href={downloadUrl}>
-                    Download
-                </a>
+                <div className="rw-mini-result-card__mapping">
+                    <div className="rw-mini-result-card__field">
+                        <span className="rw-mini-result-card__label">Original file</span>
+                        <p className="rw-mini-result-card__file-name">
+                            {item.originalFileName}
+                        </p>
+                    </div>
+                    <div className="rw-mini-result-card__field">
+                        <span className="rw-mini-result-card__label">Paper title</span>
+                        <p className="rw-mini-result-card__paper-title">
+                            {paper.displayTitle}
+                        </p>
+                    </div>
+                    <div className="rw-mini-result-card__field">
+                        <span className="rw-mini-result-card__label">Renamed file</span>
+                        <p className="rw-mini-result-card__file-name">
+                            {renamedFile}
+                        </p>
+                        {paper.curation ? (
+                            <MetadataPreviewDropdown metadata={paper.curation} />
+                        ) : null}
+                        <div className="rw-mini-result-card__actions">
+                            <a className="rw-button rw-button--primary" href={downloadUrl}>
+                                Download Renamed File
+                            </a>
+                            <a className="rw-button rw-button--secondary" href={insightsUrl}>
+                                Read Paper Insights
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </article>
+    );
+}
+
+function MetadataPreviewDropdown({
+    metadata
+}: {
+    metadata: CuratedPdfMetadataPreview;
+}) {
+    const fields = [
+        { label: 'Publisher', value: metadata.publisher },
+        { label: 'Authors', value: metadata.authorsLine },
+        { label: 'DOI', value: metadata.doi },
+        { label: 'Abstract', value: metadata.abstract },
+        { label: 'Rights', value: metadata.rightsMessage }
+    ].filter((field) => field.value && field.value.trim().length > 0);
+
+    return (
+        <details className="rw-mini-metadata">
+            <summary className="rw-mini-metadata__summary">
+                <span>Show Added Metadata</span>
+                <ChevronDown size={12} />
+            </summary>
+            <div className="rw-mini-metadata__panel">
+                {fields.map((field) => (
+                    <div key={field.label} className="rw-mini-metadata__row">
+                        <span className="rw-mini-metadata__label">{field.label}</span>
+                        <p className="rw-mini-metadata__value">{field.value}</p>
+                    </div>
+                ))}
+            </div>
+        </details>
     );
 }
 

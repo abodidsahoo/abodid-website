@@ -1,21 +1,25 @@
 import { z } from 'zod';
 import {
     buildCleanFilename,
+    compressText,
+    normalizeWhitespace,
     sanitizeFilename
 } from './paper-utils';
 
 const MODEL_CANDIDATES = parseModelEnv(
-    import.meta.env.OPENROUTER_RESEARCH_MODELS,
+    import.meta.env.OPENROUTER_PAPER_RENAMER_MODELS ||
+        import.meta.env.OPENROUTER_RESEARCH_MODELS,
     [
+        'openai/gpt-5.2',
+        'anthropic/claude-3.5-sonnet',
+        'google/gemini-1.5-pro',
         'openrouter/auto',
-        'openai/gpt-4o-mini',
-        'google/gemini-2.0-flash-lite-preview-02-05:free'
+        'openai/gpt-4o-mini'
     ]
 );
 
 const renameResponseSchema = z.object({
-    displayTitle: z.string().min(3),
-    cleanedFileName: z.string().min(3)
+    displayTitle: z.string().min(3)
 });
 
 export type PaperRenameInput = {
@@ -72,24 +76,23 @@ export async function generatePaperRename(
                         'https://abodidsahoo.com',
                     'X-Title':
                         import.meta.env.PUBLIC_SITE_NAME ||
-                        'Abodid Research Workspace'
+                        'Abodid Paper Renamer'
                 },
                 body: JSON.stringify({
                     model,
                     response_format: { type: 'json_object' },
-                    temperature: 0.1,
-                    max_tokens: 350,
+                    temperature: 0.05,
+                    max_tokens: 260,
                     messages: [
                         {
                             role: 'system',
                             content:
-                                'You rename academic PDFs using only the provided metadata. Return a concise human-readable display title and a cleaned filename in the format first-author-last-name-year-short-title.pdf. Never invent authors, years, or claims.'
+                                'You normalize academic paper titles using only the provided metadata. Return a concise human-readable display title only. Do not return filenames. Never turn a DOI, URL, journal name, or author list into the title. Never invent authors, years, or claims.'
                         },
                         {
                             role: 'user',
                             content: `${context}\n\nReturn valid JSON like ${JSON.stringify({
-                                displayTitle: 'Readable Paper Title',
-                                cleanedFileName: 'author-2024-short-title.pdf'
+                                displayTitle: 'Readable Paper Title'
                             })}`
                         }
                     ]
@@ -111,10 +114,20 @@ export async function generatePaperRename(
             const parsed = renameResponseSchema.parse(JSON.parse(cleaned));
 
             return {
-                displayTitle: parsed.displayTitle.trim(),
-                cleanFileName: normalizeReturnedFilename(
-                    parsed.cleanedFileName,
-                    input
+                displayTitle: normalizeDisplayTitle(
+                    parsed.displayTitle,
+                    input.fallbackDisplayTitle
+                ),
+                cleanFileName: buildCleanFilename(
+                    {
+                        title: normalizeDisplayTitle(
+                            parsed.displayTitle,
+                            input.fallbackDisplayTitle
+                        ),
+                        authors: input.authors,
+                        year: input.year
+                    },
+                    input.fallbackDisplayTitle
                 ),
                 usedOpenRouter: true,
                 fallbackUsed: false,
@@ -128,25 +141,14 @@ export async function generatePaperRename(
     return buildFallbackRename(input);
 }
 
-function normalizeReturnedFilename(value: string, input: PaperRenameInput): string {
-    const fallback = buildFallbackRename(input).cleanFileName;
-    const safe = sanitizeFilename(value);
-
-    if (!safe || safe === 'paper.pdf') {
-        return fallback;
-    }
-
-    return safe;
-}
-
 function buildFallbackRename(input: PaperRenameInput): PaperRenameResult {
     return {
-        displayTitle: input.fallbackDisplayTitle,
+        displayTitle: normalizeDisplayTitle(input.fallbackDisplayTitle),
         cleanFileName:
             sanitizeFilename(input.fallbackCleanFileName) ||
             buildCleanFilename(
                 {
-                    title: input.fallbackDisplayTitle,
+                    title: normalizeDisplayTitle(input.fallbackDisplayTitle),
                     authors: input.authors,
                     year: input.year
                 },
@@ -156,6 +158,25 @@ function buildFallbackRename(input: PaperRenameInput): PaperRenameResult {
         fallbackUsed: true,
         modelLabel: null
     };
+}
+
+function normalizeDisplayTitle(value: string, fallback?: string): string {
+    const normalized = normalizeWhitespace(
+        value
+            .replace(/\.pdf$/i, '')
+            .replace(/^["'“”]+|["'“”]+$/g, '')
+    );
+
+    if (
+        normalized.length < 6 ||
+        /^10\.\d{4,9}\//i.test(normalized) ||
+        /^https?:\/\//i.test(normalized) ||
+        /\b(doi|volume|issue|journal)\b/i.test(normalized)
+    ) {
+        return compressText(normalizeWhitespace(fallback || 'Paper'), 180);
+    }
+
+    return compressText(normalized, 180);
 }
 
 function parseModelEnv(value: string | undefined, fallback: string[]): string[] {

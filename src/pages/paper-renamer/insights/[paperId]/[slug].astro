@@ -1,7 +1,7 @@
 ---
 import BaseLayout from "../../../../layouts/BaseLayout.astro";
 import CompactInsightsPage from "../../../../components/research-workspace/CompactInsightsPage";
-import "../../../../styles/research-workspace.css";
+import "../../../../styles/paper-renamer.css";
 
 export const prerender = false;
 
@@ -14,9 +14,8 @@ const paperId = Astro.params.paperId || null;
 <BaseLayout
     title={title}
     description={description}
-    showGlobalGrid={false}
     showCursorFollower={false}
-    bodyClass="research-workspace-route"
+    bodyClass="paper-renamer-route"
 >
     <CompactInsightsPage client:load paperId={paperId} />
 </BaseLayout>

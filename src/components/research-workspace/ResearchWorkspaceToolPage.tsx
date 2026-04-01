@@ -45,7 +45,7 @@ const toolMeta: Record<WorkspaceToolMode, {
     uploadHint: string;
 }> = {
     renamer: {
-        title: 'Research Paper Renamer',
+        title: 'Paper Renamer',
         subtitle:
             'Upload a PDF or paste a paper link, clean filenames instantly, and download organized copies.',
         uploadHeading: 'Upload papers to rename',
@@ -176,7 +176,7 @@ export default function ResearchWorkspaceToolPage({
 
     async function loadPapers() {
         try {
-            const response = await fetch('/api/research-workspace/papers');
+            const response = await fetch('/api/paper-renamer/papers');
             const data = (await response.json()) as PaperListResponse;
 
             if (!response.ok) {
@@ -260,7 +260,7 @@ export default function ResearchWorkspaceToolPage({
                 formData.append('sourceType', 'file');
                 formData.append('file', file);
 
-                const response = await fetch('/api/research-workspace/papers', {
+                const response = await fetch('/api/paper-renamer/papers', {
                     method: 'POST',
                     body: formData
                 });
@@ -332,7 +332,7 @@ export default function ResearchWorkspaceToolPage({
             formData.append('sourceType', 'link');
             formData.append('sourceUrl', sourceUrl.trim());
 
-            const response = await fetch('/api/research-workspace/papers', {
+                const response = await fetch('/api/paper-renamer/papers', {
                 method: 'POST',
                 body: formData
             });
@@ -386,7 +386,7 @@ export default function ResearchWorkspaceToolPage({
 
         try {
             const response = await fetch(
-                `/api/research-workspace/papers/${selectedPaper.id}/rename`,
+                `/api/paper-renamer/papers/${selectedPaper.id}/rename`,
                 {
                     method: 'POST',
                     headers: {
@@ -471,7 +471,7 @@ export default function ResearchWorkspaceToolPage({
 
         try {
             const response = await fetch(
-                `/api/research-workspace/papers/${selectedPaper.id}/insights`,
+                `/api/paper-renamer/papers/${selectedPaper.id}/insights`,
                 {
                     method: 'POST'
                 }
@@ -561,7 +561,7 @@ export default function ResearchWorkspaceToolPage({
                 <header className="rw-hero rw-hero--tool">
                     <div className="rw-eyebrow">
                         <Compass size={14} />
-                        <span>Abodid Research Workspace</span>
+                        <span>Abodid Paper Renamer</span>
                     </div>
                     <h1>{meta.title}</h1>
                     <p>{meta.subtitle}</p>
@@ -573,7 +573,7 @@ export default function ResearchWorkspaceToolPage({
                         data-layout-mode={queueLayoutMode}
                     >
                         <div className="rw-mode-toolbar">
-                            <a className="rw-button rw-button--ghost" href="/research-workspace">
+                            <a className="rw-button rw-button--ghost" href="/paper-renamer">
                                 <ArrowLeft size={16} />
                                 <span>Back</span>
                             </a>
@@ -582,15 +582,15 @@ export default function ResearchWorkspaceToolPage({
                                     className="rw-chip rw-chip--link"
                                     href={
                                         selectedPaper
-                                            ? `/research-workspace/insights?paper=${encodeURIComponent(selectedPaper.id)}`
-                                            : '/research-workspace/insights'
+                                            ? `/paper-renamer/insights?paper=${encodeURIComponent(selectedPaper.id)}`
+                                            : '/paper-renamer/insights'
                                     }
                                 >
                                     Open Insights Generator
                                 </a>
                             ) : (
-                                <a className="rw-chip rw-chip--link" href="/research-workspace/renamer">
-                                    Open Research Paper Renamer
+                                <a className="rw-chip rw-chip--link" href="/paper-renamer/renamer">
+                                    Open Paper Renamer
                                 </a>
                             )}
                         </div>
@@ -759,8 +759,8 @@ export default function ResearchWorkspaceToolPage({
                                     originalDownloadUrl={originalDownloadUrl}
                                     insightsHref={
                                         selectedPaper
-                                            ? `/research-workspace/insights?paper=${encodeURIComponent(selectedPaper.id)}`
-                                            : '/research-workspace/insights'
+                                            ? `/paper-renamer/insights?paper=${encodeURIComponent(selectedPaper.id)}`
+                                            : '/paper-renamer/insights'
                                     }
                                 />
                             )}

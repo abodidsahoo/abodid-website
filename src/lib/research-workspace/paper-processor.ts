@@ -4,6 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
 import * as cheerio from 'cheerio';
+import { z } from 'zod';
 import type {
     ExtractedPage,
     UploadSource
@@ -24,6 +25,42 @@ const execFileAsync = promisify(execFile);
 const DOI_REGEX = /10\.\d{4,9}\/[-._;()/:A-Z0-9]+/i;
 const MAX_PDF_SIZE_BYTES = 25 * 1024 * 1024;
 const MAX_OCR_PAGES = 12;
+const AUTHOR_LINE_STOP_PATTERN =
+    /\b(abstract|keywords?|introduction|doi|received|accepted|published|copyright|license|university|department|faculty|school|institute|hospital|correspondence|email|@|http|www)\b/i;
+const AUTHOR_SUFFIXES = new Set(['jr', 'sr', 'ii', 'iii', 'iv']);
+const AUTHOR_NAME_PARTICLES = new Set([
+    'al',
+    'bin',
+    'da',
+    'de',
+    'del',
+    'den',
+    'der',
+    'di',
+    'la',
+    'le',
+    'van',
+    'von'
+]);
+const IDENTITY_MODEL_CANDIDATES = parseModelEnv(
+    import.meta.env.OPENROUTER_PAPER_IDENTITY_MODELS ||
+        import.meta.env.OPENROUTER_PAPER_RENAMER_MODELS ||
+        import.meta.env.OPENROUTER_RESEARCH_MODELS,
+    [
+        'openai/gpt-5.2',
+        'anthropic/claude-3.5-sonnet',
+        'google/gemini-1.5-pro',
+        'openrouter/auto',
+        'openai/gpt-4o-mini'
+    ]
+);
+
+const paperIdentityResponseSchema = z.object({
+    title: z.string().nullable().default(null),
+    authors: z.array(z.string()).default([]),
+    year: z.number().int().nullable().default(null),
+    journal: z.string().nullable().default(null)
+});
 
 type LinkMetadata = {
     title: string | null;
@@ -75,6 +112,14 @@ export type ProcessedPaper = {
     warnings: string[];
     extractedWithOcr: boolean;
     ocrStatus: 'not_needed' | 'used' | 'partial';
+};
+
+type ResolvedPaperIdentity = {
+    title: string | null;
+    authors: string[];
+    year: number | null;
+    journal: string | null;
+    modelLabel: string;
 };
 
 const commandAvailability = new Map<string, Promise<boolean>>();
@@ -136,22 +181,22 @@ async function processPdfImport(prepared: PreparedPaperImport): Promise<Processe
             detectTitleFromPage(firstPageText) || '',
             inferTitleFromFilename(prepared.originalFileName)
         ]);
-        const displayTitle =
+        const heuristicDisplayTitle =
             titleCandidates[0] || inferTitleFromFilename(prepared.originalFileName);
 
-        const authors =
+        const heuristicAuthors =
             firstNonEmptyList(
                 normalizeAuthorList(prepared.metadata.authors),
                 normalizeAuthorList(splitAuthors(pdfInfo.author)),
-                detectAuthorsFromPage(firstPageText, displayTitle)
+                detectAuthorsFromPage(firstPageText, heuristicDisplayTitle)
             );
 
-        const year =
+        const heuristicYear =
             prepared.metadata.year ||
             extractYear(pdfInfo.creationDate || '') ||
             detectYearFromText(firstPageText);
 
-        const journal =
+        const heuristicJournal =
             prepared.metadata.journal ||
             normalizeCandidateText(pdfInfo.subject) ||
             null;
@@ -165,6 +210,26 @@ async function processPdfImport(prepared: PreparedPaperImport): Promise<Processe
             normalizeDoi(prepared.metadata.doi) ||
             detectDoiFromText(combinedText) ||
             null;
+        const identityResolution = await resolvePaperIdentityWithOpenRouter({
+            originalFileName: prepared.originalFileName,
+            linkMetadata: prepared.metadata,
+            pdfInfo,
+            heuristicTitle: heuristicDisplayTitle,
+            heuristicAuthors,
+            heuristicYear,
+            heuristicJournal,
+            doi,
+            firstPageText,
+            secondPageText: pageMap[1]?.text || '',
+            abstract
+        });
+        const displayTitle = identityResolution?.title || heuristicDisplayTitle;
+        const authors =
+            identityResolution?.authors.length
+                ? identityResolution.authors
+                : heuristicAuthors;
+        const year = identityResolution?.year || heuristicYear;
+        const journal = identityResolution?.journal || heuristicJournal;
 
         if (!displayTitle || displayTitle === inferTitleFromFilename(prepared.originalFileName)) {
             warnings.push(
@@ -236,6 +301,19 @@ async function processPdfImport(prepared: PreparedPaperImport): Promise<Processe
             metadata: {
                 linkMetadata: prepared.metadata,
                 pdfInfo,
+                identityResolution: identityResolution
+                    ? {
+                        usedOpenRouter: true,
+                        modelLabel: identityResolution.modelLabel,
+                        title: identityResolution.title,
+                        authors: identityResolution.authors,
+                        year: identityResolution.year,
+                        journal: identityResolution.journal
+                    }
+                    : {
+                        usedOpenRouter: false,
+                        modelLabel: null
+                    },
                 textPreview: pickBestSnippet(combinedText, 480),
                 weakPages,
                 titleCandidates
@@ -264,7 +342,7 @@ async function resolveLinkImport(sourceUrl: string): Promise<PreparedPaperImport
         redirect: 'follow',
         headers: {
             Accept: 'application/pdf,text/html;q=0.9,*/*;q=0.8',
-            'User-Agent': 'Abodid Research Workspace/1.0'
+            'User-Agent': 'Abodid Paper Renamer/1.0'
         }
     });
 
@@ -309,7 +387,7 @@ async function resolveLinkImport(sourceUrl: string): Promise<PreparedPaperImport
         redirect: 'follow',
         headers: {
             Accept: 'application/pdf,*/*',
-            'User-Agent': 'Abodid Research Workspace/1.0'
+            'User-Agent': 'Abodid Paper Renamer/1.0'
         }
     });
 
@@ -657,21 +735,38 @@ function detectAuthorsFromPage(
     const lines = normalizeWhitespace(firstPageText)
         .split('\n')
         .map((line) => line.trim())
-        .filter(Boolean);
+        .filter(Boolean)
+        .slice(0, 24);
 
-    const titleIndex = lines.findIndex((line) => line === title);
-    const candidateLines = lines.slice(Math.max(0, titleIndex + 1), Math.max(0, titleIndex + 5));
+    const titleIndex = lines.findIndex((line) => line === title || line.includes(title));
+    const fallbackStart = titleIndex >= 0 ? titleIndex + 1 : 1;
+    const candidateLines = lines.slice(fallbackStart, Math.min(lines.length, fallbackStart + 8));
+    const block: string[] = [];
 
     for (const line of candidateLines) {
-        if (
-            line.length > 4 &&
-            line.length < 120 &&
-            !/@|department|university|abstract|keywords/i.test(line)
-        ) {
-            const authors = splitAuthors(line);
-            if (authors.length > 0 && authors.length <= 8) {
-                return authors;
-            }
+        if (/^(abstract|keywords?|introduction)\b/i.test(line)) {
+            break;
+        }
+
+        if (isLikelyAuthorLine(line)) {
+            block.push(line);
+            continue;
+        }
+
+        if (block.length > 0) {
+            break;
+        }
+    }
+
+    const blockAuthors = normalizeAuthorList(splitAuthors(block.join('; ')));
+    if (blockAuthors.length > 0 && blockAuthors.length <= 8) {
+        return blockAuthors;
+    }
+
+    for (const line of candidateLines) {
+        const authors = normalizeAuthorList(splitAuthors(line));
+        if (authors.length > 0 && authors.length <= 8) {
+            return authors;
         }
     }
 
@@ -701,7 +796,22 @@ function detectDoiFromText(value: string): string | null {
 }
 
 function detectYearFromText(value: string): number | null {
-    return extractYear(value);
+    const matches = Array.from(value.matchAll(/\b(?:19|20)\d{2}\b/g))
+        .map((match) => Number(match[0]))
+        .filter((year) => isValidPublicationYear(year));
+
+    if (matches.length === 0) {
+        return null;
+    }
+
+    const preferred = matches.find((year) =>
+        new RegExp(
+            `\\b(?:published|publication|copyright|accepted|received|conference|journal|proceedings|©)\\b[^\\n]{0,48}\\b${year}\\b`,
+            'i'
+        ).test(value)
+    );
+
+    return preferred || matches[0] || null;
 }
 
 function buildStructuredPaperData(input: {
@@ -807,18 +917,29 @@ function splitAuthors(value: string | null): string[] {
         return [];
     }
 
-    return value
-        .replace(/\band\b/gi, ',')
-        .split(/[;,]/)
-        .map((part) => normalizeWhitespace(part))
-        .filter((part) => {
-            if (!part) {
-                return false;
-            }
+    const normalized = value
+        .replace(/\s+(?:and|&)\s+/gi, ';')
+        .replace(/\n+/g, ';');
+    const semicolonParts = normalized
+        .split(';')
+        .map((part) => cleanAuthorCandidate(part))
+        .filter(Boolean);
 
-            const words = part.split(/\s+/);
-            return words.length >= 2 && words.length <= 6;
-        });
+    if (semicolonParts.length > 1) {
+        return semicolonParts;
+    }
+
+    const commaParts = normalized
+        .split(',')
+        .map((part) => cleanAuthorCandidate(part))
+        .filter(Boolean);
+
+    if (commaParts.length > 1 && commaParts.every((part) => part.split(/\s+/).length >= 2)) {
+        return commaParts;
+    }
+
+    const single = cleanAuthorCandidate(normalized);
+    return single ? [single] : [];
 }
 
 function normalizeAuthorList(value: string[] | null): string[] {
@@ -828,9 +949,68 @@ function normalizeAuthorList(value: string[] | null): string[] {
 
     return dedupeStrings(
         value
-            .map((author) => normalizeWhitespace(author))
-            .filter((author) => author.length > 2 && author.length <= 80)
+            .map((author) => cleanAuthorCandidate(author))
+            .filter((author): author is string => Boolean(author))
     );
+}
+
+function isLikelyAuthorLine(value: string): boolean {
+    const cleaned = cleanAuthorCandidate(value);
+    if (!cleaned) {
+        return false;
+    }
+
+    const names = splitAuthors(cleaned);
+    return names.length > 0 && names.length <= 8;
+}
+
+function cleanAuthorCandidate(value: string): string | null {
+    const cleaned = normalizeWhitespace(
+        value
+            .replace(/\([^)]*\)/g, ' ')
+            .replace(/[*†‡§¶‖‣•◊]+/g, ' ')
+            .replace(/\b\d+(?:,\d+)*\b/g, ' ')
+            .replace(/\s+/g, ' ')
+    )
+        .replace(/^[,;:\-]+|[,;:\-]+$/g, '')
+        .trim();
+
+    if (!cleaned || cleaned.length > 80) {
+        return null;
+    }
+
+    if (AUTHOR_LINE_STOP_PATTERN.test(cleaned) || DOI_REGEX.test(cleaned)) {
+        return null;
+    }
+
+    const words = cleaned.split(/\s+/).filter(Boolean);
+    if (words.length < 2 || words.length > 6) {
+        return null;
+    }
+
+    const validWords = words.filter((word) => isLikelyNameToken(word)).length;
+    if (validWords < Math.max(2, words.length - 1)) {
+        return null;
+    }
+
+    return words.join(' ');
+}
+
+function isLikelyNameToken(value: string): boolean {
+    const normalized = value.replace(/[.,]/g, '');
+    if (!normalized) {
+        return false;
+    }
+
+    if (AUTHOR_SUFFIXES.has(normalized.toLowerCase())) {
+        return true;
+    }
+
+    if (AUTHOR_NAME_PARTICLES.has(normalized.toLowerCase())) {
+        return true;
+    }
+
+    return /^[A-Z][A-Za-z'’.-]*$/.test(normalized) || /^[A-Z]{1,3}$/.test(normalized);
 }
 
 function normalizeCandidateTitle(value: string | null): string | null {
@@ -866,6 +1046,143 @@ function normalizeDoi(value: string | null): string | null {
     }
 
     return `https://doi.org/${match[0].replace(/^https?:\/\/doi\.org\//i, '')}`;
+}
+
+async function resolvePaperIdentityWithOpenRouter(input: {
+    originalFileName: string;
+    linkMetadata: LinkMetadata;
+    pdfInfo: PdfInfoMetadata;
+    heuristicTitle: string;
+    heuristicAuthors: string[];
+    heuristicYear: number | null;
+    heuristicJournal: string | null;
+    doi: string | null;
+    firstPageText: string;
+    secondPageText: string;
+    abstract: string | null;
+}): Promise<ResolvedPaperIdentity | null> {
+    const apiKey = import.meta.env.OPENROUTER_API_KEY;
+
+    if (!apiKey) {
+        return null;
+    }
+
+    const topLines = input.firstPageText
+        .split('\n')
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .slice(0, 18)
+        .join('\n');
+    const context = [
+        `Original filename: ${input.originalFileName}`,
+        `Heuristic title: ${input.heuristicTitle}`,
+        `Heuristic authors: ${input.heuristicAuthors.join(', ') || 'Unknown'}`,
+        `Heuristic year: ${input.heuristicYear ?? 'Unknown'}`,
+        `Heuristic journal: ${input.heuristicJournal ?? 'Unknown'}`,
+        `Link metadata title: ${input.linkMetadata.title ?? 'Unknown'}`,
+        `Link metadata authors: ${input.linkMetadata.authors.join(', ') || 'Unknown'}`,
+        `Link metadata year: ${input.linkMetadata.year ?? 'Unknown'}`,
+        `Link metadata journal: ${input.linkMetadata.journal ?? 'Unknown'}`,
+        `Embedded PDF title: ${input.pdfInfo.title ?? 'Unknown'}`,
+        `Embedded PDF author: ${input.pdfInfo.author ?? 'Unknown'}`,
+        `Embedded PDF subject: ${input.pdfInfo.subject ?? 'Unknown'}`,
+        `Embedded PDF creation date: ${input.pdfInfo.creationDate ?? 'Unknown'}`,
+        `DOI: ${input.doi ?? 'Unknown'}`,
+        `Abstract preview: ${input.abstract ? compressText(input.abstract, 900) : 'Not clearly found'}`,
+        '',
+        'First-page top lines:',
+        topLines || 'Not clearly found',
+        '',
+        'First-page excerpt:',
+        compressText(input.firstPageText, 2200) || 'Not clearly found',
+        '',
+        'Second-page excerpt:',
+        compressText(input.secondPageText, 1600) || 'Not clearly found'
+    ].join('\n');
+
+    for (const model of IDENTITY_MODEL_CANDIDATES) {
+        try {
+            const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${apiKey}`,
+                    'Content-Type': 'application/json',
+                    'HTTP-Referer':
+                        import.meta.env.PUBLIC_SITE_URL ||
+                        import.meta.env.SITE ||
+                        'https://abodidsahoo.com',
+                    'X-Title':
+                        import.meta.env.PUBLIC_SITE_NAME ||
+                        'Abodid Paper Renamer'
+                },
+                body: JSON.stringify({
+                    model,
+                    response_format: { type: 'json_object' },
+                    temperature: 0.05,
+                    max_tokens: 550,
+                    messages: [
+                        {
+                            role: 'system',
+                            content:
+                                'You identify bibliographic metadata for an academic paper using only the provided evidence. Prefer the visible first-page title and author order. Never mistake DOI strings, URLs, affiliations, departments, institutions, journal names, copyright lines, or emails for author names. Prefer the publication year over a generic file creation year when the evidence supports it. If a field is unclear, return null or an empty array instead of guessing.'
+                        },
+                        {
+                            role: 'user',
+                            content: `${context}\n\nReturn valid JSON like ${JSON.stringify({
+                                title: 'Readable paper title or null',
+                                authors: ['First Author', 'Second Author'],
+                                year: 2024,
+                                journal: 'Journal or conference name or null'
+                            })}`
+                        }
+                    ]
+                })
+            });
+
+            if (!response.ok) {
+                continue;
+            }
+
+            const payload = await response.json();
+            const content = payload?.choices?.[0]?.message?.content;
+
+            if (!content || typeof content !== 'string') {
+                continue;
+            }
+
+            const cleaned = content.replace(/```json|```/g, '').trim();
+            const parsed = paperIdentityResponseSchema.parse(JSON.parse(cleaned));
+            const title = normalizeCandidateTitle(parsed.title);
+            const authors = normalizeAuthorList(parsed.authors);
+            const year = isValidPublicationYear(parsed.year) ? parsed.year : null;
+            const journal = normalizeCandidateText(parsed.journal);
+
+            if (!title && authors.length === 0 && !year && !journal) {
+                continue;
+            }
+
+            return {
+                title,
+                authors,
+                year,
+                journal,
+                modelLabel: model
+            };
+        } catch (_error) {
+            continue;
+        }
+    }
+
+    return null;
+}
+
+function isValidPublicationYear(value: number | null | undefined): value is number {
+    if (!value || !Number.isFinite(value)) {
+        return false;
+    }
+
+    const currentYear = new Date().getUTCFullYear() + 1;
+    return value >= 1900 && value <= currentYear;
 }
 
 function chooseBestPageText(nativeText: string, ocrText: string): string {
@@ -964,4 +1281,15 @@ function firstNonEmptyList<T>(...lists: T[][]): T[] {
     }
 
     return [];
+}
+
+function parseModelEnv(value: string | undefined, fallback: string[]): string[] {
+    if (!value) {
+        return fallback;
+    }
+
+    return value
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean);
 }

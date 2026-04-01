@@ -17,6 +17,15 @@ type CompactInsightsPageProps = {
     paperId?: string | null;
 };
 
+const INSIGHT_LOADING_STEPS = [
+    'Reading the paper title, author list, year, and publication details.',
+    'Checking the abstract and opening sections for the clearest paper summary.',
+    'Looking through methods, findings, and conclusion for supported evidence only.',
+    'Skipping weak or unclear details so the insight blocks stay clean.',
+    'Compacting the strongest points into a short, readable paper summary.',
+    'Preparing the final insight sections for this paper.'
+];
+
 export default function CompactInsightsPage({
     paperId: initialPaperId = null
 }: CompactInsightsPageProps) {
@@ -25,6 +34,8 @@ export default function CompactInsightsPage({
     const [isLoadingPaper, setIsLoadingPaper] = useState(Boolean(initialPaperId));
     const [isGenerating, setIsGenerating] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [loadingStepIndex, setLoadingStepIndex] = useState(0);
+    const [showLoadingNote, setShowLoadingNote] = useState(false);
 
     useEffect(() => {
         if (initialPaperId) {
@@ -50,7 +61,7 @@ export default function CompactInsightsPage({
             setIsLoadingPaper(true);
 
             try {
-                const response = await fetch(`/api/research-workspace/papers/${paperId}`);
+                const response = await fetch(`/api/paper-renamer/papers/${paperId}`);
                 const data = (await response.json()) as GetPaperResponse & {
                     error?: string;
                 };
@@ -96,28 +107,54 @@ export default function CompactInsightsPage({
         }
     }, [paper]);
 
-    const prettyFileTitle = paper
-        ? toReadableTitle(paper.preferredFileName || paper.cleanFileName)
+    useEffect(() => {
+        if (!isGenerating) {
+            setLoadingStepIndex(0);
+            setShowLoadingNote(false);
+            return;
+        }
+
+        const intervalId = window.setInterval(() => {
+            setLoadingStepIndex((current) => (current + 1) % INSIGHT_LOADING_STEPS.length);
+        }, 2200);
+        const noteTimeoutId = window.setTimeout(() => {
+            setShowLoadingNote(true);
+        }, 5000);
+
+        return () => {
+            window.clearInterval(intervalId);
+            window.clearTimeout(noteTimeoutId);
+        };
+    }, [isGenerating]);
+
+    const pageTitle = paper
+        ? (paper.displayTitle || '').trim() ||
+            toReadableTitle(paper.preferredFileName || paper.cleanFileName)
         : 'Paper Insights';
     const cleanDownloadUrl = paper
         ? `${paper.downloadUrls.clean}&filename=${encodeURIComponent(
             paper.preferredFileName || paper.cleanFileName
         )}`
         : null;
-    const coreSections = useMemo(() => buildCoreSections(paper), [paper]);
-    const hasInsights = coreSections.length > 0;
+    const summarySection = useMemo(() => buildSummarySection(paper), [paper]);
+    const supportingSections = useMemo(
+        () => buildSupportingSections(paper, summarySection?.id || null),
+        [paper, summarySection]
+    );
+    const hasInsights = Boolean(summarySection) || supportingSections.length > 0;
 
-    const metaLine = useMemo(() => {
+    const authorYearLine = useMemo(() => {
         if (!paper) {
             return '';
         }
 
         return [
             paper.authors.length > 0 ? paper.authors.join(', ') : null,
-            paper.year ? String(paper.year) : null,
-            paper.journal
+            paper.year ? String(paper.year) : null
         ].filter(Boolean).join(' · ');
     }, [paper]);
+
+    const publicationLine = useMemo(() => paper?.journal?.trim() || '', [paper]);
 
     const handleGenerateInsights = async () => {
         if (!paper) {
@@ -128,12 +165,9 @@ export default function CompactInsightsPage({
         setErrorMessage(null);
 
         try {
-            const response = await fetch(
-                `/api/research-workspace/papers/${paper.id}/insights`,
-                {
-                    method: 'POST'
-                }
-            );
+            const response = await fetch(`/api/paper-renamer/papers/${paper.id}/insights`, {
+                method: 'POST'
+            });
 
             const data = (await response.json()) as GenerateInsightsResponse & {
                 error?: string;
@@ -160,16 +194,10 @@ export default function CompactInsightsPage({
             <div className="rw-stage rw-stage--compact-insights">
                 <div className="rw-compact-shell">
                     <div className="rw-mode-toolbar">
-                        <a className="rw-button rw-button--ghost" href="/research-workspace">
+                        <a className="rw-button rw-button--ghost" href="/paper-renamer">
                             <ArrowLeft size={16} />
                             <span>Back To Renamer</span>
                         </a>
-                        {cleanDownloadUrl ? (
-                            <a className="rw-button rw-button--secondary" href={cleanDownloadUrl}>
-                                <Download size={16} />
-                                <span>Download Renamed PDF</span>
-                            </a>
-                        ) : null}
                     </div>
 
                     <header className="rw-compact-header">
@@ -177,16 +205,23 @@ export default function CompactInsightsPage({
                             <Sparkles size={14} />
                             <span>Paper Insights</span>
                         </div>
-                        <h1>{prettyFileTitle}</h1>
-                        <p>
-                            Small, paper-grounded insight boxes only. No added ideas, no extra
-                            commentary.
-                        </p>
-                        {paper?.displayTitle && paper.displayTitle !== prettyFileTitle ? (
-                            <p className="rw-compact-header__subtitle">{paper.displayTitle}</p>
+                        <h1>{pageTitle}</h1>
+                        {authorYearLine ? (
+                            <p className="rw-compact-header__meta">{authorYearLine}</p>
                         ) : null}
-                        {metaLine ? (
-                            <p className="rw-compact-header__meta">{metaLine}</p>
+                        {publicationLine ? (
+                            <p className="rw-compact-header__publication">{publicationLine}</p>
+                        ) : null}
+                        {cleanDownloadUrl ? (
+                            <div className="rw-compact-header__actions">
+                                <a
+                                    className="rw-button rw-button--secondary"
+                                    href={cleanDownloadUrl}
+                                >
+                                    <Download size={16} />
+                                    <span>Download Renamed PDF</span>
+                                </a>
+                            </div>
                         ) : null}
                     </header>
 
@@ -245,43 +280,65 @@ export default function CompactInsightsPage({
                             </div>
 
                             {isGenerating ? (
-                                <div className="rw-compact-status">
-                                    <p>Reading the PDF and extracting only supported points.</p>
-                                </div>
+                                <>
+                                    <div
+                                        className="rw-compact-status rw-compact-status--ticker"
+                                        aria-live="polite"
+                                    >
+                                        <div className="rw-compact-status__eyebrow">
+                                            <LoaderCircle size={12} className="rw-spin" />
+                                            <span>Generating insights</span>
+                                        </div>
+                                        <div className="rw-compact-status__viewport">
+                                            <p
+                                                key={loadingStepIndex}
+                                                className="rw-compact-status__message"
+                                            >
+                                                {INSIGHT_LOADING_STEPS[loadingStepIndex]}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    {showLoadingNote ? (
+                                        <div className="rw-compact-wait-note" aria-live="polite">
+                                            <p>
+                                                We are using advanced models through OpenRouter,
+                                                including OpenAI, Gemini, DeepSeek, and other
+                                                leading systems, to read the paper carefully and
+                                                extract the most relevant points into a concise,
+                                                dependable summary.
+                                            </p>
+                                            <p>
+                                                This can take a little time. If results do not
+                                                appear, refresh the insights and try again.
+                                            </p>
+                                        </div>
+                                    ) : null}
+                                </>
                             ) : null}
 
                             {hasInsights ? (
                                 <div className="rw-compact-section-stack">
-                                    <div className="rw-core-grid">
-                                        {coreSections.map((section) =>
-                                            section.id === 'quotes' ? (
-                                                <QuotesInsightCard
-                                                    key={section.id}
-                                                    section={section}
-                                                />
-                                            ) : (
-                                                <CoreInsightCard
-                                                    key={section.id}
-                                                    section={section}
-                                                />
-                                            )
-                                        )}
-                                    </div>
+                                    {summarySection ? (
+                                        <InsightSectionCard
+                                            section={summarySection}
+                                            variant="summary"
+                                        />
+                                    ) : null}
 
-                                    {paper.insights?.extractionNotes &&
-                                    paper.insights.extractionNotes.length > 0 ? (
-                                        <div className="rw-compact-notes">
-                                            {paper.insights.extractionNotes
-                                                .slice(0, 3)
-                                                .map((note, index) => (
-                                                    <p key={`${note}-${index}`}>{note}</p>
-                                                ))}
+                                    {supportingSections.length > 0 ? (
+                                        <div className="rw-core-stack">
+                                            {supportingSections.map((section) => (
+                                                <InsightSectionCard
+                                                    key={section.id}
+                                                    section={section}
+                                                />
+                                            ))}
                                         </div>
                                     ) : null}
                                 </div>
                             ) : (
                                 <p className="rw-compact-empty">
-                                    Generate insights to open the compact research summary.
+                                    Generate insights to create a short paper summary.
                                 </p>
                             )}
                         </section>
@@ -292,68 +349,124 @@ export default function CompactInsightsPage({
     );
 }
 
-function CoreInsightCard({ section }: { section: InsightSection }) {
+function InsightSectionCard({
+    section,
+    variant = 'default'
+}: {
+    section: InsightSection;
+    variant?: 'default' | 'summary';
+}) {
+    const hasQuotes = Boolean(section.quotes && section.quotes.length > 0);
+    const showDetail =
+        variant !== 'summary' &&
+        Boolean(
+            section.detail &&
+                !isPlaceholderText(section.detail) &&
+                section.detail !== section.summary
+        );
+
     return (
-        <article className="rw-core-card">
+        <article
+            className={`rw-core-card${variant === 'summary' ? ' rw-core-card--summary' : ''}${
+                hasQuotes ? ' rw-core-card--quotes' : ''
+            }`}
+        >
             <div className="rw-core-card__header">
-                <h2>{section.heading}</h2>
+                <div className="rw-core-card__heading-group">
+                    {variant === 'summary' ? (
+                        <span className="rw-core-card__eyebrow">Short Summary</span>
+                    ) : null}
+                    <h2>{section.heading}</h2>
+                </div>
                 {section.provenance.length > 0 ? (
                     <span className="rw-core-card__pages">
                         p. {section.provenance.map((item) => item.pageNumber).join(', ')}
                     </span>
                 ) : null}
             </div>
-            <p className="rw-core-card__summary">{section.summary}</p>
-            {section.detail && section.detail !== section.summary ? (
-                <p className="rw-core-card__detail">{section.detail}</p>
-            ) : null}
-        </article>
-    );
-}
 
-function QuotesInsightCard({ section }: { section: InsightSection }) {
-    return (
-        <article className="rw-core-card rw-core-card--quotes">
-            <div className="rw-core-card__header">
-                <h2>{section.heading}</h2>
-            </div>
-            {section.quotes && section.quotes.length > 0 ? (
+            <p className="rw-core-card__summary">{section.summary}</p>
+
+            {hasQuotes ? (
                 <div className="rw-core-quote-list">
-                    {section.quotes.slice(0, 3).map((quote) => (
+                    {section.quotes?.slice(0, 2).map((quote) => (
                         <div key={quote.id} className="rw-core-quote">
                             <p>{quote.text}</p>
                             <span>p. {quote.provenance.pageNumber}</span>
                         </div>
                     ))}
                 </div>
-            ) : (
-                <p className="rw-core-card__summary">{section.summary}</p>
-            )}
-            {section.detail && section.detail !== section.summary ? (
+            ) : null}
+
+            {showDetail ? (
                 <p className="rw-core-card__detail">{section.detail}</p>
             ) : null}
         </article>
     );
 }
 
-function buildCoreSections(paper: UploadedPaper | null): InsightSection[] {
+function buildSummarySection(paper: UploadedPaper | null): InsightSection | null {
+    if (!paper?.insights?.sections) {
+        return null;
+    }
+
+    const aboutSection = paper.insights.sections.find((section) => section.id === 'about');
+    if (aboutSection && isMeaningfulSection(aboutSection)) {
+        return aboutSection;
+    }
+
+    return (
+        paper.insights.sections.find(
+            (section) => section.id !== 'quotes' && isMeaningfulSection(section)
+        ) || null
+    );
+}
+
+function buildSupportingSections(
+    paper: UploadedPaper | null,
+    summarySectionId: InsightSection['id'] | null
+): InsightSection[] {
     if (!paper?.insights?.sections) {
         return [];
     }
 
     const desiredOrder: Array<InsightSection['id']> = [
-        'about',
         'objective',
         'methods',
         'findings',
         'conclusion',
-        'quotes'
+        'quotes',
+        'human-detail'
     ];
 
     return desiredOrder.flatMap((id) => {
+        if (id === summarySectionId) {
+            return [];
+        }
+
         const section = paper.insights?.sections.find((item) => item.id === id);
-        return section ? [section] : [];
+        return section && isMeaningfulSection(section) ? [section] : [];
     });
+}
+
+function isMeaningfulSection(section: InsightSection): boolean {
+    if (section.quotes && section.quotes.length > 0) {
+        return true;
+    }
+
+    if (section.status === 'missing') {
+        return false;
+    }
+
+    return !isPlaceholderText(section.summary);
+}
+
+function isPlaceholderText(value: string | null | undefined): boolean {
+    if (!value) {
+        return true;
+    }
+
+    return /not clearly found/i.test(value.trim());
 }
 
 function buildInsightsPath(paper: UploadedPaper): string {
@@ -361,5 +474,5 @@ function buildInsightsPath(paper: UploadedPaper): string {
         slugify((paper.preferredFileName || paper.cleanFileName).replace(/\.pdf$/i, '')) ||
         'paper-insights';
 
-    return `/research-workspace/insights/${paper.id}/${slug}`;
+    return `/paper-renamer/insights/${paper.id}/${slug}`;
 }

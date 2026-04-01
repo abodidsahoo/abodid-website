@@ -1,7 +1,7 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import CompactInsightsPage from "../../components/research-workspace/CompactInsightsPage";
-import "../../styles/research-workspace.css";
+import "../../styles/paper-renamer.css";
 
 const title = "Paper Insights";
 const description =
@@ -11,9 +11,8 @@ const description =
 <BaseLayout
     title={title}
     description={description}
-    showGlobalGrid={false}
     showCursorFollower={false}
-    bodyClass="research-workspace-route"
+    bodyClass="paper-renamer-route"
 >
     <CompactInsightsPage client:load />
 </BaseLayout>

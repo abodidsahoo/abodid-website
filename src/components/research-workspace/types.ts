@@ -1,4 +1,5 @@
 export type {
+    CuratedPdfMetadataPreview,
     ExtractionSource,
     GenerateInsightsResponse,
     GetPaperResponse,

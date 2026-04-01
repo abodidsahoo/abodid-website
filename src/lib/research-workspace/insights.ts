@@ -62,12 +62,14 @@ const SNAPSHOT_GROUPS = [
 ] as const;
 
 const MODEL_CANDIDATES = parseModelEnv(
-    import.meta.env.OPENROUTER_RESEARCH_MODELS,
+    import.meta.env.OPENROUTER_PAPER_INSIGHT_MODELS ||
+        import.meta.env.OPENROUTER_RESEARCH_MODELS,
     [
+        'openai/gpt-5.2',
+        'anthropic/claude-3.5-sonnet',
+        'google/gemini-1.5-pro',
         'openrouter/auto',
-        'openai/gpt-4o-mini',
-        'google/gemini-2.0-flash-lite-preview-02-05:free',
-        'openrouter/free'
+        'openai/gpt-4o-mini'
     ]
 );
 
@@ -199,7 +201,7 @@ export async function generatePaperInsights(
                     Authorization: `Bearer ${apiKey}`,
                     'Content-Type': 'application/json',
                     'HTTP-Referer': import.meta.env.PUBLIC_SITE_URL || import.meta.env.SITE || 'https://abodidsahoo.com',
-                    'X-Title': import.meta.env.PUBLIC_SITE_NAME || 'Abodid Research Workspace'
+                    'X-Title': import.meta.env.PUBLIC_SITE_NAME || 'Abodid Paper Renamer'
                 },
                 body: JSON.stringify({
                     model,
@@ -210,7 +212,7 @@ export async function generatePaperInsights(
                         {
                             role: 'system',
                             content:
-                                'You summarize research papers using only the supplied structured extraction. Never invent claims, institutions, locations, people, quotes, page numbers, or participant counts. If a detail is not clearly supported, return "Not clearly found" and mark it missing. Keep the compact snapshot extremely short: each value must stay within 5 to 10 words. Evidence must be a short exact phrase or a tightly faithful excerpt from supplied text. Keep the core section summaries plain, short, and faithful.'
+                                'You summarize research papers using only the supplied structured extraction. Never invent claims, institutions, locations, people, quotes, page numbers, or participant counts. If a detail is not clearly supported, return "Not clearly found" and mark it missing. The "about" section must read like a short paper summary in 2 to 4 sentences. Keep every other section to 1 or 2 short sentences only, and use detail only when it adds a clearly supported specific point. Keep the compact snapshot extremely short: each value must stay within 5 to 10 words. Evidence must be a short exact phrase or a tightly faithful excerpt from supplied text.'
                         },
                         {
                             role: 'user',
@@ -367,7 +369,9 @@ function buildModelContext(
             '- Use "Not clearly found" when a field is unsupported.',
             '- Evidence should be a short exact phrase or close excerpt, not a new interpretation.',
             '- If participant count is missing, do not infer one.',
-            '- Keep the user-facing core summary to: about, objective, methods, findings, conclusion, and useful quotes.',
+            '- Make the about section a short 2 to 4 sentence paper summary.',
+            '- Keep every other user-facing section to 1 or 2 short sentences.',
+            '- Keep the user-facing sections limited to summary, objective, methods, findings, conclusion, and useful quotes.',
             weakPages.length > 0
                 ? `Weak pages to treat cautiously: ${weakPages.join(', ')}`
                 : 'Weak pages to treat cautiously: none flagged',
@@ -404,6 +408,8 @@ function buildModelContext(
         '- Use "Not clearly found" when a field is unsupported.',
         '- Evidence should be a short exact phrase or close excerpt, not a new interpretation.',
         '- If participant count is missing, do not infer one.',
+        '- Make the about section a short 2 to 4 sentence paper summary.',
+        '- Keep every other user-facing section to 1 or 2 short sentences.',
         '',
         'Page-aware excerpts:',
         ...candidates.map((candidate) => {
@@ -469,7 +475,7 @@ function buildSectionCandidates(
     return [
         {
             id: 'about',
-            heading: 'What this paper is about',
+            heading: 'Paper Summary',
             text:
                 structuredAboutText ||
                 input.abstract ||
@@ -486,7 +492,7 @@ function buildSectionCandidates(
         },
         {
             id: 'objective',
-            heading: 'Research objective',
+            heading: 'Research Objective',
             text: structuredObjective?.summary || joinPageTexts(objectivePages) || 'Not clearly found',
             provenance:
                 structuredObjective
@@ -495,7 +501,7 @@ function buildSectionCandidates(
         },
         {
             id: 'methods',
-            heading: 'How the study was done',
+            heading: 'Method',
             text: structuredMethodsText || joinPageTexts(methodsPages) || 'Not clearly found',
             provenance:
                 structuredPaper
@@ -510,7 +516,7 @@ function buildSectionCandidates(
         },
         {
             id: 'findings',
-            heading: 'Main findings',
+            heading: 'Key Findings',
             text: structuredFindings?.summary || joinPageTexts(findingsPages) || 'Not clearly found',
             provenance:
                 structuredFindings
@@ -528,7 +534,7 @@ function buildSectionCandidates(
         },
         {
             id: 'quotes',
-            heading: 'Useful direct quotes',
+            heading: 'Notable Quote',
             text:
                 structuredQuotes.length > 0
                     ? structuredQuotes
@@ -546,7 +552,7 @@ function buildSectionCandidates(
         },
         {
             id: 'human-detail',
-            heading: 'Human detail',
+            heading: 'Additional Detail',
             text: joinPageTexts(humanPages) || 'Not clearly found',
             provenance: humanPages.map(toProvenance)
         }
@@ -738,6 +744,11 @@ function materializeModelSummary(
     const sections = SECTION_ORDER.map((id) => {
         const modelSection = parsed.sections.find((section) => section.id === id);
         const heuristic = heuristicMap.get(id)!;
+        const summary =
+            cleanModelText(modelSection?.summary) || heuristic.summary || 'Not clearly found';
+        const status =
+            modelSection?.status ||
+            (/not clearly found/i.test(summary) ? 'missing' : heuristic.status);
         const provenance = mergeProvenance(
             (modelSection?.provenancePageNumbers ?? []).map((pageNumber) => {
                 const matched = heuristic.provenance.find((item) => item.pageNumber === pageNumber);
@@ -754,9 +765,12 @@ function materializeModelSummary(
         return {
             id,
             heading: heuristic.heading,
-            summary: cleanModelText(modelSection?.summary) || heuristic.summary,
-            detail: cleanModelText(modelSection?.detail) || heuristic.detail,
-            status: modelSection?.status || heuristic.status,
+            summary,
+            detail:
+                status === 'missing'
+                    ? null
+                    : cleanModelText(modelSection?.detail) || heuristic.detail,
+            status,
             provenance: provenance.length > 0 ? provenance : heuristic.provenance,
             quotes:
                 id === 'quotes'
