@@ -365,8 +365,8 @@ export default function OnePhotoSubmissionForm() {
                     on photographs, image making, memory, and research around all of it.
                 </p>
                 <div className="rw-button-row one-photo-actions">
-                    <a className="rw-button rw-button--primary" href="/photography">
-                        Explore photography projects
+                    <a className="rw-button rw-button--primary" href="/one-photo/responses">
+                        See all responses
                     </a>
                     <button
                         className="rw-button rw-button--secondary"
@@ -389,6 +389,9 @@ export default function OnePhotoSubmissionForm() {
                     You can submit only text, only audio, only one image, or any combination of the
                     three.
                 </p>
+                <a className="one-photo-helper-card__link" href="/one-photo/responses">
+                    See all responses
+                </a>
             </div>
 
             <div className="one-photo-hidden-field" aria-hidden="true">

@@ -1,0 +1,27 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import OnePhotoResponsesWall from "../../components/one-photo/OnePhotoResponsesWall";
+import "../../styles/paper-renamer.css";
+import "../../styles/one-photo.css";
+
+const pageTitle = "See All Responses | One Photo";
+const pageDescription =
+    "A public wall of responses to the one-photo project, with image, text, and audio contributions.";
+---
+
+<BaseLayout
+    title={pageTitle}
+    description={pageDescription}
+    showCursorFollower={false}
+    showGlobalGrid={false}
+    showNewsletterPopup={false}
+    hideHeader={true}
+    hideFooter={true}
+    bodyClass="paper-renamer-route one-photo-route one-photo-responses-route"
+>
+    <section class="rw-page one-photo-page">
+        <div class="rw-stage one-photo-stage one-photo-stage--responses">
+            <OnePhotoResponsesWall client:load />
+        </div>
+    </section>
+</BaseLayout>
