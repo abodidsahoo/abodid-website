@@ -1,5 +1,10 @@
 import type { APIRoute } from 'astro';
+import { spawn } from 'node:child_process';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { createClient } from '@supabase/supabase-js';
+import ffmpegPath from 'ffmpeg-static';
 
 export const prerender = false;
 
@@ -9,6 +14,21 @@ const MAX_IMAGE_BYTES = 12 * 1024 * 1024;
 const MAX_AUDIO_BYTES = 25 * 1024 * 1024;
 const ALLOWED_IMAGE_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'webp', 'gif', 'heic', 'heif']);
 const ALLOWED_AUDIO_EXTENSIONS = new Set(['webm', 'mp4', 'm4a', 'mp3', 'wav', 'ogg', 'aac']);
+const PLAYBACK_SAFE_AUDIO_MIME = 'audio/mp4';
+
+function normalizeMimeType(mimeType: string): string {
+    const normalized = mimeType.toLowerCase().trim().split(';')[0]?.trim() || '';
+
+    if (normalized === 'audio/x-m4a' || normalized === 'audio/m4a' || normalized === 'audio/mp4a-latm') {
+        return 'audio/mp4';
+    }
+
+    if (normalized === 'audio/x-wav') return 'audio/wav';
+    if (normalized === 'audio/mpga') return 'audio/mpeg';
+    if (normalized === 'image/jpg') return 'image/jpeg';
+
+    return normalized;
+}
 
 function cleanText(value: FormDataEntryValue | null, maxLength = 12000): string {
     if (typeof value !== 'string') return '';
@@ -36,19 +56,21 @@ function normalizeFileName(fileName: string): string {
 }
 
 function extensionFromMimeType(mimeType: string, fallback: string): string {
-    if (!mimeType) return fallback;
-    if (mimeType.includes('jpeg')) return 'jpg';
-    if (mimeType.includes('png')) return 'png';
-    if (mimeType.includes('webp')) return 'webp';
-    if (mimeType.includes('gif')) return 'gif';
-    if (mimeType.includes('heic')) return 'heic';
-    if (mimeType.includes('heif')) return 'heif';
-    if (mimeType.includes('webm')) return 'webm';
-    if (mimeType.includes('mp4')) return 'm4a';
-    if (mimeType.includes('mpeg')) return 'mp3';
-    if (mimeType.includes('wav')) return 'wav';
-    if (mimeType.includes('ogg')) return 'ogg';
-    if (mimeType.includes('aac')) return 'aac';
+    const normalized = normalizeMimeType(mimeType);
+
+    if (!normalized) return fallback;
+    if (normalized.includes('jpeg')) return 'jpg';
+    if (normalized.includes('png')) return 'png';
+    if (normalized.includes('webp')) return 'webp';
+    if (normalized.includes('gif')) return 'gif';
+    if (normalized.includes('heic')) return 'heic';
+    if (normalized.includes('heif')) return 'heif';
+    if (normalized.includes('webm')) return 'webm';
+    if (normalized.includes('mp4')) return 'm4a';
+    if (normalized.includes('mpeg')) return 'mp3';
+    if (normalized.includes('wav')) return 'wav';
+    if (normalized.includes('ogg')) return 'ogg';
+    if (normalized.includes('aac')) return 'aac';
     return fallback;
 }
 
@@ -57,14 +79,34 @@ function extensionFromName(fileName: string): string {
     return parts.length > 1 ? parts[parts.length - 1].toLowerCase() : '';
 }
 
+function replaceExtension(fileName: string, nextExtension: string): string {
+    const normalized = normalizeFileName(fileName);
+    const withoutExtension = normalized.replace(/\.[^.]+$/, '') || 'one-photo-note';
+    return `${withoutExtension}.${nextExtension}`;
+}
+
 function isAllowedImage(file: File): boolean {
-    if (file.type.startsWith('image/')) return true;
+    const mimeType = normalizeMimeType(file.type);
+    if (mimeType.startsWith('image/')) return true;
     return ALLOWED_IMAGE_EXTENSIONS.has(extensionFromName(file.name));
 }
 
 function isAllowedAudio(file: File): boolean {
-    if (file.type.startsWith('audio/')) return true;
+    const mimeType = normalizeMimeType(file.type);
+    if (mimeType.startsWith('audio/')) return true;
     return ALLOWED_AUDIO_EXTENSIONS.has(extensionFromName(file.name));
+}
+
+function shouldTranscodeAudio(file: File): boolean {
+    const mimeType = normalizeMimeType(file.type);
+    const extension = extensionFromName(file.name);
+
+    return (
+        mimeType.includes('webm') ||
+        mimeType.includes('ogg') ||
+        extension === 'webm' ||
+        extension === 'ogg'
+    );
 }
 
 function buildStoragePath(folder: 'images' | 'audio', file: File): string {
@@ -84,11 +126,12 @@ async function uploadAsset(
 ): Promise<string> {
     const path = buildStoragePath(folder, file);
     const buffer = new Uint8Array(await file.arrayBuffer());
+    const contentType = normalizeMimeType(file.type) || undefined;
 
     const { error } = await supabaseAdmin.storage
         .from(BUCKET_NAME)
         .upload(path, buffer, {
-            contentType: file.type || undefined,
+            contentType,
             cacheControl: '3600',
             upsert: false,
         });
@@ -98,6 +141,86 @@ async function uploadAsset(
     }
 
     return path;
+}
+
+async function runFfmpeg(args: string[]): Promise<void> {
+    if (!ffmpegPath) {
+        throw new Error('FFmpeg is not available for audio transcoding.');
+    }
+
+    await new Promise<void>((resolve, reject) => {
+        const process = spawn(ffmpegPath, args, {
+            stdio: ['ignore', 'ignore', 'pipe'],
+        });
+
+        let stderr = '';
+
+        process.stderr.on('data', (chunk) => {
+            stderr += chunk.toString();
+            if (stderr.length > 6000) {
+                stderr = stderr.slice(-6000);
+            }
+        });
+
+        process.on('error', (error) => {
+            reject(error);
+        });
+
+        process.on('close', (code) => {
+            if (code === 0) {
+                resolve();
+                return;
+            }
+
+            const detail = stderr.trim();
+            reject(
+                new Error(
+                    detail || `FFmpeg exited with code ${code ?? 'unknown'} while transcoding audio.`,
+                ),
+            );
+        });
+    });
+}
+
+async function transcodeAudioForPlayback(file: File): Promise<File> {
+    const tempDir = await mkdtemp(join(tmpdir(), 'one-photo-audio-'));
+    const inputExtension = extensionFromName(file.name) || extensionFromMimeType(file.type, 'webm');
+    const inputPath = join(tempDir, `input.${inputExtension}`);
+    const outputPath = join(tempDir, 'output.m4a');
+
+    try {
+        await writeFile(inputPath, new Uint8Array(await file.arrayBuffer()));
+
+        await runFfmpeg([
+            '-y',
+            '-i',
+            inputPath,
+            '-vn',
+            '-ac',
+            '1',
+            '-ar',
+            '44100',
+            '-c:a',
+            'aac',
+            '-b:a',
+            '96k',
+            '-movflags',
+            '+faststart',
+            outputPath,
+        ]);
+
+        const outputBuffer = await readFile(outputPath);
+
+        if (!outputBuffer.byteLength) {
+            throw new Error('Audio transcoding produced an empty file.');
+        }
+
+        return new File([outputBuffer], replaceExtension(file.name, 'm4a'), {
+            type: PLAYBACK_SAFE_AUDIO_MIME,
+        });
+    } finally {
+        await rm(tempDir, { recursive: true, force: true });
+    }
 }
 
 export const POST: APIRoute = async ({ request }) => {
@@ -126,10 +249,14 @@ export const POST: APIRoute = async ({ request }) => {
         const image = formData.get('image');
         const audio = formData.get('audio');
         const audioDurationSeconds = toNumber(formData.get('audio_duration_seconds'));
-        const audioMime = cleanText(formData.get('audio_mime'), 120);
+        const audioMime = normalizeMimeType(cleanText(formData.get('audio_mime'), 120));
 
         const imageFile = image instanceof File && image.size > 0 ? image : null;
         const audioFile = audio instanceof File && audio.size > 0 ? audio : null;
+        const originalAudioMime = audioMime || normalizeMimeType(audioFile?.type || '') || null;
+        const originalAudioFileName = audioFile ? normalizeFileName(audioFile.name) : null;
+        let preparedAudioFile = audioFile;
+        let audioWasTranscoded = false;
 
         if (!story && !imageFile && !audioFile) {
             return new Response(
@@ -156,6 +283,28 @@ export const POST: APIRoute = async ({ request }) => {
             if (audioFile.size > MAX_AUDIO_BYTES) {
                 return new Response(JSON.stringify({ error: 'Audio file is too large.' }), { status: 400 });
             }
+
+            if (shouldTranscodeAudio(audioFile)) {
+                try {
+                    preparedAudioFile = await transcodeAudioForPlayback(audioFile);
+                    audioWasTranscoded = true;
+                } catch (error) {
+                    console.error('Failed to transcode one-photo audio upload:', error);
+                    return new Response(
+                        JSON.stringify({
+                            error: 'We could not prepare this audio for reliable phone playback. Please try recording again.',
+                        }),
+                        { status: 500 },
+                    );
+                }
+            }
+
+            if (preparedAudioFile.size > MAX_AUDIO_BYTES) {
+                return new Response(
+                    JSON.stringify({ error: 'Audio file is too large after processing.' }),
+                    { status: 400 },
+                );
+            }
         }
 
         let imagePath: string | null = null;
@@ -166,8 +315,8 @@ export const POST: APIRoute = async ({ request }) => {
             uploadedPaths.push(imagePath);
         }
 
-        if (audioFile) {
-            audioPath = await uploadAsset(supabaseAdmin, audioFile, 'audio');
+        if (preparedAudioFile) {
+            audioPath = await uploadAsset(supabaseAdmin, preparedAudioFile, 'audio');
             uploadedPaths.push(audioPath);
         }
 
@@ -179,17 +328,26 @@ export const POST: APIRoute = async ({ request }) => {
                 response_text: toNullableText(story),
                 image_path: imagePath,
                 image_file_name: imageFile ? normalizeFileName(imageFile.name) : null,
-                image_mime: imageFile?.type || null,
+                image_mime: normalizeMimeType(imageFile?.type || '') || null,
                 image_size_bytes: imageFile?.size || null,
                 audio_path: audioPath,
-                audio_file_name: audioFile ? normalizeFileName(audioFile.name) : null,
-                audio_mime: audioMime || audioFile?.type || null,
-                audio_size_bytes: audioFile?.size || null,
+                audio_file_name: preparedAudioFile ? normalizeFileName(preparedAudioFile.name) : null,
+                audio_mime: preparedAudioFile
+                    ? normalizeMimeType(preparedAudioFile.type) || originalAudioMime
+                    : null,
+                audio_size_bytes: preparedAudioFile?.size || null,
                 audio_duration_seconds: audioDurationSeconds,
                 metadata: {
-                    form_version: 'one-photo-v1',
+                    form_version: 'one-photo-v2',
                     referer: request.headers.get('referer'),
                     user_agent: request.headers.get('user-agent'),
+                    ...(audioWasTranscoded
+                        ? {
+                            audio_transcoded_for_playback: true,
+                            audio_original_file_name: originalAudioFileName,
+                            audio_original_mime: originalAudioMime,
+                        }
+                        : {}),
                 },
             })
             .select('id, created_at')

@@ -3,6 +3,7 @@ import {
     AlertCircle,
     CheckCircle2,
     ImagePlus,
+    Mail,
     Mic,
     Square,
     UploadCloud,
@@ -11,6 +12,29 @@ import {
 const MAX_IMAGE_BYTES = 12 * 1024 * 1024;
 const MAX_AUDIO_BYTES = 25 * 1024 * 1024;
 const ALLOWED_IMAGE_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'webp', 'gif', 'heic', 'heif']);
+const RECORDING_MIME_CANDIDATES = [
+    'audio/mp4;codecs=mp4a.40.2',
+    'audio/mp4',
+    'audio/webm;codecs=opus',
+    'audio/webm',
+    'audio/ogg;codecs=opus',
+    'audio/ogg',
+    'audio/wav',
+];
+
+function normalizeMimeType(mimeType: string): string {
+    const normalized = mimeType.toLowerCase().trim().split(';')[0]?.trim() || '';
+
+    if (normalized === 'audio/x-m4a' || normalized === 'audio/m4a' || normalized === 'audio/mp4a-latm') {
+        return 'audio/mp4';
+    }
+
+    if (normalized === 'audio/x-wav') return 'audio/wav';
+    if (normalized === 'audio/mpga') return 'audio/mpeg';
+    if (normalized === 'image/jpg') return 'image/jpeg';
+
+    return normalized;
+}
 
 function formatBytes(bytes: number): string {
     if (!bytes) return '0 B';
@@ -33,16 +57,28 @@ function formatTime(seconds: number): string {
 }
 
 function extensionForAudioMime(mimeType: string): string {
-    if (mimeType.includes('mp4')) return 'm4a';
-    if (mimeType.includes('mpeg')) return 'mp3';
-    if (mimeType.includes('ogg')) return 'ogg';
-    if (mimeType.includes('wav')) return 'wav';
+    const normalized = normalizeMimeType(mimeType);
+
+    if (normalized.includes('mp4')) return 'm4a';
+    if (normalized.includes('mpeg')) return 'mp3';
+    if (normalized.includes('ogg')) return 'ogg';
+    if (normalized.includes('wav')) return 'wav';
     return 'webm';
 }
 
 function getFileExtension(fileName: string): string {
     const parts = fileName.toLowerCase().split('.');
     return parts.length > 1 ? parts[parts.length - 1] : '';
+}
+
+function getPreferredRecordingMimeType(): string {
+    if (typeof MediaRecorder === 'undefined' || typeof MediaRecorder.isTypeSupported !== 'function') {
+        return '';
+    }
+
+    return (
+        RECORDING_MIME_CANDIDATES.find((mimeType) => MediaRecorder.isTypeSupported(mimeType)) || ''
+    );
 }
 
 export default function OnePhotoSubmissionForm() {
@@ -186,11 +222,7 @@ export default function OnePhotoSubmissionForm() {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             mediaStreamRef.current = stream;
 
-            const preferredMimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
-                ? 'audio/webm;codecs=opus'
-                : MediaRecorder.isTypeSupported('audio/mp4')
-                    ? 'audio/mp4'
-                    : '';
+            const preferredMimeType = getPreferredRecordingMimeType();
 
             const recorder = preferredMimeType
                 ? new MediaRecorder(stream, { mimeType: preferredMimeType })
@@ -206,8 +238,11 @@ export default function OnePhotoSubmissionForm() {
             };
 
             recorder.onstop = () => {
+                const resolvedMimeType = normalizeMimeType(
+                    recorder.mimeType || preferredMimeType || chunksRef.current[0]?.type || 'audio/webm',
+                );
                 const blob = new Blob(chunksRef.current, {
-                    type: recorder.mimeType || preferredMimeType || 'audio/webm',
+                    type: resolvedMimeType,
                 });
                 const duration = Math.max(1, Math.round((Date.now() - startedAt) / 1000));
 
@@ -221,7 +256,7 @@ export default function OnePhotoSubmissionForm() {
                 } else {
                     setAudioBlob(blob);
                     setAudioDurationSeconds(duration);
-                    setAudioMimeType(recorder.mimeType || preferredMimeType || 'audio/webm');
+                    setAudioMimeType(resolvedMimeType);
                 }
 
                 setIsRecording(false);
@@ -244,7 +279,9 @@ export default function OnePhotoSubmissionForm() {
             setAudioBlob(null);
             setAudioPreviewUrl('');
             setAudioDurationSeconds(0);
-            setAudioMimeType(recorder.mimeType || preferredMimeType || 'audio/webm');
+            setAudioMimeType(
+                normalizeMimeType(recorder.mimeType || preferredMimeType || 'audio/webm'),
+            );
             setElapsedSeconds(0);
             setIsRecording(true);
 
@@ -315,7 +352,7 @@ export default function OnePhotoSubmissionForm() {
             }
 
             if (audioBlob) {
-                const mimeType = audioMimeType || audioBlob.type || 'audio/webm';
+                const mimeType = normalizeMimeType(audioMimeType || audioBlob.type || 'audio/webm');
                 const extension = extensionForAudioMime(mimeType);
                 formData.append('audio', audioBlob, `one-photo-note.${extension}`);
                 formData.append('audio_duration_seconds', audioDurationSeconds.toString());
@@ -375,6 +412,20 @@ export default function OnePhotoSubmissionForm() {
                     >
                         Share another response
                     </button>
+                </div>
+                <div className="one-photo-followup" role="status" aria-live="polite">
+                    <div className="one-photo-followup__icon" aria-hidden="true">
+                        <Mail size={15} />
+                    </div>
+                    <div className="one-photo-followup__body">
+                        <p>
+                            Want to stay updated? I share one short monthly newsletter with
+                            research notes and useful creative resources.
+                        </p>
+                        <a className="one-photo-followup__link" href="/newsletter">
+                            Subscribe to the newsletter
+                        </a>
+                    </div>
                 </div>
                 <p className="one-photo-reference">Reference: {submissionId}</p>
             </div>
