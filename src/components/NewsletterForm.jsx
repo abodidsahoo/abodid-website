@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { markNewsletterPopupSubscribed } from "../lib/newsletter/popupState";
 
 const getJourneyTrackingSnapshot = () => {
     if (typeof window === "undefined") return null;
@@ -83,11 +84,11 @@ const NewsletterForm = ({ onClose, variant = "popup" }) => {
                 form_variant: variant,
             });
             if (variant === "popup") {
-                localStorage.setItem("newsletter_popup_dismissed", "true");
+                markNewsletterPopupSubscribed();
                 // Auto close popup after success message
                 if (onClose) {
                     setTimeout(() => {
-                        onClose();
+                        onClose({ persistDismissal: false });
                     }, 5000);
                 }
             }

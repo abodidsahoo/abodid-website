@@ -6,7 +6,11 @@ const Breadcrumbs = ({ variant = 'default' }) => {
     useEffect(() => {
         const path = window.location.pathname;
         if (path === '/') {
-            setPathSegments([]);
+            if (variant === 'mobile') {
+                setPathSegments([{ label: 'Home', url: '/' }]);
+            } else {
+                setPathSegments([]);
+            }
             return;
         }
 
@@ -210,6 +214,46 @@ const Breadcrumbs = ({ variant = 'default' }) => {
                     font-size: 0.85em;
                 }
 
+                .breadcrumbs-nav.mobile {
+                    width: 100%;
+                    min-width: 0;
+                }
+
+                .breadcrumbs-nav.mobile .breadcrumb-list {
+                    width: 100%;
+                    gap: 0.65rem;
+                    flex-wrap: nowrap;
+                    overflow-x: auto;
+                    scrollbar-width: none;
+                    white-space: nowrap;
+                    font-size: 0.68rem;
+                    letter-spacing: 0.08em;
+                    color: rgba(255, 255, 255, 0.74);
+                }
+
+                .breadcrumbs-nav.mobile .breadcrumb-list::-webkit-scrollbar {
+                    display: none;
+                }
+
+                .breadcrumbs-nav.mobile .breadcrumb-item {
+                    flex: 0 0 auto;
+                    opacity: 1;
+                }
+
+                .breadcrumbs-nav.mobile .breadcrumb-link {
+                    color: inherit;
+                    text-decoration: none;
+                }
+
+                .breadcrumbs-nav.mobile .separator {
+                    opacity: 0.36;
+                }
+
+                .breadcrumbs-nav.mobile .current-page {
+                    color: #ffffff;
+                    font-weight: 700;
+                }
+
                 .vertical-separator-line {
                     width: 1px;
                     height: 40px; /* Thin white line above Menu */
@@ -234,6 +278,16 @@ const Breadcrumbs = ({ variant = 'default' }) => {
                         justify-content: flex-start; /* Align left */
                         flex-wrap: wrap; /* allow wrap if very deep */
                         gap: 0.5rem; /* Reset gap */
+                    }
+
+                    .breadcrumbs-nav.mobile {
+                        margin: 0;
+                    }
+
+                    .breadcrumbs-nav.mobile .breadcrumb-list {
+                        font-size: 0.66rem;
+                        flex-wrap: nowrap;
+                        gap: 0.55rem;
                     }
                 }
             `}</style>

@@ -137,7 +137,13 @@ const finalType = type || dbMetadata?.og_type || "website";
     <a href="#main-content" class="skip-link">Skip to main content</a>
     <!-- <Header /> -->
     {!hideHeader && <Header hideThemeToggle={hideThemeToggle} altTextLogo={altTextLogo} />}
-    {!hideHeader && <SideMenuRail client:load />}
+    {!hideHeader && (
+      <SideMenuRail
+        client:load
+        hideThemeToggle={hideThemeToggle}
+        altTextLogo={altTextLogo}
+      />
+    )}
     {showGlobalGrid && <div class="global-grid-bg"></div>}
     {showGlobalGrid && <div class="global-glow-bg"></div>}
     <main

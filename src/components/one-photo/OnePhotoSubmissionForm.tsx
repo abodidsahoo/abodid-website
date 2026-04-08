@@ -318,14 +318,6 @@ export default function OnePhotoSubmissionForm() {
         setErrorMessage(null);
     };
 
-    const shareAnother = () => {
-        setSubmissionId(null);
-        setStory('');
-        setImageFile(null);
-        resetAudio();
-        setErrorMessage(null);
-    };
-
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setErrorMessage(null);
@@ -396,22 +388,16 @@ export default function OnePhotoSubmissionForm() {
                     Thank you for sharing the story behind the photograph which stays with you
                     amongst thousands of images.
                 </h2>
-                <p>
-                    If you would like to check out more of my photography projects, do check out
-                    the page below. I absolutely love photography and would be glad to collaborate
-                    on photographs, image making, memory, and research around all of it.
-                </p>
                 <div className="rw-button-row one-photo-actions">
                     <a className="rw-button rw-button--primary" href="/one-photo/responses">
                         See all responses
                     </a>
-                    <button
+                    <a
                         className="rw-button rw-button--secondary"
-                        type="button"
-                        onClick={shareAnother}
+                        href="/research/invisible-punctum"
                     >
-                        Share another response
-                    </button>
+                        Read more about the project
+                    </a>
                 </div>
                 <div className="one-photo-followup" role="status" aria-live="polite">
                     <div className="one-photo-followup__icon" aria-hidden="true">

@@ -20,17 +20,13 @@ const pageDescription =
     bodyClass="paper-renamer-route one-photo-route"
 >
     <section class="rw-page one-photo-page">
-        <div class="rw-stage one-photo-stage">
+        <div class="rw-stage one-photo-stage one-photo-stage--form">
             <div class="one-photo-shell">
-                <a class="rw-eyebrow one-photo-home-link" href="/">
-                    <span>abodid.com</span>
-                </a>
+                <a class="rw-eyebrow one-photo-home-link" href="/">abodid.com</a>
 
                 <header class="rw-mini-hero one-photo-hero">
-                    <div class="rw-eyebrow">
-                        <span>BSA Poster Response</span>
-                    </div>
-                    <h1>Share the one photo that stays with you.</h1>
+                    <div class="rw-eyebrow">BSA Poster Response</div>
+                    <h1>Share the story behind the one photo that stays with you.</h1>
                     <p>
                         This page accompanies my British Sociological Association project on
                         photography, memory, and emotionally weighted images. You can upload one
@@ -80,29 +76,18 @@ const pageDescription =
 
     .one-photo-stage {
         max-width: 920px;
-        border: 1px solid rgba(35, 28, 24, 0.08);
-        background: linear-gradient(180deg, #fcfaf7 0%, #f5efe8 100%);
-        box-shadow:
-            0 20px 48px rgba(36, 24, 15, 0.08),
-            inset 0 1px 0 rgba(255, 255, 255, 0.72);
+        border: 0;
+        background: transparent;
+        box-shadow: none;
+        overflow: visible;
     }
 
     .one-photo-stage::before {
-        width: 200px;
-        height: 200px;
-        top: -92px;
-        left: -80px;
-        background: rgba(163, 0, 33, 0.07);
-        filter: blur(10px);
+        display: none;
     }
 
     .one-photo-stage::after {
-        width: 180px;
-        height: 180px;
-        right: -60px;
-        bottom: -80px;
-        background: rgba(163, 0, 33, 0.05);
-        filter: blur(10px);
+        display: none;
     }
 
     .one-photo-shell {
@@ -116,8 +101,10 @@ const pageDescription =
         width: fit-content;
         text-decoration: none;
         color: var(--color-brand-red);
-        border-color: rgba(163, 0, 33, 0.16);
-        background: rgba(255, 255, 255, 0.96);
+        padding: 0;
+        border: 0;
+        background: transparent;
+        box-shadow: none;
     }
 
     .one-photo-hero {
@@ -145,9 +132,10 @@ const pageDescription =
         box-shadow: 0 14px 32px rgba(36, 24, 15, 0.06);
     }
 
-    :global(.rw-eyebrow) {
-        border-color: rgba(163, 0, 33, 0.14);
-        background: rgba(255, 255, 255, 0.96);
+    .one-photo-hero :global(.rw-eyebrow) {
+        padding: 0;
+        border: 0;
+        background: transparent;
         color: var(--color-brand-red);
     }
 

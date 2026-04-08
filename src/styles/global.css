@@ -47,6 +47,7 @@
     monospace;
 
   /* LAYOUT VARIABLES */
+  --page-gutter: 24px;
   --max-width: 1400px;
   --space-xs: 0.5rem;
   --space-sm: 0.75rem;
@@ -806,7 +807,7 @@ button.btn-secondary:hover {
   width: 100%;
   max-width: var(--max-width) !important;
   margin: 0 auto !important;
-  padding: 0 24px;
+  padding: 0 var(--page-gutter);
   box-sizing: border-box;
 }
 
@@ -986,4 +987,35 @@ main {
   border: 1px solid #e0e0e0 !important;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12) !important;
   /* Stronger shadow on white */
+}
+
+@media (max-width: 768px) {
+  :root {
+    --page-gutter: 18px;
+  }
+
+  .container {
+    padding-inline: var(--page-gutter);
+  }
+
+  body[data-page-path="/contact"] .container.page-content,
+  body[data-page-path^="/resources"] .container.page-content {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  body[data-page-path="/contact"] .contact-wrapper {
+    padding-left: var(--page-gutter) !important;
+    padding-right: var(--page-gutter) !important;
+  }
+
+  body[data-page-path^="/resources"] :where(.hub-container, .page-header, .profile-header) {
+    padding-left: var(--page-gutter) !important;
+    padding-right: var(--page-gutter) !important;
+  }
+
+  body[data-page-path^="/resources"] :where(.page-header, .profile-header) {
+    margin-left: auto;
+    margin-right: auto;
+  }
 }

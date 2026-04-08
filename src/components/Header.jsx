@@ -64,6 +64,10 @@ const headerStyles = `
     }
 
     @media (max-width: 768px) {
+        .floating-addons-container {
+            display: none;
+        }
+
         .floating-logo-wrapper {
             top: 18px;
             right: 18px;

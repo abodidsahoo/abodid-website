@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from 'react';
 
-const ThemeToggle = () => {
+const ThemeToggle = ({ variant = 'rail' }) => {
     const [theme, setTheme] = useState('dark');
+    const toggleClassName =
+        variant === 'compact'
+            ? `rail-theme-toggle rail-theme-toggle-compact ${theme}`
+            : `rail-theme-toggle ${theme}`;
 
     useEffect(() => {
         // Initialize state from document or local storage
@@ -36,7 +40,7 @@ const ThemeToggle = () => {
     return (
         <>
             <button
-                className={`rail-theme-toggle ${theme}`}
+                className={toggleClassName}
                 aria-label={`Current mode: ${theme}`}
                 title="Toggle Website Theme"
                 onClick={toggleTheme}
@@ -146,6 +150,51 @@ const ThemeToggle = () => {
                     opacity: 0.8;
                 }
 
+                .rail-theme-toggle-compact {
+                    width: 54px;
+                    height: 30px;
+                    border-width: 1.5px;
+                    border-radius: 999px;
+                }
+
+                .rail-theme-toggle-compact .rail-toggle-slider {
+                    top: 50%;
+                    left: 3px;
+                    width: 20px;
+                    height: 20px;
+                    transform: translateY(-50%);
+                }
+
+                .rail-theme-toggle-compact.dark .rail-toggle-slider {
+                    transform: translate(27px, -50%);
+                }
+
+                .rail-theme-toggle-compact.light .rail-toggle-slider {
+                    transform: translate(0, -50%);
+                }
+
+                .rail-theme-toggle-compact .rail-toggle-icons {
+                    flex-direction: row;
+                    align-items: center;
+                    justify-content: space-between;
+                    padding: 0 7px;
+                }
+
+                .rail-theme-toggle-compact .rail-icon {
+                    width: 11px;
+                    height: 11px;
+                }
+
+                .rail-theme-toggle-compact.dark .rail-sun-icon,
+                .rail-theme-toggle-compact.light .rail-moon-icon {
+                    opacity: 1;
+                }
+
+                .rail-theme-toggle-compact.dark .rail-moon-icon,
+                .rail-theme-toggle-compact.light .rail-sun-icon {
+                    opacity: 0.35;
+                }
+
                 @media (max-width: 768px) {
                     .rail-theme-toggle {
                         width: 28px; /* Matches hamburger-line 28px on mobile */
@@ -165,6 +214,20 @@ const ThemeToggle = () => {
                     .rail-icon {
                         width: 12px;
                         height: 12px;
+                    }
+
+                    .rail-theme-toggle-compact {
+                        width: 50px;
+                        height: 28px;
+                    }
+
+                    .rail-theme-toggle-compact .rail-toggle-slider {
+                        width: 18px;
+                        height: 18px;
+                    }
+
+                    .rail-theme-toggle-compact.dark .rail-toggle-slider {
+                        transform: translate(25px, -50%);
                     }
                 }
             `}</style>

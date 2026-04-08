@@ -49,6 +49,18 @@ body.one-photo-route .rw-stage.one-photo-stage {
   overflow: hidden !important;
 }
 
+body.one-photo-route .rw-stage.one-photo-stage.one-photo-stage--form {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+
+body.one-photo-route .rw-stage.one-photo-stage.one-photo-stage--form::before,
+body.one-photo-route .rw-stage.one-photo-stage.one-photo-stage--form::after {
+  display: none;
+}
+
 body.one-photo-route .rw-stage.one-photo-stage::before,
 body.one-photo-route .rw-stage.one-photo-stage::after {
   content: "";
@@ -86,9 +98,20 @@ body.one-photo-route .one-photo-shell {
 body.one-photo-route .one-photo-home-link {
   display: inline-flex;
   width: fit-content;
-  padding: 0.2rem 0;
+  padding: 0;
   color: var(--color-brand-red) !important;
   text-decoration: none;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+body.one-photo-route .one-photo-hero .rw-eyebrow {
+  padding: 0;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--color-brand-red) !important;
 }
 
 body.one-photo-route .rw-eyebrow {

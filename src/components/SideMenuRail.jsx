@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Breadcrumbs from "./Breadcrumbs";
 import ThemeToggle from "./ThemeToggle.jsx";
@@ -84,7 +84,7 @@ const socialLinks = [
   },
 ];
 
-const SideMenuRail = () => {
+const SideMenuRail = ({ hideThemeToggle = false, altTextLogo = null }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [headerOffset, setHeaderOffset] = useState(80);
   const progressBarRef = useRef(null);
@@ -93,7 +93,9 @@ const SideMenuRail = () => {
     const syncHeaderOffset = () => {
       const nav = document.querySelector(".fixed-nav");
       const navHeight = nav?.getBoundingClientRect().height;
-      setHeaderOffset(Math.round(navHeight || (window.innerWidth <= 768 ? 70 : 80)));
+      setHeaderOffset(
+        Math.round(navHeight || (window.innerWidth <= 768 ? 70 : 80)),
+      );
     };
 
     syncHeaderOffset();
@@ -104,10 +106,9 @@ const SideMenuRail = () => {
     };
   }, []);
 
-  // Scroll Progress Effect
   useEffect(() => {
     const progressBar = progressBarRef.current;
-    if (!progressBar || typeof window === 'undefined') return undefined;
+    if (!progressBar || typeof window === "undefined") return undefined;
 
     let frameId = 0;
     let resizeObserver;
@@ -129,11 +130,11 @@ const SideMenuRail = () => {
     };
 
     requestProgressUpdate();
-    window.addEventListener('scroll', requestProgressUpdate, { passive: true });
-    window.addEventListener('resize', requestProgressUpdate);
-    window.addEventListener('load', requestProgressUpdate);
+    window.addEventListener("scroll", requestProgressUpdate, { passive: true });
+    window.addEventListener("resize", requestProgressUpdate);
+    window.addEventListener("load", requestProgressUpdate);
 
-    if (typeof ResizeObserver !== 'undefined') {
+    if (typeof ResizeObserver !== "undefined") {
       resizeObserver = new ResizeObserver(requestProgressUpdate);
       resizeObserver.observe(document.body);
     }
@@ -143,9 +144,9 @@ const SideMenuRail = () => {
         window.cancelAnimationFrame(frameId);
       }
       resizeObserver?.disconnect();
-      window.removeEventListener('scroll', requestProgressUpdate);
-      window.removeEventListener('resize', requestProgressUpdate);
-      window.removeEventListener('load', requestProgressUpdate);
+      window.removeEventListener("scroll", requestProgressUpdate);
+      window.removeEventListener("resize", requestProgressUpdate);
+      window.removeEventListener("load", requestProgressUpdate);
     };
   }, []);
 
@@ -178,15 +179,62 @@ const SideMenuRail = () => {
 
   const closeMenu = () => setIsOpen(false);
   const toggleMenu = () => setIsOpen((current) => !current);
+  const renderHomeLink = (className) => (
+    <a href="/" className={className} aria-label="Abodid Home">
+      {altTextLogo ? (
+        <span className="mobile-home-pill">{altTextLogo}</span>
+      ) : (
+        <img
+          src="/images/signature-white.png"
+          alt="Signature"
+          className="mobile-logo-img"
+        />
+      )}
+    </a>
+  );
 
   return (
     <>
+      <div className={`mobile-nav-shell ${isOpen ? "is-open" : ""}`}>
+        <div className="mobile-topbar">
+          <button
+            type="button"
+            className="mobile-topbar-button mobile-topbar-menu"
+            aria-controls="side-menu-panel"
+            aria-expanded={isOpen}
+            aria-label={isOpen ? "Close site menu" : "Open site menu"}
+            onClick={toggleMenu}
+          >
+            <span className="mobile-menu-icon" aria-hidden="true">
+              <span className="mobile-hamburger-line" />
+              <span className="mobile-hamburger-line" />
+              <span className="mobile-hamburger-line" />
+            </span>
+            <span className="mobile-menu-text">{isOpen ? "Close" : "Menu"}</span>
+          </button>
+
+          <div className="mobile-topbar-brand">
+            {renderHomeLink("mobile-logo-link")}
+          </div>
+
+          {!hideThemeToggle ? (
+            <ThemeToggle variant="compact" />
+          ) : (
+            <div className="mobile-topbar-spacer" aria-hidden="true" />
+          )}
+        </div>
+
+        <div className="mobile-breadcrumb-bar">
+          <Breadcrumbs variant="mobile" />
+        </div>
+      </div>
+
       <div
         className={`side-menu-shell ${isOpen ? "is-open" : ""}`}
         style={{
           "--header-offset": `${headerOffset}px`,
-          "--side-menu-top": `0px`,
-          "--side-panel-height": `100vh`,
+          "--side-menu-top": "0px",
+          "--side-panel-height": "100vh",
         }}
       >
         <div className="side-menu-rail">
@@ -205,23 +253,24 @@ const SideMenuRail = () => {
                 <span className="hamburger-line" />
               </span>
             </button>
-            <ThemeToggle />
+
+            {!hideThemeToggle && <ThemeToggle />}
           </div>
 
           <div className="rail-bottom-group">
             <div className="vertical-breadcrumbs-wrapper">
-               <Breadcrumbs variant="vertical" />
+              <Breadcrumbs variant="vertical" />
             </div>
-            
+
             <button
-               type="button"
-               className="rail-action-btn rail-action-bottom"
-               aria-controls="side-menu-panel"
-               aria-expanded={isOpen}
-               onClick={toggleMenu}
-               aria-label={isOpen ? "Close site menu" : "Open site menu"}
+              type="button"
+              className="rail-action-btn rail-action-bottom"
+              aria-controls="side-menu-panel"
+              aria-expanded={isOpen}
+              onClick={toggleMenu}
+              aria-label={isOpen ? "Close site menu" : "Open site menu"}
             >
-               <span className="side-menu-rail-label">Menu</span>
+              <span className="side-menu-rail-label">Menu</span>
             </button>
           </div>
 
@@ -278,7 +327,9 @@ const SideMenuRail = () => {
                               key={`${group.title}-${link.href}`}
                               href={link.href}
                               target={link.target}
-                              rel={link.target === "_blank" ? "noreferrer" : undefined}
+                              rel={
+                                link.target === "_blank" ? "noreferrer" : undefined
+                              }
                               className="side-menu-secondary-link"
                               onClick={closeMenu}
                               slide={8}
@@ -292,13 +343,17 @@ const SideMenuRail = () => {
 
                     <div className="side-menu-column side-menu-column-right">
                       <div className="side-menu-group" key="credentials">
-                        <div className="side-menu-group-title">{secondaryGroups[2].title}</div>
+                        <div className="side-menu-group-title">
+                          {secondaryGroups[2].title}
+                        </div>
                         {secondaryGroups[2].links.map((link) => (
                           <SideMenuLink
                             key={`${secondaryGroups[2].title}-${link.href}`}
                             href={link.href}
                             target={link.target}
-                            rel={link.target === "_blank" ? "noreferrer" : undefined}
+                            rel={
+                              link.target === "_blank" ? "noreferrer" : undefined
+                            }
                             className="side-menu-secondary-link"
                             onClick={closeMenu}
                             slide={8}
@@ -309,13 +364,17 @@ const SideMenuRail = () => {
                       </div>
 
                       <div className="side-menu-group" key="contact">
-                        <div className="side-menu-group-title">{secondaryGroups[3].title}</div>
+                        <div className="side-menu-group-title">
+                          {secondaryGroups[3].title}
+                        </div>
                         {secondaryGroups[3].links.map((link) => (
                           <SideMenuLink
                             key={`${secondaryGroups[3].title}-${link.href}`}
                             href={link.href}
                             target={link.target}
-                            rel={link.target === "_blank" ? "noreferrer" : undefined}
+                            rel={
+                              link.target === "_blank" ? "noreferrer" : undefined
+                            }
                             className="side-menu-secondary-link"
                             onClick={closeMenu}
                             slide={8}
@@ -355,11 +414,11 @@ const SideMenuRail = () => {
       <style suppressHydrationWarning>{`
         :root {
           --app-rail-width: 76px;
-        }
-        @media (max-width: 768px) {
-          :root {
-            --app-rail-width: 66px;
-          }
+          --mobile-topbar-height: 72px;
+          --mobile-breadcrumb-height: 44px;
+          --mobile-header-offset: calc(
+            var(--mobile-topbar-height) + var(--mobile-breadcrumb-height)
+          );
         }
 
         body {
@@ -370,6 +429,10 @@ const SideMenuRail = () => {
         .fixed-nav {
           left: var(--app-rail-width) !important;
           width: calc(100% - var(--app-rail-width)) !important;
+        }
+
+        .mobile-nav-shell {
+          display: none;
         }
 
         .side-menu-shell {
@@ -400,7 +463,7 @@ const SideMenuRail = () => {
           flex-direction: column;
           align-items: center;
           justify-content: space-between;
-          padding: 1.15rem 0.65rem 2.5rem; /* Increased bottom padding to lift Menu up slightly */
+          padding: 1.15rem 0.65rem 2.5rem;
           box-shadow: 0 22px 44px rgba(0, 0, 0, 0.28);
           transition: box-shadow 0.25s ease, border-radius 0.25s ease;
         }
@@ -413,7 +476,7 @@ const SideMenuRail = () => {
           position: absolute;
           top: 0;
           right: 0;
-          width: 4px; /* thick white line */
+          width: 4px;
           height: 100vh;
           background: transparent;
           pointer-events: none;
@@ -474,7 +537,7 @@ const SideMenuRail = () => {
           display: flex;
           flex-direction: column;
           align-items: center;
-          justify-content: flex-end; /* allows content to flow upwards if needed visually */
+          justify-content: flex-end;
           width: 100%;
         }
 
@@ -707,62 +770,211 @@ const SideMenuRail = () => {
         }
 
         @media (max-width: 768px) {
+          :root {
+            --app-rail-width: 0px;
+            --mobile-topbar-height: calc(72px + env(safe-area-inset-top, 0px));
+            --mobile-breadcrumb-height: 44px;
+            --mobile-header-offset: calc(
+              var(--mobile-topbar-height) + var(--mobile-breadcrumb-height)
+            );
+          }
+
+          body {
+            padding-left: 0;
+            padding-top: var(--mobile-header-offset);
+          }
+
+          .fixed-nav {
+            left: 0 !important;
+            width: 100% !important;
+          }
+
+          .mobile-nav-shell {
+            position: fixed;
+            inset: 0 0 auto 0;
+            z-index: 10008;
+            display: flex;
+            flex-direction: column;
+            pointer-events: none;
+          }
+
+          .mobile-nav-shell > * {
+            pointer-events: auto;
+          }
+
+          .mobile-topbar {
+            height: var(--mobile-topbar-height);
+            padding: env(safe-area-inset-top, 0px) 1rem 0;
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            gap: 0.9rem;
+            background: #050505;
+            color: #ffffff;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+          }
+
+          .mobile-topbar-brand {
+            display: flex;
+            justify-content: center;
+            min-width: 0;
+          }
+
+          .mobile-logo-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 0;
+            text-decoration: none;
+          }
+
+          .mobile-logo-img {
+            display: block;
+            width: auto;
+            height: 40px;
+            max-width: min(42vw, 180px);
+            object-fit: contain;
+          }
+
+          .mobile-home-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 32px;
+            padding: 0.45rem 0.95rem;
+            border: 1px solid rgba(255, 255, 255, 0.26);
+            border-radius: 999px;
+            color: #ffffff;
+            font-family: var(--font-ui);
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            white-space: nowrap;
+          }
+
+          .mobile-topbar-button {
+            border: 0;
+            background: transparent;
+            color: inherit;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0;
+            min-width: 64px;
+            cursor: pointer;
+            font-family: var(--font-ui);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-size: 0.7rem;
+          }
+
+          .mobile-topbar-menu {
+            justify-self: start;
+          }
+
+          .mobile-menu-icon {
+            position: relative;
+            width: 24px;
+            height: 24px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 auto;
+          }
+
+          .mobile-hamburger-line {
+            position: absolute;
+            left: 50%;
+            width: 22px;
+            height: 2px;
+            border-radius: 999px;
+            background: #ffffff;
+            transform: translate(-50%, -50%);
+            transition: transform 0.24s ease, opacity 0.18s ease;
+          }
+
+          .mobile-hamburger-line:nth-child(1) {
+            top: calc(50% - 6px);
+          }
+
+          .mobile-hamburger-line:nth-child(2) {
+            top: 50%;
+          }
+
+          .mobile-hamburger-line:nth-child(3) {
+            top: calc(50% + 6px);
+          }
+
+          .mobile-nav-shell.is-open .mobile-hamburger-line:nth-child(1) {
+            top: 50%;
+            transform: translate(-50%, -50%) rotate(45deg);
+          }
+
+          .mobile-nav-shell.is-open .mobile-hamburger-line:nth-child(2) {
+            opacity: 0;
+          }
+
+          .mobile-nav-shell.is-open .mobile-hamburger-line:nth-child(3) {
+            top: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+          }
+
+          .mobile-menu-text {
+            color: rgba(255, 255, 255, 0.84);
+          }
+
+          .mobile-topbar-spacer {
+            width: 50px;
+            height: 28px;
+          }
+
+          .mobile-breadcrumb-bar {
+            height: var(--mobile-breadcrumb-height);
+            display: flex;
+            align-items: center;
+            padding: 0 1rem;
+            background: #050505;
+            color: #ffffff;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+          }
+
           .side-menu-shell {
-            --rail-width: 66px;
-            --panel-width: calc(100vw - 66px);
+            --rail-width: 0px;
+            --panel-width: 100vw;
             --panel-gap: 0px;
           }
 
           .side-menu-rail {
-            height: 100vh;
-            border-radius: 0;
-            padding-top: 0.95rem;
+            display: none;
           }
 
-          .hamburger-line {
-            width: 28px;
-            height: 2px;
-          }
-
-          .side-menu-rail-top {
-            width: 28px;
-            height: 28px;
-          }
-
-          .hamburger-line:nth-child(1) {
-            transform: translate(-50%, calc(-50% - 6px));
-          }
-
-          .hamburger-line:nth-child(3) {
-            transform: translate(-50%, calc(-50% + 6px));
-          }
-
-          .side-menu-shell.is-open .hamburger-line:nth-child(1) {
-            transform: translate(-50%, -50%) rotate(45deg);
-          }
-
-          .side-menu-shell.is-open .hamburger-line:nth-child(3) {
-            transform: translate(-50%, -50%) rotate(-45deg);
-          }
-
-          .side-menu-rail-label {
-            font-size: 0.72rem;
-            letter-spacing: 0.45em;
+          .side-menu-backdrop {
+            inset: var(--mobile-header-offset) 0 0 0;
+            background: rgba(4, 4, 4, 0.7);
           }
 
           .side-menu-panel {
-            left: var(--rail-width);
+            top: var(--mobile-header-offset);
+            left: 0;
+            width: 100vw;
+            height: calc(100vh - var(--mobile-header-offset));
             border-radius: 0;
+            box-shadow: 0 22px 50px rgba(0, 0, 0, 0.42);
           }
 
           .side-menu-main {
             gap: 1.05rem;
-            padding-top: 2rem;
-            padding-bottom: 2rem;
+            padding-top: 1.65rem;
+            padding-bottom: 1.65rem;
           }
 
           .side-menu-secondary {
             gap: 1rem;
+          }
+
+          .side-menu-primary-link {
+            font-size: clamp(1.4rem, 6vw, 2rem);
           }
         }
       `}</style>
