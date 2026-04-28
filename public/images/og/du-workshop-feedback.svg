@@ -1,0 +1,20 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      @font-face {
+        font-family: "SatoshiOG";
+        src: url("../../fonts/satoshi/Satoshi-Variable.ttf") format("truetype");
+        font-weight: 300 900;
+      }
+      .title {
+        font-family: "SatoshiOG", "Helvetica Neue", Arial, sans-serif;
+        font-size: 92px;
+        font-weight: 760;
+        letter-spacing: 0;
+        fill: #010101;
+      }
+    </style>
+  </defs>
+  <rect width="1200" height="630" fill="#ffffff"/>
+  <text class="title" x="600" y="315" text-anchor="middle" dominant-baseline="middle">workshop feedback</text>
+</svg>

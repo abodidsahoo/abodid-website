@@ -17,6 +17,7 @@ const {
   type,
   useDynamicOgImage = true,
   hideHeader = false,
+  hideSideMenuRail = false,
   hideFooter = false,
   fullWidth = false,
   hideThemeToggle = false,
@@ -137,7 +138,7 @@ const finalType = type || dbMetadata?.og_type || "website";
     <a href="#main-content" class="skip-link">Skip to main content</a>
     <!-- <Header /> -->
     {!hideHeader && <Header hideThemeToggle={hideThemeToggle} altTextLogo={altTextLogo} />}
-    {!hideHeader && (
+    {!hideHeader && !hideSideMenuRail && (
       <SideMenuRail
         client:load
         hideThemeToggle={hideThemeToggle}
