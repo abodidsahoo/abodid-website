@@ -1,0 +1,419 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { createClient } from "@supabase/supabase-js";
+
+export const prerender = false;
+
+const pageTitle = "Workshop Responses";
+const pageDescription = "Feedback responses from the Delhi University ethnographic filmmaking workshop.";
+
+const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL || process.env.PUBLIC_SUPABASE_URL;
+const serviceRoleKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+let feedbackData = [];
+
+if (supabaseUrl && serviceRoleKey) {
+    const supabase = createClient(supabaseUrl, serviceRoleKey);
+    const { data, error } = await supabase
+        .from("du_workshop_feedback")
+        .select("*")
+        .order("created_at", { ascending: false });
+    
+    if (!error && data) {
+        feedbackData = data;
+    }
+}
+
+// Helper to format date
+const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('en-US', {
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: 'numeric',
+        hour12: true
+    }).format(date);
+};
+
+// Helper to obscure email for privacy
+const obscureEmail = (email) => {
+    if (!email || !email.includes('@')) return email;
+    const [localPart, domain] = email.split('@');
+    if (localPart.length <= 2) {
+        return localPart.charAt(0) + '*'.repeat(localPart.length) + '@' + domain;
+    }
+    
+    const obfuscateCount = Math.max(1, Math.floor(localPart.length * 0.5));
+    const startKeepCount = Math.floor((localPart.length - obfuscateCount) / 2);
+    
+    const start = localPart.slice(0, startKeepCount);
+    const middle = '*'.repeat(obfuscateCount);
+    const end = localPart.slice(startKeepCount + obfuscateCount);
+    
+    return `${start}${middle}${end}@${domain}`;
+};
+
+// Helper to format name to title case
+const titleCaseName = (name) => {
+    if (!name) return "";
+    return name.trim().toLowerCase().split(/\s+/).map(word => 
+        word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(' ');
+};
+---
+
+<BaseLayout
+    title={pageTitle}
+    description={pageDescription}
+    fullWidth={true}
+    hideSideMenuRail={true}
+    hideThemeToggle={true}
+    showNewsletterPopup={false}
+    showGlobalGrid={false}
+    showCursorFollower={false}
+    bodyClass="du-responses-route"
+>
+    <section class="du-responses-page">
+        <div class="du-responses-shell">
+            <header class="du-responses-header">
+                <a class="du-site-mark" href="/du-workshop-feedback">← Back to form</a>
+                <h1>Workshop Feedback Responses</h1>
+                <p>Showing {feedbackData.length} responses from the Delhi University ethnographic filmmaking workshop.</p>
+            </header>
+
+            <div class="du-masonry-grid">
+                {feedbackData.map(item => {
+                    const hasName = Boolean(item.participant_name && item.participant_name.trim() !== "");
+                    const hasEmail = Boolean(item.participant_email && item.participant_email.trim() !== "");
+                    
+                    const nameDisplay = hasName ? titleCaseName(item.participant_name) : (hasEmail ? "Unknown Name" : "Anonymous Student");
+                    const emailDisplay = hasEmail ? obscureEmail(item.participant_email) : "";
+
+                    return (
+                        <article class="du-response-card">
+                            <div class="card-header">
+                                <div class="user-info">
+                                    <div class={`status-arrow ${hasEmail ? 'has-email' : hasName ? 'has-name' : 'anonymous'}`}>
+                                        {hasEmail ? (
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-send"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+                                        ) : hasName ? (
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-check"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/></svg>
+                                        ) : (
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ghost"><path d="M9 10h.01"/><path d="M14 10h.01"/><path d="M10 16c.5.3 1.5.3 2 0"/><path d="M22 12A10 10 0 1 0 2 12v8l2-2 2 2 2-2 2 2 2-2 2 2 2-2 2 2Z"/></svg>
+                                        )}
+                                    </div>
+                                    <div class="user-details">
+                                        <h3 class="user-name">{nameDisplay}</h3>
+                                        {emailDisplay && <span class="user-email">{emailDisplay}</span>}
+                                    </div>
+                                </div>
+                                <time class="response-date">{formatDate(item.created_at)}</time>
+                            </div>
+
+                            <div class="card-body">
+                                {item.best_part && (
+                                    <div class="qa-block">
+                                        <span class="question-label">Best Part</span>
+                                        <p class="answer-text">{item.best_part}</p>
+                                    </div>
+                                )}
+                                {item.improvements && (
+                                    <div class="qa-block">
+                                        <span class="question-label">Improvements</span>
+                                        <p class="answer-text">{item.improvements}</p>
+                                    </div>
+                                )}
+                                {item.future_workshop_topics && (
+                                    <div class="qa-block">
+                                        <span class="question-label">Future Topics</span>
+                                        <p class="answer-text">{item.future_workshop_topics}</p>
+                                    </div>
+                                )}
+                                {item.other_comments && (
+                                    <div class="qa-block">
+                                        <span class="question-label">Other Comments</span>
+                                        <p class="answer-text">{item.other_comments}</p>
+                                    </div>
+                                )}
+                                {!item.best_part && !item.improvements && !item.future_workshop_topics && !item.other_comments && (
+                                    <div class="qa-block empty-state">
+                                        <p class="answer-text">No text feedback provided.</p>
+                                    </div>
+                                )}
+                            </div>
+                        </article>
+                    );
+                })}
+            </div>
+        </div>
+    </section>
+</BaseLayout>
+
+<style>
+    :global(body.du-responses-route) {
+        --du-red: var(--palette-red, #ea2a10);
+        --du-light: var(--palette-light, #f9f8f3);
+        --du-dark: var(--palette-dark, #010101);
+        --du-sand: var(--palette-sand, #e0dbd3);
+        --du-grey: var(--palette-grey, #9e9992);
+        background: var(--du-light);
+        color: var(--du-dark);
+    }
+
+    :global(body.du-responses-route main) {
+        min-height: 100svh;
+    }
+
+    .du-responses-page {
+        position: relative;
+        min-height: 100svh;
+        overflow: auto;
+        background:
+            linear-gradient(90deg, rgba(234, 42, 16, 0.08) 0 3px, transparent 3px 100%),
+            linear-gradient(rgba(224, 219, 211, 0.45) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(224, 219, 211, 0.45) 1px, transparent 1px),
+            var(--du-light);
+        background-size:
+            100% 100%,
+            42px 42px,
+            42px 42px,
+            auto;
+    }
+
+    .du-responses-page::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background:
+            linear-gradient(180deg, rgba(249, 248, 243, 0.4), rgba(249, 248, 243, 0.85)),
+            linear-gradient(90deg, transparent 0 68%, rgba(1, 1, 1, 0.03) 68% 100%);
+        z-index: 0;
+    }
+
+    .du-responses-shell {
+        position: relative;
+        z-index: 1;
+        width: min(1300px, calc(100% - clamp(1.5rem, 4vw, 3rem)));
+        margin: 0 auto;
+        padding: clamp(2rem, 6svh, 4rem) 0 4rem;
+    }
+
+    .du-responses-header {
+        margin-bottom: 3rem;
+        max-width: 800px;
+    }
+
+    .du-site-mark {
+        display: inline-block;
+        color: var(--du-red);
+        font-family: var(--font-ui);
+        font-size: 0.96rem;
+        font-weight: 700;
+        text-decoration: none;
+        margin-bottom: 1.5rem;
+        transition: transform 0.2s ease;
+    }
+
+    .du-site-mark:hover {
+        transform: translateX(-4px);
+    }
+
+    .du-responses-header h1 {
+        margin: 0 0 0.75rem 0;
+        color: var(--du-dark);
+        font-family: var(--font-h1);
+        font-size: clamp(2.2rem, 4vw, 3.2rem);
+        font-weight: 850;
+        line-height: 1.05;
+        letter-spacing: -0.02em;
+    }
+
+    .du-responses-header p {
+        margin: 0;
+        color: rgba(1, 1, 1, 0.65);
+        font-family: var(--font-body);
+        font-size: 1.15rem;
+        line-height: 1.5;
+    }
+
+    .du-masonry-grid {
+        column-count: 1;
+        column-gap: 1.5rem;
+    }
+
+    @media (min-width: 768px) {
+        .du-masonry-grid {
+            column-count: 2;
+        }
+    }
+
+    @media (min-width: 1100px) {
+        .du-masonry-grid {
+            column-count: 3;
+        }
+    }
+
+    .du-response-card {
+        break-inside: avoid;
+        margin-bottom: 1.5rem;
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(1, 1, 1, 0.08);
+        border-radius: 12px;
+        box-shadow: 0 12px 30px rgba(1, 1, 1, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        padding: 1.6rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.4rem;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .du-response-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 16px 40px rgba(1, 1, 1, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        background: rgba(255, 255, 255, 0.95);
+    }
+
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 1rem;
+        padding-bottom: 1.25rem;
+        border-bottom: 1px solid rgba(1, 1, 1, 0.06);
+    }
+
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+    }
+
+    .status-arrow {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.4rem;
+        height: 2.4rem;
+        border-radius: 50%;
+        flex-shrink: 0;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .status-arrow.has-email {
+        background: var(--du-dark);
+        color: var(--du-light);
+    }
+
+    .status-arrow.has-name {
+        background: rgba(234, 42, 16, 0.1);
+        color: var(--du-red);
+        border: 1px solid rgba(234, 42, 16, 0.2);
+    }
+
+    .status-arrow.anonymous {
+        background: rgba(1, 1, 1, 0.04);
+        color: rgba(1, 1, 1, 0.4);
+        border: 1px solid rgba(1, 1, 1, 0.08);
+    }
+
+    .status-arrow svg {
+        width: 1.15rem;
+        height: 1.15rem;
+    }
+
+    .user-details {
+        display: flex;
+        flex-direction: column;
+        gap: 0.1rem;
+    }
+
+    .user-name {
+        margin: 0;
+        color: var(--du-dark);
+        font-family: var(--font-ui);
+        font-size: 1.05rem;
+        font-weight: 800;
+        line-height: 1.2;
+    }
+
+    .user-email {
+        color: rgba(1, 1, 1, 0.55);
+        font-family: var(--font-ui);
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .response-date {
+        color: rgba(1, 1, 1, 0.4);
+        font-family: var(--font-ui);
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        white-space: nowrap;
+        margin-top: 0.25rem;
+    }
+
+    .card-body {
+        display: flex;
+        flex-direction: column;
+        gap: 1.35rem;
+    }
+
+    .qa-block {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+
+    .question-label {
+        color: var(--du-red);
+        font-family: var(--font-ui);
+        font-size: 0.85rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+
+    .answer-text {
+        margin: 0;
+        color: rgba(1, 1, 1, 0.85);
+        font-family: var(--font-body);
+        font-size: 1.05rem;
+        line-height: 1.6;
+        white-space: pre-wrap;
+    }
+
+    .empty-state .answer-text {
+        color: rgba(1, 1, 1, 0.4);
+        font-style: italic;
+    }
+
+    @media (max-width: 640px) {
+        .du-responses-shell {
+            padding: 1.5rem 0 3rem;
+        }
+
+        .du-responses-header h1 {
+            font-size: 1.85rem;
+        }
+
+        .du-response-card {
+            padding: 1.25rem;
+            gap: 1.1rem;
+        }
+        
+        .card-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .response-date {
+            margin-top: 0;
+            margin-left: 3.25rem;
+        }
+    }
+</style>
