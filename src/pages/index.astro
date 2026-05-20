@@ -217,13 +217,16 @@ const heroTextEffect = "smooth-blur";
 
     <section class="section latest-note-section" aria-labelledby="uk2026-note-title">
         <a href={uk2026Feature.href} class="uk2026-card">
-            <figure class="uk2026-media">
-                <img
-                    src={uk2026Feature.image}
-                    alt={uk2026Feature.imageAlt}
-                    loading="eager"
-                    decoding="async"
-                />
+            <figure class="uk2026-media-group">
+                <div class="uk2026-media">
+                    <img
+                        src={uk2026Feature.image}
+                        alt={uk2026Feature.imageAlt}
+                        loading="eager"
+                        decoding="async"
+                    />
+                </div>
+                <figcaption class="uk2026-caption">Abodid Sahoo (Left), Eleanor Dare (Right) - Convenor of the Cultural Heritage Data School, University of Cambridge<br/>Photograph by Yashaswinee Sahoo</figcaption>
             </figure>
 
             <div class="uk2026-content">
@@ -740,6 +743,13 @@ const heroTextEffect = "smooth-blur";
         outline: none;
     }
 
+    .uk2026-media-group {
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
     .uk2026-media {
         position: relative;
         margin: 0;
@@ -747,6 +757,15 @@ const heroTextEffect = "smooth-blur";
         overflow: hidden;
         border-radius: 8px;
         background: var(--bg-surface);
+    }
+
+    .uk2026-caption {
+        font-family: var(--font-sans);
+        font-size: 0.75rem;
+        font-weight: 400;
+        line-height: 1.4;
+        color: var(--text-tertiary);
+        text-align: center;
     }
 
     .uk2026-media img {
