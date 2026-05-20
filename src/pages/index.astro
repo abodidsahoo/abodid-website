@@ -139,7 +139,7 @@ const uk2026Feature = {
     image: "/images/uk2026/cambridge-data-school.jpg",
     imageAlt:
         "Abodid Sahoo with Prof. Eleanor Dare at Cambridge Digital Humanities",
-    kicker: "Latest note",
+    kicker: "Read my Latest Memoir",
     title: uk2026.title,
     quote:
         "After all the highs and lows in my life, I wonder how it all fell in place to lead me to this. It still feels unbelievable.",
@@ -226,7 +226,7 @@ const heroTextEffect = "smooth-blur";
                         decoding="async"
                     />
                 </div>
-                <figcaption class="uk2026-caption">Abodid Sahoo (Left), Eleanor Dare (Right) - Convenor of the Cultural Heritage Data School, University of Cambridge<br/>Photograph by Yashaswinee Sahoo</figcaption>
+                <figcaption class="uk2026-caption">Abodid Sahoo (Left), Eleanor Dare (Right) - Convenor of the Cultural Heritage Data School, University of Cambridge<span class="uk2026-photo-credit">Photograph by Yashaswinee Sahoo</span></figcaption>
             </figure>
 
             <div class="uk2026-content">
@@ -765,7 +765,14 @@ const heroTextEffect = "smooth-blur";
         font-weight: 400;
         line-height: 1.4;
         color: var(--text-tertiary);
-        text-align: center;
+        text-align: left;
+    }
+
+    .uk2026-photo-credit {
+        display: block;
+        margin-top: 0.6rem;
+        font-weight: 500;
+        color: var(--text-secondary);
     }
 
     .uk2026-media img {
@@ -790,10 +797,10 @@ const heroTextEffect = "smooth-blur";
     }
 
     .uk2026-kicker {
-        margin: 0;
+        margin: 0 0 0.25rem 0;
         font-family: var(--feature-writing-date-font, var(--font-mono));
-        font-size: var(--feature-writing-date-size, 0.75rem);
-        font-weight: var(--feature-writing-date-weight, 400);
+        font-size: 0.9rem;
+        font-weight: 500;
         line-height: 1.2;
         letter-spacing: 0.05em;
         text-transform: uppercase;
