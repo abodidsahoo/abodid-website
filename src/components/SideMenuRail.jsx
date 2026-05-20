@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Breadcrumbs from "./Breadcrumbs";
 import ThemeToggle from "./ThemeToggle.jsx";
+import { NAVIGATION_LAYOUTS } from "../config/siteVariants.js";
 
 const primaryLinks = [
   { href: "/research", label: "Research" },
@@ -84,17 +85,25 @@ const socialLinks = [
   },
 ];
 
-const SideMenuRail = ({ hideThemeToggle = false, altTextLogo = null }) => {
+const SideMenuRail = ({
+  hideThemeToggle = false,
+  altTextLogo = null,
+  layout = NAVIGATION_LAYOUTS.topBar.id,
+}) => {
   const [isOpen, setIsOpen] = useState(false);
   const [headerOffset, setHeaderOffset] = useState(80);
   const progressBarRef = useRef(null);
+  const isTopBarLayout = layout === NAVIGATION_LAYOUTS.topBar.id;
+  const menuPanelId = isTopBarLayout ? "top-menu-panel" : "side-menu-panel";
 
   useEffect(() => {
     const syncHeaderOffset = () => {
-      const nav = document.querySelector(".fixed-nav");
+      const nav = document.querySelector(
+        isTopBarLayout ? ".top-menu-shell" : ".fixed-nav",
+      );
       const navHeight = nav?.getBoundingClientRect().height;
       setHeaderOffset(
-        Math.round(navHeight || (window.innerWidth <= 768 ? 70 : 80)),
+        Math.round(navHeight || (window.innerWidth <= 768 ? 82 : 88)),
       );
     };
 
@@ -104,7 +113,7 @@ const SideMenuRail = ({ hideThemeToggle = false, altTextLogo = null }) => {
     return () => {
       window.removeEventListener("resize", syncHeaderOffset);
     };
-  }, []);
+  }, [isTopBarLayout]);
 
   useEffect(() => {
     const progressBar = progressBarRef.current;
@@ -121,7 +130,9 @@ const SideMenuRail = ({ hideThemeToggle = false, altTextLogo = null }) => {
       const progress = maxScroll > 0 ? window.scrollY / maxScroll : 0;
       const clampedProgress = Math.min(Math.max(progress, 0), 1);
 
-      progressBar.style.transform = `scaleY(${clampedProgress})`;
+      progressBar.style.transform = isTopBarLayout
+        ? `scaleX(${clampedProgress})`
+        : `scaleY(${clampedProgress})`;
     };
 
     const requestProgressUpdate = () => {
@@ -148,7 +159,7 @@ const SideMenuRail = ({ hideThemeToggle = false, altTextLogo = null }) => {
       window.removeEventListener("resize", requestProgressUpdate);
       window.removeEventListener("load", requestProgressUpdate);
     };
-  }, []);
+  }, [isTopBarLayout]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -193,6 +204,665 @@ const SideMenuRail = ({ hideThemeToggle = false, altTextLogo = null }) => {
     </a>
   );
 
+  const renderMenuContent = () => (
+    <>
+      <div className="side-menu-main">
+        {primaryLinks.map((link) => (
+          <SideMenuLink
+            key={link.href}
+            href={link.href}
+            className="side-menu-primary-link"
+            onClick={closeMenu}
+            slide={10}
+          >
+            {link.label}
+          </SideMenuLink>
+        ))}
+      </div>
+
+      <div className="side-menu-secondary">
+        <div className="side-menu-secondary-grid">
+          <div className="side-menu-column">
+            {secondaryGroups.slice(0, 2).map((group) => (
+              <div className="side-menu-group" key={group.title}>
+                <div className="side-menu-group-title">{group.title}</div>
+                {group.links.map((link) => (
+                  <SideMenuLink
+                    key={`${group.title}-${link.href}`}
+                    href={link.href}
+                    target={link.target}
+                    rel={link.target === "_blank" ? "noreferrer" : undefined}
+                    className="side-menu-secondary-link"
+                    onClick={closeMenu}
+                    slide={8}
+                  >
+                    {link.label}
+                  </SideMenuLink>
+                ))}
+              </div>
+            ))}
+          </div>
+
+          <div className="side-menu-column side-menu-column-right">
+            <div className="side-menu-group" key="credentials">
+              <div className="side-menu-group-title">
+                {secondaryGroups[2].title}
+              </div>
+              {secondaryGroups[2].links.map((link) => (
+                <SideMenuLink
+                  key={`${secondaryGroups[2].title}-${link.href}`}
+                  href={link.href}
+                  target={link.target}
+                  rel={link.target === "_blank" ? "noreferrer" : undefined}
+                  className="side-menu-secondary-link"
+                  onClick={closeMenu}
+                  slide={8}
+                >
+                  {link.label}
+                </SideMenuLink>
+              ))}
+            </div>
+
+            <div className="side-menu-group" key="contact">
+              <div className="side-menu-group-title">
+                {secondaryGroups[3].title}
+              </div>
+              {secondaryGroups[3].links.map((link) => (
+                <SideMenuLink
+                  key={`${secondaryGroups[3].title}-${link.href}`}
+                  href={link.href}
+                  target={link.target}
+                  rel={link.target === "_blank" ? "noreferrer" : undefined}
+                  className="side-menu-secondary-link"
+                  onClick={closeMenu}
+                  slide={8}
+                >
+                  {link.label}
+                </SideMenuLink>
+              ))}
+            </div>
+
+            <div className="side-menu-social-links" aria-label="Social links">
+              {socialLinks.map((link) => (
+                <motion.a
+                  key={link.label}
+                  href={link.href}
+                  target={link.target}
+                  rel="noreferrer"
+                  className="side-menu-social-link"
+                  aria-label={link.label}
+                  title={link.label}
+                  onClick={closeMenu}
+                  whileHover={{ y: -2 }}
+                  transition={{ duration: 0.12, ease: "easeOut" }}
+                >
+                  <i className={link.iconClass} aria-hidden="true" />
+                </motion.a>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+
+  if (isTopBarLayout) {
+    return (
+      <>
+        <header className={`top-menu-shell ${isOpen ? "is-open" : ""}`}>
+          <div className="top-menu-bar">
+            <button
+              type="button"
+              className="top-menu-button"
+              aria-controls={menuPanelId}
+              aria-expanded={isOpen}
+              aria-label={isOpen ? "Close site menu" : "Open site menu"}
+              onClick={toggleMenu}
+            >
+              <span className="top-menu-icon" aria-hidden="true">
+                <span className="top-menu-line" />
+                <span className="top-menu-line" />
+                <span className="top-menu-line" />
+              </span>
+              <span className="top-menu-button-text">
+                {isOpen ? "Close" : "Menu"}
+              </span>
+            </button>
+
+            <nav className="top-menu-primary" aria-label="Primary navigation">
+              {primaryLinks.map((link) => (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  className="top-menu-primary-link"
+                >
+                  {link.label}
+                </a>
+              ))}
+            </nav>
+
+            <div className="top-menu-right">
+              <div className="top-menu-breadcrumbs">
+                <Breadcrumbs variant="mobile" />
+              </div>
+
+              <div className="top-menu-actions">
+                {!hideThemeToggle ? (
+                  <ThemeToggle variant="compact" />
+                ) : (
+                  <div className="top-menu-spacer" aria-hidden="true" />
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="top-menu-scroll-track" aria-hidden="true">
+            <div ref={progressBarRef} className="top-menu-scroll-bar" />
+          </div>
+        </header>
+
+        <AnimatePresence>
+          {isOpen && (
+            <>
+              <motion.button
+                type="button"
+                className="top-menu-backdrop"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.25, ease }}
+                onClick={closeMenu}
+                aria-label="Close site menu"
+              />
+
+              <motion.aside
+                id={menuPanelId}
+                className="top-menu-panel"
+                initial={{ y: "-100%" }}
+                animate={{ y: 0 }}
+                exit={{ y: "-100%" }}
+                transition={{ duration: 0.4, ease }}
+                aria-label="Site menu"
+              >
+                {renderMenuContent()}
+              </motion.aside>
+            </>
+          )}
+        </AnimatePresence>
+
+        <style suppressHydrationWarning>{`
+          :root {
+            --app-rail-width: 0px;
+            --app-topbar-height: 88px;
+            --app-header-offset: var(--app-topbar-height);
+          }
+
+          body {
+            padding-left: 0;
+            padding-top: var(--app-header-offset);
+            overflow-x: hidden;
+          }
+
+          .top-menu-shell {
+            position: fixed;
+            inset: 0 0 auto 0;
+            z-index: 10008;
+            display: flex;
+            flex-direction: column;
+            pointer-events: none;
+            color: #ffffff;
+          }
+
+          .top-menu-shell > * {
+            pointer-events: auto;
+          }
+
+          .top-menu-bar {
+            height: var(--app-topbar-height);
+            display: grid;
+            grid-template-columns:
+              minmax(150px, 1fr)
+              auto
+              minmax(150px, 1fr);
+            align-items: center;
+            gap: clamp(0.85rem, 2.4vw, 2.35rem);
+            padding: 0 clamp(1rem, 3vw, 2rem);
+            background: #050505;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 14px 36px rgba(0, 0, 0, 0.2);
+          }
+
+          .top-menu-button {
+            border: 0;
+            background: transparent;
+            color: inherit;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.72rem;
+            min-width: 0;
+            padding: 0;
+            cursor: pointer;
+            font-family: var(--font-ui);
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            white-space: nowrap;
+          }
+
+          .top-menu-icon {
+            position: relative;
+            width: 30px;
+            height: 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 auto;
+          }
+
+          .top-menu-line {
+            position: absolute;
+            left: 50%;
+            width: 28px;
+            height: 2px;
+            border-radius: 999px;
+            background: #ffffff;
+            transform: translate(-50%, -50%);
+            transition: transform 0.24s ease, opacity 0.18s ease, top 0.24s ease;
+          }
+
+          .top-menu-line:nth-child(1) {
+            top: calc(50% - 7px);
+          }
+
+          .top-menu-line:nth-child(2) {
+            top: 50%;
+          }
+
+          .top-menu-line:nth-child(3) {
+            top: calc(50% + 7px);
+          }
+
+          .top-menu-shell.is-open .top-menu-line:nth-child(1) {
+            top: 50%;
+            transform: translate(-50%, -50%) rotate(45deg);
+          }
+
+          .top-menu-shell.is-open .top-menu-line:nth-child(2) {
+            opacity: 0;
+          }
+
+          .top-menu-shell.is-open .top-menu-line:nth-child(3) {
+            top: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+          }
+
+          .top-menu-primary {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: clamp(1rem, 2vw, 1.75rem);
+            min-width: 0;
+            justify-self: center;
+            overflow-x: auto;
+            scrollbar-width: none;
+          }
+
+          .top-menu-primary::-webkit-scrollbar {
+            display: none;
+          }
+
+          .top-menu-primary-link {
+            color: rgba(255, 255, 255, 0.78);
+            text-decoration: none;
+            font-family: var(--font-ui);
+            font-size: clamp(0.98rem, 0.9vw, 1.08rem);
+            font-weight: 420;
+            letter-spacing: 0.01em;
+            line-height: 1.2;
+            white-space: nowrap;
+            position: relative;
+            padding: 0.24rem 0;
+            transition: color 0.32s cubic-bezier(0.45, 0, 0.2, 1);
+          }
+
+          .top-menu-primary-link::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: -0.34rem;
+            height: 1px;
+            background: var(--color-glitch-red);
+            transform: scaleX(0);
+            transform-origin: right center;
+            transition: transform 0.34s cubic-bezier(0.45, 0, 0.2, 1);
+          }
+
+          .top-menu-primary-link:hover,
+          .top-menu-primary-link:focus-visible {
+            color: #fff4f1;
+          }
+
+          .top-menu-primary-link:hover::after,
+          .top-menu-primary-link:focus-visible::after {
+            transform: scaleX(1);
+            transform-origin: left center;
+          }
+
+          .top-menu-breadcrumbs {
+            min-width: 0;
+            max-width: min(28vw, 360px);
+            overflow: hidden;
+          }
+
+          .top-menu-breadcrumbs .breadcrumbs-nav.mobile {
+            width: 100%;
+            margin: 0;
+          }
+
+          .top-menu-breadcrumbs .breadcrumbs-nav.mobile .breadcrumb-list {
+            justify-content: flex-end;
+            flex-wrap: nowrap;
+            gap: 0.58rem;
+            overflow: hidden;
+            font-size: 0.72rem;
+            letter-spacing: 0.06em;
+            color: rgba(255, 255, 255, 0.68);
+            text-overflow: ellipsis;
+          }
+
+          .top-menu-breadcrumbs .breadcrumbs-nav.mobile .breadcrumb-item {
+            min-width: 0;
+          }
+
+          .top-menu-breadcrumbs .breadcrumbs-nav.mobile .current-page,
+          .top-menu-breadcrumbs .breadcrumbs-nav.mobile .breadcrumb-link {
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+
+          .top-menu-actions {
+            display: inline-flex;
+            align-items: center;
+            justify-content: flex-end;
+            min-width: 54px;
+          }
+
+          .top-menu-right {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: clamp(0.8rem, 1.8vw, 1.35rem);
+            min-width: 0;
+          }
+
+          .top-menu-spacer {
+            width: 54px;
+            height: 30px;
+          }
+
+          .top-menu-scroll-track {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 3px;
+            background: transparent;
+            pointer-events: none;
+          }
+
+          .top-menu-scroll-bar {
+            width: 100%;
+            height: 100%;
+            background: #ffffff;
+            transform: scaleX(0);
+            transform-origin: left center;
+            will-change: transform;
+          }
+
+          .top-menu-backdrop {
+            position: fixed;
+            inset: var(--app-header-offset) 0 0 0;
+            border: 0;
+            background: rgba(4, 4, 4, 0.42);
+            z-index: 10002;
+            cursor: pointer;
+          }
+
+          .top-menu-panel {
+            position: fixed;
+            top: var(--app-header-offset);
+            left: 0;
+            right: 0;
+            z-index: 10003;
+            display: grid;
+            grid-template-columns: minmax(250px, 0.7fr) minmax(0, 1.3fr);
+            max-height: calc(100vh - var(--app-header-offset));
+            overflow: auto;
+            background: rgba(255, 255, 255, 0.96);
+            box-shadow: 0 28px 70px rgba(0, 0, 0, 0.34);
+            cursor: auto !important;
+          }
+
+          .top-menu-panel .side-menu-main {
+            min-height: min(460px, calc(100vh - var(--app-header-offset)));
+            background: var(--color-brand-red);
+            color: #fff;
+            padding: clamp(2rem, 4vw, 3.6rem);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 1rem;
+          }
+
+          .top-menu-panel .side-menu-primary-link {
+            color: inherit;
+            text-decoration: none;
+            font-family: var(--font-display);
+            font-size: clamp(1.85rem, 3.1vw, 3.2rem);
+            font-weight: 650;
+            letter-spacing: -0.03em;
+            line-height: 1.02;
+            width: fit-content;
+            display: block;
+            cursor: pointer !important;
+          }
+
+          .top-menu-panel .side-menu-secondary {
+            background: rgba(255, 255, 255, 0.96);
+            color: #171717;
+            padding: clamp(2rem, 4vw, 3.6rem);
+            overflow: auto;
+            display: flex;
+            align-items: center;
+          }
+
+          .top-menu-panel .side-menu-secondary-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 0.96fr);
+            gap: clamp(1.6rem, 3vw, 3rem);
+            width: 100%;
+            align-items: start;
+          }
+
+          .top-menu-panel .side-menu-column {
+            display: flex;
+            flex-direction: column;
+            gap: 1.85rem;
+          }
+
+          .top-menu-panel .side-menu-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.24rem;
+            min-width: 0;
+          }
+
+          .top-menu-panel .side-menu-group-title {
+            font-family: var(--font-mono);
+            font-size: 0.86rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: #111;
+            margin-bottom: 0.48rem;
+          }
+
+          .top-menu-panel .side-menu-secondary-link {
+            color: #414141;
+            text-decoration: none;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            font-weight: 500;
+            line-height: 1.48;
+            width: fit-content;
+            display: block;
+            transition: color 0.2s ease, opacity 0.2s ease;
+            cursor: pointer !important;
+          }
+
+          .top-menu-panel .side-menu-secondary-link:hover {
+            color: var(--color-brand-red);
+            opacity: 0.7;
+          }
+
+          .top-menu-panel .side-menu-social-links {
+            display: flex;
+            align-items: center;
+            gap: 1.1rem;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            padding-top: 0.55rem;
+          }
+
+          .top-menu-panel .side-menu-social-link {
+            width: auto;
+            height: auto;
+            border: 0;
+            color: #2d2d2d;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            transition: color 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
+            cursor: pointer !important;
+          }
+
+          .top-menu-panel .side-menu-social-link:hover {
+            color: var(--color-brand-red);
+            opacity: 0.8;
+          }
+
+          .top-menu-panel .side-menu-social-link i {
+            font-size: 1.5rem;
+            line-height: 1;
+          }
+
+          [data-theme="light"] .top-menu-bar {
+            background: #ffffff;
+            color: #0f172a;
+            border-color: rgba(15, 23, 42, 0.12);
+          }
+
+          [data-theme="light"] .top-menu-bar {
+            box-shadow: 0 14px 36px rgba(15, 23, 42, 0.08);
+          }
+
+          [data-theme="light"] .top-menu-line,
+          [data-theme="light"] .top-menu-scroll-bar {
+            background: #0f172a;
+          }
+
+          [data-theme="light"] .top-menu-primary-link {
+            color: rgba(15, 23, 42, 0.72);
+          }
+
+          [data-theme="light"] .top-menu-primary-link:hover,
+          [data-theme="light"] .top-menu-primary-link:focus-visible {
+            color: var(--color-brand-red);
+          }
+
+          [data-theme="light"] .top-menu-breadcrumbs .breadcrumbs-nav.mobile .breadcrumb-list {
+            color: rgba(15, 23, 42, 0.62);
+          }
+
+          [data-theme="light"] .top-menu-primary-link::after {
+            background: var(--color-brand-red);
+          }
+
+          @media (max-width: 980px) {
+            .top-menu-bar {
+              grid-template-columns: auto minmax(0, 1fr);
+            }
+
+            .top-menu-primary {
+              display: none;
+            }
+
+            .top-menu-right {
+              justify-self: end;
+            }
+
+            .top-menu-panel {
+              grid-template-columns: 1fr;
+            }
+
+            .top-menu-panel .side-menu-main {
+              min-height: auto;
+              padding: 1.8rem clamp(1rem, 5vw, 2rem);
+            }
+
+            .top-menu-panel .side-menu-secondary {
+              padding: 1.6rem clamp(1rem, 5vw, 2rem) 2rem;
+              align-items: flex-start;
+            }
+          }
+
+          @media (max-width: 768px) {
+            :root {
+              --app-topbar-height: calc(82px + env(safe-area-inset-top, 0px));
+            }
+
+            .top-menu-bar {
+              grid-template-columns: auto minmax(0, 1fr) auto;
+              padding: env(safe-area-inset-top, 0px) 1rem 0;
+              gap: 0.9rem;
+            }
+
+            .top-menu-button {
+              min-width: 64px;
+              font-size: 0.7rem;
+            }
+
+            .top-menu-icon {
+              width: 24px;
+              height: 24px;
+            }
+
+            .top-menu-line {
+              width: 22px;
+            }
+
+            .top-menu-breadcrumbs {
+              display: none;
+            }
+
+            .top-menu-panel .side-menu-primary-link {
+              font-size: clamp(1.4rem, 6vw, 2rem);
+            }
+
+            .top-menu-panel .side-menu-secondary-grid {
+              grid-template-columns: 1fr;
+              gap: 1.5rem;
+            }
+          }
+        `}</style>
+      </>
+    );
+  }
+
   return (
     <>
       <div className={`mobile-nav-shell ${isOpen ? "is-open" : ""}`}>
@@ -200,7 +870,7 @@ const SideMenuRail = ({ hideThemeToggle = false, altTextLogo = null }) => {
           <button
             type="button"
             className="mobile-topbar-button mobile-topbar-menu"
-            aria-controls="side-menu-panel"
+            aria-controls={menuPanelId}
             aria-expanded={isOpen}
             aria-label={isOpen ? "Close site menu" : "Open site menu"}
             onClick={toggleMenu}
@@ -242,7 +912,7 @@ const SideMenuRail = ({ hideThemeToggle = false, altTextLogo = null }) => {
             <button
               type="button"
               className="rail-action-btn rail-action-top"
-              aria-controls="side-menu-panel"
+              aria-controls={menuPanelId}
               aria-expanded={isOpen}
               aria-label={isOpen ? "Close site menu" : "Open site menu"}
               onClick={toggleMenu}
@@ -265,7 +935,7 @@ const SideMenuRail = ({ hideThemeToggle = false, altTextLogo = null }) => {
             <button
               type="button"
               className="rail-action-btn rail-action-bottom"
-              aria-controls="side-menu-panel"
+              aria-controls={menuPanelId}
               aria-expanded={isOpen}
               onClick={toggleMenu}
               aria-label={isOpen ? "Close site menu" : "Open site menu"}
@@ -294,7 +964,7 @@ const SideMenuRail = ({ hideThemeToggle = false, altTextLogo = null }) => {
               />
 
               <motion.aside
-                id="side-menu-panel"
+                id={menuPanelId}
                 className="side-menu-panel"
                 initial={{ x: "-100%" }}
                 animate={{ x: 0 }}

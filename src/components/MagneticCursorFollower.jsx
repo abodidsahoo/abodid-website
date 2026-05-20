@@ -6,6 +6,8 @@ const RING_VISUAL_LAMBDA = 14;
 const HOTSPOT_OFFSET_X = -1;
 const HOTSPOT_OFFSET_Y = -1;
 const CUSTOM_CURSOR_ATTR = "data-custom-cursor";
+const CUSTOM_CURSOR_CLASS = "custom-pointer-magnetic-follower";
+const CUSTOM_CURSOR_VARIANT = "custom-magnetic-follower";
 const HIDE_NATIVE_CURSOR_SELECTOR = [
   "body",
   "a[href]",
@@ -227,7 +229,13 @@ const MagneticCursorFollower = () => {
   if (!mounted || typeof document === "undefined") return null;
 
   return createPortal(
-    <div ref={layerRef} aria-hidden="true" style={layerStyle}>
+    <div
+      ref={layerRef}
+      aria-hidden="true"
+      className={CUSTOM_CURSOR_CLASS}
+      data-pointer-variant={CUSTOM_CURSOR_VARIANT}
+      style={layerStyle}
+    >
       <div style={followerStyle}>
         <span ref={dotRef} style={dotStyle} />
         <span ref={ringRef} style={ringStyle} />

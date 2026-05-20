@@ -1,9 +1,15 @@
 ---
 import PhotographyCard from "./PhotographyCard.astro";
 
-const { projects, maxItems = 6, columns = 3, contained = false } = Astro.props;
+const {
+    projects,
+    maxItems = 6,
+    columns = 3,
+    contained = false,
+    cycleProjects = false,
+} = Astro.props;
 
-// We'll show maxItems slots, each cycling through all projects
+// We'll show maxItems fixed slots. Rotation is available only when explicitly enabled.
 const gridSlots = Array.from({ length: maxItems }, (_, i) => i);
 
 // Serialize projects for client-side JavaScript
@@ -14,6 +20,7 @@ const projectsJson = JSON.stringify(projects);
     class={`photo-grid ${contained ? "contained" : "full-bleed"}`}
     style={`--grid-cols: ${columns}`}
     data-projects={projectsJson}
+    data-cycle-projects={cycleProjects ? "true" : "false"}
 >
     {
         gridSlots.map((slotIndex) => (
@@ -105,6 +112,9 @@ const projectsJson = JSON.stringify(projects);
 
         const projectsData = gridEl.getAttribute("data-projects");
         if (!projectsData) return;
+
+        const cycleProjects = gridEl.dataset.cycleProjects === "true";
+        if (!cycleProjects) return;
 
         const projects = JSON.parse(projectsData);
         if (projects.length <= 6) return; // No rotation needed if 6 or fewer projects

@@ -8,6 +8,12 @@ import SEO from "../components/SEO.astro";
 import NewsletterPopup from "../components/NewsletterPopup.jsx";
 import MagneticCursorFollower from "../components/MagneticCursorFollower.jsx";
 import { getPageMetadata } from "../lib/api";
+import {
+  ACTIVE_NAVIGATION_LAYOUT,
+  ACTIVE_POINTER_VARIANT,
+  NAVIGATION_LAYOUTS,
+  POINTER_VARIANTS,
+} from "../config/siteVariants.js";
 
 const {
   title,
@@ -26,12 +32,30 @@ const {
   showGlobalGrid = true,
   bodyClass = "",
   showCursor,
-  showCursorFollower = true,
+  showCursorFollower,
+  navigationLayout = ACTIVE_NAVIGATION_LAYOUT,
+  pointerVariant = ACTIVE_POINTER_VARIANT,
   gridVariant = "default",
 } = Astro.props;
 import NoiseOverlay from "../components/NoiseOverlay.jsx";
+const activeNavigationLayout =
+  navigationLayout === NAVIGATION_LAYOUTS.leftRail.id
+    ? NAVIGATION_LAYOUTS.leftRail.id
+    : NAVIGATION_LAYOUTS.topBar.id;
+const activePointerVariant =
+  pointerVariant === POINTER_VARIANTS.customMagneticFollower.id
+    ? POINTER_VARIANTS.customMagneticFollower.id
+    : POINTER_VARIANTS.nativeDefault.id;
+const legacyCursorRequested = showCursor === true || showCursorFollower === true;
 const cursorFollowerEnabled =
-  typeof showCursor === "boolean" ? showCursor : showCursorFollower;
+  activePointerVariant === POINTER_VARIANTS.customMagneticFollower.id ||
+  legacyCursorRequested;
+const renderedPointerVariant = cursorFollowerEnabled
+  ? POINTER_VARIANTS.customMagneticFollower.id
+  : POINTER_VARIANTS.nativeDefault.id;
+const showFloatingHeader =
+  !hideHeader &&
+  (activeNavigationLayout === NAVIGATION_LAYOUTS.leftRail.id || hideSideMenuRail);
 
 // Fetch metadata from database if not provided via props
 const pagePath = Astro.url.pathname;
@@ -134,13 +158,20 @@ const finalType = type || dbMetadata?.og_type || "website";
       })();
     </script>
   </head>
-  <body data-grid-variant={gridVariant} data-page-path={pagePath} class={bodyClass}>
+  <body
+    data-grid-variant={gridVariant}
+    data-page-path={pagePath}
+    data-navigation-layout={activeNavigationLayout}
+    data-pointer-variant={renderedPointerVariant}
+    class={bodyClass}
+  >
     <a href="#main-content" class="skip-link">Skip to main content</a>
     <!-- <Header /> -->
-    {!hideHeader && <Header hideThemeToggle={hideThemeToggle} altTextLogo={altTextLogo} />}
+    {showFloatingHeader && <Header hideThemeToggle={hideThemeToggle} altTextLogo={altTextLogo} />}
     {!hideHeader && !hideSideMenuRail && (
       <SideMenuRail
         client:load
+        layout={activeNavigationLayout}
         hideThemeToggle={hideThemeToggle}
         altTextLogo={altTextLogo}
       />
@@ -320,6 +351,12 @@ const finalType = type || dbMetadata?.og_type || "website";
     const glowBg = document.querySelector(".global-glow-bg") as HTMLElement;
     if (!glowBg) return;
     const gridVariant = document.body?.dataset?.gridVariant || "default";
+    const isLandingPage = document.body?.classList.contains("landing-page");
+
+    if (isLandingPage) {
+      glowBg.style.setProperty("--glow-intensity", "0");
+      return;
+    }
 
     // Mouse Tracking
     window.addEventListener(

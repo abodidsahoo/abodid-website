@@ -32,45 +32,52 @@ const {
 const videoUrl = "/videos/showreel-2025.mp4";
 ---
 
-<div class="showreel-container">
-    <video
-        id="showreel-video"
-        class="showreel-video"
-        loop
-        muted
-        playsinline
-        webkit-playsinline
-        preload="metadata"
-        autoplay
-    >
-        <!-- Source will be added via JS with proper type -->
-    </video>
+<div class="showreel-shell">
+    <div class="showreel-container">
+        <video
+            id="showreel-video"
+            class="showreel-video"
+            loop
+            muted
+            playsinline
+            webkit-playsinline
+            preload="none"
+            controlslist="nodownload noplaybackrate noremoteplayback"
+            disablepictureinpicture
+            disableremoteplayback
+        >
+            <!-- Source will be added via JS when the showreel is close to view -->
+        </video>
+    </div>
 
-    <button
-        id="playback-toggle-btn"
-        class="playback-toggle-btn"
-        type="button"
-        aria-label="Pause showreel video"
-        title="Pause"
+    <div
+        class="video-controls"
+        role="group"
+        aria-label="Showreel video controls"
+        data-showreel-controls
     >
-        <span id="playback-toggle-text">Pause</span>
-    </button>
+        <button
+            id="playback-toggle-btn"
+            class="control-btn control-btn-text"
+            type="button"
+            aria-label="Play showreel video"
+            title="Play"
+        >
+            <span id="playback-toggle-text">Play</span>
+        </button>
 
-    <!-- Video Controls -->
-    <div class="video-controls">
-        <!-- Fullscreen Button -->
         <button
             id="fullscreen-btn"
             class="control-btn"
+            type="button"
             title="Toggle Fullscreen"
+            aria-label="Toggle showreel fullscreen"
         >
-            <!-- Enter Fullscreen Icon (Default) -->
             <svg id="icon-enter-fullscreen" viewBox="0 0 24 24">
                 <path
                     d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"
                 ></path>
             </svg>
-            <!-- Exit Fullscreen Icon -->
             <svg
                 id="icon-exit-fullscreen"
                 viewBox="0 0 24 24"
@@ -82,21 +89,20 @@ const videoUrl = "/videos/showreel-2025.mp4";
             </svg>
         </button>
 
-        <!-- Mute/Unmute Button -->
-        <button id="mute-btn" class="control-btn" title="Toggle Sound">
-            <!-- Muted Icon (Default) -->
-            <svg id="icon-muted" viewBox="0 0 24 24">
-                <path
-                    d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73 4.27 3zM12 4L9.91 6.09 12 8.18V4z"
-                ></path>
-            </svg>
-            <!-- Unmuted Icon -->
-            <svg id="icon-unmuted" viewBox="0 0 24 24" style="display: none;">
-                <path
-                    d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"
-                ></path>
-            </svg>
-        </button>
+        <label class="volume-control" for="showreel-volume">
+            <span class="volume-label">Volume</span>
+            <input
+                id="showreel-volume"
+                class="volume-slider"
+                type="range"
+                min="0"
+                max="1"
+                step="0.05"
+                value="0"
+                aria-label="Showreel volume"
+            />
+            <span id="volume-level-text" class="volume-level">0%</span>
+        </label>
     </div>
 </div>
 
@@ -115,15 +121,13 @@ const videoUrl = "/videos/showreel-2025.mp4";
 
 <script define:vars={{ videoUrl }}>
     document.addEventListener("DOMContentLoaded", () => {
+        const shell = document.querySelector(".showreel-shell");
         const container = document.querySelector(".showreel-container");
         const video = document.getElementById("showreel-video");
         const playbackToggleBtn = document.getElementById("playback-toggle-btn");
         const playbackToggleText = document.getElementById(
             "playback-toggle-text",
         );
-        const muteBtn = document.getElementById("mute-btn");
-        const iconMuted = document.getElementById("icon-muted");
-        const iconUnmuted = document.getElementById("icon-unmuted");
         const fullscreenBtn = document.getElementById("fullscreen-btn");
         const iconEnterFullscreen = document.getElementById(
             "icon-enter-fullscreen",
@@ -131,49 +135,13 @@ const videoUrl = "/videos/showreel-2025.mp4";
         const iconExitFullscreen = document.getElementById(
             "icon-exit-fullscreen",
         );
+        const volumeSlider = document.getElementById("showreel-volume");
+        const volumeLevelText = document.getElementById("volume-level-text");
         let userPausedVideo = false;
-        let lastFinePointerPosition = null;
-        const playbackTogglePointerOffsetY = 12;
+        let showreelLoaded = false;
+        let loadObserver = null;
 
         if (!container || !video) return;
-
-        const setPointerInside = (isInside) => {
-            container.dataset.pointerInside = isInside ? "true" : "false";
-        };
-
-        const isPointerInsideContainer = (clientX, clientY) => {
-            const rect = container.getBoundingClientRect();
-
-            return (
-                clientX >= rect.left &&
-                clientX <= rect.right &&
-                clientY >= rect.top &&
-                clientY <= rect.bottom
-            );
-        };
-
-        const updatePlaybackTogglePosition = (clientX, clientY) => {
-            if (!playbackToggleBtn) return;
-
-            const rect = container.getBoundingClientRect();
-            const buttonWidth = playbackToggleBtn.offsetWidth || 112;
-            const buttonHeight = playbackToggleBtn.offsetHeight || 44;
-            const horizontalPadding = buttonWidth / 2 + 16;
-            const verticalPadding = buttonHeight / 2 + 16;
-            const relativeX = clientX - rect.left;
-            const relativeY = clientY - rect.top - playbackTogglePointerOffsetY;
-            const clampedX = Math.min(
-                Math.max(relativeX, horizontalPadding),
-                rect.width - horizontalPadding,
-            );
-            const clampedY = Math.min(
-                Math.max(relativeY, verticalPadding),
-                rect.height - verticalPadding,
-            );
-
-            // Use transform directly — no CSS transition on position, so it follows instantly
-            playbackToggleBtn.style.transform = `translate(calc(${clampedX}px - 50%), calc(${clampedY}px - 50%)) scale(1)`;
-        };
 
         const syncPlaybackToggle = () => {
             const isPaused = video.paused;
@@ -184,7 +152,9 @@ const videoUrl = "/videos/showreel-2025.mp4";
             }
 
             if (playbackToggleBtn) {
-                const label = isPaused ? "Play showreel video" : "Pause showreel video";
+                const label = isPaused
+                    ? "Play showreel video"
+                    : "Pause showreel video";
                 playbackToggleBtn.setAttribute("aria-label", label);
                 playbackToggleBtn.setAttribute(
                     "title",
@@ -193,92 +163,55 @@ const videoUrl = "/videos/showreel-2025.mp4";
             }
         };
 
-        const hidePlaybackToggle = () => {
-            setPointerInside(false);
+        const syncVolume = () => {
+            const volume = video.muted ? 0 : video.volume;
+            const normalizedVolume = Math.round(volume * 100);
 
-            if (
-                playbackToggleBtn &&
-                document.activeElement === playbackToggleBtn &&
-                !playbackToggleBtn.matches(":focus-visible")
-            ) {
-                playbackToggleBtn.blur();
+            if (volumeSlider) {
+                volumeSlider.value = volume.toFixed(2);
+            }
+
+            if (volumeLevelText) {
+                volumeLevelText.textContent = `${normalizedVolume}%`;
             }
         };
 
-        const syncPlaybackToggleToPointer = () => {
-            if (!lastFinePointerPosition) {
-                hidePlaybackToggle();
-                return;
+        const syncFullscreenIcon = () => {
+            const isFullscreen =
+                document.fullscreenElement === shell ||
+                document.fullscreenElement === container;
+
+            if (iconEnterFullscreen) {
+                iconEnterFullscreen.style.display = isFullscreen
+                    ? "none"
+                    : "block";
             }
 
-            if (
-                !isPointerInsideContainer(
-                    lastFinePointerPosition.clientX,
-                    lastFinePointerPosition.clientY,
-                )
-            ) {
-                hidePlaybackToggle();
-                return;
+            if (iconExitFullscreen) {
+                iconExitFullscreen.style.display = isFullscreen
+                    ? "block"
+                    : "none";
             }
-
-            setPointerInside(true);
-            updatePlaybackTogglePosition(
-                lastFinePointerPosition.clientX,
-                lastFinePointerPosition.clientY,
-            );
         };
 
-        const handlePointerUpdate = (event) => {
-            if (event.pointerType === "touch") return;
-
-            lastFinePointerPosition = {
-                clientX: event.clientX,
-                clientY: event.clientY,
-            };
-
-            if (!isPointerInsideContainer(event.clientX, event.clientY)) {
-                hidePlaybackToggle();
-                return;
-            }
-
-            setPointerInside(true);
-            updatePlaybackTogglePosition(event.clientX, event.clientY);
+        const playShowreel = () => {
+            return video.play().catch(() => {
+                syncPlaybackToggle();
+            });
         };
 
-        setPointerInside(false);
-
-        container.addEventListener("pointerenter", handlePointerUpdate);
-        container.addEventListener("pointermove", handlePointerUpdate);
-        container.addEventListener("pointerleave", () => {
-            lastFinePointerPosition = null;
-            hidePlaybackToggle();
-        });
-        container.addEventListener("mouseleave", () => {
-            lastFinePointerPosition = null;
-            hidePlaybackToggle();
-        });
-
-        document.addEventListener("pointermove", (event) => {
-            if (event.pointerType === "touch") return;
-
-            lastFinePointerPosition = {
-                clientX: event.clientX,
-                clientY: event.clientY,
-            };
-
-            if (!isPointerInsideContainer(event.clientX, event.clientY)) {
-                hidePlaybackToggle();
+        const loadShowreel = ({ playWhenReady = true } = {}) => {
+            if (!showreelLoaded) {
+                showreelLoaded = true;
+                container.dataset.showreelLoaded = "true";
+                video.src = videoUrl;
+                video.load();
             }
-        });
 
-        window.addEventListener("scroll", syncPlaybackToggleToPointer, {
-            passive: true,
-        });
-        window.addEventListener("resize", syncPlaybackToggleToPointer);
-        window.addEventListener("blur", () => {
-            lastFinePointerPosition = null;
-            hidePlaybackToggle();
-        });
+            if (playWhenReady && !userPausedVideo) {
+                playShowreel();
+            }
+        };
 
         if (playbackToggleBtn) {
             playbackToggleBtn.addEventListener("click", (event) => {
@@ -286,9 +219,7 @@ const videoUrl = "/videos/showreel-2025.mp4";
 
                 if (video.paused) {
                     userPausedVideo = false;
-                    video.play().catch(() => {
-                        syncPlaybackToggle();
-                    });
+                    loadShowreel({ playWhenReady: true });
                     return;
                 }
 
@@ -297,99 +228,84 @@ const videoUrl = "/videos/showreel-2025.mp4";
             });
         }
 
+        video.addEventListener("click", () => {
+            if (video.paused) {
+                userPausedVideo = false;
+                loadShowreel({ playWhenReady: true });
+                return;
+            }
+
+            userPausedVideo = true;
+            video.pause();
+        });
+
         video.addEventListener("play", syncPlaybackToggle);
         video.addEventListener("pause", syncPlaybackToggle);
         video.addEventListener("loadeddata", syncPlaybackToggle);
         video.addEventListener("ended", syncPlaybackToggle);
+        video.addEventListener("volumechange", syncVolume);
 
-        // Toggle Mute Logic
-        if (muteBtn) {
-            muteBtn.addEventListener("click", () => {
-                video.muted = !video.muted;
-                if (video.muted) {
-                    iconMuted.style.display = "block";
-                    iconUnmuted.style.display = "none";
-                } else {
-                    iconMuted.style.display = "none";
-                    iconUnmuted.style.display = "block";
-                }
+        if (volumeSlider) {
+            volumeSlider.addEventListener("input", () => {
+                const nextVolume = Number.parseFloat(volumeSlider.value);
+                const safeVolume = Number.isFinite(nextVolume)
+                    ? Math.min(1, Math.max(0, nextVolume))
+                    : 0;
+
+                video.volume = safeVolume;
+                video.muted = safeVolume <= 0;
+                syncVolume();
             });
         }
 
-        // Toggle Fullscreen Logic
         if (fullscreenBtn) {
             fullscreenBtn.addEventListener("click", () => {
                 if (!document.fullscreenElement) {
-                    // Enter fullscreen
-                    container
+                    (shell || container)
                         .requestFullscreen()
-                        .then(() => {
-                            iconEnterFullscreen.style.display = "none";
-                            iconExitFullscreen.style.display = "block";
-                        })
+                        .then(syncFullscreenIcon)
                         .catch((err) => {
                             console.error("Error entering fullscreen:", err);
                         });
                 } else {
-                    // Exit fullscreen
                     document
                         .exitFullscreen()
-                        .then(() => {
-                            iconEnterFullscreen.style.display = "block";
-                            iconExitFullscreen.style.display = "none";
-                        })
+                        .then(syncFullscreenIcon)
                         .catch((err) => {
                             console.error("Error exiting fullscreen:", err);
                         });
                 }
             });
 
-            // Listen for fullscreen changes (e.g., ESC key)
-            document.addEventListener("fullscreenchange", () => {
-                if (!document.fullscreenElement) {
-                    iconEnterFullscreen.style.display = "block";
-                    iconExitFullscreen.style.display = "none";
-                }
-            });
+            document.addEventListener("fullscreenchange", syncFullscreenIcon);
         }
 
-        // Simplified Loading Strategy - Direct Load, No Flicker
-        const loadShowreel = () => {
-            if (!video.src) {
-                // Set video source
-                video.src = videoUrl;
+        if ("IntersectionObserver" in window) {
+            loadObserver = new IntersectionObserver(
+                (entries) => {
+                    entries.forEach((entry) => {
+                        if (!entry.isIntersecting) return;
+                        loadShowreel({ playWhenReady: true });
+                        loadObserver?.disconnect();
+                    });
+                },
+                { rootMargin: "0px", threshold: 0.01 },
+            );
+            loadObserver.observe(container);
+        } else {
+            loadShowreel({ playWhenReady: false });
+        }
 
-                // Show container immediately
-                container.style.display = "block";
-                syncPlaybackToggle();
-
-                // Try to play
-                video.play().catch(() => {
-                    console.log("Autoplay blocked, waiting for interaction");
-                    syncPlaybackToggle();
-                });
-
-                // Simple check loop to ensure playback if possible
-                const ensurePlay = () => {
-                    if (!userPausedVideo && video.paused && !video.ended) {
-                        video.play().catch(() => {
-                            syncPlaybackToggle();
-                        });
-                    }
-                };
-
-                // Check a few times
-                setTimeout(ensurePlay, 500);
-                setTimeout(ensurePlay, 1000);
-            }
-        };
-
-        // Load immediately on mount (or very short delay)
-        loadShowreel();
-
-
+        shell?.addEventListener("pointerenter", () => {
+            loadShowreel({ playWhenReady: false });
+        });
+        shell?.addEventListener("focusin", () => {
+            loadShowreel({ playWhenReady: false });
+        });
 
         syncPlaybackToggle();
+        syncVolume();
+        syncFullscreenIcon();
     });
 </script>
 
@@ -399,31 +315,24 @@ const videoUrl = "/videos/showreel-2025.mp4";
         --sci-fi-glow: rgba(0, 243, 255, 0.2);
     }
 
-    .showreel-container {
-        --playback-toggle-x: 50%;
-        --playback-toggle-y: 50%;
+    .showreel-shell {
         width: 100%;
         max-width: var(--max-width);
         margin: 0 auto;
-        margin-top: 0;
-        margin-bottom: 0;
-
         position: relative;
+    }
 
-        /* Will be animated from 0 to full height */
-        /* Height will be set dynamically based on aspect ratio */
-
+    .showreel-container {
+        width: 100%;
+        margin: 0;
+        position: relative;
         background-color: #050a10;
-
-        /* Sci-Fi Theme Styling */
         border-radius: 12px; /* APPLY RADIUS TO CONTAINER */
         overflow: hidden; /* FORCE MASKING for all views */
         border: 1px solid rgba(0, 243, 255, 0.3);
         box-shadow:
             0 10px 40px rgba(0, 0, 0, 0.6),
             0 0 20px var(--sci-fi-glow);
-
-        /* Smooth transitions will be applied via JS */
     }
 
     /* Corner Accents (Pseudo-elements) */
@@ -446,120 +355,113 @@ const videoUrl = "/videos/showreel-2025.mp4";
         object-fit: cover;
         display: block;
         aspect-ratio: 16 / 9;
-        /* Ensure video stays behind the container mask/border effects */
         position: relative;
         z-index: 1;
+        cursor: pointer;
     }
 
-    .playback-toggle-btn {
-        position: absolute;
-        /* Positioned at top-left origin; actual position applied via transform in JS */
-        top: 0;
-        left: 0;
-        z-index: 9;
-        display: inline-flex;
+    .showreel-video::-webkit-media-controls,
+    .showreel-video::-webkit-media-controls-panel,
+    .showreel-video::-webkit-media-controls-enclosure {
+        display: none !important;
+    }
+
+    .video-controls {
+        width: fit-content;
+        max-width: min(100%, calc(100vw - 32px));
+        margin: 0.85rem auto 0;
+        display: flex;
         align-items: center;
         justify-content: center;
-        min-width: 80px;
-        padding: 0.6rem 1rem;
-        border: 1px solid rgba(255, 255, 255, 0.6);
+        gap: 0.7rem;
+        padding: 0.58rem 0.72rem;
+        border: 1px solid rgba(0, 243, 255, 0.34);
         border-radius: 999px;
-        background: rgba(255, 255, 255, 0.9);
-        color: #111;
-        font-family: var(--font-mono);
-        font-size: 0.65rem;
-        letter-spacing: 0.15em;
-        text-transform: uppercase;
+        background: rgba(5, 10, 16, 0.88);
         box-shadow:
-            0 4px 15px rgba(0, 0, 0, 0.15),
-            0 0 0 1px rgba(255, 255, 255, 0.8) inset;
-        cursor: pointer;
+            0 10px 28px rgba(0, 0, 0, 0.32),
+            0 0 18px rgba(0, 243, 255, 0.14);
         opacity: 0;
         pointer-events: none;
-        /* Initial hidden state — transform is overridden by JS on every mousemove, no transition on position */
-        transform: translate(-50%, -50%) scale(0.92);
+        transform: translateY(-12px);
         transition:
-            opacity 0.28s ease,
-            background 0.28s ease,
-            border-color 0.28s ease,
-            box-shadow 0.28s ease;
+            opacity 0.28s ease-in-out,
+            transform 0.28s ease-in-out,
+            border-color 0.28s ease-in-out,
+            box-shadow 0.28s ease-in-out;
+        backdrop-filter: blur(8px);
     }
 
-    .playback-toggle-btn span {
-        display: inline-block;
-        animation: playback-toggle-float 4.2s ease-in-out infinite;
-    }
-
-    .playback-toggle-btn:hover,
-    .playback-toggle-btn:focus-visible {
-        background: #ffffff;
-        border-color: #ffffff;
-        box-shadow:
-            0 6px 20px rgba(0, 0, 0, 0.2),
-            0 0 0 1px #ffffff inset;
-        outline: none;
-    }
-
-    /* Video Controls Container */
-    .video-controls {
-        position: absolute;
-        bottom: 20px;
-        right: 20px;
-        z-index: 10;
-        display: flex;
-        gap: 12px;
-    }
-
-    /* Control Button Styling (Mute & Fullscreen) */
-    .control-btn {
-        background: rgba(5, 10, 16, 0.8);
-        border: 1px solid var(--sci-fi-cyan);
-        color: var(--sci-fi-cyan);
-        border-radius: 50%;
-        width: 44px;
-        height: 44px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        opacity: 0;
-        transform: translateY(10px);
-        transition: all 0.3s ease;
-        backdrop-filter: blur(4px);
-    }
-
-    .control-btn:hover {
-        background: rgba(0, 243, 255, 0.1);
-        box-shadow: 0 0 15px rgba(0, 243, 255, 0.3);
-    }
-
-    .control-btn svg {
-        width: 20px;
-        height: 20px;
-        fill: currentColor;
-    }
-
-    /* Show buttons on container hover */
-    .showreel-container:hover .control-btn {
+    .showreel-shell:hover .video-controls,
+    .showreel-shell:focus-within .video-controls {
         opacity: 1;
+        pointer-events: auto;
         transform: translateY(0);
     }
 
-    .showreel-container[data-pointer-inside="true"] .playback-toggle-btn,
-    .playback-toggle-btn:focus-visible {
-        opacity: 1;
-        pointer-events: auto;
-        /* Scale override is handled by JS via transform; only opacity is toggled via CSS */
+    .control-btn,
+    .volume-control {
+        min-height: 38px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.48rem;
+        border: 1px solid var(--sci-fi-cyan);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--sci-fi-cyan);
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        transition:
+            background 0.22s ease,
+            color 0.22s ease,
+            box-shadow 0.22s ease,
+            border-color 0.22s ease;
     }
 
-    @keyframes playback-toggle-float {
-        0%,
-        100% {
-            transform: translateY(0);
-        }
-        50% {
-            transform: translateY(-2px);
-        }
+    .control-btn {
+        width: 38px;
+        height: 38px;
+        padding: 0;
+        cursor: pointer;
+    }
+
+    .control-btn-text {
+        width: auto;
+        min-width: 72px;
+        padding: 0 0.85rem;
+    }
+
+    .control-btn:hover,
+    .control-btn:focus-visible,
+    .volume-control:focus-within {
+        background: rgba(0, 243, 255, 0.1);
+        box-shadow: 0 0 15px rgba(0, 243, 255, 0.3);
+        outline: none;
+    }
+
+    .control-btn svg {
+        width: 18px;
+        height: 18px;
+        fill: currentColor;
+    }
+
+    .volume-control {
+        padding: 0 0.72rem;
+    }
+
+    .volume-slider {
+        width: clamp(92px, 12vw, 142px);
+        accent-color: var(--sci-fi-cyan);
+        cursor: pointer;
+    }
+
+    .volume-level {
+        min-width: 3ch;
+        color: rgba(255, 255, 255, 0.82);
+        text-align: right;
     }
 
     /* Credits Section (Now separate from video container) */
@@ -760,25 +662,25 @@ const videoUrl = "/videos/showreel-2025.mp4";
             display: block;
         }
 
-        .playback-toggle-btn {
-            min-width: 72px;
-            padding: 0.5rem 0.8rem;
-            font-size: 0.6rem;
-            letter-spacing: 0.12em;
+        .video-controls {
+            width: 100%;
+            max-width: 100%;
+            flex-wrap: wrap;
+            border-radius: 16px;
             opacity: 1;
             pointer-events: auto;
-            transform: translate(-50%, -50%);
-        }
-
-        /* Always show control buttons on mobile since there is no hover */
-        .control-btn {
-            opacity: 1;
             transform: translateY(0);
+            padding: 0.65rem;
         }
 
-        .video-controls {
-            bottom: 16px;
-            right: 16px;
+        .volume-control {
+            flex: 1 1 100%;
+            justify-content: space-between;
+        }
+
+        .volume-slider {
+            flex: 1 1 auto;
+            width: auto;
         }
 
         /* Manifesto Mobile Styles */
@@ -817,9 +719,10 @@ const videoUrl = "/videos/showreel-2025.mp4";
     }
 
     @media (hover: none) {
-        .playback-toggle-btn {
+        .video-controls {
             opacity: 1;
-            transform: translate(-50%, -50%);
+            pointer-events: auto;
+            transform: translateY(0);
         }
     }
 </style>

@@ -20,6 +20,7 @@ import PhotoGrid from "../components/PhotoGrid.astro";
 // LiquidCursor moved to BaseLayout
 // EngagementCTA moved to LandingOrchestrator
 import ForceDarkMode from "../components/ForceDarkMode.astro";
+import uk2026 from "../data/uk2026.json";
 
 const pageTitle = "Portfolio";
 const pageDescription =
@@ -43,6 +44,25 @@ const featuredPhotography = await safeFetch(
 const recentPosts = (await safeFetch(getRecentPosts, mockRecent)).slice(0, 3);
 const mediaMentions = await safeFetch(getMediaMentions, []);
 const films = await safeFetch(getFilms, []);
+
+const landingPhotographyProjectLimit = 7;
+const pickFixedRandomProjects = (items, limit) => {
+    const shuffled = Array.isArray(items) ? [...items] : [];
+
+    for (let index = shuffled.length - 1; index > 0; index -= 1) {
+        const swapIndex = Math.floor(Math.random() * (index + 1));
+        [shuffled[index], shuffled[swapIndex]] = [
+            shuffled[swapIndex],
+            shuffled[index],
+        ];
+    }
+
+    return shuffled.slice(0, limit);
+};
+const landingPhotographyProjects = pickFixedRandomProjects(
+    featuredPhotography,
+    landingPhotographyProjectLimit,
+);
 
 // Helper to find link by name match
 const findLink = (name) => {
@@ -104,6 +124,7 @@ const supportProjects = [
             "Two peer-reviewed research works have been accepted at the BSA Annual Conference. My conference registration fee is already funded.",
     },
 ];
+const showLandingSupportSection = false;
 
 const heroHeadingLines = [
     ["Hi,", "I", "am", "Abodid."],
@@ -113,6 +134,18 @@ const heroBioWords =
     "With over 8+ years of experience in photography, film and interactive media, I design authentic creative experiences for brands and organizations working in the culture and technology space.".split(
         " ",
     );
+const uk2026Feature = {
+    href: "/uk2026",
+    image: "/images/uk2026/cambridge-data-school.jpg",
+    imageAlt:
+        "Abodid Sahoo with Prof. Eleanor Dare at Cambridge Digital Humanities",
+    kicker: "Latest note",
+    title: uk2026.title,
+    quote:
+        "After all the highs and lows in my life, I wonder how it all fell in place to lead me to this. It still feels unbelievable.",
+    description:
+        "Read the entire UK 2026 experience, from Manchester and Cambridge to cultural heritage data, Odia textiles, friendship, funding, and one unforgettable bowl of ramen.",
+};
 
 // Toggle between "typewriter" and "smooth-blur" for the landing hero copy.
 const heroTextEffect = "smooth-blur";
@@ -127,7 +160,7 @@ const heroTextEffect = "smooth-blur";
 >
     <Fragment slot="head">
         {
-            featuredPhotography.slice(0, 4).map((project) => {
+            landingPhotographyProjects.slice(0, 4).map((project) => {
                 const imageUrl = project?.image || project?.cover_image;
                 return imageUrl ? (
                     <link rel="preload" as="image" href={imageUrl} />
@@ -182,6 +215,27 @@ const heroTextEffect = "smooth-blur";
         </div>
     </section>
 
+    <section class="section latest-note-section" aria-labelledby="uk2026-note-title">
+        <a href={uk2026Feature.href} class="uk2026-card">
+            <figure class="uk2026-media">
+                <img
+                    src={uk2026Feature.image}
+                    alt={uk2026Feature.imageAlt}
+                    loading="eager"
+                    decoding="async"
+                />
+            </figure>
+
+            <div class="uk2026-content">
+                <p class="uk2026-kicker">{uk2026Feature.kicker}</p>
+                <h2 id="uk2026-note-title">{uk2026Feature.title}</h2>
+                <blockquote>{uk2026Feature.quote}</blockquote>
+                <p>{uk2026Feature.description}</p>
+                <span class="uk2026-action">Read more</span>
+            </div>
+        </a>
+    </section>
+
     <!-- Showreel Section - Wrapped for Alignment -->
     <section class="section writings-section">
         <Showreel
@@ -220,8 +274,8 @@ const heroTextEffect = "smooth-blur";
 
         <!-- Contained Carousel Row 1 (Left) -->
         <PhotoGrid
-            projects={featuredPhotography}
-            maxItems={7}
+            projects={landingPhotographyProjects}
+            maxItems={landingPhotographyProjectLimit}
             columns={2}
             contained={true}
         />
@@ -277,61 +331,68 @@ const heroTextEffect = "smooth-blur";
         </div>
     </section>
 
-    <div class="major-section-separator writing-support-separator"></div>
+    {
+        showLandingSupportSection && (
+            <>
+                <div class="major-section-separator writing-support-separator" />
 
-    <section class="section support-section">
-        <div class="section-header">
-            <h2 class="section-title">Support Me</h2>
-            <a href="/fundraising" class="link-arrow mobile-btn section-cta"
-                >View All</a
-            >
-        </div>
-
-        <div class="support-projects">
-            {
-                supportProjects.map((project) => (
-                    <article class="support-project" id={project.id}>
+                <section class="section support-section">
+                    <div class="section-header">
+                        <h2 class="section-title">Support Me</h2>
                         <a
-                            href={project.href}
-                            class="support-project-image-link"
+                            href="/fundraising"
+                            class="link-arrow mobile-btn section-cta"
                         >
-                            <img
-                                src={project.image}
-                                alt={project.imageAlt}
-                                class="support-project-image"
-                                loading="lazy"
-                            />
+                            View All
                         </a>
+                    </div>
 
-                        <div class="support-project-content">
-                            <a
-                                href={project.href}
-                                class="support-project-title-link"
-                            >
-                                <h3 class="support-project-title">
-                                    {project.title}
-                                </h3>
-                            </a>
-                            <p class="support-project-description">
-                                {project.description}
-                            </p>
-                            <a
-                                href={project.href}
-                                class="support-project-action"
-                            >
-                                View support details →
-                            </a>
-                        </div>
-                    </article>
-                ))
-            }
-        </div>
-    </section>
+                    <div class="support-projects">
+                        {supportProjects.map((project) => (
+                            <article class="support-project" id={project.id}>
+                                <a
+                                    href={project.href}
+                                    class="support-project-image-link"
+                                >
+                                    <img
+                                        src={project.image}
+                                        alt={project.imageAlt}
+                                        class="support-project-image"
+                                        loading="lazy"
+                                    />
+                                </a>
+
+                                <div class="support-project-content">
+                                    <a
+                                        href={project.href}
+                                        class="support-project-title-link"
+                                    >
+                                        <h3 class="support-project-title">
+                                            {project.title}
+                                        </h3>
+                                    </a>
+                                    <p class="support-project-description">
+                                        {project.description}
+                                    </p>
+                                    <a
+                                        href={project.href}
+                                        class="support-project-action"
+                                    >
+                                        View support details →
+                                    </a>
+                                </div>
+                            </article>
+                        ))}
+                    </div>
+                </section>
+            </>
+        )
+    }
 </BaseLayout>
 
 <style>
     :global(body.landing-page .header-padding) {
-        padding-top: clamp(112px, 8vw, 140px) !important;
+        padding-top: clamp(28px, 4vh, 56px) !important;
     }
 
     .narrative-section {
@@ -342,7 +403,7 @@ const heroTextEffect = "smooth-blur";
         flex-direction: column;
         justify-content: flex-start;
         gap: clamp(1.5rem, 3.5vh, 3rem);
-        padding: clamp(6.5rem, 13vh, 10.5rem) 24px clamp(1.5rem, 4vh, 2.5rem);
+        padding: clamp(2rem, 5.5vh, 4.5rem) 24px clamp(1.5rem, 4vh, 2.5rem);
         max-width: 1100px;
         margin-left: auto;
         margin-right: auto;
@@ -356,6 +417,7 @@ const heroTextEffect = "smooth-blur";
         display: flex;
         flex-direction: column;
         gap: clamp(2.5rem, 5vh, 4.5rem);
+        margin-top: clamp(16px, 2vh, 24px);
         max-width: min(100%, 980px);
         transform: translate3d(0, calc(var(--hero-copy-stage-shift) * -1), 0);
         transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
@@ -381,6 +443,8 @@ const heroTextEffect = "smooth-blur";
     }
 
     .hero-title-line {
+        --hero-line-shift: 0px;
+        --hero-line-opacity: 1;
         display: flex;
         flex-wrap: wrap;
         align-items: baseline;
@@ -388,37 +452,29 @@ const heroTextEffect = "smooth-blur";
         width: 100%;
         min-width: 0;
         max-width: 100%;
+        opacity: var(--hero-line-opacity);
+        transform: translate3d(0, calc(var(--hero-line-shift) * -1), 0);
+        transition:
+            opacity 0.32s linear,
+            transform 0.58s cubic-bezier(0.22, 1, 0.36, 1);
+        will-change: opacity, transform;
     }
 
     .hero-title-line-dynamic {
         --hero-dynamic-shift: 0px;
         --hero-dynamic-opacity: 1;
-        --hero-dynamic-blur: 0px;
         width: 100%;
         max-width: min(100%, calc(100vw - 48px));
         opacity: var(--hero-dynamic-opacity);
         transform: translate3d(0, calc(var(--hero-dynamic-shift) * -1), 0);
-        filter: blur(var(--hero-dynamic-blur));
         transition:
             opacity 0.32s linear,
-            transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
-            filter 0.48s cubic-bezier(0.22, 1, 0.36, 1);
-        will-change: opacity, transform, filter;
+            transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+        will-change: opacity, transform;
     }
 
     .hero-word {
-        --hero-word-shift: 0px;
-        --hero-word-opacity: 1;
-        --hero-word-blur: 0px;
         display: inline-block;
-        opacity: var(--hero-word-opacity);
-        transform: translate3d(0, calc(var(--hero-word-shift) * -1), 0);
-        filter: blur(var(--hero-word-blur));
-        transition:
-            opacity 0.32s linear,
-            transform 0.58s cubic-bezier(0.22, 1, 0.36, 1),
-            filter 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-        will-change: opacity, transform, filter;
         backface-visibility: hidden;
     }
 
@@ -427,6 +483,8 @@ const heroTextEffect = "smooth-blur";
     }
 
     .hero-bio-line {
+        --hero-line-shift: 0px;
+        --hero-line-opacity: 1;
         margin: 0;
         display: flex;
         flex-wrap: wrap;
@@ -442,16 +500,22 @@ const heroTextEffect = "smooth-blur";
         line-height: var(--feature-typewriter-bio-line-height, 1.2);
         letter-spacing: var(--feature-typewriter-bio-letter-spacing, 0em);
         color: var(--feature-typewriter-bio-color, var(--text-secondary));
+        opacity: var(--hero-line-opacity);
+        transform: translate3d(0, calc(var(--hero-line-shift) * -1), 0);
+        transition:
+            opacity 0.32s linear,
+            transform 0.58s cubic-bezier(0.22, 1, 0.36, 1);
+        will-change: opacity, transform;
     }
 
     @media (max-width: 1800px) and (min-width: 980px) {
         :global(body.landing-page .header-padding) {
-            padding-top: 134px !important;
+            padding-top: clamp(32px, 4.5vh, 60px) !important;
         }
 
         .narrative-section {
             gap: clamp(1.6rem, 3vh, 2.6rem);
-            padding-top: clamp(7rem, 12.5vh, 9rem);
+            padding-top: clamp(2.6rem, 6vh, 4.75rem);
             padding-bottom: clamp(2.4rem, 5.5vh, 4rem);
             max-width: 1100px;
         }
@@ -484,16 +548,17 @@ const heroTextEffect = "smooth-blur";
 
     @media (max-width: 979px) {
         :global(body.landing-page .header-padding) {
-            padding-top: 108px !important;
+            padding-top: clamp(24px, 3.5vh, 42px) !important;
         }
 
         .narrative-section {
             gap: 1.25rem;
-            padding-top: clamp(5rem, 8.5vh, 6.5rem);
+            padding-top: clamp(2.1rem, 5.5vh, 3.8rem);
         }
 
         .hero-content {
             gap: 1.9rem;
+            margin-top: clamp(12px, 1.7vh, 18px);
             max-width: min(100%, 780px);
         }
 
@@ -520,17 +585,17 @@ const heroTextEffect = "smooth-blur";
 
     @media (max-width: 768px) {
         :global(body.landing-page .header-padding) {
-            padding-top: 118px !important;
+            padding-top: clamp(18px, 3vh, 30px) !important;
         }
 
         .narrative-section {
             min-height: auto;
-            padding-top: 4.5rem;
+            padding-top: clamp(1.25rem, 4vh, 2.4rem);
             padding-left: 0;
             padding-right: 0;
             padding-bottom: 2.5rem;
             margin-bottom: 1.5rem;
-            gap: 3.25rem;
+            gap: clamp(1.8rem, 5vh, 2.6rem);
         }
 
         .hero-title {
@@ -637,6 +702,151 @@ const heroTextEffect = "smooth-blur";
         margin-right: auto;
         padding-left: 24px;
         padding-right: 24px;
+    }
+
+    .latest-note-section {
+        margin-top: clamp(1rem, 3vh, 2.25rem);
+        margin-bottom: clamp(4.5rem, 8vh, 6.5rem);
+    }
+
+    .uk2026-card {
+        display: grid;
+        grid-template-columns: minmax(280px, 0.86fr) minmax(0, 1fr);
+        gap: clamp(1.5rem, 4vw, 3.5rem);
+        align-items: center;
+        padding: clamp(1rem, 2vw, 1.35rem);
+        border: 1px solid var(--border-subtle);
+        border-radius: 8px;
+        background:
+            linear-gradient(
+                135deg,
+                rgba(255, 255, 255, 0.045),
+                rgba(255, 255, 255, 0.01)
+            ),
+            var(--bg-surface);
+        color: var(--text-primary);
+        text-decoration: none;
+        transition:
+            border-color 220ms ease,
+            background-color 220ms ease,
+            transform 220ms ease;
+    }
+
+    .uk2026-card:hover,
+    .uk2026-card:focus-visible {
+        border-color: color-mix(in srgb, var(--text-tertiary) 68%, transparent);
+        background-color: var(--bg-surface-hover);
+        transform: translateY(-2px);
+        outline: none;
+    }
+
+    .uk2026-media {
+        position: relative;
+        margin: 0;
+        aspect-ratio: 16 / 10;
+        overflow: hidden;
+        border-radius: 8px;
+        background: var(--bg-surface);
+    }
+
+    .uk2026-media img {
+        width: 100%;
+        height: 100%;
+        display: block;
+        object-fit: cover;
+        transition: transform 900ms cubic-bezier(0.23, 1, 0.32, 1);
+    }
+
+    .uk2026-card:hover .uk2026-media img,
+    .uk2026-card:focus-visible .uk2026-media img {
+        transform: scale(1.015);
+    }
+
+    .uk2026-content {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: clamp(0.85rem, 1.8vw, 1.2rem);
+        padding: clamp(0.25rem, 1vw, 0.75rem) clamp(0rem, 1vw, 0.75rem);
+    }
+
+    .uk2026-kicker {
+        margin: 0;
+        font-family: var(--feature-writing-date-font, var(--font-mono));
+        font-size: var(--feature-writing-date-size, 0.75rem);
+        font-weight: var(--feature-writing-date-weight, 400);
+        line-height: 1.2;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--text-tertiary);
+    }
+
+    .uk2026-content h2 {
+        margin: 0;
+        max-width: 12ch;
+        font-family: var(--feature-writing-title-font, var(--font-serif));
+        font-size: clamp(2rem, 1.4rem + 2.2vw, 3.6rem);
+        font-weight: var(--feature-writing-title-weight, 400);
+        line-height: 1.02;
+        letter-spacing: 0;
+        color: var(--text-primary);
+    }
+
+    .uk2026-content blockquote {
+        margin: 0;
+        padding-left: 1rem;
+        border-left: 2px solid color-mix(in srgb, var(--color-brand-red) 72%, white);
+        font-family: var(--font-body);
+        font-size: clamp(1rem, 0.88rem + 0.5vw, 1.24rem);
+        font-weight: 300;
+        line-height: 1.55;
+        letter-spacing: 0;
+        color: var(--text-secondary);
+    }
+
+    .uk2026-content p:not(.uk2026-kicker) {
+        margin: 0;
+        max-width: 58ch;
+        font-family: var(--feature-writing-category-font, var(--font-sans));
+        font-size: 0.98rem;
+        font-weight: 400;
+        line-height: 1.62;
+        letter-spacing: 0;
+        color: var(--text-secondary);
+    }
+
+    .uk2026-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        margin-top: 0.1rem;
+        font-family: var(--feature-writing-action-font, var(--font-ui));
+        font-size: var(--feature-writing-action-size, 0.8rem);
+        font-weight: var(--feature-writing-action-weight, 500);
+        line-height: var(--feature-writing-action-line-height, 1.2);
+        letter-spacing: var(--feature-writing-action-letter-spacing, 0.05em);
+        text-transform: uppercase;
+        color: var(--text-tertiary);
+        transition: color 220ms ease;
+    }
+
+    .uk2026-action::after {
+        content: "→";
+        transition: transform 220ms ease;
+    }
+
+    .uk2026-card:hover .uk2026-action,
+    .uk2026-card:focus-visible .uk2026-action {
+        color: var(--text-primary);
+    }
+
+    .uk2026-card:hover .uk2026-action::after,
+    .uk2026-card:focus-visible .uk2026-action::after {
+        transform: translateX(4px);
+    }
+
+    .latest-note-section + .writings-section {
+        padding-top: clamp(2rem, 5vh, 4rem);
     }
 
     .contained-section {
@@ -1118,24 +1328,9 @@ const heroTextEffect = "smooth-blur";
 
     #typewriter-text[data-text-effect="smooth-blur"]
         :global(.smooth-blur-word-label) {
-        --smooth-blur-scroll-shift: 0px;
-        --smooth-blur-scroll-opacity: 1;
-        --smooth-blur-scroll-blur: 0px;
         display: inline-block;
         max-width: 100%;
-        opacity: var(--smooth-blur-scroll-opacity);
-        filter: blur(var(--smooth-blur-scroll-blur));
-        transform: translate3d(
-            0,
-            calc(var(--smooth-blur-scroll-shift) * -1),
-            0
-        );
         overflow-wrap: break-word;
-        transition:
-            opacity 0.32s linear,
-            transform 0.58s cubic-bezier(0.22, 1, 0.36, 1),
-            filter 0.48s cubic-bezier(0.22, 1, 0.36, 1);
-        will-change: opacity, transform, filter;
         backface-visibility: hidden;
     }
 
@@ -1164,9 +1359,22 @@ const heroTextEffect = "smooth-blur";
         }
     }
 
+    :global(body.landing-page .global-grid-bg) {
+        opacity: 0.18;
+        background-size: 72px 72px;
+        -webkit-mask-image: none;
+        mask-image: none;
+    }
+
+    :global(body.landing-page .global-glow-bg) {
+        display: none;
+    }
+
     @media (prefers-reduced-motion: reduce) {
         .hero-content,
         .hero-word,
+        .hero-title-line,
+        .hero-bio-line,
         .hero-title-line-dynamic {
             transition: none;
             filter: none;
@@ -1208,6 +1416,47 @@ const heroTextEffect = "smooth-blur";
     }
 
     @media (max-width: 768px) {
+        .latest-note-section {
+            margin-top: 0.5rem;
+            margin-bottom: clamp(3rem, 7vh, 4.75rem);
+        }
+
+        .uk2026-card {
+            grid-template-columns: 1fr;
+            gap: 1.2rem;
+            padding: 0.9rem;
+        }
+
+        .uk2026-media {
+            aspect-ratio: 16 / 11;
+        }
+
+        .uk2026-content {
+            gap: 0.8rem;
+            padding: 0 0.1rem 0.25rem;
+        }
+
+        .uk2026-content h2 {
+            max-width: 11ch;
+            font-size: clamp(2rem, 12vw, 3rem);
+            line-height: 1.04;
+        }
+
+        .uk2026-content blockquote {
+            padding-left: 0.8rem;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        .uk2026-content p:not(.uk2026-kicker) {
+            font-size: 0.92rem;
+            line-height: 1.55;
+        }
+
+        .latest-note-section + .writings-section {
+            padding-top: clamp(1.4rem, 5vh, 2.5rem);
+        }
+
         .support-project {
             grid-template-columns: 1fr;
             gap: 1rem;
@@ -1388,56 +1637,25 @@ const heroTextEffect = "smooth-blur";
     const heroWordLines = Array.from(
         document.querySelectorAll("[data-hero-word-line]"),
     );
-    const heroWords = Array.from(document.querySelectorAll("[data-hero-word]"));
     const heroDynamicLine = document.querySelector("[data-hero-dynamic-line]");
 
     let heroCopyFrame = 0;
     let heroCopyAnchorTop = null;
 
-    const setHeroWordState = (word, { shift = 0, opacity = 1, blur = 0 }) => {
-        word.style.setProperty("--hero-word-shift", `${shift.toFixed(2)}px`);
-        word.style.setProperty("--hero-word-opacity", opacity.toFixed(3));
-        word.style.setProperty("--hero-word-blur", `${blur.toFixed(2)}px`);
-    };
-
-    const setSmoothBlurWordLabelState = (
-        wordLabel,
-        { shift = 0, opacity = 1, blur = 0 },
-    ) => {
-        wordLabel.style.setProperty(
-            "--smooth-blur-scroll-shift",
-            `${shift.toFixed(2)}px`,
-        );
-        wordLabel.style.setProperty(
-            "--smooth-blur-scroll-opacity",
-            opacity.toFixed(3),
-        );
-        wordLabel.style.setProperty(
-            "--smooth-blur-scroll-blur",
-            `${blur.toFixed(2)}px`,
-        );
+    const setHeroLineState = (line, { shift = 0, opacity = 1 }) => {
+        line.style.setProperty("--hero-line-shift", `${shift.toFixed(2)}px`);
+        line.style.setProperty("--hero-line-opacity", opacity.toFixed(3));
     };
 
     const resetHeroCopyMotion = () => {
         heroContent?.style.setProperty("--hero-copy-stage-shift", "0px");
 
-        heroWords.forEach((word) => {
-            setHeroWordState(word, { shift: 0, opacity: 1, blur: 0 });
+        heroWordLines.forEach((line) => {
+            setHeroLineState(line, { shift: 0, opacity: 1 });
         });
 
         heroDynamicLine?.style.setProperty("--hero-dynamic-shift", "0px");
         heroDynamicLine?.style.setProperty("--hero-dynamic-opacity", "1");
-        heroDynamicLine?.style.setProperty("--hero-dynamic-blur", "0px");
-
-        textElement
-            ?.querySelectorAll(".smooth-blur-word-label")
-            ?.forEach((wordLabel) => {
-                setSmoothBlurWordLabelState(wordLabel, {
-                    shift: 0,
-                    opacity: 1,
-                    blur: 0,
-                });
-            });
     };
 
     const updateHeroCopyMotion = () => {
@@ -1455,14 +1673,16 @@ const heroTextEffect = "smooth-blur";
         }
 
         const headerHeight =
+            document.querySelector(".top-menu-shell")?.getBoundingClientRect()
+                .height ??
             document.querySelector(".fixed-nav")?.getBoundingClientRect()
-                .height ?? 80;
+                .height ??
+            88;
         const viewportHeight = Math.max(window.innerHeight, 1);
-        const heroRect = heroCopy.getBoundingClientRect();
-        const exitStart = Math.max(headerHeight + 120, heroCopyAnchorTop - 10);
-        const exitDistance = Math.max(viewportHeight * 0.34, 260);
+        const fadeStart = Math.max(headerHeight + 84, viewportHeight * 0.22);
+        const exitDistance = Math.max(viewportHeight * 0.85, 680);
         const rawProgress = clampProgress(
-            (exitStart - heroRect.top) / Math.max(exitDistance, 1),
+            (window.scrollY - fadeStart) / Math.max(exitDistance, 1),
         );
         const progress = smoothstep(rawProgress);
 
@@ -1472,49 +1692,30 @@ const heroTextEffect = "smooth-blur";
         );
 
         heroWordLines.forEach((line, lineIndex) => {
-            const words = Array.from(line.querySelectorAll("[data-hero-word]"));
-            const lineStart = lineIndex * 0.18;
+            const lineStart =
+                lineIndex === 0 ? 0 : lineIndex === 1 ? 0.38 : 0.68;
             const lineWindow =
-                lineIndex === heroWordLines.length - 1 ? 0.52 : 0.42;
-            const wordSpread = Math.min(0.18, words.length * 0.028);
-            const wordStep =
-                words.length > 1
-                    ? wordSpread / Math.max(words.length - 1, 1)
-                    : 0;
+                lineIndex === 0 ? 0.58 : lineIndex === 1 ? 0.68 : 0.76;
+            const lineProgress = smoothstep(
+                (progress - lineStart) / Math.max(lineWindow, 0.01),
+            );
+            const lineFadeStrength =
+                lineIndex === 0 ? 1 : lineIndex === 1 ? 0.44 : 0.22;
+            const lineOpacityDrop =
+                lineIndex === 0 ? 0.78 : lineIndex === 1 ? 0.24 : 0.14;
+            const shift = (progress * 10 + lineProgress * 22) * lineFadeStrength;
+            const opacity = clampProgress(
+                1 - (lineProgress * lineOpacityDrop + progress * 0.025),
+            );
 
-            words.forEach((word, wordIndex) => {
-                const start = lineStart + wordIndex * wordStep;
-                const wordProgress = smoothstep(
-                    (progress - start) / Math.max(lineWindow, 0.01),
-                );
-                const blurProgress = smoothstep((wordProgress - 0.64) / 0.3);
-                const shift =
-                    progress * 16 + wordProgress * 24 + blurProgress * 6;
-                const opacity = clampProgress(
-                    1 -
-                        (wordProgress * 0.74 +
-                            progress * 0.16 +
-                            blurProgress * 0.08),
-                );
-
-                setHeroWordState(word, {
-                    shift,
-                    opacity,
-                    blur: blurProgress * 2.8,
-                });
-            });
+            setHeroLineState(line, { shift, opacity });
         });
 
         if (heroDynamicLine) {
-            const dynamicProgress = smoothstep((progress - 0.28) / 0.44);
-            const dynamicBlurProgress = smoothstep((progress - 0.72) / 0.2);
-            const dynamicShift =
-                progress * 16 + dynamicProgress * 20 + dynamicBlurProgress * 6;
+            const dynamicProgress = smoothstep((progress - 0.58) / 0.54);
+            const dynamicShift = progress * 5 + dynamicProgress * 10;
             const dynamicOpacity = clampProgress(
-                1 -
-                    (dynamicProgress * 0.7 +
-                        progress * 0.18 +
-                        dynamicBlurProgress * 0.08),
+                1 - (dynamicProgress * 0.28 + progress * 0.035),
             );
 
             heroDynamicLine.style.setProperty(
@@ -1525,53 +1726,6 @@ const heroTextEffect = "smooth-blur";
                 "--hero-dynamic-opacity",
                 dynamicOpacity.toFixed(3),
             );
-            heroDynamicLine.style.setProperty(
-                "--hero-dynamic-blur",
-                `${(dynamicBlurProgress * 2.4).toFixed(2)}px`,
-            );
-        }
-
-        if (textElement && heroTextMode === "smooth-blur") {
-            const smoothBlurPhrases = Array.from(
-                textElement.querySelectorAll(".smooth-blur-phrase"),
-            );
-
-            smoothBlurPhrases.forEach((phrase, phraseIndex) => {
-                const wordLabels = Array.from(
-                    phrase.querySelectorAll(".smooth-blur-word-label"),
-                );
-                const phraseStart = 0.24 + phraseIndex * 0.04;
-                const phraseWindow = 0.34;
-                const wordSpread = Math.min(0.2, wordLabels.length * 0.05);
-                const wordStep =
-                    wordLabels.length > 1
-                        ? wordSpread / Math.max(wordLabels.length - 1, 1)
-                        : 0;
-
-                wordLabels.forEach((wordLabel, wordIndex) => {
-                    const start = phraseStart + wordIndex * wordStep;
-                    const wordProgress = smoothstep(
-                        (progress - start) / Math.max(phraseWindow, 0.01),
-                    );
-                    const blurProgress = smoothstep(
-                        (wordProgress - 0.68) / 0.24,
-                    );
-                    const shift =
-                        progress * 8 + wordProgress * 18 + blurProgress * 4;
-                    const opacity = clampProgress(
-                        1 -
-                            (wordProgress * 0.74 +
-                                progress * 0.12 +
-                                blurProgress * 0.08),
-                    );
-
-                    setSmoothBlurWordLabelState(wordLabel, {
-                        shift,
-                        opacity,
-                        blur: blurProgress * 1.8,
-                    });
-                });
-            });
         }
     };
 
