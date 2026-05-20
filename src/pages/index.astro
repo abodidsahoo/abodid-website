@@ -714,9 +714,11 @@ const heroTextEffect = "smooth-blur";
 
     .uk2026-card {
         display: grid;
-        grid-template-columns: minmax(280px, 0.86fr) minmax(0, 1fr);
-        gap: clamp(1.5rem, 4vw, 3.5rem);
-        align-items: center;
+        grid-template-columns: 1fr;
+        max-width: 720px;
+        margin: 0 auto;
+        gap: clamp(1.5rem, 3vw, 2rem);
+        align-items: start;
         padding: clamp(1rem, 2vw, 1.35rem);
         border: 1px solid var(--border-subtle);
         border-radius: 8px;
