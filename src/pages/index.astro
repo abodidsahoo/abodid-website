@@ -227,71 +227,24 @@ const heroTextEffect = "smooth-blur";
                         decoding="async"
                     />
                 </div>
-                <figcaption class="uk2026-caption">Abodid Sahoo (Left), Eleanor Dare (Right) - Convenor of the Cultural Heritage Data School, University of Cambridge<span class="uk2026-photo-credit">Photograph by Yashaswinee Sahoo</span></figcaption>
+                <figcaption class="uk2026-caption">Abodid Sahoo (Left), Eleanor Dare (Right) - Convenor of the Cultural Heritage Data School, Cambridge Digital Humanities, University of Cambridge<span class="uk2026-photo-credit">Photograph by Yashaswinee Sahoo</span></figcaption>
             </figure>
 
             <div class="uk2026-content">
-                <p class="uk2026-kicker">{uk2026Feature.kicker}</p>
-                <h2 id="uk2026-note-title" set:html={uk2026Feature.title.replace("beloved ", "beloved&nbsp;")} />
-                <p class="uk2026-excerpt">{uk2026Feature.excerpt}</p>
-                <div class="uk2026-footer">
-                    <span class="uk2026-action">{uk2026Feature.action}</span>
+                <div class="uk2026-header-panel">
+                    <p class="uk2026-kicker">{uk2026Feature.kicker}</p>
+                    <h2 id="uk2026-note-title" set:html={uk2026Feature.title.replace("beloved ", "beloved&nbsp;")} />
+                </div>
+                <div class="uk2026-footer-panel">
                     <p class="uk2026-meta-desc">{uk2026Feature.description}</p>
+                    <span class="uk2026-action">{uk2026Feature.action}</span>
                 </div>
             </div>
         </a>
     </section>
 
-    <!-- Showreel Section - Wrapped for Alignment -->
-    <section class="section writings-section">
-        <Showreel
-            vh1Url={vh1Url}
-            rollingStoneUrl={rollingStoneUrl}
-            homegrownUrl={homegrownUrl}
-            educateGirlsUrl={educateGirlsUrl}
-            curvesColorsUrl={curvesColorsUrl}
-            pursuitUrl={pursuitUrl}
-            hermosaUrl={hermosaUrl}
-            budweiserUrl={budweiserUrl}
-            wiedenUrl={wiedenUrl}
-            animalUrl={animalUrl}
-            jawaUrl={jawaUrl}
-            odishaUrl={odishaUrl}
-        />
-
-        <!-- Filmmaking Background Note -->
-        <!-- Content moved to manifesto section - removed duplicate -->
-    </section>
-
-    <!-- Massive Spacer 3 (Showreel to Featured) -->
-    <!-- Responsive Spacer -->
-    <div class="responsive-spacer" aria-hidden="true"></div>
-
-    <!-- Photo Stories -->
-    <section class="section contained-section">
-        <div class="section-header">
-            <h2 class="section-title">Photography Projects</h2>
-            <a
-                href="/photography"
-                class="link-arrow mobile-btn section-cta photo-projects-cta"
-                >View All</a
-            >
-        </div>
-
-        <!-- Contained Carousel Row 1 (Left) -->
-        <PhotoGrid
-            projects={landingPhotographyProjects}
-            maxItems={landingPhotographyProjectLimit}
-            columns={2}
-            contained={true}
-        />
-    </section>
-
-    <!-- MAJOR SPACER to separate sections completely -->
-    <div class="major-section-separator"></div>
-
     <!-- Blog Section -->
-    <section class="section">
+    <section class="section blog-section">
         <div class="section-header">
             <h2 class="section-title">Writings</h2>
             <a href="/blog" class="link-arrow mobile-btn section-cta"
@@ -335,6 +288,48 @@ const heroTextEffect = "smooth-blur";
                 ))
             }
         </div>
+    </section>
+
+    <!-- Showreel Section - edge-to-edge silent autoplay -->
+    <section class="section writings-section">
+        <Showreel
+            vh1Url={vh1Url}
+            rollingStoneUrl={rollingStoneUrl}
+            homegrownUrl={homegrownUrl}
+            educateGirlsUrl={educateGirlsUrl}
+            curvesColorsUrl={curvesColorsUrl}
+            pursuitUrl={pursuitUrl}
+            hermosaUrl={hermosaUrl}
+            budweiserUrl={budweiserUrl}
+            wiedenUrl={wiedenUrl}
+            animalUrl={animalUrl}
+            jawaUrl={jawaUrl}
+            odishaUrl={odishaUrl}
+        />
+    </section>
+
+    <!-- Massive Spacer 3 (Showreel to Featured) -->
+    <!-- Responsive Spacer -->
+    <div class="responsive-spacer" aria-hidden="true"></div>
+
+    <!-- Photo Stories -->
+    <section class="section contained-section">
+        <div class="section-header">
+            <h2 class="section-title">Photography Projects</h2>
+            <a
+                href="/photography"
+                class="link-arrow mobile-btn section-cta photo-projects-cta"
+                >View All</a
+            >
+        </div>
+
+        <!-- Contained Carousel Row 1 (Left) -->
+        <PhotoGrid
+            projects={landingPhotographyProjects}
+            maxItems={landingPhotographyProjectLimit}
+            columns={2}
+            contained={true}
+        />
     </section>
 
     {
@@ -548,7 +543,7 @@ const heroTextEffect = "smooth-blur";
         }
 
         .writings-section {
-            padding-top: clamp(6rem, 11vh, 8.75rem);
+            padding-top: 0;
         }
     }
 
@@ -717,32 +712,26 @@ const heroTextEffect = "smooth-blur";
 
     .uk2026-card {
         display: grid;
-        grid-template-columns: minmax(280px, 0.86fr) minmax(0, 1fr);
-        gap: clamp(1.5rem, 4vw, 3.5rem);
-        align-items: center;
-        padding: clamp(1rem, 2vw, 1.35rem);
-        border: 1px solid var(--border-subtle);
-        border-radius: 8px;
-        background:
-            linear-gradient(
-                135deg,
-                rgba(255, 255, 255, 0.045),
-                rgba(255, 255, 255, 0.01)
-            ),
-            var(--bg-surface);
-        color: var(--text-primary);
+        grid-template-columns: 1.15fr 1fr;
+        border: 1px solid #e2e8f0;
+        border-radius: 0;
+        background: #ffffff;
+        color: #0f172a;
         text-decoration: none;
+        padding: 0;
         transition:
             border-color 220ms ease,
             background-color 220ms ease,
-            transform 220ms ease;
+            transform 220ms ease,
+            box-shadow 220ms ease;
     }
 
     .uk2026-card:hover,
     .uk2026-card:focus-visible {
-        border-color: color-mix(in srgb, var(--text-tertiary) 68%, transparent);
-        background-color: var(--bg-surface-hover);
+        border-color: #0f172a;
+        background-color: #ffffff;
         transform: translateY(-2px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
         outline: none;
     }
 
@@ -751,6 +740,8 @@ const heroTextEffect = "smooth-blur";
         display: flex;
         flex-direction: column;
         gap: 0.75rem;
+        padding: clamp(1.5rem, 3vw, 3rem);
+        border-right: 1px solid #e2e8f0;
     }
 
     .uk2026-media {
@@ -758,24 +749,28 @@ const heroTextEffect = "smooth-blur";
         margin: 0;
         aspect-ratio: 16 / 10;
         overflow: hidden;
-        border-radius: 8px;
-        background: var(--bg-surface);
+        border-radius: 0;
+        background: #f1f5f9;
     }
 
     .uk2026-caption {
         font-family: var(--font-sans);
-        font-size: 0.75rem;
-        font-weight: 400;
-        line-height: 1.4;
-        color: var(--text-tertiary);
+        font-size: 0.8rem;
+        font-weight: 450;
+        line-height: 1.5;
+        color: #475569;
         text-align: left;
+        margin-top: 0.5rem;
     }
 
     .uk2026-photo-credit {
         display: block;
-        margin-top: 0.6rem;
+        margin-top: 0.4rem;
+        font-size: 0.7rem;
         font-weight: 500;
-        color: var(--text-secondary);
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
     }
 
     .uk2026-media img {
@@ -792,74 +787,75 @@ const heroTextEffect = "smooth-blur";
     }
 
     .uk2026-content {
+        display: grid;
+        grid-template-rows: 1fr auto;
+    }
+
+    .uk2026-header-panel {
+        padding: clamp(1.5rem, 3vw, 3rem);
+        border-bottom: 1px solid #e2e8f0;
         display: flex;
         flex-direction: column;
+        justify-content: center;
+        gap: 1rem;
+    }
+
+    .uk2026-footer-panel {
+        padding: clamp(1.5rem, 3vw, 3rem);
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
         align-items: flex-start;
-        gap: clamp(0.85rem, 1.8vw, 1.2rem);
-        padding: clamp(0.25rem, 1vw, 0.75rem) clamp(0rem, 1vw, 0.75rem);
+        justify-content: center;
     }
 
     .uk2026-kicker {
-        margin: 0 0 0.25rem 0;
+        margin: 0;
         font-family: var(--feature-writing-date-font, var(--font-mono));
         font-size: 0.9rem;
-        font-weight: 500;
+        font-weight: 600;
         line-height: 1.2;
         letter-spacing: 0.05em;
         text-transform: uppercase;
-        color: var(--text-tertiary);
+        color: #64748b;
     }
 
     .uk2026-content h2 {
         margin: 0;
         font-family: var(--feature-writing-title-font, var(--font-serif));
-        font-size: clamp(1.8rem, 1.2rem + 1.8vw, 3.2rem);
-        font-weight: var(--feature-writing-title-weight, 400);
-        line-height: 1.05;
-        letter-spacing: 0;
-        color: var(--text-primary);
+        font-size: clamp(2.2rem, 1.5rem + 2.2vw, 3.6rem);
+        font-weight: 700;
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+        color: #0f172a;
         text-wrap: balance;
-    }
-
-    .uk2026-excerpt {
-        margin: 0;
-        font-family: var(--font-body);
-        font-size: clamp(1rem, 0.88rem + 0.5vw, 1.2rem);
-        font-weight: 300;
-        line-height: 1.6;
-        color: var(--text-secondary);
-    }
-
-    .uk2026-footer {
-        display: flex;
-        flex-direction: column;
-        gap: 0.6rem;
-        margin-top: 0.5rem;
     }
 
     .uk2026-meta-desc {
         margin: 0;
         max-width: 58ch;
         font-family: var(--feature-writing-category-font, var(--font-sans));
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         font-weight: 400;
         line-height: 1.5;
-        color: var(--text-tertiary);
+        color: #64748b;
     }
 
     .uk2026-action {
         display: inline-flex;
         align-items: center;
-        gap: 0.45rem;
+        gap: 0.5rem;
         margin-top: 0.1rem;
         font-family: var(--feature-writing-action-font, var(--font-ui));
-        font-size: var(--feature-writing-action-size, 0.8rem);
-        font-weight: var(--feature-writing-action-weight, 500);
-        line-height: var(--feature-writing-action-line-height, 1.2);
-        letter-spacing: var(--feature-writing-action-letter-spacing, 0.05em);
+        font-size: 0.9rem;
+        font-weight: 700;
+        line-height: 1.2;
+        letter-spacing: 0.08em;
         text-transform: uppercase;
-        color: var(--text-tertiary);
-        transition: color 220ms ease;
+        color: #0f172a;
+        border-bottom: 2px solid #0f172a;
+        padding-bottom: 2px;
+        transition: all 220ms ease;
     }
 
     .uk2026-action::after {
@@ -869,7 +865,8 @@ const heroTextEffect = "smooth-blur";
 
     .uk2026-card:hover .uk2026-action,
     .uk2026-card:focus-visible .uk2026-action {
-        color: var(--text-primary);
+        color: #2563eb;
+        border-bottom-color: #2563eb;
     }
 
     .uk2026-card:hover .uk2026-action::after,
@@ -877,8 +874,8 @@ const heroTextEffect = "smooth-blur";
         transform: translateX(4px);
     }
 
-    .latest-note-section + .writings-section {
-        padding-top: clamp(2rem, 5vh, 4rem);
+    .blog-section + .writings-section {
+        margin-top: clamp(2.5rem, 6vh, 4.5rem);
     }
 
     .contained-section {
@@ -1075,8 +1072,13 @@ const heroTextEffect = "smooth-blur";
     }
 
     .writings-section {
-        padding-top: clamp(5rem, 10vh, 8rem);
-        margin-bottom: 0;
+        width: 100vw;
+        max-width: none;
+        margin-left: calc(50% - 50vw);
+        margin-right: calc(50% - 50vw);
+        margin-top: clamp(2rem, 5vh, 4.5rem);
+        margin-bottom: clamp(3rem, 7vh, 5rem);
+        padding: 0;
     }
 
     .support-section {
@@ -1455,37 +1457,52 @@ const heroTextEffect = "smooth-blur";
 
         .uk2026-card {
             grid-template-columns: 1fr;
-            gap: 1.2rem;
-            padding: 0.9rem;
+        }
+
+        .uk2026-media-group {
+            border-right: none;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 2rem 1.5rem;
         }
 
         .uk2026-media {
-            aspect-ratio: 16 / 11;
+            aspect-ratio: 16 / 10.5;
         }
 
         .uk2026-content {
-            gap: 0.8rem;
-            padding: 0 0.1rem 0.25rem;
+            grid-template-rows: auto auto;
+            gap: 0;
+            padding: 0;
+        }
+
+        .uk2026-header-panel {
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .uk2026-footer-panel {
+            padding: 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
         }
 
         .uk2026-content h2 {
-            font-size: clamp(1.8rem, 9vw, 2.6rem);
-            line-height: 1.08;
-            text-wrap: balance;
-        }
-
-        .uk2026-excerpt {
-            font-size: 1rem;
-            line-height: 1.5;
+            font-size: clamp(1.75rem, 6.5vw, 2.25rem);
+            line-height: 1.1;
+            font-weight: 700;
         }
 
         .uk2026-meta-desc {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             line-height: 1.45;
         }
 
-        .latest-note-section + .writings-section {
-            padding-top: clamp(1.4rem, 5vh, 2.5rem);
+        .blog-section + .writings-section {
+            margin-top: clamp(2rem, 6vh, 3.5rem);
         }
 
         .support-project {
@@ -1498,8 +1515,9 @@ const heroTextEffect = "smooth-blur";
         }
 
         .writings-section {
-            padding-top: clamp(2.5rem, 7vh, 4rem);
-            margin-bottom: 0;
+            margin-top: 1.5rem;
+            margin-bottom: clamp(2rem, 6vh, 3.5rem);
+            padding: 0;
         }
 
         .support-section {

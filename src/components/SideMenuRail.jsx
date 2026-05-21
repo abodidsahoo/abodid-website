@@ -9,7 +9,7 @@ const primaryLinks = [
   { href: "/photography", label: "Photography" },
   { href: "/films", label: "Filmmaking" },
   { href: "/blog", label: "Writing" },
-  { href: "/about", label: "About Me" },
+  { href: "/about", label: "About" },
 ];
 
 const secondaryGroups = [

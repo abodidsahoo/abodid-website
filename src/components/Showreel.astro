@@ -14,21 +14,6 @@ interface Props {
     odishaUrl?: string;
 }
 
-const {
-    vh1Url = "#",
-    rollingStoneUrl = "#",
-    homegrownUrl = "#",
-    educateGirlsUrl = "#",
-    curvesColorsUrl = "#",
-    pursuitUrl = "#",
-    hermosaUrl = "#",
-    budweiserUrl = "#",
-    wiedenUrl = "#",
-    animalUrl = "#",
-    jawaUrl = "#",
-    odishaUrl = "#",
-} = Astro.props;
-
 const videoUrl = "/videos/showreel-2025.mp4";
 ---
 
@@ -37,327 +22,115 @@ const videoUrl = "/videos/showreel-2025.mp4";
         <video
             id="showreel-video"
             class="showreel-video"
+            src={videoUrl}
+            autoplay
             loop
             muted
             playsinline
             webkit-playsinline
-            preload="none"
+            preload="metadata"
             controlslist="nodownload noplaybackrate noremoteplayback"
             disablepictureinpicture
             disableremoteplayback
         >
-            <!-- Source will be added via JS when the showreel is close to view -->
         </video>
+
+        <button
+            id="volume-toggle-btn"
+            class="volume-toggle-btn"
+            type="button"
+            title="Turn sound on"
+            aria-label="Turn showreel sound on"
+        >
+            <svg id="icon-volume-on" viewBox="0 0 24 24" aria-hidden="true" hidden>
+                <path d="M3 9v6h4l5 4V5L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4.04v8.08A4.5 4.5 0 0 0 16.5 12zm-2.5-8.5v2.06a7 7 0 0 1 0 12.88v2.06a9 9 0 0 0 0-17z"></path>
+            </svg>
+            <svg id="icon-volume-off" viewBox="0 0 28 24" aria-hidden="true">
+                <path class="speaker-mark" d="M3 9v6h4l5 4V5L7 9H3z"></path>
+                <path class="mute-mark" d="M19 9l5 5m0-5-5 5"></path>
+            </svg>
+        </button>
     </div>
 
-    <div
-        class="video-controls"
-        role="group"
-        aria-label="Showreel video controls"
-        data-showreel-controls
-    >
-        <button
-            id="playback-toggle-btn"
-            class="control-btn control-btn-text"
-            type="button"
-            aria-label="Play showreel video"
-            title="Play"
-        >
-            <span id="playback-toggle-text">Play</span>
-        </button>
-
-        <button
-            id="fullscreen-btn"
-            class="control-btn"
-            type="button"
-            title="Toggle Fullscreen"
-            aria-label="Toggle showreel fullscreen"
-        >
-            <svg id="icon-enter-fullscreen" viewBox="0 0 24 24">
-                <path
-                    d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"
-                ></path>
-            </svg>
-            <svg
-                id="icon-exit-fullscreen"
-                viewBox="0 0 24 24"
-                style="display: none;"
-            >
-                <path
-                    d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"
-                ></path>
-            </svg>
-        </button>
-
-        <label class="volume-control" for="showreel-volume">
-            <span class="volume-label">Volume</span>
-            <input
-                id="showreel-volume"
-                class="volume-slider"
-                type="range"
-                min="0"
-                max="1"
-                step="0.05"
-                value="0"
-                aria-label="Showreel volume"
-            />
-            <span id="volume-level-text" class="volume-level">0%</span>
-        </label>
+    <div class="showreel-credits">
+        <div class="showreel-meta-line">
+            <p class="credits-roles">
+                <span class="role-label">ROLE:</span> Director / Editor / Sound Designer / Cinematographer / Colourist / Creative Producer
+            </p>
+            <div class="thin-line"></div>
+            <a href="/films" class="view-all-link">VIEW ALL FILMS</a>
+        </div>
     </div>
 </div>
 
-<!-- Credits Section (Separate from video) -->
-<div class="showreel-credits">
-    <p class="credits-roles">
-        <span class="role-label">ROLE:</span> Director / Editor / Sound Designer /
-        Cinematographer / Colourist / Creative Producer
-    </p>
-    <div class="credits-buttons-row">
-        <a href="/films" class="view-all-btn">VIEW ALL FILMS</a>
-    </div>
-</div>
-
-
-
-<script define:vars={{ videoUrl }}>
+<script>
     document.addEventListener("DOMContentLoaded", () => {
-        const shell = document.querySelector(".showreel-shell");
-        const container = document.querySelector(".showreel-container");
         const video = document.getElementById("showreel-video");
-        const playbackToggleBtn = document.getElementById("playback-toggle-btn");
-        const playbackToggleText = document.getElementById(
-            "playback-toggle-text",
-        );
-        const fullscreenBtn = document.getElementById("fullscreen-btn");
-        const iconEnterFullscreen = document.getElementById(
-            "icon-enter-fullscreen",
-        );
-        const iconExitFullscreen = document.getElementById(
-            "icon-exit-fullscreen",
-        );
-        const volumeSlider = document.getElementById("showreel-volume");
-        const volumeLevelText = document.getElementById("volume-level-text");
-        let userPausedVideo = false;
-        let showreelLoaded = false;
-        let loadObserver = null;
+        const volumeToggleBtn = document.getElementById("volume-toggle-btn");
+        const iconVolumeOn = document.getElementById("icon-volume-on");
+        const iconVolumeOff = document.getElementById("icon-volume-off");
 
-        if (!container || !video) return;
-
-        const syncPlaybackToggle = () => {
-            const isPaused = video.paused;
-            container.dataset.playbackState = isPaused ? "paused" : "playing";
-
-            if (playbackToggleText) {
-                playbackToggleText.textContent = isPaused ? "Play" : "Pause";
-            }
-
-            if (playbackToggleBtn) {
-                const label = isPaused
-                    ? "Play showreel video"
-                    : "Pause showreel video";
-                playbackToggleBtn.setAttribute("aria-label", label);
-                playbackToggleBtn.setAttribute(
-                    "title",
-                    isPaused ? "Play" : "Pause",
-                );
-            }
-        };
+        if (!video || !volumeToggleBtn) return;
 
         const syncVolume = () => {
-            const volume = video.muted ? 0 : video.volume;
-            const normalizedVolume = Math.round(volume * 100);
+            const isMuted = video.muted || video.volume === 0;
 
-            if (volumeSlider) {
-                volumeSlider.value = volume.toFixed(2);
-            }
+            iconVolumeOn?.toggleAttribute("hidden", isMuted);
+            iconVolumeOff?.toggleAttribute("hidden", !isMuted);
 
-            if (volumeLevelText) {
-                volumeLevelText.textContent = `${normalizedVolume}%`;
-            }
+            volumeToggleBtn.setAttribute(
+                "aria-label",
+                isMuted ? "Turn showreel sound on" : "Turn showreel sound off",
+            );
+            volumeToggleBtn.setAttribute(
+                "title",
+                isMuted ? "Turn sound on" : "Turn sound off",
+            );
         };
 
-        const syncFullscreenIcon = () => {
-            const isFullscreen =
-                document.fullscreenElement === shell ||
-                document.fullscreenElement === container;
-
-            if (iconEnterFullscreen) {
-                iconEnterFullscreen.style.display = isFullscreen
-                    ? "none"
-                    : "block";
-            }
-
-            if (iconExitFullscreen) {
-                iconExitFullscreen.style.display = isFullscreen
-                    ? "block"
-                    : "none";
-            }
-        };
-
-        const playShowreel = () => {
-            return video.play().catch(() => {
-                syncPlaybackToggle();
-            });
-        };
-
-        const loadShowreel = ({ playWhenReady = true } = {}) => {
-            if (!showreelLoaded) {
-                showreelLoaded = true;
-                container.dataset.showreelLoaded = "true";
-                video.src = videoUrl;
-                video.load();
-            }
-
-            if (playWhenReady && !userPausedVideo) {
-                playShowreel();
-            }
-        };
-
-        if (playbackToggleBtn) {
-            playbackToggleBtn.addEventListener("click", (event) => {
-                event.stopPropagation();
-
-                if (video.paused) {
-                    userPausedVideo = false;
-                    loadShowreel({ playWhenReady: true });
-                    return;
-                }
-
-                userPausedVideo = true;
-                video.pause();
-            });
-        }
-
-        video.addEventListener("click", () => {
-            if (video.paused) {
-                userPausedVideo = false;
-                loadShowreel({ playWhenReady: true });
+        volumeToggleBtn.addEventListener("click", () => {
+            if (video.muted || video.volume === 0) {
+                if (video.volume === 0) video.volume = 0.85;
+                video.muted = false;
+                video.play().catch(() => undefined);
+                syncVolume();
                 return;
             }
 
-            userPausedVideo = true;
-            video.pause();
+            video.muted = true;
+            syncVolume();
         });
 
-        video.addEventListener("play", syncPlaybackToggle);
-        video.addEventListener("pause", syncPlaybackToggle);
-        video.addEventListener("loadeddata", syncPlaybackToggle);
-        video.addEventListener("ended", syncPlaybackToggle);
         video.addEventListener("volumechange", syncVolume);
-
-        if (volumeSlider) {
-            volumeSlider.addEventListener("input", () => {
-                const nextVolume = Number.parseFloat(volumeSlider.value);
-                const safeVolume = Number.isFinite(nextVolume)
-                    ? Math.min(1, Math.max(0, nextVolume))
-                    : 0;
-
-                video.volume = safeVolume;
-                video.muted = safeVolume <= 0;
-                syncVolume();
-            });
-        }
-
-        if (fullscreenBtn) {
-            fullscreenBtn.addEventListener("click", () => {
-                if (!document.fullscreenElement) {
-                    (shell || container)
-                        .requestFullscreen()
-                        .then(syncFullscreenIcon)
-                        .catch((err) => {
-                            console.error("Error entering fullscreen:", err);
-                        });
-                } else {
-                    document
-                        .exitFullscreen()
-                        .then(syncFullscreenIcon)
-                        .catch((err) => {
-                            console.error("Error exiting fullscreen:", err);
-                        });
-                }
-            });
-
-            document.addEventListener("fullscreenchange", syncFullscreenIcon);
-        }
-
-        if ("IntersectionObserver" in window) {
-            loadObserver = new IntersectionObserver(
-                (entries) => {
-                    entries.forEach((entry) => {
-                        if (!entry.isIntersecting) return;
-                        loadShowreel({ playWhenReady: true });
-                        loadObserver?.disconnect();
-                    });
-                },
-                { rootMargin: "0px", threshold: 0.01 },
-            );
-            loadObserver.observe(container);
-        } else {
-            loadShowreel({ playWhenReady: false });
-        }
-
-        shell?.addEventListener("pointerenter", () => {
-            loadShowreel({ playWhenReady: false });
-        });
-        shell?.addEventListener("focusin", () => {
-            loadShowreel({ playWhenReady: false });
-        });
-
-        syncPlaybackToggle();
+        video.play().catch(() => undefined);
         syncVolume();
-        syncFullscreenIcon();
     });
 </script>
 
 <style>
-    :root {
-        --sci-fi-cyan: #00f3ff;
-        --sci-fi-glow: rgba(0, 243, 255, 0.2);
-    }
-
     .showreel-shell {
-        width: 100%;
-        max-width: var(--max-width);
-        margin: 0 auto;
+        width: 100vw;
+        max-width: none;
+        margin-left: calc(50% - 50vw);
+        margin-right: calc(50% - 50vw);
+        padding: clamp(4px, 0.65vw, 8px);
         position: relative;
     }
 
     .showreel-container {
         width: 100%;
-        margin: 0;
         position: relative;
-        background-color: #050a10;
-        border-radius: 12px; /* APPLY RADIUS TO CONTAINER */
-        overflow: hidden; /* FORCE MASKING for all views */
-        border: 1px solid rgba(0, 243, 255, 0.3);
-        box-shadow:
-            0 10px 40px rgba(0, 0, 0, 0.6),
-            0 0 20px var(--sci-fi-glow);
-    }
-
-    /* Corner Accents (Pseudo-elements) */
-    .showreel-container::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        border-radius: 12px;
-        box-shadow: inset 0 0 20px rgba(0, 243, 255, 0.1);
-        pointer-events: none;
-        z-index: 2; /* Ensure overlay is ON TOP of video */
+        overflow: hidden;
+        border-radius: 0;
+        background: #050505;
     }
 
     .showreel-video {
         width: 100%;
-        height: 100%;
+        aspect-ratio: 16 / 9;
         object-fit: cover;
         display: block;
-        aspect-ratio: 16 / 9;
-        position: relative;
-        z-index: 1;
-        cursor: pointer;
+        background: #000;
     }
 
     .showreel-video::-webkit-media-controls,
@@ -366,363 +139,144 @@ const videoUrl = "/videos/showreel-2025.mp4";
         display: none !important;
     }
 
-    .video-controls {
-        width: fit-content;
-        max-width: min(100%, calc(100vw - 32px));
-        margin: 0.85rem auto 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.7rem;
-        padding: 0.58rem 0.72rem;
-        border: 1px solid rgba(0, 243, 255, 0.34);
-        border-radius: 999px;
-        background: rgba(5, 10, 16, 0.88);
-        box-shadow:
-            0 10px 28px rgba(0, 0, 0, 0.32),
-            0 0 18px rgba(0, 243, 255, 0.14);
-        opacity: 0;
-        pointer-events: none;
-        transform: translateY(-12px);
-        transition:
-            opacity 0.28s ease-in-out,
-            transform 0.28s ease-in-out,
-            border-color 0.28s ease-in-out,
-            box-shadow 0.28s ease-in-out;
-        backdrop-filter: blur(8px);
-    }
-
-    .showreel-shell:hover .video-controls,
-    .showreel-shell:focus-within .video-controls {
-        opacity: 1;
-        pointer-events: auto;
-        transform: translateY(0);
-    }
-
-    .control-btn,
-    .volume-control {
-        min-height: 38px;
+    .volume-toggle-btn {
+        position: absolute;
+        right: clamp(12px, 1.6vw, 22px);
+        bottom: clamp(12px, 1.6vw, 22px);
+        z-index: 2;
+        width: clamp(42px, 4vw, 54px);
+        height: clamp(42px, 4vw, 54px);
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        gap: 0.48rem;
-        border: 1px solid var(--sci-fi-cyan);
+        border: 1px solid rgba(255, 255, 255, 0.22);
         border-radius: 999px;
-        background: rgba(255, 255, 255, 0.04);
-        color: var(--sci-fi-cyan);
-        font-family: var(--font-mono);
-        font-size: 0.68rem;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        transition:
-            background 0.22s ease,
-            color 0.22s ease,
-            box-shadow 0.22s ease,
-            border-color 0.22s ease;
-    }
-
-    .control-btn {
-        width: 38px;
-        height: 38px;
-        padding: 0;
+        background: rgba(8, 8, 8, 0.72);
+        color: #fff;
         cursor: pointer;
+        box-shadow: 0 12px 34px rgba(0, 0, 0, 0.35);
+        backdrop-filter: blur(10px);
+        transition:
+            background 0.18s ease,
+            border-color 0.18s ease,
+            transform 0.18s ease;
     }
 
-    .control-btn-text {
-        width: auto;
-        min-width: 72px;
-        padding: 0 0.85rem;
-    }
-
-    .control-btn:hover,
-    .control-btn:focus-visible,
-    .volume-control:focus-within {
-        background: rgba(0, 243, 255, 0.1);
-        box-shadow: 0 0 15px rgba(0, 243, 255, 0.3);
+    .volume-toggle-btn:hover,
+    .volume-toggle-btn:focus-visible {
+        background: rgba(8, 8, 8, 0.9);
+        border-color: rgba(255, 255, 255, 0.46);
         outline: none;
+        transform: translateY(-1px);
     }
 
-    .control-btn svg {
-        width: 18px;
-        height: 18px;
+    .volume-toggle-btn svg {
+        width: 24px;
+        height: 21px;
         fill: currentColor;
     }
 
-    .volume-control {
-        padding: 0 0.72rem;
+    .volume-toggle-btn .mute-mark {
+        fill: none;
+        stroke: currentColor;
+        stroke-linecap: round;
+        stroke-width: 2.2;
     }
 
-    .volume-slider {
-        width: clamp(92px, 12vw, 142px);
-        accent-color: var(--sci-fi-cyan);
-        cursor: pointer;
+    .volume-toggle-btn svg[hidden] {
+        display: none;
     }
 
-    .volume-level {
-        min-width: 3ch;
-        color: rgba(255, 255, 255, 0.82);
-        text-align: right;
-    }
-
-    /* Credits Section (Now separate from video container) */
     .showreel-credits {
         width: 100%;
-        max-width: var(--max-width);
-        margin: 0 auto;
-        margin-top: 2rem;
-        margin-bottom: var(--space-2xl);
+        margin-top: clamp(8px, 1.5vh, 16px);
+        margin-bottom: clamp(1rem, 2vh, 2rem);
+    }
+
+    .showreel-meta-line {
         display: flex;
-        flex-direction: column;
+        align-items: center;
+        justify-content: space-between;
         gap: 1.5rem;
-        padding: 0;
+        background-color: #ffffff;
+        color: #000000;
+        padding: 16px 24px;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        line-height: 1;
+        border-radius: 0;
     }
 
     .credits-roles {
-        font-family: var(--font-mono);
-        font-size: 0.75rem;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        color: var(--text-secondary);
+        flex-shrink: 0;
         margin: 0;
-        line-height: 1.6;
+        color: #000000;
+        white-space: nowrap;
+        font-size: 0.75rem;
     }
 
     .role-label {
-        color: var(--text-secondary);
-        font-weight: 600;
+        color: #000000;
         margin-right: 0.5rem;
     }
 
-    .view-all-btn {
-        display: inline-block;
-        width: fit-content;
-        font-family: var(--font-mono);
-        font-size: 0.9rem;
-        color: var(--text-primary);
-        background: transparent;
-        border: 1px solid var(--border-subtle);
-        padding: 0.75rem 1.5rem;
-        border-radius: 2px;
+    .thin-line {
+        flex-grow: 1;
+        height: 1px;
+        background-color: #000000;
+        opacity: 0.25;
+    }
+
+    .view-all-link {
+        flex-shrink: 0;
+        color: #000000;
         text-decoration: none;
-        transition: all 0.3s ease;
+        white-space: nowrap;
+        font-size: 0.75rem;
+        transition: opacity 0.22s ease;
         cursor: pointer;
     }
 
-    .view-all-btn:hover {
-        background: var(--text-primary);
-        color: #000; /* Dark text for visibility */
-        border-color: var(--text-primary);
+    .view-all-link:hover,
+    .view-all-link:focus-visible {
+        color: #000000;
+        opacity: 0.6;
+        outline: none;
     }
 
-    :global([data-theme="light"]) .view-all-btn:hover,
-    :global([data-theme="light"]) .view-all-btn:focus-visible {
-        background: var(--color-brand-red);
-        color: #ffffff;
-        border-color: var(--color-brand-red);
-    }
+    @media (max-width: 900px) {
+        .showreel-shell {
+            padding: 4px;
+        }
 
-    /* Buttons Row Layout */
-    .credits-buttons-row {
-        display: flex;
-        gap: 1rem;
-        flex-wrap: wrap;
-    }
-
-    .manifesto-toggle {
-        cursor: pointer;
-    }
-
-    /* Manifesto Section Styles */
-    .manifesto-section {
-        width: 100%;
-        max-width: var(--max-width);
-        margin: 0.5rem auto 0; /* Tightened gap further */
-        overflow: hidden;
-        transition:
-            max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-            opacity 0.4s ease;
-    }
-
-    .manifesto-content {
-        padding: 1rem 0 2rem; /* Reduced top padding to close gap */
-    }
-
-    .manifesto-boxes {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 2rem;
-        margin-bottom: 3rem;
-    }
-
-    .manifesto-box {
-        padding: 2rem;
-        border-radius: 8px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .manifesto-box-red {
-        background: linear-gradient(
-            135deg,
-            rgba(208, 0, 0, 0.15) 0%,
-            rgba(150, 0, 0, 0.08) 100%
-        );
-        border-color: rgba(208, 0, 0, 0.3);
-    }
-
-    .manifesto-box-blue {
-        background: linear-gradient(
-            135deg,
-            rgba(0, 100, 200, 0.15) 0%,
-            rgba(0, 50, 150, 0.08) 100%
-        );
-        border-color: rgba(0, 100, 200, 0.3);
-    }
-
-    .manifesto-box h3 {
-        font-family: var(--font-mono);
-        font-size: 1rem;
-        text-transform: uppercase;
-        letter-spacing: 0.12em;
-        margin-bottom: 1rem;
-        color: var(--text-primary);
-        font-weight: 700; /* Bold */
-    }
-
-    .manifesto-box p {
-        font-family: var(--font-mono);
-        font-size: 0.95rem;
-        line-height: 1.8;
-        color: var(--text-secondary);
-    }
-
-    .manifesto-journey {
-        padding: 2rem;
-        background: rgba(255, 255, 255, 0.02);
-        border-radius: 8px;
-        border: 1px solid rgba(255, 255, 255, 0.05);
-    }
-
-    .manifesto-journey h2 {
-        font-family: var(--font-mono);
-        font-size: 1.2rem;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        margin-bottom: 1.5rem;
-        color: var(--text-primary);
-        font-weight: 700; /* Bold */
-    }
-
-    .manifesto-journey p {
-        font-family: var(--font-mono);
-        font-size: 1rem;
-        line-height: 1.8;
-        color: var(--text-secondary);
-        margin-bottom: 1.5rem;
-    }
-
-    .manifesto-journey p:last-child {
-        margin-bottom: 0;
-    }
-
-    /* Clickable Links in Manifesto */
-    .manifesto-journey a {
-        color: var(--text-primary);
-        text-decoration: none;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-        transition: all 0.2s ease;
-        cursor: pointer;
-    }
-
-    .manifesto-journey a:hover {
-        color: #ffffff;
-        border-bottom-color: #ffffff;
-        cursor: pointer;
-    }
-
-    @media (max-width: 768px) {
-        .showreel-container {
-            border-radius: 12px; /* APPLY RADIUS TO CONTAINER (Mask) */
-            border: none;
-            box-shadow: none;
-            margin-left: 0;
-            width: 100%;
-            max-width: none;
-            overflow: hidden; /* FORCE MASKING of video */
-            /* Remove any padding/gap that might cause "weird spacing" */
+        .showreel-credits {
             padding: 0;
-            background: black; /* seamless bg */
-            aspect-ratio: 16/9; /* Enforce ratio on container */
         }
 
-        .showreel-video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 0; /* Let container handle the mask */
-            display: block;
-        }
-
-        .video-controls {
-            width: 100%;
-            max-width: 100%;
-            flex-wrap: wrap;
-            border-radius: 16px;
-            opacity: 1;
-            pointer-events: auto;
-            transform: translateY(0);
-            padding: 0.65rem;
-        }
-
-        .volume-control {
-            flex: 1 1 100%;
-            justify-content: space-between;
-        }
-
-        .volume-slider {
-            flex: 1 1 auto;
-            width: auto;
-        }
-
-        /* Manifesto Mobile Styles */
-        .credits-buttons-row {
+        .showreel-meta-line {
             flex-direction: column;
-            gap: 0.75rem;
-        }
-
-        .view-all-btn,
-        .manifesto-toggle {
-            width: 100%;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 20px;
             text-align: center;
         }
 
-        .manifesto-boxes {
-            grid-template-columns: 1fr;
-            gap: 1.5rem;
-            margin-bottom: 2rem;
+        .credits-roles {
+            white-space: normal;
+            line-height: 1.5;
         }
 
-        .manifesto-box {
-            padding: 1.5rem;
+        .thin-line {
+            display: none;
         }
 
-        .manifesto-journey {
-            padding: 1.5rem;
-        }
-
-        .manifesto-journey h2 {
-            font-size: 1rem;
-        }
-
-        .manifesto-journey p {
-            font-size: 0.85rem;
-        }
-    }
-
-    @media (hover: none) {
-        .video-controls {
-            opacity: 1;
-            pointer-events: auto;
-            transform: translateY(0);
+        .view-all-link {
+            width: 100%;
+            padding-top: 12px;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
         }
     }
 </style>

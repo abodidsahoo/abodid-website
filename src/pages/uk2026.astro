@@ -1,13 +1,13 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import { Moon, Sun, Download } from "lucide-react";
+import { BookOpen, Download } from "lucide-react";
 import uk2026 from "../data/uk2026.json";
 
 const heroTitleLines = uk2026.title.split(", ");
-const essayDate = "20th May 2026";
 const allParagraphs = uk2026.chapters.flatMap((chapter) => chapter.paragraphs);
 const wordCount = allParagraphs.reduce((s, p) => s + p.trim().split(/\s+/).length, 0);
 const readingMins = Math.ceil(wordCount / 220);
+const pdfDownloadUrl = "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/written%20docs/Till%20we%20meet%20again,%20my%20beloved%20ramen%20-%20UK%202026.pdf";
 
 const getLinkedSegments = (paragraph) => {
   const matches = [];
@@ -99,6 +99,19 @@ let paragraphIndex = 0;
       </nav>
     </aside>
 
+    <div class="reading-nudges" data-reading-nudges aria-live="polite" aria-hidden="true">
+      <div class="reading-nudge-card reading-nudge-card--bookmark" data-reading-nudge-card="bookmark" aria-hidden="true">
+        <p>Bookmark the page to read later.</p>
+      </div>
+      <div class="reading-nudge-card reading-nudge-card--download" data-reading-nudge-card="download" aria-hidden="true">
+        <p>Want to read it later?</p>
+        <a class="reading-nudge-button" href={pdfDownloadUrl} target="_blank" rel="noopener noreferrer" download>
+          <Download size={13} strokeWidth={2.4} aria-hidden="true" />
+          Download PDF
+        </a>
+      </div>
+    </div>
+
     <div class="anim-panels" id="anim-panels" data-word-count={wordCount} aria-hidden="true">
       <div class="anim-book-icon">
         <svg id="book-svg" viewBox="0 0 80 60" xmlns="http://www.w3.org/2000/svg">
@@ -157,14 +170,6 @@ let paragraphIndex = 0;
         <p class="hero-byline">
           Written by <a href="/about/">{uk2026.author}</a>.
         </p>
-        <p class="hero-date">{essayDate}</p>
-        <div class="hero-pdf-download">
-          <span>Want to read later?</span>
-          <a href="https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/written%20docs/Till%20we%20meet%20again,%20my%20beloved%20ramen%20-%20UK%202026.pdf" target="_blank" rel="noopener noreferrer">
-            <Download size={13} strokeWidth={2.5} aria-hidden="true" />
-            Download PDF
-          </a>
-        </div>
       </header>
 
       <nav class="mobile-toc" aria-label="Table of contents">
@@ -213,15 +218,23 @@ let paragraphIndex = 0;
           ))
         }
       </div>
+
+      <div class="reader-download">
+        <span>Want to read later?</span>
+        <a href={pdfDownloadUrl} target="_blank" rel="noopener noreferrer" download>
+          <Download size={13} strokeWidth={2.5} aria-hidden="true" />
+          Download PDF
+        </a>
+      </div>
     </div>
     <div class="reader-toggle reader-toggle--floating" aria-label="Reader mode">
-      <button type="button" data-reader-theme-button="light">
-        <Sun size={14} strokeWidth={2} aria-hidden="true" />
-        <span>Light</span>
-      </button>
-      <button type="button" data-reader-theme-button="dark">
-        <Moon size={14} strokeWidth={2} aria-hidden="true" />
-        <span>Dark</span>
+      <button
+        type="button"
+        data-reader-mode-button
+        title="Enable dark mode"
+      >
+        <BookOpen size={17} strokeWidth={2.1} aria-hidden="true" />
+        <span data-reader-mode-label>Enable dark mode</span>
       </button>
     </div>
   </article>
@@ -237,10 +250,8 @@ let paragraphIndex = 0;
   const tocContainers = Array.from(
     document.querySelectorAll(".toc-list, .mobile-toc"),
   );
-  const readerButtons = Array.from(
-    document.querySelectorAll("[data-reader-theme-button]"),
-  );
-  const readerStorageKey = "uk2026-reader-theme";
+  const readerModeButton = document.querySelector("[data-reader-mode-button]");
+  const readerModeLabel = document.querySelector("[data-reader-mode-label]");
   const chapterClickLockMs = 2400;
   let lockedChapterId = null;
   let scrollUnlockTimer;
@@ -251,30 +262,25 @@ let paragraphIndex = 0;
     document.documentElement.dataset.uk2026Reader = nextTheme;
     document.documentElement.style.colorScheme =
       nextTheme === "dark" ? "dark" : "light";
-    readerButtons.forEach((button) => {
-      const isActive = button.dataset.readerThemeButton === nextTheme;
-      button.classList.toggle("is-active", isActive);
-      button.setAttribute("aria-pressed", String(isActive));
-    });
-    try {
-      localStorage.setItem(readerStorageKey, nextTheme);
-    } catch (_error) {
-      // no-op
+    if (readerModeButton) {
+      const nextAction =
+        nextTheme === "dark" ? "Enable light mode" : "Enable dark mode";
+      readerModeButton.setAttribute("aria-label", nextAction);
+      readerModeButton.setAttribute("title", nextAction);
+      if (readerModeLabel) {
+        readerModeLabel.textContent = nextAction;
+      }
     }
   };
 
-  let savedReaderTheme = "light";
-  try {
-    savedReaderTheme = localStorage.getItem(readerStorageKey) || "light";
-  } catch (_error) {
-    savedReaderTheme = "light";
-  }
-  setReaderTheme(savedReaderTheme);
+  setReaderTheme("light");
 
-  readerButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      setReaderTheme(button.dataset.readerThemeButton);
-    });
+  readerModeButton?.addEventListener("click", () => {
+    const currentTheme =
+      document.documentElement.dataset.uk2026Reader === "dark"
+        ? "dark"
+        : "light";
+    setReaderTheme(currentTheme === "dark" ? "light" : "dark");
   });
 
   const updateTocHighlights = () => {
@@ -408,6 +414,11 @@ let paragraphIndex = 0;
   const readPctEl     = document.getElementById('read-pct');
   const memoirMainEl  = document.querySelector('.memoir-main');
   const animPanelEl   = document.getElementById('anim-panels');
+  const readingNudgesEl = document.querySelector('[data-reading-nudges]');
+  const readingNudgeCards = {
+    bookmark: document.querySelector('[data-reading-nudge-card="bookmark"]'),
+    download: document.querySelector('[data-reading-nudge-card="download"]'),
+  };
 
   // One page flip per ~300 words — feels like every few lines of reading
   const wc = parseInt(animPanelEl?.dataset.wordCount || '6000', 10);
@@ -424,11 +435,181 @@ let paragraphIndex = 0;
     return Math.max(0, Math.min(1, (vy - top + vh * 0.1) / (end - top + vh * 0.1)));
   };
 
+  const chapterIndexById = new Map(
+    chapterSections.map((section, index) => [section.id, index]),
+  );
+  const readingIntentState = {
+    startedAt: performance.now(),
+    lastY: window.scrollY,
+    lastTs: performance.now(),
+    maxChapterIndex: 0,
+    fastScrollBursts: 0,
+    scrollDistance: 0,
+    bookmarkScrollDistance: 0,
+    skippedChapters: 0,
+    samples: [],
+    bookmarkShownAt: 0,
+    bookmarkProgress: 0,
+    hasBookmark: false,
+    hasDownload: false,
+  };
+
+  const showReadingNudge = (type) => {
+    if (!readingNudgesEl) return;
+    readingNudgesEl.classList.add("is-visible");
+    readingNudgesEl.classList.add(`has-${type}`);
+    readingNudgesEl.setAttribute("aria-hidden", "false");
+
+    const card = readingNudgeCards[type];
+    if (card) {
+      card.setAttribute("aria-hidden", "false");
+    }
+
+    if (type === "bookmark" && !readingIntentState.hasBookmark) {
+      readingIntentState.hasBookmark = true;
+      readingIntentState.bookmarkShownAt = performance.now();
+      readingIntentState.bookmarkProgress = getReadProgress();
+      readingIntentState.bookmarkScrollDistance =
+        readingIntentState.scrollDistance;
+    }
+
+    if (type === "download") {
+      readingIntentState.hasDownload = true;
+    }
+  };
+
+  const trackReadingIntent = () => {
+    if (!readingNudgesEl || window.innerWidth <= 980) return;
+
+    const now = performance.now();
+    const scrollY = window.scrollY;
+    const elapsed = (now - readingIntentState.startedAt) / 1000;
+    const dt = Math.max((now - readingIntentState.lastTs) / 1000, 0.1);
+    const scrollDelta = Math.abs(scrollY - readingIntentState.lastY);
+    const speed = scrollDelta / dt;
+    const progress = getReadProgress();
+    const currentChapterIndex =
+      chapterIndexById.get(getCurrentChapterId()) ?? readingIntentState.maxChapterIndex;
+
+    if (speed > window.innerHeight * 1.1) {
+      readingIntentState.fastScrollBursts += 1;
+    } else {
+      readingIntentState.fastScrollBursts = Math.max(
+        0,
+        readingIntentState.fastScrollBursts - 0.35,
+      );
+    }
+    readingIntentState.scrollDistance += scrollDelta;
+
+    if (currentChapterIndex > readingIntentState.maxChapterIndex + 1) {
+      readingIntentState.skippedChapters +=
+        currentChapterIndex - readingIntentState.maxChapterIndex;
+    }
+    readingIntentState.maxChapterIndex = Math.max(
+      readingIntentState.maxChapterIndex,
+      currentChapterIndex,
+    );
+
+    readingIntentState.samples.push({
+      ts: now,
+      progress,
+      chapterIndex: currentChapterIndex,
+      scrollY,
+    });
+    readingIntentState.samples = readingIntentState.samples.filter(
+      (sample) => now - sample.ts <= 22000,
+    );
+
+    const firstRecentSample = readingIntentState.samples[0];
+    const recentProgressGain = firstRecentSample
+      ? progress - firstRecentSample.progress
+      : 0;
+    const averageProgressPerSecond = elapsed > 0 ? progress / elapsed : 0;
+    const slowEarlyRead =
+      elapsed > 38 &&
+      progress > 0.035 &&
+      progress < 0.22 &&
+      averageProgressPerSecond < 0.0023;
+    const earlyChapterSkim =
+      readingIntentState.maxChapterIndex >= 2 &&
+      elapsed < 140 &&
+      progress > 0.08 &&
+      (readingIntentState.fastScrollBursts >= 1 ||
+        readingIntentState.skippedChapters >= 1 ||
+        recentProgressGain > 0.05);
+    const earlyFastScan =
+      elapsed < 70 &&
+      progress > 0.025 &&
+      (readingIntentState.fastScrollBursts >= 2 ||
+        recentProgressGain > 0.018);
+    const earlyDistanceScan =
+      elapsed < 90 &&
+      progress > 0.008 &&
+      readingIntentState.scrollDistance > window.innerHeight * 4;
+    const fastLateSkim =
+      progress > 0.28 &&
+      elapsed < 110 &&
+      (readingIntentState.fastScrollBursts >= 2 || recentProgressGain > 0.2);
+
+    if (
+      !readingIntentState.hasBookmark &&
+      progress > 0.008 &&
+      (slowEarlyRead ||
+        earlyChapterSkim ||
+        earlyFastScan ||
+        earlyDistanceScan ||
+        fastLateSkim)
+    ) {
+      showReadingNudge("bookmark");
+    }
+
+    if (readingIntentState.hasBookmark && !readingIntentState.hasDownload) {
+      const secondsSinceBookmark =
+        (now - readingIntentState.bookmarkShownAt) / 1000;
+      const progressSinceBookmark =
+        progress - readingIntentState.bookmarkProgress;
+      const scrollSinceBookmark =
+        readingIntentState.scrollDistance -
+        readingIntentState.bookmarkScrollDistance;
+      const continuedSkimming =
+        secondsSinceBookmark > 7 &&
+        (readingIntentState.fastScrollBursts >= 3 ||
+          readingIntentState.skippedChapters >= 3 ||
+          progressSinceBookmark > 0.14 ||
+          (readingIntentState.maxChapterIndex >= 3 &&
+            progressSinceBookmark > 0.06));
+      const quickPostNudgeJump =
+        secondsSinceBookmark > 12 &&
+        progressSinceBookmark > 0.09 &&
+        recentProgressGain > 0.08;
+      const fastPostNudgeScan =
+        secondsSinceBookmark > 7 &&
+        progressSinceBookmark > 0.018 &&
+        recentProgressGain > 0.015;
+      const distancePostNudgeScan =
+        secondsSinceBookmark > 7 &&
+        scrollSinceBookmark > window.innerHeight * 2.4;
+
+      if (
+        continuedSkimming ||
+        quickPostNudgeJump ||
+        fastPostNudgeScan ||
+        distancePostNudgeScan
+      ) {
+        showReadingNudge("download");
+      }
+    }
+
+    readingIntentState.lastY = scrollY;
+    readingIntentState.lastTs = now;
+  };
+
   const updateAnimations = () => {
     const progress = getReadProgress();
 
     // Big % counter
     if (readPctEl) readPctEl.textContent = Math.round(progress * 100);
+    trackReadingIntent();
 
     // Smooth continuous page flip — cycles flipsTotal times across the full article
     if (flipPolygonEl && flipDotEl) {
@@ -460,6 +641,7 @@ let paragraphIndex = 0;
 
   window.addEventListener('scroll', updateAnimations, { passive: true });
   window.addEventListener('resize', updateAnimations);
+  window.setInterval(trackReadingIntent, 4000);
   updateAnimations();
 </script>
 
@@ -469,16 +651,16 @@ let paragraphIndex = 0;
   }
 
   :global(body.uk2026-page) {
-    background: #f8faf7 !important;
+    background: #ffffff !important;
     color: #282b27;
   }
 
   .memoir-shell {
     --toc-width: clamp(280px, 24vw, 360px);
-    --page-bg: #f8faf7;
+    --page-bg: #ffffff;
     --paper: #fffefb;
-    --panel-bg: rgba(248, 250, 247, 0.92);
-    --mobile-panel-bg: rgba(248, 250, 247, 0.94);
+    --panel-bg: rgba(255, 255, 255, 0.94);
+    --mobile-panel-bg: rgba(255, 255, 255, 0.96);
     --brand-red: var(--color-brand-red, #a30021);
     --ink: #282b27;
     --muted: #667067;
@@ -486,7 +668,7 @@ let paragraphIndex = 0;
     --sage: #536b58;
     --clay: #9d5d4d;
     --quote-ink: #713342;
-    --grid-line: rgba(83, 107, 88, 0.07);
+    --grid-line: rgba(83, 107, 88, 0.055);
     --accent: var(--brand-red);
     --accent-strong: var(--brand-red);
     --active-bg: #e9dfcf;
@@ -633,13 +815,11 @@ let paragraphIndex = 0;
   }
 
   .reader-toggle {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.28rem;
-    padding: 0.28rem;
+    display: inline-flex;
+    padding: 0.34rem;
     border: 1px solid var(--line);
     border-radius: 999px;
-    background: var(--paper);
+    background: rgba(255, 255, 255, 0.88);
   }
 
   .reader-toggle--floating {
@@ -647,33 +827,39 @@ let paragraphIndex = 0;
     right: clamp(1rem, 2vw, 1.5rem);
     bottom: clamp(1rem, 2vw, 1.5rem);
     z-index: 40;
-    width: min(210px, calc(100vw - 2rem));
-    background: var(--panel-bg);
+    width: auto;
+    max-width: calc(100vw - 2rem);
     box-shadow: 0 14px 34px rgba(40, 43, 39, 0.12);
     backdrop-filter: blur(18px);
-    opacity: 0.78;
+    opacity: 0.84;
     transition:
       opacity 160ms ease,
+      border-color 160ms ease,
       box-shadow 160ms ease;
   }
 
   .reader-toggle--floating:hover,
   .reader-toggle--floating:focus-within {
     opacity: 1;
+    border-color: var(--active-border);
     box-shadow: 0 18px 42px rgba(40, 43, 39, 0.16);
   }
 
   :global(html[data-uk2026-reader="dark"]) .reader-toggle--floating {
+    border-color: rgba(255, 255, 255, 0.14);
+    background: rgba(10, 10, 10, 0.74);
     box-shadow: 0 18px 42px rgba(0, 0, 0, 0.45);
   }
 
   :global(html[data-uk2026-reader="dark"]) .reader-toggle--floating:hover,
   :global(html[data-uk2026-reader="dark"]) .reader-toggle--floating:focus-within {
+    border-color: rgba(255, 255, 255, 0.26);
     box-shadow: 0 20px 48px rgba(0, 0, 0, 0.58);
   }
 
   .reader-toggle button {
-    min-height: 34px;
+    min-height: 42px;
+    padding: 0 0.95rem;
     border: 0;
     border-radius: 999px;
     background: transparent;
@@ -692,24 +878,38 @@ let paragraphIndex = 0;
       background-color 160ms ease;
   }
 
+  .reader-toggle button svg {
+    color: var(--brand-red);
+  }
+
   .reader-toggle button:hover,
-  .reader-toggle button:focus-visible,
-  .reader-toggle button.is-active {
+  .reader-toggle button:focus-visible {
     background: var(--active-bg);
     color: var(--active-ink);
     outline: none;
   }
 
-  :global(html[data-uk2026-reader="dark"])
-    .reader-toggle
-    button:hover,
-  :global(html[data-uk2026-reader="dark"])
-    .reader-toggle
-    button:focus-visible,
-  :global(html[data-uk2026-reader="dark"])
-    .reader-toggle
-    button.is-active {
+  .reader-toggle button.is-active {
+    background: var(--active-bg);
     color: var(--active-ink);
+  }
+
+  .reader-toggle button.is-active svg {
+    color: var(--accent);
+  }
+
+  :global(html[data-uk2026-reader="dark"]) .reader-toggle button {
+    color: rgba(255, 255, 255, 0.86);
+  }
+
+  :global(html[data-uk2026-reader="dark"]) .reader-toggle button svg {
+    color: #fffefb;
+  }
+
+  :global(html[data-uk2026-reader="dark"]) .reader-toggle button:hover,
+  :global(html[data-uk2026-reader="dark"]) .reader-toggle button:focus-visible {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
   }
 
   .toc-list a {
@@ -814,6 +1014,115 @@ let paragraphIndex = 0;
     color: var(--active-number);
   }
 
+  .reading-nudges {
+    position: fixed;
+    left: 2.5rem;
+    bottom: calc(2.5rem + 6.25rem);
+    z-index: 21;
+    width: calc(var(--toc-width) - 2rem);
+    display: grid;
+    gap: 0.65rem;
+    max-height: 0;
+    margin-top: 0;
+    opacity: 0;
+    overflow: hidden;
+    pointer-events: none;
+    transform: translateY(0.75rem);
+    transition:
+      max-height 420ms cubic-bezier(0.22, 1, 0.36, 1),
+      margin-top 260ms ease,
+      opacity 220ms ease,
+      transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .reading-nudges.is-visible {
+    max-height: 320px;
+    margin-top: 0.42rem;
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+
+  .reading-nudge-card {
+    border: 1px solid var(--line);
+    background: var(--paper);
+    padding: 0.86rem 0.9rem;
+    box-shadow: 0 8px 22px rgba(40, 43, 39, 0.06);
+    opacity: 0;
+    transform: translateY(0.8rem);
+    transition:
+      opacity 260ms ease,
+      transform 420ms cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 160ms ease,
+      background-color 160ms ease;
+  }
+
+  .reading-nudge-card p {
+    margin: 0;
+    color: var(--ink);
+    font-family: "Poppins", var(--font-sans), sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    line-height: 1.45;
+    letter-spacing: 0;
+  }
+
+  .reading-nudges.has-bookmark .reading-nudge-card--bookmark,
+  .reading-nudges.has-download .reading-nudge-card--download {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .reading-nudge-card--download {
+    display: grid;
+    gap: 0.62rem;
+    border-color: var(--active-border);
+    background: var(--active-bg);
+  }
+
+  .reading-nudge-card--download p {
+    color: var(--active-ink);
+  }
+
+  .reading-nudge-button {
+    width: fit-content;
+    min-height: 0;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.32rem;
+    border: 0;
+    background: transparent;
+    color: var(--active-ink);
+    font-family: "Poppins", var(--font-sans), sans-serif;
+    font-size: 0.78rem;
+    font-weight: 800;
+    line-height: 1.2;
+    text-decoration-line: underline;
+    text-decoration-thickness: 0.08em;
+    text-underline-offset: 0.18em;
+    transition:
+      opacity 160ms ease,
+      text-decoration-thickness 160ms ease;
+  }
+
+  .reading-nudge-button:hover,
+  .reading-nudge-button:focus-visible {
+    opacity: 0.82;
+    outline: none;
+    text-decoration-thickness: 0.12em;
+  }
+
+  :global(html[data-uk2026-reader="dark"]) .reading-nudge-card {
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+  }
+
+  @media (max-width: 980px) {
+    .reading-nudges {
+      display: none;
+    }
+  }
+
   .memoir-main {
     min-width: 0;
     margin-left: calc(var(--toc-width) + 2rem);
@@ -881,16 +1190,6 @@ let paragraphIndex = 0;
   :global(html[data-uk2026-reader="dark"]) .hero-byline a:focus-visible {
     color: var(--accent-strong);
     text-decoration-color: var(--accent-strong);
-  }
-
-  .hero-date {
-    width: fit-content;
-    margin: 0.34rem 0 0;
-    color: var(--muted);
-    font-family: "Crimson Pro", Georgia, serif;
-    font-size: clamp(1.05rem, 0.95rem + 0.25vw, 1.2rem);
-    font-weight: 500;
-    letter-spacing: 0.01em;
   }
 
   .mobile-toc {
@@ -1090,8 +1389,11 @@ let paragraphIndex = 0;
     }
   }
 
-  .hero-pdf-download {
-    margin-top: 1.6rem;
+  .reader-download {
+    max-width: 700px;
+    margin: clamp(3.5rem, 8vw, 6rem) 0 0 calc(max(130px, 18vw) + clamp(1.5rem, 4vw, 4rem));
+    padding-top: 1.35rem;
+    border-top: 1px solid var(--line);
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -1100,7 +1402,7 @@ let paragraphIndex = 0;
     color: var(--muted);
   }
 
-  .hero-pdf-download a {
+  .reader-download a {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
@@ -1112,18 +1414,24 @@ let paragraphIndex = 0;
     transition: all 160ms ease;
   }
 
-  .hero-pdf-download a:hover {
+  .reader-download a:hover {
     color: var(--accent-strong);
     border-bottom-color: var(--accent-strong);
   }
 
-  :global(html[data-uk2026-reader="dark"]) .hero-pdf-download a {
+  :global(html[data-uk2026-reader="dark"]) .reader-download a {
     color: var(--accent-strong);
   }
 
-  :global(html[data-uk2026-reader="dark"]) .hero-pdf-download a:hover {
+  :global(html[data-uk2026-reader="dark"]) .reader-download a:hover {
     color: #ff8ca3;
     border-bottom-color: #ff8ca3;
+  }
+
+  @media (max-width: 980px) {
+    .reader-download {
+      margin-left: 0;
+    }
   }
 
   /* Footer layout alignment on desktop */
