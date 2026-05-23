@@ -23,6 +23,7 @@ export type MoodboardItem = {
 };
 
 const SELECT_FIELDS = 'id, image_url, storage_path, title, tags, published, created_at, updated_at';
+const MOODBOARD_PAGE_SIZE = 1000;
 
 function normalizeTags(raw: unknown): string[] {
     if (!Array.isArray(raw)) return [];
@@ -47,15 +48,28 @@ function mapMoodboardRow(row: MoodboardRow): MoodboardItem {
 
 export async function getPublishedMoodboardItems(): Promise<MoodboardItem[]> {
     try {
-        const { data, error } = await supabase
-            .from('moodboard_items')
-            .select(SELECT_FIELDS)
-            .eq('published', true)
-            .order('created_at', { ascending: false });
+        const rows: MoodboardRow[] = [];
+        let from = 0;
 
-        if (error) throw error;
+        while (true) {
+            const to = from + MOODBOARD_PAGE_SIZE - 1;
+            const { data, error } = await supabase
+                .from('moodboard_items')
+                .select(SELECT_FIELDS)
+                .eq('published', true)
+                .order('created_at', { ascending: false })
+                .range(from, to);
 
-        return ((data || []) as MoodboardRow[]).map(mapMoodboardRow);
+            if (error) throw error;
+
+            const page = (data || []) as MoodboardRow[];
+            rows.push(...page);
+
+            if (page.length < MOODBOARD_PAGE_SIZE) break;
+            from += MOODBOARD_PAGE_SIZE;
+        }
+
+        return rows.map(mapMoodboardRow);
     } catch (error) {
         console.error('Failed to load moodboard items:', error);
         return [];
