@@ -1,0 +1,1059 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const pageTitle = "Obsidian for Deep Research";
+const description =
+    "A four-session online workshop for building a connected research system in Obsidian.";
+const inquirySubject = encodeURIComponent(
+    "Obsidian Workshop Inquiry - Abodid Sahoo",
+);
+const inquiryBody = encodeURIComponent(
+    "Hi Abodid,\n\nI am interested in the Obsidian for Deep Research workshop. Please share the next batch details.\n\nName:\nBackground:\nPreferred Saturday timing:\n",
+);
+const inquiryHref = `mailto:hello@abodid.com?subject=${inquirySubject}&body=${inquiryBody}`;
+
+const formatItems = [
+    "4 live online sessions",
+    "2 hours per session",
+    "Weekend batch",
+    "Saturday evenings preferred",
+    "Google Meet or Zoom",
+    "Session recordings included",
+    "One month of doubt-clearing support",
+    "Email and phone-call support",
+];
+
+const audience = [
+    "Masters students preparing essays, dissertations, or thesis work",
+    "PhD applicants and researchers handling large reading lists",
+    "Writers, artists, designers, and educators collecting ideas from many sources",
+    "Working professionals who read, think, apply, write, and present",
+    "Serious learners who want ideas to become useful over time",
+];
+
+const stages = [
+    {
+        number: "01",
+        title: "Open the Door",
+        subtitle: "Start Obsidian without fear",
+        details:
+            "Create your first vault, understand the left sidebar, writing area, right sidebar, search, command palette, and the basic shortcuts you will use every week.",
+        chapters: [
+            "What a vault is and where your notes live",
+            "Creating your first note",
+            "Opening, searching, and moving between notes",
+            "Command palette, new note, search, and template shortcuts",
+        ],
+    },
+    {
+        number: "02",
+        title: "Make the Room",
+        subtitle: "Folders that keep your brain clean",
+        details:
+            "Build a simple structure that supports research without turning the vault into a filing-cabinet maze.",
+        chapters: [
+            "1 - Rough Notes",
+            "2 - Source Material",
+            "3 - Tags",
+            "4 - Indexes",
+            "5 - Templates",
+            "6 - Main Notes",
+            "7 - Assets",
+        ],
+    },
+    {
+        number: "03",
+        title: "One Thought, One Note",
+        subtitle: "The atomic note method",
+        details:
+            "Turn readings, lectures, links, and rough thoughts into clean notes that can return later for essays, applications, talks, and thesis writing.",
+        chapters: [
+            "Writing one clear idea per note",
+            "Using hyphenated note titles",
+            "Rewriting readings in your own words",
+            "Avoiding article dumps and building reusable notes",
+        ],
+    },
+    {
+        number: "04",
+        title: "The Note Recipe",
+        subtitle: "Templates that save time",
+        details:
+            "Create reusable templates for main notes, rough notes, source notes, tag notes, and index notes.",
+        chapters: [
+            "Enabling the Templates plugin",
+            "Creating a template folder",
+            "Adding note type, date, time, tags, references, and possible links",
+            "Inserting templates into live research notes",
+        ],
+    },
+    {
+        number: "05",
+        title: "Tag Doors and Idea Bridges",
+        subtitle: "Tags, links, backlinks, and graph view",
+        details:
+            "Connect notes so older ideas can return when you need them. This is where the vault begins to behave like a research brain.",
+        chapters: [
+            "Tags as concept pages",
+            "Internal links as bridges between ideas",
+            "Backlinks as memory",
+            "Graph view for clusters, isolated notes, and recurring themes",
+        ],
+    },
+    {
+        number: "06",
+        title: "Research Lab Mode",
+        subtitle: "Advanced AI and PhD-level workflows",
+        details:
+            "Explore longer research workflows with Smart Connections, Graph Analysis, Dataview, Omnisearch, and Notebook Navigator while keeping your own judgement at the centre.",
+        chapters: [
+            "Finding hidden connections between older notes",
+            "Building research dashboards",
+            "Tracking note types, tags, dates, and themes",
+            "Using the vault for thesis chapters, applications, talks, and long-term projects",
+        ],
+    },
+];
+
+const sessions = [
+    {
+        title: "Session 1",
+        focus: "Start Your Research Brain",
+        outcome:
+            "You leave with a working vault, a clear interface map, and a folder structure that makes sense.",
+        points: [
+            "Install and open Obsidian",
+            "Create your first vault",
+            "Build the folder structure",
+            "Create your first rough note",
+        ],
+    },
+    {
+        title: "Session 2",
+        focus: "Create Better Notes",
+        outcome:
+            "You learn how to turn thoughts, readings, lectures, and links into useful permanent notes.",
+        points: [
+            "Atomic note method",
+            "One idea per note",
+            "Hyphenated titles",
+            "Source notes and references",
+        ],
+    },
+    {
+        title: "Session 3",
+        focus: "Connect Your Thinking",
+        outcome:
+            "You learn how to connect notes so the vault begins to show patterns in your thinking.",
+        points: [
+            "Tag notes as concept hubs",
+            "Internal links",
+            "Backlinks",
+            "Search and graph view",
+        ],
+    },
+    {
+        title: "Session 4",
+        focus: "Use It for Research, Writing, and Applications",
+        outcome:
+            "You learn how to use your vault for academic, creative, and professional work.",
+        points: [
+            "Essay and thesis outlines",
+            "Graph clusters for topic discovery",
+            "Application and project planning",
+            "AI-assisted plugin introduction",
+        ],
+    },
+];
+
+const examples = [
+    {
+        label: "Atomic note title",
+        title: "grades-reduce-student-autonomy",
+        body: "A grade can move attention away from curiosity and toward compliance. This note can later connect to motivation, assessment, childhood learning, and institutional design.",
+        tags: ["education", "autonomy", "assessment"],
+    },
+    {
+        label: "Concept tag page",
+        title: "missing",
+        body: "A tag is treated like a doorway. Every note linked to missing can come from grief, climate data, archives, photography, or a thesis chapter.",
+        tags: ["grief", "archives", "memory"],
+    },
+    {
+        label: "Research bridge",
+        title: "photography-can-hold-evidence-and-feeling",
+        body: "This note can link documentary photography to evidence, intimacy, visual testimony, and personal memory without forcing everything into one folder.",
+        tags: ["photography", "evidence", "feeling"],
+    },
+];
+
+const afterCourse = [
+    "A clean Obsidian vault",
+    "A working folder structure",
+    "A main-notes system",
+    "A tag-based concept system",
+    "Reusable note templates",
+    "A source and reference workflow",
+    "A graph-based discovery habit",
+    "A practical method for writing from notes",
+];
+---
+
+<BaseLayout
+    title={pageTitle}
+    description={description}
+    bodyClass="obsidian-workshop-page"
+>
+    <main class="workshop-page">
+        <section class="hero-section" aria-labelledby="workshop-title">
+            <div class="hero-copy">
+                <p class="eyebrow">Workshop / Obsidian</p>
+                <h1 id="workshop-title">Obsidian for Deep Research</h1>
+                <p class="hero-subtitle">
+                    Build a research brain for your notes, ideas, applications,
+                    and thesis.
+                </p>
+                <p class="hero-intro">
+                    Most students keep notes everywhere: notebooks, PDFs, phone
+                    notes, screenshots, browser bookmarks, messages, and
+                    unfinished documents. The problem begins when you actually
+                    need those ideas again.
+                </p>
+                <div class="hero-actions">
+                    <a href={inquiryHref} class="primary-action">
+                        Email me to join →
+                    </a>
+                    <a href="#course-structure" class="secondary-action">
+                        View full module
+                    </a>
+                </div>
+            </div>
+
+            <div class="vault-visual" aria-label="Example Obsidian vault map">
+                <div class="vault-topbar">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <div class="vault-map">
+                    <span class="node node-main">Main Notes</span>
+                    <span class="node node-tag">Tags</span>
+                    <span class="node node-source">Sources</span>
+                    <span class="node node-index">Indexes</span>
+                    <span class="node node-template">Templates</span>
+                    <span class="connection connection-one"></span>
+                    <span class="connection connection-two"></span>
+                    <span class="connection connection-three"></span>
+                </div>
+                <div class="vault-note">
+                    <p class="vault-note-label">sample note</p>
+                    <p>[[photography-can-hold-evidence-and-feeling]]</p>
+                    <p class="muted">Tags: [[memory]], [[evidence]]</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="summary-band" aria-label="Course fee and format">
+            <div class="fee-panel">
+                <p class="eyebrow">Course Fee</p>
+                <p class="fee">₹15,000</p>
+                <p class="fee-note">
+                    Includes all 4 live sessions, recordings, templates, guided
+                    setup, and one month of personal doubt-clearing support.
+                </p>
+            </div>
+            <div class="format-grid">
+                {formatItems.map((item) => <span>{item}</span>)}
+            </div>
+        </section>
+
+        <section class="reading-section">
+            <div class="section-heading">
+                <p class="eyebrow">Who this is for</p>
+                <h2>For people whose ideas are scattered but serious.</h2>
+            </div>
+            <ul class="arrow-list">
+                {audience.map((item) => <li>{item}</li>)}
+            </ul>
+        </section>
+
+        <section class="reading-section">
+            <div class="section-heading">
+                <p class="eyebrow">Why I teach this</p>
+                <h2>A system tested through actual research work.</h2>
+            </div>
+            <p>
+                This method has helped me organise readings, applications,
+                research ideas, conference notes, and creative projects. It has
+                supported work around the Cambridge Cultural Heritage Data
+                School, British Sociological Association presentations, RCA
+                research practice, and the many small ideas that continue to
+                collect and develop over time.
+            </p>
+            <p>
+                The point is not to make a perfect archive on day one. The point
+                is to build a system where ideas can return to you when they
+                matter.
+            </p>
+        </section>
+
+        <section
+            id="course-structure"
+            class="module-section"
+            aria-labelledby="module-title"
+        >
+            <div class="wide-section-heading">
+                <p class="eyebrow">Full module</p>
+                <h2 id="module-title">Six stages for building the vault.</h2>
+                <p>
+                    The workshop starts from the beginning and slowly turns your
+                    vault into a living research system.
+                </p>
+            </div>
+
+            <div class="stage-list">
+                {
+                    stages.map((stage) => (
+                        <article class="stage-item">
+                            <div class="stage-number">{stage.number}</div>
+                            <div class="stage-body">
+                                <p class="stage-kicker">{stage.subtitle}</p>
+                                <h3>{stage.title}</h3>
+                                <p>{stage.details}</p>
+                                <ul>
+                                    {stage.chapters.map((chapter) => (
+                                        <li>{chapter}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                        </article>
+                    ))
+                }
+            </div>
+        </section>
+
+        <section class="examples-section" aria-labelledby="examples-title">
+            <div class="wide-section-heading">
+                <p class="eyebrow">Examples</p>
+                <h2 id="examples-title">How notes begin to look and connect.</h2>
+                <p>
+                    These examples use the same selected-text visual language as
+                    the research project pages: a dark field, a sharp box, and
+                    clear white note fragments that read almost like images.
+                </p>
+            </div>
+
+            <div class="example-grid">
+                {
+                    examples.map((example) => (
+                        <article class="example-panel">
+                            <p class="example-label">{example.label}</p>
+                            <h3>
+                                <span class="selected-text">
+                                    {example.title}
+                                </span>
+                            </h3>
+                            <p>
+                                <span class="selected-text">{example.body}</span>
+                            </p>
+                            <div class="example-tags">
+                                {example.tags.map((tag) => (
+                                    <span>[[{tag}]]</span>
+                                ))}
+                            </div>
+                        </article>
+                    ))
+                }
+            </div>
+        </section>
+
+        <section class="sessions-section" aria-labelledby="sessions-title">
+            <div class="wide-section-heading">
+                <p class="eyebrow">Course structure</p>
+                <h2 id="sessions-title">Four live sessions over one month.</h2>
+            </div>
+            <div class="sessions-grid">
+                {
+                    sessions.map((session) => (
+                        <article class="session-card">
+                            <p class="session-label">{session.title}</p>
+                            <h3>{session.focus}</h3>
+                            <ul>
+                                {session.points.map((point) => (
+                                    <li>{point}</li>
+                                ))}
+                            </ul>
+                            <p class="outcome">{session.outcome}</p>
+                        </article>
+                    ))
+                }
+            </div>
+        </section>
+
+        <section class="reading-section">
+            <div class="section-heading">
+                <p class="eyebrow">After one month</p>
+                <h2>You leave with a working research system.</h2>
+            </div>
+            <div class="deliverables-grid">
+                {afterCourse.map((item) => <span>{item}</span>)}
+            </div>
+        </section>
+
+        <section class="cta-section" aria-label="Join the Obsidian workshop">
+            <p class="eyebrow">Next batch</p>
+            <h2>Build a vault that helps your ideas return.</h2>
+            <p>
+                The course is practical, live, and personal. We start from zero,
+                then shape the system around your reading, writing, research,
+                applications, and long-term projects.
+            </p>
+            <a href={inquiryHref} class="primary-action">Email me to join →</a>
+        </section>
+    </main>
+</BaseLayout>
+
+<style>
+    :global(body.obsidian-workshop-page .page-content) {
+        padding-bottom: 0;
+    }
+
+    .workshop-page {
+        width: 100%;
+        padding: clamp(3rem, 7vw, 6rem) 24px 8rem;
+    }
+
+    .hero-section,
+    .summary-band,
+    .module-section,
+    .examples-section,
+    .sessions-section,
+    .cta-section {
+        max-width: 1100px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .hero-section {
+        display: grid;
+        grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+        gap: clamp(2rem, 5vw, 5rem);
+        align-items: center;
+        margin-bottom: clamp(4rem, 8vw, 7rem);
+    }
+
+    .hero-copy {
+        max-width: 760px;
+    }
+
+    .eyebrow,
+    .stage-kicker,
+    .example-label,
+    .session-label {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--text-tertiary);
+        margin: 0 0 1rem;
+    }
+
+    h1 {
+        font-family: var(--font-display);
+        font-size: clamp(2.65rem, 7vw, 4.8rem);
+        font-weight: 750;
+        line-height: 1.02;
+        letter-spacing: 0;
+        margin: 0 0 1.5rem;
+        color: var(--text-primary);
+    }
+
+    h2 {
+        font-family: var(--font-display);
+        font-size: clamp(2rem, 4vw, 3.1rem);
+        font-weight: 680;
+        line-height: 1.08;
+        letter-spacing: 0;
+        margin: 0 0 1.25rem;
+        color: var(--text-primary);
+    }
+
+    h3 {
+        font-family: var(--font-display);
+        font-size: clamp(1.35rem, 2.2vw, 1.85rem);
+        font-weight: 650;
+        line-height: 1.18;
+        letter-spacing: 0;
+        margin: 0 0 1rem;
+        color: var(--text-primary);
+    }
+
+    p,
+    li {
+        font-family: var(--font-body);
+        font-size: 1.08rem;
+        line-height: 1.75;
+        color: var(--text-secondary);
+    }
+
+    .hero-subtitle {
+        font-size: clamp(1.35rem, 2.4vw, 2.15rem);
+        line-height: 1.25;
+        font-weight: 350;
+        color: var(--text-primary);
+        max-width: 720px;
+        margin: 0 0 1.5rem;
+    }
+
+    .hero-intro {
+        max-width: 680px;
+        margin: 0 0 2rem;
+    }
+
+    .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.9rem;
+        align-items: center;
+    }
+
+    .primary-action,
+    .secondary-action {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 48px;
+        padding: 0.95rem 1.35rem;
+        border-radius: 6px;
+        font-family: var(--font-mono);
+        font-size: 0.88rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        text-decoration: none;
+        transition:
+            transform 0.22s ease,
+            border-color 0.22s ease,
+            background-color 0.22s ease,
+            color 0.22s ease;
+    }
+
+    .primary-action {
+        background: var(--text-primary);
+        color: var(--bg-color);
+        border: 1px solid var(--text-primary);
+    }
+
+    .secondary-action {
+        color: var(--text-primary);
+        border: 1px solid var(--border-subtle);
+        background: transparent;
+    }
+
+    .primary-action:hover,
+    .secondary-action:hover,
+    .primary-action:focus-visible,
+    .secondary-action:focus-visible {
+        transform: translateY(-2px);
+        border-color: var(--text-primary);
+    }
+
+    .vault-visual {
+        position: relative;
+        min-height: 520px;
+        border: 1px solid var(--border-subtle);
+        border-radius: 8px;
+        background: var(--bg-surface);
+        overflow: hidden;
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.16);
+    }
+
+    .vault-topbar {
+        height: 48px;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0 1rem;
+        border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .vault-topbar span {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--text-tertiary);
+        opacity: 0.55;
+    }
+
+    .vault-map {
+        position: relative;
+        height: 292px;
+        margin: 1rem;
+        border: 1px solid var(--border-subtle);
+        background:
+            linear-gradient(to right, var(--grid-color-2) 1px, transparent 1px),
+            linear-gradient(to bottom, var(--grid-color-2) 1px, transparent 1px);
+        background-size: 36px 36px;
+        overflow: hidden;
+    }
+
+    .node {
+        position: absolute;
+        z-index: 2;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 112px;
+        height: 112px;
+        border: 1px solid var(--border-strong);
+        border-radius: 50%;
+        background: var(--bg-color);
+        color: var(--text-primary);
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        line-height: 1.2;
+        text-align: center;
+        padding: 1rem;
+    }
+
+    .node-main {
+        top: 80px;
+        left: calc(50% - 56px);
+        background: var(--text-primary);
+        color: var(--bg-color);
+    }
+
+    .node-tag {
+        top: 28px;
+        left: 34px;
+    }
+
+    .node-source {
+        top: 48px;
+        right: 38px;
+    }
+
+    .node-index {
+        bottom: 26px;
+        left: 78px;
+    }
+
+    .node-template {
+        bottom: 18px;
+        right: 82px;
+    }
+
+    .connection {
+        position: absolute;
+        z-index: 1;
+        height: 1px;
+        background: var(--border-strong);
+        transform-origin: left center;
+        opacity: 0.78;
+    }
+
+    .connection-one {
+        width: 230px;
+        top: 112px;
+        left: 118px;
+        transform: rotate(11deg);
+    }
+
+    .connection-two {
+        width: 250px;
+        top: 132px;
+        left: 238px;
+        transform: rotate(-13deg);
+    }
+
+    .connection-three {
+        width: 280px;
+        top: 210px;
+        left: 140px;
+        transform: rotate(-3deg);
+    }
+
+    .vault-note {
+        margin: 1rem;
+        padding: 1.25rem;
+        border: 1px solid var(--border-subtle);
+        background: #ffffff;
+        color: #000000;
+    }
+
+    .vault-note p {
+        margin: 0 0 0.65rem;
+        color: #000000;
+        font-family: var(--font-mono);
+        font-size: 0.86rem;
+        line-height: 1.55;
+    }
+
+    .vault-note p:last-child {
+        margin-bottom: 0;
+    }
+
+    .vault-note-label {
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        opacity: 0.62;
+    }
+
+    .vault-note .muted {
+        color: #333333;
+    }
+
+    .summary-band {
+        display: grid;
+        grid-template-columns: minmax(260px, 0.8fr) minmax(0, 1.2fr);
+        gap: 1px;
+        border: 1px solid var(--border-subtle);
+        background: var(--border-subtle);
+        margin-bottom: clamp(4rem, 8vw, 7rem);
+    }
+
+    .fee-panel,
+    .format-grid {
+        background: var(--bg-surface);
+        padding: clamp(1.5rem, 3vw, 2.5rem);
+    }
+
+    .fee {
+        font-size: clamp(2.6rem, 5vw, 4.4rem);
+        line-height: 1;
+        font-weight: 760;
+        color: var(--text-primary);
+        margin: 0 0 1rem;
+    }
+
+    .fee-note {
+        margin: 0;
+        max-width: 360px;
+    }
+
+    .format-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1px;
+        padding: 0;
+        background: var(--border-subtle);
+    }
+
+    .format-grid span {
+        display: flex;
+        align-items: center;
+        min-height: 78px;
+        padding: 1rem 1.25rem;
+        background: var(--bg-surface);
+        color: var(--text-secondary);
+        font-size: 0.98rem;
+        line-height: 1.4;
+    }
+
+    .reading-section {
+        max-width: 800px;
+        margin: 0 auto clamp(4rem, 8vw, 7rem);
+    }
+
+    .section-heading {
+        margin-bottom: 2rem;
+    }
+
+    .section-heading h2,
+    .wide-section-heading h2 {
+        max-width: 780px;
+    }
+
+    .arrow-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        border-top: 1px solid var(--border-subtle);
+    }
+
+    .arrow-list li {
+        position: relative;
+        margin: 0;
+        padding: 1.1rem 0 1.1rem 1.6rem;
+        border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .arrow-list li::before {
+        content: "→";
+        position: absolute;
+        left: 0;
+        color: var(--text-primary);
+    }
+
+    .wide-section-heading {
+        max-width: 800px;
+        margin-bottom: 2.5rem;
+    }
+
+    .wide-section-heading p {
+        margin-bottom: 0;
+        max-width: 720px;
+    }
+
+    .module-section,
+    .examples-section,
+    .sessions-section {
+        margin-bottom: clamp(4rem, 8vw, 7rem);
+    }
+
+    .stage-list {
+        border-top: 1px solid var(--border-subtle);
+    }
+
+    .stage-item {
+        display: grid;
+        grid-template-columns: 112px minmax(0, 1fr);
+        gap: clamp(1.5rem, 4vw, 3rem);
+        padding: clamp(2rem, 4vw, 3rem) 0;
+        border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .stage-number {
+        font-family: var(--font-mono);
+        font-size: 0.9rem;
+        color: var(--text-tertiary);
+    }
+
+    .stage-body {
+        max-width: 760px;
+    }
+
+    .stage-body p {
+        margin-top: 0;
+    }
+
+    .stage-body ul,
+    .session-card ul {
+        list-style: none;
+        padding: 0;
+        margin: 1.25rem 0 0;
+    }
+
+    .stage-body li,
+    .session-card li {
+        position: relative;
+        padding-left: 1.4rem;
+        margin-bottom: 0.65rem;
+        font-size: 1rem;
+        line-height: 1.55;
+    }
+
+    .stage-body li::before,
+    .session-card li::before {
+        content: "→";
+        position: absolute;
+        left: 0;
+        color: var(--text-primary);
+    }
+
+    .example-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1.25rem;
+    }
+
+    .example-panel {
+        min-height: 390px;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        background: var(--color-brand-red);
+        padding: clamp(1.25rem, 2.4vw, 1.8rem);
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: space-between;
+    }
+
+    .example-panel h3 {
+        font-size: clamp(1.35rem, 2vw, 1.75rem);
+        line-height: 1.35;
+        margin-bottom: 1.25rem;
+    }
+
+    .example-panel p {
+        margin: 0 0 1.2rem;
+        color: #000000;
+    }
+
+    .example-label {
+        color: rgba(255, 255, 255, 0.72);
+        margin-bottom: 1.5rem;
+    }
+
+    .selected-text {
+        display: inline;
+        background: #ffffff;
+        color: #000000;
+        padding: 0.08em 0.22em;
+        border-radius: 2px;
+        box-decoration-break: clone;
+        -webkit-box-decoration-break: clone;
+    }
+
+    .example-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.45rem;
+        margin-top: 1.25rem;
+    }
+
+    .example-tags span {
+        background: #ffffff;
+        color: #000000;
+        border: 1px solid rgba(0, 0, 0, 0.16);
+        border-radius: 4px;
+        padding: 0.35rem 0.55rem;
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        line-height: 1;
+    }
+
+    .sessions-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1.25rem;
+    }
+
+    .session-card {
+        border: 1px solid var(--border-subtle);
+        border-radius: 8px;
+        background: var(--bg-surface);
+        padding: clamp(1.5rem, 3vw, 2rem);
+    }
+
+    .session-card h3 {
+        margin-bottom: 1.25rem;
+    }
+
+    .outcome {
+        margin: 1.5rem 0 0;
+        padding-top: 1.25rem;
+        border-top: 1px solid var(--border-subtle);
+        color: var(--text-primary);
+        font-size: 0.98rem;
+        line-height: 1.6;
+    }
+
+    .deliverables-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1px;
+        border: 1px solid var(--border-subtle);
+        background: var(--border-subtle);
+    }
+
+    .deliverables-grid span {
+        min-height: 70px;
+        display: flex;
+        align-items: center;
+        padding: 1rem 1.2rem;
+        background: var(--bg-surface);
+        color: var(--text-secondary);
+    }
+
+    .cta-section {
+        border: 1px solid var(--border-subtle);
+        border-radius: 8px;
+        background: var(--bg-surface);
+        padding: clamp(2rem, 5vw, 4rem);
+    }
+
+    .cta-section p:not(.eyebrow) {
+        max-width: 720px;
+    }
+
+    .cta-section .primary-action {
+        margin-top: 0.5rem;
+    }
+
+    @media (max-width: 940px) {
+        .hero-section,
+        .summary-band {
+            grid-template-columns: 1fr;
+        }
+
+        .vault-visual {
+            min-height: 480px;
+        }
+
+        .example-grid,
+        .sessions-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .workshop-page {
+            padding-left: 18px;
+            padding-right: 18px;
+        }
+
+        .hero-actions {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .primary-action,
+        .secondary-action {
+            width: 100%;
+            text-align: center;
+        }
+
+        .format-grid,
+        .deliverables-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .stage-item {
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
+        }
+
+        .vault-visual {
+            min-height: 430px;
+        }
+
+        .vault-map {
+            height: 238px;
+        }
+
+        .node {
+            width: 88px;
+            height: 88px;
+            font-size: 0.68rem;
+        }
+
+        .node-main {
+            left: calc(50% - 44px);
+        }
+
+        .node-source {
+            right: 18px;
+        }
+
+        .node-tag {
+            left: 18px;
+        }
+
+        .node-index {
+            left: 38px;
+        }
+
+        .node-template {
+            right: 38px;
+        }
+
+        .connection-one,
+        .connection-two,
+        .connection-three {
+            opacity: 0.45;
+        }
+
+        .example-panel {
+            min-height: 320px;
+        }
+    }
+</style>

@@ -7,16 +7,17 @@ const description =
 
 const workshops = [
     {
-        title: "Obsidian Basics: Building Your Second Brain",
+        title: "Obsidian for Deep Research",
         description:
-            "Stop losing your best ideas. Learn how to build a resilient personal knowledge management system that improves your note-taking, thinking, and creative output.",
-        price: "£99",
-        duration: "3 Hours",
+            "Build a connected research system for notes, readings, applications, thesis work, and long-term ideas.",
+        price: "₹15,000",
+        duration: "4 Sessions",
+        href: "/workshops/obsidian",
         features: [
-            "Setting up your first Vault",
-            "Linking your thinking (Bidirectional links)",
-            "Tagging strategies vs. Folders",
-            "CORE Framework for creative output",
+            "Atomic notes and clean vault setup",
+            "Tags, backlinks, graph view, and templates",
+            "Research, writing, and application workflows",
+            "One month of doubt-clearing support",
         ],
         highlight: false,
     },
@@ -26,6 +27,7 @@ const workshops = [
             "Go beyond software tutorials. Master the nuances of timing, rhythm, color grading, and sound design to create emotionally resonant visual stories.",
         price: "£399",
         duration: "2 Days (4 hrs/day)",
+        href: "mailto:hello@abodid.com?subject=Workshop Inquiry",
         features: [
             "Psychology of the cut",
             "Rhythm & Pacing masterclass",
@@ -76,10 +78,12 @@ const workshops = [
 
                         <div class="card-footer">
                             <a
-                                href="mailto:hello@abodid.com?subject=Workshop Inquiry"
+                                href={workshop.href}
                                 class="book-btn"
                             >
-                                Book a Slot
+                                {workshop.href.startsWith("/workshops/")
+                                    ? "View Details"
+                                    : "Book a Slot"}
                             </a>
                         </div>
                     </div>
