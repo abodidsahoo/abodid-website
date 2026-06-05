@@ -24,6 +24,47 @@ const SECTIONS = [
     { id: 'page_metadata', label: 'Metadata', icon: '⚙️' },
 ];
 const VALID_SECTION_IDS = new Set(SECTIONS.map((section) => section.id));
+const REQUEST_TIMEOUT_MS = 8000;
+
+const withTimeout = (promise, label, timeoutMs = REQUEST_TIMEOUT_MS) => {
+    let timeoutId;
+    const timeout = new Promise((_, reject) => {
+        timeoutId = window.setTimeout(() => reject(new Error(`${label} timed out`)), timeoutMs);
+    });
+
+    return Promise.race([promise, timeout]).finally(() => window.clearTimeout(timeoutId));
+};
+
+class SectionErrorBoundary extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = { error: null };
+    }
+
+    static getDerivedStateFromError(error) {
+        return { error };
+    }
+
+    componentDidCatch(error) {
+        console.error('Admin section failed to render:', error);
+    }
+
+    render() {
+        if (this.state.error) {
+            return (
+                <div className="section-error">
+                    <h3>Could not load this section.</h3>
+                    <p>{this.state.error.message}</p>
+                    <button type="button" onClick={() => window.location.reload()}>
+                        Reload
+                    </button>
+                </div>
+            );
+        }
+
+        return this.props.children;
+    }
+}
 
 export default function AdminDashboard() {
     const [session, setSession] = useState(null);
@@ -48,7 +89,10 @@ export default function AdminDashboard() {
         const checkAuth = async () => {
             try {
                 // 1. Get Session
-                const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+                const { data: { session }, error: sessionError } = await withTimeout(
+                    supabase.auth.getSession(),
+                    'Admin session check'
+                );
 
                 if (sessionError) throw sessionError;
 
@@ -59,11 +103,14 @@ export default function AdminDashboard() {
                 }
 
                 // 2. Check Admin Role
-                const { data: profile, error: profileError } = await supabase
-                    .from('profiles')
-                    .select('role')
-                    .eq('id', session.user.id)
-                    .single();
+                const { data: profile, error: profileError } = await withTimeout(
+                    supabase
+                        .from('profiles')
+                        .select('role')
+                        .eq('id', session.user.id)
+                        .single(),
+                    'Admin profile check'
+                );
 
                 if (profileError) {
                     console.error("AdminDashboard: Profile fetch error", profileError);
@@ -78,12 +125,12 @@ export default function AdminDashboard() {
                     return;
                 }
 
-                // 3. Success
+                // 3. Success: render the admin shell before non-critical metrics finish.
                 setSession(session);
-                await Promise.all([
-                    fetchStats(),
-                    fetchRecentActivity()
-                ]);
+                setLoading(false);
+
+                fetchStats();
+                fetchRecentActivity();
 
             } catch (err) {
                 console.error("AdminDashboard: Auth check failed:", err);
@@ -125,28 +172,42 @@ export default function AdminDashboard() {
         const tableNames = ['photography', 'photo_stories', 'moodboard_items', 'films', 'blog', 'research', 'hub_resources', 'page_metadata', 'profiles', 'subscribers'];
         const newStats = {};
         for (const name of tableNames) {
-            const { count, error } = await supabase.from(name).select('*', { count: 'exact', head: true });
-            if (!error) {
-                const key = name === 'page_metadata'
-                    ? 'metadata'
-                    : (name === 'profiles'
-                        ? 'users'
-                        : (name === 'hub_resources'
-                            ? 'resources'
-                            : (name === 'photo_stories'
-                                ? 'photoStories'
-                                : (name === 'moodboard_items' ? 'moodboard' : name))));
-                newStats[key] = count;
-            } else {
-                console.warn(`Error fetching count for ${name}:`, error.message);
+            try {
+                const { count, error } = await withTimeout(
+                    supabase.from(name).select('*', { count: 'exact', head: true }),
+                    `Count for ${name}`
+                );
+                if (!error) {
+                    const key = name === 'page_metadata'
+                        ? 'metadata'
+                        : (name === 'profiles'
+                            ? 'users'
+                            : (name === 'hub_resources'
+                                ? 'resources'
+                                : (name === 'photo_stories'
+                                    ? 'photoStories'
+                                    : (name === 'moodboard_items' ? 'moodboard' : name))));
+                    newStats[key] = count;
+                } else {
+                    console.warn(`Error fetching count for ${name}:`, error.message);
+                }
+            } catch (err) {
+                console.warn(`Error fetching count for ${name}:`, err.message);
             }
         }
 
         // Fetch pending count specifically
-        const { count: pendingCount } = await supabase.from('hub_resources')
-            .select('*', { count: 'exact', head: true })
-            .eq('status', 'pending');
-        newStats['pendingResources'] = pendingCount || 0;
+        try {
+            const { count: pendingCount } = await withTimeout(
+                supabase.from('hub_resources')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('status', 'pending'),
+                'Pending resources count'
+            );
+            newStats['pendingResources'] = pendingCount || 0;
+        } catch (err) {
+            console.warn('Error fetching pending resources:', err.message);
+        }
 
         setStats(prev => ({ ...prev, ...newStats }));
     };
@@ -157,61 +218,54 @@ export default function AdminDashboard() {
             const tables = [
                 { name: 'photography', type: 'Photography', icon: '📸' },
                 { name: 'films', type: 'Film', icon: '🎬' },
-                { name: 'blog', type: 'Post', icon: '✍️' },
+                { name: 'blog', type: 'Post', icon: '✍️', orderBy: 'published_at' },
                 { name: 'research', type: 'Research', icon: '🔬' },
                 { name: 'hub_resources', type: 'Resource', icon: '📚' },
-                { name: 'subscribers', type: 'Subscriber', icon: '📧' },
-                { name: 'profiles', type: 'User', icon: '👤' }
+                { name: 'subscribers', type: 'Subscriber', icon: '📧', orderBy: 'subscribed_at' },
+                { name: 'profiles', type: 'User', icon: '👤', orderBy: null }
             ];
 
             let allActivities = [];
 
             for (const t of tables) {
-                let data = null;
-                let queryError = null;
+                try {
+                    const orderBy = t.orderBy === undefined ? 'created_at' : t.orderBy;
+                    let query = supabase.from(t.name).select('*').limit(5);
 
-                // First try the default timeline field.
-                const primaryQuery = await supabase
-                    .from(t.name)
-                    .select('*')
-                    .order('created_at', { ascending: false })
-                    .limit(5);
+                    if (orderBy) {
+                        query = query.order(orderBy, { ascending: false });
+                    }
 
-                data = primaryQuery.data;
-                queryError = primaryQuery.error;
+                    const { data, error: queryError } = await withTimeout(
+                        query,
+                        `Recent activity for ${t.name}`
+                    );
 
-                // Some tables in this codebase use different timestamp columns.
-                // If ordering by created_at fails, fallback to a safe read.
-                if (queryError) {
-                    const fallbackQuery = await supabase
-                        .from(t.name)
-                        .select('*')
-                        .limit(5);
-                    data = fallbackQuery.data;
-                    queryError = fallbackQuery.error;
-                }
+                    if (queryError) {
+                        console.warn(`Recent activity failed for ${t.name}:`, queryError.message);
+                        continue;
+                    }
 
-                if (queryError) {
-                    console.warn(`Recent activity fallback failed for ${t.name}:`, queryError.message);
+                    if (data) {
+                        const mapped = data.map(item => ({
+                            id: item.id,
+                            type: t.type,
+                            icon: t.icon,
+                            title: item.title || item.username || item.full_name || item.page_title || 'Untitled',
+                            date: new Date(
+                                item.created_at ||
+                                item.updated_at ||
+                                item.published_at ||
+                                item.subscribed_at ||
+                                Date.now()
+                            ),
+                            original: item
+                        }));
+                        allActivities = [...allActivities, ...mapped];
+                    }
+                } catch (err) {
+                    console.warn(`Recent activity failed for ${t.name}:`, err.message);
                     continue;
-                }
-
-                if (data) {
-                    const mapped = data.map(item => ({
-                        id: item.id,
-                        type: t.type,
-                        icon: t.icon,
-                        title: item.title || item.username || item.full_name || item.page_title || 'Untitled',
-                        date: new Date(
-                            item.created_at ||
-                            item.updated_at ||
-                            item.published_at ||
-                            item.subscribed_at ||
-                            Date.now()
-                        ),
-                        original: item
-                    }));
-                    allActivities = [...allActivities, ...mapped];
                 }
             }
 
@@ -250,7 +304,11 @@ export default function AdminDashboard() {
         </div>
     );
 
-    if (!session && !connectionError) return null;
+    if (!session && !connectionError) return (
+        <div className="loading-screen">
+            <LoadingState message="Redirecting to login..." />
+        </div>
+    );
 
     if (connectionError) {
         return (
@@ -449,14 +507,15 @@ export default function AdminDashboard() {
                     )}
 
                     {activeSection !== 'dashboard' && activeSection !== 'users' && activeSection !== 'brands' && activeSection !== 'newsletter' && activeSection !== 'photo_stories' && activeSection !== 'moodboard_items' && (
-                        <Suspense fallback={<LoadingState message="Loading Section..." />}>
-                            <ListView
-                                table={activeSection}
-                                title={SECTIONS.find(s => s.id === activeSection)?.label}
-                                onCreate={activeSection === 'hub_resources' ? () => setShowResourceModal(true) : null}
-                                key={activeSection + refreshTrigger}
-                            />
-                        </Suspense>
+                        <SectionErrorBoundary key={`${activeSection}-${refreshTrigger}`}>
+                            <Suspense fallback={<LoadingState message="Loading Section..." />}>
+                                <ListView
+                                    table={activeSection}
+                                    title={SECTIONS.find(s => s.id === activeSection)?.label}
+                                    onCreate={activeSection === 'hub_resources' ? () => setShowResourceModal(true) : null}
+                                />
+                            </Suspense>
+                        </SectionErrorBoundary>
                     )}
                 </div>
             </main>
@@ -488,6 +547,36 @@ export default function AdminDashboard() {
                     background-color: var(--bg-color);
                     color: var(--text-primary);
                     font-family: var(--font-sans);
+                }
+
+                .section-error {
+                    border: 1px solid rgba(239, 68, 68, 0.35);
+                    border-radius: 8px;
+                    background: rgba(239, 68, 68, 0.08);
+                    color: var(--text-primary);
+                    padding: 1rem;
+                }
+
+                .section-error h3 {
+                    margin: 0 0 0.5rem 0;
+                    font-size: 1rem;
+                }
+
+                .section-error p {
+                    margin: 0 0 1rem 0;
+                    color: var(--text-secondary);
+                    font-size: 0.85rem;
+                    line-height: 1.5;
+                }
+
+                .section-error button {
+                    border: 1px solid var(--border-subtle);
+                    border-radius: 6px;
+                    background: var(--text-primary);
+                    color: var(--bg-color);
+                    cursor: pointer;
+                    font-size: 0.85rem;
+                    padding: 0.55rem 0.9rem;
                 }
 
                 /* Sidebar Styles */
@@ -888,7 +977,9 @@ function PlanningCalendar({ activity }) {
                 {/* Could add prev/next buttons here later */}
             </div>
             <div className="cal-grid-lg">
-                {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(d => <div key={d} className="cal-cell-head">{d}</div>)}
+                {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, index) => (
+                    <div key={`${d}-${index}`} className="cal-cell-head">{d}</div>
+                ))}
                 {days.map((d, i) => (
                     <div
                         key={i}

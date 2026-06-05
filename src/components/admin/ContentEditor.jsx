@@ -48,20 +48,81 @@ export default function ContentEditor({ table, id }) {
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
+    const normalizeListInput = (value) => {
+        if (Array.isArray(value)) return value;
+        return value
+            .split(',')
+            .map(item => item.trim())
+            .filter(Boolean);
+    };
+
+    const getYouTubeId = (url) => {
+        if (!url) return null;
+
+        try {
+            const parsed = new URL(url);
+            const host = parsed.hostname.replace(/^www\./, '');
+
+            if (host === 'youtu.be') {
+                return parsed.pathname.split('/').filter(Boolean)[0] || null;
+            }
+
+            if (host === 'youtube.com' || host === 'm.youtube.com' || host === 'music.youtube.com') {
+                if (parsed.searchParams.get('v')) return parsed.searchParams.get('v');
+
+                const parts = parsed.pathname.split('/').filter(Boolean);
+                if (['embed', 'shorts', 'live'].includes(parts[0])) return parts[1] || null;
+            }
+        } catch {
+            const match = url.match(/(?:v=|youtu\.be\/|embed\/|shorts\/|live\/)([A-Za-z0-9_-]{6,})/);
+            return match?.[1] || null;
+        }
+
+        return null;
+    };
+
+    const getYouTubeThumbnailUrl = (url) => {
+        const id = getYouTubeId(url);
+        return id ? `https://img.youtube.com/vi/${id}/maxresdefault.jpg` : '';
+    };
+
+    const handleVideoUrlChange = (value) => {
+        const thumbnailUrl = getYouTubeThumbnailUrl(value);
+
+        setFormData(prev => {
+            const shouldAutoReplaceThumbnail =
+                !prev.thumbnail_url || prev.thumbnail_url.includes('img.youtube.com/vi/');
+
+            return {
+                ...prev,
+                video_url: value,
+                ...(thumbnailUrl && shouldAutoReplaceThumbnail ? { thumbnail_url: thumbnailUrl } : {})
+            };
+        });
+    };
+
+    const clearVideoUrl = () => {
+        setFormData(prev => ({
+            ...prev,
+            video_url: '',
+            ...(prev.thumbnail_url?.includes('img.youtube.com/vi/') ? { thumbnail_url: '' } : {})
+        }));
+    };
+
     const handleSave = async (publishStatus = null) => {
         setSaving(true);
         const payload = { ...formData };
 
         // Auto-slug
-        if (!payload.slug && payload.title) {
+        if (!payload.slug && payload.title && table !== 'films') {
             payload.slug = payload.title.toLowerCase().replace(/[^\w ]+/g, '').replace(/ +/g, '-');
         }
 
         // Publish Logic
         if (publishStatus !== null) {
             payload.published = publishStatus;
-            // Ensure published_at is set when publishing (except for research which lacks the column)
-            if (payload.published && !payload.published_at && table !== 'research') {
+            // Only timestamp tables that actually expose published_at.
+            if (payload.published && !payload.published_at && table === 'blog') {
                 payload.published_at = new Date().toISOString();
             }
         }
@@ -76,6 +137,17 @@ export default function ContentEditor({ table, id }) {
         if (table === 'research') {
             delete payload.image;        // Ensure "image" is gone
             delete payload.published_at; // Ensure "published_at" is gone
+        }
+
+        if (table === 'films') {
+            delete payload.slug;
+            delete payload.published_at;
+
+            payload.categories = normalizeListInput(payload.categories || payload.genre || '');
+            payload.roles = normalizeListInput(payload.roles || payload.role || '');
+
+            delete payload.genre;
+            delete payload.role;
         }
 
         const query = isNew
@@ -142,8 +214,9 @@ export default function ContentEditor({ table, id }) {
     // --- RENDER HELPERS ---
     const getVideoEmbed = (url) => {
         if (!url) return null;
-        if (url.includes('youtube') || url.includes('youtu.be')) {
-            const id = url.split('v=')[1]?.split('&')[0] || url.split('/').pop();
+        const youtubeId = getYouTubeId(url);
+        if (youtubeId) {
+            const id = youtubeId;
             return `https://www.youtube.com/embed/${id}`;
         }
         if (url.includes('vimeo')) {
@@ -242,13 +315,13 @@ export default function ContentEditor({ table, id }) {
                                                 <input type="number" className="box-input" value={formData.year || ''} onChange={e => handleChange('year', e.target.value)} />
                                             </div>
                                             <div className="field-group">
-                                                <label>Genre</label>
-                                                <input type="text" className="box-input" value={formData.genre || ''} onChange={e => handleChange('genre', e.target.value)} />
+                                                <label>Categories</label>
+                                                <input type="text" className="box-input" value={Array.isArray(formData.categories) ? formData.categories.join(', ') : (formData.categories || '')} onChange={e => handleChange('categories', e.target.value)} placeholder="Music Video, Experimental" />
                                             </div>
                                         </div>
                                         <div className="field-group full-width">
                                             <label>Role / Credit</label>
-                                            <input type="text" className="box-input" value={formData.role || ''} onChange={e => handleChange('role', e.target.value)} placeholder="e.g. Director, Editor..." />
+                                            <input type="text" className="box-input" value={Array.isArray(formData.roles) ? formData.roles.join(', ') : (formData.roles || '')} onChange={e => handleChange('roles', e.target.value)} placeholder="e.g. Director, Editor..." />
                                         </div>
 
                                         <div className="field-group" style={{ marginTop: '1rem' }}>
@@ -268,13 +341,13 @@ export default function ContentEditor({ table, id }) {
                                                 {formData.video_url && getVideoEmbed(formData.video_url) ? (
                                                     <div className="fixed-uploader">
                                                         <div className="preview-fit">
-                                                            <iframe src={getVideoEmbed(formData.video_url)} frameBorder="0" allowFullScreen></iframe>
-                                                            <button className="btn-mini-remove" onClick={() => handleChange('video_url', '')}>Remove</button>
-                                                        </div>
-                                                    </div>
-                                                ) : (
-                                                    <input type="text" className="box-input" placeholder="Paste URL..." value={formData.video_url || ''} onChange={e => handleChange('video_url', e.target.value)} />
-                                                )}
+	                                                            <iframe src={getVideoEmbed(formData.video_url)} frameBorder="0" allowFullScreen></iframe>
+	                                                            <button className="btn-mini-remove" onClick={clearVideoUrl}>Remove</button>
+	                                                        </div>
+	                                                    </div>
+	                                                ) : (
+	                                                    <input type="text" className="box-input" placeholder="Paste YouTube or Vimeo URL..." value={formData.video_url || ''} onChange={e => handleVideoUrlChange(e.target.value)} />
+	                                                )}
                                             </div>
                                             <div className="media-col">
                                                 <label>Thumbnail</label>
