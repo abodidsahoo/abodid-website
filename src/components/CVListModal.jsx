@@ -40,7 +40,7 @@ const CVListModal = ({ title, icon, cvs }) => {
 
     return (
         <>
-            <a href="#" className="hub-card" onClick={openModal}>
+            <a href="/cv" className="hub-card" onClick={openModal}>
                 <div className="card-content">
                     <div className="card-left">
                         <span style={{ fontSize: '1.25rem', display: 'flex' }}>↓</span>

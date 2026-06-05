@@ -7,11 +7,44 @@ import vercel from '@astrojs/vercel';
 
 import sitemap from '@astrojs/sitemap';
 
+const excludedSitemapPathPatterns = [
+  /^\/admin(?:\/|$)/,
+  /^\/api(?:\/|$)/,
+  /^\/login\/?$/,
+  /^\/unauthorized\/?$/,
+  /^\/unsubscribe\/?$/,
+  /^\/pay\/?$/,
+  /^\/club\/payment-/,
+  /^\/collaboration\/measurements\/?$/,
+  /^\/du-workshop-responses\/?$/,
+  /^\/feedback\/?$/,
+  /^\/hand-tracking-test\/?$/,
+  /^\/landing-grid-test\/?$/,
+  /^\/bsa-qrcode\/?$/,
+  /^\/research\/admin(?:\/|$)/,
+  /^\/resources\/admin(?:\/|$)/,
+  /^\/resources\/auth(?:\/|$)/,
+  /^\/resources\/curator\/?$/,
+  /^\/resources\/dashboard\/?$/,
+  /^\/resources\/saved\/?$/,
+  /^\/resources\/.*\/edit\/?$/,
+];
+
+const shouldIncludeInSitemap = (page) => {
+  const pathname = new URL(page).pathname;
+  return !excludedSitemapPathPatterns.some((pattern) => pattern.test(pathname));
+};
+
 // https://astro.build/config
 export default defineConfig({
   output: 'server',
   adapter: vercel(),
-  integrations: [react(), sitemap()],
+  integrations: [
+    react(),
+    sitemap({
+      filter: shouldIncludeInSitemap,
+    }),
+  ],
   site: 'https://abodid.com', // Replace with your actual domain
   vite: {
     resolve: {

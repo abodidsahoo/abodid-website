@@ -1,9 +1,32 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import {
+    breadcrumbJsonLd,
+    externalProfiles,
+    personJsonLd,
+    serviceJsonLd,
+} from "../lib/seoData";
 
-const pageTitle = "Workshops";
+const pageTitle = "Workshops, Tutoring & Mentorship";
 const description =
-    "Master the craft of digital creation through focused, mentorship-style workshops.";
+    "Paid online workshops and tutoring with Abodid Sahoo for Obsidian, research workflows, video editing, visual storytelling, and creative technology.";
+const contactHref =
+    "/contact?from=%2Fworkshops&source_name=workshops&cta=workshop-inquiry";
+const superprofHref = externalProfiles.superprof;
+const structuredData = [
+    personJsonLd(),
+    breadcrumbJsonLd([
+        { name: "Home", path: "/" },
+        { name: "Workshops", path: "/workshops/" },
+    ]),
+    serviceJsonLd({
+        path: "/workshops/",
+        name: "Workshops, Tutoring, and Mentorship",
+        description,
+        serviceType:
+            "Obsidian tutoring, research workflow classes, video editing mentorship, and creative technology workshops",
+    }),
+];
 
 const workshops = [
     {
@@ -20,6 +43,36 @@ const workshops = [
             "One month of doubt-clearing support",
         ],
         highlight: false,
+    },
+    {
+        title: "One-to-One Obsidian Tutoring",
+        description:
+            "Personal classes for students, researchers, writers, and professionals who want a research system shaped around their actual work.",
+        price: "Custom",
+        duration: "1:1 Sessions",
+        href: "/obsidian-tutoring",
+        features: [
+            "Vault setup and cleanup",
+            "Research notes, tags, templates, and dashboards",
+            "Thesis, application, essay, and writing workflows",
+            "Follow-up support between sessions",
+        ],
+        highlight: true,
+    },
+    {
+        title: "Online Video Editing Classes on Superprof",
+        description:
+            "Book video editing and colour grading classes through my Superprof profile for Premiere Pro, After Effects, Final Cut Pro, pacing, colour, sound, and project feedback.",
+        price: "£27/hr",
+        duration: "Online Classes",
+        href: "/superprof-video-editing-classes",
+        features: [
+            "Superprof booking flow",
+            "Premiere Pro, After Effects, and Final Cut Pro",
+            "Colour grading, pacing, sound, and export support",
+            "Beginner to advanced project feedback",
+        ],
+        highlight: true,
     },
     {
         title: "The Psychology of Video Editing",
@@ -40,12 +93,24 @@ const workshops = [
 ];
 ---
 
-<BaseLayout title={pageTitle}>
+<BaseLayout title={pageTitle} description={description} structuredData={structuredData}>
     <div class="workshops-page">
         <header class="page-header">
-            <span class="eyebrow">Education</span>
+            <span class="eyebrow">Education / paid classes</span>
             <h1>{pageTitle}</h1>
             <p class="subtitle">{description}</p>
+            <div class="header-actions">
+                <a href={contactHref} class="header-btn primary">Ask about a class</a>
+                {
+                    superprofHref ? (
+                        <a href={superprofHref} class="header-btn secondary" target="_blank" rel="noopener noreferrer">
+                            View Superprof profile
+                        </a>
+                    ) : (
+                        <span class="header-note">Prefer booking through Superprof? Ask me for the profile link.</span>
+                    )
+                }
+            </div>
         </header>
 
         <div class="workshops-grid">
@@ -81,7 +146,7 @@ const workshops = [
                                 href={workshop.href}
                                 class="book-btn"
                             >
-                                {workshop.href.startsWith("/workshops/")
+                                {workshop.href.startsWith("/workshops/") || workshop.href.startsWith("/obsidian")
                                     ? "View Details"
                                     : "Book a Slot"}
                             </a>
@@ -130,6 +195,41 @@ const workshops = [
         font-size: 1.1rem;
         color: var(--text-secondary);
         line-height: 1.6;
+    }
+
+    .header-actions {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.85rem;
+        margin-top: 1.5rem;
+    }
+
+    .header-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        border-radius: 8px;
+        padding: 0.82rem 1.05rem;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    .header-btn.primary {
+        background: var(--text-primary);
+        color: var(--bg-color);
+    }
+
+    .header-btn.secondary {
+        border: 1px solid var(--border-strong);
+        color: var(--text-primary);
+    }
+
+    .header-note {
+        color: var(--text-tertiary);
+        font-size: 0.9rem;
     }
 
     /* Grid Layout */

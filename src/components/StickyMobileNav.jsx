@@ -25,6 +25,10 @@ const StickyMobileNav = () => {
                 <span>Home</span>
             </a>
             <div className="divider"></div>
+            <a href="/services" className="nav-btn">
+                <span>Hire</span>
+            </a>
+            <div className="divider"></div>
             <a href="mailto:hello@abodid.com" className="nav-btn">
                 <span>Contact</span>
             </a>

@@ -1,9 +1,16 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
+import {
+    breadcrumbJsonLd,
+    courseJsonLd,
+    externalProfiles,
+    personJsonLd,
+    serviceJsonLd,
+} from "../../lib/seoData";
 
 const pageTitle = "Obsidian for Deep Research";
 const description =
-    "A four-session online workshop for building a connected research system in Obsidian.";
+    "A paid four-session online Obsidian course and tutoring program for students, researchers, writers, and professionals building a connected research system.";
 const inquirySubject = encodeURIComponent(
     "Obsidian Workshop Inquiry - Abodid Sahoo",
 );
@@ -11,6 +18,28 @@ const inquiryBody = encodeURIComponent(
     "Hi Abodid,\n\nI am interested in the Obsidian for Deep Research workshop. Please share the next batch details.\n\nName:\nBackground:\nPreferred Saturday timing:\n",
 );
 const inquiryHref = `mailto:hello@abodid.com?subject=${inquirySubject}&body=${inquiryBody}`;
+const tutoringHref = "/obsidian-tutoring";
+const superprofHref = externalProfiles.superprof;
+const structuredData = [
+    personJsonLd(),
+    breadcrumbJsonLd([
+        { name: "Home", path: "/" },
+        { name: "Workshops", path: "/workshops/" },
+        { name: "Obsidian for Deep Research", path: "/workshops/obsidian/" },
+    ]),
+    courseJsonLd({
+        path: "/workshops/obsidian/",
+        name: pageTitle,
+        description,
+        price: "15000",
+    }),
+    serviceJsonLd({
+        path: "/workshops/obsidian/",
+        name: "Obsidian for Deep Research Workshop",
+        description,
+        serviceType: "Obsidian course, research workflow tutoring, and second brain training",
+    }),
+];
 
 const formatItems = [
     "4 live online sessions",
@@ -203,6 +232,7 @@ const afterCourse = [
     title={pageTitle}
     description={description}
     bodyClass="obsidian-workshop-page"
+    structuredData={structuredData}
 >
     <main class="workshop-page">
         <section class="hero-section" aria-labelledby="workshop-title">
@@ -211,7 +241,7 @@ const afterCourse = [
                 <h1 id="workshop-title">Obsidian for Deep Research</h1>
                 <p class="hero-subtitle">
                     Build a research brain for your notes, ideas, applications,
-                    and thesis.
+                    essays, thesis work, and long-term projects.
                 </p>
                 <p class="hero-intro">
                     Most students keep notes everywhere: notebooks, PDFs, phone
@@ -223,10 +253,25 @@ const afterCourse = [
                     <a href={inquiryHref} class="primary-action">
                         Email me to join →
                     </a>
+                    <a href={tutoringHref} class="secondary-action">
+                        Book 1:1 tutoring
+                    </a>
                     <a href="#course-structure" class="secondary-action">
                         View full module
                     </a>
                 </div>
+                {
+                    superprofHref ? (
+                        <p class="platform-note">
+                            Prefer booking through a tutoring platform? <a href={superprofHref} target="_blank" rel="noopener noreferrer">View my Superprof profile</a>.
+                        </p>
+                    ) : (
+                        <p class="platform-note">
+                            I can also share my Superprof tutoring profile once
+                            you ask for platform-based booking.
+                        </p>
+                    )
+                }
             </div>
 
             <div class="vault-visual" aria-label="Example Obsidian vault map">
@@ -409,6 +454,7 @@ const afterCourse = [
                 applications, and long-term projects.
             </p>
             <a href={inquiryHref} class="primary-action">Email me to join →</a>
+            <a href={tutoringHref} class="secondary-action">Book 1:1 tutoring</a>
         </section>
     </main>
 </BaseLayout>
@@ -515,6 +561,19 @@ const afterCourse = [
         flex-wrap: wrap;
         gap: 0.9rem;
         align-items: center;
+    }
+
+    .platform-note {
+        margin: 1rem 0 0;
+        max-width: 620px;
+        color: var(--text-tertiary);
+        font-size: 0.92rem;
+        line-height: 1.5;
+    }
+
+    .platform-note a {
+        color: var(--text-primary);
+        text-underline-offset: 4px;
     }
 
     .primary-action,
@@ -965,8 +1024,10 @@ const afterCourse = [
         max-width: 720px;
     }
 
-    .cta-section .primary-action {
+    .cta-section .primary-action,
+    .cta-section .secondary-action {
         margin-top: 0.5rem;
+        margin-right: 0.75rem;
     }
 
     @media (max-width: 940px) {

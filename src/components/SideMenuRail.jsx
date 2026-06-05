@@ -3,8 +3,10 @@ import { AnimatePresence, motion } from "framer-motion";
 import Breadcrumbs from "./Breadcrumbs";
 import ThemeToggle from "./ThemeToggle.jsx";
 import { NAVIGATION_LAYOUTS } from "../config/siteVariants.js";
+import { externalProfiles } from "../lib/seoData";
 
 const primaryLinks = [
+  { href: "/services", label: "Hire Me" },
   { href: "/research", label: "Research" },
   { href: "/photography", label: "Photography" },
   { href: "/films", label: "Filmmaking" },
@@ -28,7 +30,11 @@ const secondaryGroups = [
     title: "Work With Me",
     links: [
       { href: "/services", label: "Services" },
+      { href: "/consulting", label: "Consulting" },
       { href: "/workshops", label: "Workshops" },
+      { href: "/obsidian-tutoring", label: "Obsidian Tutoring" },
+      { href: "/video-editing-mentor", label: "Video Editing Mentor" },
+      { href: "/superprof-video-editing-classes", label: "Superprof Classes" },
       { href: "/fundraising", label: "Fundraising" },
       { href: "/collaboration", label: "Collaboration" },
     ],
@@ -83,7 +89,15 @@ const socialLinks = [
     target: "_blank",
     iconClass: "fa-brands fa-github",
   },
-];
+  externalProfiles.superprof
+    ? {
+        href: externalProfiles.superprof,
+        label: "Superprof",
+        target: "_blank",
+        iconClass: "fa-solid fa-graduation-cap",
+      }
+    : null,
+].filter(Boolean);
 
 const SideMenuRail = ({
   hideThemeToggle = false,

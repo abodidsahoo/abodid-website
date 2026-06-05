@@ -1,0 +1,194 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import {
+    breadcrumbJsonLd,
+    externalProfiles,
+    personJsonLd,
+    serviceJsonLd,
+} from "../lib/seoData";
+
+const pageTitle = "Video Editing Mentor & Visual Storytelling Tutor";
+const description =
+    "Book video editing mentorship with Abodid Sahoo for rhythm, pacing, color, sound, narrative structure, research films, music videos, and visual storytelling.";
+const contactHref =
+    "/contact?from=%2Fvideo-editing-mentor&source_name=video-editing-mentor&cta=book-video-editing-mentor";
+const superprofHref = externalProfiles.superprof;
+
+const modules = [
+    "Psychology of the cut, timing, and viewer attention",
+    "Rhythm, pacing, sequence building, and emotional continuity",
+    "Color grading, sound design, and visual atmosphere",
+    "Editing for research films, music videos, portraits, campaigns, and artist work",
+    "Feedback on your existing edit, rough cut, showreel, or portfolio piece",
+];
+
+const structuredData = [
+    personJsonLd(),
+    breadcrumbJsonLd([
+        { name: "Home", path: "/" },
+        { name: "Video Editing Mentor", path: "/video-editing-mentor/" },
+    ]),
+    serviceJsonLd({
+        path: "/video-editing-mentor/",
+        name: pageTitle,
+        description,
+        serviceType:
+            "Video editing mentorship, visual storytelling tutoring, film editing feedback, and creative media coaching",
+    }),
+];
+---
+
+<BaseLayout title={pageTitle} description={description} structuredData={structuredData}>
+    <main class="mentor-page">
+        <header class="hero">
+            <p class="eyebrow">Video editing mentorship</p>
+            <h1>Learn to edit for emotion, rhythm, clarity, and visual memory.</h1>
+            <p class="lead">
+                I teach editing as a thinking process, not just a software
+                workflow. Bring a rough cut, a project idea, a showreel, or a
+                desire to understand why certain cuts feel right.
+            </p>
+            <div class="actions">
+                <a href="/superprof-video-editing-classes" class="primary-action">
+                    View Superprof classes
+                </a>
+                <a href={superprofHref} class="secondary-action" target="_blank" rel="noopener noreferrer">
+                    Book on Superprof
+                </a>
+                <a href={contactHref} class="secondary-action">Ask a question</a>
+            </div>
+        </header>
+
+        <section class="section" aria-labelledby="modules-title">
+            <div class="section-heading">
+                <p class="eyebrow">What we can cover</p>
+                <h2 id="modules-title">Practical feedback and deeper editing intuition.</h2>
+            </div>
+            <ul class="module-list">
+                {modules.map((module) => <li>{module}</li>)}
+            </ul>
+        </section>
+
+        <section class="cta-section" aria-label="Book video editing mentorship">
+            <p class="eyebrow">Start</p>
+            <h2>Send me the project, the rough cut, or the editing problem.</h2>
+            <p>
+                For individual video editing classes, Superprof is the best
+                booking path. You can still email me first if you want to check
+                fit before booking.
+            </p>
+            <a href={superprofHref} class="primary-action" target="_blank" rel="noopener noreferrer">
+                Book on Superprof
+            </a>
+        </section>
+    </main>
+</BaseLayout>
+
+<style>
+    .mentor-page {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: clamp(3rem, 7vw, 6rem) 24px 8rem;
+    }
+
+    .hero {
+        max-width: 860px;
+        margin-bottom: clamp(4rem, 8vw, 6rem);
+    }
+
+    .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--text-tertiary);
+        margin: 0 0 1rem;
+    }
+
+    h1 {
+        margin: 0 0 1rem;
+        font-size: clamp(2.5rem, 6vw, 4.5rem);
+        line-height: 1.02;
+        letter-spacing: 0;
+        color: var(--text-primary);
+    }
+
+    h2 {
+        margin: 0;
+        font-size: clamp(1.7rem, 3vw, 2.4rem);
+        line-height: 1.15;
+        color: var(--text-primary);
+    }
+
+    .lead,
+    .cta-section p,
+    .module-list {
+        color: var(--text-secondary);
+        line-height: 1.6;
+    }
+
+    .lead {
+        max-width: 720px;
+        font-size: 1.18rem;
+    }
+
+    .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.85rem;
+        margin-top: 1.75rem;
+    }
+
+    .primary-action,
+    .secondary-action {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        border-radius: 8px;
+        padding: 0.82rem 1.05rem;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    .primary-action {
+        background: var(--text-primary);
+        color: var(--bg-color);
+    }
+
+    .secondary-action {
+        border: 1px solid var(--border-strong);
+        color: var(--text-primary);
+    }
+
+    .section {
+        margin-bottom: 4rem;
+    }
+
+    .section-heading {
+        max-width: 720px;
+        margin-bottom: 1.5rem;
+    }
+
+    .module-list,
+    .cta-section {
+        border: 1px solid var(--border-subtle);
+        background: var(--bg-surface);
+        border-radius: 8px;
+        padding: 1.5rem;
+    }
+
+    .module-list {
+        margin: 0;
+        padding-left: 2.6rem;
+    }
+
+    .module-list li + li {
+        margin-top: 0.75rem;
+    }
+
+    .cta-section p {
+        max-width: 720px;
+        margin-bottom: 1.25rem;
+    }
+</style>

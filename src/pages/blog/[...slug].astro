@@ -9,6 +9,7 @@ import {
 import { marked } from "marked";
 import ShareButtons from "../../components/ShareButtons.jsx";
 import ReaderModeToggle from "../../components/ReaderModeToggle.jsx";
+import { breadcrumbJsonLd, personJsonLd, seoIdentity } from "../../lib/seoData";
 
 export const prerender = false;
 
@@ -34,14 +35,45 @@ if (!post) {
 // To be safe without installing extra deps yet: simple text or we assume HTML.
 // But Supabase usually stores Markdown.
 const contentHtml = marked.parse(post.content || "");
+const postHref = post.href || `/blog/${post.slug || slug}`;
+const postUrl = `${seoIdentity.siteUrl}${postHref}`;
+const postDescription = post.excerpt || post.description || "";
+const postImage = post.cover_image || post.image;
+const publishedDate = post.published_at || post.created_at;
+const structuredData = [
+  personJsonLd(),
+  breadcrumbJsonLd([
+    { name: "Home", path: "/" },
+    { name: "Blog", path: "/blog/" },
+    { name: post.title, path: postHref.endsWith("/") ? postHref : `${postHref}/` },
+  ]),
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "@id": `${postUrl}#article`,
+    mainEntityOfPage: postUrl,
+    headline: post.title,
+    description: postDescription,
+    image: postImage ? [postImage] : undefined,
+    datePublished: publishedDate,
+    dateModified: post.updated_at || publishedDate,
+    author: {
+      "@id": seoIdentity.personId,
+    },
+    publisher: {
+      "@id": seoIdentity.personId,
+    },
+  },
+];
 ---
 
 <BaseLayout
   title={post.title}
-  description={post.excerpt || post.description}
-  image={post.cover_image}
+  description={postDescription}
+  image={postImage}
   type="article"
   bodyClass="blog-post-page"
+  structuredData={structuredData}
 >
   <article class="post-container">
     <header class="post-header">

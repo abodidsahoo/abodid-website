@@ -1,32 +1,38 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import PdfIcon from "../components/PdfIcon.astro";
+import { breadcrumbJsonLd, personJsonLd } from "../lib/seoData";
 
-const pageTitle = "Curriculum Vitae";
+const pageTitle = "Curriculum Vitae - Abodid Sahoo";
+const description =
+    "Download Abodid Sahoo's CV for creative technology, photography, AI-assisted research workflows, filmmaking, teaching, and consulting work.";
+const primaryCvLink =
+    "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/cv/Abodid%20Sahoo%20-%20Photography%20&%20AI%20-%20CV.pdf";
 
 const cvOptions = [
-    { title: "Artist CV", link: "#" },
-    { title: "Photography CV", link: "#" },
-    { title: "Film-making CV", link: "#" },
-    { title: "Research CV", link: "#" },
-    { title: "Creative Tech CV", link: "#" },
-    { title: "Designer CV", link: "#" },
+    { title: "Creative Technology & AI CV", link: primaryCvLink },
+    { title: "Photography CV", link: primaryCvLink },
+    { title: "Filmmaking CV", link: primaryCvLink },
+    { title: "Research & Teaching CV", link: primaryCvLink },
+    { title: "Visual Storytelling CV", link: primaryCvLink },
+    { title: "Consulting CV", link: primaryCvLink },
 ];
 
-const rejectedSeries = [
-    "Google DeepMind",
-    "Superflux",
-    "Wieden+Kennedy",
-    "Mubi",
-    "RCA",
+const structuredData = [
+    personJsonLd(),
+    breadcrumbJsonLd([
+        { name: "Home", path: "/" },
+        { name: "Curriculum Vitae", path: "/cv/" },
+    ]),
 ];
 ---
 
-<BaseLayout title={pageTitle}>
+<BaseLayout title={pageTitle} description={description} structuredData={structuredData}>
     <header class="page-header">
         <h1>Curriculum Vitae</h1>
         <p class="subtitle">
-            Tailored resumes for different facets of my work.
+            Download my current CV for creative technology, photography, AI,
+            research, filmmaking, teaching, and consulting work.
         </p>
     </header>
 
@@ -46,21 +52,6 @@ const rejectedSeries = [
         }
     </section>
 
-    <section class="rejected-section">
-        <hr class="divider" />
-        <h2 class="rejected-title">Rejected Series</h2>
-        <p class="rejected-desc">
-            A growing list of esteemed organizations that have rejected me.
-            (Badge of honor? Maybe.)
-        </p>
-        <ul class="rejected-list">
-            {
-                rejectedSeries.map((item) => (
-                    <li class="rejected-item">{item}</li>
-                ))
-            }
-        </ul>
-    </section>
 </BaseLayout>
 
 <style>
@@ -131,40 +122,4 @@ const rejectedSeries = [
         color: var(--text-primary);
     }
 
-    /* Rejected Series */
-    .divider {
-        margin: 3rem 0;
-        border: none;
-        border-top: 1px solid var(--border-subtle);
-    }
-
-    .rejected-title {
-        font-size: 1.5rem;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-    }
-
-    .rejected-desc {
-        font-size: 1rem;
-        color: var(--text-secondary);
-        margin-bottom: 2rem;
-        max-width: 60ch;
-    }
-
-    .rejected-list {
-        list-style: none;
-        padding: 0;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1rem;
-    }
-
-    .rejected-item {
-        font-size: 1rem;
-        padding: 0.5rem 1rem;
-        background: var(--bg-surface);
-        border: 1px solid var(--border-subtle);
-        border-radius: 6px;
-        color: var(--text-secondary);
-    }
 </style>

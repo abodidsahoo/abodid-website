@@ -1,208 +1,442 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import { getServices } from "../lib/services/content";
-import type { ServiceItem } from "../lib/services/types";
+import { breadcrumbJsonLd, personJsonLd, serviceJsonLd } from "../lib/seoData";
 
-const title = "Services";
-const services = await getServices();
+const title = "Strategic Creative Services";
+const description =
+    "Hire Abodid Sahoo for strategic creative services across photography, film, exhibition design, creative technology, research, visual storytelling, and teaching.";
+const contactHref =
+    "/contact?from=%2Fservices&source_name=services&cta=hire-abodid";
 
-// Helper to get styling based on category
-function getCategoryStyle(category: string, index: number) {
-    const fallbackTones = ["tone-offer", "tone-skills", "tone-tools"];
+const serviceAreas = [
+    {
+        title: "Visual Storytelling",
+        body: "Commissioned visual narratives for brands, editorials, campaigns, artists, and digital platforms. I shape stories that feel intentional, cinematic, and emotionally precise.",
+    },
+    {
+        title: "Photography",
+        body: "Portrait, documentary, event, exhibition, and campaign photography. From intimate human portraits to archival documentation of artworks, installations, and cultural spaces.",
+    },
+    {
+        title: "Film & Post-Production",
+        body: "Direction, editing, colour grading, sound design, and motion graphics for brand films, music videos, artist films, documentaries, and social-first content.",
+    },
+    {
+        title: "Exhibition & Experience Design",
+        body: "Support for physical and digital exhibition spaces, including spatial storytelling, AV workflows, projection, lighting, installation documentation, and audience experience.",
+    },
+    {
+        title: "Creative Technology & Prototyping",
+        body: "UX design, interaction prototypes, web experiments, AI-assisted workflows, and digital storytelling systems for projects that need new ways of being seen, felt, or navigated.",
+    },
+    {
+        title: "Research & Cultural Strategy",
+        body: "Research-led creative development grounded in documentary practice, human behaviour, memory, grief, cultural context, and the ethics of AI.",
+    },
+    {
+        title: "Teaching & Creative Support",
+        body: "Workshops, mentoring, technical guidance, and creative direction for artists, students, teams, and organisations developing visual or experience-led work.",
+    },
+];
 
-    switch (category) {
-        case "offer":
-            return "tone-offer";
-        case "skills":
-            return "tone-skills";
-        case "tools":
-            return "tone-tools";
-        default:
-            return fallbackTones[index % fallbackTones.length];
-    }
-}
+const coreStrengths = [
+    "Visual storytelling",
+    "Portrait photography",
+    "Documentary photography",
+    "Campaign photography",
+    "Event photography",
+    "Exhibition design",
+    "Video editing",
+    "Colour grading",
+    "Sound design",
+    "UX design",
+    "Creative prototyping",
+    "Cultural research",
+    "AI ethics",
+    "Teaching and workshops",
+];
+
+const technicalToolkit = [
+    "Adobe Lightroom",
+    "Adobe Photoshop",
+    "Adobe Illustrator",
+    "Adobe Premiere Pro",
+    "Adobe After Effects",
+    "DaVinci Resolve",
+    "HTML / CSS / JavaScript",
+    "Gemini",
+    "Nano Banana",
+    "Veo",
+    "Google Antigravity",
+    "Codex by OpenAI",
+];
+
+const structuredData = [
+    personJsonLd(),
+    breadcrumbJsonLd([
+        { name: "Home", path: "/" },
+        { name: "Services", path: "/services/" },
+    ]),
+    serviceJsonLd({
+        path: "/services/",
+        name: "Strategic Creative Services Across Image, Film, Space, and Emerging Technology",
+        description,
+        serviceType:
+            "Photography, filmmaking, post-production, exhibition design, creative technology, prototyping, cultural research, workshops, and creative mentoring",
+    }),
+];
 ---
 
-<BaseLayout title={title}>
-    <div class="page-container">
-        <header class="page-header">
-            <h1>Services</h1>
-            <p class="intro-text">
-                Here's what I have to offer and the skills sets I have and the
-                technical tools I am proficient in.
-            </p>
+<BaseLayout title={title} description={description} structuredData={structuredData}>
+    <main class="services-page">
+        <header class="hero">
+            <p class="eyebrow">Services</p>
+            <h1>
+                Strategic creative services across image, film, space, and
+                emerging technology.
+            </h1>
+
+            <div class="hero-copy">
+                <p class="lead">
+                    I build visual stories for brands, artists, institutions,
+                    and cultural projects that need more than surface-level
+                    content.
+                </p>
+                <p>
+                    My work sits at the intersection of <strong>photography,
+                    film, exhibition design, research, and creative technology</strong>,
+                    combining strong production skills with a deep understanding
+                    of narrative, emotion, audience, and atmosphere.
+                </p>
+                <p>
+                    I am brought in when a project needs someone who can think
+                    conceptually, shoot beautifully, edit precisely, understand
+                    people, handle technology, and deliver work that feels
+                    considered from first idea to final output.
+                </p>
+            </div>
+
+            <div class="hero-actions">
+                <a href={contactHref} class="primary-action">Start a project</a>
+                <a href="mailto:hello@abodid.com" class="secondary-action">
+                    Email me
+                </a>
+            </div>
         </header>
 
-        <div class="services-grid-layout">
-            {
-                services.map((service, index) => {
-                    const styleClass = getCategoryStyle(
-                        service.category,
-                        index,
-                    );
+        <section class="offer-section" aria-labelledby="offer-title">
+            <div class="section-heading">
+                <p class="eyebrow">What I offer</p>
+                <h2 id="offer-title">
+                    High-context creative support from concept to final delivery.
+                </h2>
+            </div>
 
-                    return (
-                        <div class={`service-box ${styleClass}`}>
-                            <div class="box-header">
-                                <h2>
-                                    {service.title ||
-                                        service.category.toUpperCase()}
-                                </h2>
-                            </div>
-                            <div class="box-content">
-                                {service.content && (
-                                    <p class="service-desc">
-                                        {service.content}
-                                    </p>
-                                )}
-
-                                {service.items && service.items.length > 0 && (
-                                    <ul
-                                        class={`items-list ${service.category !== "offer" ? "two-col" : ""}`}
-                                    >
-                                        {service.items.map((item) => (
-                                            <li>{item}</li>
-                                        ))}
-                                    </ul>
-                                )}
-                            </div>
-                        </div>
-                    );
-                })
-            }
-        </div>
-
-        <style>
-            .page-container {
-                max-width: 800px;
-                margin: 0 auto;
-                padding-bottom: 6rem;
-            }
-
-            .page-header {
-                margin-bottom: 4rem;
-                padding-top: var(--space-lg);
-            }
-
-            h1 {
-                font-size: 3.5rem;
-                margin: 0 0 1rem 0;
-                font-weight: 700;
-                letter-spacing: -0.02em;
-            }
-
-            .intro-text {
-                font-size: 1.2rem;
-                color: var(--text-secondary);
-                max-width: 65ch;
-                line-height: 1.6;
-            }
-
-            /* Services Box Layout */
-            .services-grid-layout {
-                display: flex;
-                flex-direction: column;
-                gap: 2rem; /* Spacing between each section */
-            }
-
-            .service-box {
-                border-radius: 8px; /* Slightly curved */
-                padding: 2.5rem;
-                transition: transform 0.2s ease;
-                font-family:
-                    "Inconsolata", monospace; /* Explicitly requested font */
-                color: #1f2937;
-                box-shadow: 0 1px 0 rgba(15, 23, 42, 0.05);
-            }
-
-            .tone-offer {
-                background: #edf4ff;
-                border: 1px solid #ccdcf5;
-            }
-
-            .tone-skills {
-                background: #fff2e8;
-                border: 1px solid #efd4be;
-            }
-
-            .tone-tools {
-                background: #eef8f0;
-                border: 1px solid #cfe4d3;
-            }
-
-            .box-header {
-                margin-bottom: 2rem;
-                border-bottom: 1px solid rgba(31, 41, 55, 0.24); /* Softer but clearer separator */
-                padding-bottom: 1rem;
-                opacity: 1;
-            }
-
-            .box-header h2 {
-                margin: 0;
-                font-size: 1.4rem; /* Reduced to be more technical/clean */
-                font-weight: 700;
-                letter-spacing: 0.05em;
-                text-transform: uppercase;
-                color: #0f172a !important;
-            }
-
-            .service-desc {
-                font-size: 1.15rem; /* Slightly larger for readability */
-                margin-bottom: 2rem;
-                line-height: 1.5;
-                max-width: 60ch;
-                font-weight: 400;
-                color: #1f2937;
-            }
-
-            .items-list {
-                display: flex;
-                flex-direction: column;
-                gap: 0.6rem; /* Tighter spacing for list */
-                padding-left: 0;
-                margin: 0;
-                list-style: none; /* Remove default bullets to custom handle */
-            }
-
-            .items-list li {
-                font-size: 1rem;
-                line-height: 1.4;
-                display: flex;
-                gap: 0.75rem;
-                color: #1f2937;
-            }
-
-            .items-list.two-col {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 0.8rem 3rem; /* More horizontal gap */
-            }
-
-            /* Custom bullet for list items */
-            .items-list li::before {
-                content: "→"; /* Arrow bullet */
-                color: #334155;
-                opacity: 0.75;
-                font-weight: 300;
-            }
-
-            @media (max-width: 600px) {
-                .items-list.two-col {
-                    grid-template-columns: 1fr;
+            <div class="service-list">
+                {
+                    serviceAreas.map((service, index) => (
+                        <article class="service-row">
+                            <p class="service-index">
+                                {String(index + 1).padStart(2, "0")}
+                            </p>
+                            <h3>{service.title}</h3>
+                            <p>{service.body}</p>
+                        </article>
+                    ))
                 }
+            </div>
+        </section>
 
-                .service-box {
-                    padding: 1.5rem;
-                }
+        <section class="capability-section" aria-labelledby="capability-title">
+            <div class="section-heading narrow">
+                <p class="eyebrow">Core strengths</p>
+                <h2 id="capability-title">
+                    The practical skill set behind the work.
+                </h2>
+            </div>
 
-                h1 {
-                    font-size: 2.5rem;
-                }
+            <div class="list-columns">
+                <div class="list-block">
+                    <h3>Creative and strategic strengths</h3>
+                    <ul class="bullet-list">
+                        {coreStrengths.map((item) => <li>{item}</li>)}
+                    </ul>
+                </div>
 
-                .box-header h2 {
-                    font-size: 1.2rem;
-                }
-            }
-        </style>
-    </div></BaseLayout
->
+                <div class="list-block">
+                    <h3>Technical toolkit</h3>
+                    <ul class="bullet-list">
+                        {technicalToolkit.map((item) => <li>{item}</li>)}
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="closing-section" aria-label="Availability">
+            <p class="eyebrow">Availability</p>
+            <h2>
+                I work best on ambitious projects that need one person who can
+                move fluidly between concept, image, film, space, research,
+                technology, and final delivery.
+            </h2>
+            <p class="closing-note">
+                Available for select commissions across visual storytelling,
+                photography, film, exhibition, and creative technology. Direct
+                consulting and creative support is £30/hour unless we scope a
+                larger project fee.
+            </p>
+            <div class="hero-actions">
+                <a href={contactHref} class="primary-action">Contact Abodid</a>
+                <a href="/superprof-video-editing-classes" class="secondary-action">
+                    Video editing classes
+                </a>
+            </div>
+        </section>
+    </main>
+</BaseLayout>
+
+<style>
+    .services-page {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: clamp(3.5rem, 7vw, 6rem) 24px 8rem;
+    }
+
+    .hero {
+        max-width: 1040px;
+        margin-bottom: clamp(5rem, 10vw, 8rem);
+    }
+
+    .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--text-tertiary);
+        margin: 0 0 1rem;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+        letter-spacing: 0;
+    }
+
+    h1 {
+        max-width: 900px;
+        margin: 0;
+        font-size: clamp(2.1rem, 5vw, 4.2rem);
+        line-height: 1.05;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .hero-copy {
+        display: grid;
+        gap: 1.1rem;
+        max-width: 820px;
+        margin-top: clamp(2rem, 5vw, 3.5rem);
+    }
+
+    .hero-copy p,
+    .closing-note {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: clamp(1.03rem, 1.6vw, 1.16rem);
+        line-height: 1.68;
+    }
+
+    .hero-copy .lead {
+        color: var(--text-primary);
+        font-size: clamp(1.3rem, 2.4vw, 1.8rem);
+        line-height: 1.36;
+        max-width: 760px;
+    }
+
+    strong {
+        color: var(--text-primary);
+        font-weight: 700;
+    }
+
+    .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.85rem;
+        margin-top: 2rem;
+    }
+
+    .primary-action,
+    .secondary-action {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        border-radius: 8px;
+        padding: 0.82rem 1.05rem;
+        font-weight: 700;
+        line-height: 1.2;
+        text-decoration: none;
+    }
+
+    .primary-action {
+        background: var(--text-primary);
+        color: var(--bg-color);
+    }
+
+    .secondary-action {
+        border: 1px solid var(--border-strong);
+        color: var(--text-primary);
+    }
+
+    .offer-section,
+    .capability-section,
+    .closing-section {
+        margin-top: clamp(5rem, 10vw, 8rem);
+    }
+
+    .section-heading {
+        max-width: 880px;
+        margin-bottom: clamp(2.5rem, 5vw, 4rem);
+    }
+
+    .section-heading.narrow {
+        max-width: 720px;
+    }
+
+    .section-heading h2,
+    .closing-section h2 {
+        margin: 0;
+        color: var(--text-primary);
+        font-size: clamp(2.1rem, 5vw, 4.2rem);
+        line-height: 1.05;
+        font-weight: 700;
+    }
+
+    .service-list {
+        display: grid;
+        gap: clamp(2.25rem, 5vw, 4.5rem);
+    }
+
+    .service-row {
+        display: grid;
+        grid-template-columns: 3.5rem minmax(180px, 0.35fr) minmax(0, 1fr);
+        gap: clamp(1.25rem, 4vw, 3rem);
+        align-items: start;
+    }
+
+    .service-index {
+        margin: 0.2rem 0 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        color: var(--text-tertiary);
+    }
+
+    .service-row h3,
+    .list-block h3 {
+        margin: 0;
+        color: var(--text-primary);
+        font-size: clamp(1.25rem, 2.1vw, 1.65rem);
+        line-height: 1.18;
+        font-weight: 700;
+    }
+
+    .service-row p:last-child {
+        margin: 0;
+        max-width: 68ch;
+        color: var(--text-secondary);
+        font-size: 1.04rem;
+        line-height: 1.68;
+    }
+
+    .list-columns {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: clamp(3rem, 7vw, 6rem);
+        align-items: start;
+    }
+
+    .list-block {
+        display: grid;
+        gap: 1.25rem;
+    }
+
+    .bullet-list {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.65rem 2rem;
+        margin: 0;
+        padding-left: 1.05rem;
+        color: var(--text-secondary);
+    }
+
+    .bullet-list li {
+        font-size: 1rem;
+        line-height: 1.55;
+        padding-left: 0.15rem;
+    }
+
+    .bullet-list li::marker {
+        color: var(--text-tertiary);
+    }
+
+    .closing-section {
+        max-width: 950px;
+    }
+
+    .closing-note {
+        max-width: 760px;
+        margin-top: 1.5rem;
+    }
+
+    @media (max-width: 820px) {
+        .services-page {
+            padding-top: 3rem;
+        }
+
+        .service-row {
+            grid-template-columns: 2.5rem minmax(0, 1fr);
+        }
+
+        .service-row p:last-child {
+            grid-column: 2;
+        }
+
+        .list-columns {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 600px) {
+        h1 {
+            font-size: clamp(2rem, 10vw, 3rem);
+        }
+
+        .section-heading h2,
+        .closing-section h2 {
+            font-size: clamp(2rem, 10vw, 3rem);
+        }
+
+        .service-row {
+            grid-template-columns: 1fr;
+            gap: 0.55rem;
+        }
+
+        .service-row p:last-child {
+            grid-column: 1;
+        }
+
+        .service-index {
+            margin-top: 0;
+        }
+
+        .bullet-list {
+            grid-template-columns: 1fr;
+        }
+
+        .primary-action,
+        .secondary-action {
+            width: 100%;
+        }
+    }
+</style>

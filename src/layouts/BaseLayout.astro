@@ -22,6 +22,8 @@ const {
   imageAlt,
   type,
   useDynamicOgImage = true,
+  noindex,
+  structuredData,
   hideHeader = false,
   hideSideMenuRail = false,
   hideFooter = false,
@@ -59,6 +61,30 @@ const showFloatingHeader =
 
 // Fetch metadata from database if not provided via props
 const pagePath = Astro.url.pathname;
+const internalNoindexPatterns = [
+  /^\/admin(?:\/|$)/,
+  /^\/api(?:\/|$)/,
+  /^\/login\/?$/,
+  /^\/unauthorized\/?$/,
+  /^\/unsubscribe\/?$/,
+  /^\/pay\/?$/,
+  /^\/club\/payment-/,
+  /^\/collaboration\/measurements\/?$/,
+  /^\/du-workshop-responses\/?$/,
+  /^\/feedback\/?$/,
+  /^\/hand-tracking-test\/?$/,
+  /^\/landing-grid-test\/?$/,
+  /^\/bsa-qrcode\/?$/,
+  /^\/research\/admin(?:\/|$)/,
+  /^\/resources\/admin(?:\/|$)/,
+  /^\/resources\/auth(?:\/|$)/,
+  /^\/resources\/curator\/?$/,
+  /^\/resources\/dashboard\/?$/,
+  /^\/resources\/saved\/?$/,
+  /^\/resources\/.*\/edit\/?$/,
+];
+const finalNoindex =
+  noindex ?? internalNoindexPatterns.some((pattern) => pattern.test(pagePath));
 const dbMetadata = await getPageMetadata(pagePath);
 const finalTitle = title || dbMetadata?.meta_title || dbMetadata?.page_title;
 const finalDescription = description || dbMetadata?.meta_description;
@@ -130,6 +156,8 @@ const finalType = type || dbMetadata?.og_type || "website";
       imageAlt={imageAlt}
       type={finalType}
       useDynamicOgImage={useDynamicOgImage}
+      noindex={finalNoindex}
+      structuredData={structuredData}
     />
     <!-- Dynamic SEO & Social Images applied -->
     <slot name="head" />

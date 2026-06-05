@@ -1,0 +1,281 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import {
+    breadcrumbJsonLd,
+    externalProfiles,
+    personJsonLd,
+    serviceJsonLd,
+} from "../lib/seoData";
+
+const pageTitle = "Obsidian Tutor for Students, Researchers & Writers";
+const description =
+    "Book one-to-one Obsidian tutoring with Abodid Sahoo for research notes, second brain setup, thesis workflows, writing systems, tags, backlinks, templates, and graph view.";
+const contactHref =
+    "/contact?from=%2Fobsidian-tutoring&source_name=obsidian-tutoring&cta=book-obsidian-tutoring";
+const superprofHref = externalProfiles.superprof;
+
+const outcomes = [
+    "A clean Obsidian vault that fits your actual work",
+    "A note-making method for readings, lectures, ideas, sources, and drafts",
+    "Templates for rough notes, source notes, main notes, tags, and indexes",
+    "A research dashboard for thesis, applications, essays, or long projects",
+    "A calmer way to return to older ideas without losing context",
+];
+
+const sessionTypes = [
+    {
+        title: "Start from zero",
+        body: "Install Obsidian, create your vault, understand the interface, and build your first useful folder and note system.",
+    },
+    {
+        title: "Fix a messy vault",
+        body: "Audit your current notes, remove friction, simplify folders, repair tags, and create a system you can keep using.",
+    },
+    {
+        title: "Research and thesis workflow",
+        body: "Set up source notes, concept tags, writing indexes, references, dashboards, and repeatable writing habits.",
+    },
+    {
+        title: "Advanced plugins and AI support",
+        body: "Use tools like Dataview, Omnisearch, Smart Connections, and graph analysis without making the vault fragile.",
+    },
+];
+
+const structuredData = [
+    personJsonLd(),
+    breadcrumbJsonLd([
+        { name: "Home", path: "/" },
+        { name: "Obsidian Tutoring", path: "/obsidian-tutoring/" },
+    ]),
+    serviceJsonLd({
+        path: "/obsidian-tutoring/",
+        name: pageTitle,
+        description,
+        serviceType:
+            "Obsidian tutoring, second brain coaching, research workflow tutoring, and knowledge management classes",
+    }),
+];
+---
+
+<BaseLayout title={pageTitle} description={description} structuredData={structuredData}>
+    <main class="tutoring-page">
+        <header class="hero">
+            <p class="eyebrow">Obsidian tutoring</p>
+            <h1>One-to-one Obsidian classes for serious notes, research, writing, and long-term ideas.</h1>
+            <p class="lead">
+                I help students, researchers, writers, educators, artists, and
+                working professionals build a second brain that is practical,
+                personal, and easy to return to.
+            </p>
+            <div class="actions">
+                <a href={contactHref} class="primary-action">Book tutoring</a>
+                <a href="/workshops/obsidian" class="secondary-action">View full course</a>
+            </div>
+            {
+                superprofHref ? (
+                    <a href={superprofHref} target="_blank" rel="noopener noreferrer" class="platform-link">
+                        View my Superprof tutoring profile
+                    </a>
+                ) : (
+                    <p class="platform-note">
+                        Prefer booking through Superprof? Send me a message and
+                        I will share the profile link.
+                    </p>
+                )
+            }
+        </header>
+
+        <section class="section" aria-labelledby="session-types-title">
+            <div class="section-heading">
+                <p class="eyebrow">Class formats</p>
+                <h2 id="session-types-title">Tutoring can start wherever you are.</h2>
+            </div>
+            <div class="grid">
+                {
+                    sessionTypes.map((session) => (
+                        <article class="panel">
+                            <h3>{session.title}</h3>
+                            <p>{session.body}</p>
+                        </article>
+                    ))
+                }
+            </div>
+        </section>
+
+        <section class="split-section">
+            <div>
+                <p class="eyebrow">You leave with</p>
+                <h2>A vault that helps your ideas become usable.</h2>
+            </div>
+            <ul class="check-list">
+                {outcomes.map((item) => <li>{item}</li>)}
+            </ul>
+        </section>
+
+        <section class="cta-section" aria-label="Book Obsidian tutoring">
+            <p class="eyebrow">Start</p>
+            <h2>Send me what you are trying to organize.</h2>
+            <p>
+                You can share your background, current note problem, deadline,
+                and whether you want one session, a short tutoring block, or
+                the full four-session course.
+            </p>
+            <a href={contactHref} class="primary-action">Contact Abodid</a>
+        </section>
+    </main>
+</BaseLayout>
+
+<style>
+    .tutoring-page {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: clamp(3rem, 7vw, 6rem) 24px 8rem;
+    }
+
+    .hero {
+        max-width: 900px;
+        margin-bottom: clamp(4rem, 8vw, 6rem);
+    }
+
+    .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--text-tertiary);
+        margin: 0 0 1rem;
+    }
+
+    h1 {
+        margin: 0 0 1rem;
+        font-size: clamp(2.5rem, 6vw, 4.5rem);
+        line-height: 1.02;
+        letter-spacing: 0;
+        color: var(--text-primary);
+    }
+
+    h2 {
+        margin: 0;
+        font-size: clamp(1.7rem, 3vw, 2.4rem);
+        line-height: 1.15;
+        color: var(--text-primary);
+    }
+
+    .lead,
+    .cta-section p,
+    .panel p,
+    .check-list,
+    .platform-note {
+        color: var(--text-secondary);
+        line-height: 1.6;
+    }
+
+    .lead {
+        max-width: 760px;
+        font-size: 1.18rem;
+    }
+
+    .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.85rem;
+        margin-top: 1.75rem;
+    }
+
+    .primary-action,
+    .secondary-action {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        border-radius: 8px;
+        padding: 0.82rem 1.05rem;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    .primary-action {
+        background: var(--text-primary);
+        color: var(--bg-color);
+    }
+
+    .secondary-action {
+        border: 1px solid var(--border-strong);
+        color: var(--text-primary);
+    }
+
+    .platform-link {
+        display: inline-flex;
+        margin-top: 1rem;
+        color: var(--text-primary);
+        font-weight: 700;
+        text-underline-offset: 4px;
+    }
+
+    .platform-note {
+        margin: 1rem 0 0;
+        max-width: 640px;
+    }
+
+    .section {
+        margin-bottom: 4rem;
+    }
+
+    .section-heading {
+        max-width: 720px;
+        margin-bottom: 1.5rem;
+    }
+
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
+    }
+
+    .panel,
+    .cta-section {
+        border: 1px solid var(--border-subtle);
+        background: var(--bg-surface);
+        border-radius: 8px;
+        padding: 1.5rem;
+    }
+
+    .panel h3 {
+        margin: 0 0 0.75rem;
+        font-size: 1.2rem;
+        color: var(--text-primary);
+    }
+
+    .panel p {
+        margin: 0;
+    }
+
+    .split-section {
+        display: grid;
+        grid-template-columns: 0.9fr 1.1fr;
+        gap: 2rem;
+        align-items: start;
+        margin-bottom: 4rem;
+    }
+
+    .check-list {
+        margin: 0;
+        padding-left: 1.2rem;
+    }
+
+    .check-list li + li {
+        margin-top: 0.75rem;
+    }
+
+    .cta-section p {
+        max-width: 720px;
+        margin-bottom: 1.25rem;
+    }
+
+    @media (max-width: 760px) {
+        .grid,
+        .split-section {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>

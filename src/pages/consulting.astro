@@ -1,0 +1,285 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { breadcrumbJsonLd, personJsonLd, serviceJsonLd } from "../lib/seoData";
+
+const pageTitle = "Creative Technology & AI Research Workflow Consulting";
+const description =
+    "Hire Abodid Sahoo for creative technology consulting at £30/hour, AI-assisted research workflows, digital archives, interactive prototypes, and research communication systems.";
+const contactHref =
+    "/contact?from=%2Fconsulting&source_name=consulting&cta=book-consulting";
+
+const consultingAreas = [
+    {
+        title: "AI-assisted research workflows",
+        body: "I help students, researchers, educators, artists, and cultural teams design systems for reading, note-making, synthesis, writing, and presentation.",
+    },
+    {
+        title: "Creative technology prototypes",
+        body: "I can help shape interactive media ideas into testable prototypes, interface concepts, technical plans, and production-ready briefs.",
+    },
+    {
+        title: "Digital archives and visual interfaces",
+        body: "I work on ways to organize, reveal, and communicate collections, images, notes, research material, and cultural data through humane digital experiences.",
+    },
+    {
+        title: "Workshops and team enablement",
+        body: "I design and deliver practical sessions around AI tools, Obsidian systems, visual research, creative coding, and digital storytelling.",
+    },
+];
+
+const goodFit = [
+    "You have a research, archive, education, art, or media idea but need a clearer digital structure.",
+    "You want to use AI tools without losing your own judgement, voice, or research integrity.",
+    "You need help turning scattered notes, assets, references, and workflows into a system.",
+    "You want a collaborator who understands visual culture, research, teaching, and technical prototyping.",
+];
+
+const structuredData = [
+    personJsonLd(),
+    breadcrumbJsonLd([
+        { name: "Home", path: "/" },
+        { name: "Consulting", path: "/consulting/" },
+    ]),
+    serviceJsonLd({
+        path: "/consulting/",
+        name: pageTitle,
+        description,
+        serviceType:
+            "Creative technology consulting, AI research workflow consulting, digital archive strategy, and interactive prototype consulting",
+    }),
+];
+---
+
+<BaseLayout title={pageTitle} description={description} structuredData={structuredData}>
+    <main class="landing-page">
+        <header class="hero">
+            <p class="eyebrow">Consulting</p>
+            <h1>Creative technology and AI research workflows for thoughtful teams and independent workers.</h1>
+            <p class="lead">
+                I help turn messy ideas, research material, visual archives,
+                technical experiments, and learning needs into clear systems,
+                prototypes, workshops, and digital experiences.
+            </p>
+            <div class="actions">
+                <a href={contactHref} class="primary-action">Book consulting</a>
+                <a href="/services" class="secondary-action">View all services</a>
+            </div>
+        </header>
+
+        <section class="price-strip" aria-label="Consulting price">
+            <div>
+                <p class="eyebrow">Rate</p>
+                <p class="price">£30/hour</p>
+            </div>
+            <p>
+                Email or use the contact form with a short description of what
+                you are trying to build, organize, teach, prototype, or
+                communicate.
+            </p>
+        </section>
+
+        <section class="section" aria-labelledby="consulting-areas-title">
+            <div class="section-heading">
+                <p class="eyebrow">What I can help with</p>
+                <h2 id="consulting-areas-title">From idea fog to working structure.</h2>
+            </div>
+            <div class="grid">
+                {
+                    consultingAreas.map((area) => (
+                        <article class="panel">
+                            <h3>{area.title}</h3>
+                            <p>{area.body}</p>
+                        </article>
+                    ))
+                }
+            </div>
+        </section>
+
+        <section class="split-section">
+            <div>
+                <p class="eyebrow">Good fit</p>
+                <h2>This is useful when the project needs both imagination and structure.</h2>
+            </div>
+            <ul class="check-list">
+                {goodFit.map((item) => <li>{item}</li>)}
+            </ul>
+        </section>
+
+        <section class="cta-section" aria-label="Book consulting">
+            <p class="eyebrow">Start</p>
+            <h2>Send me the idea, the problem, or the material you are trying to organize.</h2>
+            <p>
+                I can help you decide the next sensible step: a consultation,
+                a workshop, a prototype plan, or a longer engagement.
+            </p>
+            <a href={contactHref} class="primary-action">Contact Abodid</a>
+        </section>
+    </main>
+</BaseLayout>
+
+<style>
+    .landing-page {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: clamp(3rem, 7vw, 6rem) 24px 8rem;
+    }
+
+    .hero {
+        max-width: 860px;
+        margin-bottom: clamp(4rem, 8vw, 6rem);
+    }
+
+    .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--text-tertiary);
+        margin: 0 0 1rem;
+    }
+
+    h1 {
+        margin: 0 0 1rem;
+        font-size: clamp(2.5rem, 6vw, 4.5rem);
+        line-height: 1.02;
+        letter-spacing: 0;
+        color: var(--text-primary);
+    }
+
+    h2 {
+        margin: 0;
+        font-size: clamp(1.7rem, 3vw, 2.4rem);
+        line-height: 1.15;
+        color: var(--text-primary);
+    }
+
+    .lead,
+    .price-strip p,
+    .cta-section p,
+    .panel p,
+    .check-list {
+        color: var(--text-secondary);
+        line-height: 1.6;
+    }
+
+    .lead {
+        max-width: 760px;
+        font-size: 1.18rem;
+    }
+
+    .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.85rem;
+        margin-top: 1.75rem;
+    }
+
+    .primary-action,
+    .secondary-action {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        border-radius: 8px;
+        padding: 0.82rem 1.05rem;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    .primary-action {
+        background: var(--text-primary);
+        color: var(--bg-color);
+    }
+
+    .secondary-action {
+        border: 1px solid var(--border-strong);
+        color: var(--text-primary);
+    }
+
+    .section {
+        margin-bottom: 4rem;
+    }
+
+    .price-strip {
+        display: grid;
+        grid-template-columns: 0.45fr 1fr;
+        gap: 1.5rem;
+        align-items: center;
+        border: 1px solid var(--border-subtle);
+        background: var(--bg-surface);
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 4rem;
+    }
+
+    .price {
+        margin: 0;
+        color: var(--text-primary);
+        font-size: clamp(2.2rem, 5vw, 3.5rem);
+        line-height: 1;
+        font-weight: 800;
+    }
+
+    .price-strip > p {
+        margin: 0;
+    }
+
+    .section-heading {
+        max-width: 720px;
+        margin-bottom: 1.5rem;
+    }
+
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
+    }
+
+    .panel,
+    .cta-section {
+        border: 1px solid var(--border-subtle);
+        background: var(--bg-surface);
+        border-radius: 8px;
+        padding: 1.5rem;
+    }
+
+    .panel h3 {
+        margin: 0 0 0.75rem;
+        font-size: 1.2rem;
+        color: var(--text-primary);
+    }
+
+    .panel p {
+        margin: 0;
+    }
+
+    .split-section {
+        display: grid;
+        grid-template-columns: 0.9fr 1.1fr;
+        gap: 2rem;
+        align-items: start;
+        margin-bottom: 4rem;
+    }
+
+    .check-list {
+        margin: 0;
+        padding-left: 1.2rem;
+    }
+
+    .check-list li + li {
+        margin-top: 0.75rem;
+    }
+
+    .cta-section p {
+        max-width: 720px;
+        margin-bottom: 1.25rem;
+    }
+
+    @media (max-width: 760px) {
+        .price-strip,
+        .grid,
+        .split-section {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>

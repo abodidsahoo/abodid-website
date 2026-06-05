@@ -3,15 +3,28 @@ export const prerender = true;
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import BlogFilter from "../../components/BlogFilter.jsx";
 import { getAllPosts } from "../../lib/api";
+import { breadcrumbJsonLd, personJsonLd } from "../../lib/seoData";
 
 const recentPosts = await getAllPosts();
 const pageTitle = "Blog";
+const description =
+  "Writing by Abodid Sahoo on creative technology, photography, filmmaking, research workflows, Obsidian, AI, visual culture, and learning.";
+const structuredData = [
+  personJsonLd(),
+  breadcrumbJsonLd([
+    { name: "Home", path: "/" },
+    { name: "Blog", path: "/blog/" },
+  ]),
+];
 ---
 
-<BaseLayout title={pageTitle}>
+<BaseLayout title={pageTitle} description={description} structuredData={structuredData}>
   <header class="page-header">
     <h1>Blog</h1>
-    <p class="section-intro">Thoughts, notes, and observations.</p>
+    <p class="section-intro">
+      Notes on creative technology, photography, filmmaking, research workflows,
+      Obsidian, AI, visual culture, and learning.
+    </p>
   </header>
 
   <div class="blog-container">

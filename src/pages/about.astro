@@ -2,13 +2,36 @@
 export const prerender = true;
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { getCVs } from "../lib/api";
+import { breadcrumbJsonLd, personJsonLd, profilePageJsonLd } from "../lib/seoData";
 
-const pageTitle = "About";
+const pageTitle = "About Abodid Sahoo";
+const pageDescription =
+    "Abodid Sahoo is a creative technologist, photographer, filmmaker, researcher, and tutor available for consulting, Obsidian tutoring, workshops, and visual storytelling work.";
 
 // Fetch CVs
 const { artistCV, professionalCVs } = await getCVs();
 
 const hubs = [
+    {
+        title: "Hire Me",
+        link: "/services",
+        icon: "→",
+    },
+    {
+        title: "Consulting",
+        link: "/consulting",
+        icon: "→",
+    },
+    {
+        title: "Obsidian Tutoring",
+        link: "/obsidian-tutoring",
+        icon: "→",
+    },
+    {
+        title: "Superprof Video Classes",
+        link: "/superprof-video-editing-classes",
+        icon: "→",
+    },
     {
         title: "Awards",
         link: "/awards",
@@ -43,6 +66,8 @@ const hubs = [
 
 const competencies = [
     "Creative Technology & Interactive Media",
+    "AI-assisted Research Workflows",
+    "Obsidian & Second Brain Systems",
     "Photography & Film Production",
     "Digital Strategy & Community Growth",
     "Exhibition & Event Documentation",
@@ -54,10 +79,20 @@ const clients = [
     "Avant-Garde Design Studios",
     "Innovative Cultural Startups",
     "Independent Artists & Curators",
+    "Students, Researchers & Working Professionals",
+];
+
+const structuredData = [
+    personJsonLd(),
+    profilePageJsonLd("/about/", pageDescription),
+    breadcrumbJsonLd([
+        { name: "Home", path: "/" },
+        { name: "About", path: "/about/" },
+    ]),
 ];
 ---
 
-<BaseLayout title={pageTitle}>
+<BaseLayout title={pageTitle} description={pageDescription} structuredData={structuredData}>
     <div class="page-container">
         <header class="page-header">
             <h1>About Me</h1>
@@ -70,10 +105,20 @@ const clients = [
                     I'm a creative technologist and researcher.
                 </h3>
                 <p class="intro-mission">
-                    I help organizations document world-class exhibitions and
-                    events, build meaningful relationships with key
-                    stakeholders, and grow engaged communities.
+                    I help people and organizations build creative technology
+                    projects, AI-assisted research workflows, Obsidian systems,
+                    photographs, films, and visual stories that communicate
+                    clearly.
                 </p>
+                <div class="intro-actions">
+                    <a href="/services" class="primary-action">Hire me</a>
+                    <a href="/workshops/obsidian" class="secondary-action">
+                        Join Obsidian course
+                    </a>
+                    <a href="/contact?from=%2Fabout&source_name=about&cta=book-call" class="secondary-action">
+                        Book a conversation
+                    </a>
+                </div>
             </div>
 
             <div class="info-grid">
@@ -95,9 +140,10 @@ const clients = [
             <div class="why-section">
                 <h3 class="info-label">Why do people love working with me</h3>
                 <p class="intro-text">
-                    My experience across art, design, and academia allows me to
-                    craft innovative creative strategies and produce offbeat,
-                    edgy, and highly impactful work.
+                    My experience across art, design, engineering, and academia
+                    helps me translate messy ideas into clear systems, teaching
+                    formats, prototypes, images, films, and research-led
+                    narratives.
                 </p>
             </div>
         </section>
@@ -224,6 +270,36 @@ const clients = [
         line-height: 1.6;
         color: var(--text-primary);
         max-width: 700px;
+    }
+
+    .intro-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.85rem;
+        margin-top: 1.75rem;
+    }
+
+    .primary-action,
+    .secondary-action {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        border-radius: 8px;
+        padding: 0.82rem 1.05rem;
+        font-weight: 700;
+        text-decoration: none;
+        line-height: 1.2;
+    }
+
+    .primary-action {
+        background: var(--text-primary);
+        color: var(--bg-color);
+    }
+
+    .secondary-action {
+        border: 1px solid var(--border-strong);
+        color: var(--text-primary);
     }
 
     .intro-text {

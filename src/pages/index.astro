@@ -16,15 +16,16 @@ import {
 import Showreel from "../components/Showreel.astro";
 
 import PhotoGrid from "../components/PhotoGrid.astro";
+import { personJsonLd, websiteJsonLd } from "../lib/seoData";
 
 // LiquidCursor moved to BaseLayout
 // EngagementCTA moved to LandingOrchestrator
 import ForceDarkMode from "../components/ForceDarkMode.astro";
 import uk2026 from "../data/uk2026.json";
 
-const pageTitle = "Portfolio";
+const pageTitle = "Creative Technology Consultant & Obsidian Tutor";
 const pageDescription =
-    "Portfolio of Abodid Sahoo, a photographer, researcher, and creative technologist building work across images, code, culture, and interactive media.";
+    "Hire Abodid Sahoo for creative technology consulting, AI-assisted research workflows, Obsidian tutoring, photography, filmmaking, and visual storytelling.";
 
 // Helper to safely fetch data
 const safeFetch = async (fn, fallback) => {
@@ -84,7 +85,7 @@ const findLink = (name) => {
     );
     if (filmMatch) return filmMatch.videoUrl || "/films"; // Fallback to /films if videoUrl missing
 
-    return "#"; // Default fallback
+    return "/press"; // Default fallback
 };
 
 // Resolve Links for Showreel Notes - Direct URLs
@@ -131,7 +132,7 @@ const heroHeadingLines = [
     ["I", "work", "at", "the", "intersection", "of", "..."],
 ];
 const heroBioWords =
-    "With over 8+ years of experience in photography, film and interactive media, I design authentic creative experiences for brands and organizations working in the culture and technology space.".split(
+    "I help people and organizations build creative technology projects, research workflows, Obsidian systems, photographs, films, and visual stories that are thoughtful, useful, and human.".split(
         " ",
     );
 const uk2026Feature = {
@@ -158,6 +159,7 @@ const heroTextEffect = "smooth-blur";
     imageAlt="Portfolio preview for Abodid Sahoo"
     useDynamicOgImage={false}
     bodyClass="landing-page"
+    structuredData={[personJsonLd(), websiteJsonLd()]}
 >
     <Fragment slot="head">
         {
@@ -196,7 +198,11 @@ const heroTextEffect = "smooth-blur";
                         class="typing-text"
                         data-text-effect={heroTextEffect}
                         aria-live="polite"
-                        aria-atomic="true"></span>
+                        aria-atomic="true"
+                    >
+                        Creative technology, AI research workflows, Obsidian
+                        tutoring, photography, and film.
+                    </span>
                 </span>
             </h1>
             <div class="bio-content">
@@ -1796,12 +1802,12 @@ const heroTextEffect = "smooth-blur";
     }
 
     const phrases = [
-        "Images, Code & Culture.",
-        "Design & Technology.",
-        "Writing & Storytelling.",
-        "Travel, Fashion & Music.",
+        "Creative Technology Consulting.",
+        "AI Research Workflows.",
+        "Obsidian Tutoring.",
         "Photography, Film & Art.",
-        "AI, Sociology & Research.",
+        "Writing & Storytelling.",
+        "Design, Code & Culture.",
     ];
 
     const colors = [
@@ -1943,7 +1949,8 @@ const heroTextEffect = "smooth-blur";
         phraseElement.className = "smooth-blur-phrase";
         phraseElement.setAttribute("aria-hidden", "true");
 
-        parsePhrase(phrase).forEach((word, index) => {
+        const phraseWords = parsePhrase(phrase);
+        phraseWords.forEach((word, index) => {
             const wordElement = document.createElement("span");
             wordElement.className = "smooth-blur-word";
             wordElement.style.color = word.color;
@@ -1953,7 +1960,10 @@ const heroTextEffect = "smooth-blur";
             );
             const wordLabel = document.createElement("span");
             wordLabel.className = "smooth-blur-word-label";
-            wordLabel.textContent = word.plainText;
+            wordLabel.textContent =
+                index === phraseWords.length - 1
+                    ? word.plainText
+                    : `${word.plainText} `;
             wordElement.append(wordLabel);
             phraseElement.append(wordElement);
         });

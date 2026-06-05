@@ -1,0 +1,322 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import {
+    breadcrumbJsonLd,
+    courseJsonLd,
+    externalProfiles,
+    personJsonLd,
+    serviceJsonLd,
+} from "../lib/seoData";
+
+const pageTitle = "Online Video Editing Classes on Superprof";
+const description =
+    "Book online video editing and colour grading classes with Abodid Sahoo on Superprof. Learn Premiere Pro, After Effects, Final Cut Pro, storytelling, colour, sound, and portfolio editing.";
+const superprofHref = externalProfiles.superprof;
+const contactHref =
+    "/contact?from=%2Fsuperprof-video-editing-classes&source_name=superprof-video-editing-classes&cta=ask-video-editing-class";
+
+const profileFacts = [
+    "Verified Superprof profile",
+    "5.0 rating from 4 public Superprof reviews",
+    "10 students listed on Superprof",
+    "3-hour response time listed on Superprof",
+    "Online lessons available",
+    "Based in London",
+    "Video editing and colour grading for all levels",
+    "Premiere Pro, After Effects, and Final Cut Pro",
+    "First lesson listed as free on Superprof",
+];
+
+const learningPath = [
+    {
+        title: "Foundation",
+        body: "Set up your editing workspace, understand timelines, organize footage, and build confidence with the core tools.",
+    },
+    {
+        title: "Narrative and structure",
+        body: "Shape footage into sequences that hold attention through rhythm, pacing, scene order, and emotional clarity.",
+    },
+    {
+        title: "Colour and sound",
+        body: "Learn practical colour grading, sound polishing, atmosphere, and export settings for polished delivery.",
+    },
+    {
+        title: "Portfolio and feedback",
+        body: "Bring your own project, rough cut, reel, or class assignment for focused feedback and practical next steps.",
+    },
+];
+
+const goodFor = [
+    "Beginners learning video editing from zero",
+    "Students preparing film, media, design, or portfolio projects",
+    "Creators who want better YouTube, short-form, music, or documentary edits",
+    "Artists, researchers, and professionals making visual essays or project films",
+    "Editors who want stronger pacing, colour, sound, and story judgement",
+];
+
+const structuredData = [
+    personJsonLd(),
+    breadcrumbJsonLd([
+        { name: "Home", path: "/" },
+        {
+            name: "Superprof Video Editing Classes",
+            path: "/superprof-video-editing-classes/",
+        },
+    ]),
+    courseJsonLd({
+        path: "/superprof-video-editing-classes/",
+        name: pageTitle,
+        description,
+        price: "27",
+        currency: "GBP",
+    }),
+    serviceJsonLd({
+        path: "/superprof-video-editing-classes/",
+        name: "Superprof Video Editing and Colour Grading Classes",
+        description,
+        serviceType:
+            "Online video editing classes, colour grading tutoring, Premiere Pro lessons, After Effects lessons, and Final Cut Pro lessons",
+    }),
+];
+---
+
+<BaseLayout title={pageTitle} description={description} structuredData={structuredData}>
+    <main class="superprof-page">
+        <header class="hero">
+            <p class="eyebrow">Superprof / online classes</p>
+            <h1>Online video editing and colour grading classes through Superprof.</h1>
+            <p class="lead">
+                Learn editing as both a technical skill and a storytelling
+                practice. I teach Premiere Pro, After Effects, Final Cut Pro,
+                colour, sound, rhythm, pacing, and project feedback for
+                beginners, students, creators, and working professionals.
+            </p>
+            <div class="actions">
+                <a href={superprofHref} class="primary-action" target="_blank" rel="noopener noreferrer">
+                    Book on Superprof
+                </a>
+                <a href={contactHref} class="secondary-action">Ask a question first</a>
+            </div>
+        </header>
+
+        <section class="profile-strip" aria-label="Superprof profile details">
+            <div>
+                <p class="eyebrow">Listed on Superprof</p>
+                <p class="price">£27/hr</p>
+                <p class="muted">
+                    Superprof listing price. Direct consulting and creative
+                    technology sessions are listed separately at £30/hour.
+                </p>
+            </div>
+            <ul>
+                {profileFacts.map((fact) => <li>{fact}</li>)}
+            </ul>
+        </section>
+
+        <section class="section" aria-labelledby="learning-path-title">
+            <div class="section-heading">
+                <p class="eyebrow">Learning path</p>
+                <h2 id="learning-path-title">From tool confidence to sharper storytelling.</h2>
+            </div>
+            <div class="grid">
+                {
+                    learningPath.map((item) => (
+                        <article class="panel">
+                            <h3>{item.title}</h3>
+                            <p>{item.body}</p>
+                        </article>
+                    ))
+                }
+            </div>
+        </section>
+
+        <section class="split-section">
+            <div>
+                <p class="eyebrow">Good for</p>
+                <h2>Classes can adapt to your level, age group, project, and software.</h2>
+            </div>
+            <ul class="check-list">
+                {goodFor.map((item) => <li>{item}</li>)}
+            </ul>
+        </section>
+
+        <section class="cta-section" aria-label="Book Superprof video editing classes">
+            <p class="eyebrow">Book</p>
+            <h2>Use Superprof if you want a simple tutoring platform flow.</h2>
+            <p>
+                The Superprof profile is the best place to start for organic
+                tutoring inquiries, platform messaging, and lesson booking.
+            </p>
+            <a href={superprofHref} class="primary-action" target="_blank" rel="noopener noreferrer">
+                Go to Superprof profile
+            </a>
+        </section>
+    </main>
+</BaseLayout>
+
+<style>
+    .superprof-page {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: clamp(3rem, 7vw, 6rem) 24px 8rem;
+    }
+
+    .hero {
+        max-width: 900px;
+        margin-bottom: clamp(3rem, 7vw, 5rem);
+    }
+
+    .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--text-tertiary);
+        margin: 0 0 1rem;
+    }
+
+    h1 {
+        margin: 0 0 1rem;
+        font-size: clamp(2.5rem, 6vw, 4.5rem);
+        line-height: 1.02;
+        letter-spacing: 0;
+        color: var(--text-primary);
+    }
+
+    h2 {
+        margin: 0;
+        font-size: clamp(1.7rem, 3vw, 2.4rem);
+        line-height: 1.15;
+        color: var(--text-primary);
+    }
+
+    .lead,
+    .muted,
+    .profile-strip,
+    .panel p,
+    .check-list,
+    .cta-section p {
+        color: var(--text-secondary);
+        line-height: 1.6;
+    }
+
+    .lead {
+        max-width: 780px;
+        font-size: 1.18rem;
+    }
+
+    .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.85rem;
+        margin-top: 1.75rem;
+    }
+
+    .primary-action,
+    .secondary-action {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        border-radius: 8px;
+        padding: 0.82rem 1.05rem;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    .primary-action {
+        background: var(--text-primary);
+        color: var(--bg-color);
+    }
+
+    .secondary-action {
+        border: 1px solid var(--border-strong);
+        color: var(--text-primary);
+    }
+
+    .profile-strip,
+    .panel,
+    .cta-section {
+        border: 1px solid var(--border-subtle);
+        background: var(--bg-surface);
+        border-radius: 8px;
+        padding: 1.5rem;
+    }
+
+    .profile-strip {
+        display: grid;
+        grid-template-columns: 0.8fr 1.2fr;
+        gap: 2rem;
+        align-items: start;
+        margin-bottom: 4rem;
+    }
+
+    .price {
+        margin: 0 0 0.5rem;
+        color: var(--text-primary);
+        font-size: clamp(2.2rem, 5vw, 3.5rem);
+        line-height: 1;
+        font-weight: 800;
+    }
+
+    .muted {
+        margin: 0;
+    }
+
+    .profile-strip ul,
+    .check-list {
+        margin: 0;
+        padding-left: 1.2rem;
+    }
+
+    .profile-strip li + li,
+    .check-list li + li {
+        margin-top: 0.65rem;
+    }
+
+    .section {
+        margin-bottom: 4rem;
+    }
+
+    .section-heading {
+        max-width: 720px;
+        margin-bottom: 1.5rem;
+    }
+
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
+    }
+
+    .panel h3 {
+        margin: 0 0 0.75rem;
+        font-size: 1.2rem;
+        color: var(--text-primary);
+    }
+
+    .panel p {
+        margin: 0;
+    }
+
+    .split-section {
+        display: grid;
+        grid-template-columns: 0.9fr 1.1fr;
+        gap: 2rem;
+        align-items: start;
+        margin-bottom: 4rem;
+    }
+
+    .cta-section p {
+        max-width: 720px;
+        margin-bottom: 1.25rem;
+    }
+
+    @media (max-width: 760px) {
+        .profile-strip,
+        .grid,
+        .split-section {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>

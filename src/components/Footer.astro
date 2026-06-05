@@ -1,8 +1,10 @@
 ---
 import Newsletter from "./Newsletter.astro";
 import BrandFilmStrip from "./BrandFilmStrip.jsx";
+import { externalProfiles } from "../lib/seoData";
 
 const year = new Date().getFullYear();
+const superprofHref = externalProfiles.superprof;
 ---
 
 <footer class="site-footer">
@@ -49,6 +51,7 @@ const year = new Date().getFullYear();
             <a href="/research/obsidian-vault">Obsidian Vault</a>
             <a href="/research/second-brain">Second Brain Club</a>
             <a href="/moodboard">Visual Moodboard</a>
+            <a href="/curated-videos">Video Curation</a>
           </div>
         </div>
 
@@ -57,7 +60,12 @@ const year = new Date().getFullYear();
           <div class="nav-group">
             <span class="nav-header">Work With Me</span>
             <a href="/services">Services</a>
+            <a href="/consulting">Consulting</a>
             <a href="/workshops">Workshops</a>
+            <a href="/obsidian-tutoring">Obsidian Tutoring</a>
+            <a href="/video-editing-mentor">Video Editing Mentor</a>
+            <a href="/superprof-video-editing-classes">Superprof Classes</a>
+            <a href="/contact">Contact</a>
             <a href="/fundraising">Fundraising</a>
           </div>
         </div>
@@ -90,6 +98,11 @@ const year = new Date().getFullYear();
             >
             <a href="https://vimeo.com/abodidsahoo" target="_blank">Vimeo</a>
             <a href="https://github.com/abodidsahoo" target="_blank">GitHub</a>
+            {
+              superprofHref && (
+                <a href={superprofHref} target="_blank" rel="noopener noreferrer">Superprof</a>
+              )
+            }
           </div>
         </div>
       </div>

@@ -1,17 +1,70 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import {
+    breadcrumbJsonLd,
+    externalProfiles,
+    personJsonLd,
+    seoIdentity,
+} from "../lib/seoData";
 
-const pageTitle = "Contact";
+const pageTitle = "Contact Abodid Sahoo";
+const description =
+    "Contact Abodid Sahoo for paid consulting, Obsidian tutoring, workshops, photography, filmmaking, video editing, and creative technology projects.";
+const superprofHref = externalProfiles.superprof;
+const structuredData = [
+    personJsonLd(),
+    breadcrumbJsonLd([
+        { name: "Home", path: "/" },
+        { name: "Contact", path: "/contact/" },
+    ]),
+    {
+        "@context": "https://schema.org",
+        "@type": "ContactPage",
+        "@id": `${seoIdentity.siteUrl}/contact/#contact`,
+        url: `${seoIdentity.siteUrl}/contact/`,
+        name: pageTitle,
+        description,
+        mainEntity: {
+            "@id": seoIdentity.personId,
+        },
+    },
+];
 ---
 
-<BaseLayout title={pageTitle}>
+<BaseLayout title={pageTitle} description={description} structuredData={structuredData}>
     <div class="contact-wrapper">
         <header class="contact-header">
-            <h1>Get In Touch</h1>
-            <p class="intro">Let's collaborate on something amazing.</p>
+            <p class="eyebrow">Work with me</p>
+            <h1>Contact Abodid</h1>
+            <p class="intro">
+                Tell me about the consulting, tutoring, workshop, photography,
+                filmmaking, or creative technology project you want to build.
+            </p>
         </header>
 
         <section class="contact-content">
+            <section class="intent-panel" aria-labelledby="contact-intent-title">
+                <h2 id="contact-intent-title">I am available for</h2>
+                <ul>
+                    <li>Creative technology and AI-assisted research workflow consulting</li>
+                    <li>Obsidian tutoring, second brain setup, and research system coaching</li>
+                    <li>Workshops, talks, and mentorship for students or teams</li>
+                    <li>Photography, filmmaking, video editing, and visual storytelling commissions</li>
+                </ul>
+                {
+                    superprofHref ? (
+                        <a href={superprofHref} target="_blank" rel="noopener noreferrer" class="platform-link">
+                            View my Superprof tutoring profile
+                        </a>
+                    ) : (
+                        <p class="platform-note">
+                            Prefer booking tutoring through Superprof? Send me a
+                            message and I will share the profile link.
+                        </p>
+                    )
+                }
+            </section>
+
             <section class="contact-form-section">
                 <h2>Send A Message</h2>
                 <form id="contact-form" class="contact-form">
@@ -44,7 +97,7 @@ const pageTitle = "Contact";
                         rows="6"
                         required
                         maxlength="5000"
-                        placeholder="Tell me what you want to build."
+                        placeholder="Tell me what you want to build, learn, document, edit, or organize."
                     ></textarea>
 
                     <button type="submit" class="send-button">Send</button>
@@ -124,6 +177,16 @@ const pageTitle = "Contact";
                                 target="_blank"
                                 rel="noopener noreferrer">GitHub</a>
                         </li>
+                        {
+                            superprofHref && (
+                                <li>
+                                    <a
+                                        href={superprofHref}
+                                        target="_blank"
+                                        rel="noopener noreferrer">Superprof</a>
+                                </li>
+                            )
+                        }
                     </ul>
                 </div>
             </div>
@@ -263,6 +326,15 @@ const pageTitle = "Contact";
         margin-bottom: 4rem;
     }
 
+    .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--text-tertiary);
+        margin: 0 0 1rem;
+    }
+
     h1 {
         font-family: var(--font-display);
         font-size: 3.5rem;
@@ -282,10 +354,46 @@ const pageTitle = "Contact";
         padding-bottom: 6rem;
     }
 
+    .intent-panel {
+        border: 1px solid var(--border-subtle);
+        background: var(--bg-surface);
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 3rem;
+    }
+
+    .intent-panel h2 {
+        font-family: var(--font-display);
+        font-size: 1.5rem;
+        margin: 0 0 1rem;
+        color: var(--text-primary);
+    }
+
+    .intent-panel ul {
+        margin: 0;
+        padding-left: 1.2rem;
+        color: var(--text-secondary);
+        line-height: 1.6;
+    }
+
+    .platform-link {
+        display: inline-flex;
+        margin-top: 1rem;
+        color: var(--text-primary);
+        font-weight: 700;
+        text-underline-offset: 4px;
+    }
+
+    .platform-note {
+        margin: 1rem 0 0;
+        color: var(--text-tertiary);
+        line-height: 1.5;
+    }
+
     .contact-form-section {
         background: var(--bg-surface);
         border: 1px solid var(--border-subtle);
-        border-radius: 12px;
+        border-radius: 8px;
         padding: 2rem;
         margin-bottom: 3rem;
     }

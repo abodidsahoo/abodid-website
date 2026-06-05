@@ -1,0 +1,334 @@
+---
+export const prerender = true;
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const pageTitle = "Must Watch Videos";
+const videos = [
+  {
+    title: "Watchtower of Turkey",
+    embedUrl:
+      "https://player.vimeo.com/video/108018156?autoplay=1&title=0&byline=0&portrait=0",
+    thumbnailUrl:
+      "https://i.vimeocdn.com/video/491616871-7e3841ae9f24660351fdf93b86ea71b263522b88b4332dec727e8686d699b61f-d_1280?region=us",
+  },
+  {
+    title: "If tomorrow starts without me",
+    embedUrl:
+      "https://player.vimeo.com/video/105113459?autoplay=1&title=0&byline=0&portrait=0",
+    thumbnailUrl:
+      "https://i.vimeocdn.com/video/671289948-66790d3487b564a53ada029e1ed539d83bddac6e811c54ec5eff68568510fcf9-d_1280?region=us",
+  },
+  {
+    title: "The Editor",
+    embedUrl:
+      "https://www.youtube.com/embed/wsexvcAZPZ8?autoplay=1&rel=0&modestbranding=1&playsinline=1",
+    thumbnailUrl:
+      "https://img.youtube.com/vi/wsexvcAZPZ8/maxresdefault.jpg",
+  },
+  {
+    title: "How to Be Alone",
+    embedUrl:
+      "https://player.vimeo.com/video/421544825?autoplay=1&title=0&byline=0&portrait=0",
+    thumbnailUrl:
+      "https://i.vimeocdn.com/video/897263565-ea0fc22b6438ba9d1e5adf80c65f2aad924cc1998e19e29d031a6e5e696404f0-d_1280?region=us",
+  },
+  {
+    title: "MOVE",
+    embedUrl:
+      "https://player.vimeo.com/video/27246366?autoplay=1&title=0&byline=0&portrait=0",
+    thumbnailUrl:
+      "https://i.vimeocdn.com/video/180758901-b7e8f042f16443a6677e0dc1e19f802c4416568b4009fab22068ca5168c6610a-d_1280?region=us",
+  },
+  {
+    title: "WHAT DWELLS IN ME",
+    embedUrl:
+      "https://player.vimeo.com/video/422236338?autoplay=1&title=0&byline=0&portrait=0",
+    thumbnailUrl:
+      "https://i.vimeocdn.com/video/907491956-0b08f7b62d31ba7e720bd25640d6440bcaa12adb3ac8709e86c60252b52ef54f-d_1280?region=us",
+  },
+  {
+    title: "GENER8ION - STORM starring Yung Lean",
+    embedUrl:
+      "https://www.youtube.com/embed/x6_mbnsh6VU?autoplay=1&rel=0&modestbranding=1&playsinline=1",
+    thumbnailUrl:
+      "https://img.youtube.com/vi/x6_mbnsh6VU/maxresdefault.jpg",
+  },
+  {
+    title: "DIS:CONNECTED - NYC During Covid-19",
+    embedUrl:
+      "https://player.vimeo.com/video/421319675?autoplay=1&title=0&byline=0&portrait=0",
+    thumbnailUrl:
+      "https://i.vimeocdn.com/video/896957691-a7d7155dae040586dc62e3cbaa36209ba32913d0669a0440dc5dcba4220afe0c-d_1280?region=us",
+  },
+  {
+    title: "8K video - Son Brull Hotel&Spa - architecture motion photography",
+    embedUrl:
+      "https://player.vimeo.com/video/120909442?autoplay=1&title=0&byline=0&portrait=0",
+    thumbnailUrl:
+      "https://i.vimeocdn.com/video/508920227-6ca1e82849f6d3b5442e752dc8b65dbb30270e00cd8009fa207608531c84f8f3-d_1280?region=us",
+  },
+];
+---
+
+<BaseLayout
+  title={pageTitle}
+  description="A small, carefully curated page of videos by Abodid."
+>
+  <section class="must-watch-container">
+    <header class="page-header">
+      <h1>Must Watch Videos</h1>
+      <p class="curator-line">Curated by Abodid</p>
+    </header>
+
+    <div class="videos-list">
+      {
+        videos.map((video, index) => (
+          <article class="video-feature fade-in-up" style={`animation-delay: ${index * 50}ms`}>
+            <div class="video-frame">
+              <button
+                class="video-poster"
+                type="button"
+                aria-label={`Play ${video.title}`}
+              >
+                <img src={video.thumbnailUrl} alt="" loading="lazy" />
+                <span class="play-overlay">
+                  <span class="play-button" aria-hidden="true">
+                    <svg
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M5 3L19 12L5 21V3Z"
+                        fill="currentColor"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linejoin="round"></path>
+                    </svg>
+                  </span>
+                </span>
+              </button>
+              <iframe
+                data-src={video.embedUrl}
+                title={`${video.title} curated by abodid`}
+                loading="lazy"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerpolicy="strict-origin-when-cross-origin"
+                allowfullscreen
+              />
+            </div>
+
+            <div class="video-content">
+              <h2 class="video-title">{video.title}</h2>
+            </div>
+          </article>
+        ))
+      }
+    </div>
+  </section>
+
+  <script is:inline>
+    document.querySelectorAll(".video-frame").forEach((frame) => {
+      const poster = frame.querySelector(".video-poster");
+      const iframe = frame.querySelector("iframe");
+
+      poster?.addEventListener("click", () => {
+        if (!iframe?.dataset.src) return;
+
+        iframe.src = iframe.dataset.src;
+        frame.classList.add("is-playing");
+      });
+    });
+  </script>
+</BaseLayout>
+
+<style>
+  .must-watch-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding-bottom: 4rem;
+  }
+
+  .page-header {
+    margin-bottom: 5rem;
+    padding-top: 2rem;
+    text-align: left;
+  }
+
+  h1 {
+    font-family: var(--font-display);
+    font-size: 3.5rem;
+    font-weight: 600;
+    margin: 0 0 1rem;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+  }
+
+  .curator-line {
+    font-family: var(--font-sans);
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    max-width: 600px;
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  .videos-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 6.5rem;
+  }
+
+  .video-feature {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    opacity: 0;
+    animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  }
+
+  .video-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .video-title {
+    font-family: var(--font-serif);
+    font-size: 1.75rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin: 0;
+    line-height: 1.2;
+    transition: color 0.2s ease;
+  }
+
+  .video-feature:hover .video-title {
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .video-frame {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    background: var(--bg-surface);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    transition:
+      transform 0.4s ease,
+      box-shadow 0.4s ease;
+  }
+
+  .video-frame:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+  }
+
+  .video-poster {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    background: var(--bg-surface);
+    color: white;
+    overflow: hidden;
+    transition: opacity 0.3s ease;
+    z-index: 2;
+  }
+
+  .video-poster img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s ease;
+  }
+
+  .video-frame:hover .video-poster img {
+    transform: scale(1.05);
+  }
+
+  .play-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.3s ease;
+  }
+
+  .video-frame:hover .play-overlay {
+    background: rgba(0, 0, 0, 0.1);
+  }
+
+  .play-button {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    transform: scale(0.9);
+  }
+
+  .video-frame:hover .play-button {
+    transform: scale(1.1);
+    background: white;
+    color: black;
+    border-color: white;
+  }
+
+  .play-button svg {
+    margin-left: 4px;
+  }
+
+  .video-frame.is-playing .video-poster {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .video-frame iframe {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .page-header {
+      margin-bottom: 3rem;
+    }
+
+    .videos-list {
+      gap: 4rem;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+    }
+  }
+</style>

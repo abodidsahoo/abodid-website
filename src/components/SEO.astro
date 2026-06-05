@@ -6,15 +6,19 @@ export interface Props {
     type?: "website" | "article";
     imageAlt?: string;
     useDynamicOgImage?: boolean;
+    noindex?: boolean;
+    structuredData?: Record<string, unknown> | Record<string, unknown>[];
 }
 
 const {
     title,
-    description = "Abodid Sahoo's personal digital garden. Research, photography, and creative technologies.",
+    description = "Abodid Sahoo is a creative technologist, photographer, filmmaker, researcher, and tutor available for consulting, workshops, Obsidian tutoring, and visual storytelling.",
     image,
     type = "website",
     imageAlt,
     useDynamicOgImage = true,
+    noindex = false,
+    structuredData,
 } = Astro.props;
 
 const siteName = "Abodid Sahoo";
@@ -31,6 +35,13 @@ const ogImage =
     !useDynamicOgImage && resolvedImage ? resolvedImage : ogImageUrl.toString();
 const socialImageAlt =
     imageAlt || `${title ? `${title} | ${siteName}` : siteName} preview image`;
+const jsonLdItems = Array.isArray(structuredData)
+    ? structuredData
+    : structuredData
+      ? [structuredData]
+      : [];
+const serializeJsonLd = (item: Record<string, unknown>) =>
+    JSON.stringify(item).replace(/</g, "\\u003c");
 ---
 
 <!-- Global Metadata -->
@@ -44,6 +55,7 @@ const socialImageAlt =
 <title>{title ? `${title} | ${siteName}` : siteName}</title>
 <meta name="title" content={title ? `${title} | ${siteName}` : siteName} />
 <meta name="description" content={description} />
+{noindex && <meta name="robots" content="noindex, nofollow" />}
 
 <!-- Open Graph / Facebook -->
 <meta property="og:type" content={type} />
@@ -66,3 +78,9 @@ const socialImageAlt =
 <meta property="twitter:description" content={description} />
 <meta property="twitter:image" content={ogImage} />
 <meta property="twitter:image:alt" content={socialImageAlt} />
+
+{
+    jsonLdItems.map((item) => (
+        <script type="application/ld+json" set:html={serializeJsonLd(item)} />
+    ))
+}
