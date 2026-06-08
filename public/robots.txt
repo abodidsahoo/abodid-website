@@ -1,4 +1,38 @@
+# AI and search discovery rules.
+# OAI-SearchBot is the OpenAI crawler used for ChatGPT Search visibility.
+User-agent: OAI-SearchBot
+Allow: /
+Allow: /api/og
+Disallow: /admin/
+Disallow: /api/
+Disallow: /resources/admin/
+Disallow: /research/admin/
+
+# GPTBot is independent from ChatGPT Search and may be used for model training.
+# Public pages are currently allowed because this site wants broad AI discoverability.
+User-agent: GPTBot
+Allow: /
+Allow: /api/og
+Disallow: /admin/
+Disallow: /api/
+Disallow: /resources/admin/
+Disallow: /research/admin/
+
+# User-initiated ChatGPT visits.
+User-agent: ChatGPT-User
+Allow: /
+Allow: /api/og
+Disallow: /admin/
+Disallow: /api/
+Disallow: /resources/admin/
+Disallow: /research/admin/
+
 User-agent: *
 Allow: /
+Allow: /api/og
+Disallow: /admin/
+Disallow: /api/
+Disallow: /resources/admin/
+Disallow: /research/admin/
 
 Sitemap: https://abodid.com/sitemap-index.xml
