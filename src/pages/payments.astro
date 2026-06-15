@@ -31,13 +31,13 @@ const pageDescription =
                 </p>
             </header>
 
-            <div class="payment-cards" aria-label="Payment options">
-                <article class="payment-card">
+            <div class="payment-panels" aria-label="Payment options">
+                <article class="payment-panel">
                     <div class="gateway-visual gateway-visual-paypal">
                         <span>PayPal</span>
                     </div>
 
-                    <div class="payment-card-body">
+                    <div class="payment-details">
                         <p class="payment-region">International</p>
                         <h2>PayPal</h2>
                         <p>
@@ -49,10 +49,12 @@ const pageDescription =
                             <p class="payment-action-label">
                                 International Payment
                             </p>
-                            <div
-                                id="paypal-container-22T4QFMFG6BDS"
-                                class="paypal-widget"
-                            >
+                            <div class="gateway-checkout-surface">
+                                <div
+                                    id="paypal-container-22T4QFMFG6BDS"
+                                    class="paypal-widget"
+                                >
+                                </div>
                             </div>
                             <p
                                 class="payment-widget-status"
@@ -65,12 +67,12 @@ const pageDescription =
                     </div>
                 </article>
 
-                <article class="payment-card">
+                <article class="payment-panel">
                     <div class="gateway-visual gateway-visual-india">
                         <span>Razorpay</span>
                     </div>
 
-                    <div class="payment-card-body">
+                    <div class="payment-details">
                         <p class="payment-region">India</p>
                         <h2>India payment</h2>
                         <p>
@@ -80,14 +82,16 @@ const pageDescription =
 
                         <div class="payment-action">
                             <p class="payment-action-label">Pay Now</p>
-                            <form class="razorpay-widget">
-                                <script
-                                    is:inline
-                                    src="https://checkout.razorpay.com/v1/payment-button.js"
-                                    data-payment_button_id="pl_T1pqkmNlgYnS0d"
-                                    async
-                                ></script>
-                            </form>
+                            <div class="gateway-checkout-surface">
+                                <form class="razorpay-widget">
+                                    <script
+                                        is:inline
+                                        src="https://checkout.razorpay.com/v1/payment-button.js"
+                                        data-payment_button_id="pl_T1pqkmNlgYnS0d"
+                                        async
+                                    ></script>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </article>
@@ -191,15 +195,15 @@ const pageDescription =
         letter-spacing: 0;
     }
 
-    .payment-cards {
+    .payment-panels {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 1.25rem;
     }
 
-    .payment-card {
+    .payment-panel {
         display: grid;
-        grid-template-rows: auto 1fr;
+        grid-template-columns: minmax(18rem, 0.9fr) minmax(24rem, 1.1fr);
+        min-height: 22rem;
         min-width: 0;
         overflow: hidden;
         border: 1px solid var(--border-subtle);
@@ -215,12 +219,12 @@ const pageDescription =
     }
 
     .gateway-visual {
-        min-height: 13rem;
+        min-height: 100%;
         display: flex;
         align-items: center;
         justify-content: center;
         padding: clamp(2rem, 6vw, 4rem);
-        border-bottom: 1px solid var(--border-subtle);
+        border-right: 1px solid var(--border-subtle);
         font-family: var(--font-display);
         font-size: clamp(2rem, 4.5vw, 3.6rem);
         font-weight: 850;
@@ -266,14 +270,14 @@ const pageDescription =
             );
     }
 
-    .payment-card-body {
+    .payment-details {
         display: flex;
         min-width: 0;
         flex-direction: column;
         padding: clamp(1.25rem, 3vw, 2rem);
     }
 
-    .payment-card h2 {
+    .payment-panel h2 {
         margin: 0.55rem 0 0;
         font-family: var(--font-display);
         font-size: clamp(1.45rem, 2.5vw, 2rem);
@@ -283,7 +287,7 @@ const pageDescription =
         color: var(--text-primary);
     }
 
-    .payment-card p:not(.payment-region):not(.payment-action-label):not(.payment-widget-status) {
+    .payment-panel p:not(.payment-region):not(.payment-action-label):not(.payment-widget-status) {
         margin: 0.9rem 0 0;
         color: var(--text-secondary);
         font-family: var(--font-body);
@@ -302,13 +306,30 @@ const pageDescription =
         color: var(--text-secondary);
     }
 
+    .gateway-checkout-surface {
+        display: block;
+        width: 100%;
+        min-height: 4rem;
+        padding: 1rem;
+        border: 1px solid var(--border-subtle);
+        border-radius: 8px;
+        background: color-mix(in srgb, var(--bg-canvas) 30%, transparent);
+    }
+
     .paypal-widget,
     .razorpay-widget {
-        display: flex;
+        display: block;
         width: 100%;
+        min-width: min(100%, 20rem);
         min-height: 3.25rem;
-        align-items: center;
-        justify-content: flex-start;
+    }
+
+    .paypal-widget {
+        max-width: 34rem;
+    }
+
+    :global(#paypal-container-22T4QFMFG6BDS iframe) {
+        max-width: 100% !important;
     }
 
     .payment-widget-status {
@@ -345,8 +366,14 @@ const pageDescription =
     }
 
     @media (max-width: 860px) {
-        .payment-cards {
+        .payment-panel {
             grid-template-columns: 1fr;
+        }
+
+        .gateway-visual {
+            min-height: 12rem;
+            border-right: 0;
+            border-bottom: 1px solid var(--border-subtle);
         }
     }
 
@@ -364,12 +391,12 @@ const pageDescription =
             padding: 0 1.25rem;
         }
 
-        .payment-cards {
+        .payment-panels {
             gap: 1rem;
             margin-top: 1.5rem;
         }
 
-        .payment-card {
+        .payment-panel {
             border-left: 0;
             border-right: 0;
             border-radius: 0;

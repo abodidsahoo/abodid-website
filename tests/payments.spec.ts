@@ -13,7 +13,7 @@ test("shows simple PayPal and India payment options without a human gate", async
     await expect(
         page.getByRole("heading", { name: "Choose a payment method" }),
     ).toBeVisible();
-    await expect(page.locator(".payment-card")).toHaveCount(2);
+    await expect(page.locator(".payment-panel")).toHaveCount(2);
     await expect(page.locator(".human-gate")).toHaveCount(0);
     await expect(
         page.getByText("International Payment", { exact: true }),
