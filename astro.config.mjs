@@ -13,7 +13,6 @@ const excludedSitemapPathPatterns = [
   /^\/login\/?$/,
   /^\/unauthorized\/?$/,
   /^\/unsubscribe\/?$/,
-  /^\/pay\/?$/,
   /^\/payments\/?$/,
   /^\/club\/payment-/,
   /^\/collaboration\/measurements\/?$/,
