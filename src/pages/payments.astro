@@ -4,6 +4,113 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 const pageTitle = "Payments";
 const pageDescription =
     "Payment page for Abodid Sahoo. International payments can use PayPal, and India payments can use the India checkout route.";
+
+const paypalFrameSrcdoc = `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      color-scheme: light;
+    }
+
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      background: transparent;
+    }
+
+    body {
+      min-width: 0;
+      overflow: hidden;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    #paypal-container-22T4QFMFG6BDS {
+      width: 100%;
+      min-width: 0;
+    }
+  </style>
+  <script src="https://www.paypal.com/sdk/js?client-id=BAAQE8TkamhCfaYjOOl_ZjtgKbY0ZCtyOzmdOe83xf_zWg30P2ZzyrL0_v1NsBdll_k9zw5wYPq9KJkXy8&components=hosted-buttons&disable-funding=venmo&currency=GBP"></script>
+</head>
+<body>
+  <div id="paypal-container-22T4QFMFG6BDS"></div>
+  <script>
+    (() => {
+      const notifyHeight = () => {
+        const checkout = document.querySelector(
+          "#paypal-container-22T4QFMFG6BDS",
+        );
+        const height = Math.max(
+          document.body.scrollHeight,
+          checkout?.scrollHeight || 0,
+          360,
+        );
+
+        window.parent.postMessage(
+          {
+            type: "abodid:paypal-frame-height",
+            height,
+          },
+          "*",
+        );
+      };
+
+      try {
+        const parentTheme =
+          window.parent.document.documentElement.getAttribute("data-theme");
+
+        if (parentTheme === "dark") {
+          document.documentElement.setAttribute("data-theme", "dark");
+        }
+      } catch (_error) {
+        // The checkout still works if the parent theme is unavailable.
+      }
+
+      const renderPayPal = () => {
+        if (!window.paypal?.HostedButtons) {
+          return false;
+        }
+
+        window.paypal
+          .HostedButtons({
+            hostedButtonId: "22T4QFMFG6BDS",
+          })
+          .render("#paypal-container-22T4QFMFG6BDS");
+
+        notifyHeight();
+        window.setTimeout(notifyHeight, 500);
+        window.setTimeout(notifyHeight, 1500);
+
+        if ("ResizeObserver" in window) {
+          new ResizeObserver(notifyHeight).observe(document.body);
+        }
+
+        return true;
+      };
+
+      if (renderPayPal()) return;
+
+      const intervalId = window.setInterval(() => {
+        if (renderPayPal()) {
+          window.clearInterval(intervalId);
+        }
+      }, 200);
+
+      window.setTimeout(() => {
+        window.clearInterval(intervalId);
+        notifyHeight();
+      }, 5000);
+    })();
+  </script>
+</body>
+</html>`;
 ---
 
 <BaseLayout
@@ -13,13 +120,6 @@ const pageDescription =
     showNewsletterPopup={false}
     hideFooter={true}
 >
-    <Fragment slot="head">
-        <script
-            is:inline
-            src="https://www.paypal.com/sdk/js?client-id=BAAQE8TkamhCfaYjOOl_ZjtgKbY0ZCtyOzmdOe83xf_zWg30P2ZzyrL0_v1NsBdll_k9zw5wYPq9KJkXy8&components=hosted-buttons&disable-funding=venmo&currency=GBP"
-        ></script>
-    </Fragment>
-
     <section class="payments-shell">
         <div class="payments-frame">
             <header class="payments-header">
@@ -50,19 +150,16 @@ const pageDescription =
                                 International Payment
                             </p>
                             <div class="gateway-checkout-surface">
-                                <div
-                                    id="paypal-container-22T4QFMFG6BDS"
-                                    class="paypal-widget"
-                                >
-                                </div>
+                                <iframe
+                                    class="paypal-native-frame"
+                                    data-paypal-frame
+                                    title="PayPal checkout"
+                                    srcdoc={paypalFrameSrcdoc}
+                                    allow="payment *"
+                                    allowpaymentrequest
+                                    referrerpolicy="strict-origin-when-cross-origin"
+                                ></iframe>
                             </div>
-                            <p
-                                class="payment-widget-status"
-                                data-paypal-status
-                                aria-live="polite"
-                            >
-                                Loading PayPal checkout...
-                            </p>
                         </div>
                     </div>
                 </article>
@@ -101,47 +198,29 @@ const pageDescription =
 
     <script is:inline>
         (() => {
-            const status = document.querySelector("[data-paypal-status]");
-            const containerSelector = "#paypal-container-22T4QFMFG6BDS";
+            const frame = document.querySelector("[data-paypal-frame]");
 
-            const setStatus = (message) => {
-                if (status) {
-                    status.textContent = message;
+            window.addEventListener("message", (event) => {
+                const data = event.data;
+
+                if (
+                    !frame ||
+                    !data ||
+                    data.type !== "abodid:paypal-frame-height" ||
+                    event.source !== frame.contentWindow
+                ) {
+                    return;
                 }
-            };
 
-            const renderPayPal = () => {
-                if (!window.paypal?.HostedButtons) {
-                    return false;
+                const nextHeight = Number(data.height);
+
+                if (Number.isFinite(nextHeight)) {
+                    frame.style.height = `${Math.min(
+                        Math.max(Math.ceil(nextHeight), 360),
+                        1200,
+                    )}px`;
                 }
-
-                window.paypal
-                    .HostedButtons({
-                        hostedButtonId: "22T4QFMFG6BDS",
-                    })
-                    .render(containerSelector);
-
-                setStatus("PayPal checkout is ready.");
-                return true;
-            };
-
-            if (renderPayPal()) return;
-
-            const intervalId = window.setInterval(() => {
-                if (renderPayPal()) {
-                    window.clearInterval(intervalId);
-                }
-            }, 200);
-
-            window.setTimeout(() => {
-                window.clearInterval(intervalId);
-
-                if (!window.paypal?.HostedButtons) {
-                    setStatus(
-                        "PayPal could not load. Refresh the page and try again.",
-                    );
-                }
-            }, 5000);
+            });
         })();
     </script>
 </BaseLayout>
@@ -287,7 +366,7 @@ const pageDescription =
         color: var(--text-primary);
     }
 
-    .payment-panel p:not(.payment-region):not(.payment-action-label):not(.payment-widget-status) {
+    .payment-panel p:not(.payment-region):not(.payment-action-label) {
         margin: 0.9rem 0 0;
         color: var(--text-secondary);
         font-family: var(--font-body);
@@ -316,53 +395,18 @@ const pageDescription =
         background: color-mix(in srgb, var(--bg-canvas) 30%, transparent);
     }
 
-    .paypal-widget,
+    .paypal-native-frame,
     .razorpay-widget {
         display: block;
         width: 100%;
-        min-width: min(100%, 20rem);
+        min-width: 0;
         min-height: 3.25rem;
     }
 
-    .paypal-widget {
-        max-width: 34rem;
-    }
-
-    :global(#paypal-container-22T4QFMFG6BDS iframe) {
-        max-width: 100% !important;
-    }
-
-    .payment-widget-status {
-        margin: 0.75rem 0 0;
-        color: var(--text-tertiary);
-        font-family: var(--font-ui);
-        font-size: 0.85rem;
-        line-height: 1.45;
-        letter-spacing: 0;
-    }
-
-    :global(.razorpay-payment-button) {
-        width: min(100%, 18rem) !important;
-        min-height: 3rem !important;
-        padding: 0.78rem 1.2rem !important;
-        border: 1px solid var(--border-strong) !important;
-        border-radius: 8px !important;
-        background: var(--text-primary) !important;
-        color: var(--text-inverse) !important;
-        font-family: var(--font-ui) !important;
-        font-size: 0.9rem !important;
-        font-weight: 750 !important;
-        line-height: 1.1 !important;
-        letter-spacing: 0 !important;
-        cursor: pointer !important;
-        box-shadow: none !important;
-        transition:
-            transform 0.2s ease,
-            opacity 0.2s ease !important;
-    }
-
-    :global(.razorpay-payment-button:hover) {
-        transform: translateY(-1px);
+    .paypal-native-frame {
+        height: 31rem;
+        overflow: hidden;
+        border: 0;
     }
 
     @media (max-width: 860px) {

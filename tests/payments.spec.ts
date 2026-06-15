@@ -19,9 +19,15 @@ test("shows simple PayPal and India payment options without a human gate", async
         page.getByText("International Payment", { exact: true }),
     ).toBeVisible();
     await expect(page.getByText("Pay Now", { exact: true })).toBeVisible();
-    await expect(page.locator('script[src*="paypal.com/sdk/js"]')).toHaveCount(
-        1,
-    );
+    await expect(
+        page.locator('iframe[title="PayPal checkout"]'),
+    ).toHaveAttribute("srcdoc", /paypal\.com\/sdk\/js/);
+    await expect(
+        page.locator('iframe[title="PayPal checkout"]'),
+    ).toHaveAttribute("srcdoc", /HostedButtons/);
+    await expect(
+        page.locator('script[src*="paypal.com/sdk/js"]'),
+    ).toHaveCount(0);
     await expect(
         page.locator('script[src*="checkout.razorpay.com/v1/payment-button.js"]'),
     ).toHaveCount(1);
