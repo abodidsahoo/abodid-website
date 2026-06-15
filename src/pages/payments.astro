@@ -1,0 +1,946 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const pageTitle = "Payments";
+const pageDescription =
+    "Secure payment page for Abodid Sahoo. International payments can use PayPal, and India payments can use the India checkout route.";
+---
+
+<BaseLayout
+    title={pageTitle}
+    description={pageDescription}
+    noindex={true}
+    showNewsletterPopup={false}
+    hideFooter={true}
+>
+    <section class="payments-shell" data-payments-page>
+        <div class="payments-frame">
+            <header class="payments-header">
+                <p class="payments-kicker">Secure payment</p>
+                <h1>Payments</h1>
+                <p class="payments-intro">
+                    International payments can use PayPal. Payments from India
+                    can use the India checkout route for UPI, cards, and net
+                    banking.
+                </p>
+            </header>
+
+            <div class="payment-grid" aria-label="Choose a payment route">
+                <button
+                    class="payment-route is-active"
+                    type="button"
+                    data-payment-option="international"
+                    aria-pressed="true"
+                >
+                    <span class="route-copy">
+                        <span class="route-label">International payment</span>
+                        <span class="route-detail"
+                            >For payments outside India, use PayPal in GBP.</span
+                        >
+                    </span>
+                    <span class="gateway-wordmark gateway-wordmark-paypal"
+                        >PayPal</span
+                    >
+                </button>
+
+                <button
+                    class="payment-route"
+                    type="button"
+                    data-payment-option="india"
+                    aria-pressed="false"
+                >
+                    <span class="route-copy">
+                        <span class="route-label">India payment</span>
+                        <span class="route-detail"
+                            >For payments within India, use the India checkout.</span
+                        >
+                    </span>
+                    <span class="gateway-wordmark gateway-wordmark-india"
+                        >Razorpay</span
+                    >
+                </button>
+            </div>
+
+            <form class="human-gate" data-payment-gate autocomplete="off">
+                <input
+                    class="gate-trap"
+                    type="text"
+                    name="website"
+                    tabindex="-1"
+                    autocomplete="off"
+                    aria-hidden="true"
+                    inert
+                    hidden
+                />
+
+                <label class="gate-confirm">
+                    <input type="checkbox" data-human-confirm />
+                    <span>
+                        I am choosing this payment route myself and understand
+                        the checkout will open through a third-party payment
+                        gateway.
+                    </span>
+                </label>
+
+                <button
+                    class="gate-button"
+                    type="submit"
+                    data-unlock-payment
+                    disabled
+                >
+                    Unlock international checkout
+                </button>
+
+                <p class="gate-message" data-gate-message aria-live="polite">
+                    Select a route, confirm intent, then unlock checkout. Payment
+                    widgets load only after this step.
+                </p>
+            </form>
+
+            <div class="checkout-area" data-checkout-area hidden>
+                <section
+                    class="checkout-panel is-active"
+                    data-payment-panel="international"
+                    aria-labelledby="international-checkout-title"
+                >
+                    <div class="checkout-panel-header">
+                        <p class="panel-kicker">International</p>
+                        <h2 id="international-checkout-title">
+                            PayPal checkout
+                        </h2>
+                        <p>
+                            Use this route if you are paying from outside India.
+                            PayPal will process the transaction securely.
+                        </p>
+                    </div>
+
+                    <div class="widget-shell">
+                        <div
+                            id="paypal-container-22T4QFMFG6BDS"
+                            class="paypal-widget"
+                        >
+                        </div>
+                        <p
+                            class="widget-status"
+                            data-widget-status="international"
+                        >
+                            Unlock the page to load PayPal checkout.
+                        </p>
+                    </div>
+                </section>
+
+                <section
+                    class="checkout-panel"
+                    data-payment-panel="india"
+                    aria-labelledby="india-checkout-title"
+                    hidden
+                >
+                    <div class="checkout-panel-header">
+                        <p class="panel-kicker">India</p>
+                        <h2 id="india-checkout-title">India checkout</h2>
+                        <p>
+                            Use this route for UPI, Indian cards, and net
+                            banking. The gateway will process payment details
+                            securely.
+                        </p>
+                    </div>
+
+                    <div class="widget-shell">
+                        <form
+                            id="razorpay-payment-form"
+                            class="razorpay-widget"
+                            data-razorpay-form
+                        >
+                        </form>
+                        <p class="widget-status" data-widget-status="india">
+                            Unlock the page to load the India checkout.
+                        </p>
+                    </div>
+                </section>
+            </div>
+
+            <div class="security-strip" aria-label="Payment security details">
+                <div>
+                    <span class="security-label">Human check</span>
+                    <strong>Required before checkout loads</strong>
+                </div>
+                <div>
+                    <span class="security-label">Financial details</span>
+                    <strong>Handled by the selected payment gateway</strong>
+                </div>
+                <div>
+                    <span class="security-label">Page visibility</span>
+                    <strong>Not listed in search results</strong>
+                </div>
+            </div>
+
+            <footer class="payment-note">
+                <p>
+                    I do not store card, bank, or wallet details on this site.
+                    Keep the payment confirmation for your records after the
+                    gateway completes the transaction.
+                </p>
+            </footer>
+        </div>
+    </section>
+
+    <script is:inline>
+        (() => {
+            const root = document.querySelector("[data-payments-page]");
+            if (!root) return;
+
+            const startedAt = Date.now();
+            const minimumHumanDelayMs = 1100;
+            const paymentOptions = Array.from(
+                root.querySelectorAll("[data-payment-option]"),
+            );
+            const panels = Array.from(root.querySelectorAll("[data-payment-panel]"));
+            const gate = root.querySelector("[data-payment-gate]");
+            const confirmInput = root.querySelector("[data-human-confirm]");
+            const trapInput = root.querySelector(".gate-trap");
+            const unlockButton = root.querySelector("[data-unlock-payment]");
+            const gateMessage = root.querySelector("[data-gate-message]");
+            const checkoutArea = root.querySelector("[data-checkout-area]");
+            const paypalStatus = root.querySelector(
+                '[data-widget-status="international"]',
+            );
+            const indiaStatus = root.querySelector('[data-widget-status="india"]');
+            const razorpayForm = root.querySelector("[data-razorpay-form]");
+
+            let selectedRoute = "international";
+            let humanGestureSeen = false;
+            let gateUnlocked = false;
+            let paypalRendered = false;
+            let paypalSdkPromise = null;
+            let indiaCheckoutLoaded = false;
+
+            const routeCopy = {
+                international: {
+                    button: "Unlock international checkout",
+                    message:
+                        "International checkout selected. Confirm intent to load PayPal.",
+                    unlocked:
+                        "International checkout is ready. PayPal may take a moment to appear.",
+                },
+                india: {
+                    button: "Unlock India checkout",
+                    message:
+                        "India checkout selected. Confirm intent to load the secure India payment route.",
+                    unlocked:
+                        "India checkout is ready. The gateway button may take a moment to appear.",
+                },
+            };
+
+            const setGateMessage = (message) => {
+                if (gateMessage) {
+                    gateMessage.textContent = message;
+                }
+            };
+
+            const setStatus = (route, message) => {
+                const target = route === "india" ? indiaStatus : paypalStatus;
+                if (target) {
+                    target.textContent = message;
+                }
+            };
+
+            const updateUnlockState = () => {
+                if (!unlockButton || !confirmInput) return;
+
+                unlockButton.disabled = !confirmInput.checked || !humanGestureSeen;
+                unlockButton.textContent = routeCopy[selectedRoute].button;
+            };
+
+            const selectRoute = (route) => {
+                selectedRoute = route;
+
+                paymentOptions.forEach((option) => {
+                    const isActive = option.dataset.paymentOption === route;
+                    option.classList.toggle("is-active", isActive);
+                    option.setAttribute("aria-pressed", String(isActive));
+                });
+
+                panels.forEach((panel) => {
+                    const isActive = panel.dataset.paymentPanel === route;
+                    panel.classList.toggle("is-active", isActive);
+                    panel.hidden = !isActive || !gateUnlocked;
+                });
+
+                setGateMessage(
+                    gateUnlocked
+                        ? routeCopy[selectedRoute].unlocked
+                        : routeCopy[selectedRoute].message,
+                );
+                updateUnlockState();
+
+                if (gateUnlocked) {
+                    loadSelectedCheckout();
+                }
+            };
+
+            const markHumanGesture = (event) => {
+                if (event && event.isTrusted === false) return;
+
+                humanGestureSeen = true;
+                root.setAttribute("data-human-gesture", "true");
+                updateUnlockState();
+            };
+
+            ["pointerdown", "touchstart", "keydown"].forEach((eventName) => {
+                window.addEventListener(eventName, markHumanGesture, {
+                    once: true,
+                    passive: true,
+                });
+            });
+
+            paymentOptions.forEach((option) => {
+                option.addEventListener("click", (event) => {
+                    markHumanGesture(event);
+                    selectRoute(option.dataset.paymentOption || "international");
+                });
+            });
+
+            confirmInput?.addEventListener("change", (event) => {
+                markHumanGesture(event);
+                updateUnlockState();
+            });
+
+            const loadPayPalSdk = () => {
+                if (window.paypal?.HostedButtons) {
+                    return Promise.resolve();
+                }
+
+                if (paypalSdkPromise) {
+                    return paypalSdkPromise;
+                }
+
+                paypalSdkPromise = new Promise((resolve, reject) => {
+                    const script = document.createElement("script");
+                    script.src =
+                        "https://www.paypal.com/sdk/js?client-id=BAAQE8TkamhCfaYjOOl_ZjtgKbY0ZCtyOzmdOe83xf_zWg30P2ZzyrL0_v1NsBdll_k9zw5wYPq9KJkXy8&components=hosted-buttons&disable-funding=venmo&currency=GBP";
+                    script.async = true;
+                    script.dataset.paypalHostedButtonsSdk = "true";
+                    script.onload = resolve;
+                    script.onerror = reject;
+                    document.head.appendChild(script);
+                });
+
+                return paypalSdkPromise;
+            };
+
+            const renderPayPal = async () => {
+                if (paypalRendered) return;
+
+                setStatus("international", "Loading PayPal checkout...");
+
+                try {
+                    await loadPayPalSdk();
+
+                    if (!window.paypal?.HostedButtons) {
+                        throw new Error("PayPal hosted buttons were unavailable.");
+                    }
+
+                    window.paypal
+                        .HostedButtons({
+                            hostedButtonId: "22T4QFMFG6BDS",
+                        })
+                        .render("#paypal-container-22T4QFMFG6BDS");
+
+                    paypalRendered = true;
+                    setStatus(
+                        "international",
+                        "PayPal checkout loaded. Complete payment in the secure widget above.",
+                    );
+                } catch (_error) {
+                    setStatus(
+                        "international",
+                        "PayPal could not load. Refresh the page or try again in a few moments.",
+                    );
+                }
+            };
+
+            const loadIndiaCheckout = () => {
+                if (indiaCheckoutLoaded || !razorpayForm) return;
+
+                setStatus("india", "Loading India checkout...");
+                const script = document.createElement("script");
+                script.src = "https://checkout.razorpay.com/v1/payment-button.js";
+                script.async = true;
+                script.setAttribute("data-payment_button_id", "pl_T1pqkmNlgYnS0d");
+                script.onload = () => {
+                    setStatus(
+                        "india",
+                        "India checkout loaded. Complete payment in the secure widget above.",
+                    );
+                };
+                script.onerror = () => {
+                    setStatus(
+                        "india",
+                        "The India checkout could not load. Refresh the page or try again in a few moments.",
+                    );
+                };
+
+                razorpayForm.appendChild(script);
+                indiaCheckoutLoaded = true;
+            };
+
+            function loadSelectedCheckout() {
+                if (selectedRoute === "india") {
+                    loadIndiaCheckout();
+                    return;
+                }
+
+                renderPayPal();
+            }
+
+            gate?.addEventListener("submit", (event) => {
+                event.preventDefault();
+
+                const trapFilled = Boolean(trapInput?.value?.trim());
+                const waitedEnough =
+                    Date.now() - startedAt >= minimumHumanDelayMs;
+                const confirmed = Boolean(confirmInput?.checked);
+                const trustedSubmit = event.isTrusted !== false;
+
+                if (trapFilled) {
+                    setGateMessage(
+                        "Checkout is unavailable. Please refresh and try again.",
+                    );
+                    return;
+                }
+
+                if (
+                    !humanGestureSeen ||
+                    !waitedEnough ||
+                    !confirmed ||
+                    !trustedSubmit
+                ) {
+                    setGateMessage(
+                        "Please pause for a moment and confirm the payment route before unlocking checkout.",
+                    );
+                    updateUnlockState();
+                    return;
+                }
+
+                gateUnlocked = true;
+                root.classList.add("is-unlocked");
+
+                if (checkoutArea) {
+                    checkoutArea.hidden = false;
+                }
+
+                selectRoute(selectedRoute);
+                setGateMessage(routeCopy[selectedRoute].unlocked);
+                loadSelectedCheckout();
+            });
+
+            selectRoute(selectedRoute);
+            updateUnlockState();
+        })();
+    </script>
+</BaseLayout>
+
+<style>
+    .payments-shell {
+        width: 100%;
+        min-height: 100vh;
+        padding: 2.75rem 0 4rem;
+    }
+
+    .payments-frame {
+        position: relative;
+        max-width: 980px;
+        margin: 0 auto;
+        overflow: hidden;
+        border: 1px solid var(--border-subtle);
+        border-radius: 8px;
+        background:
+            linear-gradient(
+                135deg,
+                color-mix(in srgb, var(--bg-surface) 96%, transparent),
+                color-mix(in srgb, var(--bg-surface) 82%, transparent)
+            ),
+            var(--bg-surface);
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.18);
+    }
+
+    .payments-frame::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        background-image:
+            linear-gradient(
+                to right,
+                color-mix(in srgb, var(--border-subtle) 42%, transparent) 1px,
+                transparent 1px
+            ),
+            linear-gradient(
+                to bottom,
+                color-mix(in srgb, var(--border-subtle) 42%, transparent) 1px,
+                transparent 1px
+            );
+        background-size: 48px 48px;
+        opacity: 0.28;
+        mask-image: linear-gradient(
+            to bottom,
+            rgba(0, 0, 0, 0.85),
+            rgba(0, 0, 0, 0.12)
+        );
+    }
+
+    .payments-frame > * {
+        position: relative;
+        z-index: 1;
+    }
+
+    .payments-header {
+        padding: 2rem 2.5rem 1.5rem;
+        border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .payments-kicker,
+    .security-label,
+    .panel-kicker {
+        margin: 0 0 0.55rem;
+        font-family: var(--font-ui);
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 0;
+        color: var(--text-tertiary);
+    }
+
+    .payments-header h1 {
+        margin: 0;
+        font-family: var(--font-display);
+        font-size: 2.5rem;
+        line-height: 1.05;
+        font-weight: 800;
+        letter-spacing: 0;
+        color: var(--text-primary);
+    }
+
+    .payments-intro {
+        max-width: 650px;
+        margin: 1rem 0 0;
+        color: var(--text-secondary);
+        font-family: var(--font-body);
+        font-size: 1.08rem;
+        line-height: 1.7;
+        letter-spacing: 0;
+    }
+
+    .security-strip {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        border-top: 1px solid var(--border-subtle);
+        border-bottom: 1px solid var(--border-subtle);
+        background: color-mix(in srgb, var(--bg-canvas) 42%, transparent);
+    }
+
+    .security-strip > div {
+        min-height: 6.25rem;
+        padding: 1.15rem 1.35rem;
+        border-right: 1px solid var(--border-subtle);
+    }
+
+    .security-strip > div:last-child {
+        border-right: 0;
+    }
+
+    .security-strip strong {
+        display: block;
+        color: var(--text-primary);
+        font-family: var(--font-ui);
+        font-size: 0.98rem;
+        font-weight: 600;
+        line-height: 1.35;
+        letter-spacing: 0;
+    }
+
+    .payment-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0;
+        border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .payment-route {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(8rem, 12rem);
+        align-items: stretch;
+        min-height: 10.5rem;
+        padding: 0;
+        border: 0;
+        border-right: 1px solid var(--border-subtle);
+        border-radius: 0;
+        background: color-mix(in srgb, var(--bg-surface) 84%, transparent);
+        color: var(--text-primary);
+        text-align: left;
+        cursor: pointer;
+        transition:
+            background-color 0.2s ease,
+            box-shadow 0.2s ease;
+    }
+
+    .payment-route:last-child {
+        border-right: 0;
+    }
+
+    .payment-route:hover,
+    .payment-route:focus-visible,
+    .payment-route.is-active {
+        background: color-mix(in srgb, var(--bg-surface-hover) 82%, transparent);
+    }
+
+    .payment-route.is-active {
+        box-shadow: inset 0 -2px 0 var(--text-primary);
+    }
+
+    .route-copy {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-width: 0;
+        padding: 1.35rem;
+    }
+
+    .route-label {
+        display: block;
+        font-family: var(--font-display);
+        font-size: 1.32rem;
+        line-height: 1.16;
+        font-weight: 700;
+        letter-spacing: 0;
+        color: var(--text-primary);
+    }
+
+    .route-detail {
+        display: block;
+        margin-top: 1rem;
+        font-family: var(--font-body);
+        font-size: 0.92rem;
+        line-height: 1.55;
+        letter-spacing: 0;
+        color: var(--text-secondary);
+    }
+
+    .gateway-wordmark {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100%;
+        padding: 1.4rem;
+        border-left: 1px solid var(--border-subtle);
+        font-family: var(--font-display);
+        font-size: 1.3rem;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: 0;
+        text-align: center;
+    }
+
+    .gateway-wordmark-paypal {
+        color: #ffffff;
+        background:
+            linear-gradient(
+                135deg,
+                rgba(255, 255, 255, 0.95) 0%,
+                rgba(167, 204, 255, 0.92) 42%,
+                rgba(0, 96, 214, 0.98) 100%
+            );
+        text-shadow: 0 1px 16px rgba(0, 35, 84, 0.42);
+    }
+
+    .gateway-wordmark-india {
+        color: #1d4d77;
+        background:
+            linear-gradient(
+                135deg,
+                rgba(255, 255, 255, 0.98) 0%,
+                rgba(236, 245, 255, 0.96) 52%,
+                rgba(122, 166, 205, 0.9) 100%
+            );
+    }
+
+    .human-gate {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 1rem;
+        align-items: center;
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--border-subtle);
+        background: color-mix(in srgb, var(--bg-canvas) 26%, transparent);
+    }
+
+    .gate-trap {
+        position: absolute;
+        left: -10000px;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+    }
+
+    .gate-confirm {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.8rem;
+        margin: 0;
+        color: var(--text-secondary);
+        font-family: var(--font-body);
+        font-size: 0.96rem;
+        line-height: 1.55;
+        letter-spacing: 0;
+    }
+
+    .gate-confirm input {
+        flex: 0 0 auto;
+        width: 1.05rem;
+        height: 1.05rem;
+        margin-top: 0.25rem;
+        accent-color: var(--text-primary);
+    }
+
+    .gate-button {
+        min-height: 3rem;
+        min-width: 13rem;
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--border-strong);
+        border-radius: 8px;
+        background: var(--text-primary);
+        color: var(--text-inverse);
+        font-family: var(--font-ui);
+        font-size: 0.88rem;
+        font-weight: 700;
+        line-height: 1.1;
+        letter-spacing: 0;
+        cursor: pointer;
+        transition:
+            opacity 0.2s ease,
+            transform 0.2s ease,
+            background-color 0.2s ease;
+    }
+
+    .gate-button:hover:not(:disabled) {
+        transform: translateY(-1px);
+    }
+
+    .gate-button:disabled {
+        cursor: not-allowed;
+        opacity: 0.48;
+    }
+
+    .gate-message {
+        grid-column: 1 / -1;
+        margin: 0;
+        color: var(--text-tertiary);
+        font-family: var(--font-ui);
+        font-size: 0.9rem;
+        line-height: 1.5;
+        letter-spacing: 0;
+    }
+
+    .checkout-area {
+        background: color-mix(in srgb, var(--bg-canvas) 18%, transparent);
+    }
+
+    .checkout-panel {
+        display: grid;
+        grid-template-columns: minmax(0, 0.95fr) minmax(18rem, 1.05fr);
+        min-height: 19rem;
+    }
+
+    .checkout-panel[hidden],
+    .checkout-area[hidden] {
+        display: none;
+    }
+
+    .checkout-panel-header {
+        padding: 2rem;
+        border-right: 1px solid var(--border-subtle);
+    }
+
+    .checkout-panel-header h2 {
+        margin: 0;
+        font-family: var(--font-display);
+        font-size: 1.8rem;
+        line-height: 1.15;
+        font-weight: 700;
+        letter-spacing: 0;
+        color: var(--text-primary);
+    }
+
+    .checkout-panel-header p:not(.panel-kicker) {
+        margin: 1rem 0 0;
+        color: var(--text-secondary);
+        font-family: var(--font-body);
+        font-size: 1rem;
+        line-height: 1.65;
+        letter-spacing: 0;
+    }
+
+    .widget-shell {
+        display: flex;
+        min-width: 0;
+        flex-direction: column;
+        justify-content: center;
+        gap: 1rem;
+        padding: 2rem;
+        background:
+            linear-gradient(
+                180deg,
+                color-mix(in srgb, var(--bg-surface) 74%, transparent),
+                color-mix(in srgb, var(--bg-canvas) 34%, transparent)
+            );
+    }
+
+    .paypal-widget,
+    .razorpay-widget {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+        min-height: 3.25rem;
+    }
+
+    .widget-status {
+        margin: 0;
+        color: var(--text-tertiary);
+        font-family: var(--font-ui);
+        font-size: 0.88rem;
+        line-height: 1.45;
+        letter-spacing: 0;
+        text-align: center;
+    }
+
+    .payment-note {
+        padding: 1.35rem 1.5rem;
+        border-top: 1px solid var(--border-subtle);
+        background: color-mix(in srgb, var(--bg-canvas) 38%, transparent);
+    }
+
+    .payment-note p {
+        max-width: 760px;
+        margin: 0;
+        color: var(--text-tertiary);
+        font-family: var(--font-body);
+        font-size: 0.94rem;
+        line-height: 1.65;
+        letter-spacing: 0;
+    }
+
+    :global(.razorpay-payment-button) {
+        min-height: 3rem !important;
+        min-width: min(100%, 18rem) !important;
+        padding: 0.75rem 1.15rem !important;
+        border: 1px solid var(--border-strong) !important;
+        border-radius: 8px !important;
+        background: var(--text-primary) !important;
+        color: var(--text-inverse) !important;
+        font-family: var(--font-ui) !important;
+        font-size: 0.9rem !important;
+        font-weight: 700 !important;
+        line-height: 1.1 !important;
+        letter-spacing: 0 !important;
+        cursor: pointer !important;
+    }
+
+    @media (max-width: 980px) {
+        .payments-shell {
+            padding-top: 5.5rem;
+        }
+
+        .payments-frame {
+            margin: 0;
+        }
+
+        .payments-header {
+            padding: 2.5rem 1.5rem 1.75rem;
+        }
+
+        .payments-header h1 {
+            font-size: 2.45rem;
+        }
+
+        .security-strip {
+            grid-template-columns: 1fr;
+        }
+
+        .security-strip > div {
+            min-height: auto;
+            border-right: 0;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .security-strip > div:last-child {
+            border-bottom: 0;
+        }
+
+        .payment-grid,
+        .checkout-panel,
+        .human-gate {
+            grid-template-columns: 1fr;
+        }
+
+        .payment-route {
+            grid-template-columns: minmax(0, 1fr) minmax(8rem, 12rem);
+            min-height: 11rem;
+            border-right: 0;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .payment-route:last-child {
+            border-bottom: 0;
+        }
+
+        .checkout-panel-header {
+            border-right: 0;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .gate-button {
+            width: 100%;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .payments-shell {
+            padding: 4.75rem 0 3rem;
+        }
+
+        .payments-frame {
+            border-left: 0;
+            border-right: 0;
+            border-radius: 0;
+        }
+
+        .payments-header h1 {
+            font-size: 2.15rem;
+        }
+
+        .payments-intro {
+            font-size: 1rem;
+        }
+
+        .payment-route {
+            grid-template-columns: 1fr;
+        }
+
+        .gateway-wordmark {
+            min-height: 6rem;
+            border-left: 0;
+            border-top: 1px solid var(--border-subtle);
+        }
+
+        .route-label {
+            font-size: 1.24rem;
+        }
+
+        .human-gate,
+        .checkout-panel-header,
+        .widget-shell,
+        .payment-note {
+            padding: 1.25rem;
+        }
+    }
+</style>
