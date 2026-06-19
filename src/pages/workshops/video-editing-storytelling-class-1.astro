@@ -1,0 +1,1921 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const pageTitle = "Video Editing & Storytelling: Class 1";
+const description =
+  "A focused browser-based teaching deck for a first workshop on video editing, storytelling, Premiere Pro timelines, visual meaning, and sound design.";
+
+const slides = [
+  {
+    number: "01",
+    shortTitle: "Decision-Making",
+    title: "Editing is Decision-Making",
+    preview: "What the audience sees, feels, understands, remembers.",
+    subtext:
+      "Editing is not just arranging clips. It is deciding what the audience sees, feels, understands, and remembers.",
+    quote: {
+      text: "This was where the power was in filmmaking.",
+      attribution: "Mick Audsley",
+    },
+    activityLabel: "Activity question",
+    activity:
+      "Where does a film really become a film - script, shoot, or edit?",
+    visual: "decision",
+  },
+  {
+    number: "02",
+    shortTitle: "Today's Journey",
+    title: "Today's Journey",
+    preview: "Timeline, structure, meaning, sound, future plan.",
+    subtext:
+      "Premiere Pro timeline breakdown -> story structure -> visual meaning -> sound design -> future class plan.",
+    quote: {
+      text: "Editing is the final rewrite.",
+      attribution: "Mary Sweeney",
+    },
+    activityLabel: "Opening question",
+    activity: "What do you want to make by the end of these classes?",
+    visual: "journey",
+  },
+  {
+    number: "03",
+    shortTitle: "Timeline Layers",
+    title: "Inside the Premiere Pro Timeline",
+    preview: "Every video and audio layer has a story job.",
+    subtext:
+      "Video tracks, audio tracks, dialogue, music, ambience, SFX, markers, rough cut, and final cut. Every layer has a storytelling job.",
+    reference:
+      "Walter Murch's Rule of Six: emotion, story, rhythm, eye-trace, screen direction, spatial continuity.",
+    activityLabel: "Activity",
+    activity: "Open one real edit and ask: What is each layer doing?",
+    note:
+      "Show in Premiere Pro: solo and mute tracks to reveal how each layer changes the scene.",
+    visual: "timeline",
+  },
+  {
+    number: "04",
+    shortTitle: "Emotional Cut",
+    title: "The Best Cut is Emotional",
+    preview: "Perfect timing matters less than protected emotion.",
+    subtext:
+      "A technically perfect cut is not always the best cut. The best cut protects the emotion of the moment.",
+    quote: {
+      text: "true to the emotion of the moment",
+      attribution: "Walter Murch",
+    },
+    activityLabel: "Activity",
+    activity:
+      "Show two cuts and ask: Which one feels better, even if it is less perfect?",
+    visual: "emotion",
+  },
+  {
+    number: "05",
+    shortTitle: "Invisible Editing",
+    title: "Invisible Editing",
+    preview: "Pace, rhythm, drama, and performance are felt.",
+    subtext:
+      "Good editing is often felt, not noticed. It creates pace, rhythm, drama, and performance.",
+    quote: {
+      text: "You're supposed to feel that a film has pace and rhythm and drama.",
+      attribution: "Thelma Schoonmaker",
+    },
+    activityLabel: "Activity",
+    activity:
+      "Show a dialogue scene and ask: Where should we cut - speaker or listener?",
+    visual: "invisible",
+  },
+  {
+    number: "06",
+    shortTitle: "Story Arc",
+    title: "Story Arc - From Situation to Change",
+    preview: "A story moves from want to consequence to change.",
+    subtext:
+      "A story needs character, desire, obstacle, turning point, consequence, and change. Without change, footage is only footage.",
+    structure: [
+      "Character",
+      "Want",
+      "Problem",
+      "Choice",
+      "Consequence",
+      "Change",
+    ],
+    activityLabel: "Activity",
+    activity: "Ask the student to turn one ordinary memory into a six-step story.",
+    visual: "arc",
+  },
+  {
+    number: "07",
+    shortTitle: "Story Spine",
+    title: "Story Spine Exercise",
+    preview: "Fill the spine with one personal memory.",
+    subtext:
+      "Once upon a time... Every day... Until one day... Because of that... Until finally... Ever since then...",
+    activityLabel: "Writing activity",
+    activity: "Student writes a five-line story from personal life.",
+    visual: "spine",
+    spinePrompts: [
+      "Once upon a time",
+      "Every day",
+      "Until one day",
+      "Because of that",
+      "Until finally",
+      "Ever since then",
+    ],
+  },
+  {
+    number: "08",
+    shortTitle: "Kuleshov Effect",
+    title: "Kuleshov Effect - Meaning Happens Between Shots",
+    preview: "The face stays still. The edit changes the meaning.",
+    subtext:
+      "The same face can feel hungry, sad, afraid, or lonely depending on the next shot. Editing creates meaning.",
+    activityLabel: "Activity",
+    activity:
+      "Show neutral face + food, neutral face + empty chair, neutral face + crying person.",
+    question: "Did the face change, or did the edit change the meaning?",
+    visual: "kuleshov",
+  },
+  {
+    number: "09",
+    shortTitle: "Silent Clarity",
+    title: "Silent Film and Visual Clarity",
+    preview: "Body, rhythm, gesture, framing, and timing.",
+    subtext:
+      "Before dialogue, cinema had to communicate through body, rhythm, gesture, framing, and timing. This is still useful for reels, documentaries, and visual essays.",
+    quote: {
+      text: "Simplicity is a difficult thing to achieve.",
+      attribution: "Charlie Chaplin",
+    },
+    activityLabel: "Activity",
+    activity:
+      "Show a silent clip and ask: Can we understand the story without words?",
+    visual: "silent",
+  },
+  {
+    number: "10",
+    shortTitle: "Sound Design",
+    title: "Sound Design - The Invisible Emotion Layer",
+    preview: "Dialogue, ambience, Foley, SFX, music, silence.",
+    subtext:
+      "Sound design includes dialogue, ambience, Foley, SFX, music, silence, room tone, footsteps, cloth movement, breath, door creaks, hits, whooshes, risers, and transitions.",
+    quote: {
+      text: "Sound is my best friend.",
+      attribution: "Shweta Venkat Mathew",
+    },
+    activityLabel: "Activity",
+    activity:
+      "Play one clip muted, then with music, then with ambience/SFX. Ask: When did it become alive?",
+    visual: "sound",
+  },
+];
+---
+
+<BaseLayout
+  title={pageTitle}
+  description={description}
+  noindex={true}
+  hideHeader={true}
+  hideSideMenuRail={true}
+  hideFooter={true}
+  hideThemeToggle={true}
+  fullWidth={true}
+  showNewsletterPopup={false}
+  showGlobalGrid={false}
+  showCursor={false}
+  bodyClass="workshop-deck-body"
+>
+  <section class="deck-app" data-deck data-slide-count={slides.length}>
+    <aside class="sidebar" aria-label="Slide navigation">
+      <div class="sidebar-header">
+        <p class="deck-kicker">Workshop deck</p>
+        <h1>{pageTitle}</h1>
+        <p class="deck-meta">Live teaching interface</p>
+      </div>
+
+      <nav class="thumbnail-list" aria-label="Slides">
+        {
+          slides.map((slide, index) => (
+            <button
+              class={`slide-thumbnail ${index === 0 ? "is-active" : ""}`}
+              type="button"
+              data-slide-target={index}
+              aria-current={index === 0 ? "step" : "false"}
+              aria-label={`Go to slide ${index + 1}: ${slide.title}`}
+            >
+              <span class="thumbnail-number">{slide.number}</span>
+              <span class="thumbnail-copy">
+                <span class="thumbnail-title">{slide.shortTitle}</span>
+                <span class="thumbnail-preview">{slide.preview}</span>
+              </span>
+            </button>
+          ))
+        }
+      </nav>
+    </aside>
+
+    <main class="deck-main" aria-label={pageTitle}>
+      <header class="deck-topbar">
+        <button
+          class="sidebar-toggle"
+          type="button"
+          data-sidebar-toggle
+          aria-expanded="true"
+          aria-controls="deck-sidebar-state"
+        >
+          Slides
+        </button>
+
+        <div class="topbar-title" aria-hidden="true">
+          <span>Video Editing &amp; Storytelling</span>
+          <strong>Class 1</strong>
+        </div>
+
+        <div class="progress-indicator" aria-label="Deck progress">
+          <span data-progress-label>Slide 1 of {slides.length}</span>
+          <div
+            class="progress-track"
+            role="progressbar"
+            aria-valuemin="1"
+            aria-valuemax={slides.length}
+            aria-valuenow="1"
+            aria-valuetext={`Slide 1 of ${slides.length}`}
+            data-progressbar
+          >
+            <span class="progress-fill" data-progress-fill></span>
+          </div>
+        </div>
+      </header>
+
+      <div id="deck-sidebar-state" class="sr-only" aria-live="polite">
+        Slide navigation visible.
+      </div>
+
+      <section class="slide-stage" aria-live="polite">
+        <div class="slide-stack">
+          {
+            slides.map((slide, index) => (
+              <article
+                class={`slide-card ${index === 0 ? "is-active" : ""}`}
+                data-slide={index}
+                data-short-title={slide.shortTitle}
+                aria-hidden={index === 0 ? "false" : "true"}
+                tabindex="-1"
+                hidden={index !== 0}
+              >
+                <header class="slide-header">
+                  <span class="slide-number">{slide.number}</span>
+                  <span class="slide-tag">Class 1 / Editing &amp; Storytelling</span>
+                </header>
+
+                <div class="slide-content">
+                  <div class="slide-copy">
+                    <h2>{slide.title}</h2>
+                    <p class="slide-subtext">{slide.subtext}</p>
+
+                    {slide.quote && (
+                      <figure class="quote-block">
+                        <blockquote>&ldquo;{slide.quote.text}&rdquo;</blockquote>
+                        <figcaption>{slide.quote.attribution}</figcaption>
+                      </figure>
+                    )}
+
+                    {slide.reference && (
+                      <p class="reference-text">
+                        <span>Reference</span>
+                        {slide.reference}
+                      </p>
+                    )}
+
+                    {slide.structure && (
+                      <ol class="story-structure" aria-label="Story arc structure">
+                        {slide.structure.map((item) => (
+                          <li>{item}</li>
+                        ))}
+                      </ol>
+                    )}
+
+                    <div class="activity-panel">
+                      <span>{slide.activityLabel}</span>
+                      <p>{slide.activity}</p>
+                    </div>
+
+                    {slide.question && (
+                      <p class="question-line">{slide.question}</p>
+                    )}
+
+                    {slide.note && (
+                      <p class="teaching-note">
+                        <span>Premiere Pro note</span>
+                        {slide.note}
+                      </p>
+                    )}
+                  </div>
+
+                  <div class="slide-visual-wrap">
+                    {slide.visual === "decision" && (
+                      <div
+                        class="visual-board decision-visual"
+                        role="img"
+                        aria-label="Four editorial decisions: sees, feels, understands, remembers."
+                      >
+                        <span class="visual-label">Editorial choice</span>
+                        <div class="decision-frame main-frame">
+                          <span>Audience</span>
+                        </div>
+                        <div class="decision-grid">
+                          <span>Sees</span>
+                          <span>Feels</span>
+                          <span>Understands</span>
+                          <span>Remembers</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {slide.visual === "journey" && (
+                      <div
+                        class="visual-board journey-visual"
+                        role="img"
+                        aria-label="A five-part class journey from timeline to future class plan."
+                      >
+                        {[
+                          "Timeline",
+                          "Story",
+                          "Meaning",
+                          "Sound",
+                          "Next class",
+                        ].map((item, itemIndex) => (
+                          <div class="journey-step">
+                            <span>{String(itemIndex + 1).padStart(2, "0")}</span>
+                            <strong>{item}</strong>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {slide.visual === "timeline" && (
+                      <div
+                        class="visual-board timeline-visual"
+                        role="img"
+                        aria-label="A Premiere Pro timeline with video, dialogue, music, ambience, SFX, and markers."
+                      >
+                        <div class="timeline-ruler">
+                          <span>00:00</span>
+                          <span>00:15</span>
+                          <span>00:30</span>
+                        </div>
+                        {[
+                          ["V2", "Cutaways", "short"],
+                          ["V1", "Scene", "long"],
+                          ["A1", "Dialogue", "medium"],
+                          ["A2", "Music", "long"],
+                          ["A3", "Ambience", "long"],
+                          ["A4", "SFX", "short"],
+                        ].map(([track, label, size]) => (
+                          <div class={`track-row ${size}`}>
+                            <span class="track-name">{track}</span>
+                            <span class="track-clip">{label}</span>
+                          </div>
+                        ))}
+                        <div class="marker-row">
+                          <span></span>
+                          <span></span>
+                          <span></span>
+                        </div>
+                      </div>
+                    )}
+
+                    {slide.visual === "emotion" && (
+                      <div
+                        class="visual-board emotion-visual"
+                        role="img"
+                        aria-label="Two cuts compared by emotional truth, with the felt cut emphasized."
+                      >
+                        <div class="cut-card quiet">
+                          <span>Cut A</span>
+                          <strong>Technically clean</strong>
+                        </div>
+                        <div class="emotion-wave" aria-hidden="true">
+                          <span></span>
+                          <span></span>
+                          <span></span>
+                          <span></span>
+                          <span></span>
+                        </div>
+                        <div class="cut-card active">
+                          <span>Cut B</span>
+                          <strong>Emotion protected</strong>
+                        </div>
+                      </div>
+                    )}
+
+                    {slide.visual === "invisible" && (
+                      <div
+                        class="visual-board invisible-visual"
+                        role="img"
+                        aria-label="A dialogue edit choosing between speaker and listener reaction."
+                      >
+                        <div class="dialogue-row">
+                          <span>Speaker</span>
+                          <strong>Line begins</strong>
+                        </div>
+                        <div class="cut-line" aria-hidden="true"></div>
+                        <div class="dialogue-row listener">
+                          <span>Listener</span>
+                          <strong>Reaction lands</strong>
+                        </div>
+                        <p>Invisible cut: attention moves before the audience notices.</p>
+                      </div>
+                    )}
+
+                    {slide.visual === "arc" && (
+                      <div
+                        class="visual-board arc-visual"
+                        role="img"
+                        aria-label="A six-step story arc from character to change."
+                      >
+                        {slide.structure?.map((item, itemIndex) => (
+                          <div class="arc-step">
+                            <span>{itemIndex + 1}</span>
+                            <strong>{item}</strong>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {slide.visual === "spine" && (
+                      <form class="visual-board spine-visual" aria-label="Story spine fill-in exercise">
+                        {slide.spinePrompts?.map((prompt, promptIndex) => (
+                          <label>
+                            <span>{prompt}</span>
+                            <input
+                              type="text"
+                              autocomplete="off"
+                              aria-label={`${prompt} story spine line`}
+                              placeholder="..."
+                              data-spine-input={promptIndex}
+                            />
+                          </label>
+                        ))}
+                      </form>
+                    )}
+
+                    {slide.visual === "kuleshov" && (
+                      <div
+                        class="visual-board kuleshov-visual"
+                        role="img"
+                        aria-label="Three Kuleshov pairings: neutral face with food, empty chair, and crying person."
+                      >
+                        {[
+                          ["Neutral face", "Food", "Hungry?"],
+                          ["Neutral face", "Empty chair", "Lonely?"],
+                          ["Neutral face", "Crying person", "Sad?"],
+                        ].map(([first, second, meaning]) => (
+                          <div class="kuleshov-row">
+                            <span>{first}</span>
+                            <b>+</b>
+                            <span>{second}</span>
+                            <strong>{meaning}</strong>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {slide.visual === "silent" && (
+                      <div
+                        class="visual-board silent-visual"
+                        role="img"
+                        aria-label="A silent film strip showing gesture, framing, timing, and rhythm."
+                      >
+                        {["Gesture", "Framing", "Timing", "Rhythm"].map((item) => (
+                          <div class="silent-frame">
+                            <span>{item}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {slide.visual === "sound" && (
+                      <div
+                        class="visual-board sound-visual"
+                        role="img"
+                        aria-label="Sound design layers building emotion under the image."
+                      >
+                        {[
+                          "Dialogue",
+                          "Room tone",
+                          "Ambience",
+                          "Foley",
+                          "Music",
+                          "Silence",
+                        ].map((item, itemIndex) => (
+                          <div class="sound-layer" style={`--layer: ${itemIndex}`}>
+                            <span>{item}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </article>
+            ))
+          }
+        </div>
+      </section>
+
+      <footer class="deck-controls" aria-label="Slide controls">
+        <button class="control-button previous" type="button" data-prev disabled>
+          <span aria-hidden="true">&larr;</span>
+          <span>
+            <small>Previous</small>
+            <strong data-prev-label>Start</strong>
+          </span>
+        </button>
+
+        <p class="control-context">
+          <span data-current-label>Editing is Decision-Making</span>
+          <small data-remaining-label>9 slides remaining</small>
+        </p>
+
+        <button class="control-button next" type="button" data-next>
+          <span>
+            <small>Next</small>
+            <strong data-next-label>Today's Journey</strong>
+          </span>
+          <span aria-hidden="true">&rarr;</span>
+        </button>
+      </footer>
+    </main>
+  </section>
+
+  <script>
+    const app = document.querySelector("[data-deck]");
+    const slideCards = Array.from(document.querySelectorAll("[data-slide]"));
+    const thumbnails = Array.from(document.querySelectorAll("[data-slide-target]"));
+    const previousButton = document.querySelector("[data-prev]");
+    const nextButton = document.querySelector("[data-next]");
+    const progressLabel = document.querySelector("[data-progress-label]");
+    const progressBar = document.querySelector("[data-progressbar]");
+    const progressFill = document.querySelector("[data-progress-fill]");
+    const previousLabel = document.querySelector("[data-prev-label]");
+    const nextLabel = document.querySelector("[data-next-label]");
+    const currentLabel = document.querySelector("[data-current-label]");
+    const remainingLabel = document.querySelector("[data-remaining-label]");
+    const sidebarToggle = document.querySelector("[data-sidebar-toggle]");
+    const sidebarState = document.querySelector("#deck-sidebar-state");
+    const smallViewport = window.matchMedia("(max-width: 760px)");
+    const stackedViewport = window.matchMedia("(max-width: 900px)");
+    let currentSlide = 0;
+
+    if ("scrollRestoration" in history) {
+      history.scrollRestoration = "manual";
+    }
+
+    const getTitle = (index) =>
+      slideCards[index]?.getAttribute("data-short-title") || "";
+
+    const updateSidebarState = (isCollapsed) => {
+      if (!app || !sidebarToggle || !sidebarState) return;
+      app.classList.toggle("sidebar-collapsed", isCollapsed);
+      sidebarToggle.setAttribute("aria-expanded", String(!isCollapsed));
+      sidebarState.textContent = isCollapsed
+        ? "Slide navigation hidden."
+        : "Slide navigation visible.";
+
+      if (!isCollapsed) {
+        window.setTimeout(keepActiveThumbnailVisible, 0);
+      }
+    };
+
+    const getSlideIndexFromHash = () => {
+      const hashMatch = window.location.hash.match(/slide-(\d+)/);
+      return hashMatch ? Number(hashMatch[1]) - 1 : 0;
+    };
+
+    const keepActiveThumbnailVisible = () => {
+      const activeThumbnail = thumbnails[currentSlide];
+      const thumbnailList = activeThumbnail?.closest(".thumbnail-list");
+      if (!(activeThumbnail instanceof HTMLElement) || !(thumbnailList instanceof HTMLElement)) {
+        return;
+      }
+
+      const maxLeft = thumbnailList.scrollWidth - thumbnailList.clientWidth;
+      const maxTop = thumbnailList.scrollHeight - thumbnailList.clientHeight;
+      const targetLeft =
+        activeThumbnail.offsetLeft -
+        (thumbnailList.clientWidth - activeThumbnail.offsetWidth) / 2;
+      const targetTop =
+        activeThumbnail.offsetTop -
+        (thumbnailList.clientHeight - activeThumbnail.offsetHeight) / 2;
+
+      thumbnailList.scrollTo({
+        left: Math.max(0, Math.min(targetLeft, maxLeft)),
+        top: Math.max(0, Math.min(targetTop, maxTop)),
+        behavior: "auto",
+      });
+    };
+
+    const updateDeck = (targetIndex, options = {}) => {
+      const nextIndex = Math.max(0, Math.min(targetIndex, slideCards.length - 1));
+      currentSlide = nextIndex;
+
+      slideCards.forEach((slide, index) => {
+        const isActive = index === currentSlide;
+        slide.hidden = !isActive;
+        slide.classList.toggle("is-active", isActive);
+        slide.setAttribute("aria-hidden", String(!isActive));
+      });
+
+      thumbnails.forEach((thumbnail, index) => {
+        const isActive = index === currentSlide;
+        thumbnail.classList.toggle("is-active", isActive);
+        thumbnail.setAttribute("aria-current", isActive ? "step" : "false");
+      });
+
+      keepActiveThumbnailVisible();
+
+      const slideNumber = currentSlide + 1;
+      const totalSlides = slideCards.length;
+      const remaining = totalSlides - slideNumber;
+      const progressPercent = (slideNumber / totalSlides) * 100;
+
+      if (previousButton instanceof HTMLButtonElement) {
+        previousButton.disabled = currentSlide === 0;
+      }
+
+      if (nextButton instanceof HTMLButtonElement) {
+        nextButton.disabled = currentSlide === totalSlides - 1;
+      }
+
+      if (progressLabel) {
+        progressLabel.textContent = `Slide ${slideNumber} of ${totalSlides}`;
+      }
+
+      if (progressBar) {
+        progressBar.setAttribute("aria-valuenow", String(slideNumber));
+        progressBar.setAttribute("aria-valuetext", `Slide ${slideNumber} of ${totalSlides}`);
+      }
+
+      if (progressFill instanceof HTMLElement) {
+        progressFill.style.width = `${progressPercent}%`;
+      }
+
+      if (previousLabel) {
+        previousLabel.textContent =
+          currentSlide > 0 ? getTitle(currentSlide - 1) : "Start";
+      }
+
+      if (nextLabel) {
+        nextLabel.textContent =
+          currentSlide < totalSlides - 1 ? getTitle(currentSlide + 1) : "Complete";
+      }
+
+      if (currentLabel) {
+        currentLabel.textContent = getTitle(currentSlide);
+      }
+
+      if (remainingLabel) {
+        remainingLabel.textContent =
+          remaining === 0
+            ? "End of deck"
+            : `${remaining} slide${remaining === 1 ? "" : "s"} remaining`;
+      }
+
+      if (options.updateHash !== false) {
+        history.replaceState(null, "", `#slide-${slideNumber}`);
+      }
+
+      if (options.focus) {
+        slideCards[currentSlide]?.focus({ preventScroll: true });
+      }
+
+      if (stackedViewport.matches) {
+        window.requestAnimationFrame(() => window.scrollTo(0, 0));
+      }
+    };
+
+    thumbnails.forEach((thumbnail) => {
+      thumbnail.addEventListener("click", () => {
+        const target = Number(thumbnail.getAttribute("data-slide-target"));
+        updateDeck(target);
+        if (smallViewport.matches) {
+          updateSidebarState(true);
+        }
+      });
+    });
+
+    previousButton?.addEventListener("click", () => updateDeck(currentSlide - 1));
+    nextButton?.addEventListener("click", () => updateDeck(currentSlide + 1));
+
+    sidebarToggle?.addEventListener("click", () => {
+      const shouldCollapse = !app?.classList.contains("sidebar-collapsed");
+      updateSidebarState(shouldCollapse);
+    });
+
+    document.addEventListener("keydown", (event) => {
+      const activeElement = document.activeElement;
+      const isTyping =
+        activeElement instanceof HTMLInputElement ||
+        activeElement instanceof HTMLTextAreaElement ||
+        activeElement instanceof HTMLSelectElement ||
+        activeElement?.hasAttribute("contenteditable");
+
+      if (isTyping) return;
+
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        updateDeck(currentSlide + 1);
+      }
+
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        updateDeck(currentSlide - 1);
+      }
+    });
+
+    window.addEventListener("hashchange", () => {
+      const hashSlide = getSlideIndexFromHash();
+      if (hashSlide !== currentSlide) {
+        updateDeck(hashSlide, { updateHash: false });
+      }
+    });
+
+    const initialSlide = getSlideIndexFromHash();
+    updateSidebarState(smallViewport.matches);
+    updateDeck(initialSlide, { updateHash: false });
+  </script>
+</BaseLayout>
+
+<style is:global>
+  .workshop-deck-body {
+    background: #e9e3d9;
+    color: #181512;
+    overflow: hidden;
+  }
+
+  .workshop-deck-body #main-content {
+    min-height: 100vh;
+  }
+
+  .workshop-deck-body .skip-link:focus {
+    z-index: 20;
+  }
+
+  @media (max-width: 900px) {
+    .workshop-deck-body {
+      overflow: auto;
+    }
+  }
+</style>
+
+<style>
+  .deck-app {
+    --deck-bg: #e9e3d9;
+    --slide-bg: #fffdf8;
+    --slide-soft: #f5f0e7;
+    --ink: #181512;
+    --muted: #5f5850;
+    --quiet: #8c8175;
+    --line: #d6cabd;
+    --line-strong: #bcae9e;
+    --accent: #9b3729;
+    --accent-soft: #ead8d1;
+    --olive: #586048;
+    --blue: #263d52;
+    min-height: 100vh;
+    height: 100vh;
+    display: grid;
+    grid-template-columns: minmax(280px, 23vw) minmax(0, 1fr);
+    background: var(--deck-bg);
+    color: var(--ink);
+    font-family: var(--font-sans, "Satoshi-Variable", "Poppins", system-ui, sans-serif);
+    letter-spacing: 0;
+  }
+
+  .deck-app *,
+  .deck-app *::before,
+  .deck-app *::after {
+    letter-spacing: 0;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .sidebar {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 1.5rem 1.1rem;
+    border-right: 1px solid var(--line);
+    background: #eee8de;
+    overflow: hidden;
+  }
+
+  .sidebar-header {
+    padding: 0.25rem 0.25rem 0;
+  }
+
+  .deck-kicker,
+  .deck-meta,
+  .slide-tag,
+  .slide-number,
+  .thumbnail-number,
+  .activity-panel span,
+  .reference-text span,
+  .teaching-note span,
+  .control-button small,
+  .control-context small,
+  .visual-label {
+    font-family: var(--font-mono, "Space Mono", monospace);
+  }
+
+  .deck-kicker {
+    margin: 0 0 0.55rem;
+    color: var(--accent);
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .sidebar h1 {
+    margin: 0;
+    color: var(--ink);
+    font-family: "Crimson Pro", Georgia, serif;
+    font-size: 1.95rem;
+    font-weight: 560;
+    line-height: 1.05;
+  }
+
+  .deck-meta {
+    margin: 0.7rem 0 0;
+    color: var(--muted);
+    font-size: 0.84rem;
+  }
+
+  .thumbnail-list {
+    min-height: 0;
+    overflow-y: auto;
+    display: grid;
+    gap: 0.75rem;
+    padding: 0.15rem 0.35rem 0.4rem 0.15rem;
+    scrollbar-width: thin;
+    scrollbar-color: var(--line-strong) transparent;
+  }
+
+  .slide-thumbnail {
+    width: 100%;
+    min-height: 6.6rem;
+    display: grid;
+    grid-template-columns: 2.2rem minmax(0, 1fr);
+    gap: 0.7rem;
+    align-items: start;
+    text-align: left;
+    padding: 0.85rem;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+    transition:
+      background 180ms ease,
+      border-color 180ms ease,
+      transform 180ms ease;
+  }
+
+  .slide-thumbnail:hover {
+    background: rgba(255, 253, 248, 0.66);
+    border-color: var(--line);
+    transform: translateY(-1px);
+  }
+
+  .slide-thumbnail:focus-visible,
+  .control-button:focus-visible,
+  .sidebar-toggle:focus-visible,
+  .spine-visual input:focus-visible {
+    outline: 3px solid rgba(155, 55, 41, 0.35);
+    outline-offset: 3px;
+  }
+
+  .slide-thumbnail.is-active {
+    background: var(--slide-bg);
+    border-color: var(--accent);
+    box-shadow: inset 4px 0 0 var(--accent);
+  }
+
+  .thumbnail-number {
+    color: var(--accent);
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+
+  .thumbnail-copy {
+    min-width: 0;
+    display: grid;
+    gap: 0.36rem;
+  }
+
+  .thumbnail-title {
+    color: var(--ink);
+    font-size: 0.98rem;
+    font-weight: 760;
+    line-height: 1.12;
+  }
+
+  .thumbnail-preview {
+    color: var(--muted);
+    font-size: 0.84rem;
+    line-height: 1.35;
+  }
+
+  .deck-main {
+    min-width: 0;
+    height: 100vh;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    gap: 1rem;
+    padding: 1.35rem 2rem 1.5rem;
+  }
+
+  .deck-topbar,
+  .deck-controls {
+    width: min(100%, 1120px);
+    margin: 0 auto;
+  }
+
+  .deck-topbar {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 1rem;
+    min-height: 3.2rem;
+  }
+
+  .sidebar-toggle {
+    display: none;
+    min-height: 2.75rem;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--slide-bg);
+    color: var(--ink);
+    padding: 0 0.95rem;
+    font: inherit;
+    font-weight: 760;
+    cursor: pointer;
+  }
+
+  .topbar-title {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    color: var(--muted);
+    font-size: 0.98rem;
+  }
+
+  .topbar-title strong {
+    color: var(--ink);
+  }
+
+  .progress-indicator {
+    min-width: 13.5rem;
+    display: grid;
+    gap: 0.45rem;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+
+  .progress-track {
+    height: 0.28rem;
+    border-radius: 999px;
+    background: #d8ccbf;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    display: block;
+    width: 10%;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--accent);
+    transition: width 220ms ease;
+  }
+
+  .slide-stage {
+    min-height: 0;
+    display: grid;
+    place-items: center;
+    padding: 0.35rem 0;
+  }
+
+  .slide-stack {
+    position: relative;
+    width: min(100%, 1120px);
+    height: min(720px, calc(100vh - 12.75rem));
+    min-height: 30.5rem;
+  }
+
+  .slide-card {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--slide-bg);
+    box-shadow: 0 22px 55px rgba(66, 45, 28, 0.13);
+    padding: 2.55rem 3rem 2.65rem;
+  }
+
+  .slide-card.is-active {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 1.55rem;
+    animation: slideIn 210ms ease both;
+  }
+
+  .slide-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    color: var(--quiet);
+  }
+
+  .slide-number {
+    color: var(--accent);
+    font-size: 0.95rem;
+    font-weight: 700;
+  }
+
+  .slide-tag {
+    font-size: 0.8rem;
+  }
+
+  .slide-content {
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1.12fr) minmax(18rem, 0.88fr);
+    gap: 3rem;
+    align-items: center;
+  }
+
+  .slide-copy {
+    min-width: 0;
+  }
+
+  .slide-copy h2 {
+    margin: 0;
+    color: var(--ink);
+    font-family: "Crimson Pro", Georgia, serif;
+    font-size: 3.45rem;
+    font-weight: 560;
+    line-height: 1.02;
+  }
+
+  .slide-subtext {
+    max-width: 43rem;
+    margin: 1.1rem 0 0;
+    color: var(--muted);
+    font-size: 1.32rem;
+    line-height: 1.48;
+  }
+
+  .quote-block {
+    margin: 1.6rem 0 0;
+    padding: 0.15rem 0 0.15rem 1.2rem;
+    border-left: 3px solid var(--accent);
+  }
+
+  .quote-block blockquote {
+    margin: 0;
+    color: var(--ink);
+    font-family: "Crimson Pro", Georgia, serif;
+    font-size: 1.65rem;
+    font-style: italic;
+    line-height: 1.24;
+  }
+
+  .quote-block figcaption {
+    margin-top: 0.65rem;
+    color: var(--muted);
+    font-size: 0.98rem;
+  }
+
+  .quote-block figcaption::before {
+    content: "- ";
+  }
+
+  .reference-text,
+  .teaching-note,
+  .question-line {
+    margin: 1.35rem 0 0;
+    color: var(--muted);
+    font-size: 1rem;
+    line-height: 1.55;
+  }
+
+  .reference-text span,
+  .teaching-note span {
+    display: block;
+    margin-bottom: 0.35rem;
+    color: var(--accent);
+    font-size: 0.76rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .story-structure {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin: 1.4rem 0 0;
+    padding: 0;
+  }
+
+  .story-structure li {
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 0.46rem 0.7rem;
+    background: var(--slide-soft);
+    color: var(--ink);
+    font-size: 0.95rem;
+  }
+
+  .activity-panel {
+    margin-top: 1.65rem;
+    padding-top: 1.05rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .activity-panel span {
+    display: block;
+    margin-bottom: 0.45rem;
+    color: var(--olive);
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .activity-panel p {
+    margin: 0;
+    color: var(--ink);
+    font-size: 1.15rem;
+    line-height: 1.45;
+  }
+
+  .question-line {
+    color: var(--blue);
+    font-weight: 760;
+  }
+
+  .slide-visual-wrap {
+    min-width: 0;
+  }
+
+  .visual-board {
+    min-height: 21rem;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--slide-soft);
+    padding: 1.35rem;
+  }
+
+  .visual-label {
+    color: var(--accent);
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .decision-visual {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    gap: 1.25rem;
+  }
+
+  .decision-frame {
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--line-strong);
+    background: var(--slide-bg);
+  }
+
+  .main-frame {
+    min-height: 8rem;
+    color: var(--ink);
+    font-family: "Crimson Pro", Georgia, serif;
+    font-size: 2.45rem;
+  }
+
+  .decision-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.55rem;
+  }
+
+  .decision-grid span,
+  .journey-step,
+  .cut-card,
+  .dialogue-row,
+  .arc-step,
+  .kuleshov-row,
+  .silent-frame,
+  .sound-layer {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: rgba(255, 253, 248, 0.62);
+  }
+
+  .decision-grid span {
+    display: grid;
+    place-items: center;
+    min-height: 3.4rem;
+    font-weight: 760;
+  }
+
+  .journey-visual {
+    display: grid;
+    gap: 0.72rem;
+  }
+
+  .journey-step {
+    display: grid;
+    grid-template-columns: 2.75rem 1fr;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 0.95rem;
+  }
+
+  .journey-step span {
+    color: var(--accent);
+    font-family: var(--font-mono, "Space Mono", monospace);
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+
+  .journey-step strong {
+    font-size: 1.1rem;
+  }
+
+  .timeline-visual {
+    display: grid;
+    grid-template-rows: auto repeat(6, 1fr) auto;
+    gap: 0.48rem;
+  }
+
+  .timeline-ruler {
+    display: flex;
+    justify-content: space-between;
+    color: var(--quiet);
+    font-family: var(--font-mono, "Space Mono", monospace);
+    font-size: 0.78rem;
+  }
+
+  .track-row {
+    display: grid;
+    grid-template-columns: 2.5rem 1fr;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
+  .track-name {
+    color: var(--muted);
+    font-family: var(--font-mono, "Space Mono", monospace);
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+
+  .track-clip {
+    display: flex;
+    align-items: center;
+    height: 2.1rem;
+    border-radius: 6px;
+    padding: 0 0.75rem;
+    background: rgba(155, 55, 41, 0.12);
+    color: var(--ink);
+    font-size: 0.9rem;
+    font-weight: 760;
+  }
+
+  .track-row.short .track-clip {
+    width: 48%;
+    background: rgba(88, 96, 72, 0.16);
+  }
+
+  .track-row.medium .track-clip {
+    width: 72%;
+    background: rgba(38, 61, 82, 0.13);
+  }
+
+  .marker-row {
+    display: flex;
+    justify-content: space-around;
+  }
+
+  .marker-row span {
+    width: 0.62rem;
+    height: 0.62rem;
+    border-radius: 999px;
+    background: var(--accent);
+  }
+
+  .emotion-visual {
+    display: grid;
+    grid-template-rows: 1fr auto 1fr;
+    gap: 1rem;
+  }
+
+  .cut-card {
+    display: grid;
+    align-content: center;
+    gap: 0.45rem;
+    padding: 1rem;
+  }
+
+  .cut-card span,
+  .dialogue-row span {
+    color: var(--muted);
+    font-family: var(--font-mono, "Space Mono", monospace);
+    font-size: 0.82rem;
+  }
+
+  .cut-card strong {
+    font-family: "Crimson Pro", Georgia, serif;
+    font-size: 1.75rem;
+    line-height: 1.1;
+  }
+
+  .cut-card.active {
+    border-color: var(--accent);
+    background: #f8eee9;
+  }
+
+  .emotion-wave {
+    height: 3.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.38rem;
+  }
+
+  .emotion-wave span {
+    width: 0.35rem;
+    border-radius: 999px;
+    background: var(--accent);
+  }
+
+  .emotion-wave span:nth-child(1),
+  .emotion-wave span:nth-child(5) {
+    height: 1.1rem;
+  }
+
+  .emotion-wave span:nth-child(2),
+  .emotion-wave span:nth-child(4) {
+    height: 2.2rem;
+  }
+
+  .emotion-wave span:nth-child(3) {
+    height: 3rem;
+  }
+
+  .invisible-visual {
+    display: grid;
+    align-content: center;
+    gap: 1rem;
+  }
+
+  .dialogue-row {
+    padding: 1rem;
+  }
+
+  .dialogue-row strong {
+    display: block;
+    margin-top: 0.35rem;
+    font-size: 1.18rem;
+  }
+
+  .dialogue-row.listener {
+    border-color: var(--accent);
+    background: #f8eee9;
+  }
+
+  .cut-line {
+    width: 2px;
+    height: 2.4rem;
+    margin: 0 auto;
+    background: var(--accent);
+  }
+
+  .invisible-visual p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.98rem;
+    line-height: 1.45;
+  }
+
+  .arc-visual {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  .arc-step {
+    display: grid;
+    align-content: center;
+    gap: 0.5rem;
+    min-height: 5rem;
+    padding: 0.95rem;
+  }
+
+  .arc-step span {
+    color: var(--accent);
+    font-family: var(--font-mono, "Space Mono", monospace);
+    font-weight: 700;
+  }
+
+  .arc-step strong {
+    font-size: 1rem;
+  }
+
+  .spine-visual {
+    display: grid;
+    gap: 0.72rem;
+  }
+
+  .spine-visual label {
+    display: grid;
+    grid-template-columns: 9.5rem 1fr;
+    gap: 0.7rem;
+    align-items: center;
+  }
+
+  .spine-visual label span {
+    color: var(--muted);
+    font-size: 0.9rem;
+    font-weight: 760;
+  }
+
+  .spine-visual input {
+    min-width: 0;
+    min-height: 2.65rem;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--slide-bg);
+    color: var(--ink);
+    padding: 0 0.85rem;
+    font: inherit;
+    font-size: 1rem;
+  }
+
+  .kuleshov-visual {
+    display: grid;
+    gap: 0.75rem;
+    align-content: center;
+  }
+
+  .kuleshov-row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 0.7rem;
+    align-items: center;
+    padding: 0.9rem;
+  }
+
+  .kuleshov-row span {
+    min-height: 3.2rem;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--slide-bg);
+    text-align: center;
+    font-size: 0.92rem;
+  }
+
+  .kuleshov-row b {
+    color: var(--accent);
+    font-size: 1.2rem;
+  }
+
+  .kuleshov-row strong {
+    grid-column: 1 / -1;
+    color: var(--blue);
+    font-family: "Crimson Pro", Georgia, serif;
+    font-size: 1.45rem;
+    text-align: center;
+  }
+
+  .silent-visual {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  .silent-frame {
+    position: relative;
+    min-height: 8rem;
+    display: grid;
+    place-items: end center;
+    padding: 1rem;
+    color: var(--slide-bg);
+    background: var(--ink);
+    overflow: hidden;
+  }
+
+  .silent-frame::before {
+    content: "";
+    position: absolute;
+    inset: 0.7rem;
+    border: 1px solid rgba(255, 253, 248, 0.45);
+  }
+
+  .silent-frame span {
+    position: relative;
+    font-weight: 760;
+  }
+
+  .sound-visual {
+    position: relative;
+    display: grid;
+    align-content: center;
+    gap: 0.62rem;
+  }
+
+  .sound-layer {
+    min-height: 2.6rem;
+    display: flex;
+    align-items: center;
+    padding: 0 0.9rem;
+    width: calc(100% - (var(--layer) * 5%));
+    margin-left: calc(var(--layer) * 2%);
+    background: rgba(38, 61, 82, 0.1);
+  }
+
+  .sound-layer:nth-child(even) {
+    background: rgba(88, 96, 72, 0.14);
+  }
+
+  .sound-layer span {
+    color: var(--ink);
+    font-weight: 760;
+  }
+
+  .deck-controls {
+    display: grid;
+    grid-template-columns: minmax(12rem, 1fr) auto minmax(12rem, 1fr);
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .control-button {
+    min-width: 0;
+    min-height: 3.3rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.8rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 8px;
+    background: var(--slide-bg);
+    color: var(--ink);
+    padding: 0.62rem 0.85rem;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition:
+      background 180ms ease,
+      border-color 180ms ease,
+      transform 180ms ease;
+  }
+
+  .control-button:hover:not(:disabled) {
+    transform: translateY(-1px);
+    border-color: var(--accent);
+  }
+
+  .control-button.next {
+    justify-content: flex-end;
+    background: var(--ink);
+    color: var(--slide-bg);
+    border-color: var(--ink);
+    text-align: right;
+  }
+
+  .control-button:disabled {
+    opacity: 0.48;
+    cursor: not-allowed;
+  }
+
+  .control-button small {
+    display: block;
+    margin-bottom: 0.18rem;
+    color: currentColor;
+    opacity: 0.7;
+    font-size: 0.74rem;
+    text-transform: uppercase;
+  }
+
+  .control-button strong {
+    display: block;
+    max-width: 16rem;
+    overflow: hidden;
+    color: currentColor;
+    font-size: 0.98rem;
+    line-height: 1.15;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .control-context {
+    margin: 0;
+    color: var(--ink);
+    text-align: center;
+  }
+
+  .control-context span {
+    display: block;
+    font-weight: 760;
+  }
+
+  .control-context small {
+    display: block;
+    margin-top: 0.22rem;
+    color: var(--muted);
+    font-size: 0.78rem;
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (max-width: 1180px) {
+    .deck-app {
+      grid-template-columns: 16.5rem minmax(0, 1fr);
+    }
+
+    .deck-main {
+      padding-inline: 1.35rem;
+    }
+
+    .slide-card {
+      padding: 2.2rem;
+    }
+
+    .slide-content {
+      gap: 2rem;
+    }
+
+    .slide-copy h2 {
+      font-size: 3rem;
+    }
+
+    .slide-subtext {
+      font-size: 1.18rem;
+    }
+  }
+
+  @media (max-height: 760px) and (min-width: 901px) {
+    .slide-stack {
+      min-height: 29rem;
+    }
+
+    .slide-card {
+      padding: 1.8rem 2rem;
+    }
+
+    .slide-copy h2 {
+      font-size: 2.7rem;
+    }
+
+    .slide-subtext {
+      margin-top: 0.85rem;
+      font-size: 1.08rem;
+    }
+
+    .quote-block,
+    .activity-panel {
+      margin-top: 1.1rem;
+    }
+
+    .quote-block blockquote {
+      font-size: 1.4rem;
+    }
+
+    .visual-board {
+      min-height: 18rem;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .deck-app {
+      height: auto;
+      grid-template-columns: 1fr;
+    }
+
+    .deck-app.sidebar-collapsed .sidebar {
+      display: none;
+    }
+
+    .sidebar {
+      order: 2;
+      border-right: 0;
+      border-top: 1px solid var(--line);
+      padding: 0.9rem 1.2rem 1rem;
+    }
+
+    .sidebar-header {
+      display: none;
+    }
+
+    .thumbnail-list {
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: 14.4rem;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding: 0.2rem 0 0.45rem;
+    }
+
+    .slide-thumbnail {
+      min-height: 7rem;
+    }
+
+    .deck-main {
+      order: 1;
+      height: auto;
+      min-height: 100vh;
+      padding: 1rem 1.2rem 1.15rem;
+      grid-template-rows: auto auto auto;
+    }
+
+    .deck-topbar {
+      grid-template-columns: auto 1fr auto;
+    }
+
+    .sidebar-toggle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .topbar-title {
+      justify-content: center;
+    }
+
+    .slide-stack {
+      height: auto;
+      min-height: 0;
+    }
+
+    .slide-card {
+      min-height: 39rem;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .deck-main {
+      padding-inline: 0.85rem;
+    }
+
+    .deck-topbar {
+      grid-template-columns: 1fr auto;
+    }
+
+    .topbar-title {
+      display: none;
+    }
+
+    .progress-indicator {
+      min-width: 11rem;
+    }
+
+    .slide-card {
+      padding: 1.45rem;
+    }
+
+    .slide-header {
+      align-items: flex-start;
+    }
+
+    .slide-tag {
+      max-width: 10rem;
+      text-align: right;
+      line-height: 1.35;
+    }
+
+    .slide-content {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+
+    .slide-copy h2 {
+      font-size: 2.35rem;
+    }
+
+    .slide-subtext {
+      font-size: 1.05rem;
+    }
+
+    .quote-block blockquote {
+      font-size: 1.32rem;
+    }
+
+    .activity-panel p {
+      font-size: 1rem;
+    }
+
+    .visual-board {
+      min-height: 18rem;
+      padding: 1rem;
+    }
+
+    .spine-visual label {
+      grid-template-columns: 1fr;
+      gap: 0.35rem;
+    }
+
+    .deck-controls {
+      grid-template-columns: 1fr 1fr;
+      gap: 0.65rem;
+    }
+
+    .control-context {
+      grid-column: 1 / -1;
+      order: -1;
+    }
+
+    .control-button {
+      min-height: 3.6rem;
+    }
+
+    .control-button strong {
+      max-width: 9rem;
+      white-space: normal;
+    }
+
+    .arc-visual,
+    .silent-visual,
+    .decision-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .deck-main {
+      padding-inline: 0.65rem;
+    }
+
+    .progress-indicator {
+      min-width: 9.5rem;
+      font-size: 0.82rem;
+    }
+
+    .slide-card {
+      min-height: 42rem;
+      padding: 1.1rem;
+    }
+
+    .slide-copy h2 {
+      font-size: 2.05rem;
+    }
+
+    .main-frame {
+      font-size: 2rem;
+    }
+
+    .control-button {
+      padding-inline: 0.65rem;
+    }
+
+    .control-button strong {
+      font-size: 0.9rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .slide-card.is-active,
+    .slide-thumbnail,
+    .control-button,
+    .progress-fill {
+      animation: none;
+      transition: none;
+    }
+  }
+</style>
