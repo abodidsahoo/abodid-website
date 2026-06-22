@@ -1,9 +1,14 @@
 ---
 import { TechAtlasDeck } from "../../components/tech-atlas/TechAtlasDeck";
+import SEO from "../../components/SEO.astro";
 import rawData from "../../data/technology_course_refined.json";
 import "@fontsource/inconsolata"; // Default fallback, but we use Satoshi
 import "../../styles/global.css";
 // We don't import BaseLayout to keep it clean and fullscreen.
+
+const pageTitle = "Creative Tech Toolkit";
+const pageDescription =
+    "A fullscreen creative technology toolkit for exploring AI, design, media, research, interaction, and digital storytelling concepts.";
 ---
 
 <!doctype html>
@@ -14,7 +19,7 @@ import "../../styles/global.css";
             name="viewport"
             content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
         />
-        <title>Creative Tech Toolkit</title>
+        <SEO title={pageTitle} description={pageDescription} />
 
         <!-- Load Satoshi Variable Font -->
         <link
@@ -65,6 +70,7 @@ import "../../styles/global.css";
         <main
             class="w-full h-[100dvh] overflow-hidden bg-[#0A0A0A] fixed inset-0"
         >
+            <h1 class="sr-only">{pageTitle}</h1>
             <!-- Pass data to React Component -->
             <TechAtlasDeck rawData={rawData} client:load />
         </main>

@@ -22,7 +22,6 @@ const PRESET_LAYOUTS = {
         { id: 'notes', x: 5, y: 4, w: 2, h: 2 },
         { id: 'research', x: 3, y: 5, w: 2, h: 1 },
         { id: 'resources', x: 7, y: 4, w: 1, h: 2 },
-        { id: 'fundraising', x: 3, y: 6, w: 2, h: 1 },
         { id: 'newsletter', x: 0, y: 5, w: 1, h: 1 },
         { id: 'site', x: 6, y: 6, w: 1, h: 1 },
         { id: 'social', x: 7, y: 6, w: 1, h: 1 },
@@ -37,7 +36,6 @@ const PRESET_LAYOUTS = {
         { id: 'notes', x: 5, y: 3, w: 1, h: 3 },
         { id: 'resources', x: 0, y: 5, w: 2, h: 2 },
         { id: 'research', x: 2, y: 5, w: 2, h: 2 },
-        { id: 'fundraising', x: 4, y: 6, w: 2, h: 1 },
         { id: 'newsletter', x: 0, y: 7, w: 2, h: 1 },
         { id: 'site', x: 4, y: 7, w: 1, h: 1 },
         { id: 'social', x: 5, y: 7, w: 1, h: 1 },
@@ -50,7 +48,6 @@ const PRESET_LAYOUTS = {
         { id: 'current', x: 2, y: 3, w: 2, h: 3 },
         { id: 'photos', x: 0, y: 4, w: 2, h: 3 },
         { id: 'notes', x: 2, y: 6, w: 2, h: 1 },
-        { id: 'fundraising', x: 0, y: 7, w: 2, h: 1 },
         { id: 'resources', x: 2, y: 7, w: 2, h: 1 },
         { id: 'research', x: 0, y: 8, w: 2, h: 1 },
         { id: 'newsletter', x: 0, y: 9, w: 2, h: 1 },
@@ -67,7 +64,6 @@ const TILE_META = {
     notes: { tag: 'OBSIDIAN NOTES', cta: 'DAILY NOTES', href: '/research/obsidian-vault' },
     resources: { tag: 'USEFUL RESOURCES', cta: 'HUB', href: '/resources' },
     research: { tag: 'RESEARCH', cta: 'ALL PROJECTS', href: '/research/projects' },
-    fundraising: { tag: 'FUNDRAISING', cta: 'SUPPORT', href: '/fundraising' },
     current: { tag: 'WHAT AM I UP TO', cta: 'READ BLOG', href: '/blog' },
     tags: { tag: 'OBSIDIAN TAGS', cta: 'VAULT', href: '/research/obsidian-vault' },
     newsletter: { tag: 'NEWSLETTER', cta: 'JOIN', href: '/newsletter' },
@@ -88,7 +84,6 @@ const IMAGE_TILE_IDS = new Set([
     'photos',
     'resources',
     'research',
-    'fundraising',
     'current',
 ]);
 
@@ -100,7 +95,6 @@ const EXPAND_PRIORITY = [
     'films',
     'resources',
     'research',
-    'fundraising',
     'newsletter',
     'tags',
     'bio',
@@ -114,7 +108,6 @@ const EXPAND_TARGET_AREA = {
     films: 4,
     resources: 4,
     research: 4,
-    fundraising: 3,
     newsletter: 2,
     tags: 2,
     bio: 4,
@@ -172,11 +165,6 @@ const SHUFFLE_SIZE_OPTIONS = {
         { w: 2, h: 2 },
         { w: 2, h: 1 },
         { w: 1, h: 2 },
-    ],
-    fundraising: [
-        { w: 2, h: 1 },
-        { w: 2, h: 2 },
-        { w: 1, h: 1 },
     ],
     tags: [
         { w: 2, h: 1 },
@@ -1210,7 +1198,6 @@ const LandingGridPrototype = ({
     obsidianTags = [],
     resources = [],
     researchProjects = [],
-    fundraisingProjects = [],
     currentProjects = [],
 }) => {
     const shellRef = useRef(null);
@@ -1462,27 +1449,6 @@ const LandingGridPrototype = ({
                 },
             ),
         [currentProjects],
-    );
-
-    const normalizedFundraising = useMemo(
-        () =>
-            withFallback(
-                toList(fundraisingProjects).map((project, index) => ({
-                    id: `fundraising-${index}`,
-                    title: truncate(project.title || 'Fundraising Project', 52),
-                    summary: truncate(project.summary || 'Support this campaign.', 68),
-                    image: project.image || '',
-                    href: project.href || '/fundraising',
-                })),
-                {
-                    id: 'fundraising-fallback',
-                    title: 'Fundraising updates loading...',
-                    summary: 'Campaign previews appear here.',
-                    image: '',
-                    href: '/fundraising',
-                },
-            ),
-        [fundraisingProjects],
     );
 
     const normalizedTags = useMemo(() => {
@@ -1889,18 +1855,6 @@ const LandingGridPrototype = ({
                         items={normalizedResearch}
                         interval={11200}
                         startDelay={2500 + index * 120}
-                        renderItem={(item, itemIndex) =>
-                            renderCoverCard(item, sizeClass, getMixedTone(itemIndex, index), tile.h <= 1)
-                        }
-                    />
-                );
-
-            case 'fundraising':
-                return (
-                    <TileRotator
-                        items={normalizedFundraising}
-                        interval={11900}
-                        startDelay={2100 + index * 120}
                         renderItem={(item, itemIndex) =>
                             renderCoverCard(item, sizeClass, getMixedTone(itemIndex, index), tile.h <= 1)
                         }
@@ -2327,8 +2281,7 @@ const LandingGridPrototype = ({
                 .tile-films .tile-content,
                 .tile-resources .tile-content,
                 .tile-research .tile-content,
-                .tile-current .tile-content,
-                .tile-fundraising .tile-content {
+                .tile-current .tile-content {
                     padding: 0;
                 }
 
@@ -3244,8 +3197,7 @@ const LandingGridPrototype = ({
                 .landing-tile.size-xs.tile-films .tile-content,
                 .landing-tile.size-xs.tile-resources .tile-content,
                 .landing-tile.size-xs.tile-research .tile-content,
-                .landing-tile.size-xs.tile-current .tile-content,
-                .landing-tile.size-xs.tile-fundraising .tile-content {
+                .landing-tile.size-xs.tile-current .tile-content {
                     padding: 0;
                 }
 
@@ -3483,8 +3435,7 @@ const LandingGridPrototype = ({
                     .tile-films .tile-content,
                     .tile-resources .tile-content,
                     .tile-research .tile-content,
-                    .tile-current .tile-content,
-                    .tile-fundraising .tile-content {
+                    .tile-current .tile-content {
                         padding: 0 !important;
                     }
 

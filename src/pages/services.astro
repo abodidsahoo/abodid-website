@@ -8,37 +8,6 @@ const description =
 const contactHref =
     "/contact?from=%2Fservices&source_name=services&cta=hire-abodid";
 
-const serviceAreas = [
-    {
-        title: "Visual Storytelling",
-        body: "Commissioned visual narratives for brands, editorials, campaigns, artists, and digital platforms. I shape stories that feel intentional, cinematic, and emotionally precise.",
-    },
-    {
-        title: "Photography",
-        body: "Portrait, documentary, event, exhibition, and campaign photography. From intimate human portraits to archival documentation of artworks, installations, and cultural spaces.",
-    },
-    {
-        title: "Film & Post-Production",
-        body: "Direction, editing, colour grading, sound design, and motion graphics for brand films, music videos, artist films, documentaries, and social-first content.",
-    },
-    {
-        title: "Exhibition & Experience Design",
-        body: "Support for physical and digital exhibition spaces, including spatial storytelling, AV workflows, projection, lighting, installation documentation, and audience experience.",
-    },
-    {
-        title: "Creative Technology & Prototyping",
-        body: "UX design, interaction prototypes, web experiments, AI-assisted workflows, and digital storytelling systems for projects that need new ways of being seen, felt, or navigated.",
-    },
-    {
-        title: "Research & Cultural Strategy",
-        body: "Research-led creative development grounded in documentary practice, human behaviour, memory, grief, cultural context, and the ethics of AI.",
-    },
-    {
-        title: "Teaching & Creative Support",
-        body: "Workshops, mentoring, technical guidance, and creative direction for artists, students, teams, and organisations developing visual or experience-led work.",
-    },
-];
-
 const coreStrengths = [
     "Visual storytelling",
     "Portrait photography",
@@ -46,29 +15,74 @@ const coreStrengths = [
     "Campaign photography",
     "Event photography",
     "Exhibition design",
+    "Exhibition production",
+    "Spatial design",
+    "XR setups",
+    "Lighting design",
     "Video editing",
     "Colour grading",
     "Sound design",
+    "Creative direction",
     "UX design",
     "Creative prototyping",
+    "Qualitative research",
     "Cultural research",
     "AI ethics",
-    "Teaching and workshops",
+    "Workshops and mentoring",
 ];
 
 const technicalToolkit = [
     "Adobe Lightroom",
     "Adobe Photoshop",
     "Adobe Illustrator",
+    "Adobe InDesign",
     "Adobe Premiere Pro",
     "Adobe After Effects",
+    "Adobe Audition",
     "DaVinci Resolve",
     "HTML / CSS / JavaScript",
+    "Python",
+    "Supabase",
+    "Obsidian",
+    "Notion",
+    "Blender",
+    "Sony Alpha / FX",
+    "Rode Audio",
+    "Zoom H6",
     "Gemini",
-    "Nano Banana",
-    "Veo",
     "Google Antigravity",
     "Codex by OpenAI",
+];
+
+const proofPoints = [
+    {
+        figure: "6+ years",
+        title: "Film production and exhibition design",
+        bodyLead:
+            "Directed films, music videos, documentaries, and non-fiction content for lifestyle brands, design studios, artists, and cultural organisations across",
+        bodyEnding: "India and the UK.",
+    },
+    {
+        figure: "10+ spaces / 700+ students",
+        title: "RCA exhibition production",
+        bodyLead:
+            "Supported technical execution across Royal College of Art graduate shows, helping teams streamline digital media exhibitions, installations, and",
+        bodyEnding: "health and safety workflows.",
+    },
+    {
+        figure: "Selected contexts",
+        title: "Brands, institutions, and cultural platforms",
+        bodyLead:
+            "Work and collaborations include Wieden+Kennedy, Odisha Tourism, Guatemala Tourism, Educate Girls, Outernet London, Frameless, Royal College of Art,",
+        bodyEnding: "and BFI London.",
+    },
+    {
+        figure: "Research-led practice",
+        title: "RCA, BSA, and Cambridge Digital Humanities",
+        bodyLead:
+            "RCA alumnus and Apple Scholarship recipient, British Sociological Association presenter and session chair, and Cambridge Cultural Heritage",
+        bodyEnding: "Data School bursary recipient.",
+    },
 ];
 
 const structuredData = [
@@ -89,58 +103,54 @@ const structuredData = [
 
 <BaseLayout title={title} description={description} structuredData={structuredData}>
     <main class="services-page">
-        <header class="hero">
-            <p class="eyebrow">Services</p>
+        <header class="services-hero">
+            <div class="hero-topline">
+                <p class="eyebrow">Services</p>
+            </div>
+
             <h1>
-                Strategic creative services across image, film, space, and
-                emerging technology.
+                Bespoke Creative Direction for Experiential Storytelling Projects.
             </h1>
 
             <div class="hero-copy">
-                <p class="lead">
-                    I build visual stories for brands, artists, institutions,
-                    and cultural projects that need more than surface-level
-                    content.
-                </p>
                 <p>
-                    My work sits at the intersection of <strong>photography,
-                    film, exhibition design, research, and creative technology</strong>,
-                    combining strong production skills with a deep understanding
-                    of narrative, emotion, audience, and atmosphere.
+                    I work with institutions, brands, artists, and creative teams
+                    to create public-facing work across photography, film,
+                    exhibitions, events, and creative technology.
                 </p>
+
                 <p>
-                    I am brought in when a project needs someone who can think
-                    conceptually, shoot beautifully, edit precisely, understand
-                    people, handle technology, and deliver work that feels
-                    considered from first idea to final output.
+                    I bring together visual storytelling, spatial thinking,
+                    research, production planning, and technical delivery. This
+                    is for projects that need a clear creative eye, a sensitive
+                    understanding of culture, and the ability to move from idea
+                    to final outcome.
                 </p>
             </div>
 
             <div class="hero-actions">
-                <a href={contactHref} class="primary-action">Start a project</a>
-                <a href="mailto:hello@abodid.com" class="secondary-action">
-                    Email me
-                </a>
+                <a href={contactHref} class="primary-action">Contact Abodid</a>
             </div>
         </header>
 
-        <section class="offer-section" aria-labelledby="offer-title">
-            <div class="section-heading">
-                <p class="eyebrow">What I offer</p>
-                <h2 id="offer-title">
-                    High-context creative support from concept to final delivery.
+        <section class="proof-section" aria-labelledby="proof-title">
+            <div class="section-heading proof-heading">
+                <p class="eyebrow">Selected experience</p>
+                <h2 id="proof-title">
+                    Proof that the creative, technical, and research parts can
+                    move together.
                 </h2>
             </div>
 
-            <div class="service-list">
+            <div class="proof-grid">
                 {
-                    serviceAreas.map((service, index) => (
-                        <article class="service-row">
-                            <p class="service-index">
-                                {String(index + 1).padStart(2, "0")}
+                    proofPoints.map((point) => (
+                        <article class="proof-card">
+                            <p class="proof-figure">{point.figure}</p>
+                            <h3>{point.title}</h3>
+                            <p>
+                                {point.bodyLead} {point.bodyEnding}
                             </p>
-                            <h3>{service.title}</h3>
-                            <p>{service.body}</p>
                         </article>
                     ))
                 }
@@ -157,14 +167,14 @@ const structuredData = [
 
             <div class="list-columns">
                 <div class="list-block">
-                    <h3>Creative and strategic strengths</h3>
+                    <h3>Creative and Strategic Strengths</h3>
                     <ul class="bullet-list">
                         {coreStrengths.map((item) => <li>{item}</li>)}
                     </ul>
                 </div>
 
                 <div class="list-block">
-                    <h3>Technical toolkit</h3>
+                    <h3>Technical Toolkit</h3>
                     <ul class="bullet-list">
                         {technicalToolkit.map((item) => <li>{item}</li>)}
                     </ul>
@@ -172,26 +182,6 @@ const structuredData = [
             </div>
         </section>
 
-        <section class="closing-section" aria-label="Availability">
-            <p class="eyebrow">Availability</p>
-            <h2>
-                I work best on ambitious projects that need one person who can
-                move fluidly between concept, image, film, space, research,
-                technology, and final delivery.
-            </h2>
-            <p class="closing-note">
-                Available for select commissions across visual storytelling,
-                photography, film, exhibition, and creative technology. Direct
-                consulting and creative support is £30/hour unless we scope a
-                larger project fee.
-            </p>
-            <div class="hero-actions">
-                <a href={contactHref} class="primary-action">Contact Abodid</a>
-                <a href="/superprof-video-editing-classes" class="secondary-action">
-                    Video editing classes
-                </a>
-            </div>
-        </section>
     </main>
 </BaseLayout>
 
@@ -202,9 +192,9 @@ const structuredData = [
         padding: clamp(3.5rem, 7vw, 6rem) 24px 8rem;
     }
 
-    .hero {
-        max-width: 1040px;
-        margin-bottom: clamp(5rem, 10vw, 8rem);
+    .services-hero {
+        padding-bottom: clamp(4rem, 8vw, 6.5rem);
+        border-bottom: 1px solid var(--border-subtle);
     }
 
     .eyebrow {
@@ -216,42 +206,52 @@ const structuredData = [
         margin: 0 0 1rem;
     }
 
+    .hero-topline {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.85rem 1.25rem;
+        align-items: baseline;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+    }
+
+    .hero-topline .eyebrow {
+        margin: 0;
+    }
+
     h1,
     h2,
     h3,
     p {
         letter-spacing: 0;
+        text-wrap: pretty;
     }
 
     h1 {
-        max-width: 900px;
+        max-width: 980px;
         margin: 0;
-        font-size: clamp(2.1rem, 5vw, 4.2rem);
-        line-height: 1.05;
-        font-weight: 700;
+        font-family: var(--font-display);
+        font-size: 3.5rem;
+        line-height: 1.08;
+        font-weight: 600;
+        letter-spacing: -0.02em;
         color: var(--text-primary);
+        text-wrap: balance;
     }
 
     .hero-copy {
         display: grid;
-        gap: 1.1rem;
-        max-width: 820px;
+        gap: 1.15rem;
+        max-width: 760px;
         margin-top: clamp(2rem, 5vw, 3.5rem);
     }
 
-    .hero-copy p,
-    .closing-note {
+    .hero-copy p {
         margin: 0;
+        font-family: var(--font-sans);
         color: var(--text-secondary);
-        font-size: clamp(1.03rem, 1.6vw, 1.16rem);
-        line-height: 1.68;
-    }
-
-    .hero-copy .lead {
-        color: var(--text-primary);
-        font-size: clamp(1.3rem, 2.4vw, 1.8rem);
-        line-height: 1.36;
-        max-width: 760px;
+        font-size: 1.1rem;
+        line-height: 1.6;
     }
 
     strong {
@@ -289,9 +289,8 @@ const structuredData = [
         color: var(--text-primary);
     }
 
-    .offer-section,
-    .capability-section,
-    .closing-section {
+    .proof-section,
+    .capability-section {
         margin-top: clamp(5rem, 10vw, 8rem);
     }
 
@@ -304,8 +303,11 @@ const structuredData = [
         max-width: 720px;
     }
 
-    .section-heading h2,
-    .closing-section h2 {
+    .proof-heading {
+        max-width: 980px;
+    }
+
+    .section-heading h2 {
         margin: 0;
         color: var(--text-primary);
         font-size: clamp(2.1rem, 5vw, 4.2rem);
@@ -313,26 +315,16 @@ const structuredData = [
         font-weight: 700;
     }
 
-    .service-list {
-        display: grid;
-        gap: clamp(2.25rem, 5vw, 4.5rem);
+    .proof-heading h2 {
+        font-family: var(--font-display);
+        font-size: 3.5rem;
+        line-height: 1.08;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        text-wrap: balance;
     }
 
-    .service-row {
-        display: grid;
-        grid-template-columns: 3.5rem minmax(180px, 0.35fr) minmax(0, 1fr);
-        gap: clamp(1.25rem, 4vw, 3rem);
-        align-items: start;
-    }
-
-    .service-index {
-        margin: 0.2rem 0 0;
-        font-family: var(--font-mono);
-        font-size: 0.82rem;
-        color: var(--text-tertiary);
-    }
-
-    .service-row h3,
+    .proof-card h3,
     .list-block h3 {
         margin: 0;
         color: var(--text-primary);
@@ -341,52 +333,72 @@ const structuredData = [
         font-weight: 700;
     }
 
-    .service-row p:last-child {
+    .proof-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
+    }
+
+    .proof-card {
+        display: grid;
+        gap: 0.85rem;
+        padding: clamp(1.15rem, 3vw, 1.65rem);
+        border: 1px solid var(--border-subtle);
+        border-radius: 8px;
+        background: var(--bg-surface);
+    }
+
+    .proof-figure {
         margin: 0;
-        max-width: 68ch;
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        line-height: 1.4;
+        text-transform: uppercase;
+        color: var(--text-tertiary);
+    }
+
+    .proof-card p:last-child {
+        margin: 0;
+        font-family: var(--font-sans);
         color: var(--text-secondary);
-        font-size: 1.04rem;
-        line-height: 1.68;
+        font-size: 1.1rem;
+        line-height: 1.6;
     }
 
     .list-columns {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: clamp(3rem, 7vw, 6rem);
+        grid-template-columns: 1fr;
+        gap: clamp(3rem, 6vw, 4.5rem);
         align-items: start;
     }
 
     .list-block {
         display: grid;
-        gap: 1.25rem;
+        gap: 1.35rem;
     }
 
     .bullet-list {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 0.65rem 2rem;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-auto-rows: 1fr;
+        gap: 0.75rem;
+        list-style: none;
         margin: 0;
-        padding-left: 1.05rem;
+        padding: 0;
         color: var(--text-secondary);
     }
 
     .bullet-list li {
+        display: flex;
+        align-items: center;
+        min-height: 3.4rem;
+        height: 100%;
+        padding: 0.72rem 0.85rem;
+        border: 1px solid var(--border-subtle);
+        border-radius: 8px;
+        background: var(--bg-surface);
         font-size: 1rem;
-        line-height: 1.55;
-        padding-left: 0.15rem;
-    }
-
-    .bullet-list li::marker {
-        color: var(--text-tertiary);
-    }
-
-    .closing-section {
-        max-width: 950px;
-    }
-
-    .closing-note {
-        max-width: 760px;
-        margin-top: 1.5rem;
+        line-height: 1.35;
     }
 
     @media (max-width: 820px) {
@@ -394,44 +406,40 @@ const structuredData = [
             padding-top: 3rem;
         }
 
-        .service-row {
-            grid-template-columns: 2.5rem minmax(0, 1fr);
-        }
-
-        .service-row p:last-child {
-            grid-column: 2;
-        }
-
-        .list-columns {
+        .proof-grid {
             grid-template-columns: 1fr;
+        }
+
+        .bullet-list {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+    }
+
+    @media (max-width: 700px) {
+        .bullet-list {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
         }
     }
 
     @media (max-width: 600px) {
+        .services-page {
+            padding-right: 16px;
+            padding-left: 16px;
+        }
+
         h1 {
+            max-width: 100%;
+            font-size: 1.9rem;
+            text-wrap: pretty;
+        }
+
+        .section-heading h2 {
             font-size: clamp(2rem, 10vw, 3rem);
         }
 
-        .section-heading h2,
-        .closing-section h2 {
-            font-size: clamp(2rem, 10vw, 3rem);
-        }
-
-        .service-row {
-            grid-template-columns: 1fr;
-            gap: 0.55rem;
-        }
-
-        .service-row p:last-child {
-            grid-column: 1;
-        }
-
-        .service-index {
-            margin-top: 0;
-        }
-
-        .bullet-list {
-            grid-template-columns: 1fr;
+        .proof-heading h2 {
+            font-size: 2.5rem;
         }
 
         .primary-action,
@@ -439,4 +447,11 @@ const structuredData = [
             width: 100%;
         }
     }
+
+    @media (max-width: 460px) {
+        .bullet-list {
+            grid-template-columns: 1fr;
+        }
+    }
+
 </style>

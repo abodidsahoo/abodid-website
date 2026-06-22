@@ -35,7 +35,6 @@ const HIRE_INTENT_RULES = [
     { prefix: "/experience", bucket: "/experience" },
     { prefix: "/press", bucket: "/press" },
     { prefix: "/workshops", bucket: "/workshops" },
-    { prefix: "/fundraising", bucket: "/fundraising" },
 ];
 
 const cleanString = (value) =>

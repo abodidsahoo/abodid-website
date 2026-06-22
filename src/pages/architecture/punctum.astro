@@ -1,6 +1,11 @@
 ---
 import "../../styles/global.css";
 import Footer from "../../components/Footer.astro";
+import SEO from "../../components/SEO.astro";
+
+const pageTitle = "Punctum Architecture";
+const pageDescription =
+    "Architecture notes for the Invisible Punctums analysis system, including image perception, human memory input, consensus scoring, and poetic synthesis.";
 ---
 
 <html lang="en">
@@ -16,7 +21,7 @@ import Footer from "../../components/Footer.astro";
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <meta name="viewport" content="width=device-width" />
         <meta name="generator" content={Astro.generator} />
-        <title>Punctum Architecture | Abodid</title>
+        <SEO title={pageTitle} description={pageDescription} />
         <script src="/scripts/journey-tracker.js" defer></script>
     </head>
     <body>

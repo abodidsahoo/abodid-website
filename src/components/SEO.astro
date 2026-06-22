@@ -24,17 +24,26 @@ const {
 const siteName = "Abodid Sahoo";
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 const resolvedImage = image ? new URL(image, Astro.site).toString() : undefined;
+const formatTitle = (value?: string) => {
+    const trimmedTitle = value?.trim();
+
+    if (!trimmedTitle) return siteName;
+
+    return trimmedTitle.toLowerCase().includes(siteName.toLowerCase())
+        ? trimmedTitle
+        : `${trimmedTitle} | ${siteName}`;
+};
+const formattedTitle = formatTitle(title);
 
 const ogImageUrl = new URL(`/api/og`, Astro.url);
-ogImageUrl.searchParams.set("title", title || "Abodid Sahoo");
+ogImageUrl.searchParams.set("title", formattedTitle);
 ogImageUrl.searchParams.set("description", description);
 if (image) {
     ogImageUrl.searchParams.set("image", image);
 }
 const ogImage =
     !useDynamicOgImage && resolvedImage ? resolvedImage : ogImageUrl.toString();
-const socialImageAlt =
-    imageAlt || `${title ? `${title} | ${siteName}` : siteName} preview image`;
+const socialImageAlt = imageAlt || `${formattedTitle} preview image`;
 const jsonLdItems = Array.isArray(structuredData)
     ? structuredData
     : structuredData
@@ -44,26 +53,18 @@ const serializeJsonLd = (item: Record<string, unknown>) =>
     JSON.stringify(item).replace(/</g, "\\u003c");
 ---
 
-<!-- Global Metadata -->
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 <link rel="canonical" href={canonicalURL} />
-<meta name="generator" content={Astro.generator} />
 
 <!-- Primary Meta Tags -->
-<title>{title ? `${title} | ${siteName}` : siteName}</title>
-<meta name="title" content={title ? `${title} | ${siteName}` : siteName} />
+<title>{formattedTitle}</title>
+<meta name="title" content={formattedTitle} />
 <meta name="description" content={description} />
 {noindex && <meta name="robots" content="noindex, nofollow" />}
 
 <!-- Open Graph / Facebook -->
 <meta property="og:type" content={type} />
 <meta property="og:url" content={Astro.url} />
-<meta
-    property="og:title"
-    content={title ? `${title} | ${siteName}` : siteName}
-/>
+<meta property="og:title" content={formattedTitle} />
 <meta property="og:description" content={description} />
 <meta property="og:image" content={ogImage} />
 <meta property="og:image:alt" content={socialImageAlt} />
@@ -71,10 +72,7 @@ const serializeJsonLd = (item: Record<string, unknown>) =>
 <!-- Twitter -->
 <meta property="twitter:card" content="summary_large_image" />
 <meta property="twitter:url" content={Astro.url} />
-<meta
-    property="twitter:title"
-    content={title ? `${title} | ${siteName}` : siteName}
-/>
+<meta property="twitter:title" content={formattedTitle} />
 <meta property="twitter:description" content={description} />
 <meta property="twitter:image" content={ogImage} />
 <meta property="twitter:image:alt" content={socialImageAlt} />

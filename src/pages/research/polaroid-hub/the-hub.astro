@@ -69,16 +69,23 @@ portfolioProjects.forEach((project) => {
     }
 });
 
-// Shuffle (Fisher-Yates)
-for (let i = allImages.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [allImages[i], allImages[j]] = [allImages[j], allImages[i]];
-}
+allImages = allImages.sort((left, right) =>
+    hashString(`${left.id}:scatter-order`).localeCompare(
+        hashString(`${right.id}:scatter-order`),
+    ),
+);
 
 const pageTitle = "Polaroid Hub - Polaroid Scatter";
+const pageDescription =
+    "An immersive Polaroid Hub view for browsing Abodid Sahoo's photography archive as a draggable scatter of image cards.";
 ---
 
-<BaseLayout title={pageTitle} hideHeader={true} fullWidth={true}>
+<BaseLayout
+    title={pageTitle}
+    description={pageDescription}
+    hideHeader={true}
+    fullWidth={true}
+>
     <div class="hub-controls">
         <a href="/" class="home-button">Home</a>
         <div class="hub-instructions" aria-label="How to use Polaroid Hub">
@@ -89,6 +96,7 @@ const pageTitle = "Polaroid Hub - Polaroid Scatter";
 
     <ThemeWidget client:idle />
     <main class="polaroid-hub-immersive">
+        <h1 class="sr-only">Polaroid Hub</h1>
         {/* Pass ALL images */}
         <PolaroidScatter items={allImages} client:load immersive={true} deepLinkParam="photo" />
     </main>

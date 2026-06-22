@@ -33,10 +33,15 @@ if (!imageUrl) {
     imageUrl = "/images/fallback-punctum.jpg";
     imageId = "demo-123";
 }
+
+const pageTitle = "AI Analysis | Invisible Punctums";
+const pageDescription =
+    "Interactive AI analysis prototype for the Invisible Punctums research project, comparing machine perception with human image memory.";
 ---
 
-<Layout title="AI Analysis | Invisible Punctums">
+<Layout title={pageTitle} description={pageDescription}>
     <main class="min-h-screen bg-stone-100 flex flex-col">
+        <h1 class="sr-only">{pageTitle}</h1>
         <!-- Analysis Container -->
         <div class="flex-1 flex items-center justify-center p-4">
             <AnalysisInterface

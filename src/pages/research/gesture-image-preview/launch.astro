@@ -5,7 +5,7 @@ import GestureImagePreviewLab from "../../../components/experiments/GestureImage
 import ForceDarkMode from "../../../components/ForceDarkMode.astro";
 import { getAllPhotography } from "../../../lib/api";
 
-const pageTitle = "Gesture Photo Stack";
+const pageTitle = "Gesture Photo Stack Launch";
 const pageDescription = "Launch page for the Gesture Photo Stack research prototype.";
 
 const photographyProjects = await getAllPhotography();
@@ -69,6 +69,7 @@ if (images.length === 0) {
         <ForceDarkMode />
     </Fragment>
 
+    <h1 class="sr-only">{pageTitle}</h1>
     <GestureImagePreviewLab client:only="react" images={images} />
 </ExperimentLayout>
 

@@ -1,17 +1,31 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { getEducation } from "../lib/api";
+import { breadcrumbJsonLd, personJsonLd } from "../lib/seoData";
 
 const education = await getEducation();
-const pageTitle = "Education";
+const pageTitle = "Abodid Sahoo Education | Royal College of Art (RCA)";
+const pageDescription =
+    "Education profile for Abodid Sahoo, Royal College of Art (RCA), London alumnus and Apple Scholarship recipient.";
+const structuredData = [
+    personJsonLd(),
+    breadcrumbJsonLd([
+        { name: "Home", path: "/" },
+        { name: "Education", path: "/education/" },
+    ]),
+];
 ---
 
-<BaseLayout title={pageTitle}>
+<BaseLayout
+    title={pageTitle}
+    description={pageDescription}
+    structuredData={structuredData}
+>
     <header class="page-header">
         <h1>Education</h1>
         <p class="section-intro">
-            My academic journey and the institutions that have shaped my
-            practice.
+            My academic journey, including Royal College of Art (RCA), London,
+            and the institutions that have shaped my practice.
         </p>
     </header>
 

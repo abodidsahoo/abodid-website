@@ -2,7 +2,6 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import {
     breadcrumbJsonLd,
-    externalProfiles,
     personJsonLd,
     serviceJsonLd,
 } from "../lib/seoData";
@@ -12,7 +11,6 @@ const description =
     "Book one-to-one Obsidian tutoring with Abodid Sahoo for research notes, second brain setup, thesis workflows, writing systems, tags, backlinks, templates, and graph view.";
 const contactHref =
     "/contact?from=%2Fobsidian-tutoring&source_name=obsidian-tutoring&cta=book-obsidian-tutoring";
-const superprofHref = externalProfiles.superprof;
 
 const outcomes = [
     "A clean Obsidian vault that fits your actual work",
@@ -58,6 +56,12 @@ const structuredData = [
 ---
 
 <BaseLayout title={pageTitle} description={description} structuredData={structuredData}>
+    <script
+        slot="head"
+        is:inline
+        src="https://www.paypal.com/sdk/js?client-id=BAAttsc6sE2ZkLVzJoPcVG15j0pqEpXApDZoUGhEZNQeCJgmigK9JATqcL-2lIUyZ9AzTLV9Qo3BorAYaY&components=hosted-buttons&disable-funding=venmo&currency=GBP"
+    ></script>
+
     <main class="tutoring-page">
         <header class="hero">
             <p class="eyebrow">Obsidian tutoring</p>
@@ -68,22 +72,49 @@ const structuredData = [
                 personal, and easy to return to.
             </p>
             <div class="actions">
-                <a href={contactHref} class="primary-action">Book tutoring</a>
+                <a href="#obsidian-tutoring-checkout" class="primary-action">Pay now</a>
+                <a href={contactHref} class="secondary-action">Ask before booking</a>
                 <a href="/workshops/obsidian" class="secondary-action">View full course</a>
             </div>
-            {
-                superprofHref ? (
-                    <a href={superprofHref} target="_blank" rel="noopener noreferrer" class="platform-link">
-                        View my Superprof tutoring profile
-                    </a>
-                ) : (
-                    <p class="platform-note">
-                        Prefer booking through Superprof? Send me a message and
-                        I will share the profile link.
-                    </p>
-                )
-            }
         </header>
+
+        <section
+            id="obsidian-tutoring-checkout"
+            class="checkout-section"
+            aria-labelledby="checkout-title"
+        >
+            <div class="checkout-copy">
+                <p class="eyebrow">Fast checkout</p>
+                <h2 id="checkout-title">Ready to begin? Book your Obsidian tutoring through PayPal.</h2>
+                <p>
+                    Use this secure checkout if you already know you want a
+                    one-to-one session. After payment, send me your current
+                    vault questions or research context so I can prepare the
+                    session around your actual workflow.
+                </p>
+                <ul class="checkout-points" aria-label="Checkout details">
+                    <li>PayPal-hosted checkout in GBP</li>
+                    <li>Works with PayPal and supported cards</li>
+                    <li>Best for students, researchers, writers, and educators</li>
+                </ul>
+            </div>
+
+            <aside class="checkout-card" aria-label="PayPal checkout">
+                <p class="checkout-label">Obsidian tutoring checkout</p>
+                <div
+                    id="paypal-container-7GPVW8RZD86W4"
+                    class="paypal-checkout"
+                    data-paypal-hosted-button
+                ></div>
+                <p class="paypal-loading" data-paypal-status hidden>
+                    Loading secure PayPal checkout...
+                </p>
+                <p class="checkout-note">
+                    Need a custom plan first?
+                    <a href={contactHref}>Message me before paying</a>.
+                </p>
+            </aside>
+        </section>
 
         <section class="section" aria-labelledby="session-types-title">
             <div class="section-heading">
@@ -123,6 +154,61 @@ const structuredData = [
             <a href={contactHref} class="primary-action">Contact Abodid</a>
         </section>
     </main>
+
+    <script is:inline>
+        (() => {
+            const selector = "#paypal-container-7GPVW8RZD86W4";
+            const container = document.querySelector(selector);
+            const status = document.querySelector("[data-paypal-status]");
+
+            if (!container) return;
+
+            const setStatus = (message) => {
+                if (!status) return;
+                status.hidden = !message;
+                status.textContent = message || "";
+            };
+
+            const renderPayPal = () => {
+                if (container.dataset.rendered === "true") {
+                    return true;
+                }
+
+                if (!window.paypal?.HostedButtons) {
+                    return false;
+                }
+
+                window.paypal
+                    .HostedButtons({
+                        hostedButtonId: "7GPVW8RZD86W4",
+                    })
+                    .render(selector);
+
+                container.dataset.rendered = "true";
+                setStatus("");
+                return true;
+            };
+
+            if (renderPayPal()) return;
+
+            setStatus("Loading secure PayPal checkout...");
+
+            const intervalId = window.setInterval(() => {
+                if (renderPayPal()) {
+                    window.clearInterval(intervalId);
+                }
+            }, 200);
+
+            window.setTimeout(() => {
+                if (renderPayPal()) return;
+
+                window.clearInterval(intervalId);
+                setStatus(
+                    "PayPal is taking longer than expected. Refresh the page or message me before paying.",
+                );
+            }, 5000);
+        })();
+    </script>
 </BaseLayout>
 
 <style>
@@ -134,7 +220,7 @@ const structuredData = [
 
     .hero {
         max-width: 900px;
-        margin-bottom: clamp(4rem, 8vw, 6rem);
+        margin-bottom: clamp(2.75rem, 6vw, 4.5rem);
     }
 
     .eyebrow {
@@ -164,8 +250,7 @@ const structuredData = [
     .lead,
     .cta-section p,
     .panel p,
-    .check-list,
-    .platform-note {
+    .check-list {
         color: var(--text-secondary);
         line-height: 1.6;
     }
@@ -204,21 +289,107 @@ const structuredData = [
         color: var(--text-primary);
     }
 
-    .platform-link {
-        display: inline-flex;
-        margin-top: 1rem;
+    .section {
+        margin-bottom: 4rem;
+    }
+
+    .checkout-section {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(20rem, 0.62fr);
+        gap: clamp(1.25rem, 4vw, 2rem);
+        align-items: stretch;
+        margin: 0 0 clamp(4rem, 8vw, 6rem);
+        padding: clamp(1.25rem, 4vw, 2rem);
+        scroll-margin-top: 6rem;
+        border: 1px solid var(--border-subtle);
+        border-radius: 8px;
+        background:
+            linear-gradient(
+                135deg,
+                color-mix(in srgb, var(--bg-surface) 96%, transparent),
+                color-mix(in srgb, var(--bg-surface) 84%, transparent)
+            ),
+            var(--bg-surface);
+        box-shadow: 0 18px 60px rgba(0, 0, 0, 0.12);
+    }
+
+    .checkout-copy {
+        min-width: 0;
+    }
+
+    .checkout-copy h2 {
+        max-width: 720px;
+    }
+
+    .checkout-copy p {
+        max-width: 720px;
+        margin: 1rem 0 0;
+        color: var(--text-secondary);
+        font-size: 1.05rem;
+        line-height: 1.65;
+    }
+
+    .checkout-points {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.65rem;
+        margin: 1.3rem 0 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .checkout-points li {
+        border: 1px solid var(--border-subtle);
+        border-radius: 999px;
+        padding: 0.48rem 0.7rem;
+        color: var(--text-secondary);
+        background: color-mix(in srgb, var(--bg-canvas) 42%, transparent);
+        font-size: 0.9rem;
+        line-height: 1.25;
+    }
+
+    .checkout-card {
+        display: flex;
+        min-width: 0;
+        flex-direction: column;
+        justify-content: center;
+        padding: clamp(1rem, 3vw, 1.35rem);
+        border: 1px solid var(--border-strong);
+        border-radius: 8px;
+        background: color-mix(in srgb, var(--bg-canvas) 50%, transparent);
+    }
+
+    .checkout-label {
+        margin: 0 0 0.85rem;
+        color: var(--text-primary);
+        font-weight: 800;
+    }
+
+    .paypal-checkout {
+        width: 100%;
+        min-width: 0;
+        min-height: 3.25rem;
+    }
+
+    .paypal-loading,
+    .checkout-note {
+        color: var(--text-secondary);
+        font-size: 0.92rem;
+        line-height: 1.5;
+    }
+
+    .paypal-loading {
+        margin: 0.85rem 0 0;
+    }
+
+    .checkout-note {
+        margin: 1rem 0 0;
+    }
+
+    .checkout-note a {
         color: var(--text-primary);
         font-weight: 700;
         text-underline-offset: 4px;
-    }
-
-    .platform-note {
-        margin: 1rem 0 0;
-        max-width: 640px;
-    }
-
-    .section {
-        margin-bottom: 4rem;
     }
 
     .section-heading {
@@ -273,9 +444,14 @@ const structuredData = [
     }
 
     @media (max-width: 760px) {
+        .checkout-section,
         .grid,
         .split-section {
             grid-template-columns: 1fr;
+        }
+
+        .checkout-section {
+            padding: 1.25rem;
         }
     }
 </style>

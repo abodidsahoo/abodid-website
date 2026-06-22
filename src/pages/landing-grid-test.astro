@@ -48,6 +48,11 @@ const cleanNoteTitle = (raw = "") => {
     return titleCase(deSlugged || "Untitled Note");
 };
 
+const isRetiredRouteItem = (item) => {
+    const href = String(item?.href || item?.url || "");
+    return href.includes("/fundraising");
+};
+
 const [
     filmsRaw,
     photographyRaw,
@@ -99,19 +104,24 @@ const resources = resourcesRaw.slice(0, 24).map((resource) => ({
     href: resource.url || "/resources",
 }));
 
-const researchProjects = researchRaw.slice(0, 20).map((project) => ({
-    title: project.title || "Research Project",
-    description: project.description || "",
-    summary: cleanText(project.description || ""),
-    image: project.image || "",
-    href: project.href || "/research/projects",
-}));
+const researchProjects = researchRaw
+    .filter((project) => !isRetiredRouteItem(project))
+    .slice(0, 20)
+    .map((project) => ({
+        title: project.title || "Research Project",
+        description: project.description || "",
+        summary: cleanText(project.description || ""),
+        image: project.image || "",
+        href: project.href || "/research/projects",
+    }));
 
 const visualExperiments = researchRaw
-    .filter((project) =>
-        /(polaroid|visual|experiment|lab|punctum)/i.test(
-            `${project.title || ""} ${project.slug || ""} ${(project.tags || []).join(" ")}`,
-        ),
+    .filter(
+        (project) =>
+            !isRetiredRouteItem(project) &&
+            /(polaroid|visual|experiment|lab|punctum)/i.test(
+                `${project.title || ""} ${project.slug || ""} ${(project.tags || []).join(" ")}`,
+            ),
     )
     .slice(0, 14)
     .map((project) => ({
@@ -150,23 +160,14 @@ const obsidianTags = tagsRaw
     .filter(Boolean)
     .slice(0, 240);
 
-const fundraisingProjects = [
-    {
-        title: "Cambridge Data School Fundraiser",
-        image: "https://upload.wikimedia.org/wikipedia/commons/b/b4/KingsCollegeChapelWest.jpg",
-        summary: "From Odisha to Cambridge University.",
-        href: "/fundraising/cambridge-data-school",
-    },
-    {
-        title: "BSA Annual Conference Fundraiser",
-        image: "https://www.birmingham.ac.uk/Images/academic-services/RPC21250x633.jpg",
-        summary: "Support peer-reviewed papers at BSA 2026.",
-        href: "/fundraising/bsa-conference-2026",
-    },
-];
-
 const currentProjects = newsRaw
-    .filter((item) => item && item.title && item.href)
+    .filter(
+        (item) =>
+            item &&
+            item.title &&
+            item.href &&
+            !isRetiredRouteItem(item),
+    )
     .slice(0, 4)
     .map((item, index) => {
         return {
@@ -193,7 +194,6 @@ const currentProjects = newsRaw
         resources={resources}
         researchProjects={researchProjects}
         visualExperiments={visualExperiments}
-        fundraisingProjects={fundraisingProjects}
         currentProjects={currentProjects}
         obsidianTags={obsidianTags}
     />

@@ -2,6 +2,8 @@ const SITE_URL = "https://abodid.com";
 const PERSON_ID = `${SITE_URL}/#abodid-sahoo`;
 
 export const externalProfiles = {
+    rca2023: "https://2023.rca.ac.uk/students/abodid-sahoo/",
+    imdb: "https://www.imdb.com/name/nm12156894/",
     superprof:
         "https://www.superprof.co.uk/highly-experienced-video-production-professional-teaching-video-editing-and-colour-grading-all-levels-across-all-age-groups.html",
 };
@@ -14,15 +16,28 @@ export const seoIdentity = {
     indiaPhone: "+919439094370",
     ukPhone: "+447522258768",
     description:
-        "Abodid Sahoo is a creative technologist, photographer, filmmaker, researcher, and tutor working across creative technology, AI-assisted research workflows, Obsidian systems, visual storytelling, and digital media.",
+        "Abodid Sahoo is a Royal College of Art (RCA), London alumnus, creative technologist, photographer, filmmaker, researcher, and tutor working across creative technology, AI-assisted research workflows, Obsidian systems, visual storytelling, and digital media.",
     sameAs: [
         "https://uk.linkedin.com/in/abodidsahoo",
         "https://www.instagram.com/abodid.sahoo",
         "https://github.com/abodidsahoo",
         "https://vimeo.com/abodidsahoo",
         "https://twitter.com/abodidsahoo",
+        externalProfiles.rca2023,
+        externalProfiles.imdb,
         externalProfiles.superprof,
     ].filter(Boolean),
+};
+
+export const royalCollegeOfArtJsonLd = {
+    "@type": "CollegeOrUniversity",
+    name: "Royal College of Art",
+    alternateName: ["RCA", "Royal College of Art London"],
+    url: "https://www.rca.ac.uk/",
+    location: {
+        "@type": "Place",
+        name: "London, United Kingdom",
+    },
 };
 
 export const personJsonLd = () => ({
@@ -36,7 +51,15 @@ export const personJsonLd = () => ({
     description: seoIdentity.description,
     jobTitle:
         "Creative technologist, photographer, filmmaker, researcher, and tutor",
+    alumniOf: royalCollegeOfArtJsonLd,
+    award: [
+        "Apple Scholarship recipient at the Royal College of Art",
+        "Royal College of Art MA Digital Direction alumnus",
+    ],
     knowsAbout: [
+        "Royal College of Art",
+        "RCA",
+        "Royal College of Art London",
         "Creative technology",
         "AI-assisted research workflows",
         "Obsidian",

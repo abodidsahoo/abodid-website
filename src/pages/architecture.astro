@@ -1,6 +1,11 @@
 ---
 import "../styles/global.css";
 import Footer from "../components/Footer.astro";
+import SEO from "../components/SEO.astro";
+
+const pageTitle = "Website Architecture";
+const pageDescription =
+    "A public architecture note for abodid.com, covering the Astro, React, Supabase, animation, audio, AI, and performance systems behind the site.";
 
 const techStack = [
     {
@@ -62,7 +67,7 @@ const consultationHref =
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <meta name="viewport" content="width=device-width" />
         <meta name="generator" content={Astro.generator} />
-        <title>Website Architecture | Abodid</title>
+        <SEO title={pageTitle} description={pageDescription} />
         <script src="/scripts/journey-tracker.js" defer></script>
     </head>
     <body>
@@ -75,7 +80,7 @@ const consultationHref =
                     </div>
                 </div>
 
-                <h1 class="arch-title">Website Architecture</h1>
+                <h1 class="arch-title">{pageTitle}</h1>
                 <p class="arch-intro">
                     This digital space is a living, breathing extension of my
                     mind. It is designed to be a "Dark Room" for my work, a

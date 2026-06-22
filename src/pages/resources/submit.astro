@@ -9,6 +9,7 @@ const description = "Share a useful tool or article with the community.";
 
 <BaseLayout title={title} description={description}>
     <div class="hub-container">
+        <h1 class="sr-only">{title}</h1>
         <SubmissionForm client:only="react">
             <div slot="fallback" class="hub-form text-center p-8">
                 <div style="font-size: 14px; color: var(--text-secondary);">

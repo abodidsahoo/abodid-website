@@ -35,7 +35,6 @@ const secondaryGroups = [
       { href: "/obsidian-tutoring", label: "Obsidian Tutoring" },
       { href: "/video-editing-mentor", label: "Video Editing Mentor" },
       { href: "/superprof-video-editing-classes", label: "Superprof Classes" },
-      { href: "/fundraising", label: "Fundraising" },
       { href: "/collaboration", label: "Collaboration" },
     ],
   },

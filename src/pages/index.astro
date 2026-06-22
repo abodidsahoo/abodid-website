@@ -23,9 +23,10 @@ import { personJsonLd, websiteJsonLd } from "../lib/seoData";
 import ForceDarkMode from "../components/ForceDarkMode.astro";
 import uk2026 from "../data/uk2026.json";
 
-const pageTitle = "Creative Technology Consultant & Obsidian Tutor";
+const pageTitle =
+    "Abodid Sahoo | RCA Alumnus, Creative Technologist & Photographer";
 const pageDescription =
-    "Hire Abodid Sahoo for creative technology consulting, AI-assisted research workflows, Obsidian tutoring, photography, filmmaking, and visual storytelling.";
+    "Abodid Sahoo is a Royal College of Art (RCA) London alumnus, creative technologist, photographer, filmmaker, researcher, and Obsidian tutor.";
 
 // Helper to safely fetch data
 const safeFetch = async (fn, fallback) => {
@@ -47,20 +48,40 @@ const mediaMentions = await safeFetch(getMediaMentions, []);
 const films = await safeFetch(getFilms, []);
 
 const landingPhotographyProjectLimit = 7;
-const pickFixedRandomProjects = (items, limit) => {
-    const shuffled = Array.isArray(items) ? [...items] : [];
+const hashStringToNumber = (value) => {
+    let hash = 2166136261;
 
-    for (let index = shuffled.length - 1; index > 0; index -= 1) {
-        const swapIndex = Math.floor(Math.random() * (index + 1));
-        [shuffled[index], shuffled[swapIndex]] = [
-            shuffled[swapIndex],
-            shuffled[index],
-        ];
+    for (let index = 0; index < value.length; index += 1) {
+        hash ^= value.charCodeAt(index);
+        hash = Math.imul(hash, 16777619);
     }
 
-    return shuffled.slice(0, limit);
+    return hash >>> 0;
 };
-const landingPhotographyProjects = pickFixedRandomProjects(
+const getStableProjectKey = (project) =>
+    [
+        project?.slug,
+        project?.title,
+        project?.href,
+        project?.image || project?.cover_image,
+    ]
+        .filter(Boolean)
+        .join(":");
+const pickStableFeaturedProjects = (items, limit) => {
+    const sorted = Array.isArray(items) ? [...items] : [];
+
+    sorted.sort((left, right) => {
+        const leftKey = getStableProjectKey(left);
+        const rightKey = getStableProjectKey(right);
+        const leftHash = hashStringToNumber(`landing-photography-v1:${leftKey}`);
+        const rightHash = hashStringToNumber(`landing-photography-v1:${rightKey}`);
+
+        return leftHash - rightHash;
+    });
+
+    return sorted.slice(0, limit);
+};
+const landingPhotographyProjects = pickStableFeaturedProjects(
     featuredPhotography,
     landingPhotographyProjectLimit,
 );
@@ -105,30 +126,8 @@ const animalUrl = findLink("Animal");
 const jawaUrl = "http://youtube.com/watch?v=CSmZHXpr13E";
 const odishaUrl = "https://vimeo.com/265220711";
 
-const supportProjects = [
-    {
-        id: "cambridge-data-school",
-        href: "/fundraising/cambridge-data-school",
-        image: "https://wallpapersok.com/images/high/cambridge-university-hall-7n378cd5chdvjxdg.jpg",
-        imageAlt: "University of Cambridge, United Kingdom",
-        title: "Looking for Partners for Cultural Heritage Data School",
-        description:
-            "I have been offered a place in the Cultural Heritage Data School happening in April 2026 at the University of Cambridge with a program fee bursary.",
-    },
-    {
-        id: "bsa-conference-2026",
-        href: "/fundraising/bsa-conference-2026",
-        image: "https://sociology.plus/wp-content/uploads/2022/07/British-Sociological-Association.png",
-        imageAlt: "BSA Annual Conference 2026",
-        title: "Looking for partners to support my BSA Conference 2026 journey",
-        description:
-            "Two peer-reviewed research works have been accepted at the BSA Annual Conference. My conference registration fee is already funded.",
-    },
-];
-const showLandingSupportSection = false;
-
 const heroHeadingLines = [
-    ["Hi,", "I", "am", "Abodid."],
+    ["Hi,", "I", "am", "Abodid", "Sahoo."],
     ["I", "work", "at", "the", "intersection", "of", "..."],
 ];
 const heroBioWords =
@@ -137,9 +136,6 @@ const heroBioWords =
     );
 const uk2026Feature = {
     href: "/uk2026",
-    image: "/images/uk2026/cambridge-data-school.jpg",
-    imageAlt:
-        "Abodid Sahoo with Prof. Eleanor Dare at Cambridge Digital Humanities",
     kicker: "Read my Latest Memoir",
     title: uk2026.title,
     excerpt:
@@ -225,15 +221,12 @@ const heroTextEffect = "smooth-blur";
     <section class="section latest-note-section" aria-labelledby="uk2026-note-title">
         <a href={uk2026Feature.href} class="uk2026-card">
             <figure class="uk2026-media-group">
-                <div class="uk2026-media">
-                    <img
-                        src={uk2026Feature.image}
-                        alt={uk2026Feature.imageAlt}
-                        loading="eager"
-                        decoding="async"
-                    />
+                <div class="uk2026-media" aria-hidden="true">
+                    <span class="uk2026-media-line"></span>
                 </div>
-                <figcaption class="uk2026-caption">Abodid Sahoo (Left), Eleanor Dare (Right) - Convenor of the Cultural Heritage Data School, Cambridge Digital Humanities, University of Cambridge<span class="uk2026-photo-credit">Photograph by Yashaswinee Sahoo</span></figcaption>
+                <figcaption class="uk2026-caption">
+                    UK 2026 memoir: BSA, Cambridge Data School, and the journey around them.
+                </figcaption>
             </figure>
 
             <div class="uk2026-content">
@@ -338,63 +331,6 @@ const heroTextEffect = "smooth-blur";
         />
     </section>
 
-    {
-        showLandingSupportSection && (
-            <>
-                <div class="major-section-separator writing-support-separator" />
-
-                <section class="section support-section">
-                    <div class="section-header">
-                        <h2 class="section-title">Support Me</h2>
-                        <a
-                            href="/fundraising"
-                            class="link-arrow mobile-btn section-cta"
-                        >
-                            View All
-                        </a>
-                    </div>
-
-                    <div class="support-projects">
-                        {supportProjects.map((project) => (
-                            <article class="support-project" id={project.id}>
-                                <a
-                                    href={project.href}
-                                    class="support-project-image-link"
-                                >
-                                    <img
-                                        src={project.image}
-                                        alt={project.imageAlt}
-                                        class="support-project-image"
-                                        loading="lazy"
-                                    />
-                                </a>
-
-                                <div class="support-project-content">
-                                    <a
-                                        href={project.href}
-                                        class="support-project-title-link"
-                                    >
-                                        <h3 class="support-project-title">
-                                            {project.title}
-                                        </h3>
-                                    </a>
-                                    <p class="support-project-description">
-                                        {project.description}
-                                    </p>
-                                    <a
-                                        href={project.href}
-                                        class="support-project-action"
-                                    >
-                                        View support details →
-                                    </a>
-                                </div>
-                            </article>
-                        ))}
-                    </div>
-                </section>
-            </>
-        )
-    }
 </BaseLayout>
 
 <style>
@@ -756,7 +692,42 @@ const heroTextEffect = "smooth-blur";
         aspect-ratio: 16 / 10;
         overflow: hidden;
         border-radius: 0;
-        background: #f1f5f9;
+        isolation: isolate;
+        background:
+            radial-gradient(circle at 78% 18%, rgba(242, 214, 156, 0.72), transparent 30%),
+            linear-gradient(135deg, #10251f 0%, #8d3e32 48%, #d6c095 100%);
+    }
+
+    .uk2026-media::before,
+    .uk2026-media::after {
+        content: "";
+        position: absolute;
+        pointer-events: none;
+    }
+
+    .uk2026-media::before {
+        width: 42%;
+        aspect-ratio: 1;
+        right: -8%;
+        top: -16%;
+        border: 1px solid rgba(255, 255, 255, 0.42);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.12);
+    }
+
+    .uk2026-media::after {
+        inset: 21% 13%;
+        border: 1px solid rgba(255, 255, 255, 0.24);
+        transform: rotate(-7deg);
+    }
+
+    .uk2026-media-line {
+        position: absolute;
+        left: 12%;
+        right: 12%;
+        bottom: 20%;
+        height: 1px;
+        background: rgba(255, 255, 255, 0.38);
     }
 
     .uk2026-caption {
@@ -767,29 +738,6 @@ const heroTextEffect = "smooth-blur";
         color: #475569;
         text-align: left;
         margin-top: 0.5rem;
-    }
-
-    .uk2026-photo-credit {
-        display: block;
-        margin-top: 0.4rem;
-        font-size: 0.7rem;
-        font-weight: 500;
-        color: #64748b;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-
-    .uk2026-media img {
-        width: 100%;
-        height: 100%;
-        display: block;
-        object-fit: cover;
-        transition: transform 900ms cubic-bezier(0.23, 1, 0.32, 1);
-    }
-
-    .uk2026-card:hover .uk2026-media img,
-    .uk2026-card:focus-visible .uk2026-media img {
-        transform: scale(1.015);
     }
 
     .uk2026-content {
@@ -1085,87 +1033,6 @@ const heroTextEffect = "smooth-blur";
         margin-top: clamp(2rem, 5vh, 4.5rem);
         margin-bottom: clamp(3rem, 7vh, 5rem);
         padding: 0;
-    }
-
-    .support-section {
-        margin-top: 0;
-        margin-bottom: clamp(8rem, 18vh, 15rem);
-    }
-
-    .support-projects {
-        display: flex;
-        flex-direction: column;
-        gap: 1.75rem;
-    }
-
-    .support-project {
-        display: grid;
-        grid-template-columns: 320px 1fr;
-        gap: 1.5rem;
-        align-items: center;
-        padding: 1.25rem;
-        border: 1px solid var(--border-subtle);
-        border-radius: 10px;
-        background: var(--bg-surface);
-    }
-
-    .support-project-image-link {
-        display: block;
-        width: 100%;
-        border-radius: 8px;
-        overflow: hidden;
-        background: var(--bg-surface);
-    }
-
-    .support-project-image {
-        width: 100%;
-        height: 100%;
-        aspect-ratio: 16 / 9;
-        object-fit: cover;
-        display: block;
-    }
-
-    .support-project-content {
-        display: flex;
-        flex-direction: column;
-        gap: 0.65rem;
-    }
-
-    .support-project-title-link {
-        text-decoration: none;
-        color: inherit;
-    }
-
-    .support-project-title {
-        margin: 0;
-        font-family: var(--feature-writing-title-font, var(--font-serif));
-        font-size: 1.45rem;
-        line-height: 1.2;
-        color: var(--feature-writing-title-color, var(--text-primary));
-    }
-
-    .support-project-description {
-        margin: 0;
-        font-family: var(--feature-writing-category-font, var(--font-sans));
-        font-size: 0.96rem;
-        line-height: 1.55;
-        color: var(--feature-writing-category-color, var(--text-secondary));
-        max-width: 58ch;
-    }
-
-    .support-project-action {
-        margin-top: 0.25rem;
-        display: inline-block;
-        text-decoration: none;
-        font-family: var(--feature-writing-action-font, var(--font-ui));
-        font-size: var(--feature-writing-action-size, 0.8rem);
-        letter-spacing: var(--feature-writing-action-letter-spacing, 0.05em);
-        text-transform: uppercase;
-        color: var(--feature-writing-action-color, var(--text-tertiary));
-    }
-
-    .support-project-action:hover {
-        color: var(--text-primary);
     }
 
     #typewriter-text {
@@ -1511,24 +1378,10 @@ const heroTextEffect = "smooth-blur";
             margin-top: clamp(2rem, 6vh, 3.5rem);
         }
 
-        .support-project {
-            grid-template-columns: 1fr;
-            gap: 1rem;
-        }
-
-        .support-project-title {
-            font-size: 1.25rem;
-        }
-
         .writings-section {
             margin-top: 1.5rem;
             margin-bottom: clamp(2rem, 6vh, 3.5rem);
             padding: 0;
-        }
-
-        .support-section {
-            margin-top: 0;
-            margin-bottom: 6rem;
         }
 
         .vibe-check-wrapper {
@@ -1546,11 +1399,6 @@ const heroTextEffect = "smooth-blur";
             height: 200px;
         }
 
-        .support-project {
-            grid-template-columns: 1fr;
-            gap: 1rem;
-            padding: 1rem;
-        }
     }
 
     .note-grid {

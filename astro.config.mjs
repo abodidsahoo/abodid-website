@@ -28,6 +28,8 @@ const excludedSitemapPathPatterns = [
   /^\/resources\/dashboard\/?$/,
   /^\/resources\/saved\/?$/,
   /^\/resources\/.*\/edit\/?$/,
+  /^\/research\/visual-moodboard\/?$/,
+  /^\/workshops\/video-editing-storytelling-class-1\/?$/,
 ];
 
 const shouldIncludeInSitemap = (page) => {
