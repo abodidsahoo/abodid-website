@@ -1,0 +1,288 @@
+{
+  "festival": {
+    "title": "Film Festival Programme",
+    "dates": {
+      "start": "2026-06-25",
+      "end": "2026-06-28"
+    },
+    "venue": "Jayadev Bhawan",
+    "notes": [
+      "Use only the information provided in this JSON.",
+      "Do not invent missing director names, duration, synopsis, or logline.",
+      "Entries with null values need verification before publishing as final film metadata."
+    ]
+  },
+  "schedule": [
+    {
+      "day": 1,
+      "date": "2026-06-25",
+      "display_date": "25 June 2026",
+      "weekday": "Thursday",
+      "items": [
+        {
+          "time": "10:00 AM",
+          "type": "film",
+          "title": "Laxmi",
+          "language": "Odia",
+          "director": "Balakrushna Dash",
+          "duration_minutes": null,
+          "duration_display": "TBC",
+          "synopsis": "A socially rooted Odia film connected with the cultural and devotional imagination around Lakshmi.",
+          "logline": "A classic Odia narrative where faith, social order, and moral reform come into conflict."
+        },
+        {
+          "time": "11:30 AM",
+          "type": "film",
+          "title": "Lahari",
+          "language": "Odia",
+          "director": "Amartya Bhattacharyya",
+          "duration_minutes": 123,
+          "duration_display": "123 min",
+          "synopsis": "In rural Odisha, an elderly fisherman's life is shaken when his son's wish for a doll challenges traditional gender expectations.",
+          "logline": "A father must confront his own beliefs when his child's desire exposes the fragility of tradition."
+        },
+        {
+          "time": "2:45 PM",
+          "type": "film",
+          "title": "Magunira Shagada",
+          "language": "Odia",
+          "director": "Prafulla Mohanty",
+          "duration_minutes": 95,
+          "duration_display": "95 min",
+          "synopsis": "An ageing bullock-cart driver struggles to survive as buses and modern transport make his livelihood obsolete.",
+          "logline": "A man left behind by modernity fights a losing battle against change, poverty, and personal tragedy."
+        },
+        {
+          "time": "4:30 PM",
+          "type": "film",
+          "title": "White Snow",
+          "language": "Urdu",
+          "director": "Praveen Morchhale",
+          "duration_minutes": 81,
+          "duration_display": "81 min",
+          "synopsis": "A Kashmiri mother travels through remote mountain villages to secretly screen her son's banned film.",
+          "logline": "A mother risks everything to keep her son's artistic voice alive in a world that tries to silence it."
+        },
+        {
+          "time": "6:15 PM",
+          "type": "event",
+          "title": "Festival Inauguration",
+          "venue": "Jayadev Bhawan"
+        },
+        {
+          "time": "7:15 PM",
+          "type": "film",
+          "title": "Do Bigha Zamin",
+          "language": "Hindi",
+          "director": "Bimal Roy",
+          "duration_minutes": 120,
+          "duration_display": "120 min",
+          "synopsis": "A poor farmer goes to the city to earn money and save his small plot of land from being taken away.",
+          "logline": "A dispossessed farmer becomes a rickshaw puller in the city in a desperate attempt to reclaim his land and dignity."
+        }
+      ]
+    },
+    {
+      "day": 2,
+      "date": "2026-06-26",
+      "display_date": "26 June 2026",
+      "weekday": "Friday",
+      "items": [
+        {
+          "time": "10:00 AM",
+          "type": "film",
+          "title": "Kandeelu – The Ray of Hope",
+          "language": "Kannada",
+          "director": "Yeshoda Prakash Kottukathira",
+          "duration_minutes": 114,
+          "duration_display": "114 min",
+          "synopsis": "A poor farmer's family faces loss, hardship, and socio-political pressure in rural Karnataka.",
+          "logline": "A farming family searches for hope while caught between grief, injustice, and survival."
+        },
+        {
+          "time": "12:00 PM",
+          "type": "film",
+          "title": "A Story That Refused to Die",
+          "language": "Hindi / English",
+          "director": null,
+          "duration_minutes": null,
+          "duration_display": "TBC",
+          "synopsis": null,
+          "logline": null
+        },
+        {
+          "time": "2:00 PM",
+          "type": "film",
+          "title": "Konttho",
+          "language": "Bengali",
+          "director": "Shiboprosad Mukherjee and Nandita Roy",
+          "duration_minutes": 144,
+          "duration_display": "144 min",
+          "synopsis": "A popular radio jockey loses his voice after throat cancer and must rebuild his life through speech therapy.",
+          "logline": "A man known for his voice must rediscover himself after the very thing that defined him is taken away."
+        },
+        {
+          "time": "4:30 PM",
+          "type": "film",
+          "title": "Wo-Man",
+          "language": "Hindi",
+          "director": null,
+          "duration_minutes": null,
+          "duration_display": "TBC",
+          "synopsis": null,
+          "logline": null
+        },
+        {
+          "time": "7:00 PM",
+          "type": "film",
+          "title": "Bandini",
+          "language": "Hindi",
+          "director": "Bimal Roy",
+          "duration_minutes": 157,
+          "duration_display": "157 min",
+          "synopsis": "A woman serving a life sentence for murder reflects on love, sacrifice, and the choices that led her to prison.",
+          "logline": "In a prison, a woman must choose between a compassionate future and the unresolved love of her past."
+        }
+      ]
+    },
+    {
+      "day": 3,
+      "date": "2026-06-27",
+      "display_date": "27 June 2026",
+      "weekday": "Saturday",
+      "items": [
+        {
+          "time": "10:00 AM",
+          "type": "film",
+          "title": "Semkhor",
+          "language": "Dimasa",
+          "director": "Aimee Baruah",
+          "duration_minutes": 93,
+          "duration_display": "93 min",
+          "synopsis": "In a remote Dimasa community, a widowed mother confronts cruel traditions while trying to protect a newborn child.",
+          "logline": "A woman challenges inherited customs to save a child and create the possibility of a new dawn."
+        },
+        {
+          "time": "11:45 AM",
+          "type": "film",
+          "title": "Sabar Bonda",
+          "language": "Marathi",
+          "director": "Rohan Parashuram Kanawade",
+          "duration_minutes": 113,
+          "duration_display": "113 min",
+          "synopsis": "Anand returns to his rural hometown after a family death and reconnects romantically with a childhood friend.",
+          "logline": "A man's return home becomes a quiet journey of grief, love, identity, and self-acceptance."
+        },
+        {
+          "time": "2:30 PM",
+          "type": "film",
+          "title": "Jagat",
+          "language": "Gujarati",
+          "director": "Harshil Bhatt",
+          "duration_minutes": 123,
+          "duration_display": "123 min",
+          "synopsis": "A police sub-inspector investigates the disappearance of a twelve-year-old boy and uncovers a darker truth.",
+          "logline": "A missing-child case forces a patient investigator to confront a truth more sinister than expected."
+        },
+        {
+          "time": "4:30 PM",
+          "type": "film",
+          "title": "Baida",
+          "language": "Odia",
+          "director": null,
+          "duration_minutes": null,
+          "duration_display": "TBC",
+          "synopsis": null,
+          "logline": null
+        },
+        {
+          "time": "6:00 PM",
+          "type": "event",
+          "title": "Panel Discussion",
+          "topic": "Fabrics, Identity and Cinema",
+          "venue": "Jayadev Bhawan"
+        },
+        {
+          "time": "7:15 PM",
+          "type": "film",
+          "title": "Sujata",
+          "language": "Hindi",
+          "director": "Bimal Roy",
+          "duration_minutes": 145,
+          "duration_display": "145 min",
+          "synopsis": "An adopted woman from an oppressed caste grows up in a Brahmin household and faces love, prejudice, and acceptance.",
+          "logline": "A woman's dignity and love challenge the caste boundaries that define the family that raised her."
+        }
+      ]
+    },
+    {
+      "day": 4,
+      "date": "2026-06-28",
+      "display_date": "28 June 2026",
+      "weekday": "Sunday",
+      "items": [
+        {
+          "time": "10:00 AM",
+          "type": "film",
+          "title": "Juiphool",
+          "language": "Assamese",
+          "director": "Jadumoni Dutta",
+          "duration_minutes": null,
+          "duration_display": "TBC",
+          "synopsis": "Two mothers from the Assam-Nagaland border form a secret bond amid ethnic conflict and village suspicion.",
+          "logline": "Across a fragile borderland, two women create a bond that unsettles a community shaped by fear."
+        },
+        {
+          "time": "11:45 AM",
+          "type": "film",
+          "title": "Lal Odhani",
+          "language": "Odia",
+          "director": "Kapilas Bhuyan",
+          "duration_minutes": null,
+          "duration_display": "TBC",
+          "synopsis": "A love story that explores the relationship between the individual and the state.",
+          "logline": "Romance becomes a way to examine personal freedom, political pressure, and the limits of belonging."
+        },
+        {
+          "time": "2:45 PM",
+          "type": "film",
+          "title": "Aa Akare Aa",
+          "language": "Odia",
+          "director": null,
+          "duration_minutes": null,
+          "duration_display": "TBC",
+          "synopsis": null,
+          "logline": null
+        },
+        {
+          "time": "4:30 PM",
+          "type": "film",
+          "title": "Ullozhukku",
+          "language": "Malayalam",
+          "director": "Christo Tomy",
+          "duration_minutes": null,
+          "duration_display": "TBC",
+          "synopsis": "In flood-hit Kerala, a pregnant widow and her mother-in-law face grief, secrets, and delayed funeral rites.",
+          "logline": "Two women trapped by floodwater and family truths must confront grief, shame, and the possibility of release."
+        },
+        {
+          "time": "6:45 PM",
+          "type": "event",
+          "title": "Festival Valedictory",
+          "venue": "Jayadev Bhawan"
+        },
+        {
+          "time": "7:15 PM",
+          "type": "film",
+          "title": "Amada Bata",
+          "language": "Odia",
+          "director": "Amar Ganguly",
+          "duration_minutes": 144,
+          "duration_display": "144 min",
+          "synopsis": "Based on Basanta Kumari Patnaik's novel, the film follows Maya before and after marriage.",
+          "logline": "A woman's life and marriage become the centre of a classic Odia story about society, expectation, and inner resolve."
+        }
+      ]
+    }
+  ]
+}

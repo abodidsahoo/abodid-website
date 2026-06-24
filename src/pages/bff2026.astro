@@ -1,0 +1,663 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import programme from "../data/bff2026.json";
+
+const { festival, schedule } = programme;
+const pageTitle = "Bhubaneswar Film Festival 2026";
+const description =
+  "Mobile-friendly timing, venue, film details, and day-wise schedule for the Bhubaneswar Film Festival 2026.";
+
+const hasValue = (value) => {
+  if (value === null || value === undefined) return false;
+  const text = String(value).trim();
+  return text !== "" && text.toLowerCase() !== "tbc";
+};
+
+const getCategory = (item) => {
+  const title = item.title?.toLowerCase() || "";
+  if (title.includes("panel")) return "panel";
+  if (item.type === "workshop") return "workshop";
+  if (item.type === "event") return "event";
+  return "film";
+};
+
+const categoryLabels = {
+  film: "Film",
+  event: "Event",
+  panel: "Panel",
+  workshop: "Workshop",
+};
+
+const getItemMeta = (item) =>
+  [
+    hasValue(item.language) && ["Language", item.language],
+    hasValue(item.director) && ["Director", item.director],
+    hasValue(item.duration_display) && ["Duration", item.duration_display],
+    hasValue(item.topic) && ["Topic", item.topic],
+    hasValue(item.venue) && ["Venue", item.venue],
+  ].filter(Boolean);
+
+const totalItems = schedule.reduce((sum, day) => sum + day.items.length, 0);
+const filmCount = schedule.reduce(
+  (sum, day) => sum + day.items.filter((item) => item.type === "film").length,
+  0,
+);
+const eventCount = totalItems - filmCount;
+const firstDay = schedule[0];
+const lastDay = schedule[schedule.length - 1];
+---
+
+<BaseLayout
+  title={pageTitle}
+  description={description}
+  fullWidth={true}
+  hideHeader={true}
+  hideSideMenuRail={true}
+  hideFooter={true}
+  hideThemeToggle={true}
+  showNewsletterPopup={false}
+  showGlobalGrid={false}
+  useDynamicOgImage={true}
+  bodyClass="bff2026-page"
+>
+  <article class="bff-page">
+    <header class="bff-hero">
+      <div class="bff-shell bff-hero-grid">
+        <div>
+          <p class="bff-kicker">Bhubaneswar Film Festival 2026</p>
+          <h1>{festival.title}</h1>
+        </div>
+
+        <dl class="bff-facts" aria-label="Festival details">
+          <div>
+            <dt>Dates</dt>
+            <dd>{firstDay.display_date} - {lastDay.display_date}</dd>
+          </div>
+          <div>
+            <dt>Venue</dt>
+            <dd>{festival.venue}</dd>
+          </div>
+          <div>
+            <dt>Programme</dt>
+            <dd>{filmCount} films, {eventCount} events</dd>
+          </div>
+        </dl>
+      </div>
+    </header>
+
+    <div class="bff-nav-shell">
+      <nav class="bff-day-nav bff-shell" aria-label="Festival days">
+        {
+          schedule.map((day) => (
+            <a class="bff-day-link" href={`#day-${day.day}`} data-day-link={`day-${day.day}`}>
+              <span>Day {day.day}</span>
+              <strong>{day.weekday}</strong>
+              <time datetime={day.date}>{day.display_date}</time>
+            </a>
+          ))
+        }
+      </nav>
+    </div>
+
+    <p class="bff-status bff-shell" data-status-line aria-live="polite">
+      {firstDay.weekday} {firstDay.display_date}, {firstDay.items[0].time} - {firstDay.items[0].title}
+    </p>
+
+    <div class="bff-schedule bff-shell">
+      {
+        schedule.map((day) => (
+          <section
+            class="bff-day-section"
+            id={`day-${day.day}`}
+            data-day-section={`day-${day.day}`}
+            aria-labelledby={`day-${day.day}-title`}
+          >
+            <header class="bff-day-header">
+              <div>
+                <p>Day {day.day}</p>
+                <h2 id={`day-${day.day}-title`}>{day.weekday}</h2>
+              </div>
+              <time datetime={day.date}>{day.display_date}</time>
+            </header>
+
+            <ol class="bff-programme-list">
+              {
+                day.items.map((item) => {
+                  const category = getCategory(item);
+                  const meta = getItemMeta(item);
+
+                  return (
+                    <li
+                      class="bff-programme-card"
+                      data-category={category}
+                      data-date={day.date}
+                      data-display-date={day.display_date}
+                      data-weekday={day.weekday}
+                      data-time={item.time}
+                    >
+                      <article class="bff-card-inner">
+                        <div class="bff-time-block">
+                          <time datetime={`${day.date} ${item.time}`}>{item.time}</time>
+                          <span>{day.weekday}</span>
+                        </div>
+
+                        <div class="bff-item-body">
+                          <p class="bff-category">{categoryLabels[category]}</p>
+                          <h3 data-item-title>{item.title}</h3>
+
+                          {meta.length > 0 && (
+                            <dl class="bff-meta-list">
+                              {meta.map(([label, value]) => (
+                                <div>
+                                  <dt>{label}</dt>
+                                  <dd>{value}</dd>
+                                </div>
+                              ))}
+                            </dl>
+                          )}
+
+                          {hasValue(item.synopsis) && <p class="bff-synopsis">{item.synopsis}</p>}
+
+                          {hasValue(item.logline) && (
+                            <details class="bff-logline">
+                              <summary>Logline</summary>
+                              <p>{item.logline}</p>
+                            </details>
+                          )}
+                        </div>
+                      </article>
+                    </li>
+                  );
+                })
+              }
+            </ol>
+          </section>
+        ))
+      }
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  :global(body.bff2026-page) {
+    background: #f6f7f9;
+    color: #111827;
+  }
+
+  :global(body.bff2026-page .skip-link) {
+    background: #111827;
+    color: #ffffff;
+  }
+
+  .bff-page {
+    --bff-bg: #f6f7f9;
+    --bff-surface: #ffffff;
+    --bff-surface-soft: #eef2f6;
+    --bff-ink: #111827;
+    --bff-muted: #5b6472;
+    --bff-soft: #7a8493;
+    --bff-border: #d8dde5;
+    --bff-border-strong: #aab3c0;
+    --bff-film: #b42318;
+    --bff-event: #2563eb;
+    --bff-panel: #047857;
+    --bff-workshop: #7c3aed;
+    --bff-shadow: 0 12px 30px rgba(17, 24, 39, 0.08);
+    min-height: 100vh;
+    background: var(--bff-bg);
+    color: var(--bff-ink);
+    font-family: var(--font-ui);
+  }
+
+  .bff-shell {
+    width: min(960px, 100% - 28px);
+    margin: 0 auto;
+  }
+
+  .bff-hero {
+    border-bottom: 1px solid var(--bff-border);
+    background: var(--bff-surface);
+  }
+
+  .bff-hero-grid {
+    display: grid;
+    gap: 1.4rem;
+    padding: 2rem 0 1.4rem;
+  }
+
+  .bff-kicker,
+  .bff-day-header p,
+  .bff-category,
+  .bff-facts dt,
+  .bff-meta-list dt {
+    margin: 0;
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0;
+    line-height: 1.2;
+    text-transform: uppercase;
+  }
+
+  .bff-kicker {
+    color: var(--bff-film);
+  }
+
+  .bff-hero h1 {
+    max-width: 9ch;
+    margin: 0.45rem 0 0;
+    color: var(--bff-ink);
+    font-size: 2.45rem;
+    font-weight: 800;
+    letter-spacing: 0;
+    line-height: 1;
+  }
+
+  .bff-facts {
+    display: grid;
+    gap: 0.6rem;
+    margin: 0;
+  }
+
+  .bff-facts div {
+    display: grid;
+    gap: 0.16rem;
+    padding: 0.7rem 0;
+    border-top: 1px solid var(--bff-border);
+  }
+
+  .bff-facts dt {
+    color: var(--bff-soft);
+  }
+
+  .bff-facts dd {
+    margin: 0;
+    color: var(--bff-ink);
+    font-size: 1rem;
+    font-weight: 650;
+    line-height: 1.25;
+  }
+
+  .bff-nav-shell {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    border-bottom: 1px solid rgba(216, 221, 229, 0.9);
+    background: rgba(246, 247, 249, 0.92);
+    backdrop-filter: blur(14px);
+  }
+
+  .bff-day-nav {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.5rem;
+    padding: 0.7rem 0;
+  }
+
+  .bff-day-link {
+    display: grid;
+    gap: 0.16rem;
+    min-width: 0;
+    min-height: 4.2rem;
+    padding: 0.58rem 0.68rem;
+    border: 1px solid var(--bff-border);
+    border-radius: 8px;
+    background: var(--bff-surface);
+    color: var(--bff-muted);
+    text-decoration: none;
+  }
+
+  .bff-day-link:hover,
+  .bff-day-link:focus-visible,
+  .bff-day-link[aria-current="true"] {
+    border-color: var(--bff-ink);
+    color: var(--bff-ink);
+    outline: none;
+  }
+
+  .bff-day-link span,
+  .bff-day-link time {
+    font-size: 0.72rem;
+    line-height: 1.15;
+  }
+
+  .bff-day-link strong {
+    font-size: 0.96rem;
+    line-height: 1.1;
+  }
+
+  .bff-status {
+    margin-top: 1rem;
+    padding: 0.78rem 0.88rem;
+    border-left: 4px solid var(--bff-film);
+    border-radius: 8px;
+    background: #ffffff;
+    box-shadow: 0 1px 0 rgba(17, 24, 39, 0.06);
+    color: var(--bff-ink);
+    font-size: 0.94rem;
+    font-weight: 650;
+    line-height: 1.35;
+  }
+
+  .bff-schedule {
+    display: grid;
+    gap: 2.2rem;
+    padding: 1.4rem 0 4rem;
+  }
+
+  .bff-day-section {
+    scroll-margin-top: 6.4rem;
+  }
+
+  .bff-day-header {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.82rem;
+    padding-bottom: 0.62rem;
+    border-bottom: 1px solid var(--bff-border);
+  }
+
+  .bff-day-header p {
+    color: var(--bff-soft);
+  }
+
+  .bff-day-header h2 {
+    margin: 0.12rem 0 0;
+    color: var(--bff-ink);
+    font-size: 1.55rem;
+    font-weight: 760;
+    letter-spacing: 0;
+    line-height: 1.08;
+  }
+
+  .bff-day-header time {
+    color: var(--bff-muted);
+    font-size: 0.95rem;
+    font-weight: 650;
+    line-height: 1.2;
+    text-align: right;
+  }
+
+  .bff-programme-list {
+    display: grid;
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .bff-programme-card {
+    --category-color: var(--bff-film);
+    border: 1px solid var(--bff-border);
+    border-left: 4px solid var(--category-color);
+    border-radius: 8px;
+    background: var(--bff-surface);
+    box-shadow: 0 1px 0 rgba(17, 24, 39, 0.05);
+    transition:
+      border-color 0.2s ease,
+      box-shadow 0.2s ease,
+      transform 0.2s ease;
+  }
+
+  .bff-programme-card[data-category="event"] {
+    --category-color: var(--bff-event);
+  }
+
+  .bff-programme-card[data-category="panel"] {
+    --category-color: var(--bff-panel);
+  }
+
+  .bff-programme-card[data-category="workshop"] {
+    --category-color: var(--bff-workshop);
+  }
+
+  .bff-programme-card.is-next {
+    border-color: color-mix(in srgb, var(--category-color) 46%, var(--bff-border));
+    box-shadow: var(--bff-shadow);
+  }
+
+  .bff-card-inner {
+    display: grid;
+    grid-template-columns: 5.8rem minmax(0, 1fr);
+    gap: 0.8rem;
+    padding: 0.9rem 0.86rem 0.95rem;
+  }
+
+  .bff-time-block {
+    display: grid;
+    align-content: start;
+    gap: 0.28rem;
+    min-width: 0;
+  }
+
+  .bff-time-block time {
+    color: var(--category-color);
+    font-size: 1.05rem;
+    font-weight: 800;
+    letter-spacing: 0;
+    line-height: 1.04;
+  }
+
+  .bff-time-block span {
+    color: var(--bff-soft);
+    font-size: 0.75rem;
+    font-weight: 650;
+    line-height: 1.15;
+  }
+
+  .bff-item-body {
+    min-width: 0;
+  }
+
+  .bff-category {
+    color: var(--category-color);
+  }
+
+  .bff-item-body h3 {
+    margin: 0.16rem 0 0;
+    overflow-wrap: anywhere;
+    color: var(--bff-ink);
+    font-size: 1.24rem;
+    font-weight: 790;
+    letter-spacing: 0;
+    line-height: 1.12;
+  }
+
+  .bff-meta-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.34rem 0.72rem;
+    margin: 0.64rem 0 0;
+  }
+
+  .bff-meta-list div {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.28rem;
+    max-width: 100%;
+  }
+
+  .bff-meta-list dt {
+    color: var(--bff-soft);
+    font-size: 0.65rem;
+  }
+
+  .bff-meta-list dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+    color: var(--bff-ink);
+    font-size: 0.84rem;
+    font-weight: 650;
+    line-height: 1.22;
+  }
+
+  .bff-synopsis {
+    margin: 0.74rem 0 0;
+    color: var(--bff-muted);
+    font-size: 0.96rem;
+    line-height: 1.52;
+  }
+
+  .bff-logline {
+    margin-top: 0.66rem;
+    color: var(--bff-muted);
+  }
+
+  .bff-logline summary {
+    width: fit-content;
+    cursor: pointer;
+    color: var(--category-color);
+    font-size: 0.84rem;
+    font-weight: 750;
+    line-height: 1.2;
+  }
+
+  .bff-logline p {
+    margin: 0.48rem 0 0;
+    padding-left: 0.72rem;
+    border-left: 2px solid color-mix(in srgb, var(--category-color) 42%, var(--bff-border));
+    color: var(--bff-muted);
+    font-size: 0.94rem;
+    line-height: 1.5;
+  }
+
+  @media (max-width: 420px) {
+    .bff-shell {
+      width: min(100% - 20px, 960px);
+    }
+
+    .bff-hero-grid {
+      padding-top: 1.5rem;
+    }
+
+    .bff-hero h1 {
+      font-size: 2.1rem;
+    }
+
+    .bff-day-nav {
+      gap: 0.34rem;
+    }
+
+    .bff-day-link {
+      min-height: 4rem;
+      padding: 0.5rem 0.42rem;
+    }
+
+    .bff-day-link span,
+    .bff-day-link time {
+      font-size: 0.68rem;
+    }
+
+    .bff-day-link strong {
+      font-size: 0.88rem;
+    }
+
+    .bff-card-inner {
+      grid-template-columns: 4.8rem minmax(0, 1fr);
+      gap: 0.62rem;
+      padding: 0.82rem 0.7rem 0.88rem;
+    }
+
+    .bff-time-block time {
+      font-size: 0.98rem;
+    }
+
+    .bff-item-body h3 {
+      font-size: 1.12rem;
+    }
+  }
+
+  @media (min-width: 760px) {
+    .bff-hero-grid {
+      grid-template-columns: 1fr 21rem;
+      align-items: end;
+      padding: 3rem 0 2rem;
+    }
+
+    .bff-hero h1 {
+      max-width: 12ch;
+      font-size: 3.35rem;
+    }
+
+    .bff-card-inner {
+      grid-template-columns: 7rem minmax(0, 1fr);
+      gap: 1.2rem;
+      padding: 1.05rem 1.1rem;
+    }
+
+    .bff-item-body h3 {
+      font-size: 1.42rem;
+    }
+  }
+</style>
+
+<script is:inline>
+  (() => {
+    const parseStart = (date, time) => {
+      const match = String(time || "").match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+      if (!date || !match) return null;
+
+      let hour = Number(match[1]) % 12;
+      const minute = Number(match[2]);
+      if (match[3].toUpperCase() === "PM") hour += 12;
+
+      const start = new Date(`${date}T00:00:00`);
+      start.setHours(hour, minute, 0, 0);
+      return start;
+    };
+
+    const cards = Array.from(document.querySelectorAll(".bff-programme-card"));
+    const now = new Date();
+    const upcoming = cards
+      .map((card) => ({
+        card,
+        start: parseStart(card.dataset.date, card.dataset.time),
+      }))
+      .filter((item) => item.start && item.start.getTime() >= now.getTime())
+      .sort((a, b) => a.start.getTime() - b.start.getTime());
+
+    const statusLine = document.querySelector("[data-status-line]");
+    if (upcoming.length) {
+      const nextCard = upcoming[0].card;
+      nextCard.classList.add("is-next");
+
+      if (statusLine) {
+        const title = nextCard.querySelector("[data-item-title]")?.textContent?.trim() || "";
+        statusLine.textContent = `Next: ${nextCard.dataset.weekday} ${nextCard.dataset.displayDate}, ${nextCard.dataset.time} - ${title}`;
+      }
+    } else if (statusLine && cards.length) {
+      statusLine.textContent = "Festival schedule complete.";
+    }
+
+    const links = new Map(
+      Array.from(document.querySelectorAll("[data-day-link]")).map((link) => [
+        link.dataset.dayLink,
+        link,
+      ]),
+    );
+    const sections = Array.from(document.querySelectorAll("[data-day-section]"));
+
+    if (!sections.length || !("IntersectionObserver" in window)) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+
+        if (!visible) return;
+
+        links.forEach((link) => link.removeAttribute("aria-current"));
+        const activeLink = links.get(visible.target.dataset.daySection);
+        activeLink?.setAttribute("aria-current", "true");
+      },
+      {
+        rootMargin: "-18% 0px -64% 0px",
+        threshold: [0.12, 0.24, 0.36],
+      },
+    );
+
+    sections.forEach((section) => observer.observe(section));
+  })();
+</script>
