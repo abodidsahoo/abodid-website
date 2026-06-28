@@ -75,18 +75,17 @@ const workshops = [
         highlight: true,
     },
     {
-        title: "The Psychology of Video Editing",
+        title: "Adobe Premiere Pro for Storytelling",
         description:
-            "Go beyond software tutorials. Master the nuances of timing, rhythm, color grading, and sound design to create emotionally resonant visual stories.",
-        price: "£399",
-        duration: "2 Days (4 hrs/day)",
-        href: "mailto:hello@abodid.com?subject=Workshop Inquiry",
+            "A seven-week Premiere Pro masterclass for learning video editing through rhythm, sound, narrative, titles, color, delivery, and polished Adobe workflows.",
+        price: "Enquire",
+        duration: "7 Modules",
+        href: "/premiere-pro-masterclass",
         features: [
-            "Psychology of the cut",
-            "Rhythm & Pacing masterclass",
-            "Color Grading for emotion",
-            "Sound Design & Mixing",
-            "Practice sessions & Demo resources included",
+            "Modules 1-3: clean cuts, basic sound, simple export",
+            "Modules 4-7: titles, captions, color, speed, and delivery",
+            "Story-first Premiere Pro workflow",
+            "Practice exports and capstone project options",
         ],
         highlight: true,
     },
@@ -146,7 +145,7 @@ const workshops = [
                                 href={workshop.href}
                                 class="book-btn"
                             >
-                                {workshop.href.startsWith("/workshops/") || workshop.href.startsWith("/obsidian")
+                                {workshop.href.startsWith("/workshops/") || workshop.href.startsWith("/obsidian") || workshop.href.startsWith("/premiere-pro-masterclass")
                                     ? "View Details"
                                     : "Book a Slot"}
                             </a>
