@@ -1,0 +1,1203 @@
+---
+export const prerender = true;
+
+import BaseLayout from "../layouts/BaseLayout.astro";
+import {
+    odishaEntries,
+    odishaFilters,
+    odishaPage,
+    odishaSections,
+} from "../data/outsideEyesOnOdisha";
+import { breadcrumbJsonLd, seoIdentity } from "../lib/seoData";
+
+const entriesById = new Map(odishaEntries.map((entry) => [entry.id, entry]));
+const pagePath = "/odisha1900/";
+const pageTitle = `${odishaPage.title} | Abodid Sahoo`;
+const pageDescription = odishaPage.subtitle;
+
+const formatDomain = (url) => {
+    try {
+        return new URL(url).hostname.replace(/^www\./, "");
+    } catch (_error) {
+        return "source";
+    }
+};
+
+const getFeaturedLink = (entry) =>
+    entry.sourceLinks.find((link) => link.previewImage) ||
+    entry.profileLinks.find((link) => link.previewImage) ||
+    entry.sourceLinks[0];
+
+const getSearchText = (entry) =>
+    [
+        entry.name,
+        entry.role,
+        entry.bestSection,
+        entry.useAs,
+        entry.why,
+        entry.creditLine,
+        entry.reuseNote,
+        ...entry.tags,
+        ...entry.locations,
+        ...entry.sourceLinks.map((link) => link.label),
+        ...entry.profileLinks.map((link) => link.label),
+    ]
+        .join(" ")
+        .toLowerCase();
+
+const structuredData = [
+    breadcrumbJsonLd([
+        { name: "Home", path: "/" },
+        {
+            name: odishaPage.title,
+            path: pagePath,
+        },
+    ]),
+    {
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        "@id": `${seoIdentity.siteUrl}${pagePath}#collection`,
+        url: `${seoIdentity.siteUrl}${pagePath}`,
+        name: odishaPage.title,
+        description: odishaPage.subtitle,
+        publisher: {
+            "@id": seoIdentity.personId,
+        },
+        about: [
+            "Odisha",
+            "Orissa",
+            "Photography",
+            "Anthropology",
+            "Temple art",
+            "Jagannath studies",
+            "Visual archives",
+        ],
+        mainEntity: {
+            "@type": "ItemList",
+            itemListElement: odishaEntries.map((entry, index) => ({
+                "@type": "ListItem",
+                position: index + 1,
+                name: entry.name,
+                url: `${seoIdentity.siteUrl}${pagePath}#${entry.id}`,
+            })),
+        },
+    },
+];
+---
+
+<BaseLayout
+    title={pageTitle}
+    description={pageDescription}
+    structuredData={structuredData}
+    fullWidth={true}
+    bodyClass="odisha-archive-body"
+    showGlobalGrid={false}
+    showNewsletterPopup={false}
+    hideThemeToggle={true}
+>
+    <div class="odisha-page" data-odisha-archive>
+        <header class="odisha-hero">
+            <div class="hero-inner">
+                <p class="archive-kicker">Research index</p>
+                <h1>{odishaPage.title}</h1>
+                <p class="hero-subtitle">{odishaPage.subtitle}</p>
+                <div class="hero-actions" aria-label="Page shortcuts">
+                    <a href="#archive-index">Browse index</a>
+                    <a href="#research-entries">Read entries</a>
+                </div>
+            </div>
+        </header>
+
+        <section class="opening-note" aria-labelledby="opening-note-title">
+            <div class="reading-column">
+                <p class="archive-kicker" id="opening-note-title">Framing note</p>
+                {odishaPage.intro.map((paragraph) => <p>{paragraph}</p>)}
+                <aside class="ethical-note">
+                    <p>{odishaPage.ethicalNote}</p>
+                </aside>
+            </div>
+        </section>
+
+        <section class="archive-sections" aria-labelledby="section-map-title">
+            <div class="section-heading-row">
+                <p class="archive-kicker">Website section structure</p>
+                <h2 id="section-map-title">Five ways into the archive</h2>
+            </div>
+            <div class="section-map">
+                {
+                    odishaSections.map((section, index) => {
+                        const firstEntry = entriesById.get(section.people[0]);
+                        const featuredLink = firstEntry
+                            ? getFeaturedLink(firstEntry)
+                            : null;
+
+                        return (
+                            <article class="section-panel">
+                                {featuredLink?.previewImage && (
+                                    <a
+                                        class="section-image-link"
+                                        href={featuredLink.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        aria-label={`Open source preview for ${section.title}`}
+                                    >
+                                        <img
+                                            src={featuredLink.previewImage}
+                                            alt={featuredLink.label}
+                                            loading={index === 0 ? "eager" : "lazy"}
+                                            decoding="async"
+                                            referrerpolicy="no-referrer"
+                                            data-preview-image
+                                        />
+                                    </a>
+                                )}
+                                <div class="section-panel-body">
+                                    <span class="section-number">
+                                        {String(index + 1).padStart(2, "0")}
+                                    </span>
+                                    <h3>{section.title}</h3>
+                                    <div class="section-people">
+                                        {section.people.map((id) => {
+                                            const entry = entriesById.get(id);
+                                            return entry ? (
+                                                <a href={`#${entry.id}`}>{entry.name}</a>
+                                            ) : null;
+                                        })}
+                                    </div>
+                                </div>
+                            </article>
+                        );
+                    })
+                }
+            </div>
+        </section>
+
+        <section class="archive-index" id="archive-index" aria-labelledby="archive-index-title">
+            <div class="section-heading-row index-heading">
+                <div>
+                    <p class="archive-kicker">Quick index</p>
+                    <h2 id="archive-index-title">All names and source areas</h2>
+                </div>
+                <p class="result-count" aria-live="polite" data-result-count>
+                    {odishaEntries.length} of {odishaEntries.length} entries
+                </p>
+            </div>
+
+            <div class="archive-controls" aria-label="Archive filters">
+                <label class="search-label">
+                    <span class="sr-only">Search the archive</span>
+                    <input
+                        type="search"
+                        placeholder="Search names, places, sources..."
+                        data-archive-search
+                    />
+                </label>
+                <div class="filter-chips" role="group" aria-label="Filter by category">
+                    {
+                        odishaFilters.map((filter) => (
+                            <button
+                                type="button"
+                                class:list={["filter-chip", filter === "All" && "is-active"]}
+                                data-filter={filter}
+                                aria-pressed={filter === "All" ? "true" : "false"}
+                            >
+                                {filter}
+                            </button>
+                        ))
+                    }
+                    <button type="button" class="reset-filter" data-reset-filters>
+                        Reset
+                    </button>
+                </div>
+            </div>
+
+            <div class="quick-index-grid">
+                {
+                    odishaEntries.map((entry) => (
+                        <a
+                            class="quick-index-item"
+                            href={`#${entry.id}`}
+                            data-index-item
+                            data-tags={entry.tags.join("|")}
+                            data-search={getSearchText(entry)}
+                        >
+                            <span class="quick-name">{entry.name}</span>
+                            <span class="quick-section">{entry.bestSection}</span>
+                            <span class="quick-meta">
+                                {entry.useAs} · {entry.rightsStatus}
+                            </span>
+                        </a>
+                    ))
+                }
+            </div>
+        </section>
+
+        <section
+            class="research-entries"
+            id="research-entries"
+            aria-labelledby="research-entries-title"
+        >
+            <div class="section-heading-row">
+                <p class="archive-kicker">Research entries</p>
+                <h2 id="research-entries-title">Source-linked cards</h2>
+            </div>
+
+            <div class="entry-list">
+                {
+                    odishaEntries.map((entry, index) => {
+                        const featuredLink = getFeaturedLink(entry);
+
+                        return (
+                            <article
+                                class="archive-entry"
+                                id={entry.id}
+                                data-entry-card
+                                data-tags={entry.tags.join("|")}
+                                data-search={getSearchText(entry)}
+                            >
+                                <div class="entry-intro">
+                                    <div class="entry-copy">
+                                        <div class="entry-topline">
+                                            <span>{String(index + 1).padStart(2, "0")}</span>
+                                            <span>{entry.useAs}</span>
+                                            <span>{entry.rightsStatus}</span>
+                                        </div>
+                                        <h3>{entry.name}</h3>
+                                        <p class="entry-role">
+                                            <strong>Role:</strong> {entry.role}
+                                        </p>
+                                        <p class="entry-section">
+                                            <strong>Best website section:</strong>{" "}
+                                            {entry.bestSection}
+                                        </p>
+                                        <p class="entry-why">
+                                            <strong>Why this person belongs on the page:</strong>{" "}
+                                            {entry.why}
+                                        </p>
+                                        <div class="tag-row" aria-label={`${entry.name} tags`}>
+                                            {entry.tags.map((tag) => <span>{tag}</span>)}
+                                        </div>
+                                    </div>
+
+                                    {featuredLink?.previewImage && (
+                                        <a
+                                            class="entry-feature-image"
+                                            href={featuredLink.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            aria-label={`Open source preview for ${entry.name}`}
+                                        >
+                                            <img
+                                                src={featuredLink.previewImage}
+                                                alt={featuredLink.label}
+                                                loading={index < 2 ? "eager" : "lazy"}
+                                                decoding="async"
+                                                referrerpolicy="no-referrer"
+                                                data-preview-image
+                                            />
+                                            <span>{formatDomain(featuredLink.url)}</span>
+                                        </a>
+                                    )}
+                                </div>
+
+                                <div class="entry-resources">
+                                    <div class="resource-block">
+                                        <h4>Image / source links</h4>
+                                        <div class="source-grid">
+                                            {entry.sourceLinks.map((source) => (
+                                                <article class="source-card">
+                                                    {source.previewImage && (
+                                                        <a
+                                                            class="source-preview"
+                                                            href={source.url}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            aria-label={`Open source: ${source.label}`}
+                                                        >
+                                                            <img
+                                                                src={source.previewImage}
+                                                                alt={source.label}
+                                                                loading="lazy"
+                                                                decoding="async"
+                                                                referrerpolicy="no-referrer"
+                                                                data-preview-image
+                                                            />
+                                                        </a>
+                                                    )}
+                                                    <div class="source-card-body">
+                                                        <p class="source-label">{source.label}</p>
+                                                        <p class="source-domain">
+                                                            {formatDomain(source.url)}
+                                                        </p>
+                                                        <p class="source-credit">
+                                                            <strong>Credit:</strong>{" "}
+                                                            {entry.creditLine}
+                                                        </p>
+                                                        <p class="source-rights">
+                                                            <strong>Rights note:</strong>{" "}
+                                                            {entry.reuseNote}
+                                                        </p>
+                                                        <a
+                                                            class="source-button"
+                                                            href={source.url}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                        >
+                                                            Source ↗
+                                                        </a>
+                                                    </div>
+                                                </article>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div class="resource-block profile-block">
+                                        <h4>Photographer portrait / profile links, where available</h4>
+                                        <ul class="profile-links">
+                                            {entry.profileLinks.map((link) => (
+                                                <li>
+                                                    <a
+                                                        href={link.url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                    >
+                                                        {link.label} ↗
+                                                    </a>
+                                                    <span>{formatDomain(link.url)}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </article>
+                        );
+                    })
+                }
+            </div>
+        </section>
+
+        <footer class="rights-footer">
+            <p>{odishaPage.footerNote}</p>
+        </footer>
+    </div>
+</BaseLayout>
+
+<script>
+    const archiveRoot = document.querySelector("[data-odisha-archive]");
+
+    if (archiveRoot) {
+        const searchInput = archiveRoot.querySelector("[data-archive-search]");
+        const filterButtons = Array.from(
+            archiveRoot.querySelectorAll("[data-filter]"),
+        );
+        const resetButton = archiveRoot.querySelector("[data-reset-filters]");
+        const entryCards = Array.from(
+            archiveRoot.querySelectorAll("[data-entry-card]"),
+        );
+        const indexItems = Array.from(
+            archiveRoot.querySelectorAll("[data-index-item]"),
+        );
+        const resultCount = archiveRoot.querySelector("[data-result-count]");
+        let activeFilter = "All";
+
+        const normalize = (value) => String(value || "").toLowerCase().trim();
+
+        const matchesFilter = (element) => {
+            if (activeFilter === "All") return true;
+            const tags = String(element.dataset.tags || "").split("|");
+            return tags.includes(activeFilter);
+        };
+
+        const matchesSearch = (element, query) => {
+            if (!query) return true;
+            return normalize(element.dataset.search).includes(query);
+        };
+
+        const applyFilters = () => {
+            const query = normalize(searchInput?.value);
+            let visibleCount = 0;
+
+            entryCards.forEach((card) => {
+                const visible = matchesFilter(card) && matchesSearch(card, query);
+                card.hidden = !visible;
+                if (visible) visibleCount += 1;
+            });
+
+            indexItems.forEach((item) => {
+                item.hidden = !(matchesFilter(item) && matchesSearch(item, query));
+            });
+
+            if (resultCount) {
+                resultCount.textContent = `${visibleCount} of ${entryCards.length} entries`;
+            }
+        };
+
+        filterButtons.forEach((button) => {
+            button.addEventListener("click", () => {
+                activeFilter = button.dataset.filter || "All";
+                filterButtons.forEach((item) => {
+                    const isActive = item === button;
+                    item.classList.toggle("is-active", isActive);
+                    item.setAttribute("aria-pressed", String(isActive));
+                });
+                applyFilters();
+            });
+        });
+
+        searchInput?.addEventListener("input", applyFilters);
+        resetButton?.addEventListener("click", () => {
+            activeFilter = "All";
+            if (searchInput) searchInput.value = "";
+            filterButtons.forEach((item) => {
+                const isActive = item.dataset.filter === "All";
+                item.classList.toggle("is-active", isActive);
+                item.setAttribute("aria-pressed", String(isActive));
+            });
+            applyFilters();
+        });
+
+        archiveRoot.querySelectorAll("[data-preview-image]").forEach((image) => {
+            image.addEventListener("error", () => {
+                const imageLink = image.closest(
+                    ".entry-feature-image, .section-image-link, .source-preview",
+                );
+                if (imageLink) imageLink.remove();
+            });
+        });
+    }
+</script>
+
+<style>
+    :global(body.odisha-archive-body) {
+        --odisha-bg: #f7f2ea;
+        --odisha-surface: #fffdf8;
+        --odisha-ink: #141414;
+        --odisha-muted: #5d5a54;
+        --odisha-soft: #827a70;
+        --odisha-line: #e6ded2;
+        --odisha-line-strong: #cdbfae;
+        --odisha-accent: #7a4e2d;
+        --odisha-link: #315f86;
+        --odisha-link-hover: #163f62;
+        --bg-canvas: var(--odisha-bg);
+        --bg-color: var(--odisha-bg);
+        --bg-surface: var(--odisha-surface);
+        --text-primary: var(--odisha-ink);
+        --text-secondary: var(--odisha-muted);
+        --text-tertiary: var(--odisha-soft);
+        --border-subtle: var(--odisha-line);
+        background: var(--odisha-bg) !important;
+        color: var(--odisha-ink);
+    }
+
+    :global(body.odisha-archive-body .page-content-full) {
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+
+    .odisha-page {
+        min-height: 100vh;
+        background:
+            linear-gradient(
+                90deg,
+                rgba(20, 20, 20, 0.035) 1px,
+                transparent 1px
+            ),
+            var(--odisha-bg);
+        background-size: min(9vw, 112px) 100%;
+        color: var(--odisha-ink);
+        font-family: var(--font-sans);
+    }
+
+    .odisha-hero {
+        display: grid;
+        min-height: min(92vh, 860px);
+        padding: clamp(7rem, 12vw, 12rem) clamp(1.25rem, 5vw, 5rem)
+            clamp(4rem, 8vw, 7rem);
+        border-bottom: 1px solid var(--odisha-line);
+        place-items: end start;
+    }
+
+    .hero-inner {
+        width: min(1120px, 100%);
+        margin: 0 auto;
+    }
+
+    .archive-kicker {
+        margin: 0 0 1.15rem;
+        color: var(--odisha-accent);
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        line-height: 1.35;
+        text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    p {
+        letter-spacing: 0;
+    }
+
+    h1 {
+        max-width: 980px;
+        margin: 0;
+        color: var(--odisha-ink);
+        font-family: var(--font-display);
+        font-size: clamp(3rem, 8vw, 7.4rem);
+        font-weight: 800;
+        line-height: 0.98;
+        overflow-wrap: anywhere;
+    }
+
+    .hero-subtitle {
+        max-width: 760px;
+        margin: clamp(1.5rem, 3vw, 2.35rem) 0 0;
+        color: var(--odisha-muted);
+        font-size: clamp(1.08rem, 1.7vw, 1.32rem);
+        line-height: 1.58;
+    }
+
+    .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.8rem;
+        margin-top: 2rem;
+    }
+
+    .hero-actions a,
+    .source-button {
+        display: inline-flex;
+        min-height: 44px;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--odisha-line-strong);
+        border-radius: 999px;
+        color: var(--odisha-link);
+        font-size: 0.92rem;
+        font-weight: 700;
+        line-height: 1;
+        padding: 0.85rem 1.05rem;
+        text-decoration: none;
+        transition:
+            border-color 160ms ease,
+            color 160ms ease,
+            transform 160ms ease;
+    }
+
+    .hero-actions a:hover,
+    .source-button:hover {
+        border-color: var(--odisha-link);
+        color: var(--odisha-link-hover);
+        transform: translateY(-1px);
+    }
+
+    .hero-actions a:focus-visible,
+    .source-button:focus-visible,
+    .filter-chip:focus-visible,
+    .reset-filter:focus-visible,
+    .quick-index-item:focus-visible,
+    .profile-links a:focus-visible,
+    .section-people a:focus-visible,
+    .entry-feature-image:focus-visible,
+    .source-preview:focus-visible,
+    .section-image-link:focus-visible {
+        outline: 3px solid rgba(49, 95, 134, 0.42);
+        outline-offset: 3px;
+    }
+
+    .opening-note,
+    .archive-sections,
+    .archive-index,
+    .research-entries,
+    .rights-footer {
+        width: min(1280px, calc(100% - clamp(2rem, 8vw, 8rem)));
+        margin: 0 auto;
+    }
+
+    .opening-note {
+        padding: clamp(4.5rem, 8vw, 7rem) 0;
+    }
+
+    .reading-column {
+        max-width: 760px;
+    }
+
+    .reading-column p {
+        margin: 0 0 1.35rem;
+        color: var(--odisha-ink);
+        font-size: clamp(1rem, 1.35vw, 1.12rem);
+        line-height: 1.72;
+    }
+
+    .ethical-note {
+        margin-top: 2.25rem;
+        border-left: 3px solid var(--odisha-accent);
+        padding: 0.15rem 0 0.15rem 1.25rem;
+    }
+
+    .ethical-note p {
+        margin: 0;
+        color: var(--odisha-muted);
+        font-size: 1rem;
+    }
+
+    .archive-sections,
+    .archive-index,
+    .research-entries {
+        border-top: 1px solid var(--odisha-line);
+        padding: clamp(4rem, 8vw, 6.25rem) 0;
+    }
+
+    .section-heading-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0.75rem;
+        margin-bottom: clamp(2rem, 4vw, 3rem);
+    }
+
+    .index-heading {
+        align-items: end;
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    h2 {
+        max-width: 820px;
+        margin: 0;
+        color: var(--odisha-ink);
+        font-family: var(--font-display);
+        font-size: clamp(2.1rem, 4vw, 4.6rem);
+        font-weight: 780;
+        line-height: 1.02;
+        overflow-wrap: anywhere;
+    }
+
+    .section-map {
+        display: grid;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        gap: 1rem;
+    }
+
+    .section-panel {
+        display: grid;
+        overflow: hidden;
+        border: 1px solid var(--odisha-line);
+        border-radius: 8px;
+        background: rgba(255, 253, 248, 0.78);
+        grid-column: span 6;
+        grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr);
+    }
+
+    .section-panel:nth-child(3) {
+        grid-column: span 4;
+    }
+
+    .section-panel:nth-child(4),
+    .section-panel:nth-child(5) {
+        grid-column: span 4;
+    }
+
+    .section-image-link {
+        display: block;
+        min-height: 100%;
+        background: #ded4c6;
+    }
+
+    .section-image-link img,
+    .entry-feature-image img,
+    .source-preview img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .section-panel-body {
+        padding: clamp(1.2rem, 2.5vw, 1.8rem);
+    }
+
+    .section-number,
+    .entry-topline,
+    .source-domain,
+    .quick-meta,
+    .result-count {
+        color: var(--odisha-soft);
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        line-height: 1.35;
+        text-transform: uppercase;
+    }
+
+    .section-panel h3 {
+        margin: 0.8rem 0 1.2rem;
+        color: var(--odisha-ink);
+        font-size: clamp(1.35rem, 2vw, 1.8rem);
+        line-height: 1.14;
+    }
+
+    .section-people {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .section-people a,
+    .tag-row span {
+        border: 1px solid var(--odisha-line);
+        border-radius: 999px;
+        color: var(--odisha-muted);
+        font-size: 0.82rem;
+        line-height: 1.2;
+        max-width: 100%;
+        overflow-wrap: anywhere;
+        padding: 0.45rem 0.65rem;
+        text-decoration: none;
+    }
+
+    .section-people a:hover {
+        border-color: var(--odisha-link);
+        color: var(--odisha-link);
+    }
+
+    .archive-controls {
+        position: sticky;
+        z-index: 5;
+        top: 5.5rem;
+        display: grid;
+        margin-bottom: 1.25rem;
+        border: 1px solid var(--odisha-line);
+        border-radius: 8px;
+        background: rgba(247, 242, 234, 0.92);
+        gap: 0.85rem;
+        grid-template-columns: minmax(260px, 0.8fr) minmax(0, 1.2fr);
+        padding: 0.8rem;
+        backdrop-filter: blur(18px);
+    }
+
+    .search-label input {
+        width: 100%;
+        min-height: 48px;
+        border: 1px solid var(--odisha-line);
+        border-radius: 8px;
+        background: var(--odisha-surface);
+        color: var(--odisha-ink);
+        font: inherit;
+        font-size: 1rem;
+        line-height: 1.2;
+        padding: 0.85rem 1rem;
+    }
+
+    .search-label input:focus {
+        border-color: var(--odisha-link);
+        outline: 3px solid rgba(49, 95, 134, 0.18);
+    }
+
+    .filter-chips {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        padding-bottom: 0.1rem;
+    }
+
+    .filter-chip,
+    .reset-filter {
+        min-height: 44px;
+        border: 1px solid var(--odisha-line);
+        border-radius: 999px;
+        background: var(--odisha-surface);
+        color: var(--odisha-muted);
+        cursor: pointer;
+        flex: 0 0 auto;
+        font: inherit;
+        font-size: 0.9rem;
+        font-weight: 700;
+        line-height: 1;
+        padding: 0.75rem 0.95rem;
+    }
+
+    .filter-chip.is-active {
+        border-color: var(--odisha-ink);
+        background: var(--odisha-ink);
+        color: var(--odisha-surface);
+    }
+
+    .reset-filter {
+        border-color: transparent;
+        background: transparent;
+        color: var(--odisha-link);
+    }
+
+    .reset-filter:hover {
+        color: var(--odisha-link-hover);
+        text-decoration: underline;
+        text-underline-offset: 0.18em;
+    }
+
+    .quick-index-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.8rem;
+    }
+
+    .quick-index-item {
+        display: grid;
+        min-height: 148px;
+        border: 1px solid var(--odisha-line);
+        border-radius: 8px;
+        background: rgba(255, 253, 248, 0.82);
+        color: inherit;
+        gap: 0.65rem;
+        padding: 1rem;
+        text-decoration: none;
+        transition:
+            border-color 160ms ease,
+            transform 160ms ease;
+    }
+
+    .quick-index-item:hover {
+        border-color: var(--odisha-link);
+        transform: translateY(-1px);
+    }
+
+    .quick-name {
+        color: var(--odisha-ink);
+        font-size: 1.05rem;
+        font-weight: 800;
+        line-height: 1.16;
+    }
+
+    .quick-section {
+        color: var(--odisha-muted);
+        font-size: 0.94rem;
+        line-height: 1.45;
+    }
+
+    .entry-list {
+        display: grid;
+        gap: clamp(3.5rem, 7vw, 6rem);
+    }
+
+    .archive-entry {
+        scroll-margin-top: 6rem;
+        border-top: 1px solid var(--odisha-line);
+        padding-top: clamp(2.5rem, 5vw, 4rem);
+    }
+
+    .archive-entry[hidden],
+    .quick-index-item[hidden] {
+        display: none;
+    }
+
+    .entry-intro {
+        display: grid;
+        align-items: start;
+        gap: clamp(1.5rem, 4vw, 3rem);
+        grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+    }
+
+    .entry-copy {
+        max-width: 760px;
+    }
+
+    .entry-topline {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.65rem;
+        margin-bottom: 1.15rem;
+    }
+
+    .entry-topline span {
+        display: inline-flex;
+        align-items: center;
+        min-height: 28px;
+        border: 1px solid var(--odisha-line);
+        border-radius: 999px;
+        padding: 0.3rem 0.55rem;
+    }
+
+    .archive-entry h3 {
+        margin: 0 0 1rem;
+        color: var(--odisha-ink);
+        font-size: clamp(2rem, 3.8vw, 4rem);
+        line-height: 1.02;
+        overflow-wrap: anywhere;
+    }
+
+    .entry-role,
+    .entry-section,
+    .entry-why {
+        margin: 0 0 1rem;
+        color: var(--odisha-muted);
+        font-size: clamp(1rem, 1.2vw, 1.08rem);
+        line-height: 1.65;
+    }
+
+    .entry-role strong,
+    .entry-section strong,
+    .entry-why strong,
+    .source-credit strong,
+    .source-rights strong {
+        color: var(--odisha-ink);
+        font-weight: 800;
+    }
+
+    .tag-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 1.35rem;
+    }
+
+    .entry-feature-image {
+        position: sticky;
+        top: 7rem;
+        display: grid;
+        overflow: hidden;
+        border: 1px solid var(--odisha-line);
+        border-radius: 8px;
+        background: var(--odisha-surface);
+        color: var(--odisha-muted);
+        text-decoration: none;
+    }
+
+    .entry-feature-image img {
+        aspect-ratio: 4 / 3;
+        max-height: 420px;
+    }
+
+    .entry-feature-image span {
+        padding: 0.75rem 0.9rem;
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        line-height: 1.35;
+        text-transform: uppercase;
+    }
+
+    .entry-resources {
+        display: grid;
+        gap: 2rem;
+        margin-top: clamp(2rem, 4vw, 3rem);
+    }
+
+    .resource-block h4 {
+        margin: 0 0 1rem;
+        color: var(--odisha-ink);
+        font-size: 1rem;
+        font-weight: 800;
+        line-height: 1.25;
+    }
+
+    .source-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
+    }
+
+    .source-card {
+        display: grid;
+        overflow: hidden;
+        border: 1px solid var(--odisha-line);
+        border-radius: 8px;
+        background: var(--odisha-surface);
+    }
+
+    .source-preview {
+        display: block;
+        min-height: 220px;
+        background: #ded4c6;
+    }
+
+    .source-preview img {
+        aspect-ratio: 16 / 10;
+        max-height: 320px;
+    }
+
+    .source-card-body {
+        display: grid;
+        gap: 0.75rem;
+        padding: 1rem;
+    }
+
+    .source-label {
+        margin: 0;
+        color: var(--odisha-ink);
+        font-size: 1rem;
+        font-weight: 800;
+        line-height: 1.35;
+    }
+
+    .source-domain {
+        margin: 0;
+    }
+
+    .source-credit,
+    .source-rights {
+        margin: 0;
+        color: var(--odisha-muted);
+        font-size: 0.9rem;
+        line-height: 1.5;
+    }
+
+    .source-button {
+        width: fit-content;
+        margin-top: 0.2rem;
+    }
+
+    .profile-links {
+        display: grid;
+        margin: 0;
+        padding: 0;
+        gap: 0.55rem;
+        list-style: none;
+    }
+
+    .profile-links li {
+        display: grid;
+        align-items: center;
+        border-top: 1px solid var(--odisha-line);
+        gap: 0.35rem;
+        grid-template-columns: minmax(0, 1fr) auto;
+        padding: 0.8rem 0;
+    }
+
+    .profile-links a {
+        color: var(--odisha-link);
+        font-weight: 700;
+        line-height: 1.35;
+        text-decoration: none;
+    }
+
+    .profile-links a:hover {
+        color: var(--odisha-link-hover);
+        text-decoration: underline;
+        text-underline-offset: 0.18em;
+    }
+
+    .profile-links span {
+        color: var(--odisha-soft);
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+    }
+
+    .rights-footer {
+        border-top: 1px solid var(--odisha-line);
+        padding: clamp(2.5rem, 5vw, 4rem) 0 clamp(4rem, 8vw, 6rem);
+    }
+
+    .rights-footer p {
+        max-width: 820px;
+        margin: 0;
+        color: var(--odisha-muted);
+        font-size: 1rem;
+        line-height: 1.65;
+    }
+
+    @media (max-width: 1100px) {
+        .section-panel,
+        .section-panel:nth-child(3),
+        .section-panel:nth-child(4),
+        .section-panel:nth-child(5) {
+            grid-column: span 6;
+        }
+
+        .quick-index-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .entry-intro {
+            grid-template-columns: minmax(0, 1fr);
+        }
+
+        .entry-feature-image {
+            position: relative;
+            top: auto;
+            max-width: 720px;
+        }
+    }
+
+    @media (max-width: 820px) {
+        .odisha-hero {
+            min-height: 82vh;
+            padding-top: 6rem;
+        }
+
+        .opening-note,
+        .archive-sections,
+        .archive-index,
+        .research-entries,
+        .rights-footer {
+            width: min(100% - 2rem, 1280px);
+        }
+
+        .section-map,
+        .archive-controls,
+        .index-heading,
+        .source-grid,
+        .profile-links li {
+            grid-template-columns: minmax(0, 1fr);
+        }
+
+        .section-panel,
+        .section-panel:nth-child(3),
+        .section-panel:nth-child(4),
+        .section-panel:nth-child(5) {
+            grid-column: 1 / -1;
+        }
+
+        .archive-controls {
+            position: static;
+        }
+
+        .quick-index-grid {
+            grid-template-columns: minmax(0, 1fr);
+        }
+
+        .profile-links span {
+            justify-self: start;
+        }
+    }
+
+    @media (max-width: 560px) {
+        h1 {
+            font-size: clamp(2.6rem, 14vw, 4.2rem);
+        }
+
+        .hero-actions,
+        .filter-chips {
+            flex-wrap: nowrap;
+            overflow-x: auto;
+        }
+
+        .section-panel {
+            grid-template-columns: minmax(0, 1fr);
+        }
+
+        .section-image-link {
+            min-height: 220px;
+        }
+
+        .archive-entry h3 {
+            font-size: clamp(1.9rem, 11vw, 3rem);
+        }
+
+        .source-preview {
+            min-height: 180px;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+            scroll-behavior: auto !important;
+            transition-duration: 0.001ms !important;
+        }
+    }
+</style>
