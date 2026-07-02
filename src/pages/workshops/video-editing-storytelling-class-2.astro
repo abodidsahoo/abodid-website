@@ -1,0 +1,2069 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const pageTitle = "Video Editing & Storytelling: Class 2";
+const description =
+  "A focused browser-based teaching deck for pacing, editing cuts, J cuts, L cuts, transitions, rushes, markers, and sound support.";
+
+const slides = [
+  {
+    number: "01",
+    shortTitle: "Pacing",
+    title: "Pacing is the Heart of Editing",
+    preview: "Cut, hold, and shape what the audience feels.",
+    subtext:
+      "Editing is not about cutting fast. It is about knowing when to cut, when to hold, and what the audience should feel.",
+    keyIdea:
+      "A faster cut does not always mean better energy. Sometimes the strongest edit stays with a face, silence, or reaction.",
+    activityLabel: "Opening exercise",
+    activity:
+      "Show one shot at three lengths: 3 seconds, 6 seconds, and 12 seconds. Ask when it felt emotional, awkward, or boring.",
+    visual: "pacing",
+  },
+  {
+    number: "02",
+    shortTitle: "Fast vs Slow",
+    title: "Speed of the Cut - Fast vs Slow",
+    preview: "Rhythm comes from variation, pause, and release.",
+    subtext:
+      "Before learning specific cuts, notice rhythm. Editing rhythm comes from variation: fast, slow, pause, release.",
+    keyIdea:
+      "Fast-fast-fast becomes flat. Slow-fast-slow creates feeling. A slow cut can create intimacy, grief, suspense, or discomfort.",
+    video: {
+      url: "https://www.youtube.com/embed/p7Mds2k1bYI",
+      title: "Thank You For Not Cutting Part 2",
+      description:
+        "This video supports the core pacing question: when should an editor resist cutting? Use it to discuss attention, duration, reaction, and the emotional power of holding a shot.",
+    },
+    activityLabel: "Activity",
+    activity:
+      "Show a reaction shot. Cut away early once, then hold longer once. Ask when we felt the character more.",
+    visual: "rhythm",
+  },
+  {
+    number: "03",
+    shortTitle: "Cut Types",
+    title: "The 7 Essential Cuts for Storytelling",
+    preview: "A technique map for story, rhythm, and meaning.",
+    subtext:
+      "Different cuts solve different storytelling problems. The choice is not decorative; it changes attention, time, emotion, and continuity.",
+    techniques: [
+      {
+        name: "Flow Cut",
+        description: "Continues motion or attention across the cut.",
+      },
+      {
+        name: "Smash Cut",
+        description: "Breaks rhythm for shock, contrast, or tension.",
+      },
+      {
+        name: "Jump Cut",
+        description: "Skips forward in time inside the same setup.",
+      },
+      {
+        name: "Action Cut",
+        description: "Cuts during movement so the edit feels invisible.",
+      },
+      {
+        name: "Wide-Medium-Close",
+        description: "Moves from context to action to emotion or detail.",
+      },
+      {
+        name: "Match Cut",
+        description: "Links two shots through shape, motion, or idea.",
+      },
+      {
+        name: "Speed of Cut",
+        description: "Fast cuts build pressure; slow cuts add weight.",
+      },
+    ],
+    activityLabel: "Prompt",
+    activity:
+      "Which cut would you use for comedy, tension, memory, or emotion?",
+    visual: "cuts",
+  },
+  {
+    number: "04",
+    shortTitle: "J & L Cuts",
+    title: "J Cut and L Cut",
+    preview: "Sound can lead or linger across the visual cut.",
+    subtext:
+      "A J cut lets us hear the next shot before we see it. An L cut lets the previous sound continue after the image has changed.",
+    keyIdea:
+      "These cuts make scenes feel smoother, more natural, and more emotionally connected.",
+    video: {
+      url: "https://www.youtube.com/embed/eyH-a964kAs",
+      title: "J cuts and L cuts explained",
+      description:
+        "This video explains how J cuts and L cuts use sound before or after the visual cut. It helps students understand that editing is not only visual; sound also controls flow.",
+    },
+    activityLabel: "Premiere exercise",
+    activity:
+      "Cut two clips normally. Then make one J cut and one L cut. Ask which version feels more natural.",
+    visual: "jl",
+  },
+  {
+    number: "05",
+    shortTitle: "Transitions",
+    title: "Transitions Have Psychology",
+    preview: "Hard cuts, dissolves, and fades change how time feels.",
+    subtext:
+      "A hard cut feels immediate. A dissolve feels soft, emotional, dreamy, or time-based. A fade to black feels like a pause, ending, chapter break, or full stop.",
+    keyIdea:
+      "Do not use transitions because they look nice. Use them because they change how the viewer feels time, memory, or closure.",
+    transitionCards: [
+      {
+        name: "Hard Cut",
+        description: "Immediate. Present tense. No apology.",
+      },
+      {
+        name: "Dissolve",
+        description: "Softens time. Suggests memory, passage, or overlap.",
+      },
+      {
+        name: "Fade / Dip to Black",
+        description: "Creates pause, ending, chapter break, or emotional punctuation.",
+      },
+    ],
+    referenceLinks: [
+      {
+        label: "Adobe: Dissolve transitions",
+        href: "https://www.adobe.com/creativecloud/video/post-production/transitions/dissolve.html",
+      },
+      {
+        label: "Film Editing Pro: Fades and dissolves",
+        href: "https://www.filmeditingpro.com/fades-to-black-and-dissolves-what-you-need-to-know/",
+      },
+    ],
+    activityLabel: "Activity",
+    activity:
+      "Show the same two shots as a hard cut, a cross-dissolve, and a fade to black. Ask which feels like memory and which feels like ending.",
+    visual: "transitions",
+  },
+  {
+    number: "06",
+    shortTitle: "Rushes",
+    title: "Rushes - Watch Before You Edit",
+    preview: "Good editing begins before cutting.",
+    subtext:
+      "Rushes are the raw footage captured during production. Reviewing them carefully reveals hidden moments, alternate performances, cutaways, reactions, mistakes, and sound details.",
+    keyIdea:
+      "Good editing begins before cutting. It begins by watching carefully.",
+    referenceLinks: [
+      {
+        label: "StudioBinder: Dailies",
+        href: "https://www.studiobinder.com/blog/what-are-dailies-in-film/",
+      },
+      {
+        label: "Netflix: Dailies best practices",
+        href: "https://partnerhelp.netflixstudios.com/hc/en-us/articles/4415931246995-Dailies-Best-Practices",
+      },
+    ],
+    activityLabel: "Viewing task",
+    activity:
+      "Review a small rushes folder and mark the best take, usable cutaway, weak shot, sound moment, and emotional moment.",
+    visual: "rushes",
+  },
+  {
+    number: "07",
+    shortTitle: "Markers",
+    title: "Markers Are Your Editing Memory",
+    preview: "A simple color system turns watching into decisions.",
+    subtext:
+      "Markers help you remember good takes, emotional beats, mistakes, music hits, sound cues, and possible cut points.",
+    markerSystem: [
+      { color: "green", label: "Good moment" },
+      { color: "red", label: "Problem" },
+      { color: "blue", label: "Sound cue" },
+      { color: "yellow", label: "Possible cut" },
+      { color: "purple", label: "Emotional beat" },
+    ],
+    referenceLinks: [
+      {
+        label: "Adobe Premiere Pro: Markers",
+        href: "https://helpx.adobe.com/in/premiere/desktop/organize-media/apply-labeling/overview-of-markers.html",
+      },
+    ],
+    activityLabel: "Activity",
+    activity:
+      "Import rushes and add color/text markers before cutting anything.",
+    visual: "markers",
+  },
+  {
+    number: "08",
+    shortTitle: "Sound Support",
+    title: "Sound Makes Cuts Feel Invisible",
+    preview: "Continuity often comes from the audio layer.",
+    subtext:
+      "Sound design is not only atmosphere. Room tone, breath, footsteps, cloth movement, ambience, whoosh, and silence can make cuts and transitions feel natural.",
+    keyIdea:
+      "A visual cut often becomes believable because the sound is continuous.",
+    referenceLinks: [
+      {
+        label: "Film Editing Pro: Sound design",
+        href: "https://www.filmeditingpro.com/how-to-sound-design-a-video-step-by-step-tutorial/",
+      },
+      {
+        label: "Pro Sound Effects: Sound layering",
+        href: "https://blog.prosoundeffects.com/sound-layering",
+      },
+    ],
+    activityLabel: "Listening exercise",
+    activity:
+      "Play a cut without sound design. Add ambience, Foley, and one transition sound. Ask when the cut stopped feeling like a cut.",
+    visual: "sound",
+  },
+  {
+    number: "09",
+    shortTitle: "Class Task",
+    title: "Build a Pacing Exercise",
+    preview: "A 30-45 second edit using cuts, markers, and sound layers.",
+    subtext:
+      "Create a short scene from rushes. The aim is not to show every technique; the aim is to choose cuts and sounds with intention.",
+    taskItems: [
+      "One J cut",
+      "One L cut",
+      "One hard cut",
+      "One dissolve or fade",
+      "At least three markers",
+      "At least three sound layers",
+      "One deliberately held shot",
+    ],
+    question: "What did you cut fast, what did you hold, and why?",
+    activityLabel: "Final task",
+    activity: "Build a 30-45 second scene and explain the pacing decisions.",
+    visual: "task",
+  },
+];
+---
+
+<BaseLayout
+  title={pageTitle}
+  description={description}
+  noindex={true}
+  hideHeader={true}
+  hideSideMenuRail={true}
+  hideFooter={true}
+  hideThemeToggle={true}
+  fullWidth={true}
+  showNewsletterPopup={false}
+  showGlobalGrid={false}
+  showCursor={false}
+  bodyClass="research-workshop-deck-body"
+>
+  <section class="deck-app sidebar-collapsed" data-deck data-slide-count={slides.length}>
+    <aside class="sidebar" aria-label="Slide navigation">
+      <div class="sidebar-header">
+        <p class="deck-kicker">Workshop deck</p>
+        <h1>{pageTitle}</h1>
+        <p class="deck-meta">Pacing / cuts / sound / workflow</p>
+      </div>
+
+      <nav class="thumbnail-list" aria-label="Slides">
+        {
+          slides.map((slide, index) => (
+            <button
+              class={`slide-thumbnail ${index === 0 ? "is-active" : ""}`}
+              type="button"
+              data-slide-target={index}
+              aria-current={index === 0 ? "step" : "false"}
+              aria-label={`Go to slide ${index + 1}: ${slide.title}`}
+            >
+              <span class="thumbnail-number">{slide.number}</span>
+              <span class="thumbnail-copy">
+                <span class="thumbnail-title">{slide.shortTitle}</span>
+                <span class="thumbnail-preview">{slide.preview}</span>
+              </span>
+            </button>
+          ))
+        }
+      </nav>
+    </aside>
+
+    <main class="deck-main" aria-label={pageTitle}>
+      <header class="deck-topbar">
+        <button
+          class="sidebar-toggle"
+          type="button"
+          data-sidebar-toggle
+          aria-expanded="false"
+          aria-controls="deck-sidebar-state"
+        >
+          Slides
+        </button>
+
+        <div class="topbar-title" aria-hidden="true">
+          <span>Video Editing &amp; Storytelling</span>
+          <strong>Class 2</strong>
+        </div>
+
+        <div class="progress-indicator" aria-label="Deck progress">
+          <span data-progress-label>Slide 1 of {slides.length}</span>
+          <div
+            class="progress-track"
+            role="progressbar"
+            aria-valuemin="1"
+            aria-valuemax={slides.length}
+            aria-valuenow="1"
+            aria-valuetext={`Slide 1 of ${slides.length}`}
+            data-progressbar
+          >
+            <span class="progress-fill" data-progress-fill></span>
+          </div>
+        </div>
+      </header>
+
+      <div id="deck-sidebar-state" class="sr-only" aria-live="polite">
+        Slide navigation hidden.
+      </div>
+
+      <section class="slide-stage" aria-live="polite">
+        <div class="slide-stack">
+          {
+            slides.map((slide, index) => (
+              <article
+                class={`slide-card ${index === 0 ? "is-active" : ""}`}
+                data-slide={index}
+                data-short-title={slide.shortTitle}
+                aria-hidden={index === 0 ? "false" : "true"}
+                tabindex="-1"
+                hidden={index !== 0}
+              >
+                <header class="slide-header">
+                  <span class="slide-number">{slide.number}</span>
+                  <span class="slide-tag">Class 2 / Pacing &amp; Cuts</span>
+                </header>
+
+                <div class={`slide-content ${slide.video ? "has-video" : ""}`}>
+                  <div class="slide-copy">
+                    <h2>{slide.title}</h2>
+                    <p class="slide-subtext">{slide.subtext}</p>
+
+                    {slide.keyIdea && (
+                      <div class="key-idea">
+                        <span>Key idea</span>
+                        <p>{slide.keyIdea}</p>
+                      </div>
+                    )}
+
+                    {slide.techniques && slide.visual !== "cuts" && (
+                      <div class="technique-list" aria-label="Seven editing cuts">
+                        {slide.techniques.map((technique) => (
+                          <div class="technique-pill">
+                            <strong>{technique.name}</strong>
+                            <span>{technique.description}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {slide.transitionCards && slide.visual !== "transitions" && (
+                      <div class="transition-list" aria-label="Transition psychology">
+                        {slide.transitionCards.map((transition) => (
+                          <div class="transition-card">
+                            <strong>{transition.name}</strong>
+                            <span>{transition.description}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {slide.markerSystem && slide.visual !== "markers" && (
+                      <div class="marker-list" aria-label="Marker color system">
+                        {slide.markerSystem.map((marker) => (
+                          <div class={`marker-row marker-${marker.color}`}>
+                            <span></span>
+                            <strong>{marker.label}</strong>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {slide.taskItems && slide.visual !== "task" && (
+                      <ul class="task-list">
+                        {slide.taskItems.map((item) => (
+                          <li>{item}</li>
+                        ))}
+                      </ul>
+                    )}
+
+                    <div class="activity-panel">
+                      <span>{slide.activityLabel}</span>
+                      <p>{slide.activity}</p>
+                    </div>
+
+                    {slide.question && (
+                      <p class="question-line">{slide.question}</p>
+                    )}
+
+                  </div>
+
+                  <div class="slide-visual-wrap">
+                    {slide.video && (
+                      <div class="video-panel">
+                        <div class="video-copy">
+                          <span>Watch together</span>
+                          <p>{slide.video.description}</p>
+                        </div>
+                        <div class="video-frame">
+                          <iframe
+                            src={slide.video.url}
+                            title={slide.video.title}
+                            loading="lazy"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            allowfullscreen
+                          ></iframe>
+                        </div>
+                      </div>
+                    )}
+
+                    {!slide.video && slide.visual === "pacing" && (
+                      <div
+                        class="visual-board pacing-visual"
+                        role="img"
+                        aria-label="Three shot durations showing 3 seconds, 6 seconds, and 12 seconds."
+                      >
+                        <span class="visual-label">Hold vs cut</span>
+                        {[
+                          ["3 sec", "Information"],
+                          ["6 sec", "Feeling"],
+                          ["12 sec", "Pressure"],
+                        ].map(([duration, meaning], itemIndex) => (
+                          <div class={`pacing-row pacing-${itemIndex + 1}`}>
+                            <span>{duration}</span>
+                            <div>
+                              <i></i>
+                            </div>
+                            <strong>{meaning}</strong>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {!slide.video && slide.visual === "cuts" && (
+                      <div
+                        class="visual-board cuts-visual"
+                        role="img"
+                        aria-label="A map of essential storytelling cuts arranged as editing choices."
+                      >
+                        <span class="visual-label">Technique map</span>
+                        <div class="cut-map">
+                          {slide.techniques?.map((technique, itemIndex) => (
+                            <div style={`--index: ${itemIndex}`}>
+                              <strong>{technique.name}</strong>
+                              <span>{technique.description}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {!slide.video && slide.visual === "transitions" && (
+                      <div
+                        class="visual-board transition-visual"
+                        role="img"
+                        aria-label="Hard cut, dissolve, and fade to black represented as transition states."
+                      >
+                        <span class="visual-label">Time feeling</span>
+                        <div class="transition-strip hard">
+                          <span>Shot A</span>
+                          <b></b>
+                          <span>Shot B</span>
+                        </div>
+                        <div class="transition-strip dissolve">
+                          <span>Memory</span>
+                          <b></b>
+                          <span>Overlap</span>
+                        </div>
+                        <div class="transition-strip fade">
+                          <span>Pause</span>
+                          <b></b>
+                          <span>End</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {!slide.video && slide.visual === "rushes" && (
+                      <div
+                        class="visual-board rushes-visual"
+                        role="img"
+                        aria-label="A rushes bin with best take, cutaway, weak shot, sound, and emotional moment marked."
+                      >
+                        <span class="visual-label">Rushes review</span>
+                        {[
+                          ["A003", "Best take"],
+                          ["B014", "Cutaway"],
+                          ["C002", "Weak shot"],
+                          ["D009", "Sound moment"],
+                          ["E011", "Emotional beat"],
+                        ].map(([clip, label]) => (
+                          <div class="rush-row">
+                            <span>{clip}</span>
+                            <strong>{label}</strong>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {!slide.video && slide.visual === "markers" && (
+                      <div
+                        class="visual-board markers-visual"
+                        role="img"
+                        aria-label="A timeline marker system using green, red, blue, yellow, and purple markers."
+                      >
+                        <span class="visual-label">Marker memory</span>
+                        <div class="marker-timeline">
+                          {slide.markerSystem?.map((marker) => (
+                            <i class={`marker-dot marker-${marker.color}`}></i>
+                          ))}
+                        </div>
+                        <div class="marker-legend">
+                          {slide.markerSystem?.map((marker) => (
+                            <span class={`marker-${marker.color}`}>{marker.label}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {!slide.video && slide.visual === "sound" && (
+                      <div
+                        class="visual-board sound-visual"
+                        role="img"
+                        aria-label="Audio continuity layers making a visual cut feel invisible."
+                      >
+                        <span class="visual-label">Continuity layer</span>
+                        <div class="visual-cut">
+                          <span>Shot A</span>
+                          <b></b>
+                          <span>Shot B</span>
+                        </div>
+                        {[
+                          "Room tone",
+                          "Breath",
+                          "Footsteps",
+                          "Ambience",
+                          "Transition sound",
+                        ].map((layer, itemIndex) => (
+                          <div class="sound-layer" style={`--layer: ${itemIndex}`}>
+                            <span>{layer}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {!slide.video && slide.visual === "task" && (
+                      <div
+                        class="visual-board task-visual"
+                        role="img"
+                        aria-label="A practical pacing exercise checklist."
+                      >
+                        <span class="visual-label">30-45 sec scene</span>
+                        {slide.taskItems?.slice(0, 7).map((item) => (
+                          <div class="task-check">
+                            <span></span>
+                            <strong>{item}</strong>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </article>
+            ))
+          }
+        </div>
+      </section>
+
+      <footer class="deck-controls" aria-label="Slide controls">
+        <button class="control-button previous" type="button" data-prev disabled>
+          <span aria-hidden="true">&larr;</span>
+          <span>
+            <small>Previous</small>
+            <strong data-prev-label>Start</strong>
+          </span>
+        </button>
+
+        <button class="control-button next" type="button" data-next>
+          <span>
+            <small>Next</small>
+            <strong data-next-label>Fast vs Slow</strong>
+          </span>
+          <span aria-hidden="true">&rarr;</span>
+        </button>
+      </footer>
+    </main>
+  </section>
+
+  <script>
+    const app = document.querySelector("[data-deck]");
+    const slideCards = Array.from(document.querySelectorAll("[data-slide]"));
+    const thumbnails = Array.from(document.querySelectorAll("[data-slide-target]"));
+    const previousButton = document.querySelector("[data-prev]");
+    const nextButton = document.querySelector("[data-next]");
+    const progressLabel = document.querySelector("[data-progress-label]");
+    const progressBar = document.querySelector("[data-progressbar]");
+    const progressFill = document.querySelector("[data-progress-fill]");
+    const previousLabel = document.querySelector("[data-prev-label]");
+    const nextLabel = document.querySelector("[data-next-label]");
+    const sidebarToggle = document.querySelector("[data-sidebar-toggle]");
+    const sidebarState = document.querySelector("#deck-sidebar-state");
+    const smallViewport = window.matchMedia("(max-width: 760px)");
+    const stackedViewport = window.matchMedia("(max-width: 900px)");
+    let currentSlide = 0;
+
+    if ("scrollRestoration" in history) {
+      history.scrollRestoration = "manual";
+    }
+
+    const getTitle = (index) =>
+      slideCards[index]?.getAttribute("data-short-title") || "";
+
+    const keepActiveThumbnailVisible = () => {
+      const activeThumbnail = thumbnails[currentSlide];
+      const thumbnailList = activeThumbnail?.closest(".thumbnail-list");
+      if (!(activeThumbnail instanceof HTMLElement) || !(thumbnailList instanceof HTMLElement)) {
+        return;
+      }
+
+      const maxLeft = thumbnailList.scrollWidth - thumbnailList.clientWidth;
+      const maxTop = thumbnailList.scrollHeight - thumbnailList.clientHeight;
+      const targetLeft =
+        activeThumbnail.offsetLeft -
+        (thumbnailList.clientWidth - activeThumbnail.offsetWidth) / 2;
+      const targetTop =
+        activeThumbnail.offsetTop -
+        (thumbnailList.clientHeight - activeThumbnail.offsetHeight) / 2;
+
+      thumbnailList.scrollTo({
+        left: Math.max(0, Math.min(targetLeft, maxLeft)),
+        top: Math.max(0, Math.min(targetTop, maxTop)),
+        behavior: "auto",
+      });
+    };
+
+    const updateSidebarState = (isCollapsed) => {
+      if (!app || !sidebarToggle || !sidebarState) return;
+      app.classList.toggle("sidebar-collapsed", isCollapsed);
+      sidebarToggle.setAttribute("aria-expanded", String(!isCollapsed));
+      sidebarState.textContent = isCollapsed
+        ? "Slide navigation hidden."
+        : "Slide navigation visible.";
+
+      if (!isCollapsed) {
+        window.setTimeout(keepActiveThumbnailVisible, 0);
+      }
+    };
+
+    const getSlideIndexFromHash = () => {
+      const hashMatch = window.location.hash.match(/slide-(\d+)/);
+      return hashMatch ? Number(hashMatch[1]) - 1 : 0;
+    };
+
+    const updateDeck = (targetIndex, options = {}) => {
+      const nextIndex = Math.max(0, Math.min(targetIndex, slideCards.length - 1));
+      currentSlide = nextIndex;
+
+      slideCards.forEach((slide, index) => {
+        const isActive = index === currentSlide;
+        slide.hidden = !isActive;
+        slide.classList.toggle("is-active", isActive);
+        slide.setAttribute("aria-hidden", String(!isActive));
+      });
+
+      thumbnails.forEach((thumbnail, index) => {
+        const isActive = index === currentSlide;
+        thumbnail.classList.toggle("is-active", isActive);
+        thumbnail.setAttribute("aria-current", isActive ? "step" : "false");
+      });
+
+      keepActiveThumbnailVisible();
+
+      const slideNumber = currentSlide + 1;
+      const totalSlides = slideCards.length;
+      const remaining = totalSlides - slideNumber;
+      const progressPercent = (slideNumber / totalSlides) * 100;
+
+      if (previousButton instanceof HTMLButtonElement) {
+        previousButton.disabled = currentSlide === 0;
+      }
+
+      if (nextButton instanceof HTMLButtonElement) {
+        nextButton.disabled = currentSlide === totalSlides - 1;
+      }
+
+      if (progressLabel) {
+        progressLabel.textContent = `Slide ${slideNumber} of ${totalSlides}`;
+      }
+
+      if (progressBar) {
+        progressBar.setAttribute("aria-valuenow", String(slideNumber));
+        progressBar.setAttribute("aria-valuetext", `Slide ${slideNumber} of ${totalSlides}`);
+      }
+
+      if (progressFill instanceof HTMLElement) {
+        progressFill.style.width = `${progressPercent}%`;
+      }
+
+      if (previousLabel) {
+        previousLabel.textContent =
+          currentSlide > 0 ? getTitle(currentSlide - 1) : "Start";
+      }
+
+      if (nextLabel) {
+        nextLabel.textContent =
+          currentSlide < totalSlides - 1 ? getTitle(currentSlide + 1) : "Complete";
+      }
+
+      if (options.updateHash !== false) {
+        history.replaceState(null, "", `#slide-${slideNumber}`);
+      }
+
+      if (options.focus) {
+        slideCards[currentSlide]?.focus({ preventScroll: true });
+      }
+
+      if (stackedViewport.matches) {
+        window.requestAnimationFrame(() => window.scrollTo(0, 0));
+      }
+    };
+
+    thumbnails.forEach((thumbnail) => {
+      thumbnail.addEventListener("click", () => {
+        const target = Number(thumbnail.getAttribute("data-slide-target"));
+        updateDeck(target);
+        if (smallViewport.matches) {
+          updateSidebarState(true);
+        }
+      });
+    });
+
+    previousButton?.addEventListener("click", () => updateDeck(currentSlide - 1));
+    nextButton?.addEventListener("click", () => updateDeck(currentSlide + 1));
+
+    sidebarToggle?.addEventListener("click", () => {
+      const shouldCollapse = !app?.classList.contains("sidebar-collapsed");
+      updateSidebarState(shouldCollapse);
+    });
+
+    document.addEventListener("keydown", (event) => {
+      const activeElement = document.activeElement;
+      const isTyping =
+        activeElement instanceof HTMLInputElement ||
+        activeElement instanceof HTMLTextAreaElement ||
+        activeElement instanceof HTMLSelectElement ||
+        activeElement instanceof HTMLIFrameElement ||
+        activeElement?.hasAttribute("contenteditable");
+
+      if (isTyping) return;
+
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        updateDeck(currentSlide + 1);
+      }
+
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        updateDeck(currentSlide - 1);
+      }
+    });
+
+    window.addEventListener("hashchange", () => {
+      const hashSlide = getSlideIndexFromHash();
+      if (hashSlide !== currentSlide) {
+        updateDeck(hashSlide, { updateHash: false });
+      }
+    });
+
+    const initialSlide = getSlideIndexFromHash();
+    updateSidebarState(smallViewport.matches);
+    updateDeck(initialSlide, { updateHash: false });
+  </script>
+</BaseLayout>
+
+<style is:global>
+  .research-workshop-deck-body {
+    background: var(--bg-color);
+    color: var(--text-primary);
+    overflow: hidden;
+  }
+
+  .research-workshop-deck-body #main-content {
+    min-height: 100vh;
+  }
+
+  .research-workshop-deck-body ::selection {
+    background: var(--accent-primary);
+    color: var(--bg-color);
+  }
+
+  .research-workshop-deck-body .skip-link:focus {
+    z-index: 20;
+  }
+
+  @media (max-width: 900px) {
+    .research-workshop-deck-body {
+      overflow: auto;
+    }
+  }
+</style>
+
+<style>
+  .deck-app {
+    --deck-bg: var(--bg-color);
+    --slide-bg: var(--bg-surface);
+    --slide-soft: var(--bg-surface-hover);
+    --ink: var(--text-primary);
+    --muted: var(--text-secondary);
+    --quiet: var(--text-tertiary);
+    --line: var(--border-subtle);
+    --line-strong: var(--border-strong);
+    --accent: var(--accent-primary);
+    --accent-ink: var(--link-hover-color, var(--accent-primary));
+    min-height: 100vh;
+    height: 100vh;
+    display: grid;
+    grid-template-columns: minmax(280px, 23vw) minmax(0, 1fr);
+    background: var(--deck-bg);
+    color: var(--ink);
+    font-family: var(--font-sans, "Satoshi-Variable", "Poppins", system-ui, sans-serif);
+    letter-spacing: 0;
+  }
+
+  .deck-app *,
+  .deck-app *::before,
+  .deck-app *::after {
+    letter-spacing: 0;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .sidebar {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.35rem;
+    padding: 1.35rem 1rem;
+    border-right: 1px solid var(--line);
+    background: var(--deck-bg);
+    overflow: hidden;
+  }
+
+  .sidebar-header {
+    padding: 0.25rem 0.25rem 0;
+  }
+
+  .deck-kicker,
+  .deck-meta,
+  .slide-tag,
+  .slide-number,
+  .thumbnail-number,
+  .activity-panel span,
+  .reference-links span,
+  .key-idea span,
+  .control-button small,
+  .visual-label,
+  .video-copy span {
+    font-family: var(--font-mono, "Space Mono", monospace);
+  }
+
+  .deck-kicker {
+    margin: 0 0 0.65rem;
+    color: var(--accent);
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .sidebar h1 {
+    margin: 0;
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 600;
+    line-height: 1.04;
+    letter-spacing: -0.02em;
+  }
+
+  .deck-meta {
+    margin: 0.75rem 0 0;
+    color: var(--muted);
+    font-size: 0.84rem;
+  }
+
+  .thumbnail-list {
+    min-height: 0;
+    overflow-y: auto;
+    display: grid;
+    gap: 0.72rem;
+    padding: 0.15rem 0.35rem 0.4rem 0.15rem;
+    scrollbar-width: thin;
+    scrollbar-color: var(--line-strong) transparent;
+  }
+
+  .slide-thumbnail {
+    width: 100%;
+    min-height: 6.5rem;
+    display: grid;
+    grid-template-columns: 2.1rem minmax(0, 1fr);
+    gap: 0.7rem;
+    align-items: start;
+    text-align: left;
+    padding: 0.85rem;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+    transition:
+      background 180ms ease,
+      border-color 180ms ease,
+      transform 180ms ease;
+  }
+
+  .slide-thumbnail:hover {
+    background: var(--slide-soft);
+    border-color: var(--ink);
+    transform: translateY(-1px);
+  }
+
+  .slide-thumbnail:focus-visible,
+  .control-button:focus-visible,
+  .sidebar-toggle:focus-visible,
+  .reference-links a:focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--accent) 50%, transparent);
+    outline-offset: 3px;
+  }
+
+  .slide-thumbnail.is-active {
+    background: var(--slide-bg);
+    border-color: var(--accent);
+    box-shadow: inset 4px 0 0 var(--accent);
+  }
+
+  .thumbnail-number {
+    color: var(--accent);
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+
+  .thumbnail-copy {
+    min-width: 0;
+    display: grid;
+    gap: 0.36rem;
+  }
+
+  .thumbnail-title {
+    color: var(--ink);
+    font-size: 0.98rem;
+    font-weight: 700;
+    line-height: 1.12;
+  }
+
+  .thumbnail-preview {
+    color: var(--muted);
+    font-size: 0.84rem;
+    line-height: 1.35;
+  }
+
+  .deck-main {
+    min-width: 0;
+    height: 100vh;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    gap: 1rem;
+    padding: 1.25rem 2rem 1.45rem;
+  }
+
+  .deck-topbar,
+  .deck-controls {
+    width: min(100%, 1120px);
+    margin: 0 auto;
+  }
+
+  .deck-topbar {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 1rem;
+    min-height: 3.15rem;
+  }
+
+  .sidebar-toggle {
+    display: none;
+    min-height: 2.75rem;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--slide-bg);
+    color: var(--ink);
+    padding: 0 0.95rem;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .topbar-title {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    color: var(--muted);
+    font-size: 0.98rem;
+  }
+
+  .topbar-title strong {
+    color: var(--ink);
+  }
+
+  .progress-indicator {
+    min-width: 13.5rem;
+    display: grid;
+    gap: 0.45rem;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+
+  .progress-track {
+    height: 0.28rem;
+    border-radius: 999px;
+    background: var(--line);
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    display: block;
+    width: 11.111%;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--accent);
+    transition: width 220ms ease;
+  }
+
+  .slide-stage {
+    min-height: 0;
+    display: grid;
+    place-items: center;
+    padding: 0.35rem 0;
+  }
+
+  .slide-stack {
+    position: relative;
+    width: min(100%, 1120px);
+    height: min(720px, calc(100vh - 12.6rem));
+    min-height: 30.5rem;
+  }
+
+  .slide-card {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--slide-bg);
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.16);
+    padding: 2.35rem 2.65rem 2.45rem;
+  }
+
+  .slide-card.is-active {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 1.35rem;
+    animation: slideIn 210ms ease both;
+  }
+
+  .slide-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    color: var(--quiet);
+  }
+
+  .slide-number {
+    color: var(--accent);
+    font-size: 0.95rem;
+    font-weight: 700;
+  }
+
+  .slide-tag {
+    font-size: 0.8rem;
+  }
+
+  .slide-content {
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(18rem, 0.95fr);
+    gap: 2.6rem;
+    align-items: center;
+  }
+
+  .slide-content.has-video {
+    grid-template-columns: minmax(0, 0.92fr) minmax(21rem, 1.08fr);
+  }
+
+  .slide-copy {
+    min-width: 0;
+  }
+
+  .slide-copy h2 {
+    margin: 0;
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: 3.35rem;
+    font-weight: 600;
+    line-height: 1.04;
+    letter-spacing: -0.02em;
+  }
+
+  .slide-subtext {
+    max-width: 43rem;
+    margin: 1rem 0 0;
+    color: var(--muted);
+    font-family: var(--font-sans);
+    font-size: 1.16rem;
+    line-height: 1.55;
+  }
+
+  .key-idea,
+  .activity-panel,
+  .reference-links {
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .key-idea span,
+  .activity-panel span,
+  .reference-links span,
+  .video-copy span {
+    display: block;
+    margin-bottom: 0.45rem;
+    color: var(--accent);
+    font-size: 0.76rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .key-idea p,
+  .activity-panel p {
+    margin: 0;
+    color: var(--ink);
+    font-size: 1.03rem;
+    line-height: 1.5;
+  }
+
+  .activity-panel p {
+    font-size: 1.08rem;
+  }
+
+  .question-line {
+    margin: 1rem 0 0;
+    color: var(--accent);
+    font-size: 1.2rem;
+    font-weight: 700;
+    line-height: 1.35;
+  }
+
+  .reference-links div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+  }
+
+  .reference-links a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2rem;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 0.35rem 0.62rem;
+    background: var(--slide-soft);
+    color: var(--muted);
+    font-size: 0.82rem;
+    text-decoration: none;
+    transition:
+      border-color 180ms ease,
+      color 180ms ease,
+      background 180ms ease;
+  }
+
+  .reference-links a:hover {
+    border-color: var(--ink);
+    color: var(--ink);
+  }
+
+  .technique-list,
+  .transition-list,
+  .marker-list,
+  .task-list {
+    margin: 1.25rem 0 0;
+  }
+
+  .technique-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
+  }
+
+  .technique-pill,
+  .transition-card,
+  .marker-row,
+  .task-list li,
+  .task-check,
+  .rush-row,
+  .sound-layer,
+  .visual-cut,
+  .transition-strip {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--slide-soft);
+  }
+
+  .technique-pill {
+    min-height: 4.2rem;
+    padding: 0.72rem;
+  }
+
+  .technique-pill strong,
+  .transition-card strong {
+    display: block;
+    color: var(--ink);
+    font-size: 0.95rem;
+    line-height: 1.2;
+  }
+
+  .technique-pill span,
+  .transition-card span {
+    display: block;
+    margin-top: 0.3rem;
+    color: var(--muted);
+    font-size: 0.84rem;
+    line-height: 1.35;
+  }
+
+  .transition-list {
+    display: grid;
+    gap: 0.55rem;
+  }
+
+  .transition-card {
+    padding: 0.82rem;
+  }
+
+  .marker-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
+  }
+
+  .marker-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-height: 2.65rem;
+    padding: 0.62rem 0.75rem;
+  }
+
+  .marker-row span {
+    width: 0.78rem;
+    height: 0.78rem;
+    border-radius: 999px;
+    background: currentColor;
+  }
+
+  .marker-row strong {
+    color: var(--ink);
+    font-size: 0.95rem;
+  }
+
+  .marker-green {
+    color: #4d8a58;
+  }
+
+  .marker-red {
+    color: #b84a3b;
+  }
+
+  .marker-blue {
+    color: #3f6f9f;
+  }
+
+  .marker-yellow {
+    color: #c9a02a;
+  }
+
+  .marker-purple {
+    color: #8a5cb8;
+  }
+
+  .task-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  .task-list li {
+    position: relative;
+    min-height: 2.55rem;
+    display: flex;
+    align-items: center;
+    padding: 0.55rem 0.68rem 0.55rem 2rem;
+    color: var(--ink);
+    font-size: 0.94rem;
+    font-weight: 600;
+  }
+
+  .task-list li::before {
+    content: "";
+    position: absolute;
+    left: 0.7rem;
+    width: 0.72rem;
+    height: 0.72rem;
+    border: 1px solid var(--accent);
+    border-radius: 3px;
+  }
+
+  .slide-visual-wrap {
+    min-width: 0;
+  }
+
+  .visual-board,
+  .video-panel {
+    min-height: 21rem;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--slide-soft);
+    padding: 1.25rem;
+  }
+
+  .visual-label {
+    display: block;
+    margin-bottom: 1rem;
+    color: var(--accent);
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .pacing-visual,
+  .rushes-visual,
+  .markers-visual,
+  .sound-visual,
+  .task-visual,
+  .transition-visual {
+    display: grid;
+    align-content: center;
+    gap: 0.75rem;
+  }
+
+  .task-visual {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .task-visual .visual-label {
+    grid-column: 1 / -1;
+  }
+
+  .pacing-row {
+    display: grid;
+    grid-template-columns: 4rem 1fr 5.8rem;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  .pacing-row span {
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+
+  .pacing-row div {
+    height: 2.7rem;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--slide-bg);
+    overflow: hidden;
+  }
+
+  .pacing-row i {
+    display: block;
+    width: 36%;
+    height: 100%;
+    background: var(--accent);
+  }
+
+  .pacing-2 i {
+    width: 62%;
+  }
+
+  .pacing-3 i {
+    width: 100%;
+  }
+
+  .pacing-row strong {
+    color: var(--ink);
+    font-size: 0.98rem;
+  }
+
+  .video-panel {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    gap: 1rem;
+  }
+
+  .video-copy p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.98rem;
+    line-height: 1.5;
+  }
+
+  .video-frame {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #000;
+  }
+
+  .video-frame iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  .cuts-visual {
+    display: grid;
+    grid-template-rows: auto 1fr;
+  }
+
+  .cut-map {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.65rem;
+    align-content: center;
+  }
+
+  .cut-map div {
+    min-height: 4.15rem;
+    display: grid;
+    align-content: center;
+    gap: 0.25rem;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--slide-bg);
+    padding: 0.62rem;
+  }
+
+  .cut-map strong {
+    color: var(--ink);
+    font-weight: 700;
+    text-align: center;
+    font-size: 0.92rem;
+  }
+
+  .cut-map span {
+    color: var(--muted);
+    font-size: 0.74rem;
+    line-height: 1.25;
+    text-align: center;
+  }
+
+  .cut-map div:nth-child(7) {
+    grid-column: 1 / -1;
+    border-color: var(--accent);
+  }
+
+  .transition-strip {
+    display: grid;
+    grid-template-columns: 1fr 4rem 1fr;
+    align-items: center;
+    gap: 0.7rem;
+    min-height: 4.6rem;
+    padding: 0.75rem;
+  }
+
+  .transition-strip span {
+    display: grid;
+    place-items: center;
+    min-height: 3rem;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--slide-bg);
+    color: var(--ink);
+    font-weight: 700;
+    text-align: center;
+  }
+
+  .transition-strip b {
+    display: block;
+    height: 2px;
+    background: var(--accent);
+  }
+
+  .transition-strip.dissolve b {
+    height: 1.8rem;
+    border-radius: 999px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  }
+
+  .transition-strip.fade b {
+    height: 1.8rem;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--line), #000, var(--line));
+  }
+
+  .rush-row {
+    display: grid;
+    grid-template-columns: 4.25rem 1fr;
+    align-items: center;
+    min-height: 3rem;
+    padding: 0.55rem 0.75rem;
+  }
+
+  .rush-row span {
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    font-weight: 700;
+  }
+
+  .rush-row strong {
+    color: var(--ink);
+    font-size: 0.98rem;
+  }
+
+  .marker-timeline {
+    position: relative;
+    min-height: 4rem;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--slide-bg);
+  }
+
+  .marker-timeline::before {
+    content: "";
+    position: absolute;
+    left: 1rem;
+    right: 1rem;
+    top: 50%;
+    height: 2px;
+    background: var(--line);
+  }
+
+  .marker-dot {
+    position: absolute;
+    top: calc(50% - 0.42rem);
+    width: 0.84rem;
+    height: 0.84rem;
+    border-radius: 999px;
+    background: currentColor;
+  }
+
+  .marker-dot:nth-child(1) {
+    left: 12%;
+  }
+
+  .marker-dot:nth-child(2) {
+    left: 30%;
+  }
+
+  .marker-dot:nth-child(3) {
+    left: 52%;
+  }
+
+  .marker-dot:nth-child(4) {
+    left: 69%;
+  }
+
+  .marker-dot:nth-child(5) {
+    left: 84%;
+  }
+
+  .marker-legend {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
+  }
+
+  .marker-legend span {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--slide-bg);
+    padding: 0.62rem 0.72rem;
+    color: var(--ink);
+    font-size: 0.92rem;
+    font-weight: 700;
+  }
+
+  .marker-legend span::before {
+    content: "";
+    display: inline-block;
+    width: 0.65rem;
+    height: 0.65rem;
+    margin-right: 0.45rem;
+    border-radius: 999px;
+    background: currentColor;
+  }
+
+  .visual-cut {
+    display: grid;
+    grid-template-columns: 1fr 2px 1fr;
+    align-items: center;
+    gap: 0.7rem;
+    min-height: 4rem;
+    padding: 0.7rem;
+  }
+
+  .visual-cut span {
+    display: grid;
+    place-items: center;
+    min-height: 2.6rem;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--slide-bg);
+    font-weight: 700;
+  }
+
+  .visual-cut b {
+    width: 2px;
+    height: 3rem;
+    background: var(--accent);
+  }
+
+  .sound-layer {
+    min-height: 2.55rem;
+    display: flex;
+    align-items: center;
+    padding: 0 0.8rem;
+    width: calc(100% - (var(--layer) * 4%));
+    margin-left: calc(var(--layer) * 2%);
+  }
+
+  .sound-layer span {
+    color: var(--ink);
+    font-weight: 700;
+  }
+
+  .task-check {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    min-height: 2.55rem;
+    padding: 0.55rem 0.7rem;
+  }
+
+  .task-check span {
+    width: 0.78rem;
+    height: 0.78rem;
+    border: 1px solid var(--accent);
+    border-radius: 3px;
+  }
+
+  .task-check strong {
+    color: var(--ink);
+    font-size: 0.95rem;
+  }
+
+  .deck-controls {
+    display: grid;
+    grid-template-columns: minmax(12rem, 1fr) minmax(12rem, 1fr);
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .control-button {
+    min-width: 0;
+    min-height: 3.3rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.8rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 8px;
+    background: var(--slide-bg);
+    color: var(--ink);
+    padding: 0.62rem 0.85rem;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition:
+      background 180ms ease,
+      border-color 180ms ease,
+      transform 180ms ease;
+  }
+
+  .control-button:hover:not(:disabled) {
+    transform: translateY(-1px);
+    border-color: var(--ink);
+    background: var(--slide-soft);
+  }
+
+  .control-button.next {
+    justify-content: flex-end;
+    background: var(--ink);
+    color: var(--deck-bg);
+    border-color: var(--ink);
+    text-align: right;
+  }
+
+  .control-button.next:hover:not(:disabled) {
+    background: var(--ink);
+    color: var(--deck-bg);
+  }
+
+  .control-button:disabled {
+    opacity: 0.48;
+    cursor: not-allowed;
+  }
+
+  .control-button small {
+    display: block;
+    margin-bottom: 0.18rem;
+    color: currentColor;
+    opacity: 0.72;
+    font-size: 0.74rem;
+    text-transform: uppercase;
+  }
+
+  .control-button strong {
+    display: block;
+    max-width: 16rem;
+    overflow: hidden;
+    color: currentColor;
+    font-size: 0.98rem;
+    line-height: 1.15;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (max-width: 1180px) {
+    .deck-app {
+      grid-template-columns: 16.5rem minmax(0, 1fr);
+    }
+
+    .deck-main {
+      padding-inline: 1.3rem;
+    }
+
+    .slide-card {
+      padding: 2rem;
+    }
+
+    .slide-content,
+    .slide-content.has-video {
+      gap: 1.8rem;
+    }
+
+    .slide-copy h2 {
+      font-size: 2.85rem;
+    }
+
+    .slide-subtext {
+      font-size: 1.06rem;
+    }
+
+    .technique-list {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-height: 760px) and (min-width: 901px) {
+    .slide-stack {
+      min-height: 29rem;
+    }
+
+    .slide-card {
+      padding: 1.65rem 1.8rem;
+    }
+
+    .slide-copy h2 {
+      font-size: 2.48rem;
+    }
+
+    .slide-subtext {
+      margin-top: 0.75rem;
+      font-size: 1rem;
+    }
+
+    .key-idea,
+    .activity-panel,
+    .reference-links,
+    .technique-list,
+    .transition-list,
+    .marker-list,
+    .task-list {
+      margin-top: 0.9rem;
+    }
+
+    .key-idea,
+    .activity-panel,
+    .reference-links {
+      padding-top: 0.75rem;
+    }
+
+    .visual-board,
+    .video-panel {
+      min-height: 17rem;
+    }
+
+    .video-copy p {
+      font-size: 0.9rem;
+    }
+
+    .key-idea p,
+    .activity-panel p {
+      font-size: 0.96rem;
+      line-height: 1.45;
+    }
+
+    .transition-strip {
+      min-height: 3.65rem;
+      padding: 0.55rem;
+    }
+
+    .transition-strip span {
+      min-height: 2.35rem;
+    }
+
+    .rush-row,
+    .task-check,
+    .sound-layer {
+      min-height: 2.25rem;
+    }
+
+    .visual-cut {
+      min-height: 3.35rem;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .deck-app {
+      height: auto;
+      grid-template-columns: 1fr;
+    }
+
+    .deck-app.sidebar-collapsed .sidebar {
+      display: none;
+    }
+
+    .sidebar {
+      order: 2;
+      border-right: 0;
+      border-top: 1px solid var(--line);
+      padding: 0.9rem 1.2rem 1rem;
+    }
+
+    .sidebar-header {
+      display: none;
+    }
+
+    .thumbnail-list {
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: 14.4rem;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding: 0.2rem 0 0.45rem;
+    }
+
+    .slide-thumbnail {
+      min-height: 7rem;
+    }
+
+    .deck-main {
+      order: 1;
+      height: auto;
+      min-height: 100vh;
+      padding: 1rem 1.2rem 1.15rem;
+      grid-template-rows: auto auto auto;
+    }
+
+    .deck-topbar {
+      grid-template-columns: auto 1fr auto;
+    }
+
+    .sidebar-toggle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .topbar-title {
+      justify-content: center;
+    }
+
+    .slide-stack {
+      height: auto;
+      min-height: 0;
+    }
+
+    .slide-card {
+      min-height: 40rem;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .deck-main {
+      padding-inline: 0.85rem;
+    }
+
+    .deck-topbar {
+      grid-template-columns: 1fr auto;
+    }
+
+    .topbar-title {
+      display: none;
+    }
+
+    .progress-indicator {
+      min-width: 10.5rem;
+    }
+
+    .slide-card {
+      padding: 1.25rem;
+    }
+
+    .slide-header {
+      align-items: flex-start;
+    }
+
+    .slide-tag {
+      max-width: 10rem;
+      text-align: right;
+      line-height: 1.35;
+    }
+
+    .slide-content,
+    .slide-content.has-video {
+      grid-template-columns: 1fr;
+      gap: 1.35rem;
+      align-items: start;
+    }
+
+    .slide-copy h2 {
+      font-size: 2.2rem;
+    }
+
+    .slide-subtext {
+      font-size: 1rem;
+    }
+
+    .key-idea p,
+    .activity-panel p {
+      font-size: 0.98rem;
+    }
+
+    .visual-board,
+    .video-panel {
+      min-height: 18rem;
+      padding: 1rem;
+    }
+
+    .technique-list,
+    .marker-list,
+    .task-list,
+    .marker-legend {
+      grid-template-columns: 1fr;
+    }
+
+    .deck-controls {
+      grid-template-columns: 1fr 1fr;
+      gap: 0.65rem;
+    }
+
+    .control-button {
+      min-height: 3.6rem;
+    }
+
+    .control-button strong {
+      max-width: 9rem;
+      white-space: normal;
+    }
+
+    .pacing-row,
+    .transition-strip,
+    .task-visual {
+      grid-template-columns: 1fr;
+    }
+
+    .pacing-row div {
+      height: 1.9rem;
+    }
+
+    .transition-strip b {
+      width: 2px;
+      height: 1.8rem;
+      justify-self: center;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .deck-main {
+      padding-inline: 0.65rem;
+    }
+
+    .progress-indicator {
+      min-width: 9.5rem;
+      font-size: 0.82rem;
+    }
+
+    .slide-card {
+      min-height: 42rem;
+      padding: 1rem;
+    }
+
+    .slide-copy h2 {
+      font-size: 1.95rem;
+    }
+
+    .control-button {
+      padding-inline: 0.65rem;
+    }
+
+    .control-button strong {
+      font-size: 0.9rem;
+    }
+
+    .video-copy p {
+      font-size: 0.9rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .slide-card.is-active,
+    .slide-thumbnail,
+    .control-button,
+    .progress-fill {
+      animation: none;
+      transition: none;
+    }
+  }
+</style>

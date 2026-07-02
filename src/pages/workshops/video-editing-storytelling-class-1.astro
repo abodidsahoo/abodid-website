@@ -182,14 +182,14 @@ const slides = [
   showNewsletterPopup={false}
   showGlobalGrid={false}
   showCursor={false}
-  bodyClass="workshop-deck-body"
+  bodyClass="research-workshop-deck-body"
 >
-  <section class="deck-app" data-deck data-slide-count={slides.length}>
+  <section class="deck-app sidebar-collapsed" data-deck data-slide-count={slides.length}>
     <aside class="sidebar" aria-label="Slide navigation">
       <div class="sidebar-header">
         <p class="deck-kicker">Workshop deck</p>
         <h1>{pageTitle}</h1>
-        <p class="deck-meta">Live teaching interface</p>
+        <p class="deck-meta">Timeline / story / meaning / sound</p>
       </div>
 
       <nav class="thumbnail-list" aria-label="Slides">
@@ -219,7 +219,7 @@ const slides = [
           class="sidebar-toggle"
           type="button"
           data-sidebar-toggle
-          aria-expanded="true"
+          aria-expanded="false"
           aria-controls="deck-sidebar-state"
         >
           Slides
@@ -247,7 +247,7 @@ const slides = [
       </header>
 
       <div id="deck-sidebar-state" class="sr-only" aria-live="polite">
-        Slide navigation visible.
+        Slide navigation hidden.
       </div>
 
       <section class="slide-stage" aria-live="polite">
@@ -284,14 +284,6 @@ const slides = [
                         <span>Reference</span>
                         {slide.reference}
                       </p>
-                    )}
-
-                    {slide.structure && (
-                      <ol class="story-structure" aria-label="Story arc structure">
-                        {slide.structure.map((item) => (
-                          <li>{item}</li>
-                        ))}
-                      </ol>
                     )}
 
                     <div class="activity-panel">
@@ -531,11 +523,6 @@ const slides = [
           </span>
         </button>
 
-        <p class="control-context">
-          <span data-current-label>Editing is Decision-Making</span>
-          <small data-remaining-label>9 slides remaining</small>
-        </p>
-
         <button class="control-button next" type="button" data-next>
           <span>
             <small>Next</small>
@@ -558,8 +545,6 @@ const slides = [
     const progressFill = document.querySelector("[data-progress-fill]");
     const previousLabel = document.querySelector("[data-prev-label]");
     const nextLabel = document.querySelector("[data-next-label]");
-    const currentLabel = document.querySelector("[data-current-label]");
-    const remainingLabel = document.querySelector("[data-remaining-label]");
     const sidebarToggle = document.querySelector("[data-sidebar-toggle]");
     const sidebarState = document.querySelector("#deck-sidebar-state");
     const smallViewport = window.matchMedia("(max-width: 760px)");
@@ -635,7 +620,6 @@ const slides = [
 
       const slideNumber = currentSlide + 1;
       const totalSlides = slideCards.length;
-      const remaining = totalSlides - slideNumber;
       const progressPercent = (slideNumber / totalSlides) * 100;
 
       if (previousButton instanceof HTMLButtonElement) {
@@ -667,17 +651,6 @@ const slides = [
       if (nextLabel) {
         nextLabel.textContent =
           currentSlide < totalSlides - 1 ? getTitle(currentSlide + 1) : "Complete";
-      }
-
-      if (currentLabel) {
-        currentLabel.textContent = getTitle(currentSlide);
-      }
-
-      if (remainingLabel) {
-        remainingLabel.textContent =
-          remaining === 0
-            ? "End of deck"
-            : `${remaining} slide${remaining === 1 ? "" : "s"} remaining`;
       }
 
       if (options.updateHash !== false) {
@@ -746,22 +719,27 @@ const slides = [
 </BaseLayout>
 
 <style is:global>
-  .workshop-deck-body {
-    background: #e9e3d9;
-    color: #181512;
+  .research-workshop-deck-body {
+    background: var(--bg-color);
+    color: var(--text-primary);
     overflow: hidden;
   }
 
-  .workshop-deck-body #main-content {
+  .research-workshop-deck-body #main-content {
     min-height: 100vh;
   }
 
-  .workshop-deck-body .skip-link:focus {
+  .research-workshop-deck-body ::selection {
+    background: var(--accent-primary);
+    color: var(--bg-color);
+  }
+
+  .research-workshop-deck-body .skip-link:focus {
     z-index: 20;
   }
 
   @media (max-width: 900px) {
-    .workshop-deck-body {
+    .research-workshop-deck-body {
       overflow: auto;
     }
   }
@@ -769,18 +747,16 @@ const slides = [
 
 <style>
   .deck-app {
-    --deck-bg: #e9e3d9;
-    --slide-bg: #fffdf8;
-    --slide-soft: #f5f0e7;
-    --ink: #181512;
-    --muted: #5f5850;
-    --quiet: #8c8175;
-    --line: #d6cabd;
-    --line-strong: #bcae9e;
-    --accent: #9b3729;
-    --accent-soft: #ead8d1;
-    --olive: #586048;
-    --blue: #263d52;
+    --deck-bg: var(--bg-color);
+    --slide-bg: var(--bg-surface);
+    --slide-soft: var(--bg-surface-hover);
+    --ink: var(--text-primary);
+    --muted: var(--text-secondary);
+    --quiet: var(--text-tertiary);
+    --line: var(--border-subtle);
+    --line-strong: var(--border-strong);
+    --accent: var(--accent-primary);
+    --accent-ink: var(--link-hover-color, var(--accent-primary));
     min-height: 100vh;
     height: 100vh;
     display: grid;
@@ -813,10 +789,10 @@ const slides = [
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
-    padding: 1.5rem 1.1rem;
+    gap: 1.35rem;
+    padding: 1.35rem 1rem;
     border-right: 1px solid var(--line);
-    background: #eee8de;
+    background: var(--deck-bg);
     overflow: hidden;
   }
 
@@ -833,13 +809,12 @@ const slides = [
   .reference-text span,
   .teaching-note span,
   .control-button small,
-  .control-context small,
   .visual-label {
     font-family: var(--font-mono, "Space Mono", monospace);
   }
 
   .deck-kicker {
-    margin: 0 0 0.55rem;
+    margin: 0 0 0.65rem;
     color: var(--accent);
     font-size: 0.78rem;
     font-weight: 700;
@@ -849,14 +824,14 @@ const slides = [
   .sidebar h1 {
     margin: 0;
     color: var(--ink);
-    font-family: "Crimson Pro", Georgia, serif;
-    font-size: 1.95rem;
-    font-weight: 560;
-    line-height: 1.05;
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 600;
+    line-height: 1.04;
   }
 
   .deck-meta {
-    margin: 0.7rem 0 0;
+    margin: 0.75rem 0 0;
     color: var(--muted);
     font-size: 0.84rem;
   }
@@ -865,7 +840,7 @@ const slides = [
     min-height: 0;
     overflow-y: auto;
     display: grid;
-    gap: 0.75rem;
+    gap: 0.72rem;
     padding: 0.15rem 0.35rem 0.4rem 0.15rem;
     scrollbar-width: thin;
     scrollbar-color: var(--line-strong) transparent;
@@ -873,14 +848,14 @@ const slides = [
 
   .slide-thumbnail {
     width: 100%;
-    min-height: 6.6rem;
+    min-height: 6.5rem;
     display: grid;
-    grid-template-columns: 2.2rem minmax(0, 1fr);
+    grid-template-columns: 2.1rem minmax(0, 1fr);
     gap: 0.7rem;
     align-items: start;
     text-align: left;
     padding: 0.85rem;
-    border: 1px solid transparent;
+    border: 1px solid var(--line);
     border-radius: 8px;
     background: transparent;
     color: var(--ink);
@@ -892,8 +867,8 @@ const slides = [
   }
 
   .slide-thumbnail:hover {
-    background: rgba(255, 253, 248, 0.66);
-    border-color: var(--line);
+    background: var(--slide-soft);
+    border-color: var(--ink);
     transform: translateY(-1px);
   }
 
@@ -901,7 +876,7 @@ const slides = [
   .control-button:focus-visible,
   .sidebar-toggle:focus-visible,
   .spine-visual input:focus-visible {
-    outline: 3px solid rgba(155, 55, 41, 0.35);
+    outline: 3px solid color-mix(in srgb, var(--accent) 50%, transparent);
     outline-offset: 3px;
   }
 
@@ -913,7 +888,7 @@ const slides = [
 
   .thumbnail-number {
     color: var(--accent);
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     font-weight: 700;
   }
 
@@ -926,7 +901,7 @@ const slides = [
   .thumbnail-title {
     color: var(--ink);
     font-size: 0.98rem;
-    font-weight: 760;
+    font-weight: 700;
     line-height: 1.12;
   }
 
@@ -942,7 +917,7 @@ const slides = [
     display: grid;
     grid-template-rows: auto minmax(0, 1fr) auto;
     gap: 1rem;
-    padding: 1.35rem 2rem 1.5rem;
+    padding: 1.25rem 2rem 1.45rem;
   }
 
   .deck-topbar,
@@ -956,7 +931,7 @@ const slides = [
     grid-template-columns: 1fr auto;
     align-items: center;
     gap: 1rem;
-    min-height: 3.2rem;
+    min-height: 3.15rem;
   }
 
   .sidebar-toggle {
@@ -968,7 +943,7 @@ const slides = [
     color: var(--ink);
     padding: 0 0.95rem;
     font: inherit;
-    font-weight: 760;
+    font-weight: 700;
     cursor: pointer;
   }
 
@@ -995,7 +970,7 @@ const slides = [
   .progress-track {
     height: 0.28rem;
     border-radius: 999px;
-    background: #d8ccbf;
+    background: var(--line);
     overflow: hidden;
   }
 
@@ -1018,7 +993,7 @@ const slides = [
   .slide-stack {
     position: relative;
     width: min(100%, 1120px);
-    height: min(720px, calc(100vh - 12.75rem));
+    height: min(720px, calc(100vh - 12.6rem));
     min-height: 30.5rem;
   }
 
@@ -1029,14 +1004,14 @@ const slides = [
     border: 1px solid var(--line);
     border-radius: 8px;
     background: var(--slide-bg);
-    box-shadow: 0 22px 55px rgba(66, 45, 28, 0.13);
-    padding: 2.55rem 3rem 2.65rem;
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.16);
+    padding: 2.35rem 2.65rem 2.45rem;
   }
 
   .slide-card.is-active {
     display: grid;
     grid-template-rows: auto minmax(0, 1fr);
-    gap: 1.55rem;
+    gap: 1.35rem;
     animation: slideIn 210ms ease both;
   }
 
@@ -1061,8 +1036,8 @@ const slides = [
   .slide-content {
     min-height: 0;
     display: grid;
-    grid-template-columns: minmax(0, 1.12fr) minmax(18rem, 0.88fr);
-    gap: 3rem;
+    grid-template-columns: minmax(0, 1.05fr) minmax(18rem, 0.95fr);
+    gap: 2.6rem;
     align-items: center;
   }
 
@@ -1073,22 +1048,23 @@ const slides = [
   .slide-copy h2 {
     margin: 0;
     color: var(--ink);
-    font-family: "Crimson Pro", Georgia, serif;
-    font-size: 3.45rem;
-    font-weight: 560;
-    line-height: 1.02;
+    font-family: var(--font-display);
+    font-size: 3.35rem;
+    font-weight: 600;
+    line-height: 1.04;
   }
 
   .slide-subtext {
     max-width: 43rem;
-    margin: 1.1rem 0 0;
+    margin: 1rem 0 0;
     color: var(--muted);
-    font-size: 1.32rem;
-    line-height: 1.48;
+    font-family: var(--font-sans);
+    font-size: 1.16rem;
+    line-height: 1.55;
   }
 
   .quote-block {
-    margin: 1.6rem 0 0;
+    margin: 1.25rem 0 0;
     padding: 0.15rem 0 0.15rem 1.2rem;
     border-left: 3px solid var(--accent);
   }
@@ -1096,8 +1072,8 @@ const slides = [
   .quote-block blockquote {
     margin: 0;
     color: var(--ink);
-    font-family: "Crimson Pro", Georgia, serif;
-    font-size: 1.65rem;
+    font-family: var(--font-display);
+    font-size: 1.48rem;
     font-style: italic;
     line-height: 1.24;
   }
@@ -1115,7 +1091,7 @@ const slides = [
   .reference-text,
   .teaching-note,
   .question-line {
-    margin: 1.35rem 0 0;
+    margin: 1.1rem 0 0;
     color: var(--muted);
     font-size: 1rem;
     line-height: 1.55;
@@ -1131,35 +1107,17 @@ const slides = [
     text-transform: uppercase;
   }
 
-  .story-structure {
-    list-style: none;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.45rem;
-    margin: 1.4rem 0 0;
-    padding: 0;
-  }
-
-  .story-structure li {
-    border: 1px solid var(--line);
-    border-radius: 999px;
-    padding: 0.46rem 0.7rem;
-    background: var(--slide-soft);
-    color: var(--ink);
-    font-size: 0.95rem;
-  }
-
   .activity-panel {
-    margin-top: 1.65rem;
-    padding-top: 1.05rem;
+    margin-top: 1.25rem;
+    padding-top: 1rem;
     border-top: 1px solid var(--line);
   }
 
   .activity-panel span {
     display: block;
     margin-bottom: 0.45rem;
-    color: var(--olive);
-    font-size: 0.78rem;
+    color: var(--accent);
+    font-size: 0.76rem;
     font-weight: 700;
     text-transform: uppercase;
   }
@@ -1167,13 +1125,15 @@ const slides = [
   .activity-panel p {
     margin: 0;
     color: var(--ink);
-    font-size: 1.15rem;
-    line-height: 1.45;
+    font-size: 1.08rem;
+    line-height: 1.5;
   }
 
   .question-line {
-    color: var(--blue);
-    font-weight: 760;
+    color: var(--accent);
+    font-size: 1.2rem;
+    font-weight: 700;
+    line-height: 1.35;
   }
 
   .slide-visual-wrap {
@@ -1185,10 +1145,12 @@ const slides = [
     border: 1px solid var(--line);
     border-radius: 8px;
     background: var(--slide-soft);
-    padding: 1.35rem;
+    padding: 1.25rem;
   }
 
   .visual-label {
+    display: block;
+    margin-bottom: 1rem;
     color: var(--accent);
     font-size: 0.78rem;
     font-weight: 700;
@@ -1211,7 +1173,7 @@ const slides = [
   .main-frame {
     min-height: 8rem;
     color: var(--ink);
-    font-family: "Crimson Pro", Georgia, serif;
+    font-family: var(--font-display);
     font-size: 2.45rem;
   }
 
@@ -1231,14 +1193,14 @@ const slides = [
   .sound-layer {
     border: 1px solid var(--line);
     border-radius: 8px;
-    background: rgba(255, 253, 248, 0.62);
+    background: var(--slide-bg);
   }
 
   .decision-grid span {
     display: grid;
     place-items: center;
     min-height: 3.4rem;
-    font-weight: 760;
+    font-weight: 700;
   }
 
   .journey-visual {
@@ -1302,17 +1264,17 @@ const slides = [
     background: rgba(155, 55, 41, 0.12);
     color: var(--ink);
     font-size: 0.9rem;
-    font-weight: 760;
+    font-weight: 700;
   }
 
   .track-row.short .track-clip {
     width: 48%;
-    background: rgba(88, 96, 72, 0.16);
+    background: var(--slide-bg);
   }
 
   .track-row.medium .track-clip {
     width: 72%;
-    background: rgba(38, 61, 82, 0.13);
+    background: var(--slide-bg);
   }
 
   .marker-row {
@@ -1348,14 +1310,14 @@ const slides = [
   }
 
   .cut-card strong {
-    font-family: "Crimson Pro", Georgia, serif;
+    font-family: var(--font-display);
     font-size: 1.75rem;
     line-height: 1.1;
   }
 
   .cut-card.active {
     border-color: var(--accent);
-    background: #f8eee9;
+    background: var(--slide-soft);
   }
 
   .emotion-wave {
@@ -1404,7 +1366,7 @@ const slides = [
 
   .dialogue-row.listener {
     border-color: var(--accent);
-    background: #f8eee9;
+    background: var(--slide-soft);
   }
 
   .cut-line {
@@ -1460,7 +1422,7 @@ const slides = [
   .spine-visual label span {
     color: var(--muted);
     font-size: 0.9rem;
-    font-weight: 760;
+    font-weight: 700;
   }
 
   .spine-visual input {
@@ -1507,8 +1469,8 @@ const slides = [
 
   .kuleshov-row strong {
     grid-column: 1 / -1;
-    color: var(--blue);
-    font-family: "Crimson Pro", Georgia, serif;
+    color: var(--accent);
+    font-family: var(--font-display);
     font-size: 1.45rem;
     text-align: center;
   }
@@ -1534,12 +1496,12 @@ const slides = [
     content: "";
     position: absolute;
     inset: 0.7rem;
-    border: 1px solid rgba(255, 253, 248, 0.45);
+    border: 1px solid color-mix(in srgb, var(--deck-bg) 45%, transparent);
   }
 
   .silent-frame span {
     position: relative;
-    font-weight: 760;
+    font-weight: 700;
   }
 
   .sound-visual {
@@ -1556,21 +1518,21 @@ const slides = [
     padding: 0 0.9rem;
     width: calc(100% - (var(--layer) * 5%));
     margin-left: calc(var(--layer) * 2%);
-    background: rgba(38, 61, 82, 0.1);
+    background: var(--slide-bg);
   }
 
   .sound-layer:nth-child(even) {
-    background: rgba(88, 96, 72, 0.14);
+    background: var(--slide-soft);
   }
 
   .sound-layer span {
     color: var(--ink);
-    font-weight: 760;
+    font-weight: 700;
   }
 
   .deck-controls {
     display: grid;
-    grid-template-columns: minmax(12rem, 1fr) auto minmax(12rem, 1fr);
+    grid-template-columns: minmax(12rem, 1fr) minmax(12rem, 1fr);
     align-items: center;
     gap: 1rem;
   }
@@ -1598,15 +1560,21 @@ const slides = [
 
   .control-button:hover:not(:disabled) {
     transform: translateY(-1px);
-    border-color: var(--accent);
+    border-color: var(--ink);
+    background: var(--slide-soft);
   }
 
   .control-button.next {
     justify-content: flex-end;
     background: var(--ink);
-    color: var(--slide-bg);
+    color: var(--deck-bg);
     border-color: var(--ink);
     text-align: right;
+  }
+
+  .control-button.next:hover:not(:disabled) {
+    background: var(--ink);
+    color: var(--deck-bg);
   }
 
   .control-button:disabled {
@@ -1618,7 +1586,7 @@ const slides = [
     display: block;
     margin-bottom: 0.18rem;
     color: currentColor;
-    opacity: 0.7;
+    opacity: 0.72;
     font-size: 0.74rem;
     text-transform: uppercase;
   }
@@ -1632,24 +1600,6 @@ const slides = [
     line-height: 1.15;
     text-overflow: ellipsis;
     white-space: nowrap;
-  }
-
-  .control-context {
-    margin: 0;
-    color: var(--ink);
-    text-align: center;
-  }
-
-  .control-context span {
-    display: block;
-    font-weight: 760;
-  }
-
-  .control-context small {
-    display: block;
-    margin-top: 0.22rem;
-    color: var(--muted);
-    font-size: 0.78rem;
   }
 
   @keyframes slideIn {
@@ -1670,23 +1620,23 @@ const slides = [
     }
 
     .deck-main {
-      padding-inline: 1.35rem;
+      padding-inline: 1.3rem;
     }
 
     .slide-card {
-      padding: 2.2rem;
+      padding: 2rem;
     }
 
     .slide-content {
-      gap: 2rem;
+      gap: 1.8rem;
     }
 
     .slide-copy h2 {
-      font-size: 3rem;
+      font-size: 2.85rem;
     }
 
     .slide-subtext {
-      font-size: 1.18rem;
+      font-size: 1.06rem;
     }
   }
 
@@ -1696,21 +1646,21 @@ const slides = [
     }
 
     .slide-card {
-      padding: 1.8rem 2rem;
+      padding: 1.65rem 1.8rem;
     }
 
     .slide-copy h2 {
-      font-size: 2.7rem;
+      font-size: 2.48rem;
     }
 
     .slide-subtext {
-      margin-top: 0.85rem;
-      font-size: 1.08rem;
+      margin-top: 0.75rem;
+      font-size: 1rem;
     }
 
     .quote-block,
     .activity-panel {
-      margin-top: 1.1rem;
+      margin-top: 0.9rem;
     }
 
     .quote-block blockquote {
@@ -1718,7 +1668,13 @@ const slides = [
     }
 
     .visual-board {
-      min-height: 18rem;
+      min-height: 17rem;
+    }
+
+    .reference-text,
+    .teaching-note,
+    .question-line {
+      margin-top: 0.9rem;
     }
   }
 
@@ -1784,7 +1740,7 @@ const slides = [
     }
 
     .slide-card {
-      min-height: 39rem;
+      min-height: 40rem;
     }
   }
 
@@ -1802,11 +1758,11 @@ const slides = [
     }
 
     .progress-indicator {
-      min-width: 11rem;
+      min-width: 10.5rem;
     }
 
     .slide-card {
-      padding: 1.45rem;
+      padding: 1.25rem;
     }
 
     .slide-header {
@@ -1821,16 +1777,16 @@ const slides = [
 
     .slide-content {
       grid-template-columns: 1fr;
-      gap: 1.5rem;
+      gap: 1.35rem;
       align-items: start;
     }
 
     .slide-copy h2 {
-      font-size: 2.35rem;
+      font-size: 2.2rem;
     }
 
     .slide-subtext {
-      font-size: 1.05rem;
+      font-size: 1rem;
     }
 
     .quote-block blockquote {
@@ -1854,11 +1810,6 @@ const slides = [
     .deck-controls {
       grid-template-columns: 1fr 1fr;
       gap: 0.65rem;
-    }
-
-    .control-context {
-      grid-column: 1 / -1;
-      order: -1;
     }
 
     .control-button {
@@ -1889,11 +1840,11 @@ const slides = [
 
     .slide-card {
       min-height: 42rem;
-      padding: 1.1rem;
+      padding: 1rem;
     }
 
     .slide-copy h2 {
-      font-size: 2.05rem;
+      font-size: 1.95rem;
     }
 
     .main-frame {
