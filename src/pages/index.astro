@@ -21,7 +21,6 @@ import { personJsonLd, websiteJsonLd } from "../lib/seoData";
 // LiquidCursor moved to BaseLayout
 // EngagementCTA moved to LandingOrchestrator
 import ForceDarkMode from "../components/ForceDarkMode.astro";
-import uk2026 from "../data/uk2026.json";
 
 const pageTitle =
     "Abodid Sahoo | RCA Alumnus, Creative Technologist & Photographer";
@@ -134,16 +133,6 @@ const heroBioWords =
     "I help people and organizations build creative technology projects, research workflows, Obsidian systems, photographs, films, and visual stories that are thoughtful, useful, and human.".split(
         " ",
     );
-const uk2026Feature = {
-    href: "/uk2026",
-    kicker: "Read my Latest Memoir",
-    title: uk2026.title,
-    excerpt:
-        "It all started when, on one winter evening around October 2025, Yashaswinee, my wife, shared a link with me about a conference in the UK. It was the British Sociological Association’s Annual Conference...",
-    action: "Read the full memoir",
-    description:
-        "A memoir of my trip to the Annual Conference of the British Sociological Association and the Cultural Heritage Data School at the University of Cambridge last month.",
-};
 
 // Toggle between "typewriter" and "smooth-blur" for the landing hero copy.
 const heroTextEffect = "smooth-blur";
@@ -216,30 +205,6 @@ const heroTextEffect = "smooth-blur";
                 </p>
             </div>
         </div>
-    </section>
-
-    <section class="section latest-note-section" aria-labelledby="uk2026-note-title">
-        <a href={uk2026Feature.href} class="uk2026-card">
-            <figure class="uk2026-media-group">
-                <div class="uk2026-media" aria-hidden="true">
-                    <span class="uk2026-media-line"></span>
-                </div>
-                <figcaption class="uk2026-caption">
-                    UK 2026 memoir: BSA, Cambridge Data School, and the journey around them.
-                </figcaption>
-            </figure>
-
-            <div class="uk2026-content">
-                <div class="uk2026-header-panel">
-                    <p class="uk2026-kicker">{uk2026Feature.kicker}</p>
-                    <h2 id="uk2026-note-title" set:html={uk2026Feature.title.replace("beloved ", "beloved&nbsp;")} />
-                </div>
-                <div class="uk2026-footer-panel">
-                    <p class="uk2026-meta-desc">{uk2026Feature.description}</p>
-                    <span class="uk2026-action">{uk2026Feature.action}</span>
-                </div>
-            </div>
-        </a>
     </section>
 
     <!-- Blog Section -->
@@ -645,187 +610,6 @@ const heroTextEffect = "smooth-blur";
         margin-right: auto;
         padding-left: 24px;
         padding-right: 24px;
-    }
-
-    .latest-note-section {
-        margin-top: clamp(1rem, 3vh, 2.25rem);
-        margin-bottom: clamp(4.5rem, 8vh, 6.5rem);
-    }
-
-    .uk2026-card {
-        display: grid;
-        grid-template-columns: 1.15fr 1fr;
-        border: 1px solid #e2e8f0;
-        border-radius: 0;
-        background: #ffffff;
-        color: #0f172a;
-        text-decoration: none;
-        padding: 0;
-        transition:
-            border-color 220ms ease,
-            background-color 220ms ease,
-            transform 220ms ease,
-            box-shadow 220ms ease;
-    }
-
-    .uk2026-card:hover,
-    .uk2026-card:focus-visible {
-        border-color: #0f172a;
-        background-color: #ffffff;
-        transform: translateY(-2px);
-        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
-        outline: none;
-    }
-
-    .uk2026-media-group {
-        margin: 0;
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-        padding: clamp(1.5rem, 3vw, 3rem);
-        border-right: 1px solid #e2e8f0;
-    }
-
-    .uk2026-media {
-        position: relative;
-        margin: 0;
-        aspect-ratio: 16 / 10;
-        overflow: hidden;
-        border-radius: 0;
-        isolation: isolate;
-        background:
-            radial-gradient(circle at 78% 18%, rgba(242, 214, 156, 0.72), transparent 30%),
-            linear-gradient(135deg, #10251f 0%, #8d3e32 48%, #d6c095 100%);
-    }
-
-    .uk2026-media::before,
-    .uk2026-media::after {
-        content: "";
-        position: absolute;
-        pointer-events: none;
-    }
-
-    .uk2026-media::before {
-        width: 42%;
-        aspect-ratio: 1;
-        right: -8%;
-        top: -16%;
-        border: 1px solid rgba(255, 255, 255, 0.42);
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.12);
-    }
-
-    .uk2026-media::after {
-        inset: 21% 13%;
-        border: 1px solid rgba(255, 255, 255, 0.24);
-        transform: rotate(-7deg);
-    }
-
-    .uk2026-media-line {
-        position: absolute;
-        left: 12%;
-        right: 12%;
-        bottom: 20%;
-        height: 1px;
-        background: rgba(255, 255, 255, 0.38);
-    }
-
-    .uk2026-caption {
-        font-family: var(--font-sans);
-        font-size: 0.8rem;
-        font-weight: 450;
-        line-height: 1.5;
-        color: #475569;
-        text-align: left;
-        margin-top: 0.5rem;
-    }
-
-    .uk2026-content {
-        display: grid;
-        grid-template-rows: 1fr auto;
-    }
-
-    .uk2026-header-panel {
-        padding: clamp(1.5rem, 3vw, 3rem);
-        border-bottom: 1px solid #e2e8f0;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        gap: 1rem;
-    }
-
-    .uk2026-footer-panel {
-        padding: clamp(1.5rem, 3vw, 3rem);
-        display: flex;
-        flex-direction: column;
-        gap: 1.5rem;
-        align-items: flex-start;
-        justify-content: center;
-    }
-
-    .uk2026-kicker {
-        margin: 0;
-        font-family: var(--feature-writing-date-font, var(--font-mono));
-        font-size: 0.9rem;
-        font-weight: 600;
-        line-height: 1.2;
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
-        color: #64748b;
-    }
-
-    .uk2026-content h2 {
-        margin: 0;
-        font-family: var(--feature-writing-title-font, var(--font-serif));
-        font-size: clamp(2.2rem, 1.5rem + 2.2vw, 3.6rem);
-        font-weight: 700;
-        line-height: 1.1;
-        letter-spacing: -0.02em;
-        color: #0f172a;
-        text-wrap: balance;
-    }
-
-    .uk2026-meta-desc {
-        margin: 0;
-        max-width: 58ch;
-        font-family: var(--feature-writing-category-font, var(--font-sans));
-        font-size: 0.85rem;
-        font-weight: 400;
-        line-height: 1.5;
-        color: #64748b;
-    }
-
-    .uk2026-action {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        margin-top: 0.1rem;
-        font-family: var(--feature-writing-action-font, var(--font-ui));
-        font-size: 0.9rem;
-        font-weight: 700;
-        line-height: 1.2;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        color: #0f172a;
-        border-bottom: 2px solid #0f172a;
-        padding-bottom: 2px;
-        transition: all 220ms ease;
-    }
-
-    .uk2026-action::after {
-        content: "→";
-        transition: transform 220ms ease;
-    }
-
-    .uk2026-card:hover .uk2026-action,
-    .uk2026-card:focus-visible .uk2026-action {
-        color: #2563eb;
-        border-bottom-color: #2563eb;
-    }
-
-    .uk2026-card:hover .uk2026-action::after,
-    .uk2026-card:focus-visible .uk2026-action::after {
-        transform: translateX(4px);
     }
 
     .blog-section + .writings-section {
@@ -1323,57 +1107,6 @@ const heroTextEffect = "smooth-blur";
     }
 
     @media (max-width: 768px) {
-        .latest-note-section {
-            margin-top: 0.5rem;
-            margin-bottom: clamp(3rem, 7vh, 4.75rem);
-        }
-
-        .uk2026-card {
-            grid-template-columns: 1fr;
-        }
-
-        .uk2026-media-group {
-            border-right: none;
-            border-bottom: 1px solid #e2e8f0;
-            padding: 2rem 1.5rem;
-        }
-
-        .uk2026-media {
-            aspect-ratio: 16 / 10.5;
-        }
-
-        .uk2026-content {
-            grid-template-rows: auto auto;
-            gap: 0;
-            padding: 0;
-        }
-
-        .uk2026-header-panel {
-            padding: 2rem 1.5rem;
-            border-bottom: 1px solid #e2e8f0;
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-        }
-
-        .uk2026-footer-panel {
-            padding: 2rem 1.5rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1.25rem;
-        }
-
-        .uk2026-content h2 {
-            font-size: clamp(1.75rem, 6.5vw, 2.25rem);
-            line-height: 1.1;
-            font-weight: 700;
-        }
-
-        .uk2026-meta-desc {
-            font-size: 0.8rem;
-            line-height: 1.45;
-        }
-
         .blog-section + .writings-section {
             margin-top: clamp(2rem, 6vh, 3.5rem);
         }
@@ -1650,12 +1383,10 @@ const heroTextEffect = "smooth-blur";
     }
 
     const phrases = [
-        "Creative Technology.",
-        "AI Research Workflows.",
-        "Obsidian Tutoring.",
         "Photography, Film & Art.",
-        "Writing & Storytelling.",
-        "Design, Code & Culture.",
+        "Culture & Technology.",
+        "Research & Writing.",
+        "Design, Code & Creativity.",
     ];
 
     const colors = [
