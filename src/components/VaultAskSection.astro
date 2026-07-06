@@ -1,0 +1,737 @@
+<section class="vault-ask-section" data-vault-ask>
+    <form class="vault-ask-box" data-vault-form>
+        <textarea
+            data-vault-input
+            name="question"
+            autocomplete="off"
+            rows="1"
+            placeholder="Ask Abodid's Vault anything..."
+            aria-label="Ask Abodid's Vault anything"
+        ></textarea>
+        <button class="vault-ask-submit" data-vault-submit type="submit">
+            <span>Ask</span>
+        </button>
+    </form>
+
+    <p class="vault-ask-status" data-vault-status hidden>Searching the vault...</p>
+    <p class="vault-ask-error" data-vault-error hidden></p>
+
+    <div class="vault-answer" data-vault-answer hidden>
+        <div class="vault-answer-text" data-vault-answer-text></div>
+    </div>
+
+    <div class="vault-sources" data-vault-sources hidden>
+        <p class="vault-sources-label">Sources</p>
+        <ul class="vault-source-list" data-vault-source-list></ul>
+    </div>
+
+    <div class="vault-citation-popover" data-vault-citation-popover hidden>
+        <a class="vault-citation-popover__title" data-popover-title href="#"></a>
+        <p class="vault-citation-popover__meta" data-popover-meta></p>
+        <blockquote data-popover-excerpt></blockquote>
+    </div>
+</section>
+
+<script>
+    (() => {
+        const STORAGE_PREFIX = "vault-chat-state:";
+        const ACTIVE_SEARCH_KEY = "vault-chat-active-search";
+        const roots = document.querySelectorAll("[data-vault-ask]");
+
+        const createSearchId = () => {
+            if (window.crypto?.randomUUID) return window.crypto.randomUUID();
+            return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        };
+
+        const getSearchIdFromUrl = () => {
+            const params = new URLSearchParams(window.location.search);
+            return params.get("vaultSearch") || "";
+        };
+
+        const updateSearchUrl = (searchId, replace = false) => {
+            const url = new URL(window.location.href);
+            url.searchParams.set("vaultSearch", searchId);
+            const method = replace ? "replaceState" : "pushState";
+            window.history[method]({ vaultSearch: searchId }, "", url);
+        };
+
+        const loadStoredState = (searchId) => {
+            if (!searchId) return null;
+            try {
+                return JSON.parse(
+                    sessionStorage.getItem(`${STORAGE_PREFIX}${searchId}`) || "null",
+                );
+            } catch {
+                return null;
+            }
+        };
+
+        const saveStoredState = (searchId, state) => {
+            if (!searchId || !state) return;
+            sessionStorage.setItem(
+                `${STORAGE_PREFIX}${searchId}`,
+                JSON.stringify({
+                    ...state,
+                    searchId,
+                    savedAt: Date.now(),
+                    scrollY: window.scrollY,
+                }),
+            );
+            sessionStorage.setItem(ACTIVE_SEARCH_KEY, searchId);
+        };
+
+        roots.forEach((root) => {
+            if (root.dataset.initialized === "true") return;
+            root.dataset.initialized = "true";
+
+            const form = root.querySelector("[data-vault-form]");
+            const input = root.querySelector("[data-vault-input]");
+            const submitButton = root.querySelector("[data-vault-submit]");
+            const statusNode = root.querySelector("[data-vault-status]");
+            const errorNode = root.querySelector("[data-vault-error]");
+            const answerPanel = root.querySelector("[data-vault-answer]");
+            const answerText = root.querySelector("[data-vault-answer-text]");
+            const sourcesPanel = root.querySelector("[data-vault-sources]");
+            const sourceList = root.querySelector("[data-vault-source-list]");
+            const popover = root.querySelector("[data-vault-citation-popover]");
+            const popoverTitle = root.querySelector("[data-popover-title]");
+            const popoverMeta = root.querySelector("[data-popover-meta]");
+            const popoverExcerpt = root.querySelector("[data-popover-excerpt]");
+            const history = [];
+            let activePayload = null;
+            let activeQuestion = "";
+            let activeSearchId = getSearchIdFromUrl();
+            let popoverPinned = false;
+            let citedCitationNumbers = new Set();
+
+            const sourceByCitation = new Map();
+
+            const setLoading = (isLoading) => {
+                if (submitButton) submitButton.disabled = isLoading;
+                if (input) input.disabled = isLoading;
+                if (statusNode) statusNode.hidden = !isLoading;
+                root.classList.toggle("is-loading", isLoading);
+            };
+
+            const setError = (message) => {
+                if (!errorNode) return;
+                errorNode.textContent = message || "";
+                errorNode.hidden = !message;
+            };
+
+            const resizeQuestionInput = () => {
+                if (!input) return;
+                input.style.height = "auto";
+                input.style.height = `${input.scrollHeight}px`;
+            };
+
+            const clearSources = () => {
+                if (sourceList) sourceList.replaceChildren();
+                if (sourcesPanel) sourcesPanel.hidden = true;
+            };
+
+            const makeSearchAwareHref = (href) => {
+                if (!href || !activeSearchId) return href || "#";
+                const url = new URL(href, window.location.origin);
+                url.searchParams.set("fromVaultSearch", activeSearchId);
+                return `${url.pathname}${url.search}${url.hash}`;
+            };
+
+            const attachSourceLinkHandler = (link) => {
+                if (!link || link.dataset.searchHandlerAttached === "true") return;
+                link.dataset.searchHandlerAttached = "true";
+                link.addEventListener("click", () => {
+                    if (!activeSearchId || !activePayload) return;
+                    saveStoredState(activeSearchId, {
+                        question: activeQuestion,
+                        payload: activePayload,
+                        history,
+                    });
+                });
+            };
+
+            const renderCitationPill = (citationNumber) => {
+                const button = document.createElement("button");
+                button.type = "button";
+                button.className = "vault-citation";
+                button.textContent = `[ ${citationNumber} ]`;
+                button.setAttribute("aria-label", `Show source ${citationNumber}`);
+                button.dataset.citation = String(citationNumber);
+                button.addEventListener("mouseenter", () => showPopover(button, false));
+                button.addEventListener("focus", () => showPopover(button, false));
+                button.addEventListener("mouseleave", hideHoverPopover);
+                button.addEventListener("blur", hideHoverPopover);
+                button.addEventListener("click", (event) => {
+                    event.preventDefault();
+                    popoverPinned = true;
+                    showPopover(button, true);
+                });
+                return button;
+            };
+
+            const renderAnswerText = (answer, sources) => {
+                if (!answerText) return;
+                answerText.replaceChildren();
+                sourceByCitation.clear();
+                citedCitationNumbers = new Set();
+
+                (sources || []).forEach((source) => {
+                    if (Number.isInteger(source.citation_number)) {
+                        sourceByCitation.set(source.citation_number, source);
+                    }
+                });
+
+                const pattern = /\[(\d+)\]/g;
+                let cursor = 0;
+                let match = pattern.exec(answer || "");
+
+                while (match) {
+                    if (match.index > cursor) {
+                        answerText.appendChild(
+                            document.createTextNode(answer.slice(cursor, match.index)),
+                        );
+                    }
+
+                    const citationNumber = Number.parseInt(match[1], 10);
+                    if (sourceByCitation.has(citationNumber)) {
+                        citedCitationNumbers.add(citationNumber);
+                        answerText.appendChild(renderCitationPill(citationNumber));
+                    } else {
+                        answerText.appendChild(document.createTextNode(match[0]));
+                    }
+
+                    cursor = match.index + match[0].length;
+                    match = pattern.exec(answer || "");
+                }
+
+                if (cursor < (answer || "").length) {
+                    answerText.appendChild(document.createTextNode(answer.slice(cursor)));
+                }
+            };
+
+            const groupSources = (payload) => {
+                const groups = new Map();
+                (payload.sources || []).forEach((source) => {
+                    if (!citedCitationNumbers.has(source.citation_number)) return;
+                    const key = source.note_id || source.href || source.note_title;
+                    if (!key) return;
+                    if (!groups.has(key)) {
+                        groups.set(key, {
+                            note_title: source.note_title,
+                            href: source.href,
+                            headings: [],
+                            citations: [],
+                        });
+                    }
+                    const group = groups.get(key);
+                    if (source.heading && !group.headings.includes(source.heading)) {
+                        group.headings.push(source.heading);
+                    }
+                    if (
+                        Number.isInteger(source.citation_number) &&
+                        !group.citations.includes(source.citation_number)
+                    ) {
+                        group.citations.push(source.citation_number);
+                    }
+                });
+                return Array.from(groups.values());
+            };
+
+            const renderSources = (payload) => {
+                clearSources();
+                if (!sourceList) return;
+
+                const groups = groupSources(payload);
+                if (!groups.length) return;
+
+                const fragment = document.createDocumentFragment();
+
+                groups.forEach((group) => {
+                    const item = document.createElement("li");
+                    item.className = "vault-source-row";
+
+                    const link = document.createElement("a");
+                    link.className = "vault-source-title";
+                    link.href = makeSearchAwareHref(group.href);
+                    link.textContent = group.note_title || "Untitled note";
+                    attachSourceLinkHandler(link);
+                    item.appendChild(link);
+
+                    const citationWrap = document.createElement("span");
+                    citationWrap.className = "vault-source-citations";
+                    (group.citations || []).forEach((citationNumber) => {
+                        const citation = renderCitationPill(citationNumber);
+                        citationWrap.appendChild(citation);
+                    });
+                    item.appendChild(citationWrap);
+
+                    fragment.appendChild(item);
+                });
+
+                sourceList.appendChild(fragment);
+                if (sourcesPanel) sourcesPanel.hidden = false;
+            };
+
+            const renderAnswer = (payload, question = activeQuestion) => {
+                activePayload = payload;
+                activeQuestion = question;
+                if (answerPanel) answerPanel.hidden = false;
+                renderAnswerText(payload.answer || "", payload.sources || []);
+                renderSources(payload);
+            };
+
+            const positionPopover = (anchor) => {
+                if (!popover) return;
+                const rect = anchor.getBoundingClientRect();
+                const popoverRect = popover.getBoundingClientRect();
+                const gap = 10;
+                const left = Math.min(
+                    Math.max(16, rect.left + rect.width / 2 - popoverRect.width / 2),
+                    window.innerWidth - popoverRect.width - 16,
+                );
+                let top = rect.bottom + gap;
+                if (top + popoverRect.height > window.innerHeight - 16) {
+                    top = Math.max(16, rect.top - popoverRect.height - gap);
+                }
+                popover.style.left = `${left}px`;
+                popover.style.top = `${top}px`;
+            };
+
+            const showPopover = (anchor, pinned = false) => {
+                if (!popover) return;
+                const citationNumber = Number.parseInt(anchor.dataset.citation || "", 10);
+                const source = sourceByCitation.get(citationNumber);
+                if (!source) return;
+
+                popoverPinned = pinned || popoverPinned;
+
+                if (popoverTitle) {
+                    popoverTitle.textContent = source.note_title || "Untitled note";
+                    popoverTitle.href = makeSearchAwareHref(source.href);
+                    attachSourceLinkHandler(popoverTitle);
+                }
+                if (popoverMeta) {
+                    const meta = source.heading ? `Section: ${source.heading}` : "";
+                    popoverMeta.textContent = meta;
+                    popoverMeta.hidden = !meta;
+                }
+                if (popoverExcerpt) {
+                    popoverExcerpt.textContent = source.excerpt || "";
+                }
+
+                popover.hidden = false;
+                window.requestAnimationFrame(() => positionPopover(anchor));
+            };
+
+            const hidePopover = () => {
+                if (!popover) return;
+                popoverPinned = false;
+                popover.hidden = true;
+            };
+
+            const hideHoverPopover = () => {
+                if (popoverPinned) return;
+                hidePopover();
+            };
+
+            const hidePopoverOnViewportChange = () => {
+                if (!popover || popover.hidden) return;
+                hidePopover();
+            };
+
+            const submitQuestion = async (question) => {
+                setLoading(true);
+                setError("");
+                hidePopover();
+
+                try {
+                    const response = await fetch("/api/vault-chat", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            question,
+                            history,
+                        }),
+                    });
+
+                    const payload = await response.json().catch(() => ({}));
+                    if (!response.ok) {
+                        throw new Error(payload.error || "Vault search failed.");
+                    }
+
+                    activeSearchId = createSearchId();
+                    renderAnswer(payload, question);
+                    history.push({ role: "user", content: question });
+                    history.push({ role: "assistant", content: payload.answer || "" });
+                    while (history.length > 6) history.shift();
+                    saveStoredState(activeSearchId, {
+                        question,
+                        payload,
+                        history,
+                    });
+                    updateSearchUrl(activeSearchId);
+                } catch (error) {
+                    const message = error instanceof Error
+                        ? error.message
+                        : "Vault search failed.";
+                    setError(message);
+                } finally {
+                    setLoading(false);
+                    if (input) input.focus();
+                }
+            };
+
+            const restoreSearchState = () => {
+                const searchId = activeSearchId || "";
+                const stored = loadStoredState(searchId);
+                if (!stored?.payload) return;
+
+                activeSearchId = searchId;
+                if (input && stored.question) {
+                    input.value = stored.question;
+                    resizeQuestionInput();
+                }
+                history.splice(0, history.length, ...(stored.history || []));
+                renderAnswer(stored.payload, stored.question || "");
+                updateSearchUrl(searchId, true);
+
+                if (Number.isFinite(stored.scrollY)) {
+                    window.requestAnimationFrame(() => {
+                        window.scrollTo(0, stored.scrollY);
+                    });
+                }
+            };
+
+            document.addEventListener("click", (event) => {
+                if (!popover || popover.hidden) return;
+                if (
+                    popover.contains(event.target) ||
+                    event.target.closest?.(".vault-citation")
+                ) {
+                    return;
+                }
+                hidePopover();
+            });
+
+            window.addEventListener("scroll", hidePopoverOnViewportChange, {
+                passive: true,
+            });
+            document.addEventListener("scroll", hidePopoverOnViewportChange, {
+                passive: true,
+                capture: true,
+            });
+            window.addEventListener("resize", hidePopoverOnViewportChange, {
+                passive: true,
+            });
+
+            window.addEventListener("beforeunload", () => {
+                if (!activeSearchId || !activePayload) return;
+                saveStoredState(activeSearchId, {
+                    question: activeQuestion,
+                    payload: activePayload,
+                    history,
+                });
+            });
+
+            window.addEventListener("popstate", () => {
+                activeSearchId = getSearchIdFromUrl();
+                restoreSearchState();
+            });
+
+            if (!form || !input) return;
+
+            input.addEventListener("input", resizeQuestionInput);
+            input.addEventListener("keydown", (event) => {
+                if (event.isComposing) return;
+                if (event.key !== "Enter" || event.shiftKey) return;
+                event.preventDefault();
+                form.requestSubmit();
+            });
+
+            form.addEventListener("submit", (event) => {
+                event.preventDefault();
+                const question = input.value.trim();
+                if (!question) return;
+                submitQuestion(question);
+            });
+
+            resizeQuestionInput();
+            restoreSearchState();
+        });
+    })();
+</script>
+
+<style is:global>
+    .vault-ask-section {
+        width: min(100%, 1100px);
+        margin: 2rem auto 2.4rem;
+        padding: 0 1.5rem;
+        text-align: left;
+    }
+
+    .vault-ask-box {
+        position: relative;
+        display: block;
+        min-height: 72px;
+        padding: 1rem 7.1rem 1rem 1.5rem;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 32px;
+        background: rgba(8, 8, 8, 0.76);
+        box-shadow: 0 20px 80px rgba(0, 0, 0, 0.35);
+        backdrop-filter: blur(14px);
+        transition:
+            border-color 0.2s ease,
+            box-shadow 0.2s ease,
+            background 0.2s ease;
+    }
+
+    .vault-ask-box:focus-within {
+        border-color: rgba(255, 255, 255, 0.34);
+        background: rgba(10, 10, 10, 0.86);
+        box-shadow:
+            0 0 0 1px rgba(255, 255, 255, 0.08),
+            0 24px 90px rgba(0, 0, 0, 0.45);
+    }
+
+    .vault-ask-box textarea {
+        display: block;
+        width: 100%;
+        min-height: 40px;
+        padding: 0.34rem 0;
+        border: 0;
+        outline: 0;
+        resize: none;
+        overflow: hidden;
+        background: transparent;
+        color: #f5f5f5;
+        font: inherit;
+        font-size: 1.05rem;
+        line-height: 1.45;
+    }
+
+    .vault-ask-box textarea::placeholder {
+        color: rgba(255, 255, 255, 0.48);
+    }
+
+    .vault-ask-box textarea:disabled {
+        opacity: 0.72;
+    }
+
+    .vault-ask-submit {
+        position: absolute;
+        right: 0.85rem;
+        bottom: 0.85rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 84px;
+        min-height: 46px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 999px;
+        background: #f5f5f5;
+        color: #050505;
+        font: inherit;
+        font-size: 0.92rem;
+        font-weight: 650;
+        cursor: pointer;
+        transition:
+            transform 0.18s ease,
+            opacity 0.18s ease,
+            background 0.18s ease;
+    }
+
+    .vault-ask-submit:hover:not(:disabled) {
+        transform: translateY(-1px);
+        background: #ffffff;
+    }
+
+    .vault-ask-submit:disabled {
+        cursor: wait;
+        opacity: 0.62;
+    }
+
+    .vault-ask-status,
+    .vault-ask-error {
+        margin: 0.85rem 1.4rem 0;
+        font-size: 0.92rem;
+        line-height: 1.5;
+    }
+
+    .vault-ask-status {
+        color: var(--text-secondary);
+    }
+
+    .vault-ask-error {
+        color: #ff8f8f;
+    }
+
+    .vault-answer {
+        margin-top: 1.4rem;
+        padding: 1.4rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 24px;
+        background: rgba(8, 8, 8, 0.82);
+        color: rgba(255, 255, 255, 0.88);
+        line-height: 1.7;
+        box-shadow: 0 16px 60px rgba(0, 0, 0, 0.22);
+        backdrop-filter: blur(12px);
+    }
+
+    .vault-answer-text {
+        white-space: pre-wrap;
+    }
+
+    .vault-citation {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 0.14rem;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 6px;
+        padding: 0.03rem 0.34rem;
+        background: rgba(255, 255, 255, 0.065);
+        color: #ffffff;
+        font: inherit;
+        font-size: 0.76em;
+        line-height: 1.5;
+        cursor: pointer;
+        vertical-align: baseline;
+        letter-spacing: 0.01em;
+    }
+
+    .vault-citation:hover,
+    .vault-citation:focus {
+        border-color: rgba(255, 255, 255, 0.34);
+        background: rgba(255, 255, 255, 0.12);
+        outline: none;
+    }
+
+    .vault-sources {
+        margin-top: 1rem;
+    }
+
+    .vault-sources-label {
+        margin: 0 0 0.75rem;
+        color: var(--text-secondary);
+        font-size: 0.82rem;
+        font-weight: 650;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .vault-source-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.55rem;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .vault-source-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 0.45rem 0.55rem;
+        padding: 0.72rem 0.9rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        background: rgba(10, 10, 10, 0.54);
+    }
+
+    .vault-source-title {
+        color: #f5f5f5;
+        font-size: 0.98rem;
+        font-weight: 620;
+        line-height: 1.35;
+        text-decoration: none;
+    }
+
+    .vault-source-title:visited,
+    .vault-source-title:hover {
+        color: #f5f5f5;
+        text-decoration: underline;
+        text-underline-offset: 4px;
+    }
+
+    .vault-source-citations {
+        display: inline-flex;
+        flex-wrap: wrap;
+        gap: 0.28rem;
+    }
+
+    .vault-citation-popover {
+        position: fixed;
+        z-index: 1000;
+        width: min(420px, calc(100vw - 32px));
+        padding: 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 12px;
+        background: rgba(8, 8, 8, 0.96);
+        color: rgba(255, 255, 255, 0.84);
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(16px);
+    }
+
+    .vault-citation-popover__title {
+        display: inline-flex;
+        color: #ffffff;
+        font-size: 0.98rem;
+        font-weight: 650;
+        line-height: 1.35;
+        text-decoration: none;
+    }
+
+    .vault-citation-popover__title:hover {
+        text-decoration: underline;
+        text-underline-offset: 4px;
+    }
+
+    .vault-citation-popover__meta {
+        margin: 0.36rem 0 0;
+        color: rgba(255, 255, 255, 0.46);
+        font-size: 0.75rem;
+        line-height: 1.4;
+        overflow-wrap: anywhere;
+    }
+
+    .vault-citation-popover blockquote {
+        margin: 0.75rem 0 0;
+        padding: 0.75rem 0 0 0.9rem;
+        border-left: 1px solid rgba(255, 255, 255, 0.18);
+        color: rgba(255, 255, 255, 0.72);
+        font-size: 0.86rem;
+        line-height: 1.55;
+    }
+
+    @media (max-width: 700px) {
+        .vault-ask-section {
+            margin: 1.5rem auto 2rem;
+            padding: 0;
+        }
+
+        .vault-ask-box {
+            min-height: 64px;
+            padding: 0.82rem 5.4rem 0.82rem 1rem;
+            border-radius: 24px;
+        }
+
+        .vault-ask-box textarea {
+            min-height: 38px;
+            font-size: 0.96rem;
+        }
+
+        .vault-ask-submit {
+            min-width: 64px;
+            min-height: 42px;
+            font-size: 0.86rem;
+        }
+
+        .vault-answer {
+            border-radius: 18px;
+            padding: 1rem;
+        }
+    }
+</style>

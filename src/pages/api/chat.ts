@@ -1,9 +1,9 @@
 import type { APIRoute } from 'astro';
 
 const MODELS = [
-    'google/gemma-3-27b-it:free',      // Confirmed Free + High Quality
-    'mistralai/mistral-small-3.1-24b-instruct:free', // Confirmed Free
-    'openrouter/free'
+    'google/gemini-2.5-flash',
+    'openai/gpt-4.1-mini',
+    'openai/gpt-4o-mini'
 ];
 
 export const POST: APIRoute = async ({ request }) => {
@@ -113,7 +113,7 @@ export const POST: APIRoute = async ({ request }) => {
                 logs: processLogs,
                 metadata: {
                     model: actualModel,
-                    is_free: actualModel.includes(':free') || actualModel.includes('/free'),
+                    is_free: false,
                     latency_ms: latency,
                 },
             }),

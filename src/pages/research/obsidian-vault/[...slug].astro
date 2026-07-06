@@ -6,6 +6,10 @@ import { marked } from "marked";
 import ShareButtons from "../../../components/ShareButtons.jsx";
 
 const { slug } = Astro.params;
+const fromVaultSearchId = Astro.url.searchParams.get("fromVaultSearch") || "";
+const vaultSearchHref = fromVaultSearchId
+    ? `/research/obsidian-vault?vaultSearch=${encodeURIComponent(fromVaultSearchId)}`
+    : "";
 
 if (!slug) {
     return Astro.redirect("/research/obsidian-vault");
@@ -78,6 +82,7 @@ try {
 <BaseLayout title={title}>
     <div class="note-container">
         <nav class="note-nav">
+            {vaultSearchHref && <a href={vaultSearchHref} class="back-pill back-pill-search">← Back to Search</a>}
             <a href="/research/obsidian-vault" class="back-pill">← Back to Vault</a>
         </nav>
 
@@ -92,6 +97,7 @@ try {
             />
 
             <div class="note-end-nav">
+                {vaultSearchHref && <a href={vaultSearchHref} class="back-pill back-pill-search">← Back to Search</a>}
                 <a href="/research/obsidian-vault" class="back-pill">← Back to Vault</a>
             </div>
         </article>
@@ -106,6 +112,9 @@ try {
     }
 
     .note-nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.7rem;
         margin-bottom: 2rem;
     }
 
@@ -135,6 +144,17 @@ try {
         transform: translateY(-1px);
     }
 
+    .back-pill-search {
+        border-color: rgba(255, 255, 255, 0.26);
+        background: var(--text-primary);
+        color: var(--bg-canvas);
+    }
+
+    .back-pill-search:hover {
+        background: var(--text-primary);
+        color: var(--bg-canvas);
+    }
+
     .note-content h1 {
         font-size: 2.5rem;
         margin-bottom: 2rem;
@@ -143,6 +163,8 @@ try {
 
     .note-end-nav {
         display: flex;
+        flex-wrap: wrap;
+        gap: 0.7rem;
         justify-content: center;
         margin-top: 3rem;
         padding-top: 1.25rem;

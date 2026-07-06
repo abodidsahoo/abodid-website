@@ -3,11 +3,11 @@ import type { APIRoute } from 'astro';
 
 export const prerender = false;
 
-const FREE_MODELS = [
-    'google/gemini-2.0-flash-lite-preview-02-05:free',
-    'meta-llama/llama-3.3-70b-instruct:free',
-    'meta-llama/llama-3.2-11b-vision-instruct:free',
-    'mistralai/mistral-7b-instruct:free'
+const PAID_MODELS = [
+    'google/gemini-2.5-flash',
+    'openai/gpt-4.1-mini',
+    'openai/gpt-4o-mini',
+    'google/gemini-2.5-pro'
 ];
 
 export const GET: APIRoute = async ({ request }) => {
@@ -18,7 +18,7 @@ export const GET: APIRoute = async ({ request }) => {
         return new Response(JSON.stringify({ error: "Missing API Key" }), { status: 500 });
     }
 
-    for (const model of FREE_MODELS) {
+    for (const model of PAID_MODELS) {
         try {
             const start = Date.now();
             const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {

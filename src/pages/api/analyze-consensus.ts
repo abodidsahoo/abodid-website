@@ -19,29 +19,14 @@ const PAID_CONSENSUS_MODELS = parseModelEnv(
     ]
 );
 
-// Priority 2: OpenRouter Free Models (fallback)
-const FREE_CONSENSUS_MODELS = parseModelEnv(
-    import.meta.env.OPENROUTER_FREE_MODELS,
-    [
-        'openrouter/free', // Verified working
-        'google/gemma-3-27b-it:free',
-        'mistralai/mistral-small-24b-instruct-2501:free',
-        'meta-llama/llama-3.3-70b-instruct:free',
-    ]
-);
-
 const CONSENSUS_MODELS = Array.from(new Set([
     ...AUTO_CONSENSUS_MODELS,
     ...PAID_CONSENSUS_MODELS,
-    ...FREE_CONSENSUS_MODELS,
 ]));
 
-const MODEL_TIERS: Record<string, 'auto' | 'paid' | 'free'> = {};
+const MODEL_TIERS: Record<string, 'auto' | 'paid'> = {};
 AUTO_CONSENSUS_MODELS.forEach(m => MODEL_TIERS[m] = 'auto');
 PAID_CONSENSUS_MODELS.forEach(m => MODEL_TIERS[m] = 'paid');
-FREE_CONSENSUS_MODELS.forEach(m => {
-    if (!MODEL_TIERS[m]) MODEL_TIERS[m] = 'free';
-});
 
 // Internal Scoreboard for Model Reliability
 const MODEL_SCORES: Record<string, number> = {};
@@ -92,7 +77,7 @@ Compare.
                 let paidExhausted = false;
 
                 for (const model of sortedModels) {
-                    const tier = MODEL_TIERS[model] || 'free';
+                    const tier = MODEL_TIERS[model] || 'paid';
                     if (paidExhausted && (tier === 'auto' || tier === 'paid')) continue;
 
                     console.log(`[Consensus Analysis] Attempting OpenRouter model: ${model}`);
@@ -146,7 +131,7 @@ Compare.
                         return new Response(JSON.stringify({
                             success: true,
                             model_used: usedModel,
-                            model_tier: MODEL_TIERS[model] || 'free',
+                            model_tier: MODEL_TIERS[model] || 'paid',
                             ...parsed
                         }), { status: 200 });
 
@@ -221,24 +206,16 @@ function parseModelEnv(value: string | undefined, fallback: string[]): string[] 
         .filter(Boolean);
 }
 
-function parseModelMode(value: any): 'free' | 'paid' {
-    return value === 'paid' ? 'paid' : 'free';
+function parseModelMode(_value: any): 'paid' {
+    return 'paid';
 }
 
 function sortByScore(models: string[]) {
     return [...models].sort((a, b) => (MODEL_SCORES[b] || 0) - (MODEL_SCORES[a] || 0));
 }
 
-function getOrderedModels(mode: 'free' | 'paid') {
-    if (mode === 'paid') {
-        return [
-            ...sortByScore(AUTO_CONSENSUS_MODELS),
-            ...sortByScore(PAID_CONSENSUS_MODELS),
-        ];
-    }
-
+function getOrderedModels(_mode: 'paid') {
     return [
-        ...sortByScore(FREE_CONSENSUS_MODELS),
         ...sortByScore(AUTO_CONSENSUS_MODELS),
         ...sortByScore(PAID_CONSENSUS_MODELS),
     ];

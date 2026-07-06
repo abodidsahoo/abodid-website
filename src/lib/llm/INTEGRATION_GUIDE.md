@@ -179,9 +179,9 @@ async function batchAnalyzeComments(comments: Array<{id: string, text: string}>)
 
 ## Free vs Paid Models
 
-The system automatically uses free models first:
+The legacy system can distinguish free and paid OpenRouter variants:
 
-- **Free models**: IDs ending in `:free` (e.g., `meta-llama/llama-3.3-70b-instruct:free`)
+- **Free models**: OpenRouter model IDs marked as free-tier variants
 - **Paid models**: Only used if you set `allowPaidFallback: true`
 
 To stay on free tier only:

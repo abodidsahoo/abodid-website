@@ -8,6 +8,7 @@
     "clean": "rm -rf node_modules/.vite node_modules/.astro",
     "generate:measurements-pdf": "node scripts/generate-tailor-measurements-pdf.mjs",
     "generate:photography-portfolios": "node scripts/generate-photography-portfolios.mjs",
+    "ingest:vault": "node scripts/ingest-obsidian-vault.mjs",
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro"
@@ -49,6 +50,7 @@
     "dotenv": "^17.2.3",
     "ffmpeg-static": "^5.3.0",
     "framer-motion": "^12.29.0",
+    "gray-matter": "^4.0.3",
     "gsap": "^3.14.2",
     "lucide-react": "^0.563.0",
     "marked": "^17.0.1",

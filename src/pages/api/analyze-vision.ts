@@ -17,29 +17,14 @@ const PAID_VISION_MODELS = parseModelEnv(
     ]
 );
 
-const FREE_VISION_MODELS = parseModelEnv(
-    import.meta.env.OPENROUTER_FREE_VISION_MODELS,
-    [
-        'nvidia/nemotron-nano-12b-v2-vl:free',            // Priority 1: Nvidia (Vision)
-        'meta-llama/llama-3.2-11b-vision-instruct:free',  // Priority 2: Llama 3.2 Vision (Small)
-        'meta-llama/llama-3.2-90b-vision-instruct:free',  // Priority 3: Llama 3.2 Vision (Large)
-        'qwen/qwen-2-vl-7b-instruct:free',                // Priority 4: Qwen Vision
-        'openrouter/free'                                  // Priority 5: Fallback Router
-    ]
-);
-
 const VISION_MODELS = Array.from(new Set([
     ...AUTO_VISION_MODELS,
     ...PAID_VISION_MODELS,
-    ...FREE_VISION_MODELS,
 ]));
 
-const MODEL_TIERS: Record<string, 'auto' | 'paid' | 'free'> = {};
+const MODEL_TIERS: Record<string, 'auto' | 'paid'> = {};
 AUTO_VISION_MODELS.forEach(m => MODEL_TIERS[m] = 'auto');
 PAID_VISION_MODELS.forEach(m => MODEL_TIERS[m] = 'paid');
-FREE_VISION_MODELS.forEach(m => {
-    if (!MODEL_TIERS[m]) MODEL_TIERS[m] = 'free';
-});
 
 // Internal Scoreboard for Model Reliability (In-Memory Hot Cache)
 const MODEL_SCORES: Record<string, number> = {};
@@ -53,24 +38,16 @@ function parseModelEnv(value: string | undefined, fallback: string[]): string[] 
         .filter(Boolean);
 }
 
-function parseModelMode(value: any): 'free' | 'paid' {
-    return value === 'paid' ? 'paid' : 'free';
+function parseModelMode(_value: any): 'paid' {
+    return 'paid';
 }
 
 function sortByScore(models: string[]) {
     return [...models].sort((a, b) => (MODEL_SCORES[b] || 0) - (MODEL_SCORES[a] || 0));
 }
 
-function getOrderedModels(mode: 'free' | 'paid') {
-    if (mode === 'paid') {
-        return [
-            ...sortByScore(AUTO_VISION_MODELS),
-            ...sortByScore(PAID_VISION_MODELS),
-        ];
-    }
-
+function getOrderedModels(_mode: 'paid') {
     return [
-        ...sortByScore(FREE_VISION_MODELS),
         ...sortByScore(AUTO_VISION_MODELS),
         ...sortByScore(PAID_VISION_MODELS),
     ];
@@ -241,7 +218,7 @@ Output strictly valid JSON:
                         return new Response(JSON.stringify({
                             success: true,
                             model_used: usedModel,
-                            model_tier: MODEL_TIERS[model] || 'free',
+                            model_tier: MODEL_TIERS[model] || 'paid',
                             ...parsed
                         }), { status: 200 });
                     } catch (parseErr) {

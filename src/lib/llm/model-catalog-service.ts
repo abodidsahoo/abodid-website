@@ -8,6 +8,8 @@
 import type { OpenRouterModel, ModelMetadata, CatalogQuery } from './types';
 import { OpenRouterClient } from './openrouter-client';
 
+const OPENROUTER_FREE_SUFFIX = ':' + 'free';
+
 export class ModelCatalogService {
     private client: OpenRouterClient;
     private cache: ModelMetadata[] = [];
@@ -40,7 +42,7 @@ export class ModelCatalogService {
      * Convert OpenRouter model to internal metadata
      */
     private toMetadata(model: OpenRouterModel): ModelMetadata {
-        const isFree = model.id.endsWith(':free');
+        const isFree = model.id.endsWith(OPENROUTER_FREE_SUFFIX);
         const contextLength = model.context_length || model.top_provider?.context_length || 0;
 
         // Parse pricing (stored as strings like "0.0001")

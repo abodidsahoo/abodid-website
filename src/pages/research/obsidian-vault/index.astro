@@ -2,6 +2,7 @@
 export const prerender = false; // Must be false for server-side auth check
 import BaseLayout from "../../../layouts/BaseLayout.astro";
 import { getVaultTags, getVaultNotes } from "../../../lib/github";
+import VaultAskSection from "../../../components/VaultAskSection.astro";
 
 // Configuration
 const ITEMS_PER_PAGE = 24;
@@ -51,6 +52,7 @@ const pageTitle = "Obsidian Vault";
                  <h1>Abodid's Vault</h1>
                  <p class="subtitle">Live sync from GitHub. {allNotes.length} notes, {tags.length} tags.</p>
                  {error && <p class="error-msg" style="text-align:center; margin-top:1rem;">{error}</p>}
+                 <VaultAskSection />
             </header>
             
             {/* --- MOBILE: CHOICE SCREEN (Visible only on mobile start) --- */}

@@ -15,26 +15,12 @@ const PAID_MODELS = parseModelEnv(
     ]
 );
 
-const FREE_MODELS = parseModelEnv(
-    import.meta.env.OPENROUTER_FREE_TEXT_MODELS,
-    [
-        'google/gemini-2.0-flash-lite-preview-02-05:free', // Keep high priority if available
-        'mistralai/mistral-small-3.1-24b-instruct:free', // Verified free text model
-        'google/gemma-3-27b-it:free', // Verified free text model
-        'openrouter/free'
-    ]
-);
-
 function parseModelEnv(value: string | undefined, fallback: string[]): string[] {
     if (!value) return fallback;
     return value
         .split(',')
         .map(v => v.trim())
         .filter(Boolean);
-}
-
-function parseModelMode(value: any): 'free' | 'paid' {
-    return value === 'paid' ? 'paid' : 'free';
 }
 
 async function delay(ms: number) {
@@ -125,8 +111,7 @@ async function callOpenRouter(
 
 export const POST: APIRoute = async ({ request }) => {
     try {
-        const { comments, modelMode } = await request.json();
-        const mode = parseModelMode(modelMode);
+        const { comments } = await request.json();
 
         // Return empty keywords if no comments
         if (!comments || !Array.isArray(comments) || comments.length === 0) {
@@ -162,26 +147,12 @@ export const POST: APIRoute = async ({ request }) => {
         let content = '';
         let model = '';
 
-        if (mode === 'paid') {
-            logs.push('[Mode] PAID (Auto Router)');
-            try {
-                ({ content, model } = await callOpenRouter(apiKey, prompt, AUTO_MODELS, 0, 0, logs));
-            } catch (err) {
-                logs.push('Auto router failed. Switching to paid model list...');
-                ({ content, model } = await callOpenRouter(apiKey, prompt, PAID_MODELS, 0, 0, logs));
-            }
-        } else {
-            logs.push('[Mode] FREE (Paid Fallback)');
-            try {
-                ({ content, model } = await callOpenRouter(apiKey, prompt, FREE_MODELS, 0, 0, logs));
-            } catch (err) {
-                logs.push('Free models exhausted. Switching to paid fallback...');
-                try {
-                    ({ content, model } = await callOpenRouter(apiKey, prompt, AUTO_MODELS, 0, 0, logs));
-                } catch (err2) {
-                    ({ content, model } = await callOpenRouter(apiKey, prompt, PAID_MODELS, 0, 0, logs));
-                }
-            }
+        logs.push('[Mode] PAID (Auto Router)');
+        try {
+            ({ content, model } = await callOpenRouter(apiKey, prompt, AUTO_MODELS, 0, 0, logs));
+        } catch (err) {
+            logs.push('Auto router failed. Switching to paid model list...');
+            ({ content, model } = await callOpenRouter(apiKey, prompt, PAID_MODELS, 0, 0, logs));
         }
 
         // Parse the response
