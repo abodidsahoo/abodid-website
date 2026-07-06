@@ -1,168 +1,33 @@
 ---
-export const prerender = false;
 import BaseLayout from "../layouts/BaseLayout.astro";
-import {
-    getFeaturedPhotography,
-    getRecentPosts,
-    getMediaMentions,
-    getFilms,
-} from "../lib/api";
-
-import {
-    featuredPhotography as mockPhotography,
-    recentPosts as mockRecent,
-} from "../utils/mockData";
-
-import Showreel from "../components/Showreel.astro";
-
-import PhotoGrid from "../components/PhotoGrid.astro";
+import ForceDarkMode from "../components/ForceDarkMode.astro";
 import { personJsonLd, websiteJsonLd } from "../lib/seoData";
 
-// LiquidCursor moved to BaseLayout
-// EngagementCTA moved to LandingOrchestrator
-import ForceDarkMode from "../components/ForceDarkMode.astro";
-
-const pageTitle =
-    "Abodid Sahoo | RCA Alumnus, Creative Technologist & Photographer";
+const pageTitle = "Abodid Sahoo | Creative Director, Artist & Researcher";
 const pageDescription =
-    "Abodid Sahoo is a Royal College of Art (RCA) London alumnus, creative technologist, photographer, filmmaker, researcher, and Obsidian tutor.";
-
-// Helper to safely fetch data
-const safeFetch = async (fn, fallback) => {
-    try {
-        return await fn();
-    } catch (e) {
-        console.error("Data fetch failed:", e);
-        return fallback;
-    }
-};
-
-// Fetch data from Supabase with Fallback
-const featuredPhotography = await safeFetch(
-    getFeaturedPhotography,
-    mockPhotography,
-);
-const recentPosts = (await safeFetch(getRecentPosts, mockRecent)).slice(0, 3);
-const mediaMentions = await safeFetch(getMediaMentions, []);
-const films = await safeFetch(getFilms, []);
-
-const landingPhotographyProjectLimit = 7;
-const hashStringToNumber = (value) => {
-    let hash = 2166136261;
-
-    for (let index = 0; index < value.length; index += 1) {
-        hash ^= value.charCodeAt(index);
-        hash = Math.imul(hash, 16777619);
-    }
-
-    return hash >>> 0;
-};
-const getStableProjectKey = (project) =>
-    [
-        project?.slug,
-        project?.title,
-        project?.href,
-        project?.image || project?.cover_image,
-    ]
-        .filter(Boolean)
-        .join(":");
-const pickStableFeaturedProjects = (items, limit) => {
-    const sorted = Array.isArray(items) ? [...items] : [];
-
-    sorted.sort((left, right) => {
-        const leftKey = getStableProjectKey(left);
-        const rightKey = getStableProjectKey(right);
-        const leftHash = hashStringToNumber(`landing-photography-v1:${leftKey}`);
-        const rightHash = hashStringToNumber(`landing-photography-v1:${rightKey}`);
-
-        return leftHash - rightHash;
-    });
-
-    return sorted.slice(0, limit);
-};
-const landingPhotographyProjects = pickStableFeaturedProjects(
-    featuredPhotography,
-    landingPhotographyProjectLimit,
-);
-
-// Helper to find link by name match
-const findLink = (name) => {
-    const term = name.toLowerCase();
-
-    // 1. Search Media Mentions (Publication or Title)
-    const mediaMatch = mediaMentions.find(
-        (m) =>
-            (m.publication && m.publication.toLowerCase().includes(term)) ||
-            (m.title && m.title.toLowerCase().includes(term)),
-    );
-    if (mediaMatch) return mediaMatch.url;
-
-    // 2. Search Films (Title or Description)
-    const filmMatch = films.find(
-        (f) =>
-            (f.title && f.title.toLowerCase().includes(term)) ||
-            (f.description && f.description.toLowerCase().includes(term)),
-    );
-    if (filmMatch) return filmMatch.videoUrl || "/films"; // Fallback to /films if videoUrl missing
-
-    return "/press"; // Default fallback
-};
-
-// Resolve Links for Showreel Notes - Direct URLs
-const vh1Url =
-    "https://www.edexlive.com/breaking/2021/Jan/05/four-roommates-shot-a-music-video-in-their-mumbai-flat-and-it-received-a-premiere-on-vh1-17053.html";
-const rollingStoneUrl =
-    "https://rollingstoneindia.com/watch-electronic-pop-duo-xys-cinematic-video-for-debut-single-show-me-the-way/";
-const homegrownUrl =
-    "https://homegrown.co.in/homegrown-explore/when-creative-minds-collide-xys-show-me-the-way-music-video-is-visual-pleasure";
-const educateGirlsUrl = findLink("Educate Girls");
-const curvesColorsUrl = findLink("Curves and Colors");
-const pursuitUrl = "https://www.pursuitofportraits.com/";
-const hermosaUrl = "https://www.youtube.com/watch?v=EMsZT9PCFms";
-const budweiserUrl = "https://www.weareanimal.co/budweiser-streetwear";
-const wiedenUrl = findLink("Wieden");
-const animalUrl = findLink("Animal");
-const jawaUrl = "http://youtube.com/watch?v=CSmZHXpr13E";
-const odishaUrl = "https://vimeo.com/265220711";
+    "Abodid Sahoo helps people use stories to communicate, educate, and bring communities together through creative direction, art, research, films, exhibitions, and digital experiences.";
 
 const heroHeadingLines = [
-    ["Hi,", "I", "am", "Abodid", "Sahoo."],
+    ["Hi,", "I", "am", "Abodid."],
     ["I", "work", "at", "the", "intersection", "of", "..."],
 ];
-const heroBioWords =
-    "I help people and organizations build creative technology projects, research workflows, Obsidian systems, photographs, films, and visual stories that are thoughtful, useful, and human.".split(
-        " ",
-    );
 
-// Toggle between "typewriter" and "smooth-blur" for the landing hero copy.
 const heroTextEffect = "smooth-blur";
 ---
 
 <BaseLayout
     title={pageTitle}
     description={pageDescription}
-    imageAlt="Portfolio preview for Abodid Sahoo"
     useDynamicOgImage={false}
-    bodyClass="landing-page"
+    showNewsletterPopup={false}
+    bodyClass="landing-page landing-redesign-page"
     structuredData={[personJsonLd(), websiteJsonLd()]}
 >
-    <Fragment slot="head">
-        {
-            landingPhotographyProjects.slice(0, 4).map((project) => {
-                const imageUrl = project?.image || project?.cover_image;
-                return imageUrl ? (
-                    <link rel="preload" as="image" href={imageUrl} />
-                ) : null;
-            })
-        }
-    </Fragment>
-
-    <!-- Force dark mode on landing page - core to the experience -->
     <ForceDarkMode />
 
-    <section class="narrative-section">
+    <section class="narrative-section" aria-labelledby="landing-copy-title">
         <div class="hero-content">
-            <h1 class="hero-title" data-hero-copy>
+            <h1 id="landing-copy-title" class="hero-title" data-hero-copy>
                 {
                     heroHeadingLines.map((line) => (
                         <span class="hero-title-line" data-hero-word-line>
@@ -185,137 +50,144 @@ const heroTextEffect = "smooth-blur";
                         aria-live="polite"
                         aria-atomic="true"
                     >
-                        Creative technology, AI research workflows, Obsidian
-                        tutoring, photography, and film.
+                        Photography, Film & Art.
                     </span>
                 </span>
             </h1>
-            <div class="bio-content">
-                <p class="hero-bio-line" data-hero-word-line>
-                    {
-                        heroBioWords.map((word) => (
-                            <span
-                                class="hero-word hero-bio-word"
-                                data-hero-word
-                            >
-                                {word}
-                            </span>
-                        ))
-                    }
-                </p>
-            </div>
+            <p class="hero-lede">
+                <span>
+                    I help people use stories to communicate, educate and bring
+                    communities together.
+                </span>
+            </p>
         </div>
     </section>
 
-    <!-- Blog Section -->
-    <section class="section blog-section">
-        <div class="section-header">
-            <h2 class="section-title">Writings</h2>
-            <a href="/blog" class="link-arrow mobile-btn section-cta"
-                >Read All</a
-            >
-        </div>
+    <article class="landing-copy-body" aria-label="Landing page body copy">
+        <p>
+            As a creative director, artist, and researcher, I enjoy pushing the
+            boundaries of storytelling, turning it into memorable, participatory
+            &quot;experiences&quot; that spark conversations and help build deeper
+            connections.
+        </p>
 
-        <div class="blog-list">
-            {
-                recentPosts.map((post) => (
-                    <a href={post.href} class="blog-card">
-                        <div class="blog-image-wrapper">
-                            {post.image ? (
-                                <img
-                                    src={post.image}
-                                    alt={post.title}
-                                    class="blog-image"
-                                    loading="lazy"
-                                />
-                            ) : (
-                                <div class="blog-image-placeholder" />
-                            )}
-                        </div>
+        <p>
+            From art installations and exhibitions to films and digital
+            experiences, I create research-driven work that is intuitive and
+            accessible. As a creative consultant, I work with
+            <a class="copy-link" href="/services">exhibition design teams</a>,
+            design studios, and corporate clients, leading the creative
+            direction and early-stage concept ideation for research-driven
+            storytelling products of the future.
+        </p>
 
-                        <div class="blog-content">
-                            <span class="blog-date">{post.date}</span>
-                            <h3 class="blog-title">{post.title}</h3>
-                            <div class="blog-category">
-                                {post.category &&
-                                    (Array.isArray(post.category)
-                                        ? post.category[0]
-                                        : post.category)}
-                            </div>
-                        </div>
+        <p>
+            Sometimes I work as a
+            <a class="copy-link" href="/services">super connector</a>, mapping a
+            brand&apos;s complex ecosystem and emerging ideas with brilliant
+            creative minds across the globe.
+        </p>
 
-                        <div class="blog-action">
-                            <span>VIEW MORE</span>
-                            <span class="arrow">→</span>
-                        </div>
-                    </a>
-                ))
-            }
-        </div>
-    </section>
+        <p>
+            I also write extremely raw memoirs on my lived experiences to help
+            emerging creatives navigate the creative ecosystem more effectively
+            and with confidence. I also
+            <a class="copy-link" href="/blog">speak about culture, art, and
+            technology</a> at international conferences, events, and panel
+            discussions, inspiring audiences to see storytelling differently and
+            to explore a more human-centred, medium-agnostic approach.
+        </p>
 
-    <!-- Showreel Section - edge-to-edge silent autoplay -->
-    <section class="section writings-section">
-        <Showreel
-            vh1Url={vh1Url}
-            rollingStoneUrl={rollingStoneUrl}
-            homegrownUrl={homegrownUrl}
-            educateGirlsUrl={educateGirlsUrl}
-            curvesColorsUrl={curvesColorsUrl}
-            pursuitUrl={pursuitUrl}
-            hermosaUrl={hermosaUrl}
-            budweiserUrl={budweiserUrl}
-            wiedenUrl={wiedenUrl}
-            animalUrl={animalUrl}
-            jawaUrl={jawaUrl}
-            odishaUrl={odishaUrl}
-        />
-    </section>
+        <p>
+            Additionally, I lead hands-on
+            <a class="copy-link" href="/workshops">filmmaking workshops</a>
+            focused on ethics, documentation, and research. I give students
+            situations to think about and text prompts to craft their own
+            narratives.
+        </p>
 
-    <!-- Massive Spacer 3 (Showreel to Featured) -->
-    <!-- Responsive Spacer -->
-    <div class="responsive-spacer" aria-hidden="true"></div>
+        <p>
+            I have worked with the
+            <a class="copy-link" href="/education">Royal College of Art London</a>
+            (world&apos;s No.1 Art and Design college - QS ranking), to design,
+            build and document globally renowned year-end graduate shows and art
+            exhibitions happening across campus in central London, and highly
+            sought-after immersive venues like
+            <a class="copy-link" href="/photography/outernet-london-2025">Outernet</a>,
+            <a class="copy-link" href="/photography/frameless-london-rca-exhibition">Frameless</a>,
+            and British Film Institute.
+        </p>
 
-    <!-- Photo Stories -->
-    <section class="section contained-section">
-        <div class="section-header">
-            <h2 class="section-title">Photography Projects</h2>
-            <a
-                href="/photography"
-                class="link-arrow mobile-btn section-cta photo-projects-cta"
-                >View All</a
-            >
-        </div>
+        <p>
+            I have worked with international organisations, agencies and design
+            studios such as Wieden+Kennedy, Pursuit of Portraits, Hermosa Design
+            Studio and Odisha Tourism to create
+            <a class="copy-link" href="/films">brand films, commercials, and
+            social media content</a>.
+        </p>
 
-        <!-- Contained Carousel Row 1 (Left) -->
-        <PhotoGrid
-            projects={landingPhotographyProjects}
-            maxItems={landingPhotographyProjectLimit}
-            columns={2}
-            contained={true}
-        />
-    </section>
+        <p>
+            My work has been featured on RCA&apos;s official pages. My
+            <a class="copy-link" href="/films">music video</a> was broadcast on
+            VH1. I have had multiple
+            <a class="copy-link" href="/press">media mentions</a> in Homegrown,
+            The Indian Express, Rolling Stone India, and others.
+        </p>
 
+        <p>
+            I&apos;m a recipient of the Apple Scholarship, which
+            covered my entire tuition fees at the Royal College of Art in
+            London. Here&apos;s a
+            <a class="copy-link" href="/blog/how-apple-funded-my-dream-at-rca">long-form article</a>
+            I wrote that dives deep into the international education ecosystem
+            and scholarships to help students navigate higher studies at Tier 1
+            international institutions.
+        </p>
+
+        <p>
+            I recently received a full bursary for attending the
+            <a class="copy-link" href="/uk2026">Cultural Heritage Data School at
+            the University of Cambridge</a> (UOC), organised by the Cambridge
+            Digital Humanities (CDH). This is a long-form memoir of the entire
+            experience, from the application process and fundraising to all the
+            activities we did there and the fun moments we had.
+        </p>
+
+        <p>
+            Curious about how I think? Ask my
+            <a class="copy-link" href="/research/obsidian-vault">AI-powered
+            Obsidian Vault</a> - a searchable space of my notes, ideas,
+            questions and unfinished thoughts.
+        </p>
+    </article>
 </BaseLayout>
 
 <style>
-    :global(body.landing-page .header-padding) {
+    :global(body.landing-redesign-page .header-padding) {
         padding-top: clamp(28px, 4vh, 56px) !important;
+    }
+
+    :global(body.landing-redesign-page .global-grid-bg) {
+        opacity: 0.18;
+        background-size: 72px 72px;
+        -webkit-mask-image: none;
+        mask-image: none;
+    }
+
+    :global(body.landing-redesign-page .global-glow-bg) {
+        display: none;
     }
 
     .narrative-section {
         position: relative;
         z-index: 100;
-        min-height: auto;
         display: flex;
         flex-direction: column;
         justify-content: flex-start;
-        gap: clamp(1.5rem, 3.5vh, 3rem);
-        padding: clamp(2rem, 5.5vh, 4.5rem) 24px clamp(1.5rem, 4vh, 2.5rem);
+        padding: clamp(2rem, 5.5vh, 4.5rem) 24px clamp(2rem, 4.5vh, 3.5rem);
         max-width: 1100px;
         margin-left: auto;
         margin-right: auto;
-        margin-bottom: 0;
     }
 
     .hero-content {
@@ -324,9 +196,9 @@ const heroTextEffect = "smooth-blur";
         z-index: 2;
         display: flex;
         flex-direction: column;
-        gap: clamp(2.5rem, 5vh, 4.5rem);
+        gap: clamp(1.8rem, 3.8vh, 3.2rem);
         margin-top: clamp(16px, 2vh, 24px);
-        max-width: min(100%, 980px);
+        max-width: min(100%, 1040px);
         transform: translate3d(0, calc(var(--hero-copy-stage-shift) * -1), 0);
         transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
         will-change: transform;
@@ -338,9 +210,9 @@ const heroTextEffect = "smooth-blur";
         gap: 0.06em;
         font-family: var(--feature-typewriter-main-font, var(--font-sans));
         font-size: clamp(
-            2.35rem,
-            1.35rem + 2.55vw,
-            var(--feature-typewriter-main-size, 3.5rem)
+            2.95rem,
+            1.45rem + 3vw,
+            4.75rem
         );
         font-weight: var(--feature-typewriter-main-weight, 700);
         line-height: var(--feature-typewriter-main-line-height, 1.1);
@@ -386,437 +258,22 @@ const heroTextEffect = "smooth-blur";
         backface-visibility: hidden;
     }
 
-    .bio-content {
-        max-width: min(100%, 840px);
-    }
-
-    .hero-bio-line {
-        --hero-line-shift: 0px;
-        --hero-line-opacity: 1;
+    .hero-lede {
+        max-width: 1040px;
         margin: 0;
-        display: flex;
-        flex-wrap: wrap;
-        align-items: baseline;
-        gap: 0.16em 0.24em;
-        font-family: var(--feature-typewriter-bio-font, var(--font-body));
-        font-size: clamp(
-            1.2rem,
-            0.78rem + 1.58vw,
-            var(--feature-typewriter-bio-size, 2.2rem)
-        );
-        font-weight: var(--feature-typewriter-bio-weight, 300);
-        line-height: var(--feature-typewriter-bio-line-height, 1.2);
-        letter-spacing: var(--feature-typewriter-bio-letter-spacing, 0em);
-        color: var(--feature-typewriter-bio-color, var(--text-secondary));
-        opacity: var(--hero-line-opacity);
-        transform: translate3d(0, calc(var(--hero-line-shift) * -1), 0);
-        transition:
-            opacity 0.32s linear,
-            transform 0.58s cubic-bezier(0.22, 1, 0.36, 1);
-        will-change: opacity, transform;
+        color: #050505;
+        font-family: var(--font-body);
+        font-size: clamp(2rem, 1.18rem + 1.9vw, 3.28rem);
+        font-weight: 430;
+        line-height: 1.34;
+        letter-spacing: 0em;
     }
 
-    @media (max-width: 1800px) and (min-width: 980px) {
-        :global(body.landing-page .header-padding) {
-            padding-top: clamp(32px, 4.5vh, 60px) !important;
-        }
-
-        .narrative-section {
-            gap: clamp(1.6rem, 3vh, 2.6rem);
-            padding-top: clamp(2.6rem, 6vh, 4.75rem);
-            padding-bottom: clamp(2.4rem, 5.5vh, 4rem);
-            max-width: 1100px;
-        }
-
-        .hero-content {
-            gap: clamp(2.7rem, 4.8vh, 4.1rem);
-            max-width: min(100%, 1020px);
-        }
-
-        .hero-title {
-            font-size: clamp(2.96rem, 2.16rem + 1.98vw, 3.9rem);
-        }
-
-        .bio-content {
-            max-width: min(100%, 940px);
-        }
-
-        .hero-bio-line {
-            font-size: clamp(1.92rem, 1.39rem + 1.29vw, 2.52rem);
-        }
-
-        #typewriter-text {
-            font-size: 1.56em;
-        }
-
-        .writings-section {
-            padding-top: 0;
-        }
-    }
-
-    @media (max-width: 979px) {
-        :global(body.landing-page .header-padding) {
-            padding-top: clamp(24px, 3.5vh, 42px) !important;
-        }
-
-        .narrative-section {
-            gap: 1.25rem;
-            padding-top: clamp(2.1rem, 5.5vh, 3.8rem);
-        }
-
-        .hero-content {
-            gap: 1.9rem;
-            margin-top: clamp(12px, 1.7vh, 18px);
-            max-width: min(100%, 780px);
-        }
-
-        .hero-title {
-            font-size: clamp(2rem, 1.4rem + 1.6vw, 2.55rem);
-        }
-
-        .hero-bio-line {
-            font-size: clamp(1.34rem, 1rem + 1.05vw, 1.78rem);
-        }
-    }
-
-    .major-section-separator {
-        height: 30vh;
-        min-height: 220px;
-        width: 100%;
-    }
-
-    :global(body.landing-page .contained-section .photography-card) {
-        --photo-card-image-scale-hover: 1.006;
-        --photo-card-image-transition: transform 1.5s
-            cubic-bezier(0.23, 1, 0.32, 1);
-    }
-
-    @media (max-width: 768px) {
-        :global(body.landing-page .header-padding) {
-            padding-top: clamp(18px, 3vh, 30px) !important;
-        }
-
-        .narrative-section {
-            min-height: auto;
-            padding-top: clamp(1.25rem, 4vh, 2.4rem);
-            padding-left: 0;
-            padding-right: 0;
-            padding-bottom: 2.5rem;
-            margin-bottom: 1.5rem;
-            gap: clamp(1.8rem, 5vh, 2.6rem);
-        }
-
-        .hero-title {
-            font-size: min(
-                calc(var(--feature-typewriter-main-size, 3.5rem) * 0.5),
-                2.5rem
-            ) !important;
-            line-height: 1.3 !important;
-        }
-
-        .hero-title-line {
-            gap: 0.12em 0.16em;
-        }
-
-        #typewriter-text {
-            margin-top: 0.5rem;
-            min-height: 6.25em;
-            overflow: hidden;
-        }
-
-        #typewriter-text[data-text-effect="typewriter"] {
-            display: block;
-        }
-
-        #typewriter-text[data-text-effect="smooth-blur"] {
-            display: grid;
-        }
-
-        .hero-bio-line {
-            font-size: min(
-                calc(var(--feature-typewriter-bio-size, 2.2rem) * 0.52),
-                1.125rem
-            ) !important;
-            line-height: 1.5 !important;
-        }
-
-        .note-grid {
-            display: none !important;
-        }
-
-        .section {
-            margin-bottom: 5rem;
-        }
-
-        .blog-card {
-            grid-template-columns: 1fr;
-            padding: 0;
-            margin-left: 0;
-            margin-right: 0;
-            margin-bottom: 2rem;
-            border-bottom: none;
-            gap: 0;
-            width: 100%;
-        }
-
-        .blog-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0;
-            width: 100%;
-            padding: 0;
-            margin: 0;
-        }
-
-        .blog-image-wrapper {
-            width: 100%;
-            height: 200px;
-        }
-
-        .blog-action {
-            display: block;
-            margin-top: 0.5rem;
-            font-size: 0.75rem;
-        }
-    }
-
-    /* ... type writer styles ... */
-
-    /* Desktop alignment for Showreel & Notes to match Narrative block width */
-    /* REMOVED: Now handled by wrapper .section with padding */
-    /* :global(.showreel-container),
-    :global(.note-grid) {
-        padding-left: 4vw;
-        padding-right: 4vw;
-    } */
-
-    @media (max-width: 768px) {
-        .major-section-separator {
-            height: 16vh;
-            min-height: 128px;
-        }
-    }
-
-    .italic {
-        font-style: italic;
-        font-weight: 400;
-    }
-
-    .section {
-        margin-bottom: clamp(5rem, 10vh, 7.5rem);
-        /* Ensure sections align with the grid */
-        max-width: 1100px;
-        margin-left: auto;
-        margin-right: auto;
-        padding-left: 24px;
-        padding-right: 24px;
-    }
-
-    .blog-section + .writings-section {
-        margin-top: clamp(2.5rem, 6vh, 4.5rem);
-    }
-
-    .contained-section {
-        /* Inherits padding from .section or explicit override? 
-           Let's just use .section styles for all mainly, but if contained-section was separate: */
-        padding-left: 24px;
-        padding-right: 24px;
-    }
-
-    .section-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: baseline;
-        margin-bottom: var(--space-lg);
-        border-bottom: 1px solid var(--border-subtle);
-        padding-bottom: var(--space-md);
-        /* Remove margin-left/right if any existed */
-    }
-
-    @media (max-width: 600px) {
-        .section-header {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 0.25rem; /* TIGHTER gap between title and button */
-            margin-bottom: 1rem; /* Compact header */
-        }
-
-        /* Mobile Spacing for Sections - REMOVED EXTRA PADDING to align with Showreel */
-        .section,
-        .contained-section {
-            padding-left: 0 !important;
-            padding-right: 0 !important;
-        }
-
-        .section-title {
-            font-size: 2rem; /* Ensure it fits one line if possible, or wrap cleanly */
-            line-height: 1.1;
-        }
-
-        /* Minimal Sleek Button Mobile */
-        .mobile-btn {
-            display: inline-block;
-            width: auto;
-            text-align: left;
-            padding: 0; /* Remove button padding */
-            border: none; /* Remove border */
-            background: none;
-            margin-top: 0;
-            font-size: 0.7rem; /* Tiny text */
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: rgba(255, 255, 255, 0.6); /* Subtle color */
-            font-weight: 400;
-        }
-
-        .mobile-btn::after {
-            content: " →";
-            display: inline;
-            opacity: 0.6;
-        }
-    }
-
-    .link-arrow {
-        font-size: var(--text-sm);
-        font-weight: 500;
-        position: relative;
-        padding-right: 1.2em;
-    }
-
-    .section-cta {
-        font-family: var(--feature-writing-action-font, var(--font-ui));
-        font-size: var(--feature-writing-action-size, 0.8rem);
-        font-weight: var(--feature-writing-action-weight, 500);
-        line-height: var(--feature-writing-action-line-height, 1.2);
-        letter-spacing: var(--feature-writing-action-letter-spacing, 0.05em);
-        text-transform: uppercase;
-        color: var(--feature-writing-action-color, var(--text-tertiary));
-    }
-
-    .link-arrow::after {
-        content: "→";
-        position: absolute;
-        right: 0;
-        transition: transform 0.2s ease;
-    }
-
-    .link-arrow:hover::after {
-        transform: translateX(4px);
-    }
-
-    .blog-list {
-        display: flex;
-        flex-direction: column;
-        gap: 1.5rem;
-    }
-
-    .blog-card {
-        display: grid;
-        grid-template-columns: 280px 1fr auto;
-        gap: 2rem;
-        padding: 1.5rem 0; /* Remove side padding for cleaner alignment with header */
-        text-decoration: none;
-        color: var(--text-primary);
-        border-bottom: 1px solid var(--border-subtle); /* Subtle separator instead of box */
-        /* border-radius removed */
-        transition: transform 0.3s ease;
-        align-items: center;
-    }
-
-    .blog-card:hover {
-        transform: translateY(-2px);
-        /* border-color removed */
-    }
-
-    .blog-image-wrapper {
-        width: 280px;
-        aspect-ratio: 16 / 9;
-        height: auto;
-        overflow: hidden;
-        border-radius: 6px;
-        background: var(--bg-surface);
-    }
-
-    .blog-image {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-
-    .blog-image-placeholder {
-        width: 100%;
-        height: 100%;
-        background: var(--bg-surface);
-    }
-
-    .blog-content {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-    }
-
-    .blog-date {
-        font-family: var(--feature-writing-date-font, var(--font-mono));
-        font-size: var(--feature-writing-date-size, 0.75rem);
-        font-weight: var(--feature-writing-date-weight, 400);
-        line-height: var(--feature-writing-date-line-height, 1.2);
-        letter-spacing: var(--feature-writing-date-letter-spacing, 0.05em);
-        text-transform: uppercase;
-        color: var(--feature-writing-date-color, var(--text-tertiary));
-        margin-bottom: 0.5rem;
-    }
-
-    .blog-title {
-        font-family: var(--feature-writing-title-font, var(--font-serif));
-        font-size: var(--feature-writing-title-size, 1.5rem);
-        font-weight: var(--feature-writing-title-weight, 400);
-        line-height: var(--feature-writing-title-line-height, 1.2);
-        letter-spacing: var(--feature-writing-title-letter-spacing, 0em);
-        color: var(--feature-writing-title-color, var(--text-primary));
-        margin: 0 0 0.5rem 0;
-        max-width: 38ch; /* Force wrapping after ~9-12 words */
-    }
-
-    .blog-category {
-        font-family: var(--feature-writing-category-font, var(--font-sans));
-        font-size: var(--feature-writing-category-size, 0.85rem);
-        font-weight: var(--feature-writing-category-weight, 400);
-        line-height: var(--feature-writing-category-line-height, 1.2);
-        letter-spacing: var(--feature-writing-category-letter-spacing, 0em);
-        color: var(--feature-writing-category-color, var(--text-secondary));
-    }
-
-    .blog-action {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-family: var(--feature-writing-action-font, var(--font-ui));
-        font-size: var(--feature-writing-action-size, 0.8rem);
-        font-weight: var(--feature-writing-action-weight, 500);
-        line-height: var(--feature-writing-action-line-height, 1.2);
-        letter-spacing: var(--feature-writing-action-letter-spacing, 0.05em);
-        text-transform: uppercase;
-        color: var(--feature-writing-action-color, var(--text-tertiary));
-        transition: color 0.3s ease;
-    }
-
-    .blog-card:hover .blog-action {
-        color: var(--text-primary);
-    }
-
-    .blog-card:hover .arrow {
-        transform: translateX(4px);
-        transition: transform 0.2s ease;
-    }
-
-    .writings-section {
-        width: 100vw;
-        max-width: none;
-        margin-left: calc(50% - 50vw);
-        margin-right: calc(50% - 50vw);
-        margin-top: clamp(2rem, 5vh, 4.5rem);
-        margin-bottom: clamp(3rem, 7vh, 5rem);
-        padding: 0;
+    .hero-lede span {
+        background: var(--color-brand-red);
+        box-decoration-break: clone;
+        -webkit-box-decoration-break: clone;
+        padding: 0.06em 0.12em 0.11em;
     }
 
     #typewriter-text {
@@ -839,7 +296,7 @@ const heroTextEffect = "smooth-blur";
             --feature-typewriter-text-font,
             var(--feature-typewriter-main-font, var(--font-sans))
         );
-        font-size: var(--feature-typewriter-text-size, 1.35em);
+        font-size: 1.18em;
         font-weight: var(
             --feature-typewriter-text-weight,
             var(--feature-typewriter-main-weight, 700)
@@ -850,40 +307,15 @@ const heroTextEffect = "smooth-blur";
             --feature-typewriter-text-color,
             var(--feature-typewriter-main-color, var(--text-primary))
         );
-        min-height: 1.2em; /* Reserve space */
+        min-height: 1.2em;
         margin-top: 0;
         position: relative;
-        top: -2px; /* Shift upwards to balance */
+        top: -2px;
         width: 100%;
         min-width: 0;
         max-width: min(100%, calc(100vw - 48px));
-        white-space: normal;
+        white-space: nowrap;
         overflow-wrap: break-word;
-    }
-
-    [data-theme="light"] #typewriter-text {
-        --smooth-blur-mask-start: color-mix(
-            in srgb,
-            var(--bg-color) 68%,
-            transparent
-        );
-        --smooth-blur-mask-mid: color-mix(
-            in srgb,
-            var(--bg-color) 48%,
-            transparent
-        );
-        --smooth-blur-mask-end: color-mix(
-            in srgb,
-            var(--bg-color) 16%,
-            transparent
-        );
-    }
-
-    #typewriter-text[data-text-effect="typewriter"] {
-        display: inline-block;
-        max-width: 100%;
-        white-space: normal;
-        transition: opacity 0.1s ease; /* Makes disappearance smoother */
     }
 
     #typewriter-text[data-text-effect="smooth-blur"] {
@@ -899,68 +331,19 @@ const heroTextEffect = "smooth-blur";
         padding-bottom: 0.18em;
     }
 
-    @media (max-width: 600px) {
-        #typewriter-text {
-            white-space: normal; /* Allow wrapping on mobile */
-            word-break: break-word;
-        }
-
-        #typewriter-text[data-text-effect="typewriter"] {
-            display: inline; /* changing to inline allows wrapping naturally */
-        }
-    }
-
-    #typewriter-text[data-text-effect="typewriter"] :global(span) {
-        /* Smooth individual character removal */
-        transition: opacity 0.08s ease;
-        text-shadow:
-            2px 2px 0 rgba(0, 0, 0, 0.34),
-            4px 3px 0 rgba(0, 0, 0, 0.18);
-    }
-
-    [data-theme="light"]
-        #typewriter-text[data-text-effect="typewriter"]
-        :global(span) {
-        text-shadow:
-            2px 2px 0 rgba(15, 23, 42, 0.42),
-            4px 3px 0 rgba(15, 23, 42, 0.22);
-    }
-
-    #typewriter-text[data-text-effect="typewriter"]::after {
-        content: "";
-        display: inline-block;
-
-        /* Cursor dimensions - adjust these */
-        width: 14px; /* Width of cursor */
-        height: 0.8em; /* Height of cursor */
-
-        /* Cursor appearance */
-        background-color: var(--text-primary);
-        border-radius: 1px;
-
-        /* Positioning */
-        margin-left: 5px; /* Space from text */
-        vertical-align: top; /* Align with text baseline */
-        position: relative;
-        top: 0.1em; /* Fine-tune vertical position */
-
-        /* Animation */
-        animation: blink 1.2s infinite; /* Slightly slower blink for calmer feel */
-    }
-
     #typewriter-text[data-text-effect="smooth-blur"]
         :global(.smooth-blur-phrase) {
         grid-area: stack;
         position: relative;
         display: inline-flex;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
         align-items: baseline;
         align-content: flex-start;
         justify-content: flex-start;
         gap: 0.14em 0.2em;
         width: 100%;
         max-width: 100%;
-        white-space: normal;
+        white-space: nowrap;
         overflow: visible;
         opacity: 0;
         filter: blur(12px);
@@ -975,21 +358,10 @@ const heroTextEffect = "smooth-blur";
     }
 
     #typewriter-text[data-text-effect="smooth-blur"]
-        :global(.smooth-blur-phrase)::after {
-        content: none;
-    }
-
-    #typewriter-text[data-text-effect="smooth-blur"]
         :global(.smooth-blur-phrase.is-visible) {
         opacity: 1;
         filter: blur(0.15px);
         transform: translate3d(0, 0, 0);
-    }
-
-    #typewriter-text[data-text-effect="smooth-blur"]
-        :global(.smooth-blur-phrase.is-visible)::after {
-        opacity: 0;
-        transform: translate3d(112%, 0, 0);
     }
 
     #typewriter-text[data-text-effect="smooth-blur"]
@@ -1042,38 +414,145 @@ const heroTextEffect = "smooth-blur";
         transition-delay: 0s;
     }
 
-    @media (max-width: 600px) {
-        #typewriter-text[data-text-effect="smooth-blur"]
-            :global(.smooth-blur-phrase) {
-            flex-wrap: wrap;
-            white-space: normal;
+    .landing-copy-body {
+        position: relative;
+        z-index: 2;
+        max-width: 1100px;
+        margin: clamp(0.4rem, 1.6vh, 1.25rem) auto clamp(7rem, 14vh, 10rem);
+        padding: 0 24px;
+        color: rgba(224, 232, 246, 0.78);
+        font-family: var(--font-body);
+        font-size: clamp(1.72rem, 1.05rem + 1.52vw, 2.74rem);
+        font-weight: 260;
+        line-height: 1.43;
+        letter-spacing: 0em;
+    }
+
+    .landing-copy-body p {
+        max-width: 1040px;
+        margin: 0 0 clamp(2.4rem, 5vh, 4.5rem);
+        color: rgba(224, 232, 246, 0.78);
+        font-family: var(--font-body);
+        font-size: clamp(1.72rem, 1.05rem + 1.52vw, 2.74rem);
+        font-weight: 260;
+        line-height: 1.43;
+        letter-spacing: 0em;
+    }
+
+    .copy-link {
+        color: inherit;
+        text-decoration: underline;
+        text-decoration-color: rgba(224, 232, 246, 0.42);
+        text-decoration-thickness: 0.045em;
+        text-underline-offset: 0.18em;
+        border-radius: 3px;
+        transition:
+            color 160ms ease,
+            background-color 160ms ease,
+            text-decoration-color 160ms ease;
+    }
+
+    .copy-link:hover,
+    .copy-link:focus-visible {
+        color: #ffffff;
+        background-color: var(--color-brand-red);
+        text-decoration-color: transparent;
+        outline: none;
+    }
+
+    .copy-link:focus-visible {
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-brand-red) 55%, transparent);
+    }
+
+    @media (max-width: 979px) {
+        :global(body.landing-redesign-page .header-padding) {
+            padding-top: clamp(24px, 3.5vh, 42px) !important;
+        }
+
+        .narrative-section {
+            padding-top: clamp(2.1rem, 5.5vh, 3.8rem);
+        }
+
+        .hero-content {
+            gap: 1.55rem;
+            margin-top: clamp(12px, 1.7vh, 18px);
+            max-width: min(100%, 780px);
+        }
+
+        .hero-title {
+            font-size: clamp(2.25rem, 1.55rem + 2vw, 3rem);
+        }
+
+        .hero-lede {
+            font-size: clamp(1.48rem, 1.18rem + 1.4vw, 1.92rem);
+            line-height: 1.42;
         }
     }
 
-    :global(body.landing-page .global-grid-bg) {
-        opacity: 0.18;
-        background-size: 72px 72px;
-        -webkit-mask-image: none;
-        mask-image: none;
-    }
+    @media (max-width: 768px) {
+        :global(body.landing-redesign-page .header-padding) {
+            padding-top: clamp(18px, 3vh, 30px) !important;
+        }
 
-    :global(body.landing-page .global-glow-bg) {
-        display: none;
+        .narrative-section {
+            padding-top: clamp(1.25rem, 4vh, 2.4rem);
+            padding-left: 0;
+            padding-right: 0;
+            padding-bottom: 0.75rem;
+        }
+
+        .hero-content {
+            gap: clamp(1.1rem, 3.5vh, 1.65rem);
+        }
+
+        .hero-title {
+            font-size: min(
+                calc(var(--feature-typewriter-main-size, 3.5rem) * 0.58),
+                2.85rem
+            ) !important;
+            line-height: 1.3 !important;
+        }
+
+        .hero-title-line {
+            gap: 0.12em 0.16em;
+        }
+
+        #typewriter-text {
+            margin-top: 0.35rem;
+            min-height: 1.45em;
+            overflow: hidden;
+            font-size: clamp(1.35rem, 7vw, 1.8rem);
+            white-space: nowrap;
+        }
+
+        #typewriter-text[data-text-effect="smooth-blur"]
+            :global(.smooth-blur-phrase) {
+            flex-wrap: nowrap;
+            white-space: nowrap;
+        }
+
+        .landing-copy-body {
+            padding-left: 0;
+            padding-right: 0;
+            font-size: clamp(1.28rem, 1.08rem + 1.1vw, 1.62rem);
+            line-height: 1.55;
+        }
+
+        .landing-copy-body p {
+            margin-bottom: 2.35rem;
+            font-size: clamp(1.28rem, 1.08rem + 1.1vw, 1.62rem);
+            line-height: 1.55;
+        }
     }
 
     @media (prefers-reduced-motion: reduce) {
         .hero-content,
         .hero-word,
         .hero-title-line,
-        .hero-bio-line,
         .hero-title-line-dynamic {
             transition: none;
             filter: none;
             transform: none;
-        }
-
-        #typewriter-text[data-text-effect="typewriter"]::after {
-            animation: none;
         }
 
         #typewriter-text[data-text-effect="smooth-blur"]
@@ -1081,179 +560,12 @@ const heroTextEffect = "smooth-blur";
         #typewriter-text[data-text-effect="smooth-blur"]
             :global(.smooth-blur-word),
         #typewriter-text[data-text-effect="smooth-blur"]
-            :global(.smooth-blur-word-label),
-        #typewriter-text[data-text-effect="smooth-blur"]
-            :global(.smooth-blur-phrase)::after {
+            :global(.smooth-blur-word-label) {
             transition: none;
             filter: none;
             transform: none;
         }
-
-        #typewriter-text[data-text-effect="smooth-blur"]
-            :global(.smooth-blur-phrase)::after {
-            opacity: 0;
-        }
     }
-
-    @keyframes blink {
-        0%,
-        50% {
-            opacity: 1;
-        }
-        51%,
-        100% {
-            opacity: 0;
-        }
-    }
-
-    @media (max-width: 768px) {
-        .blog-section + .writings-section {
-            margin-top: clamp(2rem, 6vh, 3.5rem);
-        }
-
-        .writings-section {
-            margin-top: 1.5rem;
-            margin-bottom: clamp(2rem, 6vh, 3.5rem);
-            padding: 0;
-        }
-
-        .vibe-check-wrapper {
-            display: none;
-        }
-    }
-
-    @media (max-width: 500px) {
-        .blog-card {
-            grid-template-columns: 1fr;
-            gap: 1rem;
-        }
-        .blog-image-wrapper {
-            width: 100%;
-            height: 200px;
-        }
-
-    }
-
-    .note-grid {
-        display: grid;
-        grid-template-columns: 2fr 1fr;
-        gap: 1.5rem;
-
-        max-width: 1100px;
-        margin: 3rem auto;
-    }
-
-    .showreel-note {
-        font-family: var(--font-mono);
-        font-size: 0.95rem;
-        line-height: 1.6;
-
-        color: #ffffff;
-
-        border: 1px solid rgba(255, 255, 255, 0.6);
-        border-radius: 8px;
-
-        padding: 1.25rem 1.5rem;
-
-        backdrop-filter: blur(2px);
-
-        letter-spacing: 0.02em;
-    }
-
-    .note-primary {
-        background-color: rgba(178, 28, 48, 0.881);
-    }
-
-    .note-secondary {
-        background-color: rgba(39, 24, 138, 0.941);
-    }
-
-    .showreel-note p {
-        margin: 0;
-    }
-
-    @media (max-width: 768px) {
-        .note-grid {
-            grid-template-columns: 1fr;
-        }
-    }
-
-    .note-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr !important;
-        gap: 1.5rem;
-
-        max-width: 1100px;
-        margin: 3rem auto;
-
-        padding: 0; /* ← THIS is the key line */
-    }
-
-    .responsive-spacer {
-        height: 20vh;
-        width: 100%;
-    }
-
-    @media (max-width: 768px) {
-        .responsive-spacer {
-            height: 5vh; /* Drastically reduce on mobile */
-        }
-    }
-
-    .showreel-note .line-gap {
-        display: block;
-        height: 1rem;
-    }
-
-    /* Link that looks like underlined white text + "selection fill" hover */
-    .hl-link {
-        color: #fff;
-        text-decoration: underline;
-        text-decoration-thickness: 1px;
-        text-underline-offset: 3px;
-
-        position: relative;
-        display: inline-block;
-        padding: 0 0.12em; /* tiny padding so highlight looks intentional */
-        border-radius: 2px; /* subtle rounding like a selection */
-        cursor: pointer;
-
-        /* remove default link focus outline styling differences across browsers */
-        outline: none;
-    }
-
-    /* Background "fill" on hover like text selection */
-    .hl-link::before {
-        content: "";
-        position: absolute;
-        left: 0;
-        bottom: 0.05em;
-        width: 100%;
-        height: 1.1em;
-        background: rgba(255, 255, 255, 0.22); /* selection-like fill */
-        transform: scaleX(0);
-        transform-origin: left;
-        transition: transform 160ms ease;
-        border-radius: 2px;
-        z-index: -1; /* keep fill behind text */
-    }
-
-    .hl-link:hover::before {
-        transform: scaleX(1);
-    }
-
-    /* Optional: slightly stronger on active click */
-    .hl-link:active::before {
-        background: rgba(255, 255, 255, 0.35);
-    }
-
-    /* Accessible keyboard focus */
-    .hl-link:focus-visible {
-        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.35);
-        border-radius: 4px;
-    }
-
-    /* Refined hero / statement font styling — matched to image */
 </style>
 
 <script>
@@ -1269,14 +581,13 @@ const heroTextEffect = "smooth-blur";
     const heroContent = document.querySelector(".hero-content");
     const heroCopy = document.querySelector("[data-hero-copy]");
     const textElement = document.getElementById("typewriter-text");
-    const heroTextMode = textElement?.dataset.textEffect ?? "typewriter";
+    const heroTextMode = textElement?.dataset.textEffect ?? "smooth-blur";
     const heroWordLines = Array.from(
         document.querySelectorAll("[data-hero-word-line]"),
     );
     const heroDynamicLine = document.querySelector("[data-hero-dynamic-line]");
 
     let heroCopyFrame = 0;
-    let heroCopyAnchorTop = null;
 
     const setHeroLineState = (line, { shift = 0, opacity = 1 }) => {
         line.style.setProperty("--hero-line-shift", `${shift.toFixed(2)}px`);
@@ -1302,10 +613,6 @@ const heroTextEffect = "smooth-blur";
         if (prefersReducedMotion.matches) {
             resetHeroCopyMotion();
             return;
-        }
-
-        if (window.scrollY <= 4 || heroCopyAnchorTop === null) {
-            heroCopyAnchorTop = heroCopy.getBoundingClientRect().top;
         }
 
         const headerHeight =
@@ -1389,18 +696,7 @@ const heroTextEffect = "smooth-blur";
         "Design, Code & Creativity.",
     ];
 
-    const colors = [
-        "#D35E7F", // Cinnamon Satin
-        "#D7E97B", // Manz
-        "#A999EB", // Max Blue Purple
-        "#9BCDEF", // Baby Blue Eyes
-    ];
-
-    const typingSpeed = { min: 40, max: 100 };
-    const backspaceSpeed = { min: 30, max: 50 };
-    const pauseEnd = 2000;
-    const pauseStart = 500;
-
+    const colors = ["#D35E7F", "#D7E97B", "#A999EB", "#9BCDEF"];
     const heroTextTimers = new Set();
 
     const queueHeroTextTimer = (callback, delay) => {
@@ -1436,10 +732,8 @@ const heroTextEffect = "smooth-blur";
         const palette = colors.length > 0 ? colors : [fallbackTextColor];
         let phraseColors = [...palette];
 
-        // Simple shuffle for variety
         phraseColors.sort(() => Math.random() - 0.5);
 
-        // Ensure we have enough colors
         while (phraseColors.length < words.length) {
             phraseColors = phraseColors.concat(
                 [...palette].sort(() => Math.random() - 0.5),
@@ -1453,74 +747,6 @@ const heroTextEffect = "smooth-blur";
                 color: phraseColors[index],
             };
         });
-    }
-
-    function startTypewriter() {
-        let phraseIndex = 0;
-        let charIndex = 0;
-        let isDeleting = false;
-        let currentPhraseObjects = [];
-
-        function renderText() {
-            if (!textElement) return;
-            let charCount = 0;
-            let html = "";
-
-            for (const obj of currentPhraseObjects) {
-                if (charCount >= charIndex) break;
-                const remaining = charIndex - charCount;
-                const textToDisplay = obj.text.substring(0, remaining);
-                html += `<span style="color: ${obj.color}">${textToDisplay}</span>`;
-                charCount += obj.text.length;
-                if (charCount > charIndex) break;
-            }
-
-            textElement.innerHTML = html;
-        }
-
-        function getTotalLength() {
-            return currentPhraseObjects.reduce(
-                (acc, obj) => acc + obj.text.length,
-                0,
-            );
-        }
-
-        function type() {
-            if (!textElement) return;
-
-            if (charIndex === 0 && !isDeleting) {
-                currentPhraseObjects = parsePhrase(phrases[phraseIndex]);
-            }
-
-            const totalLen = getTotalLength();
-            let speed =
-                Math.random() * (typingSpeed.max - typingSpeed.min) +
-                typingSpeed.min;
-
-            if (isDeleting) {
-                charIndex--;
-                renderText();
-                speed =
-                    Math.random() * (backspaceSpeed.max - backspaceSpeed.min) +
-                    backspaceSpeed.min;
-            } else {
-                charIndex++;
-                renderText();
-            }
-
-            if (!isDeleting && charIndex === totalLen) {
-                isDeleting = true;
-                queueHeroTextTimer(type, pauseEnd);
-            } else if (isDeleting && charIndex === 0) {
-                isDeleting = false;
-                phraseIndex = (phraseIndex + 1) % phrases.length;
-                queueHeroTextTimer(type, pauseStart);
-            } else {
-                queueHeroTextTimer(type, speed);
-            }
-        }
-
-        queueHeroTextTimer(type, 1000);
     }
 
     function createSmoothBlurPhrase(phrase) {
@@ -1605,11 +831,7 @@ const heroTextEffect = "smooth-blur";
         );
     }
 
-    if (textElement && phrases.length > 0) {
-        if (heroTextMode === "smooth-blur") {
-            startSmoothBlurText();
-        } else {
-            startTypewriter();
-        }
+    if (textElement && phrases.length > 0 && heroTextMode === "smooth-blur") {
+        startSmoothBlurText();
     }
 </script>
