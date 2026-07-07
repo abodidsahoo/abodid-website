@@ -1,6 +1,5 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import ForceDarkMode from "../components/ForceDarkMode.astro";
 import { personJsonLd, websiteJsonLd } from "../lib/seoData";
 
 const pageTitle = "Abodid Sahoo | Creative Director, Artist & Researcher";
@@ -23,8 +22,6 @@ const heroTextEffect = "smooth-blur";
     bodyClass="landing-page landing-redesign-page"
     structuredData={[personJsonLd(), websiteJsonLd()]}
 >
-    <ForceDarkMode />
-
     <section class="narrative-section" aria-labelledby="landing-copy-title">
         <div class="hero-content">
             <h1 id="landing-copy-title" class="hero-title" data-hero-copy>
@@ -115,7 +112,8 @@ const heroTextEffect = "smooth-blur";
             sought-after immersive venues like
             <a class="copy-link" href="/photography/outernet-london-2025">Outernet</a>,
             <a class="copy-link" href="/photography/frameless-london-rca-exhibition">Frameless</a>,
-            and British Film Institute.
+            and
+            <a class="copy-link" href="/photography/british-film-institute-london">British Film Institute</a>.
         </p>
 
         <p>
@@ -163,6 +161,30 @@ const heroTextEffect = "smooth-blur";
 </BaseLayout>
 
 <style>
+    :global(body.landing-redesign-page) {
+        --landing-copy-color: rgba(224, 232, 246, 0.78);
+        --landing-link-underline-color: rgba(224, 232, 246, 0.42);
+    }
+
+    :global(html[data-theme="light"]:has(body.landing-redesign-page)) {
+        background-color: #ffffff !important;
+    }
+
+    :global(html[data-theme="light"] body.landing-redesign-page) {
+        --bg-canvas: #ffffff;
+        --bg-color: #ffffff;
+        --text-primary: #111418;
+        --text-secondary: #2f343b;
+        --text-tertiary: #565f6b;
+        --feature-typewriter-main-color: #111418;
+        --feature-typewriter-text-color: #111418;
+        --grid-color-1: rgba(18, 24, 32, 0.058);
+        --grid-color-2: rgba(18, 24, 32, 0.018);
+        --landing-copy-color: #2f343b;
+        --landing-link-underline-color: rgba(47, 52, 59, 0.42);
+        background-color: #ffffff !important;
+    }
+
     :global(body.landing-redesign-page .header-padding) {
         padding-top: clamp(28px, 4vh, 56px) !important;
     }
@@ -174,8 +196,21 @@ const heroTextEffect = "smooth-blur";
         mask-image: none;
     }
 
+    :global(html[data-theme="light"] body.landing-redesign-page .global-grid-bg) {
+        opacity: 0.11;
+    }
+
     :global(body.landing-redesign-page .global-glow-bg) {
-        display: none;
+        background-size: 72px 72px;
+    }
+
+    :global(html[data-theme="light"] body.landing-redesign-page .global-glow-bg) {
+        opacity: calc(var(--glow-intensity, 1) * 0.58);
+    }
+
+    :global(html[data-theme="light"] body.landing-redesign-page .top-menu-bar) {
+        border-bottom-color: rgba(15, 23, 42, 0.065);
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.028);
     }
 
     .narrative-section {
@@ -261,7 +296,7 @@ const heroTextEffect = "smooth-blur";
     .hero-lede {
         max-width: 1040px;
         margin: 0;
-        color: rgba(224, 232, 246, 0.78);
+        color: var(--landing-copy-color);
         font-family: var(--font-body);
         font-size: clamp(1.72rem, 1.05rem + 1.52vw, 2.74rem);
         font-weight: 260;
@@ -418,7 +453,7 @@ const heroTextEffect = "smooth-blur";
         max-width: 1100px;
         margin: clamp(0.4rem, 1.6vh, 1.25rem) auto clamp(7rem, 14vh, 10rem);
         padding: 0 24px;
-        color: rgba(224, 232, 246, 0.78);
+        color: var(--landing-copy-color);
         font-family: var(--font-body);
         font-size: clamp(1.72rem, 1.05rem + 1.52vw, 2.74rem);
         font-weight: 260;
@@ -429,7 +464,7 @@ const heroTextEffect = "smooth-blur";
     .landing-copy-body p {
         max-width: 1040px;
         margin: 0 0 clamp(2.4rem, 5vh, 4.5rem);
-        color: rgba(224, 232, 246, 0.78);
+        color: var(--landing-copy-color);
         font-family: var(--font-body);
         font-size: clamp(1.72rem, 1.05rem + 1.52vw, 2.74rem);
         font-weight: 260;
@@ -440,7 +475,7 @@ const heroTextEffect = "smooth-blur";
     .copy-link {
         color: inherit;
         text-decoration: underline;
-        text-decoration-color: rgba(224, 232, 246, 0.42);
+        text-decoration-color: var(--landing-link-underline-color);
         text-decoration-thickness: 0.045em;
         text-underline-offset: 0.18em;
         border-radius: 3px;

@@ -386,11 +386,6 @@ const finalType = type || dbMetadata?.og_type || "website";
     const gridVariant = document.body?.dataset?.gridVariant || "default";
     const isLandingPage = document.body?.classList.contains("landing-page");
 
-    if (isLandingPage) {
-      glowBg.style.setProperty("--glow-intensity", "0");
-      return;
-    }
-
     // Mouse Tracking
     window.addEventListener(
       "mousemove",
@@ -422,6 +417,10 @@ const finalType = type || dbMetadata?.og_type || "website";
 
       // Let's try enabling it fully first.
       // We'll use the scroll logic only for Home (fade out) but keep it active on others.
+      if (isLandingPage) {
+        glowBg.style.setProperty("--glow-intensity", "1");
+        return;
+      }
 
       if (!isHome) {
         const variantIntensity = gridVariant === "moodboard" ? "1" : "0.8";
