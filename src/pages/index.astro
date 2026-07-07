@@ -504,15 +504,16 @@ const heroTextEffect = "smooth-blur";
         }
 
         .hero-title {
-            font-size: min(
-                calc(var(--feature-typewriter-main-size, 3.5rem) * 0.58),
-                2.85rem
-            ) !important;
+            font-size: clamp(1.18rem, 6vw, 2rem) !important;
             line-height: 1.3 !important;
         }
 
         .hero-title-line {
             gap: 0.12em 0.16em;
+        }
+
+        .hero-title-line-dynamic {
+            max-width: 100%;
         }
 
         #typewriter-text {
@@ -521,12 +522,14 @@ const heroTextEffect = "smooth-blur";
             overflow: hidden;
             font-size: 1em;
             line-height: inherit;
+            max-width: 100%;
             white-space: nowrap;
         }
 
         #typewriter-text[data-text-effect="smooth-blur"]
             :global(.smooth-blur-phrase) {
             flex-wrap: nowrap;
+            max-width: 100%;
             white-space: nowrap;
         }
 
