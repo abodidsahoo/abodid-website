@@ -261,19 +261,17 @@ const heroTextEffect = "smooth-blur";
     .hero-lede {
         max-width: 1040px;
         margin: 0;
-        color: #050505;
+        color: rgba(224, 232, 246, 0.78);
         font-family: var(--font-body);
-        font-size: clamp(2rem, 1.18rem + 1.9vw, 3.28rem);
-        font-weight: 430;
-        line-height: 1.34;
+        font-size: clamp(1.72rem, 1.05rem + 1.52vw, 2.74rem);
+        font-weight: 260;
+        line-height: 1.43;
         letter-spacing: 0em;
     }
 
     .hero-lede span {
-        background: var(--color-brand-red);
-        box-decoration-break: clone;
-        -webkit-box-decoration-break: clone;
-        padding: 0.06em 0.12em 0.11em;
+        background: transparent;
+        padding: 0;
     }
 
     #typewriter-text {
@@ -484,8 +482,8 @@ const heroTextEffect = "smooth-blur";
         }
 
         .hero-lede {
-            font-size: clamp(1.48rem, 1.18rem + 1.4vw, 1.92rem);
-            line-height: 1.42;
+            font-size: clamp(1.28rem, 1.08rem + 1.1vw, 1.62rem);
+            line-height: 1.55;
         }
     }
 
@@ -521,7 +519,8 @@ const heroTextEffect = "smooth-blur";
             margin-top: 0.35rem;
             min-height: 1.45em;
             overflow: hidden;
-            font-size: clamp(1.35rem, 7vw, 1.8rem);
+            font-size: 1em;
+            line-height: inherit;
             white-space: nowrap;
         }
 
