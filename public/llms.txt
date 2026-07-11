@@ -25,7 +25,6 @@ Abodid Sahoo is a Royal College of Art (RCA), London alumnus, creative technolog
 ## Portfolio And Proof
 
 - [Photography](https://abodid.com/photography/) - Photography projects and visual stories.
-- [Photography Portfolio](https://abodid.com/photography-portfolio/) - Visual portfolio page.
 - [Photography Collaboration](https://abodid.com/collaboration/) - Downloadable photography portfolios for commissions and collaborations.
 - [Films](https://abodid.com/films/) - Film, editing, and moving image work.
 - [Press](https://abodid.com/press/) - Media mentions and external coverage.

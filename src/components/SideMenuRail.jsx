@@ -22,7 +22,6 @@ const secondaryGroups = [
       { href: "/resources", label: "Curated Resources" },
       { href: "/bsa-schedule", label: "BSA Conference" },
       { href: "/moodboard", label: "Visual Moodboard" },
-      { href: "/photography-portfolio", label: "Photography Portfolio" },
       { href: "/research/obsidian-vault", label: "Obsidian Vault" },
       { href: "/research/second-brain", label: "Second Brain Club" },
     ],

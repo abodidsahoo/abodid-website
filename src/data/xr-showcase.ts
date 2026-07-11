@@ -6,8 +6,6 @@ export type XRShowcaseItem = {
   description?: string;
   url?: string;
   canonicalUrl?: string;
-  thumbnail?: string;
-  thumbnailAlt?: string;
   primaryGenre: string;
   tags: string[];
   source?: string;
@@ -49,8 +47,6 @@ export const xrShowcaseItems: XRShowcaseItem[] = [
     description:
       "A LumeXR mixed-reality travel case study created around Cafe Buransh.",
     url: "https://www.youtube.com/watch?v=pvh-Ith1Vrs",
-    thumbnail: "/images/xr-showcase/cafe-buransh-mr-travel-guide.jpg",
-    thumbnailAlt: "Cafe Buransh MR Travel Guide thumbnail",
     primaryGenre: "Travel",
     tags: ["Travel", "Mixed Reality", "Case Study"],
     source: "YouTube",
@@ -106,8 +102,6 @@ export const xrShowcaseItems: XRShowcaseItem[] = [
     description:
       "A behind-the-scenes video series about one of the most established immersive-media studios.",
     url: "https://www.youtube.com/watch?v=RIlAHMXrmHc&list=PLrgNJiDpkRKaQtwSItzSwudeW-Nr7XWg5",
-    thumbnail: "/images/xr-showcase/inside-felix-paul-studios.jpg",
-    thumbnailAlt: "Inside Felix & Paul Studios thumbnail",
     primaryGenre: "XR Studio",
     tags: ["Immersive Media", "Studio Practice", "Technology Reference"],
     source: "YouTube",
