@@ -1,0 +1,253 @@
+/* ════════════════════════════════════════════════════════════
+   Layout Preview — 10 concepts
+   ════════════════════════════════════════════════════════════ */
+
+/* ── Loading / error states ─────────────────────────────── */
+.lp-loading, .lp-error {
+  min-height: 100dvh; display: grid; place-items: center;
+  font-size: .9rem; color: var(--text-tertiary);
+}
+.lp-error { color: #ef4444; }
+
+/* ── Switcher — top-right elegant pills ─────────────────────── */
+.lp-switcher {
+  position: fixed; top: clamp(8rem, 12vh, 10rem); right: clamp(1rem, 4vw, 2rem);
+  z-index: 9999; display: flex; flex-direction: row; align-items: center;
+  gap: .5rem; padding: 0;
+  max-width: calc(100vw - 2rem); flex-wrap: wrap; justify-content: flex-end;
+}
+
+.lp-switcher-item {
+  position: relative;
+  display: flex; flex-direction: column; align-items: center;
+}
+
+.lp-switcher-btn {
+  display: flex; flex-direction: row; align-items: center; justify-content: center;
+  width: 40px; height: 40px;
+  border: 1px solid var(--border-subtle); border-radius: 999px; /* Pill */
+  background: color-mix(in srgb, var(--bg-surface) 92%, transparent);
+  color: var(--text-secondary);
+  backdrop-filter: blur(8px);
+  cursor: pointer; transition: all .2s ease; font-family: inherit;
+  box-shadow: 0 4px 12px rgba(0,0,0,.05);
+}
+.lp-switcher-btn:hover { 
+  border-color: var(--text-tertiary); background: var(--bg-color); color: var(--text-primary); 
+  transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,.1);
+}
+.lp-switcher-btn.is-active { 
+  border-color: var(--text-primary); background: var(--text-primary); color: var(--bg-color); 
+  transform: none; box-shadow: 0 2px 8px rgba(0,0,0,.2);
+}
+.lp-switcher-num { font-size: .95rem; font-weight: 500; line-height: 1; }
+
+.lp-switcher-tooltip {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(-4px);
+  background: var(--text-primary);
+  color: var(--bg-color);
+  padding: .35rem .6rem;
+  border-radius: 4px;
+  font-size: .6rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: all .15s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,.15);
+}
+
+.lp-switcher-tooltip::before {
+  content: "";
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 4px;
+  border-style: solid;
+  border-color: transparent transparent var(--text-primary) transparent;
+}
+
+.lp-switcher-item:hover .lp-switcher-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ── Stage fade ─────────────────────────────────────────── */
+.lp-stage { animation: lp-in .28s ease; }
+@keyframes lp-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+/* ── Shared article reset ───────────────────────────────── */
+.lp-article { color: var(--text-primary); padding-bottom: 8rem; }
+
+/* ── Shared body (context + contribution + blocks) ──────── */
+.lp-body { padding: clamp(4rem,8vw,7rem) clamp(1rem,4vw,3rem) 0; }
+.lp-context {
+  max-width: var(--work-content-standard, 900px);
+  margin: 0 auto 2rem;
+  font-size: clamp(1.05rem,1.4vw,1.22rem); line-height: 1.75;
+  color: var(--text-secondary);
+}
+.lp-contribution {
+  max-width: var(--work-content-standard, 900px);
+  margin: 0 auto 3rem;
+  padding-left: 1.5rem;
+  border-left: 2.5px solid var(--color-brand-red, #a30021);
+  font-size: clamp(1.05rem,1.4vw,1.22rem); line-height: 1.75;
+  color: var(--text-primary);
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   1. Typographic Grid (Context as Hero)
+   ════════════════════════════════════════════════════════════ */
+.l1-header {
+  display: grid;
+  grid-template-columns: minmax(200px, 1fr) minmax(0, 3fr);
+  gap: clamp(2rem, 5vw, 6rem);
+  max-width: 1440px; margin: 0 auto;
+  padding: clamp(6rem, 12vw, 10rem) clamp(1.5rem, 4vw, 3rem) clamp(4rem, 8vw, 6rem);
+  align-items: start;
+}
+.l1-meta-col { display: flex; flex-direction: column; gap: 0; }
+.l1-title { margin: 0 0 2rem; font-size: clamp(2rem, 3.5vw, 3.5rem); line-height: 1; letter-spacing: -.05em; max-width: 16ch; text-wrap: balance; }
+.l1-row { display: flex; flex-direction: column; gap: .2rem; padding: .65rem 0; border-top: 1px solid var(--border-subtle); }
+.l1-row span { color: var(--text-tertiary); font-size: .6rem; text-transform: uppercase; letter-spacing: .12em; }
+.l1-row strong { font-size: .88rem; font-weight: 500; }
+.l1-context-col { border-left: 1px solid var(--border-subtle); padding-left: clamp(2rem, 5vw, 6rem); }
+.l1-hero-context { margin: 0; font-size: clamp(2.2rem, 4vw, 4.8rem); line-height: 1.15; letter-spacing: -.04em; font-weight: 400; text-wrap: balance; color: var(--text-primary); }
+.l1-cover { margin: 0; }
+.l1-cover img { display: block; width: 100%; aspect-ratio: 16/9; object-fit: cover; }
+.l1-body { margin-inline: auto; }
+
+
+/* ════════════════════════════════════════════════════════════
+   4. Manifesto Block (Split screen text heavy)
+   ════════════════════════════════════════════════════════════ */
+.l4-split { display: grid; grid-template-columns: 1fr 1fr; min-height: 100dvh; }
+.l4-text-side {
+  background: var(--text-primary); color: var(--bg-color);
+  padding: clamp(3rem, 6vw, 6rem) clamp(2rem, 5vw, 4rem);
+  display: flex; flex-direction: column; justify-content: center;
+}
+.l4-title { margin: 0 0 2rem; font-size: clamp(1rem, 1.2vw, 1.2rem); text-transform: uppercase; letter-spacing: .1em; font-weight: 600; opacity: .5; color: inherit; }
+.l4-hero-context { margin: 0 0 3rem; font-size: clamp(1.8rem, 3.2vw, 3.5rem); line-height: 1.25; letter-spacing: -.02em; font-weight: 500; text-wrap: balance; color: inherit; }
+.l4-meta { display: flex; flex-wrap: wrap; gap: 1.5rem; opacity: .7; font-size: .88rem; }
+.l4-meta span { display: flex; align-items: center; }
+.l4-meta span:not(:last-child)::after { content: ""; display: inline-block; width: 4px; height: 4px; background: currentColor; border-radius: 50%; margin-left: 1.5rem; opacity: .4; }
+.l4-image-side { position: relative; overflow: hidden; }
+.l4-image-side img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.l4-body { margin-inline: auto; padding-top: clamp(4rem, 8vw, 7rem); }
+
+
+/* ════════════════════════════════════════════════════════════
+   6. Centered Statement (Massive width)
+   ════════════════════════════════════════════════════════════ */
+.l6-header { text-align: center; max-width: 900px; margin: 0 auto; padding: clamp(6rem, 10vw, 8rem) clamp(1rem, 4vw, 2rem) clamp(3rem, 5vw, 4rem); }
+.l6-title { margin: 0 0 1.5rem; font-size: clamp(3rem, 6vw, 6rem); line-height: .95; letter-spacing: -.06em; text-wrap: balance; }
+.l6-meta { display: inline-flex; flex-wrap: wrap; justify-content: center; gap: 1rem; color: var(--text-secondary); font-size: .88rem; }
+.l6-meta span:not(:last-child)::after { content: "—"; margin-left: 1rem; opacity: .5; }
+.l6-cover { margin: 0; max-width: 1440px; margin-inline: auto; }
+.l6-cover img { display: block; width: 100%; aspect-ratio: 21/9; object-fit: cover; border-radius: 8px; }
+.l6-statement-wrap { max-width: 1200px; margin: clamp(4rem, 8vw, 6rem) auto 0; padding: 0 clamp(1rem, 4vw, 3rem); text-align: center; }
+.l6-hero-context { margin: 0; font-size: clamp(2.2rem, 3.8vw, 4.5rem); line-height: 1.15; letter-spacing: -.04em; font-weight: 500; text-wrap: balance; color: var(--text-primary); font-style: italic; }
+.l6-body { margin-inline: auto; }
+
+
+
+
+/* ════════════════════════════════════════════════════════════
+   3. Columnar Narrative
+   ════════════════════════════════════════════════════════════ */
+.l3-header { max-width: 1320px; margin: 0 auto; padding: clamp(6rem,11vw,10rem) clamp(1rem,4vw,3rem) clamp(2rem,4vw,3rem); }
+.l3-title { margin: 0; font-size: clamp(3rem,8vw,7.5rem); line-height: .91; letter-spacing: -.06em; }
+.l3-cover-wide { margin: 0 0 clamp(3rem,6vw,5rem); }
+.l3-cover-wide img { display: block; width: 100%; aspect-ratio: 16/9; object-fit: cover; }
+.l3-columns {
+  display: grid; grid-template-columns: minmax(220px,300px) 1fr;
+  gap: clamp(2rem,6vw,6rem); max-width: 1200px; margin: 0 auto;
+  padding: 0 clamp(1rem,4vw,3rem); align-items: start;
+}
+.l3-sidebar { position: sticky; top: 5rem; }
+.l3-prop { margin: 0 0 2rem; font-size: .98rem; line-height: 1.65; color: var(--text-secondary); }
+.l3-dl { margin: 0 0 2rem; display: grid; grid-template-columns: max-content 1fr; gap: .75rem 1.5rem; align-items: baseline; border-top: 1px solid var(--border-subtle); padding-top: 1rem; }
+.l3-dl dt { color: var(--text-tertiary); font-size: .65rem; text-transform: uppercase; letter-spacing: .06em; }
+.l3-dl dd { margin: 0; font-size: .88rem; line-height: 1.45; font-weight: 500; }
+.l3-labels { display: flex; flex-wrap: wrap; gap: .3rem; }
+.l3-labels span { border: 1px solid var(--border-subtle); border-radius: 999px; padding: .2rem .5rem; font-size: .62rem; color: var(--text-tertiary); }
+.l3-prose { margin: 0 0 2.5rem; font-size: clamp(1.05rem,1.4vw,1.22rem); line-height: 1.78; color: var(--text-secondary); }
+.l3-contrib { margin: 0 0 3rem; padding: 1.25rem 1.25rem 1.25rem 1.5rem; border-left: 3px solid var(--color-brand-red,#a30021); background: color-mix(in srgb,var(--color-brand-red,#a30021) 5%,transparent); border-radius: 0 6px 6px 0; }
+.l3-contrib p { margin: 0; font-size: clamp(1.05rem,1.4vw,1.22rem); line-height: 1.7; color: var(--text-primary); }
+
+
+
+
+/* ════════════════════════════════════════════════════════════
+   7. Swiss Hairline Grid
+   ════════════════════════════════════════════════════════════ */
+.l7-article {}
+.l7-hero {
+  position: relative;
+  padding: clamp(6rem,11vw,10rem) clamp(1rem,4vw,3rem) clamp(4rem,7vw,6rem);
+  border-bottom: 1px solid var(--border-subtle);
+}
+/* Vertical column rules — 12-col Swiss grid, drawn with CSS */
+.l7-grid-lines {
+  position: absolute; inset: 0; pointer-events: none;
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--border-subtle) 0,
+    var(--border-subtle) 1px,
+    transparent 1px,
+    transparent calc(8.333% )
+  );
+  opacity: .35;
+}
+.l7-content {
+  position: relative; z-index: 1;
+  display: grid; grid-template-columns: 1fr minmax(200px,300px);
+  gap: clamp(2rem,5vw,5rem); max-width: 1320px; margin: 0 auto;
+  align-items: end;
+}
+.l7-title { margin: 0 0 1.25rem; font-size: clamp(3rem,8vw,7.5rem); line-height: .9; letter-spacing: -.065em; }
+.l7-sub { margin: 0; max-width: 46ch; font-size: clamp(1rem,1.4vw,1.2rem); line-height: 1.6; color: var(--text-secondary); }
+.l7-right { display: flex; flex-direction: column; gap: 0; border-left: 1px solid var(--border-subtle); padding-left: 1.5rem; }
+.l7-row { display: flex; flex-direction: column; gap: .22rem; padding: .75rem 0; border-bottom: 1px solid var(--border-subtle); }
+.l7-row:first-child { padding-top: 0; }
+.l7-row:last-child { border-bottom: 0; }
+.l7-row span { color: var(--text-tertiary); font-size: .6rem; text-transform: uppercase; letter-spacing: .1em; }
+.l7-row strong { font-size: .88rem; font-weight: 500; }
+.l7-cover { margin: 0; }
+.l7-cover img { display: block; width: 100%; aspect-ratio: 16/9; object-fit: cover; }
+.l7-body { margin-inline: auto; }
+
+
+
+/* ── Responsive ─────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .lp-switcher-name { display: none; }
+
+  .l1-header { grid-template-columns: 1fr; gap: 3rem; }
+  .l1-context-col { border-left: 0; padding-left: 0; padding-top: 2rem; border-top: 1px solid var(--border-subtle); }
+
+  .l3-columns { grid-template-columns: 1fr; }
+  .l3-sidebar { position: static; }
+
+  .l4-split { grid-template-columns: 1fr; grid-template-rows: auto 50dvh; }
+  .l4-image-side { order: -1; }
+
+  .l6-cover img { aspect-ratio: 16/9; border-radius: 0; }
+
+  .l7-content { grid-template-columns: 1fr; }
+  .l7-right { border-left: 0; padding-left: 0; border-top: 1px solid var(--border-subtle); padding-top: 1.5rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-stage { animation: none; }
+}

@@ -1,0 +1,700 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import ViewportGestureCardStack from "../../components/experiments/ViewportGestureCardStack.jsx";
+import ForceDarkMode from "../../components/ForceDarkMode.astro";
+import { getAllPhotography } from "../../lib/api";
+
+const pageTitle = "Gesture Photo Stack Case Study";
+const pageDescription =
+    "Portfolio case study sample for Gesture Photo Stack, a hand gesture and pointer-driven photography portfolio experiment.";
+
+const photographyProjects = await getAllPhotography();
+const images = [];
+
+for (const project of photographyProjects) {
+    if (project.image) {
+        images.push({
+            image: project.image,
+            title: project.title,
+            slug: project.slug,
+            category: project.category,
+            tags: project.tags,
+            storyKey: project.slug,
+        });
+    }
+
+    if (Array.isArray(project.images)) {
+        for (const galleryImage of project.images) {
+            if (!galleryImage || galleryImage === project.image) continue;
+            images.push({
+                image: galleryImage,
+                title: project.title,
+                slug: project.slug,
+                category: project.category,
+                tags: project.tags,
+                storyKey: project.slug,
+            });
+        }
+    }
+}
+
+if (images.length === 0) {
+    images.push(
+        {
+            image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&q=80&w=1200",
+            title: "Coastline",
+            slug: "coastline",
+        },
+        {
+            image: "https://images.unsplash.com/photo-1493246507139-91e8fad9978e?auto=format&fit=crop&q=80&w=1200",
+            title: "Forest",
+            slug: "forest",
+        },
+        {
+            image: "https://images.unsplash.com/photo-1511300636408-a63a89df3482?auto=format&fit=crop&q=80&w=1200",
+            title: "Studio light",
+            slug: "studio-light",
+        },
+    );
+}
+
+const previewImages = images.slice(0, 36);
+
+const projectFacts = [
+    { label: "Role", value: "Research, interaction design, frontend prototype" },
+    { label: "Medium", value: "Browser-based photography portfolio experiment" },
+    { label: "Stack", value: "Astro, React, Framer Motion, MediaPipe, TensorFlow.js" },
+    { label: "Focus", value: "Embodied browsing, inclusive input, tactile sequencing" },
+];
+
+const interactionModel = [
+    {
+        title: "Pointer movement",
+        body: "Moving across the viewport crosses a shared distance threshold and releases the next photograph into the stack.",
+    },
+    {
+        title: "Tracked hand",
+        body: "The index finger becomes a live pointer, so hand movement follows the same release model instead of becoming a separate interface.",
+    },
+    {
+        title: "Pinch resizing",
+        body: "Thumb-and-index pinch is treated as a deliberate secondary mode, with horizontal travel easing the card size up or down.",
+    },
+    {
+        title: "Voice trigger",
+        body: "A lightweight audio pulse can add a card without replacing movement as the main browsing action.",
+    },
+];
+
+const architecture = [
+    "Portfolio image records provide the pool of photographs.",
+    "A shuffled queue feeds a bounded React card stack.",
+    "Framer Motion gives each card a physical entry and exit path.",
+    "A sensitivity profile keeps movement thresholds and cooldowns consistent.",
+    "MediaPipe and TensorFlow hand tracking can power the same index-finger control.",
+    "Web Audio adds optional voice or clap-triggered card release.",
+];
+
+const testingInsights = [
+    {
+        title: "Release is the clearest primary action",
+        body: "People understand the stack fastest when motion simply pulls a new photo into view.",
+    },
+    {
+        title: "Hand control works best as direct pointer control",
+        body: "The tracked hand feels trustworthy when it mirrors the cursor instead of asking users to learn a new symbolic gesture system.",
+    },
+    {
+        title: "Resize needs a strong mode boundary",
+        body: "Pinch becomes easier to trust when it is visually and behaviorally separated from normal browsing movement.",
+    },
+    {
+        title: "The screen must stay quiet",
+        body: "The dark stage, light grid, and restrained controls keep motion legible while photographs remain the subject.",
+    },
+];
+
+const outline = [
+    "Open with the problem of flat portfolio grids.",
+    "Name the research question around motion, intent, and inclusive input.",
+    "Show the working prototype before overexplaining it.",
+    "Map the interaction model across pointer, hand, pinch, scroll, and voice.",
+    "Translate code decisions into system architecture.",
+    "Use browser screenshots as evidence of the current build.",
+    "Turn testing observations into design principles.",
+    "Close with the next iteration and portfolio value.",
+];
+
+const evidenceScreens = [
+    {
+        src: "/case-studies/gesture-photo-stack/research-overview-desktop.png",
+        alt: "Gesture Photo Stack research overview page.",
+        label: "Research frame",
+        body: "The existing page defines the inclusive interaction question and the tactile photo-stack premise.",
+    },
+    {
+        src: "/case-studies/gesture-photo-stack/experiment-launch-desktop.png",
+        alt: "Gesture Photo Stack launch prototype with photographs in a moving stack.",
+        label: "Working prototype",
+        body: "The launch route proves the result as an interactive, image-led portfolio surface.",
+    },
+    {
+        src: "/case-studies/gesture-photo-stack/tensorflow-overview-desktop.png",
+        alt: "TensorFlow Gesture Controls overview page.",
+        label: "Runtime variant",
+        body: "The TensorFlow page shows how the same interaction model can be studied with another hand-tracking engine.",
+    },
+    {
+        src: "/case-studies/gesture-photo-stack/case-study-sample-page-desktop.png",
+        alt: "Gesture Photo Stack case study sample page.",
+        label: "Case study result",
+        body: "The sample page turns the prototype into a portfolio narrative with evidence, architecture, and next steps.",
+    },
+];
+---
+
+<BaseLayout
+    title={pageTitle}
+    description={pageDescription}
+    bodyClass="gesture-stack-case-study"
+    showGlobalGrid={false}
+    fullWidth={true}
+>
+    <Fragment slot="head">
+        <ForceDarkMode />
+    </Fragment>
+
+    <article class="case-page">
+        <header class="hero-band">
+            <div class="hero-copy">
+                <p class="eyebrow">Portfolio case study sample</p>
+                <h1>Gesture Photo Stack makes a portfolio feel hand-held.</h1>
+                <p class="lede">
+                    This case study reframes a hand gesture and pointer-driven
+                    photo experiment as a portfolio project about embodied image
+                    browsing, inclusive input, and browser-based creative
+                    technology.
+                </p>
+                <div class="hero-actions">
+                    <a href="/research/gesture-image-preview/launch">Launch prototype</a>
+                    <a href="/research/tensorflow-gesture-controls">View TensorFlow variant</a>
+                </div>
+            </div>
+
+            <div class="fact-grid" aria-label="Project facts">
+                {
+                    projectFacts.map((fact) => (
+                        <div>
+                            <span>{fact.label}</span>
+                            <strong>{fact.value}</strong>
+                        </div>
+                    ))
+                }
+            </div>
+        </header>
+
+        <section class="result-section" aria-labelledby="result-heading">
+            <div class="section-heading compact">
+                <p class="eyebrow">Prototype result</p>
+                <h2 id="result-heading">The working surface comes first.</h2>
+                <p>
+                    The sample page leads with the actual experiment because
+                    the motion is the argument. Pointer movement releases new
+                    photographs, while hand tracking can enter through the same
+                    interaction model.
+                </p>
+            </div>
+
+            <div class="prototype-frame">
+                <ViewportGestureCardStack
+                    client:only="react"
+                    images={previewImages}
+                    kicker="Case study preview"
+                    title="Gesture Photo Stack"
+                    description="A photography portfolio surface controlled by pointer movement, tracked hand motion, pinch resizing, scroll, and optional voice input."
+                    backLinkHref="/research/gesture-image-preview"
+                    backLinkLabel="Research notes"
+                    secondaryLinkHref="/research/tensorflow-gesture-controls"
+                    secondaryLinkLabel="TensorFlow variant"
+                    viewportHeightCss="min(680px, 82vh)"
+                />
+            </div>
+        </section>
+
+        <section class="case-section thesis-section">
+            <p class="eyebrow">Case study thesis</p>
+            <h2>The strongest story is not hand tracking. It is shared intent.</h2>
+            <p>
+                Gesture Photo Stack works because pointer movement and hand
+                movement are not competing ideas. They use the same mental
+                model: move through the stage to pull another photograph into
+                view. Pinch, scroll, and voice stay secondary so the portfolio
+                remains readable.
+            </p>
+        </section>
+
+        <section class="case-section">
+            <div class="section-heading">
+                <p class="eyebrow">Interaction model</p>
+                <h2>One surface supports several input paths.</h2>
+            </div>
+            <div class="interaction-grid">
+                {
+                    interactionModel.map((item) => (
+                        <div class="interaction-item">
+                            <h3>{item.title}</h3>
+                            <p>{item.body}</p>
+                        </div>
+                    ))
+                }
+            </div>
+        </section>
+
+        <section class="case-section system-section">
+            <div class="section-heading">
+                <p class="eyebrow">System architecture</p>
+                <h2>The implementation keeps the experiment small and legible.</h2>
+            </div>
+            <ol class="system-list">
+                {
+                    architecture.map((item, index) => (
+                        <li>
+                            <span>{String(index + 1).padStart(2, "0")}</span>
+                            <p>{item}</p>
+                        </li>
+                    ))
+                }
+            </ol>
+        </section>
+
+        <section class="case-section evidence-section">
+            <div class="section-heading">
+                <p class="eyebrow">Browser evidence</p>
+                <h2>Use the existing research pages as portfolio proof.</h2>
+            </div>
+            <div class="evidence-grid">
+                {
+                    evidenceScreens.map((screen) => (
+                        <figure class="evidence-item">
+                            <img src={screen.src} alt={screen.alt} loading="lazy" />
+                            <figcaption>
+                                <strong>{screen.label}</strong>
+                                <span>{screen.body}</span>
+                            </figcaption>
+                        </figure>
+                    ))
+                }
+            </div>
+        </section>
+
+        <section class="case-section split-section">
+            <div class="section-heading">
+                <p class="eyebrow">What testing changed</p>
+                <h2>Confidence improved when the interface became quieter.</h2>
+            </div>
+            <div class="insight-list">
+                {
+                    testingInsights.map((insight) => (
+                        <div>
+                            <h3>{insight.title}</h3>
+                            <p>{insight.body}</p>
+                        </div>
+                    ))
+                }
+            </div>
+        </section>
+
+        <section class="case-section outline-section">
+            <div class="section-heading">
+                <p class="eyebrow">Web page outline</p>
+                <h2>Recommended portfolio page flow</h2>
+            </div>
+            <ol class="outline-list">
+                {
+                    outline.map((item, index) => (
+                        <li>
+                            <span>{String(index + 1).padStart(2, "0")}</span>
+                            <p>{item}</p>
+                        </li>
+                    ))
+                }
+            </ol>
+        </section>
+
+        <section class="case-section next-section">
+            <p class="eyebrow">Next iteration</p>
+            <h2>
+                The next build should improve onboarding, consent, fallbacks,
+                and measurement.
+            </h2>
+            <p>
+                The prototype is ready to become a stronger study by adding
+                clearer camera and microphone permission states, calibration
+                feedback, keyboard and reduced-motion fallbacks, and lightweight
+                test-session instrumentation.
+            </p>
+        </section>
+    </article>
+</BaseLayout>
+
+<style>
+    :global(body.gesture-stack-case-study) {
+        background: #040404;
+        color: #f8fafc;
+    }
+
+    :global(body.gesture-stack-case-study #main-content) {
+        padding: 0;
+    }
+
+    .case-page {
+        width: min(1220px, calc(100vw - 48px));
+        margin: 0 auto;
+        padding: 56px 0 96px;
+    }
+
+    .hero-band {
+        display: grid;
+        grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+        gap: 48px;
+        min-height: 56vh;
+        align-items: center;
+        padding: 32px 0 56px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+    }
+
+    .hero-copy {
+        max-width: 820px;
+    }
+
+    .eyebrow {
+        margin: 0 0 14px;
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        line-height: 1.35;
+        letter-spacing: 0;
+        text-transform: uppercase;
+        color: #ff553d;
+    }
+
+    h1,
+    h2,
+    h3,
+    p,
+    a,
+    span,
+    strong {
+        letter-spacing: 0;
+    }
+
+    h1 {
+        margin: 0;
+        max-width: 780px;
+        font-family: var(--font-display);
+        font-size: clamp(2.6rem, 6vw, 5.7rem);
+        line-height: 0.98;
+        font-weight: 850;
+        color: #ffffff;
+    }
+
+    h2 {
+        margin: 0;
+        font-family: var(--font-display);
+        font-size: clamp(2rem, 3vw, 3.2rem);
+        line-height: 1.04;
+        font-weight: 760;
+        color: #ffffff;
+    }
+
+    h3 {
+        margin: 0;
+        font-size: 1.15rem;
+        line-height: 1.25;
+        color: #ffffff;
+    }
+
+    p {
+        margin: 0;
+        color: rgba(248, 250, 252, 0.76);
+        line-height: 1.75;
+    }
+
+    .lede {
+        max-width: 690px;
+        margin-top: 24px;
+        font-size: 1.25rem;
+        color: rgba(248, 250, 252, 0.82);
+    }
+
+    .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 30px;
+    }
+
+    .hero-actions a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+        padding: 0 18px;
+        border: 1px solid rgba(248, 250, 252, 0.22);
+        border-radius: 6px;
+        color: #ffffff;
+        text-decoration: none;
+        font-size: 0.95rem;
+        transition:
+            border-color 0.2s ease,
+            background 0.2s ease,
+            transform 0.2s ease;
+    }
+
+    .hero-actions a:hover {
+        border-color: rgba(255, 255, 255, 0.72);
+        background: rgba(255, 255, 255, 0.07);
+        transform: translateY(-1px);
+    }
+
+    .fact-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background: rgba(255, 255, 255, 0.12);
+    }
+
+    .fact-grid div {
+        display: grid;
+        gap: 8px;
+        padding: 22px;
+        background: #080808;
+    }
+
+    .fact-grid span {
+        font-family: var(--font-mono);
+        font-size: 0.76rem;
+        color: #8fb9a8;
+        text-transform: uppercase;
+    }
+
+    .fact-grid strong {
+        color: #f8fafc;
+        font-size: 1rem;
+        line-height: 1.4;
+    }
+
+    .result-section {
+        padding: 72px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .section-heading {
+        display: grid;
+        grid-template-columns: minmax(0, 0.95fr) minmax(320px, 0.85fr);
+        gap: 40px;
+        align-items: start;
+        margin-bottom: 36px;
+    }
+
+    .section-heading.compact {
+        max-width: 900px;
+        display: block;
+    }
+
+    .section-heading.compact p:last-child {
+        max-width: 760px;
+        margin-top: 18px;
+        font-size: 1.05rem;
+    }
+
+    .prototype-frame {
+        margin-top: 32px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background: #040404;
+        min-height: min(680px, 82vh);
+        overflow: hidden;
+    }
+
+    .case-section {
+        padding: 72px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .thesis-section {
+        max-width: 920px;
+    }
+
+    .thesis-section p,
+    .next-section p {
+        max-width: 760px;
+        margin-top: 22px;
+        font-size: 1.12rem;
+    }
+
+    .interaction-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 1px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(255, 255, 255, 0.12);
+    }
+
+    .interaction-item {
+        min-height: 230px;
+        padding: 24px;
+        background: #080808;
+    }
+
+    .interaction-item p {
+        margin-top: 14px;
+        font-size: 0.98rem;
+    }
+
+    .system-list,
+    .outline-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        gap: 1px;
+        border-top: 1px solid rgba(255, 255, 255, 0.14);
+    }
+
+    .system-list li,
+    .outline-list li {
+        display: grid;
+        grid-template-columns: 72px minmax(0, 1fr);
+        gap: 24px;
+        padding: 22px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+    }
+
+    .system-list span,
+    .outline-list span {
+        font-family: var(--font-mono);
+        color: #8fb9a8;
+        font-size: 0.88rem;
+    }
+
+    .evidence-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 24px;
+    }
+
+    .evidence-item {
+        margin: 0;
+    }
+
+    .evidence-item img {
+        display: block;
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        object-fit: cover;
+        background: #101010;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+    }
+
+    .evidence-item figcaption {
+        display: grid;
+        gap: 8px;
+        padding-top: 16px;
+    }
+
+    .evidence-item strong {
+        color: #ffffff;
+        font-size: 1rem;
+    }
+
+    .evidence-item span {
+        color: rgba(248, 250, 252, 0.68);
+        line-height: 1.6;
+    }
+
+    .split-section {
+        display: grid;
+        grid-template-columns: minmax(0, 0.82fr) minmax(360px, 1fr);
+        gap: 48px;
+    }
+
+    .split-section .section-heading {
+        display: block;
+        margin-bottom: 0;
+    }
+
+    .insight-list {
+        display: grid;
+        gap: 28px;
+    }
+
+    .insight-list div {
+        display: grid;
+        gap: 10px;
+        padding-bottom: 28px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .insight-list div:last-child {
+        border-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    .next-section {
+        max-width: 940px;
+        border-bottom: 0;
+    }
+
+    @media (max-width: 980px) {
+        .hero-band,
+        .section-heading,
+        .split-section {
+            grid-template-columns: 1fr;
+        }
+
+        .interaction-grid,
+        .evidence-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 680px) {
+        .case-page {
+            width: min(100% - 32px, 1220px);
+            padding-top: 32px;
+        }
+
+        .hero-band {
+            min-height: auto;
+            padding-bottom: 42px;
+        }
+
+        .lede {
+            font-size: 1.08rem;
+        }
+
+        .result-section,
+        .case-section {
+            padding: 52px 0;
+        }
+
+        .hero-actions {
+            flex-direction: column;
+        }
+
+        .hero-actions a {
+            justify-content: center;
+            width: 100%;
+        }
+
+        .interaction-grid,
+        .evidence-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .system-list li,
+        .outline-list li {
+            grid-template-columns: 48px minmax(0, 1fr);
+            gap: 14px;
+        }
+    }
+</style>

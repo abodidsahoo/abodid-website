@@ -11,6 +11,7 @@ const ListView = lazy(() => import('./ListView'));
 
 const SECTIONS = [
     { id: 'dashboard', label: 'Overview', icon: '📊' },
+    { id: 'portfolio_projects', label: 'Portfolio Projects', icon: '◫', href: '/admin/projects' },
     { id: 'users', label: 'Users', icon: '👥' },
     { id: 'brands', label: 'Brands', icon: '🏷️' },
     { id: 'photography', label: 'Photography', icon: '📸' },
@@ -169,7 +170,7 @@ export default function AdminDashboard() {
 
     const fetchStats = async () => {
         if (!supabase) return;
-        const tableNames = ['photography', 'photo_stories', 'moodboard_items', 'films', 'blog', 'research', 'hub_resources', 'page_metadata', 'profiles', 'subscribers'];
+        const tableNames = ['portfolio_projects', 'photography', 'photo_stories', 'moodboard_items', 'films', 'blog', 'research', 'hub_resources', 'page_metadata', 'profiles', 'subscribers'];
         const newStats = {};
         for (const name of tableNames) {
             try {
@@ -178,7 +179,9 @@ export default function AdminDashboard() {
                     `Count for ${name}`
                 );
                 if (!error) {
-                    const key = name === 'page_metadata'
+                    const key = name === 'portfolio_projects'
+                        ? 'projects'
+                        : name === 'page_metadata'
                         ? 'metadata'
                         : (name === 'profiles'
                             ? 'users'
@@ -366,7 +369,12 @@ export default function AdminDashboard() {
                 </div>
 
                 <nav className="sidebar-nav">
-                    {SECTIONS.map(section => (
+                    {SECTIONS.map(section => section.href ? (
+                        <a key={section.id} href={section.href} className="nav-item">
+                            <span className="nav-icon">{section.icon}</span>
+                            <span className="nav-label">{section.label}</span>
+                        </a>
+                    ) : (
                         <button
                             key={section.id}
                             onClick={() => handleNav(section.id)}
@@ -400,6 +408,7 @@ export default function AdminDashboard() {
 
                             {/* Stats Grid - Priority View */}
                             <div className="stats-grid">
+                                <DashboardCard title="Portfolio Projects" count={stats.projects} icon="◫" onClick={() => { window.location.href = '/admin/projects'; }} loading={loading} />
                                 <DashboardCard title="Users" count={stats.users} icon="👥" onClick={() => setActiveSection('users')} loading={loading} />
                                 <DashboardCard title="Photography" count={stats.photography} icon="📸" onClick={() => setActiveSection('photography')} loading={loading} />
                                 <DashboardCard title="Photo Stories" count={stats.photoStories} icon="📝" onClick={() => setActiveSection('photo_stories')} loading={loading} />
@@ -506,7 +515,7 @@ export default function AdminDashboard() {
                         </>
                     )}
 
-                    {activeSection !== 'dashboard' && activeSection !== 'users' && activeSection !== 'brands' && activeSection !== 'newsletter' && activeSection !== 'photo_stories' && activeSection !== 'moodboard_items' && (
+                    {activeSection !== 'dashboard' && activeSection !== 'portfolio_projects' && activeSection !== 'users' && activeSection !== 'brands' && activeSection !== 'newsletter' && activeSection !== 'photo_stories' && activeSection !== 'moodboard_items' && (
                         <SectionErrorBoundary key={`${activeSection}-${refreshTrigger}`}>
                             <Suspense fallback={<LoadingState message="Loading Section..." />}>
                                 <ListView

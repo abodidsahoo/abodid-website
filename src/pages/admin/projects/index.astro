@@ -1,0 +1,10 @@
+---
+export const prerender = false;
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import PortfolioAdminList from "../../../components/portfolio/admin/PortfolioAdminList.jsx";
+---
+
+<AdminLayout title="Portfolio Projects" fullWidth={true}>
+  <PortfolioAdminList client:only="react" />
+</AdminLayout>
+

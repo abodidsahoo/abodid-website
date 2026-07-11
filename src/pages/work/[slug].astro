@@ -1,0 +1,60 @@
+---
+export const prerender = false;
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import PortfolioProjectRenderer from "../../components/portfolio/PortfolioProjectRenderer.jsx";
+import { getPortfolioSlugRedirect, getPublishedPortfolioProject } from "../../lib/portfolio/services";
+
+const { slug } = Astro.params;
+const project = await getPublishedPortfolioProject(slug);
+if (!project) {
+  const redirectSlug = await getPortfolioSlugRedirect(slug);
+  if (redirectSlug) return Astro.redirect(`/work/${redirectSlug}`, 301);
+  return Astro.redirect("/404");
+}
+
+const title = project.seoTitle || project.title;
+const description = project.metaDescription || project.oneLineDescription;
+const image = project.socialImageUrl || project.coverUrl;
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "CreativeWork",
+  name: project.title,
+  description,
+  url: new URL(`/work/${project.slug}`, Astro.site).toString(),
+  image: image || undefined,
+  dateCreated: project.yearStart ? String(project.yearStart) : undefined,
+  creator: { "@type": "Person", name: "Abodid Sahoo", url: new URL("/", Astro.site).toString() },
+};
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  image={image}
+  imageAlt={project.coverAlt}
+  type="article"
+  noindex={!project.searchVisible}
+  structuredData={structuredData}
+  useDynamicOgImage={!project.socialImageUrl}
+  fullWidth={true}
+  bodyClass="work-project-page"
+>
+  <a class="work-back-link" href="/work"><span aria-hidden="true">←</span> All work</a>
+  <PortfolioProjectRenderer project={project} client:load />
+</BaseLayout>
+
+<style>
+  .work-back-link {
+    position: absolute;
+    z-index: 20;
+    top: 1.5rem;
+    left: max(1rem, 3vw);
+    display: inline-flex;
+    align-items: center;
+    gap: .55rem;
+    color: var(--text-secondary);
+    font-size: .82rem;
+    text-decoration: none;
+  }
+  .work-back-link:hover { color: var(--text-primary); }
+</style>

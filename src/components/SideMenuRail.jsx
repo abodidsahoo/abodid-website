@@ -7,6 +7,7 @@ import { externalProfiles } from "../lib/seoData";
 
 const primaryLinks = [
   { href: "/services", label: "Hire Me" },
+  { href: "/work", label: "Work" },
   { href: "/research", label: "Research" },
   { href: "/photography", label: "Photography" },
   { href: "/films", label: "Filmmaking" },

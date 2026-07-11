@@ -1,0 +1,11 @@
+---
+export const prerender = false;
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import PortfolioEditor from "../../../components/portfolio/admin/PortfolioEditor.jsx";
+const { id } = Astro.params;
+---
+
+<AdminLayout title="Portfolio Project Editor" fullWidth={true}>
+  <PortfolioEditor projectId={id} client:only="react" />
+</AdminLayout>
+

@@ -1,0 +1,11 @@
+---
+export const prerender = false;
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import LayoutPreviewComponent from "../../components/portfolio/LayoutPreview.jsx";
+---
+
+<BaseLayout title="Layout Preview · Work" noindex={true} fullWidth={true} bodyClass="work-project-page">
+  {/* Data is fetched client-side via loadAdminProject so the admin
+      session cookie is available — same as the editor page. */}
+  <LayoutPreviewComponent slug="invisible-punctum" client:load />
+</BaseLayout>

@@ -1,0 +1,23 @@
+---
+export const prerender = false;
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import WorkIndex from "../../components/portfolio/WorkIndex.jsx";
+import { getPublishedPortfolioIndex } from "../../lib/portfolio/services";
+
+const projects = await getPublishedPortfolioIndex();
+const title = "Work";
+const description = "A curated portfolio of multidisciplinary projects spanning research, creative direction, photography, film, exhibitions and technology.";
+---
+
+<BaseLayout title={title} description={description} image="/images/work-og.png" imageAlt="Work - projects at the centre, by Abodid Sahoo" useDynamicOgImage={false} bodyClass="work-index-page">
+  <div class="work-page-shell">
+    <header class="work-page-header">
+      <h1>Work</h1>
+      <div class="work-page-intro">
+        <p class="intro-large">All of my projects begin with a question. And the question is usually a "Why?"</p>
+        <p class="intro-small">From there, I follow the idea into whatever form it needs: a film, a photo series, a piece of writing, a performance, an exhibition, or even an interactive digital experience.</p>
+      </div>
+    </header>
+    <WorkIndex projects={projects} client:load />
+  </div>
+</BaseLayout>

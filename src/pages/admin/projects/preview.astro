@@ -1,0 +1,48 @@
+---
+export const prerender = false;
+import "../../../styles/global.css";
+import PortfolioDraftPreview from "../../../components/portfolio/admin/PortfolioDraftPreview.jsx";
+const projectId = Astro.url.searchParams.get("project") || "";
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Project preview</title>
+    <script is:inline>
+      (() => {
+        let theme = "dark";
+        try { theme = localStorage.getItem("theme") || "dark"; } catch {}
+        document.documentElement.setAttribute("data-theme", theme);
+        document.documentElement.style.colorScheme = theme;
+      })();
+    </script>
+  </head>
+  <body class="portfolio-draft-preview-page">
+    <main>
+      <PortfolioDraftPreview projectId={projectId} client:only="react" />
+    </main>
+  </body>
+</html>
+
+<style>
+  :global(html), :global(body.portfolio-draft-preview-page) {
+    width: 100%;
+    min-height: 100%;
+    margin: 0;
+    overflow-x: hidden;
+    background: var(--bg-color);
+  }
+  main { width: 100%; min-height: 100vh; }
+  :global(.portfolio-draft-preview-empty) {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 2rem;
+    color: var(--text-secondary);
+    text-align: center;
+  }
+</style>
+
