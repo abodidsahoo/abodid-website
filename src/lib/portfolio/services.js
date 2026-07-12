@@ -318,11 +318,19 @@ export async function archivePortfolioProject(projectId) {
 const imageDimensions = (file) => new Promise((resolve) => {
   const objectUrl = URL.createObjectURL(file);
   const image = new Image();
+  // Safety timeout: resolve with null dimensions if the browser never fires
+  // onload or onerror (e.g. a locked file, weird MIME, or browser quirk).
+  const fallback = setTimeout(() => {
+    URL.revokeObjectURL(objectUrl);
+    resolve({ width: null, height: null });
+  }, 5000);
   image.onload = () => {
+    clearTimeout(fallback);
     resolve({ width: image.naturalWidth, height: image.naturalHeight });
     URL.revokeObjectURL(objectUrl);
   };
   image.onerror = () => {
+    clearTimeout(fallback);
     resolve({ width: null, height: null });
     URL.revokeObjectURL(objectUrl);
   };

@@ -32,7 +32,7 @@
 .work-filter-popover { width: 100%; max-width: 100%; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--work-radius); padding: 1.5rem; margin-top: 0.5rem; margin-bottom: 2rem; animation: slideRevealLeft 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
 .filter-group { border: 0; padding: 0; margin: 0 0 1.25rem; display: grid; grid-template-columns: 8rem 1fr; gap: 1rem; align-items: start; }
 .filter-group:last-of-type { margin-bottom: 0; }
-.filter-group legend { float: left; width: 8rem; color: var(--text-tertiary); font-size: .72rem; line-height: 2rem; text-transform: uppercase; letter-spacing: .12em; }
+.filter-group .filter-legend { float: left; width: 8rem; color: var(--text-tertiary); font-size: .72rem; line-height: 2rem; text-transform: uppercase; letter-spacing: .12em; }
 .filter-options { display: flex; flex-wrap: wrap; gap: .45rem; }
 .filter-options button { border: 1px solid var(--border-subtle); color: var(--text-secondary); background: transparent; border-radius: 999px; min-height: 2rem; padding: .38rem .75rem; font: inherit; font-size: .8rem; cursor: pointer; }
 .filter-options button:hover, .filter-options button.is-selected { border-color: var(--text-primary); color: var(--bg-color); background: var(--text-primary); }
@@ -430,7 +430,7 @@
 @media (max-width: 700px) {
   .work-page-shell { padding-top: 6rem; }
   .filter-group { display: block; }
-  .filter-group legend { float: none; width: auto; margin-bottom: .45rem; }
+  .filter-group .filter-legend { float: none; width: auto; margin-bottom: .45rem; }
   .work-card-grid { grid-template-columns: 1fr; }
   .portfolio-project { padding-top: 6rem; }
   .portfolio-project-header { text-align: left; }

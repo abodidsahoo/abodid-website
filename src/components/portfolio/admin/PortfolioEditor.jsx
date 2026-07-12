@@ -72,7 +72,38 @@ function RepeatableEditor({ title, items, onChange, kind }) {
   </div>)}</section>;
 }
 
-export default function PortfolioEditor({ projectId }) {
+class PortfolioEditorErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { error: null, retryKey: 0 };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { error };
+  }
+
+  componentDidCatch(error, info) {
+    console.error("Portfolio editor crashed:", error, info);
+  }
+
+  retry = () => this.setState(({ retryKey }) => ({ error: null, retryKey: retryKey + 1 }));
+
+  render() {
+    if (this.state.error) {
+      return <main className="portfolio-admin-page">
+        <div className="admin-notice error">
+          <strong>The editor hit an unexpected error.</strong>
+          <p>Your draft is still stored. Try reopening the editor.</p>
+          {this.state.error?.message && <p style={{ fontSize: ".75rem", opacity: .7, fontFamily: "monospace", marginTop: ".5rem" }}>{this.state.error.message}</p>}
+          <button type="button" className="primary-button" onClick={this.retry}>Reopen editor</button>
+        </div>
+      </main>;
+    }
+    return <PortfolioEditorContent key={this.state.retryKey} {...this.props} />;
+  }
+}
+
+function PortfolioEditorContent({ projectId }) {
   const [project, setProject] = useState(null);
   const [draft, setDraft] = useState(null);
   const [history, setHistory] = useState([]);
@@ -83,8 +114,10 @@ export default function PortfolioEditor({ projectId }) {
   const [saveState, setSaveState] = useState("Saved");
   const [dirty, setDirty] = useState(false);
   const [conflict, setConflict] = useState(false);
+  const [uploadOverlay, setUploadOverlay] = useState(null); // null | { status: 'uploading'|'done'|'error', message: string }
+  const [uploadOverlayClosing, setUploadOverlayClosing] = useState(false);
   const [preview, setPreview] = useState(false);
-  const [previewMobile, setPreviewMobile] = useState(false);
+  const [previewDevice, setPreviewDevice] = useState("laptop");
   const [previewVersion, setPreviewVersion] = useState(0);
   const [leftCollapsed, setLeftCollapsed] = useState(false);
   const [rightCollapsed, setRightCollapsed] = useState(false);
@@ -94,15 +127,98 @@ export default function PortfolioEditor({ projectId }) {
   const [uploading, setUploading] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const dirtyRef = useRef(false);
+  const editVersionRef = useRef(0);
   const draftRef = useRef(null);
   const projectIdRef = useRef(null);
   const savePromiseRef = useRef(null);
   const pendingMediaDeletesRef = useRef(new Map());
+  const interactionEpochRef = useRef(0);
+  const previewRequestRef = useRef(0);
+  const filePickerSessionRef = useRef(null);
+  const filePickerCooldownTimerRef = useRef(null);
+  const uploadingRef = useRef(false);
+  const uploadOverlayRef = useRef(null);
+  const uploadOverlayCloseTimerRef = useRef(null);
+  const uploadOverlayRemoveTimerRef = useRef(null);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }));
   const cacheKey = `portfolio:draft:${projectId}`;
 
   useEffect(() => { dirtyRef.current = dirty; }, [dirty]);
   useEffect(() => { draftRef.current = draft; }, [draft]);
+
+  const clearUploadOverlayTimers = useCallback(() => {
+    window.clearTimeout(uploadOverlayCloseTimerRef.current);
+    window.clearTimeout(uploadOverlayRemoveTimerRef.current);
+    uploadOverlayCloseTimerRef.current = null;
+    uploadOverlayRemoveTimerRef.current = null;
+  }, []);
+
+  const updateUploadOverlay = useCallback((nextOverlay) => {
+    uploadOverlayRef.current = nextOverlay;
+    setUploadOverlay(nextOverlay);
+  }, []);
+
+  const releaseFilePickerSession = useCallback((token, delay = 900) => {
+    window.clearTimeout(filePickerCooldownTimerRef.current);
+    filePickerCooldownTimerRef.current = window.setTimeout(() => {
+      const session = filePickerSessionRef.current;
+      if (session?.token === token && session.phase === "cooldown") {
+        filePickerSessionRef.current = null;
+      }
+      filePickerCooldownTimerRef.current = null;
+    }, delay);
+  }, []);
+
+  const settleFilePickerSession = useCallback(() => {
+    const session = filePickerSessionRef.current;
+    if (!session || session.phase !== "picker") return;
+    filePickerSessionRef.current = { ...session, phase: "cooldown" };
+    releaseFilePickerSession(session.token);
+  }, [releaseFilePickerSession]);
+
+  // Arm this in the input's capture phase, before Chrome opens the native file
+  // chooser. Any preview request already waiting on a save is invalidated here.
+  const beginFilePickerSession = useCallback((event) => {
+    if (uploadingRef.current || uploadOverlayRef.current) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+    const token = interactionEpochRef.current + 1;
+    interactionEpochRef.current = token;
+    previewRequestRef.current += 1;
+    window.clearTimeout(filePickerCooldownTimerRef.current);
+    filePickerCooldownTimerRef.current = null;
+    filePickerSessionRef.current = { token, phase: "picker" };
+    setPreview(false);
+  }, []);
+
+  useEffect(() => {
+    const blockPickerClickThrough = (event) => {
+      if (!filePickerSessionRef.current) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    };
+    window.addEventListener("click", blockPickerClickThrough, true);
+    window.addEventListener("mousedown", blockPickerClickThrough, true);
+    window.addEventListener("mouseup", blockPickerClickThrough, true);
+    window.addEventListener("pointerdown", blockPickerClickThrough, true);
+    window.addEventListener("pointerup", blockPickerClickThrough, true);
+    window.addEventListener("focus", settleFilePickerSession);
+    return () => {
+      window.removeEventListener("click", blockPickerClickThrough, true);
+      window.removeEventListener("mousedown", blockPickerClickThrough, true);
+      window.removeEventListener("mouseup", blockPickerClickThrough, true);
+      window.removeEventListener("pointerdown", blockPickerClickThrough, true);
+      window.removeEventListener("pointerup", blockPickerClickThrough, true);
+      window.removeEventListener("focus", settleFilePickerSession);
+    };
+  }, [settleFilePickerSession]);
+
+  useEffect(() => () => {
+    window.clearTimeout(filePickerCooldownTimerRef.current);
+    clearUploadOverlayTimers();
+  }, [clearUploadOverlayTimers]);
 
   const load = useCallback(async () => {
     setLoading(true); setError(""); setConflict(false);
@@ -137,7 +253,11 @@ export default function PortfolioEditor({ projectId }) {
   useEffect(() => { load(); }, [load]);
 
   const updateDraft = (updater) => {
-    setDraft((current) => typeof updater === "function" ? updater(current) : { ...current, ...updater });
+    const current = draftRef.current;
+    const next = typeof updater === "function" ? updater(current) : { ...current, ...updater };
+    editVersionRef.current += 1;
+    draftRef.current = next;
+    setDraft(next);
     setDirty(true); dirtyRef.current = true; setSaveState("Unsaved changes"); setConflict(false);
   };
 
@@ -174,14 +294,23 @@ export default function PortfolioEditor({ projectId }) {
     if (!dirtyRef.current || !draftRef.current || savePromiseRef.current) return savePromiseRef.current;
     setSaveState("Saving…"); setError("");
     const currentDraft = draftRef.current;
+    const savedEditVersion = editVersionRef.current;
     const promise = savePortfolioDraft(projectIdRef.current, currentDraft).then(async (nextLockVersion) => {
-      setDraft((value) => ({ ...value, lockVersion: Number(nextLockVersion) }));
-      setDirty(false); dirtyRef.current = false; setSaveState("Saved"); localStorage.removeItem(cacheKey);
+      const latestDraft = { ...draftRef.current, lockVersion: Number(nextLockVersion) };
+      draftRef.current = latestDraft;
+      setDraft(latestDraft);
+      const savedLatestEdit = editVersionRef.current === savedEditVersion;
+      if (savedLatestEdit) {
+        setDirty(false); dirtyRef.current = false; setSaveState("Saved"); localStorage.removeItem(cacheKey);
+      } else {
+        setDirty(true); dirtyRef.current = true; setSaveState("Unsaved changes");
+        localStorage.setItem(cacheKey, JSON.stringify({ savedAt: Date.now(), draft: latestDraft, pendingMediaDeletes: [...pendingMediaDeletesRef.current.values()] }));
+      }
       setProject((value) => ({ ...value, updated_at: new Date().toISOString() }));
-      await flushPendingMediaDeletes();
+      if (savedLatestEdit) await flushPendingMediaDeletes();
       return nextLockVersion;
     }).catch((err) => {
-      localStorage.setItem(cacheKey, JSON.stringify({ savedAt: Date.now(), draft: currentDraft, pendingMediaDeletes: [...pendingMediaDeletesRef.current.values()] }));
+      localStorage.setItem(cacheKey, JSON.stringify({ savedAt: Date.now(), draft: draftRef.current || currentDraft, pendingMediaDeletes: [...pendingMediaDeletesRef.current.values()] }));
       if (err.code === "PORTFOLIO_CONFLICT" || err.message === "PORTFOLIO_CONFLICT") { setConflict(true); setSaveState("Conflict detected"); }
       else { setSaveState(navigator.onLine ? "Save failed - retrying" : "Offline - stored locally"); setError(err.message || "Draft save failed."); }
       throw err;
@@ -192,7 +321,7 @@ export default function PortfolioEditor({ projectId }) {
 
   useEffect(() => {
     if (!dirty || conflict) return;
-    const timeout = window.setTimeout(() => saveNow().catch(() => {}), 2500);
+    const timeout = window.setTimeout(() => saveNow().catch(() => {}), 120000);
     return () => window.clearTimeout(timeout);
   }, [dirty, conflict, draft, saveNow]);
   useEffect(() => {
@@ -236,8 +365,23 @@ export default function PortfolioEditor({ projectId }) {
     }
   };
   const openPreview = async () => {
+    const requestId = previewRequestRef.current + 1;
+    previewRequestRef.current = requestId;
+    const interactionEpoch = interactionEpochRef.current;
+    if (uploadingRef.current || uploadOverlayRef.current || filePickerSessionRef.current) return;
     try {
       if (dirtyRef.current) await saveNow();
+
+      // A picker may have opened while saveNow() was pending. Never let that
+      // older request reopen the full-screen preview underneath the upload UI.
+      if (
+        requestId !== previewRequestRef.current ||
+        interactionEpoch !== interactionEpochRef.current ||
+        uploadingRef.current ||
+        uploadOverlayRef.current ||
+        filePickerSessionRef.current
+      ) return;
+
       const nextPreview = { ...draftRef.current, id: project.id, slug: project.slug, status: project.status };
       window.sessionStorage.setItem(`portfolio:preview:${project.id}`, JSON.stringify(nextPreview));
       setPreviewVersion(Date.now());
@@ -283,29 +427,103 @@ export default function PortfolioEditor({ projectId }) {
       return { ...current, blocks: arrayMove(current.blocks, oldIndex, newIndex) };
     });
   };
-  const upload = async (file, blockId = null, mediaIndex = 0) => {
-    setUploading(true); setError("");
+  const upload = async (fileOrFiles, blockId = null, mediaIndex = 0) => {
+    if (uploadingRef.current) return;
+    const pickerSession = filePickerSessionRef.current;
+    const uploadToken = pickerSession?.token || interactionEpochRef.current + 1;
+    interactionEpochRef.current = Math.max(interactionEpochRef.current, uploadToken);
+    previewRequestRef.current += 1;
+    window.clearTimeout(filePickerCooldownTimerRef.current);
+    filePickerCooldownTimerRef.current = null;
+    filePickerSessionRef.current = { token: uploadToken, phase: "uploading" };
+    clearUploadOverlayTimers();
+    setPreview(false);
+    uploadingRef.current = true;
+    setUploading(true);
+    setUploadOverlayClosing(false);
+    updateUploadOverlay({ status: "uploading", message: "Uploading image…" });
+    setError("");
     try {
-      const media = await uploadPortfolioImage(project, file);
-      if (!blockId) updateDraft({ coverUrl: media.url, coverAlt: media.alt || draft.title });
-      else {
+      const files = (Array.isArray(fileOrFiles) ? fileOrFiles : [fileOrFiles]).filter(Boolean);
+      const uploadedMedia = [];
+      const failedUploads = [];
+      for (const [i, file] of files.entries()) {
+        if (files.length > 1) updateUploadOverlay({ status: "uploading", message: `Uploading image ${i + 1} of ${files.length}…` });
+        try {
+          const media = await uploadPortfolioImage(project, file);
+          if (!media?.id || !media?.url) throw new Error("The upload completed without valid image data.");
+          uploadedMedia.push(media);
+        } catch (uploadError) {
+          console.error("[upload] per-file upload error:", uploadError);
+          failedUploads.push({ file, error: uploadError });
+        }
+      }
+      if (!uploadedMedia.length) throw failedUploads[0]?.error || new Error("No images were selected.");
+
+      if (!blockId) {
+        const media = uploadedMedia[0];
+        const currentTitle = draftRef.current?.title ?? "";
+        updateDraft({ coverUrl: media.url, coverAlt: media.alt || currentTitle });
+      } else {
         const targetBlock = draftRef.current?.blocks?.find((block) => block.id === blockId);
         const targetMedia = Array.isArray(targetBlock?.content?.media)
           ? targetBlock.content.media[mediaIndex]
           : targetBlock?.content?.media;
-        queueMediaForDeletion(targetMedia);
+        if (!["image_grid", "image_gallery"].includes(targetBlock?.blockType)) queueMediaForDeletion(targetMedia);
         updateDraft((current) => ({ ...current, blocks: current.blocks.map((block) => {
-        if (block.id !== blockId) return block;
-        if (["image_grid", "image_gallery"].includes(block.blockType)) {
-          const list = Array.isArray(block.content.media) ? [...block.content.media] : [];
-          list[mediaIndex] = media;
-          return { ...block, content: { ...block.content, media: list } };
-        }
-        return { ...block, content: { ...block.content, media } };
+          if (block.id !== blockId) return block;
+          if (["image_grid", "image_gallery"].includes(block.blockType)) {
+            const list = Array.isArray(block.content.media) ? [...block.content.media] : [];
+            return { ...block, content: { ...block.content, media: [...list, ...uploadedMedia] } };
+          }
+          return { ...block, content: { ...block.content, media: uploadedMedia[0] } };
         }) }));
       }
-    } catch (err) { setError(err.message || "Image upload failed."); }
-    finally { setUploading(false); }
+      if (failedUploads.length) {
+        const failedNames = failedUploads.map(({ file }) => file.name).join(", ");
+        updateUploadOverlay({ status: "error", message: `${uploadedMedia.length} uploaded, ${failedUploads.length} failed: ${failedNames}` });
+        setError(`${uploadedMedia.length} image${uploadedMedia.length === 1 ? "" : "s"} uploaded; ${failedUploads.length} failed: ${failedNames}`);
+        uploadOverlayRemoveTimerRef.current = window.setTimeout(() => {
+          if (interactionEpochRef.current !== uploadToken) return;
+          updateUploadOverlay(null);
+          setPreview(false);
+          const session = filePickerSessionRef.current;
+          if (session?.token === uploadToken) filePickerSessionRef.current = null;
+        }, 3000);
+      } else {
+        updateUploadOverlay({ status: "done", message: "Image uploaded successfully" });
+        uploadOverlayCloseTimerRef.current = window.setTimeout(() => {
+          if (interactionEpochRef.current !== uploadToken) return;
+          setUploadOverlayClosing(true);
+          uploadOverlayRemoveTimerRef.current = window.setTimeout(() => {
+            if (interactionEpochRef.current !== uploadToken) return;
+            updateUploadOverlay(null);
+            setUploadOverlayClosing(false);
+            setPreview(false);
+            const session = filePickerSessionRef.current;
+            if (session?.token === uploadToken) filePickerSessionRef.current = null;
+          }, 200);
+        }, 1200);
+      }
+    } catch (err) {
+      console.error("[upload] upload failed:", err);
+      const message = err.message || "Image upload failed.";
+      updateUploadOverlay({ status: "error", message });
+      setError(message);
+      uploadOverlayRemoveTimerRef.current = window.setTimeout(() => {
+        if (interactionEpochRef.current !== uploadToken) return;
+        updateUploadOverlay(null);
+        setPreview(false);
+        const session = filePickerSessionRef.current;
+        if (session?.token === uploadToken) filePickerSessionRef.current = null;
+      }, 3000);
+    } finally {
+      if (filePickerSessionRef.current?.token === uploadToken) {
+        uploadingRef.current = false;
+        setUploading(false);
+        filePickerSessionRef.current = { token: uploadToken, phase: "cooldown" };
+      }
+    }
   };
 
   const projectList = useMemo(() => projects.filter((item) => (item.draft?.title || "").toLowerCase().includes(projectSearch.toLowerCase())), [projectSearch, projects]);
@@ -314,10 +532,47 @@ export default function PortfolioEditor({ projectId }) {
   if (!draft || !project) return <div className="portfolio-admin-page"><div className="admin-notice error">{error || "Project not found."}</div><a href="/admin/projects">Back to projects</a></div>;
 
   return <div className={`portfolio-editor-shell ${leftCollapsed ? "left-collapsed" : ""} ${rightCollapsed ? "right-collapsed" : ""}`}>
+    {/* Upload overlay — sits at z-index 2000 (above the preview modal at 1000) and
+        blocks ALL pointer events during upload so nothing else can be accidentally
+        triggered by click-throughs from the OS file picker. */}
+    {uploadOverlay && (
+      <div className={`upload-overlay upload-overlay--${uploadOverlay.status} ${uploadOverlayClosing ? "is-closing" : ""}`} aria-live="polite" aria-label="Upload status">
+        <div className="upload-overlay-card">
+          <div className="upload-overlay-icon">
+            {uploadOverlay.status === "uploading" && (
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+                <circle cx="16" cy="16" r="13" stroke="currentColor" strokeWidth="2.5" strokeOpacity=".15" />
+                <path d="M16 3C16 3 29 3 29 16" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                  <animateTransform attributeName="transform" type="rotate" from="0 16 16" to="360 16 16" dur="0.8s" repeatCount="indefinite" />
+                </path>
+              </svg>
+            )}
+            {uploadOverlay.status === "done" && (
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+                <circle cx="16" cy="16" r="13" stroke="currentColor" strokeWidth="2.5" />
+                <path d="M10 16.5l4.5 4.5 8-9" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            )}
+            {uploadOverlay.status === "error" && (
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+                <circle cx="16" cy="16" r="13" stroke="currentColor" strokeWidth="2.5" />
+                <path d="M16 10v8M16 22v.5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+              </svg>
+            )}
+          </div>
+          <p className="upload-overlay-message">{uploadOverlay.message}</p>
+          {uploadOverlay.status === "uploading" && (
+            <div className="upload-progress-track" role="progressbar" aria-label="Uploading">
+              <div className="upload-progress-bar" />
+            </div>
+          )}
+        </div>
+      </div>
+    )}
     <header className="portfolio-editor-topbar">
       <div className="topbar-left"><a href="/admin/projects" onClick={(event) => navigateAfterSave(event, "/admin/projects")}>← Projects</a><a href="/admin/dashboard" onClick={(event) => navigateAfterSave(event, "/admin/dashboard")}>Admin home</a></div>
       <div className={`save-state ${saveState.toLowerCase().replaceAll(" ", "-")}`}>{saveState}</div>
-      <div className="topbar-actions"><button type="button" onClick={openPreview}>Responsive preview</button><button type="button" className="primary-button publish-button" onClick={publish} disabled={publishing}>{publishing ? "Publishing…" : "Publish"}</button></div>
+      <div className="topbar-actions"><button type="button" onClick={openPreview} disabled={uploading}>Responsive preview</button><button type="button" className="primary-button publish-button" onClick={publish} disabled={publishing || uploading}>{publishing ? "Publishing…" : "Publish"}</button></div>
     </header>
     {conflict && <div className="conflict-banner"><strong>Conflict detected.</strong> A newer draft was saved elsewhere. <button type="button" onClick={load}>Reload latest</button><button type="button" onClick={duplicateConflict}>Duplicate my local version</button></div>}
     {notice && <div className="floating-admin-notice success">{notice}<button type="button" onClick={() => setNotice("")}>×</button></div>}
@@ -339,8 +594,13 @@ export default function PortfolioEditor({ projectId }) {
       </section>
 
       <section className="editor-cover-card">
-        <header><div><span className="editor-eyebrow">Cover media</span><h2>Project cover</h2></div><label className="file-button">{uploading ? "Uploading…" : "Upload cover"}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" disabled={uploading} onChange={(event) => { const file = event.target.files?.[0]; if (file) upload(file); event.target.value = ""; }} /></label></header>
-        {draft.coverUrl ? <img src={draft.coverUrl} alt="" style={{ objectPosition: `${draft.coverFocalX}% ${draft.coverFocalY}%` }} /> : <div className="cover-placeholder">4:3 cover preview</div>}
+        <header><div><span className="editor-eyebrow">Cover media</span><h2>Project cover</h2></div><label className={`file-button${uploading ? " is-uploading" : ""}`}>{uploading ? "Uploading…" : "Upload cover"}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" disabled={uploading} onClickCapture={beginFilePickerSession} onCancel={settleFilePickerSession} onChange={(event) => {
+          const file = event.target.files?.[0];
+          if (file) upload(file).catch((err) => { console.error("[cover upload] unhandled:", err); setError(err?.message || "Image upload failed."); setUploading(false); updateUploadOverlay(null); });
+          else settleFilePickerSession();
+          event.target.value = "";
+        }} /></label></header>
+        {draft.coverUrl ? <img src={draft.coverUrl} alt={draft.coverAlt || ""} style={{ objectPosition: `${draft.coverFocalX ?? 50}% ${draft.coverFocalY ?? 50}%` }} /> : <div className="cover-placeholder">4:3 cover preview</div>}
         <Field label="Cover URL" value={draft.coverUrl} onChange={(coverUrl) => updateDraft({ coverUrl })} />
         <Field label="Cover alt text" value={draft.coverAlt} required onChange={(coverAlt) => updateDraft({ coverAlt })} />
         <div className="field-row"><label className="editor-field"><span>Horizontal focal point · {draft.coverFocalX}%</span><input type="range" min="0" max="100" value={draft.coverFocalX} onChange={(event) => updateDraft({ coverFocalX: Number(event.target.value) })} /></label><label className="editor-field"><span>Vertical focal point · {draft.coverFocalY}%</span><input type="range" min="0" max="100" value={draft.coverFocalY} onChange={(event) => updateDraft({ coverFocalY: Number(event.target.value) })} /></label></div>
@@ -348,7 +608,7 @@ export default function PortfolioEditor({ projectId }) {
 
       <section className="editor-blocks-section">
         <header><div><span className="editor-eyebrow">Project story</span><h2>Content blocks</h2></div><div className="add-block-wrap"><button type="button" className="primary-button" onClick={() => setBlockMenuOpen((value) => !value)}>+ Add block</button>{blockMenuOpen && <div className="add-block-menu">{BLOCK_TYPES.map((type) => <button type="button" key={type} onClick={() => { updateDraft((current) => ({ ...current, blocks: [...current.blocks, createEmptyBlock(type)] })); setBlockMenuOpen(false); }}>{BLOCK_LABELS[type]}</button>)}</div>}</div></header>
-        {draft.blocks.length ? <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onBlockDragEnd}><SortableContext items={draft.blocks.map((block) => block.id)} strategy={verticalListSortingStrategy}><div className="editor-block-list">{draft.blocks.map((block) => <PortfolioBlockEditor key={block.id} block={block} uploading={uploading} onUpload={(file, index) => upload(file, block.id, index)} onRemoveMedia={queueMediaForDeletion} onChange={(next) => updateDraft((current) => ({ ...current, blocks: current.blocks.map((item) => item.id === block.id ? next : item) }))} onDuplicate={() => updateDraft((current) => { const index = current.blocks.findIndex((item) => item.id === block.id); const next = [...current.blocks]; next.splice(index + 1, 0, { ...block, id: crypto.randomUUID() }); return { ...current, blocks: next }; })} onDelete={() => { if (!window.confirm("Delete this block from the draft?")) return; const media = Array.isArray(block.content?.media) ? block.content.media : block.content?.media ? [block.content.media] : []; media.forEach(queueMediaForDeletion); updateDraft((current) => ({ ...current, blocks: current.blocks.filter((item) => item.id !== block.id) })); }} />)}</div></SortableContext></DndContext> : <div className="editor-empty-blocks">Start with a controlled block. Templates create these same ordinary blocks.</div>}
+        {draft.blocks.length ? <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onBlockDragEnd}><SortableContext items={draft.blocks.map((block) => block.id)} strategy={verticalListSortingStrategy}><div className="editor-block-list">{draft.blocks.map((block) => <PortfolioBlockEditor key={block.id} block={block} uploading={uploading} onUpload={(file, index) => upload(file, block.id, index)} onRemoveMedia={queueMediaForDeletion} onFilePickerOpen={beginFilePickerSession} onFilePickerCancel={settleFilePickerSession} onChange={(next) => updateDraft((current) => ({ ...current, blocks: current.blocks.map((item) => item.id === block.id ? next : item) }))} onDuplicate={() => updateDraft((current) => { const index = current.blocks.findIndex((item) => item.id === block.id); const next = [...current.blocks]; next.splice(index + 1, 0, { ...block, id: crypto.randomUUID() }); return { ...current, blocks: next }; })} onDelete={() => { if (!window.confirm("Delete this block from the draft?")) return; const media = Array.isArray(block.content?.media) ? block.content.media : block.content?.media ? [block.content.media] : []; media.forEach(queueMediaForDeletion); updateDraft((current) => ({ ...current, blocks: current.blocks.filter((item) => item.id !== block.id) })); }} />)}</div></SortableContext></DndContext> : <div className="editor-empty-blocks">Start with a controlled block. Templates create these same ordinary blocks.</div>}
       </section>
     </main>
 
@@ -365,6 +625,54 @@ export default function PortfolioEditor({ projectId }) {
       </div></>}
     </aside>
 
-    {preview && <div className="portfolio-preview-modal" role="dialog" aria-modal="true" aria-label="Responsive project preview"><header><span>Production renderer preview · {previewMobile ? "Mobile 390px" : "Desktop"}</span><div><button type="button" onClick={() => setPreviewMobile((value) => !value)}>{previewMobile ? "Show desktop" : "Show mobile"}</button><button type="button" onClick={() => setPreview(false)}>Close</button></div></header><div className={`preview-device ${previewMobile ? "is-mobile" : ""}`}><iframe key={`${previewVersion}-${previewMobile ? "mobile" : "desktop"}`} src={`/admin/projects/preview?project=${project.id}&v=${previewVersion}`} title={`${draft.title} responsive preview`} /></div></div>}
+    {preview && (
+      <div className="portfolio-preview-modal" role="dialog" aria-modal="true" aria-label="Responsive project preview">
+        <div className="preview-floating-controls">
+          <div className="preview-mode-switch">
+            <button
+              type="button"
+              className={`preview-mode-pill ${previewDevice === "laptop" ? "active" : ""}`}
+              onClick={() => setPreviewDevice("laptop")}
+            >
+              Laptop
+            </button>
+            <button
+              type="button"
+              className={`preview-mode-pill ${previewDevice === "tablet" ? "active" : ""}`}
+              onClick={() => setPreviewDevice("tablet")}
+            >
+              Tablet
+            </button>
+            <button
+              type="button"
+              className={`preview-mode-pill ${previewDevice === "phone" ? "active" : ""}`}
+              onClick={() => setPreviewDevice("phone")}
+            >
+              Phone
+            </button>
+          </div>
+          <div className="preview-divider" />
+          <button
+            type="button"
+            className="preview-close-button"
+            onClick={() => setPreview(false)}
+            aria-label="Close preview"
+          >
+            &times;
+          </button>
+        </div>
+        <div className={`preview-device is-${previewDevice}`}>
+          <iframe
+            key={`${previewVersion}-${previewDevice}`}
+            src={`/admin/projects/preview?project=${project.id}&v=${previewVersion}`}
+            title={`${draft.title} responsive preview`}
+          />
+        </div>
+      </div>
+    )}
   </div>;
+}
+
+export default function PortfolioEditor(props) {
+  return <PortfolioEditorErrorBoundary {...props} />;
 }

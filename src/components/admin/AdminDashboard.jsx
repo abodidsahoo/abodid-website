@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import UserList from './UserList';
 import TagInput from '../resources/TagInput';
@@ -6,8 +6,7 @@ import BrandManager from './BrandManager';
 import NewsletterSender from './NewsletterSender';
 import PhotoStoryManager from './PhotoStoryManager';
 import MoodboardManager from './MoodboardManager';
-
-const ListView = lazy(() => import('./ListView'));
+import ListView from './ListView';
 
 const SECTIONS = [
     { id: 'dashboard', label: 'Overview', icon: '📊' },
@@ -517,13 +516,11 @@ export default function AdminDashboard() {
 
                     {activeSection !== 'dashboard' && activeSection !== 'portfolio_projects' && activeSection !== 'users' && activeSection !== 'brands' && activeSection !== 'newsletter' && activeSection !== 'photo_stories' && activeSection !== 'moodboard_items' && (
                         <SectionErrorBoundary key={`${activeSection}-${refreshTrigger}`}>
-                            <Suspense fallback={<LoadingState message="Loading Section..." />}>
-                                <ListView
-                                    table={activeSection}
-                                    title={SECTIONS.find(s => s.id === activeSection)?.label}
-                                    onCreate={activeSection === 'hub_resources' ? () => setShowResourceModal(true) : null}
-                                />
-                            </Suspense>
+                            <ListView
+                                table={activeSection}
+                                title={SECTIONS.find(s => s.id === activeSection)?.label}
+                                onCreate={activeSection === 'hub_resources' ? () => setShowResourceModal(true) : null}
+                            />
                         </SectionErrorBoundary>
                     )}
                 </div>
@@ -632,7 +629,10 @@ export default function AdminDashboard() {
                     margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 140px;
                 }
 
-                .sidebar-nav { display: flex; flex-direction: column; gap: 0.5rem; flex: 1; padding: 0 2rem; }
+                .sidebar-nav {
+                    display: flex; flex-direction: column; gap: 0.5rem; flex: 1;
+                    min-height: 0; overflow-y: auto; padding: 0 2rem;
+                }
                 .nav-item {
                     display: flex; align-items: center; gap: 1rem; padding: 0.75rem 1rem;
                     border: 1px solid transparent; background: transparent; color: var(--text-secondary);
@@ -643,7 +643,10 @@ export default function AdminDashboard() {
                 .nav-item.active { background: var(--bg-surface-hover); color: var(--text-primary); border-color: var(--border-subtle); font-weight: 600; }
                 .nav-icon { font-size: 1.2rem; display: flex; align-items: center; justify-content: center; width: 24px; }
 
-                .sidebar-footer { margin-top: auto; padding: 2rem; border-top: 1px solid var(--border-subtle); }
+                .sidebar-footer {
+                    flex-shrink: 0; margin-top: auto; padding: 1rem 2rem 2rem;
+                    border-top: 1px solid var(--border-subtle); background: var(--bg-surface);
+                }
                 .btn-logout-sidebar {
                     width: 100%; padding: 0.8rem; background: transparent; border: 1px solid var(--border-strong);
                     color: var(--text-primary); border-radius: 8px; cursor: pointer; font-weight: 600;

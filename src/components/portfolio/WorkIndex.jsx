@@ -115,8 +115,8 @@ export default function WorkIndex({ projects = [] }) {
         {filterOpen && (
           <div className="work-filter-popover" ref={popoverRef}>
             {groups.map(({ group, options }) => (
-              <fieldset key={group} className="filter-group">
-                <legend>{groupLabels[group] || group}</legend>
+              <div key={group} className="filter-group" role="group" aria-labelledby={`filter-group-${group}`}>
+                <div id={`filter-group-${group}`} className="filter-legend">{groupLabels[group] || group}</div>
                 <div className="filter-options">
                   {options.map((option) => {
                     const active = selected[group]?.includes(option.slug) || false;
@@ -133,7 +133,7 @@ export default function WorkIndex({ projects = [] }) {
                     );
                   })}
                 </div>
-              </fieldset>
+              </div>
             ))}
           </div>
         )}
