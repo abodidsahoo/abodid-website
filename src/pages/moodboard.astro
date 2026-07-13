@@ -28,7 +28,13 @@ const pageDescription =
             </p>
         </header>
 
-        <VisualMoodboard client:load items={moodboardItems} />
+        <VisualMoodboard
+            client:load
+            items={moodboardItems}
+            enableInfiniteScroll={true}
+            initialVisibleRows={5}
+            rowsPerScrollBatch={2}
+        />
 
         <footer class="moodboard-outro">
             <p>

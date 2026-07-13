@@ -7,6 +7,9 @@ type MoodboardRow = {
     title: string | null;
     tags: unknown;
     published: boolean;
+    image_width: number | null;
+    image_height: number | null;
+    aspect_ratio: number | null;
     created_at: string | null;
     updated_at: string | null;
 };
@@ -18,11 +21,14 @@ export type MoodboardItem = {
     title: string;
     tags: string[];
     published: boolean;
+    imageWidth: number | null;
+    imageHeight: number | null;
+    aspectRatio: number | null;
     createdAt: string | null;
     updatedAt: string | null;
 };
 
-const SELECT_FIELDS = 'id, image_url, storage_path, title, tags, published, created_at, updated_at';
+const SELECT_FIELDS = 'id, image_url, storage_path, title, tags, published, image_width, image_height, aspect_ratio, created_at, updated_at';
 const MOODBOARD_PAGE_SIZE = 1000;
 
 function normalizeTags(raw: unknown): string[] {
@@ -41,6 +47,9 @@ function mapMoodboardRow(row: MoodboardRow): MoodboardItem {
         title: row.title?.trim() || 'Untitled Mood',
         tags: normalizeTags(row.tags),
         published: Boolean(row.published),
+        imageWidth: row.image_width,
+        imageHeight: row.image_height,
+        aspectRatio: row.aspect_ratio,
         createdAt: row.created_at,
         updatedAt: row.updated_at,
     };

@@ -32,3 +32,8 @@ test-results/
 
 # large local portfolio export
 public/downloads/photography-portfolios/collections/abodid-complete-photography-portfolio.pdf
+
+# Local media-migration archives and recovery reports.
+# Keep these on the workstation; production only needs the compact generated metadata in src/data.
+photography-webp-migration-*/
+moodboard-webp-migration-*/

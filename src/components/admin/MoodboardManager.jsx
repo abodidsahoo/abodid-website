@@ -50,6 +50,32 @@ function toStorageSafeName(fileName) {
     return base || 'mood-image';
 }
 
+function readImageDimensions(file) {
+    return new Promise((resolve, reject) => {
+        const objectUrl = URL.createObjectURL(file);
+        const image = new Image();
+
+        image.onload = () => {
+            const width = image.naturalWidth;
+            const height = image.naturalHeight;
+            URL.revokeObjectURL(objectUrl);
+
+            if (width > 0 && height > 0) {
+                resolve({ width, height });
+            } else {
+                reject(new Error(`Could not read dimensions for ${file.name}.`));
+            }
+        };
+
+        image.onerror = () => {
+            URL.revokeObjectURL(objectUrl);
+            reject(new Error(`Could not decode ${file.name}.`));
+        };
+
+        image.src = objectUrl;
+    });
+}
+
 function getStorageTarget(item) {
     const rawPath = typeof item?.storage_path === 'string' ? item.storage_path.trim() : '';
 
@@ -116,7 +142,7 @@ export default function MoodboardManager() {
         try {
             const { data, error } = await supabase
                 .from('moodboard_items')
-                .select('id, image_url, storage_path, title, tags, published, created_at, updated_at')
+                .select('id, image_url, storage_path, title, tags, published, image_width, image_height, aspect_ratio, created_at, updated_at')
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
@@ -241,6 +267,7 @@ export default function MoodboardManager() {
 
         for (const entry of queue) {
             try {
+                const dimensions = await readImageDimensions(entry.file);
                 const fileExt = (entry.file.name.split('.').pop() || 'jpg').toLowerCase();
                 const uploadFolder = `${MOODBOARD_PATH_PREFIX}/moodboard`;
 
@@ -269,6 +296,8 @@ export default function MoodboardManager() {
                     title: entry.title?.trim() || titleFromFilename(entry.file.name) || 'Untitled mood',
                     tags: entry.tags,
                     published: true,
+                    image_width: dimensions.width,
+                    image_height: dimensions.height,
                 };
 
                 const { error: insertError } = await supabase

@@ -85,14 +85,20 @@ const PortfolioFilter = ({ items }) => {
 
             {/* Grid */}
             <div className="photography-grid">
-                {filteredItems.map((item) => (
+                {filteredItems.map((item, index) => (
                     <a href={item.href} className="photography-card" key={item.title}>
                         <div
                             className="image-wrapper"
                             onMouseEnter={handleMouseEnter}
                             onMouseLeave={handleMouseLeave}
                         >
-                            <img src={item.image} alt={item.title} loading="lazy" />
+                            <img
+                                src={item.image}
+                                alt={item.title}
+                                loading={index < 2 ? 'eager' : 'lazy'}
+                                fetchpriority={index === 0 ? 'high' : 'auto'}
+                                decoding="async"
+                            />
                         </div>
                         <div className="content">
                             <div className="categories">

@@ -3,6 +3,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import { getAllPhotography, getPhotographyBySlug } from "../../lib/api";
 import { marked } from "marked";
 import ShareButtons from "../../components/ShareButtons.jsx";
+import photographyImageDimensions from "../../data/photographyImageDimensions.generated.json";
 
 export const prerender = false;
 
@@ -15,6 +16,16 @@ if (!project) {
 }
 
 const contentHtml = marked.parse(project.content || "");
+const PRIORITY_IMAGE_COUNT = 6;
+const storagePathFromUrl = (url) => {
+  try {
+    const pathname = new URL(url).pathname;
+    const match = pathname.match(/\/object\/(?:public\/)?photography\/(.+)$/);
+    return match?.[1] ? decodeURIComponent(match[1]) : "";
+  } catch {
+    return "";
+  }
+};
 ---
 
 <BaseLayout
@@ -33,15 +44,27 @@ const contentHtml = marked.parse(project.content || "");
 
     <div class="project-content gallery-grid">
       {
-        project.images.map((img, index) => (
-          <figure class="project-image">
+        project.images.map((img, index) => {
+          const dimensions = photographyImageDimensions[storagePathFromUrl(img)];
+          const isPriority = index < PRIORITY_IMAGE_COUNT;
+
+          return (
+          <figure
+            class:list={["project-image", { "is-lazy-pending": !isPriority }]}
+          >
             <img
-              src={img}
+              src={isPriority ? img : undefined}
+              data-src={isPriority ? undefined : img}
               alt={`Photography image ${index + 1}`}
-              loading="lazy"
+              width={dimensions?.width}
+              height={dimensions?.height}
+              loading={isPriority ? "eager" : "lazy"}
+              fetchpriority={index === 0 ? "high" : "auto"}
+              decoding="async"
             />
           </figure>
-        ))
+          );
+        })
       }
     </div>
 
@@ -55,6 +78,43 @@ const contentHtml = marked.parse(project.content || "");
     </div>
   </article>
 </BaseLayout>
+
+<script>
+  function initialiseProgressivePhotography() {
+    const pendingImages = document.querySelectorAll(".project-image img[data-src]");
+    if (!pendingImages.length) return;
+
+    const revealImage = (image) => {
+      const source = image.dataset.src;
+      if (!source) return;
+
+      image.src = source;
+      image.removeAttribute("data-src");
+      image.closest(".project-image")?.classList.remove("is-lazy-pending");
+    };
+
+    if (!("IntersectionObserver" in window)) {
+      pendingImages.forEach(revealImage);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          revealImage(entry.target);
+          observer.unobserve(entry.target);
+        });
+      },
+      { rootMargin: "1200px 0px", threshold: 0.01 },
+    );
+
+    pendingImages.forEach((image) => observer.observe(image));
+  }
+
+  document.addEventListener("astro:page-load", initialiseProgressivePhotography);
+  initialiseProgressivePhotography();
+</script>
 
 <style>
   .photography-article {
@@ -106,13 +166,20 @@ const contentHtml = marked.parse(project.content || "");
     box-sizing: border-box; /* Critical for frame */
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
     display: block; /* Ensure block level */
+    overflow: hidden;
   }
 
   .project-image img {
     display: block;
     width: 100%;
     height: auto;
+    opacity: 1;
+    transition: opacity 500ms ease;
     /* Ensure image fills the content box inside the padding */
+  }
+
+  .project-image.is-lazy-pending img {
+    opacity: 0;
   }
 
   .story-footer {

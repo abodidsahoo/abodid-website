@@ -710,6 +710,9 @@ export type Database = {
           created_at: string
           id: string
           image_url: string
+          image_height: number | null
+          image_width: number | null
+          aspect_ratio: number | null
           published: boolean
           search_text: string
           storage_path: string
@@ -721,6 +724,8 @@ export type Database = {
           created_at?: string
           id?: string
           image_url: string
+          image_height?: number | null
+          image_width?: number | null
           published?: boolean
           search_text?: string
           storage_path: string
@@ -732,6 +737,8 @@ export type Database = {
           created_at?: string
           id?: string
           image_url?: string
+          image_height?: number | null
+          image_width?: number | null
           published?: boolean
           search_text?: string
           storage_path?: string

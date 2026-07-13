@@ -473,7 +473,6 @@ export default function VisualMoodboard({
     const stageRef = useRef(null);
     const layoutMapRef = useRef(new Map());
     const pointerRef = useRef({ x: 0, y: 0 });
-    const probedIdsRef = useRef(new Set());
     const userHasScrolledRef = useRef(false);
     const lastInfiniteLoadScrollYRef = useRef(-Infinity);
     const lastObservedScrollYRef = useRef(0);
@@ -554,58 +553,18 @@ export default function VisualMoodboard({
         };
     }, []);
 
-    useEffect(() => {
-        const sourceItems = Array.isArray(items) ? items : [];
-        let cancelled = false;
+    const handleImageLoad = (itemId, event) => {
+        const image = event.currentTarget;
+        if (!image?.naturalWidth || !image?.naturalHeight) return;
 
-        sourceItems.forEach((item, index) => {
-            const titleValue =
-                (typeof item?.title === 'string' && item.title.trim()) ||
-                (typeof item?.name === 'string' && item.name.trim()) ||
-                `Mood ${index + 1}`;
-
-            const imageUrl =
-                (typeof item?.imageUrl === 'string' && item.imageUrl.trim()) ||
-                (typeof item?.image_url === 'string' && item.image_url.trim()) ||
-                (typeof item?.url === 'string' && item.url.trim()) ||
-                '';
-
-            if (!imageUrl) return;
-
-            const itemId =
-                (typeof item?.id === 'string' && item.id) ||
-                `${titleValue.toLowerCase().replace(/\s+/g, '-')}-${index}`;
-
-            if (probedIdsRef.current.has(itemId)) return;
-            probedIdsRef.current.add(itemId);
-
-            const probe = new window.Image();
-            probe.decoding = 'async';
-            probe.loading = 'eager';
-            probe.onload = () => {
-                if (cancelled) return;
-                const ratio = probe.naturalWidth > 0 && probe.naturalHeight > 0
-                    ? probe.naturalWidth / probe.naturalHeight
-                    : 1;
-                setImageRatios((previous) => {
-                    if (previous[itemId]) return previous;
-                    return { ...previous, [itemId]: ratio };
-                });
-            };
-            probe.onerror = () => {
-                if (cancelled) return;
-                setImageRatios((previous) => {
-                    if (previous[itemId]) return previous;
-                    return { ...previous, [itemId]: 1 };
-                });
-            };
-            probe.src = imageUrl;
+        const ratio = image.naturalWidth / image.naturalHeight;
+        setImageRatios((previous) => {
+            if (Math.abs((previous[itemId] || 0) - ratio) < 0.001) {
+                return previous;
+            }
+            return { ...previous, [itemId]: ratio };
         });
-
-        return () => {
-            cancelled = true;
-        };
-    }, [items]);
+    };
 
     const normalizedItems = useMemo(
         () =>
@@ -639,7 +598,9 @@ export default function VisualMoodboard({
                         Number(item?.aspectRatio) ||
                         ((Number(item?.image_width) > 0 && Number(item?.image_height) > 0)
                             ? Number(item.image_width) / Number(item.image_height)
-                            : 0);
+                            : ((Number(item?.imageWidth) > 0 && Number(item?.imageHeight) > 0)
+                                ? Number(item.imageWidth) / Number(item.imageHeight)
+                                : 0));
                     const ratioFromProbe = imageRatios[
                         (typeof item.id === 'string' && item.id) ||
                         `${titleValue.toLowerCase().replace(/\s+/g, '-')}-${index}`
@@ -1549,6 +1510,7 @@ export default function VisualMoodboard({
                                 <motion.img
                                     src={item.imageUrl}
                                     alt={item.title}
+                                    onLoad={(event) => handleImageLoad(item.id, event)}
                                     loading={isPriorityImage ? 'eager' : 'lazy'}
                                     decoding={isPriorityImage ? 'sync' : 'async'}
                                     animate={
