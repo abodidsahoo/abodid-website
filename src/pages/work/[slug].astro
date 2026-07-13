@@ -38,6 +38,7 @@ const structuredData = {
   useDynamicOgImage={!project.socialImageUrl}
   fullWidth={true}
   bodyClass="work-project-page"
+  analyticsProjectId={project.id}
 >
   <a class="work-back-link" href="/work"><span aria-hidden="true">←</span> All work</a>
   <PortfolioProjectRenderer project={project} client:load />

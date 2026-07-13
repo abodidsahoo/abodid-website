@@ -1,0 +1,15 @@
+---
+import FilmsFilter from "./FilmsFilter.jsx";
+import { getFilms } from "../lib/api";
+
+const films = await getFilms();
+const filmsFilterProps = { items: films } as any;
+
+Astro.response.headers.set("Cache-Control", "public, max-age=0, must-revalidate");
+Astro.response.headers.set(
+  "Vercel-CDN-Cache-Control",
+  "s-maxage=300, stale-while-revalidate=86400",
+);
+---
+
+<FilmsFilter {...filmsFilterProps} client:load />

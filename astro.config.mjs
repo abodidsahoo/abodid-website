@@ -34,15 +34,25 @@ const excludedSitemapPathPatterns = [
   /^\/july-backup\/?$/,
 ];
 
+/** @param {string} page */
 const shouldIncludeInSitemap = (page) => {
   const pathname = new URL(page).pathname;
   return !excludedSitemapPathPatterns.some((pattern) => pattern.test(pathname));
 };
 
+const isDevelopmentServer = process.argv.includes('dev');
+
 // https://astro.build/config
 export default defineConfig({
   output: 'server',
   adapter: vercel(),
+  // In development, accept the alternate form long enough for project
+  // middleware to issue the same 308 redirect generated for production.
+  trailingSlash: isDevelopmentServer ? 'ignore' : 'never',
+  prefetch: {
+    prefetchAll: true,
+    defaultStrategy: 'hover',
+  },
   integrations: [
     react(),
     sitemap({

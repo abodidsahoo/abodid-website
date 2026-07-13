@@ -1,4 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
+import {
+    getOptimizedImageSrcSet,
+    getOptimizedImageUrl,
+} from '../lib/imageOptimization.js';
 
 const FilmsFilter = ({ items }) => {
     const [activeTag, setActiveTag] = useState('All');
@@ -125,10 +129,19 @@ const FilmsFilter = ({ items }) => {
                         >
                             {film.image ? (
                                 <img
-                                    src={film.image}
+                                    src={getOptimizedImageUrl(film.image, { width: 1200, quality: 74 })}
+                                    srcSet={getOptimizedImageSrcSet(film.image, {
+                                        widths: [480, 800, 1200],
+                                        quality: 74,
+                                    })}
+                                    sizes="(max-width: 768px) calc(100vw - 36px), 1052px"
                                     alt={film.title}
                                     className="film-thumbnail"
-                                    loading="lazy"
+                                    loading={index === 0 ? 'eager' : 'lazy'}
+                                    fetchpriority={index === 0 ? 'high' : 'auto'}
+                                    decoding="async"
+                                    width="1280"
+                                    height="720"
                                 />
                             ) : (
                                 <div className="film-placeholder" />
@@ -219,6 +232,11 @@ const FilmsFilter = ({ items }) => {
                     gap: 1.5rem;
                     opacity: 0;
                     animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+                }
+
+                .film-card:first-child {
+                    opacity: 1;
+                    animation: none;
                 }
 
                 /* Client animation for React re-renders */

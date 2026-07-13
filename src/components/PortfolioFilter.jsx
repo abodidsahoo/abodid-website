@@ -1,4 +1,8 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
+import {
+    getOptimizedImageSrcSet,
+    getOptimizedImageUrl,
+} from '../lib/imageOptimization.js';
 
 const PortfolioFilter = ({ items }) => {
     const [activeTag, setActiveTag] = useState('All');
@@ -93,11 +97,18 @@ const PortfolioFilter = ({ items }) => {
                             onMouseLeave={handleMouseLeave}
                         >
                             <img
-                                src={item.image}
+                                src={getOptimizedImageUrl(item.image, { width: 1200, quality: 74 })}
+                                srcSet={getOptimizedImageSrcSet(item.image, {
+                                    widths: [480, 800, 1200],
+                                    quality: 74,
+                                })}
+                                sizes="(max-width: 599px) calc(100vw - 36px), (max-width: 1024px) 50vw, 1052px"
                                 alt={item.title}
-                                loading={index < 2 ? 'eager' : 'lazy'}
+                                loading={index === 0 ? 'eager' : 'lazy'}
                                 fetchpriority={index === 0 ? 'high' : 'auto'}
                                 decoding="async"
+                                width="1200"
+                                height="675"
                             />
                         </div>
                         <div className="content">

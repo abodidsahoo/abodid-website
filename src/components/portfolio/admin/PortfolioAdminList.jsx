@@ -25,7 +25,7 @@ function ProjectRow({ project, disabled }) {
   );
 }
 
-export default function PortfolioAdminList() {
+export default function PortfolioAdminList({ embedded = false }) {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -39,7 +39,10 @@ export default function PortfolioAdminList() {
     setLoading(true); setError("");
     try { setProjects(await listAdminProjects()); }
     catch (err) {
-      if (err.message === "ADMIN_AUTH_REQUIRED") window.location.href = "/admin/login?next=/admin/projects";
+      if (err.message === "ADMIN_AUTH_REQUIRED") {
+        const next = embedded ? "/admin/dashboard?section=portfolio_projects" : "/admin/projects";
+        window.location.href = `/admin/login?next=${encodeURIComponent(next)}`;
+      }
       else setError(err.message || "Could not load portfolio projects.");
     } finally { setLoading(false); }
   };
@@ -77,10 +80,10 @@ export default function PortfolioAdminList() {
   };
 
   return (
-    <div className="portfolio-admin-page" onClick={onClick}>
+    <div className={`portfolio-admin-page ${embedded ? "is-embedded" : ""}`} onClick={onClick}>
       <header className="portfolio-admin-list-header">
-        <div><a href="/admin/dashboard" className="admin-eyebrow">← Admin home</a><h1>Portfolio projects</h1><p>Draft safely, publish deliberately, and control the order of the public Work grid.</p></div>
-        <div className="header-actions"><a href="/work" target="_blank">View public Work ↗</a><button type="button" className="primary-button" onClick={onCreate} disabled={creating}>{creating ? "Creating…" : "+ Add Project"}</button></div>
+        <div>{!embedded && <a href="/admin/dashboard" className="admin-eyebrow">← Admin home</a>}<h1>Portfolio projects</h1><p>Draft safely, publish deliberately, and control the order of the public Work grid.</p></div>
+        <div className="header-actions"><a href="/work" target="_blank" rel="noreferrer">View public Work ↗</a><button type="button" className="primary-button" onClick={onCreate} disabled={creating}>{creating ? "Creating…" : "+ Add Project"}</button></div>
       </header>
       <section className="portfolio-admin-toolbar">
         <label><span className="sr-only">Search projects</span><input type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search title, organisation, collaborator or role" /></label>

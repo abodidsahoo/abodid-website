@@ -1,5 +1,8 @@
+import { getCanonicalPageUrl } from "./urlNormalization.js";
+
 const SITE_URL = "https://abodid.com";
 const PERSON_ID = `${SITE_URL}/#abodid-sahoo`;
+const siteUrlForPath = (path: string) => getCanonicalPageUrl(SITE_URL, path);
 
 export const externalProfiles = {
     rca2023: "https://2023.rca.ac.uk/students/abodid-sahoo/",
@@ -88,8 +91,8 @@ export const websiteJsonLd = () => ({
 export const profilePageJsonLd = (path: string, description: string) => ({
     "@context": "https://schema.org",
     "@type": "ProfilePage",
-    "@id": `${seoIdentity.siteUrl}${path}#profile`,
-    url: `${seoIdentity.siteUrl}${path}`,
+    "@id": `${siteUrlForPath(path)}#profile`,
+    url: siteUrlForPath(path),
     name: `${seoIdentity.name} - Profile`,
     description,
     mainEntity: {
@@ -110,8 +113,8 @@ export const serviceJsonLd = ({
 }) => ({
     "@context": "https://schema.org",
     "@type": "Service",
-    "@id": `${seoIdentity.siteUrl}${path}#service`,
-    url: `${seoIdentity.siteUrl}${path}`,
+    "@id": `${siteUrlForPath(path)}#service`,
+    url: siteUrlForPath(path),
     name,
     description,
     serviceType,
@@ -121,7 +124,7 @@ export const serviceJsonLd = ({
     areaServed: ["India", "United Kingdom", "Remote"],
     availableChannel: {
         "@type": "ServiceChannel",
-        serviceUrl: `${seoIdentity.siteUrl}/contact/`,
+        serviceUrl: siteUrlForPath("/contact"),
         servicePhone: [seoIdentity.indiaPhone, seoIdentity.ukPhone],
         serviceSmsNumber: seoIdentity.indiaPhone,
     },
@@ -142,8 +145,8 @@ export const courseJsonLd = ({
 }) => ({
     "@context": "https://schema.org",
     "@type": "Course",
-    "@id": `${seoIdentity.siteUrl}${path}#course`,
-    url: `${seoIdentity.siteUrl}${path}`,
+    "@id": `${siteUrlForPath(path)}#course`,
+    url: siteUrlForPath(path),
     name,
     description,
     provider: {
@@ -154,7 +157,7 @@ export const courseJsonLd = ({
         price,
         priceCurrency: currency,
         availability: "https://schema.org/InStock",
-        url: `${seoIdentity.siteUrl}${path}`,
+        url: siteUrlForPath(path),
     },
     educationalLevel: [
         "Masters students",
@@ -181,6 +184,6 @@ export const breadcrumbJsonLd = (
         "@type": "ListItem",
         position: index + 1,
         name: item.name,
-        item: `${seoIdentity.siteUrl}${item.path}`,
+        item: siteUrlForPath(item.path),
     })),
 });

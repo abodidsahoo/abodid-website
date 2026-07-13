@@ -563,7 +563,7 @@ function PortfolioEditorContent({ projectId }) {
   const projectList = useMemo(() => projects.filter((item) => (item.draft?.title || "").toLowerCase().includes(projectSearch.toLowerCase())), [projectSearch, projects]);
   const validation = draft ? validateProjectForPublish(draft) : [];
   if (loading) return <div className="admin-loading full-screen">Loading project editor…</div>;
-  if (!draft || !project) return <div className="portfolio-admin-page"><div className="admin-notice error">{error || "Project not found."}</div><a href="/admin/projects">Back to projects</a></div>;
+  if (!draft || !project) return <div className="portfolio-admin-page"><div className="admin-notice error">{error || "Project not found."}</div><a href="/admin/dashboard?section=portfolio_projects">Back to projects</a></div>;
 
   return <div className="portfolio-editor-shell">
     {/* Upload overlay — sits at z-index 2000 (above the preview modal at 1000) and
@@ -604,7 +604,7 @@ function PortfolioEditorContent({ projectId }) {
       </div>
     )}
     <header className="portfolio-editor-topbar">
-      <div className="topbar-left"><a className="admin-back-button" href="/admin/dashboard" onClick={(event) => navigateWithUnsavedCheck(event, "/admin/dashboard")}><span aria-hidden="true">←</span> Back to admin panel</a></div>
+      <div className="topbar-left"><a className="admin-back-button" href="/admin/dashboard?section=portfolio_projects" onClick={(event) => navigateWithUnsavedCheck(event, "/admin/dashboard?section=portfolio_projects")}><span aria-hidden="true">←</span> Back to projects</a></div>
       <div className="topbar-main-actions">
         <button type="button" className="responsive-preview-button" onClick={openPreview} disabled={uploading}>Responsive preview</button>
         <div className={`save-state ${saveState.toLowerCase().replaceAll(" ", "-")}`}>{saveState}</div>

@@ -1,0 +1,256 @@
+<div
+  class="route-loading-overlay"
+  data-route-loading-overlay
+  role="status"
+  aria-live="polite"
+  aria-hidden="true"
+>
+  <span class="route-loading-status">Opening page</span>
+  <div class="route-loading-fallback-track" aria-hidden="true">
+    <span data-route-loading-fallback-bar></span>
+  </div>
+</div>
+
+<script is:inline>
+  (() => {
+    const overlay = document.querySelector("[data-route-loading-overlay]");
+    const fallbackBar = overlay?.querySelector("[data-route-loading-fallback-bar]");
+    let resetTimer = 0;
+    let animationFrame = 0;
+    let activeBar = null;
+
+    if (!overlay) return;
+
+    const clamp = (value, min = 0, max = 1) =>
+      Math.min(Math.max(value, min), max);
+
+    const getScrollProgress = () => {
+      const doc = document.documentElement;
+      const maxScroll = Math.max(doc.scrollHeight - doc.clientHeight, 0);
+      return maxScroll > 0 ? clamp(window.scrollY / maxScroll) : 0;
+    };
+
+    const setProgress = (bar, value) => {
+      // One scale unit is 100%; three decimals gives us exact 0.1% detailing.
+      const detailedValue = Math.round(clamp(value) * 1000) / 1000;
+      bar.style.transform = `scaleX(${detailedValue})`;
+    };
+
+    const easeOutCubic = (value) => 1 - Math.pow(1 - value, 3);
+    const easeInOutSine = (value) => -(Math.cos(Math.PI * value) - 1) / 2;
+    const easeInCompound = (value) => {
+      const intensity = 2.2;
+      return (Math.exp(intensity * value) - 1) / (Math.exp(intensity) - 1);
+    };
+    const mix = (from, to, amount) => from + (to - from) * amount;
+
+    const startProgressAnimation = () => {
+      activeBar = document.querySelector(".top-menu-scroll-bar") || fallbackBar;
+      if (!activeBar) return;
+
+      const startedAt = performance.now();
+      const startingProgress = 0;
+      const firstTarget = 0.2;
+      const middleTarget = 0.4;
+      const finalTarget = 1;
+
+      setProgress(activeBar, startingProgress);
+
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        setProgress(activeBar, finalTarget);
+        return;
+      }
+
+      const update = (now) => {
+        const elapsed = now - startedAt;
+        let nextProgress;
+
+        if (elapsed <= 180) {
+          nextProgress = mix(
+            startingProgress,
+            firstTarget,
+            easeOutCubic(elapsed / 180),
+          );
+        } else if (elapsed <= 600) {
+          nextProgress = mix(
+            firstTarget,
+            middleTarget,
+            easeInOutSine((elapsed - 180) / 420),
+          );
+        } else if (elapsed <= 1450) {
+          nextProgress = mix(
+            middleTarget,
+            finalTarget,
+            easeInCompound((elapsed - 600) / 850),
+          );
+        } else {
+          setProgress(activeBar, finalTarget);
+          animationFrame = 0;
+          return;
+        }
+
+        setProgress(activeBar, nextProgress);
+        animationFrame = window.requestAnimationFrame(update);
+      };
+
+      animationFrame = window.requestAnimationFrame(update);
+    };
+
+    const reset = () => {
+      window.clearTimeout(resetTimer);
+      window.cancelAnimationFrame(animationFrame);
+      animationFrame = 0;
+      document.documentElement.removeAttribute("data-route-loading");
+      overlay.setAttribute("aria-hidden", "true");
+
+      if (activeBar) {
+        setProgress(activeBar, activeBar === fallbackBar ? 0 : getScrollProgress());
+        activeBar = null;
+      }
+    };
+
+    const getEligibleLink = (event) => {
+      if (!(event.target instanceof Element)) return null;
+      if (event.button !== undefined && event.button !== 0) return null;
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return null;
+
+      const link = event.target.closest("a[href]");
+      if (!link || link.hasAttribute("download")) return null;
+      if (link.target && link.target !== "_self") return null;
+      if (link.hasAttribute("data-no-route-loading")) return null;
+
+      let destination;
+      try {
+        destination = new URL(link.href, window.location.href);
+      } catch (_error) {
+        return null;
+      }
+
+      if (destination.origin !== window.location.origin) return null;
+      if (!/^https?:$/.test(destination.protocol)) return null;
+      if (destination.pathname.startsWith("/api/")) return null;
+      if (/\.(?:pdf|jpe?g|png|gif|webp|svg|mp4|webm|zip)$/i.test(destination.pathname)) return null;
+
+      const sameDocument =
+        destination.pathname === window.location.pathname &&
+        destination.search === window.location.search;
+      if (sameDocument) return null;
+
+      return true;
+    };
+
+    const show = () => {
+      if (document.documentElement.getAttribute("data-route-loading") === "true") return;
+
+      document.documentElement.setAttribute("data-route-loading", "true");
+      overlay.setAttribute("aria-hidden", "false");
+      startProgressAnimation();
+
+      window.clearTimeout(resetTimer);
+      resetTimer = window.setTimeout(reset, 5000);
+    };
+
+    document.addEventListener(
+      "pointerdown",
+      (event) => {
+        if (getEligibleLink(event)) show();
+      },
+      { capture: true },
+    );
+
+    document.addEventListener(
+      "click",
+      (event) => {
+        if (getEligibleLink(event)) show();
+      },
+      { capture: true },
+    );
+
+    document.addEventListener("pointercancel", reset, { capture: true });
+    window.addEventListener("pageshow", reset);
+  })();
+</script>
+
+<style is:global>
+  .route-loading-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10007;
+    background: color-mix(in srgb, var(--bg-canvas, #040404) 16%, transparent);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+      opacity 180ms ease-out,
+      visibility 0s linear 200ms;
+  }
+
+  html[data-route-loading="true"] .route-loading-overlay {
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0s;
+  }
+
+  html[data-route-loading="true"],
+  html[data-route-loading="true"] body {
+    cursor: progress;
+  }
+
+  .route-loading-status {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .route-loading-fallback-track {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--text-primary, #fff) 8%, transparent);
+  }
+
+  .route-loading-fallback-track span {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: var(--color-brand-red, #a30021);
+    transform: scaleX(0);
+    transform-origin: left center;
+    will-change: transform;
+  }
+
+  body[data-navigation-layout="top-bar"] .route-loading-fallback-track {
+    display: none;
+  }
+
+  .top-menu-scroll-bar {
+    transition:
+      background-color 120ms ease-out,
+      box-shadow 120ms ease-out;
+  }
+
+  html[data-route-loading="true"] .top-menu-scroll-bar {
+    background: var(--color-brand-red, #a30021) !important;
+    box-shadow: 0 0 8px color-mix(in srgb, var(--color-brand-red, #a30021) 42%, transparent);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .route-loading-overlay {
+      transition: none;
+    }
+
+    .top-menu-scroll-bar {
+      transition: none;
+    }
+  }
+</style>

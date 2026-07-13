@@ -20,6 +20,7 @@ const secondaryGroups = [
     title: "Resources",
     links: [
       { href: "/resources", label: "Curated Resources" },
+      { href: "/ideas", label: "Ideas Board" },
       { href: "/bsa-schedule", label: "BSA Conference" },
       { href: "/moodboard", label: "Visual Moodboard" },
       { href: "/research/obsidian-vault", label: "Obsidian Vault" },
@@ -427,7 +428,12 @@ const SideMenuRail = ({
             color: #ffffff;
           }
 
-          .top-menu-shell > * {
+          /*
+           * React's server renderer escapes the child combinator inside an
+           * inline style string (">" becomes "&gt;"), so the old selector
+           * did not reliably restore interaction after the shell disabled it.
+           */
+          .top-menu-bar {
             pointer-events: auto;
           }
 
@@ -529,6 +535,7 @@ const SideMenuRail = ({
           .top-menu-primary-link {
             color: rgba(255, 255, 255, 0.78);
             text-decoration: none;
+            cursor: pointer;
             font-family: var(--font-ui);
             font-size: clamp(0.98rem, 0.9vw, 1.08rem);
             font-weight: 420;
@@ -1130,7 +1137,9 @@ const SideMenuRail = ({
           pointer-events: none;
         }
 
-        .side-menu-shell > * {
+        .side-menu-rail,
+        .side-menu-backdrop,
+        .side-menu-panel {
           pointer-events: auto;
         }
 
@@ -1482,7 +1491,8 @@ const SideMenuRail = ({
             pointer-events: none;
           }
 
-          .mobile-nav-shell > * {
+          .mobile-topbar,
+          .mobile-breadcrumb-bar {
             pointer-events: auto;
           }
 
@@ -1510,6 +1520,7 @@ const SideMenuRail = ({
             justify-content: center;
             min-width: 0;
             text-decoration: none;
+            cursor: pointer;
           }
 
           .mobile-logo-img {

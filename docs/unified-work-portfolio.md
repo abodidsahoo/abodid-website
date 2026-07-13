@@ -7,7 +7,7 @@ This feature adds a project-first Work portfolio and a controlled portfolio CMS.
 - `/work` - responsive, two-column published project index with strict AND filters and shareable query-string state.
 - `/work/[slug]` - currently published project snapshot rendered with the shared block renderer.
 - `/work-sitemap.xml` - published, search-visible Work URLs.
-- `/admin/projects` - project list, search, lifecycle filters, archive action and drag ordering.
+- `/admin/dashboard?section=portfolio_projects` - project list, search, lifecycle filters, archive action and drag ordering inside the shared admin panel. The legacy `/admin/projects` URL redirects here.
 - `/admin/projects/new` - creates a private first draft.
 - `/admin/projects/[slug]` - desktop editor, properties, preview, explicit draft saving, publishing and version recovery. Legacy UUID URLs resolve and are replaced with the canonical slug URL.
 

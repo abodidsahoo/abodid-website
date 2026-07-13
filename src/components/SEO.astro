@@ -10,6 +10,8 @@ export interface Props {
     structuredData?: Record<string, unknown> | Record<string, unknown>[];
 }
 
+import { getCanonicalPageUrl } from "../lib/urlNormalization.js";
+
 const {
     title,
     description = "Abodid Sahoo is a creative technologist, photographer, filmmaker, researcher, and tutor available for consulting, workshops, Obsidian tutoring, and visual storytelling.",
@@ -22,7 +24,10 @@ const {
 } = Astro.props;
 
 const siteName = "Abodid Sahoo";
-const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+const canonicalURL = getCanonicalPageUrl(
+    Astro.site?.toString() || Astro.url.origin,
+    Astro.url.pathname,
+);
 const resolvedImage = image ? new URL(image, Astro.site).toString() : undefined;
 const formatTitle = (value?: string) => {
     const trimmedTitle = value?.trim();
@@ -63,7 +68,7 @@ const serializeJsonLd = (item: Record<string, unknown>) =>
 
 <!-- Open Graph / Facebook -->
 <meta property="og:type" content={type} />
-<meta property="og:url" content={Astro.url} />
+<meta property="og:url" content={canonicalURL} />
 <meta property="og:title" content={formattedTitle} />
 <meta property="og:description" content={description} />
 <meta property="og:image" content={ogImage} />
@@ -71,7 +76,7 @@ const serializeJsonLd = (item: Record<string, unknown>) =>
 
 <!-- Twitter -->
 <meta property="twitter:card" content="summary_large_image" />
-<meta property="twitter:url" content={Astro.url} />
+<meta property="twitter:url" content={canonicalURL} />
 <meta property="twitter:title" content={formattedTitle} />
 <meta property="twitter:description" content={description} />
 <meta property="twitter:image" content={ogImage} />

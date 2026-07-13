@@ -1,5 +1,4 @@
 ---
-export const prerender = true;
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import BlogFilter from "../../components/BlogFilter.jsx";
 import { getAllPosts } from "../../lib/api";
@@ -13,7 +12,7 @@ const structuredData = [
   personJsonLd(),
   breadcrumbJsonLd([
     { name: "Home", path: "/" },
-    { name: "Blog", path: "/blog/" },
+    { name: "Blog", path: "/blog" },
   ]),
 ];
 ---

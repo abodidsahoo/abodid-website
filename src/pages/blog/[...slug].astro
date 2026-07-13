@@ -44,8 +44,8 @@ const structuredData = [
   personJsonLd(),
   breadcrumbJsonLd([
     { name: "Home", path: "/" },
-    { name: "Blog", path: "/blog/" },
-    { name: post.title, path: postHref.endsWith("/") ? postHref : `${postHref}/` },
+    { name: "Blog", path: "/blog" },
+    { name: post.title, path: postHref === "/" ? postHref : postHref.replace(/\/+$/, "") },
   ]),
   {
     "@context": "https://schema.org",

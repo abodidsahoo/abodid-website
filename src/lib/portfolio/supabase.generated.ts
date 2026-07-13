@@ -858,38 +858,47 @@ export type Database = {
       page_metadata: {
         Row: {
           created_at: string | null
+          focus_keyword: string | null
           id: string
           is_active: boolean | null
           meta_description: string | null
           meta_title: string | null
+          og_image_alt: string | null
           og_image_url: string | null
           og_type: string | null
           page_path: string
           page_title: string
+          robots_index: boolean
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
+          focus_keyword?: string | null
           id?: string
           is_active?: boolean | null
           meta_description?: string | null
           meta_title?: string | null
+          og_image_alt?: string | null
           og_image_url?: string | null
           og_type?: string | null
           page_path: string
           page_title: string
+          robots_index?: boolean
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
+          focus_keyword?: string | null
           id?: string
           is_active?: boolean | null
           meta_description?: string | null
           meta_title?: string | null
+          og_image_alt?: string | null
           og_image_url?: string | null
           og_type?: string | null
           page_path?: string
           page_title?: string
+          robots_index?: boolean
           updated_at?: string | null
         }
         Relationships: []

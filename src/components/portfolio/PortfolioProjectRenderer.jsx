@@ -1,5 +1,6 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { isExternalPortfolioHref, normalizePortfolioHref } from "../../lib/portfolio/schema";
+import { getOptimizedImageSrcSet, getOptimizedImageUrl } from "../../lib/imageOptimization.js";
 import "../../styles/portfolio.css";
 import "../../styles/layout-preview.css";
 
@@ -10,6 +11,35 @@ function safeHref(value) {
 const externalLinkProps = (href) => isExternalPortfolioHref(href)
   ? { target: "_blank", rel: "noopener noreferrer" }
   : {};
+
+function OptimizedImage({ src, widths = [480, 800, 1200, 1600], quality = 76, sizes = "100vw", ...props }) {
+  const fallbackWidth = Math.max(...widths);
+  return (
+    <img
+      {...props}
+      src={getOptimizedImageUrl(src, { width: fallbackWidth, quality })}
+      srcSet={getOptimizedImageSrcSet(src, { widths, quality })}
+      sizes={sizes}
+    />
+  );
+}
+
+function ProjectCoverImage({ project }) {
+  return (
+    <OptimizedImage
+      src={project.coverUrl}
+      widths={[480, 800, 1200, 1600]}
+      quality={74}
+      sizes="(max-width: 760px) 100vw, 1200px"
+      alt={project.coverAlt || ""}
+      loading="lazy"
+      decoding="async"
+      width="1600"
+      height="900"
+      style={{ objectPosition: `${project.coverFocalX ?? 50}% ${project.coverFocalY ?? 50}%` }}
+    />
+  );
+}
 
 function inlineMarkup(text = "") {
   const pattern = /(\*\*[^*]+\*\*|\*[^*]+\*|\[[^\]]+\]\([^)]+\))/g;
@@ -164,7 +194,18 @@ function VideoEmbed({ content }) {
     <>
       <figure className="pf-video-figure">
         <button type="button" className="pf-video-thumb" onClick={() => setOpen(true)} aria-label={`Play video${content.caption ? `: ${content.caption}` : ""}`}>
-          {poster && <img src={poster} alt="" className="pf-video-poster" loading="lazy" />}
+          {poster && <OptimizedImage
+            src={poster}
+            widths={[480, 800, 1200]}
+            quality={74}
+            sizes="(max-width: 760px) 100vw, 960px"
+            alt=""
+            className="pf-video-poster"
+            loading="lazy"
+            decoding="async"
+            width="1280"
+            height="720"
+          />}
           {!poster && <div className="pf-video-poster pf-video-poster--empty" />}
           <span className="pf-play-btn" aria-hidden="true">
             <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="30" cy="30" r="29" stroke="white" strokeOpacity="0.5" strokeWidth="1"/><path d="M24 20.5L42 30L24 39.5V20.5Z" fill="white"/></svg>
@@ -177,21 +218,18 @@ function VideoEmbed({ content }) {
   );
 }
 
-function yearLabel(project) {
-  if (!project.yearStart) return "";
-  return project.yearEnd && project.yearEnd !== project.yearStart
-    ? `${project.yearStart}-${project.yearEnd}`
-    : String(project.yearStart);
-}
-
 function ImageFigure({ media, fit = "cover", onOpen, index }) {
   if (!media?.url) return null;
   const style = { objectPosition: `${media.focalX ?? 50}% ${media.focalY ?? 50}%`, objectFit: fit };
   const image = (
-    <img
+    <OptimizedImage
       src={media.url}
+      widths={[480, 800, 1200, 1600]}
+      quality={76}
+      sizes="(max-width: 760px) 100vw, 1200px"
       alt={media.decorative ? "" : media.alt || ""}
       loading="lazy"
+      decoding="async"
       width={media.width || undefined}
       height={media.height || undefined}
       style={style}
@@ -274,7 +312,14 @@ function Lightbox({ media, index, onIndex, onClose }) {
             </button>
           )}
           <figure className="lightbox-figure">
-            <img src={current.url} alt={current.decorative ? "" : current.alt || ""} />
+            <OptimizedImage
+              src={current.url}
+              widths={[800, 1200, 1600, 2000]}
+              quality={84}
+              sizes="100vw"
+              alt={current.decorative ? "" : current.alt || ""}
+              decoding="async"
+            />
             {(current.caption || current.alt) && (
               <figcaption>{current.caption || current.alt}</figcaption>
             )}
@@ -301,14 +346,14 @@ function GalleryCover({ mediaList, fit, onOpen, coverRef }) {
       {/* Stack layer 2 — third image, furthest back */}
       {count >= 3 && (
         <div className="gallery-stack gallery-stack-2" aria-hidden="true">
-          <img src={mediaList[2].url} alt="" loading="lazy"
+          <OptimizedImage src={mediaList[2].url} widths={[480, 800]} quality={74} sizes="(max-width: 760px) 100vw, 800px" alt="" loading="lazy" decoding="async"
             style={{ objectFit: fit || "cover", objectPosition: objectPos(mediaList[2]) }} />
         </div>
       )}
       {/* Stack layer 1 — second image, middle */}
       {count >= 2 && (
         <div className="gallery-stack gallery-stack-1" aria-hidden="true">
-          <img src={mediaList[1].url} alt="" loading="lazy"
+          <OptimizedImage src={mediaList[1].url} widths={[480, 800]} quality={74} sizes="(max-width: 760px) 100vw, 800px" alt="" loading="lazy" decoding="async"
             style={{ objectFit: fit || "cover", objectPosition: objectPos(mediaList[1]) }} />
         </div>
       )}
@@ -319,10 +364,14 @@ function GalleryCover({ mediaList, fit, onOpen, coverRef }) {
         onClick={() => onOpen(0)}
         aria-label={`Open gallery with ${count} image${count === 1 ? "" : "s"}`}
       >
-        <img
+        <OptimizedImage
           src={cover.url}
+          widths={[480, 800, 1200]}
+          quality={76}
+          sizes="(max-width: 760px) 100vw, 960px"
           alt={cover.decorative ? "" : cover.alt || ""}
           loading="lazy"
+          decoding="async"
           className="gallery-cover-img"
           style={{ objectFit: fit || "cover", objectPosition: objectPos(cover) }}
         />
@@ -423,7 +472,7 @@ function Block({ block }) {
   );
 }
 
-export default function PortfolioProjectRenderer({ project, preview = false }) {
+export default function PortfolioProjectRenderer({ project }) {
   const layoutStyleId = project.layoutStyle || 1;
   const layout = LAYOUTS.find(l => l.id === layoutStyleId) || LAYOUTS[0];
   const Component = layout.Component;
@@ -511,7 +560,7 @@ function L1({ p }) {
       </header>
       {p.coverUrl && (
         <figure className="l1-cover">
-          <img src={p.coverUrl} alt={p.coverAlt || ""} style={{ objectPosition: `${p.coverFocalX ?? 50}% ${p.coverFocalY ?? 50}%` }} />
+          <ProjectCoverImage project={p} />
         </figure>
       )}
       <Body p={p} className="l1-body" skipContext={true} />
@@ -528,7 +577,7 @@ function L3({ p }) {
       </header>
       {p.coverUrl && (
         <figure className="l3-cover-wide">
-          <img src={p.coverUrl} alt={p.coverAlt || ""} style={{ objectPosition: `${p.coverFocalX ?? 50}% ${p.coverFocalY ?? 50}%` }} />
+          <ProjectCoverImage project={p} />
         </figure>
       )}
       <div className="l3-columns">
@@ -575,7 +624,7 @@ function L4({ p }) {
           </div>
         </div>
         <div className="l4-image-side">
-          {p.coverUrl && <img src={p.coverUrl} alt={p.coverAlt || ""} style={{ objectPosition: `${p.coverFocalX ?? 50}% ${p.coverFocalY ?? 50}%` }} />}
+          {p.coverUrl && <ProjectCoverImage project={p} />}
         </div>
       </div>
       <Body p={p} className="l4-body" skipContext={true} />
@@ -599,7 +648,7 @@ function L6({ p }) {
       </header>
       {p.coverUrl && (
         <figure className="l6-cover">
-          <img src={p.coverUrl} alt={p.coverAlt || ""} style={{ objectPosition: `${p.coverFocalX ?? 50}% ${p.coverFocalY ?? 50}%` }} />
+          <ProjectCoverImage project={p} />
         </figure>
       )}
       <div className="l6-statement-wrap">
@@ -633,7 +682,7 @@ function L7({ p }) {
       </div>
       {p.coverUrl && (
         <figure className="l7-cover">
-          <img src={p.coverUrl} alt={p.coverAlt || ""} style={{ objectPosition: `${p.coverFocalX ?? 50}% ${p.coverFocalY ?? 50}%` }} />
+          <ProjectCoverImage project={p} />
         </figure>
       )}
       <Body p={p} className="l7-body" />

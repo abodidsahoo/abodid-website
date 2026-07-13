@@ -24,17 +24,17 @@ const structuredData = [
     personJsonLd(),
     breadcrumbJsonLd([
         { name: "Home", path: "/" },
-        { name: "Workshops", path: "/workshops/" },
-        { name: "Obsidian for Deep Research", path: "/workshops/obsidian/" },
+        { name: "Workshops", path: "/workshops" },
+        { name: "Obsidian for Deep Research", path: "/workshops/obsidian" },
     ]),
     courseJsonLd({
-        path: "/workshops/obsidian/",
+        path: "/workshops/obsidian",
         name: pageTitle,
         description,
         price: "15000",
     }),
     serviceJsonLd({
-        path: "/workshops/obsidian/",
+        path: "/workshops/obsidian",
         name: "Obsidian for Deep Research Workshop",
         description,
         serviceType: "Obsidian course, research workflow tutoring, and second brain training",

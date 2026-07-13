@@ -8,6 +8,15 @@ import ContentEditor from "../../components/admin/ContentEditor.jsx";
 const table = Astro.url.searchParams.get("table");
 const id = Astro.url.searchParams.get("id");
 
+// Page SEO now has one authoritative editor inside the dashboard.
+if (table === "page_metadata") {
+  return Astro.redirect(
+    `/admin/dashboard?section=page_metadata${
+      id && id !== "new" ? `&edit=${encodeURIComponent(id)}` : ""
+    }`,
+  );
+}
+
 // Redirect if missing params
 if (!table || !id) {
   return Astro.redirect("/admin/dashboard");

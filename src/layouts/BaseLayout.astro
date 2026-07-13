@@ -7,7 +7,12 @@ import Footer from "../components/Footer.astro";
 import SEO from "../components/SEO.astro";
 import NewsletterPopup from "../components/NewsletterPopup.jsx";
 import MagneticCursorFollower from "../components/MagneticCursorFollower.jsx";
+import RouteLoadingOverlay from "../components/RouteLoadingOverlay.astro";
 import { getPageMetadata } from "../lib/api";
+import {
+  createWebPageStructuredData,
+  resolvePageSeo,
+} from "../lib/seoMetadata.js";
 import {
   ACTIVE_NAVIGATION_LAYOUT,
   ACTIVE_POINTER_VARIANT,
@@ -38,8 +43,8 @@ const {
   navigationLayout = ACTIVE_NAVIGATION_LAYOUT,
   pointerVariant = ACTIVE_POINTER_VARIANT,
   gridVariant = "default",
+  analyticsProjectId = null,
 } = Astro.props;
-import NoiseOverlay from "../components/NoiseOverlay.jsx";
 const activeNavigationLayout =
   navigationLayout === NAVIGATION_LAYOUTS.leftRail.id
     ? NAVIGATION_LAYOUTS.leftRail.id
@@ -59,7 +64,8 @@ const showFloatingHeader =
   !hideHeader &&
   (activeNavigationLayout === NAVIGATION_LAYOUTS.leftRail.id || hideSideMenuRail);
 
-// Fetch metadata from database if not provided via props
+// Resolve one authoritative SEO object. A published admin override wins,
+// followed by the page's own defaults.
 const pagePath = Astro.url.pathname;
 const internalNoindexPatterns = [
   /^\/admin(?:\/|$)/,
@@ -82,13 +88,30 @@ const internalNoindexPatterns = [
   /^\/resources\/saved\/?$/,
   /^\/resources\/.*\/edit\/?$/,
 ];
-const finalNoindex =
-  noindex ?? internalNoindexPatterns.some((pattern) => pattern.test(pagePath));
 const dbMetadata = await getPageMetadata(pagePath);
-const finalTitle = title || dbMetadata?.meta_title || dbMetadata?.page_title;
-const finalDescription = description || dbMetadata?.meta_description;
-const finalImage = image || dbMetadata?.og_image_url;
-const finalType = type || dbMetadata?.og_type || "website";
+const resolvedSeo = resolvePageSeo({
+  metadata: dbMetadata,
+  defaults: { title, description, image, imageAlt, type },
+});
+const finalOgType = resolvedSeo.type === "article" ? "article" : "website";
+const finalNoindex =
+  internalNoindexPatterns.some((pattern) => pattern.test(pagePath)) ||
+  noindex === true ||
+  resolvedSeo.noindex;
+const automaticStructuredData = dbMetadata
+  ? createWebPageStructuredData({
+      pagePath,
+      title: resolvedSeo.title,
+      description: resolvedSeo.description,
+      focusKeyword: resolvedSeo.focusKeyword,
+    })
+  : undefined;
+const finalStructuredData = structuredData || automaticStructuredData;
+const finalUseDynamicOgImage = resolvedSeo.hasCustomSocialImage
+  ? false
+  : useDynamicOgImage;
+const googleFontsUrl =
+  "https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300..700;1,300..700&family=Inconsolata:wght@400;700&family=Montserrat:wght@400;500;600;700&family=Pixelify+Sans:wght@400..700&family=Poppins:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&family=VT323&display=swap";
 ---
 
 <html lang="en">
@@ -120,49 +143,18 @@ const finalType = type || dbMetadata?.og_type || "website";
     <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap"
-      rel="stylesheet"
-    />
-
-    <link
-      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
-      rel="stylesheet"
-    />
-
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=swap"
-      rel="stylesheet"
-    />
-
-    <link
-      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-
-    <link
-      href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&display=swap"
-      rel="stylesheet"
-    />
-
-    <link
-      href="https://fonts.googleapis.com/css2?family=VT323&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300..700;1,300..700&display=swap"
-      rel="stylesheet"
-    />
+    <link rel="stylesheet" href={googleFontsUrl} media="print" onload="this.media='all'" />
+    <noscript><link rel="stylesheet" href={googleFontsUrl} /></noscript>
 
     <SEO
-      title={finalTitle}
-      description={finalDescription}
-      image={finalImage}
-      imageAlt={imageAlt}
-      type={finalType}
-      useDynamicOgImage={useDynamicOgImage}
+      title={resolvedSeo.title}
+      description={resolvedSeo.description}
+      image={resolvedSeo.image}
+      imageAlt={resolvedSeo.imageAlt}
+      type={finalOgType}
+      useDynamicOgImage={finalUseDynamicOgImage}
       noindex={finalNoindex}
-      structuredData={structuredData}
+      structuredData={finalStructuredData}
     />
     <!-- Dynamic SEO & Social Images applied -->
     <slot name="head" />
@@ -196,14 +188,16 @@ const finalType = type || dbMetadata?.og_type || "website";
     data-page-path={pagePath}
     data-navigation-layout={activeNavigationLayout}
     data-pointer-variant={renderedPointerVariant}
+    data-analytics-project-id={analyticsProjectId || undefined}
     class={bodyClass}
   >
     <a href="#main-content" class="skip-link">Skip to main content</a>
+    <RouteLoadingOverlay />
     <!-- <Header /> -->
     {showFloatingHeader && <Header hideThemeToggle={hideThemeToggle} altTextLogo={altTextLogo} />}
     {!hideHeader && !hideSideMenuRail && (
       <SideMenuRail
-        client:load
+        client:idle
         layout={activeNavigationLayout}
         hideThemeToggle={hideThemeToggle}
         altTextLogo={altTextLogo}
@@ -217,11 +211,8 @@ const finalType = type || dbMetadata?.og_type || "website";
     >
       <slot />
     </main>
-    {showNewsletterPopup && <NewsletterPopup client:only="react" />}
-    {cursorFollowerEnabled && <MagneticCursorFollower client:load />}
-
-    {/* Global Grain Disabled by default, can be enabled via props if needed */}
-    {/* <NoiseOverlay client:only="react" opacity={0.05} /> */}
+    {showNewsletterPopup && <NewsletterPopup client:idle />}
+    {cursorFollowerEnabled && <MagneticCursorFollower client:idle />}
 
     <script src="/scripts/journey-tracker.js" defer></script>
     {!hideFooter && <Footer />}
@@ -406,9 +397,6 @@ const finalType = type || dbMetadata?.og_type || "website";
         window.location.pathname === "/" ||
         window.location.pathname === "" ||
         window.location.pathname === "/test-landing";
-
-      // Base intensity for all pages
-      let baseIntensity = 1.0;
 
       // If NOT home, maybe we want it slightly less intense?
       // User said "universal pointer", "affect things in this testimonial page".

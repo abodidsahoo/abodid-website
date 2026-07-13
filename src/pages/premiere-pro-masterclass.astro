@@ -1,4 +1,5 @@
 ---
+export const prerender = true;
 import BaseLayout from "../layouts/BaseLayout.astro";
 import {
     breadcrumbJsonLd,
@@ -16,8 +17,8 @@ const contactHref =
 const courseJsonLd = {
     "@context": "https://schema.org",
     "@type": "Course",
-    "@id": `${seoIdentity.siteUrl}/premiere-pro-masterclass/#course`,
-    url: `${seoIdentity.siteUrl}/premiere-pro-masterclass/`,
+    "@id": `${seoIdentity.siteUrl}/premiere-pro-masterclass#course`,
+    url: `${seoIdentity.siteUrl}/premiere-pro-masterclass`,
     name: pageTitle,
     description,
     provider: {
@@ -44,12 +45,12 @@ const structuredData = [
     personJsonLd(),
     breadcrumbJsonLd([
         { name: "Home", path: "/" },
-        { name: "Workshops", path: "/workshops/" },
-        { name: "Premiere Pro Masterclass", path: "/premiere-pro-masterclass/" },
+        { name: "Workshops", path: "/workshops" },
+        { name: "Premiere Pro Masterclass", path: "/premiere-pro-masterclass" },
     ]),
     courseJsonLd,
     serviceJsonLd({
-        path: "/premiere-pro-masterclass/",
+        path: "/premiere-pro-masterclass",
         name: pageTitle,
         description,
         serviceType:

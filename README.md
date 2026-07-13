@@ -9,6 +9,14 @@ This is the repository for my personal website, built with [Astro](https://astro
 - **Vercel**: Deployment and serverless functions.
 - **Tailwind CSS**: Utility-first styling (implied by design).
 
+## Admin analytics
+
+The authenticated admin panel includes privacy-minimised Supabase analytics,
+Chart.js visualisations, visitor journeys, acquisition and country reporting,
+and live updates. See [docs/admin-analytics.md](docs/admin-analytics.md) for the
+database migration, environment variables, role setup, local run instructions,
+and troubleshooting guide.
+
 ## Usage
 
 ### Development

@@ -1,11 +1,4 @@
 ---
 export const prerender = false;
-import AdminLayout from "../../../layouts/AdminLayout.astro";
-import PortfolioAdminList from "../../../components/portfolio/admin/PortfolioAdminList.jsx";
+return Astro.redirect("/admin/dashboard?section=portfolio_projects");
 ---
-
-<AdminLayout title="Portfolio Projects" fullWidth={true}>
-  <div class="portfolio-admin-island-shell">
-    <PortfolioAdminList client:only="react" />
-  </div>
-</AdminLayout>

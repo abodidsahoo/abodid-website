@@ -1,10 +1,9 @@
 ---
-export const prerender = false;
+export const prerender = true;
 import BaseLayout from "../layouts/BaseLayout.astro";
-import VisualMoodboard from "../components/VisualMoodboard.jsx";
-import { getPublishedMoodboardItems } from "../lib/services/moodboard";
+import MoodboardIsland from "../components/MoodboardIsland.astro";
+import ProgressiveContentSkeleton from "../components/ProgressiveContentSkeleton.astro";
 
-const moodboardItems = await getPublishedMoodboardItems();
 const pageTitle = "Visual Moodboard";
 const pageDescription =
     "A moodboard that's not about trends - it's about taste. Floating visual references with tag-based filtering.";
@@ -28,13 +27,14 @@ const pageDescription =
             </p>
         </header>
 
-        <VisualMoodboard
-            client:load
-            items={moodboardItems}
-            enableInfiniteScroll={true}
-            initialVisibleRows={5}
-            rowsPerScrollBatch={2}
-        />
+        <MoodboardIsland server:defer>
+            <ProgressiveContentSkeleton
+                slot="fallback"
+                variant="moodboard"
+                count={9}
+                label="Loading the visual moodboard"
+            />
+        </MoodboardIsland>
 
         <footer class="moodboard-outro">
             <p>

@@ -131,6 +131,14 @@ export interface ResearchPaper extends BaseEntity {
 
 export interface PageMetadata extends BaseEntity {
     page_path: string;
+    page_title: string;
+    meta_title?: string | null;
+    meta_description?: string | null;
+    og_image_url?: string | null;
+    og_image_alt?: string | null;
+    og_type?: string | null;
+    focus_keyword?: string | null;
+    robots_index?: boolean;
     title?: string;
     description?: string;
     image?: string;

@@ -1,0 +1,180 @@
+---
+interface Props {
+  variant?: "work" | "films" | "moodboard" | "default";
+  count?: number;
+  label?: string;
+}
+
+const {
+  variant = "default",
+  count = 6,
+  label = "Loading page content",
+} = Astro.props;
+---
+
+<section
+  class={`progressive-content-skeleton progressive-content-skeleton--${variant}`}
+  aria-label={label}
+  aria-live="polite"
+  aria-busy="true"
+>
+  <span class="sr-only">{label}</span>
+
+  <div class="progressive-content-skeleton__controls" aria-hidden="true">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+
+  <div class="progressive-content-skeleton__grid" aria-hidden="true">
+    {Array.from({ length: count }).map((_, index) => (
+      <article class="progressive-content-skeleton__card" style={`--skeleton-index: ${index}`}>
+        <div class="progressive-content-skeleton__media"></div>
+        <div class="progressive-content-skeleton__body">
+          <span class="progressive-content-skeleton__line progressive-content-skeleton__line--short"></span>
+          <span class="progressive-content-skeleton__line"></span>
+          <span class="progressive-content-skeleton__line progressive-content-skeleton__line--medium"></span>
+        </div>
+      </article>
+    ))}
+  </div>
+</section>
+
+<style>
+  .progressive-content-skeleton {
+    width: 100%;
+    padding: 0 0 5rem;
+  }
+
+  .progressive-content-skeleton__controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    margin: 0 0 2.4rem;
+  }
+
+  .progressive-content-skeleton__controls span {
+    width: 92px;
+    height: 34px;
+    border-radius: 999px;
+  }
+
+  .progressive-content-skeleton__controls span:nth-child(2) {
+    width: 126px;
+  }
+
+  .progressive-content-skeleton__controls span:nth-child(3) {
+    width: 74px;
+  }
+
+  .progressive-content-skeleton__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(2rem, 5vw, 4.5rem) clamp(1rem, 3vw, 2.5rem);
+  }
+
+  .progressive-content-skeleton__card {
+    min-width: 0;
+  }
+
+  .progressive-content-skeleton__media {
+    aspect-ratio: 4 / 3;
+    border-radius: 10px;
+  }
+
+  .progressive-content-skeleton__body {
+    display: grid;
+    gap: 0.7rem;
+    padding-top: 1.2rem;
+  }
+
+  .progressive-content-skeleton__line {
+    width: 88%;
+    height: 11px;
+    border-radius: 999px;
+  }
+
+  .progressive-content-skeleton__line--short {
+    width: 28%;
+    height: 8px;
+  }
+
+  .progressive-content-skeleton__line--medium {
+    width: 62%;
+  }
+
+  .progressive-content-skeleton__controls span,
+  .progressive-content-skeleton__media,
+  .progressive-content-skeleton__line {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--text-primary, #fff) 8%, transparent);
+  }
+
+  .progressive-content-skeleton__controls span::after,
+  .progressive-content-skeleton__media::after,
+  .progressive-content-skeleton__line::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--text-primary, #fff) 11%, transparent), transparent);
+    transform: translateX(-100%);
+    animation: progressive-content-shimmer 1.45s ease-in-out infinite;
+    animation-delay: calc(var(--skeleton-index, 0) * 45ms);
+  }
+
+  .progressive-content-skeleton--films .progressive-content-skeleton__grid {
+    grid-template-columns: 1fr;
+    gap: 4.5rem;
+  }
+
+  .progressive-content-skeleton--films .progressive-content-skeleton__media {
+    aspect-ratio: 16 / 9;
+  }
+
+  .progressive-content-skeleton--moodboard {
+    width: min(1280px, calc(100% - 2rem));
+    margin: 0 auto;
+  }
+
+  .progressive-content-skeleton--moodboard .progressive-content-skeleton__controls {
+    justify-content: center;
+  }
+
+  .progressive-content-skeleton--moodboard .progressive-content-skeleton__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .progressive-content-skeleton--moodboard .progressive-content-skeleton__card:nth-child(3n + 2) .progressive-content-skeleton__media {
+    aspect-ratio: 3 / 4;
+  }
+
+  .progressive-content-skeleton--moodboard .progressive-content-skeleton__body {
+    display: none;
+  }
+
+  @keyframes progressive-content-shimmer {
+    100% { transform: translateX(100%); }
+  }
+
+  @media (max-width: 720px) {
+    .progressive-content-skeleton__grid,
+    .progressive-content-skeleton--moodboard .progressive-content-skeleton__grid {
+      grid-template-columns: 1fr;
+    }
+
+    .progressive-content-skeleton__card:nth-child(n + 4) {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .progressive-content-skeleton__controls span::after,
+    .progressive-content-skeleton__media::after,
+    .progressive-content-skeleton__line::after {
+      animation: none;
+    }
+  }
+</style>

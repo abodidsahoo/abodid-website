@@ -1,14 +1,14 @@
 ---
-export const prerender = false;
 import BaseLayout from "../layouts/BaseLayout.astro";
-import { getFilms } from "../lib/api";
-import FilmsFilter from "../components/FilmsFilter.jsx";
+import FilmsIsland from "../components/FilmsIsland.astro";
+import ProgressiveContentSkeleton from "../components/ProgressiveContentSkeleton.astro";
 
 const pageTitle = "Films";
-const films = await getFilms();
+const pageDescription =
+  "Films by Abodid Sahoo spanning visual storytelling, brand films, documentary work, and experimental cinematography.";
 ---
 
-<BaseLayout title={pageTitle}>
+<BaseLayout title={pageTitle} description={pageDescription}>
   <!-- Plyr CSS -->
   <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
 
@@ -21,7 +21,14 @@ const films = await getFilms();
       </p>
     </header>
 
-    <FilmsFilter items={films} client:load />
+    <FilmsIsland server:defer>
+      <ProgressiveContentSkeleton
+        slot="fallback"
+        variant="films"
+        count={4}
+        label="Loading films"
+      />
+    </FilmsIsland>
   </div>
 
   <div id="video-modal" class="video-modal">

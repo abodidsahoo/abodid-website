@@ -1,13 +1,71 @@
 import { defineMiddleware } from 'astro:middleware';
 import { createClient } from '@supabase/supabase-js';
+import { normalizePagePath } from './lib/urlNormalization.js';
+
+const privatePagePatterns = [
+    /^\/admin(?:\/|$)/,
+    /^\/api(?:\/|$)/,
+    /^\/login\/?$/,
+    /^\/unauthorized\/?$/,
+    /^\/unsubscribe\/?$/,
+    /^\/payments\/?$/,
+    /^\/club\/(?:payment-|welcome)/,
+    /^\/collaboration\/measurements\/?$/,
+    /^\/du-workshop-responses\/?$/,
+    /^\/feedback\/?$/,
+    /^\/paper-renamer\/insights(?:\/|$)/,
+    /^\/research\/admin(?:\/|$)/,
+    /^\/research\/obsidian-vault(?:\/|$)/,
+    /^\/resources\/(?:admin|auth|curator|dashboard|saved|submit)(?:\/|$)/,
+    /^\/resources\/.*\/edit\/?$/,
+];
+
+type PublicCacheContext = {
+    isPrerendered: boolean;
+    request: Request;
+    url: URL;
+};
+
+const canCachePublicPage = (context: PublicCacheContext, response: Response) => {
+    if (context.isPrerendered) return false;
+    if (!['GET', 'HEAD'].includes(context.request.method)) return false;
+    if (privatePagePatterns.some((pattern) => pattern.test(context.url.pathname))) return false;
+    if (context.request.headers.has('authorization')) return false;
+    if (response.status !== 200 || response.headers.has('set-cookie')) return false;
+
+    return response.headers.get('content-type')?.includes('text/html') ?? false;
+};
 
 export const onRequest = defineMiddleware(async (context, next) => {
+    const requestUrl = new URL(context.request.url);
+    if (requestUrl.pathname !== '/' && requestUrl.pathname.endsWith('/')) {
+        const destination = `${normalizePagePath(requestUrl.pathname)}${requestUrl.search}`;
+        return new Response(null, {
+            status: 308,
+            headers: { Location: destination },
+        });
+    }
+
     const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
     const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
 
+    const nextWithPublicCache = async () => {
+        const response = await next();
+
+        if (canCachePublicPage(context, response)) {
+            response.headers.set('Cache-Control', 'public, max-age=0, must-revalidate');
+            response.headers.set(
+                'Vercel-CDN-Cache-Control',
+                's-maxage=300, stale-while-revalidate=86400'
+            );
+        }
+
+        return response;
+    };
+
     if (!supabaseUrl || !supabaseAnonKey) {
         console.error('Missing Supabase credentials in middleware');
-        return next();
+        return nextWithPublicCache();
     }
 
     // Protect /resources/curator route (curators and admins only)
@@ -91,5 +149,5 @@ export const onRequest = defineMiddleware(async (context, next) => {
     }
     */
 
-    return next();
+    return nextWithPublicCache();
 });

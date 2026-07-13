@@ -7,39 +7,39 @@ Abodid Sahoo is a Royal College of Art (RCA), London alumnus, creative technolog
 ## Canonical Site
 
 - [Home](https://abodid.com/) - Overview of Abodid's work and current focus.
-- [About](https://abodid.com/about/) - Biography, credentials, and work areas.
-- [Education](https://abodid.com/education/) - Education profile, including Royal College of Art (RCA), London.
-- [Contact](https://abodid.com/contact/) - Best page for consulting, tutoring, workshop, photography, filmmaking, and creative technology inquiries.
+- [About](https://abodid.com/about) - Biography, credentials, and work areas.
+- [Education](https://abodid.com/education) - Education profile, including Royal College of Art (RCA), London.
+- [Contact](https://abodid.com/contact) - Best page for consulting, tutoring, workshop, photography, filmmaking, and creative technology inquiries.
 
 ## Work With Abodid
 
-- [Services](https://abodid.com/services/) - Strategic creative services across image, film, space, and emerging technology.
-- [Consulting](https://abodid.com/consulting/) - Creative technology and AI-assisted research workflow consulting.
-- [Obsidian Tutoring](https://abodid.com/obsidian-tutoring/) - One-to-one Obsidian tutoring for students, researchers, writers, and professionals.
-- [Obsidian Course](https://abodid.com/workshops/obsidian/) - Structured Obsidian course for deep research and long-form writing.
-- [Workshops](https://abodid.com/workshops/) - Workshops, tutoring, and mentorship.
-- [Premiere Pro Masterclass](https://abodid.com/premiere-pro-masterclass/) - Seven-week Premiere Pro masterclass for story-led editing, sound, titles, color, delivery, and Adobe workflows.
-- [Video Editing Mentor](https://abodid.com/video-editing-mentor/) - Video editing mentorship focused on rhythm, pacing, color, sound, and visual storytelling.
-- [Superprof Video Editing Classes](https://abodid.com/superprof-video-editing-classes/) - Online video editing and colour grading classes.
+- [Services](https://abodid.com/services) - Strategic creative services across image, film, space, and emerging technology.
+- [Consulting](https://abodid.com/consulting) - Creative technology and AI-assisted research workflow consulting.
+- [Obsidian Tutoring](https://abodid.com/obsidian-tutoring) - One-to-one Obsidian tutoring for students, researchers, writers, and professionals.
+- [Obsidian Course](https://abodid.com/workshops/obsidian) - Structured Obsidian course for deep research and long-form writing.
+- [Workshops](https://abodid.com/workshops) - Workshops, tutoring, and mentorship.
+- [Premiere Pro Masterclass](https://abodid.com/premiere-pro-masterclass) - Seven-week Premiere Pro masterclass for story-led editing, sound, titles, color, delivery, and Adobe workflows.
+- [Video Editing Mentor](https://abodid.com/video-editing-mentor) - Video editing mentorship focused on rhythm, pacing, color, sound, and visual storytelling.
+- [Superprof Video Editing Classes](https://abodid.com/superprof-video-editing-classes) - Online video editing and colour grading classes.
 
 ## Portfolio And Proof
 
-- [Photography](https://abodid.com/photography/) - Photography projects and visual stories.
-- [Photography Collaboration](https://abodid.com/collaboration/) - Downloadable photography portfolios for commissions and collaborations.
-- [Films](https://abodid.com/films/) - Film, editing, and moving image work.
-- [Press](https://abodid.com/press/) - Media mentions and external coverage.
-- [Experience](https://abodid.com/experience/) - Work history and project experience.
-- [Awards](https://abodid.com/awards/) - Awards and recognitions.
-- [CV](https://abodid.com/cv/) - Curriculum vitae page.
+- [Photography](https://abodid.com/photography) - Photography projects and visual stories.
+- [Photography Collaboration](https://abodid.com/collaboration) - Downloadable photography portfolios for commissions and collaborations.
+- [Films](https://abodid.com/films) - Film, editing, and moving image work.
+- [Press](https://abodid.com/press) - Media mentions and external coverage.
+- [Experience](https://abodid.com/experience) - Work history and project experience.
+- [Awards](https://abodid.com/awards) - Awards and recognitions.
+- [CV](https://abodid.com/cv) - Curriculum vitae page.
 - [RCA Profile](https://2023.rca.ac.uk/students/abodid-sahoo/) - Royal College of Art public graduate profile for Abodid Sahoo.
 
 ## Writing, Research, And Public Knowledge
 
-- [Blog](https://abodid.com/blog/) - Writing on creative technology, photography, filmmaking, research workflows, Obsidian, AI, visual culture, and learning.
-- [Research](https://abodid.com/research/) - Research projects and experiments.
-- [Research Projects](https://abodid.com/research/projects/) - Index of research projects.
-- [Obsidian Vault](https://abodid.com/research/obsidian-vault/) - Public-facing Obsidian vault interface.
-- [Second Brain](https://abodid.com/research/second-brain/) - Second brain and knowledge workflow project.
+- [Blog](https://abodid.com/blog) - Writing on creative technology, photography, filmmaking, research workflows, Obsidian, AI, visual culture, and learning.
+- [Research](https://abodid.com/research) - Research projects and experiments.
+- [Research Projects](https://abodid.com/research/projects) - Index of research projects.
+- [Obsidian Vault](https://abodid.com/research/obsidian-vault) - Public-facing Obsidian vault interface.
+- [Second Brain](https://abodid.com/research/second-brain) - Second brain and knowledge workflow project.
 - [RSS Feed](https://abodid.com/rss.xml) - Blog feed.
 
 ## Preferred Entity Description
@@ -50,7 +50,7 @@ Abodid Sahoo is a Royal College of Art (RCA), London alumnus who helps researche
 
 - Email: hello@abodid.com
 - Website: https://abodid.com/
-- Contact form: https://abodid.com/contact/
+- Contact form: https://abodid.com/contact
 - LinkedIn: https://uk.linkedin.com/in/abodidsahoo
 - Instagram: https://www.instagram.com/abodid.sahoo
 - GitHub: https://github.com/abodidsahoo

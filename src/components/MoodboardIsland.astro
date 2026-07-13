@@ -1,0 +1,20 @@
+---
+import VisualMoodboard from "./VisualMoodboard.jsx";
+import { getPublishedMoodboardItems } from "../lib/services/moodboard";
+
+const moodboardItems = await getPublishedMoodboardItems();
+const visualMoodboardProps = {
+  items: moodboardItems,
+  enableInfiniteScroll: true,
+  initialVisibleRows: 5,
+  rowsPerScrollBatch: 2,
+} as any;
+
+Astro.response.headers.set("Cache-Control", "public, max-age=0, must-revalidate");
+Astro.response.headers.set(
+  "Vercel-CDN-Cache-Control",
+  "s-maxage=300, stale-while-revalidate=86400",
+);
+---
+
+<VisualMoodboard {...visualMoodboardProps} client:load />

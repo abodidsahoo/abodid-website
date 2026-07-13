@@ -15,13 +15,13 @@ const structuredData = [
     personJsonLd(),
     breadcrumbJsonLd([
         { name: "Home", path: "/" },
-        { name: "Contact", path: "/contact/" },
+        { name: "Contact", path: "/contact" },
     ]),
     {
         "@context": "https://schema.org",
         "@type": "ContactPage",
-        "@id": `${seoIdentity.siteUrl}/contact/#contact`,
-        url: `${seoIdentity.siteUrl}/contact/`,
+        "@id": `${seoIdentity.siteUrl}/contact#contact`,
+        url: `${seoIdentity.siteUrl}/contact`,
         name: pageTitle,
         description,
         mainEntity: {

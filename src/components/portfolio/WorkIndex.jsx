@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useState, useRef } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { matchesStrictAnd, parseFilters, serializeFilters, slugify } from "../../lib/portfolio/schema";
+import { getOptimizedImageSrcSet, getOptimizedImageUrl } from "../../lib/imageOptimization.js";
 import "../../styles/portfolio.css";
 
 const groupLabels = {
@@ -155,7 +156,17 @@ export default function WorkIndex({ projects = [] }) {
           {filtered.map((project) => (
             <article className="work-card" key={project.id || project.slug}>
               <a href={`/work/${project.slug}`} className="work-card-image">
-                {project.coverUrl && <img src={project.coverUrl} alt={project.coverAlt || ""} loading="lazy" width="1200" height="900" style={{ objectPosition: `${project.coverFocalX ?? 50}% ${project.coverFocalY ?? 50}%` }} />}
+                {project.coverUrl && <img
+                  src={getOptimizedImageUrl(project.coverUrl, { width: 1200, quality: 74 })}
+                  srcSet={getOptimizedImageSrcSet(project.coverUrl, { widths: [480, 800, 1200], quality: 74 })}
+                  sizes="(max-width: 760px) calc(100vw - 36px), 50vw"
+                  alt={project.coverAlt || ""}
+                  loading="lazy"
+                  decoding="async"
+                  width="1200"
+                  height="900"
+                  style={{ objectPosition: `${project.coverFocalX ?? 50}% ${project.coverFocalY ?? 50}%` }}
+                />}
               </a>
               <div className="work-card-body">
                 <div className="work-card-meta">

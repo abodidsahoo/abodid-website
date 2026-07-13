@@ -283,7 +283,8 @@ export async function getPageMetadata(pagePath: string): Promise<PageMetadata | 
         .from('page_metadata')
         .select('*')
         .eq('page_path', pagePath)
-        .single();
+        .eq('is_active', true)
+        .maybeSingle();
 
     if (error) {
         // It's common to not find metadata for every page, so silent fail or debug log

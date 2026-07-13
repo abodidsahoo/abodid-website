@@ -1285,9 +1285,13 @@ export default function VisualMoodboard({
                 type="button"
                 className="surface-toggle-btn"
                 onClick={() => setSurfaceMode((current) => (current === 'light' ? 'dark' : 'light'))}
+                aria-label={`Switch to ${surfaceMode === 'light' ? 'dark' : 'light'} theme`}
             >
-                <span className="surface-toggle-label">
+                <span className="surface-toggle-label desktop-control-label">
                     {surfaceMode === 'light' ? 'Dark Theme' : 'Light Theme'}
+                </span>
+                <span className="surface-toggle-label mobile-control-label" aria-hidden="true">
+                    Light / Dark
                 </span>
             </button>
 
@@ -1298,8 +1302,11 @@ export default function VisualMoodboard({
                     onClick={handleShuffle}
                     disabled={shufflePhase !== 'idle' || boardItems.length < 2}
                 >
-                    <span className="shuffle-btn-label">
+                    <span className="shuffle-btn-label desktop-control-label">
                         {shufflePhase === 'idle' ? 'Shuffle Board' : 'Shuffling...'}
+                    </span>
+                    <span className="shuffle-btn-label mobile-control-label" aria-hidden="true">
+                        {shufflePhase === 'idle' ? 'Shuffle' : 'Shuffling...'}
                     </span>
                 </button>
             )}
@@ -1751,6 +1758,10 @@ export default function VisualMoodboard({
                     color: var(--fab-text);
                 }
 
+                .mobile-control-label {
+                    display: none;
+                }
+
                 .shuffle-btn.busy {
                     cursor: wait;
                     filter: brightness(0.98);
@@ -1950,12 +1961,38 @@ export default function VisualMoodboard({
                         width: calc(100vw - 1.25rem);
                     }
 
+                    .surface-toggle-btn,
+                    .shuffle-btn {
+                        right: 0.55rem;
+                        min-width: 0;
+                        min-height: 28px;
+                        border-radius: 8px;
+                        padding: 0 0.5rem;
+                        font-size: 0.54rem;
+                        letter-spacing: 0.06em;
+                        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.16);
+                    }
+
                     .surface-toggle-btn {
-                        bottom: calc(5.2rem + env(safe-area-inset-bottom, 0px) + 52px);
+                        bottom: calc(4.45rem + env(safe-area-inset-bottom, 0px) + 34px);
                     }
 
                     .shuffle-btn {
-                        bottom: calc(5.2rem + env(safe-area-inset-bottom, 0px));
+                        bottom: calc(4.45rem + env(safe-area-inset-bottom, 0px));
+                    }
+
+                    .surface-toggle-label,
+                    .shuffle-btn-label {
+                        min-height: 28px;
+                        white-space: nowrap;
+                    }
+
+                    .desktop-control-label {
+                        display: none;
+                    }
+
+                    .mobile-control-label {
+                        display: flex;
                     }
 
                     .moodboard-search-wrap {

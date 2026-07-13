@@ -1,15 +1,11 @@
 ---
-export const prerender = true;
 import BaseLayout from "../layouts/BaseLayout.astro";
-import { getCVs } from "../lib/api";
+import { CV_DOWNLOAD_URL, CV_FILE_NAME } from "../lib/cv";
 import { breadcrumbJsonLd, personJsonLd, profilePageJsonLd } from "../lib/seoData";
 
 const pageTitle = "About Abodid Sahoo";
 const pageDescription =
     "Abodid Sahoo is a Royal College of Art (RCA), London alumnus, creative technologist, photographer, filmmaker, researcher, and tutor.";
-
-// Fetch CVs
-const { artistCV, professionalCVs } = await getCVs();
 
 const hubs = [
     {
@@ -53,9 +49,10 @@ const hubs = [
         icon: "→",
     },
     {
-        title: "Curriculum Vitae",
-        link: "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/cv/Abodid%20Sahoo%20-%20Photography%20&%20AI%20-%20CV.pdf",
-        icon: "→",
+        title: "Download 2026 CV",
+        link: CV_DOWNLOAD_URL,
+        icon: "↓",
+        download: CV_FILE_NAME,
     },
     {
         title: "Workshops",
@@ -84,10 +81,10 @@ const clients = [
 
 const structuredData = [
     personJsonLd(),
-    profilePageJsonLd("/about/", pageDescription),
+    profilePageJsonLd("/about", pageDescription),
     breadcrumbJsonLd([
         { name: "Home", path: "/" },
-        { name: "About", path: "/about/" },
+        { name: "About", path: "/about" },
     ]),
 ];
 ---
@@ -154,7 +151,11 @@ const structuredData = [
             <div class="hub-grid">
                 {
                     hubs.map((item) => (
-                        <a href={item.link} class="hub-card">
+                        <a
+                            href={item.link}
+                            class="hub-card"
+                            download={item.download}
+                        >
                             <div class="card-content">
                                 <span class="card-title">{item.title}</span>
                                 <span class="icon">{item.icon}</span>

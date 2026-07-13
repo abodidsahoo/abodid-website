@@ -11,7 +11,8 @@ const headerStyles = `
         z-index: 10005;
     }
 
-    .floating-addons-container > * {
+    /* Use a class selector so React SSR cannot escape the child combinator. */
+    .floating-logo-wrapper {
         pointer-events: auto;
     }
 
@@ -26,6 +27,7 @@ const headerStyles = `
     .logo-image-link {
         display: block;
         text-decoration: none;
+        cursor: pointer;
     }
 
     .header-logo-img {

@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
+import { getOptimizedImageUrl } from '../lib/imageOptimization.js';
 
 const stripBlackMatte = (src) =>
     new Promise((resolve) => {
@@ -112,7 +113,12 @@ export default function BrandFilmStrip() {
 
         const processLogos = async () => {
             const processedEntries = await Promise.all(
-                logoUrls.map(async (logoUrl) => [logoUrl, await stripBlackMatte(logoUrl)]),
+                logoUrls.map(async (logoUrl) => [
+                    logoUrl,
+                    await stripBlackMatte(
+                        getOptimizedImageUrl(logoUrl, { width: 320, quality: 80 }),
+                    ),
+                ]),
             );
 
             if (cancelled) return;
@@ -279,6 +285,9 @@ export default function BrandFilmStrip() {
                                 src={logoSrcByUrl[brand.logo_url] || brand.logo_url}
                                 alt={brand.name}
                                 loading="lazy"
+                                decoding="async"
+                                width="320"
+                                height="132"
                             />
                         </div>
                     ))}

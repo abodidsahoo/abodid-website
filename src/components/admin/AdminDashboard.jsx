@@ -7,24 +7,65 @@ import NewsletterSender from './NewsletterSender';
 import PhotoStoryManager from './PhotoStoryManager';
 import MoodboardManager from './MoodboardManager';
 import ListView from './ListView';
+import SeoStudio from './SeoStudio';
+import AnalyticsDashboard from './AnalyticsDashboard';
+import PortfolioAdminList from '../portfolio/admin/PortfolioAdminList';
+import {
+    ArrowUpRight,
+    ChartNoAxesCombined,
+    Camera,
+    Clapperboard,
+    FileText,
+    FlaskConical,
+    FolderKanban,
+    Images,
+    LayoutDashboard,
+    Library,
+    Mail,
+    PenLine,
+    ScanSearch,
+    Globe2,
+    Moon,
+    Sun,
+    Sunrise,
+    Sunset,
+    Tags,
+    UsersRound,
+} from 'lucide-react';
 
 const SECTIONS = [
-    { id: 'dashboard', label: 'Overview', icon: '📊' },
-    { id: 'portfolio_projects', label: 'Portfolio Projects', icon: '◫', href: '/admin/projects' },
-    { id: 'users', label: 'Users', icon: '👥' },
-    { id: 'brands', label: 'Brands', icon: '🏷️' },
-    { id: 'photography', label: 'Photography', icon: '📸' },
-    { id: 'photo_stories', label: 'Photo Stories', icon: '📝' },
-    { id: 'moodboard_items', label: 'Moodboard', icon: '🧩' },
-    { id: 'films', label: 'Films', icon: '🎬' },
-    { id: 'blog', label: 'Blog', icon: '✍️' },
-    { id: 'research', label: 'Research', icon: '🔬' },
-    { id: 'hub_resources', label: 'Resources', icon: '📚' },
-    { id: 'newsletter', label: 'Newsletter', icon: '📧' },
-    { id: 'page_metadata', label: 'Metadata', icon: '⚙️' },
+    { id: 'dashboard', label: 'Overview', icon: LayoutDashboard },
+    { id: 'analytics', label: 'Analytics', icon: ChartNoAxesCombined },
+    { id: 'portfolio_projects', label: 'Portfolio Projects', icon: FolderKanban },
+    { id: 'users', label: 'Accounts', icon: UsersRound },
+    { id: 'brands', label: 'Brands', icon: Tags },
+    { id: 'photography', label: 'Photography', icon: Camera },
+    { id: 'photo_stories', label: 'Photo Stories', icon: FileText },
+    { id: 'moodboard_items', label: 'Moodboard', icon: Images },
+    { id: 'films', label: 'Films', icon: Clapperboard },
+    { id: 'blog', label: 'Blog', icon: PenLine },
+    { id: 'research', label: 'Research', icon: FlaskConical },
+    { id: 'hub_resources', label: 'Resources', icon: Library },
+    { id: 'newsletter', label: 'Newsletter', icon: Mail },
+    { id: 'page_metadata', label: 'SEO Studio', icon: ScanSearch },
 ];
 const VALID_SECTION_IDS = new Set(SECTIONS.map((section) => section.id));
 const REQUEST_TIMEOUT_MS = 8000;
+const QUICK_ACTIONS = [
+    { label: 'Send a Newsletter', href: '/admin/dashboard?section=newsletter', icon: Mail },
+    { label: 'Add a Link to Resource Hub', href: '/admin/dashboard?section=hub_resources&action=new', icon: Library },
+    { label: 'Upload a Photo Series', href: '/admin/editor?table=photography&id=new', icon: Camera },
+    { label: 'Publish an Article', href: '/admin/editor?table=blog&id=new', icon: PenLine },
+    { label: 'Add an image to Moodboard', href: '/admin/dashboard?section=moodboard_items', icon: Images },
+    { label: 'Check Site Analytics', href: '/admin/dashboard?section=analytics', icon: ChartNoAxesCombined },
+];
+const WORLD_CLOCKS = [
+    { city: 'New York', timeZone: 'America/New_York' },
+    { city: 'London', timeZone: 'Europe/London' },
+    { city: 'Dubai', timeZone: 'Asia/Dubai' },
+    { city: 'Delhi', timeZone: 'Asia/Kolkata' },
+    { city: 'Tokyo', timeZone: 'Asia/Tokyo' },
+];
 
 const withTimeout = (promise, label, timeoutMs = REQUEST_TIMEOUT_MS) => {
     let timeoutId;
@@ -69,9 +110,7 @@ class SectionErrorBoundary extends React.Component {
 export default function AdminDashboard() {
     const [session, setSession] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [stats, setStats] = useState({ photography: 0, photoStories: 0, moodboard: 0, films: 0, posts: 0, projects: 0, metadata: 0, users: 0, resources: 0, subscribers: 0 });
     const [activeSection, setActiveSection] = useState('dashboard');
-    const [recentActivity, setRecentActivity] = useState([]);
     const [connectionError, setConnectionError] = useState(null);
     const [showResourceModal, setShowResourceModal] = useState(false);
     const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -81,8 +120,12 @@ export default function AdminDashboard() {
         // URL State Sync
         const params = new URLSearchParams(window.location.search);
         const sectionFromUrl = params.get('section');
+        const actionFromUrl = params.get('action');
         if (sectionFromUrl && VALID_SECTION_IDS.has(sectionFromUrl)) {
             setActiveSection(sectionFromUrl);
+        }
+        if (sectionFromUrl === 'hub_resources' && actionFromUrl === 'new') {
+            setShowResourceModal(true);
         }
 
         // Simple, robust auth check
@@ -126,11 +169,9 @@ export default function AdminDashboard() {
                 }
 
                 // 3. Success: render the admin shell before non-critical metrics finish.
+                document.cookie = `abodid_analytics_exclude=1; Max-Age=31536000; Path=/; SameSite=Lax${window.location.protocol === 'https:' ? '; Secure' : ''}`;
                 setSession(session);
                 setLoading(false);
-
-                fetchStats();
-                fetchRecentActivity();
 
             } catch (err) {
                 console.error("AdminDashboard: Auth check failed:", err);
@@ -164,140 +205,11 @@ export default function AdminDashboard() {
         setActiveSection(id);
         const url = new URL(window.location);
         url.searchParams.set('section', id);
+        url.searchParams.delete('action');
         window.history.pushState({}, '', url);
     };
 
-    const fetchStats = async () => {
-        if (!supabase) return;
-        const tableNames = ['portfolio_projects', 'photography', 'photo_stories', 'moodboard_items', 'films', 'blog', 'research', 'hub_resources', 'page_metadata', 'profiles', 'subscribers'];
-        const newStats = {};
-        for (const name of tableNames) {
-            try {
-                const { count, error } = await withTimeout(
-                    supabase.from(name).select('*', { count: 'exact', head: true }),
-                    `Count for ${name}`
-                );
-                if (!error) {
-                    const key = name === 'portfolio_projects'
-                        ? 'projects'
-                        : name === 'page_metadata'
-                        ? 'metadata'
-                        : (name === 'profiles'
-                            ? 'users'
-                            : (name === 'hub_resources'
-                                ? 'resources'
-                                : (name === 'photo_stories'
-                                    ? 'photoStories'
-                                    : (name === 'moodboard_items' ? 'moodboard' : name))));
-                    newStats[key] = count;
-                } else {
-                    console.warn(`Error fetching count for ${name}:`, error.message);
-                }
-            } catch (err) {
-                console.warn(`Error fetching count for ${name}:`, err.message);
-            }
-        }
-
-        // Fetch pending count specifically
-        try {
-            const { count: pendingCount } = await withTimeout(
-                supabase.from('hub_resources')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('status', 'pending'),
-                'Pending resources count'
-            );
-            newStats['pendingResources'] = pendingCount || 0;
-        } catch (err) {
-            console.warn('Error fetching pending resources:', err.message);
-        }
-
-        setStats(prev => ({ ...prev, ...newStats }));
-    };
-
-    const fetchRecentActivity = async () => {
-        if (!supabase) return;
-        try {
-            const tables = [
-                { name: 'photography', type: 'Photography', icon: '📸' },
-                { name: 'films', type: 'Film', icon: '🎬' },
-                { name: 'blog', type: 'Post', icon: '✍️', orderBy: 'published_at' },
-                { name: 'research', type: 'Research', icon: '🔬' },
-                { name: 'hub_resources', type: 'Resource', icon: '📚' },
-                { name: 'subscribers', type: 'Subscriber', icon: '📧', orderBy: 'subscribed_at' },
-                { name: 'profiles', type: 'User', icon: '👤', orderBy: null }
-            ];
-
-            let allActivities = [];
-
-            for (const t of tables) {
-                try {
-                    const orderBy = t.orderBy === undefined ? 'created_at' : t.orderBy;
-                    let query = supabase.from(t.name).select('*').limit(5);
-
-                    if (orderBy) {
-                        query = query.order(orderBy, { ascending: false });
-                    }
-
-                    const { data, error: queryError } = await withTimeout(
-                        query,
-                        `Recent activity for ${t.name}`
-                    );
-
-                    if (queryError) {
-                        console.warn(`Recent activity failed for ${t.name}:`, queryError.message);
-                        continue;
-                    }
-
-                    if (data) {
-                        const mapped = data.map(item => ({
-                            id: item.id,
-                            type: t.type,
-                            icon: t.icon,
-                            title: item.title || item.username || item.full_name || item.page_title || 'Untitled',
-                            date: new Date(
-                                item.created_at ||
-                                item.updated_at ||
-                                item.published_at ||
-                                item.subscribed_at ||
-                                Date.now()
-                            ),
-                            original: item
-                        }));
-                        allActivities = [...allActivities, ...mapped];
-                    }
-                } catch (err) {
-                    console.warn(`Recent activity failed for ${t.name}:`, err.message);
-                    continue;
-                }
-            }
-
-            // Sort merged list by date desc
-            allActivities.sort((a, b) => b.date - a.date);
-            // Take top 10
-            setRecentActivity(allActivities.slice(0, 10));
-
-        } catch (err) {
-            console.error("Error fetching activity:", err);
-        }
-    };
-
     const handleLogout = async () => { await supabase.auth.signOut(); };
-
-    // Helper for "Time Algo"
-    const timeAgo = (date) => {
-        const seconds = Math.floor((new Date() - date) / 1000);
-        let interval = seconds / 31536000;
-        if (interval > 1) return Math.floor(interval) + " years ago";
-        interval = seconds / 2592000;
-        if (interval > 1) return Math.floor(interval) + " months ago";
-        interval = seconds / 86400;
-        if (interval > 1) return Math.floor(interval) + " days ago";
-        interval = seconds / 3600;
-        if (interval > 1) return Math.floor(interval) + " hours ago";
-        interval = seconds / 60;
-        if (interval > 1) return Math.floor(interval) + " mins ago";
-        return Math.floor(seconds) + " seconds ago";
-    };
 
     // Blocking Loading State (Clean, no glitchy skeletons)
     if (loading) return (
@@ -360,34 +272,26 @@ export default function AdminDashboard() {
                 <div className="sidebar-header">
                     <h1 className="brand-title">Admin Panel</h1>
                 </div>
-                <div className="user-info-block">
-                    <div className="user-badge">
-                        <span className="user-icon">👤</span>
-                        <span className="user-email" title={session?.user?.email}>{session?.user?.email?.split('@')[0]}</span>
-                    </div>
-                </div>
 
                 <nav className="sidebar-nav">
-                    {SECTIONS.map(section => section.href ? (
-                        <a key={section.id} href={section.href} className="nav-item">
-                            <span className="nav-icon">{section.icon}</span>
-                            <span className="nav-label">{section.label}</span>
-                        </a>
-                    ) : (
+                    {SECTIONS.map(section => (
                         <button
                             key={section.id}
+                            type="button"
                             onClick={() => handleNav(section.id)}
                             className={`nav-item ${activeSection === section.id ? 'active' : ''}`}
+                            aria-current={activeSection === section.id ? 'page' : undefined}
                         >
-                            <span className="nav-icon">{section.icon}</span>
+                            <span className="nav-icon" aria-hidden="true"><LineIcon icon={section.icon} /></span>
                             <span className="nav-label">{section.label}</span>
                         </button>
                     ))}
                 </nav>
 
                 <div className="sidebar-footer">
-                    <a href="/resources/dashboard" className="btn-curator-link" style={{ display: 'block', textAlign: 'center', padding: '10px', marginBottom: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '6px', textDecoration: 'none', color: 'var(--text-primary)', fontSize: '13px', fontWeight: 500 }}>
-                        📚 Curator Dashboard
+                    <a href="/resources/dashboard" className="btn-curator-link">
+                        <Library size={15} strokeWidth={1.7} aria-hidden="true" />
+                        Curator Dashboard
                     </a>
                     <button onClick={handleLogout} className="btn-logout-sidebar">
                         Sign Out
@@ -396,89 +300,75 @@ export default function AdminDashboard() {
             </aside>
 
             {/* Main Content Area */}
-            {/* Main Content Area */}
-            <main className="main-content">
+            <main className={`main-content ${activeSection === 'dashboard' ? 'dashboard-main' : ''}`}>
                 <div className="content-body">
                     {activeSection === 'dashboard' && (
                         <>
-                            <header className="content-header" style={{ marginBottom: '2rem' }}>
-                                <h2 className="section-title">Overview</h2>
-                            </header>
-
-                            {/* Stats Grid - Priority View */}
-                            <div className="stats-grid">
-                                <DashboardCard title="Portfolio Projects" count={stats.projects} icon="◫" onClick={() => { window.location.href = '/admin/projects'; }} loading={loading} />
-                                <DashboardCard title="Users" count={stats.users} icon="👥" onClick={() => setActiveSection('users')} loading={loading} />
-                                <DashboardCard title="Photography" count={stats.photography} icon="📸" onClick={() => setActiveSection('photography')} loading={loading} />
-                                <DashboardCard title="Photo Stories" count={stats.photoStories} icon="📝" onClick={() => setActiveSection('photo_stories')} loading={loading} />
-                                <DashboardCard title="Moodboard" count={stats.moodboard} icon="🧩" onClick={() => setActiveSection('moodboard_items')} loading={loading} />
-                                <DashboardCard title="Films" count={stats.films} icon="🎬" onClick={() => setActiveSection('films')} loading={loading} />
-                                <DashboardCard title="Blog" count={stats.blog} icon="✍️" onClick={() => setActiveSection('blog')} loading={loading} />
-                                <DashboardCard title="Research" count={stats.research} icon="🔬" onClick={() => setActiveSection('research')} loading={loading} />
-                                <DashboardCard title="Resources" count={stats.pendingResources > 0 ? `${stats.resources} (${stats.pendingResources} Pending)` : stats.resources} icon="📚" onClick={() => setActiveSection('hub_resources')} loading={loading} />
-                                <DashboardCard title="Subscribers" count={stats.subscribers} icon="📧" onClick={() => setActiveSection('newsletter')} loading={loading} />
-                            </div>
-
-                            {/* Split View: Activity + Planning */}
-                            <div className="dashboard-split-view">
-                                {/* Left Column: Activity */}
-                                <div className="activity-section">
-                                    <div className="activity-board">
-                                        <div className="activity-header-row">
-                                            <h3 className="activity-header">Recent Activity</h3>
-                                        </div>
-
-                                        <div className="activity-list">
-                                            {loading ? (
-                                                <LoadingState message="Loading Activity..." />
-                                            ) : (
-                                                <>
-                                                    {recentActivity.map((item, idx) => (
-                                                        <div key={idx} className="activity-row">
-                                                            <div className="activity-icon">{item.icon}</div>
-                                                            <div className="activity-content">
-                                                                <div className="activity-top">
-                                                                    <span className="activity-type">{item.type}</span>
-                                                                    <span className="activity-time">{timeAgo(item.date)}</span>
-                                                                </div>
-                                                                <div className="activity-title">{item.title}</div>
-                                                            </div>
-                                                            <div className="activity-status badge-live">Live</div>
-                                                        </div>
-                                                    ))}
-                                                    {recentActivity.length === 0 && (
-                                                        <p className="no-activity">No recent activity found.</p>
-                                                    )}
-                                                </>
-                                            )}
-                                        </div>
+                            <div className="overview-grid">
+                                <section className="dashboard-launch-section" aria-labelledby="dashboard-greeting">
+                                    <div className="dashboard-greeting">
+                                        <h2 id="dashboard-greeting">Hi Abodid,</h2>
+                                        <p>Welcome to the admin workspace.</p>
                                     </div>
-                                </div>
-
-                                {/* Right Column: Planning Station */}
-                                <div className="planning-section">
-                                    <LiveClock />
-
-                                    <a href="/" target="_blank" className="btn-view-live">
-                                        View Live Website ↗
-                                    </a>
-
-                                    <div className="planning-calendar-wrapper">
-                                        <h4 className="planning-header" style={{ marginBottom: '1rem', fontWeight: 600 }}>Content Planner</h4>
-                                        <PlanningCalendar activity={recentActivity} />
+                                    <div className="destination-actions">
+                                        <a href="/" target="_blank" rel="noreferrer" className="destination-card destination-card-primary">
+                                            <span className="destination-icon" aria-hidden="true">
+                                                <Globe2 size={24} strokeWidth={1.7} />
+                                            </span>
+                                            <strong>View live site</strong>
+                                            <ArrowUpRight size={21} strokeWidth={1.7} aria-hidden="true" />
+                                        </a>
+                                        <a href="/resources" target="_blank" rel="noreferrer" className="destination-card destination-card-secondary">
+                                            <span className="destination-icon" aria-hidden="true">
+                                                <Library size={24} strokeWidth={1.7} />
+                                            </span>
+                                            <strong>View Resources Hub</strong>
+                                            <ArrowUpRight size={21} strokeWidth={1.7} aria-hidden="true" />
+                                        </a>
                                     </div>
-                                </div>
+                                </section>
+
+                                <section className="dashboard-panel quick-actions-panel" aria-labelledby="quick-actions-title">
+                                    <div className="panel-heading">
+                                        <h3 id="quick-actions-title">Start something</h3>
+                                        <span>Direct actions</span>
+                                    </div>
+                                    <div className="quick-actions-grid">
+                                        {QUICK_ACTIONS.map((action) => (
+                                            <a key={action.href} href={action.href} className="quick-action-card">
+                                                <span className="quick-action-icon" aria-hidden="true">
+                                                    <LineIcon icon={action.icon} size={21} />
+                                                </span>
+                                                <span className="quick-action-copy">
+                                                    <strong>{action.label}</strong>
+                                                </span>
+                                                <ArrowUpRight size={17} strokeWidth={1.7} aria-hidden="true" />
+                                            </a>
+                                        ))}
+                                    </div>
+                                </section>
+
+                                <WorldClockPanel />
                             </div>
                         </>
                     )}
 
                     {activeSection === 'users' && (
-                        <>
-                            <header className="content-header" style={{ marginBottom: '2rem' }}>
-                                <h2 className="section-title">Users</h2>
-                            </header>
+                        <SectionErrorBoundary>
                             <UserList />
-                        </>
+                        </SectionErrorBoundary>
+                    )}
+
+                    {activeSection === 'analytics' && (
+                        <SectionErrorBoundary>
+                            <AnalyticsDashboard accessToken={session?.access_token} />
+                        </SectionErrorBoundary>
+                    )}
+
+                    {activeSection === 'portfolio_projects' && (
+                        <SectionErrorBoundary>
+                            <PortfolioAdminList embedded />
+                        </SectionErrorBoundary>
                     )}
 
                     {activeSection === 'brands' && (
@@ -514,7 +404,13 @@ export default function AdminDashboard() {
                         </>
                     )}
 
-                    {activeSection !== 'dashboard' && activeSection !== 'portfolio_projects' && activeSection !== 'users' && activeSection !== 'brands' && activeSection !== 'newsletter' && activeSection !== 'photo_stories' && activeSection !== 'moodboard_items' && (
+                    {activeSection === 'page_metadata' && (
+                        <SectionErrorBoundary>
+                            <SeoStudio />
+                        </SectionErrorBoundary>
+                    )}
+
+                    {activeSection !== 'dashboard' && activeSection !== 'analytics' && activeSection !== 'portfolio_projects' && activeSection !== 'users' && activeSection !== 'brands' && activeSection !== 'newsletter' && activeSection !== 'photo_stories' && activeSection !== 'moodboard_items' && activeSection !== 'page_metadata' && (
                         <SectionErrorBoundary key={`${activeSection}-${refreshTrigger}`}>
                             <ListView
                                 table={activeSection}
@@ -531,15 +427,16 @@ export default function AdminDashboard() {
                 onClose={() => setShowResourceModal(false)}
                 onSave={() => {
                     setRefreshTrigger(prev => prev + 1);
-                    fetchStats();
-                    fetchRecentActivity();
                 }}
             />
 
             <style>{`
                 :root {
-                    --sidebar-width: 280px;
-                    --header-height: 80px;
+                    --sidebar-width: 248px;
+                    --header-height: 56px;
+                    --dashboard-greeting-size: clamp(2.75rem, 4.2vw, 4.8rem);
+                    --dashboard-greeting-line-size: clamp(2.695rem, 4.116vw, 4.704rem);
+                    --dashboard-welcome-size: clamp(1.5rem, 1.725vw, 1.725rem);
                 }
 
                 .loading-screen { 
@@ -549,6 +446,8 @@ export default function AdminDashboard() {
 
                 .admin-layout {
                     display: flex;
+                    width: 100%;
+                    min-width: 0;
                     min-height: 100vh;
                     background-color: var(--bg-color);
                     color: var(--text-primary);
@@ -601,195 +500,218 @@ export default function AdminDashboard() {
                 }
 
                 .sidebar-header { 
-                    height: var(--header-height);
-                    margin-top: 2rem; /* Match main content padding */
-                    padding: 0 2rem;
-                    display: flex; align-items: center;
+                    height: auto;
+                    min-height: 0;
+                    margin-top: 0;
+                    padding: calc(3.3rem + var(--dashboard-greeting-line-size)) 1.5rem 1.75rem;
+                    display: flex; align-items: flex-start;
                 }
-                
+
                 .brand-title { 
-                    font-size: 2rem; font-weight: 500; margin: 0; 
-                    letter-spacing: -0.02em; color: var(--text-primary);
-                    /* Exact match to section-title */
+                    font-size: var(--dashboard-welcome-size); font-weight: 600; line-height: 1.35; margin: 0;
+                    letter-spacing: -0.03em; color: var(--text-primary); white-space: nowrap;
                 }
                 
-                .user-info-block {
-                    padding: 0 2rem; margin-bottom: 3.5rem;
-                }
-
-                .user-badge {
-                    display: inline-flex; align-items: center; gap: 0.5rem;
-                    background: var(--bg-surface-hover); border: 1px solid var(--border-subtle);
-                    padding: 0.5rem 0.75rem; border-radius: 8px;
-                    width: fit-content;
-                }
-                .user-icon { font-size: 0.9rem; }
-                .user-email { 
-                    font-size: 0.85rem; font-weight: 500; color: var(--text-secondary); 
-                    margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 140px;
-                }
-
                 .sidebar-nav {
-                    display: flex; flex-direction: column; gap: 0.5rem; flex: 1;
-                    min-height: 0; overflow-y: auto; padding: 0 2rem;
+                    display: flex; flex-direction: column; gap: 0.08rem; flex: 1;
+                    min-height: 0; overflow-y: auto; padding: 0 1.25rem;
                 }
                 .nav-item {
-                    display: flex; align-items: center; gap: 1rem; padding: 0.75rem 1rem;
+                    display: flex; align-items: center; gap: 0.7rem; padding: 0.43rem 0.75rem;
                     border: 1px solid transparent; background: transparent; color: var(--text-secondary);
-                    border-radius: 8px; cursor: pointer; transition: all 0.2s ease;
-                    text-align: left; font-size: 0.95rem; font-weight: 500;
+                    border-radius: 7px; cursor: pointer; transition: background 0.15s ease, color 0.15s ease;
+                    text-align: left; text-decoration: none; font: inherit; font-size: 0.84rem; font-weight: 500;
                 }
                 .nav-item:hover { background: var(--bg-surface-hover); color: var(--text-primary); }
                 .nav-item.active { background: var(--bg-surface-hover); color: var(--text-primary); border-color: var(--border-subtle); font-weight: 600; }
-                .nav-icon { font-size: 1.2rem; display: flex; align-items: center; justify-content: center; width: 24px; }
+                .nav-item:focus-visible { outline: 2px solid var(--border-focus); outline-offset: 2px; }
+                .nav-icon { display: flex; align-items: center; justify-content: center; width: 20px; color: var(--text-tertiary); }
+                .nav-item.active .nav-icon,
+                .nav-item:hover .nav-icon { color: currentColor; }
 
                 .sidebar-footer {
-                    flex-shrink: 0; margin-top: auto; padding: 1rem 2rem 2rem;
+                    flex-shrink: 0; margin-top: auto; padding: 0.75rem 1.25rem 1.25rem;
                     border-top: 1px solid var(--border-subtle); background: var(--bg-surface);
                 }
+                .btn-curator-link {
+                    display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+                    padding: 0.6rem; margin-bottom: 0.5rem; background: var(--bg-surface-hover);
+                    border-radius: 7px; text-decoration: none; color: var(--text-secondary);
+                    font-size: 0.78rem; font-weight: 500;
+                }
                 .btn-logout-sidebar {
-                    width: 100%; padding: 0.8rem; background: transparent; border: 1px solid var(--border-strong);
-                    color: var(--text-primary); border-radius: 8px; cursor: pointer; font-weight: 600;
-                    text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.75rem; transition: all 0.2s;
+                    width: 100%; padding: 0.65rem; background: transparent; border: 1px solid var(--border-strong);
+                    color: var(--text-primary); border-radius: 7px; cursor: pointer; font-weight: 600;
+                    text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.68rem; transition: all 0.2s;
                 }
                 .btn-logout-sidebar:hover { background: var(--text-primary); color: var(--bg-color); }
 
                 /* Main Content Styles */
-                .main-content { flex: 1; margin-left: var(--sidebar-width); padding: 2rem 4rem; }
+                .main-content {
+                    flex: 0 0 calc(100vw - var(--sidebar-width));
+                    width: calc(100vw - var(--sidebar-width));
+                    max-width: none;
+                    min-width: 0;
+                    margin-left: var(--sidebar-width);
+                    padding: 2rem 3rem;
+                }
+                .content-body,
+                .main-content .newsletter-section { width: 100%; min-width: 0; }
+                .main-content.dashboard-main {
+                    height: 100vh;
+                    min-height: 0;
+                    overflow: hidden;
+                    padding: 1.25rem 2rem;
+                    box-sizing: border-box;
+                }
+                .dashboard-main .content-body {
+                    display: flex;
+                    flex-direction: column;
+                    height: 100%;
+                    min-height: 0;
+                    overflow: hidden;
+                }
                 .content-header {
                     height: var(--header-height); display: flex; align-items: center;
                     justify-content: space-between; margin-bottom: 2rem; border-bottom: 1px solid var(--border-subtle);
                 }
-                .section-title { font-size: 2rem; font-weight: 500; margin: 0; letter-spacing: -0.02em; }
+                .section-title { font-size: 1.6rem; font-weight: 550; margin: 0; letter-spacing: -0.02em; }
                 .btn-create-primary {
                     background: var(--text-primary); color: var(--bg-color); border: none; padding: 0.8rem 1.5rem;
                     border-radius: 8px; font-weight: 600; cursor: pointer; transition: opacity 0.2s; font-size: 0.9rem;
                 }
                 .btn-create-primary:hover { opacity: 0.9; }
 
-                /* Stats Grid */
-                .stats-grid {
-                    display: grid; grid-template-columns: repeat(6, 1fr); gap: 1rem;
-                    animation: fadeIn 0.3s ease; margin-bottom: 2rem;
+                /* Overview Grid */
+                .overview-grid {
+                    display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 1.35rem;
+                    grid-template-rows: auto auto auto; height: 100%;
+                    align-content: start; align-items: stretch; min-height: 0; animation: fadeIn 0.3s ease;
                 }
-                .stat-card {
-                    background: var(--bg-surface); border: 1px solid var(--border-subtle);
-                    border-radius: 12px; padding: 1.25rem;
-                    display: flex; flex-direction: column; align-items: flex-start; gap: 0.75rem;
-                    cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden;
-                    min-height: 100px; /* Prevent layout jump */
-                    justify-content: space-between;
+                .dashboard-panel {
+                    min-width: 0; background: var(--bg-surface); border: 1px solid var(--border-subtle);
+                    border-radius: 14px; overflow: hidden;
                 }
-                .stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.06); border-color: var(--border-strong); }
-                .stat-icon-wrapper { 
-                    width: 100%; display: flex; justify-content: space-between; align-items: center;
+                .quick-actions-panel { grid-column: 1 / -1; }
+                .panel-heading {
+                    min-height: 46px; padding: 0.72rem 1rem; border-bottom: 1px solid var(--border-subtle);
+                    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
                 }
-                .stat-icon { font-size: 1.5rem; opacity: 0.8; }
-                .stat-info { display: flex; flex-direction: column; gap: 4px; }
-                .stat-title { font-size: 0.85rem; font-weight: 500; color: var(--text-secondary); margin: 0; }
-                .stat-count { font-size: 1.75rem; font-weight: 700; color: var(--text-primary); margin: 0; line-height: 1; font-family: var(--font-ui); letter-spacing: -0.03em; }
-
-                /* Split View Layout */
-                .dashboard-split-view {
-                    display: grid; grid-template-columns: 1.5fr 1fr; gap: 2rem;
-                    animation: fadeIn 0.4s ease;
+                .panel-heading h3 { margin: 0; font-size: 0.88rem; font-weight: 620; color: var(--text-primary); }
+                .panel-heading > span {
+                    font-size: 0.6rem; font-weight: 550; color: var(--text-tertiary);
+                    text-transform: uppercase; letter-spacing: 0.07em; white-space: nowrap;
                 }
 
-                /* Activity Board - Constrained & Styled */
-                .activity-section { display: flex; flex-direction: column; }
-                .activity-board {
-                    background: var(--bg-surface); border: 1px solid var(--border-subtle);
-                    border-radius: 16px; overflow: hidden; display: flex; flex-direction: column;
-                    height: 100%; max-height: 600px; /* Constrain height */
+                .quick-actions-grid {
+                    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem;
+                    padding: 1rem;
                 }
-                .activity-header-row {
-                    padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-subtle);
-                    background: var(--bg-surface-hover);
+                .quick-action-card {
+                    min-width: 0; min-height: 104px; padding: 1.1rem 1.2rem;
+                    display: grid; grid-template-columns: 42px minmax(0, 1fr) auto; align-items: center; gap: 0.9rem;
+                    border: 1px solid var(--border-subtle); border-radius: 12px;
+                    background: var(--bg-color); color: var(--text-primary); text-decoration: none;
+                    transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
                 }
-                .activity-header { margin: 0; font-size: 1.1rem; font-weight: 600; }
-                
-                .activity-list {
-                    flex: 1; overflow-y: auto; display: flex; flex-direction: column;
+                .quick-action-card:hover {
+                    border-color: var(--border-strong); background: var(--bg-surface-hover); transform: translateY(-1px);
                 }
-                .activity-row {
-                    display: flex; gap: 1rem; padding: 1.25rem 1.5rem;
-                    border-bottom: 1px solid var(--border-subtle);
-                    transition: background 0.2s;
-                    align-items: flex-start; /* Correct for multiline */
+                .quick-action-card:focus-visible { outline: 2px solid var(--border-focus); outline-offset: 2px; }
+                .quick-action-icon {
+                    width: 42px; height: 42px; display: grid; place-items: center; border-radius: 11px;
+                    border: 1px solid var(--border-subtle); color: var(--text-secondary);
+                    background: var(--bg-surface);
                 }
-                .activity-row:last-child { border-bottom: none; }
-                .activity-row:hover { background: var(--bg-surface-hover); }
+                .quick-action-copy { min-width: 0; display: flex; flex-direction: column; gap: 0.22rem; }
+                .quick-action-copy strong { font-size: clamp(1.08rem, 1.25vw, 1.28rem); font-weight: 640; line-height: 1.22; }
+                .quick-action-card > svg { color: var(--text-tertiary); }
 
-                .activity-icon {
-                    width: 40px; height: 40px; background: var(--bg-surface-hover);
-                    border-radius: 50%; display: flex; align-items: center; justify-content: center;
-                    font-size: 1.25rem; flex-shrink: 0; border: 1px solid var(--border-subtle);
+                .world-clock-section {
+                    grid-column: 1 / -1; min-height: 0; display: flex; flex-direction: column;
                 }
-                .activity-content { flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-                .activity-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-                .activity-type { font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; }
-                .activity-time { font-size: 0.8rem; color: var(--text-tertiary); }
-                .activity-title { font-size: 1rem; font-weight: 500; color: var(--text-primary); line-height: 1.4; word-break: break-word; }
-                
-                .activity-status { flex-shrink: 0; margin-left: 0.5rem; margin-top: 4px; }
-                .badge-live {
-                    font-size: 0.7rem; font-weight: 700; color: #10B981;
-                    background: rgba(16, 185, 129, 0.1); padding: 0.25rem 0.6rem;
-                    border-radius: 100px; text-transform: uppercase; letter-spacing: 0.05em;
+                .world-clock-heading h3 { display: inline-flex; align-items: center; gap: 0.45rem; }
+                .world-clock-grid {
+                    min-height: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: start; gap: 0.9rem;
+                    padding: 1rem; background: var(--bg-surface);
                 }
-                .no-activity { padding: 3rem; text-align: center; color: var(--text-secondary); }
+                .world-clock-item {
+                    min-width: 0; min-height: 0; aspect-ratio: 1 / 1; padding: 1.35rem;
+                    display: flex; flex-direction: column; justify-content: space-between; gap: 1.5rem;
+                    border-radius: 13px; overflow: hidden; color: #22170f;
+                }
+                .world-clock-item.is-sunrise {
+                    background: linear-gradient(145deg, #fff1d7 0%, #ffd7c8 52%, #f4c7df 100%);
+                }
+                .world-clock-item.is-day {
+                    background: linear-gradient(145deg, #fff8d9 0%, #ffe7ad 48%, #d9efff 100%);
+                }
+                .world-clock-item.is-sunset {
+                    background: linear-gradient(145deg, #f7b788 0%, #b46b8d 52%, #51416f 100%);
+                    color: #fff8f3;
+                }
+                .world-clock-item.is-night {
+                    background: linear-gradient(145deg, #111321 0%, #080911 55%, #020204 100%);
+                    color: #f7f4ff;
+                }
+                .world-clock-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.7rem; }
+                .world-clock-top > span:first-child { min-width: 0; display: flex; flex-direction: column; gap: 0.2rem; }
+                .world-clock-city { min-width: 0; font-size: clamp(1.05rem, 1.35vw, 1.35rem); font-weight: 680; letter-spacing: -0.025em; white-space: nowrap; }
+                .world-clock-day { color: currentColor; opacity: 0.62; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.09em; }
+                .world-clock-icon {
+                    width: 32px; height: 32px; flex: 0 0 32px; display: grid; place-items: center;
+                    border: 1px solid color-mix(in srgb, currentColor 24%, transparent); border-radius: 50%;
+                }
+                .is-sunrise .world-clock-icon { color: #c65d3b; background: rgba(255, 255, 255, 0.32); }
+                .is-day .world-clock-icon { color: #b26d00; background: rgba(255, 255, 255, 0.34); }
+                .is-sunset .world-clock-icon,
+                .is-night .world-clock-icon { color: currentColor; background: rgba(255, 255, 255, 0.08); }
+                .world-clock-time {
+                    font-size: clamp(1.75rem, 2.45vw, 2.65rem); font-weight: 300; line-height: 0.95;
+                    letter-spacing: -0.055em; font-variant-numeric: tabular-nums; font-family: var(--font-sans);
+                }
 
-                /* Planning Section */
-                .planning-section { display: flex; flex-direction: column; gap: 1.5rem; height: 100%; }
-                .live-clock-card {
-                    background: var(--bg-surface); border: 1px solid var(--border-subtle);
-                    border-radius: 16px; padding: 1.5rem; flex-shrink: 0;
-                    display: flex; flex-direction: column; align-items: center; 
-                    justify-content: center; text-align: center; 
-                    background: linear-gradient(135deg, var(--bg-surface) 0%, var(--bg-surface-hover) 100%);
+                .dashboard-launch-section {
+                    grid-column: 1 / -1; display: flex; flex-direction: column; align-items: flex-start;
+                    gap: 0.8rem; padding: 1.25rem 0.35rem 0.15rem;
                 }
-                .planning-calendar-wrapper {
-                    background: var(--bg-surface); border: 1px solid var(--border-subtle);
-                    border-radius: 16px; padding: 1.5rem;
-                    flex: 1; display: flex; flex-direction: column; /* Fill remaining space */
+                .dashboard-greeting {
+                    min-width: 0; padding: 0;
+                    display: flex; flex-direction: column; justify-content: center;
                 }
-                
-                .clock-time { font-size: 3rem; font-weight: 800; color: var(--text-primary); font-variant-numeric: tabular-nums; letter-spacing: -0.04em; line-height: 1; margin-bottom: 0.25rem; }
-                .clock-date { font-size: 0.95rem; color: var(--text-secondary); font-weight: 500; }
-
-                 .btn-view-live {
-                    display: flex; align-items: center; justify-content: center;
-                    background: #ffffff; color: #000000; padding: 1rem;
-                    border: 1px solid #e1e1e1;
-                    border-radius: 12px; font-weight: 600; text-decoration: none;
-                    transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-                    flex-shrink: 0;
+                .dashboard-greeting h2 {
+                    margin: 0; color: var(--text-primary); font-size: var(--dashboard-greeting-size);
+                    font-weight: 520; line-height: 0.98; letter-spacing: -0.055em;
                 }
-                .btn-view-live:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.1); background: #f9fafb; }
-                
-                /* Large Calendar Styles */
-                .planning-calendar { display: flex; flex-direction: column; height: 100%; flex: 1; }
-                .cal-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-                .cal-month-title { font-size: 1.25rem; font-weight: 600; color: var(--text-primary); }
-                .cal-grid-lg { 
-                    display: grid; grid-template-columns: repeat(7, 1fr); 
-                    gap: 1px; background: var(--border-subtle); border: 1px solid var(--border-subtle); border-radius: 12px;
-                    flex: 1; min-height: 0;
+                .dashboard-greeting p {
+                    margin: 0.8rem 0 0; color: var(--text-secondary);
+                    font-size: var(--dashboard-welcome-size); font-weight: 300; line-height: 1.35;
                 }
-                .cal-cell-head { background: var(--bg-surface); padding: 0.5rem; text-align: center; font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); }
-                .cal-cell-day { 
-                    background: var(--bg-surface); padding: 0.5rem; position: relative;
-                    font-size: 0.9rem; color: var(--text-secondary); 
-                    display: flex; flex-direction: column; align-items: flex-start;
-                    transition: background 0.2s;
+                .destination-actions { min-width: 0; display: flex; align-items: center; justify-content: flex-start; flex-wrap: wrap; gap: 0.65rem; }
+                .destination-card {
+                    width: auto; min-width: 0; min-height: 42px; padding: 0.55rem 0.75rem;
+                    display: grid; grid-template-columns: 30px max-content auto; align-items: center; gap: 0.6rem;
+                    border: 1px solid transparent; border-radius: 10px; text-decoration: none;
+                    transition: background-color 0.16s ease, border-color 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease;
                 }
-                .cal-cell-day:hover { background: var(--bg-surface-hover); }
-                .cal-cell-day.current { background: var(--bg-surface-hover); color: var(--text-primary); font-weight: 700; box-shadow: inset 0 0 0 2px var(--text-primary); }
-                .cal-cell-day.has-activity::before {
-                    content: ''; position: absolute; top: 6px; right: 6px;
-                    width: 6px; height: 6px; background: #10B981; border-radius: 50%;
+                .destination-card strong { font-size: 0.82rem; font-weight: 680; line-height: 1.2; }
+                .destination-icon {
+                    width: 30px; height: 30px; display: grid; place-items: center;
+                    border: 1px solid currentColor; border-radius: 8px; opacity: 0.92;
                 }
-                .cal-cell-day.empty { background: var(--bg-surface-hover); opacity: 0.5; }
+                .destination-icon svg { width: 16px; height: 16px; }
+                .destination-card > svg { width: 15px; height: 15px; }
+                .destination-card-primary { background: #a30021; border-color: #a30021; color: #fff; }
+                .destination-card-primary:hover {
+                    background: #760018; border-color: #760018; color: #fff;
+                    box-shadow: 0 10px 26px rgba(118, 0, 24, 0.24); transform: translateY(-2px);
+                }
+                .destination-card-secondary { background: #f7f3ed; border-color: #d9d1c7; color: #171512; }
+                .destination-card-secondary:hover {
+                    background: #fff; border-color: #8b8176; color: #090807;
+                    box-shadow: 0 10px 26px rgba(23, 21, 18, 0.12); transform: translateY(-2px);
+                }
+                .destination-card:focus-visible { outline: 3px solid var(--border-focus); outline-offset: 3px; }
 
                 /* List View Styles - Card Rows */
                 .list-container { 
@@ -905,124 +827,146 @@ export default function AdminDashboard() {
                 .skeleton.rect { height: 100%; width: 100%; }
                 @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 0.3; } 100% { opacity: 0.5; } }
 
-                @media (max-width: 1400px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
+                @media (max-height: 650px) and (min-width: 1025px) {
+                    .main-content.dashboard-main { padding-top: 0.9rem; padding-bottom: 0.9rem; }
+                    .sidebar-header { padding-top: 4.25rem; }
+                    .overview-grid { gap: 0.7rem; }
+                    .dashboard-launch-section { padding-top: 0.35rem; }
+                    .dashboard-greeting h2 { font-size: 2.65rem; }
+                    .dashboard-greeting p { margin-top: 0.4rem; }
+                    .quick-action-card { min-height: 84px; }
+                    .world-clock-grid { padding: 0.7rem; }
+                    .world-clock-item { padding: 1rem; }
+                }
                 @media (max-width: 1024px) {
-                    :root { --sidebar-width: 240px; }
-                    .main-content { padding: 2rem; }
-                    .stats-grid { grid-template-columns: repeat(2, 1fr); }
-                    .dashboard-split-view { grid-template-columns: 1fr; }
-                    .activity-board { max-height: none; } /* Allow natural height on mobile */
+                    :root { --sidebar-width: 220px; }
+                    .main-content { padding: 1.5rem; }
+                    .main-content.dashboard-main { height: auto; min-height: 100vh; overflow: visible; padding: 1.5rem; }
+                    .dashboard-main .content-body { height: auto; }
+                    .world-clock-section { grid-column: 1 / -1; }
+                    .quick-actions-panel { grid-column: 1 / -1; }
+                    .overview-grid { flex: none; }
+                    .quick-actions-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+                    .world-clock-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+                    .dashboard-launch-section { align-items: flex-start; }
                 }
                 @media (max-width: 768px) {
                     .admin-layout { flex-direction: column; }
-                    .sidebar { position: relative; width: 100%; height: auto; border-right: none; padding: 1rem; }
-                    .main-content { margin-left: 0; padding: 1rem; }
-                    .sidebar-nav { flex-direction: row; flex-wrap: wrap; }
-                    .nav-item { flex: 1; justify-content: center; }
-                    .stats-grid { grid-template-columns: 1fr; }
+                    .sidebar {
+                        position: relative; width: 100%; height: auto; border-right: none;
+                        border-bottom: 1px solid var(--border-subtle); padding: 1.25rem;
+                    }
+                    .sidebar-header {
+                        height: auto; min-height: 3rem; margin-top: 0; padding: 0 3.5rem 0 0;
+                    }
+                    .brand-title { font-size: 1.75rem; }
+                    .sidebar-nav {
+                        display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.75rem;
+                        flex: none; overflow: visible; padding: 0;
+                    }
+                    .nav-item {
+                        width: 100%; min-height: 3.5rem; justify-content: flex-start;
+                        box-sizing: border-box; padding: 0.9rem 1rem;
+                        border-color: var(--border-subtle); border-radius: 8px;
+                        background: var(--bg-color);
+                    }
+                    .nav-item:hover,
+                    .nav-item:focus-visible { border-color: var(--border-strong); outline: none; }
+                    .nav-item.active { border-color: var(--border-strong); }
+                    .nav-icon { width: 1.75rem; flex: 0 0 1.75rem; }
+                    .nav-label { min-width: 0; }
+                    .sidebar-footer { margin-top: 1.25rem; padding: 1.25rem 0 0; }
+                    .main-content { width: 100%; flex-basis: 100%; margin-left: 0; padding: 1rem; }
+                    .main-content.dashboard-main { padding: 1rem; }
+                    .quick-actions-grid { grid-template-columns: 1fr; }
+                    .world-clock-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+                    .destination-actions { align-items: stretch; }
+                    .destination-card { flex: 1 1 100%; min-height: 48px; }
                 }
             `}</style>
         </div>
     );
 }
 
-function DashboardCard({ title, count, icon, onClick, loading }) {
-    return (
-        <div className="stat-card" onClick={onClick}>
-            <div className="stat-icon-wrapper">
-                <div className="stat-icon">{icon}</div>
-            </div>
-            <div className="stat-info">
-                <h3 className="stat-title">{title}</h3>
-                {loading ? (
-                    <div className="skeleton" style={{ width: '60px', height: '1.75rem' }}></div>
-                ) : (
-                    <p className="stat-count">{count}</p>
-                )}
-            </div>
-        </div>
-    );
+function LineIcon({ icon: Icon, size = 18 }) {
+    return <Icon size={size} strokeWidth={1.7} />;
 }
 
-function LiveClock() {
-    const [time, setTime] = useState(new Date());
+function getWorldClockPhase(hour) {
+    if (hour >= 5 && hour < 8) {
+        return { label: 'Morning light', className: 'is-sunrise', icon: Sunrise };
+    }
+    if (hour >= 8 && hour < 17) {
+        return { label: 'Daylight', className: 'is-day', icon: Sun };
+    }
+    if (hour >= 17 && hour < 20) {
+        return { label: 'Evening light', className: 'is-sunset', icon: Sunset };
+    }
+    return { label: 'Night', className: 'is-night', icon: Moon };
+}
+
+function WorldClockPanel() {
+    const [now, setNow] = useState(new Date());
 
     useEffect(() => {
-        const timer = setInterval(() => setTime(new Date()), 1000);
+        const timer = setInterval(() => setNow(new Date()), 30_000);
         return () => clearInterval(timer);
     }, []);
 
     return (
-        <div className="live-clock-card">
-            <div className="clock-time">{time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</div>
-            <div className="clock-date">{time.toLocaleDateString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
-        </div>
+        <section className="dashboard-panel world-clock-section" aria-labelledby="world-clock-title">
+            <div className="panel-heading world-clock-heading">
+                <h3 id="world-clock-title">
+                    <Globe2 size={16} strokeWidth={1.7} aria-hidden="true" />
+                    World time
+                </h3>
+                <span>Live</span>
+            </div>
+            <div className="world-clock-grid">
+                {WORLD_CLOCKS.map(({ city, timeZone }) => {
+                    const time = new Intl.DateTimeFormat('en-GB', {
+                        timeZone,
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hourCycle: 'h23',
+                    }).format(now);
+                    const localHour = Number(new Intl.DateTimeFormat('en-GB', {
+                        timeZone,
+                        hour: '2-digit',
+                        hourCycle: 'h23',
+                    }).format(now));
+                    const day = new Intl.DateTimeFormat('en-US', {
+                        timeZone,
+                        weekday: 'short',
+                    }).format(now);
+                    const phase = getWorldClockPhase(localHour);
+                    const PhaseIcon = phase.icon;
+
+                    return (
+                        <div
+                            key={timeZone}
+                            className={`world-clock-item ${phase.className}`}
+                            aria-label={`${city}: ${time}, ${phase.label}`}
+                        >
+                            <div className="world-clock-top">
+                                <span>
+                                    <strong className="world-clock-city">{city}</strong>
+                                    <span className="world-clock-day">{day}</span>
+                                </span>
+                                <span className="world-clock-icon" title={phase.label}>
+                                    <PhaseIcon size={17} strokeWidth={1.7} aria-hidden="true" />
+                                </span>
+                            </div>
+                            <strong className="world-clock-time">{time}</strong>
+                        </div>
+                    );
+                })}
+            </div>
+        </section>
     );
 }
 
-function PlanningCalendar({ activity }) {
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
 
-    const generateMonth = (month, year) => {
-        const firstDay = new Date(year, month, 1).getDay();
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
-        const days = [];
-        for (let i = 0; i < firstDay; i++) days.push(null);
-        for (let i = 1; i <= daysInMonth; i++) days.push(new Date(year, month, i));
-        return days;
-    };
-
-    const days = generateMonth(currentMonth, currentYear);
-    const monthName = now.toLocaleString('default', { month: 'long', year: 'numeric' });
-
-    const hasActivity = (date) => {
-        if (!date) return false;
-        return activity.some(a => a.date.toDateString() === date.toDateString());
-    };
-
-    return (
-        <div className="planning-calendar">
-            <div className="cal-header-row">
-                <span className="cal-month-title">{monthName}</span>
-                {/* Could add prev/next buttons here later */}
-            </div>
-            <div className="cal-grid-lg">
-                {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, index) => (
-                    <div key={`${d}-${index}`} className="cal-cell-head">{d}</div>
-                ))}
-                {days.map((d, i) => (
-                    <div
-                        key={i}
-                        className={`cal-cell-day ${!d ? 'empty' : ''} ${d && d.toDateString() === now.toDateString() ? 'current' : ''} ${d && hasActivity(d) ? 'has-activity' : ''}`}
-                    >
-                        {d ? d.getDate() : ''}
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
-}
-
-
-
-
-
-
-
-function SkeletonRow() {
-    return (
-        <div className="activity-row">
-            <div className="skeleton circle" style={{ width: '40px', height: '40px' }}></div>
-            <div className="activity-content" style={{ gap: '8px' }}>
-                <div className="skeleton text" style={{ width: '100px', height: '14px' }}></div>
-                <div className="skeleton text" style={{ width: '200px', height: '18px' }}></div>
-            </div>
-        </div>
-    );
-
-}
 
 function LoadingState({ message = "Loading..." }) {
     return (

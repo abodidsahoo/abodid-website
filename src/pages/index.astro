@@ -470,6 +470,8 @@ const heroTextEffect = "smooth-blur";
         font-weight: 260;
         line-height: 1.43;
         letter-spacing: 0em;
+        content-visibility: auto;
+        contain-intrinsic-size: auto 220px;
     }
 
     .copy-link {
@@ -825,13 +827,12 @@ const heroTextEffect = "smooth-blur";
         let phraseIndex = 0;
         let activePhraseElement = createSmoothBlurPhrase(phrases[phraseIndex]);
 
+        // Keep the first meaningful hero phrase paintable immediately. The
+        // animated transitions begin only when later phrases cycle.
+        activePhraseElement.classList.add("is-visible");
         textElement.replaceChildren(activePhraseElement);
         textElement.setAttribute("aria-label", phrases[phraseIndex]);
         requestHeroCopyMotionUpdate();
-
-        runOnNextFrame(() => {
-            activePhraseElement.classList.add("is-visible");
-        });
 
         const cyclePhrases = () => {
             const outgoingPhraseElement = activePhraseElement;

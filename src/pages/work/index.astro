@@ -1,10 +1,8 @@
 ---
-export const prerender = false;
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import WorkIndex from "../../components/portfolio/WorkIndex.jsx";
-import { getPublishedPortfolioIndex } from "../../lib/portfolio/services";
+import WorkIndexIsland from "../../components/portfolio/WorkIndexIsland.astro";
+import ProgressiveContentSkeleton from "../../components/ProgressiveContentSkeleton.astro";
 
-const projects = await getPublishedPortfolioIndex();
 const title = "Work";
 const description = "A curated portfolio of multidisciplinary projects spanning research, creative direction, photography, film, exhibitions and technology.";
 ---
@@ -18,6 +16,13 @@ const description = "A curated portfolio of multidisciplinary projects spanning 
         <p class="intro-small">From there, I follow the idea into whatever form it needs: a film, a photo series, a piece of writing, a performance, an exhibition, or even an interactive digital experience.</p>
       </div>
     </header>
-    <WorkIndex projects={projects} client:load />
+    <WorkIndexIsland server:defer>
+      <ProgressiveContentSkeleton
+        slot="fallback"
+        variant="work"
+        count={6}
+        label="Loading selected work"
+      />
+    </WorkIndexIsland>
   </div>
 </BaseLayout>

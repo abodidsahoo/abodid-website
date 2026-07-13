@@ -1,28 +1,21 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import PdfIcon from "../components/PdfIcon.astro";
+import { CV_DOWNLOAD_URL, CV_FILE_NAME } from "../lib/cv";
 import { breadcrumbJsonLd, personJsonLd } from "../lib/seoData";
 
 const pageTitle = "Curriculum Vitae - Abodid Sahoo";
 const description =
     "Download Abodid Sahoo's CV for creative technology, photography, AI-assisted research workflows, filmmaking, teaching, and consulting work.";
-const primaryCvLink =
-    "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/cv/Abodid%20Sahoo%20-%20Photography%20&%20AI%20-%20CV.pdf";
-
 const cvOptions = [
-    { title: "Creative Technology & AI CV", link: primaryCvLink },
-    { title: "Photography CV", link: primaryCvLink },
-    { title: "Filmmaking CV", link: primaryCvLink },
-    { title: "Research & Teaching CV", link: primaryCvLink },
-    { title: "Visual Storytelling CV", link: primaryCvLink },
-    { title: "Consulting CV", link: primaryCvLink },
+    { title: "Download Abodid Sahoo's 2026 CV", link: CV_DOWNLOAD_URL },
 ];
 
 const structuredData = [
     personJsonLd(),
     breadcrumbJsonLd([
         { name: "Home", path: "/" },
-        { name: "Curriculum Vitae", path: "/cv/" },
+        { name: "Curriculum Vitae", path: "/cv" },
     ]),
 ];
 ---
@@ -39,7 +32,11 @@ const structuredData = [
     <section class="cv-grid">
         {
             cvOptions.map((item) => (
-                <a href={item.link} class="hub-card" target="_blank">
+                <a
+                    href={item.link}
+                    class="hub-card"
+                    download={CV_FILE_NAME}
+                >
                     <div class="card-content">
                         <div class="card-left">
                             <PdfIcon />
@@ -72,6 +69,7 @@ const structuredData = [
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
         gap: 1.5rem;
+        max-width: 540px;
         margin-bottom: 5rem;
     }
 

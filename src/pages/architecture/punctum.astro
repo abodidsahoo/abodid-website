@@ -1,7 +1,9 @@
 ---
+export const prerender = true;
 import "../../styles/global.css";
 import Footer from "../../components/Footer.astro";
 import SEO from "../../components/SEO.astro";
+import RouteLoadingOverlay from "../../components/RouteLoadingOverlay.astro";
 
 const pageTitle = "Punctum Architecture";
 const pageDescription =
@@ -25,6 +27,7 @@ const pageDescription =
         <script src="/scripts/journey-tracker.js" defer></script>
     </head>
     <body>
+        <RouteLoadingOverlay />
         <div class="architecture-page">
             <header class="arch-header">
                 <div class="system-status-bar">

@@ -1,6 +1,12 @@
 import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
+import {
+    AudienceSelectionError,
+    resolveNewsletterAudience,
+} from '../../../lib/newsletter/recipientSelection.js';
+import { createNewsletterDelivery } from '../../../lib/newsletter/deliveryPayload.js';
+import { personalizeNewsletterMessage } from '../../../lib/newsletter/personalization.js';
 
 export const POST: APIRoute = async ({ request }) => {
     try {
@@ -44,7 +50,31 @@ export const POST: APIRoute = async ({ request }) => {
         }
 
         // 3. Parse Request
-        const { subject, message, isTest, testEmail, previewText, senderName, senderEmail, htmlFooter } = await request.json();
+        const {
+            subject,
+            message,
+            isTest,
+            testEmail,
+            previewText,
+            senderName,
+            senderEmail,
+            htmlFooter,
+            audienceMode,
+            recipientIds,
+        } = await request.json();
+
+        let audience;
+        try {
+            audience = resolveNewsletterAudience({ isTest, audienceMode, recipientIds });
+        } catch (error) {
+            if (error instanceof AudienceSelectionError) {
+                return new Response(JSON.stringify({ error: error.message }), {
+                    status: 400,
+                    headers: { 'Content-Type': 'application/json' },
+                });
+            }
+            throw error;
+        }
 
         // Validate Sender Email (Must be verified domain)
         if (senderEmail && !senderEmail.endsWith('@abodid.com')) {
@@ -54,29 +84,55 @@ export const POST: APIRoute = async ({ request }) => {
         const effectiveSenderName = senderName || 'Abodid';
         const effectiveSenderEmail = senderEmail || 'newsletter@abodid.com';
         const fromAddress = `${effectiveSenderName} <${effectiveSenderEmail}>`;
-        const ownerNotificationEmail = (
-            import.meta.env.OWNER_NOTIFICATION_EMAIL ||
-            process.env.OWNER_NOTIFICATION_EMAIL ||
-            import.meta.env.CONTACT_FORM_TO_EMAIL ||
-            process.env.CONTACT_FORM_TO_EMAIL ||
-            'hello@abodid.com'
-        ).trim().toLowerCase();
 
         if (!subject || !message) {
             return new Response(JSON.stringify({ error: 'Missing fields' }), { status: 400 });
         }
 
         // 4. Send Logic
-        let recipients = [];
+        let recipients: Array<{ id?: string; email: string; name?: string | null }> = [];
 
-        if (isTest && testEmail) {
+        if (audience.mode === 'test') {
             // Test Mode: Send only to the test email (usually the admin)
-            recipients = [{ email: testEmail }];
+            if (typeof testEmail !== 'string' || !testEmail.trim()) {
+                return new Response(JSON.stringify({ error: 'Missing test recipient.' }), {
+                    status: 400,
+                    headers: { 'Content-Type': 'application/json' },
+                });
+            }
+            const adminName = user.user_metadata?.first_name
+                || user.user_metadata?.name
+                || user.user_metadata?.full_name
+                || 'Abodid';
+            recipients = [{ email: testEmail, name: adminName }];
+        } else if (audience.mode === 'selected') {
+            // Targeted Mode: Resolve IDs against active subscribers on the server.
+            const { data: subscribers, error: subError } = await supabase
+                .from('subscribers')
+                .select('id, email, name')
+                .eq('status', 'active')
+                .in('id', audience.recipientIds);
+
+            if (subError) throw subError;
+
+            if ((subscribers || []).length !== audience.recipientIds.length) {
+                return new Response(
+                    JSON.stringify({
+                        error: 'One or more selected subscribers are no longer active. Refresh the list and try again.',
+                    }),
+                    {
+                        status: 400,
+                        headers: { 'Content-Type': 'application/json' },
+                    },
+                );
+            }
+
+            recipients = subscribers || [];
         } else {
             // Broadcast Mode: Fetch all active subscribers
             const { data: subscribers, error: subError } = await supabase
                 .from('subscribers')
-                .select('email')
+                .select('email, name')
                 .eq('status', 'active');
 
             if (subError) throw subError;
@@ -142,6 +198,8 @@ export const POST: APIRoute = async ({ request }) => {
         // Process batches sequentially to be safe, though parallel is likely fine for small numbers
         for (const batch of batches) {
             const emailBatch = batch.map((recipient) => {
+                const personalizedMessage = personalizeNewsletterMessage(message, recipient.name);
+
                 // Use custom footer if provided, otherwise use default
                 const footerContent = htmlFooter || `
                     <p style="font-size: 12px; color: #888; text-align: center;">
@@ -155,7 +213,7 @@ export const POST: APIRoute = async ({ request }) => {
                 <html>
                 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
                     ${preheaderHtml}
-                    <div style="white-space: pre-wrap;">${message}</div>
+                    <div style="white-space: pre-wrap;">${personalizedMessage}</div>
                     <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;" />
                     ${footerContent}
                     <img src="${pixelUrl}" width="1" height="1" style="display:none;" alt="" />
@@ -163,18 +221,12 @@ export const POST: APIRoute = async ({ request }) => {
                 </html>
             `;
 
-                return {
-                    from: fromAddress,
-                    to: recipient.email,
-                    bcc:
-                        ownerNotificationEmail &&
-                        String(recipient.email || '').trim().toLowerCase() !==
-                            ownerNotificationEmail
-                            ? [ownerNotificationEmail]
-                            : undefined,
-                    subject: subject,
-                    html: htmlContent
-                };
+                return createNewsletterDelivery({
+                    fromAddress,
+                    recipientEmail: recipient.email,
+                    subject,
+                    htmlContent,
+                });
             });
 
             try {
@@ -214,9 +266,13 @@ export const POST: APIRoute = async ({ request }) => {
             success: true,
             count: successCount,
             failures: failCount,
-            mode: isTest ? 'test' : 'broadcast',
+            mode:
+                audience.mode === 'test'
+                    ? 'test'
+                    : audience.mode === 'selected'
+                        ? 'selected'
+                        : 'broadcast',
             analytics: broadcastId ? 'active' : 'disabled',
-            ownerMirrorEnabled: Boolean(ownerNotificationEmail),
             errors: errors.length > 0 ? errors : undefined
         }), {
             status: 200,

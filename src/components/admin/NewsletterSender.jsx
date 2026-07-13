@@ -1,27 +1,35 @@
-import React, { useState, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
+import { personalizeNewsletterMessage } from '../../lib/newsletter/personalization.js';
 import ImageUploader from './ImageUploader';
+import './newsletter-sender.css';
 
 export default function NewsletterSender() {
     const [subject, setSubject] = useState('');
     const [previewText, setPreviewText] = useState('');
     const [message, setMessage] = useState('');
     const [htmlFooter, setHtmlFooter] = useState('');
-    const [status, setStatus] = useState('idle'); // idle, sending, success, error
+    const [status, setStatus] = useState('idle');
     const [statusMsg, setStatusMsg] = useState('');
     const [subscriberCount, setSubscriberCount] = useState(0);
+    const [subscribers, setSubscribers] = useState([]);
+    const [subscribersLoading, setSubscribersLoading] = useState(true);
+    const [subscriberError, setSubscriberError] = useState('');
+    const [subscriberSearch, setSubscriberSearch] = useState('');
+    const [audienceMode, setAudienceMode] = useState('all');
+    const [selectedSubscriberIds, setSelectedSubscriberIds] = useState([]);
     const [adminEmail, setAdminEmail] = useState('');
-    const [previewMode, setPreviewMode] = useState('desktop'); // desktop or phone
-
-    // New Feature States
+    const [previewMode, setPreviewMode] = useState('desktop');
     const [newSubscriber, setNewSubscriber] = useState('');
     const [addSubStatus, setAddSubStatus] = useState('');
     const [senderName, setSenderName] = useState('Abodid');
     const [senderEmail, setSenderEmail] = useState('newsletter@abodid.com');
-
-    // Footer Template Management
+    const [savedSenderEmails, setSavedSenderEmails] = useState(['newsletter@abodid.com']);
+    const [isAddingEmail, setIsAddingEmail] = useState(false);
+    const [tempNewEmail, setTempNewEmail] = useState('');
     const [savedFooters, setSavedFooters] = useState([]);
     const [footerName, setFooterName] = useState('');
+    const messageEditorRef = useRef(null);
 
     useEffect(() => {
         fetchSubscribers();
@@ -29,22 +37,38 @@ export default function NewsletterSender() {
     }, []);
 
     const fetchSubscribers = async () => {
-        const { count } = await supabase
-            .from('subscribers')
-            .select('*', { count: 'exact', head: true })
-            .eq('status', 'active');
-        setSubscriberCount(count || 0);
+        setSubscribersLoading(true);
+        setSubscriberError('');
 
-        // Get current admin email for test
+        const { data, error } = await supabase
+            .from('subscribers')
+            .select('id, email, name, source, subscribed_at')
+            .eq('status', 'active')
+            .order('email', { ascending: true });
+
+        if (error) {
+            setSubscribers([]);
+            setSubscriberCount(0);
+            setSubscriberError('Could not load subscribers. Please refresh and try again.');
+        } else {
+            const activeSubscribers = data || [];
+            const activeIds = new Set(activeSubscribers.map((subscriber) => subscriber.id));
+            setSubscribers(activeSubscribers);
+            setSubscriberCount(activeSubscribers.length);
+            setSelectedSubscriberIds((currentIds) => currentIds.filter((id) => activeIds.has(id)));
+        }
+        setSubscribersLoading(false);
+
         const { data: { user } } = await supabase.auth.getUser();
         if (user) setAdminEmail(user.email);
     };
 
-    // Footer Template Functions
     const loadSavedFooters = () => {
-        const saved = localStorage.getItem('newsletter_footer_templates');
-        if (saved) {
-            setSavedFooters(JSON.parse(saved));
+        try {
+            const saved = localStorage.getItem('newsletter_footer_templates');
+            if (saved) setSavedFooters(JSON.parse(saved));
+        } catch {
+            setSavedFooters([]);
         }
     };
 
@@ -54,89 +78,108 @@ export default function NewsletterSender() {
             return;
         }
         const name = footerName.trim() || `Footer ${savedFooters.length + 1}`;
-        const newFooter = { name, html: htmlFooter, id: Date.now() };
-        const updated = [...savedFooters, newFooter];
+        const updated = [...savedFooters, { name, html: htmlFooter, id: Date.now() }];
         setSavedFooters(updated);
         localStorage.setItem('newsletter_footer_templates', JSON.stringify(updated));
         setFooterName('');
-        alert(`Footer template "${name}" saved!`);
-    };
-
-    const loadFooterTemplate = (footer) => {
-        setHtmlFooter(footer.html);
     };
 
     const deleteFooterTemplate = (footerId) => {
         if (!confirm('Delete this footer template?')) return;
-        const updated = savedFooters.filter(f => f.id !== footerId);
+        const updated = savedFooters.filter((footer) => footer.id !== footerId);
         setSavedFooters(updated);
         localStorage.setItem('newsletter_footer_templates', JSON.stringify(updated));
     };
 
     const handleImageUpload = async (files) => {
-        if (!files || !files.length) return;
+        if (!files?.length) return;
         const imgHtml = `<img src="${files[0].url}" style="max-width:100%; border-radius:8px; margin: 1rem 0;" />`;
-        // Append image HTML to message content
-        setMessage(prev => prev + '\n' + imgHtml + '\n');
+        setMessage((currentMessage) => `${currentMessage}\n${imgHtml}\n`);
     };
 
-    const handleBlockInsert = (blockHtml) => {
-        // Insert block HTML into message
-        setMessage(prev => prev + '\n' + blockHtml + '\n');
+    const insertRecipientName = () => {
+        const token = '{{first_name}}';
+        const editor = messageEditorRef.current;
+        const selectionStart = editor?.selectionStart ?? message.length;
+        const selectionEnd = editor?.selectionEnd ?? selectionStart;
+
+        setMessage((currentMessage) => (
+            `${currentMessage.slice(0, selectionStart)}${token}${currentMessage.slice(selectionEnd)}`
+        ));
+
+        requestAnimationFrame(() => {
+            if (!editor) return;
+            const nextCursorPosition = selectionStart + token.length;
+            editor.focus();
+            editor.setSelectionRange(nextCursorPosition, nextCursorPosition);
+        });
     };
 
     const handleAddSubscriber = async () => {
         if (!newSubscriber || !newSubscriber.includes('@')) {
-            setAddSubStatus('Invalid email');
+            setAddSubStatus('Enter a valid email address.');
             return;
         }
-        setAddSubStatus('Adding...');
+
+        setAddSubStatus('Adding…');
         const { error } = await supabase
             .from('subscribers')
             .insert({ email: newSubscriber, source: 'admin_manual', status: 'active' });
 
         if (error) {
-            setAddSubStatus('Error: ' + error.message);
+            setAddSubStatus(`Error: ${error.message}`);
         } else {
             setAddSubStatus('Added!');
             setNewSubscriber('');
-            fetchSubscribers(); // Refresh count
+            fetchSubscribers();
             setTimeout(() => setAddSubStatus(''), 3000);
         }
     };
 
     const handleSend = async (isTest = false) => {
-        if (!subject || !message) {
+        if (!subject.trim() || !message.trim()) {
             setStatus('error');
-            setStatusMsg('Please fill in subject and message.');
+            setStatusMsg('Add a subject line and message before sending.');
             return;
         }
 
-        // Validate sender email domain
         if (!senderEmail.endsWith('@abodid.com')) {
             setStatus('error');
-            setStatusMsg('Sender email must end in @abodid.com');
+            setStatusMsg('Sender email must end in @abodid.com.');
             return;
         }
 
         const targetEmail = isTest ? (adminEmail || 'abodid@abodid.com') : null;
-        const count = isTest ? 1 : (subscriberCount || 0);
+        const count = isTest
+            ? 1
+            : audienceMode === 'selected'
+                ? selectedSubscriberIds.length
+                : subscriberCount;
 
-        if (!isTest && !window.confirm(`Are you sure you want to broadcast this to ${count} people?`)) {
+        if (!isTest && audienceMode === 'selected' && count === 0) {
+            setStatus('error');
+            setStatusMsg('Select at least one subscriber before sending.');
+            return;
+        }
+
+        const audienceDescription = audienceMode === 'selected'
+            ? `${count} selected subscriber${count === 1 ? '' : 's'}`
+            : `all ${count} active subscribers`;
+
+        if (!isTest && !window.confirm(`Are you sure you want to send this to ${audienceDescription}?`)) {
             return;
         }
 
         setStatus('sending');
-        setStatusMsg(isTest ? 'Sending test email...' : `Broadcasting to ${count} subscribers...`);
+        setStatusMsg(isTest ? 'Sending test email…' : `Sending to ${audienceDescription}…`);
 
         try {
-            // Helper to perform the fetch
             const performSend = async (token) => {
                 const response = await fetch('/api/admin/broadcast', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
+                        Authorization: `Bearer ${token}`,
                     },
                     body: JSON.stringify({
                         subject,
@@ -146,66 +189,52 @@ export default function NewsletterSender() {
                         senderName,
                         senderEmail,
                         testEmail: targetEmail,
-                        isTest
-                    })
+                        isTest,
+                        audienceMode,
+                        recipientIds: audienceMode === 'selected' ? selectedSubscriberIds : undefined,
+                    }),
                 });
 
-                if (response.status === 401) {
-                    throw new Error('Unauthorized');
-                }
-
+                if (response.status === 401) throw new Error('Unauthorized');
                 const result = await response.json();
                 if (!response.ok) throw new Error(result.error || 'Failed to send');
                 return result;
             };
 
-            let sessionData = await supabase.auth.getSession();
+            const sessionData = await supabase.auth.getSession();
             let token = sessionData.data.session?.access_token;
-
             let result;
+
             try {
                 result = await performSend(token);
             } catch (firstError) {
-                if (firstError.message === 'Unauthorized') {
-                    // Token likely expired. Refresh and retry.
-                    console.log('Token expired. Refreshing session...');
-                    const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
-
-                    if (refreshError || !refreshData.session) {
-                        throw new Error('Session expired. Please refresh the page and log in again.');
-                    }
-
-                    token = refreshData.session.access_token;
-                    result = await performSend(token);
-                } else {
-                    throw firstError;
+                if (firstError.message !== 'Unauthorized') throw firstError;
+                const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+                if (refreshError || !refreshData.session) {
+                    throw new Error('Session expired. Please refresh the page and log in again.');
                 }
+                token = refreshData.session.access_token;
+                result = await performSend(token);
             }
 
             setStatus('success');
-            let msg = isTest
-                ? `Test sent to ${adminEmail}`
-                : `Broadcast complete! Sent to ${result.count} subscribers.`;
+            let nextMessage = isTest
+                ? `Test sent to ${targetEmail}.`
+                : audienceMode === 'selected'
+                    ? `Campaign sent to ${result.count} selected subscribers.`
+                    : `Campaign sent to ${result.count} subscribers.`;
 
             if (result.failures > 0) {
-                setStatus('error'); // Use partial error state or keep success but warn? Error is safer to grab attention.
-                msg += ` WARNING: ${result.failures} failed to send.`;
-                if (result.errors && result.errors.length) {
-                    msg += ` Errors: ${result.errors.join(', ')}`;
-                }
+                setStatus('error');
+                nextMessage += ` ${result.failures} failed to send.`;
+                if (result.errors?.length) nextMessage += ` Errors: ${result.errors.join(', ')}`;
             }
-            setStatusMsg(msg);
-
-        } catch (e) {
+            setStatusMsg(nextMessage);
+        } catch (error) {
             setStatus('error');
-            setStatusMsg(e.message);
+            setStatusMsg(error.message);
         }
     };
-
-    // Helper to add new sender email
-    const [savedSenderEmails, setSavedSenderEmails] = useState(['newsletter@abodid.com']);
-    const [isAddingEmail, setIsAddingEmail] = useState(false);
-    const [tempNewEmail, setTempNewEmail] = useState('');
 
     const handleAddSenderEmail = () => {
         if (tempNewEmail && tempNewEmail.endsWith('@abodid.com') && !savedSenderEmails.includes(tempNewEmail)) {
@@ -218,496 +247,556 @@ export default function NewsletterSender() {
         }
     };
 
+    const toggleSubscriberSelection = (subscriberId) => {
+        setAudienceMode('selected');
+        setSelectedSubscriberIds((currentIds) => currentIds.includes(subscriberId)
+            ? currentIds.filter((id) => id !== subscriberId)
+            : [...currentIds, subscriberId]);
+    };
+
+    const normalizedSubscriberSearch = subscriberSearch.trim().toLowerCase();
+    const filteredSubscribers = subscribers.filter((subscriber) => {
+        if (!normalizedSubscriberSearch) return true;
+        return [subscriber.email, subscriber.name, subscriber.source]
+            .filter(Boolean)
+            .some((value) => value.toLowerCase().includes(normalizedSubscriberSearch));
+    });
+    const selectedSubscriberIdSet = new Set(selectedSubscriberIds);
+    const allVisibleSubscribersSelected = audienceMode === 'selected'
+        && filteredSubscribers.length > 0
+        && filteredSubscribers.every((subscriber) => selectedSubscriberIdSet.has(subscriber.id));
+
+    const toggleVisibleSubscribers = () => {
+        setAudienceMode('selected');
+        setSelectedSubscriberIds((currentIds) => {
+            const nextIds = new Set(currentIds);
+            filteredSubscribers.forEach((subscriber) => {
+                if (allVisibleSubscribersSelected) nextIds.delete(subscriber.id);
+                else nextIds.add(subscriber.id);
+            });
+            return [...nextIds];
+        });
+    };
+
+    const formatSubscriberDate = (dateValue) => {
+        if (!dateValue) return '—';
+        const date = new Date(dateValue);
+        if (Number.isNaN(date.getTime())) return '—';
+        return new Intl.DateTimeFormat('en', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+        }).format(date);
+    };
+
+    const deliveryRecipientCount = audienceMode === 'selected'
+        ? selectedSubscriberIds.length
+        : subscriberCount;
+    const campaignReady = Boolean(subject.trim() && message.trim() && deliveryRecipientCount > 0);
+    const isSendingTest = status === 'sending' && statusMsg.toLowerCase().includes('test');
+    const previewMessage = message
+        ? personalizeNewsletterMessage(message, 'Abodid')
+        : '<p style="color:#888;font-style:italic">Start writing to see your newsletter here.</p>';
+
     return (
         <div className="newsletter-sender">
-            <header className="content-header" style={{ marginBottom: '2rem' }}>
-                <h2 className="section-title">Newsletter Broadcast</h2>
+            <header className="newsletter-header">
+                <div>
+                    <span className="newsletter-eyebrow">Newsletter studio</span>
+                    <h2 className="section-title">Create a campaign</h2>
+                    <p>Draft, review, choose your audience, then send when everything is ready.</p>
+                </div>
+                <div className="header-audience-count" aria-label={`${subscriberCount} active subscribers`}>
+                    <strong>{subscriberCount}</strong>
+                    <span>active subscribers</span>
+                </div>
             </header>
 
-            <div className="sender-card">
-                <div className="sender-grid">
-                    {/* Left: Compose */}
-                    <div className="compose-col">
-                        <section className="card-section">
-                            <div className="form-group">
-                                <label>Subject Line</label>
-                                <input
-                                    type="text"
-                                    value={subject}
-                                    onChange={(e) => setSubject(e.target.value)}
-                                    placeholder="Enter subject line..."
-                                    className="input-field box-input"
-                                />
-                            </div>
-                            <div className="field-group">
-                                <label>Preview Text (Preheader)</label>
-                                <input
-                                    type="text"
-                                    className="box-input"
-                                    placeholder="Text shown in inbox preview..."
-                                    value={previewText}
-                                    onChange={e => setPreviewText(e.target.value)}
-                                />
-                            </div>
-
-                            <div className="field-group full-height">
-                                <label>Message Body (Markdown)</label>
-
-                                {/* Image Uploader */}
-                                <div style={{ marginBottom: '1rem' }}>
-                                    <ImageUploader
-                                        bucket="newsletter-assets"
-                                        path={new Date().toISOString().split('T')[0]}
-                                        label="Drag Image Here to Insert"
-                                        onUpload={handleImageUpload}
-                                        className="newsletter-uploader"
-                                    />
-                                </div>
-
-                                {/* Simple Textarea for Markdown */}
-                                <textarea
-                                    value={message}
-                                    onChange={e => setMessage(e.target.value)}
-                                    placeholder="Write your newsletter in markdown or HTML..."
-                                    className="box-input markdown-editor"
-                                    rows={15}
-                                />
-                            </div>
-
-                            {/* Footer Templates */}
-                            <div className="field-group">
-                                <label>Footer Templates</label>
-                                <div className="footer-templates">
-                                    {savedFooters.map((footer) => (
-                                        <div key={footer.id} className="footer-template-card">
-                                            <div className="footer-template-info">
-                                                <span className="footer-template-name">{footer.name}</span>
-                                                <span className="footer-template-preview">
-                                                    {footer.html.substring(0, 60)}...
-                                                </span>
-                                            </div>
-                                            <div className="footer-template-actions">
-                                                <button
-                                                    className="btn-small btn-primary"
-                                                    onClick={() => loadFooterTemplate(footer)}
-                                                    title="Insert this footer"
-                                                >
-                                                    Insert
-                                                </button>
-                                                <button
-                                                    className="btn-small btn-danger"
-                                                    onClick={() => deleteFooterTemplate(footer.id)}
-                                                    title="Delete this template"
-                                                >
-                                                    ✕
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                    {savedFooters.length === 0 && (
-                                        <p className="no-templates">No footer templates saved yet. Create one below!</p>
-                                    )}
-                                </div>
-                                <div className="save-footer-template">
-                                    <input
-                                        type="text"
-                                        value={footerName}
-                                        onChange={e => setFooterName(e.target.value)}
-                                        placeholder="Template name (optional)"
-                                        className="box-input footer-name-input"
-                                    />
-                                    <button
-                                        className="btn-save-template"
-                                        onClick={saveFooterTemplate}
-                                        title="Save current footer as template"
-                                    >
-                                        + Save Current Footer
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div className="field-group">
-                                <label>HTML Footer (Optional)</label>
-                                <textarea
-                                    value={htmlFooter}
-                                    onChange={e => setHtmlFooter(e.target.value)}
-                                    placeholder="<p>Custom footer HTML...</p>"
-                                    className="box-input"
-                                    rows={3}
-                                />
-                            </div>
-                        </section>
-                    </div>
-
-                    {/* Middle: Preview */}
-                    <div className="preview-col">
-                        <section className="card-section">
-                            <div className="preview-header">
-                                <label className="section-label">Live Email Preview</label>
-                                <div className="preview-toggle">
-                                    <button
-                                        className={`toggle-btn ${previewMode === 'desktop' ? 'active' : ''}`}
-                                        onClick={() => setPreviewMode('desktop')}
-                                    >
-                                        🖥️ Desktop
-                                    </button>
-                                    <button
-                                        className={`toggle-btn ${previewMode === 'phone' ? 'active' : ''}`}
-                                        onClick={() => setPreviewMode('phone')}
-                                    >
-                                        📱 Phone
-                                    </button>
-                                </div>
-                            </div>
-                            <div className={`email-preview-frame ${previewMode}`}>
-                                <div className="email-header">
-                                    <h2 className="email-subject">{subject}</h2>
-                                </div>
-                                <div className="email-body">
-                                    {/* Safe Render */}
-                                    <div dangerouslySetInnerHTML={{ __html: message || '<p style="color:#999;font-style:italic">Draft your message to see a preview here...</p>' }} />
-                                </div>
-                                <hr className="email-divider" />
-                                <div className="email-footer">
-                                    {htmlFooter ? (
-                                        <div dangerouslySetInnerHTML={{ __html: htmlFooter }} />
-                                    ) : (
-                                        <>
-                                            You received this because you are subscribed to updates from Abodid. <br />
-                                            <span style={{ textDecoration: 'underline' }}>Unsubscribe</span>
-                                        </>
-                                    )}
-                                </div>
-                            </div>
-                        </section>
-                    </div>
-
-                    {/* Right: Actions & Stats */}
-                    <div className="action-col">
-                        <div className="stat-box">
-                            <span className="stat-label">Active Subscribers</span>
-                            <span className="stat-val">{subscriberCount}</span>
+            <div className="creation-grid">
+                <section className="studio-panel preview-panel" aria-labelledby="live-preview-title">
+                    <div className="panel-heading preview-header">
+                        <div>
+                            <span className="step-label">Preview</span>
+                            <h3 id="live-preview-title">Live email preview</h3>
                         </div>
+                        <div className="preview-toggle" aria-label="Preview size">
+                            <button
+                                type="button"
+                                className={`toggle-btn ${previewMode === 'desktop' ? 'active' : ''}`}
+                                onClick={() => setPreviewMode('desktop')}
+                                aria-pressed={previewMode === 'desktop'}
+                            >
+                                Desktop
+                            </button>
+                            <button
+                                type="button"
+                                className={`toggle-btn ${previewMode === 'phone' ? 'active' : ''}`}
+                                onClick={() => setPreviewMode('phone')}
+                                aria-pressed={previewMode === 'phone'}
+                            >
+                                Mobile
+                            </button>
+                        </div>
+                    </div>
 
-                        {/* Manual Add Subscriber */}
-                        <div className="action-box">
-                            <h4 className="action-title">Add Subscriber </h4>
-                            <div style={{ display: 'flex', gap: '8px' }}>
-                                <input
-                                    type="email"
-                                    placeholder="email@example.com"
-                                    className="box-input"
-                                    style={{ fontSize: '0.8rem', padding: '0.5rem' }}
-                                    value={newSubscriber}
-                                    onChange={e => setNewSubscriber(e.target.value)}
-                                />
-                                <button className="btn sec" onClick={handleAddSubscriber} style={{ padding: '0.5rem' }}>
-                                    +
+                    <div className="inbox-preview" aria-label="Gmail inbox appearance preview">
+                        <div className="inbox-preview-heading">
+                            <span className="inbox-preview-label">Inbox appearance</span>
+                            <span className="inbox-preview-note">Gmail desktop preview</span>
+                        </div>
+                        <div className="gmail-preview">
+                            <div className="gmail-topbar" aria-hidden="true">
+                                <span className="gmail-menu-icon">☰</span>
+                                <span className="gmail-wordmark">
+                                    <img src="/images/admin/gmail-logo.png" alt="" width="18" height="18" />
+                                    Gmail
+                                </span>
+                                <span className="gmail-search"><span>⌕</span> Search mail</span>
+                                <span className="gmail-topbar-icon">?</span>
+                                <span className="gmail-topbar-icon">⚙</span>
+                                <span className="gmail-avatar">A</span>
+                            </div>
+                            <div className="gmail-toolbar" aria-hidden="true">
+                                <span className="gmail-checkbox" />
+                                <span>⌄</span>
+                                <span>↻</span>
+                                <span>⋮</span>
+                                <span className="gmail-toolbar-count">1–1 of 1</span>
+                                <span>‹</span>
+                                <span>›</span>
+                            </div>
+                            <div className="gmail-message-row">
+                                <span className="gmail-checkbox" aria-hidden="true" />
+                                <span className="gmail-star" aria-hidden="true">☆</span>
+                                <span className="inbox-preview-sender">{senderName || 'Abodid'}</span>
+                                <span className="gmail-message-content">
+                                    <span className={`inbox-preview-subject ${subject ? '' : 'placeholder'}`}>
+                                        {subject || 'Your subject line'}
+                                    </span>
+                                    <span className="inbox-preview-separator" aria-hidden="true"> — </span>
+                                    <span className={`inbox-preview-text ${previewText ? '' : 'placeholder'}`}>
+                                        {previewText || 'Your preview text will appear here'}
+                                    </span>
+                                </span>
+                                <span className="gmail-message-time">Now</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="preview-stage">
+                        <div className={`email-preview-frame ${previewMode}`}>
+                            <div className="email-header">
+                                <h2 className="email-subject">{subject || 'Your subject line'}</h2>
+                            </div>
+                            <div className="email-body">
+                                <div dangerouslySetInnerHTML={{ __html: previewMessage }} />
+                            </div>
+                            <hr className="email-divider" />
+                            <div className="email-footer">
+                                {htmlFooter ? (
+                                    <div dangerouslySetInnerHTML={{ __html: htmlFooter }} />
+                                ) : (
+                                    <>
+                                        You received this because you are subscribed to updates from Abodid. <br />
+                                        <span style={{ textDecoration: 'underline' }}>Unsubscribe</span>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section className="studio-panel compose-panel" aria-labelledby="draft-title">
+                    <div className="panel-heading">
+                        <div>
+                            <span className="step-label">Draft</span>
+                            <h3 id="draft-title">Write your newsletter</h3>
+                        </div>
+                    </div>
+
+                    <div className="field-group">
+                        <label htmlFor="newsletter-subject">Subject line</label>
+                        <input
+                            id="newsletter-subject"
+                            type="text"
+                            value={subject}
+                            onChange={(event) => setSubject(event.target.value)}
+                            placeholder="What will make someone want to open this?"
+                            className="box-input"
+                        />
+                    </div>
+
+                    <div className="field-group preview-text-field">
+                        <div className="field-label-row">
+                            <label htmlFor="newsletter-preview-text">Preview text</label>
+                            <span className={previewText.length > 90 ? 'character-count warning' : 'character-count'}>
+                                {previewText.length}/90
+                            </span>
+                        </div>
+                        <input
+                            id="newsletter-preview-text"
+                            type="text"
+                            className="box-input"
+                            placeholder="A useful reason to open the email"
+                            value={previewText}
+                            onChange={(event) => setPreviewText(event.target.value)}
+                        />
+                    </div>
+
+                    <div className="field-group message-field">
+                        <div className="field-label-row">
+                            <label htmlFor="newsletter-message">Message</label>
+                            <div className="message-tools">
+                                <span className="field-format">HTML or plain text</span>
+                                <button
+                                    type="button"
+                                    className="merge-tag-button"
+                                    onClick={insertRecipientName}
+                                    title="Insert the recipient's first name at the cursor"
+                                >
+                                    + Add name
                                 </button>
                             </div>
-                            {addSubStatus && <div style={{ fontSize: '0.8rem', marginTop: '4px', color: addSubStatus.includes('Error') ? 'red' : 'green' }}>{addSubStatus}</div>}
                         </div>
-
-                        <div className="action-box">
-                            <h4 className="action-title">Test First</h4>
-                            <p className="action-desc">Send a preview to <strong>abodidsahoo@gmail.com</strong></p>
-                            <button
-                                className="btn sec full-width"
-                                onClick={() => handleSend(true)}
-                                disabled={status === 'sending'}
-                            >
-                                Send Test Email
-                            </button>
+                        <p className="field-help merge-tag-help" id="recipient-name-help">
+                            Inserts the recipient&apos;s first name at your cursor. Preview: “Abodid”; missing names: “there”.
+                        </p>
+                        <div className="asset-uploader">
+                            <ImageUploader
+                                bucket="newsletter-assets"
+                                path={new Date().toISOString().split('T')[0]}
+                                label="Add an image"
+                                onUpload={handleImageUpload}
+                                className="newsletter-uploader"
+                            />
                         </div>
+                        <textarea
+                            id="newsletter-message"
+                            ref={messageEditorRef}
+                            value={message}
+                            onChange={(event) => setMessage(event.target.value)}
+                            placeholder="Write your newsletter here…"
+                            className="box-input markdown-editor"
+                            aria-describedby="recipient-name-help"
+                            rows={16}
+                        />
+                    </div>
 
-                        {/* Broadcast Section with Sender Config */}
-                        <div className="action-box danger-zone" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                            <div>
-                                <h4 className="action-title" style={{ marginBottom: '1rem' }}>Broadcast Configuration</h4>
-
-                                <div className="field-group" style={{ marginBottom: '1rem' }}>
-                                    <label>Sender Name</label>
-                                    <input
-                                        type="text"
-                                        value={senderName}
-                                        onChange={(e) => setSenderName(e.target.value)}
-                                        placeholder="e.g. Abodid"
-                                        className="box-input"
-                                    />
-                                </div>
-
-                                <div className="field-group" style={{ marginBottom: '0.5rem' }}>
-                                    <label>Sender Email</label>
-                                    {!isAddingEmail ? (
-                                        <div style={{ display: 'flex', gap: '8px' }}>
-                                            <select
-                                                className="box-input"
-                                                value={senderEmail}
-                                                onChange={(e) => e.target.value === 'ADD_NEW' ? setIsAddingEmail(true) : setSenderEmail(e.target.value)}
-                                            >
-                                                {savedSenderEmails.map(email => (
-                                                    <option key={email} value={email}>{email}</option>
-                                                ))}
-                                                <option value="ADD_NEW">+ Add New Email</option>
-                                            </select>
-                                        </div>
-                                    ) : (
-                                        <div style={{ display: 'flex', gap: '8px' }}>
-                                            <input
-                                                type="email"
-                                                className="box-input"
-                                                placeholder="news@abodid.com"
-                                                value={tempNewEmail}
-                                                onChange={(e) => setTempNewEmail(e.target.value)}
-                                                autoFocus
-                                            />
-                                            <button className="btn sec" onClick={() => setIsAddingEmail(false)}>✕</button>
-                                            <button className="btn pri" onClick={handleAddSenderEmail}>✓</button>
-                                        </div>
-                                    )}
-                                </div>
+                    <details className="footer-editor">
+                        <summary>
+                            <span>Custom footer and templates</span>
+                            <small>Optional</small>
+                        </summary>
+                        <div className="footer-editor-content">
+                            <div className="field-group">
+                                <label htmlFor="newsletter-footer">Footer HTML</label>
+                                <textarea
+                                    id="newsletter-footer"
+                                    value={htmlFooter}
+                                    onChange={(event) => setHtmlFooter(event.target.value)}
+                                    placeholder="<p>Custom footer HTML…</p>"
+                                    className="box-input"
+                                    rows={4}
+                                />
                             </div>
 
+                            <div className="footer-templates">
+                                {savedFooters.map((footer) => (
+                                    <div key={footer.id} className="footer-template-card">
+                                        <div className="footer-template-info">
+                                            <strong>{footer.name}</strong>
+                                            <span>{footer.html.substring(0, 60)}{footer.html.length > 60 ? '…' : ''}</span>
+                                        </div>
+                                        <div className="footer-template-actions">
+                                            <button type="button" className="text-button" onClick={() => setHtmlFooter(footer.html)}>Use</button>
+                                            <button type="button" className="icon-button danger" onClick={() => deleteFooterTemplate(footer.id)} aria-label={`Delete ${footer.name}`}>×</button>
+                                        </div>
+                                    </div>
+                                ))}
+                                {savedFooters.length === 0 && <p className="empty-note">No footer templates saved yet.</p>}
+                            </div>
+
+                            <div className="save-footer-template">
+                                <input
+                                    type="text"
+                                    value={footerName}
+                                    onChange={(event) => setFooterName(event.target.value)}
+                                    placeholder="Template name"
+                                    className="box-input"
+                                />
+                                <button type="button" className="btn sec" onClick={saveFooterTemplate}>Save footer</button>
+                            </div>
+                        </div>
+                    </details>
+                </section>
+            </div>
+
+            <section className="campaign-management" aria-labelledby="campaign-setup-title">
+                <div className="management-heading">
+                    <div>
+                        <span className="newsletter-eyebrow">Campaign setup</span>
+                        <h3 id="campaign-setup-title">Choose recipients and delivery options</h3>
+                        <p>Review the audience and sender details here before you send.</p>
+                    </div>
+                    <div className={`readiness-badge ${campaignReady ? 'ready' : ''}`}>
+                        <span aria-hidden="true">{campaignReady ? '✓' : '!'}</span>
+                        {campaignReady ? 'Ready to send' : 'Needs attention'}
+                    </div>
+                </div>
+
+                <div className="management-grid">
+                    <section className="management-panel audience-panel" aria-labelledby="audience-title">
+                        <div className="management-panel-heading">
+                            <div>
+                                <span className="panel-number">1</span>
+                                <div>
+                                    <h4 id="audience-title">Audience</h4>
+                                    <p>Choose everyone or a specific group of subscribers.</p>
+                                </div>
+                            </div>
+                            <strong>{deliveryRecipientCount} recipient{deliveryRecipientCount === 1 ? '' : 's'}</strong>
+                        </div>
+
+                        <div className="audience-choice-grid" role="group" aria-label="Audience type">
                             <button
-                                className="btn pri full-width"
-                                onClick={() => handleSend(false)}
-                                disabled={status === 'sending' || subscriberCount === 0}
-                                style={{ padding: '1rem', fontSize: '1rem' }}
+                                type="button"
+                                className={`audience-choice ${audienceMode === 'all' ? 'active' : ''}`}
+                                onClick={() => setAudienceMode('all')}
+                                aria-pressed={audienceMode === 'all'}
                             >
-                                {status === 'sending' && !statusMsg.includes('Test') ? 'Sending...' : 'Send to All'}
+                                <span className="choice-indicator" aria-hidden="true" />
+                                <span>
+                                    <strong>All active subscribers</strong>
+                                    <small>Send to the complete active list ({subscriberCount})</small>
+                                </span>
                             </button>
+                            <button
+                                type="button"
+                                className={`audience-choice ${audienceMode === 'selected' ? 'active' : ''}`}
+                                onClick={() => setAudienceMode('selected')}
+                                aria-pressed={audienceMode === 'selected'}
+                            >
+                                <span className="choice-indicator" aria-hidden="true" />
+                                <span>
+                                    <strong>Selected subscribers</strong>
+                                    <small>Send only to contacts checked below ({selectedSubscriberIds.length})</small>
+                                </span>
+                            </button>
+                        </div>
+
+                        <div className="subscriber-toolbar">
+                            <div className="search-field">
+                                <span aria-hidden="true">⌕</span>
+                                <input
+                                    type="search"
+                                    value={subscriberSearch}
+                                    onChange={(event) => setSubscriberSearch(event.target.value)}
+                                    placeholder="Search email, name or source"
+                                    aria-label="Search subscribers"
+                                />
+                            </div>
+                            <details className="add-subscriber">
+                                <summary>+ Add subscriber</summary>
+                                <div className="add-subscriber-popover">
+                                    <label htmlFor="new-subscriber-email">Email address</label>
+                                    <div>
+                                        <input
+                                            id="new-subscriber-email"
+                                            type="email"
+                                            placeholder="name@example.com"
+                                            className="box-input"
+                                            value={newSubscriber}
+                                            onChange={(event) => setNewSubscriber(event.target.value)}
+                                        />
+                                        <button type="button" className="btn pri" onClick={handleAddSubscriber}>Add</button>
+                                    </div>
+                                    {addSubStatus && (
+                                        <p className={addSubStatus === 'Added!' ? 'inline-status success' : 'inline-status error'}>{addSubStatus}</p>
+                                    )}
+                                </div>
+                            </details>
+                        </div>
+
+                        {audienceMode === 'selected' && (
+                            <div className="selection-bar">
+                                <strong>{selectedSubscriberIds.length} selected</strong>
+                                <span>{filteredSubscribers.length} contact{filteredSubscribers.length === 1 ? '' : 's'} visible</span>
+                                <div>
+                                    <button type="button" onClick={toggleVisibleSubscribers} disabled={filteredSubscribers.length === 0}>
+                                        {allVisibleSubscribersSelected ? 'Deselect visible' : 'Select visible'}
+                                    </button>
+                                    <button type="button" onClick={() => setSelectedSubscriberIds([])} disabled={selectedSubscriberIds.length === 0}>Clear selection</button>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="subscriber-table-wrap">
+                            <table className="subscriber-table">
+                                <thead>
+                                    <tr>
+                                        <th className="checkbox-cell">
+                                            <input
+                                                type="checkbox"
+                                                checked={allVisibleSubscribersSelected}
+                                                onChange={toggleVisibleSubscribers}
+                                                disabled={filteredSubscribers.length === 0}
+                                                aria-label="Select all visible subscribers"
+                                            />
+                                        </th>
+                                        <th>Email address</th>
+                                        <th>Name</th>
+                                        <th>Source</th>
+                                        <th>Subscribed</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {subscriberError ? (
+                                        <tr><td colSpan="5" className="table-message error">{subscriberError}</td></tr>
+                                    ) : subscribersLoading ? (
+                                        <tr><td colSpan="5" className="table-message">Loading subscribers…</td></tr>
+                                    ) : filteredSubscribers.length === 0 ? (
+                                        <tr><td colSpan="5" className="table-message">No subscribers match your search.</td></tr>
+                                    ) : filteredSubscribers.map((subscriber) => {
+                                        const isSelected = audienceMode === 'selected' && selectedSubscriberIdSet.has(subscriber.id);
+                                        return (
+                                            <tr key={subscriber.id} className={isSelected ? 'selected' : ''}>
+                                                <td className="checkbox-cell">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={isSelected}
+                                                        onChange={() => toggleSubscriberSelection(subscriber.id)}
+                                                        aria-label={`Select ${subscriber.email}`}
+                                                    />
+                                                </td>
+                                                <td className="email-cell">{subscriber.email}</td>
+                                                <td>{subscriber.name || <span className="muted">—</span>}</td>
+                                                <td><span className="source-pill">{(subscriber.source || 'unknown').replaceAll('_', ' ')}</span></td>
+                                                <td className="date-cell">{formatSubscriberDate(subscriber.subscribed_at)}</td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <aside className="management-panel delivery-panel" aria-labelledby="delivery-title">
+                        <div className="management-panel-heading compact">
+                            <div>
+                                <span className="panel-number">2</span>
+                                <div>
+                                    <h4 id="delivery-title">Delivery</h4>
+                                    <p>Confirm sender identity and run a test.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="delivery-section">
+                            <h5>Sender identity</h5>
+                            <div className="field-group">
+                                <label htmlFor="sender-name">From name</label>
+                                <input
+                                    id="sender-name"
+                                    type="text"
+                                    value={senderName}
+                                    onChange={(event) => setSenderName(event.target.value)}
+                                    placeholder="e.g. Abodid"
+                                    className="box-input"
+                                />
+                            </div>
+                            <div className="field-group">
+                                <label htmlFor="sender-email">From email</label>
+                                {!isAddingEmail ? (
+                                    <select
+                                        id="sender-email"
+                                        className="box-input"
+                                        value={senderEmail}
+                                        onChange={(event) => event.target.value === 'ADD_NEW' ? setIsAddingEmail(true) : setSenderEmail(event.target.value)}
+                                    >
+                                        {savedSenderEmails.map((email) => <option key={email} value={email}>{email}</option>)}
+                                        <option value="ADD_NEW">+ Add another sender</option>
+                                    </select>
+                                ) : (
+                                    <div className="inline-input-actions">
+                                        <input
+                                            id="sender-email"
+                                            type="email"
+                                            className="box-input"
+                                            placeholder="news@abodid.com"
+                                            value={tempNewEmail}
+                                            onChange={(event) => setTempNewEmail(event.target.value)}
+                                            autoFocus
+                                        />
+                                        <button type="button" className="btn sec" onClick={() => setIsAddingEmail(false)}>Cancel</button>
+                                        <button type="button" className="btn pri" onClick={handleAddSenderEmail}>Save</button>
+                                    </div>
+                                )}
+                                <p className="field-help">Sender addresses must use @abodid.com.</p>
+                            </div>
+                        </div>
+
+                        <div className="delivery-section test-section">
+                            <div>
+                                <h5>Send a test first</h5>
+                                <p>Check links, spacing and mobile layout in your inbox.</p>
+                            </div>
+                            <div className="test-recipient">
+                                <span>Test recipient</span>
+                                <strong>{adminEmail || 'abodid@abodid.com'}</strong>
+                            </div>
+                            <button
+                                type="button"
+                                className="btn sec full-width"
+                                onClick={() => handleSend(true)}
+                                disabled={status === 'sending' || !subject.trim() || !message.trim()}
+                            >
+                                {isSendingTest ? 'Sending test…' : 'Send test email'}
+                            </button>
+                        </div>
+
+                        <div className="send-review">
+                            <h5>Pre-send review</h5>
+                            <dl>
+                                <div>
+                                    <dt>Audience</dt>
+                                    <dd>{deliveryRecipientCount} recipient{deliveryRecipientCount === 1 ? '' : 's'}</dd>
+                                </div>
+                                <div>
+                                    <dt>Subject</dt>
+                                    <dd className={subject.trim() ? 'complete' : 'missing'}>{subject.trim() ? 'Ready' : 'Missing'}</dd>
+                                </div>
+                                <div>
+                                    <dt>Message</dt>
+                                    <dd className={message.trim() ? 'complete' : 'missing'}>{message.trim() ? 'Ready' : 'Missing'}</dd>
+                                </div>
+                                <div>
+                                    <dt>From</dt>
+                                    <dd>{senderEmail}</dd>
+                                </div>
+                            </dl>
+                            <button
+                                type="button"
+                                className="btn pri send-button"
+                                onClick={() => handleSend(false)}
+                                disabled={status === 'sending' || !campaignReady}
+                            >
+                                {status === 'sending' && !isSendingTest
+                                    ? 'Sending campaign…'
+                                    : audienceMode === 'selected'
+                                        ? `Send to ${selectedSubscriberIds.length} selected`
+                                        : `Send to all ${subscriberCount}`}
+                            </button>
+                            <p className="send-note">You will be asked to confirm before the campaign is sent.</p>
                         </div>
 
                         {status !== 'idle' && (
-                            <div className={`status-alert ${status}`}>
+                            <div className={`status-alert ${status}`} role="status" aria-live="polite">
                                 {statusMsg}
                             </div>
                         )}
-                    </div>
+                    </aside>
                 </div>
-            </div>
-
-            <style>{`
-                .newsletter-sender { padding-bottom: 4rem; }
-                .sender-card {
-                    background: var(--bg-surface);
-                    border: 1px solid var(--border-subtle);
-                    border-radius: 12px;
-                    padding: 2rem;
-                }
-                .sender-grid {
-                    display: grid;
-                    grid-template-columns: 2fr 1.5fr 300px; /* Compose, Preview, Actions */
-                    gap: 2rem;
-                    align-items: start;
-                }
-                .section-header { margin-bottom: 2rem; }
-                
-                .box-input {
-                    background: var(--bg-color);
-                    border: 1px solid var(--border-subtle);
-                    border-radius: 6px; padding: 0.8rem 1rem;
-                    color: var(--text-primary); width: 100%;
-                    font-size: 0.95rem; font-family: var(--font-sans);
-                    transition: 0.2s;
-                    resize: vertical;
-                }
-                .box-input:focus { border-color: var(--text-primary); outline: none; }
-                
-                .markdown-editor {
-                    font-family: var(--font-mono);
-                    font-size: 0.9rem;
-                    line-height: 1.6;
-                    min-height: 400px;
-                }
-                
-                .field-group { margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
-                .field-group label { font-size: 0.7rem; text-transform: uppercase; color: var(--text-secondary); font-weight: 600; letter-spacing: 0.05em; }
-                .form-group { margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
-                .form-group label { font-size: 0.7rem; text-transform: uppercase; color: var(--text-secondary); font-weight: 600; letter-spacing: 0.05em; }
-
-                /* PREVIEW HEADER AND TOGGLE */
-                .preview-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    margin-bottom: 1rem;
-                }
-                .preview-toggle {
-                    display: flex;
-                    gap: 0.5rem;
-                }
-                .toggle-btn {
-                    padding: 0.5rem 1rem;
-                    border: 1px solid var(--border-subtle);
-                    background: transparent;
-                    color: var(--text-secondary);
-                    border-radius: 6px;
-                    cursor: pointer;
-                    font-size: 0.85rem;
-                    transition: 0.2s;
-                }
-                .toggle-btn.active {
-                    background: var(--text-primary);
-                    color: var(--bg-color);
-                    border-color: var(--text-primary);
-                }
-                .toggle-btn:hover:not(.active) {
-                    background: var(--bg-surface-hover);
-                }
-
-                /* PREVIEW STYLES */
-                .email-preview-frame {
-                    background: #fff; /* Email is usually white */
-                    color: #333;
-                    border: none;
-                    border-radius: 8px;
-                    padding: 20px;
-                    font-family: var(--font-ui);
-                    line-height: 1.6;
-                    min-height: 600px;
-                    box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
-                    overflow-y: auto;
-                    max-height: 80vh;
-                    transition: max-width 0.3s ease;
-                }
-                .email-preview-frame.phone {
-                    max-width: 375px;
-                    margin: 0 auto;
-                }
-                .email-subject { color: #111; margin: 0 0 1rem 0; font-size: 1.5rem; font-weight: 700; line-height: 1.2; min-height: 1.2em; }
-                .email-body { white-space: pre-wrap; font-size: 16px; }
-                .email-divider { margin: 30px 0; border: none; border-top: 1px solid #eee; }
-                .email-footer { font-size: 12px; color: #888; text-align: center; }
-
-                .action-col { display: flex; flex-direction: column; gap: 1.5rem; }
-                
-                .stat-box { 
-                    background: var(--bg-surface-hover); padding: 1.5rem; border-radius: 8px; 
-                    display: flex; flex-direction: column; align-items: center; justify-content: center;
-                    border: 1px solid var(--border-subtle);
-                }
-                .stat-label { font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
-                .stat-val { font-size: 2.5rem; font-weight: 700; color: var(--text-primary); line-height: 1; }
-
-                .action-box { 
-                    padding: 1.5rem; border: 1px solid var(--border-subtle); border-radius: 8px;
-                    background: var(--bg-surface);
-                }
-                .action-box.danger-zone { border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.02); }
-                .action-title { margin: 0 0 0.5rem 0; font-size: 1rem; font-weight: 600; }
-                .action-desc { margin: 0 0 1rem 0; font-size: 0.85rem; color: var(--text-secondary); }
-
-                .btn { padding: 0.8rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: 0.2s; border: none; }
-                .btn.sec { background: transparent; border: 1px solid var(--border-strong); color: var(--text-primary); }
-                .btn.sec:hover { background: var(--bg-surface-hover); }
-                .btn.pri { background: var(--text-primary); color: var(--text-inverse); }
-                .btn.pri:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
-                .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-                .full-width { width: 100%; }
-
-                .status-alert { padding: 1rem; border-radius: 6px; font-size: 0.9rem; margin-top: 1rem; }
-                .status-alert.success { background: rgba(16, 185, 129, 0.1); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.2); }
-                .status-alert.error { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
-                .status-alert.sending { background: rgba(59, 130, 246, 0.1); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.2); }
-
-                /* FOOTER TEMPLATES */
-                .footer-templates {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 0.8rem;
-                    margin-bottom: 1rem;
-                }
-                .footer-template-card {
-                    background: var(--bg-surface-hover);
-                    border: 1px solid var(--border-subtle);
-                    border-radius: 8px;
-                    padding: 0.8rem 1rem;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    gap: 1rem;
-                }
-                .footer-template-info {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 0.2rem;
-                    overflow: hidden;
-                }
-                .footer-template-name {
-                    font-weight: 600;
-                    font-size: 0.9rem;
-                    color: var(--text-primary);
-                }
-                .footer-template-preview {
-                    font-size: 0.75rem;
-                    color: var(--text-secondary);
-                    white-space: nowrap;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                }
-                .footer-template-actions {
-                    display: flex;
-                    gap: 0.5rem;
-                    flex-shrink: 0;
-                }
-                .btn-small {
-                    padding: 0.4rem 0.8rem;
-                    font-size: 0.8rem;
-                    border-radius: 4px;
-                }
-                .btn-danger {
-                    background: rgba(239, 68, 68, 0.1);
-                    color: #ef4444;
-                    border: 1px solid rgba(239, 68, 68, 0.2);
-                }
-                .btn-danger:hover {
-                    background: #ef4444;
-                    color: #fff;
-                }
-                .save-footer-template {
-                    display: flex;
-                    gap: 0.8rem;
-                    align-items: center;
-                    margin-top: 0.5rem;
-                }
-                .footer-name-input {
-                    flex: 1;
-                }
-                .btn-save-template {
-                    white-space: nowrap;
-                    padding: 0.8rem 1.2rem;
-                    background: var(--bg-surface-hover);
-                    border: 1px dashed var(--border-strong);
-                    color: var(--text-primary);
-                    border-radius: 6px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    transition: 0.2s;
-                }
-                .btn-save-template:hover {
-                    background: var(--bg-surface);
-                    border-style: solid;
-                }
-                .no-templates {
-                    font-size: 0.85rem;
-                    color: var(--text-secondary);
-                    font-style: italic;
-                    text-align: center;
-                    padding: 1rem;
-                    border: 1px dashed var(--border-subtle);
-                    border-radius: 8px;
-                }
-
-                @media (max-width: 1400px) {
-                    .sender-grid { grid-template-columns: 1fr 1fr; } 
-                    .action-col { grid-column: span 2; flex-direction: row; flex-wrap: wrap; }
-                }
-                @media (max-width: 900px) {
-                    .sender-grid { grid-template-columns: 1fr; }
-                    .action-col { grid-column: auto; flex-direction: column; }
-                }
-            `}</style>
+            </section>
         </div>
     );
 }

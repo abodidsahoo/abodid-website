@@ -1,23 +1,44 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import { getAllPhotography, getPhotographyBySlug } from "../../lib/api";
+import { getPhotographyBySlug } from "../../lib/api";
 import { marked } from "marked";
 import ShareButtons from "../../components/ShareButtons.jsx";
 import photographyImageDimensions from "../../data/photographyImageDimensions.generated.json";
+import {
+  getOptimizedImageSrcSet,
+  getOptimizedImageUrl,
+} from "../../lib/imageOptimization.js";
 
 export const prerender = false;
 
 const { slug } = Astro.params;
 
-const project = await getPhotographyBySlug(slug);
+type PhotographyPageProject = {
+  title: string;
+  content?: string;
+  intro?: string;
+  description?: string;
+  cover_image?: string;
+  image?: string;
+  date?: string;
+  images: string[];
+};
+
+const project = (await getPhotographyBySlug(
+  slug ?? "",
+)) as PhotographyPageProject | null;
 
 if (!project) {
   return Astro.redirect("/404");
 }
 
 const contentHtml = marked.parse(project.content || "");
-const PRIORITY_IMAGE_COUNT = 6;
-const storagePathFromUrl = (url) => {
+const PRIORITY_IMAGE_COUNT = 1;
+const imageDimensionsByPath = photographyImageDimensions as Record<
+  string,
+  { width: number; height: number }
+>;
+const storagePathFromUrl = (url: string) => {
   try {
     const pathname = new URL(url).pathname;
     const match = pathname.match(/\/object\/(?:public\/)?photography\/(.+)$/);
@@ -31,7 +52,7 @@ const storagePathFromUrl = (url) => {
 <BaseLayout
   title={project.title}
   description={project.intro || project.description}
-  image={project.cover_image}
+  image={project.cover_image || project.image}
 >
   <article class="photography-article">
     <header class="project-header">
@@ -45,16 +66,23 @@ const storagePathFromUrl = (url) => {
     <div class="project-content gallery-grid">
       {
         project.images.map((img, index) => {
-          const dimensions = photographyImageDimensions[storagePathFromUrl(img)];
+          const dimensions = imageDimensionsByPath[storagePathFromUrl(img)];
           const isPriority = index < PRIORITY_IMAGE_COUNT;
+          const optimizedSrc = getOptimizedImageUrl(img, {
+            width: isPriority ? 1200 : 960,
+            quality: 76,
+          });
+          const optimizedSrcSet = getOptimizedImageSrcSet(img, {
+            widths: [480, 800, 1200, 1600],
+            quality: 76,
+          });
 
           return (
-          <figure
-            class:list={["project-image", { "is-lazy-pending": !isPriority }]}
-          >
+          <figure class="project-image">
             <img
-              src={isPriority ? img : undefined}
-              data-src={isPriority ? undefined : img}
+              src={optimizedSrc}
+              srcset={optimizedSrcSet}
+              sizes="(max-width: 900px) calc(100vw - 64px), 950px"
               alt={`Photography image ${index + 1}`}
               width={dimensions?.width}
               height={dimensions?.height}
@@ -70,7 +98,7 @@ const storagePathFromUrl = (url) => {
 
     <div class="story-footer">
       <ShareButtons
-        client:only="react"
+        client:idle
         title={project.title}
         url={Astro.url.href}
       />
@@ -78,43 +106,6 @@ const storagePathFromUrl = (url) => {
     </div>
   </article>
 </BaseLayout>
-
-<script>
-  function initialiseProgressivePhotography() {
-    const pendingImages = document.querySelectorAll(".project-image img[data-src]");
-    if (!pendingImages.length) return;
-
-    const revealImage = (image) => {
-      const source = image.dataset.src;
-      if (!source) return;
-
-      image.src = source;
-      image.removeAttribute("data-src");
-      image.closest(".project-image")?.classList.remove("is-lazy-pending");
-    };
-
-    if (!("IntersectionObserver" in window)) {
-      pendingImages.forEach(revealImage);
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
-          revealImage(entry.target);
-          observer.unobserve(entry.target);
-        });
-      },
-      { rootMargin: "1200px 0px", threshold: 0.01 },
-    );
-
-    pendingImages.forEach((image) => observer.observe(image));
-  }
-
-  document.addEventListener("astro:page-load", initialiseProgressivePhotography);
-  initialiseProgressivePhotography();
-</script>
 
 <style>
   .photography-article {
@@ -173,13 +164,7 @@ const storagePathFromUrl = (url) => {
     display: block;
     width: 100%;
     height: auto;
-    opacity: 1;
-    transition: opacity 500ms ease;
     /* Ensure image fills the content box inside the padding */
-  }
-
-  .project-image.is-lazy-pending img {
-    opacity: 0;
   }
 
   .story-footer {

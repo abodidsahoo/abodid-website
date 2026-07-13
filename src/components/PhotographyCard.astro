@@ -1,21 +1,37 @@
 ---
+import {
+  getOptimizedImageSrcSet,
+  getOptimizedImageUrl,
+} from "../lib/imageOptimization.js";
+
 interface Props {
   title: string;
   category: string;
   image: string;
   href: string;
+  priority?: boolean;
 }
 
-const { title, category, image, href } = Astro.props;
+const { title, category, image, href, priority = false } = Astro.props;
+const optimizedImage = getOptimizedImageUrl(image, { width: 1200, quality: 74 });
+const optimizedImageSrcSet = getOptimizedImageSrcSet(image, {
+  widths: [480, 800, 1200],
+  quality: 74,
+});
 ---
 
 <a href={href} class="photography-card group">
   <div class="image-container">
     <img
-      src={image}
+      src={optimizedImage}
+      srcset={optimizedImageSrcSet}
       alt={title}
       class="slide-image active"
-      loading="lazy"
+      loading={priority ? "eager" : "lazy"}
+      fetchpriority={priority ? "high" : "auto"}
+      decoding="async"
+      width="1200"
+      height="675"
       sizes="(max-width: 600px) 100vw, (max-width: 1024px) 50vw, 33vw"
     />
 

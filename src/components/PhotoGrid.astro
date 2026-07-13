@@ -39,6 +39,7 @@ const projectsJson = JSON.stringify(projects);
                         }
                         image={projects[slotIndex % projects.length].image}
                         href={projects[slotIndex % projects.length].href}
+                        priority={slotIndex === 0}
                     />
                 )}
             </div>
