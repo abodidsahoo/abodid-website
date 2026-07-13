@@ -2,7 +2,7 @@
   "use strict";
 
   var STORAGE_KEY = "abodid_journey_v1";
-  var SESSION_TIMEOUT_MS = 24 * 60 * 60 * 1000;
+  var SESSION_TIMEOUT_MS = 30 * 60 * 1000;
   var MAX_EVENTS = 30;
   var MAX_RECENT = 8;
   var MAX_TOP = 6;
@@ -359,10 +359,10 @@
     try {
       if (preferBeacon && navigator.sendBeacon) {
         var blob = new Blob([body], { type: "application/json" });
-        if (navigator.sendBeacon(ANALYTICS_ENDPOINT, blob)) return;
+        if (navigator.sendBeacon(ANALYTICS_ENDPOINT, blob)) return Promise.resolve();
       }
 
-      window.fetch(ANALYTICS_ENDPOINT, {
+      return window.fetch(ANALYTICS_ENDPOINT, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: body,
@@ -371,6 +371,7 @@
       }).catch(function () {});
     } catch (_error) {
       // Analytics must never interrupt the public site.
+      return Promise.resolve();
     }
   }
 
@@ -386,6 +387,9 @@
   var sequenceNumber = sessionExpired ? 1 : Math.max(1, Number(storedState.sequenceNumber || 0) + 1);
   var landingPage = sessionExpired ? pathname : analyticsCleanString(storedState.landingPage || pathname, 240);
   var utm = sessionExpired ? readUtmParams() : (storedState.utm || readUtmParams());
+  var initialReferrer = sessionExpired
+    ? analyticsCleanString(document.referrer || "", 500)
+    : analyticsCleanString(storedState.initialReferrer || "", 500);
   var pageViewId = createUuid();
 
   if (!visitorId || !sessionId || !pageViewId) return;
@@ -396,11 +400,12 @@
     sequenceNumber: sequenceNumber,
     landingPage: landingPage,
     utm: utm,
+    initialReferrer: initialReferrer,
     lastActivityAt: now,
   };
   saveAnalyticsState(nextState);
 
-  sendAnalyticsPayload({
+  var sessionOpenPromise = sendAnalyticsPayload({
     action: "page_open",
     visitorId: visitorId,
     sessionId: sessionId,
@@ -408,7 +413,7 @@
     pagePath: pathname,
     pageTitle: analyticsCleanString(document.title || "", 240),
     landingPage: landingPage,
-    referrer: analyticsCleanString(document.referrer || "", 500),
+    referrer: initialReferrer,
     utm: utm,
     sequenceNumber: sequenceNumber,
     projectId: analyticsCleanString(document.body.dataset.analyticsProjectId || "", 40),
@@ -451,10 +456,10 @@
 
   function flushEngagement(preferBeacon) {
     var engagedSeconds = currentEngagedSeconds();
-    if (engagedSeconds <= lastSentSeconds) return;
+    if (engagedSeconds <= lastSentSeconds) return Promise.resolve();
     lastSentSeconds = engagedSeconds;
     persistSessionActivity();
-    sendAnalyticsPayload({
+    return sendAnalyticsPayload({
       action: "engagement",
       sessionId: sessionId,
       pageViewId: pageViewId,
@@ -463,7 +468,46 @@
     }, preferBeacon);
   }
 
+  function startFreshSession() {
+    pauseEngagement();
+    sessionId = createUuid();
+    pageViewId = createUuid();
+    sequenceNumber = 1;
+    landingPage = pathname;
+    utm = readUtmParams();
+    initialReferrer = "";
+    engagedMilliseconds = 0;
+    lastSentSeconds = 0;
+    lastPersistedAt = 0;
+    nextState = {
+      visitorId: visitorId,
+      sessionId: sessionId,
+      sequenceNumber: sequenceNumber,
+      landingPage: landingPage,
+      utm: utm,
+      initialReferrer: initialReferrer,
+      lastActivityAt: Date.now(),
+    };
+    saveAnalyticsState(nextState);
+    sessionOpenPromise = sendAnalyticsPayload({
+      action: "page_open",
+      visitorId: visitorId,
+      sessionId: sessionId,
+      pageViewId: pageViewId,
+      pagePath: pathname,
+      pageTitle: analyticsCleanString(document.title || "", 240),
+      landingPage: landingPage,
+      referrer: initialReferrer,
+      utm: utm,
+      sequenceNumber: sequenceNumber,
+      projectId: analyticsCleanString(document.body.dataset.analyticsProjectId || "", 40),
+    }, false);
+  }
+
   function recordInteraction() {
+    if (Date.now() - Number(nextState.lastActivityAt || 0) > SESSION_TIMEOUT_MS) {
+      startFreshSession();
+    }
     lastInteractionAt = performance.now();
     persistSessionActivity();
     resumeEngagement();
@@ -500,6 +544,19 @@
     else resumeEngagement();
     flushEngagement(false);
   }, FLUSH_INTERVAL_MS);
+
+  window.__abodidAnalytics = {
+    getSessionId: function () { return sessionId; },
+    prepareSubmission: function () {
+      if (Date.now() - Number(nextState.lastActivityAt || 0) > SESSION_TIMEOUT_MS) {
+        startFreshSession();
+      }
+      recordInteraction();
+      return sessionOpenPromise.then(function () {
+        return flushEngagement(false);
+      });
+    },
+  };
 
   resumeEngagement();
 })();

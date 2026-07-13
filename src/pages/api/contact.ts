@@ -1,596 +1,227 @@
-import type { APIRoute } from "astro";
-import { Resend } from "resend";
+import type { APIRoute } from 'astro';
+import { Resend } from 'resend';
+import {
+    cleanContactString,
+    formatDuration,
+    isUuid,
+    normalizedAcquisitionSource,
+    readableLocation,
+    resolveEnquiryTitle,
+    summarizeVisit,
+} from '../../lib/contact-notification.js';
+import { createSupabaseServiceClient } from '../../lib/supabaseServer';
 
 export const prerender = false;
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const MAX_RECENT_PAGES = 8;
-const MAX_TOP_PAGES = 6;
 
-interface TrackingRecentPage {
-    path: string;
-    title: string;
-    enteredAt: string;
-    sourcePage: string;
-    cta: string;
-}
+const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+});
 
-interface TrackingTopPage {
-    path: string;
-    title: string;
-    durationMs: number;
-}
+const escapeHtml = (value: string) => value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 
-interface TrackingVisitPage {
-    path: string;
-    title: string;
-    enteredAt: string;
-}
+async function parsePayload(request: Request) {
+    const contentType = request.headers.get('content-type') || '';
+    let body: Record<string, unknown> = {};
 
-interface TrackingSnapshot {
-    sessionId: string;
-    currentPath: string;
-    landingPage: string;
-    initialReferrer: string;
-    lastSourcePage: string;
-    lastSourceName: string;
-    lastCta: string;
-    totalTrackedMs: number;
-    totalPageViews: number;
-    uniquePagesVisited: number;
-    immediatePreviousPage: string;
-    recentPages: TrackingRecentPage[];
-    visitSequence: TrackingVisitPage[];
-    topPages: TrackingTopPage[];
-}
-
-function clean(value: unknown): string {
-    return typeof value === "string" ? value.trim() : "";
-}
-
-function cleanLimited(value: unknown, maxLength: number): string {
-    return clean(value).slice(0, maxLength);
-}
-
-function safeJsonParse(value: string): unknown {
-    try {
-        return JSON.parse(value);
-    } catch (_error) {
-        return null;
-    }
-}
-
-function toPositiveInt(value: unknown): number {
-    const parsed = Number(value);
-    if (!Number.isFinite(parsed) || parsed <= 0) return 0;
-    return Math.round(parsed);
-}
-
-function escapeHtml(value: string): string {
-    return value
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/\"/g, "&quot;")
-        .replace(/'/g, "&#39;");
-}
-
-function formatDuration(durationMs: number): string {
-    if (durationMs <= 0) return "0s";
-    const totalSeconds = Math.round(durationMs / 1000);
-    if (totalSeconds < 60) return `${totalSeconds}s`;
-
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    if (minutes < 60) {
-        return seconds > 0 ? `${minutes}m ${seconds}s` : `${minutes}m`;
-    }
-
-    const hours = Math.floor(minutes / 60);
-    const remainingMinutes = minutes % 60;
-    return remainingMinutes > 0
-        ? `${hours}h ${remainingMinutes}m`
-        : `${hours}h`;
-}
-
-function parseTracking(rawTracking: unknown): TrackingSnapshot | null {
-    if (!rawTracking || typeof rawTracking !== "object") {
-        return null;
-    }
-
-    const source = rawTracking as Record<string, unknown>;
-
-    const recentPages = (Array.isArray(source.recentPages)
-        ? source.recentPages
-        : []
-    )
-        .slice(-MAX_RECENT_PAGES)
-        .map((item) => {
-            if (!item || typeof item !== "object") return null;
-            const page = item as Record<string, unknown>;
-            const path = cleanLimited(page.path, 180);
-            if (!path) return null;
-
-            return {
-                path,
-                title: cleanLimited(page.title, 180),
-                enteredAt: cleanLimited(page.enteredAt, 80),
-                sourcePage: cleanLimited(page.sourcePage, 180),
-                cta: cleanLimited(page.cta, 120),
-            };
-        })
-        .filter((item): item is TrackingRecentPage => Boolean(item));
-
-    const topPages = (Array.isArray(source.topPages)
-        ? source.topPages
-        : []
-    )
-        .slice(0, MAX_TOP_PAGES)
-        .map((item) => {
-            if (!item || typeof item !== "object") return null;
-            const page = item as Record<string, unknown>;
-            const path = cleanLimited(page.path, 180);
-            if (!path) return null;
-
-            return {
-                path,
-                title: cleanLimited(page.title, 180),
-                durationMs: toPositiveInt(page.durationMs),
-            };
-        })
-        .filter((item): item is TrackingTopPage => Boolean(item));
-
-    const visitSequence = (Array.isArray(source.visitSequence)
-        ? source.visitSequence
-        : []
-    )
-        .slice(-30)
-        .map((item) => {
-            if (!item || typeof item !== "object") return null;
-            const page = item as Record<string, unknown>;
-            const path = cleanLimited(page.path, 180);
-            if (!path) return null;
-
-            return {
-                path,
-                title: cleanLimited(page.title, 180),
-                enteredAt: cleanLimited(page.enteredAt, 80),
-            };
-        })
-        .filter((item): item is TrackingVisitPage => Boolean(item));
-
-    return {
-        sessionId: cleanLimited(source.sessionId, 128),
-        currentPath: cleanLimited(source.currentPath, 180),
-        landingPage: cleanLimited(source.landingPage, 180),
-        initialReferrer: cleanLimited(source.initialReferrer, 400),
-        lastSourcePage: cleanLimited(source.lastSourcePage, 180),
-        lastSourceName: cleanLimited(source.lastSourceName, 120),
-        lastCta: cleanLimited(source.lastCta, 120),
-        totalTrackedMs: toPositiveInt(source.totalTrackedMs),
-        totalPageViews: toPositiveInt(source.totalPageViews),
-        uniquePagesVisited: toPositiveInt(source.uniquePagesVisited),
-        immediatePreviousPage: cleanLimited(source.immediatePreviousPage, 180),
-        recentPages,
-        visitSequence,
-        topPages,
-    };
-}
-
-function describeSource(tracking: TrackingSnapshot | null): string {
-    if (!tracking) {
-        return "No journey source data captured.";
-    }
-
-    const sourcePage =
-        tracking.lastSourcePage || tracking.landingPage || "unknown page";
-    const sourceName = tracking.lastSourceName
-        ? `${tracking.lastSourceName} (${sourcePage})`
-        : sourcePage;
-    const cta = tracking.lastCta
-        ? ` via CTA \"${tracking.lastCta}\"`
-        : "";
-
-    return `Visitor came from ${sourceName}${cta}.`;
-}
-
-function buildRecentPagesHtml(recentPages: TrackingRecentPage[]): string {
-    if (!recentPages.length) {
-        return "<li>No recent page trail captured.</li>";
-    }
-
-    const orderedPages = [...recentPages].reverse();
-
-    return orderedPages
-        .map((page) => {
-            const titlePart = page.title ? ` - ${escapeHtml(page.title)}` : "";
-            const sourcePart = page.sourcePage
-                ? ` (from ${escapeHtml(page.sourcePage)})`
-                : "";
-            return `<li><strong>${escapeHtml(page.path)}</strong>${titlePart}${sourcePart}</li>`;
-        })
-        .join("");
-}
-
-function buildTopPagesHtml(topPages: TrackingTopPage[]): string {
-    if (!topPages.length) {
-        return "<li>No page-time data captured.</li>";
-    }
-
-    return topPages
-        .map((page) => {
-            const titlePart = page.title ? ` - ${escapeHtml(page.title)}` : "";
-            const durationPart = formatDuration(page.durationMs);
-            return `<li><strong>${escapeHtml(page.path)}</strong>${titlePart} - ${escapeHtml(durationPart)}</li>`;
-        })
-        .join("");
-}
-
-function buildRecentPagesText(recentPages: TrackingRecentPage[]): string[] {
-    if (!recentPages.length) return ["- No recent page trail captured."];
-
-    const orderedPages = [...recentPages].reverse();
-
-    return orderedPages.map((page) => {
-        const titlePart = page.title ? ` - ${page.title}` : "";
-        const sourcePart = page.sourcePage ? ` (from ${page.sourcePage})` : "";
-        return `- ${page.path}${titlePart}${sourcePart}`;
-    });
-}
-
-function buildTopPagesText(topPages: TrackingTopPage[]): string[] {
-    if (!topPages.length) return ["- No page-time data captured."];
-
-    return topPages.map((page) => {
-        const titlePart = page.title ? ` - ${page.title}` : "";
-        return `- ${page.path}${titlePart} - ${formatDuration(page.durationMs)}`;
-    });
-}
-
-function buildVisitSequenceText(visitSequence: TrackingVisitPage[]): string {
-    if (!visitSequence.length) return "Not captured";
-
-    const collapsed: string[] = [];
-    visitSequence.forEach((page) => {
-        if (!collapsed.length || collapsed[collapsed.length - 1] !== page.path) {
-            collapsed.push(page.path);
+    if (contentType.includes('application/json')) {
+        body = await request.json().catch(() => ({}));
+    } else if (contentType.includes('form')) {
+        const formData = await request.formData();
+        body = Object.fromEntries(formData.entries());
+        if (typeof body.tracking === 'string') {
+            try { body.tracking = JSON.parse(body.tracking); } catch (_error) { body.tracking = {}; }
         }
-    });
+    }
 
-    return collapsed.join(" -> ");
-}
-
-function buildBehaviorPattern(tracking: TrackingSnapshot | null): {
-    sourceSummary: string;
-    finalPage: string;
-    previousBeforeFinal: string;
-    totalTrackedMs: number;
-    totalTrackedLabel: string;
-    totalPageViews: number;
-    uniquePagesVisited: number;
-    topPageSummary: string;
-    visitSequence: string;
-} {
-    const sourceSummary = describeSource(tracking);
-    const finalPage = tracking?.currentPath || "Not captured";
-    const previousBeforeFinal =
-        tracking?.immediatePreviousPage ||
-        (tracking?.visitSequence.length && tracking.visitSequence.length >= 2
-            ? tracking.visitSequence[tracking.visitSequence.length - 2].path
-            : "Not captured");
-    const totalTrackedMs = tracking?.totalTrackedMs || 0;
-    const totalTrackedLabel = formatDuration(totalTrackedMs);
-    const totalPageViews = tracking?.totalPageViews || 0;
-    const uniquePagesVisited = tracking?.uniquePagesVisited || 0;
-    const topPage = tracking?.topPages[0];
-    const topPageSummary = topPage
-        ? `${topPage.path} (${formatDuration(topPage.durationMs)})`
-        : "Not captured";
-    const visitSequence = buildVisitSequenceText(tracking?.visitSequence || []);
-
+    const tracking = body.tracking && typeof body.tracking === 'object'
+        ? body.tracking as Record<string, unknown>
+        : {};
     return {
-        sourceSummary,
-        finalPage,
-        previousBeforeFinal,
-        totalTrackedMs,
-        totalTrackedLabel,
-        totalPageViews,
-        uniquePagesVisited,
-        topPageSummary,
-        visitSequence,
+        name: cleanContactString(body.name, 120),
+        email: cleanContactString(body.email, 254).toLowerCase(),
+        message: typeof body.message === 'string' ? body.message.trim().slice(0, 5001) : '',
+        sessionId: cleanContactString(tracking.sessionId, 40),
+        enquiryPath: cleanContactString(tracking.enquiryPath || tracking.lastSourcePage || tracking.currentPath, 240),
+        sourceName: cleanContactString(tracking.sourceName || tracking.lastSourceName, 120),
+        cta: cleanContactString(tracking.cta || tracking.lastCta, 120),
     };
 }
 
-async function parsePayload(request: Request): Promise<{
+function renderEmail({
+    name,
+    email,
+    message,
+    enquiryTitle,
+    source,
+    location,
+    visit,
+    analyticsUrl,
+}: {
     name: string;
     email: string;
     message: string;
-    tracking: TrackingSnapshot | null;
-}> {
-    const contentType = request.headers.get("content-type") || "";
+    enquiryTitle: string;
+    source: string;
+    location: string;
+    visit: ReturnType<typeof summarizeVisit>;
+    analyticsUrl: string;
+}) {
+    const safe = {
+        name: escapeHtml(name),
+        email: escapeHtml(email),
+        message: escapeHtml(message).replace(/\r?\n/g, '<br />'),
+        enquiryTitle: escapeHtml(enquiryTitle),
+        source: escapeHtml(source),
+        location: escapeHtml(location),
+        analyticsUrl: escapeHtml(analyticsUrl),
+    };
+    const pageCount = visit?.distinctMeaningfulPages || 0;
+    const visitSummary = visit
+        ? `${formatDuration(visit.durationSeconds)} &middot; ${pageCount} ${pageCount === 1 ? 'page' : 'pages'} explored`
+        : '';
+    const strongest = visit?.strongestPage && visit.strongestPage.engagedSeconds > 0
+        ? `Spent the most time on ${escapeHtml(visit.strongestPage.title)} &mdash; ${formatDuration(visit.strongestPage.engagedSeconds)}`
+        : '';
+    const replyHref = `mailto:${safe.email}?subject=${encodeURIComponent(`Re: ${enquiryTitle}`)}`;
 
-    if (contentType.includes("application/json")) {
-        const body = (await request.json().catch(() => ({}))) as Record<
-            string,
-            unknown
-        >;
+    const html = `<!doctype html>
+<html><head><meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>@media(max-width:600px){.card{padding:32px 24px!important}.name{font-size:32px!important}.message{font-size:22px!important;padding:24px!important}.button{display:block!important;text-align:center!important}}</style></head>
+<body style="margin:0;background:#f5f4f0;color:#181817;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden">New ${safe.enquiryTitle} enquiry from ${safe.name}</div>
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f5f4f0"><tr><td align="center" style="padding:24px 12px">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" class="card" style="max-width:640px;background:#fff;padding:52px 56px;border-radius:12px">
+<tr><td>
+<p style="margin:0 0 18px;color:#b3452d;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase">New enquiry</p>
+<h1 class="name" style="margin:0 0 6px;font-size:40px;line-height:1.12;letter-spacing:-1.2px">${safe.name}</h1>
+<a href="mailto:${safe.email}" style="color:#66635e;font-size:15px;text-decoration:underline">${safe.email}</a>
 
-        return {
-            name: clean(body.name),
-            email: clean(body.email),
-            message: clean(body.message),
-            tracking: parseTracking(body.tracking),
-        };
-    }
+<div class="message" style="margin:38px 0 42px;padding:30px;background:#f7f2ef;border-left:3px solid #b3452d;border-radius:2px 8px 8px 2px;font-family:Georgia,'Times New Roman',serif;font-size:25px;line-height:1.45">&ldquo;${safe.message}&rdquo;</div>
 
-    if (
-        contentType.includes("application/x-www-form-urlencoded") ||
-        contentType.includes("multipart/form-data")
-    ) {
-        const formData = await request.formData();
-        const trackingRaw = formData.get("tracking");
+<p style="margin:0 0 7px;color:#817e78;font-size:11px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase">Enquiring about</p>
+<p style="margin:0 0 30px;font-size:18px;font-weight:650;line-height:1.4">${safe.enquiryTitle}</p>
 
-        let trackingParsed: unknown = trackingRaw;
-        if (typeof trackingRaw === "string") {
-            trackingParsed = safeJsonParse(trackingRaw);
-        }
+<p style="margin:0 0 7px;color:#817e78;font-size:11px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase">Came from</p>
+<p style="margin:0;font-size:18px;font-weight:650;line-height:1.4">${safe.source}</p>
+${location ? `<p style="margin:4px 0 30px;color:#66635e;font-size:14px;line-height:1.5">${safe.location}</p>` : '<div style="height:30px"></div>'}
 
-        return {
-            name: clean(formData.get("name")),
-            email: clean(formData.get("email")),
-            message: clean(formData.get("message")),
-            tracking: parseTracking(trackingParsed),
-        };
-    }
+${visit ? `<p style="margin:0 0 7px;color:#817e78;font-size:11px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase">Current visit</p>
+<p style="margin:0;font-size:17px;font-weight:650;line-height:1.5">${visitSummary}</p>
+${strongest ? `<p style="margin:5px 0 0;color:#66635e;font-size:14px;line-height:1.5">${strongest}</p>` : ''}` : ''}
 
-    return { name: "", email: "", message: "", tracking: null };
+<div style="margin-top:42px;padding-top:32px;border-top:1px solid #e8e5df">
+<a class="button" href="${replyHref}" style="display:inline-block;padding:14px 22px;background:#b3452d;color:#fff;border-radius:7px;font-size:15px;font-weight:700;text-decoration:none">Reply to ${safe.name}</a>
+<p style="margin:20px 0 0"><a href="${safe.analyticsUrl}" style="color:#817e78;font-size:12px;text-decoration:underline">View this visit in analytics</a></p>
+</div>
+</td></tr></table></td></tr></table></body></html>`;
+
+    const text = [
+        'NEW ENQUIRY', '', name, email, '', `“${message}”`, '',
+        'Enquiring about', enquiryTitle, '',
+        'Came from', source,
+        ...(location ? [location] : []),
+        ...(visit ? ['', 'Current visit', `${formatDuration(visit.durationSeconds)} · ${pageCount} ${pageCount === 1 ? 'page' : 'pages'} explored`] : []),
+        ...(strongest && visit?.strongestPage ? [`Spent the most time on ${visit.strongestPage.title} — ${formatDuration(visit.strongestPage.engagedSeconds)}`] : []),
+        '', `Reply to ${name}: mailto:${email}`, `View this visit in analytics: ${analyticsUrl}`,
+    ].join('\n');
+
+    return { html, text };
 }
 
 export const POST: APIRoute = async ({ request }) => {
+    let submissionId = '';
     try {
-        const resendKey =
-            import.meta.env.RESEND_API_KEY || process.env.RESEND_API_KEY;
-        if (!resendKey) {
-            return new Response(
-                JSON.stringify({ error: "Missing RESEND_API_KEY on server." }),
-                {
-                    status: 500,
-                    headers: { "Content-Type": "application/json" },
-                }
-            );
+        const payload = await parsePayload(request);
+        if (!payload.name) return json({ error: 'Please provide your name.' }, 400);
+        if (!EMAIL_REGEX.test(payload.email)) return json({ error: 'Please provide a valid email address.' }, 400);
+        if (!payload.message || payload.message.length > 5000) return json({ error: 'Please provide a message (1–5000 characters).' }, 400);
+        if (!isUuid(payload.sessionId)) {
+            return json({ error: 'Your visit expired. Please refresh the page and try again.' }, 400);
         }
 
-        const { name, email, message, tracking } = await parsePayload(request);
+        const resendKey = import.meta.env.RESEND_API_KEY || process.env.RESEND_API_KEY;
+        const supabase = createSupabaseServiceClient();
+        if (!resendKey || !supabase) return json({ error: 'The contact service is temporarily unavailable.' }, 503);
 
-        if (!name || name.length > 120) {
-            return new Response(
-                JSON.stringify({
-                    error: "Please provide a valid name (1-120 characters).",
-                }),
-                {
-                    status: 400,
-                    headers: { "Content-Type": "application/json" },
-                }
-            );
+        const enquiryTitle = resolveEnquiryTitle(payload);
+        const { data: submission, error: submissionError } = await supabase
+            .from('contact_submissions')
+            .insert({
+                session_id: payload.sessionId,
+                name: payload.name,
+                email: payload.email,
+                message: payload.message,
+                enquiry_path: payload.enquiryPath || null,
+                enquiry_source_name: payload.sourceName || null,
+                enquiry_cta: payload.cta || null,
+                enquiry_title: enquiryTitle,
+            })
+            .select('id, session_id, name, email, message, enquiry_title, submitted_at')
+            .single();
+        if (submissionError || !submission) {
+            console.error('[contact] Submission was not saved:', submissionError?.message);
+            return json({ error: 'Your visit could not be linked to this enquiry. Please refresh and try again.' }, 409);
         }
+        submissionId = submission.id;
 
-        if (!email || email.length > 254 || !EMAIL_REGEX.test(email)) {
-            return new Response(
-                JSON.stringify({
-                    error: "Please provide a valid email address.",
-                }),
-                {
-                    status: 400,
-                    headers: { "Content-Type": "application/json" },
-                }
-            );
-        }
+        const [{ data: session }, { data: pageViews, error: viewsError }] = await Promise.all([
+            supabase
+                .from('analytics_sessions')
+                .select('id, source, city, country, landing_page, started_at')
+                .eq('id', submission.session_id)
+                .single(),
+            supabase
+                .from('analytics_page_views')
+                .select('page_path, page_title, viewed_at, engaged_seconds')
+                .eq('session_id', submission.session_id)
+                .lte('viewed_at', submission.submitted_at)
+                .order('viewed_at', { ascending: true }),
+        ]);
+        if (!session || viewsError) throw new Error('The saved visit could not be retrieved.');
 
-        if (!message || message.length > 5000) {
-            return new Response(
-                JSON.stringify({
-                    error: "Please provide a message (1-5000 characters).",
-                }),
-                {
-                    status: 400,
-                    headers: { "Content-Type": "application/json" },
-                }
-            );
-        }
-
-        const now = new Date();
-        const timestampIso = now.toISOString();
-        const timestampUtc = new Intl.DateTimeFormat("en-US", {
-            dateStyle: "full",
-            timeStyle: "long",
-            timeZone: "UTC",
-        }).format(now);
-        const timestampServerLocal = new Intl.DateTimeFormat("en-US", {
-            dateStyle: "full",
-            timeStyle: "long",
-        }).format(now);
-
-        const safeName = escapeHtml(name);
-        const safeEmail = escapeHtml(email);
-        const safeMessage = escapeHtml(message);
-
-        const behavior = buildBehaviorPattern(tracking);
-        const sourceDescriptionHtml = escapeHtml(behavior.sourceSummary);
-        const recentPagesHtml = buildRecentPagesHtml(tracking?.recentPages || []);
-        const topPagesHtml = buildTopPagesHtml(tracking?.topPages || []);
-        const structuredQuery = [
-            "SELECT",
-            "  session_id,",
-            "  source_page,",
-            "  cta_clicked,",
-            "  previous_page_before_contact,",
-            "  final_page,",
-            "  total_page_views,",
-            "  unique_pages_visited,",
-            "  total_tracked_seconds,",
-            "  top_time_spent_page,",
-            "  visit_sequence",
-            "FROM journey_tracking",
-            `WHERE session_id = '${tracking?.sessionId || "not_captured"}';`,
-        ].join("\n");
-
-        const toAddress =
-            import.meta.env.CONTACT_FORM_TO_EMAIL ||
-            process.env.CONTACT_FORM_TO_EMAIL ||
-            "hello@abodid.com";
-        const fromAddress =
-            import.meta.env.CONTACT_FORM_FROM_EMAIL ||
-            process.env.CONTACT_FORM_FROM_EMAIL ||
-            "Abodid Contact <newsletter@abodid.com>";
+        const visit = summarizeVisit({ session, pageViews, submittedAt: submission.submitted_at });
+        const source = normalizedAcquisitionSource(session.source);
+        const location = readableLocation(session);
+        const siteOrigin = (import.meta.env.PUBLIC_SITE_URL || process.env.PUBLIC_SITE_URL || new URL(request.url).origin).replace(/\/$/, '');
+        const analyticsUrl = `${siteOrigin}/admin/dashboard?section=analytics&submission=${encodeURIComponent(submission.id)}`;
+        const rendered = renderEmail({
+            name: submission.name,
+            email: submission.email,
+            message: submission.message,
+            enquiryTitle: submission.enquiry_title,
+            source,
+            location,
+            visit,
+            analyticsUrl,
+        });
 
         const resend = new Resend(resendKey);
-        const subjectSource = tracking?.lastSourcePage
-            ? ` from ${tracking.lastSourcePage}`
-            : "";
-        const subject = `[Contact Form] ${name}${subjectSource} sent you a message`;
-
-        const html = `
-            <div style="font-family: Arial, Helvetica, sans-serif; color: #111; line-height: 1.6;">
-                <p style="margin: 0 0 14px; font-size: 18px; font-weight: 700;">
-                    ${safeName} (${safeEmail}) sent you an email. ${sourceDescriptionHtml}
-                </p>
-                <hr style="border: 0; border-top: 1px solid #ddd; margin: 16px 0;" />
-                <p style="margin: 0 0 8px;"><strong>Name:</strong> ${safeName}</p>
-                <p style="margin: 0 0 8px;"><strong>Email ID:</strong> ${safeEmail}</p>
-                <p style="margin: 0 0 8px;"><strong>Date & Time (UTC):</strong> ${escapeHtml(timestampUtc)}</p>
-                <p style="margin: 0 0 16px;"><strong>Date & Time (Server Local):</strong> ${escapeHtml(timestampServerLocal)}</p>
-                <p style="margin: 0 0 8px;"><strong>ISO Timestamp:</strong> ${escapeHtml(timestampIso)}</p>
-
-                <p style="margin: 16px 0 8px; font-weight: 700;">Journey Tracking:</p>
-                <p style="margin: 0 0 8px;"><strong>Source Summary:</strong> ${sourceDescriptionHtml}</p>
-                <p style="margin: 0 0 8px;"><strong>Session ID:</strong> ${escapeHtml(tracking?.sessionId || "Not captured")}</p>
-                <p style="margin: 0 0 8px;"><strong>Current Page:</strong> ${escapeHtml(tracking?.currentPath || "Not captured")}</p>
-                <p style="margin: 0 0 8px;"><strong>Landing Page:</strong> ${escapeHtml(tracking?.landingPage || "Not captured")}</p>
-                <p style="margin: 0 0 8px;"><strong>Initial Referrer:</strong> ${escapeHtml(tracking?.initialReferrer || "Not captured")}</p>
-                <p style="margin: 0 0 8px;"><strong>Source Page:</strong> ${escapeHtml(tracking?.lastSourcePage || "Not captured")}</p>
-                <p style="margin: 0 0 8px;"><strong>Source Name:</strong> ${escapeHtml(tracking?.lastSourceName || "Not captured")}</p>
-                <p style="margin: 0 0 12px;"><strong>CTA Clicked:</strong> ${escapeHtml(tracking?.lastCta || "Not captured")}</p>
-
-                <p style="margin: 0 0 8px; font-weight: 700;">Recent Pages (latest first):</p>
-                <ol style="margin: 0 0 12px 18px; padding: 0;">${recentPagesHtml}</ol>
-
-                <p style="margin: 0 0 8px; font-weight: 700;">Most Time Spent Pages:</p>
-                <ol style="margin: 0 0 12px 18px; padding: 0;">${topPagesHtml}</ol>
-
-                <p style="margin: 16px 0 8px; font-weight: 700;">Message:</p>
-                <div style="white-space: pre-wrap; border: 1px solid #ddd; border-radius: 8px; padding: 12px;">
-                    ${safeMessage}
-                </div>
-
-                <p style="margin: 16px 0 8px; font-weight: 700;">Behavior Pattern (Rule-Based):</p>
-                <p style="margin: 0 0 8px;"><strong>Total Time On Site:</strong> ${escapeHtml(behavior.totalTrackedLabel)}</p>
-                <p style="margin: 0 0 8px;"><strong>Total Page Views:</strong> ${String(behavior.totalPageViews)}</p>
-                <p style="margin: 0 0 8px;"><strong>Unique Pages Visited:</strong> ${String(behavior.uniquePagesVisited)}</p>
-                <p style="margin: 0 0 8px;"><strong>Most Time Spent Page:</strong> ${escapeHtml(behavior.topPageSummary)}</p>
-                <p style="margin: 0 0 8px;"><strong>Page Before Final Contact Page:</strong> ${escapeHtml(behavior.previousBeforeFinal)}</p>
-                <p style="margin: 0 0 12px;"><strong>Visit Sequence:</strong> ${escapeHtml(behavior.visitSequence)}</p>
-
-                <p style="margin: 0 0 8px; font-weight: 700;">Structured Query (No AI):</p>
-                <pre style="white-space: pre-wrap; border: 1px solid #ddd; border-radius: 8px; padding: 12px; margin: 0 0 8px; background: #fafafa;">${escapeHtml(structuredQuery)}</pre>
-                <pre style="white-space: pre-wrap; border: 1px solid #ddd; border-radius: 8px; padding: 12px; margin: 0; background: #fafafa;">session_id=${escapeHtml(tracking?.sessionId || "not_captured")}
-source_page=${escapeHtml(tracking?.lastSourcePage || "not_captured")}
-cta_clicked=${escapeHtml(tracking?.lastCta || "not_captured")}
-previous_page_before_contact=${escapeHtml(behavior.previousBeforeFinal)}
-final_page=${escapeHtml(behavior.finalPage)}
-total_page_views=${String(behavior.totalPageViews)}
-unique_pages_visited=${String(behavior.uniquePagesVisited)}
-total_tracked_seconds=${String(Math.round(behavior.totalTrackedMs / 1000))}
-top_time_spent_page=${escapeHtml(behavior.topPageSummary)}
-visit_sequence=${escapeHtml(behavior.visitSequence)}</pre>
-            </div>
-        `;
-
-        const text = [
-            `${name} (${email}) sent you an email. ${behavior.sourceSummary}`,
-            "",
-            `Name: ${name}`,
-            `Email ID: ${email}`,
-            `Date & Time (UTC): ${timestampUtc}`,
-            `Date & Time (Server Local): ${timestampServerLocal}`,
-            `ISO Timestamp: ${timestampIso}`,
-            "",
-            "Journey Tracking:",
-            `Source Summary: ${behavior.sourceSummary}`,
-            `Session ID: ${tracking?.sessionId || "Not captured"}`,
-            `Current Page: ${tracking?.currentPath || "Not captured"}`,
-            `Landing Page: ${tracking?.landingPage || "Not captured"}`,
-            `Initial Referrer: ${tracking?.initialReferrer || "Not captured"}`,
-            `Source Page: ${tracking?.lastSourcePage || "Not captured"}`,
-            `Source Name: ${tracking?.lastSourceName || "Not captured"}`,
-            `CTA Clicked: ${tracking?.lastCta || "Not captured"}`,
-            "",
-            "Recent Pages (latest first):",
-            ...buildRecentPagesText(tracking?.recentPages || []),
-            "",
-            "Most Time Spent Pages:",
-            ...buildTopPagesText(tracking?.topPages || []),
-            "",
-            "Message:",
-            message,
-            "",
-            "Behavior Pattern (Rule-Based):",
-            `Total Time On Site: ${behavior.totalTrackedLabel}`,
-            `Total Page Views: ${behavior.totalPageViews}`,
-            `Unique Pages Visited: ${behavior.uniquePagesVisited}`,
-            `Most Time Spent Page: ${behavior.topPageSummary}`,
-            `Page Before Final Contact Page: ${behavior.previousBeforeFinal}`,
-            `Visit Sequence: ${behavior.visitSequence}`,
-            "",
-            "Structured Query (No AI):",
-            structuredQuery,
-            "",
-            "Structured Result:",
-            `session_id=${tracking?.sessionId || "not_captured"}`,
-            `source_page=${tracking?.lastSourcePage || "not_captured"}`,
-            `cta_clicked=${tracking?.lastCta || "not_captured"}`,
-            `previous_page_before_contact=${behavior.previousBeforeFinal}`,
-            `final_page=${behavior.finalPage}`,
-            `total_page_views=${behavior.totalPageViews}`,
-            `unique_pages_visited=${behavior.uniquePagesVisited}`,
-            `total_tracked_seconds=${Math.round(behavior.totalTrackedMs / 1000)}`,
-            `top_time_spent_page=${behavior.topPageSummary}`,
-            `visit_sequence=${behavior.visitSequence}`,
-        ].join("\n");
-
-        const { error } = await resend.emails.send({
-            from: fromAddress,
-            to: [toAddress],
-            replyTo: email,
-            subject,
-            html,
-            text,
+        const { error: emailError } = await resend.emails.send({
+            from: import.meta.env.CONTACT_FORM_FROM_EMAIL || process.env.CONTACT_FORM_FROM_EMAIL || 'Abodid Contact <newsletter@abodid.com>',
+            to: [import.meta.env.CONTACT_FORM_TO_EMAIL || process.env.CONTACT_FORM_TO_EMAIL || 'hello@abodid.com'],
+            replyTo: submission.email,
+            subject: `New ${submission.enquiry_title} enquiry — ${submission.name}`,
+            ...rendered,
         });
+        if (emailError) throw new Error(`Email provider rejected the notification: ${emailError.message}`);
 
-        if (error) {
-            console.error("Resend error:", error);
-            return new Response(
-                JSON.stringify({ error: "Could not send email at this time." }),
-                {
-                    status: 502,
-                    headers: { "Content-Type": "application/json" },
-                }
-            );
-        }
-
-        return new Response(JSON.stringify({ success: true }), {
-            status: 200,
-            headers: { "Content-Type": "application/json" },
-        });
+        await supabase.from('contact_submissions').update({ notification_sent_at: new Date().toISOString(), notification_error: null }).eq('id', submission.id);
+        return json({ success: true });
     } catch (error) {
-        console.error("Contact form API error:", error);
-        return new Response(
-            JSON.stringify({
-                error: "Unexpected server error while sending message.",
-            }),
-            {
-                status: 500,
-                headers: { "Content-Type": "application/json" },
-            }
-        );
+        const message = error instanceof Error ? error.message : 'Unexpected contact form failure';
+        console.error('[contact] Notification failed:', message);
+        if (submissionId) {
+            const supabase = createSupabaseServiceClient();
+            await supabase?.from('contact_submissions').update({ notification_error: message.slice(0, 500) }).eq('id', submissionId);
+        }
+        return json({ error: 'Your enquiry was saved, but the notification could not be sent. Please email hello@abodid.com directly.' }, 502);
     }
 };

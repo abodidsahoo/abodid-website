@@ -7,6 +7,7 @@ import {
     isLocalAnalyticsUrl,
     isSameOriginAnalyticsRequest,
     resolveAnalyticsCountry,
+    resolveAnalyticsCity,
     shouldTrackAnalyticsPath,
 } from '../../src/lib/analytics/classification.js';
 
@@ -14,7 +15,8 @@ const siteOrigin = 'https://abodid.com';
 
 test('classifies the required acquisition sources', () => {
     const cases = [
-        ['https://www.google.com/search?q=abodid', 'Google'],
+        ['https://www.google.com/search?q=abodid', 'Google Search'],
+        ['https://www.bing.com/search?q=abodid', 'Bing Search'],
         ['https://chatgpt.com/c/example', 'ChatGPT'],
         ['https://www.perplexity.ai/search/example', 'Perplexity'],
         ['https://claude.ai/chat/example', 'Claude'],
@@ -22,7 +24,7 @@ test('classifies the required acquisition sources', () => {
         ['https://www.linkedin.com/feed/', 'LinkedIn'],
         ['https://t.co/example', 'X / Twitter'],
         ['https://l.instagram.com/', 'Instagram'],
-        ['https://example.org/post', 'example.org'],
+        ['https://example.org/post', 'External Website'],
     ];
 
     for (const [referrer, expected] of cases) {
@@ -36,8 +38,9 @@ test('UTM source takes precedence and direct or internal traffic stays unknown',
         referrer: 'https://google.com',
         siteOrigin,
     }), 'LinkedIn');
-    assert.equal(classifyAcquisitionSource({ referrer: '', siteOrigin }), 'Direct / Unknown');
-    assert.equal(classifyAcquisitionSource({ referrer: 'https://abodid.com/work', siteOrigin }), 'Direct / Unknown');
+    assert.equal(classifyAcquisitionSource({ referrer: '', siteOrigin }), 'Direct Visit');
+    assert.equal(classifyAcquisitionSource({ referrer: 'https://abodid.com/work', siteOrigin }), 'Direct Visit');
+    assert.equal(classifyAcquisitionSource({ utmSource: 'summer_newsletter', utmMedium: 'email', siteOrigin }), 'Email Campaign');
     assert.equal(classifyAcquisitionSource({ utmSource: 'summer_newsletter', siteOrigin }), 'Summer Newsletter');
     assert.equal(classifyAcquisitionSource({ utmSource: 'example_campaign', siteOrigin }), 'Example Campaign');
 });
@@ -73,6 +76,12 @@ test('reads a country code without retaining an IP address', () => {
     assert.equal(resolveAnalyticsCountry(new Headers({ 'x-vercel-ip-country': 'in' })), 'IN');
     assert.equal(resolveAnalyticsCountry(new Headers()), 'Unknown');
     assert.equal(resolveAnalyticsCountry(new Headers({ 'x-vercel-ip-country': 'invalid' })), 'Unknown');
+});
+
+test('reads an optional readable city from trusted hosting headers', () => {
+    assert.equal(resolveAnalyticsCity(new Headers({ 'x-vercel-ip-city': 'Bhubaneswar' })), 'Bhubaneswar');
+    assert.equal(resolveAnalyticsCity(new Headers({ 'x-vercel-ip-city': 'New%20York' })), 'New York');
+    assert.equal(resolveAnalyticsCity(new Headers()), '');
 });
 
 test('excludes local collection endpoints server-side', () => {

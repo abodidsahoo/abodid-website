@@ -3,10 +3,14 @@ const SOURCE_MATCHERS = [
     { label: 'Perplexity', hosts: ['perplexity.ai'], sources: ['perplexity'] },
     { label: 'Claude', hosts: ['claude.ai'], sources: ['claude', 'anthropic'] },
     { label: 'Gemini', hosts: ['gemini.google.com', 'bard.google.com'], sources: ['gemini', 'bard'] },
-    { label: 'Google', hosts: ['google.'], sources: ['google'] },
+    { label: 'Microsoft Copilot', hosts: ['copilot.microsoft.com'], sources: ['copilot', 'microsoft copilot'] },
+    { label: 'Google Search', hosts: ['google.'], sources: ['google'] },
+    { label: 'Bing Search', hosts: ['bing.com'], sources: ['bing'] },
     { label: 'LinkedIn', hosts: ['linkedin.com', 'lnkd.in'], sources: ['linkedin'] },
     { label: 'X / Twitter', hosts: ['x.com', 'twitter.com', 't.co'], sources: ['x', 'twitter'] },
     { label: 'Instagram', hosts: ['instagram.com'], sources: ['instagram'] },
+    { label: 'Facebook', hosts: ['facebook.com', 'fb.com', 'fb.me'], sources: ['facebook', 'fb'] },
+    { label: 'YouTube', hosts: ['youtube.com', 'youtu.be'], sources: ['youtube'] },
 ];
 
 const INTERNAL_PATH_PATTERNS = [
@@ -39,14 +43,19 @@ const hostMatches = (host, candidate) => {
     return host === candidate || host.endsWith(`.${candidate}`);
 };
 
-const sourceFromToken = (value) => {
+const recognizedSourceFromToken = (value) => {
     const token = cleanAnalyticsString(value, 100).toLowerCase();
     if (!token) return '';
 
     const match = SOURCE_MATCHERS.find(({ sources }) => sources.some((source) => (
         token === source || (source.length > 2 && token.includes(source))
     )));
-    if (match) return match.label;
+    return match?.label || '';
+};
+
+const readableUtmSource = (value) => {
+    const token = cleanAnalyticsString(value, 100).toLowerCase();
+    if (!token) return '';
 
     return token
         .split(/[\s_-]+/)
@@ -68,12 +77,15 @@ export const getReferrerDomain = (referrer) => {
     }
 };
 
-export const classifyAcquisitionSource = ({ utmSource, referrer, siteOrigin }) => {
-    const explicitSource = sourceFromToken(utmSource);
+export const classifyAcquisitionSource = ({ utmSource, utmMedium, referrer, siteOrigin }) => {
+    const explicitSource = recognizedSourceFromToken(utmSource);
     if (explicitSource) return explicitSource;
+    if (/^(?:email|e-mail|newsletter)$/i.test(cleanAnalyticsString(utmMedium, 100))) return 'Email Campaign';
+    const campaignSource = readableUtmSource(utmSource);
+    if (campaignSource) return campaignSource;
 
     const referrerDomain = getReferrerDomain(referrer);
-    if (!referrerDomain) return 'Direct / Unknown';
+    if (!referrerDomain) return 'Direct Visit';
 
     let siteDomain = '';
     try {
@@ -82,10 +94,10 @@ export const classifyAcquisitionSource = ({ utmSource, referrer, siteOrigin }) =
         siteDomain = normalizeHost(siteOrigin);
     }
 
-    if (siteDomain && hostMatches(referrerDomain, siteDomain)) return 'Direct / Unknown';
+    if (siteDomain && hostMatches(referrerDomain, siteDomain)) return 'Direct Visit';
 
     const match = SOURCE_MATCHERS.find(({ hosts }) => hosts.some((host) => hostMatches(referrerDomain, host)));
-    return match?.label || referrerDomain;
+    return match?.label || 'External Website';
 };
 
 export const shouldTrackAnalyticsPath = (value) => {
@@ -100,6 +112,13 @@ export const resolveAnalyticsCountry = (headers) => {
     const value = headers?.get?.('x-vercel-ip-country') || '';
     const country = cleanAnalyticsString(value, 10).toUpperCase();
     return /^[A-Z]{2}$/.test(country) && country !== 'XX' ? country : 'Unknown';
+};
+
+export const resolveAnalyticsCity = (headers) => {
+    const rawValue = headers?.get?.('x-vercel-ip-city') || '';
+    let decoded = rawValue;
+    try { decoded = decodeURIComponent(rawValue); } catch (_error) { /* use the clean raw value */ }
+    return cleanAnalyticsString(decoded, 120);
 };
 
 export const isSameOriginAnalyticsRequest = (request) => {

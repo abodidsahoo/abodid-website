@@ -4,6 +4,21 @@
     color: var(--text-primary);
 }
 
+.analytics-focused-journey {
+    margin-bottom: 1.5rem;
+    border-color: color-mix(in srgb, var(--text-primary) 28%, var(--border-subtle));
+}
+
+.analytics-focused-journey .analytics-panel-heading > a {
+    color: var(--text-tertiary);
+    font-size: 0.72rem;
+    text-underline-offset: 3px;
+}
+
+.analytics-focused-journey .analytics-journey-card {
+    margin-top: 1rem;
+}
+
 .analytics-header {
     display: flex;
     align-items: flex-start;

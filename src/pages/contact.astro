@@ -216,25 +216,17 @@ const structuredData = [
         };
 
         const getJourneyTracking = () => {
-            try {
-                if (
-                    window.__abodidJourney &&
-                    typeof window.__abodidJourney.getSnapshot === "function"
-                ) {
-                    return window.__abodidJourney.getSnapshot();
-                }
-            } catch (_error) {
-                // no-op
-            }
-
             const params = new URLSearchParams(window.location.search);
             return {
-                currentPath: window.location.pathname,
-                initialReferrer: document.referrer || "",
-                lastSourcePage:
+                sessionId:
+                    window.__abodidAnalytics &&
+                    typeof window.__abodidAnalytics.getSessionId === "function"
+                        ? window.__abodidAnalytics.getSessionId()
+                        : "",
+                enquiryPath:
                     params.get("from") || params.get("source_page") || "",
-                lastSourceName: params.get("source_name") || "",
-                lastCta: params.get("cta") || "",
+                sourceName: params.get("source_name") || "",
+                cta: params.get("cta") || "",
             };
         };
 
@@ -264,6 +256,13 @@ const structuredData = [
                 }
 
                 try {
+                    if (
+                        window.__abodidAnalytics &&
+                        typeof window.__abodidAnalytics.prepareSubmission === "function"
+                    ) {
+                        await window.__abodidAnalytics.prepareSubmission();
+                        payload.tracking = getJourneyTracking();
+                    }
                     const response = await fetch("/api/contact", {
                         method: "POST",
                         headers: {
@@ -290,8 +289,7 @@ const structuredData = [
                         event_category: "contact",
                         event_label: "contact-form-submit",
                         source_page:
-                            payload.tracking?.lastSourcePage ||
-                            payload.tracking?.currentPath ||
+                            payload.tracking?.enquiryPath ||
                             "unknown",
                         destination_page: window.location.pathname,
                     });

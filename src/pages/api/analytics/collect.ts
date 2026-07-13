@@ -8,6 +8,7 @@ import {
     isPreviewAnalyticsEnvironment,
     isSameOriginAnalyticsRequest,
     resolveAnalyticsCountry,
+    resolveAnalyticsCity,
     shouldTrackAnalyticsPath,
 } from '../../../lib/analytics/classification.js';
 import { createSupabaseServiceClient } from '../../../lib/supabaseServer';
@@ -70,7 +71,12 @@ export const POST: APIRoute = async ({ request }) => {
                 p_session_id: sessionId,
                 p_visitor_id: visitorId,
                 p_page_view_id: pageViewId,
-                p_source: classifyAcquisitionSource({ utmSource, referrer, siteOrigin }),
+                p_source: classifyAcquisitionSource({
+                    utmSource,
+                    utmMedium: cleanAnalyticsString(body?.utm?.medium, 100),
+                    referrer,
+                    siteOrigin,
+                }),
                 p_referrer_domain: getReferrerDomain(referrer),
                 p_utm_source: utmSource,
                 p_utm_medium: cleanAnalyticsString(body?.utm?.medium, 100),
@@ -78,6 +84,7 @@ export const POST: APIRoute = async ({ request }) => {
                 p_utm_term: cleanAnalyticsString(body?.utm?.term, 150),
                 p_utm_content: cleanAnalyticsString(body?.utm?.content, 150),
                 p_country: resolveAnalyticsCountry(request.headers),
+                p_city: resolveAnalyticsCity(request.headers),
                 p_landing_page: cleanAnalyticsString(body?.landingPage, 240) || pagePath,
                 p_page_path: pagePath,
                 p_page_title: cleanAnalyticsString(body?.pageTitle, 240),

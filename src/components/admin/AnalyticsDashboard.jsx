@@ -226,6 +226,7 @@ export default function AnalyticsDashboard({ accessToken }) {
     const [generatedAt, setGeneratedAt] = useState('');
     const [realtimeStatus, setRealtimeStatus] = useState('connecting');
     const [refreshKey, setRefreshKey] = useState(0);
+    const [focusedJourney, setFocusedJourney] = useState(null);
     const hasLoadedRef = useRef(false);
     const chartTheme = useChartTheme();
 
@@ -238,8 +239,10 @@ export default function AnalyticsDashboard({ accessToken }) {
 
         try {
             const timezoneOffset = new Date().getTimezoneOffset();
+            const submission = new URLSearchParams(window.location.search).get('submission');
+            const submissionQuery = submission ? `&submission=${encodeURIComponent(submission)}` : '';
             const response = await fetch(
-                `/api/admin/analytics?range=${encodeURIComponent(range)}&timezoneOffset=${timezoneOffset}`,
+                `/api/admin/analytics?range=${encodeURIComponent(range)}&timezoneOffset=${timezoneOffset}${submissionQuery}`,
                 {
                     headers: { Authorization: `Bearer ${accessToken}` },
                     signal,
@@ -249,6 +252,7 @@ export default function AnalyticsDashboard({ accessToken }) {
             if (!response.ok) throw new Error(payload?.error || 'Could not load analytics.');
 
             setReport({ ...EMPTY_REPORT, ...(payload.report || {}) });
+            setFocusedJourney(payload.focusedJourney || null);
             setGeneratedAt(payload.generatedAt || new Date().toISOString());
             hasLoadedRef.current = true;
             setHasLoaded(true);
@@ -524,6 +528,19 @@ export default function AnalyticsDashboard({ accessToken }) {
                     <span>{error}</span>
                     <button type="button" onClick={() => setRefreshKey((value) => value + 1)}>Retry</button>
                 </div>
+            )}
+
+            {focusedJourney && (
+                <section className="analytics-panel analytics-focused-journey" aria-labelledby="focused-journey-title">
+                    <div className="analytics-panel-heading">
+                        <div>
+                            <h3 id="focused-journey-title">Visit connected to this enquiry</h3>
+                            <p>Activity is limited to the saved visit and stops at the enquiry time.</p>
+                        </div>
+                        <a href="/admin/dashboard?section=analytics">Show all analytics</a>
+                    </div>
+                    <JourneyCard journey={focusedJourney} />
+                </section>
             )}
 
             {error && !hasLoaded ? (
