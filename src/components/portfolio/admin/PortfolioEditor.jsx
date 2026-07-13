@@ -22,12 +22,66 @@ import {
   createEmptyBlock,
   normalizeTaxonomyTerm,
   slugify,
+  toPublicPortfolioProjection,
   validateProjectForPublish,
 } from "../../../lib/portfolio/schema";
 import "../../../styles/portfolio-admin.css";
 
 const Field = ({ label, value, onChange, rows = 1, type = "text", placeholder = "", required = false }) => <label className="editor-field"><span>{label}{required && <b aria-hidden="true"> *</b>}</span>{rows > 1 ? <textarea value={value || ""} rows={rows} placeholder={placeholder} onChange={(event) => onChange(event.target.value)} /> : <input type={type} value={value ?? ""} placeholder={placeholder} onChange={(event) => onChange(type === "number" ? (event.target.value ? Number(event.target.value) : null) : event.target.value)} />}</label>;
 const formatRevisionDate = (value) => new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
+const LAYOUT_STYLE_OPTIONS = [
+  { value: 1, label: "1: Typographic Grid" },
+  { value: 2, label: "2: Columnar Narrative" },
+  { value: 3, label: "3: Manifesto Block" },
+  { value: 4, label: "4: Centered Statement" },
+  { value: 5, label: "5: Swiss Hairline Grid" },
+];
+
+function ThemedSelect({ label, value, options, onChange }) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef(null);
+  const triggerRef = useRef(null);
+  const optionRefs = useRef([]);
+  const selectedIndex = Math.max(0, options.findIndex((option) => option.value === value));
+  const selected = options[selectedIndex];
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const closeOnOutsideClick = (event) => {
+      if (!rootRef.current?.contains(event.target)) setOpen(false);
+    };
+    document.addEventListener("pointerdown", closeOnOutsideClick);
+    requestAnimationFrame(() => optionRefs.current[selectedIndex]?.focus());
+    return () => document.removeEventListener("pointerdown", closeOnOutsideClick);
+  }, [open, selectedIndex]);
+
+  const closeAndRefocus = () => {
+    setOpen(false);
+    requestAnimationFrame(() => triggerRef.current?.focus());
+  };
+
+  const handleOptionKeyDown = (event, index) => {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      closeAndRefocus();
+      return;
+    }
+    const direction = event.key === "ArrowDown" ? 1 : event.key === "ArrowUp" ? -1 : 0;
+    if (!direction) return;
+    event.preventDefault();
+    optionRefs.current[(index + direction + options.length) % options.length]?.focus();
+  };
+
+  return <div className={`editor-field themed-select-field ${open ? "is-open" : ""}`} ref={rootRef}>
+    <span>{label}</span>
+    <button ref={triggerRef} type="button" className="themed-select-trigger" aria-haspopup="listbox" aria-expanded={open} onClick={() => setOpen((current) => !current)}>
+      <span>{selected?.label}</span><span className="themed-select-chevron" aria-hidden="true" />
+    </button>
+    {open && <div className="themed-select-menu" role="listbox" aria-label={label}>
+      {options.map((option, index) => <button ref={(node) => { optionRefs.current[index] = node; }} type="button" role="option" aria-selected={option.value === value} className="themed-select-option" key={option.value} onKeyDown={(event) => handleOptionKeyDown(event, index)} onClick={() => { onChange(option.value); closeAndRefocus(); }}><span className="themed-select-check" aria-hidden="true">{option.value === value ? "✓" : ""}</span><span>{option.label}</span></button>)}
+    </div>}
+  </div>;
+}
 
 function TaxonomyField({ groupType, terms, onChange }) {
   const derivedValue = terms.filter((term) => term.groupType === groupType).map((term) => term.label).join(", ");
@@ -66,8 +120,8 @@ function RepeatableEditor({ title, items, onChange, kind }) {
   return <section className="repeatable-editor"><header><h3>{title}</h3><button type="button" className="quiet-button" onClick={add}>+ Add</button></header>{items.map((item, index) => <div className="repeatable-row" key={item.id || index}>
     <Field label="Name / label" value={item.name ?? item.label} onChange={(value) => update(index, item.name !== undefined ? { name: value } : { label: value })} />
     {kind === "organisation" && <><Field label="Relationship" value={item.relationshipLabel} onChange={(relationshipLabel) => update(index, { relationshipLabel })} /><Field label="URL" value={item.url} onChange={(url) => update(index, { url })} /></>}
-    {kind === "collaborator" && <><Field label="Project role" value={item.roleLabel} onChange={(roleLabel) => update(index, { roleLabel })} /><Field label="Organisation" value={item.organisation} onChange={(organisation) => update(index, { organisation })} /><Field label="Primary URL" value={item.primaryUrl} onChange={(primaryUrl) => update(index, { primaryUrl })} /><Field label="Secondary URL" value={item.secondaryUrl} onChange={(secondaryUrl) => update(index, { secondaryUrl })} /></>}
-    {kind === "link" && <><label className="editor-field"><span>Type</span><select value={item.linkType || "external"} onChange={(event) => update(index, { linkType: event.target.value })}><option value="photography">Photography</option><option value="film">Film</option><option value="website">Website</option><option value="publication">Publication</option><option value="vimeo">Vimeo</option><option value="youtube">YouTube</option><option value="external">External</option></select></label><Field label="URL" value={item.url} onChange={(url) => update(index, { url })} /></>}
+    {kind === "collaborator" && <><Field label="Project role" value={item.roleLabel} onChange={(roleLabel) => update(index, { roleLabel })} /><Field label="Organisation" value={item.organisation} onChange={(organisation) => update(index, { organisation })} /><Field label="Name link" value={item.primaryUrl} placeholder="instagram.com/handle or personal-site.com" onChange={(primaryUrl) => update(index, { primaryUrl })} /><Field label="Secondary link (optional)" value={item.secondaryUrl} placeholder="Another website or social profile" onChange={(secondaryUrl) => update(index, { secondaryUrl })} /></>}
+    {kind === "link" && <><label className="editor-field"><span>Type</span><select value={item.linkType || "external"} onChange={(event) => update(index, { linkType: event.target.value })}><option value="photography">Photography</option><option value="film">Film</option><option value="website">Website</option><option value="publication">Publication</option><option value="vimeo">Vimeo</option><option value="youtube">YouTube</option><option value="external">External</option></select></label><Field label="URL" value={item.url} placeholder="example.com or https://example.com" onChange={(url) => update(index, { url })} /></>}
     <button type="button" className="quiet-button danger" onClick={() => onChange(items.filter((_, itemIndex) => itemIndex !== index))}>Remove</button>
   </div>)}</section>;
 }
@@ -93,7 +147,7 @@ class PortfolioEditorErrorBoundary extends React.Component {
       return <main className="portfolio-admin-page">
         <div className="admin-notice error">
           <strong>The editor hit an unexpected error.</strong>
-          <p>Your draft is still stored. Try reopening the editor.</p>
+          <p>Reopen the editor to return to your last manually saved draft.</p>
           {this.state.error?.message && <p style={{ fontSize: ".75rem", opacity: .7, fontFamily: "monospace", marginTop: ".5rem" }}>{this.state.error.message}</p>}
           <button type="button" className="primary-button" onClick={this.retry}>Reopen editor</button>
         </div>
@@ -113,14 +167,13 @@ function PortfolioEditorContent({ projectId }) {
   const [notice, setNotice] = useState("");
   const [saveState, setSaveState] = useState("Saved");
   const [dirty, setDirty] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [conflict, setConflict] = useState(false);
   const [uploadOverlay, setUploadOverlay] = useState(null); // null | { status: 'uploading'|'done'|'error', message: string }
   const [uploadOverlayClosing, setUploadOverlayClosing] = useState(false);
   const [preview, setPreview] = useState(false);
   const [previewDevice, setPreviewDevice] = useState("laptop");
   const [previewVersion, setPreviewVersion] = useState(0);
-  const [leftCollapsed, setLeftCollapsed] = useState(false);
-  const [rightCollapsed, setRightCollapsed] = useState(false);
   const [tab, setTab] = useState("details");
   const [projectSearch, setProjectSearch] = useState("");
   const [blockMenuOpen, setBlockMenuOpen] = useState(false);
@@ -132,8 +185,8 @@ function PortfolioEditorContent({ projectId }) {
   const projectIdRef = useRef(null);
   const savePromiseRef = useRef(null);
   const pendingMediaDeletesRef = useRef(new Map());
+  const allowUnloadRef = useRef(false);
   const interactionEpochRef = useRef(0);
-  const previewRequestRef = useRef(0);
   const filePickerSessionRef = useRef(null);
   const filePickerCooldownTimerRef = useRef(null);
   const uploadingRef = useRef(false);
@@ -141,8 +194,6 @@ function PortfolioEditorContent({ projectId }) {
   const uploadOverlayCloseTimerRef = useRef(null);
   const uploadOverlayRemoveTimerRef = useRef(null);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }));
-  const cacheKey = `portfolio:draft:${projectId}`;
-
   useEffect(() => { dirtyRef.current = dirty; }, [dirty]);
   useEffect(() => { draftRef.current = draft; }, [draft]);
 
@@ -176,8 +227,7 @@ function PortfolioEditorContent({ projectId }) {
     releaseFilePickerSession(session.token);
   }, [releaseFilePickerSession]);
 
-  // Arm this in the input's capture phase, before Chrome opens the native file
-  // chooser. Any preview request already waiting on a save is invalidated here.
+  // Arm this in the input's capture phase, before Chrome opens the native file chooser.
   const beginFilePickerSession = useCallback((event) => {
     if (uploadingRef.current || uploadOverlayRef.current) {
       event.preventDefault();
@@ -186,7 +236,6 @@ function PortfolioEditorContent({ projectId }) {
     }
     const token = interactionEpochRef.current + 1;
     interactionEpochRef.current = token;
-    previewRequestRef.current += 1;
     window.clearTimeout(filePickerCooldownTimerRef.current);
     filePickerCooldownTimerRef.current = null;
     filePickerSessionRef.current = { token, phase: "picker" };
@@ -228,28 +277,17 @@ function PortfolioEditorContent({ projectId }) {
       if (window.location.pathname !== `/admin/projects/${result.project.slug}`) {
         window.history.replaceState({}, "", `/admin/projects/${result.project.slug}`);
       }
-      const cached = localStorage.getItem(cacheKey);
-      let nextDraft = result.draft;
-      if (cached) {
-        try {
-          const parsed = JSON.parse(cached);
-          (parsed.pendingMediaDeletes || []).forEach((media) => {
-            if (media?.id && media?.storagePath) pendingMediaDeletesRef.current.set(media.id, media);
-          });
-          if (!parsed.cleanupOnly && parsed.savedAt > new Date(result.project.updated_at).getTime() && window.confirm("A newer emergency draft exists on this device. Restore it?")) {
-            nextDraft = { ...parsed.draft, lockVersion: result.draft.lockVersion, id: result.draft.id };
-            setDirty(true);
-            setSaveState("Recovered locally");
-          }
-        } catch { localStorage.removeItem(cacheKey); }
-      }
-      setProject(result.project); setDraft(nextDraft); setHistory(result.history); setProjects(allProjects);
-      if (nextDraft === result.draft) { setDirty(false); setSaveState("Saved"); }
+      pendingMediaDeletesRef.current.clear();
+      draftRef.current = result.draft;
+      dirtyRef.current = false;
+      editVersionRef.current = 0;
+      setProject(result.project); setDraft(result.draft); setHistory(result.history); setProjects(allProjects);
+      setDirty(false); setSaveState("Saved");
     } catch (err) {
       if (err.message === "ADMIN_AUTH_REQUIRED") window.location.href = `/admin/login?next=/admin/projects/${projectId}`;
       else setError(err.message || "Could not load this project.");
     } finally { setLoading(false); }
-  }, [cacheKey, projectId]);
+  }, [projectId]);
   useEffect(() => { load(); }, [load]);
 
   const updateDraft = (updater) => {
@@ -258,7 +296,7 @@ function PortfolioEditorContent({ projectId }) {
     editVersionRef.current += 1;
     draftRef.current = next;
     setDraft(next);
-    setDirty(true); dirtyRef.current = true; setSaveState("Unsaved changes"); setConflict(false);
+    setDirty(true); dirtyRef.current = true; setSaveState("Unsaved changes"); setConflict(false); setNotice("");
   };
 
   const queueMediaForDeletion = useCallback((media) => {
@@ -283,12 +321,7 @@ function PortfolioEditorContent({ projectId }) {
     if (retainedByHistory > 0) {
       setNotice(`${retainedByHistory} removed image${retainedByHistory === 1 ? " was" : "s were"} kept in protected storage because a published or recoverable revision still uses it.`);
     }
-    if (pendingMediaDeletesRef.current.size > 0) {
-      localStorage.setItem(cacheKey, JSON.stringify({ savedAt: Date.now(), cleanupOnly: true, draft: draftRef.current, pendingMediaDeletes: [...pendingMediaDeletesRef.current.values()] }));
-    } else if (!dirtyRef.current) {
-      localStorage.removeItem(cacheKey);
-    }
-  }, [cacheKey]);
+  }, []);
 
   const saveNow = useCallback(async () => {
     if (!dirtyRef.current || !draftRef.current || savePromiseRef.current) return savePromiseRef.current;
@@ -301,42 +334,43 @@ function PortfolioEditorContent({ projectId }) {
       setDraft(latestDraft);
       const savedLatestEdit = editVersionRef.current === savedEditVersion;
       if (savedLatestEdit) {
-        setDirty(false); dirtyRef.current = false; setSaveState("Saved"); localStorage.removeItem(cacheKey);
+        setDirty(false); dirtyRef.current = false; setSaveState("Saved");
       } else {
         setDirty(true); dirtyRef.current = true; setSaveState("Unsaved changes");
-        localStorage.setItem(cacheKey, JSON.stringify({ savedAt: Date.now(), draft: latestDraft, pendingMediaDeletes: [...pendingMediaDeletesRef.current.values()] }));
       }
       setProject((value) => ({ ...value, updated_at: new Date().toISOString() }));
       if (savedLatestEdit) await flushPendingMediaDeletes();
       return nextLockVersion;
     }).catch((err) => {
-      localStorage.setItem(cacheKey, JSON.stringify({ savedAt: Date.now(), draft: draftRef.current || currentDraft, pendingMediaDeletes: [...pendingMediaDeletesRef.current.values()] }));
       if (err.code === "PORTFOLIO_CONFLICT" || err.message === "PORTFOLIO_CONFLICT") { setConflict(true); setSaveState("Conflict detected"); }
-      else { setSaveState(navigator.onLine ? "Save failed - retrying" : "Offline - stored locally"); setError(err.message || "Draft save failed."); }
+      else { setSaveState("Save failed"); setError(err.message || "Draft save failed."); }
       throw err;
     }).finally(() => { savePromiseRef.current = null; });
     savePromiseRef.current = promise;
     return promise;
-  }, [cacheKey, flushPendingMediaDeletes, projectId]);
+  }, [flushPendingMediaDeletes]);
+
+  const saveDraft = useCallback(async ({ showConfirmation = true } = {}) => {
+    setSaving(true); setNotice(""); setError("");
+    try {
+      do {
+        await saveNow();
+      } while (dirtyRef.current);
+      if (showConfirmation) setNotice("Draft Saved.");
+    } finally {
+      setSaving(false);
+    }
+  }, [saveNow]);
 
   useEffect(() => {
-    if (!dirty || conflict) return;
-    const timeout = window.setTimeout(() => saveNow().catch(() => {}), 120000);
-    return () => window.clearTimeout(timeout);
-  }, [dirty, conflict, draft, saveNow]);
-  useEffect(() => {
-    const interval = window.setInterval(() => {
-      if (dirtyRef.current && !conflict) saveNow().catch(() => {});
-      else if (pendingMediaDeletesRef.current.size > 0 && navigator.onLine) flushPendingMediaDeletes().catch(() => {});
-    }, 30000);
-    const beforeUnload = () => {
-      if ((dirtyRef.current || pendingMediaDeletesRef.current.size > 0) && draftRef.current) {
-        localStorage.setItem(cacheKey, JSON.stringify({ savedAt: Date.now(), draft: draftRef.current, pendingMediaDeletes: [...pendingMediaDeletesRef.current.values()] }));
-      }
+    const beforeUnload = (event) => {
+      if (!dirtyRef.current || allowUnloadRef.current) return;
+      event.preventDefault();
+      event.returnValue = "";
     };
     window.addEventListener("beforeunload", beforeUnload);
-    return () => { window.clearInterval(interval); window.removeEventListener("beforeunload", beforeUnload); };
-  }, [cacheKey, conflict, flushPendingMediaDeletes, saveNow]);
+    return () => window.removeEventListener("beforeunload", beforeUnload);
+  }, []);
 
   const publish = async () => {
     setError(""); setNotice("");
@@ -344,7 +378,7 @@ function PortfolioEditorContent({ projectId }) {
     if (validation.length) { setError(`Publish blocked: ${validation.join(" · ")}`); setTab("publishing"); return; }
     setPublishing(true);
     try {
-      if (dirtyRef.current) await saveNow();
+      if (dirtyRef.current) await saveDraft({ showConfirmation: false });
       const publishedRevisionId = await publishPortfolioProject(projectIdRef.current);
       const refreshed = await loadAdminProject(projectIdRef.current);
       setProject(refreshed.project);
@@ -364,25 +398,10 @@ function PortfolioEditorContent({ projectId }) {
       setPublishing(false);
     }
   };
-  const openPreview = async () => {
-    const requestId = previewRequestRef.current + 1;
-    previewRequestRef.current = requestId;
-    const interactionEpoch = interactionEpochRef.current;
+  const openPreview = () => {
     if (uploadingRef.current || uploadOverlayRef.current || filePickerSessionRef.current) return;
     try {
-      if (dirtyRef.current) await saveNow();
-
-      // A picker may have opened while saveNow() was pending. Never let that
-      // older request reopen the full-screen preview underneath the upload UI.
-      if (
-        requestId !== previewRequestRef.current ||
-        interactionEpoch !== interactionEpochRef.current ||
-        uploadingRef.current ||
-        uploadOverlayRef.current ||
-        filePickerSessionRef.current
-      ) return;
-
-      const nextPreview = { ...draftRef.current, id: project.id, slug: project.slug, status: project.status };
+      const nextPreview = { ...toPublicPortfolioProjection(draftRef.current), id: project.id, slug: project.slug, status: project.status };
       window.sessionStorage.setItem(`portfolio:preview:${project.id}`, JSON.stringify(nextPreview));
       setPreviewVersion(Date.now());
       setPreview(true);
@@ -390,10 +409,15 @@ function PortfolioEditorContent({ projectId }) {
       // Keep the editor visible with the existing save error.
     }
   };
-  const navigateAfterSave = async (event, href) => {
+  const confirmDiscardChanges = () => {
+    if (!dirtyRef.current) return true;
+    if (!window.confirm("You have unsaved changes. Leave without saving them?")) return false;
+    allowUnloadRef.current = true;
+    return true;
+  };
+  const navigateWithUnsavedCheck = (event, href) => {
     event.preventDefault();
-    try { if (dirtyRef.current && !conflict) await saveNow(); }
-    catch { return; }
+    if (!confirmDiscardChanges()) return;
     window.location.href = href;
   };
   const restore = async (revisionId) => {
@@ -406,6 +430,7 @@ function PortfolioEditorContent({ projectId }) {
       const newId = await createPortfolioProject(`${draft.title} (conflict copy)`);
       const next = await loadAdminProject(newId);
       await savePortfolioDraft(newId, { ...draft, id: next.draft.id, lockVersion: next.draft.lockVersion, title: `${draft.title} (conflict copy)` });
+      allowUnloadRef.current = true;
       window.location.href = `/admin/projects/${newId}`;
     } catch (err) { setError(err.message || "Could not duplicate local draft."); }
   };
@@ -418,6 +443,16 @@ function PortfolioEditorContent({ projectId }) {
       setNotice("Project slug and editor URL updated. The previous public slug redirects here.");
     }
     catch (err) { setError(err.message || "Slug update failed."); }
+  };
+  const createNewProject = async () => {
+    if (!confirmDiscardChanges()) return;
+    try {
+      const id = await createPortfolioProject("Untitled project");
+      window.location.href = `/admin/projects/${id}`;
+    } catch (err) {
+      allowUnloadRef.current = false;
+      setError(err.message || "Could not create a new project.");
+    }
   };
   const onBlockDragEnd = ({ active, over }) => {
     if (!over || active.id === over.id) return;
@@ -432,7 +467,6 @@ function PortfolioEditorContent({ projectId }) {
     const pickerSession = filePickerSessionRef.current;
     const uploadToken = pickerSession?.token || interactionEpochRef.current + 1;
     interactionEpochRef.current = Math.max(interactionEpochRef.current, uploadToken);
-    previewRequestRef.current += 1;
     window.clearTimeout(filePickerCooldownTimerRef.current);
     filePickerCooldownTimerRef.current = null;
     filePickerSessionRef.current = { token: uploadToken, phase: "uploading" };
@@ -531,7 +565,7 @@ function PortfolioEditorContent({ projectId }) {
   if (loading) return <div className="admin-loading full-screen">Loading project editor…</div>;
   if (!draft || !project) return <div className="portfolio-admin-page"><div className="admin-notice error">{error || "Project not found."}</div><a href="/admin/projects">Back to projects</a></div>;
 
-  return <div className={`portfolio-editor-shell ${leftCollapsed ? "left-collapsed" : ""} ${rightCollapsed ? "right-collapsed" : ""}`}>
+  return <div className="portfolio-editor-shell">
     {/* Upload overlay — sits at z-index 2000 (above the preview modal at 1000) and
         blocks ALL pointer events during upload so nothing else can be accidentally
         triggered by click-throughs from the OS file picker. */}
@@ -570,17 +604,23 @@ function PortfolioEditorContent({ projectId }) {
       </div>
     )}
     <header className="portfolio-editor-topbar">
-      <div className="topbar-left"><a href="/admin/projects" onClick={(event) => navigateAfterSave(event, "/admin/projects")}>← Projects</a><a href="/admin/dashboard" onClick={(event) => navigateAfterSave(event, "/admin/dashboard")}>Admin home</a></div>
-      <div className={`save-state ${saveState.toLowerCase().replaceAll(" ", "-")}`}>{saveState}</div>
-      <div className="topbar-actions"><button type="button" onClick={openPreview} disabled={uploading}>Responsive preview</button><button type="button" className="primary-button publish-button" onClick={publish} disabled={publishing || uploading}>{publishing ? "Publishing…" : "Publish"}</button></div>
+      <div className="topbar-left"><a className="admin-back-button" href="/admin/dashboard" onClick={(event) => navigateWithUnsavedCheck(event, "/admin/dashboard")}><span aria-hidden="true">←</span> Back to admin panel</a></div>
+      <div className="topbar-main-actions">
+        <button type="button" className="responsive-preview-button" onClick={openPreview} disabled={uploading}>Responsive preview</button>
+        <div className={`save-state ${saveState.toLowerCase().replaceAll(" ", "-")}`}>{saveState}</div>
+        <div className="topbar-publish-combo">
+          <button type="button" className="save-draft-button" onClick={() => saveDraft().catch(() => {})} disabled={!dirty || saving || publishing || uploading || conflict}>{saving ? "Saving…" : "Save draft"}</button>
+          <button type="button" className="primary-button publish-button" onClick={publish} disabled={publishing || saving || uploading}>{publishing ? "Publishing…" : "Publish"}</button>
+        </div>
+      </div>
+      <div className="topbar-right-spacer" aria-hidden="true" />
     </header>
     {conflict && <div className="conflict-banner"><strong>Conflict detected.</strong> A newer draft was saved elsewhere. <button type="button" onClick={load}>Reload latest</button><button type="button" onClick={duplicateConflict}>Duplicate my local version</button></div>}
-    {notice && <div className="floating-admin-notice success">{notice}<button type="button" onClick={() => setNotice("")}>×</button></div>}
+    {notice && <div className="floating-admin-notice success" role="status" aria-live="polite"><span className="success-check" aria-hidden="true">✓</span><span>{notice}</span><button type="button" onClick={() => setNotice("")} aria-label="Dismiss confirmation">×</button></div>}
     {error && <div className="floating-admin-notice error">{error}<button type="button" onClick={() => setError("")}>×</button></div>}
 
     <aside className="portfolio-editor-left">
-      <button type="button" className="panel-collapse" onClick={() => setLeftCollapsed((value) => !value)} aria-label={leftCollapsed ? "Show project navigation" : "Hide project navigation"}>{leftCollapsed ? <><span>Show projects</span><span aria-hidden="true">→</span></> : <><span aria-hidden="true">←</span><span>Hide projects</span></>}</button>
-      {!leftCollapsed && <><header><h2>Projects</h2><button type="button" className="quiet-button" onClick={async () => { if (dirtyRef.current) { try { await saveNow(); } catch { return; } } const id = await createPortfolioProject("Untitled project"); window.location.href = `/admin/projects/${id}`; }}>+ Add</button></header><input type="search" value={projectSearch} onChange={(event) => setProjectSearch(event.target.value)} placeholder="Search projects" /><nav>{projectList.map((item) => <a key={item.id} href={`/admin/projects/${item.slug}`} onClick={(event) => navigateAfterSave(event, `/admin/projects/${item.slug}`)} className={item.id === project.id ? "active" : ""}>{item.draft?.cover_url ? <img src={item.draft.cover_url} alt="" /> : <span className="nav-placeholder" /> }<span><strong>{item.draft?.title || "Untitled"}</strong><small>{item.status === "wip" ? "WIP" : item.status}</small></span></a>)}</nav></>}
+      <header><h2>All Projects</h2><button type="button" className="quiet-button" onClick={createNewProject}>+ Add</button></header><input type="search" value={projectSearch} onChange={(event) => setProjectSearch(event.target.value)} placeholder="Search projects" /><nav>{projectList.map((item) => <a key={item.id} href={`/admin/projects/${item.slug}`} onClick={(event) => navigateWithUnsavedCheck(event, `/admin/projects/${item.slug}`)} className={item.id === project.id ? "active" : ""}>{item.draft?.cover_url ? <img src={item.draft.cover_url} alt="" /> : <span className="nav-placeholder" /> }<span><strong>{item.draft?.title || "Untitled"}</strong><small>{item.status === "wip" ? "WIP" : item.status}</small></span></a>)}</nav>
     </aside>
 
     <main className="portfolio-editor-canvas">
@@ -602,7 +642,7 @@ function PortfolioEditorContent({ projectId }) {
         }} /></label></header>
         {draft.coverUrl ? <img src={draft.coverUrl} alt={draft.coverAlt || ""} style={{ objectPosition: `${draft.coverFocalX ?? 50}% ${draft.coverFocalY ?? 50}%` }} /> : <div className="cover-placeholder">4:3 cover preview</div>}
         <Field label="Cover URL" value={draft.coverUrl} onChange={(coverUrl) => updateDraft({ coverUrl })} />
-        <Field label="Cover alt text" value={draft.coverAlt} required onChange={(coverAlt) => updateDraft({ coverAlt })} />
+        <Field label="Cover alt text (optional)" value={draft.coverAlt} onChange={(coverAlt) => updateDraft({ coverAlt })} />
         <div className="field-row"><label className="editor-field"><span>Horizontal focal point · {draft.coverFocalX}%</span><input type="range" min="0" max="100" value={draft.coverFocalX} onChange={(event) => updateDraft({ coverFocalX: Number(event.target.value) })} /></label><label className="editor-field"><span>Vertical focal point · {draft.coverFocalY}%</span><input type="range" min="0" max="100" value={draft.coverFocalY} onChange={(event) => updateDraft({ coverFocalY: Number(event.target.value) })} /></label></div>
       </section>
 
@@ -613,16 +653,15 @@ function PortfolioEditorContent({ projectId }) {
     </main>
 
     <aside className="portfolio-editor-right">
-      <button type="button" className="panel-collapse" onClick={() => setRightCollapsed((value) => !value)} aria-label={rightCollapsed ? "Show project details" : "Hide project details"}>{rightCollapsed ? <><span aria-hidden="true">←</span><span>Show details</span></> : <><span>Hide details</span><span aria-hidden="true">→</span></>}</button>
-      {!rightCollapsed && <><div className="property-tabs" role="tablist">{["details", "classification", "people", "links", "seo", "publishing"].map((item) => <button type="button" role="tab" aria-selected={tab === item} key={item} onClick={() => setTab(item)}>{item}</button>)}</div><div className="property-panel">
-        {tab === "details" && <><Field label="Public slug" value={project.slug} onChange={(value) => setProject((current) => ({ ...current, slug: value }))} /><button type="button" className="quiet-button" onClick={() => changeSlug(project.slug)}>Save explicit slug</button><label className="editor-field"><span>Layout style</span><select value={draft.layoutStyle || 1} onChange={(event) => updateDraft({ layoutStyle: Number(event.target.value) })}><option value={1}>1: Typographic Grid</option><option value={2}>2: Columnar Narrative</option><option value={3}>3: Manifesto Block</option><option value={4}>4: Centered Statement</option><option value={5}>5: Swiss Hairline Grid</option></select></label><Field label="Location" value={draft.location} onChange={(location) => updateDraft({ location })} /><Field label="Duration" value={draft.duration} onChange={(duration) => updateDraft({ duration })} /><Field label="Outcome heading" value={draft.outcomeHeading} onChange={(outcomeHeading) => updateDraft({ outcomeHeading })} /><Field label="Outcome text" value={draft.outcomeText} rows={5} onChange={(outcomeText) => updateDraft({ outcomeText })} /></>}
+      <div className="property-tabs" role="tablist" aria-label="Project properties">{["details", "classification", "people", "links", "seo", "publishing"].map((item) => <button type="button" role="tab" aria-selected={tab === item} key={item} onClick={() => setTab(item)}>{item}</button>)}</div><div className="property-panel">
+        {tab === "details" && <><Field label="Public slug" value={project.slug} onChange={(value) => setProject((current) => ({ ...current, slug: value }))} /><button type="button" className="quiet-button" onClick={() => changeSlug(project.slug)}>Save explicit slug</button><ThemedSelect label="Layout style" value={draft.layoutStyle || 1} options={LAYOUT_STYLE_OPTIONS} onChange={(layoutStyle) => updateDraft({ layoutStyle })} /><Field label="Location" value={draft.location} onChange={(location) => updateDraft({ location })} /><Field label="Duration" value={draft.duration} onChange={(duration) => updateDraft({ duration })} /><Field label="Outcome heading" value={draft.outcomeHeading} onChange={(outcomeHeading) => updateDraft({ outcomeHeading })} /><Field label="Outcome text" value={draft.outcomeText} rows={5} onChange={(outcomeText) => updateDraft({ outcomeText })} /></>}
 
         {tab === "classification" && <TaxonomyFields terms={draft.taxonomies} onChange={(taxonomies) => updateDraft({ taxonomies })} />}
         {tab === "people" && <><RepeatableEditor kind="organisation" title="Organisations" items={draft.organisations} onChange={(organisations) => updateDraft({ organisations })} /><RepeatableEditor kind="collaborator" title="Collaborators" items={draft.collaborators} onChange={(collaborators) => updateDraft({ collaborators })} /></>}
-        {tab === "links" && <RepeatableEditor kind="link" title="Photography, Film and external links" items={draft.links} onChange={(links) => updateDraft({ links })} />}
+        {tab === "links" && <RepeatableEditor kind="link" title="External Links" items={draft.links} onChange={(links) => updateDraft({ links })} />}
         {tab === "seo" && <><Field label="SEO title" value={draft.seoTitle} onChange={(seoTitle) => updateDraft({ seoTitle })} /><Field label="Meta description" value={draft.metaDescription} rows={4} onChange={(metaDescription) => updateDraft({ metaDescription })} /><Field label="Social image URL" value={draft.socialImageUrl} onChange={(socialImageUrl) => updateDraft({ socialImageUrl })} /><label className="toggle-field"><input type="checkbox" checked={draft.searchVisible} onChange={(event) => updateDraft({ searchVisible: event.target.checked })} /> Include in search and portfolio sitemap</label></>}
-        {tab === "publishing" && <><section className={`publication-summary ${project.published_revision_id ? "is-published" : "is-draft"}`}><span>Live status</span><strong>{project.published_revision_id ? (project.status === "wip" ? "Published · Work in Progress" : "Published · Full project") : "Not published"}</strong></section><fieldset className="publishing-mode-choice"><legend>Public mode</legend><button type="button" role="radio" aria-checked={!draft.workInProgress} className={!draft.workInProgress ? "is-selected" : ""} onClick={() => updateDraft({ workInProgress: false, limitedPublic: false })}><strong>Full project</strong><span>Publish all visible project information.</span></button><button type="button" role="radio" aria-checked={draft.workInProgress} className={draft.workInProgress ? "is-selected" : ""} onClick={() => updateDraft({ workInProgress: true, limitedPublic: true })}><strong>Work in progress</strong><span>Publish the cover, summary and visible blocks while keeping incomplete details private.</span></button></fieldset><section className={validation.length ? "publish-validation has-errors" : "publish-validation is-ready"}><h3>{validation.length ? `${validation.length} item${validation.length === 1 ? "" : "s"} before publishing` : "Ready to publish"}</h3>{validation.length > 0 && <ul>{validation.map((item) => <li key={item}>{item}</li>)}</ul>}</section><button type="button" className="primary-button publish-button full" onClick={publish} disabled={validation.length > 0 || publishing}>{publishing ? "Publishing…" : "Publish"}</button><section className="revision-history"><h3>Version history</h3>{history.length ? <><div className="revision-current"><span>Current live</span><strong>v{history[0].revision_number}</strong><small>{formatRevisionDate(history[0].published_at)}</small></div>{history.length > 1 && <details><summary>Earlier versions ({history.length - 1})</summary><div className="revision-earlier-list">{history.slice(1).map((revision) => <div key={revision.id}><span><strong>v{revision.revision_number}</strong><small>{formatRevisionDate(revision.published_at)}</small></span><button type="button" className="quiet-button" onClick={() => restore(revision.id)}>Edit from this version</button></div>)}</div></details>}</> : <p>No published versions yet.</p>}</section></>}
-      </div></>}
+        {tab === "publishing" && <><section className={`publication-summary ${project.published_revision_id ? "is-published" : "is-draft"}`}><span>Live status</span><strong>{project.published_revision_id ? (project.status === "wip" ? "Published · Work in Progress" : "Published · Full project") : "Not published"}</strong></section><fieldset className="publishing-mode-choice"><legend>Public mode</legend><button type="button" role="radio" aria-checked={!draft.workInProgress} className={!draft.workInProgress ? "is-selected" : ""} onClick={() => updateDraft({ workInProgress: false, limitedPublic: false })}><strong>Full project</strong><span>Publish all visible project information.</span></button><button type="button" role="radio" aria-checked={draft.workInProgress} className={draft.workInProgress ? "is-selected" : ""} onClick={() => updateDraft({ workInProgress: true, limitedPublic: true })}><strong>Work in progress</strong><span>Publish the cover, summary and visible blocks while keeping incomplete details private.</span></button></fieldset><section className={validation.length ? "publish-validation has-errors" : "publish-validation is-ready"}><h3>{validation.length ? `${validation.length} item${validation.length === 1 ? "" : "s"} before publishing` : "Ready to publish"}</h3>{validation.length > 0 && <ul>{validation.map((item) => <li key={item}>{item}</li>)}</ul>}</section><button type="button" className="primary-button publish-button full" onClick={publish} disabled={validation.length > 0 || publishing || saving || uploading}>{publishing ? "Publishing…" : "Publish"}</button><section className="revision-history"><h3>Version history</h3>{history.length ? <><div className="revision-current"><span>Current live</span><strong>v{history[0].revision_number}</strong><small>{formatRevisionDate(history[0].published_at)}</small></div>{history.length > 1 && <details><summary>Earlier versions ({history.length - 1})</summary><div className="revision-earlier-list">{history.slice(1).map((revision) => <div key={revision.id}><span><strong>v{revision.revision_number}</strong><small>{formatRevisionDate(revision.published_at)}</small></span><button type="button" className="quiet-button" onClick={() => restore(revision.id)}>Edit from this version</button></div>)}</div></details>}</> : <p>No published versions yet.</p>}</section></>}
+      </div>
     </aside>
 
     {preview && (

@@ -3,9 +3,11 @@ import assert from "node:assert/strict";
 import {
   makeStorageFilename,
   matchesStrictAnd,
+  normalizePortfolioHref,
   normalizeTaxonomyTerm,
   parseFilters,
   serializeFilters,
+  toPublicPortfolioProjection,
   validateBlock,
   validateProjectForPublish,
 } from "../../src/lib/portfolio/schema.js";
@@ -41,9 +43,21 @@ test("storage filename preserves the original base and adds a suffix", () => {
   assert.equal(makeStorageFilename("Cambridge Workshop Photograph.JPG", "a1b2c3"), "cambridge-workshop-photograph-a1b2c3.jpg");
 });
 
-test("block validation requires alt text for meaningful media", () => {
-  assert.deepEqual(validateBlock({ blockType: "single_image", content: { media: { url: "https://example.com/a.jpg", alt: "" } } }), ["Image alt text is required"]);
-  assert.deepEqual(validateBlock({ blockType: "single_image", content: { media: { url: "https://example.com/a.jpg", decorative: true } } }), []);
+test("external portfolio links receive a safe absolute protocol", () => {
+  assert.equal(normalizePortfolioHref("www.google.com"), "https://www.google.com/");
+  assert.equal(normalizePortfolioHref("google.com/search?q=portfolio"), "https://google.com/search?q=portfolio");
+  assert.equal(normalizePortfolioHref("https//example.com/work"), "https://example.com/work");
+  assert.equal(normalizePortfolioHref("http:/example.com/work"), "http://example.com/work");
+});
+
+test("internal portfolio links stay internal and unsafe protocols are rejected", () => {
+  assert.equal(normalizePortfolioHref("/research/invisible-punctum"), "/research/invisible-punctum");
+  assert.equal(normalizePortfolioHref("javascript:alert(1)"), "");
+});
+
+test("alt text is optional for image publication", () => {
+  assert.deepEqual(validateBlock({ blockType: "single_image", content: { media: { url: "https://example.com/a.jpg", alt: "" } } }), []);
+  assert.deepEqual(validateProjectForPublish({ title: "A", oneLineDescription: "B", yearStart: 2026, coverUrl: "/cover.jpg", coverAlt: "", context: "Question", specificContribution: "Contribution", blocks: [] }), []);
 });
 
 test("full publication validates the required spine", () => {
@@ -55,4 +69,28 @@ test("full publication validates the required spine", () => {
 test("limited WIP publication protects private body requirements", () => {
   const errors = validateProjectForPublish({ title: "A", oneLineDescription: "B", yearStart: 2026, coverUrl: "/cover.jpg", coverAlt: "Cover", workInProgress: true, limitedPublic: true, blocks: [] });
   assert.deepEqual(errors, []);
+});
+
+test("responsive preview mirrors the limited WIP public projection", () => {
+  const projected = toPublicPortfolioProjection({
+    workInProgress: true,
+    limitedPublic: true,
+    context: "Private question",
+    specificContribution: "Private contribution",
+    location: "Private location",
+    duration: "Private duration",
+    outcomeHeading: "Private outcome",
+    outcomeText: "Private result",
+    collaborators: [{ name: "Private collaborator" }],
+    links: [{ label: "Private link", url: "https://example.com" }],
+    blocks: [{ id: "visible", visible: true }, { id: "hidden", visible: false }],
+  });
+  assert.equal(projected.context, "");
+  assert.equal(projected.specificContribution, "");
+  assert.equal(projected.location, "");
+  assert.equal(projected.duration, "");
+  assert.equal(projected.outcomeText, "");
+  assert.deepEqual(projected.collaborators, []);
+  assert.deepEqual(projected.links, []);
+  assert.deepEqual(projected.blocks.map((block) => block.id), ["visible"]);
 });

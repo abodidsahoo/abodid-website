@@ -2,7 +2,7 @@ export function createRevisionState(initialDraft) {
   return { draft: structuredClone(initialDraft), published: null, history: [], lockVersion: 0 };
 }
 
-export function autosaveRevision(state, nextDraft, expectedLockVersion) {
+export function saveDraftRevision(state, nextDraft, expectedLockVersion) {
   if (expectedLockVersion !== state.lockVersion) {
     const error = new Error("PORTFOLIO_CONFLICT");
     error.code = "PORTFOLIO_CONFLICT";
@@ -21,4 +21,3 @@ export function restoreRevision(state, historyIndex) {
   if (!source) throw new Error("PORTFOLIO_REVISION_NOT_FOUND");
   return { ...state, draft: structuredClone(source), lockVersion: 0 };
 }
-

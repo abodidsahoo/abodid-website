@@ -1,17 +1,15 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { isExternalPortfolioHref, normalizePortfolioHref } from "../../lib/portfolio/schema";
 import "../../styles/portfolio.css";
 import "../../styles/layout-preview.css";
 
 function safeHref(value) {
-  if (!value) return "";
-  try {
-    const url = new URL(value, "https://abodid.com");
-    if (!["http:", "https:"].includes(url.protocol)) return "";
-    return value;
-  } catch {
-    return "";
-  }
+  return normalizePortfolioHref(value);
 }
+
+const externalLinkProps = (href) => isExternalPortfolioHref(href)
+  ? { target: "_blank", rel: "noopener noreferrer" }
+  : {};
 
 function inlineMarkup(text = "") {
   const pattern = /(\*\*[^*]+\*\*|\*[^*]+\*|\[[^\]]+\]\([^)]+\))/g;
@@ -21,7 +19,7 @@ function inlineMarkup(text = "") {
     const link = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
     if (link) {
       const href = safeHref(link[2]);
-      return href ? <a key={index} href={href}>{link[1]}</a> : link[1];
+      return href ? <a key={index} href={href} {...externalLinkProps(href)}>{link[1]}</a> : link[1];
     }
     return part;
   });
@@ -411,7 +409,7 @@ function Block({ block }) {
     ); break;
     case "external_link": {
       const href = safeHref(content.url);
-      body = href ? <a className="portfolio-cta" href={href}>{content.label || "Open link"}<span aria-hidden="true">↗</span></a> : null;
+      body = href ? <a className="portfolio-cta" href={href} {...externalLinkProps(href)}>{content.label || "Open link"}<span aria-hidden="true">↗</span></a> : null;
       break;
     }
     case "divider": body = <hr />; break;
@@ -452,16 +450,16 @@ export function ProjectBlocks({ project }) {
         <section className="portfolio-collaborators">
           <h2>Collaborators</h2>
           <ul>{project.collaborators.map((person, index) => {
-            const href = safeHref(person.primaryUrl);
-            return <li key={person.id || `${person.name}-${index}`}><div>{href ? <a href={href}>{person.name}</a> : <span>{person.name}</span>}<small>{[person.roleLabel, person.organisation].filter(Boolean).join(" · ")}</small></div></li>;
+            const href = safeHref(person.primaryUrl || person.secondaryUrl);
+            return <li key={person.id || `${person.name}-${index}`}><div>{href ? <a href={href} {...externalLinkProps(href)}>{person.name}</a> : <span>{person.name}</span>}<small>{[person.roleLabel, person.organisation].filter(Boolean).join(" · ")}</small></div></li>;
           })}</ul>
         </section>
       )}
-      {project.links?.length > 0 && (
+      {!limited && project.links?.length > 0 && (
         <nav className="portfolio-project-links" aria-label="Related links">
           {project.links.map((link, index) => {
             const href = safeHref(link.url);
-            return href ? <a key={link.id || index} href={href}>{link.label || "View related work"}<span aria-hidden="true">↗</span></a> : null;
+            return href ? <a key={link.id || index} href={href} {...externalLinkProps(href)}>{link.label || "View related work"}<span aria-hidden="true">↗</span></a> : null;
           })}
         </nav>
       )}

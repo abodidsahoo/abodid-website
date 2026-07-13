@@ -11,7 +11,7 @@ function MediaField({ item, index, update, remove }) {
     {item.url && <img src={item.url} alt="" />}
     {!item.storagePath && <Text label="Image link" value={item.url} placeholder="Paste an https:// image link" onChange={(url) => update(index, { sourceType: "external", url })} />}
     {item.storagePath && <div className="uploaded-media-source"><span>Uploaded image</span><small>{item.originalFilename || item.storagePath}</small></div>}
-    <Text label="Alt text" value={item.alt} onChange={(alt) => update(index, { alt })} />
+    <Text label="Alt text (optional)" value={item.alt} onChange={(alt) => update(index, { alt })} />
     <Text label="Caption" value={item.caption} onChange={(caption) => update(index, { caption })} />
     <Text label="Credit" value={item.credit} onChange={(credit) => update(index, { credit })} />
     <button type="button" className="quiet-button danger media-remove-button" onClick={() => remove(index)}>Remove image</button>

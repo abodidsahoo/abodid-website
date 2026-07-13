@@ -74,6 +74,29 @@ export function slugify(value = "") {
     .slice(0, 96);
 }
 
+export function normalizePortfolioHref(value = "") {
+  let href = String(value || "").trim();
+  if (!href) return "";
+  if (href.startsWith("//")) href = `https:${href}`;
+  if (href.startsWith("/") || href.startsWith("#") || href.startsWith("?")) return href;
+
+  const looseProtocol = href.match(/^(https?)(?::|\/{1,2})\s*\/{0,2}(.*)$/i);
+  if (looseProtocol) href = `${looseProtocol[1].toLowerCase()}://${looseProtocol[2]}`;
+  else if (/^[a-z][a-z0-9+.-]*:/i.test(href)) return "";
+  else href = `https://${href}`;
+
+  try {
+    const url = new URL(href);
+    return ["http:", "https:"].includes(url.protocol) ? url.href : "";
+  } catch {
+    return "";
+  }
+}
+
+export function isExternalPortfolioHref(value = "") {
+  return /^https?:\/\//i.test(normalizePortfolioHref(value));
+}
+
 function normalizeGroupType(value) {
   return slugify(value).replace(/-/g, "_");
 }
@@ -165,12 +188,7 @@ export function createEmptyDraft(title = "Untitled project") {
 
 const validUrl = (value) => {
   if (!value) return true;
-  try {
-    const url = new URL(value, "https://abodid.com");
-    return ["http:", "https:"].includes(url.protocol);
-  } catch {
-    return false;
-  }
+  return Boolean(normalizePortfolioHref(value));
 };
 
 export function validateBlock(block) {
@@ -180,9 +198,6 @@ export function validateBlock(block) {
   const mediaList = Array.isArray(media) ? media : media ? [media] : [];
   if (["single_image", "image_grid", "image_gallery", "media_text"].includes(block?.blockType)) {
     if (!mediaList.length) errors.push("Add media");
-    mediaList.forEach((item) => {
-      if (item?.url && !item.decorative && !item.alt?.trim()) errors.push("Image alt text is required");
-    });
   }
   if (block?.blockType === "video_embed" && block.content?.url && !validUrl(block.content.url)) {
     errors.push("Video URL is invalid");
@@ -199,7 +214,6 @@ export function validateProjectForPublish(draft) {
   if (!draft?.oneLineDescription?.trim()) errors.push("One-line proposition is required");
   if (!draft?.yearStart) errors.push("Start year is required");
   if (!draft?.coverUrl?.trim()) errors.push("Cover image is required");
-  if (draft?.coverUrl && !draft?.coverAlt?.trim()) errors.push("Cover alt text is required");
   if (!draft?.workInProgress && !draft?.limitedPublic) {
     if (!draft?.context?.trim()) errors.push("Research Question is required");
     if (!draft?.specificContribution?.trim()) errors.push("Specific contribution is required");
@@ -214,6 +228,26 @@ export function validateProjectForPublish(draft) {
     if (person.primaryUrl && !validUrl(person.primaryUrl)) errors.push(`Collaborator ${index + 1} link is invalid`);
   });
   return errors;
+}
+
+export function toPublicPortfolioProjection(draft = {}) {
+  const limited = Boolean(draft.workInProgress && draft.limitedPublic);
+  const projected = {
+    ...draft,
+    blocks: (draft.blocks || []).filter((block) => block.visible !== false),
+  };
+  if (!limited) return projected;
+  return {
+    ...projected,
+    context: "",
+    specificContribution: "",
+    location: "",
+    duration: "",
+    outcomeHeading: "",
+    outcomeText: "",
+    collaborators: [],
+    links: [],
+  };
 }
 
 export function makeStorageFilename(originalFilename, suffix = Math.random().toString(36).slice(2, 8)) {
@@ -271,9 +305,20 @@ export function toSavePayload(draft) {
   return {
     ...draft,
     taxonomies: dedupeTaxonomies(draft.taxonomies || []),
-    blocks: (draft.blocks || []).map((block, position) => ({ ...block, position })),
-    organisations: (draft.organisations || []).map((item, displayOrder) => ({ ...item, displayOrder })),
-    collaborators: (draft.collaborators || []).map((item, displayOrder) => ({ ...item, displayOrder })),
-    links: (draft.links || []).map((item, displayOrder) => ({ ...item, displayOrder })),
+    blocks: (draft.blocks || []).map((block, position) => ({
+      ...block,
+      content: ["external_link", "video_embed"].includes(block.blockType)
+        ? { ...block.content, url: normalizePortfolioHref(block.content?.url) || String(block.content?.url || "").trim() }
+        : block.content,
+      position,
+    })),
+    organisations: (draft.organisations || []).map((item, displayOrder) => ({ ...item, url: normalizePortfolioHref(item.url) || String(item.url || "").trim(), displayOrder })),
+    collaborators: (draft.collaborators || []).map((item, displayOrder) => ({
+      ...item,
+      primaryUrl: normalizePortfolioHref(item.primaryUrl) || String(item.primaryUrl || "").trim(),
+      secondaryUrl: normalizePortfolioHref(item.secondaryUrl) || String(item.secondaryUrl || "").trim(),
+      displayOrder,
+    })),
+    links: (draft.links || []).map((item, displayOrder) => ({ ...item, url: normalizePortfolioHref(item.url) || String(item.url || "").trim(), displayOrder })),
   };
 }

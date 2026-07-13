@@ -135,7 +135,7 @@ try {
   const liveAfterRestore = await publicClient.from("portfolio_public_projects").select("title").eq("slug", slug).single();
   assert.equal(liveAfterRestore.data.title, "Portfolio integration v2");
 
-  console.log("Portfolio integration: create, autosave isolation, conflict, publish, limited RLS and restore passed.");
+  console.log("Portfolio integration: create, draft-save isolation, conflict, publish, limited RLS and restore passed.");
 } finally {
   if (projectId) await service.from("portfolio_projects").delete().eq("id", projectId);
   if (uploadedStoragePath) await service.storage.from("portfolio-media").remove([uploadedStoragePath]);

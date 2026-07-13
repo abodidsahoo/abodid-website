@@ -9,13 +9,13 @@ This feature adds a project-first Work portfolio and a controlled portfolio CMS.
 - `/work-sitemap.xml` - published, search-visible Work URLs.
 - `/admin/projects` - project list, search, lifecycle filters, archive action and drag ordering.
 - `/admin/projects/new` - creates a private first draft.
-- `/admin/projects/[slug]` - desktop editor, properties, preview, autosave, publishing and version recovery. Legacy UUID URLs resolve and are replaced with the canonical slug URL.
+- `/admin/projects/[slug]` - desktop editor, properties, preview, explicit draft saving, publishing and version recovery. Legacy UUID URLs resolve and are replaced with the canonical slug URL.
 
 ## Data and publishing model
 
 All new tables use the `portfolio_` prefix. `portfolio_projects` owns stable identity, slug, status, public order and pointers to a mutable draft and an immutable published revision. Metadata, semantic blocks, taxonomy relationships, organisations, collaborators and links are attached to revisions.
 
-Autosave calls `portfolio_save_draft` after 2.5 seconds of inactivity and every 30 seconds while changes remain. The RPC compares `lock_version`; a stale tab receives `PORTFOLIO_CONFLICT` rather than overwriting newer work. Network failures are cached in local storage by project. Publish validates the project, clones a complete immutable snapshot and atomically changes `published_revision_id`. Restore copies an earlier published snapshot into a new draft without changing the live version.
+The editor saves only when **Save draft** is clicked or as the first explicit step of **Publish**. Unsaved changes are clearly marked and leaving the editor triggers a browser warning. The RPC compares `lock_version`; a stale tab receives `PORTFOLIO_CONFLICT` rather than overwriting newer work. Publish validates the project, clones a complete immutable snapshot and atomically changes `published_revision_id`. Restore copies an earlier published snapshot into a new draft without changing the live version.
 
 Anonymous access is limited to the sanitised public views. In limited Work in Progress mode, blocks marked **Visible** are the explicitly selected public blocks; hidden blocks, contribution, outcome, collaborator details and links remain omitted. Admin mutations require an authenticated `profiles.role = 'admin'` user. The service-role key is never used by browser code.
 
@@ -36,7 +36,7 @@ To add a block later:
 
 The migration creates the public `portfolio-media` bucket with a 20 MB limit for JPEG, PNG, WebP and GIF. Only admins can upload, update or remove objects. Each image field presents separate **Add image link** and **Upload image** actions; the URL input appears only for the link path, while the upload path opens the computer file picker. Paths use a stable first-five-words project folder and preserve the original filename base before a short collision suffix. Exact original filenames, dimensions, MIME type, alt text, caption, credit and focal point are stored in `portfolio_media_assets`. Video remains on YouTube or Vimeo.
 
-Uploaded media is available to drafts regardless of publication status. Removing an uploaded image queues storage cleanup until the new draft has autosaved successfully. Unreferenced objects are then removed from both the `portfolio-media` bucket and `portfolio_media_assets`. An object still used by a published or recoverable revision is retained so version restoration and the live site cannot be broken; the editor reports this protected-retention case.
+Uploaded media is available to drafts regardless of publication status. Removing an uploaded image queues storage cleanup until the draft has been manually saved successfully. Unreferenced objects are then removed from both the `portfolio-media` bucket and `portfolio_media_assets`. An object still used by a published or recoverable revision is retained so version restoration and the live site cannot be broken; the editor reports this protected-retention case.
 
 ## Environment and setup
 

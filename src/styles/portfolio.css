@@ -8,7 +8,11 @@
   --work-gap-default: clamp(3rem, 7vw, 6rem);
   --work-gap-spacious: clamp(5rem, 11vw, 10rem);
   --work-accent: var(--color-brand-red, #a30021);
+  --work-inline-link: #82aee8;
+  --work-inline-link-hover: #a7c8f2;
 }
+
+[data-theme="light"] { --work-inline-link: #315f9b; --work-inline-link-hover: #214b82; }
 
 .work-page-shell { max-width: 1240px; margin: 0 auto; padding: clamp(3rem, 6vw, 4rem) 0 7rem; }
 .work-page-header { display: flex; flex-direction: column; gap: 2rem; align-items: flex-start; padding-bottom: clamp(2rem, 4vw, 3rem); }
@@ -99,7 +103,8 @@
 .portfolio-block.align-right { text-align: right; }
 .portfolio-rich-text { font-size: clamp(1.04rem, 1.3vw, 1.2rem); line-height: 1.75; }
 .portfolio-rich-text p { margin: 0 0 1.25rem; }
-.portfolio-rich-text a { color: inherit; text-underline-offset: .18em; }
+.portfolio-rich-text a { color: var(--work-inline-link); text-decoration-line: underline; text-decoration-thickness: 1px; text-decoration-color: color-mix(in srgb, currentColor 72%, transparent); text-underline-offset: .2em; transition: color .16s ease, text-decoration-color .16s ease; }
+.portfolio-rich-text a:hover, .portfolio-rich-text a:focus-visible { color: var(--work-inline-link-hover); text-decoration-color: currentColor; outline: none; }
 .portfolio-block h2 { font-size: clamp(2rem, 5vw, 4rem); letter-spacing: -.04em; line-height: 1; }
 .portfolio-block h3 { font-size: clamp(1.5rem, 3vw, 2.5rem); letter-spacing: -.025em; }
 .portfolio-block blockquote { margin: 0; padding: 1.5rem 0 1.5rem clamp(1rem, 3vw, 2rem); border-left: 3px solid var(--work-accent); }
@@ -444,4 +449,3 @@
 @media (prefers-reduced-motion: reduce) {
   .work-card-image img { transition: none; }
 }
-
