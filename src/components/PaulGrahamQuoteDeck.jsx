@@ -10,8 +10,9 @@ import { paulGrahamQuotes } from "../lib/paulGrahamQuotes.js";
 
 const CARD_COLORS = ["#4893B0", "#FFC46F", "#DE5847", "#8C312B"];
 const CARD_TEXT_COLORS = ["#111111", "#111111", "#111111", "#FFFFFF"];
-const SLIDE_OUT = { duration: 0.52, ease: [0.4, 0, 0.2, 1] };
-const SLIDE_IN = { duration: 0.52, ease: [0.16, 1, 0.3, 1] };
+const DEFAULT_SLIDE_DURATION = 0.52;
+const SLIDE_OUT_EASE = [0.4, 0, 0.2, 1];
+const SLIDE_IN_EASE = [0.16, 1, 0.3, 1];
 const SETTLED = { duration: 0 };
 const CROSSFADE = { duration: 0.095, ease: [0.22, 1, 0.36, 1] };
 const FLICK_DISTANCE = 52;
@@ -21,6 +22,13 @@ const CLICK_TOLERANCE = 8;
 
 function wrapIndex(index, length) {
   return ((index % length) + length) % length;
+}
+
+function slideDurationForQueueDepth(depth) {
+  if (depth >= 4) return 0.16;
+  if (depth >= 2) return 0.22;
+  if (depth >= 1) return 0.3;
+  return DEFAULT_SLIDE_DURATION;
 }
 
 function sizeIndexFor(wordCount) {
@@ -85,6 +93,7 @@ export default function PaulGrahamQuoteDeck() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [phase, setPhase] = useState("idle");
   const [fadeDirection, setFadeDirection] = useState(1);
+  const [slideDuration, setSlideDuration] = useState(DEFAULT_SLIDE_DURATION);
   const [fitStep, setFitStep] = useState(0);
   const [canScrollQuote, setCanScrollQuote] = useState(false);
   const quoteScrollerRef = useRef(null);
@@ -93,11 +102,17 @@ export default function PaulGrahamQuoteDeck() {
   const lockedRef = useRef(false);
   const finishingRef = useRef(false);
   const phaseRef = useRef("idle");
+  const queuedAdvancesRef = useRef(0);
+  const advanceRef = useRef(null);
   const timersRef = useRef(new Set());
 
   const currentQuote = quotes[currentIndex];
   const baseSizeIndex = sizeIndexFor(currentQuote?.wordCount || 0);
   const effectiveSizeIndex = Math.min(4, baseSizeIndex + fitStep);
+  const arrowQuoteIndex =
+    phase === "forward"
+      ? wrapIndex(currentIndex + 1, quotes.length)
+      : currentIndex;
 
   const visibleCards = useMemo(
     () =>
@@ -144,11 +159,19 @@ export default function PaulGrahamQuoteDeck() {
         setPhase("fadeIn");
 
         window.requestAnimationFrame(() => {
-          window.requestAnimationFrame(() => setPhase("idle"));
+          window.requestAnimationFrame(() => {
+            phaseRef.current = "idle";
+            setPhase("idle");
+          });
         });
 
         schedule(() => {
           lockedRef.current = false;
+
+          if (queuedAdvancesRef.current > 0) {
+            queuedAdvancesRef.current -= 1;
+            window.requestAnimationFrame(() => advanceRef.current?.());
+          }
         }, 115);
       }, 95);
     },
@@ -156,7 +179,10 @@ export default function PaulGrahamQuoteDeck() {
   );
 
   const advance = useCallback(() => {
-    if (lockedRef.current || phaseRef.current !== "idle") return;
+    if (lockedRef.current || phaseRef.current !== "idle") {
+      queuedAdvancesRef.current += 1;
+      return;
+    }
 
     if (prefersReducedMotion) {
       runCrossfade(1);
@@ -165,8 +191,12 @@ export default function PaulGrahamQuoteDeck() {
 
     lockedRef.current = true;
     finishingRef.current = false;
+    setSlideDuration(DEFAULT_SLIDE_DURATION);
+    phaseRef.current = "forward";
     setPhase("forward");
   }, [prefersReducedMotion, runCrossfade]);
+
+  advanceRef.current = advance;
 
   const restorePrevious = useCallback(() => {
     runCrossfade(-1);
@@ -178,16 +208,27 @@ export default function PaulGrahamQuoteDeck() {
     setFitStep(0);
     setCanScrollQuote(false);
     setCurrentIndex((index) => wrapIndex(index + 1, quotes.length));
+    phaseRef.current = "restack";
     setPhase("restack");
 
     window.requestAnimationFrame(() => {
-      window.requestAnimationFrame(() => setPhase("idle"));
-    });
+      window.requestAnimationFrame(() => {
+        if (queuedAdvancesRef.current > 0) {
+          const queueDepth = queuedAdvancesRef.current;
+          queuedAdvancesRef.current -= 1;
+          finishingRef.current = false;
+          setSlideDuration(slideDurationForQueueDepth(queueDepth));
+          phaseRef.current = "forward";
+          setPhase("forward");
+          return;
+        }
 
-    schedule(() => {
-      lockedRef.current = false;
-    }, 80);
-  }, [quotes.length, schedule]);
+        phaseRef.current = "idle";
+        setPhase("idle");
+        lockedRef.current = false;
+      });
+    });
+  }, [quotes.length]);
 
   useEffect(() => {
     setFitStep(0);
@@ -244,6 +285,46 @@ export default function PaulGrahamQuoteDeck() {
     }
   };
 
+  const handleStagePointerDown = (event) => {
+    if (
+      event.button !== 0 ||
+      event.target.closest?.(".quote-card__next")
+    ) {
+      return;
+    }
+
+    cardGestureRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      startedAt: performance.now(),
+    };
+    event.currentTarget
+      .querySelector(".quote-card--current")
+      ?.focus({ preventScroll: true });
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  };
+
+  const handleStagePointerUp = (event) => {
+    const gesture = cardGestureRef.current;
+    if (!gesture || gesture.pointerId !== event.pointerId) return;
+    cardGestureRef.current = null;
+    event.currentTarget.releasePointerCapture?.(event.pointerId);
+
+    const deltaX = event.clientX - gesture.startX;
+    const deltaY = event.clientY - gesture.startY;
+    const upwardDistance = -deltaY;
+    const elapsed = Math.max(1, performance.now() - gesture.startedAt);
+    const upwardVelocity = upwardDistance / elapsed;
+    const isClick = Math.hypot(deltaX, deltaY) <= CLICK_TOLERANCE;
+    const isFlick =
+      upwardDistance >= FLICK_DISTANCE ||
+      (upwardDistance >= FLICK_MIN_DISTANCE &&
+        upwardVelocity >= FLICK_VELOCITY);
+
+    if (isClick || isFlick) advance();
+  };
+
   if (!currentQuote || quotes.length < 4) return null;
 
   return (
@@ -258,15 +339,22 @@ export default function PaulGrahamQuoteDeck() {
         aria-label="Paul Graham quote deck"
         onKeyDown={handleDeckKeyDown}
       >
-        <div className="quote-deck__stage">
+        <div
+          className="quote-deck__stage"
+          onPointerDown={handleStagePointerDown}
+          onPointerUp={handleStagePointerUp}
+          onPointerCancel={() => {
+            cardGestureRef.current = null;
+          }}
+        >
           {visibleCards.map(({ role, quote, absoluteIndex }) => {
             const isCurrent = role === "current";
             const paletteIndex = absoluteIndex % CARD_COLORS.length;
             const transition =
               phase === "forward"
                 ? role === "current"
-                  ? SLIDE_OUT
-                  : SLIDE_IN
+                  ? { duration: slideDuration, ease: SLIDE_OUT_EASE }
+                  : { duration: slideDuration, ease: SLIDE_IN_EASE }
                 : phase === "restack"
                   ? SETTLED
                   : phase === "idle"
@@ -296,51 +384,6 @@ export default function PaulGrahamQuoteDeck() {
                 tabIndex={isCurrent ? 0 : -1}
                 animate={cardMotion(role, phase, fadeDirection)}
                 transition={transition}
-                onPointerDown={
-                  isCurrent
-                    ? (event) => {
-                        if (event.button !== 0 || lockedRef.current) return;
-                        cardGestureRef.current = {
-                          pointerId: event.pointerId,
-                          startX: event.clientX,
-                          startY: event.clientY,
-                          startedAt: performance.now(),
-                        };
-                        event.currentTarget.focus({ preventScroll: true });
-                        event.currentTarget.setPointerCapture?.(event.pointerId);
-                      }
-                    : undefined
-                }
-                onPointerUp={
-                  isCurrent
-                    ? (event) => {
-                        const gesture = cardGestureRef.current;
-                        if (!gesture || gesture.pointerId !== event.pointerId) return;
-                        cardGestureRef.current = null;
-                        event.currentTarget.releasePointerCapture?.(event.pointerId);
-
-                        const deltaX = event.clientX - gesture.startX;
-                        const deltaY = event.clientY - gesture.startY;
-                        const upwardDistance = -deltaY;
-                        const elapsed = Math.max(
-                          1,
-                          performance.now() - gesture.startedAt,
-                        );
-                        const upwardVelocity = upwardDistance / elapsed;
-                        const isClick =
-                          Math.hypot(deltaX, deltaY) <= CLICK_TOLERANCE;
-                        const isFlick =
-                          upwardDistance >= FLICK_DISTANCE ||
-                          (upwardDistance >= FLICK_MIN_DISTANCE &&
-                            upwardVelocity >= FLICK_VELOCITY);
-
-                        if (isClick || isFlick) advance();
-                      }
-                    : undefined
-                }
-                onPointerCancel={() => {
-                  cardGestureRef.current = null;
-                }}
                 onAnimationComplete={isCurrent ? finishForward : undefined}
               >
                 <div
@@ -380,7 +423,9 @@ export default function PaulGrahamQuoteDeck() {
             type="button"
             className="quote-card__next"
             aria-label="Next quote"
-            style={{ color: CARD_TEXT_COLORS[currentIndex % CARD_COLORS.length] }}
+            style={{
+              color: CARD_TEXT_COLORS[arrowQuoteIndex % CARD_COLORS.length],
+            }}
             onClick={advance}
           >
             <span>Next quote</span>
