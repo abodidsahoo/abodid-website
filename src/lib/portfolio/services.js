@@ -1,6 +1,6 @@
 import { supabase } from "../supabaseClient";
 import { portfolioFallbackProjects } from "./fallback";
-import { makeStorageFilename, slugify, toSavePayload } from "./schema";
+import { makeStorageFilename, orderPortfolioRevisionHistory, slugify, toSavePayload } from "./schema";
 
 const missingSchema = (error) => ["42P01", "PGRST205", "PGRST200"].includes(error?.code);
 const cleanArray = (value) => Array.isArray(value) ? value : [];
@@ -228,14 +228,14 @@ export async function loadAdminProject(projectId) {
     supabase.from("portfolio_revision_organisations").select("*, organisation:portfolio_organisations(*)").eq("revision_id", revision.id).order("display_order"),
     supabase.from("portfolio_revision_collaborators").select("*, collaborator:portfolio_collaborators(*)").eq("revision_id", revision.id).order("display_order"),
     supabase.from("portfolio_revision_links").select("*").eq("revision_id", revision.id).order("display_order"),
-    supabase.from("portfolio_project_revisions").select("id,revision_number,title,published_at,created_at").eq("project_id", resolvedProjectId).eq("state", "published").order("revision_number", { ascending: false }),
+    supabase.from("portfolio_project_revisions").select("id,revision_number,title,state,published_at,created_at").eq("project_id", resolvedProjectId).in("state", ["published", "archived"]).not("published_at", "is", null).order("revision_number", { ascending: false }),
   ]);
   const resultError = [blocksResult, taxonomyResult, organisationsResult, collaboratorsResult, linksResult, historyResult].find((result) => result.error)?.error;
   if (resultError) throw resultError;
 
   return {
     project,
-    history: historyResult.data || [],
+    history: orderPortfolioRevisionHistory(historyResult.data || [], project.published_revision_id),
     draft: {
       id: revision.id,
       lockVersion: revision.lock_version,

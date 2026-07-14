@@ -186,6 +186,44 @@ export function createEmptyDraft(title = "Untitled project") {
   };
 }
 
+const COLLABORATOR_IDENTITY_FIELDS = ["name", "primaryUrl", "secondaryUrl", "organisation"];
+
+export function createEmptyCollaborator(id = globalThis.crypto?.randomUUID?.()) {
+  return {
+    id,
+    name: "",
+    roleLabel: "",
+    primaryUrl: "",
+    secondaryUrl: "",
+    organisation: "",
+    _identityEditable: true,
+  };
+}
+
+export function updateCollaboratorDraft(item, patch, createId = () => globalThis.crypto?.randomUUID?.()) {
+  const changesIdentity = COLLABORATOR_IDENTITY_FIELDS.some(
+    (field) => Object.hasOwn(patch, field) && patch[field] !== item?.[field],
+  );
+  const shouldForkIdentity = Boolean(item?.id) && !item?._identityEditable && changesIdentity;
+  return {
+    ...item,
+    ...(shouldForkIdentity ? { id: createId(), _identityEditable: true } : {}),
+    ...patch,
+  };
+}
+
+export function markCollaboratorsPublished(collaborators = []) {
+  return collaborators.map(({ _identityEditable: _discarded, ...collaborator }) => collaborator);
+}
+
+export function orderPortfolioRevisionHistory(revisions = [], publishedRevisionId) {
+  return [...revisions].sort((left, right) => {
+    if (left.id === publishedRevisionId) return -1;
+    if (right.id === publishedRevisionId) return 1;
+    return Number(right.revision_number || 0) - Number(left.revision_number || 0);
+  });
+}
+
 const validUrl = (value) => {
   if (!value) return true;
   return Boolean(normalizePortfolioHref(value));
@@ -313,7 +351,7 @@ export function toSavePayload(draft) {
       position,
     })),
     organisations: (draft.organisations || []).map((item, displayOrder) => ({ ...item, url: normalizePortfolioHref(item.url) || String(item.url || "").trim(), displayOrder })),
-    collaborators: (draft.collaborators || []).map((item, displayOrder) => ({
+    collaborators: (draft.collaborators || []).map(({ _identityEditable: _discarded, ...item }, displayOrder) => ({
       ...item,
       primaryUrl: normalizePortfolioHref(item.primaryUrl) || String(item.primaryUrl || "").trim(),
       secondaryUrl: normalizePortfolioHref(item.secondaryUrl) || String(item.secondaryUrl || "").trim(),

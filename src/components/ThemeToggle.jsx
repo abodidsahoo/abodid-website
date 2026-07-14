@@ -40,6 +40,7 @@ const ThemeToggle = ({ variant = 'rail' }) => {
     return (
         <>
             <button
+                type="button"
                 className={toggleClassName}
                 aria-label={`Current mode: ${theme}`}
                 title="Toggle Website Theme"

@@ -20,7 +20,7 @@ const secondaryGroups = [
     title: "Resources",
     links: [
       { href: "/resources", label: "Curated Resources" },
-      { href: "/ideas", label: "Ideas Board" },
+      { href: "/notepad", label: "Notepad" },
       { href: "/bsa-schedule", label: "BSA Conference" },
       { href: "/moodboard", label: "Visual Moodboard" },
       { href: "/research/obsidian-vault", label: "Obsidian Vault" },

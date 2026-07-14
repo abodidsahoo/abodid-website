@@ -20,9 +20,12 @@ import {
   ROLE_TERMS,
   TAXONOMY_GROUPS,
   createEmptyBlock,
+  createEmptyCollaborator,
+  markCollaboratorsPublished,
   normalizeTaxonomyTerm,
   slugify,
   toPublicPortfolioProjection,
+  updateCollaboratorDraft,
   validateProjectForPublish,
 } from "../../../lib/portfolio/schema";
 import "../../../styles/portfolio-admin.css";
@@ -111,10 +114,13 @@ function TaxonomyFields({ terms, onChange }) {
 }
 
 function RepeatableEditor({ title, items, onChange, kind }) {
-  const update = (index, patch) => onChange(items.map((item, itemIndex) => itemIndex === index ? { ...item, ...patch } : item));
+  const update = (index, patch) => onChange(items.map((item, itemIndex) => {
+    if (itemIndex !== index) return item;
+    return kind === "collaborator" ? updateCollaboratorDraft(item, patch) : { ...item, ...patch };
+  }));
   const add = () => {
     if (kind === "organisation") onChange([...items, { name: "", url: "", relationshipLabel: "" }]);
-    if (kind === "collaborator") onChange([...items, { name: "", roleLabel: "", primaryUrl: "", secondaryUrl: "", organisation: "" }]);
+    if (kind === "collaborator") onChange([...items, createEmptyCollaborator()]);
     if (kind === "link") onChange([...items, { label: "", url: "", linkType: "external" }]);
   };
   return <section className="repeatable-editor"><header><h3>{title}</h3><button type="button" className="quiet-button" onClick={add}>+ Add</button></header>{items.map((item, index) => <div className="repeatable-row" key={item.id || index}>
@@ -383,7 +389,13 @@ function PortfolioEditorContent({ projectId }) {
       const refreshed = await loadAdminProject(projectIdRef.current);
       setProject(refreshed.project);
       setHistory(refreshed.history);
-      setDraft((current) => ({ ...current, lockVersion: refreshed.draft.lockVersion }));
+      const publishedDraft = {
+        ...draftRef.current,
+        lockVersion: refreshed.draft.lockVersion,
+        collaborators: markCollaboratorsPublished(draftRef.current.collaborators),
+      };
+      draftRef.current = publishedDraft;
+      setDraft(publishedDraft);
       setProjects((current) => current.map((item) => item.id === refreshed.project.id ? {
         ...item,
         ...refreshed.project,

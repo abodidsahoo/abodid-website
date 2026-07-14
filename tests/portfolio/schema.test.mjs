@@ -1,13 +1,18 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  createEmptyCollaborator,
   makeStorageFilename,
+  markCollaboratorsPublished,
   matchesStrictAnd,
   normalizePortfolioHref,
   normalizeTaxonomyTerm,
+  orderPortfolioRevisionHistory,
   parseFilters,
   serializeFilters,
+  toSavePayload,
   toPublicPortfolioProjection,
+  updateCollaboratorDraft,
   validateBlock,
   validateProjectForPublish,
 } from "../../src/lib/portfolio/schema.js";
@@ -93,4 +98,37 @@ test("responsive preview mirrors the limited WIP public projection", () => {
   assert.deepEqual(projected.collaborators, []);
   assert.deepEqual(projected.links, []);
   assert.deepEqual(projected.blocks.map((block) => block.id), ["visible"]);
+});
+
+test("collaborator identity is stable across saves and forks only when published identity fields change", () => {
+  const added = createEmptyCollaborator("new-collaborator");
+  const typed = updateCollaboratorDraft(added, { name: "New collaborator" }, () => "unused-id");
+  assert.equal(typed.id, "new-collaborator");
+
+  const loaded = { id: "published-collaborator", name: "Original name", roleLabel: "Director", primaryUrl: "", secondaryUrl: "", organisation: "" };
+  const roleEdit = updateCollaboratorDraft(loaded, { roleLabel: "Producer" }, () => "unused-id");
+  assert.equal(roleEdit.id, "published-collaborator");
+
+  const identityEdit = updateCollaboratorDraft(loaded, { name: "Updated name" }, () => "forked-collaborator");
+  assert.equal(identityEdit.id, "forked-collaborator");
+  assert.equal(identityEdit._identityEditable, true);
+  const continuedEdit = updateCollaboratorDraft(identityEdit, { organisation: "Studio" }, () => "unused-id");
+  assert.equal(continuedEdit.id, "forked-collaborator");
+
+  const payload = toSavePayload({ blocks: [], taxonomies: [], organisations: [], collaborators: [continuedEdit], links: [] });
+  assert.equal(payload.collaborators[0].id, "forked-collaborator");
+  assert.equal(Object.hasOwn(payload.collaborators[0], "_identityEditable"), false);
+  assert.equal(Object.hasOwn(markCollaboratorsPublished([continuedEdit])[0], "_identityEditable"), false);
+});
+
+test("revision history keeps the current live revision first and includes archived publications", () => {
+  const revisions = [
+    { id: "archived-v1", state: "archived", revision_number: 2 },
+    { id: "current-v2", state: "published", revision_number: 4 },
+    { id: "archived-v3", state: "archived", revision_number: 6 },
+  ];
+  assert.deepEqual(
+    orderPortfolioRevisionHistory(revisions, "current-v2").map((revision) => revision.id),
+    ["current-v2", "archived-v3", "archived-v1"],
+  );
 });

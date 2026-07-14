@@ -1,0 +1,33 @@
+---
+export const prerender = false;
+
+import NotepadBoard from "../components/NotepadBoard.jsx";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { supabase } from "../lib/supabase";
+
+Astro.response.headers.set("Cache-Control", "no-store");
+
+const { data, error } = await supabase
+    .from("ideas_notes")
+    .select("id, body, created_at")
+    .order("created_at", { ascending: false })
+    .limit(200);
+
+const pageTitle = "Notepad | Abodid Sahoo";
+const description = "A public notepad for passing thoughts and fragments in motion.";
+---
+
+<BaseLayout
+    title={pageTitle}
+    description={description}
+    fullWidth={true}
+    hideFooter={true}
+    showNewsletterPopup={false}
+    bodyClass="notepad-body"
+>
+    <NotepadBoard
+        client:load
+        initialNotes={data || []}
+        initialLoadError={error ? "The notes could not be loaded just now." : ""}
+    />
+</BaseLayout>

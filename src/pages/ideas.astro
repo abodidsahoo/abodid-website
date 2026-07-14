@@ -1,28 +1,5 @@
 ---
 export const prerender = false;
 
-import IdeasBoard from "../components/IdeasBoard.jsx";
-import BaseLayout from "../layouts/BaseLayout.astro";
-import { supabase } from "../lib/supabase";
-
-// Prevent Vercel's edge cache from serving a stale snapshot of the board.
-// Every request must hit the SSR function so it fetches the latest notes.
-Astro.response.headers.set("Cache-Control", "no-store");
-
-const { data, error } = await supabase
-    .from("ideas_notes")
-    .select("id, title, body, created_at")
-    .order("created_at", { ascending: false })
-    .limit(200);
-
-const pageTitle = "Ideas in Motion | Abodid Sahoo";
-const description = "An open public scratchpad for passing thoughts, reminders, and ideas in progress.";
+return Astro.redirect('/notepad', 301);
 ---
-
-<BaseLayout title={pageTitle} description={description} fullWidth={true}>
-    <IdeasBoard
-        client:load
-        initialNotes={data || []}
-        initialLoadError={error ? "The ideas board could not be loaded just now." : ""}
-    />
-</BaseLayout>

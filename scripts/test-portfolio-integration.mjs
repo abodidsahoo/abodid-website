@@ -14,8 +14,11 @@ let userId = null;
 let projectId = null;
 let uploadedAssetId = null;
 let uploadedStoragePath = null;
+const collaboratorId = crypto.randomUUID();
+const collaboratorName = `Portfolio collaborator ${collaboratorId}`;
+const collaborator = { id: collaboratorId, name: collaboratorName, roleLabel: "Director", primaryUrl: "", secondaryUrl: "", organisation: "Integration Studio" };
 
-const payload = (title, privateContext, media = null) => ({
+const payload = (title, privateContext, media = null, collaborators = []) => ({
   title,
   oneLineDescription: "Automated portfolio publishing verification.",
   context: privateContext,
@@ -41,7 +44,7 @@ const payload = (title, privateContext, media = null) => ({
     : [{ id: crypto.randomUUID(), blockType: "body_text", content: { text: "Private block text" }, settings: { width: "narrow", spacing: "default" }, visible: true, position: 0 }],
   taxonomies: [{ groupType: "primary", label: "Research", slug: "research" }],
   organisations: [],
-  collaborators: [],
+  collaborators,
   links: [],
 });
 
@@ -89,7 +92,7 @@ try {
   uploadedAssetId = assetInsert.data.id;
   const uploadedMedia = { id: uploadedAssetId, url: uploadedUrl, storagePath: uploadedStoragePath, originalFilename: "integration.png", mimeType: "image/png", width: 1, height: 1, alt: "Integration test pixel" };
 
-  const firstSave = await adminClient.rpc("portfolio_save_draft", { p_project_id: projectId, p_expected_lock_version: 0, p_payload: payload("Portfolio integration v1", "Private context v1", uploadedMedia) });
+  const firstSave = await adminClient.rpc("portfolio_save_draft", { p_project_id: projectId, p_expected_lock_version: 0, p_payload: payload("Portfolio integration v1", "Private context v1", uploadedMedia, [collaborator]) });
   if (firstSave.error) throw firstSave.error;
   assert.equal(firstSave.data, 1);
   const firstPublish = await adminClient.rpc("portfolio_publish_project", { p_project_id: projectId });
@@ -110,8 +113,18 @@ try {
   if (directLimitedRevision.error) throw directLimitedRevision.error;
   assert.equal(directLimitedRevision.data.length, 0);
 
-  const secondSave = await adminClient.rpc("portfolio_save_draft", { p_project_id: projectId, p_expected_lock_version: 1, p_payload: payload("Portfolio integration v2", "Private context v2") });
+  const immutableCollaboratorSave = await adminClient.rpc("portfolio_save_draft", {
+    p_project_id: projectId,
+    p_expected_lock_version: 1,
+    p_payload: payload("Must not save", "Must not save", null, [{ ...collaborator, name: "Mutated published name" }]),
+  });
+  assert.ok(immutableCollaboratorSave.error?.message.includes("PORTFOLIO_COLLABORATOR_IMMUTABLE"));
+
+  const secondSave = await adminClient.rpc("portfolio_save_draft", { p_project_id: projectId, p_expected_lock_version: 1, p_payload: payload("Portfolio integration v2", "Private context v2", null, [{ ...collaborator, roleLabel: "Producer" }]) });
   if (secondSave.error) throw secondSave.error;
+  const collaboratorRows = await service.from("portfolio_collaborators").select("id").eq("name", collaboratorName);
+  if (collaboratorRows.error) throw collaboratorRows.error;
+  assert.deepEqual(collaboratorRows.data.map((row) => row.id), [collaboratorId]);
   const referencesAfterDraftRemoval = await adminClient.rpc("portfolio_media_reference_count", { p_asset_id: uploadedAssetId });
   if (referencesAfterDraftRemoval.error) throw referencesAfterDraftRemoval.error;
   assert.equal(referencesAfterDraftRemoval.data, 1);
@@ -124,8 +137,9 @@ try {
   if (secondPublish.error) throw secondPublish.error;
   const secondPublic = await publicClient.from("portfolio_public_projects").select("title").eq("slug", slug).single();
   assert.equal(secondPublic.data.title, "Portfolio integration v2");
-  const history = await service.from("portfolio_project_revisions").select("id,title").eq("project_id", projectId).eq("state", "published").order("revision_number");
+  const history = await service.from("portfolio_project_revisions").select("id,title,state,published_at").eq("project_id", projectId).in("state", ["published", "archived"]).not("published_at", "is", null).order("revision_number");
   assert.equal(history.data.length, 2);
+  assert.deepEqual(history.data.map((revision) => revision.state), ["archived", "published"]);
 
   const restore = await adminClient.rpc("portfolio_restore_revision", { p_project_id: projectId, p_revision_id: firstPublish.data });
   if (restore.error) throw restore.error;
@@ -135,9 +149,10 @@ try {
   const liveAfterRestore = await publicClient.from("portfolio_public_projects").select("title").eq("slug", slug).single();
   assert.equal(liveAfterRestore.data.title, "Portfolio integration v2");
 
-  console.log("Portfolio integration: create, draft-save isolation, conflict, publish, limited RLS and restore passed.");
+  console.log("Portfolio integration: draft isolation, conflict, collaborator reuse, recoverable history and restore passed.");
 } finally {
   if (projectId) await service.from("portfolio_projects").delete().eq("id", projectId);
+  await service.from("portfolio_collaborators").delete().eq("id", collaboratorId);
   if (uploadedStoragePath) await service.storage.from("portfolio-media").remove([uploadedStoragePath]);
   if (uploadedAssetId) await service.from("portfolio_media_assets").delete().eq("id", uploadedAssetId);
   if (userId) {

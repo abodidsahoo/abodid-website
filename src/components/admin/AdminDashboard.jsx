@@ -8,6 +8,7 @@ import PhotoStoryManager from './PhotoStoryManager';
 import MoodboardManager from './MoodboardManager';
 import ListView from './ListView';
 import SeoStudio from './SeoStudio';
+import AdminNotepad from './AdminNotepad';
 import AnalyticsDashboard from './AnalyticsDashboard';
 import PortfolioAdminList from '../portfolio/admin/PortfolioAdminList';
 import {
@@ -26,6 +27,7 @@ import {
     Menu,
     PenLine,
     ScanSearch,
+    StickyNote,
     Globe2,
     Moon,
     Sun,
@@ -51,6 +53,7 @@ const SECTIONS = [
     { id: 'hub_resources', label: 'Resources', icon: Library },
     { id: 'newsletter', label: 'Newsletter', icon: Mail },
     { id: 'page_metadata', label: 'SEO Studio', icon: ScanSearch },
+    { id: 'notepad', label: 'Notepad', icon: StickyNote },
 ];
 const VALID_SECTION_IDS = new Set(SECTIONS.map((section) => section.id));
 const REQUEST_TIMEOUT_MS = 8000;
@@ -496,7 +499,13 @@ export default function AdminDashboard() {
                         </SectionErrorBoundary>
                     )}
 
-                    {activeSection !== 'dashboard' && activeSection !== 'analytics' && activeSection !== 'portfolio_projects' && activeSection !== 'users' && activeSection !== 'brands' && activeSection !== 'newsletter' && activeSection !== 'photo_stories' && activeSection !== 'moodboard_items' && activeSection !== 'page_metadata' && (
+                    {activeSection === 'notepad' && (
+                        <SectionErrorBoundary>
+                            <AdminNotepad accessToken={session?.access_token} />
+                        </SectionErrorBoundary>
+                    )}
+
+                    {activeSection !== 'dashboard' && activeSection !== 'analytics' && activeSection !== 'portfolio_projects' && activeSection !== 'users' && activeSection !== 'brands' && activeSection !== 'newsletter' && activeSection !== 'photo_stories' && activeSection !== 'moodboard_items' && activeSection !== 'page_metadata' && activeSection !== 'notepad' && (
                         <SectionErrorBoundary key={`${activeSection}-${refreshTrigger}`}>
                             <ListView
                                 table={activeSection}
