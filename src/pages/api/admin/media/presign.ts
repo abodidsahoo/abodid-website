@@ -8,7 +8,7 @@ import {
     isAllowedImageMimeType,
     makeAvailableR2ObjectKey,
     MAX_IMAGE_SIZE_BYTES,
-    normalizeR2Folder,
+    normalizeR2FolderPath,
 } from "../../../../lib/media/r2";
 
 export const POST: APIRoute = async ({ request }) => {
@@ -21,7 +21,7 @@ export const POST: APIRoute = async ({ request }) => {
         const contentType =
             typeof body?.contentType === "string" ? body.contentType.trim().toLowerCase() : "";
         const size = Number(body?.size);
-        const folder = normalizeR2Folder(body?.folder);
+        const folder = normalizeR2FolderPath(body?.folder);
 
         if (!filename || filename.length > 255) {
             return jsonResponse({ error: "Choose an image with a valid filename." }, 400);

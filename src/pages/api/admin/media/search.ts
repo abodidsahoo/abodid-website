@@ -7,7 +7,7 @@ import {
     buildR2PublicUrl,
     getR2Basename,
     inferR2MimeType,
-    listR2Folder,
+    searchR2Folder,
 } from "../../../../lib/media/r2";
 
 const MEDIA_COLUMNS = [
@@ -31,42 +31,45 @@ export const GET: APIRoute = async ({ request }) => {
 
     try {
         const url = new URL(request.url);
-        const browser = await listR2Folder(url.searchParams.get("folder") || "");
+        const searchTerm = (url.searchParams.get("q") || "").trim();
+        if (!searchTerm || searchTerm.length > 100) {
+            return jsonResponse({ error: "Enter a search term up to 100 characters." }, 400);
+        }
 
-        const { data: catalogueRows, error } = await authorization.supabase
+        const search = await searchR2Folder(
+            url.searchParams.get("folder") || "",
+            searchTerm,
+        );
+
+        let catalogueQuery = authorization.supabase
             .from("media_assets")
             .select(MEDIA_COLUMNS)
             .eq("storage_provider", "cloudflare_r2")
-            .eq("storage_bucket", browser.config.bucket)
-            .eq("folder_path", browser.folderPath)
-            .limit(2_000);
+            .eq("storage_bucket", search.config.bucket);
 
-        if (error) {
-            console.error("Could not load the media catalogue:", error);
-            const missingTable = ["42P01", "PGRST205"].includes(error.code || "");
-            return jsonResponse(
-                {
-                    error: missingTable
-                        ? "The media catalogue migration has not been applied yet."
-                        : "Could not load the media catalogue.",
-                    code: missingTable ? "MEDIA_CATALOGUE_MISSING" : "MEDIA_CATALOGUE_ERROR",
-                },
-                missingTable ? 503 : 500,
+        if (search.folderPath) {
+            catalogueQuery = catalogueQuery.or(
+                `folder_path.eq.${search.folderPath},folder_path.like.${search.folderPath}/%`,
             );
+        }
+
+        const { data: catalogueRows, error } = await catalogueQuery.limit(5_000);
+        if (error) {
+            console.error("Could not load catalogue metadata for media search:", error);
+            return jsonResponse({ error: "Could not search the media catalogue." }, 500);
         }
 
         const catalogue = new Map(
             (catalogueRows || []).map((asset) => [asset.object_key, asset]),
         );
-        const files = browser.files.map((object) => {
+        const files = search.files.map((object) => {
             const asset = catalogue.get(object.objectKey);
-            const mimeType = asset?.mime_type || inferR2MimeType(object.objectKey);
             return {
                 id: asset?.id || object.objectKey,
                 objectKey: object.objectKey,
                 name: asset?.original_filename || getR2Basename(object.objectKey),
-                publicUrl: buildR2PublicUrl(browser.config, object.objectKey),
-                mimeType,
+                publicUrl: buildR2PublicUrl(search.config, object.objectKey),
+                mimeType: asset?.mime_type || inferR2MimeType(object.objectKey),
                 fileSize: object.fileSize,
                 width: asset?.width || null,
                 height: asset?.height || null,
@@ -79,20 +82,17 @@ export const GET: APIRoute = async ({ request }) => {
                 catalogued: Boolean(asset),
             };
         });
-        const folders = browser.folders.map((path) => ({
-            name: getR2Basename(path),
-            path,
-        }));
 
         return jsonResponse({
-            folderPath: browser.folderPath,
-            folders,
+            folderPath: search.folderPath,
             files,
-            truncated: browser.truncated,
+            folderMatches: search.folderMatches,
+            scannedObjects: search.scannedObjects,
+            truncated: search.truncated,
         });
     } catch (error) {
-        console.error("Could not browse R2 media:", error);
-        const message = error instanceof Error ? error.message : "Could not browse the media library.";
+        console.error("Could not search R2 media:", error);
+        const message = error instanceof Error ? error.message : "Could not search the media library.";
         return jsonResponse({ error: message }, 500);
     }
 };
