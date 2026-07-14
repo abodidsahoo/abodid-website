@@ -5,6 +5,10 @@ import IdeasBoard from "../components/IdeasBoard.jsx";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { supabase } from "../lib/supabase";
 
+// Prevent Vercel's edge cache from serving a stale snapshot of the board.
+// Every request must hit the SSR function so it fetches the latest notes.
+Astro.response.headers.set("Cache-Control", "no-store");
+
 const { data, error } = await supabase
     .from("ideas_notes")
     .select("id, title, body, created_at")
