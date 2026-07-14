@@ -59,19 +59,16 @@
     const getJourneyTracking = () => {
         try {
             if (
-                window.__abodidJourney &&
-                typeof window.__abodidJourney.getSnapshot === "function"
+                window.__abodidAnalytics &&
+                typeof window.__abodidAnalytics.getSessionId === "function"
             ) {
-                return window.__abodidJourney.getSnapshot();
+                return { sessionId: window.__abodidAnalytics.getSessionId() };
             }
         } catch (_error) {
             // no-op
         }
 
-        return {
-            currentPath: window.location.pathname,
-            initialReferrer: document.referrer || "",
-        };
+        return { sessionId: "" };
     };
 
     if (form) {
@@ -82,6 +79,12 @@
             formData.append("jsEnabled", "1");
             formData.append("formStartedAt", String(formRenderedAt));
 
+            if (
+                window.__abodidAnalytics &&
+                typeof window.__abodidAnalytics.prepareSubmission === "function"
+            ) {
+                await window.__abodidAnalytics.prepareSubmission();
+            }
             const tracking = getJourneyTracking();
             if (tracking) {
                 formData.append("tracking", JSON.stringify(tracking));
@@ -112,10 +115,7 @@
                     (form as HTMLFormElement).reset();
                     trackGaEvent("sign_up", {
                         method: "newsletter",
-                        source_page:
-                            tracking?.lastSourcePage ||
-                            tracking?.currentPath ||
-                            window.location.pathname,
+                        source_page: window.location.pathname,
                         destination_page: window.location.pathname,
                     });
                 }

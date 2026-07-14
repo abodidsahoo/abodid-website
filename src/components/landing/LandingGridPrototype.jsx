@@ -214,20 +214,17 @@ const appendJourneyTrackingToForm = (form) => {
     let trackingPayload = null;
     try {
         if (
-            window.__abodidJourney &&
-            typeof window.__abodidJourney.getSnapshot === 'function'
+            window.__abodidAnalytics &&
+            typeof window.__abodidAnalytics.getSessionId === 'function'
         ) {
-            trackingPayload = window.__abodidJourney.getSnapshot();
+            trackingPayload = { sessionId: window.__abodidAnalytics.getSessionId() };
         }
     } catch (_error) {
         trackingPayload = null;
     }
 
     if (!trackingPayload) {
-        trackingPayload = {
-            currentPath: window.location.pathname,
-            initialReferrer: document.referrer || '',
-        };
+        trackingPayload = { sessionId: '' };
     }
 
     upsertHiddenField('tracking', JSON.stringify(trackingPayload));

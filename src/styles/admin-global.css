@@ -1,0 +1,52 @@
+/* Admin workspace scrollbars. Kept out of the public site's visual system. */
+.admin-document,
+.admin-document body,
+.admin-document body * {
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+  scrollbar-width: thin;
+}
+
+.admin-document::-webkit-scrollbar,
+.admin-document body::-webkit-scrollbar,
+.admin-document body *::-webkit-scrollbar {
+  display: block;
+  width: 6px;
+  height: 6px;
+}
+
+.admin-document::-webkit-scrollbar-track,
+.admin-document body::-webkit-scrollbar-track,
+.admin-document body *::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.admin-document::-webkit-scrollbar-thumb,
+.admin-document body::-webkit-scrollbar-thumb,
+.admin-document body *::-webkit-scrollbar-thumb {
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.admin-document::-webkit-scrollbar-thumb:hover,
+.admin-document body::-webkit-scrollbar-thumb:hover,
+.admin-document body *::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.admin-document[data-theme="light"],
+.admin-document[data-theme="light"] body,
+.admin-document[data-theme="light"] body * {
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+.admin-document[data-theme="light"]::-webkit-scrollbar-thumb,
+.admin-document[data-theme="light"] body::-webkit-scrollbar-thumb,
+.admin-document[data-theme="light"] body *::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.14);
+}
+
+.admin-document[data-theme="light"]::-webkit-scrollbar-thumb:hover,
+.admin-document[data-theme="light"] body::-webkit-scrollbar-thumb:hover,
+.admin-document[data-theme="light"] body *::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.28);
+}

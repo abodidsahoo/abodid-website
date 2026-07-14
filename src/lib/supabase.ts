@@ -18,4 +18,14 @@ if (!hasSupabaseEnv) {
 export const supabase = createClient(
     hasSupabaseEnv ? supabaseUrl : FALLBACK_SUPABASE_URL,
     hasSupabaseEnv ? supabaseAnonKey : FALLBACK_SUPABASE_ANON_KEY,
+    {
+        auth: {
+            // Site Workspace is a trusted, single-user Chrome app. Keep its
+            // Supabase session on this Mac and refresh it silently so opening
+            // the app normally goes straight to the dashboard.
+            persistSession: true,
+            autoRefreshToken: true,
+            detectSessionInUrl: true,
+        },
+    },
 );

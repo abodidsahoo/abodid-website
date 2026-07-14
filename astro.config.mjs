@@ -7,6 +7,8 @@ import vercel from '@astrojs/vercel';
 
 import sitemap from '@astrojs/sitemap';
 
+import { loadEnv } from 'vite';
+
 const excludedSitemapPathPatterns = [
   /^\/admin(?:\/|$)/,
   /^\/api(?:\/|$)/,
@@ -41,6 +43,7 @@ const shouldIncludeInSitemap = (page) => {
 };
 
 const isDevelopmentServer = process.argv.includes('dev');
+const env = loadEnv(isDevelopmentServer ? 'development' : 'production', process.cwd(), '');
 
 // https://astro.build/config
 export default defineConfig({
@@ -59,7 +62,7 @@ export default defineConfig({
       filter: shouldIncludeInSitemap,
     }),
   ],
-  site: 'https://abodid.com', // Replace with your actual domain
+  site: env.PUBLIC_SITE_URL || 'https://abodid.com',
   vite: {
     resolve: {
       dedupe: ['react', 'react-dom'],

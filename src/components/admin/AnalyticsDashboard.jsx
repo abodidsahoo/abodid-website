@@ -239,15 +239,28 @@ export default function AnalyticsDashboard({ accessToken }) {
 
         try {
             const timezoneOffset = new Date().getTimezoneOffset();
-            const submission = new URLSearchParams(window.location.search).get('submission');
-            const submissionQuery = submission ? `&submission=${encodeURIComponent(submission)}` : '';
-            const response = await fetch(
-                `/api/admin/analytics?range=${encodeURIComponent(range)}&timezoneOffset=${timezoneOffset}${submissionQuery}`,
-                {
-                    headers: { Authorization: `Bearer ${accessToken}` },
-                    signal,
-                },
-            );
+            const params = new URLSearchParams(window.location.search);
+            const submission = params.get('submission');
+            const newsletterSubmission = params.get('newsletterSubmission');
+            const submissionQuery = submission
+                ? `&submission=${encodeURIComponent(submission)}`
+                : newsletterSubmission
+                    ? `&newsletterSubmission=${encodeURIComponent(newsletterSubmission)}`
+                    : '';
+            const requestUrl = `/api/admin/analytics?range=${encodeURIComponent(range)}&timezoneOffset=${timezoneOffset}${submissionQuery}`;
+            const requestReport = (token) => fetch(requestUrl, {
+                headers: { Authorization: `Bearer ${token}` },
+                signal,
+            });
+
+            let response = await requestReport(accessToken);
+            if (response.status === 401) {
+                const { data, error: refreshError } = await supabase.auth.refreshSession();
+                const refreshedToken = data?.session?.access_token;
+                if (!refreshError && refreshedToken) {
+                    response = await requestReport(refreshedToken);
+                }
+            }
             const payload = await response.json();
             if (!response.ok) throw new Error(payload?.error || 'Could not load analytics.');
 
@@ -534,8 +547,8 @@ export default function AnalyticsDashboard({ accessToken }) {
                 <section className="analytics-panel analytics-focused-journey" aria-labelledby="focused-journey-title">
                     <div className="analytics-panel-heading">
                         <div>
-                            <h3 id="focused-journey-title">Visit connected to this enquiry</h3>
-                            <p>Activity is limited to the saved visit and stops at the enquiry time.</p>
+                            <h3 id="focused-journey-title">Visit connected to this notification</h3>
+                            <p>Activity is limited to the saved visit and stops at the submission time.</p>
                         </div>
                         <a href="/admin/dashboard?section=analytics">Show all analytics</a>
                     </div>

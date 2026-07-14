@@ -44,13 +44,16 @@ export const GET: APIRoute = async ({ request, url }) => {
 
         const range = normalizeAnalyticsRange(url.searchParams.get('range'));
         const submissionId = url.searchParams.get('submission') || '';
+        const newsletterSubmissionId = url.searchParams.get('newsletterSubmission') || '';
         let focusedJourney = null;
-        if (submissionId) {
-            if (!UUID_PATTERN.test(submissionId)) return json({ error: 'Invalid enquiry reference.' }, 400);
+        const focusId = submissionId || newsletterSubmissionId;
+        if (focusId) {
+            if (!UUID_PATTERN.test(focusId)) return json({ error: 'Invalid notification reference.' }, 400);
+            const focusTable = newsletterSubmissionId ? 'newsletter_submissions' : 'contact_submissions';
             const { data: submission } = await supabase
-                .from('contact_submissions')
+                .from(focusTable)
                 .select('session_id, submitted_at')
-                .eq('id', submissionId)
+                .eq('id', focusId)
                 .single();
             if (!submission) return json({ error: 'The enquiry visit could not be found.' }, 404);
 

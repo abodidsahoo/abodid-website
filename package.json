@@ -14,6 +14,11 @@
     "test:portfolio": "node --test tests/portfolio/*.test.mjs",
     "test:portfolio:integration": "node scripts/test-portfolio-integration.mjs",
     "test:e2e:portfolio": "playwright test tests/portfolio/work.spec.ts",
+    "workspace:install": "bash scripts/install-launchagent.sh",
+    "workspace:uninstall": "bash scripts/uninstall-launchagent.sh",
+    "workspace:status": "launchctl list | grep com.personalsite.devserver",
+    "workspace:logs": "tail -f /tmp/personalsite-dev.log /tmp/personalsite-dev-error.log",
+    "workspace:restart": "launchctl kickstart -k \"gui/$(id -u)/com.personalsite.devserver\"",
     "preview": "astro preview",
     "astro": "astro"
   },

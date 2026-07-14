@@ -1,703 +1,228 @@
-import { supabase } from "../../lib/supabaseClient";
 import { Resend } from 'resend';
+import { supabase } from '../../lib/supabaseClient';
+import {
+    isUuid,
+    normalizedAcquisitionSource,
+    readableLocation,
+    summarizeVisit,
+} from '../../lib/contact-notification.js';
+import { renderSubscriberNotification } from '../../lib/subscriber-notification.js';
+import { createSupabaseServiceClient } from '../../lib/supabaseServer';
 
-const resend = new Resend(import.meta.env.RESEND_API_KEY ?? process.env.RESEND_API_KEY);
+export const prerender = false;
+
+const resendKey = import.meta.env.RESEND_API_KEY ?? process.env.RESEND_API_KEY;
+const resend = new Resend(resendKey);
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const MAX_RECENT_PAGES = 8;
-const MAX_TOP_PAGES = 6;
 const FOOTER_SPAM_MIN_SUBMISSION_MS = 1500;
 const OWNER_NOTIFICATION_EMAIL =
     import.meta.env.OWNER_NOTIFICATION_EMAIL ||
     process.env.OWNER_NOTIFICATION_EMAIL ||
     import.meta.env.CONTACT_FORM_TO_EMAIL ||
     process.env.CONTACT_FORM_TO_EMAIL ||
-    "hello@abodid.com";
+    'hello@abodid.com';
 
-const clean = (value) => (typeof value === "string" ? value.trim() : "");
-const cleanLimited = (value, maxLength) => clean(value).slice(0, maxLength);
-const isFooterNewsletterSource = (source) => source === "footer-newsletter";
-const getOwnerBcc = (recipientEmail) => {
-    const ownerEmail = clean(OWNER_NOTIFICATION_EMAIL).toLowerCase();
-    const recipient = clean(recipientEmail).toLowerCase();
-    if (!ownerEmail || ownerEmail === recipient) return undefined;
-    return [ownerEmail];
-};
+const clean = (value, maxLength = 5000) => (
+    typeof value === 'string'
+        ? value.trim().replace(/[\u0000-\u001f\u007f]/g, '').slice(0, maxLength)
+        : ''
+);
 
-const safeJsonParse = (value) => {
+const escapeHtml = (value) => clean(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
+const parseTracking = (formData) => {
+    const raw = formData.get('tracking');
+    if (typeof raw !== 'string' || !raw.trim()) return { sessionId: '' };
     try {
-        return JSON.parse(value);
+        const parsed = JSON.parse(raw);
+        return { sessionId: clean(parsed?.sessionId, 40) };
     } catch (_error) {
-        return null;
+        return { sessionId: '' };
     }
 };
 
-const toPositiveInt = (value) => {
-    const parsed = Number(value);
-    if (!Number.isFinite(parsed) || parsed <= 0) return 0;
-    return Math.round(parsed);
-};
+const shouldSilentlyBlockFooterSubmission = ({ request, data, source, tracking }) => {
+    if (source !== 'footer-newsletter') return null;
+    if (clean(data.get('company'), 200)) return 'honeypot_filled';
+    if (clean(data.get('jsEnabled'), 10) !== '1') return 'missing_js_signal';
 
-const getSubmissionTiming = (value) => {
-    const parsed = Number(value);
-    if (!Number.isFinite(parsed) || parsed <= 0) return 0;
-    return parsed;
-};
-
-const escapeHtml = (value) =>
-    String(value || "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/\"/g, "&quot;")
-        .replace(/'/g, "&#39;");
-
-const formatDuration = (durationMs) => {
-    if (durationMs <= 0) return "0s";
-    const totalSeconds = Math.round(durationMs / 1000);
-    if (totalSeconds < 60) return `${totalSeconds}s`;
-
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    if (minutes < 60) {
-        return seconds > 0 ? `${minutes}m ${seconds}s` : `${minutes}m`;
+    const formStartedAt = Number(data.get('formStartedAt'));
+    if (!Number.isFinite(formStartedAt) || Date.now() - formStartedAt < FOOTER_SPAM_MIN_SUBMISSION_MS) {
+        return 'submitted_too_quickly';
     }
 
-    const hours = Math.floor(minutes / 60);
-    const remainingMinutes = minutes % 60;
-    return remainingMinutes > 0
-        ? `${hours}h ${remainingMinutes}m`
-        : `${hours}h`;
-};
-
-const parseTracking = (rawTracking) => {
-    if (!rawTracking || typeof rawTracking !== "object") {
-        return null;
-    }
-
-    const source = rawTracking;
-
-    const recentPages = (Array.isArray(source.recentPages)
-        ? source.recentPages
-        : []
-    )
-        .slice(-MAX_RECENT_PAGES)
-        .map((item) => {
-            if (!item || typeof item !== "object") return null;
-            const page = item;
-            const path = cleanLimited(page.path, 180);
-            if (!path) return null;
-
-            return {
-                path,
-                title: cleanLimited(page.title, 180),
-                enteredAt: cleanLimited(page.enteredAt, 80),
-                sourcePage: cleanLimited(page.sourcePage, 180),
-                cta: cleanLimited(page.cta, 120),
-            };
-        })
-        .filter(Boolean);
-
-    const topPages = (Array.isArray(source.topPages) ? source.topPages : [])
-        .slice(0, MAX_TOP_PAGES)
-        .map((item) => {
-            if (!item || typeof item !== "object") return null;
-            const page = item;
-            const path = cleanLimited(page.path, 180);
-            if (!path) return null;
-
-            return {
-                path,
-                title: cleanLimited(page.title, 180),
-                durationMs: toPositiveInt(page.durationMs),
-            };
-        })
-        .filter(Boolean);
-
-    const visitSequence = (
-        Array.isArray(source.visitSequence) ? source.visitSequence : []
-    )
-        .slice(-30)
-        .map((item) => {
-            if (!item || typeof item !== "object") return null;
-            const page = item;
-            const path = cleanLimited(page.path, 180);
-            if (!path) return null;
-            return {
-                path,
-                title: cleanLimited(page.title, 180),
-                enteredAt: cleanLimited(page.enteredAt, 80),
-            };
-        })
-        .filter(Boolean);
-
-    return {
-        sessionId: cleanLimited(source.sessionId, 128),
-        currentPath: cleanLimited(source.currentPath, 180),
-        landingPage: cleanLimited(source.landingPage, 180),
-        initialReferrer: cleanLimited(source.initialReferrer, 400),
-        lastSourcePage: cleanLimited(source.lastSourcePage, 180),
-        lastSourceName: cleanLimited(source.lastSourceName, 120),
-        lastCta: cleanLimited(source.lastCta, 120),
-        totalTrackedMs: toPositiveInt(source.totalTrackedMs),
-        totalPageViews: toPositiveInt(source.totalPageViews),
-        uniquePagesVisited: toPositiveInt(source.uniquePagesVisited),
-        immediatePreviousPage: cleanLimited(source.immediatePreviousPage, 180),
-        recentPages,
-        visitSequence,
-        topPages,
-    };
-};
-
-const buildFallbackTracking = (request, sourceName) => {
-    const initialReferrer = cleanLimited(request.headers.get("referer"), 400);
-    let referrerPath = "";
-    if (initialReferrer) {
-        try {
-            referrerPath = cleanLimited(new URL(initialReferrer).pathname, 180);
-        } catch (_error) {
-            referrerPath = "";
-        }
-    }
-
-    return {
-        sessionId: "",
-        currentPath: referrerPath,
-        landingPage: referrerPath,
-        initialReferrer,
-        lastSourcePage: referrerPath,
-        lastSourceName: cleanLimited(sourceName, 120),
-        lastCta: "",
-        totalTrackedMs: 0,
-        totalPageViews: referrerPath ? 1 : 0,
-        uniquePagesVisited: referrerPath ? 1 : 0,
-        immediatePreviousPage: "",
-        recentPages: [],
-        visitSequence: [],
-        topPages: [],
-    };
-};
-
-const parseTrackingFromFormData = (formData, request, sourceName) => {
-    const rawTracking = formData.get("tracking");
-    let parsedTracking = null;
-
-    if (typeof rawTracking === "string" && rawTracking.trim()) {
-        parsedTracking = parseTracking(safeJsonParse(rawTracking));
-    }
-
-    return parsedTracking || buildFallbackTracking(request, sourceName);
-};
-
-const shouldSilentlyBlockFooterSubmission = ({
-    request,
-    data,
-    source,
-    tracking,
-}) => {
-    if (!isFooterNewsletterSource(source)) {
-        return null;
-    }
-
-    const honeypot = clean(data.get("company"));
-    if (honeypot) {
-        return "honeypot_filled";
-    }
-
-    const jsEnabled = clean(data.get("jsEnabled"));
-    if (jsEnabled !== "1") {
-        return "missing_js_signal";
-    }
-
-    const formStartedAt = getSubmissionTiming(data.get("formStartedAt"));
-    const submittedAt = Date.now();
-    if (!formStartedAt || submittedAt - formStartedAt < FOOTER_SPAM_MIN_SUBMISSION_MS) {
-        return "submitted_too_quickly";
-    }
-
-    const referer = clean(request.headers.get("referer"));
-    const hasJourneySignals =
-        Boolean(tracking?.sessionId) ||
-        Boolean(tracking?.currentPath) ||
-        Boolean(tracking?.lastSourcePage) ||
-        Boolean(referer);
-
-    if (!hasJourneySignals) {
-        return "missing_journey_signals";
-    }
-
+    if (!tracking.sessionId && !request.headers.get('referer')) return 'missing_journey_signals';
     return null;
 };
 
-const buildVisitSequenceText = (visitSequence) => {
-    if (!visitSequence.length) return "Not captured";
-
-    const collapsed = [];
-    visitSequence.forEach((page) => {
-        if (!collapsed.length || collapsed[collapsed.length - 1] !== page.path) {
-            collapsed.push(page.path);
-        }
-    });
-
-    return collapsed.join(" -> ");
-};
-
-const describeSource = (tracking, sourceName) => {
-    if (!tracking) return "No journey source data captured.";
-
-    const sourcePage =
-        tracking.lastSourcePage ||
-        tracking.landingPage ||
-        tracking.currentPath ||
-        "unknown page";
-    const sourceDisplay = tracking.lastSourceName
-        ? `${tracking.lastSourceName} (${sourcePage})`
-        : sourceName || sourcePage;
-    const cta = tracking.lastCta ? ` via CTA "${tracking.lastCta}"` : "";
-    return `Visitor came from ${sourceDisplay}${cta}.`;
-};
-
-const buildBehaviorPattern = (tracking, sourceName) => {
-    const sourceSummary = describeSource(tracking, sourceName);
-    const finalPage = tracking?.currentPath || "Not captured";
-    const previousBeforeFinal =
-        tracking?.immediatePreviousPage ||
-        (tracking?.visitSequence?.length >= 2
-            ? tracking.visitSequence[tracking.visitSequence.length - 2].path
-            : "Not captured");
-    const totalTrackedMs = tracking?.totalTrackedMs || 0;
-    const totalTrackedLabel = formatDuration(totalTrackedMs);
-    const totalPageViews = tracking?.totalPageViews || 0;
-    const uniquePagesVisited = tracking?.uniquePagesVisited || 0;
-    const topPage = tracking?.topPages?.[0];
-    const topPageSummary = topPage
-        ? `${topPage.path} (${formatDuration(topPage.durationMs)})`
-        : "Not captured";
-    const visitSequence = buildVisitSequenceText(tracking?.visitSequence || []);
+const buildWelcomeEmail = ({ name, existing }) => {
+    const greeting = name ? `Hi ${escapeHtml(name)},` : 'Hi,';
+    const heading = existing ? 'Welcome back to the circle.' : 'Welcome to the tribe.';
+    const copy = existing
+        ? 'Your newsletter details are up to date. You will continue receiving the weekly collection of useful creative resources and field notes.'
+        : 'Thank you for subscribing. You will receive a weekly collection of useful creative resources, references, workflows, and field notes.';
 
     return {
-        sourceSummary,
-        finalPage,
-        previousBeforeFinal,
-        totalTrackedMs,
-        totalTrackedLabel,
-        totalPageViews,
-        uniquePagesVisited,
-        topPageSummary,
-        visitSequence,
+        subject: heading,
+        html: `<!doctype html><html><body style="margin:0;background:#f5f4f0;color:#202124;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0"><tr><td align="center" style="padding:28px 14px">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:620px;background:#fff;border:1px solid #e5e1d7;border-radius:14px;padding:38px 30px"><tr><td>
+<p style="margin:0 0 12px;font-size:15px">${greeting}</p>
+<h1 style="margin:0 0 14px;font-size:28px;line-height:1.2">${heading}</h1>
+<p style="margin:0 0 24px;color:#4d4b47;font-size:15px;line-height:1.65">${copy}</p>
+<a href="https://abodid.com/resources" style="display:inline-block;background:#111;color:#fff;border-radius:8px;padding:12px 18px;font-size:14px;font-weight:650;text-decoration:none">Explore Resources Hub</a>
+</td></tr></table></td></tr></table></body></html>`,
+        text: `${name ? `Hi ${name},` : 'Hi,'}\n\n${heading}\n\n${copy}\n\nExplore Resources Hub: https://abodid.com/resources`,
     };
 };
 
-const buildRecentPagesHtml = (recentPages) => {
-    if (!recentPages.length) {
-        return "<li>No recent page trail captured.</li>";
+async function sendOwnerNotification({ email, name, source, status, sessionId, submittedAt, request }) {
+    let session = null;
+    let pageViews = [];
+    let newsletterSubmissionId = '';
+    const serviceClient = createSupabaseServiceClient();
+
+    if (serviceClient && isUuid(sessionId)) {
+        const { data: sessionRow } = await serviceClient
+            .from('analytics_sessions')
+            .select('id, source, city, country, landing_page, started_at')
+            .eq('id', sessionId)
+            .single();
+        session = sessionRow || null;
+
+        if (session) {
+            const { data: views } = await serviceClient
+                .from('analytics_page_views')
+                .select('page_path, page_title, viewed_at, engaged_seconds')
+                .eq('session_id', session.id)
+                .lte('viewed_at', submittedAt)
+                .order('viewed_at', { ascending: true });
+            pageViews = views || [];
+        }
     }
 
-    return [...recentPages]
-        .reverse()
-        .map((page) => {
-            const titlePart = page.title ? ` - ${escapeHtml(page.title)}` : "";
-            const sourcePart = page.sourcePage
-                ? ` (from ${escapeHtml(page.sourcePage)})`
-                : "";
-            return `<li><strong>${escapeHtml(page.path)}</strong>${titlePart}${sourcePart}</li>`;
-        })
-        .join("");
-};
-
-const buildTopPagesHtml = (topPages) => {
-    if (!topPages.length) {
-        return "<li>No page-time data captured.</li>";
+    if (serviceClient) {
+        const { data: submission, error } = await serviceClient
+            .from('newsletter_submissions')
+            .insert({
+                session_id: session?.id || null,
+                email,
+                name: name || null,
+                source,
+                subscriber_status: status,
+                submitted_at: submittedAt,
+            })
+            .select('id')
+            .single();
+        if (error) console.warn('[subscribe] Could not save notification context:', error.message);
+        newsletterSubmissionId = submission?.id || '';
     }
 
-    return topPages
-        .map((page) => {
-            const titlePart = page.title ? ` - ${escapeHtml(page.title)}` : "";
-            return `<li><strong>${escapeHtml(page.path)}</strong>${titlePart} - ${escapeHtml(formatDuration(page.durationMs))}</li>`;
-        })
-        .join("");
-};
-
-const buildRecentPagesText = (recentPages) => {
-    if (!recentPages.length) {
-        return ["- No recent page trail captured."];
-    }
-
-    return [...recentPages].reverse().map((page) => {
-        const titlePart = page.title ? ` - ${page.title}` : "";
-        const sourcePart = page.sourcePage ? ` (from ${page.sourcePage})` : "";
-        return `- ${page.path}${titlePart}${sourcePart}`;
+    const visit = session ? summarizeVisit({ session, pageViews, submittedAt }) : null;
+    const acquisitionSource = session ? normalizedAcquisitionSource(session.source) : '';
+    const location = session ? readableLocation(session) : '';
+    const siteOrigin = (import.meta.env.PUBLIC_SITE_URL || process.env.PUBLIC_SITE_URL || new URL(request.url).origin).replace(/\/$/, '');
+    const analyticsUrl = newsletterSubmissionId
+        ? `${siteOrigin}/admin/dashboard?section=analytics&newsletterSubmission=${encodeURIComponent(newsletterSubmissionId)}`
+        : '';
+    const rendered = renderSubscriberNotification({
+        email,
+        name,
+        status,
+        source,
+        acquisitionSource,
+        location,
+        visit,
+        analyticsUrl,
     });
-};
-
-const buildTopPagesText = (topPages) => {
-    if (!topPages.length) {
-        return ["- No page-time data captured."];
-    }
-
-    return topPages.map((page) => {
-        const titlePart = page.title ? ` - ${page.title}` : "";
-        return `- ${page.path}${titlePart} - ${formatDuration(page.durationMs)}`;
-    });
-};
-
-const sendSubscriberJourneyEmail = async ({
-    email,
-    name,
-    source,
-    tracking,
-    status,
-}) => {
-    const now = new Date();
-    const timestampIso = now.toISOString();
-    const timestampUtc = new Intl.DateTimeFormat("en-US", {
-        dateStyle: "full",
-        timeStyle: "long",
-        timeZone: "UTC",
-    }).format(now);
-    const timestampServerLocal = new Intl.DateTimeFormat("en-US", {
-        dateStyle: "full",
-        timeStyle: "long",
-    }).format(now);
-
-    const behavior = buildBehaviorPattern(tracking, source);
-    const recentPagesHtml = buildRecentPagesHtml(tracking?.recentPages || []);
-    const topPagesHtml = buildTopPagesHtml(tracking?.topPages || []);
-    const structuredQuery = [
-        "SELECT",
-        "  session_id,",
-        "  source_page,",
-        "  cta_clicked,",
-        "  previous_page_before_subscribe,",
-        "  final_page,",
-        "  total_page_views,",
-        "  unique_pages_visited,",
-        "  total_tracked_seconds,",
-        "  top_time_spent_page,",
-        "  visit_sequence",
-        "FROM journey_tracking",
-        `WHERE session_id = '${tracking?.sessionId || "not_captured"}';`,
-    ].join("\n");
-
-    const toAddress =
-        import.meta.env.SUBSCRIBE_ALERT_TO_EMAIL ||
-        process.env.SUBSCRIBE_ALERT_TO_EMAIL ||
-        OWNER_NOTIFICATION_EMAIL ||
-        import.meta.env.CONTACT_FORM_TO_EMAIL ||
-        process.env.CONTACT_FORM_TO_EMAIL ||
-        "hello@abodid.com";
-    const fromAddress =
-        import.meta.env.SUBSCRIBE_ALERT_FROM_EMAIL ||
-        process.env.SUBSCRIBE_ALERT_FROM_EMAIL ||
-        import.meta.env.CONTACT_FORM_FROM_EMAIL ||
-        process.env.CONTACT_FORM_FROM_EMAIL ||
-        "Abodid Contact <newsletter@abodid.com>";
-
-    const sourceForSubject =
-        tracking?.lastSourcePage || tracking?.currentPath || source;
-    const subject = `[Subscriber ${status}] ${email}${sourceForSubject ? ` from ${sourceForSubject}` : ""}`;
-
-    const safeName = escapeHtml(name || "Not provided");
-    const safeEmail = escapeHtml(email);
-    const safeSource = escapeHtml(source);
-    const safeStatus = escapeHtml(status);
-    const sourceDescriptionHtml = escapeHtml(behavior.sourceSummary);
-
-    const html = `
-        <div style="font-family: Arial, Helvetica, sans-serif; color: #111; line-height: 1.6;">
-            <p style="margin: 0 0 14px; font-size: 18px; font-weight: 700;">
-                ${safeEmail} submitted the newsletter form (${safeStatus}). ${sourceDescriptionHtml}
-            </p>
-            <hr style="border: 0; border-top: 1px solid #ddd; margin: 16px 0;" />
-            <p style="margin: 0 0 8px;"><strong>Status:</strong> ${safeStatus}</p>
-            <p style="margin: 0 0 8px;"><strong>Name:</strong> ${safeName}</p>
-            <p style="margin: 0 0 8px;"><strong>Email ID:</strong> ${safeEmail}</p>
-            <p style="margin: 0 0 8px;"><strong>Source Field:</strong> ${safeSource}</p>
-            <p style="margin: 0 0 8px;"><strong>Date & Time (UTC):</strong> ${escapeHtml(timestampUtc)}</p>
-            <p style="margin: 0 0 16px;"><strong>Date & Time (Server Local):</strong> ${escapeHtml(timestampServerLocal)}</p>
-            <p style="margin: 0 0 8px;"><strong>ISO Timestamp:</strong> ${escapeHtml(timestampIso)}</p>
-
-            <p style="margin: 16px 0 8px; font-weight: 700;">Journey Tracking:</p>
-            <p style="margin: 0 0 8px;"><strong>Source Summary:</strong> ${sourceDescriptionHtml}</p>
-            <p style="margin: 0 0 8px;"><strong>Session ID:</strong> ${escapeHtml(tracking?.sessionId || "Not captured")}</p>
-            <p style="margin: 0 0 8px;"><strong>Current Page:</strong> ${escapeHtml(tracking?.currentPath || "Not captured")}</p>
-            <p style="margin: 0 0 8px;"><strong>Landing Page:</strong> ${escapeHtml(tracking?.landingPage || "Not captured")}</p>
-            <p style="margin: 0 0 8px;"><strong>Initial Referrer:</strong> ${escapeHtml(tracking?.initialReferrer || "Not captured")}</p>
-            <p style="margin: 0 0 8px;"><strong>Source Page:</strong> ${escapeHtml(tracking?.lastSourcePage || "Not captured")}</p>
-            <p style="margin: 0 0 8px;"><strong>Source Name:</strong> ${escapeHtml(tracking?.lastSourceName || "Not captured")}</p>
-            <p style="margin: 0 0 12px;"><strong>CTA Clicked:</strong> ${escapeHtml(tracking?.lastCta || "Not captured")}</p>
-
-            <p style="margin: 0 0 8px; font-weight: 700;">Recent Pages (latest first):</p>
-            <ol style="margin: 0 0 12px 18px; padding: 0;">${recentPagesHtml}</ol>
-
-            <p style="margin: 0 0 8px; font-weight: 700;">Most Time Spent Pages:</p>
-            <ol style="margin: 0 0 12px 18px; padding: 0;">${topPagesHtml}</ol>
-
-            <p style="margin: 16px 0 8px; font-weight: 700;">Behavior Pattern (Rule-Based):</p>
-            <p style="margin: 0 0 8px;"><strong>Total Time On Site:</strong> ${escapeHtml(behavior.totalTrackedLabel)}</p>
-            <p style="margin: 0 0 8px;"><strong>Total Page Views:</strong> ${String(behavior.totalPageViews)}</p>
-            <p style="margin: 0 0 8px;"><strong>Unique Pages Visited:</strong> ${String(behavior.uniquePagesVisited)}</p>
-            <p style="margin: 0 0 8px;"><strong>Most Time Spent Page:</strong> ${escapeHtml(behavior.topPageSummary)}</p>
-            <p style="margin: 0 0 8px;"><strong>Page Before Subscribe:</strong> ${escapeHtml(behavior.previousBeforeFinal)}</p>
-            <p style="margin: 0 0 12px;"><strong>Visit Sequence:</strong> ${escapeHtml(behavior.visitSequence)}</p>
-
-            <p style="margin: 0 0 8px; font-weight: 700;">Structured Query (No AI):</p>
-            <pre style="white-space: pre-wrap; border: 1px solid #ddd; border-radius: 8px; padding: 12px; margin: 0 0 8px; background: #fafafa;">${escapeHtml(structuredQuery)}</pre>
-            <pre style="white-space: pre-wrap; border: 1px solid #ddd; border-radius: 8px; padding: 12px; margin: 0; background: #fafafa;">session_id=${escapeHtml(tracking?.sessionId || "not_captured")}
-source_page=${escapeHtml(tracking?.lastSourcePage || "not_captured")}
-cta_clicked=${escapeHtml(tracking?.lastCta || "not_captured")}
-previous_page_before_subscribe=${escapeHtml(behavior.previousBeforeFinal)}
-final_page=${escapeHtml(behavior.finalPage)}
-total_page_views=${String(behavior.totalPageViews)}
-unique_pages_visited=${String(behavior.uniquePagesVisited)}
-total_tracked_seconds=${String(Math.round(behavior.totalTrackedMs / 1000))}
-top_time_spent_page=${escapeHtml(behavior.topPageSummary)}
-visit_sequence=${escapeHtml(behavior.visitSequence)}</pre>
-        </div>
-    `;
-
-    const text = [
-        `${email} submitted the newsletter form (${status}). ${behavior.sourceSummary}`,
-        "",
-        `Status: ${status}`,
-        `Name: ${name || "Not provided"}`,
-        `Email ID: ${email}`,
-        `Source Field: ${source}`,
-        `Date & Time (UTC): ${timestampUtc}`,
-        `Date & Time (Server Local): ${timestampServerLocal}`,
-        `ISO Timestamp: ${timestampIso}`,
-        "",
-        "Journey Tracking:",
-        `Source Summary: ${behavior.sourceSummary}`,
-        `Session ID: ${tracking?.sessionId || "Not captured"}`,
-        `Current Page: ${tracking?.currentPath || "Not captured"}`,
-        `Landing Page: ${tracking?.landingPage || "Not captured"}`,
-        `Initial Referrer: ${tracking?.initialReferrer || "Not captured"}`,
-        `Source Page: ${tracking?.lastSourcePage || "Not captured"}`,
-        `Source Name: ${tracking?.lastSourceName || "Not captured"}`,
-        `CTA Clicked: ${tracking?.lastCta || "Not captured"}`,
-        "",
-        "Recent Pages (latest first):",
-        ...buildRecentPagesText(tracking?.recentPages || []),
-        "",
-        "Most Time Spent Pages:",
-        ...buildTopPagesText(tracking?.topPages || []),
-        "",
-        "Behavior Pattern (Rule-Based):",
-        `Total Time On Site: ${behavior.totalTrackedLabel}`,
-        `Total Page Views: ${behavior.totalPageViews}`,
-        `Unique Pages Visited: ${behavior.uniquePagesVisited}`,
-        `Most Time Spent Page: ${behavior.topPageSummary}`,
-        `Page Before Subscribe: ${behavior.previousBeforeFinal}`,
-        `Visit Sequence: ${behavior.visitSequence}`,
-        "",
-        "Structured Query (No AI):",
-        structuredQuery,
-        "",
-        "Structured Result:",
-        `session_id=${tracking?.sessionId || "not_captured"}`,
-        `source_page=${tracking?.lastSourcePage || "not_captured"}`,
-        `cta_clicked=${tracking?.lastCta || "not_captured"}`,
-        `previous_page_before_subscribe=${behavior.previousBeforeFinal}`,
-        `final_page=${behavior.finalPage}`,
-        `total_page_views=${behavior.totalPageViews}`,
-        `unique_pages_visited=${behavior.uniquePagesVisited}`,
-        `total_tracked_seconds=${Math.round(behavior.totalTrackedMs / 1000)}`,
-        `top_time_spent_page=${behavior.topPageSummary}`,
-        `visit_sequence=${behavior.visitSequence}`,
-    ].join("\n");
 
     const { error } = await resend.emails.send({
-        from: fromAddress,
-        to: [toAddress],
+        from:
+            import.meta.env.SUBSCRIBE_ALERT_FROM_EMAIL ||
+            process.env.SUBSCRIBE_ALERT_FROM_EMAIL ||
+            import.meta.env.CONTACT_FORM_FROM_EMAIL ||
+            process.env.CONTACT_FORM_FROM_EMAIL ||
+            'Abodid Contact <newsletter@abodid.com>',
+        to: [
+            import.meta.env.SUBSCRIBE_ALERT_TO_EMAIL ||
+            process.env.SUBSCRIBE_ALERT_TO_EMAIL ||
+            OWNER_NOTIFICATION_EMAIL,
+        ],
         replyTo: email,
-        subject,
-        html,
-        text,
+        ...rendered,
     });
+    if (error) throw error;
+}
 
-    if (error) {
-        throw error;
-    }
-};
+async function sendWelcomeEmail({ email, name, existing }) {
+    const content = buildWelcomeEmail({ name, existing });
+    const { error } = await resend.emails.send({
+        from: 'Abodid Sahoo <newsletter@abodid.com>',
+        to: email,
+        replyTo: OWNER_NOTIFICATION_EMAIL,
+        ...content,
+    });
+    if (error) throw error;
+}
 
 export const POST = async ({ request }) => {
     const data = await request.formData();
-    const email = clean(data.get("email")).toLowerCase();
-    const nameValue = cleanLimited(data.get("name"), 120);
-    const name = nameValue || null;
-    const rawSource = data.get("source");
-    const source =
-        typeof rawSource === "string" && rawSource.trim().length > 0
-            ? rawSource.trim().toLowerCase().slice(0, 40)
-            : "popup";
-    const tracking = parseTrackingFromFormData(data, request, source);
+    const email = clean(data.get('email'), 254).toLowerCase();
+    const name = clean(data.get('name'), 120) || null;
+    const source = clean(data.get('source'), 40).toLowerCase() || 'newsletter-popup';
+    const tracking = parseTracking(data);
 
     if (!email || !EMAIL_REGEX.test(email)) {
-        return new Response(
-            JSON.stringify({
-                message: "Invalid email address",
-            }),
-            { status: 400 }
-        );
+        return new Response(JSON.stringify({ message: 'Invalid email address' }), { status: 400 });
     }
 
-    const blockedReason = shouldSilentlyBlockFooterSubmission({
-        request,
-        data,
-        source,
-        tracking,
-    });
-
+    const blockedReason = shouldSilentlyBlockFooterSubmission({ request, data, source, tracking });
     if (blockedReason) {
         console.warn(`[subscribe] Blocked footer newsletter spam candidate: ${blockedReason}`);
-        return new Response(
-            JSON.stringify({
-                message: "Successfully subscribed!",
-            }),
-            { status: 200 }
-        );
+        return new Response(JSON.stringify({ message: 'Successfully subscribed!' }), { status: 200 });
     }
 
-    const { error } = await supabase
-        .from("subscribers")
-        .insert([{ email, name, source }]);
+    const submittedAt = new Date().toISOString();
+    const { error: insertError } = await supabase.from('subscribers').insert([{ email, name, source }]);
+    const existing = insertError?.code === '23505';
 
-    if (error) {
-        // Handle unique constraint violation (already subscribed)
-        if (error.code === '23505') {
-            try {
-                await sendSubscriberJourneyEmail({
-                    email,
-                    name,
-                    source,
-                    tracking,
-                    status: "existing",
-                });
-            } catch (trackingEmailError) {
-                console.error("Failed to send subscriber tracking email (existing):", trackingEmailError);
-            }
+    if (insertError && !existing) {
+        return new Response(JSON.stringify({ message: insertError.message }), { status: 500 });
+    }
 
-            // Update the existing subscriber with the new name
-            if (name) {
-                await supabase
-                    .from("subscribers")
-                    .update({ name })
-                    .eq("email", email);
-            }
-
-            // Send Welcome Email (Re-send for updates - keeping similar to new sub but acknowledging update)
-            try {
-                await resend.emails.send({
-                    from: 'Abodid Sahoo <newsletter@abodid.com>',
-                    to: email,
-                    bcc: getOwnerBcc(email),
-                    subject: 'Welcome back to the circle.',
-                    html: `
-                <div style="font-family: Inter, 'Google Sans', 'Helvetica Neue', Arial, sans-serif; max-width: 660px; margin: 0 auto; color: #1f1f1f; background: #f7f7f7; padding: 24px;">
-                    <div style="background: linear-gradient(100deg, #dff3ff, #efe7ff, #ffeecf); border-radius: 14px; border: 1px solid #e5e1d7; padding: 20px 22px;">
-                        <p style="margin: 0 0 8px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #555;">Newsletter Update</p>
-                        <h1 style="margin: 0; font-size: 24px; line-height: 1.25; color: #202124;">Welcome back to the circle.</h1>
-                        <p style="margin: 12px 0 0; font-size: 14px; line-height: 1.6; color: #3c4043;">
-                            Thank you for ensuring your details are up to date! You will continue to receive a weekly curated list of useful and interesting readings and resources I come across.
-                        </p>
-                    </div>
-
-                    <div style="background: #ffffff; border: 1px solid #e5e1d7; border-radius: 14px; padding: 18px 20px; margin-top: 14px;">
-                        <div style="margin-bottom: 20px;">
-                            <a href="https://abodid.com/resources" style="display: inline-block; background: #111111; color: #ffffff; border: 1px solid #000000; border-radius: 10px; padding: 10px 18px; font-size: 13px; text-decoration: none; font-weight: 600;">
-                                Explore Resources Hub
-                            </a>
-                        </div>
-                        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-                        <p style="margin: 0 0 6px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: #5f6368;">Share a Resource</p>
-                        <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #3c4043;">
-                            <strong>Have an amazing resource in mind?</strong><br>
-                            If you have a podcast, movie, website link, or YouTube channel that has been life-changing for you, I'd love for you to share it.
-                        </p>
-                        <p style="margin: 12px 0 0; font-size: 14px;">
-                            <a href="https://abodid.com/login" style="color: #a30021; text-decoration: underline;">Log in as a curator</a> to add your favorite resource.
-                        </p>
-                    </div>
-                </div>
-                `
-                });
-            } catch (emailError) {
-                console.error("Failed to send welcome email (update):", emailError);
-            }
-
-            return new Response(
-                JSON.stringify({
-                    message: "You're already on the list! We've updated your details.",
-                    isUpdate: true
-                }),
-                { status: 200 }
-            );
-        }
-        return new Response(
-            JSON.stringify({
-                message: error.message,
-            }),
-            { status: 500 }
-        );
+    if (existing && name) {
+        await supabase.from('subscribers').update({ name }).eq('email', email);
     }
 
     try {
-        await sendSubscriberJourneyEmail({
+        await sendOwnerNotification({
             email,
             name,
             source,
-            tracking,
-            status: "new",
+            status: existing ? 'existing' : 'new',
+            sessionId: tracking.sessionId,
+            submittedAt,
+            request,
         });
-    } catch (trackingEmailError) {
-        console.error("Failed to send subscriber tracking email (new):", trackingEmailError);
+    } catch (error) {
+        console.error('[subscribe] Owner notification failed:', error);
     }
 
-    // Send Welcome Email
     try {
-        await resend.emails.send({
-            from: 'Abodid Sahoo <newsletter@abodid.com>',
-            to: email,
-            bcc: getOwnerBcc(email),
-            subject: 'Welcome to the tribe.',
-            html: `
-            <div style="font-family: Inter, 'Google Sans', 'Helvetica Neue', Arial, sans-serif; max-width: 660px; margin: 0 auto; color: #1f1f1f; background: #f7f7f7; padding: 24px;">
-                <div style="background: linear-gradient(100deg, #dff3ff, #efe7ff, #ffeecf); border-radius: 14px; border: 1px solid #e5e1d7; padding: 20px 22px;">
-                    <h1 style="margin: 0; font-size: 24px; line-height: 1.25; color: #202124;">Welcome to the tribe.</h1>
-                    <p style="margin: 12px 0 0; font-size: 14px; line-height: 1.6; color: #3c4043;">
-                        Thank you for subscribing! You are now part of a circle that values curated knowledge and creative inspiration.
-                        Keep an eye on your inbox for the next email with a curated list of resources.
-                    </p>
-                </div>
-
-                <div style="background: #ffffff; border: 1px solid #e5e1d7; border-radius: 14px; padding: 18px 20px; margin-top: 14px;">
-                    <div style="margin-bottom: 20px;">
-                        <a href="https://abodid.com/resources" style="display: inline-block; background: #111111; color: #ffffff; border: 1px solid #000000; border-radius: 10px; padding: 10px 18px; font-size: 13px; text-decoration: none; font-weight: 600;">
-                            Explore Resources Hub
-                        </a>
-                    </div>
-                    <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-                    <p style="margin: 0 0 6px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: #5f6368;">Share a Resource</p>
-                    <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #3c4043;">
-                        <strong>Have an amazing resource in mind?</strong><br>
-                        If you have a podcast, movie, website link, or YouTube channel that has been life-changing for you, I'd love for you to share it.
-                    </p>
-                    <p style="margin: 12px 0 0; font-size: 14px;">
-                        <a href="https://abodid.com/login" style="color: #a30021; text-decoration: underline;">Log in as a curator</a> to add your favorite resource.
-                    </p>
-                </div>
-            </div>
-            `
-        });
-    } catch (emailError) {
-        console.error("Failed to send welcome email:", emailError);
-        // We ensure the subscription still succeeds even if email fails
+        await sendWelcomeEmail({ email, name, existing });
+    } catch (error) {
+        console.error('[subscribe] Subscriber welcome email failed:', error);
     }
 
-    return new Response(
-        JSON.stringify({
-            message: "Successfully subscribed!",
-        }),
-        { status: 200 }
-    );
+    return new Response(JSON.stringify({
+        message: existing
+            ? "You're already on the list! We've updated your details."
+            : 'Successfully subscribed!',
+        isUpdate: existing,
+    }), { status: 200 });
 };

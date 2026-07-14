@@ -21,7 +21,9 @@ import {
     Images,
     LayoutDashboard,
     Library,
+    LogOut,
     Mail,
+    Menu,
     PenLine,
     ScanSearch,
     Globe2,
@@ -31,6 +33,7 @@ import {
     Sunset,
     Tags,
     UsersRound,
+    X,
 } from 'lucide-react';
 
 const SECTIONS = [
@@ -114,6 +117,7 @@ export default function AdminDashboard() {
     const [connectionError, setConnectionError] = useState(null);
     const [showResourceModal, setShowResourceModal] = useState(false);
     const [refreshTrigger, setRefreshTrigger] = useState(0);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
 
     useEffect(() => {
         console.log("AdminDashboard: Mounted");
@@ -185,12 +189,15 @@ export default function AdminDashboard() {
             checkAuth();
 
             // Listen for auth changes
-            const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-                if (_event === 'SIGNED_OUT') {
+            const { data: { subscription } } = supabase.auth.onAuthStateChange((event, nextSession) => {
+                if (event === 'SIGNED_OUT') {
                     setSession(null);
                     window.location.href = '/admin/login';
-                } else if (_event === 'SIGNED_IN' && session) {
-                    setSession(session);
+                } else if (nextSession) {
+                    // Keep API consumers in sync when Supabase rotates the JWT.
+                    // Without this, the admin shell remains signed in while child
+                    // sections continue sending an expired access token.
+                    setSession(nextSession);
                 }
             });
 
@@ -201,8 +208,63 @@ export default function AdminDashboard() {
         }
     }, []);
 
+    useEffect(() => {
+        const standalone =
+            window.matchMedia('(display-mode: standalone)').matches ||
+            window.navigator.standalone === true;
+
+        const maximizeTimer = window.setTimeout(() => {
+            if (!standalone) return;
+
+            const { availWidth, availHeight } = window.screen;
+            if (availWidth !== window.outerWidth || availHeight !== window.outerHeight) {
+                try {
+                    window.moveTo(window.screen.availLeft ?? 0, window.screen.availTop ?? 0);
+                    window.resizeTo(availWidth, availHeight);
+                } catch (_error) {
+                    // Chrome can deny window management; it will retain the last PWA window size.
+                }
+            }
+        }, 0);
+
+        const handleKey = (event) => {
+            if (event.key === 'Escape') {
+                setSidebarOpen(false);
+                return;
+            }
+
+            if (!event.repeat && (event.metaKey || event.ctrlKey) && event.key === 'Enter') {
+                event.preventDefault();
+                if (!document.fullscreenElement) {
+                    const request = document.documentElement.requestFullscreen?.();
+                    request?.catch(() => {});
+                } else {
+                    const exit = document.exitFullscreen?.();
+                    exit?.catch(() => {});
+                }
+            }
+        };
+
+        const desktopQuery = window.matchMedia('(min-width: 1025px)');
+        const handleDesktopChange = (event) => {
+            if (event.matches) setSidebarOpen(false);
+        };
+
+        document.addEventListener('keydown', handleKey);
+        desktopQuery.addEventListener('change', handleDesktopChange);
+
+        return () => {
+            window.clearTimeout(maximizeTimer);
+            document.removeEventListener('keydown', handleKey);
+            desktopQuery.removeEventListener('change', handleDesktopChange);
+        };
+    }, []);
+
     const handleNav = (id) => {
         setActiveSection(id);
+        if (window.matchMedia('(max-width: 1024px)').matches) {
+            setSidebarOpen(false);
+        }
         const url = new URL(window.location);
         url.searchParams.set('section', id);
         url.searchParams.delete('action');
@@ -266,11 +328,32 @@ export default function AdminDashboard() {
     }
 
     return (
-        <div className="admin-layout">
+        <div className={`admin-layout ${sidebarOpen ? 'sidebar-open' : ''}`}>
+            <button
+                type="button"
+                className="sidebar-backdrop"
+                aria-label="Close admin navigation"
+                tabIndex={sidebarOpen ? 0 : -1}
+                onClick={() => setSidebarOpen(false)}
+            />
+
             {/* Sidebar Navigation */}
-            <aside className="sidebar">
+            <aside id="admin-sidebar" className={`sidebar ${sidebarOpen ? 'is-open' : ''}`}>
                 <div className="sidebar-header">
                     <h1 className="brand-title">Admin Panel</h1>
+                    <button
+                        type="button"
+                        className="sidebar-toggle"
+                        aria-controls="admin-sidebar"
+                        aria-expanded={sidebarOpen}
+                        aria-label={sidebarOpen ? 'Collapse admin navigation' : 'Expand admin navigation'}
+                        title={sidebarOpen ? 'Collapse navigation' : 'Expand navigation'}
+                        onClick={() => setSidebarOpen((open) => !open)}
+                    >
+                        {sidebarOpen
+                            ? <X size={19} strokeWidth={1.8} aria-hidden="true" />
+                            : <Menu size={19} strokeWidth={1.8} aria-hidden="true" />}
+                    </button>
                 </div>
 
                 <nav className="sidebar-nav">
@@ -281,6 +364,8 @@ export default function AdminDashboard() {
                             onClick={() => handleNav(section.id)}
                             className={`nav-item ${activeSection === section.id ? 'active' : ''}`}
                             aria-current={activeSection === section.id ? 'page' : undefined}
+                            aria-label={section.label}
+                            title={section.label}
                         >
                             <span className="nav-icon" aria-hidden="true"><LineIcon icon={section.icon} /></span>
                             <span className="nav-label">{section.label}</span>
@@ -289,12 +374,13 @@ export default function AdminDashboard() {
                 </nav>
 
                 <div className="sidebar-footer">
-                    <a href="/resources/dashboard" className="btn-curator-link">
+                    <a href="/resources/dashboard" className="btn-curator-link" aria-label="Curator Dashboard">
                         <Library size={15} strokeWidth={1.7} aria-hidden="true" />
-                        Curator Dashboard
+                        <span>Curator Dashboard</span>
                     </a>
-                    <button onClick={handleLogout} className="btn-logout-sidebar">
-                        Sign Out
+                    <button onClick={handleLogout} className="btn-logout-sidebar" aria-label="Sign out">
+                        <LogOut size={15} strokeWidth={1.7} aria-hidden="true" />
+                        <span>Sign Out</span>
                     </button>
                 </div>
             </aside>
@@ -497,7 +583,11 @@ export default function AdminDashboard() {
                     left: 0; top: 0;
                     box-sizing: border-box;
                     z-index: 50;
+                    transition: width 0.22s ease, box-shadow 0.22s ease;
                 }
+
+                .sidebar-backdrop,
+                .sidebar-toggle { display: none; }
 
                 .sidebar-header { 
                     height: auto;
@@ -543,6 +633,7 @@ export default function AdminDashboard() {
                     width: 100%; padding: 0.65rem; background: transparent; border: 1px solid var(--border-strong);
                     color: var(--text-primary); border-radius: 7px; cursor: pointer; font-weight: 600;
                     text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.68rem; transition: all 0.2s;
+                    display: flex; align-items: center; justify-content: center; gap: 0.45rem;
                 }
                 .btn-logout-sidebar:hover { background: var(--text-primary); color: var(--bg-color); }
 
@@ -839,7 +930,47 @@ export default function AdminDashboard() {
                     .world-clock-item { padding: 1rem; }
                 }
                 @media (max-width: 1024px) {
-                    :root { --sidebar-width: 220px; }
+                    :root { --sidebar-width: 72px; }
+                    .sidebar {
+                        width: var(--sidebar-width); overflow: hidden;
+                        box-shadow: none;
+                    }
+                    .sidebar.is-open {
+                        width: min(286px, calc(100vw - 1rem));
+                        box-shadow: 20px 0 45px rgba(0, 0, 0, 0.3);
+                    }
+                    .sidebar-backdrop {
+                        display: block; position: fixed; inset: 0; z-index: 45;
+                        border: 0; background: rgba(0, 0, 0, 0.5); opacity: 0;
+                        pointer-events: none; transition: opacity 0.22s ease;
+                    }
+                    .admin-layout.sidebar-open .sidebar-backdrop { opacity: 1; pointer-events: auto; }
+                    .sidebar-header {
+                        min-height: 72px; padding: 1rem; align-items: center; justify-content: center;
+                    }
+                    .brand-title,
+                    .nav-label,
+                    .btn-curator-link span,
+                    .btn-logout-sidebar span { display: none; }
+                    .sidebar.is-open .brand-title,
+                    .sidebar.is-open .nav-label,
+                    .sidebar.is-open .btn-curator-link span,
+                    .sidebar.is-open .btn-logout-sidebar span { display: inline; }
+                    .sidebar.is-open .sidebar-header { justify-content: space-between; padding: 1rem 1.25rem; }
+                    .sidebar-toggle {
+                        display: grid; width: 38px; height: 38px; flex: 0 0 38px; place-items: center;
+                        padding: 0; border: 1px solid var(--border-subtle); border-radius: 9px;
+                        background: var(--bg-color); color: var(--text-primary); cursor: pointer;
+                    }
+                    .sidebar-toggle:hover { background: var(--bg-surface-hover); }
+                    .sidebar-toggle:focus-visible { outline: 2px solid var(--border-focus); outline-offset: 2px; }
+                    .sidebar-nav { gap: 0.3rem; padding: 0 0.75rem; overflow-x: hidden; }
+                    .nav-item { width: 100%; min-height: 44px; justify-content: center; gap: 0.7rem; padding: 0.6rem; }
+                    .sidebar.is-open .nav-item { justify-content: flex-start; padding-inline: 0.75rem; }
+                    .nav-icon { width: 22px; flex: 0 0 22px; }
+                    .sidebar-footer { padding: 0.75rem; }
+                    .btn-curator-link,
+                    .btn-logout-sidebar { min-height: 42px; padding: 0.6rem; }
                     .main-content { padding: 1.5rem; }
                     .main-content.dashboard-main { height: auto; min-height: 100vh; overflow: visible; padding: 1.5rem; }
                     .dashboard-main .content-body { height: auto; }
@@ -850,38 +981,25 @@ export default function AdminDashboard() {
                     .world-clock-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
                     .dashboard-launch-section { align-items: flex-start; }
                 }
-                @media (max-width: 768px) {
-                    .admin-layout { flex-direction: column; }
-                    .sidebar {
-                        position: relative; width: 100%; height: auto; border-right: none;
-                        border-bottom: 1px solid var(--border-subtle); padding: 1.25rem;
-                    }
-                    .sidebar-header {
-                        height: auto; min-height: 3rem; margin-top: 0; padding: 0 3.5rem 0 0;
-                    }
-                    .brand-title { font-size: 1.75rem; }
-                    .sidebar-nav {
-                        display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.75rem;
-                        flex: none; overflow: visible; padding: 0;
-                    }
-                    .nav-item {
-                        width: 100%; min-height: 3.5rem; justify-content: flex-start;
-                        box-sizing: border-box; padding: 0.9rem 1rem;
-                        border-color: var(--border-subtle); border-radius: 8px;
-                        background: var(--bg-color);
-                    }
-                    .nav-item:hover,
-                    .nav-item:focus-visible { border-color: var(--border-strong); outline: none; }
-                    .nav-item.active { border-color: var(--border-strong); }
-                    .nav-icon { width: 1.75rem; flex: 0 0 1.75rem; }
-                    .nav-label { min-width: 0; }
-                    .sidebar-footer { margin-top: 1.25rem; padding: 1.25rem 0 0; }
-                    .main-content { width: 100%; flex-basis: 100%; margin-left: 0; padding: 1rem; }
+                @media (max-width: 899px) {
+                    :root { --sidebar-width: 60px; }
+                    .sidebar-header { min-height: 64px; padding: 0.7rem; }
+                    .sidebar.is-open { width: min(292px, calc(100vw - 0.75rem)); }
+                    .sidebar-nav { padding-inline: 0.5rem; }
+                    .sidebar-footer { padding: 0.5rem; }
+                    .main-content { padding: 1rem; }
                     .main-content.dashboard-main { padding: 1rem; }
                     .quick-actions-grid { grid-template-columns: 1fr; }
                     .world-clock-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
                     .destination-actions { align-items: stretch; }
                     .destination-card { flex: 1 1 100%; min-height: 48px; }
+                }
+                @media (max-width: 560px) {
+                    .world-clock-grid { grid-template-columns: 1fr; }
+                    .world-clock-item { aspect-ratio: auto; min-height: 180px; }
+                    .list-row-card { align-items: flex-start; gap: 1rem; padding: 1rem; }
+                    .row-main-info { align-items: flex-start; flex-direction: column; gap: 0.6rem; }
+                    .row-actions { margin-left: 0; }
                 }
             `}</style>
         </div>
