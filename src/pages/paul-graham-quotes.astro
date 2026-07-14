@@ -1,0 +1,365 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import PaulGrahamQuoteDeck from "../components/PaulGrahamQuoteDeck.jsx";
+
+const pageTitle = "Paul Graham’s Quotes Box | Abodid Sahoo";
+const pageDescription =
+  "A simple, tactile box of quotations collected by Paul Graham.";
+---
+
+<BaseLayout
+  title={pageTitle}
+  description={pageDescription}
+  bodyClass="paul-graham-quotes-page"
+  fullWidth={true}
+  hideFooter={true}
+  showNewsletterPopup={false}
+  useDynamicOgImage={false}
+>
+  <PaulGrahamQuoteDeck client:load />
+</BaseLayout>
+
+<style is:global>
+  html:has(body.paul-graham-quotes-page) {
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+    background: #1e1e1e;
+  }
+
+  body.paul-graham-quotes-page {
+    --bg-canvas: #1e1e1e;
+    --bg-color: #1e1e1e;
+    --text-primary: #f7f5ef;
+    --text-secondary: rgba(247, 245, 239, 0.72);
+    --text-tertiary: rgba(247, 245, 239, 0.5);
+    --grid-color-1: rgba(255, 255, 255, 0.1);
+    --grid-color-2: rgba(255, 255, 255, 0.035);
+    min-width: 320px;
+    height: 100svh;
+    min-height: 0;
+    overflow: hidden;
+    overscroll-behavior: none;
+    background: #1e1e1e;
+  }
+
+  html[data-theme="light"]:has(body.paul-graham-quotes-page),
+  html[data-theme="light"] body.paul-graham-quotes-page {
+    --bg-canvas: #f9f8f3;
+    --bg-color: #f9f8f3;
+    --text-primary: #1a1917;
+    --text-secondary: rgba(26, 25, 23, 0.72);
+    --text-tertiary: rgba(26, 25, 23, 0.52);
+    --grid-color-1: rgba(42, 37, 29, 0.095);
+    --grid-color-2: rgba(42, 37, 29, 0.035);
+    background: #f9f8f3;
+  }
+
+  body.paul-graham-quotes-page .global-grid-bg {
+    opacity: 0.72;
+  }
+
+  body.paul-graham-quotes-page .global-glow-bg {
+    opacity: 0.46;
+  }
+
+  body.paul-graham-quotes-page .page-content-full {
+    flex: 1 1 auto;
+    height: auto;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .quote-drawer {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    flex-direction: column;
+    padding: clamp(24px, 5svh, 44px) var(--page-gutter) clamp(12px, 2svh, 24px);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+  }
+
+  .quote-drawer__intro {
+    flex: 0 0 auto;
+    width: min(800px, 100%);
+    margin: 0 auto clamp(14px, 2.4svh, 24px);
+    text-align: center;
+  }
+
+  .quote-drawer h1 {
+    margin: 0;
+    color: var(--text-primary);
+    font-family: var(--font-h1);
+    font-size: clamp(2rem, 1.35rem + 2vw, 3.55rem);
+    font-weight: 700;
+    letter-spacing: -0.045em;
+    line-height: 1;
+    text-wrap: balance;
+  }
+
+  .quote-deck {
+    --card-radius: 26px;
+    --stack-depth: 32px;
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: 672px;
+    width: calc(100vw - 24px);
+    max-width: 100%;
+    margin: 0 auto;
+    outline: none;
+  }
+
+  .quote-deck__stage {
+    position: relative;
+    height: 100%;
+    isolation: isolate;
+    overflow: hidden;
+    border-radius: var(--card-radius);
+  }
+
+  .quote-card {
+    position: absolute;
+    inset: 0 0 auto;
+    display: flex;
+    width: 100%;
+    height: calc(100% - var(--stack-depth));
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+    border-radius: var(--card-radius);
+    outline: none;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+    transform-origin: center top;
+    will-change: transform, opacity;
+  }
+
+  .quote-card--current {
+    box-shadow: 0 22px 70px rgba(0, 0, 0, 0.28);
+    cursor: pointer;
+  }
+
+  .quote-card--next,
+  .quote-card--queued,
+  .quote-card--incoming {
+    pointer-events: none;
+    box-shadow: 0 12px 34px rgba(0, 0, 0, 0.2);
+  }
+
+  .quote-card--current:focus-visible,
+  .quote-card__next:focus-visible,
+  .quote-card__scroller:focus-visible {
+    outline: 4px solid #ffffff;
+    outline-offset: -8px;
+    box-shadow:
+      0 0 0 2px #111111,
+      0 22px 70px rgba(0, 0, 0, 0.3);
+  }
+
+  .quote-card__content {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    flex-direction: column;
+    padding: clamp(28px, 5vw, 62px);
+  }
+
+  .quote-card__content.is-preview {
+    pointer-events: none;
+  }
+
+  .quote-card__scroller {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    align-items: center;
+    overflow: hidden;
+    scrollbar-color: currentColor transparent;
+    scrollbar-width: thin;
+  }
+
+  .quote-card__scroller.is-scrollable {
+    align-items: flex-start;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-right: 10px;
+    touch-action: pan-y;
+  }
+
+  .quote-card blockquote {
+    width: 100%;
+    margin: 0;
+    color: inherit;
+    font-family: var(--font-h1);
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.035em;
+    line-height: 28px;
+    white-space: pre-line;
+    text-wrap: pretty;
+  }
+
+  .quote-card[data-size-index="0"] blockquote {
+    font-size: 30px;
+    line-height: 36px;
+  }
+
+  .quote-card[data-size-index="1"] blockquote {
+    font-size: 28px;
+    line-height: 34px;
+  }
+
+  .quote-card[data-size-index="2"] blockquote {
+    font-size: 24px;
+    line-height: 31px;
+  }
+
+  .quote-card[data-size-index="3"] blockquote {
+    font-size: 20px;
+    line-height: 27px;
+  }
+
+  .quote-card[data-size-index="4"] blockquote {
+    font-size: 18px;
+    line-height: 25px;
+  }
+
+  .quote-card__attribution {
+    position: relative;
+    flex: 0 0 auto;
+    max-width: calc(100% - 92px);
+    margin-top: clamp(22px, 4vh, 42px);
+    padding-top: clamp(16px, 2.5vh, 24px);
+    border-top: 1px solid color-mix(in srgb, currentColor 24%, transparent);
+  }
+
+  .quote-card__author {
+    margin: 0;
+    color: inherit;
+    font-size: clamp(1rem, 0.92rem + 0.3vw, 1.18rem);
+    font-weight: 500;
+    letter-spacing: -0.015em;
+    line-height: 1.3;
+  }
+
+  .quote-card__metadata {
+    margin: 5px 0 0;
+    color: color-mix(in srgb, currentColor 68%, transparent);
+    font-size: clamp(0.76rem, 0.72rem + 0.2vw, 0.88rem);
+    font-weight: 400;
+    line-height: 1.35;
+  }
+
+  .quote-card__next {
+    position: absolute;
+    z-index: 6;
+    right: clamp(24px, 4vw, 48px);
+    bottom: calc(var(--stack-depth) + clamp(24px, 4vw, 46px));
+    display: inline-flex;
+    width: 52px;
+    height: 52px;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 1px solid color-mix(in srgb, currentColor 34%, transparent);
+    border-radius: 50%;
+    background: color-mix(in srgb, currentColor 9%, transparent);
+    color: inherit;
+    cursor: pointer;
+  }
+
+  .quote-card__next span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .quote-card__next svg {
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
+  }
+
+  @media (min-width: 600px) {
+    .quote-deck {
+      --card-radius: 32px;
+      width: min(720px, calc(100vw - 56px));
+    }
+
+    .quote-card[data-size-index="0"] blockquote {
+      font-size: 40px;
+      line-height: 48px;
+    }
+
+    .quote-card[data-size-index="1"] blockquote {
+      font-size: 34px;
+      line-height: 42px;
+    }
+
+    .quote-card[data-size-index="2"] blockquote {
+      font-size: 28px;
+      line-height: 36px;
+    }
+
+    .quote-card[data-size-index="3"] blockquote {
+      font-size: 23px;
+      line-height: 31px;
+    }
+
+    .quote-card[data-size-index="4"] blockquote {
+      font-size: 20px;
+      line-height: 28px;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .quote-deck {
+      --card-radius: 40px;
+      width: clamp(600px, 54vw, 800px);
+    }
+  }
+
+  @media (max-width: 599px) {
+    .quote-drawer {
+      padding-right: 12px;
+      padding-left: 12px;
+    }
+
+    .quote-drawer__intro {
+      padding: 0 12px;
+    }
+
+    .quote-card__content {
+      padding: 28px 24px 24px;
+    }
+
+    .quote-card__attribution {
+      max-width: calc(100% - 72px);
+    }
+
+    .quote-card__next {
+      right: 22px;
+      bottom: calc(var(--stack-depth) + 22px);
+      width: 46px;
+      height: 46px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .quote-card {
+      scroll-behavior: auto;
+    }
+  }
+</style>
