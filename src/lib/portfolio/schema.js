@@ -213,7 +213,13 @@ export function updateCollaboratorDraft(item, patch, createId = () => globalThis
 }
 
 export function markCollaboratorsPublished(collaborators = []) {
-  return collaborators.map(({ _identityEditable: _discarded, ...collaborator }) => collaborator);
+  return collaborators.map(({ _identityEditable, ...collaborator }) => ({
+    ...collaborator,
+    ...(_identityEditable ? {
+      primaryUrl: normalizePortfolioHref(collaborator.primaryUrl) || String(collaborator.primaryUrl || "").trim(),
+      secondaryUrl: normalizePortfolioHref(collaborator.secondaryUrl) || String(collaborator.secondaryUrl || "").trim(),
+    } : {}),
+  }));
 }
 
 export function orderPortfolioRevisionHistory(revisions = [], publishedRevisionId) {
@@ -351,10 +357,18 @@ export function toSavePayload(draft) {
       position,
     })),
     organisations: (draft.organisations || []).map((item, displayOrder) => ({ ...item, url: normalizePortfolioHref(item.url) || String(item.url || "").trim(), displayOrder })),
-    collaborators: (draft.collaborators || []).map(({ _identityEditable: _discarded, ...item }, displayOrder) => ({
+    collaborators: (draft.collaborators || []).map(({ _identityEditable, ...item }, displayOrder) => ({
       ...item,
-      primaryUrl: normalizePortfolioHref(item.primaryUrl) || String(item.primaryUrl || "").trim(),
-      secondaryUrl: normalizePortfolioHref(item.secondaryUrl) || String(item.secondaryUrl || "").trim(),
+      // Published collaborator identities are immutable. Preserve their legacy
+      // URL spelling exactly so an unrelated draft save does not look like an
+      // identity edit. New or explicitly edited identities have already been
+      // forked and can be safely normalised.
+      primaryUrl: _identityEditable
+        ? normalizePortfolioHref(item.primaryUrl) || String(item.primaryUrl || "").trim()
+        : String(item.primaryUrl || ""),
+      secondaryUrl: _identityEditable
+        ? normalizePortfolioHref(item.secondaryUrl) || String(item.secondaryUrl || "").trim()
+        : String(item.secondaryUrl || ""),
       displayOrder,
     })),
     links: (draft.links || []).map((item, displayOrder) => ({ ...item, url: normalizePortfolioHref(item.url) || String(item.url || "").trim(), displayOrder })),

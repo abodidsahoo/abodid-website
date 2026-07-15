@@ -102,12 +102,15 @@ test("responsive preview mirrors the limited WIP public projection", () => {
 
 test("collaborator identity is stable across saves and forks only when published identity fields change", () => {
   const added = createEmptyCollaborator("new-collaborator");
-  const typed = updateCollaboratorDraft(added, { name: "New collaborator" }, () => "unused-id");
+  const typed = updateCollaboratorDraft(added, { name: "New collaborator", primaryUrl: "new.example.com" }, () => "unused-id");
   assert.equal(typed.id, "new-collaborator");
 
-  const loaded = { id: "published-collaborator", name: "Original name", roleLabel: "Director", primaryUrl: "", secondaryUrl: "", organisation: "" };
+  const loaded = { id: "published-collaborator", name: "Original name", roleLabel: "Director", primaryUrl: "legacy.example.com", secondaryUrl: "", organisation: "" };
   const roleEdit = updateCollaboratorDraft(loaded, { roleLabel: "Producer" }, () => "unused-id");
   assert.equal(roleEdit.id, "published-collaborator");
+  const roleEditPayload = toSavePayload({ blocks: [], taxonomies: [], organisations: [], collaborators: [roleEdit], links: [] });
+  assert.equal(roleEditPayload.collaborators[0].primaryUrl, "legacy.example.com");
+  assert.equal(markCollaboratorsPublished([roleEdit])[0].primaryUrl, "legacy.example.com");
 
   const identityEdit = updateCollaboratorDraft(loaded, { name: "Updated name" }, () => "forked-collaborator");
   assert.equal(identityEdit.id, "forked-collaborator");
@@ -117,8 +120,14 @@ test("collaborator identity is stable across saves and forks only when published
 
   const payload = toSavePayload({ blocks: [], taxonomies: [], organisations: [], collaborators: [continuedEdit], links: [] });
   assert.equal(payload.collaborators[0].id, "forked-collaborator");
+  assert.equal(payload.collaborators[0].primaryUrl, "https://legacy.example.com/");
   assert.equal(Object.hasOwn(payload.collaborators[0], "_identityEditable"), false);
-  assert.equal(Object.hasOwn(markCollaboratorsPublished([continuedEdit])[0], "_identityEditable"), false);
+  const published = markCollaboratorsPublished([continuedEdit])[0];
+  assert.equal(published.primaryUrl, "https://legacy.example.com/");
+  assert.equal(Object.hasOwn(published, "_identityEditable"), false);
+
+  const addedPayload = toSavePayload({ blocks: [], taxonomies: [], organisations: [], collaborators: [typed], links: [] });
+  assert.equal(addedPayload.collaborators[0].primaryUrl, "https://new.example.com/");
 });
 
 test("revision history keeps the current live revision first and includes archived publications", () => {
