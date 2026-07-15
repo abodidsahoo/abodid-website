@@ -50,6 +50,18 @@ const EMPTY_REPORT = {
     pages: [],
     journeys: [],
     commonJourneys: [],
+    navigation: {
+        summary: {
+            opens: 0,
+            selections: 0,
+            dismissals: 0,
+            socialClicks: 0,
+            ctaClicks: 0,
+            selectionRate: 0,
+        },
+        links: [],
+        countries: [],
+    },
 };
 
 const CHART_COLOURS = [
@@ -318,6 +330,11 @@ export default function AnalyticsDashboard({ accessToken }) {
                     event: '*',
                     schema: 'public',
                     table: 'analytics_page_views',
+                }, queueRefresh)
+                .on('postgres_changes', {
+                    event: '*',
+                    schema: 'public',
+                    table: 'analytics_events',
                 }, queueRefresh)
                 .subscribe((status) => {
                     if (status === 'SUBSCRIBED') setRealtimeStatus('live');
@@ -633,6 +650,105 @@ export default function AnalyticsDashboard({ accessToken }) {
                                     </div>
                                 </section>
                             </div>
+
+                            <section className="analytics-panel analytics-navigation-panel">
+                                <div className="analytics-panel-heading">
+                                    <div>
+                                        <h3>Mobile menu performance</h3>
+                                        <p>Selections, exits and destination preference after visitors open the mobile menu.</p>
+                                    </div>
+                                    <span>
+                                        {formatNumber(report.navigation?.summary?.ctaClicks)} Hire Me ·{' '}
+                                        {formatNumber(report.navigation?.summary?.socialClicks)} social
+                                    </span>
+                                </div>
+
+                                <div className="analytics-navigation-metrics">
+                                    <div>
+                                        <strong>{formatNumber(report.navigation?.summary?.opens)}</strong>
+                                        <span>Menu opens</span>
+                                    </div>
+                                    <div>
+                                        <strong>{formatNumber(report.navigation?.summary?.selections)}</strong>
+                                        <span>Link selections</span>
+                                    </div>
+                                    <div>
+                                        <strong>{Number(report.navigation?.summary?.selectionRate || 0).toFixed(1)}%</strong>
+                                        <span>Selection rate</span>
+                                    </div>
+                                    <div>
+                                        <strong>{formatNumber(report.navigation?.summary?.dismissals)}</strong>
+                                        <span>Closed without selecting</span>
+                                    </div>
+                                </div>
+
+                                <div className="analytics-navigation-grid">
+                                    <div className="analytics-table-wrap">
+                                        <table className="analytics-navigation-table">
+                                            <caption>Selected mobile-menu destinations</caption>
+                                            <thead>
+                                                <tr>
+                                                    <th scope="col">Destination</th>
+                                                    <th scope="col">Type</th>
+                                                    <th scope="col">Clicks</th>
+                                                    <th scope="col">Visitors</th>
+                                                    <th scope="col">Share</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {(report.navigation?.links || []).length ? (
+                                                    report.navigation.links.map((link) => (
+                                                        <tr key={`${link.type}-${link.label}-${link.url}`}>
+                                                            <th scope="row">
+                                                                <span>{link.label}</span>
+                                                                <small>{link.url}</small>
+                                                            </th>
+                                                            <td><span className={`analytics-navigation-type is-${link.type || 'link'}`}>{link.type || 'link'}</span></td>
+                                                            <td>{formatNumber(link.clicks)}</td>
+                                                            <td>{formatNumber(link.visitors)}</td>
+                                                            <td>{Number(link.share || 0).toFixed(1)}%</td>
+                                                        </tr>
+                                                    ))
+                                                ) : (
+                                                    <tr>
+                                                        <td colSpan="5" className="analytics-table-empty">No mobile-menu selections in this period.</td>
+                                                    </tr>
+                                                )}
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <div className="analytics-table-wrap">
+                                        <table className="analytics-navigation-table analytics-navigation-country-table">
+                                            <caption>Mobile-menu activity by country</caption>
+                                            <thead>
+                                                <tr>
+                                                    <th scope="col">Country</th>
+                                                    <th scope="col">Opens</th>
+                                                    <th scope="col">Selections</th>
+                                                    <th scope="col">Rate</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {(report.navigation?.countries || []).length ? (
+                                                    report.navigation.countries.map((country) => (
+                                                        <tr key={country.country}>
+                                                            <th scope="row">{formatCountry(country.country)}</th>
+                                                            <td>{formatNumber(country.opens)}</td>
+                                                            <td>{formatNumber(country.selections)}</td>
+                                                            <td>{Number(country.selectionRate || 0).toFixed(1)}%</td>
+                                                        </tr>
+                                                    ))
+                                                ) : (
+                                                    <tr>
+                                                        <td colSpan="4" className="analytics-table-empty">No country-level menu activity yet.</td>
+                                                    </tr>
+                                                )}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </section>
 
                             <section className="analytics-panel analytics-pages-panel">
                                 <div className="analytics-panel-heading">

@@ -513,6 +513,34 @@
     resumeEngagement();
   }
 
+  function trackMenuEvent(event) {
+    var allowedEvents = ["menu_open", "menu_dismiss", "menu_link_click"];
+    var eventName = analyticsCleanString(event && event.eventName || "", 40);
+    if (allowedEvents.indexOf(eventName) === -1) return Promise.resolve();
+
+    recordInteraction();
+    var eventId = createUuid();
+    if (!eventId) return Promise.resolve();
+
+    var payload = {
+      action: "menu_event",
+      eventId: eventId,
+      eventName: eventName,
+      sessionId: sessionId,
+      pageViewId: pageViewId,
+      pagePath: pathname,
+      menuContext: analyticsCleanString(event && event.menuContext || "", 20),
+      targetLabel: analyticsCleanString(event && event.targetLabel || "", 120),
+      targetUrl: analyticsCleanString(event && event.targetUrl || "", 500),
+      targetType: analyticsCleanString(event && event.targetType || "", 30),
+      position: Math.max(0, Math.min(100, Math.round(Number(event && event.position) || 0))),
+    };
+
+    return Promise.resolve(sessionOpenPromise).then(function () {
+      return sendAnalyticsPayload(payload, eventName === "menu_link_click");
+    });
+  }
+
   ["pointerdown", "keydown", "scroll", "touchstart"].forEach(function (eventName) {
     window.addEventListener(eventName, recordInteraction, { passive: true });
   });
@@ -547,6 +575,7 @@
 
   window.__abodidAnalytics = {
     getSessionId: function () { return sessionId; },
+    trackMenuEvent: trackMenuEvent,
     prepareSubmission: function () {
       if (Date.now() - Number(nextState.lastActivityAt || 0) > SESSION_TIMEOUT_MS) {
         startFreshSession();
@@ -557,6 +586,13 @@
       });
     },
   };
+
+  var queuedAnalyticsEvents = Array.isArray(window.__abodidAnalyticsQueue)
+    ? window.__abodidAnalyticsQueue.splice(0)
+    : [];
+  queuedAnalyticsEvents.forEach(function (event) {
+    trackMenuEvent(event);
+  });
 
   resumeEngagement();
 })();

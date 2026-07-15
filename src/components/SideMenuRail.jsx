@@ -15,6 +15,16 @@ const primaryLinks = [
   { href: "/about", label: "About" },
 ];
 
+const mobilePrimaryLinks = [
+  { href: "/work", label: "Work" },
+  { href: "/about", label: "About" },
+  { href: "/research", label: "Research" },
+  { href: "/blog", label: "Writing" },
+  { href: "/contact", label: "Contact" },
+];
+
+const mobileCtaLink = { href: "/services", label: "Hire Me" };
+
 const secondaryGroups = [
   {
     title: "Resources",
@@ -100,6 +110,233 @@ const socialLinks = [
     : null,
 ].filter(Boolean);
 
+const mobileSocialLinks = socialLinks.filter((link) =>
+  ["Instagram", "LinkedIn"].includes(link.label),
+);
+
+const mobileMenuAnimationItemCount = mobilePrimaryLinks.length + 2;
+
+const mobileMenuItemVariants = {
+  hidden: (index = 0) => ({
+    opacity: 0,
+    y: 16,
+    transition: {
+      duration: 0.18,
+      delay: Math.max(
+        0,
+        (mobileMenuAnimationItemCount - 1 - index) * 0.025,
+      ),
+      ease: "easeIn",
+    },
+  }),
+  visible: (index = 0) => ({
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.38,
+      delay: 0.08 + index * 0.055,
+      ease,
+    },
+  }),
+};
+
+const queueMenuAnalyticsEvent = (event) => {
+  if (typeof window === "undefined") return;
+
+  const payload = {
+    ...event,
+    menuContext: window.matchMedia("(max-width: 768px)").matches
+      ? "mobile"
+      : "desktop",
+  };
+
+  if (typeof window.__abodidAnalytics?.trackMenuEvent === "function") {
+    window.__abodidAnalytics.trackMenuEvent(payload);
+    return;
+  }
+
+  window.__abodidAnalyticsQueue = window.__abodidAnalyticsQueue || [];
+  window.__abodidAnalyticsQueue.push(payload);
+};
+
+const sharedMobileMenuStyles = `
+  .side-menu-desktop-content {
+    display: contents;
+  }
+
+  .side-menu-mobile-content {
+    display: none;
+  }
+
+  @media (max-width: 768px) {
+    .side-menu-desktop-content {
+      display: none;
+    }
+
+    .side-menu-mobile-content {
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      padding: clamp(1.55rem, 6vw, 2.15rem) clamp(1.15rem, 5vw, 1.75rem)
+        max(1.25rem, env(safe-area-inset-bottom, 0px));
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      background: var(--color-brand-red);
+      color: #ffffff;
+    }
+
+    .side-menu-mobile-content a,
+    .side-menu-mobile-content button {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .side-menu-mobile-links {
+      display: flex;
+      flex-direction: column;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .side-menu-mobile-link {
+      min-height: clamp(58px, 8.2vh, 66px);
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      color: inherit;
+      font-family: var(--font-display);
+      font-size: clamp(2.05rem, 9.4vw, 2.75rem);
+      font-weight: 650;
+      letter-spacing: -0.045em;
+      line-height: 1;
+      text-decoration: none;
+    }
+
+    .side-menu-mobile-link > span {
+      width: 100%;
+      display: flex !important;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .side-menu-mobile-link-number {
+      flex: 0 0 auto;
+      color: rgba(255, 255, 255, 0.5);
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+    }
+
+    .side-menu-mobile-cta {
+      min-height: 56px;
+      margin-top: clamp(1rem, 3.4vh, 1.5rem);
+      padding: 0.8rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      border: 1px solid rgba(255, 255, 255, 0.72);
+      border-radius: 8px;
+      color: #ffffff;
+      font-family: var(--font-ui);
+      font-size: 0.78rem;
+      font-weight: 750;
+      letter-spacing: 0.11em;
+      text-decoration: none;
+      text-transform: uppercase;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    .side-menu-mobile-cta::after {
+      content: "→";
+      font-size: 1rem;
+      line-height: 1;
+    }
+
+    .side-menu-mobile-cta:hover,
+    .side-menu-mobile-cta:focus-visible {
+      background: #ffffff;
+      color: var(--color-brand-red);
+    }
+
+    .side-menu-mobile-connect {
+      margin-top: auto;
+      padding-top: clamp(1rem, 3.4vh, 1.6rem);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .side-menu-mobile-connect-label {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.72);
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .side-menu-mobile-socials {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+    }
+
+    .side-menu-mobile-social-link {
+      width: 48px;
+      height: 48px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(255, 255, 255, 0.34);
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.08);
+      color: #ffffff;
+      text-decoration: none;
+      transition: background 0.2s ease, border-color 0.2s ease,
+        transform 0.2s ease;
+    }
+
+    .side-menu-mobile-social-link:hover,
+    .side-menu-mobile-social-link:focus-visible {
+      border-color: #ffffff;
+      background: rgba(255, 255, 255, 0.14);
+      transform: translateY(-2px);
+    }
+
+    .side-menu-mobile-social-link i {
+      font-size: 1.35rem;
+      line-height: 1;
+    }
+
+    .side-menu-mobile-link:focus-visible,
+    .side-menu-mobile-cta:focus-visible,
+    .side-menu-mobile-social-link:focus-visible {
+      outline: none;
+      box-shadow: none;
+    }
+
+    .side-menu-mobile-link:focus-visible {
+      color: rgba(255, 255, 255, 0.72);
+    }
+
+    .side-menu-mobile-cta:focus-visible {
+      border-color: #ffffff;
+      background: rgba(255, 255, 255, 0.12);
+      color: #ffffff;
+    }
+
+    .side-menu-mobile-social-link:focus-visible {
+      border-color: #ffffff;
+      background: rgba(255, 255, 255, 0.14);
+    }
+  }
+`;
+
 const SideMenuRail = ({
   hideThemeToggle = false,
   altTextLogo = null,
@@ -108,8 +345,50 @@ const SideMenuRail = ({
   const [isOpen, setIsOpen] = useState(false);
   const [headerOffset, setHeaderOffset] = useState(80);
   const progressBarRef = useRef(null);
+  const isOpenRef = useRef(false);
+  const selectedDuringOpenRef = useRef(false);
   const isTopBarLayout = layout === NAVIGATION_LAYOUTS.topBar.id;
   const menuPanelId = isTopBarLayout ? "top-menu-panel" : "side-menu-panel";
+  const mobileMenuCloseDelay =
+    typeof window !== "undefined" &&
+    window.matchMedia("(max-width: 768px)").matches
+      ? 0.2
+      : 0;
+
+  const openMenu = () => {
+    if (isOpenRef.current) return;
+    selectedDuringOpenRef.current = false;
+    isOpenRef.current = true;
+    queueMenuAnalyticsEvent({ eventName: "menu_open" });
+    setIsOpen(true);
+  };
+
+  const closeMenu = () => {
+    if (!isOpenRef.current) return;
+    if (!selectedDuringOpenRef.current) {
+      queueMenuAnalyticsEvent({ eventName: "menu_dismiss" });
+    }
+    isOpenRef.current = false;
+    setIsOpen(false);
+  };
+
+  const toggleMenu = () => {
+    if (isOpenRef.current) closeMenu();
+    else openMenu();
+  };
+
+  const handleMenuLinkClick = (link, targetType, position) => {
+    selectedDuringOpenRef.current = true;
+    queueMenuAnalyticsEvent({
+      eventName: "menu_link_click",
+      targetLabel: link.label,
+      targetUrl: link.href,
+      targetType,
+      position,
+    });
+    isOpenRef.current = false;
+    setIsOpen(false);
+  };
 
   useEffect(() => {
     const syncHeaderOffset = () => {
@@ -192,7 +471,7 @@ const SideMenuRail = ({
   useEffect(() => {
     const onKeyDown = (event) => {
       if (event.key === "Escape") {
-        setIsOpen(false);
+        closeMenu();
       }
     };
 
@@ -203,8 +482,6 @@ const SideMenuRail = ({
     };
   }, []);
 
-  const closeMenu = () => setIsOpen(false);
-  const toggleMenu = () => setIsOpen((current) => !current);
   const renderHomeLink = (className) => (
     <a href="/" className={className} aria-label="Abodid Home">
       {altTextLogo ? (
@@ -219,105 +496,194 @@ const SideMenuRail = ({
     </a>
   );
 
-  const renderMenuContent = () => (
-    <>
-      <div className="side-menu-main">
-        {primaryLinks.map((link) => (
+  const renderMobileMenuContent = () => (
+    <div className="side-menu-mobile-content">
+      <nav className="side-menu-mobile-links" aria-label="Mobile navigation">
+        {mobilePrimaryLinks.map((link, index) => (
           <SideMenuLink
             key={link.href}
             href={link.href}
-            className="side-menu-primary-link"
-            onClick={closeMenu}
-            slide={10}
+            className="side-menu-mobile-link"
+            onClick={() => handleMenuLinkClick(link, "primary", index + 1)}
+            slide={6}
+            variants={mobileMenuItemVariants}
+            initial="hidden"
+            animate="visible"
+            exit="hidden"
+            custom={index}
           >
-            {link.label}
+            <span>{link.label}</span>
+            <span className="side-menu-mobile-link-number" aria-hidden="true">
+              {String(index + 1).padStart(2, "0")}
+            </span>
           </SideMenuLink>
         ))}
-      </div>
+      </nav>
 
-      <div className="side-menu-secondary">
-        <div className="side-menu-secondary-grid">
-          <div className="side-menu-column">
-            {secondaryGroups.slice(0, 2).map((group) => (
+      <motion.a
+        href={mobileCtaLink.href}
+        className="side-menu-mobile-cta"
+        variants={mobileMenuItemVariants}
+        initial="hidden"
+        animate="visible"
+        exit="hidden"
+        custom={mobilePrimaryLinks.length}
+        onClick={() =>
+          handleMenuLinkClick(
+            mobileCtaLink,
+            "cta",
+            mobilePrimaryLinks.length + 1,
+          )
+        }
+      >
+        {mobileCtaLink.label}
+      </motion.a>
+
+      <motion.div
+        className="side-menu-mobile-connect"
+        variants={mobileMenuItemVariants}
+        initial="hidden"
+        animate="visible"
+        exit="hidden"
+        custom={mobilePrimaryLinks.length + 1}
+      >
+        <p className="side-menu-mobile-connect-label">Connect</p>
+        <div className="side-menu-mobile-socials" aria-label="Social links">
+          {mobileSocialLinks.map((link, index) => (
+            <a
+              key={link.label}
+              href={link.href}
+              target={link.target}
+              rel="noreferrer"
+              className="side-menu-mobile-social-link"
+              aria-label={`Open ${link.label}`}
+              title={link.label}
+              onClick={() =>
+                handleMenuLinkClick(
+                  link,
+                  "social",
+                  mobilePrimaryLinks.length + 2 + index,
+                )
+              }
+            >
+              <i className={link.iconClass} aria-hidden="true" />
+            </a>
+          ))}
+        </div>
+      </motion.div>
+    </div>
+  );
+
+  const renderMenuContent = () => (
+    <>
+      <div className="side-menu-desktop-content">
+        <div className="side-menu-main">
+          {primaryLinks.map((link, index) => (
+            <SideMenuLink
+              key={link.href}
+              href={link.href}
+              className="side-menu-primary-link"
+              onClick={() => handleMenuLinkClick(link, "primary", index + 1)}
+              slide={10}
+            >
+              {link.label}
+            </SideMenuLink>
+          ))}
+        </div>
+
+        <div className="side-menu-secondary">
+          <div className="side-menu-secondary-grid">
+            <div className="side-menu-column">
+              {secondaryGroups.slice(0, 2).map((group) => (
               <div className="side-menu-group" key={group.title}>
                 <div className="side-menu-group-title">{group.title}</div>
-                {group.links.map((link) => (
+                {group.links.map((link, index) => (
                   <SideMenuLink
                     key={`${group.title}-${link.href}`}
                     href={link.href}
                     target={link.target}
                     rel={link.target === "_blank" ? "noreferrer" : undefined}
                     className="side-menu-secondary-link"
-                    onClick={closeMenu}
+                    onClick={() =>
+                      handleMenuLinkClick(link, "secondary", index + 1)
+                    }
                     slide={8}
                   >
                     {link.label}
                   </SideMenuLink>
                 ))}
               </div>
-            ))}
-          </div>
-
-          <div className="side-menu-column side-menu-column-right">
-            <div className="side-menu-group" key="credentials">
-              <div className="side-menu-group-title">
-                {secondaryGroups[2].title}
-              </div>
-              {secondaryGroups[2].links.map((link) => (
-                <SideMenuLink
-                  key={`${secondaryGroups[2].title}-${link.href}`}
-                  href={link.href}
-                  target={link.target}
-                  rel={link.target === "_blank" ? "noreferrer" : undefined}
-                  className="side-menu-secondary-link"
-                  onClick={closeMenu}
-                  slide={8}
-                >
-                  {link.label}
-                </SideMenuLink>
               ))}
             </div>
 
-            <div className="side-menu-group" key="contact">
-              <div className="side-menu-group-title">
-                {secondaryGroups[3].title}
+            <div className="side-menu-column side-menu-column-right">
+              <div className="side-menu-group" key="credentials">
+                <div className="side-menu-group-title">
+                  {secondaryGroups[2].title}
+                </div>
+                {secondaryGroups[2].links.map((link, index) => (
+                  <SideMenuLink
+                    key={`${secondaryGroups[2].title}-${link.href}`}
+                    href={link.href}
+                    target={link.target}
+                    rel={link.target === "_blank" ? "noreferrer" : undefined}
+                    className="side-menu-secondary-link"
+                    onClick={() =>
+                      handleMenuLinkClick(link, "secondary", index + 1)
+                    }
+                    slide={8}
+                  >
+                    {link.label}
+                  </SideMenuLink>
+                ))}
               </div>
-              {secondaryGroups[3].links.map((link) => (
-                <SideMenuLink
-                  key={`${secondaryGroups[3].title}-${link.href}`}
-                  href={link.href}
-                  target={link.target}
-                  rel={link.target === "_blank" ? "noreferrer" : undefined}
-                  className="side-menu-secondary-link"
-                  onClick={closeMenu}
-                  slide={8}
-                >
-                  {link.label}
-                </SideMenuLink>
-              ))}
-            </div>
 
-            <div className="side-menu-social-links" aria-label="Social links">
-              {socialLinks.map((link) => (
-                <motion.a
-                  key={link.label}
-                  href={link.href}
-                  target={link.target}
-                  rel="noreferrer"
-                  className="side-menu-social-link"
-                  aria-label={link.label}
-                  title={link.label}
-                  onClick={closeMenu}
-                  whileHover={{ y: -2 }}
-                  transition={{ duration: 0.12, ease: "easeOut" }}
-                >
-                  <i className={link.iconClass} aria-hidden="true" />
-                </motion.a>
-              ))}
+              <div className="side-menu-group" key="contact">
+                <div className="side-menu-group-title">
+                  {secondaryGroups[3].title}
+                </div>
+                {secondaryGroups[3].links.map((link, index) => (
+                  <SideMenuLink
+                    key={`${secondaryGroups[3].title}-${link.href}`}
+                    href={link.href}
+                    target={link.target}
+                    rel={link.target === "_blank" ? "noreferrer" : undefined}
+                    className="side-menu-secondary-link"
+                    onClick={() =>
+                      handleMenuLinkClick(link, "secondary", index + 1)
+                    }
+                    slide={8}
+                  >
+                    {link.label}
+                  </SideMenuLink>
+                ))}
+              </div>
+
+              <div className="side-menu-social-links" aria-label="Social links">
+                {socialLinks.map((link, index) => (
+                  <motion.a
+                    key={link.label}
+                    href={link.href}
+                    target={link.target}
+                    rel="noreferrer"
+                    className="side-menu-social-link"
+                    aria-label={link.label}
+                    title={link.label}
+                    onClick={() =>
+                      handleMenuLinkClick(link, "social", index + 1)
+                    }
+                    whileHover={{ y: -2 }}
+                    transition={{ duration: 0.12, ease: "easeOut" }}
+                  >
+                    <i className={link.iconClass} aria-hidden="true" />
+                  </motion.a>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       </div>
+      {renderMobileMenuContent()}
     </>
   );
 
@@ -395,7 +761,14 @@ const SideMenuRail = ({
                 className="top-menu-panel"
                 initial={{ y: "-100%" }}
                 animate={{ y: 0 }}
-                exit={{ y: "-100%" }}
+                exit={{
+                  y: "-100%",
+                  transition: {
+                    duration: 0.4,
+                    ease,
+                    delay: mobileMenuCloseDelay,
+                  },
+                }}
                 transition={{ duration: 0.4, ease }}
                 aria-label="Site menu"
               >
@@ -468,6 +841,20 @@ const SideMenuRail = ({
             letter-spacing: 0.08em;
             text-transform: uppercase;
             white-space: nowrap;
+            -webkit-tap-highlight-color: transparent;
+          }
+
+          .top-menu-button:focus,
+          .top-menu-backdrop:focus {
+            outline: none;
+            box-shadow: none;
+          }
+
+          .top-menu-button:focus-visible .top-menu-button-text {
+            color: rgba(255, 255, 255, 0.72);
+            text-decoration: underline;
+            text-decoration-thickness: 1px;
+            text-underline-offset: 0.28em;
           }
 
           .top-menu-icon {
@@ -813,6 +1200,10 @@ const SideMenuRail = ({
             background: var(--color-brand-red);
           }
 
+          [data-theme="light"] .top-menu-button:focus-visible .top-menu-button-text {
+            color: rgba(15, 23, 42, 0.68);
+          }
+
           @media (max-width: 980px) {
             .top-menu-bar {
               grid-template-columns: auto minmax(0, 1fr);
@@ -870,15 +1261,18 @@ const SideMenuRail = ({
               display: none;
             }
 
-            .top-menu-panel .side-menu-primary-link {
-              font-size: clamp(1.4rem, 6vw, 2rem);
-            }
-
-            .top-menu-panel .side-menu-secondary-grid {
-              grid-template-columns: 1fr;
-              gap: 1.5rem;
+            .top-menu-panel {
+              height: calc(100vh - var(--app-header-offset));
+              height: calc(100dvh - var(--app-header-offset));
+              max-height: calc(100vh - var(--app-header-offset));
+              max-height: calc(100dvh - var(--app-header-offset));
+              display: block;
+              overflow: hidden;
+              background: var(--color-brand-red);
             }
           }
+
+          ${sharedMobileMenuStyles}
         `}</style>
       </>
     );
@@ -989,11 +1383,19 @@ const SideMenuRail = ({
                 className="side-menu-panel"
                 initial={{ x: "-100%" }}
                 animate={{ x: 0 }}
-                exit={{ x: "-100%" }}
+                exit={{
+                  x: "-100%",
+                  transition: {
+                    duration: 0.45,
+                    ease,
+                    delay: mobileMenuCloseDelay,
+                  },
+                }}
                 transition={{ duration: 0.45, ease }}
                 aria-label="Site menu"
               >
-                <div className="side-menu-main">
+                <div className="side-menu-desktop-content">
+                  <div className="side-menu-main">
                   {primaryLinks.map((link) => (
                     <SideMenuLink
                       key={link.href}
@@ -1007,7 +1409,7 @@ const SideMenuRail = ({
                   ))}
                 </div>
 
-                <div className="side-menu-secondary">
+                  <div className="side-menu-secondary">
                   <div className="side-menu-secondary-grid">
                     <div className="side-menu-column">
                       {secondaryGroups.slice(0, 2).map((group) => (
@@ -1095,7 +1497,9 @@ const SideMenuRail = ({
                       </div>
                     </div>
                   </div>
+                  </div>
                 </div>
+                {renderMobileMenuContent()}
               </motion.aside>
             </>
           )}
@@ -1562,6 +1966,20 @@ const SideMenuRail = ({
             text-transform: uppercase;
             letter-spacing: 0.08em;
             font-size: 0.7rem;
+            -webkit-tap-highlight-color: transparent;
+          }
+
+          .mobile-topbar-button:focus,
+          .side-menu-backdrop:focus,
+          .rail-action-btn:focus {
+            outline: none;
+            box-shadow: none;
+          }
+
+          .mobile-topbar-button:focus-visible .mobile-menu-text {
+            text-decoration: underline;
+            text-decoration-thickness: 1px;
+            text-underline-offset: 0.28em;
           }
 
           .mobile-topbar-menu {
@@ -1654,6 +2072,10 @@ const SideMenuRail = ({
             left: 0;
             width: 100vw;
             height: calc(100vh - var(--mobile-header-offset));
+            height: calc(100dvh - var(--mobile-header-offset));
+            display: block;
+            overflow: hidden;
+            background: var(--color-brand-red);
             border-radius: 0;
             box-shadow: 0 22px 50px rgba(0, 0, 0, 0.42);
           }
@@ -1672,6 +2094,8 @@ const SideMenuRail = ({
             font-size: clamp(1.4rem, 6vw, 2rem);
           }
         }
+
+        ${sharedMobileMenuStyles}
       `}</style>
     </>
   );
@@ -1679,7 +2103,7 @@ const SideMenuRail = ({
 
 const SideMenuLink = ({ children, className, slide = 8, ...props }) => {
   return (
-    <a className={className} {...props}>
+    <motion.a className={className} {...props}>
       <motion.span
         style={{ display: "inline-block" }}
         transition={{ duration: 0.05, ease: "easeOut" }}
@@ -1687,7 +2111,7 @@ const SideMenuLink = ({ children, className, slide = 8, ...props }) => {
       >
         {children}
       </motion.span>
-    </a>
+    </motion.a>
   );
 };
 

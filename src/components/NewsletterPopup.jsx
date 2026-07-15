@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import NewsletterForm from "./NewsletterForm";
 import {
@@ -148,6 +148,7 @@ const getScrollDepth = () => {
 const NewsletterPopup = () => {
     const [isVisible, setIsVisible] = useState(false);
     const isVisibleRef = useRef(false);
+    const dialogRef = useRef(null);
     const sessionIdRef = useRef("");
     const footerVisibleRef = useRef(false);
     const inlineFormVisibleRef = useRef(false);
@@ -159,6 +160,15 @@ const NewsletterPopup = () => {
     const footerPeakScrollYRef = useRef(0);
     const footerBounceReadyAtRef = useRef(null);
 
+    const handleClose = useCallback((options = {}) => {
+        setIsVisible(false);
+        isVisibleRef.current = false;
+
+        if (options.persistDismissal === false) return;
+
+        markNewsletterPopupDismissed();
+    }, []);
+
     useEffect(() => {
         isVisibleRef.current = isVisible;
     }, [isVisible]);
@@ -167,6 +177,16 @@ const NewsletterPopup = () => {
         if (typeof window === "undefined") return undefined;
 
         const currentPath = window.location.pathname;
+        const isLocalPreview =
+            import.meta.env.DEV &&
+            new URLSearchParams(window.location.search).get("newsletter-preview") === "1";
+
+        if (isLocalPreview) {
+            isVisibleRef.current = true;
+            setIsVisible(true);
+            return undefined;
+        }
+
         if (isBlockedPath(currentPath)) return undefined;
 
         let footerObserver;
@@ -461,14 +481,63 @@ const NewsletterPopup = () => {
         };
     }, []);
 
-    const handleClose = (options = {}) => {
-        setIsVisible(false);
-        isVisibleRef.current = false;
+    useEffect(() => {
+        if (!isVisible || typeof document === "undefined") return undefined;
 
-        if (options.persistDismissal === false) return;
+        const previouslyFocused = document.activeElement;
+        const previousBodyOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
 
-        markNewsletterPopupDismissed();
-    };
+        const focusTimer = window.setTimeout(() => {
+            dialogRef.current
+                ?.querySelector('button[aria-label="Close"]')
+                ?.focus();
+        }, 0);
+
+        const handleDialogKeyDown = (event) => {
+            if (event.key === "Escape") {
+                event.preventDefault();
+                handleClose();
+                return;
+            }
+
+            if (event.key !== "Tab" || !dialogRef.current) return;
+
+            const focusableElements = Array.from(
+                dialogRef.current.querySelectorAll(
+                    'button:not([disabled]), input:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])',
+                ),
+            );
+
+            if (focusableElements.length === 0) return;
+
+            const firstElement = focusableElements[0];
+            const lastElement = focusableElements[focusableElements.length - 1];
+
+            if (event.shiftKey && document.activeElement === firstElement) {
+                event.preventDefault();
+                lastElement.focus();
+            } else if (!event.shiftKey && document.activeElement === lastElement) {
+                event.preventDefault();
+                firstElement.focus();
+            }
+        };
+
+        document.addEventListener("keydown", handleDialogKeyDown);
+
+        return () => {
+            window.clearTimeout(focusTimer);
+            document.removeEventListener("keydown", handleDialogKeyDown);
+            document.body.style.overflow = previousBodyOverflow;
+
+            if (
+                previouslyFocused instanceof HTMLElement &&
+                document.contains(previouslyFocused)
+            ) {
+                previouslyFocused.focus();
+            }
+        };
+    }, [handleClose, isVisible]);
 
     return (
         <AnimatePresence>
@@ -484,6 +553,7 @@ const NewsletterPopup = () => {
                     />
 
                     <motion.div
+                        ref={dialogRef}
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
@@ -491,6 +561,8 @@ const NewsletterPopup = () => {
                         className="newsletter-popup-wrapper"
                         role="dialog"
                         aria-modal="true"
+                        aria-labelledby="newsletter-popup-title"
+                        aria-describedby="newsletter-popup-description"
                     >
                         <NewsletterForm onClose={handleClose} variant="popup" />
                     </motion.div>
@@ -502,9 +574,13 @@ const NewsletterPopup = () => {
               left: 0;
               width: 100vw;
               height: 100vh;
-              background: rgba(0, 0, 0, 0.6);
-              backdrop-filter: blur(8px);
+              background: rgba(0, 0, 0, 0.64);
+              backdrop-filter: blur(6px);
               z-index: 99998;
+            }
+
+            html[data-theme="light"] .newsletter-backdrop {
+              background: rgba(24, 24, 22, 0.34);
             }
             
             .newsletter-popup-wrapper {

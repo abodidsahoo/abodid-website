@@ -33,4 +33,8 @@ test('provides a chart-safe empty analytics report', () => {
     assert.deepEqual(report.timeline, []);
     assert.deepEqual(report.sources, []);
     assert.equal(report.summary.pageViews, 0);
+    assert.equal(report.navigation.summary.opens, 0);
+    assert.equal(report.navigation.summary.selectionRate, 0);
+    assert.deepEqual(report.navigation.links, []);
+    assert.deepEqual(report.navigation.countries, []);
 });

@@ -93,20 +93,33 @@ export const GET: APIRoute = async ({ request, url }) => {
         }
         const timezoneOffset = Number(url.searchParams.get('timezoneOffset') || 0);
         const startAt = getAnalyticsRangeStart(range, new Date(), timezoneOffset);
-        const { data, error } = await supabase.rpc('analytics_build_report', {
-            p_start_at: startAt.toISOString(),
-        });
+        const reportArgs = { p_start_at: startAt.toISOString() };
+        const [trafficResult, navigationResult] = await Promise.all([
+            supabase.rpc('analytics_build_report', reportArgs),
+            supabase.rpc('analytics_build_navigation_report', reportArgs),
+        ]);
 
-        if (error) {
-            console.error('[analytics] Admin report failed:', error.message);
+        if (trafficResult.error) {
+            console.error('[analytics] Admin report failed:', trafficResult.error.message);
             return json({ error: 'Analytics data is not available yet.' }, 503);
         }
+
+        if (navigationResult.error) {
+            console.warn('[analytics] Navigation report is not available yet:', navigationResult.error.message);
+        }
+
+        const emptyReport = emptyAnalyticsReport();
+        const report = {
+            ...emptyReport,
+            ...(trafficResult.data || {}),
+            navigation: navigationResult.data || emptyReport.navigation,
+        };
 
         return json({
             range,
             startAt: startAt.toISOString(),
             generatedAt: new Date().toISOString(),
-            report: data || emptyAnalyticsReport(),
+            report,
             focusedJourney,
         });
     } catch (error) {

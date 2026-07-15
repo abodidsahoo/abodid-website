@@ -15,6 +15,9 @@ import { createSupabaseServiceClient } from '../../../lib/supabaseServer';
 
 const MAX_BODY_BYTES = 12_000;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const MENU_EVENT_NAMES = new Set(['menu_open', 'menu_dismiss', 'menu_link_click']);
+const MENU_CONTEXTS = new Set(['mobile', 'desktop']);
+const MENU_TARGET_TYPES = new Set(['primary', 'secondary', 'cta', 'social']);
 
 const silentResponse = () => new Response(null, {
     status: 204,
@@ -106,6 +109,34 @@ export const POST: APIRoute = async ({ request }) => {
             });
 
             if (error) console.warn('[analytics] Engagement was not recorded:', error.message);
+            return silentResponse();
+        }
+
+        if (action === 'menu_event') {
+            const eventId = validUuid(body?.eventId);
+            const eventName = cleanAnalyticsString(body?.eventName, 40);
+            const menuContext = cleanAnalyticsString(body?.menuContext, 20);
+            if (!eventId || !MENU_EVENT_NAMES.has(eventName) || !MENU_CONTEXTS.has(menuContext)) {
+                return silentResponse();
+            }
+
+            const rawTargetType = cleanAnalyticsString(body?.targetType, 30);
+            const targetType = MENU_TARGET_TYPES.has(rawTargetType) ? rawTargetType : '';
+            const position = Math.max(0, Math.min(100, Math.round(Number(body?.position) || 0)));
+            const { error } = await supabase.rpc('analytics_record_navigation_event', {
+                p_event_id: eventId,
+                p_session_id: sessionId,
+                p_page_view_id: pageViewId,
+                p_event_name: eventName,
+                p_page_path: pagePath,
+                p_menu_context: menuContext,
+                p_target_label: cleanAnalyticsString(body?.targetLabel, 120),
+                p_target_url: cleanAnalyticsString(body?.targetUrl, 500),
+                p_target_type: targetType,
+                p_position: position || null,
+            });
+
+            if (error) console.warn('[analytics] Menu event was not recorded:', error.message);
         }
     } catch (error) {
         console.warn('[analytics] Collector failed silently:', error instanceof Error ? error.message : error);

@@ -145,9 +145,9 @@ async function sendOwnerNotification({ email, name, source, status, sessionId, s
         from:
             import.meta.env.SUBSCRIBE_ALERT_FROM_EMAIL ||
             process.env.SUBSCRIBE_ALERT_FROM_EMAIL ||
-            import.meta.env.CONTACT_FORM_FROM_EMAIL ||
-            process.env.CONTACT_FORM_FROM_EMAIL ||
-            'Abodid Contact <newsletter@abodid.com>',
+            import.meta.env.CONTACT_NOTIFICATION_FROM_EMAIL ||
+            process.env.CONTACT_NOTIFICATION_FROM_EMAIL ||
+            'Website Contact <contact@abodid.com>',
         to: [
             import.meta.env.SUBSCRIBE_ALERT_TO_EMAIL ||
             process.env.SUBSCRIBE_ALERT_TO_EMAIL ||

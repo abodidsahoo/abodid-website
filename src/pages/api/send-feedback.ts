@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { Resend } from 'resend';
+import { looksLikeRandomCharacterMessage } from '../../lib/contact-spam.js';
 
 export const prerender = false;
 
@@ -20,6 +21,9 @@ export const POST: APIRoute = async ({ request }) => {
         if (!feedback) {
             return new Response(JSON.stringify({ error: "Feedback content is required" }), { status: 400 });
         }
+        if (looksLikeRandomCharacterMessage(feedback)) {
+            return new Response(JSON.stringify({ error: "Please write your feedback using words and spaces." }), { status: 422 });
+        }
 
         const subject = type === 'error'
             ? `[Punctum Game] Error Report & Feedback`
@@ -37,7 +41,10 @@ export const POST: APIRoute = async ({ request }) => {
         `;
 
         const data = await resend.emails.send({
-            from: 'Punctum Game <onboarding@resend.dev>', // Standard Resend testing sender, or user's domain if configured
+            from:
+                import.meta.env.CONTACT_NOTIFICATION_FROM_EMAIL ||
+                process.env.CONTACT_NOTIFICATION_FROM_EMAIL ||
+                'Website Feedback <contact@abodid.com>',
             to: ['abodidsahoo@gmail.com'], // Using the user's likely email or a placeholder to be safe. I will use a safe default or ask. 
             // The user said "email to me". I will use 'abodidsahoo@gmail.com' based on the corpus name 'abodidsahoo'.
             subject: subject,

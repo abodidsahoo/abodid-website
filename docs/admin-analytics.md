@@ -4,7 +4,8 @@ The analytics panel lives inside the existing admin dashboard at
 `/admin/dashboard?section=analytics`. It records anonymous site sessions and
 active page-view time, then presents the results as summary metrics, a line
 chart, a country bar chart, a traffic-source pie chart, page rankings, and
-visitor journeys.
+visitor journeys. It also records mobile-menu opens, selections, dismissals,
+CTA/social clicks, ranked destinations, and country-level selection rates.
 
 ## Architecture
 
@@ -14,9 +15,9 @@ visitor journeys.
 - `POST /api/analytics/collect` validates and sanitises same-origin events. It
   uses the service-role client only on the server; the key is never bundled for
   the browser.
-- `analytics_sessions` and `analytics_page_views` store the anonymous records.
-  Raw IP addresses are not stored. The country code comes from the hosting
-  provider's request header.
+- `analytics_sessions`, `analytics_page_views`, and `analytics_events` store
+  the anonymous records. Raw IP addresses are not stored. The country code
+  comes from the hosting provider's request header.
 - `GET /api/admin/analytics` verifies the Supabase access token and the user's
   `profiles.role`, then executes the reporting function.
 - The React panel uses Chart.js for line, bar, and pie views. Supabase Realtime
@@ -65,9 +66,15 @@ The analytics migration is
 two tables, indexes, collection/reporting functions, row-level security (RLS)
 policies, grants, and Realtime publication entries.
 
+Mobile-menu interaction reporting is added by
+`supabase/migrations/20260715120000_add_navigation_analytics.sql`. It creates
+the event table and its protected collection/reporting functions, and adds the
+table to the same administrator-only Realtime flow.
+
 For an existing database, confirm the migration appears in the Supabase
 migration history before testing the panel. The `analytics_build_report`
-function must return a `timeline` array for the charts.
+function must return a `timeline` array for the charts. The navigation migration
+must expose `analytics_build_navigation_report` for the mobile-menu panel.
 
 ## 4. Create an authorised user
 

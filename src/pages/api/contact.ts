@@ -9,6 +9,7 @@ import {
     resolveEnquiryTitle,
     summarizeVisit,
 } from '../../lib/contact-notification.js';
+import { looksLikeRandomCharacterMessage } from '../../lib/contact-spam.js';
 import { createSupabaseServiceClient } from '../../lib/supabaseServer';
 
 export const prerender = false;
@@ -143,6 +144,9 @@ export const POST: APIRoute = async ({ request }) => {
         if (!payload.name) return json({ error: 'Please provide your name.' }, 400);
         if (!EMAIL_REGEX.test(payload.email)) return json({ error: 'Please provide a valid email address.' }, 400);
         if (!payload.message || payload.message.length > 5000) return json({ error: 'Please provide a message (1–5000 characters).' }, 400);
+        if (looksLikeRandomCharacterMessage(payload.message)) {
+            return json({ error: 'Please write your message using words and spaces.' }, 422);
+        }
         if (!isUuid(payload.sessionId)) {
             return json({ error: 'Your visit expired. Please refresh the page and try again.' }, 400);
         }
@@ -205,7 +209,10 @@ export const POST: APIRoute = async ({ request }) => {
 
         const resend = new Resend(resendKey);
         const { error: emailError } = await resend.emails.send({
-            from: import.meta.env.CONTACT_FORM_FROM_EMAIL || process.env.CONTACT_FORM_FROM_EMAIL || 'Abodid Contact <newsletter@abodid.com>',
+            from:
+                import.meta.env.CONTACT_NOTIFICATION_FROM_EMAIL ||
+                process.env.CONTACT_NOTIFICATION_FROM_EMAIL ||
+                'Website Contact <contact@abodid.com>',
             to: [import.meta.env.CONTACT_FORM_TO_EMAIL || process.env.CONTACT_FORM_TO_EMAIL || 'hello@abodid.com'],
             replyTo: submission.email,
             subject: `New ${submission.enquiry_title} enquiry — ${submission.name}`,

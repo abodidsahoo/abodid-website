@@ -36,4 +36,16 @@ export const emptyAnalyticsReport = () => ({
     pages: [],
     journeys: [],
     commonJourneys: [],
+    navigation: {
+        summary: {
+            opens: 0,
+            selections: 0,
+            dismissals: 0,
+            socialClicks: 0,
+            ctaClicks: 0,
+            selectionRate: 0,
+        },
+        links: [],
+        countries: [],
+    },
 });
