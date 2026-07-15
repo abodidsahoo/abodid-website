@@ -453,26 +453,35 @@ function PortfolioEditorContent({ projectId }) {
   const attachLibraryMedia = (media) => {
     const target = mediaPickerTarget;
     if (!target || !media) return;
+    const selectedMedia = (Array.isArray(media) ? media : [media]).filter(Boolean);
+    if (!selectedMedia.length) return;
     if (!target.blockId) {
+      const selected = selectedMedia[0];
       updateDraft((current) => ({
         ...current,
-        coverUrl: media.url,
-        coverMedia: media,
-        coverAlt: current.coverAlt || media.alt || current.title,
+        coverUrl: selected.url,
+        coverMedia: selected,
+        coverAlt: current.coverAlt || selected.alt || current.title,
       }));
       return;
     }
     const targetBlock = draftRef.current?.blocks?.find((block) => block.id === target.blockId);
-    const multiple = ["image_grid", "image_gallery"].includes(targetBlock?.blockType);
+    const multiple = target.multiple || ["image_grid", "image_gallery"].includes(targetBlock?.blockType);
     updateDraft((current) => ({
       ...current,
       blocks: current.blocks.map((block) => {
         if (block.id !== target.blockId) return block;
         if (multiple) {
           const list = Array.isArray(block.content?.media) ? block.content.media : [];
-          return { ...block, content: { ...block.content, media: [...list, media] } };
+          const next = [...list];
+          selectedMedia.forEach((item) => {
+            const key = item.id || item.objectKey || item.storagePath || item.url;
+            const exists = next.some((existing) => (existing?.id || existing?.objectKey || existing?.storagePath || existing?.url) === key);
+            if (!exists) next.push(item);
+          });
+          return { ...block, content: { ...block.content, media: next } };
         }
-        return { ...block, content: { ...block.content, media } };
+        return { ...block, content: { ...block.content, media: selectedMedia[0] } };
       }),
     }));
   };
@@ -719,7 +728,7 @@ function PortfolioEditorContent({ projectId }) {
 
       <section className="editor-blocks-section">
         <header><div><span className="editor-eyebrow">Project story</span><h2>Content blocks</h2></div><div className="add-block-wrap"><button type="button" className="primary-button" onClick={() => setBlockMenuOpen((value) => !value)}>+ Add block</button>{blockMenuOpen && <div className="add-block-menu">{BLOCK_TYPES.map((type) => <button type="button" key={type} onClick={() => { updateDraft((current) => ({ ...current, blocks: [...current.blocks, createEmptyBlock(type)] })); setBlockMenuOpen(false); }}>{BLOCK_LABELS[type]}</button>)}</div>}</div></header>
-        {draft.blocks.length ? <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onBlockDragEnd}><SortableContext items={draft.blocks.map((block) => block.id)} strategy={verticalListSortingStrategy}><div className="editor-block-list">{draft.blocks.map((block) => <PortfolioBlockEditor key={block.id} block={block} uploading={uploading} onUpload={(file, index) => upload(file, block.id, index)} onChooseMedia={() => setMediaPickerTarget({ blockId: block.id })} onFilePickerOpen={beginFilePickerSession} onFilePickerCancel={settleFilePickerSession} onChange={(next) => updateDraft((current) => ({ ...current, blocks: current.blocks.map((item) => item.id === block.id ? next : item) }))} onDuplicate={() => updateDraft((current) => { const index = current.blocks.findIndex((item) => item.id === block.id); const next = [...current.blocks]; next.splice(index + 1, 0, { ...block, id: crypto.randomUUID() }); return { ...current, blocks: next }; })} onDelete={() => { if (!window.confirm("Delete this block from the draft?")) return; updateDraft((current) => ({ ...current, blocks: current.blocks.filter((item) => item.id !== block.id) })); }} />)}</div></SortableContext></DndContext> : <div className="editor-empty-blocks">Start with a controlled block. Templates create these same ordinary blocks.</div>}
+        {draft.blocks.length ? <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onBlockDragEnd}><SortableContext items={draft.blocks.map((block) => block.id)} strategy={verticalListSortingStrategy}><div className="editor-block-list">{draft.blocks.map((block) => <PortfolioBlockEditor key={block.id} block={block} uploading={uploading} onUpload={(file, index) => upload(file, block.id, index)} onChooseMedia={(options) => setMediaPickerTarget({ blockId: block.id, ...options })} onFilePickerOpen={beginFilePickerSession} onFilePickerCancel={settleFilePickerSession} onChange={(next) => updateDraft((current) => ({ ...current, blocks: current.blocks.map((item) => item.id === block.id ? next : item) }))} onDuplicate={() => updateDraft((current) => { const index = current.blocks.findIndex((item) => item.id === block.id); const next = [...current.blocks]; next.splice(index + 1, 0, { ...block, id: crypto.randomUUID() }); return { ...current, blocks: next }; })} onDelete={() => { if (!window.confirm("Delete this block from the draft?")) return; updateDraft((current) => ({ ...current, blocks: current.blocks.filter((item) => item.id !== block.id) })); }} />)}</div></SortableContext></DndContext> : <div className="editor-empty-blocks">Start with a controlled block. Templates create these same ordinary blocks.</div>}
       </section>
     </main>
 
@@ -735,7 +744,7 @@ function PortfolioEditorContent({ projectId }) {
       </div>
     </aside>
 
-    <PortfolioMediaPicker open={Boolean(mediaPickerTarget)} onClose={closeMediaPicker} onSelect={attachLibraryMedia} />
+    <PortfolioMediaPicker open={Boolean(mediaPickerTarget)} multiple={Boolean(mediaPickerTarget?.multiple)} onClose={closeMediaPicker} onSelect={attachLibraryMedia} />
 
     {preview && (
       <div className="portfolio-preview-modal" role="dialog" aria-modal="true" aria-label="Responsive project preview">

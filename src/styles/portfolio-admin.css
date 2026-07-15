@@ -125,6 +125,7 @@ html:has(.portfolio-editor-shell), body:has(.portfolio-editor-shell) { width: 10
 .portfolio-media-picker { width: min(1120px, 96vw); height: min(820px, 90vh); min-height: 0; display: grid; grid-template-rows: auto auto minmax(0,1fr) auto; overflow: hidden; border: 1px solid var(--border-subtle); border-radius: 12px; background: var(--bg-color); box-shadow: 0 24px 90px rgba(0,0,0,.5); }
 .portfolio-media-picker > header, .portfolio-media-picker > footer { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem 1.15rem; border-bottom: 1px solid var(--border-subtle); }
 .portfolio-media-picker > header h2 { margin: .18rem 0 0; font-size: 1rem; }
+.portfolio-media-picker-hint { margin: .3rem 0 0; color: var(--text-tertiary); font-size: .65rem; }
 .portfolio-media-picker > footer { border-top: 1px solid var(--border-subtle); border-bottom: 0; color: var(--text-tertiary); font-size: .7rem; }
 .portfolio-media-picker-browserbar { display: grid; grid-template-columns: minmax(0,1fr) minmax(240px,360px); align-items: center; gap: 1rem; padding: .75rem 1rem; border-bottom: 1px solid var(--border-subtle); }
 .portfolio-media-picker-navigation { min-width: 0; display: flex; align-items: center; gap: .55rem; }
@@ -143,7 +144,7 @@ html:has(.portfolio-editor-shell), body:has(.portfolio-editor-shell) { width: 10
 .portfolio-media-picker-grid > button.is-selected { border-color: #60a5fa; background: rgba(59,130,246,.1); }
 .portfolio-media-picker-thumb { position: relative; width: 100%; aspect-ratio: 4/3; display: grid; place-items: center; overflow: hidden; border-radius: 6px; background: var(--bg-surface); color: var(--text-tertiary); }
 .portfolio-media-picker-thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.portfolio-media-picker-thumb i { position: absolute; z-index: 2; top: .4rem; right: .4rem; display: grid; place-items: center; width: 25px; height: 25px; border-radius: 50%; background: #2563eb; color: white; }
+.portfolio-media-picker-thumb i { position: absolute; z-index: 2; top: .4rem; right: .4rem; display: grid; place-items: center; width: 25px; height: 25px; border-radius: 50%; background: #2563eb; color: white; font-size: .68rem; font-style: normal; font-weight: 700; }
 .portfolio-media-picker-folder { background: linear-gradient(145deg, rgba(59,130,246,.12), rgba(59,130,246,.035)); color: #60a5fa; }
 .portfolio-media-picker-grid > button.is-folder:hover .portfolio-media-picker-folder { color: #93c5fd; }
 .portfolio-media-picker-grid strong, .portfolio-media-picker-grid small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
