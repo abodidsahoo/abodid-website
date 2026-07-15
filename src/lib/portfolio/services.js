@@ -507,6 +507,47 @@ const mapLibraryAsset = (asset) => ({
   }])),
 });
 
+const mapBrowserAsset = (asset) => ({
+  id: asset.id,
+  url: asset.publicUrl,
+  originalUrl: asset.publicUrl,
+  publicUrl: asset.publicUrl,
+  storagePath: asset.objectKey,
+  objectKey: asset.objectKey,
+  originalFilename: asset.name,
+  mimeType: asset.mimeType,
+  fileSize: asset.fileSize,
+  width: asset.width,
+  height: asset.height,
+  alt: asset.altText || "",
+  caption: asset.caption || "",
+  credit: asset.credit || "",
+  focalX: 50,
+  focalY: 50,
+  catalogued: Boolean(asset.catalogued),
+  processingStatus: asset.processingStatus || "uncatalogued",
+  processingError: asset.processingError || null,
+  variants: asset.variants || {},
+});
+
+export async function browsePortfolioMediaFolder(folder = "originals") {
+  const session = await requirePortfolioAdmin();
+  const params = new URLSearchParams({ folder });
+  const response = await fetch(`/api/admin/media?${params.toString()}`, {
+    headers: { Authorization: `Bearer ${session.access_token}` },
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(payload.error || "Could not browse the Media Library.");
+  return {
+    folderPath: payload.folderPath || folder,
+    folders: payload.folders || [],
+    files: (payload.files || [])
+      .filter((asset) => asset.mimeType?.startsWith("image/"))
+      .map(mapBrowserAsset),
+    truncated: Boolean(payload.truncated),
+  };
+}
+
 export async function searchPortfolioMediaAssets(search = "") {
   await requirePortfolioAdmin();
   const { data, error } = await supabase

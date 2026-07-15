@@ -1,40 +1,77 @@
-import { useEffect, useMemo, useState } from "react";
-import { Check, Image as ImageIcon, LoaderCircle, Search, X } from "lucide-react";
-import { searchPortfolioMediaAssets } from "../../../lib/portfolio/services";
+import { Fragment, useEffect, useMemo, useState } from "react";
+import { ArrowLeft, Check, ChevronRight, FolderOpen, Image as ImageIcon, LoaderCircle, Search, X } from "lucide-react";
+import { browsePortfolioMediaFolder } from "../../../lib/portfolio/services";
+
+const ROOT_FOLDER = "originals";
+
+const breadcrumbsFor = (folderPath) => {
+  const parts = folderPath.split("/").filter(Boolean);
+  return parts.map((name, index) => ({
+    name,
+    path: parts.slice(0, index + 1).join("/"),
+  }));
+};
 
 export default function PortfolioMediaPicker({ open, onClose, onSelect }) {
   const [assets, setAssets] = useState([]);
+  const [folders, setFolders] = useState([]);
+  const [currentFolder, setCurrentFolder] = useState(ROOT_FOLDER);
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [truncated, setTruncated] = useState(false);
 
   useEffect(() => {
     if (!open) return undefined;
     let active = true;
     setLoading(true);
     setError("");
-    searchPortfolioMediaAssets()
-      .then((rows) => { if (active) setAssets(rows); })
+    browsePortfolioMediaFolder(currentFolder)
+      .then((result) => {
+        if (!active) return;
+        setAssets(result.files);
+        setFolders(result.folders);
+        setTruncated(result.truncated);
+        setSelectedId("");
+      })
       .catch((loadError) => { if (active) setError(loadError.message || "Could not load the Media Library."); })
       .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [currentFolder, open]);
+
+  useEffect(() => {
+    if (!open) return undefined;
     const onKeyDown = (event) => { if (event.key === "Escape") onClose(); };
     window.addEventListener("keydown", onKeyDown);
-    return () => {
-      active = false;
-      window.removeEventListener("keydown", onKeyDown);
-    };
+    return () => window.removeEventListener("keydown", onKeyDown);
   }, [open, onClose]);
+
+  const visibleFolders = useMemo(() => {
+    const needle = query.trim().toLowerCase();
+    return folders
+      .filter((folder) => !needle || folder.name.toLowerCase().includes(needle))
+      .sort((first, second) => first.name.localeCompare(second.name, undefined, { numeric: true }));
+  }, [folders, query]);
 
   const visibleAssets = useMemo(() => {
     const needle = query.trim().toLowerCase();
     return assets
       .filter((asset) => !needle || `${asset.originalFilename} ${asset.objectKey}`.toLowerCase().includes(needle))
-      .slice(0, 160);
+      .sort((first, second) => first.originalFilename.localeCompare(second.originalFilename, undefined, { numeric: true }));
   }, [assets, query]);
 
   if (!open) return null;
   const selected = assets.find((asset) => asset.id === selectedId) || null;
+  const breadcrumbs = breadcrumbsFor(currentFolder);
+  const parentFolder = currentFolder.split("/").slice(0, -1).join("/");
+  const canGoBack = currentFolder !== ROOT_FOLDER;
+
+  const chooseAsset = (asset) => {
+    if (!asset?.catalogued) return;
+    onSelect(asset);
+    onClose();
+  };
 
   return (
     <div className="portfolio-media-picker-backdrop" role="presentation" onMouseDown={onClose}>
@@ -43,35 +80,57 @@ export default function PortfolioMediaPicker({ open, onClose, onSelect }) {
           <div><span className="editor-eyebrow">Cloudflare originals</span><h2>Choose from Media Library</h2></div>
           <button type="button" className="quiet-button" onClick={onClose} aria-label="Close Media Library"><X size={18} /></button>
         </header>
-        <label className="portfolio-media-picker-search">
-          <Search size={16} />
-          <input autoFocus type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search filename, project or collection" />
-        </label>
+        <div className="portfolio-media-picker-browserbar">
+          <div className="portfolio-media-picker-navigation">
+            <button type="button" className="quiet-button" disabled={!canGoBack || loading} onClick={() => setCurrentFolder(parentFolder)} aria-label="Go to parent folder"><ArrowLeft size={17} /></button>
+            <nav aria-label="Current media folder">
+              {breadcrumbs.map((crumb, index) => (
+                <Fragment key={crumb.path}>
+                  {index > 0 && <ChevronRight size={13} />}
+                  <button type="button" onClick={() => setCurrentFolder(crumb.path)} disabled={crumb.path === currentFolder}>{crumb.name}</button>
+                </Fragment>
+              ))}
+            </nav>
+          </div>
+          <label className="portfolio-media-picker-search">
+            <Search size={16} />
+            <input autoFocus type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder={`Search ${currentFolder.replace(/^originals\/?/, "") || "originals"}`} />
+            {query && <button type="button" onClick={() => setQuery("")} aria-label="Clear search"><X size={14} /></button>}
+          </label>
+        </div>
         {error && <div className="portfolio-media-picker-error">{error}</div>}
         <div className="portfolio-media-picker-grid">
           {loading ? (
-            <div className="portfolio-media-picker-state"><LoaderCircle className="spin" size={22} /> Loading originals…</div>
-          ) : visibleAssets.length ? visibleAssets.map((asset) => {
-            const preview = asset.variants?.["800"]?.url || asset.originalUrl;
-            return (
-              <button type="button" className={selectedId === asset.id ? "is-selected" : ""} key={asset.id} onClick={() => setSelectedId(asset.id)} onDoubleClick={() => { onSelect(asset); onClose(); }}>
-                <span className="portfolio-media-picker-thumb">
-                  <ImageIcon size={22} />
-                  <img src={preview} alt="" loading="lazy" />
-                  {selectedId === asset.id && <i><Check size={15} /></i>}
-                </span>
-                <strong title={asset.originalFilename}>{asset.originalFilename}</strong>
-                <small title={asset.objectKey}>{asset.objectKey.replace(/^originals\//, "")}</small>
-                <em className={`media-state-${asset.processingStatus}`}>{asset.processingStatus === "ready" ? "Optimized" : "Original ready"}</em>
+            <div className="portfolio-media-picker-state"><LoaderCircle className="spin" size={22} /> Loading {currentFolder}…</div>
+          ) : <>
+            {visibleFolders.map((folder) => (
+              <button type="button" className="is-folder" key={folder.path} onClick={() => { setQuery(""); setCurrentFolder(folder.path); }}>
+                <span className="portfolio-media-picker-thumb portfolio-media-picker-folder"><FolderOpen size={34} /></span>
+                <strong title={folder.name}>{folder.name}</strong>
+                <small>Folder</small>
               </button>
-            );
-          }) : (
-            <div className="portfolio-media-picker-state">No matching originals.</div>
-          )}
+            ))}
+            {visibleAssets.map((asset) => {
+              const preview = asset.variants?.["800"]?.url || asset.originalUrl;
+              return (
+                <button type="button" disabled={!asset.catalogued} className={selectedId === asset.id ? "is-selected" : ""} key={asset.objectKey} onClick={() => setSelectedId(asset.id)} onDoubleClick={() => chooseAsset(asset)}>
+                  <span className="portfolio-media-picker-thumb">
+                    <ImageIcon size={22} />
+                    <img src={preview} alt="" loading="lazy" />
+                    {selectedId === asset.id && <i><Check size={15} /></i>}
+                  </span>
+                  <strong title={asset.originalFilename}>{asset.originalFilename}</strong>
+                  <small title={asset.objectKey}>{asset.objectKey.replace(`${currentFolder}/`, "")}</small>
+                  <em className={`media-state-${asset.processingStatus}`}>{asset.processingStatus === "ready" ? "Optimized" : asset.catalogued ? "Processing" : "Indexing"}</em>
+                </button>
+              );
+            })}
+            {!visibleFolders.length && !visibleAssets.length && <div className="portfolio-media-picker-state">This folder has no matching originals.</div>}
+          </>}
         </div>
         <footer>
-          <span>{visibleAssets.length}{visibleAssets.length < assets.length ? ` of ${assets.length}` : ""} assets shown</span>
-          <button type="button" className="primary-button" disabled={!selected} onClick={() => { onSelect(selected); onClose(); }}>Use selected image</button>
+          <span>{visibleFolders.length} {visibleFolders.length === 1 ? "folder" : "folders"} · {visibleAssets.length} {visibleAssets.length === 1 ? "image" : "images"}{truncated ? " · folder listing truncated" : ""}</span>
+          <button type="button" className="primary-button" disabled={!selected?.catalogued} onClick={() => chooseAsset(selected)}>Use selected image</button>
         </footer>
       </section>
     </div>
