@@ -72,14 +72,14 @@ try {
   if (projectResult.error) throw projectResult.error;
   const slug = projectResult.data.slug;
 
-  uploadedStoragePath = `${slug}/integration-${crypto.randomUUID()}.png`;
+  uploadedStoragePath = `originals/${projectResult.data.storage_folder}/integration-${crypto.randomUUID()}.png`;
   const onePixelPng = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=", "base64");
-  const upload = await adminClient.storage.from("portfolio-media").upload(uploadedStoragePath, onePixelPng, { contentType: "image/png" });
-  if (upload.error) throw upload.error;
-  const uploadedUrl = adminClient.storage.from("portfolio-media").getPublicUrl(uploadedStoragePath).data.publicUrl;
-  const assetInsert = await adminClient.from("portfolio_media_assets").insert({
-    project_id: projectId,
-    storage_path: uploadedStoragePath,
+  const uploadedUrl = `https://photos.abodid.com/${uploadedStoragePath}`;
+  const assetInsert = await adminClient.from("media_assets").insert({
+    storage_provider: "cloudflare_r2",
+    storage_bucket: "photos",
+    object_key: uploadedStoragePath,
+    folder_path: uploadedStoragePath.slice(0, uploadedStoragePath.lastIndexOf("/")),
     public_url: uploadedUrl,
     original_filename: "integration.png",
     mime_type: "image/png",
@@ -87,6 +87,9 @@ try {
     width: 1,
     height: 1,
     alt_text: "Integration test pixel",
+    created_by: userId,
+    origin_project_id: projectId,
+    processing_status: "ready",
   }).select("*").single();
   if (assetInsert.error) throw assetInsert.error;
   uploadedAssetId = assetInsert.data.id;
@@ -153,8 +156,7 @@ try {
 } finally {
   if (projectId) await service.from("portfolio_projects").delete().eq("id", projectId);
   await service.from("portfolio_collaborators").delete().eq("id", collaboratorId);
-  if (uploadedStoragePath) await service.storage.from("portfolio-media").remove([uploadedStoragePath]);
-  if (uploadedAssetId) await service.from("portfolio_media_assets").delete().eq("id", uploadedAssetId);
+  if (uploadedAssetId) await service.from("media_assets").delete().eq("id", uploadedAssetId);
   if (userId) {
     await service.from("profiles").delete().eq("id", userId);
     await service.auth.admin.deleteUser(userId);

@@ -24,6 +24,8 @@ import {
 
 const MAX_IMAGE_SIZE_BYTES = 20 * 1024 * 1024;
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const isOriginalCollectionFolder = (folder) => folder.startsWith('originals/');
+const canCreateOriginalFolder = (folder) => folder === 'originals' || folder.startsWith('originals/');
 
 const formatBytes = (value) => {
     const bytes = Number(value || 0);
@@ -89,8 +91,11 @@ const makeBreadcrumbs = (folderPath) => {
 export default function MediaLibrary({ accessToken }) {
     const [files, setFiles] = useState([]);
     const [folders, setFolders] = useState([]);
-    const [rootFolders, setRootFolders] = useState([]);
-    const [currentFolder, setCurrentFolder] = useState('');
+    const [rootFolders, setRootFolders] = useState([
+        { name: 'originals', path: 'originals' },
+        { name: 'variants', path: 'variants' },
+    ]);
+    const [currentFolder, setCurrentFolder] = useState('originals');
     const [selectedKey, setSelectedKey] = useState('');
     const [query, setQuery] = useState('');
     const [searchFiles, setSearchFiles] = useState([]);
@@ -245,6 +250,11 @@ export default function MediaLibrary({ accessToken }) {
     const uploadFiles = async (fileList) => {
         const selected = Array.from(fileList || []);
         if (!selected.length || uploading || !catalogueReady) return;
+        if (!isOriginalCollectionFolder(currentFolder)) {
+            setError('Open or create a collection folder inside Originals before uploading.');
+            setDragging(false);
+            return;
+        }
 
         const invalidType = selected.find((file) => !ACCEPTED_TYPES.includes(file.type));
         const oversized = selected.find((file) => file.size > MAX_IMAGE_SIZE_BYTES);
@@ -301,7 +311,7 @@ export default function MediaLibrary({ accessToken }) {
                 await readJsonResponse(completeResponse);
             }
 
-            setNotice(`${selected.length} ${selected.length === 1 ? 'image' : 'images'} uploaded to ${currentFolder || 'the library root'}.`);
+            setNotice(`${selected.length} ${selected.length === 1 ? 'image' : 'images'} uploaded. WebP variants are being prepared in the background.`);
             await loadFolder(currentFolder, { silent: true });
         } catch (uploadError) {
             setError(uploadError.message);
@@ -351,6 +361,8 @@ export default function MediaLibrary({ accessToken }) {
 
     const breadcrumbs = useMemo(() => makeBreadcrumbs(currentFolder), [currentFolder]);
     const topLevelFolder = currentFolder.split('/')[0];
+    const canUpload = isOriginalCollectionFolder(currentFolder);
+    const canCreateFolder = canCreateOriginalFolder(currentFolder);
 
     return (
         <section className="media-library" aria-labelledby="media-library-title">
@@ -430,7 +442,7 @@ export default function MediaLibrary({ accessToken }) {
 
                 <main
                     className={`finder-main ${dragging ? 'is-dragging' : ''}`}
-                    onDragEnter={(event) => { event.preventDefault(); setDragging(true); }}
+                    onDragEnter={(event) => { event.preventDefault(); if (canUpload) setDragging(true); }}
                     onDragOver={(event) => event.preventDefault()}
                     onDragLeave={(event) => {
                         if (!event.currentTarget.contains(event.relatedTarget)) setDragging(false);
@@ -489,7 +501,7 @@ export default function MediaLibrary({ accessToken }) {
                                 <button type="button" className={viewMode === 'grid' ? 'is-active' : ''} aria-label="Grid view" onClick={() => changeView('grid')}><Grid2X2 size={16} /></button>
                                 <button type="button" className={viewMode === 'list' ? 'is-active' : ''} aria-label="List view" onClick={() => changeView('list')}><LayoutList size={17} /></button>
                             </div>
-                            <button type="button" className="secondary-button" onClick={() => setNewFolderOpen(true)} disabled={uploading}>
+                            <button type="button" className="secondary-button" onClick={() => setNewFolderOpen(true)} disabled={uploading || !canCreateFolder} title={canCreateFolder ? 'Create a folder here' : 'Folders can only be created inside Originals'}>
                                 <Plus size={15} /> New folder
                             </button>
                             <input
@@ -501,7 +513,7 @@ export default function MediaLibrary({ accessToken }) {
                                 onChange={(event) => uploadFiles(event.target.files)}
                                 tabIndex={-1}
                             />
-                            <button type="button" className="primary-button" onClick={() => fileInputRef.current?.click()} disabled={uploading || !catalogueReady}>
+                            <button type="button" className="primary-button" onClick={() => fileInputRef.current?.click()} disabled={uploading || !catalogueReady || !canUpload} title={canUpload ? 'Upload originals here' : 'Choose a collection inside Originals'}>
                                 {uploading ? <LoaderCircle size={16} className="is-spinning" /> : <UploadCloud size={16} />}
                                 {uploading ? `${uploadProgress?.current || 0}/${uploadProgress?.total || 0}` : 'Upload'}
                             </button>
@@ -625,7 +637,14 @@ export default function MediaLibrary({ accessToken }) {
                                 {selectedFile.width && selectedFile.height && <div><dt>Dimensions</dt><dd>{selectedFile.width} × {selectedFile.height}</dd></div>}
                                 <div><dt>Modified</dt><dd>{formatDate(selectedFile.updatedAt || selectedFile.createdAt)}</dd></div>
                                 <div><dt>Location</dt><dd title={selectedFile.objectKey}>{selectedFile.objectKey}</dd></div>
+                                <div><dt>Status</dt><dd>{selectedFile.processingStatus || 'Unknown'}</dd></div>
                                 {selectedFile.credit && <div><dt>Credit</dt><dd>{selectedFile.credit}</dd></div>}
+                                {Object.values(selectedFile.variants || {}).map((variant) => (
+                                    <div key={variant.key}>
+                                        <dt>{variant.key}px</dt>
+                                        <dd><a href={variant.url} target="_blank" rel="noreferrer">{variant.width} × {variant.height} · {formatBytes(variant.fileSize)}</a></dd>
+                                    </div>
+                                ))}
                             </dl>
                             <div className="inspector-actions">
                                 <button type="button" className="secondary-button" onClick={copyPublicUrl}><Copy size={15} /> Copy link</button>

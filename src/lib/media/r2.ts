@@ -1,4 +1,5 @@
 import {
+    DeleteObjectsCommand,
     HeadObjectCommand,
     ListObjectsV2Command,
     PutObjectCommand,
@@ -11,6 +12,8 @@ export const R2_UPLOAD_EXPIRY_SECONDS = 5 * 60;
 export const R2_CACHE_CONTROL = "public, max-age=31536000, immutable";
 export const R2_BROWSER_MAX_ITEMS = 2_000;
 export const R2_SEARCH_MAX_OBJECTS = 25_000;
+export const R2_ORIGINALS_PREFIX = "originals";
+export const R2_VARIANTS_PREFIX = "variants";
 
 const MIME_TYPES_BY_EXTENSION: Record<string, string> = {
     avif: "image/avif",
@@ -147,6 +150,21 @@ export const normalizeR2FolderPath = (value: unknown) => {
         .slice(0, 8);
 
     return segments.join("/");
+};
+
+export const isR2OriginalFolder = (value: unknown, { allowRoot = false } = {}) => {
+    const folder = normalizeR2FolderPath(value);
+    return allowRoot
+        ? folder === R2_ORIGINALS_PREFIX || folder.startsWith(`${R2_ORIGINALS_PREFIX}/`)
+        : folder.startsWith(`${R2_ORIGINALS_PREFIX}/`);
+};
+
+export const assertR2OriginalObjectKey = (value: unknown) => {
+    const key = assertSafeR2ObjectKey(value);
+    if (!key.startsWith(`${R2_ORIGINALS_PREFIX}/`) || key.endsWith("/")) {
+        throw new Error("Original images must be stored inside the originals folder.");
+    }
+    return key;
 };
 
 export const makeR2ObjectKey = (
@@ -441,4 +459,36 @@ export const headR2Object = async (objectKey: string) => {
         new HeadObjectCommand({ Bucket: config.bucket, Key: objectKey }),
     );
     return { config, object };
+};
+
+export const deleteR2Objects = async (objectKeys: string[]) => {
+    const keys = [...new Set(objectKeys.map(assertSafeR2ObjectKey))];
+    if (!keys.length) return { deleted: [], errors: [] };
+    const config = getR2Config();
+    const client = createR2Client(config);
+    const deleted: string[] = [];
+    const errors: Array<{ key: string; code?: string; message?: string }> = [];
+
+    for (let index = 0; index < keys.length; index += 1_000) {
+        const batch = keys.slice(index, index + 1_000);
+        const response = await client.send(new DeleteObjectsCommand({
+            Bucket: config.bucket,
+            Delete: {
+                Quiet: false,
+                Objects: batch.map((Key) => ({ Key })),
+            },
+        }));
+        for (const item of response.Deleted || []) {
+            if (item.Key) deleted.push(item.Key);
+        }
+        for (const item of response.Errors || []) {
+            errors.push({
+                key: item.Key || "unknown",
+                code: item.Code,
+                message: item.Message,
+            });
+        }
+    }
+
+    return { deleted, errors };
 };

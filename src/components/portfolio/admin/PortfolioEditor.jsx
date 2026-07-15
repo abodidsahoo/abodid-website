@@ -2,9 +2,9 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, arrayMove, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import PortfolioBlockEditor from "./PortfolioBlockEditor";
+import PortfolioMediaPicker from "./PortfolioMediaPicker";
 import {
   createPortfolioProject,
-  deletePortfolioImage,
   listAdminProjects,
   loadAdminProject,
   publishPortfolioProject,
@@ -183,14 +183,15 @@ function PortfolioEditorContent({ projectId }) {
   const [tab, setTab] = useState("details");
   const [projectSearch, setProjectSearch] = useState("");
   const [blockMenuOpen, setBlockMenuOpen] = useState(false);
+  const [mediaPickerTarget, setMediaPickerTarget] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [publishing, setPublishing] = useState(false);
+  const closeMediaPicker = useCallback(() => setMediaPickerTarget(null), []);
   const dirtyRef = useRef(false);
   const editVersionRef = useRef(0);
   const draftRef = useRef(null);
   const projectIdRef = useRef(null);
   const savePromiseRef = useRef(null);
-  const pendingMediaDeletesRef = useRef(new Map());
   const allowUnloadRef = useRef(false);
   const interactionEpochRef = useRef(0);
   const filePickerSessionRef = useRef(null);
@@ -283,7 +284,6 @@ function PortfolioEditorContent({ projectId }) {
       if (window.location.pathname !== `/admin/projects/${result.project.slug}`) {
         window.history.replaceState({}, "", `/admin/projects/${result.project.slug}`);
       }
-      pendingMediaDeletesRef.current.clear();
       draftRef.current = result.draft;
       dirtyRef.current = false;
       editVersionRef.current = 0;
@@ -305,30 +305,6 @@ function PortfolioEditorContent({ projectId }) {
     setDirty(true); dirtyRef.current = true; setSaveState("Unsaved changes"); setConflict(false); setNotice("");
   };
 
-  const queueMediaForDeletion = useCallback((media) => {
-    if (!media?.id || !media?.storagePath) return;
-    pendingMediaDeletesRef.current.set(media.id, media);
-  }, []);
-
-  const flushPendingMediaDeletes = useCallback(async () => {
-    const queued = [...pendingMediaDeletesRef.current.values()];
-    if (!queued.length) return;
-    pendingMediaDeletesRef.current.clear();
-    const results = await Promise.allSettled(queued.map((media) => deletePortfolioImage(media)));
-    let retainedByHistory = 0;
-    results.forEach((result, index) => {
-      if (result.status === "rejected") {
-        pendingMediaDeletesRef.current.set(queued[index].id, queued[index]);
-        setError(`Draft saved, but ${queued[index].originalFilename || "an uploaded image"} could not be removed from storage yet.`);
-      } else if (result.value.reason === "referenced") {
-        retainedByHistory += 1;
-      }
-    });
-    if (retainedByHistory > 0) {
-      setNotice(`${retainedByHistory} removed image${retainedByHistory === 1 ? " was" : "s were"} kept in protected storage because a published or recoverable revision still uses it.`);
-    }
-  }, []);
-
   const saveNow = useCallback(async () => {
     if (!dirtyRef.current || !draftRef.current || savePromiseRef.current) return savePromiseRef.current;
     setSaveState("Saving…"); setError("");
@@ -345,7 +321,6 @@ function PortfolioEditorContent({ projectId }) {
         setDirty(true); dirtyRef.current = true; setSaveState("Unsaved changes");
       }
       setProject((value) => ({ ...value, updated_at: new Date().toISOString() }));
-      if (savedLatestEdit) await flushPendingMediaDeletes();
       return nextLockVersion;
     }).catch((err) => {
       if (err.code === "PORTFOLIO_CONFLICT" || err.message === "PORTFOLIO_CONFLICT") { setConflict(true); setSaveState("Conflict detected"); }
@@ -354,7 +329,7 @@ function PortfolioEditorContent({ projectId }) {
     }).finally(() => { savePromiseRef.current = null; });
     savePromiseRef.current = promise;
     return promise;
-  }, [flushPendingMediaDeletes]);
+  }, []);
 
   const saveDraft = useCallback(async ({ showConfirmation = true } = {}) => {
     setSaving(true); setNotice(""); setError("");
@@ -474,6 +449,34 @@ function PortfolioEditorContent({ projectId }) {
       return { ...current, blocks: arrayMove(current.blocks, oldIndex, newIndex) };
     });
   };
+
+  const attachLibraryMedia = (media) => {
+    const target = mediaPickerTarget;
+    if (!target || !media) return;
+    if (!target.blockId) {
+      updateDraft((current) => ({
+        ...current,
+        coverUrl: media.url,
+        coverMedia: media,
+        coverAlt: current.coverAlt || media.alt || current.title,
+      }));
+      return;
+    }
+    const targetBlock = draftRef.current?.blocks?.find((block) => block.id === target.blockId);
+    const multiple = ["image_grid", "image_gallery"].includes(targetBlock?.blockType);
+    updateDraft((current) => ({
+      ...current,
+      blocks: current.blocks.map((block) => {
+        if (block.id !== target.blockId) return block;
+        if (multiple) {
+          const list = Array.isArray(block.content?.media) ? block.content.media : [];
+          return { ...block, content: { ...block.content, media: [...list, media] } };
+        }
+        return { ...block, content: { ...block.content, media } };
+      }),
+    }));
+  };
+
   const upload = async (fileOrFiles, blockId = null, mediaIndex = 0) => {
     if (uploadingRef.current) return;
     const pickerSession = filePickerSessionRef.current;
@@ -491,6 +494,78 @@ function PortfolioEditorContent({ projectId }) {
     setError("");
     try {
       const files = (Array.isArray(fileOrFiles) ? fileOrFiles : [fileOrFiles]).filter(Boolean);
+      if (!files.length) throw new Error("No images were selected.");
+      const temporaryMedia = files.map((file) => ({
+        id: `upload-${crypto.randomUUID()}`,
+        url: URL.createObjectURL(file),
+        originalUrl: null,
+        storagePath: null,
+        originalFilename: file.name,
+        mimeType: file.type,
+        alt: "",
+        caption: "",
+        credit: "",
+        focalX: 50,
+        focalY: 50,
+        variants: {},
+        processingStatus: "uploading",
+        temporary: true,
+      }));
+
+      const targetBlock = blockId
+        ? draftRef.current?.blocks?.find((block) => block.id === blockId)
+        : null;
+      const multiple = ["image_grid", "image_gallery"].includes(targetBlock?.blockType);
+      if (!blockId) {
+        const temporary = temporaryMedia[0];
+        updateDraft((current) => ({
+          ...current,
+          coverUrl: temporary.url,
+          coverMedia: temporary,
+          coverAlt: current.coverAlt || current.title,
+        }));
+      } else {
+        updateDraft((current) => ({ ...current, blocks: current.blocks.map((block) => {
+          if (block.id !== blockId) return block;
+          if (multiple) {
+            const list = Array.isArray(block.content?.media) ? block.content.media : [];
+            return { ...block, content: { ...block.content, media: [...list, ...temporaryMedia] } };
+          }
+          return { ...block, content: { ...block.content, media: temporaryMedia[0] } };
+        }) }));
+      }
+
+      const replaceTemporary = (temporaryId, media) => updateDraft((current) => {
+        if (!blockId) {
+          if (current.coverMedia?.id !== temporaryId) return current;
+          return { ...current, coverUrl: media.url, coverMedia: media };
+        }
+        return { ...current, blocks: current.blocks.map((block) => {
+          if (block.id !== blockId) return block;
+          const currentMedia = block.content?.media;
+          if (Array.isArray(currentMedia)) {
+            return { ...block, content: { ...block.content, media: currentMedia.map((item) => item?.id === temporaryId ? media : item) } };
+          }
+          if (currentMedia?.id === temporaryId) return { ...block, content: { ...block.content, media } };
+          return block;
+        }) };
+      });
+      const removeTemporary = (temporaryId) => updateDraft((current) => {
+        if (!blockId) {
+          if (current.coverMedia?.id !== temporaryId) return current;
+          return { ...current, coverUrl: "", coverMedia: null };
+        }
+        return { ...current, blocks: current.blocks.map((block) => {
+          if (block.id !== blockId) return block;
+          const currentMedia = block.content?.media;
+          if (Array.isArray(currentMedia)) {
+            return { ...block, content: { ...block.content, media: currentMedia.filter((item) => item?.id !== temporaryId) } };
+          }
+          if (currentMedia?.id === temporaryId) return { ...block, content: { ...block.content, media: null } };
+          return block;
+        }) };
+      });
+
       const uploadedMedia = [];
       const failedUploads = [];
       for (const [i, file] of files.entries()) {
@@ -499,32 +574,16 @@ function PortfolioEditorContent({ projectId }) {
           const media = await uploadPortfolioImage(project, file);
           if (!media?.id || !media?.url) throw new Error("The upload completed without valid image data.");
           uploadedMedia.push(media);
+          replaceTemporary(temporaryMedia[i].id, media);
+          URL.revokeObjectURL(temporaryMedia[i].url);
         } catch (uploadError) {
           console.error("[upload] per-file upload error:", uploadError);
           failedUploads.push({ file, error: uploadError });
+          removeTemporary(temporaryMedia[i].id);
+          URL.revokeObjectURL(temporaryMedia[i].url);
         }
       }
       if (!uploadedMedia.length) throw failedUploads[0]?.error || new Error("No images were selected.");
-
-      if (!blockId) {
-        const media = uploadedMedia[0];
-        const currentTitle = draftRef.current?.title ?? "";
-        updateDraft({ coverUrl: media.url, coverAlt: media.alt || currentTitle });
-      } else {
-        const targetBlock = draftRef.current?.blocks?.find((block) => block.id === blockId);
-        const targetMedia = Array.isArray(targetBlock?.content?.media)
-          ? targetBlock.content.media[mediaIndex]
-          : targetBlock?.content?.media;
-        if (!["image_grid", "image_gallery"].includes(targetBlock?.blockType)) queueMediaForDeletion(targetMedia);
-        updateDraft((current) => ({ ...current, blocks: current.blocks.map((block) => {
-          if (block.id !== blockId) return block;
-          if (["image_grid", "image_gallery"].includes(block.blockType)) {
-            const list = Array.isArray(block.content.media) ? [...block.content.media] : [];
-            return { ...block, content: { ...block.content, media: [...list, ...uploadedMedia] } };
-          }
-          return { ...block, content: { ...block.content, media: uploadedMedia[0] } };
-        }) }));
-      }
       if (failedUploads.length) {
         const failedNames = failedUploads.map(({ file }) => file.name).join(", ");
         updateUploadOverlay({ status: "error", message: `${uploadedMedia.length} uploaded, ${failedUploads.length} failed: ${failedNames}` });
@@ -537,7 +596,7 @@ function PortfolioEditorContent({ projectId }) {
           if (session?.token === uploadToken) filePickerSessionRef.current = null;
         }, 3000);
       } else {
-        updateUploadOverlay({ status: "done", message: "Image uploaded successfully" });
+        updateUploadOverlay({ status: "done", message: "Original ready · optimization continues in the background" });
         uploadOverlayCloseTimerRef.current = window.setTimeout(() => {
           if (interactionEpochRef.current !== uploadToken) return;
           setUploadOverlayClosing(true);
@@ -646,21 +705,21 @@ function PortfolioEditorContent({ projectId }) {
       </section>
 
       <section className="editor-cover-card">
-        <header><div><span className="editor-eyebrow">Cover media</span><h2>Project cover</h2></div><label className={`file-button${uploading ? " is-uploading" : ""}`}>{uploading ? "Uploading…" : "Upload cover"}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" disabled={uploading} onClickCapture={beginFilePickerSession} onCancel={settleFilePickerSession} onChange={(event) => {
+        <header><div><span className="editor-eyebrow">Cover media</span><h2>Project cover</h2></div><div className="cover-media-actions"><button type="button" className="quiet-button" onClick={() => setMediaPickerTarget({ blockId: null })}>Choose from library</button><label className={`file-button${uploading ? " is-uploading" : ""}`}>{uploading ? "Uploading…" : "Upload cover"}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" disabled={uploading} onClickCapture={beginFilePickerSession} onCancel={settleFilePickerSession} onChange={(event) => {
           const file = event.target.files?.[0];
           if (file) upload(file).catch((err) => { console.error("[cover upload] unhandled:", err); setError(err?.message || "Image upload failed."); setUploading(false); updateUploadOverlay(null); });
           else settleFilePickerSession();
           event.target.value = "";
-        }} /></label></header>
+        }} /></label></div></header>
         {draft.coverUrl ? <img src={draft.coverUrl} alt={draft.coverAlt || ""} style={{ objectPosition: `${draft.coverFocalX ?? 50}% ${draft.coverFocalY ?? 50}%` }} /> : <div className="cover-placeholder">4:3 cover preview</div>}
-        <Field label="Cover URL" value={draft.coverUrl} onChange={(coverUrl) => updateDraft({ coverUrl })} />
+        <Field label="Cover URL" value={draft.coverUrl} onChange={(coverUrl) => updateDraft({ coverUrl, coverMedia: null })} />
         <Field label="Cover alt text (optional)" value={draft.coverAlt} onChange={(coverAlt) => updateDraft({ coverAlt })} />
         <div className="field-row"><label className="editor-field"><span>Horizontal focal point · {draft.coverFocalX}%</span><input type="range" min="0" max="100" value={draft.coverFocalX} onChange={(event) => updateDraft({ coverFocalX: Number(event.target.value) })} /></label><label className="editor-field"><span>Vertical focal point · {draft.coverFocalY}%</span><input type="range" min="0" max="100" value={draft.coverFocalY} onChange={(event) => updateDraft({ coverFocalY: Number(event.target.value) })} /></label></div>
       </section>
 
       <section className="editor-blocks-section">
         <header><div><span className="editor-eyebrow">Project story</span><h2>Content blocks</h2></div><div className="add-block-wrap"><button type="button" className="primary-button" onClick={() => setBlockMenuOpen((value) => !value)}>+ Add block</button>{blockMenuOpen && <div className="add-block-menu">{BLOCK_TYPES.map((type) => <button type="button" key={type} onClick={() => { updateDraft((current) => ({ ...current, blocks: [...current.blocks, createEmptyBlock(type)] })); setBlockMenuOpen(false); }}>{BLOCK_LABELS[type]}</button>)}</div>}</div></header>
-        {draft.blocks.length ? <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onBlockDragEnd}><SortableContext items={draft.blocks.map((block) => block.id)} strategy={verticalListSortingStrategy}><div className="editor-block-list">{draft.blocks.map((block) => <PortfolioBlockEditor key={block.id} block={block} uploading={uploading} onUpload={(file, index) => upload(file, block.id, index)} onRemoveMedia={queueMediaForDeletion} onFilePickerOpen={beginFilePickerSession} onFilePickerCancel={settleFilePickerSession} onChange={(next) => updateDraft((current) => ({ ...current, blocks: current.blocks.map((item) => item.id === block.id ? next : item) }))} onDuplicate={() => updateDraft((current) => { const index = current.blocks.findIndex((item) => item.id === block.id); const next = [...current.blocks]; next.splice(index + 1, 0, { ...block, id: crypto.randomUUID() }); return { ...current, blocks: next }; })} onDelete={() => { if (!window.confirm("Delete this block from the draft?")) return; const media = Array.isArray(block.content?.media) ? block.content.media : block.content?.media ? [block.content.media] : []; media.forEach(queueMediaForDeletion); updateDraft((current) => ({ ...current, blocks: current.blocks.filter((item) => item.id !== block.id) })); }} />)}</div></SortableContext></DndContext> : <div className="editor-empty-blocks">Start with a controlled block. Templates create these same ordinary blocks.</div>}
+        {draft.blocks.length ? <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onBlockDragEnd}><SortableContext items={draft.blocks.map((block) => block.id)} strategy={verticalListSortingStrategy}><div className="editor-block-list">{draft.blocks.map((block) => <PortfolioBlockEditor key={block.id} block={block} uploading={uploading} onUpload={(file, index) => upload(file, block.id, index)} onChooseMedia={() => setMediaPickerTarget({ blockId: block.id })} onFilePickerOpen={beginFilePickerSession} onFilePickerCancel={settleFilePickerSession} onChange={(next) => updateDraft((current) => ({ ...current, blocks: current.blocks.map((item) => item.id === block.id ? next : item) }))} onDuplicate={() => updateDraft((current) => { const index = current.blocks.findIndex((item) => item.id === block.id); const next = [...current.blocks]; next.splice(index + 1, 0, { ...block, id: crypto.randomUUID() }); return { ...current, blocks: next }; })} onDelete={() => { if (!window.confirm("Delete this block from the draft?")) return; updateDraft((current) => ({ ...current, blocks: current.blocks.filter((item) => item.id !== block.id) })); }} />)}</div></SortableContext></DndContext> : <div className="editor-empty-blocks">Start with a controlled block. Templates create these same ordinary blocks.</div>}
       </section>
     </main>
 
@@ -675,6 +734,8 @@ function PortfolioEditorContent({ projectId }) {
         {tab === "publishing" && <><section className={`publication-summary ${project.published_revision_id ? "is-published" : "is-draft"}`}><span>Live status</span><strong>{project.published_revision_id ? (project.status === "wip" ? "Published · Work in Progress" : "Published · Full project") : "Not published"}</strong></section><fieldset className="publishing-mode-choice"><legend>Public mode</legend><button type="button" role="radio" aria-checked={!draft.workInProgress} className={!draft.workInProgress ? "is-selected" : ""} onClick={() => updateDraft({ workInProgress: false, limitedPublic: false })}><strong>Full project</strong><span>Publish all visible project information.</span></button><button type="button" role="radio" aria-checked={draft.workInProgress} className={draft.workInProgress ? "is-selected" : ""} onClick={() => updateDraft({ workInProgress: true, limitedPublic: true })}><strong>Work in progress</strong><span>Publish the cover, summary and visible blocks while keeping incomplete details private.</span></button></fieldset><section className={validation.length ? "publish-validation has-errors" : "publish-validation is-ready"}><h3>{validation.length ? `${validation.length} item${validation.length === 1 ? "" : "s"} before publishing` : "Ready to publish"}</h3>{validation.length > 0 && <ul>{validation.map((item) => <li key={item}>{item}</li>)}</ul>}</section><button type="button" className="primary-button publish-button full" onClick={publish} disabled={validation.length > 0 || publishing || saving || uploading}>{publishing ? "Publishing…" : "Publish"}</button><section className="revision-history"><h3>Version history</h3>{history.length ? <><div className="revision-current"><span>Current live</span><strong>v{history[0].revision_number}</strong><small>{formatRevisionDate(history[0].published_at)}</small></div>{history.length > 1 && <details><summary>Earlier versions ({history.length - 1})</summary><div className="revision-earlier-list">{history.slice(1).map((revision) => <div key={revision.id}><span><strong>v{revision.revision_number}</strong><small>{formatRevisionDate(revision.published_at)}</small></span><button type="button" className="quiet-button" onClick={() => restore(revision.id)}>Edit from this version</button></div>)}</div></details>}</> : <p>No published versions yet.</p>}</section></>}
       </div>
     </aside>
+
+    <PortfolioMediaPicker open={Boolean(mediaPickerTarget)} onClose={closeMediaPicker} onSelect={attachLibraryMedia} />
 
     {preview && (
       <div className="portfolio-preview-modal" role="dialog" aria-modal="true" aria-label="Responsive project preview">

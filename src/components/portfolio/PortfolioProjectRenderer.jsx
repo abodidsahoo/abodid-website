@@ -24,10 +24,26 @@ function OptimizedImage({ src, widths = [480, 800, 1200, 1600], quality = 76, si
   );
 }
 
+function ResponsiveMediaImage({ media, src = media?.url, widths = [480, 800, 1200, 1600], quality = 76, sizes = "100vw", ...props }) {
+  const variants = Object.values(media?.variants || {})
+    .filter((variant) => variant?.url && Number(variant.width) > 0)
+    .sort((first, second) => Number(first.width) - Number(second.width));
+  if (!variants.length) return <OptimizedImage src={src} widths={widths} quality={quality} sizes={sizes} {...props} />;
+  return (
+    <img
+      {...props}
+      src={variants.at(-1)?.url || src}
+      srcSet={variants.map((variant) => `${variant.url} ${variant.width}w`).join(", ")}
+      sizes={sizes}
+    />
+  );
+}
+
 function ProjectCoverImage({ project }) {
   return (
-    <OptimizedImage
-      src={project.coverUrl}
+    <ResponsiveMediaImage
+      media={project.coverMedia}
+      src={project.coverMedia?.url || project.coverUrl}
       widths={[480, 800, 1200, 1600]}
       quality={74}
       sizes="(max-width: 760px) 100vw, 1200px"
@@ -222,7 +238,8 @@ function ImageFigure({ media, fit = "cover", onOpen, index }) {
   if (!media?.url) return null;
   const style = { objectPosition: `${media.focalX ?? 50}% ${media.focalY ?? 50}%`, objectFit: fit };
   const image = (
-    <OptimizedImage
+    <ResponsiveMediaImage
+      media={media}
       src={media.url}
       widths={[480, 800, 1200, 1600]}
       quality={76}
@@ -312,7 +329,8 @@ function Lightbox({ media, index, onIndex, onClose }) {
             </button>
           )}
           <figure className="lightbox-figure">
-            <OptimizedImage
+            <ResponsiveMediaImage
+              media={current}
               src={current.url}
               widths={[800, 1200, 1600, 2000]}
               quality={84}
@@ -346,14 +364,14 @@ function GalleryCover({ mediaList, fit, onOpen, coverRef }) {
       {/* Stack layer 2 — third image, furthest back */}
       {count >= 3 && (
         <div className="gallery-stack gallery-stack-2" aria-hidden="true">
-          <OptimizedImage src={mediaList[2].url} widths={[480, 800]} quality={74} sizes="(max-width: 760px) 100vw, 800px" alt="" loading="lazy" decoding="async"
+          <ResponsiveMediaImage media={mediaList[2]} src={mediaList[2].url} widths={[480, 800]} quality={74} sizes="(max-width: 760px) 100vw, 800px" alt="" loading="lazy" decoding="async"
             style={{ objectFit: fit || "cover", objectPosition: objectPos(mediaList[2]) }} />
         </div>
       )}
       {/* Stack layer 1 — second image, middle */}
       {count >= 2 && (
         <div className="gallery-stack gallery-stack-1" aria-hidden="true">
-          <OptimizedImage src={mediaList[1].url} widths={[480, 800]} quality={74} sizes="(max-width: 760px) 100vw, 800px" alt="" loading="lazy" decoding="async"
+          <ResponsiveMediaImage media={mediaList[1]} src={mediaList[1].url} widths={[480, 800]} quality={74} sizes="(max-width: 760px) 100vw, 800px" alt="" loading="lazy" decoding="async"
             style={{ objectFit: fit || "cover", objectPosition: objectPos(mediaList[1]) }} />
         </div>
       )}
@@ -364,7 +382,8 @@ function GalleryCover({ mediaList, fit, onOpen, coverRef }) {
         onClick={() => onOpen(0)}
         aria-label={`Open gallery with ${count} image${count === 1 ? "" : "s"}`}
       >
-        <OptimizedImage
+        <ResponsiveMediaImage
+          media={cover}
           src={cover.url}
           widths={[480, 800, 1200]}
           quality={76}

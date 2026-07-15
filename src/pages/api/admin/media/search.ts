@@ -23,7 +23,24 @@ const MEDIA_COLUMNS = [
     "credit",
     "created_at",
     "updated_at",
+    "processing_status",
+    "processing_error",
+    "media_variants(variant_key,target_width,actual_width,actual_height,public_url,file_size,mime_type)",
 ].join(",");
+
+const mapVariants = (rows: Array<Record<string, unknown>> | null | undefined) =>
+    Object.fromEntries((rows || []).map((variant) => [
+        String(variant.variant_key),
+        {
+            key: variant.variant_key,
+            url: variant.public_url,
+            width: variant.actual_width,
+            height: variant.actual_height,
+            targetWidth: variant.target_width,
+            fileSize: variant.file_size,
+            mimeType: variant.mime_type,
+        },
+    ]));
 
 export const GET: APIRoute = async ({ request }) => {
     const authorization = await authorizeAdminRequest(request);
@@ -80,6 +97,9 @@ export const GET: APIRoute = async ({ request }) => {
                 createdAt: asset?.created_at || object.lastModified,
                 updatedAt: asset?.updated_at || object.lastModified,
                 catalogued: Boolean(asset),
+                processingStatus: asset?.processing_status || (asset ? "uploaded" : "uncatalogued"),
+                processingError: asset?.processing_error || null,
+                variants: mapVariants(asset?.media_variants),
             };
         });
 

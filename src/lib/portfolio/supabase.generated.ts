@@ -1074,91 +1074,6 @@ export type Database = {
         }
         Relationships: []
       }
-      portfolio_media_assets: {
-        Row: {
-          alt_text: string
-          caption: string
-          created_at: string
-          created_by: string | null
-          credit: string
-          decorative: boolean
-          file_size: number
-          focal_x: number
-          focal_y: number
-          height: number | null
-          id: string
-          mime_type: string
-          original_filename: string
-          project_id: string | null
-          public_url: string
-          storage_path: string
-          updated_at: string
-          width: number | null
-        }
-        Insert: {
-          alt_text?: string
-          caption?: string
-          created_at?: string
-          created_by?: string | null
-          credit?: string
-          decorative?: boolean
-          file_size?: number
-          focal_x?: number
-          focal_y?: number
-          height?: number | null
-          id?: string
-          mime_type: string
-          original_filename: string
-          project_id?: string | null
-          public_url: string
-          storage_path: string
-          updated_at?: string
-          width?: number | null
-        }
-        Update: {
-          alt_text?: string
-          caption?: string
-          created_at?: string
-          created_by?: string | null
-          credit?: string
-          decorative?: boolean
-          file_size?: number
-          focal_x?: number
-          focal_y?: number
-          height?: number | null
-          id?: string
-          mime_type?: string
-          original_filename?: string
-          project_id?: string | null
-          public_url?: string
-          storage_path?: string
-          updated_at?: string
-          width?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "portfolio_media_assets_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "portfolio_projects"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "portfolio_media_assets_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "portfolio_public_index"
-            referencedColumns: ["project_id"]
-          },
-          {
-            foreignKeyName: "portfolio_media_assets_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "portfolio_public_projects"
-            referencedColumns: ["project_id"]
-          },
-        ]
-      }
       portfolio_organisations: {
         Row: {
           archived: boolean
@@ -1195,7 +1110,7 @@ export type Database = {
             foreignKeyName: "portfolio_organisations_logo_media_fk"
             columns: ["logo_media_id"]
             isOneToOne: false
-            referencedRelation: "portfolio_media_assets"
+            referencedRelation: "media_assets"
             referencedColumns: ["id"]
           },
         ]

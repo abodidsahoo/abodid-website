@@ -5,6 +5,7 @@ import {
 } from "../../../../lib/admin/serverAuth";
 import {
     createPresignedR2Upload,
+    isR2OriginalFolder,
     isAllowedImageMimeType,
     makeAvailableR2ObjectKey,
     MAX_IMAGE_SIZE_BYTES,
@@ -31,6 +32,12 @@ export const POST: APIRoute = async ({ request }) => {
         }
         if (!Number.isSafeInteger(size) || size <= 0 || size > MAX_IMAGE_SIZE_BYTES) {
             return jsonResponse({ error: "Images must be 20 MB or smaller." }, 400);
+        }
+        if (!isR2OriginalFolder(folder)) {
+            return jsonResponse(
+                { error: "Choose a project or collection folder inside Originals before uploading." },
+                400,
+            );
         }
 
         const objectKey = await makeAvailableR2ObjectKey(folder, filename);

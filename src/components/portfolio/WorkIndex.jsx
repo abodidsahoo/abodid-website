@@ -17,6 +17,18 @@ const groupLabels = {
 
 const yearLabel = (card) => card.yearEnd && card.yearEnd !== card.yearStart ? `${card.yearStart}-${card.yearEnd}` : card.yearStart;
 
+const permanentCoverSources = (project) => {
+  const variants = project.coverMedia?.variants || {};
+  const available = [variants["800"], variants["1600"]]
+    .filter((variant) => variant?.url)
+    .sort((left, right) => Number(left.width || left.targetWidth) - Number(right.width || right.targetWidth));
+  if (!available.length) return null;
+  return {
+    src: available.at(-1).url,
+    srcSet: available.map((variant) => `${variant.url} ${variant.width || variant.targetWidth}w`).join(", "),
+  };
+};
+
 export default function WorkIndex({ projects = [] }) {
   const [selected, setSelected] = useState(() => typeof window === "undefined" ? {} : parseFilters(window.location.search));
   const [filterOpen, setFilterOpen] = useState(false);
@@ -153,12 +165,14 @@ export default function WorkIndex({ projects = [] }) {
 
       {filtered.length > 0 ? (
         <div className="work-card-grid">
-          {filtered.map((project) => (
+          {filtered.map((project) => {
+            const permanentCover = permanentCoverSources(project);
+            return (
             <article className="work-card" key={project.id || project.slug}>
               <a href={`/work/${project.slug}`} className="work-card-image">
                 {project.coverUrl && <img
-                  src={getOptimizedImageUrl(project.coverUrl, { width: 1200, quality: 74 })}
-                  srcSet={getOptimizedImageSrcSet(project.coverUrl, { widths: [480, 800, 1200], quality: 74 })}
+                  src={permanentCover?.src || getOptimizedImageUrl(project.coverUrl, { width: 1200, quality: 74 })}
+                  srcSet={permanentCover?.srcSet || getOptimizedImageSrcSet(project.coverUrl, { widths: [480, 800, 1200], quality: 74 })}
                   sizes="(max-width: 760px) calc(100vw - 36px), 50vw"
                   alt={project.coverAlt || ""}
                   loading="lazy"
@@ -199,7 +213,7 @@ export default function WorkIndex({ projects = [] }) {
                 })()}
               </div>
             </article>
-          ))}
+          );})}
         </div>
       ) : (
         <div className="work-empty">

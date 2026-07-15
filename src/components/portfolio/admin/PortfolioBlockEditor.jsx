@@ -10,7 +10,7 @@ function MediaField({ item, index, update, remove }) {
   return <div className="media-field">
     {item.url && <img src={item.url} alt="" />}
     {!item.storagePath && <Text label="Image link" value={item.url} placeholder="Paste an https:// image link" onChange={(url) => update(index, { sourceType: "external", url })} />}
-    {item.storagePath && <div className="uploaded-media-source"><span>Uploaded image</span><small>{item.originalFilename || item.storagePath}</small></div>}
+    {item.storagePath && <div className="uploaded-media-source"><span>{item.processingStatus === "ready" ? "Cloudflare image" : "Cloudflare original ready"}</span><small>{item.originalFilename || item.storagePath}</small></div>}
     <Text label="Alt text (optional)" value={item.alt} onChange={(alt) => update(index, { alt })} />
     <Text label="Caption" value={item.caption} onChange={(caption) => update(index, { caption })} />
     <Text label="Credit" value={item.credit} onChange={(credit) => update(index, { credit })} />
@@ -29,7 +29,7 @@ function SortableMediaField({ item, index, sortId, update, remove }) {
   </div>;
 }
 
-function MediaFields({ media, onChange, multiple = false, onUpload, onRemoveMedia, uploading, onFilePickerOpen, onFilePickerCancel }) {
+function MediaFields({ media, onChange, multiple = false, onUpload, onChooseMedia, onRemoveMedia, uploading, onFilePickerOpen, onFilePickerCancel }) {
   // Drafts can briefly contain null/partial media while an async upload is
   // completing. Never let that transient value crash the entire editor.
   const items = (Array.isArray(media) ? media : media ? [media] : [])
@@ -64,7 +64,7 @@ function MediaFields({ media, onChange, multiple = false, onUpload, onRemoveMedi
       </SortableContext>
     </DndContext> : items.map((item, index) => <MediaField key={item.id || index} item={item} index={index} update={update} remove={remove} />)}
     {(multiple || items.length === 0) && <div className="media-choice-label">Choose how to add an image</div>}
-    <div className="media-add-row"><button type="button" className="media-choice-button" onClick={addLink}>{items.length && !multiple ? "Replace with image link" : "Add image link"}</button><label className="file-button media-choice-button">{uploading ? "Uploading…" : (multiple ? "Upload images" : (items.length ? "Replace with upload" : "Upload image"))}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple={multiple} disabled={uploading} onClickCapture={onFilePickerOpen} onCancel={onFilePickerCancel} onChange={(event) => {
+    <div className="media-add-row"><button type="button" className="media-choice-button" onClick={() => onChooseMedia?.(multiple ? items.length : 0)}>{items.length && !multiple ? "Replace from library" : "Choose from library"}</button><button type="button" className="media-choice-button" onClick={addLink}>{items.length && !multiple ? "Replace with image link" : "Add image link"}</button><label className="file-button media-choice-button">{uploading ? "Uploading…" : (multiple ? "Upload images" : (items.length ? "Replace with upload" : "Upload image"))}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple={multiple} disabled={uploading} onClickCapture={onFilePickerOpen} onCancel={onFilePickerCancel} onChange={(event) => {
       const files = [...(event.target.files || [])];
       if (files.length) { const result = onUpload(multiple ? files : files[0], multiple ? items.length : 0); if (result && typeof result.catch === "function") result.catch((err) => console.error("[block upload] unhandled:", err)); }
       else onFilePickerCancel?.();
@@ -73,7 +73,7 @@ function MediaFields({ media, onChange, multiple = false, onUpload, onRemoveMedi
   </div>;
 }
 
-export default function PortfolioBlockEditor({ block, onChange, onDuplicate, onDelete, onUpload, onRemoveMedia, uploading, onFilePickerOpen, onFilePickerCancel }) {
+export default function PortfolioBlockEditor({ block, onChange, onDuplicate, onDelete, onUpload, onChooseMedia, onRemoveMedia, uploading, onFilePickerOpen, onFilePickerCancel }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: block.id });
   const updateContent = (patch) => onChange({ ...block, content: { ...block.content, ...patch } });
   const updateSettings = (patch) => onChange({ ...block, settings: { ...block.settings, ...patch } });
@@ -85,9 +85,9 @@ export default function PortfolioBlockEditor({ block, onChange, onDuplicate, onD
   if (type === "quotation") fields = <><Text label="Quote" value={content.quote} rows={4} onChange={(quote) => updateContent({ quote })} /><Text label="Attribution" value={content.attribution} onChange={(attribution) => updateContent({ attribution })} /></>;
   if (type === "highlight") fields = <Text label="Highlight" value={content.text} rows={3} onChange={(text) => updateContent({ text })} />;
   if (type === "testimonial") fields = <><Text label="Quote" value={content.quote} rows={4} onChange={(quote) => updateContent({ quote })} /><Text label="Name" value={content.name} onChange={(name) => updateContent({ name })} /><Text label="Role / organisation" value={content.role} onChange={(role) => updateContent({ role })} /><Text label="Link" value={content.link} onChange={(link) => updateContent({ link })} /></>;
-  if (["single_image", "image_grid", "image_gallery"].includes(type)) fields = <MediaFields media={content.media} multiple={type !== "single_image"} onChange={(media) => updateContent({ media })} onUpload={onUpload} onRemoveMedia={onRemoveMedia} uploading={uploading} onFilePickerOpen={onFilePickerOpen} onFilePickerCancel={onFilePickerCancel} />;
+  if (["single_image", "image_grid", "image_gallery"].includes(type)) fields = <MediaFields media={content.media} multiple={type !== "single_image"} onChange={(media) => updateContent({ media })} onUpload={onUpload} onChooseMedia={onChooseMedia} onRemoveMedia={onRemoveMedia} uploading={uploading} onFilePickerOpen={onFilePickerOpen} onFilePickerCancel={onFilePickerCancel} />;
   if (type === "video_embed") fields = <><Text label="YouTube or Vimeo URL" value={content.url} onChange={(url) => updateContent({ url })} /><Text label="Caption" value={content.caption} onChange={(caption) => updateContent({ caption })} /></>;
-  if (type === "media_text") fields = <><MediaFields media={content.media} onChange={(media) => updateContent({ media })} onUpload={onUpload} onRemoveMedia={onRemoveMedia} uploading={uploading} onFilePickerOpen={onFilePickerOpen} onFilePickerCancel={onFilePickerCancel} /><Text label="Text" value={content.text} rows={6} onChange={(text) => updateContent({ text })} /><label className="editor-field"><span>Media position</span><select value={content.mediaPosition || "left"} onChange={(event) => updateContent({ mediaPosition: event.target.value })}><option value="left">Left</option><option value="right">Right</option></select></label></>;
+  if (type === "media_text") fields = <><MediaFields media={content.media} onChange={(media) => updateContent({ media })} onUpload={onUpload} onChooseMedia={onChooseMedia} onRemoveMedia={onRemoveMedia} uploading={uploading} onFilePickerOpen={onFilePickerOpen} onFilePickerCancel={onFilePickerCancel} /><Text label="Text" value={content.text} rows={6} onChange={(text) => updateContent({ text })} /><label className="editor-field"><span>Media position</span><select value={content.mediaPosition || "left"} onChange={(event) => updateContent({ mediaPosition: event.target.value })}><option value="left">Left</option><option value="right">Right</option></select></label></>;
   if (type === "external_link") fields = <><Text label="Label" value={content.label} onChange={(label) => updateContent({ label })} /><Text label="URL" value={content.url} onChange={(url) => updateContent({ url })} /></>;
 
   return <article ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? .55 : 1 }} className={`portfolio-editor-block ${block.visible === false ? "is-hidden" : ""}`}>

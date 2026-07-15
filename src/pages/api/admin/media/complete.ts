@@ -4,7 +4,7 @@ import {
     jsonResponse,
 } from "../../../../lib/admin/serverAuth";
 import {
-    assertSafeR2ObjectKey,
+    assertR2OriginalObjectKey,
     buildR2PublicUrl,
     headR2Object,
     isAllowedImageMimeType,
@@ -19,13 +19,29 @@ const optionalDimension = (value: unknown) => {
 const cleanEtag = (value: string | undefined) =>
     value?.replace(/^"|"$/g, "") || null;
 
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+const mapVariants = (rows: Array<Record<string, unknown>> | null | undefined) =>
+    Object.fromEntries((rows || []).map((variant) => [
+        String(variant.variant_key),
+        {
+            key: variant.variant_key,
+            url: variant.public_url,
+            width: variant.actual_width,
+            height: variant.actual_height,
+            targetWidth: variant.target_width,
+            fileSize: variant.file_size,
+            mimeType: variant.mime_type,
+        },
+    ]));
+
 export const POST: APIRoute = async ({ request }) => {
     const authorization = await authorizeAdminRequest(request);
     if (!authorization.ok) return authorization.response;
 
     try {
         const body = await request.json();
-        const objectKey = assertSafeR2ObjectKey(body?.objectKey);
+        const objectKey = assertR2OriginalObjectKey(body?.objectKey);
         const originalFilename =
             typeof body?.originalFilename === "string"
                 ? body.originalFilename.trim().slice(0, 255)
@@ -33,6 +49,9 @@ export const POST: APIRoute = async ({ request }) => {
         const expectedSize = Number(body?.expectedSize);
         const width = optionalDimension(body?.width);
         const height = optionalDimension(body?.height);
+        const projectId = typeof body?.projectId === "string" && UUID_PATTERN.test(body.projectId)
+            ? body.projectId
+            : null;
 
         if (!originalFilename) {
             return jsonResponse({ error: "The original filename is required." }, 400);
@@ -55,6 +74,22 @@ export const POST: APIRoute = async ({ request }) => {
         const slashIndex = objectKey.lastIndexOf("/");
         const folderPath = slashIndex > -1 ? objectKey.slice(0, slashIndex) : "";
         const publicUrl = buildR2PublicUrl(config, objectKey);
+        let originProjectId: string | null = null;
+        if (projectId) {
+            const { data: project, error: projectError } = await authorization.supabase
+                .from("portfolio_projects")
+                .select("id,storage_folder")
+                .eq("id", projectId)
+                .maybeSingle();
+            if (projectError || !project) {
+                return jsonResponse({ error: "The target portfolio project no longer exists." }, 409);
+            }
+            const expectedPrefix = `originals/${project.storage_folder}/`;
+            if (!objectKey.startsWith(expectedPrefix)) {
+                return jsonResponse({ error: "The upload folder does not match this project's permanent storage folder." }, 409);
+            }
+            originProjectId = project.id;
+        }
         const record = {
             storage_provider: "cloudflare_r2",
             storage_bucket: config.bucket,
@@ -68,6 +103,7 @@ export const POST: APIRoute = async ({ request }) => {
             height,
             etag: cleanEtag(object.ETag),
             created_by: authorization.user.id,
+            ...(originProjectId ? { origin_project_id: originProjectId } : {}),
             metadata: {
                 cacheControl: object.CacheControl || null,
                 lastModified: object.LastModified?.toISOString() || null,
@@ -79,7 +115,7 @@ export const POST: APIRoute = async ({ request }) => {
             .upsert(record, {
                 onConflict: "storage_provider,storage_bucket,object_key",
             })
-            .select("*")
+            .select("*,media_variants(variant_key,target_width,actual_width,actual_height,public_url,file_size,mime_type)")
             .single();
 
         if (error) {
@@ -112,6 +148,9 @@ export const POST: APIRoute = async ({ request }) => {
                 width: data.width,
                 height: data.height,
                 etag: data.etag,
+                processingStatus: data.processing_status,
+                processingError: data.processing_error,
+                variants: mapVariants(data.media_variants),
                 createdAt: data.created_at,
             },
         });

@@ -1,6 +1,6 @@
 import { supabase } from "../supabaseClient";
 import { portfolioFallbackProjects } from "./fallback";
-import { makeStorageFilename, orderPortfolioRevisionHistory, slugify, toSavePayload } from "./schema";
+import { orderPortfolioRevisionHistory, slugify, toSavePayload } from "./schema";
 
 const missingSchema = (error) => ["42P01", "PGRST205", "PGRST200"].includes(error?.code);
 const cleanArray = (value) => Array.isArray(value) ? value : [];
@@ -48,7 +48,41 @@ const mapBlock = (block = {}) => ({
   position: block.position || 0,
 });
 
+const hydrateMediaValue = (value, manifests) => {
+  if (!value || typeof value !== "object") return value;
+  const manifest = manifests.get(value.id || value.assetId);
+  if (!manifest) return value;
+  return {
+    ...manifest,
+    ...value,
+    id: manifest.id,
+    url: manifest.url || value.url,
+    originalUrl: manifest.originalUrl || manifest.url || value.originalUrl || value.url,
+    storagePath: manifest.storagePath || value.storagePath,
+    variants: manifest.variants || value.variants || {},
+    processingStatus: manifest.processingStatus || value.processingStatus,
+  };
+};
+
+const hydrateBlock = (block, manifests) => {
+  const mapped = mapBlock(block);
+  const media = mapped.content?.media;
+  if (!media) return mapped;
+  return {
+    ...mapped,
+    content: {
+      ...mapped.content,
+      media: Array.isArray(media)
+        ? media.map((item) => hydrateMediaValue(item, manifests))
+        : hydrateMediaValue(media, manifests),
+    },
+  };
+};
+
 export function mapPublicProject(row = {}) {
+  const mediaManifests = new Map(cleanArray(row.media_assets).filter(Boolean).map((asset) => [asset.id, asset]));
+  if (row.cover_media?.id) mediaManifests.set(row.cover_media.id, row.cover_media);
+  if (row.social_image_media?.id) mediaManifests.set(row.social_image_media.id, row.social_image_media);
   return {
     id: row.project_id || row.id,
     slug: row.slug,
@@ -67,12 +101,14 @@ export function mapPublicProject(row = {}) {
     workInProgress: row.work_in_progress ?? row.workInProgress ?? false,
     limitedPublic: row.limited_public ?? row.limitedPublic ?? false,
     coverUrl: row.cover_url || row.coverUrl || "",
+    coverMedia: row.cover_media ? hydrateMediaValue(row.cover_media, mediaManifests) : null,
     coverAlt: row.cover_alt || row.coverAlt || "",
     coverFocalX: row.cover_focal_x ?? row.coverFocalX ?? 50,
     coverFocalY: row.cover_focal_y ?? row.coverFocalY ?? 50,
     seoTitle: row.seo_title || row.seoTitle || "",
     metaDescription: row.meta_description || row.metaDescription || "",
     socialImageUrl: row.social_image_url || row.socialImageUrl || "",
+    socialImageMedia: row.social_image_media ? hydrateMediaValue(row.social_image_media, mediaManifests) : null,
     searchVisible: row.search_visible ?? row.searchVisible ?? true,
     layoutStyle: row.layout_style ?? row.layoutStyle ?? 1,
     revisionNumber: row.revision_number || row.revisionNumber || 1,
@@ -80,7 +116,7 @@ export function mapPublicProject(row = {}) {
     organisations: cleanArray(row.organisations).map(mapOrganisation),
     collaborators: cleanArray(row.collaborators).map(mapCollaborator),
     links: cleanArray(row.links).map(mapLink),
-    blocks: cleanArray(row.blocks).map(mapBlock).sort((a, b) => a.position - b.position),
+    blocks: cleanArray(row.blocks).map((block) => hydrateBlock(block, mediaManifests)).sort((a, b) => a.position - b.position),
   };
 }
 
@@ -233,6 +269,28 @@ export async function loadAdminProject(projectId) {
   const resultError = [blocksResult, taxonomyResult, organisationsResult, collaboratorsResult, linksResult, historyResult].find((result) => result.error)?.error;
   if (resultError) throw resultError;
 
+  const mediaIds = new Set([revision.cover_media_id, revision.social_image_media_id].filter(Boolean));
+  for (const block of blocksResult.data || []) {
+    const media = block.content_jsonb?.media;
+    const items = Array.isArray(media) ? media : media ? [media] : [];
+    items.forEach((item) => {
+      const id = item?.id || item?.assetId;
+      if (/^[0-9a-f-]{36}$/i.test(id || "")) mediaIds.add(id);
+    });
+  }
+  let mediaManifests = new Map();
+  if (mediaIds.size) {
+    const { data: mediaRows, error: mediaError } = await supabase
+      .from("media_assets")
+      .select("id,public_url,object_key,original_filename,mime_type,file_size,width,height,alt_text,caption,credit,processing_status,processing_error,created_at,media_variants(variant_key,target_width,actual_width,actual_height,public_url,file_size,mime_type)")
+      .in("id", [...mediaIds]);
+    if (mediaError) throw mediaError;
+    mediaManifests = new Map((mediaRows || []).map((asset) => {
+      const mapped = mapLibraryAsset(asset);
+      return [mapped.id, mapped];
+    }));
+  }
+
   return {
     project,
     history: orderPortfolioRevisionHistory(historyResult.data || [], project.published_revision_id),
@@ -253,15 +311,17 @@ export async function loadAdminProject(projectId) {
       workInProgress: revision.work_in_progress,
       limitedPublic: revision.limited_public,
       coverUrl: revision.cover_url || "",
+      coverMedia: revision.cover_media_id ? mediaManifests.get(revision.cover_media_id) || null : null,
       coverAlt: revision.cover_alt || "",
       coverFocalX: revision.cover_focal_x ?? 50,
       coverFocalY: revision.cover_focal_y ?? 50,
       seoTitle: revision.seo_title || "",
       metaDescription: revision.meta_description || "",
       socialImageUrl: revision.social_image_url || "",
+      socialImageMedia: revision.social_image_media_id ? mediaManifests.get(revision.social_image_media_id) || null : null,
       searchVisible: revision.search_visible,
       layoutStyle: revision.layout_style || "default",
-      blocks: (blocksResult.data || []).map(mapBlock),
+      blocks: (blocksResult.data || []).map((block) => hydrateBlock(block, mediaManifests)),
       taxonomies: (taxonomyResult.data || []).map((row) => mapTaxonomy(row.term)),
       organisations: (organisationsResult.data || []).map(mapOrganisation),
       collaborators: (collaboratorsResult.data || []).map(mapCollaborator),
@@ -338,63 +398,126 @@ const imageDimensions = (file) => new Promise((resolve) => {
 });
 
 export async function uploadPortfolioImage(project, file, metadata = {}) {
-  await requirePortfolioAdmin();
+  const session = await requirePortfolioAdmin();
   const allowed = ["image/jpeg", "image/png", "image/webp", "image/gif"];
   if (!allowed.includes(file.type)) throw new Error("Use a JPEG, PNG, WebP or GIF image.");
   if (file.size > 20 * 1024 * 1024) throw new Error("Images must be 20 MB or smaller.");
-  const folder = slugify(project.storage_folder || project.slug).split("-").slice(0, 5).join("-") || "project";
-  const filename = makeStorageFilename(file.name);
-  const storagePath = `${folder}/${filename}`;
-  const { error: uploadError } = await supabase.storage.from("portfolio-media").upload(storagePath, file, {
-    cacheControl: "31536000",
-    upsert: false,
-    contentType: file.type,
+  const storageFolder = slugify(project.storage_folder || project.slug) || "project";
+  const folder = `originals/${storageFolder}`;
+  const dimensionsPromise = imageDimensions(file);
+  const headers = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${session.access_token}`,
+  };
+  const presignResponse = await fetch("/api/admin/media/presign", {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      filename: file.name,
+      contentType: file.type,
+      size: file.size,
+      folder,
+    }),
   });
-  if (uploadError) throw uploadError;
-  const { data: publicData } = supabase.storage.from("portfolio-media").getPublicUrl(storagePath);
-  const dimensions = await imageDimensions(file);
-  const { data, error } = await supabase.from("portfolio_media_assets").insert({
-    project_id: project.id,
-    storage_path: storagePath,
-    public_url: publicData.publicUrl,
-    original_filename: file.name,
-    mime_type: file.type,
-    file_size: file.size,
-    width: dimensions.width,
-    height: dimensions.height,
-    alt_text: metadata.alt || "",
+  const signed = await presignResponse.json().catch(() => ({}));
+  if (!presignResponse.ok) throw new Error(signed.error || "Could not prepare the Cloudflare upload.");
+
+  const uploadResponse = await fetch(signed.uploadUrl, {
+    method: "PUT",
+    headers: signed.requiredHeaders,
+    body: file,
+  });
+  if (!uploadResponse.ok) throw new Error(`Cloudflare rejected the image with status ${uploadResponse.status}.`);
+
+  const dimensions = await dimensionsPromise;
+  const completeResponse = await fetch("/api/admin/media/complete", {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      objectKey: signed.objectKey,
+      originalFilename: file.name,
+      expectedSize: file.size,
+      width: dimensions.width,
+      height: dimensions.height,
+      projectId: project.id,
+    }),
+  });
+  const complete = await completeResponse.json().catch(() => ({}));
+  if (!completeResponse.ok) throw new Error(complete.error || "Could not catalogue the Cloudflare upload.");
+  return {
+    ...complete.asset,
+    id: complete.asset.id,
+    url: complete.asset.publicUrl,
+    originalUrl: complete.asset.publicUrl,
+    storagePath: complete.asset.objectKey,
+    alt: metadata.alt || "",
     caption: metadata.caption || "",
     credit: metadata.credit || "",
-  }).select("*").single();
-  if (error) throw error;
-  return {
-    id: data.id,
-    url: data.public_url,
-    storagePath: data.storage_path,
-    originalFilename: data.original_filename,
-    mimeType: data.mime_type,
-    width: data.width,
-    height: data.height,
-    alt: data.alt_text || "",
-    caption: data.caption || "",
-    credit: data.credit || "",
-    focalX: data.focal_x ?? 50,
-    focalY: data.focal_y ?? 50,
+    focalX: 50,
+    focalY: 50,
+    variants: complete.asset.variants || {},
+    processingStatus: complete.asset.processingStatus || "uploaded",
   };
 }
 
 export async function deletePortfolioImage(media) {
-  await requirePortfolioAdmin();
+  const session = await requirePortfolioAdmin();
   if (!media?.id || !media?.storagePath) return { deleted: false, reason: "external" };
-  const { data: referenceCount, error: referenceError } = await supabase.rpc("portfolio_media_reference_count", {
-    p_asset_id: media.id,
+  const response = await fetch("/api/admin/media/delete", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${session.access_token}`,
+    },
+    body: JSON.stringify({ assetId: media.id }),
   });
-  if (referenceError) throw referenceError;
-  if (Number(referenceCount) > 0) return { deleted: false, reason: "referenced", referenceCount: Number(referenceCount) };
+  const result = await response.json().catch(() => ({}));
+  if (response.status === 409 && result.reason === "referenced") return result;
+  if (!response.ok) throw new Error(result.error || "Could not delete the image.");
+  return result;
+}
 
-  const { error: storageError } = await supabase.storage.from("portfolio-media").remove([media.storagePath]);
-  if (storageError) throw storageError;
-  const { error: metadataError } = await supabase.from("portfolio_media_assets").delete().eq("id", media.id);
-  if (metadataError) throw metadataError;
-  return { deleted: true, reason: "removed" };
+const mapLibraryAsset = (asset) => ({
+  id: asset.id,
+  url: asset.public_url,
+  originalUrl: asset.public_url,
+  publicUrl: asset.public_url,
+  storagePath: asset.object_key,
+  objectKey: asset.object_key,
+  originalFilename: asset.original_filename,
+  mimeType: asset.mime_type,
+  fileSize: asset.file_size,
+  width: asset.width,
+  height: asset.height,
+  alt: asset.alt_text || "",
+  caption: asset.caption || "",
+  credit: asset.credit || "",
+  focalX: 50,
+  focalY: 50,
+  processingStatus: asset.processing_status || "uploaded",
+  processingError: asset.processing_error || null,
+  variants: Object.fromEntries((asset.media_variants || []).map((variant) => [variant.variant_key, {
+    key: variant.variant_key,
+    url: variant.public_url,
+    width: variant.actual_width,
+    height: variant.actual_height,
+    targetWidth: variant.target_width,
+    fileSize: variant.file_size,
+    mimeType: variant.mime_type,
+  }])),
+});
+
+export async function searchPortfolioMediaAssets(search = "") {
+  await requirePortfolioAdmin();
+  const { data, error } = await supabase
+    .from("media_assets")
+    .select("id,public_url,object_key,original_filename,mime_type,file_size,width,height,alt_text,caption,credit,processing_status,processing_error,created_at,media_variants(variant_key,target_width,actual_width,actual_height,public_url,file_size,mime_type)")
+    .like("mime_type", "image/%")
+    .order("created_at", { ascending: false })
+    .limit(1000);
+  if (error) throw error;
+  const needle = String(search || "").trim().toLowerCase();
+  return (data || [])
+    .filter((asset) => !needle || `${asset.original_filename} ${asset.object_key}`.toLowerCase().includes(needle))
+    .map(mapLibraryAsset);
 }
