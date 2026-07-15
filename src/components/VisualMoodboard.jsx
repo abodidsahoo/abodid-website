@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import MoodboardPolaroidViewer from './MoodboardPolaroidViewer.jsx';
 
 const OVERLAP_LIMIT = 0.22;
@@ -93,11 +93,12 @@ function pickSizeScale(random) {
     return 1;
 }
 
-function resolveLaneCount(width) {
-    if (width < 720) return 2;
-    if (width < 1040) return 3;
-    if (width < 1360) return 4;
-    if (width < 1760) return 5;
+function resolveLaneCount(width, sizeMultiplier = 1.0) {
+    const scale = Math.max(1.0, sizeMultiplier);
+    if (width < 720 * scale) return 2;
+    if (width < 1040 * scale) return 3;
+    if (width < 1360 * scale) return 4;
+    if (width < 1760 * scale) return 5;
     return 6;
 }
 
@@ -120,22 +121,22 @@ function getNextVisibleCount(currentCount, totalCount, laneCount, batchRows) {
     return Math.max(safeLaneCount, Math.ceil(target / safeLaneCount) * safeLaneCount);
 }
 
-function getBalancedCardSize(width, ratio, random) {
-    const baseSquare = clamp(width * 0.17, 150, 310);
-    const scaleToken = pickSizeScale(random);
+function getBalancedCardSize(width, ratio, random, sizeMultiplier = 1.0, minScale = 0.24) {
+    const baseSquare = clamp(width * 0.17 * sizeMultiplier, 150 * sizeMultiplier, 310 * sizeMultiplier);
+    const scaleToken = Math.max(minScale, pickSizeScale(random));
     const baseLongSide = baseSquare * scaleToken;
 
     let cardWidth = ratio >= 1 ? baseLongSide : baseLongSide * ratio;
     let cardHeight = ratio >= 1 ? baseLongSide / ratio : baseLongSide;
 
-    const maxWidth = clamp(width * 0.31, 190, 470);
-    const maxHeight = clamp(width * 0.34, 190, 490);
+    const maxWidth = clamp(width * 0.31 * sizeMultiplier, 190 * sizeMultiplier, 470 * sizeMultiplier);
+    const maxHeight = clamp(width * 0.34 * sizeMultiplier, 190 * sizeMultiplier, 490 * sizeMultiplier);
     const downScale = Math.min(maxWidth / cardWidth, maxHeight / cardHeight, 1);
 
     cardWidth *= downScale;
     cardHeight *= downScale;
 
-    const minEdge = width < 720 ? 62 : 76;
+    const minEdge = (width < 720 ? 62 : 76) * sizeMultiplier;
     const upScale = Math.max(minEdge / cardWidth, minEdge / cardHeight, 1);
 
     cardWidth *= upScale;
@@ -154,6 +155,28 @@ function shuffleValues(values) {
         [out[i], out[j]] = [out[j], out[i]];
     }
     return out;
+}
+
+function jitterSequence(items, windowSize = 8) {
+    const result = [...items];
+    for (let i = 0; i < result.length; i++) {
+        if (result[i]?.type === 'text') continue;
+        const maxIndex = Math.min(result.length - 1, i + windowSize);
+        const eligibleIndices = [];
+        for (let idx = i; idx <= maxIndex; idx++) {
+            if (result[idx]?.type !== 'text') {
+                eligibleIndices.push(idx);
+            }
+        }
+        if (eligibleIndices.length > 0) {
+            const rIndex = Math.floor(Math.random() * eligibleIndices.length);
+            const j = eligibleIndices[rIndex];
+            if (i !== j) {
+                [result[i], result[j]] = [result[j], result[i]];
+            }
+        }
+    }
+    return result;
 }
 
 function pickRandomItemIds(items, limit) {
@@ -288,14 +311,14 @@ function resolveShuffleTiming(count, prefersReducedMotion) {
     };
 }
 
-function computeFloatingLayout(items, width, height, seedSalt = 0) {
+function computeFloatingLayout(items, width, height, seedSalt = 0, sizeMultiplier = 1.0, spacingMultiplier = 1.0, minScale = 0.24) {
     const layout = new Map();
     if (!items.length || width <= 0 || height <= 0) return layout;
 
     const placed = [];
     const topInset = TOP_PADDING + 8;
     const bottomInset = BOTTOM_PADDING + 8;
-    const laneCount = resolveLaneCount(width);
+    const laneCount = resolveLaneCount(width, sizeMultiplier);
     const targetRows = Math.max(1, Math.ceil(items.length / laneCount));
     const usableWidth = width - EDGE_PADDING * 2;
     const laneWidth = usableWidth / laneCount;
@@ -311,8 +334,19 @@ function computeFloatingLayout(items, width, height, seedSalt = 0) {
 
     items.forEach((item) => {
         const random = createSeededRandom(hashString(`${item.id}:${seedSalt}`));
-        const ratio = clamp(item.aspectRatio || 1, 0.35, 2.85);
-        const dimensions = getBalancedCardSize(width, ratio, random);
+        const ratio = item.type === 'text' ? 1.1 : clamp(item.aspectRatio || 1, 0.35, 2.85);
+        let dimensions = getBalancedCardSize(width, ratio, random, sizeMultiplier, minScale);
+        if (item.type === 'text') {
+            let targetWidth, targetHeight;
+            if (laneCount > 2) {
+                targetWidth = clamp(width * 0.35, 300, 420);
+                targetHeight = clamp(width * 0.35, 260, 400);
+            } else {
+                targetWidth = clamp(width * 0.82, 280, 460);
+                targetHeight = clamp(width * 0.45, 200, 320);
+            }
+            dimensions = { width: targetWidth, height: targetHeight };
+        }
         const targetWidth = dimensions.width;
         const targetHeight = dimensions.height;
         const maxTopForCard = Math.max(topInset, height - bottomInset - targetHeight);
@@ -324,8 +358,25 @@ function computeFloatingLayout(items, width, height, seedSalt = 0) {
         let bestCandidate = null;
         let bestScore = Infinity;
 
+        let forcedLane = -1;
+        if (item.id === 'text-block-1') {
+            forcedLane = laneCount > 2 ? 0 : 0;
+        } else if (item.id === 'text-block-2') {
+            forcedLane = laneCount > 2 ? 2 : 0;
+        }
+
+        let minTopLimit = 0;
+        if (item.id === 'text-block-2') {
+            const block1 = placed.find(p => p.itemId === 'text-block-1');
+            if (block1) {
+                minTopLimit = block1.top + (laneCount > 2 ? 160 : 380);
+            }
+        }
+
         for (let laneRank = 0; laneRank < laneIndices.length; laneRank += 1) {
             const lane = laneIndices[laneRank];
+            if (forcedLane !== -1 && lane !== forcedLane) continue;
+
             const laneBaseX = EDGE_PADDING + lane * laneWidth;
 
             for (let attempt = 0; attempt < 3; attempt += 1) {
@@ -346,9 +397,25 @@ function computeFloatingLayout(items, width, height, seedSalt = 0) {
                     compressedMaxTop,
                 );
 
+                let topVal = top;
+                if (item.id === 'text-block-2' && topVal < minTopLimit) {
+                    topVal = minTopLimit;
+                }
+
+                let leftVal = left;
+                if (laneCount > 2) {
+                    if (item.id === 'text-block-1') {
+                        leftVal = clamp(leftVal + laneWidth * 0.16, EDGE_PADDING + 24, width - EDGE_PADDING - targetWidth - 24);
+                    } else if (item.id === 'text-block-2') {
+                        leftVal = clamp(leftVal - laneWidth * 0.16, EDGE_PADDING + 24, width - EDGE_PADDING - targetWidth - 24);
+                    }
+                } else {
+                    leftVal = clamp((width - targetWidth) / 2, EDGE_PADDING, width - EDGE_PADDING - targetWidth);
+                }
+
                 const candidate = {
-                    left,
-                    top,
+                    left: leftVal,
+                    top: topVal,
                     width: targetWidth,
                     height: targetHeight,
                     lane,
@@ -381,29 +448,38 @@ function computeFloatingLayout(items, width, height, seedSalt = 0) {
         }
 
         if (!bestCandidate) return;
-        const position = bestCandidate;
+        const position = { ...bestCandidate, itemId: item.id };
         placed.push(position);
 
-        let laneAdvance = targetHeight * (0.86 + random() * 0.26);
+        let laneAdvance = targetHeight * (0.86 + random() * 0.26) * spacingMultiplier;
         if (random() < 0.16) {
-            laneAdvance += targetHeight * (0.12 + random() * 0.12);
+            laneAdvance += targetHeight * (0.12 + random() * 0.12) * spacingMultiplier;
         }
         laneHeights[position.lane] = Math.max(
             laneHeights[position.lane],
             position.top + laneAdvance,
         );
 
+        if (item.customSpacingAfter) {
+            for (let l = 0; l < laneCount; l++) {
+                laneHeights[l] = Math.max(
+                    laneHeights[l],
+                    position.top + targetHeight + item.customSpacingAfter
+                );
+            }
+        }
+
         // bleed nearby lane heights to break coherent side-by-side bands
         if (position.lane > 0) {
             laneHeights[position.lane - 1] = Math.max(
                 laneHeights[position.lane - 1],
-                position.top + targetHeight * (0.42 + random() * 0.2),
+                position.top + targetHeight * (0.42 + random() * 0.2) * spacingMultiplier,
             );
         }
         if (position.lane < laneCount - 1) {
             laneHeights[position.lane + 1] = Math.max(
                 laneHeights[position.lane + 1],
-                position.top + targetHeight * (0.42 + random() * 0.2),
+                position.top + targetHeight * (0.42 + random() * 0.2) * spacingMultiplier,
             );
         }
 
@@ -445,7 +521,7 @@ function computeFloatingLayout(items, width, height, seedSalt = 0) {
             duration: baseDuration,
             motionDelay,
             appearDelay: clamp(0.02 + scrollStagger + horizontalStagger, 0.02, 0.22),
-            zIndex: (() => {
+            zIndex: item.type === 'text' ? 550 : (() => {
                 const layerRoll = random();
 
                 if (layerRoll < 0.3) return 10 + Math.floor(random() * 28);
@@ -468,6 +544,12 @@ export default function VisualMoodboard({
     enableInfiniteScroll = false,
     initialVisibleRows = DEFAULT_INITIAL_VISIBLE_ROWS,
     rowsPerScrollBatch = DEFAULT_SCROLL_BATCH_ROWS,
+    sizeMultiplier = 1.0,
+    spacingMultiplier = 1.0,
+    minScale = 0.24,
+    jitterWindow = 0,
+    hideSearch = false,
+    defaultSurfaceMode = 'light',
 }) {
     const prefersReducedMotion = useReducedMotion();
     const stageRef = useRef(null);
@@ -481,10 +563,10 @@ export default function VisualMoodboard({
     const [activeTag, setActiveTag] = useState('');
     const [filtersOpen, setFiltersOpen] = useState(false);
     const [tagsOpen, setTagsOpen] = useState(false);
-    const [surfaceMode, setSurfaceMode] = useState('light');
+    const [surfaceMode, setSurfaceMode] = useState(defaultSurfaceMode);
     const [stageSize, setStageSize] = useState({ width: 1200, height: 900, viewportHeight: 900 });
     const [imageRatios, setImageRatios] = useState({});
-    const [layoutSeed, setLayoutSeed] = useState(0);
+    const [layoutSeed, setLayoutSeed] = useState(() => Math.floor(Math.random() * 1000000000));
     const [layoutOrder, setLayoutOrder] = useState([]);
     const [pendingSeed, setPendingSeed] = useState(null);
     const [pendingOrder, setPendingOrder] = useState(null);
@@ -566,9 +648,14 @@ export default function VisualMoodboard({
         });
     };
 
+    const jitteredItems = useMemo(() => {
+        if (jitterWindow <= 0 || !Array.isArray(items) || !items.length) return items;
+        return jitterSequence(items, jitterWindow);
+    }, [items, jitterWindow]);
+
     const normalizedItems = useMemo(
         () =>
-            (Array.isArray(items) ? items : [])
+            (Array.isArray(jitteredItems) ? jitteredItems : [])
                 .map((item, index) => {
                     const titleValue =
                         (typeof item.title === 'string' && item.title.trim()) ||
@@ -619,10 +706,13 @@ export default function VisualMoodboard({
                         tags: normalizedTags,
                         aspectRatio,
                         searchText: `${titleValue} ${normalizedTags.join(' ')}`.toLowerCase(),
+                        type: item.type || 'photo',
+                        text: item.text || '',
+                        customSpacingAfter: Number(item.customSpacingAfter) || 0,
                     };
                 })
-                .filter((item) => item.imageUrl),
-        [items, imageRatios],
+                .filter((item) => item.imageUrl || item.type === 'text'),
+        [jitteredItems, imageRatios],
     );
 
     const tagCounts = useMemo(() => {
@@ -655,8 +745,8 @@ export default function VisualMoodboard({
     }, [normalizedItems, activeTag, normalizedQuery]);
 
     const laneCount = useMemo(
-        () => resolveLaneCount(stageSize.width || 1200),
-        [stageSize.width],
+        () => resolveLaneCount(stageSize.width || 1200, sizeMultiplier),
+        [stageSize.width, sizeMultiplier],
     );
 
     useEffect(() => {
@@ -1153,8 +1243,8 @@ export default function VisualMoodboard({
         const updateSize = () => {
             const width = stageElement.clientWidth || window.innerWidth;
             const viewportHeight = window.innerHeight || 900;
-            const laneCount = resolveLaneCount(width);
-            const referenceSquare = clamp(width * 0.2, 170, 360);
+            const laneCount = resolveLaneCount(width, sizeMultiplier);
+            const referenceSquare = clamp(width * 0.2 * sizeMultiplier, 170 * sizeMultiplier, 360 * sizeMultiplier);
             const effectiveItemCount = boardItems.length;
             const rowCount = Math.ceil(Math.max(effectiveItemCount, 1) / laneCount);
             const densityScale =
@@ -1165,7 +1255,7 @@ export default function VisualMoodboard({
                         : rowCount <= 6
                             ? 1.02
                             : 1.08;
-            const rowSpan = clamp(referenceSquare * densityScale, 144, 336);
+            const rowSpan = clamp(referenceSquare * densityScale, 144 * sizeMultiplier * spacingMultiplier, 336 * sizeMultiplier * spacingMultiplier);
             const height = Math.max(
                 viewportHeight * 0.9,
                 TOP_PADDING + BOTTOM_PADDING + rowCount * rowSpan + viewportHeight * 0.3,
@@ -1183,11 +1273,11 @@ export default function VisualMoodboard({
             resizeObserver.disconnect();
             window.removeEventListener('resize', updateSize);
         };
-    }, [boardItems.length]);
+    }, [boardItems.length, sizeMultiplier, spacingMultiplier]);
 
     const layoutMap = useMemo(
-        () => computeFloatingLayout(orderedItemsForLayout, stageSize.width, stageSize.height, layoutSeed),
-        [orderedItemsForLayout, stageSize.width, stageSize.height, layoutSeed],
+        () => computeFloatingLayout(orderedItemsForLayout, stageSize.width, stageSize.height, layoutSeed, sizeMultiplier, spacingMultiplier, minScale),
+        [orderedItemsForLayout, stageSize.width, stageSize.height, layoutSeed, sizeMultiplier, spacingMultiplier, minScale],
     );
     useEffect(() => {
         layoutMapRef.current = layoutMap;
@@ -1195,8 +1285,8 @@ export default function VisualMoodboard({
 
     const pendingLayoutMap = useMemo(() => {
         if (pendingSeed === null) return layoutMap;
-        return computeFloatingLayout(pendingItemsForLayout, stageSize.width, stageSize.height, pendingSeed);
-    }, [pendingSeed, pendingItemsForLayout, stageSize.width, stageSize.height, layoutMap]);
+        return computeFloatingLayout(pendingItemsForLayout, stageSize.width, stageSize.height, pendingSeed, sizeMultiplier, spacingMultiplier, minScale);
+    }, [pendingSeed, pendingItemsForLayout, stageSize.width, stageSize.height, layoutMap, sizeMultiplier, spacingMultiplier, minScale]);
 
     const stageContentBottom = useMemo(() => {
         let maxBottom = TOP_PADDING;
@@ -1243,21 +1333,23 @@ export default function VisualMoodboard({
     return (
         <div className={`visual-moodboard-root ${surfaceMode === 'light' ? 'surface-light' : 'surface-dark'}`}>
             <div className="moodboard-toolbar">
-                <button
-                    type="button"
-                    className={`filters-toggle ${filtersOpen ? 'active' : ''}`}
-                    onClick={() =>
-                        setFiltersOpen((current) => {
-                            const next = !current;
-                            if (!next) setTagsOpen(false);
-                            return next;
-                        })
-                    }
-                >
-                    {filtersOpen ? 'Hide Keyword Search' : 'Search by Keywords'}
-                </button>
+                {!hideSearch && (
+                    <button
+                        type="button"
+                        className={`filters-toggle ${filtersOpen ? 'active' : ''}`}
+                        onClick={() =>
+                            setFiltersOpen((current) => {
+                                const next = !current;
+                                if (!next) setTagsOpen(false);
+                                return next;
+                            })
+                        }
+                    >
+                        {filtersOpen ? 'Hide Keyword Search' : 'Search by Keywords'}
+                    </button>
+                )}
 
-                {filtersOpen && tagCounts.length > 0 && (
+                {!hideSearch && filtersOpen && tagCounts.length > 0 && (
                     <button
                         type="button"
                         className={`tags-toggle ${tagsOpen ? 'active' : ''}`}
@@ -1267,7 +1359,7 @@ export default function VisualMoodboard({
                     </button>
                 )}
 
-                {(query || activeTag) && (
+                {!hideSearch && (query || activeTag) && (
                     <button
                         type="button"
                         className="reset-filters-btn"
@@ -1311,7 +1403,7 @@ export default function VisualMoodboard({
                 </button>
             )}
 
-            {filtersOpen && (
+            {!hideSearch && filtersOpen && (
                 <div className="moodboard-controls">
                     <div className="moodboard-search-wrap">
                         <input
@@ -1550,10 +1642,11 @@ export default function VisualMoodboard({
                                 />
                             );
 
+                            const isTextCard = item.type === 'text';
                             return (
                                 <motion.figure
                                     key={item.id}
-                                    className={`moodboard-card ${isClickable ? 'is-clickable' : ''}`}
+                                    className={`moodboard-card ${isTextCard ? 'is-text-card' : ''} ${isClickable && !isTextCard ? 'is-clickable' : ''}`}
                                     initial={
                                         prefersReducedMotion
                                             ? false
@@ -1576,7 +1669,7 @@ export default function VisualMoodboard({
                                             return 420 + orderIndex;
                                         })(),
                                         pointerEvents:
-                                            shufflePhase === 'idle' && isClickable ? 'auto' : 'none',
+                                            isTextCard || (shufflePhase === 'idle' && isClickable) ? 'auto' : 'none',
                                     }}
                                 >
                                     <motion.div
@@ -1595,7 +1688,15 @@ export default function VisualMoodboard({
                                                     }
                                         }
                                     >
-                                        {shouldOpenViewer ? (
+                                        {isTextCard ? (
+                                            <div className="moodboard-text-card-content">
+                                                <div className="moodboard-text-card-inner">
+                                                    {item.text.split('\n\n').map((para, i) => (
+                                                        <p key={i}>{para.trim()}</p>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ) : shouldOpenViewer ? (
                                             <button
                                                 type="button"
                                                 className="moodboard-card-link moodboard-card-link-button"
@@ -1886,6 +1987,48 @@ export default function VisualMoodboard({
                     cursor: pointer;
                 }
 
+                .moodboard-card.is-text-card {
+                    pointer-events: auto;
+                    background: transparent !important;
+                    border: 0 !important;
+                    box-shadow: none !important;
+                }
+
+                .moodboard-text-card-content {
+                    width: 100%;
+                    height: 100%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: flex-start;
+                    padding: 0 !important;
+                    box-sizing: border-box;
+                    background: transparent !important;
+                    border: 0 !important;
+                    box-shadow: none !important;
+                    text-align: left;
+                }
+
+                .moodboard-text-card-inner {
+                    width: 100%;
+                    text-align: left;
+                }
+
+                .moodboard-text-card-inner p {
+                    margin: 0 0 1.35rem 0;
+                    color: var(--mood-title-color);
+                    font-family: var(--font-ui);
+                    font-size: clamp(1.05rem, 1.5vw, 1.25rem);
+                    font-weight: 600;
+                    line-height: 1.65;
+                    letter-spacing: -0.01em;
+                    text-wrap: pretty;
+                    word-break: keep-all;
+                }
+
+                .moodboard-text-card-inner p:last-child {
+                    margin-bottom: 0;
+                }
+
                 .moodboard-card-entry {
                     width: 100%;
                     height: 100%;
@@ -2008,4 +2151,28 @@ export default function VisualMoodboard({
             `}</style>
         </div>
     );
+}
+
+function useReducedMotion() {
+    const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+        setPrefersReducedMotion(mediaQuery.matches);
+
+        const listener = (event) => {
+            setPrefersReducedMotion(event.matches);
+        };
+
+        if (mediaQuery.addEventListener) {
+            mediaQuery.addEventListener('change', listener);
+            return () => mediaQuery.removeEventListener('change', listener);
+        } else {
+            mediaQuery.addListener(listener);
+            return () => mediaQuery.removeListener(listener);
+        }
+    }, []);
+
+    return prefersReducedMotion;
 }

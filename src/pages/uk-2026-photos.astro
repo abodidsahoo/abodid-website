@@ -1,0 +1,269 @@
+---
+export const prerender = true;
+import BaseLayout from "../layouts/BaseLayout.astro";
+import VisualMoodboard from "../components/VisualMoodboard.jsx";
+import ProgressiveContentSkeleton from "../components/ProgressiveContentSkeleton.astro";
+import { listR2Folder, buildR2PublicUrl } from "../lib/media/r2.ts";
+
+const pageTitle = "UK 2026 Photos";
+const pageDescription =
+    "An archive of memories from London, Manchester, and Cambridge in 2026.";
+
+// Fetch images from Cloudflare R2
+const { files, config } = await listR2Folder("variants/uk-2026/800/");
+
+// Sort files sequentially using natural alphanumeric sorting
+files.sort((a, b) => {
+    return a.objectKey.localeCompare(b.objectKey, undefined, {
+        numeric: true,
+        sensitivity: "base",
+    });
+});
+
+const photos = files.map((file, index) => {
+    const filename = file.objectKey.split("/").pop() || "";
+    const title =
+        filename.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ") ||
+        `UK 2026 Photo ${index + 1}`;
+
+    return {
+        id: file.etag || `uk-2026-${index}`,
+        imageUrl: buildR2PublicUrl(config, file.objectKey),
+        title,
+        tags: ["uk 2026"],
+        aspectRatio: 1, // VisualMoodboard will correct this after loading
+    };
+});
+
+const textItems = [
+    {
+        id: "text-block-1",
+        type: "text",
+        text: "Thank you to everyone who supported us on this trip. From bursaries and fellowships to travel funds and help with accommodation, none of this would have\u00a0been\u00a0possible\u00a0without\u00a0you\u00a0all.\n\nAnd, of course, a special thank you to the lovely brands who trusted us and collaborated with us on the beautiful\u00a0outfits\u00a0you\u00a0see\u00a0here.",
+        aspectRatio: 1.1,
+        tags: ["uk 2026"],
+    },
+    {
+        id: "text-block-2",
+        type: "text",
+        text: "The London photographs were taken around the Barbican, Primrose Hill, Liverpool Street, the Wellcome\u00a0Collection\u00a0and\u00a0Chillika\u00a0Restaurant.\n\nWe also travelled to Manchester for the 75th Annual Conference of the British Sociological Association, held at the University\u00a0of\u00a0Manchester.\n\nAnd finally, to Cambridge for the Cultural Heritage Data School, organised by Cambridge Digital Humanities at the University\u00a0of\u00a0Cambridge.",
+        aspectRatio: 1.1,
+        tags: ["uk 2026"],
+    },
+];
+
+// Text blocks are temporarily excluded so they reserve no layout space.
+const moodboardItems = photos;
+
+// To restore them later, replace the line above with:
+// const moodboardItems = [
+//     ...photos.slice(0, 12),
+//     textItems[0],
+//     ...photos.slice(12, 15),
+//     textItems[1],
+//     ...photos.slice(15),
+// ];
+
+const visualMoodboardProps = {
+    items: moodboardItems,
+    enableInfiniteScroll: true,
+    initialVisibleRows: 5,
+    rowsPerScrollBatch: 2,
+    sizeMultiplier: 1.85,
+    spacingMultiplier: 1.08,
+    minScale: 0.65,
+    jitterWindow: 10,
+    hideSearch: true,
+    defaultSurfaceMode: "dark",
+};
+
+Astro.response.headers.set(
+    "Cache-Control",
+    "public, max-age=0, must-revalidate",
+);
+Astro.response.headers.set(
+    "Vercel-CDN-Cache-Control",
+    "s-maxage=300, stale-while-revalidate=86400",
+);
+---
+
+<BaseLayout
+    title={pageTitle}
+    description={pageDescription}
+    fullWidth={true}
+    gridVariant="moodboard"
+    hideThemeToggle={true}
+>
+    <section class="visual-moodboard-page">
+        <header class="moodboard-hero">
+            <h1 class="moodboard-subheading">London, Manchester, Cambridge</h1>
+            <!--
+            <ul class="moodboard-details">
+                <li>
+                    London (Barbican, Primrose Hill, Liverpool Street, Wellcome
+                    Collection, Chillika Restaurant)
+                </li>
+                <li>
+                    75th Annual Conference of The British Sociological
+                    Association held at the University of Manchester
+                </li>
+                <li>
+                    Cultural Heritage Data School in the Cambridge Digital
+                    Humanities department at the University of Cambridge
+                </li>
+            </ul>
+            -->
+        </header>
+
+        <VisualMoodboard {...visualMoodboardProps} client:only="react">
+            <ProgressiveContentSkeleton
+                slot="fallback"
+                variant="moodboard"
+                count={9}
+                label="Loading the visual moodboard"
+            />
+        </VisualMoodboard>
+    </section>
+</BaseLayout>
+
+<style>
+    :global(body[data-grid-variant="moodboard"]) {
+        --grid-color-1: rgba(45, 38, 30, 0.18);
+        --grid-color-2: rgba(45, 38, 30, 0.07);
+        --mood-page-bg: #f2e7d4;
+        --mood-title-color: rgba(30, 25, 19, 0.96);
+        --mood-title-border: rgba(30, 25, 19, 0.42);
+        --mood-title-bg: rgba(255, 251, 244, 0.74);
+        --mood-body-color: rgba(38, 32, 25, 0.94);
+        --mood-link-color: #7a1b0f;
+        --mood-link-border: rgba(122, 27, 15, 0.78);
+        --mood-link-bg: rgba(122, 27, 15, 0.14);
+        --mood-link-hover-color: #5f130a;
+        --mood-link-hover-border: rgba(95, 19, 10, 0.88);
+        --mood-link-shadow: rgba(95, 19, 10, 0.2);
+        background: var(--mood-page-bg) !important;
+        color: var(--mood-body-color);
+    }
+
+    :global(
+        body[data-grid-variant="moodboard"][data-moodboard-surface="dark"]
+    ) {
+        --grid-color-1: rgba(255, 255, 255, 0.12);
+        --grid-color-2: rgba(255, 255, 255, 0.03);
+        --mood-page-bg: #0b0b0e;
+        --mood-title-color: rgba(249, 234, 230, 0.96);
+        --mood-title-border: rgba(255, 255, 255, 0.3);
+        --mood-title-bg: rgba(0, 0, 0, 0.24);
+        --mood-body-color: rgba(238, 224, 217, 0.9);
+        --mood-link-color: #ff6b4b;
+        --mood-link-border: rgba(255, 107, 75, 0.82);
+        --mood-link-bg: rgba(255, 107, 75, 0.2);
+        --mood-link-hover-color: #ff8a6f;
+        --mood-link-hover-border: rgba(255, 138, 111, 0.96);
+        --mood-link-shadow: rgba(255, 107, 75, 0.46);
+    }
+
+    :global(body[data-grid-variant="moodboard"] .global-grid-bg) {
+        background-size: 56px 56px;
+        -webkit-mask-image: radial-gradient(
+            ellipse at center,
+            black 48%,
+            transparent 92%
+        );
+        mask-image: radial-gradient(
+            ellipse at center,
+            black 48%,
+            transparent 92%
+        );
+    }
+
+    :global(body[data-grid-variant="moodboard"] .global-glow-bg) {
+        --glow-radius: 420px;
+        filter: saturate(1.25) brightness(1.15);
+        background-size: 56px 56px;
+        background-position: center top;
+    }
+
+    :global(
+        body[data-grid-variant="moodboard"][data-moodboard-surface="light"]
+            .global-glow-bg
+    ) {
+        --glow-radius: 460px;
+        filter: saturate(1.06) brightness(1.04);
+    }
+
+    .visual-moodboard-page {
+        position: relative;
+        min-height: 100vh;
+        width: 100%;
+        z-index: 1;
+        padding-top: 1.25rem;
+    }
+
+    .moodboard-hero {
+        width: min(860px, calc(100vw - 2rem));
+        margin: 0 auto 1.25rem;
+        text-align: center;
+        padding: 0.25rem 0;
+    }
+
+    .moodboard-subheading {
+        margin: 0.4rem auto 1.1rem;
+        color: #1e1913 !important; /* high-contrast dark for light mode default */
+        font-family: var(--font-ui);
+        font-size: clamp(1.15rem, 5.1vw, 4.6rem);
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        line-height: 1.3;
+    }
+
+    :global(body[data-moodboard-surface="dark"]) .moodboard-subheading {
+        color: #f9eae6 !important; /* high-contrast light for dark mode */
+    }
+
+    .moodboard-details {
+        list-style: none !important;
+        list-style-type: none !important;
+        padding: 0 !important;
+        margin: 1rem auto 0;
+        max-width: 860px;
+        display: flex;
+        flex-direction: column;
+        gap: 0.55rem;
+        align-items: center;
+        text-align: center;
+    }
+
+    .moodboard-details li {
+        list-style: none !important;
+        list-style-type: none !important;
+        color: #3a3229 !important; /* high-contrast dark text for light mode */
+        font-family: var(--font-ui);
+        font-size: clamp(0.56rem, 0.85vw, 0.68rem);
+        letter-spacing: 0.03em;
+        line-height: 1.6;
+        word-spacing: 0.05em;
+        max-width: 820px;
+        text-wrap: balance;
+    }
+
+    :global(body[data-moodboard-surface="dark"]) .moodboard-details li {
+        color: #eee0d9 !important; /* high-contrast light text for dark mode */
+    }
+
+    @media (max-width: 768px) {
+        .moodboard-hero {
+            width: calc(100vw - 1.25rem);
+            margin-bottom: 1rem;
+        }
+
+        .moodboard-subheading {
+            line-height: 1.2;
+        }
+
+        .moodboard-details li {
+            line-height: 1.4;
+            max-width: 100%;
+        }
+    }
+</style>
