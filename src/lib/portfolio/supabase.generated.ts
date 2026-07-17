@@ -753,6 +753,7 @@ export type Database = {
           created_at: string
           id: string
           message: string | null
+          newsletter_id: string | null
           sent_count: number | null
           subject: string
         }
@@ -760,6 +761,7 @@ export type Database = {
           created_at?: string
           id?: string
           message?: string | null
+          newsletter_id?: string | null
           sent_count?: number | null
           subject: string
         }
@@ -767,8 +769,68 @@ export type Database = {
           created_at?: string
           id?: string
           message?: string | null
+          newsletter_id?: string | null
           sent_count?: number | null
           subject?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "newsletter_broadcasts_newsletter_id_fkey"
+            columns: ["newsletter_id"]
+            isOneToOne: false
+            referencedRelation: "newsletters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      newsletters: {
+        Row: {
+          blocks: Json
+          created_at: string
+          created_by: string | null
+          id: string
+          is_template: boolean
+          preview_text: string
+          sender_email: string
+          sender_name: string
+          sent_at: string | null
+          settings: Json
+          status: string
+          subject: string
+          template_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          blocks?: Json
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_template?: boolean
+          preview_text?: string
+          sender_email?: string
+          sender_name?: string
+          sent_at?: string | null
+          settings?: Json
+          status?: string
+          subject?: string
+          template_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          blocks?: Json
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_template?: boolean
+          preview_text?: string
+          sender_email?: string
+          sender_name?: string
+          sent_at?: string | null
+          settings?: Json
+          status?: string
+          subject?: string
+          template_name?: string | null
+          updated_at?: string
         }
         Relationships: []
       }

@@ -12,6 +12,7 @@
     "build": "astro build",
     "test:analytics": "node --test tests/analytics/*.test.mjs",
     "test:portfolio": "node --test tests/portfolio/*.test.mjs",
+    "test:newsletter": "node --test tests/newsletter/*.test.mjs",
     "test:portfolio:integration": "node scripts/test-portfolio-integration.mjs",
     "test:e2e:portfolio": "playwright test tests/portfolio/work.spec.ts",
     "workspace:install": "bash scripts/install-launchagent.sh",

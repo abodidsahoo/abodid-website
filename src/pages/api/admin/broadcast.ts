@@ -7,6 +7,13 @@ import {
 } from '../../../lib/newsletter/recipientSelection.js';
 import { createNewsletterDelivery } from '../../../lib/newsletter/deliveryPayload.js';
 import { personalizeNewsletterMessage } from '../../../lib/newsletter/personalization.js';
+import { newsletterHasContent } from '../../../lib/newsletter/blocks.js';
+import {
+    compileNewsletterEmail,
+    escapeNewsletterHtml,
+} from '../../../lib/newsletter/compiler.js';
+
+const NEWSLETTER_TEST_EMAIL = 'abodidsahoo@gmail.com';
 
 export const POST: APIRoute = async ({ request }) => {
     try {
@@ -51,14 +58,14 @@ export const POST: APIRoute = async ({ request }) => {
 
         // 3. Parse Request
         const {
+            newsletterId,
             subject,
-            message,
+            blocks,
+            settings,
             isTest,
-            testEmail,
             previewText,
             senderName,
             senderEmail,
-            htmlFooter,
             audienceMode,
             recipientIds,
         } = await request.json();
@@ -82,10 +89,10 @@ export const POST: APIRoute = async ({ request }) => {
         }
 
         const effectiveSenderName = senderName || 'Abodid';
-        const effectiveSenderEmail = senderEmail || 'newsletter@abodid.com';
+        const effectiveSenderEmail = senderEmail || 'hello@abodid.com';
         const fromAddress = `${effectiveSenderName} <${effectiveSenderEmail}>`;
 
-        if (!subject || !message) {
+        if (!subject || !newsletterHasContent(blocks)) {
             return new Response(JSON.stringify({ error: 'Missing fields' }), { status: 400 });
         }
 
@@ -93,18 +100,12 @@ export const POST: APIRoute = async ({ request }) => {
         let recipients: Array<{ id?: string; email: string; name?: string | null }> = [];
 
         if (audience.mode === 'test') {
-            // Test Mode: Send only to the test email (usually the admin)
-            if (typeof testEmail !== 'string' || !testEmail.trim()) {
-                return new Response(JSON.stringify({ error: 'Missing test recipient.' }), {
-                    status: 400,
-                    headers: { 'Content-Type': 'application/json' },
-                });
-            }
+            // Test Mode is deliberately fixed to the owner's review inbox.
             const adminName = user.user_metadata?.first_name
                 || user.user_metadata?.name
                 || user.user_metadata?.full_name
                 || 'Abodid';
-            recipients = [{ email: testEmail, name: adminName }];
+            recipients = [{ email: NEWSLETTER_TEST_EMAIL, name: adminName }];
         } else if (audience.mode === 'selected') {
             // Targeted Mode: Resolve IDs against active subscribers on the server.
             const { data: subscribers, error: subError } = await supabase
@@ -149,8 +150,9 @@ export const POST: APIRoute = async ({ request }) => {
             const { data: broadcastData, error: dbError } = await supabase
                 .from('newsletter_broadcasts')
                 .insert({
+                    newsletter_id: newsletterId || null,
                     subject,
-                    message, // Log usage
+                    message: JSON.stringify({ version: 1, blocks, settings }),
                     sent_count: recipients.length
                 })
                 .select()
@@ -169,10 +171,16 @@ export const POST: APIRoute = async ({ request }) => {
         const trackingId = broadcastId || (isTest ? 'test-mode' : null);
         const baseUrl = new URL(request.url).origin;
         const pixelUrl = `${baseUrl}/api/tracking/pixel?id=${trackingId}`;
+        const compiledEmail = compileNewsletterEmail({
+            blocks,
+            settings,
+            previewText,
+            trackingPixelUrl: pixelUrl,
+        });
 
         // Helper to chunk array
         const chunkArray = (arr: any[], size: number) => {
-            return Array.from({ length: Math.ceil(arr.length / size) }, (v, i) =>
+            return Array.from({ length: Math.ceil(arr.length / size) }, (_, i) =>
                 arr.slice(i * size, i * size + size)
             );
         };
@@ -183,43 +191,12 @@ export const POST: APIRoute = async ({ request }) => {
         let failCount = 0;
         let errors: string[] = [];
 
-        // Preheader Hidden Text Logic
-        const preheaderHtml = previewText ? `
-            <div style="display: none; max-height: 0px; overflow: hidden;">
-                ${previewText}
-            </div>
-            <div style="display: none; max-height: 0px; overflow: hidden;">
-                &#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;
-                &#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;
-                &#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;
-            </div>
-        ` : '';
-
         // Process batches sequentially to be safe, though parallel is likely fine for small numbers
         for (const batch of batches) {
             const emailBatch = batch.map((recipient) => {
-                const personalizedMessage = personalizeNewsletterMessage(message, recipient.name);
-
-                // Use custom footer if provided, otherwise use default
-                const footerContent = htmlFooter || `
-                    <p style="font-size: 12px; color: #888; text-align: center;">
-                        You received this because you are subscribed to updates from Abodid. 
-                        <a href="${baseUrl}/unsubscribe?email=${encodeURIComponent(recipient.email)}" style="color: #888;">Unsubscribe</a>
-                    </p>
-                `;
-
-                const htmlContent = `
-                <!DOCTYPE html>
-                <html>
-                <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-                    ${preheaderHtml}
-                    <div style="white-space: pre-wrap;">${personalizedMessage}</div>
-                    <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;" />
-                    ${footerContent}
-                    <img src="${pixelUrl}" width="1" height="1" style="display:none;" alt="" />
-                </body>
-                </html>
-            `;
+                const unsubscribeUrl = `${baseUrl}/unsubscribe?email=${encodeURIComponent(recipient.email)}`;
+                const htmlContent = personalizeNewsletterMessage(compiledEmail, recipient.name)
+                    .replaceAll('{{unsubscribe_url}}', escapeNewsletterHtml(unsubscribeUrl));
 
                 return createNewsletterDelivery({
                     fromAddress,
@@ -259,6 +236,16 @@ export const POST: APIRoute = async ({ request }) => {
                 console.error('Batch Exception:', e);
                 failCount += batch.length;
                 errors.push(e.message);
+            }
+        }
+
+        if (!isTest && newsletterId && successCount > 0) {
+            const { error: newsletterUpdateError } = await supabase
+                .from('newsletters')
+                .update({ status: 'sent', sent_at: new Date().toISOString() })
+                .eq('id', newsletterId);
+            if (newsletterUpdateError) {
+                console.warn('Failed to mark newsletter as sent:', newsletterUpdateError);
             }
         }
 

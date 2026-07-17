@@ -43,6 +43,8 @@ const {
   navigationLayout = ACTIVE_NAVIGATION_LAYOUT,
   pointerVariant = ACTIVE_POINTER_VARIANT,
   gridVariant = "default",
+  initialBackgroundColor = null,
+  moodboardSurface = null,
   analyticsProjectId = null,
 } = Astro.props;
 const activeNavigationLayout =
@@ -159,6 +161,12 @@ const googleFontsUrl =
     <!-- Dynamic SEO & Social Images applied -->
     <slot name="head" />
 
+    {initialBackgroundColor && (
+      <style is:inline define:vars={{ initialBackgroundColor }}>
+        html, body { background-color: var(--initialBackgroundColor) !important; }
+      </style>
+    )}
+
     <!-- Theme Initialization to prevent FOUC -->
     <script is:inline>
       (function () {
@@ -185,6 +193,7 @@ const googleFontsUrl =
   </head>
   <body
     data-grid-variant={gridVariant}
+    data-moodboard-surface={moodboardSurface || undefined}
     data-page-path={pagePath}
     data-navigation-layout={activeNavigationLayout}
     data-pointer-variant={renderedPointerVariant}

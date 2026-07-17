@@ -97,18 +97,18 @@ const PortfolioFilter = ({ items }) => {
                             onMouseLeave={handleMouseLeave}
                         >
                             <img
-                                src={getOptimizedImageUrl(item.image, { width: 1200, quality: 74 })}
+                                src={getOptimizedImageUrl(item.image, { width: 1600, quality: 82 })}
                                 srcSet={getOptimizedImageSrcSet(item.image, {
-                                    widths: [480, 800, 1200],
-                                    quality: 74,
+                                    widths: [800, 1200, 1600, 2000],
+                                    quality: 82,
                                 })}
                                 sizes="(max-width: 599px) calc(100vw - 36px), (max-width: 1024px) 50vw, 1052px"
                                 alt={item.title}
                                 loading={index === 0 ? 'eager' : 'lazy'}
                                 fetchpriority={index === 0 ? 'high' : 'auto'}
                                 decoding="async"
-                                width="1200"
-                                height="675"
+                                width="1600"
+                                height="900"
                             />
                         </div>
                         <div className="content">

@@ -44,6 +44,94 @@
     line-height: 1.5;
 }
 
+.newsletter-sender .campaign-workspace-tabs {
+    position: relative;
+    display: grid;
+    width: min(420px, 100%);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px;
+    padding: 4px;
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--bg-color) 88%, var(--text-primary) 12%);
+}
+
+.newsletter-sender .campaign-workspace-tab {
+    position: relative;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    padding: 0.65rem 0.9rem;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-family: var(--font-sans);
+    font-size: 0.86rem;
+    font-weight: 650;
+    letter-spacing: 0.005em;
+    transition: color 0.3s ease, font-weight 0.3s ease;
+}
+
+.newsletter-sender .campaign-workspace-tab:hover {
+    color: var(--text-primary);
+}
+
+.newsletter-sender .campaign-workspace-tab:focus-visible {
+    outline: 2px solid var(--color-brand-red, #a30021);
+    outline-offset: 2px;
+}
+
+.newsletter-sender .campaign-workspace-tab.active {
+    color: #fff;
+    font-weight: 700;
+}
+
+.newsletter-sender .campaign-workspace-tab.active:hover {
+    color: #fff;
+}
+
+.newsletter-sender .campaign-tab-glider {
+    position: absolute;
+    z-index: 1;
+    top: 4px;
+    bottom: 4px;
+    left: 4px;
+    width: calc((100% - 16px) / 3);
+    border-radius: 7px;
+    background: var(--color-brand-red, #a30021);
+    box-shadow: 0 2px 7px color-mix(in srgb, var(--color-brand-red, #a30021) 24%, transparent);
+    pointer-events: none;
+    transition: transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.newsletter-sender .campaign-workspace-tabs[data-active="preview"] .campaign-tab-glider {
+    transform: translateX(calc(100% + 4px));
+}
+
+.newsletter-sender .campaign-workspace-tabs[data-active="deliver"] .campaign-tab-glider {
+    transform: translateX(calc(200% + 8px));
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .newsletter-sender .campaign-workspace-tab,
+    .newsletter-sender .campaign-tab-glider {
+        transition: none;
+    }
+}
+
+.newsletter-sender .campaign-tab-panel {
+    min-width: 0;
+    margin-top: 0.85rem;
+}
+
+.newsletter-sender .campaign-tab-panel[hidden] {
+    display: none;
+}
+
 .newsletter-eyebrow,
 .newsletter-sender .step-label {
     color: var(--text-secondary);
@@ -83,6 +171,135 @@
     align-items: start;
 }
 
+.newsletter-sender .design-workspace-grid,
+.newsletter-sender .preview-workspace-grid {
+    display: grid;
+    width: 100%;
+    min-width: 0;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.1rem;
+    align-items: start;
+}
+
+.newsletter-sender .workspace-preview-column {
+    /* Removed position: sticky to allow fixed height panels to dictate layout */
+}
+
+.newsletter-sender .design-editor-panel,
+.newsletter-sender .workspace-preview-panel,
+.newsletter-sender .preview-inspector-panel {
+    height: calc(100vh - 220px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+}
+
+.newsletter-sender .workspace-preview-panel {
+    display: flex;
+    flex-direction: column;
+}
+
+.newsletter-sender .workspace-preview-panel .panel-heading {
+    margin-bottom: 0.85rem;
+}
+
+.newsletter-sender .workspace-preview-panel .preview-stage {
+    padding: 0.65rem;
+}
+
+.newsletter-sender .email-backdrop-control {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-secondary);
+    font-size: 0.68rem;
+    font-weight: 650;
+}
+
+.newsletter-sender .email-backdrop-inputs {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.newsletter-sender .email-backdrop-inputs input[type="color"] {
+    width: 1.8rem;
+    height: 1.8rem;
+    flex: 0 0 auto;
+    padding: 0.12rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: 5px;
+    background: var(--bg-color);
+    cursor: pointer;
+}
+
+.newsletter-sender .email-backdrop-inputs input[type="text"] {
+    width: 5.2rem;
+    padding: 0.38rem 0.45rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: 5px;
+    background: var(--bg-color);
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    text-transform: uppercase;
+}
+
+.newsletter-sender .email-backdrop-inputs input:focus {
+    border-color: var(--newsletter-accent);
+    box-shadow: 0 0 0 2px var(--newsletter-accent-soft);
+    outline: none;
+}
+
+.newsletter-sender .preview-panel-tools {
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.45rem;
+}
+
+.newsletter-sender .full-gmail-preview-trigger {
+    display: inline-flex;
+    min-height: 2rem;
+    padding: 0.42rem 0.68rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.42rem;
+    border: 1px solid color-mix(in srgb, var(--color-brand-red, #a30021) 38%, var(--border-subtle));
+    border-radius: 6px;
+    background: color-mix(in srgb, var(--color-brand-red, #a30021) 10%, var(--bg-color));
+    color: var(--text-primary);
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.69rem;
+    font-weight: 700;
+}
+
+.newsletter-sender .full-gmail-preview-trigger span {
+    color: var(--color-brand-red, #a30021);
+    font-size: 0.95rem;
+    line-height: 1;
+}
+
+.newsletter-sender .full-gmail-preview-trigger:hover,
+.newsletter-sender .full-gmail-preview-trigger:focus-visible {
+    border-color: var(--color-brand-red, #a30021);
+    background: var(--color-brand-red, #a30021);
+    color: #fff;
+    outline: none;
+}
+
+.newsletter-sender .full-gmail-preview-trigger:hover span,
+.newsletter-sender .full-gmail-preview-trigger:focus-visible span {
+    color: #fff;
+}
+
+.newsletter-sender .preview-inspector-panel .preview-metadata-grid {
+    grid-template-columns: 1fr;
+}
+
 .newsletter-sender .studio-panel,
 .newsletter-sender .campaign-management,
 .newsletter-sender .management-panel {
@@ -111,6 +328,95 @@
 
 .newsletter-sender .panel-heading h3 {
     font-size: 1.05rem;
+}
+
+.newsletter-sender .panel-heading p {
+    max-width: 60ch;
+    margin: 0.35rem 0 0;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    line-height: 1.5;
+}
+
+.newsletter-sender .design-template-picker {
+    display: flex;
+    width: min(240px, 46%);
+    min-width: 170px;
+    flex-direction: column;
+    gap: 0.32rem;
+    color: var(--text-primary);
+    font-size: 0.68rem;
+    font-weight: 700;
+}
+
+.newsletter-sender .design-template-picker .box-input {
+    min-height: 36px;
+    padding: 0.45rem 2.25rem 0.45rem 0.58rem;
+    appearance: none;
+    -webkit-appearance: none;
+    font-size: 0.72rem;
+}
+
+.newsletter-sender .design-template-select-shell {
+    position: relative;
+    display: block;
+    width: 100%;
+}
+
+.newsletter-sender .design-template-chevron {
+    position: absolute;
+    top: 50%;
+    right: 0.9rem;
+    width: 0.55rem;
+    height: 0.55rem;
+    border-right: 2px solid var(--text-secondary);
+    border-bottom: 2px solid var(--text-secondary);
+    pointer-events: none;
+    transform: translateY(-68%) rotate(45deg);
+}
+
+.newsletter-sender .design-template-picker .box-input:disabled + .design-template-chevron {
+    opacity: 0.55;
+}
+
+.newsletter-sender .sender-email-select-shell {
+    position: relative;
+    display: block;
+    width: 100%;
+}
+
+.newsletter-sender .sender-email-select-shell .box-input {
+    width: 100%;
+    padding-right: 3rem;
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+.newsletter-sender .sender-email-chevron {
+    position: absolute;
+    top: 50%;
+    right: 1.25rem;
+    width: 0.62rem;
+    height: 0.62rem;
+    border-right: 2px solid var(--text-primary);
+    border-bottom: 2px solid var(--text-primary);
+    pointer-events: none;
+    transform: translateY(-66%) rotate(45deg);
+}
+
+.newsletter-sender .preview-metadata-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.8rem;
+    margin-bottom: 1rem;
+    padding: 0.9rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: 9px;
+    background: var(--bg-color);
+}
+
+.newsletter-sender .preview-metadata-grid .field-group {
+    margin-bottom: 0;
 }
 
 .newsletter-sender .box-input {
@@ -168,6 +474,36 @@
     display: flex;
     align-items: center;
     gap: 0.55rem;
+}
+
+.newsletter-sender .personalized-field-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.65rem;
+}
+
+.newsletter-sender .personalized-field-heading > span {
+    color: var(--text-primary);
+    font-size: 0.68rem;
+    font-weight: 650;
+}
+
+.newsletter-sender .personalized-field-heading button {
+    padding: 0.3rem 0.48rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: 5px;
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.66rem;
+    font-weight: 650;
+}
+
+.newsletter-sender .personalized-field-heading button:hover,
+.newsletter-sender .personalized-field-heading button:focus-visible {
+    border-color: var(--newsletter-accent);
 }
 
 .newsletter-sender .merge-tag-button {
@@ -435,14 +771,1229 @@
     font-weight: 650;
 }
 
+.newsletter-sender .gmail-preview.mobile {
+    width: min(100%, 375px);
+    margin: 0 auto;
+    border-radius: 18px;
+}
+
+.newsletter-sender .gmail-preview.mobile .gmail-topbar {
+    height: 52px;
+    padding: 0 0.75rem;
+}
+
+.newsletter-sender .gmail-preview.mobile .gmail-search {
+    height: 34px;
+    margin-left: 0;
+}
+
+.newsletter-sender .gmail-preview.mobile .gmail-topbar-icon,
+.newsletter-sender .gmail-preview.mobile .gmail-toolbar {
+    display: none;
+}
+
+.newsletter-sender .gmail-preview.mobile .gmail-message-row {
+    grid-template-columns: 18px minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    gap: 0.2rem 0.55rem;
+    min-height: 72px;
+    padding: 0.7rem 0.8rem;
+}
+
+.newsletter-sender .gmail-preview.mobile .gmail-message-row > .gmail-checkbox {
+    display: none;
+}
+
+.newsletter-sender .gmail-preview.mobile .gmail-star {
+    grid-row: 1 / span 2;
+    grid-column: 1;
+    align-self: start;
+}
+
+.newsletter-sender .gmail-preview.mobile .inbox-preview-sender {
+    grid-row: 1;
+    grid-column: 2;
+}
+
+.newsletter-sender .gmail-preview.mobile .gmail-message-content {
+    grid-row: 2;
+    grid-column: 2 / 4;
+}
+
+.newsletter-sender .gmail-preview.mobile .gmail-message-time {
+    grid-row: 1;
+    grid-column: 3;
+}
+
 .newsletter-sender .inbox-preview .placeholder {
     opacity: 0.6;
     font-weight: 400;
 }
 
+.newsletter-sender .full-gmail-preview-backdrop {
+    position: fixed;
+    z-index: 5000;
+    inset: 0;
+    background: #101214;
+}
+
+.newsletter-sender .full-gmail-preview-dialog {
+    position: relative;
+    display: grid;
+    width: 100vw;
+    height: 100dvh;
+    min-width: 0;
+    min-height: 0;
+    grid-template-rows: 68px minmax(0, 1fr);
+    overflow: hidden;
+    background: #101214;
+    color: #e8eaed;
+    font-family: Arial, Roboto, sans-serif;
+}
+
+.newsletter-sender .full-gmail-preview-close {
+    position: absolute;
+    z-index: 4;
+    top: 12px;
+    right: 16px;
+    display: grid;
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    place-items: center;
+    border: 2px solid rgba(255, 255, 255, 0.28);
+    border-radius: 50%;
+    background: var(--color-brand-red, #a30021);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.34);
+    color: #fff;
+    cursor: pointer;
+}
+
+.newsletter-sender .full-gmail-preview-close span {
+    margin-top: -2px;
+    font-size: 2rem;
+    font-weight: 400;
+    line-height: 1;
+}
+
+.newsletter-sender .full-gmail-preview-close:hover,
+.newsletter-sender .full-gmail-preview-close:focus-visible {
+    background: #e12b36;
+    outline: 3px solid rgba(255, 255, 255, 0.9);
+    outline-offset: 2px;
+    transform: scale(1.04);
+}
+
+.newsletter-sender .full-gmail-topbar {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 1rem;
+    padding: 0 5rem 0 1.25rem;
+    border-bottom: 1px solid #2b2d31;
+    background: #101214;
+}
+
+.newsletter-sender .full-gmail-menu {
+    color: #bdc1c6;
+    font-size: 1.35rem;
+}
+
+.newsletter-sender .full-gmail-brand {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 0.55rem;
+    color: #f1f3f4;
+    font-size: 1.25rem;
+}
+
+.newsletter-sender .full-gmail-brand img {
+    display: block;
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+}
+
+.newsletter-sender .full-gmail-search {
+    display: flex;
+    width: min(670px, 48vw);
+    height: 44px;
+    min-width: 240px;
+    align-items: center;
+    gap: 0.75rem;
+    margin-left: 1.5rem;
+    padding: 0 1rem;
+    border-radius: 10px;
+    background: #303134;
+    color: #bdc1c6;
+    font-size: 0.9rem;
+}
+
+.newsletter-sender .full-gmail-search > span {
+    font-size: 1.3rem;
+}
+
+.newsletter-sender .full-gmail-search i {
+    margin-left: auto;
+    font-style: normal;
+}
+
+.newsletter-sender .full-gmail-top-actions {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: auto;
+}
+
+.newsletter-sender .full-gmail-top-actions i {
+    display: grid;
+    width: 34px;
+    height: 34px;
+    place-items: center;
+    border-radius: 50%;
+    color: #e8eaed;
+    font-style: normal;
+    font-size: 0.95rem;
+}
+
+.newsletter-sender .full-gmail-top-actions .apps {
+    letter-spacing: -0.1em;
+}
+
+.newsletter-sender .full-gmail-top-actions .avatar {
+    background: #6f55bb;
+    color: #fff;
+    font-weight: 700;
+}
+
+.newsletter-sender .full-gmail-workspace {
+    display: grid;
+    min-width: 0;
+    min-height: 0;
+    grid-template-columns: 220px minmax(0, 1fr);
+    overflow: hidden;
+}
+
+.newsletter-sender .full-gmail-sidebar {
+    min-height: 0;
+    padding: 0.9rem 0.75rem;
+    overflow: hidden;
+    background: #101214;
+    color: #e8eaed;
+}
+
+.newsletter-sender .full-gmail-compose {
+    display: inline-flex;
+    min-width: 142px;
+    height: 50px;
+    margin: 0 0 1rem 0.3rem;
+    padding: 0 1.25rem;
+    align-items: center;
+    gap: 0.75rem;
+    border: 0;
+    border-radius: 14px;
+    background: #fff;
+    color: #3c4043;
+    font: inherit;
+    font-size: 0.9rem;
+}
+
+.newsletter-sender .full-gmail-compose span {
+    font-size: 1.25rem;
+}
+
+.newsletter-sender .full-gmail-sidebar nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.12rem;
+}
+
+.newsletter-sender .full-gmail-sidebar nav > span {
+    display: grid;
+    min-height: 34px;
+    grid-template-columns: 24px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0 0.9rem;
+    border-radius: 0 999px 999px 0;
+    color: #c8c9cc;
+    font-size: 0.82rem;
+}
+
+.newsletter-sender .full-gmail-sidebar nav > span.active {
+    background: #5f6368;
+    color: #fff;
+    font-weight: 700;
+}
+
+.newsletter-sender .full-gmail-sidebar nav i {
+    color: inherit;
+    font-style: normal;
+    text-align: center;
+}
+
+.newsletter-sender .full-gmail-sidebar nav strong {
+    font-size: 0.72rem;
+}
+
+.newsletter-sender .full-gmail-thread {
+    display: grid;
+    min-width: 0;
+    min-height: 0;
+    grid-template-rows: 54px auto auto minmax(0, 1fr);
+    overflow: hidden;
+    background: #fff;
+    color: #202124;
+}
+
+.newsletter-sender .full-gmail-reader-toolbar {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0 5rem 0 1rem;
+    background: #303134;
+    color: #bdc1c6;
+}
+
+.newsletter-sender .full-gmail-reader-icons {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 0.9rem;
+}
+
+.newsletter-sender .full-gmail-reader-icons i {
+    min-width: 16px;
+    font-style: normal;
+    text-align: center;
+}
+
+.newsletter-sender .full-gmail-reader-icons b {
+    width: 1px;
+    height: 24px;
+    background: #5f6368;
+}
+
+.newsletter-sender .full-gmail-reader-toolbar .email-backdrop-control {
+    margin-left: auto;
+    color: #e8eaed;
+}
+
+.newsletter-sender .full-gmail-reader-toolbar .email-backdrop-inputs input[type="color"],
+.newsletter-sender .full-gmail-reader-toolbar .email-backdrop-inputs input[type="text"] {
+    border-color: #5f6368;
+    background: #202124;
+    color: #f1f3f4;
+}
+
+.newsletter-sender .full-gmail-reader-count {
+    flex: 0 0 auto;
+    font-size: 0.72rem;
+}
+
+.newsletter-sender .full-gmail-subject-row {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 1rem 1.5rem 0.5rem;
+    background: #fff;
+}
+
+.newsletter-sender .full-gmail-subject-row h2 {
+    min-width: 0;
+    margin: 0;
+    overflow: hidden;
+    color: #202124;
+    font-size: clamp(1.15rem, 2vw, 1.55rem);
+    font-weight: 500;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.newsletter-sender .full-gmail-subject-row small {
+    padding: 0.18rem 0.35rem;
+    border-radius: 4px;
+    background: #e8eaed;
+    color: #5f6368;
+    font-size: 0.68rem;
+}
+
+.newsletter-sender .full-gmail-subject-actions {
+    margin-left: auto;
+    color: #5f6368;
+    white-space: nowrap;
+}
+
+.newsletter-sender .full-gmail-sender-row {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.45rem 1.5rem 0.9rem;
+    background: #fff;
+    color: #202124;
+}
+
+.newsletter-sender .full-gmail-sender-avatar {
+    display: grid;
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+    place-items: center;
+    border-radius: 50%;
+    background: #7598ef;
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.newsletter-sender .full-gmail-sender-copy {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: baseline;
+    gap: 0.3rem;
+}
+
+.newsletter-sender .full-gmail-sender-copy strong {
+    font-size: 0.86rem;
+}
+
+.newsletter-sender .full-gmail-sender-copy small {
+    overflow: hidden;
+    color: #5f6368;
+    font-size: 0.72rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.newsletter-sender .full-gmail-sender-copy span {
+    grid-column: 1 / -1;
+    color: #5f6368;
+    font-size: 0.7rem;
+}
+
+.newsletter-sender .full-gmail-unsubscribe {
+    color: #1a73e8;
+    font-size: 0.78rem;
+}
+
+.newsletter-sender .full-gmail-sender-actions {
+    margin-left: auto;
+    color: #5f6368;
+    font-size: 0.75rem;
+    white-space: nowrap;
+}
+
+.newsletter-sender .full-gmail-email-viewport {
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    border-top: 1px solid #f1f3f4;
+    background: #f3f2ef;
+}
+
+.newsletter-sender .full-gmail-email-viewport iframe {
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+}
+
+@media (max-width: 900px) {
+    .newsletter-sender .full-gmail-workspace {
+        grid-template-columns: 1fr;
+    }
+
+    .newsletter-sender .full-gmail-sidebar {
+        display: none;
+    }
+
+    .newsletter-sender .full-gmail-search {
+        width: auto;
+        min-width: 0;
+        flex: 1;
+        margin-left: 0;
+    }
+
+    .newsletter-sender .full-gmail-top-actions i:not(.avatar),
+    .newsletter-sender .full-gmail-reader-icons i:nth-of-type(n+5),
+    .newsletter-sender .full-gmail-reader-icons b,
+    .newsletter-sender .full-gmail-reader-count {
+        display: none;
+    }
+}
+
+@media (max-width: 640px) {
+    .newsletter-sender .full-gmail-preview-dialog {
+        grid-template-rows: 60px minmax(0, 1fr);
+    }
+
+    .newsletter-sender .full-gmail-topbar {
+        gap: 0.6rem;
+        padding-right: 4.5rem;
+    }
+
+    .newsletter-sender .full-gmail-brand strong,
+    .newsletter-sender .full-gmail-top-actions,
+    .newsletter-sender .full-gmail-search i,
+    .newsletter-sender .full-gmail-reader-toolbar .email-backdrop-control > span:first-child,
+    .newsletter-sender .full-gmail-sender-copy small,
+    .newsletter-sender .full-gmail-unsubscribe,
+    .newsletter-sender .full-gmail-sender-actions {
+        display: none;
+    }
+
+    .newsletter-sender .full-gmail-reader-toolbar {
+        padding-right: 4.5rem;
+    }
+
+    .newsletter-sender .full-gmail-subject-row,
+    .newsletter-sender .full-gmail-sender-row {
+        padding-right: 1rem;
+        padding-left: 1rem;
+    }
+}
+
+.newsletter-sender .notification-app-toggle {
+    display: flex;
+    width: max-content;
+    margin: 0 auto 0.8rem;
+    padding: 3px;
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    background: var(--bg-surface);
+}
+
+.newsletter-sender .notification-app-toggle button {
+    padding: 0.42rem 0.68rem;
+    border: 0;
+    border-radius: 5px;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.68rem;
+    font-weight: 650;
+    transition: background 0.16s ease, color 0.16s ease;
+}
+
+.newsletter-sender .notification-app-toggle button:hover {
+    color: var(--text-primary);
+}
+
+.newsletter-sender .notification-app-toggle button:focus-visible {
+    outline: 2px solid var(--color-brand-red, #a30021);
+    outline-offset: 1px;
+}
+
+.newsletter-sender .notification-app-toggle button.active {
+    background: var(--color-brand-red, #a30021);
+    color: #fff;
+}
+
+.newsletter-sender .phone-preview-shell {
+    position: relative;
+    width: min(100%, 360px);
+    margin: 0 auto;
+    padding: 9px;
+    border: 1px solid #696b73;
+    border-radius: 52px;
+    background: linear-gradient(145deg, #4c4e54, #0b0b0d 18%, #25262a 78%, #777980);
+    box-shadow: 0 22px 50px rgba(16, 13, 28, 0.25), inset 0 0 0 2px #0a0a0b, inset 0 0 0 4px #34353a;
+}
+
+.newsletter-sender .phone-preview-shell::before,
+.newsletter-sender .phone-preview-shell::after {
+    position: absolute;
+    left: -4px;
+    width: 4px;
+    border-radius: 3px 0 0 3px;
+    background: #292a2e;
+    content: '';
+}
+
+.newsletter-sender .phone-preview-shell::before {
+    top: 118px;
+    height: 62px;
+}
+
+.newsletter-sender .phone-preview-shell::after {
+    top: 196px;
+    height: 86px;
+}
+
+.newsletter-sender .phone-lock-screen {
+    position: relative;
+    min-height: 615px;
+    overflow: hidden;
+    border-radius: 44px;
+    background:
+        radial-gradient(circle at 16% 20%, rgba(255, 206, 104, 0.92) 0 18%, transparent 42%),
+        radial-gradient(circle at 87% 36%, rgba(255, 88, 79, 0.88) 0 18%, transparent 44%),
+        linear-gradient(150deg, #6c63d9 0%, #8f58b7 38%, #f06f63 72%, #f5a04a 100%);
+    color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    box-shadow: inset 0 0 20px rgba(14, 10, 36, 0.2);
+}
+
+.newsletter-sender .phone-lock-screen::before {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(18, 13, 38, 0.26), transparent 35%, rgba(18, 13, 38, 0.16));
+    content: '';
+}
+
+.newsletter-sender .phone-lock-screen.gmail-notification-screen {
+    background:
+        linear-gradient(165deg, transparent 0 24%, rgba(53, 126, 197, 0.72) 24.2% 41%, transparent 41.2%),
+        linear-gradient(13deg, #16365f 0 30%, #1d4a80 30.2% 54%, #245f9f 54.2% 76%, #3290cf 76.2% 100%);
+}
+
+.newsletter-sender .phone-lock-screen.gmail-notification-screen::before {
+    background:
+        linear-gradient(192deg, transparent 0 46%, rgba(15, 49, 91, 0.38) 46.2% 68%, transparent 68.2%),
+        linear-gradient(180deg, rgba(3, 27, 57, 0.03), rgba(4, 25, 51, 0.22));
+}
+
+.newsletter-sender .phone-status-bar {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 24px 0;
+    font-size: 0.66rem;
+    font-weight: 700;
+}
+
+.newsletter-sender .phone-status-icons {
+    letter-spacing: 0.12em;
+}
+
+.newsletter-sender .phone-dynamic-island {
+    position: absolute;
+    z-index: 3;
+    top: 9px;
+    left: 50%;
+    width: 102px;
+    height: 28px;
+    border-radius: 999px;
+    background: #050506;
+    transform: translateX(-50%);
+}
+
+.newsletter-sender .phone-lock-icon {
+    position: relative;
+    z-index: 2;
+    width: 18px;
+    height: 15px;
+    margin: 52px auto 0;
+    border: 2px solid rgba(255, 255, 255, 0.92);
+    border-radius: 4px;
+}
+
+.newsletter-sender .phone-lock-icon span {
+    position: absolute;
+    bottom: 9px;
+    left: 3px;
+    width: 9px;
+    height: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.92);
+    border-bottom: 0;
+    border-radius: 8px 8px 0 0;
+}
+
+.newsletter-sender .phone-clock,
+.newsletter-sender .phone-date {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    text-shadow: 0 1px 10px rgba(24, 14, 44, 0.18);
+}
+
+.newsletter-sender .phone-clock {
+    margin-top: 8px;
+    font-size: clamp(3.6rem, 16vw, 5.2rem);
+    font-weight: 250;
+    letter-spacing: -0.06em;
+    line-height: 1;
+}
+
+.newsletter-sender .phone-date {
+    margin-top: 4px;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.newsletter-sender .phone-notification-card {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.18rem;
+    margin: 42px 13px 0;
+    padding: 0.8rem 0.85rem 0.9rem;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    background: rgba(45, 35, 64, 0.42);
+    box-shadow: 0 9px 26px rgba(29, 20, 48, 0.16);
+    color: #fff;
+    backdrop-filter: blur(18px) saturate(1.25);
+}
+
+.newsletter-sender .phone-notification-card.gmail-notification {
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: 0.55rem;
+    align-items: center;
+    min-height: 82px;
+    padding: 0.62rem 0.7rem;
+    border-color: rgba(255, 255, 255, 0.34);
+    border-radius: 20px;
+    background: rgba(145, 194, 243, 0.86);
+    box-shadow: 0 10px 28px rgba(5, 31, 68, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+    color: #080d14;
+    backdrop-filter: blur(24px) saturate(1.08);
+}
+
+.newsletter-sender .gmail-notification-content {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.04rem;
+}
+
+.newsletter-sender .gmail-notification-heading {
+    display: flex;
+    min-width: 0;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.55rem;
+}
+
+.newsletter-sender .gmail-notification-heading .phone-notification-sender {
+    overflow: hidden;
+    font-size: 0.78rem !important;
+    font-weight: 700;
+    letter-spacing: -0.012em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.newsletter-sender .gmail-notification-heading .phone-notification-age {
+    flex: 0 0 auto;
+    color: rgba(22, 57, 97, 0.66);
+    font-size: 0.7rem;
+    font-weight: 400;
+}
+
+.newsletter-sender .phone-notification-card .gmail-notification-subject {
+    overflow: hidden;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: -0.008em;
+    line-height: 1.22;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.newsletter-sender .phone-notification-card.gmail-notification p {
+    display: -webkit-box;
+    overflow: hidden;
+    color: rgba(8, 13, 20, 0.94);
+    font-size: 0.76rem;
+    font-weight: 400;
+    letter-spacing: -0.008em;
+    line-height: 1.22;
+    text-overflow: ellipsis;
+    white-space: normal;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+.newsletter-sender .phone-notification-meta {
+    display: grid;
+    grid-template-columns: 22px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.45rem;
+    margin-bottom: 0.25rem;
+    color: rgba(255, 255, 255, 0.78);
+    font-size: 0.65rem;
+}
+
+.newsletter-sender .phone-mail-icon {
+    display: grid;
+    width: 22px;
+    height: 22px;
+    place-items: center;
+    border-radius: 6px;
+    background: linear-gradient(180deg, #57b7ff, #1579e6);
+    color: #fff;
+    font-size: 0.72rem;
+}
+
+.newsletter-sender .phone-mail-icon.gmail {
+    width: 34px;
+    height: 34px;
+    align-self: center;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(13, 40, 73, 0.08);
+}
+
+.newsletter-sender .phone-mail-icon img {
+    display: block;
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+}
+
+.newsletter-sender .phone-mail-icon.gmail img {
+    width: 24px;
+    height: 24px;
+}
+
+.newsletter-sender .phone-app-name {
+    font-weight: 650;
+    letter-spacing: 0.04em;
+}
+
+.newsletter-sender .phone-notification-age {
+    text-transform: lowercase;
+}
+
+.newsletter-sender .phone-notification-card strong,
+.newsletter-sender .phone-notification-card p {
+    min-width: 0;
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.newsletter-sender .phone-notification-card strong {
+    font-size: 0.82rem;
+    line-height: 1.35;
+}
+
+.newsletter-sender .phone-notification-sender {
+    font-size: 0.86rem !important;
+}
+
+.newsletter-sender .phone-notification-card p {
+    color: rgba(255, 255, 255, 0.88);
+    font-size: 0.76rem;
+    line-height: 1.4;
+}
+
+.newsletter-sender .phone-lock-shortcuts {
+    position: absolute;
+    z-index: 2;
+    right: 38px;
+    bottom: 42px;
+    left: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.newsletter-sender .phone-lock-shortcut {
+    position: relative;
+    display: grid;
+    width: 46px;
+    height: 46px;
+    place-items: center;
+    border-radius: 50%;
+    background: rgba(7, 28, 54, 0.5);
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(12px);
+}
+
+.newsletter-sender .phone-flashlight i {
+    position: relative;
+    width: 9px;
+    height: 19px;
+    border-radius: 2px 2px 4px 4px;
+    background: #fff;
+}
+
+.newsletter-sender .phone-flashlight i::before {
+    position: absolute;
+    top: -4px;
+    left: -2px;
+    width: 13px;
+    height: 6px;
+    border-radius: 2px;
+    background: #fff;
+    content: '';
+}
+
+.newsletter-sender .phone-flashlight i::after {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: #305077;
+    content: '';
+}
+
+.newsletter-sender .phone-camera i {
+    position: relative;
+    width: 22px;
+    height: 15px;
+    border-radius: 3px;
+    background: #fff;
+}
+
+.newsletter-sender .phone-camera i::before {
+    position: absolute;
+    top: -4px;
+    left: 5px;
+    width: 10px;
+    height: 5px;
+    border-radius: 2px 2px 0 0;
+    background: #fff;
+    content: '';
+}
+
+.newsletter-sender .phone-camera i::after {
+    position: absolute;
+    top: 3px;
+    left: 7px;
+    width: 7px;
+    height: 7px;
+    border: 1.5px solid #305077;
+    border-radius: 50%;
+    content: '';
+}
+
+.newsletter-sender .phone-home-indicator {
+    position: absolute;
+    z-index: 2;
+    bottom: 9px;
+    left: 50%;
+    width: 112px;
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.88);
+    transform: translateX(-50%);
+}
+
+/* Full-device iPhone notification treatment, scaled from the supplied reference. */
+.newsletter-sender .phone-preview-shell {
+    width: min(100%, 330px);
+    padding: 8px;
+    border: 1px solid #b8bbbf;
+    border-radius: 49px;
+    background: linear-gradient(145deg, #f4f5f6 0%, #777b80 13%, #e8e9ea 28%, #44474b 48%, #f1f2f3 72%, #85898d 100%);
+    box-shadow: 0 22px 50px rgba(9, 18, 35, 0.24), inset 0 0 0 2px #222428, inset 0 0 0 4px #777a7e;
+}
+
+.newsletter-sender .phone-preview-shell::before,
+.newsletter-sender .phone-preview-shell::after {
+    left: -3px;
+    width: 3px;
+    background: linear-gradient(180deg, #f0f0f1, #676a6d 45%, #d4d5d6);
+}
+
+.newsletter-sender .phone-lock-screen,
+.newsletter-sender .phone-lock-screen.gmail-notification-screen {
+    min-height: 660px;
+    border-radius: 41px;
+    background:
+        radial-gradient(ellipse 83% 65% at 1% 74%, rgba(58, 126, 115, 0.98) 0 55%, transparent 55.5%),
+        radial-gradient(ellipse 72% 72% at 73% 18%, #203f7a 0 57%, transparent 57.5%),
+        linear-gradient(148deg, #748486 0 38%, #657979 38.2% 55%, #0a1a4d 55.2% 100%);
+    box-shadow: inset 0 0 24px rgba(2, 12, 37, 0.32);
+}
+
+.newsletter-sender .phone-lock-screen::before,
+.newsletter-sender .phone-lock-screen.gmail-notification-screen::before {
+    background:
+        linear-gradient(154deg, transparent 0 55%, rgba(15, 73, 82, 0.34) 55.3% 71%, transparent 71.3%),
+        linear-gradient(180deg, rgba(3, 12, 31, 0.04), rgba(2, 14, 42, 0.18));
+}
+
+.newsletter-sender .phone-status-bar {
+    min-height: 28px;
+    padding: 14px 22px 0;
+}
+
+.newsletter-sender .phone-status-icons {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    height: 14px;
+    color: #fff;
+    letter-spacing: 0;
+}
+
+.newsletter-sender .phone-cellular {
+    display: flex;
+    height: 12px;
+    align-items: flex-end;
+    gap: 2px;
+}
+
+.newsletter-sender .phone-cellular b {
+    display: block;
+    width: 3px;
+    border-radius: 1px;
+    background: #fff;
+}
+
+.newsletter-sender .phone-cellular b:nth-child(1) { height: 4px; }
+.newsletter-sender .phone-cellular b:nth-child(2) { height: 7px; }
+.newsletter-sender .phone-cellular b:nth-child(3) { height: 10px; }
+.newsletter-sender .phone-cellular b:nth-child(4) { height: 12px; }
+
+.newsletter-sender .phone-wifi {
+    width: 17px;
+    height: 12px;
+    background: radial-gradient(circle at 50% 100%, #fff 0 1.4px, transparent 1.7px 3.4px, #fff 3.7px 4.8px, transparent 5.1px 7px, #fff 7.3px 8.6px, transparent 8.9px);
+}
+
+.newsletter-sender .phone-battery {
+    position: relative;
+    width: 21px;
+    height: 10px;
+    border: 1.5px solid rgba(255, 255, 255, 0.94);
+    border-radius: 3px;
+}
+
+.newsletter-sender .phone-battery::before {
+    position: absolute;
+    inset: 1.5px;
+    border-radius: 1px;
+    background: #fff;
+    content: '';
+}
+
+.newsletter-sender .phone-battery::after {
+    position: absolute;
+    top: 2px;
+    right: -3.5px;
+    width: 2px;
+    height: 4px;
+    border-radius: 0 1px 1px 0;
+    background: rgba(255, 255, 255, 0.72);
+    content: '';
+}
+
+.newsletter-sender .phone-dynamic-island {
+    top: 9px;
+    width: 94px;
+    height: 27px;
+    background: #030406;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.015);
+}
+
+.newsletter-sender .phone-dynamic-island::after {
+    position: absolute;
+    top: 9px;
+    right: 10px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 65% 35%, #385496, #11172a 45%, #030406 72%);
+    content: '';
+}
+
+.newsletter-sender .phone-date {
+    margin-top: 54px;
+    color: rgba(255, 255, 255, 0.96);
+    font-size: 1rem;
+    font-weight: 650;
+    letter-spacing: -0.015em;
+    text-shadow: 0 1px 6px rgba(0, 12, 37, 0.2);
+}
+
+.newsletter-sender .phone-clock {
+    margin-top: 3px;
+    color: rgba(212, 226, 239, 0.72);
+    font-size: 5.1rem;
+    font-weight: 250;
+    letter-spacing: -0.075em;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.48), 0 4px 12px rgba(3, 18, 49, 0.22);
+}
+
+.newsletter-sender .phone-notification-card,
+.newsletter-sender .phone-notification-card.gmail-notification,
+.newsletter-sender .phone-notification-card.mail-notification {
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: 0.55rem;
+    align-items: center;
+    min-height: 82px;
+    margin: 140px 12px 0;
+    padding: 0.62rem 0.7rem;
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    border-radius: 19px;
+    background: rgba(159, 178, 187, 0.48);
+    box-shadow: 0 8px 22px rgba(3, 19, 47, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+    color: #fff;
+    backdrop-filter: blur(23px) saturate(1.05);
+}
+
+.newsletter-sender .phone-notification-card.gmail-notification {
+    border-color: rgba(255, 255, 255, 0.34);
+    background: rgba(145, 194, 243, 0.86);
+    color: #080d14;
+}
+
+.newsletter-sender .phone-notification-content {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.02rem;
+}
+
+.newsletter-sender .phone-notification-heading {
+    display: flex;
+    min-width: 0;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.55rem;
+}
+
+.newsletter-sender .phone-notification-heading .phone-notification-sender {
+    overflow: hidden;
+    font-size: 0.78rem !important;
+    font-weight: 700;
+    letter-spacing: -0.012em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.newsletter-sender .phone-notification-heading .phone-notification-age {
+    flex: 0 0 auto;
+    color: rgba(235, 244, 255, 0.78);
+    font-size: 0.7rem;
+    font-weight: 400;
+}
+
+.newsletter-sender .phone-notification-card.gmail-notification .phone-notification-age {
+    color: rgba(22, 57, 97, 0.66);
+}
+
+.newsletter-sender .phone-notification-card .phone-notification-subject {
+    overflow: hidden;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: -0.008em;
+    line-height: 1.22;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.newsletter-sender .phone-notification-card p,
+.newsletter-sender .phone-notification-card.gmail-notification p,
+.newsletter-sender .phone-notification-card.mail-notification p {
+    display: -webkit-box;
+    overflow: hidden;
+    color: rgba(255, 255, 255, 0.94);
+    font-size: 0.76rem;
+    font-weight: 400;
+    letter-spacing: -0.008em;
+    line-height: 1.22;
+    text-overflow: ellipsis;
+    white-space: normal;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+.newsletter-sender .phone-notification-card.gmail-notification p {
+    color: rgba(8, 13, 20, 0.94);
+}
+
+.newsletter-sender .phone-mail-icon,
+.newsletter-sender .phone-mail-icon.gmail,
+.newsletter-sender .phone-mail-icon.apple-mail {
+    position: relative;
+    display: grid;
+    width: 34px;
+    height: 34px;
+    align-self: center;
+    place-items: center;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(4, 24, 54, 0.16);
+}
+
+.newsletter-sender .phone-mail-icon.apple-mail {
+    overflow: hidden;
+    background: linear-gradient(180deg, #63c7ff 0%, #1687f1 58%, #0869e2 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 1px 4px rgba(4, 24, 54, 0.18);
+}
+
+.newsletter-sender .phone-mail-icon.apple-mail::after {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.24), transparent 48%);
+    content: '';
+    pointer-events: none;
+}
+
+.newsletter-sender .phone-mail-icon.apple-mail i {
+    position: relative;
+    z-index: 1;
+    width: 23px;
+    height: 15px;
+    border-radius: 2px;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(5, 85, 170, 0.18);
+}
+
+.newsletter-sender .phone-mail-icon.apple-mail i::before {
+    position: absolute;
+    top: -6px;
+    left: 5px;
+    width: 11px;
+    height: 11px;
+    border-right: 1.7px solid #65b9f7;
+    border-bottom: 1.7px solid #65b9f7;
+    content: '';
+    transform: rotate(45deg);
+}
+
+.newsletter-sender .phone-lock-shortcuts {
+    right: 42px;
+    bottom: 41px;
+    left: 42px;
+}
+
+.newsletter-sender .phone-lock-shortcut {
+    width: 45px;
+    height: 45px;
+    border: 1px solid rgba(177, 221, 255, 0.42);
+    background: rgba(14, 61, 100, 0.48);
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 5px 14px rgba(2, 17, 46, 0.12);
+}
+
+.newsletter-sender .phone-home-indicator {
+    bottom: 9px;
+    width: 108px;
+    height: 4px;
+    background: #fff;
+}
+
 .newsletter-sender .preview-stage {
     width: 100%;
-    min-height: 640px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
     padding: 1rem 0;
     overflow: hidden;
     border-radius: 10px;
@@ -451,15 +2002,17 @@
 
 .newsletter-sender .email-preview-frame {
     width: 100%;
-    min-height: 608px;
-    max-height: 74vh;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
     margin: 0 auto;
-    padding: 28px;
-    overflow-y: auto;
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    border-radius: 6px;
-    background: #fff;
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+    padding: 0;
+    overflow: hidden;
+    border: 0;
+    border-radius: 0;
+    outline: 0;
+    background: transparent;
+    box-shadow: none;
     color: #333;
     font-family: Arial, sans-serif;
     line-height: 1.6;
@@ -469,13 +2022,20 @@
 .newsletter-sender .email-preview-frame.desktop {
     width: 100%;
     max-width: none;
-    margin-right: 0;
-    margin-left: 0;
 }
 
 .newsletter-sender .email-preview-frame.phone {
     width: min(100%, 375px);
     max-width: 375px;
+}
+
+.newsletter-sender .email-preview-frame iframe {
+    display: block;
+    width: 100%;
+    flex: 1;
+    border: 0;
+    outline: 0;
+    background: transparent;
 }
 
 .newsletter-sender .email-subject {
@@ -620,12 +2180,1395 @@
     flex: 1;
 }
 
+.newsletter-sender .draft-status {
+    margin: 0 0 1rem;
+    color: var(--text-secondary);
+    font-size: 0.7rem;
+}
+
+.newsletter-sender .draft-status.saved {
+    color: #047857;
+}
+
+.newsletter-sender .draft-status.error {
+    color: #b91c1c;
+}
+
+.newsletter-sender .save-template-card {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.85rem;
+    margin-top: 1rem;
+    padding: 1rem;
+    border: 1px solid color-mix(in srgb, var(--color-brand-red, #a30021) 28%, var(--border-subtle));
+    border-radius: 11px;
+    background:
+        radial-gradient(circle at 92% 12%, color-mix(in srgb, var(--newsletter-accent-soft) 72%, transparent), transparent 34%),
+        var(--bg-color);
+}
+
+.newsletter-sender .save-template-copy {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+}
+
+.newsletter-sender .save-template-spark {
+    display: grid;
+    width: 2rem;
+    height: 2rem;
+    flex: 0 0 auto;
+    place-items: center;
+    border-radius: 7px;
+    background: var(--color-brand-red, #a30021);
+    color: #ffffff;
+    font-size: 1.1rem;
+}
+
+.newsletter-sender .save-template-copy h4 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    line-height: 1.3;
+}
+
+.newsletter-sender .save-template-copy p {
+    margin: 0.28rem 0 0;
+    color: var(--text-secondary);
+    font-size: 0.72rem;
+    line-height: 1.45;
+}
+
+.newsletter-sender .save-template-form {
+    display: flex;
+    flex-direction: row;
+    gap: 0.6rem;
+    align-items: center;
+}
+
+.newsletter-sender .save-template-form label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-primary);
+    font-size: 0.68rem;
+    font-weight: 700;
+    flex: 1;
+}
+
+.newsletter-sender .save-template-button {
+    min-height: 40px;
+    padding: 0.55rem 0.78rem;
+    border: 0;
+    border-radius: 7px;
+    background: var(--color-brand-red, #a30021);
+    color: #ffffff;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.72rem;
+    font-weight: 750;
+}
+
+.newsletter-sender .save-template-button:hover,
+.newsletter-sender .save-template-button:focus-visible {
+    filter: brightness(1.08);
+}
+
+.newsletter-sender .save-template-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.52;
+}
+
+.newsletter-sender .save-template-card .draft-status {
+    margin: -0.15rem 0 0;
+}
+
+.newsletter-sender .newsletter-block-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.newsletter-sender .email-style-panel {
+    padding: 0.9rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    background: var(--bg-color);
+}
+
+.newsletter-sender .email-style-panel h4 {
+    margin: 0.15rem 0 0.2rem;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+.newsletter-sender .email-style-panel > div:first-child p {
+    margin: 0 0 0.85rem;
+    color: var(--text-secondary);
+    font-size: 0.7rem;
+    line-height: 1.45;
+}
+
+.newsletter-sender .email-style-panel .email-font-support-note {
+    margin-top: 0.7rem;
+}
+
+.newsletter-sender .control-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+}
+
+.newsletter-sender .newsletter-control {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.32rem;
+    color: var(--text-primary);
+    font-size: 0.68rem;
+    font-weight: 650;
+}
+
+.newsletter-sender .mini-input {
+    width: 100%;
+    min-width: 0;
+    padding: 0.56rem 0.6rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    font: inherit;
+    font-weight: 500;
+}
+
+.newsletter-sender .mini-input:focus {
+    border-color: var(--newsletter-accent);
+    box-shadow: 0 0 0 2px var(--newsletter-accent-soft);
+    outline: none;
+}
+
+.newsletter-sender .color-control-inputs,
+.newsletter-sender .number-control-input {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.newsletter-sender .color-control input[type="color"] {
+    width: 2.35rem;
+    height: 2.05rem;
+    flex: 0 0 auto;
+    padding: 0.12rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    background: var(--bg-surface);
+    cursor: pointer;
+}
+
+.newsletter-sender .color-value {
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+}
+
+.newsletter-sender .number-control-input small {
+    color: var(--text-secondary);
+    font-size: 0.65rem;
+}
+
+.newsletter-sender .editor-segment {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    padding: 0.18rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: 7px;
+    background: var(--bg-surface);
+}
+
+.newsletter-sender .editor-segment button {
+    padding: 0.46rem 0.42rem;
+    border: 0;
+    border-radius: 5px;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.66rem;
+    font-weight: 650;
+}
+
+.newsletter-sender .editor-segment button.active {
+    background: var(--newsletter-accent);
+    color: #fff;
+}
+
+.newsletter-sender .block-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+
+.newsletter-sender .newsletter-block-card {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    background: var(--bg-color);
+}
+
+.newsletter-sender .newsletter-block-card.is-dragging {
+    z-index: 10;
+    border-color: rgba(109, 93, 252, 0.42);
+    box-shadow: 0 12px 30px rgba(17, 24, 39, 0.18);
+    opacity: 0.72;
+}
+
+.newsletter-sender .newsletter-block-card.expanded {
+    border-color: rgba(109, 93, 252, 0.48);
+    box-shadow: 0 0 0 2px var(--newsletter-accent-soft);
+}
+
+.newsletter-sender .block-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.55rem;
+}
+
+.newsletter-sender .newsletter-block-drag-handle {
+    display: grid;
+    width: 1.55rem;
+    height: 1.7rem;
+    flex: 0 0 auto;
+    padding: 0;
+    place-items: center;
+    border: 0;
+    border-radius: 5px;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: grab;
+    font: inherit;
+    touch-action: none;
+}
+
+.newsletter-sender .drag-dot-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 3px);
+    grid-template-rows: repeat(3, 3px);
+    gap: 3px 4px;
+}
+
+.newsletter-sender .drag-dot-grid > span {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.newsletter-sender .newsletter-block-drag-handle:hover,
+.newsletter-sender .newsletter-block-drag-handle:focus-visible {
+    background: var(--newsletter-accent-soft);
+    color: var(--newsletter-accent);
+}
+
+.newsletter-sender .newsletter-block-drag-handle:active {
+    cursor: grabbing;
+}
+
+.newsletter-sender .block-card-toggle {
+    display: flex;
+    min-width: 0;
+    flex: 1;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.15rem;
+    border: 0;
+    background: transparent;
+    color: var(--text-primary);
+    cursor: pointer;
+    text-align: left;
+}
+
+.newsletter-sender .block-card-title {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.08rem;
+}
+
+.newsletter-sender .block-toggle-chevron {
+    width: 0.56rem;
+    height: 0.56rem;
+    flex: 0 0 auto;
+    margin-left: auto;
+    margin-right: 0.2rem;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    color: var(--text-secondary);
+    transform: translateY(-18%) rotate(45deg);
+    transition: transform 140ms ease;
+}
+
+.newsletter-sender .newsletter-block-card.expanded .block-toggle-chevron {
+    transform: translateY(18%) rotate(225deg);
+}
+
+.newsletter-sender .block-card-toggle strong {
+    font-size: 0.78rem;
+}
+
+.newsletter-sender .block-card-toggle small {
+    overflow: hidden;
+    color: var(--text-secondary);
+    font-size: 0.63rem;
+    font-weight: 500;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.newsletter-sender .block-order {
+    display: grid;
+    width: 1.7rem;
+    height: 1.7rem;
+    flex: 0 0 auto;
+    place-items: center;
+    border-radius: 6px;
+    background: var(--newsletter-accent-soft);
+    color: var(--newsletter-accent);
+    font-size: 0.68rem;
+    font-weight: 750;
+}
+
+.newsletter-sender .block-card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.22rem;
+}
+
+.newsletter-sender .block-card-actions button {
+    display: inline-flex;
+    min-height: 1.75rem;
+    padding: 0.34rem 0.52rem;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 5px;
+    background: #20242d;
+    color: #ffffff;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.65rem;
+    font-weight: 700;
+}
+
+.newsletter-sender .block-card-actions button:hover,
+.newsletter-sender .block-card-actions button:focus-visible {
+    filter: brightness(1.12);
+}
+
+.newsletter-sender .block-card-actions button.danger {
+    background: #c92a2a;
+    color: #ffffff;
+}
+
+.newsletter-sender .block-card-actions button.customize {
+    background: var(--newsletter-accent-soft);
+    color: var(--newsletter-accent);
+}
+
+.newsletter-sender .block-card-actions button.customize.active {
+    background: var(--newsletter-accent);
+    color: #ffffff;
+}
+
+.newsletter-sender .block-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    padding: 0.65rem;
+    border-top: 1px solid var(--border-subtle);
+    background: var(--bg-surface);
+}
+
+.newsletter-sender .block-customization-panel,
+.newsletter-sender .column-block-customization,
+.newsletter-sender .column-item-customization {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    padding: 0.65rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--newsletter-accent-soft) 35%, var(--bg-surface));
+}
+
+.newsletter-sender .block-customization-panel.control-grid,
+.newsletter-sender .column-item-customization.control-grid {
+    display: grid;
+}
+
+.newsletter-sender .customization-section-title {
+    color: var(--text-primary);
+    font-size: 0.68rem;
+    font-weight: 750;
+}
+
+.newsletter-sender .structural-block-placeholder {
+    border-radius: 6px;
+    background: var(--bg-color);
+}
+
+.newsletter-sender .divider-placeholder {
+    display: flex;
+    min-height: 34px;
+    align-items: center;
+    padding: 0 0.25rem;
+}
+
+.newsletter-sender .divider-placeholder span {
+    width: 100%;
+    border-top-style: solid;
+}
+
+.newsletter-sender .spacer-placeholder {
+    min-height: 34px;
+    border: 1px dashed var(--border-subtle);
+}
+
+.newsletter-sender .block-card-body .control-grid {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 0.4rem;
+}
+
+.newsletter-sender .block-card-body .control-grid > .newsletter-control {
+    flex: 0 1 108px;
+}
+
+.newsletter-sender .block-card-body .control-grid > .compact-field {
+    min-width: 160px;
+    flex: 1 1 180px;
+}
+
+.newsletter-sender .block-card-body .newsletter-control {
+    gap: 0.18rem;
+    font-size: 0.58rem;
+    font-weight: 650;
+}
+
+.newsletter-sender .block-card-body .mini-input {
+    min-height: 1.9rem;
+    padding: 0.34rem 0.42rem;
+    border-radius: 5px;
+    font-size: 0.65rem;
+}
+
+.newsletter-sender .block-card-body .color-control {
+    flex-basis: 132px !important;
+}
+
+.newsletter-sender .block-card-body .color-control input[type="color"] {
+    width: 1.9rem;
+    height: 1.9rem;
+    border-radius: 5px;
+}
+
+.newsletter-sender .block-card-body .color-value {
+    width: 4.7rem;
+}
+
+.newsletter-sender .block-card-body .number-control-input {
+    gap: 0.25rem;
+}
+
+.newsletter-sender .block-card-body .number-control-input small {
+    font-size: 0.56rem;
+}
+
+.newsletter-sender .block-card-body .typography-controls {
+    display: flex;
+    width: 100%;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 0.3rem;
+    margin-top: -0.1rem;
+    padding: 0.35rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    background: color-mix(in srgb, var(--bg-color) 72%, transparent);
+}
+
+.newsletter-sender .block-card-body .typography-controls > .newsletter-control {
+    flex: 0 1 92px;
+}
+
+.newsletter-sender .block-card-body .typography-controls > .color-control {
+    flex-basis: 126px !important;
+}
+
+.newsletter-sender .block-card-body .typography-controls .editor-segment {
+    min-width: 88px;
+}
+
+.newsletter-sender .block-card-body .editor-segment {
+    padding: 0.12rem;
+    border-radius: 5px;
+}
+
+.newsletter-sender .block-card-body .editor-segment button {
+    min-height: 1.6rem;
+    padding: 0.25rem 0.3rem;
+    border-radius: 4px;
+    font-size: 0.6rem;
+}
+
+.newsletter-sender .compact-field {
+    margin: 0;
+}
+
+.newsletter-sender .compact-field > span,
+.newsletter-sender .typography-pair > div > strong,
+.newsletter-sender .nested-column-card > strong {
+    color: var(--text-primary);
+    font-size: 0.68rem;
+    font-weight: 650;
+}
+
+.newsletter-sender .block-copy-editor {
+    min-height: 130px;
+    line-height: 1.55;
+}
+
+.newsletter-sender .inline-link-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+
+.newsletter-sender .inline-link-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.7rem;
+}
+
+.newsletter-sender .inline-link-toolbar-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.35rem;
+}
+
+.newsletter-sender .inline-link-toolbar > span,
+.newsletter-sender .link-style-controls > strong,
+.newsletter-sender .inline-link-dialog label > span {
+    color: var(--text-primary);
+    font-size: 0.68rem;
+    font-weight: 650;
+}
+
+.newsletter-sender .inline-link-toolbar button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.42rem 0.58rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.68rem;
+    font-weight: 650;
+}
+
+.newsletter-sender .inline-link-toolbar button:hover,
+.newsletter-sender .inline-link-toolbar button:focus-visible {
+    border-color: var(--newsletter-accent);
+}
+
+.newsletter-sender .inline-link-toolbar kbd,
+.newsletter-sender .field-help kbd {
+    padding: 0.12rem 0.28rem;
+    border: 1px solid var(--border-subtle);
+    border-bottom-width: 2px;
+    border-radius: 4px;
+    background: var(--bg-color);
+    color: var(--text-secondary);
+    font-family: var(--font-mono, monospace);
+    font-size: 0.58rem;
+    font-weight: 600;
+}
+
+.newsletter-sender .inline-rich-text {
+    overflow-y: auto;
+    cursor: text;
+    white-space: pre-wrap;
+}
+
+.newsletter-sender .inline-rich-text:empty::before {
+    color: var(--text-secondary);
+    content: attr(data-placeholder);
+    opacity: 0.72;
+    pointer-events: none;
+}
+
+.newsletter-sender .inline-rich-text a {
+    color: var(--inline-link-color);
+    cursor: text;
+    font-style: var(--inline-link-style);
+    font-weight: var(--inline-link-weight);
+    text-decoration: var(--inline-link-decoration);
+}
+
+.newsletter-sender .inline-link-dialog {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    gap: 0.65rem;
+    padding: 0.75rem;
+    border: 1px solid rgba(109, 93, 252, 0.36);
+    border-radius: 8px;
+    background: var(--newsletter-accent-soft);
+}
+
+.newsletter-sender .inline-link-dialog label {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.32rem;
+}
+
+.newsletter-sender .inline-link-error {
+    grid-column: 1 / -1;
+    margin: 0;
+    color: #b91c1c;
+    font-size: 0.68rem;
+}
+
+.newsletter-sender .inline-link-dialog-actions {
+    display: flex;
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+    gap: 0.45rem;
+}
+
+.newsletter-sender .inline-link-dialog .text-button.danger {
+    margin-right: auto;
+    color: #b91c1c;
+}
+
+.newsletter-sender .link-style-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 0.5rem 0 0;
+    border: 0;
+    border-top: 1px solid var(--border-subtle);
+    border-radius: 0;
+    background: transparent;
+}
+
+.newsletter-sender .section-style-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border-subtle);
+}
+
+.newsletter-sender .section-style-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.newsletter-sender .section-style-heading > span {
+    color: var(--text-secondary);
+    font-size: 0.58rem;
+    line-height: 1.35;
+    text-align: right;
+}
+
+.newsletter-sender .section-style-toolbar {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.45rem;
+    padding: 0.45rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: 7px;
+    background: color-mix(in srgb, var(--bg-color) 72%, transparent);
+}
+
+.newsletter-sender .block-card-body .section-style-toolbar > .color-control {
+    min-width: 128px;
+    flex: 0 0 128px;
+}
+
+.newsletter-sender .section-style-toolbar > .spacing-controls {
+    min-width: 0;
+    flex: 1;
+}
+
+.newsletter-sender .block-card-body .section-style-toolbar .spacing-controls > .newsletter-control {
+    min-width: 80px;
+    flex: 1 1 80px;
+}
+
+.newsletter-sender .spacer-block-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 0.55rem;
+}
+
+.newsletter-sender .spacer-block-controls > .newsletter-control {
+    flex: 0 1 132px;
+}
+
+.newsletter-sender .spacer-block-controls > .inherit-background-toggle {
+    min-height: 1.9rem;
+    padding-bottom: 0.15rem;
+}
+
+.newsletter-sender .spacer-block-controls > .field-help {
+    width: 100%;
+    margin: 0;
+}
+
+.newsletter-sender .inherit-background-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    color: var(--text-primary);
+    font-size: 0.61rem;
+    font-weight: 650;
+}
+
+.newsletter-sender .inherit-background-toggle input {
+    accent-color: var(--newsletter-accent);
+}
+
+.newsletter-sender .block-image-reference {
+    display: block;
+    width: 100%;
+    max-height: 170px;
+    object-fit: contain;
+    border: 1px solid var(--border-subtle);
+    border-radius: 7px;
+    background: #fff;
+}
+
+.newsletter-sender .newsletter-block-uploader.uploader-container {
+    min-height: 92px;
+}
+
+.newsletter-sender .newsletter-block-uploader .empty-state {
+    gap: 0.35rem;
+    padding: 0.7rem;
+}
+
+.newsletter-sender .newsletter-block-uploader .empty-state .icon {
+    display: none;
+}
+
+.newsletter-sender .newsletter-block-uploader .empty-state p {
+    margin: 0;
+    font-size: 0.7rem;
+}
+
+.newsletter-sender .newsletter-block-uploader .btn-upload {
+    padding: 0.38rem 0.6rem;
+    font-size: 0.68rem;
+}
+
+.newsletter-sender .newsletter-block-uploader.compact.uploader-container {
+    min-height: 70px;
+}
+
+.newsletter-sender .image-source-actions {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+}
+
+.newsletter-sender .image-upload-button,
+.newsletter-sender .image-url-action > summary,
+.newsletter-sender .image-source-actions > .media-library-picker-trigger {
+    box-sizing: border-box;
+    flex: 1 1 145px;
+    min-height: 34px;
+    padding: 0.5rem 0.68rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 7px;
+    background: var(--bg-surface-hover);
+    color: var(--text-primary);
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.7rem;
+    font-weight: 650;
+    line-height: 1.2;
+    text-align: center;
+}
+
+.newsletter-sender .image-upload-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.newsletter-sender .image-upload-button.uploading {
+    cursor: wait;
+    opacity: 0.6;
+}
+
+.newsletter-sender .image-url-action {
+    flex: 1 1 145px;
+}
+
+.newsletter-sender .image-url-action > summary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    list-style: none;
+}
+
+.newsletter-sender .image-url-action > summary::-webkit-details-marker {
+    display: none;
+}
+
+.newsletter-sender .image-url-action[open] {
+    flex-basis: 100%;
+}
+
+.newsletter-sender .image-url-action[open] > summary {
+    width: max-content;
+    min-width: 145px;
+    margin-bottom: 0.45rem;
+}
+
+.newsletter-sender .image-upload-button:hover,
+.newsletter-sender .image-url-action > summary:hover {
+    border-color: var(--color-brand-red, #a30021);
+}
+
+.newsletter-sender .media-library-picker-trigger {
+    width: auto;
+    padding: 0.58rem 0.72rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 7px;
+    background: var(--bg-surface-hover);
+    color: var(--text-primary);
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.72rem;
+    font-weight: 650;
+    text-align: center;
+}
+
+.newsletter-sender .media-library-picker-trigger:hover:not(:disabled) {
+    border-color: var(--color-brand-red, #a30021);
+}
+
+.newsletter-sender .media-library-picker-trigger:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.newsletter-media-picker-backdrop {
+    position: fixed;
+    z-index: 2200;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 1.25rem;
+    background: rgba(0, 0, 0, 0.68);
+    backdrop-filter: blur(4px);
+}
+
+.newsletter-media-picker {
+    display: flex;
+    width: min(880px, 100%);
+    max-height: min(760px, calc(100vh - 2.5rem));
+    min-height: 430px;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid var(--border-strong);
+    border-radius: 10px;
+    background: var(--bg-card);
+    box-shadow: 0 28px 90px rgba(0, 0, 0, 0.42);
+    color: var(--text-primary);
+}
+
+.newsletter-media-picker > header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.1rem;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.newsletter-media-picker > header span {
+    display: block;
+    margin-bottom: 0.16rem;
+    color: var(--text-tertiary);
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.newsletter-media-picker > header h3 {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.newsletter-media-picker .media-picker-close {
+    display: grid;
+    width: 32px;
+    height: 32px;
+    place-items: center;
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-primary);
+    cursor: pointer;
+    font-size: 1.25rem;
+}
+
+.newsletter-media-picker .media-picker-location {
+    display: flex;
+    min-height: 42px;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 1.1rem;
+    border-bottom: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
+    font-size: 0.7rem;
+}
+
+.newsletter-media-picker .media-picker-location button {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--text-primary);
+    cursor: pointer;
+    font: inherit;
+    font-weight: 650;
+}
+
+.newsletter-media-picker .media-picker-location button:disabled {
+    cursor: default;
+    opacity: 0.55;
+}
+
+.newsletter-media-picker .media-picker-location .media-picker-up {
+    margin-left: auto;
+    color: var(--color-brand-red, #a30021);
+}
+
+.newsletter-media-picker .media-picker-message {
+    margin: 0.8rem 1.1rem 0;
+    padding: 0.65rem 0.75rem;
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    border-radius: 7px;
+    background: rgba(239, 68, 68, 0.08);
+    color: #ef4444;
+    font-size: 0.72rem;
+}
+
+.newsletter-media-picker .media-picker-grid {
+    display: grid;
+    min-height: 0;
+    flex: 1;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    align-content: start;
+    gap: 0.75rem;
+    padding: 1rem 1.1rem 1.2rem;
+    overflow-y: auto;
+}
+
+.newsletter-media-picker .media-picker-folder,
+.newsletter-media-picker .media-picker-image {
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid var(--border-subtle);
+    border-radius: 7px;
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    cursor: pointer;
+    text-align: left;
+}
+
+.newsletter-media-picker .media-picker-folder {
+    display: flex;
+    min-height: 54px;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem;
+}
+
+.newsletter-media-picker .media-picker-folder span {
+    color: #d6b86e;
+    font-size: 1rem;
+}
+
+.newsletter-media-picker .media-picker-folder strong,
+.newsletter-media-picker .media-picker-image span {
+    overflow: hidden;
+    font-size: 0.68rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.newsletter-media-picker .media-picker-image {
+    display: flex;
+    flex-direction: column;
+}
+
+.newsletter-media-picker .media-picker-image img {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    background: var(--bg-color);
+}
+
+.newsletter-media-picker .media-picker-image span {
+    display: block;
+    width: 100%;
+    padding: 0.55rem 0.6rem;
+}
+
+.newsletter-media-picker .media-picker-folder:hover,
+.newsletter-media-picker .media-picker-image:hover {
+    border-color: var(--color-brand-red, #a30021);
+}
+
+.newsletter-media-picker .media-picker-state {
+    grid-column: 1 / -1;
+    display: grid;
+    min-height: 220px;
+    place-items: center;
+    color: var(--text-tertiary);
+    font-size: 0.75rem;
+    text-align: center;
+}
+
+.newsletter-sender .nested-columns-editor,
+.newsletter-sender .typography-pair {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem;
+}
+
+.newsletter-sender .column-layout-controls,
+.newsletter-sender .edge-alignment-controls {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem;
+}
+
+.newsletter-sender .edge-alignment-controls {
+    align-items: end;
+    padding: 0.4rem 0;
+    border: 0;
+    border-top: 1px solid var(--border-subtle);
+    border-radius: 0;
+    background: transparent;
+}
+
+.newsletter-sender .column-selector {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    gap: 0.35rem;
+    padding: 0.25rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    background: var(--bg-color);
+}
+
+.newsletter-sender .column-selector button {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.08rem;
+    padding: 0.55rem 0.65rem;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-align: left;
+}
+
+.newsletter-sender .column-selector button.active {
+    background: var(--newsletter-accent-soft);
+    color: var(--newsletter-accent);
+}
+
+.newsletter-sender .column-selector small {
+    font-size: 0.58rem;
+    font-weight: 500;
+    opacity: 0.8;
+}
+
+.newsletter-sender .selected-column-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    padding: 0.75rem;
+    border: 1px solid rgba(109, 93, 252, 0.28);
+    border-radius: 9px;
+    background: color-mix(in srgb, var(--newsletter-accent-soft) 42%, var(--bg-surface));
+}
+
+.newsletter-sender .column-element-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.65rem;
+}
+
+.newsletter-sender .column-element-toolbar > strong {
+    color: var(--text-primary);
+    font-size: 0.7rem;
+    white-space: nowrap;
+}
+
+.newsletter-sender .column-element-toolbar > div {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.3rem;
+}
+
+.newsletter-sender .column-element-toolbar button {
+    padding: 0.35rem 0.45rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: 5px;
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.61rem;
+    font-weight: 650;
+}
+
+.newsletter-sender .column-element-toolbar button:hover,
+.newsletter-sender .column-element-toolbar button:focus-visible {
+    border-color: var(--newsletter-accent);
+    outline: none;
+}
+
+.newsletter-sender .column-element-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+
+.newsletter-sender .column-element-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    padding: 0.7rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: 7px;
+    background: var(--bg-surface);
+}
+
+.newsletter-sender .column-element-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.newsletter-sender .column-element-heading > strong {
+    color: var(--text-primary);
+    font-size: 0.68rem;
+}
+
+.newsletter-sender .column-element-heading > div {
+    display: flex;
+    gap: 0.2rem;
+}
+
+.newsletter-sender .column-element-heading button {
+    display: grid;
+    width: 1.55rem;
+    height: 1.55rem;
+    padding: 0;
+    place-items: center;
+    border: 1px solid var(--border-subtle);
+    border-radius: 5px;
+    background: var(--bg-color);
+    color: var(--text-primary);
+    cursor: pointer;
+}
+
+.newsletter-sender .column-element-heading button:disabled {
+    cursor: not-allowed;
+    opacity: 0.35;
+}
+
+.newsletter-sender .column-element-heading button.danger {
+    color: #dc2626;
+}
+
+.newsletter-sender .column-empty-state {
+    margin: 0;
+    padding: 0.9rem;
+    border: 1px dashed var(--border-subtle);
+    border-radius: 7px;
+    color: var(--text-secondary);
+    font-size: 0.68rem;
+    text-align: center;
+}
+
+.newsletter-sender .nested-column-card,
+.newsletter-sender .typography-pair > div {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.55rem;
+    padding: 0.65rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: 7px;
+    background: var(--bg-color);
+}
+
+.newsletter-sender .typography-pair .control-grid {
+    grid-template-columns: 1fr;
+}
+
+.newsletter-sender .block-insert-toolbar {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: stretch;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0.85rem;
+    border: 1px solid color-mix(in srgb, var(--newsletter-accent) 28%, var(--border-subtle));
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--bg-surface) 96%, transparent);
+    box-shadow: 0 8px 24px rgba(21, 18, 45, 0.08);
+    backdrop-filter: blur(10px);
+}
+
+.newsletter-sender .design-editor-panel > .block-insert-toolbar {
+    margin: 0.85rem 0;
+}
+
+.newsletter-sender .newsletter-content-divider {
+    border: none;
+    height: 1px;
+    background: var(--border-subtle);
+    margin: 2.5rem 0 1.5rem;
+}
+
+.newsletter-sender .newsletter-content-heading {
+    margin: 0 0 1.25rem;
+}
+
+.newsletter-sender .newsletter-content-heading h4 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+.newsletter-sender .block-insert-heading {
+    display: flex;
+    flex-direction: column;
+    gap: 0.18rem;
+    padding: 0 0.05rem;
+}
+
+.newsletter-sender .block-insert-heading strong {
+    color: var(--text-primary);
+    font-size: 0.92rem;
+    line-height: 1.25;
+}
+
+.newsletter-sender .add-block-grid {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.42rem;
+}
+
+.newsletter-sender .add-block-grid button {
+    display: flex;
+    min-width: 0;
+    min-height: 48px;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.52rem 0.58rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    cursor: pointer;
+    font-family: var(--font-sans);
+    text-align: left;
+    transition: border-color 140ms ease, background-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+}
+
+.newsletter-sender .add-block-grid button:hover,
+.newsletter-sender .add-block-grid button:focus-visible {
+    border-color: var(--newsletter-accent);
+    background: color-mix(in srgb, var(--newsletter-accent-soft) 38%, var(--bg-surface));
+    box-shadow: 0 0 0 2px var(--newsletter-accent-soft);
+    outline: none;
+    transform: translateY(-1px);
+}
+
+.newsletter-sender .add-block-grid button > strong {
+    overflow: hidden;
+    color: var(--text-primary);
+    font-size: 0.7rem;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.newsletter-sender .add-block-plus {
+    display: grid;
+    width: 1.45rem;
+    height: 1.45rem;
+    flex: 0 0 1.45rem;
+    place-items: center;
+    border-radius: 6px;
+    background: var(--newsletter-accent-soft);
+    color: var(--newsletter-accent);
+    font-size: 0.9rem;
+    font-weight: 750;
+    line-height: 1;
+}
+
 .newsletter-sender .campaign-management {
     width: 100%;
     min-width: 0;
-    margin-top: 1.5rem;
+    margin-top: 0;
     padding: 1.5rem;
     border-radius: 14px;
+}
+
+.newsletter-sender .campaign-management.compact-delivery-workspace {
+    padding: 0;
+    border: 0;
+    background: transparent;
 }
 
 .newsletter-sender .management-heading {
@@ -669,7 +3612,7 @@
 
 .newsletter-sender .management-grid {
     display: grid;
-    grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.55fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 1rem;
     align-items: start;
     margin-top: 1.25rem;
@@ -716,7 +3659,7 @@
 
 .newsletter-sender .audience-choice-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: 0.7rem;
     padding: 1rem 1.1rem;
 }
@@ -773,6 +3716,36 @@
 .newsletter-sender .audience-choice small {
     color: var(--text-secondary);
     font-size: 0.68rem;
+    line-height: 1.4;
+}
+
+.newsletter-sender .selected-audience-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin: 0 1.1rem 1rem;
+    padding: 0.8rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    background: var(--bg-color);
+}
+
+.newsletter-sender .selected-audience-summary > div {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.18rem;
+}
+
+.newsletter-sender .selected-audience-summary strong {
+    color: var(--text-primary);
+    font-size: 0.75rem;
+}
+
+.newsletter-sender .selected-audience-summary small {
+    color: var(--text-secondary);
+    font-size: 0.66rem;
     line-height: 1.4;
 }
 
@@ -836,10 +3809,43 @@
     box-shadow: 0 14px 35px rgba(0, 0, 0, 0.16);
 }
 
-.newsletter-sender .add-subscriber-popover > div {
+.newsletter-sender .add-subscriber-form-row {
     display: flex;
     gap: 0.45rem;
     margin-top: 0.45rem;
+}
+
+.newsletter-sender .add-subscriber-popover-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.7rem;
+}
+
+.newsletter-sender .add-subscriber-popover-heading strong {
+    color: var(--text-primary);
+    font-size: 0.76rem;
+}
+
+.newsletter-sender .add-subscriber-popover-heading button {
+    display: grid;
+    width: 1.65rem;
+    height: 1.65rem;
+    place-items: center;
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    background: var(--bg-color);
+    color: var(--text-primary);
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.newsletter-sender .add-subscriber-popover-heading button:hover,
+.newsletter-sender .add-subscriber-popover-heading button:focus-visible {
+    border-color: var(--border-strong);
+    outline: none;
 }
 
 .newsletter-sender .add-subscriber-popover .box-input {
@@ -891,8 +3897,7 @@
 }
 
 .newsletter-sender .subscriber-table-wrap {
-    max-height: 430px;
-    overflow: auto;
+    overflow: visible;
     border-top: 1px solid var(--border-subtle);
 }
 
@@ -904,9 +3909,6 @@
 }
 
 .newsletter-sender .subscriber-table th {
-    position: sticky;
-    z-index: 1;
-    top: 0;
     padding: 0.65rem 0.7rem;
     border-bottom: 1px solid var(--border-subtle);
     background: var(--bg-color);
@@ -944,34 +3946,12 @@
 }
 
 .newsletter-sender .email-cell {
-    max-width: 240px;
-    overflow: hidden;
     font-weight: 600;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.newsletter-sender .date-cell {
-    color: var(--text-secondary);
-    white-space: nowrap;
+    overflow-wrap: anywhere;
 }
 
 .newsletter-sender .muted {
     color: var(--text-secondary);
-}
-
-.newsletter-sender .source-pill {
-    display: inline-block;
-    max-width: 130px;
-    overflow: hidden;
-    padding: 0.25rem 0.45rem;
-    border-radius: 999px;
-    background: var(--bg-surface-hover);
-    color: var(--text-secondary);
-    font-size: 0.62rem;
-    text-overflow: ellipsis;
-    text-transform: capitalize;
-    white-space: nowrap;
 }
 
 .newsletter-sender .table-message {
@@ -984,9 +3964,359 @@
     color: #dc2626;
 }
 
+.newsletter-sender .subscriber-picker-backdrop {
+    position: fixed;
+    z-index: 1000;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 1rem;
+    background: rgba(15, 23, 42, 0.48);
+    backdrop-filter: blur(3px);
+}
+
+.newsletter-sender .subscriber-picker-dialog {
+    display: flex;
+    width: min(590px, calc(100vw - 2rem));
+    max-height: min(720px, calc(100vh - 2rem));
+    min-height: 0;
+    flex-direction: column;
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    background: var(--bg-surface);
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
+}
+
+.newsletter-sender .subscriber-picker-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.1rem 1.15rem 0.95rem;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.newsletter-sender .subscriber-picker-header h4 {
+    margin: 0.18rem 0 0;
+    color: var(--text-primary);
+    font-size: 1rem;
+}
+
+.newsletter-sender .subscriber-picker-header p {
+    margin: 0.25rem 0 0;
+    color: var(--text-secondary);
+    font-size: 0.7rem;
+}
+
+.newsletter-sender .subscriber-picker-close {
+    display: grid;
+    width: 1.9rem;
+    height: 1.9rem;
+    flex-shrink: 0;
+    place-items: center;
+    border: 1px solid var(--border-subtle);
+    border-radius: 7px;
+    background: var(--bg-color);
+    color: var(--text-primary);
+    cursor: pointer;
+    font-size: 1.15rem;
+    line-height: 1;
+}
+
+.newsletter-sender .subscriber-picker-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.85rem 1.15rem 0.7rem;
+}
+
+.newsletter-sender .subscriber-picker-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0 1.15rem 0.7rem;
+    color: var(--text-secondary);
+    font-size: 0.68rem;
+}
+
+.newsletter-sender .subscriber-picker-actions label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--text-primary);
+    cursor: pointer;
+    font-weight: 650;
+}
+
+.newsletter-sender .subscriber-picker-actions > span {
+    margin-left: auto;
+}
+
+.newsletter-sender .subscriber-picker-actions button {
+    color: var(--newsletter-accent);
+    cursor: pointer;
+    font-size: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.newsletter-sender .subscriber-picker-actions button:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+}
+
+.newsletter-sender .subscriber-picker-actions .clear-selection-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.28rem;
+    padding: 0.35rem 0.55rem;
+    border: 1px solid #b91c1c;
+    border-radius: 6px;
+    background: #c62828;
+    color: #ffffff;
+    font-weight: 700;
+    line-height: 1;
+    text-decoration: none;
+}
+
+.newsletter-sender .subscriber-picker-actions .clear-selection-button:hover,
+.newsletter-sender .subscriber-picker-actions .clear-selection-button:focus-visible {
+    border-color: #991b1b;
+    background: #a61b1b;
+    outline: none;
+}
+
+.newsletter-sender .subscriber-picker-actions .clear-selection-button span {
+    font-size: 0.9rem;
+    font-weight: 800;
+    line-height: 0.8;
+}
+
+.newsletter-sender .subscriber-picker-actions input,
+.newsletter-sender .subscriber-select-card input {
+    accent-color: var(--newsletter-accent);
+}
+
+.newsletter-sender .subscriber-card-list {
+    display: flex;
+    min-height: 150px;
+    max-height: min(380px, 48vh);
+    flex-direction: column;
+    gap: 0.55rem;
+    margin: 0 0.75rem;
+    padding: 0.25rem 0.4rem 0.6rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+}
+
+.newsletter-sender .subscriber-select-card {
+    display: grid;
+    grid-template-columns: 1.15rem minmax(0, 1fr);
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.85rem 0.9rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: 9px;
+    background: var(--bg-color);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: border-color 140ms ease, background-color 140ms ease, box-shadow 140ms ease;
+}
+
+.newsletter-sender .subscriber-select-card:hover {
+    border-color: var(--border-strong);
+}
+
+.newsletter-sender .subscriber-select-card.selected {
+    border-color: var(--newsletter-accent);
+    background: var(--newsletter-accent-soft);
+    box-shadow: 0 0 0 1px var(--newsletter-accent-soft);
+}
+
+.newsletter-sender .subscriber-select-card > span {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.22rem;
+}
+
+.newsletter-sender .subscriber-select-card strong {
+    overflow-wrap: anywhere;
+    font-size: 0.88rem;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.newsletter-sender .subscriber-select-card small {
+    color: var(--text-secondary);
+    font-size: 0.66rem;
+    line-height: 1.35;
+}
+
+.newsletter-sender .subscriber-list-message {
+    display: grid;
+    min-height: 150px;
+    margin: 0;
+    place-items: center;
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    text-align: center;
+}
+
+.newsletter-sender .subscriber-list-message.error {
+    color: #dc2626;
+}
+
+.newsletter-sender .subscriber-picker-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.85rem 1.15rem 1rem;
+    border-top: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
+    font-size: 0.68rem;
+}
+
+.newsletter-sender .subscriber-picker-footer .btn {
+    min-width: 88px;
+}
+
 .newsletter-sender .delivery-panel {
-    position: sticky;
-    top: 1rem;
+    position: static;
+}
+
+.newsletter-sender .pre-send-review-panel {
+    border-color: color-mix(in srgb, var(--newsletter-accent) 34%, var(--border-subtle));
+}
+
+.newsletter-sender .pre-send-review-body {
+    padding: 1rem 1.1rem 1.1rem;
+}
+
+.newsletter-sender .review-check-list {
+    display: grid;
+    gap: 0.45rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.newsletter-sender .review-check-list li {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    min-width: 0;
+    padding: 0.62rem 0.68rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    background: var(--bg-color);
+}
+
+.newsletter-sender .review-check-list li > span:last-child {
+    display: flex;
+    min-width: 0;
+    flex: 1;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.65rem;
+}
+
+.newsletter-sender .review-check-list strong {
+    color: var(--text-primary);
+    font-size: 0.72rem;
+}
+
+.newsletter-sender .review-check-list small {
+    color: var(--text-secondary);
+    font-size: 0.65rem;
+    text-align: right;
+}
+
+.newsletter-sender .review-check-icon {
+    display: grid;
+    width: 1.15rem;
+    height: 1.15rem;
+    flex: 0 0 1.15rem;
+    place-items: center;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+    font-size: 0.65rem;
+    font-style: normal;
+    font-weight: 750;
+}
+
+.newsletter-sender .review-check-list .ready .review-check-icon {
+    background: rgba(16, 185, 129, 0.12);
+    color: #059669;
+}
+
+.newsletter-sender .review-check-list .default .review-check-icon {
+    background: rgba(109, 93, 252, 0.1);
+    color: var(--newsletter-accent);
+}
+
+.newsletter-sender .review-check-list .missing .review-check-icon {
+    background: rgba(217, 119, 6, 0.1);
+    color: #d97706;
+}
+
+.newsletter-sender .review-background-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.35rem;
+}
+
+.newsletter-sender .review-background-swatch {
+    width: 0.72rem;
+    height: 0.72rem;
+    flex: 0 0 0.72rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 3px;
+}
+
+.newsletter-sender .review-block-summary {
+    margin-top: 0.9rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid var(--border-subtle);
+}
+
+.newsletter-sender .review-block-summary h5 {
+    margin: 0 0 0.65rem;
+    color: var(--text-primary);
+    font-size: 0.72rem;
+}
+
+.newsletter-sender .review-block-summary > p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.67rem;
+}
+
+.newsletter-sender .review-block-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.38rem;
+}
+
+.newsletter-sender .review-block-tags span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.28rem;
+    padding: 0.34rem 0.48rem;
+    border-radius: 6px;
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--text-primary);
+    font-size: 0.63rem;
+    font-weight: 650;
+}
+
+.newsletter-sender .review-block-tags i {
+    color: #059669;
+    font-size: 0.62rem;
+    font-style: normal;
 }
 
 .newsletter-sender .delivery-section {
@@ -1043,6 +4373,29 @@
     font-size: 0.73rem;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.newsletter-sender .final-send-section {
+    padding: 1rem 1.1rem;
+    background: var(--bg-color);
+}
+
+.newsletter-sender .final-recipient-count {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.8rem;
+}
+
+.newsletter-sender .final-recipient-count span {
+    color: var(--text-secondary);
+    font-size: 0.68rem;
+}
+
+.newsletter-sender .final-recipient-count strong {
+    color: var(--text-primary);
+    font-size: 0.76rem;
 }
 
 .newsletter-sender .send-review {
@@ -1178,7 +4531,33 @@
     }
 }
 
+@media (max-width: 980px) {
+    .newsletter-sender .design-workspace-grid,
+    .newsletter-sender .preview-workspace-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .newsletter-sender .workspace-preview-column {
+        position: static;
+    }
+
+    .newsletter-sender .design-editor-panel {
+        max-height: none;
+        overflow: visible;
+        scrollbar-gutter: auto;
+    }
+}
+
 @media (max-width: 720px) {
+    .newsletter-sender .campaign-workspace-tabs {
+        width: 100%;
+    }
+
+    .newsletter-sender .campaign-workspace-tab {
+        padding: 0.58rem 0.45rem;
+        font-size: 0.8rem;
+    }
+
     .newsletter-header,
     .newsletter-sender .management-heading,
     .newsletter-sender .management-panel-heading,
@@ -1207,6 +4586,18 @@
         align-items: flex-start;
     }
 
+    .newsletter-sender .design-template-picker {
+        width: 100%;
+    }
+
+    .newsletter-sender .save-template-form {
+        grid-template-columns: 1fr;
+    }
+
+    .newsletter-sender .save-template-button {
+        width: 100%;
+    }
+
     .newsletter-sender .preview-stage {
         min-height: 560px;
         padding: 0.6rem 0;
@@ -1214,7 +4605,11 @@
 
     .newsletter-sender .email-preview-frame {
         min-height: 530px;
-        padding: 20px;
+        padding: 0;
+    }
+
+    .newsletter-sender .email-preview-frame iframe {
+        min-height: 530px;
     }
 
     .newsletter-sender .email-body {
@@ -1225,22 +4620,98 @@
         display: none;
     }
 
-    .newsletter-sender .gmail-message-row {
+    .newsletter-sender .gmail-preview.desktop .gmail-message-row {
         grid-template-columns: 12px 16px minmax(64px, 0.4fr) minmax(0, 1fr) auto;
         gap: 0.45rem;
         padding: 0 0.55rem;
-    }
-
-    .newsletter-sender .subscriber-table {
-        min-width: 720px;
     }
 
     .newsletter-sender .selection-bar > div {
         margin-left: 0;
     }
 
+    .newsletter-sender .selected-audience-summary,
+    .newsletter-sender .subscriber-picker-toolbar,
+    .newsletter-sender .subscriber-picker-footer {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .newsletter-sender .selected-audience-summary .btn,
+    .newsletter-sender .subscriber-picker-footer .btn {
+        width: 100%;
+    }
+
+    .newsletter-sender .subscriber-picker-dialog {
+        width: calc(100vw - 1rem);
+        max-height: calc(100vh - 1rem);
+    }
+
+    .newsletter-sender .subscriber-picker-header,
+    .newsletter-sender .subscriber-picker-toolbar,
+    .newsletter-sender .subscriber-picker-footer {
+        padding-right: 0.85rem;
+        padding-left: 0.85rem;
+    }
+
+    .newsletter-sender .subscriber-picker-actions {
+        flex-wrap: wrap;
+        padding-right: 0.85rem;
+        padding-left: 0.85rem;
+    }
+
+    .newsletter-sender .subscriber-picker-actions > span {
+        margin-left: 0;
+    }
+
+    .newsletter-sender .subscriber-card-list {
+        max-height: 42vh;
+        margin-right: 0.45rem;
+        margin-left: 0.45rem;
+    }
+
     .newsletter-sender .save-footer-template {
         align-items: stretch;
         flex-direction: column;
+    }
+
+    .newsletter-sender .block-insert-toolbar {
+        padding: 0.75rem;
+    }
+
+    .newsletter-sender .add-block-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .newsletter-sender .add-block-grid button {
+        min-height: 46px;
+    }
+
+    .newsletter-sender .preview-metadata-grid,
+    .newsletter-sender .control-grid,
+    .newsletter-sender .column-layout-controls,
+    .newsletter-sender .edge-alignment-controls,
+    .newsletter-sender .nested-columns-editor,
+    .newsletter-sender .typography-pair,
+    .newsletter-sender .inline-link-dialog {
+        grid-template-columns: 1fr;
+    }
+
+    .newsletter-sender .column-element-toolbar {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .newsletter-sender .column-element-toolbar > div {
+        justify-content: flex-start;
+    }
+
+    .newsletter-sender .block-card-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .newsletter-sender .block-card-actions {
+        align-self: flex-end;
     }
 }

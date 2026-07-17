@@ -10,6 +10,9 @@ export class AudienceSelectionError extends Error {
     }
 }
 
+/**
+ * @param {{ isTest?: boolean, audienceMode?: string | null, recipientIds?: unknown[] }} [options]
+ */
 export const resolveNewsletterAudience = ({
     isTest = false,
     audienceMode = 'all',

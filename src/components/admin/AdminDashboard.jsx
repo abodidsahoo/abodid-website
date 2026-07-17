@@ -480,7 +480,7 @@ export default function AdminDashboard() {
 
                     {activeSection === 'newsletter' && (
                         <div className="newsletter-section">
-                            <NewsletterSender />
+                            <NewsletterSender accessToken={session?.access_token} />
                         </div>
                     )}
 

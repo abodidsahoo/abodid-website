@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 
-export default function ImageUploader({ bucket = 'portfolio-assets', path, onUpload, multiple = false, label = "Drop images here", className = '', style = {} }) {
+export default function ImageUploader({ bucket = 'portfolio-assets', path, onUpload, multiple = false, label = "Drop images here", className = '', style = {}, accept = 'image/*', buttonOnly = false }) {
     const [uploading, setUploading] = useState(false);
     const [previews, setPreviews] = useState([]);
     const [isDragOver, setIsDragOver] = useState(false);
@@ -78,6 +78,23 @@ export default function ImageUploader({ bucket = 'portfolio-assets', path, onUpl
         handleFiles(files);
     };
 
+    if (buttonOnly) {
+        return (
+            <label className={`image-upload-button ${uploading ? 'uploading' : ''} ${className}`} style={style}>
+                {uploading ? 'Uploading…' : label}
+                <input
+                    type="file"
+                    accept={accept}
+                    multiple={multiple}
+                    disabled={uploading}
+                    onClick={(event) => { event.currentTarget.value = ''; }}
+                    onChange={onFileSelect}
+                    hidden
+                />
+            </label>
+        );
+    }
+
     return (
         <div className={`uploader-container ${uploading ? 'uploading' : ''} ${isDragOver ? 'drag-over' : ''} ${className}`}
             style={style}
@@ -97,6 +114,7 @@ export default function ImageUploader({ bucket = 'portfolio-assets', path, onUpl
 
                     <input
                         type="file"
+                        accept={accept}
                         multiple={multiple}
                         onChange={onFileSelect}
                         onClick={e => e.stopPropagation()}
@@ -127,6 +145,7 @@ export default function ImageUploader({ bucket = 'portfolio-assets', path, onUpl
                         <div className="add-more">
                             <input
                                 type="file"
+                                accept={accept}
                                 multiple
                                 onChange={onFileSelect}
                                 style={{ display: 'none' }}
