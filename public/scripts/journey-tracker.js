@@ -276,6 +276,7 @@
   var SESSION_TIMEOUT_MS = 30 * 60 * 1000;
   var IDLE_TIMEOUT_MS = 60 * 1000;
   var FLUSH_INTERVAL_MS = 15 * 1000;
+  var HUMAN_ENGAGEMENT_THRESHOLD_SECONDS = 2;
 
   function analyticsSafeParse(value) {
     try {
@@ -425,6 +426,7 @@
   var lastPersistedAt = now;
   var lastSentSeconds = 0;
   var focused = typeof document.hasFocus === "function" ? document.hasFocus() : true;
+  var qualificationFlushTimer = null;
 
   function isActivelyViewing() {
     return document.visibilityState === "visible" && focused &&
@@ -432,10 +434,17 @@
   }
 
   function resumeEngagement() {
-    if (activeSince === null && isActivelyViewing()) activeSince = performance.now();
+    if (activeSince === null && isActivelyViewing()) {
+      activeSince = performance.now();
+      scheduleQualificationFlush();
+    }
   }
 
   function pauseEngagement() {
+    if (qualificationFlushTimer !== null) {
+      window.clearTimeout(qualificationFlushTimer);
+      qualificationFlushTimer = null;
+    }
     if (activeSince === null) return;
     engagedMilliseconds += Math.max(0, performance.now() - activeSince);
     activeSince = null;
@@ -466,6 +475,18 @@
       pagePath: pathname,
       engagedSeconds: engagedSeconds,
     }, preferBeacon);
+  }
+
+  function scheduleQualificationFlush() {
+    if (qualificationFlushTimer !== null || lastSentSeconds >= HUMAN_ENGAGEMENT_THRESHOLD_SECONDS) return;
+    var remainingSeconds = Math.max(
+      0,
+      HUMAN_ENGAGEMENT_THRESHOLD_SECONDS - currentEngagedSeconds()
+    );
+    qualificationFlushTimer = window.setTimeout(function () {
+      qualificationFlushTimer = null;
+      if (isActivelyViewing()) flushEngagement(false);
+    }, (remainingSeconds * 1000) + 75);
   }
 
   function startFreshSession() {

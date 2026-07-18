@@ -1,11 +1,30 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import PdfIcon from './PdfIcon.astro'; // Note: cannot default import Astro component in React directly without build config support often.
-// Instead we will render the icon as SVG directly or pass it as a slot/prop if needed. 
-// For simplicity in React, I'll use an SVG icon directly.
+
+const slugify = (str) =>
+    String(str || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
 
 const ResearchFilter = ({ papers }) => {
-    const [activeTag, setActiveTag] = useState('All');
+    const [activeTag, setActiveTag] = useState(() => {
+        if (typeof window === 'undefined') return 'All';
+        const params = new URLSearchParams(window.location.search);
+        const tagParam = params.get('tag') || params.get('category');
+        return tagParam || 'All';
+    });
     const [expandedPaperIds, setExpandedPaperIds] = useState(new Set());
+
+    useEffect(() => {
+        const handlePopState = () => {
+            const params = new URLSearchParams(window.location.search);
+            const tagParam = params.get('tag') || params.get('category');
+            setActiveTag(tagParam || 'All');
+        };
+        window.addEventListener('popstate', handlePopState);
+        return () => window.removeEventListener('popstate', handlePopState);
+    }, []);
 
     // 1. Extract, count and sort unique tags
     const sortedTags = useMemo(() => {
@@ -22,7 +41,7 @@ const ResearchFilter = ({ papers }) => {
         // Sort by count desc
         let tags = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
 
-        // Limit to 15 max
+        // Limit to 20 max
         if (tags.length > 20) {
             tags = tags.slice(0, 20);
         }
@@ -30,16 +49,34 @@ const ResearchFilter = ({ papers }) => {
         return ['All', ...tags];
     }, [papers]);
 
+    const normalizedActiveTag = useMemo(() => {
+        if (activeTag === 'All') return 'All';
+        const match = sortedTags.find(
+            (cat) => cat.toLowerCase() === activeTag.toLowerCase() || slugify(cat) === slugify(activeTag)
+        );
+        return match || activeTag;
+    }, [sortedTags, activeTag]);
+
+    const handleTagClick = (category) => {
+        const nextTag = normalizedActiveTag === category ? 'All' : category;
+        setActiveTag(nextTag);
+        const params = new URLSearchParams();
+        if (nextTag !== 'All') {
+            params.set('tag', slugify(nextTag));
+        }
+        const query = params.toString();
+        window.history.pushState({}, '', `${window.location.pathname}${query ? `?${query}` : ''}`);
+    };
+
     // 2. Filter papers based on active tag
     const filteredPapers = useMemo(() => {
-        if (activeTag === 'All') return papers;
+        if (normalizedActiveTag === 'All') return papers;
+        const targetSlug = slugify(normalizedActiveTag);
         return papers.filter(paper => {
-            if (Array.isArray(paper.tags)) {
-                return paper.tags.includes(activeTag);
-            }
-            return paper.tags === activeTag;
+            const tags = Array.isArray(paper.tags) ? paper.tags : (paper.tags ? [paper.tags] : []);
+            return tags.some(t => t === normalizedActiveTag || slugify(t) === targetSlug);
         });
-    }, [papers, activeTag]);
+    }, [papers, normalizedActiveTag]);
 
     const toggleExpand = (id) => {
         setExpandedPaperIds(prev => {
@@ -63,8 +100,8 @@ const ResearchFilter = ({ papers }) => {
                     {sortedTags.map(tag => (
                         <button
                             key={tag}
-                            onClick={() => setActiveTag(tag)}
-                            className={`filter-btn ${activeTag === tag ? 'contrast-active' : ''}`}
+                            onClick={() => handleTagClick(tag)}
+                            className={`filter-btn ${normalizedActiveTag === tag ? 'contrast-active' : ''}`}
                         >
                             {tag}
                         </button>
@@ -89,10 +126,10 @@ const ResearchFilter = ({ papers }) => {
                                     {paper.tags && paper.tags.map(tag => (
                                         <button
                                             key={tag}
-                                            className={`paper-tag ${activeTag === tag ? 'contrast-active' : ''}`}
+                                            className={`paper-tag ${normalizedActiveTag === tag ? 'contrast-active' : ''}`}
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                setActiveTag(tag);
+                                                handleTagClick(tag);
                                             }}
                                         >
                                             {tag}

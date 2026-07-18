@@ -1,11 +1,32 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
     getOptimizedImageSrcSet,
     getOptimizedImageUrl,
 } from '../lib/imageOptimization.js';
 
+const slugify = (str) =>
+    String(str || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+
 const FilmsFilter = ({ items }) => {
-    const [activeTag, setActiveTag] = useState('All');
+    const [activeTag, setActiveTag] = useState(() => {
+        if (typeof window === 'undefined') return 'All';
+        const params = new URLSearchParams(window.location.search);
+        const tagParam = params.get('tag') || params.get('category');
+        return tagParam || 'All';
+    });
+
+    useEffect(() => {
+        const handlePopState = () => {
+            const params = new URLSearchParams(window.location.search);
+            const tagParam = params.get('tag') || params.get('category');
+            setActiveTag(tagParam || 'All');
+        };
+        window.addEventListener('popstate', handlePopState);
+        return () => window.removeEventListener('popstate', handlePopState);
+    }, []);
 
     // 1. Extract, count and sort unique categories
     const sortedCategories = useMemo(() => {
@@ -24,74 +45,67 @@ const FilmsFilter = ({ items }) => {
         return ['All', ...cats];
     }, [items]);
 
+    const normalizedActiveTag = useMemo(() => {
+        if (activeTag === 'All') return 'All';
+        const match = sortedCategories.find(
+            (cat) => cat.toLowerCase() === activeTag.toLowerCase() || slugify(cat) === slugify(activeTag)
+        );
+        return match || activeTag;
+    }, [sortedCategories, activeTag]);
+
+    const handleTagClick = (category) => {
+        const nextTag = normalizedActiveTag === category ? 'All' : category;
+        setActiveTag(nextTag);
+        const params = new URLSearchParams();
+        if (nextTag !== 'All') {
+            params.set('tag', slugify(nextTag));
+        }
+        const query = params.toString();
+        window.history.pushState({}, '', `${window.location.pathname}${query ? `?${query}` : ''}`);
+    };
+
     // 2. Logic to split categories into rows (Bottom-heavy pyramid based on visual weight)
     const rows = useMemo(() => {
-        // We add "All" which is short, but some categories are "Non-Fiction Storytelling" (long).
-        // A simple count split usually fails visual balance.
-        // Let's use character count heuristic.
-
         const totalItems = sortedCategories.length;
-
-        // Helper to get weight (char count + padding/margin proxy)
         const getWeight = (str) => str.length + 6;
         const totalWeight = sortedCategories.reduce((acc, cat) => acc + getWeight(cat), 0);
-
-        // Targeted Split:
-        // We want Top Row to be lighter than Bottom Row.
-        // Ideal ratio: Top ~ 40-45%, Bottom ~ 55-60%.
 
         let currentWeight = 0;
         let splitIndex = 0;
 
-        // Find the index where we cross the 45% threshold
         for (let i = 0; i < totalItems; i++) {
             currentWeight += getWeight(sortedCategories[i]);
             if (currentWeight > (totalWeight * 0.45)) {
-                // Check if stopping here is better or continuing to next is better?
-                // Actually, strictly stopping as soon as we cross usually makes Top lighter, which is desired.
                 splitIndex = i + 1;
-                // However, we must ensure we don't leave just 1 orphan on the next line if possible,
-                // or have 1 item on top line if total is large. 
-                // But generally loop finds a decent spot.
                 break;
             }
         }
 
-        // Safety adjustments for small counts
         if (totalItems <= 3) return [sortedCategories];
-
-        // If the calculation put almost everything in bottom, ensure at least some on top
         if (splitIndex < 2 && totalItems > 4) splitIndex = 2;
-        // If it put almost everything on top, push back
         if (splitIndex > totalItems - 2) splitIndex = totalItems - 2;
-
-        // Force max 2 lines for reasonable amounts of tags (up to ~18 tags usually fits in 2 lines on desktop)
-        // The user hates "random tag here and there", which implies 3rd line with 1 item.
-        // Let's stick to 2 lines unless we have a massive amount.
 
         const topRow = sortedCategories.slice(0, splitIndex);
         const bottomRow = sortedCategories.slice(splitIndex);
 
         return [topRow, bottomRow];
-
     }, [sortedCategories]);
 
     // 3. Filter items based on active category
     const filteredItems = useMemo(() => {
-        if (activeTag === 'All') return items;
+        if (normalizedActiveTag === 'All') return items;
+        const targetSlug = slugify(normalizedActiveTag);
         return items.filter(item => {
-            if (Array.isArray(item.categories)) {
-                return item.categories.includes(activeTag);
-            }
-            return item.categories === activeTag;
+            const cats = Array.isArray(item.categories) ? item.categories : (item.categories ? [item.categories] : []);
+            return cats.some(c => c === normalizedActiveTag || slugify(c) === targetSlug);
         });
-    }, [items, activeTag]);
+    }, [items, normalizedActiveTag]);
 
     const renderButton = (category) => (
         <button
             key={category}
-            onClick={() => setActiveTag(category)}
-            className={`filter-btn ${activeTag === category ? 'contrast-active' : ''}`}
+            onClick={() => handleTagClick(category)}
+            className={`filter-btn ${normalizedActiveTag === category ? 'contrast-active' : ''}`}
         >
             {category}
         </button>

@@ -1177,6 +1177,47 @@ export type Database = {
           },
         ]
       }
+      portfolio_project_backups: {
+        Row: {
+          content: Json
+          created_at: string
+          created_by: string | null
+          id: string
+          project_id: string
+          slug: string
+          title: string
+          version_number: number
+        }
+        Insert: {
+          content: Json
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          project_id: string
+          slug: string
+          title: string
+          version_number: number
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          project_id?: string
+          slug?: string
+          title?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portfolio_project_backups_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "portfolio_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       portfolio_project_blocks: {
         Row: {
           block_type: string
@@ -1223,16 +1264,19 @@ export type Database = {
       }
       portfolio_project_revisions: {
         Row: {
+          content_blocks: Json
           context: string
           cover_alt: string
           cover_focal_x: number
           cover_focal_y: number
+          cover_media_id: string | null
           cover_url: string
           created_at: string
           created_by: string | null
           duration: string
           id: string
           limited_public: boolean
+          layout_style: number
           location: string
           lock_version: number
           meta_description: string
@@ -1244,6 +1288,7 @@ export type Database = {
           revision_number: number
           search_visible: boolean
           seo_title: string
+          social_image_media_id: string | null
           social_image_url: string
           specific_contribution: string
           state: string
@@ -1254,16 +1299,19 @@ export type Database = {
           year_start: number | null
         }
         Insert: {
+          content_blocks?: Json
           context?: string
           cover_alt?: string
           cover_focal_x?: number
           cover_focal_y?: number
+          cover_media_id?: string | null
           cover_url?: string
           created_at?: string
           created_by?: string | null
           duration?: string
           id?: string
           limited_public?: boolean
+          layout_style?: number
           location?: string
           lock_version?: number
           meta_description?: string
@@ -1275,6 +1323,7 @@ export type Database = {
           revision_number: number
           search_visible?: boolean
           seo_title?: string
+          social_image_media_id?: string | null
           social_image_url?: string
           specific_contribution?: string
           state?: string
@@ -1285,16 +1334,19 @@ export type Database = {
           year_start?: number | null
         }
         Update: {
+          content_blocks?: Json
           context?: string
           cover_alt?: string
           cover_focal_x?: number
           cover_focal_y?: number
+          cover_media_id?: string | null
           cover_url?: string
           created_at?: string
           created_by?: string | null
           duration?: string
           id?: string
           limited_public?: boolean
+          layout_style?: number
           location?: string
           lock_version?: number
           meta_description?: string
@@ -1306,6 +1358,7 @@ export type Database = {
           revision_number?: number
           search_visible?: boolean
           seo_title?: string
+          social_image_media_id?: string | null
           social_image_url?: string
           specific_contribution?: string
           state?: string
@@ -1341,41 +1394,59 @@ export type Database = {
       }
       portfolio_projects: {
         Row: {
+          content: Json
           created_at: string
           created_by: string | null
           draft_revision_id: string | null
           featured_order: number
           id: string
+          lock_version: number
+          published_at: string | null
+          published_content: Json | null
           published_revision_id: string | null
+          published_version: number
           slug: string
           status: string
           storage_folder: string
+          title: string
           updated_at: string
           visibility: string
         }
         Insert: {
+          content?: Json
           created_at?: string
           created_by?: string | null
           draft_revision_id?: string | null
           featured_order?: number
           id?: string
+          lock_version?: number
+          published_at?: string | null
+          published_content?: Json | null
           published_revision_id?: string | null
+          published_version?: number
           slug: string
           status?: string
           storage_folder: string
+          title?: string
           updated_at?: string
           visibility?: string
         }
         Update: {
+          content?: Json
           created_at?: string
           created_by?: string | null
           draft_revision_id?: string | null
           featured_order?: number
           id?: string
+          lock_version?: number
+          published_at?: string | null
+          published_content?: Json | null
           published_revision_id?: string | null
+          published_version?: number
           slug?: string
           status?: string
           storage_folder?: string
+          title?: string
           updated_at?: string
           visibility?: string
         }
@@ -2022,13 +2093,33 @@ export type Database = {
       }
     }
     Views: {
+      portfolio_projects_export: {
+        Row: {
+          content: Json | null
+          created_at: string | null
+          featured_order: number | null
+          project_id: string | null
+          project_name: string | null
+          project_title: string | null
+          published_at: string | null
+          published_content: Json | null
+          published_version: number | null
+          status: string | null
+          updated_at: string | null
+          visibility: string | null
+        }
+        Relationships: []
+      }
       portfolio_public_index: {
         Row: {
           cover_alt: string | null
           cover_focal_x: number | null
           cover_focal_y: number | null
+          cover_media: Json | null
+          cover_media_id: string | null
           cover_url: string | null
           featured_order: number | null
+          layout_style: number | null
           limited_public: boolean | null
           one_line_description: string | null
           organisations: Json | null
@@ -2053,12 +2144,16 @@ export type Database = {
           cover_alt: string | null
           cover_focal_x: number | null
           cover_focal_y: number | null
+          cover_media: Json | null
+          cover_media_id: string | null
           cover_url: string | null
           duration: string | null
           featured_order: number | null
+          layout_style: number | null
           limited_public: boolean | null
           links: Json | null
           location: string | null
+          media_assets: Json | null
           meta_description: string | null
           one_line_description: string | null
           organisations: Json | null
@@ -2069,6 +2164,8 @@ export type Database = {
           search_visible: boolean | null
           seo_title: string | null
           slug: string | null
+          social_image_media: Json | null
+          social_image_media_id: string | null
           social_image_url: string | null
           specific_contribution: string | null
           status: string | null
@@ -2115,6 +2212,7 @@ export type Database = {
       }
       portfolio_create_project: { Args: { p_title?: string }; Returns: string }
       portfolio_is_admin: { Args: never; Returns: boolean }
+      portfolio_json_uuid: { Args: { p_value: string }; Returns: string | null }
       portfolio_media_reference_count: {
         Args: { p_asset_id: string }
         Returns: number
@@ -2127,6 +2225,10 @@ export type Database = {
         Args: { p_project_id: string }
         Returns: string
       }
+      portfolio_project_media_manifests: {
+        Args: { p_content: Json }
+        Returns: Json
+      }
       portfolio_reorder_projects: {
         Args: { p_project_ids: string[] }
         Returns: undefined
@@ -2134,6 +2236,10 @@ export type Database = {
       portfolio_restore_revision: {
         Args: { p_project_id: string; p_revision_id: string }
         Returns: string
+      }
+      portfolio_revision_document: {
+        Args: { p_revision_id: string }
+        Returns: Json
       }
       portfolio_save_draft: {
         Args: {

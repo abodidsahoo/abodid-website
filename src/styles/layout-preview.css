@@ -139,8 +139,8 @@
 .l4-title { margin: 0 0 2rem; font-size: clamp(1rem, 1.2vw, 1.2rem); text-transform: uppercase; letter-spacing: .1em; font-weight: 600; opacity: .5; color: inherit; }
 .l4-hero-context { margin: 0 0 3rem; font-size: clamp(1.8rem, 3.2vw, 3.5rem); line-height: 1.25; letter-spacing: -.02em; font-weight: 500; text-wrap: balance; color: inherit; }
 .l4-meta { display: flex; flex-wrap: wrap; gap: 1.5rem; opacity: .7; font-size: .88rem; }
-.l4-meta span { display: flex; align-items: center; }
-.l4-meta span:not(:last-child)::after { content: ""; display: inline-block; width: 4px; height: 4px; background: currentColor; border-radius: 50%; margin-left: 1.5rem; opacity: .4; }
+.l4-meta > span { display: flex; align-items: center; }
+.l4-meta > span:not(:last-child)::after { content: ""; display: inline-block; width: 4px; height: 4px; flex: 0 0 4px; background: currentColor; border-radius: 50%; margin-left: 1.5rem; opacity: .4; }
 .l4-image-side { position: relative; overflow: hidden; }
 .l4-image-side img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .l4-body { margin-inline: auto; padding-top: clamp(4rem, 8vw, 7rem); }
@@ -152,7 +152,7 @@
 .l6-header { text-align: center; max-width: 900px; margin: 0 auto; padding: clamp(6rem, 10vw, 8rem) clamp(1rem, 4vw, 2rem) clamp(3rem, 5vw, 4rem); }
 .l6-title { margin: 0 0 1.5rem; font-size: clamp(3rem, 6vw, 6rem); line-height: .95; letter-spacing: -.06em; text-wrap: balance; }
 .l6-meta { display: inline-flex; flex-wrap: wrap; justify-content: center; gap: 1rem; color: var(--text-secondary); font-size: .88rem; }
-.l6-meta span:not(:last-child)::after { content: "—"; margin-left: 1rem; opacity: .5; }
+.l6-meta > span:not(:last-child)::after { content: "—"; margin-left: 1rem; opacity: .5; }
 .l6-cover { margin: 0; max-width: 1440px; margin-inline: auto; }
 .l6-cover img { display: block; width: 100%; aspect-ratio: 21/9; object-fit: cover; border-radius: 8px; }
 .l6-statement-wrap { max-width: 1200px; margin: clamp(4rem, 8vw, 6rem) auto 0; padding: 0 clamp(1rem, 4vw, 3rem); text-align: center; }

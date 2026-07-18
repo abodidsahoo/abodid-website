@@ -1,7 +1,28 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+
+const slugify = (str) =>
+    String(str || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
 
 const PressFilter = ({ items }) => {
-    const [activeTag, setActiveTag] = useState('All');
+    const [activeTag, setActiveTag] = useState(() => {
+        if (typeof window === 'undefined') return 'All';
+        const params = new URLSearchParams(window.location.search);
+        const tagParam = params.get('tag') || params.get('category');
+        return tagParam || 'All';
+    });
+
+    useEffect(() => {
+        const handlePopState = () => {
+            const params = new URLSearchParams(window.location.search);
+            const tagParam = params.get('tag') || params.get('category');
+            setActiveTag(tagParam || 'All');
+        };
+        window.addEventListener('popstate', handlePopState);
+        return () => window.removeEventListener('popstate', handlePopState);
+    }, []);
 
     // 1. Extract unique categories (e.g. Press, Work, Collaboration)
     const allCategories = useMemo(() => {
@@ -18,16 +39,34 @@ const PressFilter = ({ items }) => {
         return Array.from(categories);
     }, [items]);
 
+    const normalizedActiveTag = useMemo(() => {
+        if (activeTag === 'All') return 'All';
+        const match = allCategories.find(
+            (cat) => cat.toLowerCase() === activeTag.toLowerCase() || slugify(cat) === slugify(activeTag)
+        );
+        return match || activeTag;
+    }, [allCategories, activeTag]);
+
+    const handleTagClick = (category) => {
+        const nextTag = normalizedActiveTag === category ? 'All' : category;
+        setActiveTag(nextTag);
+        const params = new URLSearchParams();
+        if (nextTag !== 'All') {
+            params.set('tag', slugify(nextTag));
+        }
+        const query = params.toString();
+        window.history.pushState({}, '', `${window.location.pathname}${query ? `?${query}` : ''}`);
+    };
+
     // 2. Filter items
     const filteredItems = useMemo(() => {
-        if (activeTag === 'All') return items;
+        if (normalizedActiveTag === 'All') return items;
+        const targetSlug = slugify(normalizedActiveTag);
         return items.filter(item => {
-            if (Array.isArray(item.categories)) {
-                return item.categories.includes(activeTag);
-            }
-            return item.categories === activeTag;
+            const cats = Array.isArray(item.categories) ? item.categories : (item.categories ? [item.categories] : []);
+            return cats.some(c => c === normalizedActiveTag || slugify(c) === targetSlug);
         });
-    }, [items, activeTag]);
+    }, [items, normalizedActiveTag]);
 
     return (
         <div className="press-filter-container">
@@ -37,8 +76,8 @@ const PressFilter = ({ items }) => {
                     {allCategories.map(category => (
                         <button
                             key={category}
-                            onClick={() => setActiveTag(category)}
-                            className={`filter-btn ${activeTag === category ? 'contrast-active' : ''}`}
+                            onClick={() => handleTagClick(category)}
+                            className={`filter-btn ${normalizedActiveTag === category ? 'contrast-active' : ''}`}
                         >
                             {category}
                         </button>

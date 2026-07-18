@@ -5,10 +5,10 @@ import { getPublishedPortfolioIndex } from "../../lib/portfolio/services";
 const projects = await getPublishedPortfolioIndex();
 const workIndexProps = { projects } as any;
 
-Astro.response.headers.set("Cache-Control", "public, max-age=0, must-revalidate");
+Astro.response.headers.set("Cache-Control", "no-store, max-age=0");
 Astro.response.headers.set(
   "Vercel-CDN-Cache-Control",
-  "s-maxage=300, stale-while-revalidate=86400",
+  "s-maxage=0, must-revalidate",
 );
 ---
 

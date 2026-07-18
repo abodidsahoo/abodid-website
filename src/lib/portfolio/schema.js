@@ -2,32 +2,119 @@ export const PORTFOLIO_STATUS = ["draft", "published", "wip", "archived"];
 export const BLOCK_TYPES = [
   "body_text",
   "heading",
+  "two_columns",
   "quotation",
   "highlight",
   "testimonial",
+  "outcome",
+  "collaborator",
+  "organisation",
   "single_image",
   "image_grid",
   "image_gallery",
   "video_embed",
   "media_text",
+  "link",
   "external_link",
   "divider",
+  "spacer",
 ];
 
 export const BLOCK_LABELS = {
   body_text: "Body text",
   heading: "Heading",
+  two_columns: "Two Columns",
   quotation: "Quotation",
   highlight: "Highlight",
   testimonial: "Testimonial",
-  single_image: "Single image",
-  image_grid: "Image grid",
-  image_gallery: "Gallery / lightbox",
+  outcome: "Outcome",
+  collaborator: "Collaborator",
+  organisation: "Organisation",
+  single_image: "Single Image",
+  image_grid: "Multi-image grid",
+  image_gallery: "Multi-image grid",
   video_embed: "Video embed",
   media_text: "Media with text",
-  external_link: "External link / CTA",
-  divider: "Divider / spacing",
+  link: "Link",
+  external_link: "External link",
+  divider: "Divider",
+  spacer: "Spacer",
 };
+
+export const BLOCK_DESCRIPTIONS = {
+  body_text: "Add the project narrative",
+  heading: "Introduce a story section",
+  two_columns: "Build a responsive two-column section",
+  quotation: "Pull out a defining quote",
+  highlight: "Emphasise one key idea",
+  testimonial: "Add a named endorsement",
+  outcome: "Add a small heading and supporting text",
+  collaborator: "Add a collaborator, role and optional link",
+  organisation: "Add an organisation, location and optional link",
+  single_image: "Place one full image",
+  image_grid: "Arrange several images with an optional lightbox",
+  image_gallery: "Arrange several images with an optional lightbox",
+  video_embed: "Add YouTube or Vimeo",
+  media_text: "Pair an image with text",
+  link: "Add linked text and a URL",
+  external_link: "Add a footer-style link anywhere in the story",
+  divider: "Add a visible horizontal line",
+  spacer: "Add adjustable blank space",
+};
+
+export function balancePortfolioImageRows(count = 0) {
+  const total = Math.max(0, Math.floor(Number(count) || 0));
+  if (total <= 0) return [];
+  if (total <= 3) return [total];
+  const rowCount = Math.ceil(total / 3);
+  const baseSize = Math.floor(total / rowCount);
+  let remainder = total % rowCount;
+  const rows = Array.from({ length: rowCount }, () => baseSize);
+  const priority = Array.from({ length: rowCount }, (_, index) => index)
+    .sort((left, right) => {
+      if (remainder === 1) return Math.abs(left - (rowCount - 1) / 2) - Math.abs(right - (rowCount - 1) / 2);
+      const leftEdge = Math.min(left, rowCount - 1 - left);
+      const rightEdge = Math.min(right, rowCount - 1 - right);
+      return leftEdge - rightEdge;
+    });
+  priority.forEach((rowIndex) => {
+    if (remainder <= 0) return;
+    rows[rowIndex] += 1;
+    remainder -= 1;
+  });
+  return rows;
+}
+
+export function getPortfolioBlockSummary(block = {}) {
+  const content = block.content || {};
+  const media = Array.isArray(content.media) ? content.media : content.media ? [content.media] : [];
+  const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
+  const shorten = (value) => {
+    const text = clean(value);
+    return text.length > 72 ? `${text.slice(0, 69)}…` : text;
+  };
+
+  if (block.visible === false) return "Hidden from the public project";
+  if (["single_image", "image_grid", "image_gallery"].includes(block.blockType)) {
+    return media.length ? `${media.length} image${media.length === 1 ? "" : "s"}` : "No image selected";
+  }
+  if (block.blockType === "media_text") return shorten(content.text) || (media.length ? "Image with text" : "No content yet");
+  if (block.blockType === "quotation") return shorten(content.quote) || "No quote yet";
+  if (block.blockType === "testimonial") return shorten(content.quote || content.name) || "No testimonial yet";
+  if (block.blockType === "outcome") return shorten(content.heading || content.text) || "No outcome yet";
+  if (block.blockType === "collaborator") return shorten([content.name, content.role].filter(Boolean).join(" · ")) || "No collaborator yet";
+  if (block.blockType === "organisation") return shorten([content.name, content.location].filter(Boolean).join(" · ")) || "No organisation yet";
+  if (block.blockType === "two_columns") {
+    const elementCount = (content.columns || []).reduce((total, column) => total + (Array.isArray(column.items) ? column.items.length : [column.heading, column.text, column.linkText].filter(Boolean).length), 0);
+    return `2 columns · ${elementCount} element${elementCount === 1 ? "" : "s"}`;
+  }
+  if (block.blockType === "link") return shorten(content.text || content.url) || "No link yet";
+  if (block.blockType === "external_link") return shorten(content.label || content.url) || "No link yet";
+  if (block.blockType === "video_embed") return shorten(content.caption || content.url) || "No video yet";
+  if (block.blockType === "divider") return "Horizontal line";
+  if (block.blockType === "spacer") return `${Math.max(0, Number(content.height) || 0)}px blank space`;
+  return shorten(content.text) || "No content yet";
+}
 
 export const TAXONOMY_GROUPS = [
   "genre",
@@ -122,19 +209,38 @@ export function dedupeTaxonomies(terms = []) {
 }
 
 export function createEmptyBlock(blockType = "body_text") {
+  const createColumnItem = (type, index) => ({
+    id: globalThis.crypto?.randomUUID?.() || `column-${type}-${index + 1}-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    type,
+    ...(type === "heading" ? { text: "" } : {}),
+    ...(type === "text" ? { text: "" } : {}),
+    ...(type === "image" ? { url: "", alt: "", caption: "" } : {}),
+    ...(type === "button" ? { label: "", url: "" } : {}),
+    ...(type === "link" ? { text: "", url: "" } : {}),
+  });
+  const createColumn = (index) => ({
+    id: globalThis.crypto?.randomUUID?.() || `column-${index + 1}-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    items: [createColumnItem("heading", index), createColumnItem("text", index)],
+  });
   const contentByType = {
     body_text: { text: "" },
     heading: { text: "", level: 2 },
+    two_columns: { columns: [createColumn(0), createColumn(1)] },
     quotation: { quote: "", attribution: "" },
     highlight: { text: "" },
     testimonial: { quote: "", name: "", role: "", link: "" },
+    outcome: { heading: "", text: "" },
+    collaborator: { name: "", role: "", url: "" },
+    organisation: { name: "", location: "", url: "" },
     single_image: { media: null },
     image_grid: { media: [] },
     image_gallery: { media: [], caption: "" },
     video_embed: { url: "", caption: "", poster: "" },
     media_text: { media: null, text: "", mediaPosition: "left" },
+    link: { text: "", url: "" },
     external_link: { label: "", url: "" },
     divider: {},
+    spacer: { height: 64 },
   };
 
   return {
@@ -142,12 +248,14 @@ export function createEmptyBlock(blockType = "body_text") {
     blockType,
     content: contentByType[blockType] || {},
     settings: {
-      width: blockType === "divider" ? "standard" : "wide",
+      width: ["divider", "spacer", "outcome", "collaborator", "organisation", "external_link"].includes(blockType) ? "standard" : "wide",
       alignment: "left",
-      spacing: "default",
+      spacing: ["spacer", "external_link"].includes(blockType) ? "compact" : "default",
       columns: blockType === "image_grid" ? 2 : 1,
+      columnGap: blockType === "two_columns" ? 32 : undefined,
       mediaFit: "cover",
-      lightbox: blockType === "image_gallery",
+      displayMode: blockType === "image_gallery" ? "lightbox" : blockType === "image_grid" ? "grid" : undefined,
+      imageSize: ["image_grid", "image_gallery"].includes(blockType) ? "medium" : undefined,
     },
     visible: true,
   };
@@ -178,6 +286,7 @@ export function createEmptyDraft(title = "Untitled project") {
     metaDescription: "",
     socialImageUrl: "",
     searchVisible: true,
+    layoutStyle: 1,
     blocks: [],
     taxonomies: [],
     organisations: [],
@@ -246,8 +355,17 @@ export function validateBlock(block) {
   if (block?.blockType === "video_embed" && block.content?.url && !validUrl(block.content.url)) {
     errors.push("Video URL is invalid");
   }
-  if (block?.blockType === "external_link" && block.content?.url && !validUrl(block.content.url)) {
+  if (["external_link", "link", "collaborator", "organisation"].includes(block?.blockType) && block.content?.url && !validUrl(block.content.url)) {
     errors.push("Link URL is invalid");
+  }
+  if (block?.blockType === "two_columns") {
+    (block.content?.columns || []).forEach((column, index) => {
+      if (column.linkUrl && !validUrl(column.linkUrl)) errors.push(`Column ${index + 1} link URL is invalid`);
+      (column.items || []).forEach((item) => {
+        const url = item.url || item.linkUrl;
+        if (url && !validUrl(url)) errors.push(`Column ${index + 1} ${item.type || "element"} URL is invalid`);
+      });
+    });
   }
   return errors;
 }
@@ -256,7 +374,7 @@ export function validateProjectForPublish(draft) {
   const errors = [];
   if (!draft?.title?.trim()) errors.push("Project title is required");
   if (!draft?.oneLineDescription?.trim()) errors.push("One-line proposition is required");
-  if (!draft?.yearStart) errors.push("Start year is required");
+  if (!draft?.yearStart) errors.push("Year is required");
   if (!draft?.coverUrl?.trim()) errors.push("Cover image is required");
   if (!draft?.workInProgress && !draft?.limitedPublic) {
     if (!draft?.context?.trim()) errors.push("Research Question is required");
@@ -311,7 +429,6 @@ export function cardFilterTokens(card) {
   const tokens = (card.taxonomies || []).map((term) => `${term.groupType || term.group_type}:${term.slug}`);
   (card.organisations || []).forEach((org) => tokens.push(`organisation:${org.slug || slugify(org.name)}`));
   if (card.yearStart) tokens.push(`year:${card.yearStart}`);
-  if (card.yearEnd && card.yearEnd !== card.yearStart) tokens.push(`year:${card.yearEnd}`);
   return new Set(tokens);
 }
 
@@ -351,9 +468,18 @@ export function toSavePayload(draft) {
     taxonomies: dedupeTaxonomies(draft.taxonomies || []),
     blocks: (draft.blocks || []).map((block, position) => ({
       ...block,
-      content: ["external_link", "video_embed"].includes(block.blockType)
+      content: ["external_link", "link", "video_embed", "collaborator", "organisation"].includes(block.blockType)
         ? { ...block.content, url: normalizePortfolioHref(block.content?.url) || String(block.content?.url || "").trim() }
-        : block.content,
+        : block.blockType === "two_columns"
+          ? { ...block.content, columns: (block.content?.columns || []).map((column) => ({
+            ...column,
+            linkUrl: normalizePortfolioHref(column.linkUrl) || String(column.linkUrl || "").trim(),
+            items: (column.items || []).map((item) => {
+              const url = item.url || item.linkUrl;
+              return url ? { ...item, url: normalizePortfolioHref(url) || String(url).trim() } : item;
+            }),
+          })) }
+          : block.content,
       position,
     })),
     organisations: (draft.organisations || []).map((item, displayOrder) => ({ ...item, url: normalizePortfolioHref(item.url) || String(item.url || "").trim(), displayOrder })),

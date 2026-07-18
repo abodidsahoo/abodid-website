@@ -1,6 +1,6 @@
 import { supabase } from "../supabaseClient";
 import { portfolioFallbackProjects } from "./fallback";
-import { orderPortfolioRevisionHistory, slugify, toSavePayload } from "./schema";
+import { slugify, toSavePayload } from "./schema";
 
 const missingSchema = (error) => ["42P01", "PGRST205", "PGRST200"].includes(error?.code);
 const cleanArray = (value) => Array.isArray(value) ? value : [];
@@ -39,14 +39,24 @@ const mapLink = (item = {}) => ({
   displayOrder: item.displayOrder ?? item.display_order ?? 0,
 });
 
-const mapBlock = (block = {}) => ({
-  id: block.id,
-  blockType: block.blockType || block.block_type,
-  content: block.content || block.content_jsonb || {},
-  settings: block.settings || block.settings_jsonb || {},
-  visible: block.visible !== false,
-  position: block.position || 0,
-});
+const mapBlock = (block = {}) => {
+  const storedType = block.blockType || block.block_type;
+  const storedSettings = block.settings || block.settings_jsonb || {};
+  const legacyLightbox = storedType === "image_gallery";
+  const isMultiImage = legacyLightbox || storedType === "image_grid";
+  const { lightbox: legacyLightboxSetting, ...normalizedSettings } = storedSettings;
+  const displayMode = storedSettings.displayMode || (legacyLightbox || legacyLightboxSetting ? "lightbox" : "grid");
+  return {
+    id: block.id,
+    blockType: legacyLightbox ? "image_grid" : storedType,
+    content: block.content || block.content_jsonb || {},
+    settings: isMultiImage
+      ? { ...normalizedSettings, columns: Number(storedSettings.columns) || 2, displayMode, imageSize: storedSettings.imageSize || "medium" }
+      : storedSettings,
+    visible: block.visible !== false,
+    position: block.position || 0,
+  };
+};
 
 const hydrateMediaValue = (value, manifests) => {
   if (!value || typeof value !== "object") return value;
@@ -79,10 +89,108 @@ const hydrateBlock = (block, manifests) => {
   };
 };
 
+const appendLegacyLinksAsBlocks = (blocks = [], rawLinks = []) => {
+  const links = cleanArray(rawLinks).map(mapLink).filter((link) => link.label || link.url);
+  if (!links.length) return blocks;
+  const keyFor = (label, url) => `${String(label || "").trim().toLowerCase()}\u0000${String(url || "").trim().toLowerCase()}`;
+  const existing = new Set(blocks.flatMap((block) => {
+    if (block.blockType === "external_link") return [keyFor(block.content?.label, block.content?.url)];
+    if (block.blockType === "link") return [keyFor(block.content?.text, block.content?.url)];
+    return [];
+  }));
+  const lastPosition = blocks.reduce((highest, block) => Math.max(highest, Number(block.position) || 0), -1);
+  const migrated = links.filter((link) => {
+    const key = keyFor(link.label, link.url);
+    if (existing.has(key)) return false;
+    existing.add(key);
+    return true;
+  }).map((link, index) => ({
+    id: `legacy-external-link-${link.id || index + 1}`,
+    blockType: "external_link",
+    content: { label: link.label, url: link.url },
+    settings: { width: "standard", alignment: "left", spacing: "compact" },
+    visible: true,
+    position: lastPosition + index + 1,
+  }));
+  return [...blocks, ...migrated];
+};
+
+const addMediaId = (ids, item) => {
+  const id = item?.id || item?.assetId;
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id || "")) {
+    ids.add(id);
+  }
+};
+
+const collectDocumentMediaIds = (document = {}) => {
+  const ids = new Set();
+  addMediaId(ids, document.coverMedia);
+  addMediaId(ids, document.socialImageMedia);
+  cleanArray(document.blocks).forEach((block) => {
+    const media = block?.content?.media;
+    const items = Array.isArray(media) ? media : media ? [media] : [];
+    items.forEach((item) => addMediaId(ids, item));
+  });
+  return ids;
+};
+
+const mapStoredProjectDocument = (document = {}, project = {}, mediaManifests = new Map()) => {
+  const blocks = appendLegacyLinksAsBlocks(
+    cleanArray(document.blocks).map((block) => hydrateBlock(block, mediaManifests)),
+    document.links,
+  );
+  return {
+    id: project.id || null,
+    lockVersion: project.lock_version ?? 0,
+    revisionNumber: (project.published_version ?? 0) + 1,
+    title: document.title || project.title || "Untitled project",
+    oneLineDescription: document.oneLineDescription || "",
+    context: document.context || "",
+    specificContribution: document.specificContribution || "",
+    yearStart: document.yearStart ?? null,
+    yearEnd: document.yearEnd ?? null,
+    location: document.location || "",
+    duration: document.duration || "",
+    outcomeHeading: document.outcomeHeading || "",
+    outcomeText: document.outcomeText || "",
+    workInProgress: document.workInProgress === true,
+    limitedPublic: document.limitedPublic === true,
+    coverUrl: document.coverUrl || "",
+    coverMedia: document.coverMedia ? hydrateMediaValue(document.coverMedia, mediaManifests) : null,
+    coverAlt: document.coverAlt || "",
+    coverFocalX: document.coverFocalX ?? 50,
+    coverFocalY: document.coverFocalY ?? 50,
+    seoTitle: document.seoTitle || "",
+    metaDescription: document.metaDescription || "",
+    socialImageUrl: document.socialImageUrl || "",
+    socialImageMedia: document.socialImageMedia ? hydrateMediaValue(document.socialImageMedia, mediaManifests) : null,
+    searchVisible: document.searchVisible !== false,
+    layoutStyle: document.layoutStyle || 1,
+    blocks,
+    taxonomies: cleanArray(document.taxonomies).map(mapTaxonomy),
+    organisations: cleanArray(document.organisations).map(mapOrganisation),
+    collaborators: cleanArray(document.collaborators).map(mapCollaborator),
+    links: [],
+  };
+};
+
+const mapBackupHistory = (backup = {}) => ({
+  id: backup.id,
+  revision_number: backup.version_number,
+  title: backup.title,
+  state: "published",
+  published_at: backup.created_at,
+  created_at: backup.created_at,
+});
+
 export function mapPublicProject(row = {}) {
   const mediaManifests = new Map(cleanArray(row.media_assets).filter(Boolean).map((asset) => [asset.id, asset]));
   if (row.cover_media?.id) mediaManifests.set(row.cover_media.id, row.cover_media);
   if (row.social_image_media?.id) mediaManifests.set(row.social_image_media.id, row.social_image_media);
+  const blocks = appendLegacyLinksAsBlocks(
+    cleanArray(row.blocks).map((block) => hydrateBlock(block, mediaManifests)).sort((a, b) => a.position - b.position),
+    row.links,
+  );
   return {
     id: row.project_id || row.id,
     slug: row.slug,
@@ -115,8 +223,8 @@ export function mapPublicProject(row = {}) {
     taxonomies: cleanArray(row.taxonomies).map(mapTaxonomy),
     organisations: cleanArray(row.organisations).map(mapOrganisation),
     collaborators: cleanArray(row.collaborators).map(mapCollaborator),
-    links: cleanArray(row.links).map(mapLink),
-    blocks: cleanArray(row.blocks).map((block) => hydrateBlock(block, mediaManifests)).sort((a, b) => a.position - b.position),
+    links: [],
+    blocks,
   };
 }
 
@@ -171,37 +279,33 @@ export async function listAdminProjects() {
     .select("*")
     .order("featured_order", { ascending: true });
   if (error) throw error;
-  const revisionIds = [...new Set((projects || []).flatMap((project) => [project.draft_revision_id, project.published_revision_id]).filter(Boolean))];
-  let revisions = [];
-  if (revisionIds.length) {
-    const result = await supabase
-      .from("portfolio_project_revisions")
-      .select("id,title,one_line_description,cover_url,updated_at,published_at,work_in_progress,lock_version")
-      .in("id", revisionIds);
-    if (result.error) throw result.error;
-    revisions = result.data || [];
-  }
-  const byId = new Map(revisions.map((revision) => [revision.id, revision]));
-  const draftIds = (projects || []).map((project) => project.draft_revision_id).filter(Boolean);
-  const searchByRevision = new Map(draftIds.map((id) => [id, []]));
-  if (draftIds.length) {
-    const [taxonomy, organisations, collaborators] = await Promise.all([
-      supabase.from("portfolio_revision_taxonomy").select("revision_id,term:portfolio_taxonomy_terms(label)").in("revision_id", draftIds),
-      supabase.from("portfolio_revision_organisations").select("revision_id,organisation:portfolio_organisations(name)").in("revision_id", draftIds),
-      supabase.from("portfolio_revision_collaborators").select("revision_id,role_label,collaborator:portfolio_collaborators(name)").in("revision_id", draftIds),
-    ]);
-    const relationError = [taxonomy, organisations, collaborators].find((result) => result.error)?.error;
-    if (relationError) throw relationError;
-    (taxonomy.data || []).forEach((row) => searchByRevision.get(row.revision_id)?.push(row.term?.label));
-    (organisations.data || []).forEach((row) => searchByRevision.get(row.revision_id)?.push(row.organisation?.name));
-    (collaborators.data || []).forEach((row) => searchByRevision.get(row.revision_id)?.push(row.collaborator?.name, row.role_label));
-  }
-  return (projects || []).map((project) => ({
-    ...project,
-    draft: byId.get(project.draft_revision_id) || null,
-    published: byId.get(project.published_revision_id) || null,
-    searchText: (searchByRevision.get(project.draft_revision_id) || []).filter(Boolean).join(" "),
-  }));
+  return (projects || []).map((project) => {
+    const document = project.content || {};
+    const published = project.published_content || null;
+    const searchText = [
+      ...cleanArray(document.taxonomies).map((item) => item.label),
+      ...cleanArray(document.organisations).map((item) => item.name),
+      ...cleanArray(document.collaborators).flatMap((item) => [item.name, item.roleLabel]),
+    ].filter(Boolean).join(" ");
+    return {
+      ...project,
+      draft: {
+        id: project.id,
+        title: document.title || project.title,
+        one_line_description: document.oneLineDescription || "",
+        cover_url: document.coverUrl || "",
+        updated_at: project.updated_at,
+        work_in_progress: document.workInProgress === true,
+        lock_version: project.lock_version ?? 0,
+      },
+      published: published ? {
+        id: project.id,
+        title: published.title || project.title,
+        published_at: project.published_at,
+      } : null,
+      searchText,
+    };
+  });
 }
 
 export async function createPortfolioProject(title) {
@@ -249,42 +353,25 @@ export async function loadAdminProject(projectId) {
   const { data: project, error: projectError } = projectResult;
   if (projectError) throw projectError;
   if (!project) throw new Error("PORTFOLIO_PROJECT_NOT_FOUND");
-  const resolvedProjectId = project.id;
-
-  const { data: revision, error: revisionError } = await supabase
-    .from("portfolio_project_revisions")
-    .select("*")
-    .eq("id", project.draft_revision_id)
-    .single();
-  if (revisionError) throw revisionError;
-
-  const [blocksResult, taxonomyResult, organisationsResult, collaboratorsResult, linksResult, historyResult] = await Promise.all([
-    supabase.from("portfolio_project_blocks").select("*").eq("revision_id", revision.id).order("position"),
-    supabase.from("portfolio_revision_taxonomy").select("*, term:portfolio_taxonomy_terms(*)").eq("revision_id", revision.id).order("display_order"),
-    supabase.from("portfolio_revision_organisations").select("*, organisation:portfolio_organisations(*)").eq("revision_id", revision.id).order("display_order"),
-    supabase.from("portfolio_revision_collaborators").select("*, collaborator:portfolio_collaborators(*)").eq("revision_id", revision.id).order("display_order"),
-    supabase.from("portfolio_revision_links").select("*").eq("revision_id", revision.id).order("display_order"),
-    supabase.from("portfolio_project_revisions").select("id,revision_number,title,state,published_at,created_at").eq("project_id", resolvedProjectId).in("state", ["published", "archived"]).not("published_at", "is", null).order("revision_number", { ascending: false }),
-  ]);
-  const resultError = [blocksResult, taxonomyResult, organisationsResult, collaboratorsResult, linksResult, historyResult].find((result) => result.error)?.error;
-  if (resultError) throw resultError;
-
-  const mediaIds = new Set([revision.cover_media_id, revision.social_image_media_id].filter(Boolean));
-  for (const block of blocksResult.data || []) {
-    const media = block.content_jsonb?.media;
-    const items = Array.isArray(media) ? media : media ? [media] : [];
-    items.forEach((item) => {
-      const id = item?.id || item?.assetId;
-      if (/^[0-9a-f-]{36}$/i.test(id || "")) mediaIds.add(id);
-    });
-  }
+  const document = project.content || {};
+  const mediaIds = collectDocumentMediaIds(document);
+  const historyPromise = supabase
+    .from("portfolio_project_backups")
+    .select("id,version_number,title,created_at")
+    .eq("project_id", project.id)
+    .order("version_number", { ascending: false });
   let mediaManifests = new Map();
-  if (mediaIds.size) {
-    const { data: mediaRows, error: mediaError } = await supabase
+  const mediaPromise = mediaIds.size
+    ? supabase
       .from("media_assets")
       .select("id,public_url,object_key,original_filename,mime_type,file_size,width,height,alt_text,caption,credit,processing_status,processing_error,created_at,media_variants(variant_key,target_width,actual_width,actual_height,public_url,file_size,mime_type)")
-      .in("id", [...mediaIds]);
-    if (mediaError) throw mediaError;
+      .in("id", [...mediaIds])
+    : Promise.resolve({ data: [], error: null });
+  const [historyResult, mediaResult] = await Promise.all([historyPromise, mediaPromise]);
+  if (historyResult.error) throw historyResult.error;
+  if (mediaResult.error) throw mediaResult.error;
+  if (mediaResult.data?.length) {
+    const mediaRows = mediaResult.data;
     mediaManifests = new Map((mediaRows || []).map((asset) => {
       const mapped = mapLibraryAsset(asset);
       return [mapped.id, mapped];
@@ -293,40 +380,8 @@ export async function loadAdminProject(projectId) {
 
   return {
     project,
-    history: orderPortfolioRevisionHistory(historyResult.data || [], project.published_revision_id),
-    draft: {
-      id: revision.id,
-      lockVersion: revision.lock_version,
-      revisionNumber: revision.revision_number,
-      title: revision.title || "",
-      oneLineDescription: revision.one_line_description || "",
-      context: revision.context || "",
-      specificContribution: revision.specific_contribution || "",
-      yearStart: revision.year_start,
-      yearEnd: revision.year_end,
-      location: revision.location || "",
-      duration: revision.duration || "",
-      outcomeHeading: revision.outcome_heading || "",
-      outcomeText: revision.outcome_text || "",
-      workInProgress: revision.work_in_progress,
-      limitedPublic: revision.limited_public,
-      coverUrl: revision.cover_url || "",
-      coverMedia: revision.cover_media_id ? mediaManifests.get(revision.cover_media_id) || null : null,
-      coverAlt: revision.cover_alt || "",
-      coverFocalX: revision.cover_focal_x ?? 50,
-      coverFocalY: revision.cover_focal_y ?? 50,
-      seoTitle: revision.seo_title || "",
-      metaDescription: revision.meta_description || "",
-      socialImageUrl: revision.social_image_url || "",
-      socialImageMedia: revision.social_image_media_id ? mediaManifests.get(revision.social_image_media_id) || null : null,
-      searchVisible: revision.search_visible,
-      layoutStyle: revision.layout_style || "default",
-      blocks: (blocksResult.data || []).map((block) => hydrateBlock(block, mediaManifests)),
-      taxonomies: (taxonomyResult.data || []).map((row) => mapTaxonomy(row.term)),
-      organisations: (organisationsResult.data || []).map(mapOrganisation),
-      collaborators: (collaboratorsResult.data || []).map(mapCollaborator),
-      links: (linksResult.data || []).map(mapLink),
-    },
+    history: cleanArray(historyResult.data).map(mapBackupHistory),
+    draft: mapStoredProjectDocument(document, project, mediaManifests),
   };
 }
 

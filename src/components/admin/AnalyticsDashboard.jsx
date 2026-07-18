@@ -230,6 +230,7 @@ function JourneyCard({ journey }) {
 
 export default function AnalyticsDashboard({ accessToken }) {
     const [range, setRange] = useState('7d');
+    const [trafficClass, setTrafficClass] = useState('human');
     const [report, setReport] = useState(EMPTY_REPORT);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -259,7 +260,7 @@ export default function AnalyticsDashboard({ accessToken }) {
                 : newsletterSubmission
                     ? `&newsletterSubmission=${encodeURIComponent(newsletterSubmission)}`
                     : '';
-            const requestUrl = `/api/admin/analytics?range=${encodeURIComponent(range)}&timezoneOffset=${timezoneOffset}${submissionQuery}`;
+            const requestUrl = `/api/admin/analytics?range=${encodeURIComponent(range)}&traffic=${encodeURIComponent(trafficClass)}&timezoneOffset=${timezoneOffset}${submissionQuery}`;
             const requestReport = (token) => fetch(requestUrl, {
                 headers: { Authorization: `Bearer ${token}` },
                 signal,
@@ -291,7 +292,7 @@ export default function AnalyticsDashboard({ accessToken }) {
                 setRefreshing(false);
             }
         }
-    }, [accessToken, range]);
+    }, [accessToken, range, trafficClass]);
 
     useEffect(() => {
         const controller = new AbortController();
@@ -354,11 +355,11 @@ export default function AnalyticsDashboard({ accessToken }) {
     }, [accessToken]);
 
     const summaryCards = useMemo(() => [
-        { label: 'Visitors', value: formatNumber(report.summary?.visitors), icon: UsersRound },
-        { label: 'Sessions', value: formatNumber(report.summary?.sessions), icon: MousePointerClick },
+        { label: trafficClass === 'human' ? 'Human visitors' : 'Filtered visitors', value: formatNumber(report.summary?.visitors), icon: UsersRound },
+        { label: trafficClass === 'human' ? 'Human sessions' : 'Filtered sessions', value: formatNumber(report.summary?.sessions), icon: MousePointerClick },
         { label: 'Page views', value: formatNumber(report.summary?.pageViews), icon: Eye },
         { label: 'Avg. engaged time', value: formatDuration(report.summary?.averageEngagedSeconds), icon: Clock3 },
-    ], [report.summary]);
+    ], [report.summary, trafficClass]);
 
     const timelineChart = useMemo(() => ({
         labels: (report.timeline || []).map((item) => formatTimelineLabel(item.bucket, range)),
@@ -505,6 +506,12 @@ export default function AnalyticsDashboard({ accessToken }) {
         : realtimeStatus === 'connecting'
             ? 'Connecting live updates'
             : 'Manual refresh only';
+    const selectTrafficClass = (nextTrafficClass) => {
+        if (nextTrafficClass === trafficClass) return;
+        setReport(EMPTY_REPORT);
+        setLoading(true);
+        setTrafficClass(nextTrafficClass);
+    };
 
     return (
         <section className="analytics-dashboard" aria-labelledby="analytics-title">
@@ -512,7 +519,9 @@ export default function AnalyticsDashboard({ accessToken }) {
                 <div>
                     <p className="analytics-eyebrow">Visitor intelligence</p>
                     <h2 id="analytics-title">Analytics</h2>
-                    <p>Acquisition, location, active attention and complete routes through the site.</p>
+                    <p>{trafficClass === 'human'
+                        ? 'Credible human visits with at least 2 seconds of active, visible engagement.'
+                        : 'Sessions below 2 seconds, retained separately for traffic-source and route inspection.'}</p>
                     <div className="analytics-status-row" aria-live="polite">
                         <span className={`analytics-live-status is-${realtimeStatus}`}>
                             <span aria-hidden="true" />{liveLabel}
@@ -553,6 +562,29 @@ export default function AnalyticsDashboard({ accessToken }) {
                 </div>
             </header>
 
+            <div className="analytics-traffic-tabs" role="tablist" aria-label="Traffic classification">
+                <button
+                    type="button"
+                    role="tab"
+                    aria-selected={trafficClass === 'human'}
+                    className={trafficClass === 'human' ? 'active' : ''}
+                    onClick={() => selectTrafficClass('human')}
+                >
+                    Human visits
+                    <small>2s or more</small>
+                </button>
+                <button
+                    type="button"
+                    role="tab"
+                    aria-selected={trafficClass === 'filtered'}
+                    className={trafficClass === 'filtered' ? 'active' : ''}
+                    onClick={() => selectTrafficClass('filtered')}
+                >
+                    Filtered traffic
+                    <small>Below 2s</small>
+                </button>
+            </div>
+
             {error && hasLoaded && (
                 <div className="analytics-error-banner" role="alert">
                     <span>{error}</span>
@@ -588,8 +620,10 @@ export default function AnalyticsDashboard({ accessToken }) {
                     {!loading && !hasData && (
                         <div className="analytics-message">
                             <Route size={20} strokeWidth={1.6} aria-hidden="true" />
-                            <strong>No visitor journeys yet.</strong>
-                            <span>Production visits will appear here after the analytics migration is active.</span>
+                            <strong>{trafficClass === 'human' ? 'No human visits in this period.' : 'No filtered traffic in this period.'}</strong>
+                            <span>{trafficClass === 'human'
+                                ? 'A session appears here after 2 seconds of active, visible engagement.'
+                                : 'Sessions with less than 2 seconds of recorded engagement appear here.'}</span>
                         </div>
                     )}
 
@@ -753,8 +787,10 @@ export default function AnalyticsDashboard({ accessToken }) {
                             <section className="analytics-panel analytics-pages-panel">
                                 <div className="analytics-panel-heading">
                                     <div>
-                                        <h3>Engaging pages</h3>
-                                        <p>Ranked by total active, visible time.</p>
+                                        <h3>{trafficClass === 'human' ? 'Engaging pages' : 'Requested pages'}</h3>
+                                        <p>{trafficClass === 'human'
+                                            ? 'Ranked by total active, visible time.'
+                                            : 'Pages requested by sessions that did not reach the human threshold.'}</p>
                                     </div>
                                 </div>
                                 <div className="analytics-table-wrap">
@@ -790,8 +826,10 @@ export default function AnalyticsDashboard({ accessToken }) {
                                 <section className="analytics-panel">
                                     <div className="analytics-panel-heading">
                                         <div>
-                                            <h3>Recent visitor journeys</h3>
-                                            <p>Landing page to final recorded exit.</p>
+                                            <h3>{trafficClass === 'human' ? 'Recent visitor journeys' : 'Recent filtered journeys'}</h3>
+                                            <p>{trafficClass === 'human'
+                                                ? 'Landing page to final recorded exit.'
+                                                : 'Where low-engagement traffic came from and what it requested.'}</p>
                                         </div>
                                     </div>
                                     <div className="analytics-journey-list">

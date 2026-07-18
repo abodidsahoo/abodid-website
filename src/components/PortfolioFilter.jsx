@@ -4,8 +4,29 @@ import {
     getOptimizedImageUrl,
 } from '../lib/imageOptimization.js';
 
+const slugify = (str) =>
+    String(str || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+
 const PortfolioFilter = ({ items }) => {
-    const [activeTag, setActiveTag] = useState('All');
+    const [activeTag, setActiveTag] = useState(() => {
+        if (typeof window === 'undefined') return 'All';
+        const params = new URLSearchParams(window.location.search);
+        const tagParam = params.get('tag') || params.get('category');
+        return tagParam || 'All';
+    });
+
+    useEffect(() => {
+        const handlePopState = () => {
+            const params = new URLSearchParams(window.location.search);
+            const tagParam = params.get('tag') || params.get('category');
+            setActiveTag(tagParam || 'All');
+        };
+        window.addEventListener('popstate', handlePopState);
+        return () => window.removeEventListener('popstate', handlePopState);
+    }, []);
 
     // 1. Extract, count and sort unique categories
     const sortedCategories = useMemo(() => {
@@ -24,22 +45,40 @@ const PortfolioFilter = ({ items }) => {
         return ['All', ...cats];
     }, [items]);
 
+    const normalizedActiveTag = useMemo(() => {
+        if (activeTag === 'All') return 'All';
+        const match = sortedCategories.find(
+            (cat) => cat.toLowerCase() === activeTag.toLowerCase() || slugify(cat) === slugify(activeTag)
+        );
+        return match || activeTag;
+    }, [sortedCategories, activeTag]);
+
+    const handleTagClick = (category) => {
+        const nextTag = normalizedActiveTag === category ? 'All' : category;
+        setActiveTag(nextTag);
+        const params = new URLSearchParams();
+        if (nextTag !== 'All') {
+            params.set('tag', slugify(nextTag));
+        }
+        const query = params.toString();
+        window.history.pushState({}, '', `${window.location.pathname}${query ? `?${query}` : ''}`);
+    };
+
     // 3. Filter items based on active category
     const filteredItems = useMemo(() => {
-        if (activeTag === 'All') return items;
+        if (normalizedActiveTag === 'All') return items;
+        const targetSlug = slugify(normalizedActiveTag);
         return items.filter(item => {
-            if (Array.isArray(item.category)) {
-                return item.category.includes(activeTag);
-            }
-            return item.category === activeTag;
+            const cats = Array.isArray(item.category) ? item.category : (item.category ? [item.category] : []);
+            return cats.some(c => c === normalizedActiveTag || slugify(c) === targetSlug);
         });
-    }, [items, activeTag]);
+    }, [items, normalizedActiveTag]);
 
     const renderButton = (category) => (
         <button
             key={category}
-            onClick={() => setActiveTag(category)}
-            className={`filter-btn ${activeTag === category ? 'contrast-active' : ''}`}
+            onClick={() => handleTagClick(category)}
+            className={`filter-btn ${normalizedActiveTag === category ? 'contrast-active' : ''}`}
         >
             {category}
         </button>

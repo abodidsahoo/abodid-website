@@ -27,6 +27,51 @@
     margin-bottom: 1.5rem;
 }
 
+.analytics-traffic-tabs {
+    display: inline-flex;
+    gap: 0.35rem;
+    margin: 0 0 1rem;
+    padding: 0.25rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    background: var(--bg-surface);
+}
+
+.analytics-traffic-tabs button {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    min-height: 38px;
+    padding: 0.5rem 0.8rem;
+    border: 1px solid transparent;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.73rem;
+    font-weight: 600;
+}
+
+.analytics-traffic-tabs button:hover,
+.analytics-traffic-tabs button.active {
+    color: var(--text-primary);
+    background: var(--bg-surface-hover);
+}
+
+.analytics-traffic-tabs button.active { border-color: var(--border-subtle); }
+
+.analytics-traffic-tabs button:focus-visible {
+    outline: 2px solid var(--border-focus);
+    outline-offset: 2px;
+}
+
+.analytics-traffic-tabs small {
+    color: var(--text-tertiary);
+    font-size: 0.59rem;
+    font-weight: 500;
+}
+
 .analytics-header h2 {
     margin: 0;
     font-size: clamp(1.65rem, 3vw, 2.35rem);

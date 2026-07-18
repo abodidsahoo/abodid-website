@@ -1,6 +1,10 @@
 export const ANALYTICS_RANGES = new Set(['today', '7d', '30d', '90d']);
+export const ANALYTICS_TRAFFIC_CLASSES = new Set(['human', 'filtered']);
 
 export const normalizeAnalyticsRange = (value) => ANALYTICS_RANGES.has(value) ? value : '7d';
+export const normalizeAnalyticsTrafficClass = (value) => (
+    ANALYTICS_TRAFFIC_CLASSES.has(value) ? value : 'human'
+);
 
 const clampTimezoneOffset = (value) => {
     const parsed = Number(value);

@@ -4,13 +4,23 @@ set local role anon;
 
 do $$
 begin
-  if exists (
-    select 1 from public.portfolio_project_revisions r
-    join public.portfolio_projects p on p.draft_revision_id = r.id
-    where r.state = 'draft'
-  ) then
-    raise exception 'RLS failure: anonymous role can read a draft revision';
-  end if;
+  begin
+    perform content from public.portfolio_projects limit 1;
+    if found then
+      raise exception 'RLS failure: anonymous role can read editable project content';
+    end if;
+  exception when insufficient_privilege then
+    null;
+  end;
+
+  begin
+    perform content from public.portfolio_project_backups limit 1;
+    if found then
+      raise exception 'RLS failure: anonymous role can read project backups';
+    end if;
+  exception when insufficient_privilege then
+    null;
+  end;
 end $$;
 
 do $$
@@ -24,4 +34,3 @@ begin
 end $$;
 
 rollback;
-

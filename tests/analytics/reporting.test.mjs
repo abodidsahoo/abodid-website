@@ -4,12 +4,20 @@ import {
     emptyAnalyticsReport,
     getAnalyticsRangeStart,
     normalizeAnalyticsRange,
+    normalizeAnalyticsTrafficClass,
 } from '../../src/lib/analytics/reporting.js';
 
 test('normalizes unsupported analytics ranges', () => {
     assert.equal(normalizeAnalyticsRange('30d'), '30d');
     assert.equal(normalizeAnalyticsRange('year'), '7d');
     assert.equal(normalizeAnalyticsRange(null), '7d');
+});
+
+test('defaults analytics traffic to credible human sessions', () => {
+    assert.equal(normalizeAnalyticsTrafficClass('human'), 'human');
+    assert.equal(normalizeAnalyticsTrafficClass('filtered'), 'filtered');
+    assert.equal(normalizeAnalyticsTrafficClass('all'), 'human');
+    assert.equal(normalizeAnalyticsTrafficClass(null), 'human');
 });
 
 test('builds rolling report windows', () => {

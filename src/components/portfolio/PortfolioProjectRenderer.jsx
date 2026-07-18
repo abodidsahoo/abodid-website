@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { isExternalPortfolioHref, normalizePortfolioHref } from "../../lib/portfolio/schema";
+import { isExternalPortfolioHref, normalizePortfolioHref, serializeFilters } from "../../lib/portfolio/schema";
 import { getOptimizedImageSrcSet, getOptimizedImageUrl } from "../../lib/imageOptimization.js";
+import { computeFloatingLayout, getFloatingImageSizePreset, getFloatingStageSize, hashString } from "../../lib/moodboardLayout.js";
 import "../../styles/portfolio.css";
 import "../../styles/layout-preview.css";
 
@@ -39,6 +40,111 @@ function ResponsiveMediaImage({ media, src = media?.url, widths = [480, 800, 120
   );
 }
 
+function PortfolioFloatingGallery({ mediaList, blockId, spacing = "default", imageSize = "medium" }) {
+  const stageRef = useRef(null);
+  const [stageSize, setStageSize] = useState({ width: 960, height: 900, viewportHeight: 900 });
+  const [imageRatios, setImageRatios] = useState({});
+  const spacingMultiplier = spacing === "compact" ? .76 : spacing === "spacious" ? 1.24 : 1;
+  const { sizeMultiplier, minScale } = getFloatingImageSizePreset(imageSize);
+
+  const items = useMemo(() => mediaList.map((media, index) => {
+    const sourceId = String(media.id || media.storagePath || media.url || `image-${index + 1}`);
+    const id = `${sourceId}:${index}`;
+    const variantWithDimensions = Object.values(media.variants || {}).find((variant) => Number(variant?.width) > 0 && Number(variant?.height) > 0);
+    const metadataRatio = Number(media.aspectRatio)
+      || Number(media.aspect_ratio)
+      || (Number(media.width) > 0 && Number(media.height) > 0 ? Number(media.width) / Number(media.height) : 0)
+      || (variantWithDimensions ? Number(variantWithDimensions.width) / Number(variantWithDimensions.height) : 0);
+    return {
+      id,
+      media,
+      aspectRatio: metadataRatio > 0 ? metadataRatio : imageRatios[id] || 1,
+    };
+  }), [imageRatios, mediaList]);
+
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage || typeof window === "undefined") return undefined;
+    const updateSize = () => setStageSize(getFloatingStageSize({
+      width: stage.clientWidth || 960,
+      viewportHeight: window.innerHeight || 900,
+      itemCount: items.length,
+      sizeMultiplier,
+      spacingMultiplier,
+    }));
+    updateSize();
+    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(updateSize);
+    observer?.observe(stage);
+    window.addEventListener("resize", updateSize, { passive: true });
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("resize", updateSize);
+    };
+  }, [items.length, sizeMultiplier, spacingMultiplier]);
+
+  const layoutMap = useMemo(() => computeFloatingLayout(
+    items,
+    stageSize.width,
+    stageSize.height,
+    hashString(String(blockId)),
+    sizeMultiplier,
+    spacingMultiplier,
+    minScale,
+  ), [blockId, items, minScale, sizeMultiplier, spacingMultiplier, stageSize.height, stageSize.width]);
+
+  const stageContentBottom = useMemo(() => items.reduce((maxBottom, item) => {
+    const layout = layoutMap.get(item.id);
+    return layout ? Math.max(maxBottom, layout.top + layout.height) : maxBottom;
+  }, 12), [items, layoutMap]);
+
+  const stageRenderHeight = useMemo(() => {
+    const tailBuffer = Math.max(56, Math.min(108, stageSize.width * .05));
+    const viewportFloor = Math.max(420, stageSize.viewportHeight * .72);
+    return Math.max(viewportFloor, stageContentBottom + tailBuffer);
+  }, [stageContentBottom, stageSize.viewportHeight, stageSize.width]);
+
+  const recordImageRatio = (id, event) => {
+    const image = event.currentTarget;
+    if (!image?.naturalWidth || !image?.naturalHeight) return;
+    const ratio = image.naturalWidth / image.naturalHeight;
+    setImageRatios((current) => Math.abs((current[id] || 0) - ratio) < .001 ? current : { ...current, [id]: ratio });
+  };
+
+  if (!mediaList.length) return null;
+  return <div ref={stageRef} className="portfolio-floating-gallery" style={{ minHeight: `${stageRenderHeight}px` }}>
+    {items.map((item) => {
+      const layout = layoutMap.get(item.id);
+      if (!layout) return null;
+      return <div className="portfolio-floating-item" key={item.id} style={{
+        left: `${layout.left}px`,
+        top: `${layout.top}px`,
+        width: `${layout.width}px`,
+        height: `${layout.height}px`,
+        zIndex: layout.zIndex,
+        "--portfolio-float-y": `${(layout.driftY * (layout.breathDirection || 1)).toFixed(2)}px`,
+        "--portfolio-float-scale": layout.breathScale.toFixed(3),
+        "--portfolio-float-duration": `${layout.duration.toFixed(2)}s`,
+        "--portfolio-float-delay": `${layout.motionDelay.toFixed(2)}s`,
+      }}>
+        <div className="portfolio-floating-motion"><ImageFigure media={item.media} fit="contain" onImageLoad={(event) => recordImageRatio(item.id, event)} /></div>
+      </div>;
+    })}
+  </div>;
+}
+
+function PortfolioLightboxCover({ mediaList, onOpen, triggerRef }) {
+  const cover = mediaList[0];
+  if (!cover?.url) return null;
+  return <figure className="portfolio-lightbox-cover">
+    <button type="button" ref={triggerRef} onClick={() => onOpen(0)} aria-label={`Open lightbox with ${mediaList.length} image${mediaList.length === 1 ? "" : "s"}`}>
+      <ResponsiveMediaImage media={cover} src={cover.url} widths={[480, 800, 1200, 1600]} quality={76} sizes="(max-width: 760px) 100vw, 1200px" alt={cover.decorative ? "" : cover.alt || ""} loading="lazy" decoding="async" />
+      <span className="portfolio-lightbox-count">{mediaList.length} image{mediaList.length === 1 ? "" : "s"}</span>
+      <span className="portfolio-lightbox-open">Open lightbox <b aria-hidden="true">+</b></span>
+    </button>
+    {(cover.caption || cover.credit) && <figcaption>{cover.caption}{cover.caption && cover.credit ? " " : ""}{cover.credit && <span>Credit: {cover.credit}</span>}</figcaption>}
+  </figure>;
+}
+
 function ProjectCoverImage({ project }) {
   return (
     <ResponsiveMediaImage
@@ -75,6 +181,13 @@ function RichText({ text = "" }) {
   return String(text).split(/\n\s*\n/).filter(Boolean).map((paragraph, index) => (
     <p key={index}>{inlineMarkup(paragraph.replace(/\n/g, " "))}</p>
   ));
+}
+
+function ExternalProjectLink({ href, label, className = "" }) {
+  if (!href) return null;
+  return <a className={`portfolio-external-link ${className}`.trim()} href={href} {...externalLinkProps(href)}>
+    <span>{label || "Open link"}</span><b aria-hidden="true">↗</b>
+  </a>;
 }
 
 function parseVideo(value) {
@@ -234,7 +347,7 @@ function VideoEmbed({ content }) {
   );
 }
 
-function ImageFigure({ media, fit = "cover", onOpen, index }) {
+function ImageFigure({ media, fit = "cover", onOpen, index, onImageLoad }) {
   if (!media?.url) return null;
   const style = { objectPosition: `${media.focalX ?? 50}% ${media.focalY ?? 50}%`, objectFit: fit };
   const image = (
@@ -247,6 +360,7 @@ function ImageFigure({ media, fit = "cover", onOpen, index }) {
       alt={media.decorative ? "" : media.alt || ""}
       loading="lazy"
       decoding="async"
+      onLoad={onImageLoad}
       width={media.width || undefined}
       height={media.height || undefined}
       style={style}
@@ -353,93 +467,21 @@ function Lightbox({ media, index, onIndex, onClose }) {
   );
 }
 
-function GalleryCover({ mediaList, fit, onOpen, coverRef }) {
-  const count = mediaList.length;
-  const cover = mediaList[0];
-  if (!cover?.url || count === 0) return null;
-
-  const objectPos = (m) => `${m.focalX ?? 50}% ${m.focalY ?? 50}%`;
-  return (
-    <figure className="gallery-cover" ref={(node) => { if (coverRef) coverRef.current = node; }}>
-      {/* Stack layer 2 — third image, furthest back */}
-      {count >= 3 && (
-        <div className="gallery-stack gallery-stack-2" aria-hidden="true">
-          <ResponsiveMediaImage media={mediaList[2]} src={mediaList[2].url} widths={[480, 800]} quality={74} sizes="(max-width: 760px) 100vw, 800px" alt="" loading="lazy" decoding="async"
-            style={{ objectFit: fit || "cover", objectPosition: objectPos(mediaList[2]) }} />
-        </div>
-      )}
-      {/* Stack layer 1 — second image, middle */}
-      {count >= 2 && (
-        <div className="gallery-stack gallery-stack-1" aria-hidden="true">
-          <ResponsiveMediaImage media={mediaList[1]} src={mediaList[1].url} widths={[480, 800]} quality={74} sizes="(max-width: 760px) 100vw, 800px" alt="" loading="lazy" decoding="async"
-            style={{ objectFit: fit || "cover", objectPosition: objectPos(mediaList[1]) }} />
-        </div>
-      )}
-
-      <button
-        type="button"
-        className="gallery-cover-trigger"
-        onClick={() => onOpen(0)}
-        aria-label={`Open gallery with ${count} image${count === 1 ? "" : "s"}`}
-      >
-        <ResponsiveMediaImage
-          media={cover}
-          src={cover.url}
-          widths={[480, 800, 1200]}
-          quality={76}
-          sizes="(max-width: 760px) 100vw, 960px"
-          alt={cover.decorative ? "" : cover.alt || ""}
-          loading="lazy"
-          decoding="async"
-          className="gallery-cover-img"
-          style={{ objectFit: fit || "cover", objectPosition: objectPos(cover) }}
-        />
-
-        {/* Badge: image count top-right */}
-        <span className="gallery-badge" aria-hidden="true">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="2" />
-            <circle cx="8.5" cy="8.5" r="1.5" />
-            <polyline points="21 15 16 10 5 21" />
-          </svg>
-          {count} image{count === 1 ? "" : "s"}
-        </span>
-
-        {/* Hover: View Gallery label (desktop only) */}
-        <span className="gallery-hover-label" aria-hidden="true">View Gallery →</span>
-
-        {/* Mobile: persistent label */}
-        <span className="gallery-mobile-label" aria-hidden="true">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="2" />
-            <circle cx="8.5" cy="8.5" r="1.5" />
-            <polyline points="21 15 16 10 5 21" />
-          </svg>
-          View {count} images
-        </span>
-      </button>
-
-      {cover.caption && <figcaption className="gallery-cover-caption">{cover.caption}</figcaption>}
-    </figure>
-  );
-}
-
 function Block({ block }) {
   const [lightboxIndex, setLightboxIndex] = useState(null);
   const triggerRefs = useRef([]);
-  const coverRef = useRef(null);
   const { content = {}, settings = {} } = block;
   const width = settings.width || "wide";
   const spacing = settings.spacing || "default";
   const className = `portfolio-block portfolio-block-${block.blockType} width-${width} spacing-${spacing} align-${settings.alignment || "left"}`;
-  const mediaList = Array.isArray(content.media) ? content.media : content.media ? [content.media] : [];
+  const mediaList = (Array.isArray(content.media) ? content.media : content.media ? [content.media] : [])
+    .filter((item) => item && typeof item === "object");
   const openLightbox = (index) => { setLightboxIndex(index); };
   const closeLightbox = () => {
     const prior = lightboxIndex;
     setLightboxIndex(null);
     window.requestAnimationFrame(() => {
-      if (prior === 0 && coverRef.current) coverRef.current.querySelector("button")?.focus();
-      else triggerRefs.current[prior]?.focus?.();
+      (triggerRefs.current[prior] || triggerRefs.current[0])?.focus?.();
     });
   };
 
@@ -452,22 +494,64 @@ function Block({ block }) {
       body = <Tag>{content.text}</Tag>;
       break;
     }
+    case "two_columns": {
+      const columns = Array.isArray(content.columns) ? content.columns.slice(0, 2) : [];
+      const gap = Math.min(96, Math.max(0, Number(settings.columnGap) || 32));
+      body = <div className="portfolio-two-columns" style={{ "--portfolio-column-gap": `${gap}px` }}>
+        {Array.from({ length: 2 }, (_, index) => {
+          const column = columns[index] || {};
+          const legacyItems = [
+            column.heading ? { type: "heading", text: column.heading } : null,
+            column.text ? { type: "text", text: column.text } : null,
+            column.linkText || column.linkUrl ? { type: "link", text: column.linkText, url: column.linkUrl } : null,
+          ].filter(Boolean);
+          const items = Array.isArray(column.items) ? column.items : legacyItems;
+          return <article className="portfolio-two-column" key={column.id || index}>
+            {items.map((item, itemIndex) => {
+              const href = safeHref(item.url || item.linkUrl);
+              if (item.type === "heading") return item.text ? <h3 key={item.id || itemIndex}>{item.text}</h3> : null;
+              if (item.type === "text") return item.text ? <div className="portfolio-rich-text" key={item.id || itemIndex}><RichText text={item.text} /></div> : null;
+              if (item.type === "image") return href ? <ImageFigure key={item.id || itemIndex} media={{ url: href, alt: item.alt, caption: item.caption }} fit="cover" /> : null;
+              if (item.type === "button") return href ? <a className="portfolio-cta portfolio-column-button" key={item.id || itemIndex} href={href} {...externalLinkProps(href)}>{item.label || "Open link"}<span aria-hidden="true">↗</span></a> : null;
+              if (["link", "external_link"].includes(item.type)) return href && item.text ? <ExternalProjectLink className="is-column-link" key={item.id || itemIndex} href={href} label={item.text} /> : null;
+              return null;
+            })}
+          </article>;
+        })}
+      </div>;
+      break;
+    }
     case "quotation": body = <blockquote><p>{content.quote}</p>{content.attribution && <cite>{content.attribution}</cite>}</blockquote>; break;
     case "highlight": body = <aside className="portfolio-highlight">{content.text}</aside>; break;
     case "testimonial": body = <blockquote className="portfolio-testimonial"><p>{content.quote}</p><cite>{content.name}{content.role ? `, ${content.role}` : ""}</cite></blockquote>; break;
+    case "outcome": body = <div className="portfolio-outcome-block">{content.heading && <h2>{content.heading}</h2>}<div className="portfolio-rich-text"><RichText text={content.text} /></div></div>; break;
+    case "collaborator": {
+      const href = safeHref(content.url);
+      body = <div className="portfolio-profile-block"><div>{href ? <a href={href} target="_blank" rel="noopener noreferrer">{content.name || "Collaborator"}</a> : <span>{content.name}</span>}{content.role && <small>{content.role}</small>}</div></div>;
+      break;
+    }
+    case "organisation": {
+      const href = safeHref(content.url);
+      body = <div className="portfolio-profile-block"><div>{href ? <a href={href} target="_blank" rel="noopener noreferrer">{content.name || "Organisation"}</a> : <span>{content.name}</span>}{content.location && <small>{content.location}</small>}</div></div>;
+      break;
+    }
     case "single_image": body = <ImageFigure media={mediaList[0]} fit={settings.mediaFit} />; break;
-    case "image_gallery": body = (
-      <GalleryCover mediaList={mediaList} fit={settings.mediaFit} onOpen={openLightbox} coverRef={coverRef} />
-    ); break;
-    case "image_grid": body = (
-      <div className={`portfolio-image-grid columns-${Math.min(3, Math.max(1, Number(settings.columns) || 2))}`}>
-        {mediaList.map((media, index) => (
-          <div key={media.id || media.url || index} ref={(node) => { triggerRefs.current[index] = node?.querySelector?.("button") || node; }}>
-            <ImageFigure media={media} fit={settings.mediaFit} onOpen={settings.lightbox ? openLightbox : null} index={index} />
+    case "image_gallery":
+    case "image_grid": {
+      const displayMode = settings.displayMode || (block.blockType === "image_gallery" || settings.lightbox === true ? "lightbox" : "grid");
+      if (displayMode === "floating") {
+        body = <PortfolioFloatingGallery mediaList={mediaList} blockId={block.id || "multi-image"} spacing={spacing} imageSize={settings.imageSize || "medium"} />;
+      } else if (displayMode === "lightbox") {
+        body = <PortfolioLightboxCover mediaList={mediaList} onOpen={openLightbox} triggerRef={(node) => { triggerRefs.current[0] = node; }} />;
+      } else {
+        body = (
+          <div className={`portfolio-image-grid columns-${Math.min(3, Math.max(1, Number(settings.columns) || 2))}`}>
+            {mediaList.map((media, index) => <div key={media.id || media.url || index}><ImageFigure media={media} fit={settings.mediaFit} /></div>)}
           </div>
-        ))}
-      </div>
-    ); break;
+        );
+      }
+      break;
+    }
     case "video_embed": body = <VideoEmbed content={content} />; break;
     case "media_text": body = (
       <div className={`portfolio-media-text media-${content.mediaPosition || "left"}`}>
@@ -477,10 +561,16 @@ function Block({ block }) {
     ); break;
     case "external_link": {
       const href = safeHref(content.url);
-      body = href ? <a className="portfolio-cta" href={href} {...externalLinkProps(href)}>{content.label || "Open link"}<span aria-hidden="true">↗</span></a> : null;
+      body = href ? <div className="portfolio-external-link-block"><ExternalProjectLink href={href} label={content.label} /></div> : null;
+      break;
+    }
+    case "link": {
+      const href = safeHref(content.url);
+      body = href && content.text ? <a className="portfolio-text-link" href={href} {...externalLinkProps(href)}>{content.text}<span aria-hidden="true">↗</span></a> : null;
       break;
     }
     case "divider": body = <hr />; break;
+    case "spacer": body = <div className="portfolio-spacer" style={{ height: `${Math.min(480, Math.max(0, Number(content.height) || 0))}px` }} aria-hidden="true" />; break;
     default: body = null;
   }
   return (
@@ -500,36 +590,12 @@ export default function PortfolioProjectRenderer({ project }) {
 
 
 export function ProjectBlocks({ project }) {
-  const limited = project.workInProgress && project.limitedPublic;
   return (
     <div className="portfolio-project-body">
       {(project.blocks || []).length > 0 && (
         <div className="portfolio-blocks">
           {project.blocks.map(block => <Block block={block} key={block.id} />)}
         </div>
-      )}
-      {!limited && project.outcomeText && (
-        <section className="portfolio-outcome">
-          <h2>{project.outcomeHeading || "Outcome"}</h2>
-          <RichText text={project.outcomeText} />
-        </section>
-      )}
-      {!limited && project.collaborators?.length > 0 && (
-        <section className="portfolio-collaborators">
-          <h2>Collaborators</h2>
-          <ul>{project.collaborators.map((person, index) => {
-            const href = safeHref(person.primaryUrl || person.secondaryUrl);
-            return <li key={person.id || `${person.name}-${index}`}><div>{href ? <a href={href} {...externalLinkProps(href)}>{person.name}</a> : <span>{person.name}</span>}<small>{[person.roleLabel, person.organisation].filter(Boolean).join(" · ")}</small></div></li>;
-          })}</ul>
-        </section>
-      )}
-      {!limited && project.links?.length > 0 && (
-        <nav className="portfolio-project-links" aria-label="Related links">
-          {project.links.map((link, index) => {
-            const href = safeHref(link.url);
-            return href ? <a key={link.id || index} href={href} {...externalLinkProps(href)}>{link.label || "View related work"}<span aria-hidden="true">↗</span></a> : null;
-          })}
-        </nav>
       )}
     </div>
   );
@@ -538,12 +604,19 @@ export function ProjectBlocks({ project }) {
 /* ─── Shared helpers ──────────────────────────────────────── */
 function yr(p) {
   if (!p.yearStart) return "";
-  return p.yearEnd && p.yearEnd !== p.yearStart ? `${p.yearStart}–${p.yearEnd}` : String(p.yearStart);
+  return String(p.yearStart);
 }
 const p_roles  = p => (p.taxonomies || []).filter(t => (t.groupType || t.group_type) === "role");
 const p_genres = p => (p.taxonomies || []).filter(t => (t.groupType || t.group_type) === "genre");
 const p_types  = p => (p.taxonomies || []).filter(t => (t.groupType || t.group_type) === "project_type");
-const p_orgs   = p => (p.organisations || []).map(o => o.name).join(", ");
+
+function TaxonomyTags({ terms, groupType }) {
+  return <span className="lp-taxonomy-tags">{terms.map((term) => {
+    const slug = term.slug || "";
+    const href = `/work?${serializeFilters({ [groupType]: [slug] })}`;
+    return <a className="lp-taxonomy-tag" href={href} key={`${groupType}-${slug}`}>{term.label}</a>;
+  })}</span>;
+}
 
 /* Shared prose + blocks wrapper used by every layout */
 export function Body({ p, className = "", skipContext = false }) {
@@ -564,10 +637,9 @@ function L1({ p }) {
         <div className="l1-meta-col">
           <h1 className="l1-title">{p.title}</h1>
           {yr(p) && <div className="l1-row"><span>Year</span><strong>{yr(p)}</strong></div>}
-          {p_orgs(p) && <div className="l1-row"><span>Organisation</span><strong>{p_orgs(p)}</strong></div>}
-          {p_roles(p).length > 0 && <div className="l1-row"><span>Role</span><strong>{p_roles(p).map(r => r.label).join(", ")}</strong></div>}
-          {p_genres(p).length > 0 && <div className="l1-row"><span>Genre</span><strong>{p_genres(p).map(r => r.label).join(", ")}</strong></div>}
-          {p_types(p).length > 0 && <div className="l1-row"><span>Project Type</span><strong>{p_types(p).map(r => r.label).join(", ")}</strong></div>}
+          {p_roles(p).length > 0 && <div className="l1-row"><span>Role</span><strong><TaxonomyTags terms={p_roles(p)} groupType="role" /></strong></div>}
+          {p_genres(p).length > 0 && <div className="l1-row"><span>Genre</span><strong><TaxonomyTags terms={p_genres(p)} groupType="genre" /></strong></div>}
+          {p_types(p).length > 0 && <div className="l1-row"><span>Project Type</span><strong><TaxonomyTags terms={p_types(p)} groupType="project_type" /></strong></div>}
         </div>
         <div className="l1-context-col">
           {p.context ? (
@@ -604,12 +676,9 @@ function L3({ p }) {
           {p.oneLineDescription && <p className="l3-prop">{p.oneLineDescription}</p>}
           <dl className="l3-dl">
             {yr(p)             && <><dt>Year</dt><dd>{yr(p)}</dd></>}
-            {p_orgs(p)         && <><dt>Organisation</dt><dd>{p_orgs(p)}</dd></>}
-            {p_roles(p).length > 0 && <><dt>Role</dt><dd>{p_roles(p).map(r => r.label).join(", ")}</dd></>}
-            {p_genres(p).length > 0 && <><dt>Genre</dt><dd>{p_genres(p).map(r => r.label).join(", ")}</dd></>}
-            {p.location        && <><dt>Location</dt><dd>{p.location}</dd></>}
-            {p.duration        && <><dt>Duration</dt><dd>{p.duration}</dd></>}
-            {p_types(p).length > 0 && <><dt>Project Type</dt><dd>{p_types(p).map(r => r.label).join(", ")}</dd></>}
+            {p_roles(p).length > 0 && <><dt>Role</dt><dd><TaxonomyTags terms={p_roles(p)} groupType="role" /></dd></>}
+            {p_genres(p).length > 0 && <><dt>Genre</dt><dd><TaxonomyTags terms={p_genres(p)} groupType="genre" /></dd></>}
+            {p_types(p).length > 0 && <><dt>Project Type</dt><dd><TaxonomyTags terms={p_types(p)} groupType="project_type" /></dd></>}
           </dl>
         </aside>
         <div className="l3-main">
@@ -635,11 +704,10 @@ function L4({ p }) {
             <p className="l4-hero-context">{p.oneLineDescription}</p>
           )}
           <div className="l4-meta">
-            {p_roles(p).length > 0 && <span>{p_roles(p).map(r => r.label).join(", ")}</span>}
-            {p_genres(p).length > 0 && <span>{p_genres(p).map(r => r.label).join(", ")}</span>}
-            {p_orgs(p) && <span>{p_orgs(p)}</span>}
-            {yr(p) && <span>{yr(p)}</span>}
-            {p_types(p).length > 0 && <span>{p_types(p).map(r => r.label).join(", ")}</span>}
+            {p_roles(p).length > 0 && <span className="lp-taxonomy-meta"><b>Role</b><TaxonomyTags terms={p_roles(p)} groupType="role" /></span>}
+            {p_genres(p).length > 0 && <span className="lp-taxonomy-meta"><b>Genre</b><TaxonomyTags terms={p_genres(p)} groupType="genre" /></span>}
+            {yr(p) && <span className="lp-meta-year">{yr(p)}</span>}
+            {p_types(p).length > 0 && <span className="lp-taxonomy-meta"><b>Project type</b><TaxonomyTags terms={p_types(p)} groupType="project_type" /></span>}
           </div>
         </div>
         <div className="l4-image-side">
@@ -658,11 +726,10 @@ function L6({ p }) {
       <header className="l6-header">
         <h1 className="l6-title">{p.title}</h1>
         <div className="l6-meta">
-          {p_roles(p).length > 0 && <span>{p_roles(p).map(r => r.label).join(", ")}</span>}
-          {p_genres(p).length > 0 && <span>{p_genres(p).map(r => r.label).join(", ")}</span>}
-          {p_orgs(p) && <span>{p_orgs(p)}</span>}
-          {yr(p) && <span>{yr(p)}</span>}
-          {p_types(p).length > 0 && <span>{p_types(p).map(r => r.label).join(", ")}</span>}
+          {p_roles(p).length > 0 && <span className="lp-taxonomy-meta"><b>Role</b><TaxonomyTags terms={p_roles(p)} groupType="role" /></span>}
+          {p_genres(p).length > 0 && <span className="lp-taxonomy-meta"><b>Genre</b><TaxonomyTags terms={p_genres(p)} groupType="genre" /></span>}
+          {yr(p) && <span className="lp-meta-year">{yr(p)}</span>}
+          {p_types(p).length > 0 && <span className="lp-taxonomy-meta"><b>Project type</b><TaxonomyTags terms={p_types(p)} groupType="project_type" /></span>}
         </div>
       </header>
       {p.coverUrl && (
@@ -690,12 +757,9 @@ function L7({ p }) {
           </div>
           <aside className="l7-right">
             {yr(p)   && <div className="l7-row"><span>Year</span><strong>{yr(p)}</strong></div>}
-            {p_orgs(p) && <div className="l7-row"><span>Organisation</span><strong>{p_orgs(p)}</strong></div>}
-            {p_roles(p).length > 0 && <div className="l7-row"><span>Role</span><strong>{p_roles(p).map(r => r.label).join(", ")}</strong></div>}
-            {p_genres(p).length > 0 && <div className="l7-row"><span>Genre</span><strong>{p_genres(p).map(r => r.label).join(", ")}</strong></div>}
-            {p.location && <div className="l7-row"><span>Location</span><strong>{p.location}</strong></div>}
-            {p.duration && <div className="l7-row"><span>Duration</span><strong>{p.duration}</strong></div>}
-            {p_types(p).length > 0 && <div className="l7-row"><span>Project Type</span><strong>{p_types(p).map(r => r.label).join(", ")}</strong></div>}
+            {p_roles(p).length > 0 && <div className="l7-row"><span>Role</span><strong><TaxonomyTags terms={p_roles(p)} groupType="role" /></strong></div>}
+            {p_genres(p).length > 0 && <div className="l7-row"><span>Genre</span><strong><TaxonomyTags terms={p_genres(p)} groupType="genre" /></strong></div>}
+            {p_types(p).length > 0 && <div className="l7-row"><span>Project Type</span><strong><TaxonomyTags terms={p_types(p)} groupType="project_type" /></strong></div>}
           </aside>
         </div>
       </div>

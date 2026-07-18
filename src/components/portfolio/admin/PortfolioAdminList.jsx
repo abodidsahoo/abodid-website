@@ -7,20 +7,38 @@ import { archivePortfolioProject, createPortfolioProject, listAdminProjects, reo
 import "../../../styles/portfolio-admin.css";
 
 const formatDate = (value) => value ? new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value)) : "Never";
+const PUBLIC_ORDER_CHANNEL = "portfolio-public-order";
+
+function announcePublicOrder(ids) {
+  try {
+    window.localStorage.setItem(PUBLIC_ORDER_CHANNEL, JSON.stringify({ ids, updatedAt: Date.now() }));
+    if ("BroadcastChannel" in window) {
+      const channel = new BroadcastChannel(PUBLIC_ORDER_CHANNEL);
+      channel.postMessage({ ids });
+      channel.close();
+    }
+  } catch {
+    // Persistence succeeded already; cross-tab refresh is a progressive enhancement.
+  }
+}
 
 function ProjectRow({ project, disabled }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: project.id, disabled });
+  const title = project.draft?.title || "Untitled project";
   return (
     <article ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? .55 : 1 }} className="portfolio-admin-row">
-      <button type="button" className="drag-handle" {...attributes} {...listeners} disabled={disabled} aria-label={`Reorder ${project.draft?.title || "project"}`}>⋮⋮</button>
-      <div className="admin-project-thumb">{project.draft?.cover_url ? <img src={project.draft.cover_url} alt="" /> : <span>No cover</span>}</div>
-      <div className="admin-project-main">
-        <h2>{project.draft?.title || "Untitled project"}</h2>
-        <p>{project.draft?.one_line_description || "No proposition yet"}</p>
-      </div>
-      <span className={`project-status status-${project.status}`}>{project.status === "wip" ? "Published · WIP" : project.status}</span>
-      <div className="admin-project-dates"><span>Saved {formatDate(project.draft?.updated_at)}</span><span>Published {formatDate(project.published?.published_at)}</span></div>
-      <div className="admin-project-actions"><a href={`/admin/projects/${project.slug}`}>View / Edit</a>{project.status !== "archived" && <button type="button" data-archive={project.id}>Archive</button>}</div>
+      <button type="button" className="drag-handle" {...attributes} {...listeners} disabled={disabled} aria-label={`Reorder ${title}`}>⋮⋮</button>
+      <a className="admin-project-link" href={`/admin/projects/${project.slug}`} aria-label={`View and edit ${title}`}>
+        <div className="admin-project-thumb">{project.draft?.cover_url ? <img src={project.draft.cover_url} alt="" /> : <span>No cover</span>}</div>
+        <div className="admin-project-main">
+          <h2>{title}</h2>
+          <p>{project.draft?.one_line_description || "No proposition yet"}</p>
+        </div>
+        <span className={`project-status status-${project.status}`}>{project.status === "wip" ? "Published · WIP" : project.status}</span>
+        <div className="admin-project-dates"><span>Saved {formatDate(project.draft?.updated_at)}</span><span>Published {formatDate(project.published?.published_at)}</span></div>
+        <span className="admin-project-edit-cue" aria-hidden="true">View / Edit <span>→</span></span>
+      </a>
+      {project.status !== "archived" && <button type="button" className="admin-project-archive" data-archive={project.id}>Archive</button>}
     </article>
   );
 }
@@ -29,7 +47,6 @@ export default function PortfolioAdminList({ embedded = false }) {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
   const [creating, setCreating] = useState(false);
@@ -64,12 +81,17 @@ export default function PortfolioAdminList({ embedded = false }) {
     } catch (err) { setError(err.message || "Could not create project."); setCreating(false); }
   };
   const onDragEnd = async ({ active, over }) => {
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
     if (!over || active.id === over.id || orderingDisabled) return;
     const oldIndex = projects.findIndex((item) => item.id === active.id);
     const newIndex = projects.findIndex((item) => item.id === over.id);
     const next = arrayMove(projects, oldIndex, newIndex);
     setProjects(next);
-    try { await reorderPortfolioProjects(next.map((item) => item.id)); setNotice("Public Work order updated."); }
+    try {
+      const ids = next.map((item) => item.id);
+      await reorderPortfolioProjects(ids);
+      announcePublicOrder(ids);
+    }
     catch (err) { setError(err.message || "Ordering failed."); await load(); }
   };
   const onClick = async (event) => {
@@ -90,7 +112,6 @@ export default function PortfolioAdminList({ embedded = false }) {
         <div className="status-tabs" role="group" aria-label="Project status">{["all", "draft", "published", "wip", "archived"].map((item) => <button type="button" key={item} className={status === item ? "active" : ""} onClick={() => setStatus(item)}>{item === "wip" ? "WIP" : item}</button>)}</div>
       </section>
       {orderingDisabled && <p className="admin-hint">Clear search and status filters to reorder the public grid.</p>}
-      {notice && <div className="admin-notice success">{notice}</div>}
       {error && <div className="admin-notice error">{error}</div>}
       <section className="portfolio-admin-results" aria-live="polite">
         {loading ? <div className="admin-loading">Loading portfolio projects…</div> : (

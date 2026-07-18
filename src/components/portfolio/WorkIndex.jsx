@@ -1,21 +1,15 @@
-import { useEffect, useMemo, useState, useRef } from "react";
-import { matchesStrictAnd, parseFilters, serializeFilters, slugify } from "../../lib/portfolio/schema";
+import { useEffect, useMemo, useState } from "react";
+import { slugify } from "../../lib/portfolio/schema";
 import { getOptimizedImageSrcSet, getOptimizedImageUrl } from "../../lib/imageOptimization.js";
 import "../../styles/portfolio.css";
 
-const groupLabels = {
-  primary: "Focus",
-  organisation: "Organisation",
-  role: "Role",
-  project_type: "Project type",
-  genre: "Theme",
-  theme: "Theme",
-  method: "Method",
-  technology: "Technology",
-  year: "Year",
-};
+const PUBLIC_ORDER_CHANNEL = "portfolio-public-order";
 
-const yearLabel = (card) => card.yearEnd && card.yearEnd !== card.yearStart ? `${card.yearStart}-${card.yearEnd}` : card.yearStart;
+const applyPublicOrder = (projects, ids) => {
+  if (!Array.isArray(ids) || !ids.length) return projects;
+  const positions = new Map(ids.map((id, index) => [id, index]));
+  return [...projects].sort((left, right) => (positions.get(left.id) ?? Number.MAX_SAFE_INTEGER) - (positions.get(right.id) ?? Number.MAX_SAFE_INTEGER));
+};
 
 const permanentCoverSources = (project) => {
   const variants = project.coverMedia?.variants || {};
@@ -29,138 +23,103 @@ const permanentCoverSources = (project) => {
   };
 };
 
+const yearLabel = (card) => card.yearStart;
+
 export default function WorkIndex({ projects = [] }) {
-  const [selected, setSelected] = useState(() => typeof window === "undefined" ? {} : parseFilters(window.location.search));
-  const [filterOpen, setFilterOpen] = useState(false);
-  const popoverRef = useRef(null);
-  const triggerRef = useRef(null);
+  const [orderedProjects, setOrderedProjects] = useState(projects);
+  const [activeTag, setActiveTag] = useState(() => {
+    if (typeof window === "undefined") return "All";
+    const params = new URLSearchParams(window.location.search);
+    const tagParam = params.get("tag") || params.get("terms") || params.get("genre") || params.get("role") || params.get("project_type");
+    return tagParam || "All";
+  });
+
+  useEffect(() => setOrderedProjects(projects), [projects]);
 
   useEffect(() => {
-    const sync = () => setSelected(parseFilters(window.location.search));
+    const receiveOrder = (ids) => setOrderedProjects((current) => applyPublicOrder(current, ids));
+    const handleStorage = (event) => {
+      if (event.key !== PUBLIC_ORDER_CHANNEL || !event.newValue) return;
+      try { receiveOrder(JSON.parse(event.newValue).ids); } catch { /* Ignore malformed external storage values. */ }
+    };
+    const channel = "BroadcastChannel" in window ? new BroadcastChannel(PUBLIC_ORDER_CHANNEL) : null;
+    if (channel) channel.onmessage = (event) => receiveOrder(event.data?.ids);
+    window.addEventListener("storage", handleStorage);
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      channel?.close();
+    };
+  }, []);
+
+  useEffect(() => {
+    const sync = () => {
+      const params = new URLSearchParams(window.location.search);
+      const tagParam = params.get("tag") || params.get("terms") || params.get("genre") || params.get("role") || params.get("project_type");
+      setActiveTag(tagParam || "All");
+    };
     window.addEventListener("popstate", sync);
     return () => window.removeEventListener("popstate", sync);
   }, []);
 
-  useEffect(() => {
-    if (!filterOpen) return;
-    const handleClick = (e) => {
-      if (popoverRef.current && !popoverRef.current.contains(e.target) && triggerRef.current && !triggerRef.current.contains(e.target)) {
-        setFilterOpen(false);
-      }
-    };
-    const handleEsc = (e) => {
-      if (e.key === "Escape") setFilterOpen(false);
-    };
-    document.addEventListener("mousedown", handleClick);
-    document.addEventListener("keydown", handleEsc);
-    return () => {
-      document.removeEventListener("mousedown", handleClick);
-      document.removeEventListener("keydown", handleEsc);
-    };
-  }, [filterOpen]);
-
-  const groups = useMemo(() => {
-    const values = new Map();
-    projects.forEach((project) => {
+  // Extract, count and sort unique taxonomy terms across all published projects
+  const categories = useMemo(() => {
+    const counts = {};
+    orderedProjects.forEach((project) => {
       (project.taxonomies || []).forEach((term) => {
-        const group = term.groupType || term.group_type;
-        if (!["role", "project_type", "genre", "theme"].includes(group)) return;
-        if (!values.has(group)) values.set(group, new Map());
-        values.get(group).set(term.slug, term.label);
+        const label = term.label?.trim();
+        if (label) {
+          counts[label] = (counts[label] || 0) + 1;
+        }
       });
-      (project.organisations || []).forEach((org) => {
-        if (!values.has("organisation")) values.set("organisation", new Map());
-        values.get("organisation").set(org.slug || slugify(org.name), org.name);
-      });
-      if (project.yearStart) {
-        if (!values.has("year")) values.set("year", new Map());
-        values.get("year").set(String(project.yearStart), String(project.yearStart));
-      }
     });
-    return [...values.entries()].map(([group, options]) => ({
-      group,
-      options: [...options.entries()].map(([slug, label]) => ({ slug, label })).sort((a, b) => a.label.localeCompare(b.label)),
-    })).sort((a, b) => {
-      const order = Object.keys(groupLabels);
-      return order.indexOf(a.group) - order.indexOf(b.group);
-    });
-  }, [projects]);
 
-  const filtered = useMemo(() => projects.filter((project) => matchesStrictAnd(project, selected)), [projects, selected]);
-  const selectedItems = useMemo(() => Object.entries(selected).flatMap(([group, slugs]) => (slugs || []).map((slug) => ({
-    group,
-    slug,
-    label: groups.find((item) => item.group === group)?.options.find((item) => item.slug === slug)?.label || slug,
-  }))), [groups, selected]);
+    const sorted = Object.keys(counts).sort((a, b) => counts[b] - counts[a] || a.localeCompare(b));
+    return ["All", ...sorted];
+  }, [orderedProjects]);
 
-  const commit = (next) => {
-    setSelected(next);
-    const query = serializeFilters(next);
+  const normalizedActiveTag = useMemo(() => {
+    if (activeTag === "All") return "All";
+    const match = categories.find((cat) => cat.toLowerCase() === activeTag.toLowerCase() || slugify(cat) === slugify(activeTag));
+    return match || activeTag;
+  }, [categories, activeTag]);
+
+  const handleTagClick = (category) => {
+    const nextTag = normalizedActiveTag === category ? "All" : category;
+    setActiveTag(nextTag);
+    const params = new URLSearchParams();
+    if (nextTag !== "All") {
+      params.set("tag", slugify(nextTag));
+    }
+    const query = params.toString();
     window.history.pushState({}, "", `${window.location.pathname}${query ? `?${query}` : ""}`);
   };
-  
-  const toggle = (group, slug) => {
-    const current = selected[group] || [];
-    const values = current.includes(slug) ? current.filter((value) => value !== slug) : [...current, slug];
-    const next = { ...selected };
-    if (values.length) next[group] = values;
-    else delete next[group];
-    commit(next);
-  };
+
+  const filtered = useMemo(() => {
+    if (normalizedActiveTag === "All") return orderedProjects;
+    const targetSlug = slugify(normalizedActiveTag);
+    return orderedProjects.filter((project) => {
+      return (project.taxonomies || []).some(
+        (term) => term.label === normalizedActiveTag || term.slug === targetSlug || slugify(term.label || "") === targetSlug
+      );
+    });
+  }, [orderedProjects, normalizedActiveTag]);
 
   return (
     <div className="work-index-app">
-      <div className="work-toolbar-container">
-        <div className="work-toolbar">
-          <span className="work-toolbar-label">{selectedItems.length > 0 ? "Filtered work" : "All work"}</span>
-          <button 
-            type="button" 
-            ref={triggerRef}
-            className={`work-toolbar-filter-btn ${filterOpen ? 'is-open' : ''}`}
-            onClick={() => setFilterOpen(v => !v)}
-            aria-expanded={filterOpen}
-          >
-            Filter +
-          </button>
-          <span className="work-toolbar-count">{filtered.length} {filtered.length === 1 ? "project" : "projects"}</span>
+      {/* Filter Bar */}
+      <div className="filter-bar">
+        <div className="filter-scroll">
+          {categories.map((category) => (
+            <button
+              key={category}
+              type="button"
+              onClick={() => handleTagClick(category)}
+              className={`filter-btn ${normalizedActiveTag === category ? "contrast-active" : ""}`}
+            >
+              {category}
+            </button>
+          ))}
         </div>
-
-        {filterOpen && (
-          <div className="work-filter-popover" ref={popoverRef}>
-            {groups.map(({ group, options }) => (
-              <div key={group} className="filter-group" role="group" aria-labelledby={`filter-group-${group}`}>
-                <div id={`filter-group-${group}`} className="filter-legend">{groupLabels[group] || group}</div>
-                <div className="filter-options">
-                  {options.map((option) => {
-                    const active = selected[group]?.includes(option.slug) || false;
-                    return (
-                      <button 
-                        key={option.slug} 
-                        type="button" 
-                        className={active ? "is-selected" : ""} 
-                        aria-pressed={active} 
-                        onClick={() => toggle(group, option.slug)}
-                      >
-                        {option.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {selectedItems.length > 0 && (
-          <div className="selected-filter-chips" aria-label="Selected filters">
-            {selectedItems.map((item) => (
-              <button key={`${item.group}-${item.slug}`} type="button" onClick={() => toggle(item.group, item.slug)} aria-label={`Remove ${item.label} filter`}>
-                {item.label}<span aria-hidden="true">×</span>
-              </button>
-            ))}
-            <button type="button" className="clear-all-btn" onClick={() => commit({})}>Clear filters</button>
-          </div>
-        )}
       </div>
 
       {filtered.length > 0 ? (
@@ -168,59 +127,65 @@ export default function WorkIndex({ projects = [] }) {
           {filtered.map((project) => {
             const permanentCover = permanentCoverSources(project);
             return (
-            <article className="work-card" key={project.id || project.slug}>
-              <a href={`/work/${project.slug}`} className="work-card-image">
-                {project.coverUrl && <img
-                  src={permanentCover?.src || getOptimizedImageUrl(project.coverUrl, { width: 1200, quality: 74 })}
-                  srcSet={permanentCover?.srcSet || getOptimizedImageSrcSet(project.coverUrl, { widths: [480, 800, 1200], quality: 74 })}
-                  sizes="(max-width: 760px) calc(100vw - 36px), 50vw"
-                  alt={project.coverAlt || ""}
-                  loading="lazy"
-                  decoding="async"
-                  width="1200"
-                  height="900"
-                  style={{ objectPosition: `${project.coverFocalX ?? 50}% ${project.coverFocalY ?? 50}%` }}
-                />}
-              </a>
-              <div className="work-card-body">
-                <div className="work-card-meta">
-                  <span>{yearLabel(project)}</span>
-                  {project.workInProgress && <span className="portfolio-wip">Work in progress</span>}
-                </div>
-                <h2><a href={`/work/${project.slug}`}>{project.title}</a></h2>
-                <p>{project.oneLineDescription}</p>
-                
-                {project.organisations?.length > 0 && (
-                  <p className="work-card-organisation">{project.organisations.map((org) => org.name).join(", ")}</p>
-                )}
-
-                {(() => {
-                  const roles = project.taxonomies?.filter(t => t.groupType === 'role' || t.group_type === 'role');
-                  const themes = project.taxonomies?.filter(t => t.groupType === 'genre' || t.group_type === 'genre' || t.groupType === 'theme' || t.group_type === 'theme');
-                  if (!roles?.length && !themes?.length) return null;
+              <article className="work-card" key={project.id || project.slug}>
+                <a href={`/work/${project.slug}`} className="work-card-image">
+                  {project.coverUrl && (
+                    <img
+                      src={permanentCover?.src || getOptimizedImageUrl(project.coverUrl, { width: 1200, quality: 74 })}
+                      srcSet={permanentCover?.srcSet || getOptimizedImageSrcSet(project.coverUrl, { widths: [480, 800, 1200], quality: 74 })}
+                      sizes="(max-width: 760px) calc(100vw - 36px), 50vw"
+                      alt={project.coverAlt || ""}
+                      loading="lazy"
+                      decoding="async"
+                      width="1200"
+                      height="900"
+                      style={{ objectPosition: `${project.coverFocalX ?? 50}% ${project.coverFocalY ?? 50}%` }}
+                    />
+                  )}
+                </a>
+                <div className="work-card-body">
+                  <div className="work-card-meta">
+                    <span>{yearLabel(project)}</span>
+                    {project.workInProgress && <span className="portfolio-wip">Work in progress</span>}
+                  </div>
+                  <h2><a href={`/work/${project.slug}`}>{project.title}</a></h2>
+                  <p>{project.oneLineDescription}</p>
                   
-                  return (
-                    <div className="work-card-footer">
-                      {themes?.length > 0 && (
-                        <div className="work-card-footer-row" style={{ gridTemplateColumns: '1fr' }}>
-                          <div className="work-card-labels">
-                            {themes.map((term) => <span key={`${term.groupType}-${term.slug}`}>{term.label}</span>)}
+                  {project.organisations?.length > 0 && (
+                    <p className="work-card-organisation">{project.organisations.map((org) => org.name).join(", ")}</p>
+                  )}
+
+                  {(() => {
+                    const roles = project.taxonomies?.filter((t) => t.groupType === "role" || t.group_type === "role");
+                    const themes = project.taxonomies?.filter((t) => t.groupType === "genre" || t.group_type === "genre" || t.groupType === "theme" || t.group_type === "theme");
+                    if (!roles?.length && !themes?.length) return null;
+                    
+                    return (
+                      <div className="work-card-footer">
+                        {themes?.length > 0 && (
+                          <div className="work-card-footer-row" style={{ gridTemplateColumns: "1fr" }}>
+                            <div className="work-card-labels">
+                              {themes.map((term) => <span key={`${term.groupType}-${term.slug}`}>{term.label}</span>)}
+                            </div>
                           </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })()}
-              </div>
-            </article>
-          );})}
+                        )}
+                      </div>
+                    );
+                  })()}
+                </div>
+              </article>
+            );
+          })}
         </div>
       ) : (
         <div className="work-empty">
-          <h2>No projects match these filters.</h2>
-          <button type="button" className="clear-all-btn" onClick={() => commit({})}>Clear filters</button>
+          <h2>No projects match this filter.</h2>
+          <button type="button" className="clear-all-btn" onClick={() => handleTagClick("All")}>
+            Show all projects
+          </button>
         </div>
       )}
     </div>
   );
 }
+

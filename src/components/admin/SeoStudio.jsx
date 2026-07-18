@@ -113,6 +113,25 @@ export default function SeoStudio() {
       ? null
       : new URLSearchParams(window.location.search).get("edit"),
   );
+  const requestedPrefillRef = useRef(
+    typeof window === "undefined"
+      ? null
+      : (() => {
+          const params = new URLSearchParams(window.location.search);
+          const pagePath = params.get("edit");
+          if (!pagePath) return null;
+          return {
+            page_path: pagePath,
+            page_title: params.get("prefill_page_title") || "",
+            meta_title: params.get("prefill_meta_title") || "",
+            meta_description: params.get("prefill_meta_description") || "",
+            og_image_url: params.get("prefill_og_image_url") || "",
+            og_image_alt: params.get("prefill_og_image_alt") || "",
+            robots_index: params.get("prefill_robots_index") !== "false",
+            is_active: true,
+          };
+        })(),
+  );
 
   const pages = useMemo(() => mergeManagedSeoPages(rows), [rows]);
   const filteredPages = useMemo(() => {
@@ -200,7 +219,12 @@ export default function SeoStudio() {
       const requestedPage = merged.find(
         (page) => page.id === editKey || page.page_path === editKey,
       );
-      if (requestedPage) openEditor(requestedPage);
+      const requestedPrefill = requestedPrefillRef.current;
+      requestedPrefillRef.current = null;
+      if (requestedPage || requestedPrefill) {
+        const page = { ...EMPTY_FORM, ...(requestedPrefill || {}), ...(requestedPage || {}) };
+        openEditor(page);
+      }
     }
   };
 

@@ -50,13 +50,16 @@ export interface PortfolioDraft {
   workInProgress: boolean;
   limitedPublic: boolean;
   coverUrl: string;
+  coverMedia?: PortfolioMedia | null;
   coverAlt: string;
   coverFocalX: number;
   coverFocalY: number;
   seoTitle: string;
   metaDescription: string;
   socialImageUrl: string;
+  socialImageMedia?: PortfolioMedia | null;
   searchVisible: boolean;
+  layoutStyle: number;
   blocks: PortfolioBlock[];
   taxonomies: PortfolioTaxonomy[];
   organisations: Record<string, unknown>[];
@@ -64,3 +67,26 @@ export interface PortfolioDraft {
   links: Record<string, unknown>[];
 }
 
+export type PortfolioProjectContent = Omit<PortfolioDraft, "id" | "lockVersion" | "revisionNumber">;
+
+export interface PortfolioProjectRecord {
+  id: string;
+  slug: string;
+  title: string;
+  status: PortfolioProjectStatus;
+  content: PortfolioProjectContent;
+  publishedContent: PortfolioProjectContent | null;
+  publishedVersion: number;
+  publishedAt: string | null;
+  lockVersion: number;
+}
+
+export interface PortfolioProjectBackup {
+  id: string;
+  projectId: string;
+  versionNumber: number;
+  title: string;
+  slug: string;
+  content: PortfolioProjectContent;
+  createdAt: string;
+}

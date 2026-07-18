@@ -65,8 +65,11 @@ const pagePath = Astro.url.pathname;
 </html>
 
 <style define:vars={{ padding: fullWidth ? '0' : '2rem', maxWidth: fullWidth ? '100%' : 'var(--max-width)' }}>
+  html.admin-document,
   body {
     background-color: var(--bg-color);
+  }
+  body {
     color: var(--text-primary);
     overflow: var(--overflow-y, auto);
   }

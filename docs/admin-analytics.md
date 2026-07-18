@@ -6,12 +6,16 @@ active page-view time, then presents the results as summary metrics, a line
 chart, a country bar chart, a traffic-source pie chart, page rankings, and
 visitor journeys. It also records mobile-menu opens, selections, dismissals,
 CTA/social clicks, ranked destinations, and country-level selection rates.
+The default Human visits tab includes only sessions with at least two seconds
+of active, visible engagement. Lower-engagement sessions are retained in the
+separate Filtered traffic tab so they do not distort the primary metrics.
 
 ## Architecture
 
 - `public/scripts/journey-tracker.js` records public page opens and active,
   visible engagement time. Admin, API, preview, test, and automated-browser
-  traffic is excluded.
+  traffic is excluded. A one-time engagement update is sent when a visible,
+  focused visit reaches the two-second human-traffic threshold.
 - `POST /api/analytics/collect` validates and sanitises same-origin events. It
   uses the service-role client only on the server; the key is never bundled for
   the browser.
@@ -70,6 +74,12 @@ Mobile-menu interaction reporting is added by
 `supabase/migrations/20260715120000_add_navigation_analytics.sql`. It creates
 the event table and its protected collection/reporting functions, and adds the
 table to the same administrator-only Realtime flow.
+
+Human and filtered traffic reporting is added by
+`supabase/migrations/20260718150000_separate_human_and_filtered_analytics.sql`.
+It applies the same session-level classification to summaries, charts, page
+rankings, journeys, common routes, and mobile-menu metrics. Existing records
+are classified automatically; no analytics rows are deleted or rewritten.
 
 For an existing database, confirm the migration appears in the Supabase
 migration history before testing the panel. The `analytics_build_report`

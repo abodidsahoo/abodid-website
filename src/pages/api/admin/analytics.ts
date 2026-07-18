@@ -3,6 +3,7 @@ import {
     emptyAnalyticsReport,
     getAnalyticsRangeStart,
     normalizeAnalyticsRange,
+    normalizeAnalyticsTrafficClass,
 } from '../../../lib/analytics/reporting.js';
 import { createSupabaseServiceClient } from '../../../lib/supabaseServer';
 
@@ -43,6 +44,7 @@ export const GET: APIRoute = async ({ request, url }) => {
         }
 
         const range = normalizeAnalyticsRange(url.searchParams.get('range'));
+        const trafficClass = normalizeAnalyticsTrafficClass(url.searchParams.get('traffic'));
         const submissionId = url.searchParams.get('submission') || '';
         const newsletterSubmissionId = url.searchParams.get('newsletterSubmission') || '';
         let focusedJourney = null;
@@ -93,7 +95,10 @@ export const GET: APIRoute = async ({ request, url }) => {
         }
         const timezoneOffset = Number(url.searchParams.get('timezoneOffset') || 0);
         const startAt = getAnalyticsRangeStart(range, new Date(), timezoneOffset);
-        const reportArgs = { p_start_at: startAt.toISOString() };
+        const reportArgs = {
+            p_start_at: startAt.toISOString(),
+            p_traffic_class: trafficClass,
+        };
         const [trafficResult, navigationResult] = await Promise.all([
             supabase.rpc('analytics_build_report', reportArgs),
             supabase.rpc('analytics_build_navigation_report', reportArgs),
@@ -117,6 +122,7 @@ export const GET: APIRoute = async ({ request, url }) => {
 
         return json({
             range,
+            trafficClass,
             startAt: startAt.toISOString(),
             generatedAt: new Date().toISOString(),
             report,
