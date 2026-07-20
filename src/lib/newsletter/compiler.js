@@ -595,8 +595,9 @@ export const compileNewsletterEmail = ({
 } = {}) => {
     const normalizedSettings = normalizeNewsletterSettings(settings);
     const content = renderNewsletterBlocks({ blocks, settings: normalizedSettings, renderPlaceholders });
+    const preheaderPadding = '&#847;&zwnj;&nbsp;'.repeat(90);
     const preview = previewText ? `
-<div style="display:none!important;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">${escapeNewsletterHtml(previewText)}&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;</div>` : '';
+<div style="display:none!important;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:#ffffff;">${escapeNewsletterHtml(previewText)}${preheaderPadding}</div>` : '';
     const pixelUrl = safeUrl(trackingPixelUrl);
     const trackingPixel = pixelUrl
         ? `<img src="${pixelUrl}" width="1" height="1" alt="" style="display:none;width:1px;height:1px;border:0;" />`
