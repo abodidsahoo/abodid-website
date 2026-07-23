@@ -6,6 +6,8 @@ export type XRShowcaseItem = {
   description?: string;
   url?: string;
   canonicalUrl?: string;
+  thumbnail?: string;
+  thumbnailAlt?: string;
   primaryGenre: string;
   tags: string[];
   source?: string;
@@ -13,6 +15,9 @@ export type XRShowcaseItem = {
   contentType?: string;
   status?: XRShowcaseStatus;
   featured?: boolean;
+  visualScore?: number;
+  visualWidth?: number;
+  visualHeight?: number;
 };
 
 export const xrShowcaseFilters = [

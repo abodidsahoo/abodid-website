@@ -1,0 +1,242 @@
+---
+import type { XRShowcaseItem } from "../../data/xr-showcase";
+
+type Props = {
+  items: XRShowcaseItem[];
+  filters: readonly string[];
+};
+
+type GradientStyle = {
+  "--xr-gradient-a": string;
+  "--xr-gradient-b": string;
+};
+
+const { items, filters } = Astro.props;
+
+const hashSeed = (value: string) => {
+  let hash = 2166136261;
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+};
+
+const getPastelPair = (seed: string): GradientStyle => {
+  const hash = hashSeed(seed);
+  const firstHue = hash % 360;
+  const secondHue = (firstHue + 48 + ((hash >>> 9) % 76)) % 360;
+  const firstSaturation = 64 + ((hash >>> 4) % 12);
+  const secondSaturation = 62 + ((hash >>> 13) % 15);
+  const firstLightness = 80 + ((hash >>> 17) % 8);
+  const secondLightness = 78 + ((hash >>> 21) % 9);
+
+  return {
+    "--xr-gradient-a": `hsl(${firstHue} ${firstSaturation}% ${firstLightness}%)`,
+    "--xr-gradient-b": `hsl(${secondHue} ${secondSaturation}% ${secondLightness}%)`,
+  };
+};
+
+const searchText = (item: XRShowcaseItem) =>
+  [
+    item.title,
+    item.description,
+    item.primaryGenre,
+    item.tags.join(" "),
+    item.source,
+    item.domain,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+
+const filterValues = (item: XRShowcaseItem) => {
+  const values = new Set([item.primaryGenre, ...item.tags]);
+  if (values.has("Creative Concept")) values.add("Creative Concepts");
+  return [...values].join("|||");
+};
+---
+
+<section
+  class="xr-showcase"
+  aria-label="XR showcase resources"
+  data-xr-showcase
+>
+  <div class="xr-controls">
+    <label class="xr-search">
+      <span class="sr-only">Search XR references</span>
+      <svg aria-hidden="true" viewBox="0 0 24 24">
+        <path d="m21 21-4.8-4.8m2.3-5.7a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z"></path>
+      </svg>
+      <input
+        type="search"
+        placeholder="Search title, source, genre, tags..."
+        data-xr-search
+      />
+    </label>
+  </div>
+
+  <div class="xr-filter-row" aria-label="Filter XR references">
+    {
+      filters.map((filter) => (
+        <button
+          type="button"
+          class:list={["xr-chip", { "xr-chip--active": filter === "All" }]}
+          aria-pressed={filter === "All" ? "true" : "false"}
+          data-xr-filter={filter}
+        >
+          {filter}
+        </button>
+      ))
+    }
+    <button type="button" class="xr-reset" data-xr-reset hidden>Reset</button>
+  </div>
+
+  <div class="xr-result-count" aria-live="polite" data-xr-count>
+    {items.length} {items.length === 1 ? "reference" : "references"}
+  </div>
+
+  <div class="xr-grid" data-xr-grid>
+    {
+      items.map((item, index) => {
+        const source = item.source || item.domain || "Source";
+        const visibleTags = item.tags
+          .filter((tag) => tag !== item.primaryGenre)
+          .slice(0, 4);
+        const href = item.canonicalUrl || item.url || "#";
+
+        return (
+          <a
+            class="xr-card"
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`Open ${item.title} from ${source}`}
+            data-xr-card
+            data-xr-search-text={searchText(item)}
+            data-xr-filter-values={filterValues(item)}
+          >
+            <span class="xr-card__image-shell">
+              <span
+                class="xr-card__gradient"
+                style={getPastelPair(item.id)}
+                aria-hidden="true"
+              />
+              {item.thumbnail && (
+                <img
+                  class="xr-card__image"
+                  src={item.thumbnail}
+                  alt={item.thumbnailAlt || `${item.title} preview`}
+                  loading={index < 4 ? "eager" : "lazy"}
+                  decoding="async"
+                  referrerpolicy="no-referrer"
+                />
+              )}
+            </span>
+
+            <span class="xr-card__body">
+              <span class="xr-card__genre">{item.primaryGenre}</span>
+              <span class="xr-card__title">{item.title}</span>
+              <span
+                class="xr-card__tags"
+                aria-label={visibleTags.length > 0 ? `Tags: ${visibleTags.join(", ")}` : undefined}
+                aria-hidden={visibleTags.length === 0 ? "true" : undefined}
+              >
+                {visibleTags.map((tag) => (
+                  <span class="xr-card__tag">{tag}</span>
+                ))}
+              </span>
+              <span class="xr-card__source">
+                <span class="xr-card__source-label">{source}</span>
+              </span>
+            </span>
+          </a>
+        );
+      })
+    }
+  </div>
+
+  <p class="xr-empty" data-xr-empty hidden>No references match these filters yet.</p>
+</section>
+
+<script>
+  const XR_FILTER_CONTROLLER_VERSION = "4";
+
+  const initialiseXRShowcases = () => {
+    document
+      .querySelectorAll<HTMLElement>("[data-xr-showcase]")
+      .forEach((showcase) => {
+        if (showcase.dataset.xrReady === XR_FILTER_CONTROLLER_VERSION) return;
+        showcase.dataset.xrReady = XR_FILTER_CONTROLLER_VERSION;
+
+        const search = showcase.querySelector<HTMLInputElement>("[data-xr-search]");
+        const count = showcase.querySelector<HTMLElement>("[data-xr-count]");
+        const empty = showcase.querySelector<HTMLElement>("[data-xr-empty]");
+        const reset = showcase.querySelector<HTMLButtonElement>("[data-xr-reset]");
+        const filterButtons = [
+          ...showcase.querySelectorAll<HTMLButtonElement>("[data-xr-filter]"),
+        ];
+        const cards = [...showcase.querySelectorAll<HTMLElement>("[data-xr-card]")];
+        let activeFilter = "All";
+
+        if (!search || !count || !empty || !reset) return;
+
+        cards.forEach((card) => {
+          const image = card.querySelector<HTMLImageElement>(".xr-card__image");
+          image?.addEventListener("error", () => image.remove(), { once: true });
+          if (image?.complete && image.naturalWidth === 0) image.remove();
+        });
+
+        const update = () => {
+          const query = search.value.toLowerCase().trim();
+
+          let visibleCount = 0;
+          cards.forEach((card) => {
+            const values = (card.dataset.xrFilterValues || "").split("|||");
+            const matchesFilter =
+              activeFilter === "All" || values.includes(activeFilter);
+            const matchesSearch = (card.dataset.xrSearchText || "").includes(query);
+            const isVisible = matchesFilter && matchesSearch;
+            card.hidden = !isVisible;
+            card.classList.toggle("xr-card--filtered-out", !isVisible);
+            if (isVisible) visibleCount += 1;
+          });
+
+          count.textContent = `${visibleCount} ${
+            visibleCount === 1 ? "reference" : "references"
+          }`;
+          empty.hidden = visibleCount !== 0;
+          reset.hidden = query.length === 0 && activeFilter === "All";
+        };
+
+        filterButtons.forEach((button) => {
+          button.addEventListener("click", () => {
+            activeFilter = button.dataset.xrFilter || "All";
+            filterButtons.forEach((candidate) => {
+              const isActive = candidate === button;
+              candidate.classList.toggle("xr-chip--active", isActive);
+              candidate.setAttribute("aria-pressed", String(isActive));
+            });
+            update();
+          });
+        });
+
+        search.addEventListener("input", update);
+        reset.addEventListener("click", () => {
+          search.value = "";
+          activeFilter = "All";
+          filterButtons.forEach((button) => {
+            const isActive = button.dataset.xrFilter === "All";
+            button.classList.toggle("xr-chip--active", isActive);
+            button.setAttribute("aria-pressed", String(isActive));
+          });
+          update();
+        });
+
+        update();
+      });
+  };
+
+  initialiseXRShowcases();
+  document.addEventListener("astro:page-load", initialiseXRShowcases);
+</script>

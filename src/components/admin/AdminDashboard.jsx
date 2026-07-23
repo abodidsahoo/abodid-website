@@ -11,6 +11,7 @@ import SeoStudio from './SeoStudio';
 import AdminNotepad from './AdminNotepad';
 import AnalyticsDashboard from './AnalyticsDashboard';
 import MediaLibrary from './MediaLibrary';
+import XRShowcaseManager from './XRShowcaseManager';
 import PortfolioAdminList from '../portfolio/admin/PortfolioAdminList';
 import {
     ArrowUpRight,
@@ -31,6 +32,7 @@ import {
     ScanSearch,
     StickyNote,
     Globe2,
+    Glasses,
     Moon,
     Sun,
     Sunrise,
@@ -44,6 +46,7 @@ const SECTIONS = [
     { id: 'dashboard', label: 'Overview', icon: LayoutDashboard },
     { id: 'analytics', label: 'Analytics', icon: ChartNoAxesCombined },
     { id: 'portfolio_projects', label: 'Portfolio Projects', icon: FolderKanban },
+    { id: 'xr_showcase', label: 'XR Showcase', icon: Glasses },
     { id: 'media_library', label: 'Media Library', icon: FolderOpen },
     { id: 'users', label: 'Accounts', icon: UsersRound },
     { id: 'brands', label: 'Brands', icon: Tags },
@@ -463,6 +466,12 @@ export default function AdminDashboard() {
                         </SectionErrorBoundary>
                     )}
 
+                    {activeSection === 'xr_showcase' && (
+                        <SectionErrorBoundary>
+                            <XRShowcaseManager accessToken={session?.access_token} />
+                        </SectionErrorBoundary>
+                    )}
+
                     {activeSection === 'media_library' && (
                         <SectionErrorBoundary>
                             <MediaLibrary accessToken={session?.access_token} />
@@ -514,7 +523,7 @@ export default function AdminDashboard() {
                         </SectionErrorBoundary>
                     )}
 
-                    {activeSection !== 'dashboard' && activeSection !== 'analytics' && activeSection !== 'portfolio_projects' && activeSection !== 'media_library' && activeSection !== 'users' && activeSection !== 'brands' && activeSection !== 'newsletter' && activeSection !== 'photo_stories' && activeSection !== 'moodboard_items' && activeSection !== 'page_metadata' && activeSection !== 'notepad' && (
+                    {activeSection !== 'dashboard' && activeSection !== 'analytics' && activeSection !== 'portfolio_projects' && activeSection !== 'xr_showcase' && activeSection !== 'media_library' && activeSection !== 'users' && activeSection !== 'brands' && activeSection !== 'newsletter' && activeSection !== 'photo_stories' && activeSection !== 'moodboard_items' && activeSection !== 'page_metadata' && activeSection !== 'notepad' && (
                         <SectionErrorBoundary key={`${activeSection}-${refreshTrigger}`}>
                             <ListView
                                 table={activeSection}
