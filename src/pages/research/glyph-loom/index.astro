@@ -1,0 +1,37 @@
+---
+import GlyphLoomApp from "../../../components/glyph-loom/GlyphLoomApp";
+import ExperimentLayout from "../../../layouts/ExperimentLayout.astro";
+
+const title = "Glyph Loom — Generative Typography Instrument";
+const description =
+  "A browser-based research instrument that reconstructs live type outlines from modular bars, dots, lines, crosses, checker cells, and woven structures.";
+---
+
+<ExperimentLayout
+  title={title}
+  description={description}
+  image="/images/research/glyph-loom-og.png"
+  bodyClass="glyph-loom-page"
+  hideHeader={true}
+  hideFooter={true}
+  lockViewport={true}
+>
+  <Fragment slot="head">
+    <meta name="theme-color" content="#141412" />
+  </Fragment>
+  <GlyphLoomApp client:only="react" />
+</ExperimentLayout>
+
+<style is:global>
+  html:has(body.glyph-loom-page),
+  body.glyph-loom-page {
+    margin: 0;
+    overflow: hidden;
+    background: #141412 !important;
+  }
+
+  body.glyph-loom-page .skip-link,
+  body.glyph-loom-page astro-dev-toolbar {
+    display: none !important;
+  }
+</style>

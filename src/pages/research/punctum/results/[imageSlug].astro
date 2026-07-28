@@ -1,0 +1,19 @@
+---
+import PunctumResultDetail from "../../../../components/punctum/PunctumResultDetail";
+import { getPunctumImageBySlug } from "../../../../data/punctumImages";
+import PunctumLayout from "../../../../layouts/PunctumLayout.astro";
+
+const requestedSlug = Astro.params.imageSlug || "";
+const image = getPunctumImageBySlug(requestedSlug);
+if (!image) return Astro.redirect("/research/punctum/results", 302);
+if (requestedSlug !== image.slug) {
+  return Astro.redirect(`/research/punctum/results/${image.slug}`, 301);
+}
+---
+
+<PunctumLayout
+  title={`${image.title} — Punctum Results`}
+  description="Explore anonymous marks as polygon constellations, a selection-proportion heatmap and individual response cards."
+>
+  <PunctumResultDetail client:load image={image} />
+</PunctumLayout>

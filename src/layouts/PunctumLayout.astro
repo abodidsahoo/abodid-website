@@ -1,0 +1,292 @@
+---
+import ExperimentLayout from "./ExperimentLayout.astro";
+
+const {
+  title = "Punctum — A photographic research experiment",
+  description = "Draw the one part of the photograph that stays with you.",
+  lockViewport = false,
+} = Astro.props;
+
+const punctumPath = Astro.url.pathname.replace(/\/+$/, "");
+const initialProgress = punctumPath.startsWith("/research/punctum/results")
+  ? 1
+  : punctumPath === "/research/punctum/experiment"
+    ? 0.05
+    : 0.025;
+---
+
+<ExperimentLayout
+  title={title}
+  description={description}
+  bodyClass="punctum-page"
+  hideHeader={true}
+  hideFooter={true}
+  lockViewport={lockViewport}
+>
+  <Fragment slot="head">
+    <meta name="theme-color" content="#f8fbff" data-punctum-theme-color />
+    <link rel="preconnect" href="https://photos.abodid.com" />
+    <script is:inline>
+      (() => {
+        const storageKey = "punctum-theme";
+        const savedTheme = localStorage.getItem(storageKey);
+        const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+        const theme =
+          savedTheme === "light" || savedTheme === "dark" ? savedTheme : systemTheme;
+
+        document.documentElement.dataset.punctumTheme = theme;
+        document.documentElement.style.colorScheme = theme;
+        document
+          .querySelector("[data-punctum-theme-color]")
+          ?.setAttribute("content", theme === "dark" ? "#111317" : "#f8fbff");
+      })();
+    </script>
+  </Fragment>
+
+  <div class:list={["punctum-site", lockViewport && "is-viewport-locked"]}>
+    <div class="punctum-cursor" data-punctum-cursor aria-hidden="true">
+      <span></span>
+    </div>
+    <header class="punctum-nav">
+      <a class="punctum-wordmark" href="/research/punctum" aria-label="Punctum home">
+        <span class="punctum-wordmark__mark" aria-hidden="true"></span>
+        Punctum
+      </a>
+      <nav aria-label="Punctum">
+        <a href="/research/punctum/experiment">Participate</a>
+        <a href="/research/punctum/results">Results</a>
+        <a href="/research/punctum/about">About</a>
+        <button
+          class="punctum-theme-toggle"
+          type="button"
+          aria-label="Switch to dark mode"
+          aria-pressed="false"
+          title="Switch to dark mode"
+          data-punctum-theme-toggle
+        >
+          <span class="punctum-theme-toggle__icon" aria-hidden="true"></span>
+          <span class="punctum-theme-toggle__label">Dark</span>
+        </button>
+      </nav>
+      <div
+        class="punctum-progress"
+        role="progressbar"
+        aria-label="Punctum journey progress"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-valuenow={Math.round(initialProgress * 100)}
+        data-punctum-progress
+      >
+        <span
+          class="punctum-progress__bar"
+          data-punctum-progress-bar
+          style={`--punctum-progress: ${initialProgress}`}
+        ></span>
+      </div>
+    </header>
+    <slot />
+  </div>
+</ExperimentLayout>
+
+<script is:inline>
+  (() => {
+    const storageKey = "punctum-theme";
+    const root = document.documentElement;
+    const button = document.querySelector("[data-punctum-theme-toggle]");
+    const systemPreference = window.matchMedia("(prefers-color-scheme: dark)");
+
+    const applyTheme = (theme, persist = false) => {
+      root.dataset.punctumTheme = theme;
+      root.style.colorScheme = theme;
+
+      const nextTheme = theme === "dark" ? "light" : "dark";
+      button?.setAttribute("aria-label", `Switch to ${nextTheme} mode`);
+      button?.setAttribute("title", `Switch to ${nextTheme} mode`);
+      button?.setAttribute("aria-pressed", String(theme === "dark"));
+
+      const label = button?.querySelector(".punctum-theme-toggle__label");
+      if (label) label.textContent = nextTheme === "dark" ? "Dark" : "Light";
+
+      document
+        .querySelector("[data-punctum-theme-color]")
+        ?.setAttribute("content", theme === "dark" ? "#111317" : "#f8fbff");
+
+      if (persist) localStorage.setItem(storageKey, theme);
+    };
+
+    applyTheme(root.dataset.punctumTheme === "dark" ? "dark" : "light");
+
+    button?.addEventListener("click", () => {
+      applyTheme(root.dataset.punctumTheme === "dark" ? "light" : "dark", true);
+    });
+
+    systemPreference.addEventListener("change", (event) => {
+      if (!localStorage.getItem(storageKey)) {
+        applyTheme(event.matches ? "dark" : "light");
+      }
+    });
+
+    const site = document.querySelector(".punctum-site");
+    const cursor = document.querySelector("[data-punctum-cursor]");
+    const progressTrack = document.querySelector("[data-punctum-progress]");
+    const progressBar = document.querySelector("[data-punctum-progress-bar]");
+    const parallaxShapes = Array.from(
+      document.querySelectorAll("[data-punctum-parallax-shape]"),
+    );
+    let audioContext;
+
+    const updateJourneyProgress = (value) => {
+      const progress = Math.max(0, Math.min(1, Number(value) || 0));
+      progressBar?.style.setProperty("--punctum-progress", String(progress));
+      progressTrack?.setAttribute("aria-valuenow", String(Math.round(progress * 100)));
+    };
+
+    window.addEventListener("punctum:progress", (event) => {
+      updateJourneyProgress(event.detail?.value);
+    });
+
+    const playTick = (kind = "tap") => {
+      const AudioEngine = window.AudioContext || window.webkitAudioContext;
+      if (!AudioEngine) return;
+      audioContext ||= new AudioEngine();
+
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      const now = audioContext.currentTime;
+      const frequencies = { tap: 520, draw: 690, finish: 880 };
+
+      oscillator.type = kind === "draw" ? "triangle" : "sine";
+      oscillator.frequency.setValueAtTime(frequencies[kind] || frequencies.tap, now);
+      oscillator.frequency.exponentialRampToValueAtTime(
+        (frequencies[kind] || frequencies.tap) * 0.78,
+        now + 0.045,
+      );
+      gain.gain.setValueAtTime(kind === "draw" ? 0.025 : 0.035, now);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.055);
+      oscillator.connect(gain);
+      gain.connect(audioContext.destination);
+      oscillator.start(now);
+      oscillator.stop(now + 0.06);
+    };
+
+    site?.addEventListener("click", (event) => {
+      const action = event.target.closest("button, a, [role='button']");
+      if (action && !action.matches(":disabled")) playTick("tap");
+    });
+
+    site?.addEventListener("pointerdown", (event) => {
+      if (
+        event.target.closest(
+          ".punctum-draw__pointer-layer, .punctum-practice__area",
+        )
+      ) {
+        playTick("draw");
+      }
+    });
+
+    site?.addEventListener("pointerup", (event) => {
+      if (
+        event.target.closest(
+          ".punctum-draw__pointer-layer, .punctum-practice__area",
+        )
+      ) {
+        playTick("finish");
+      }
+    });
+
+    if (cursor && window.matchMedia("(pointer: fine)").matches) {
+      site?.addEventListener("pointermove", (event) => {
+        cursor.style.translate = `${event.clientX}px ${event.clientY}px`;
+        cursor.classList.add("is-visible");
+        cursor.classList.toggle(
+          "is-pencil",
+          Boolean(
+            event.target.closest(
+              ".punctum-draw__pointer-layer, .punctum-practice__area",
+            ),
+          ),
+        );
+        cursor.classList.toggle(
+          "is-action",
+          Boolean(
+            event.target.closest(
+              "button, a, [role='button'], [role='option']",
+            ),
+          ),
+        );
+      });
+      site?.addEventListener("pointerleave", () => {
+        cursor.classList.remove("is-visible");
+      });
+    }
+
+    if (
+      parallaxShapes.length &&
+      window.matchMedia("(pointer: fine)").matches &&
+      window.matchMedia("(prefers-reduced-motion: no-preference)").matches
+    ) {
+      let targetX = 0;
+      let targetY = 0;
+      let animationFrame = 0;
+      const shapeStates = parallaxShapes.map((element, index) => ({
+        element,
+        x: 0,
+        y: 0,
+        depth: Number(element.dataset.depth || 0),
+        tilt: Number(element.dataset.tilt || 0),
+        ease: Math.max(0.055, 0.11 - index * 0.009),
+      }));
+
+      const moveShapes = () => {
+        let unsettled = false;
+
+        shapeStates.forEach((shape) => {
+          shape.x += (targetX - shape.x) * shape.ease;
+          shape.y += (targetY - shape.y) * shape.ease;
+
+          const offsetX = shape.x * shape.depth;
+          const offsetY = shape.y * shape.depth * 0.72;
+          const rotation = (shape.x + shape.y * 0.35) * shape.tilt;
+
+          shape.element.style.setProperty("--parallax-x", `${offsetX.toFixed(2)}px`);
+          shape.element.style.setProperty("--parallax-y", `${offsetY.toFixed(2)}px`);
+          shape.element.style.setProperty(
+            "--parallax-rotate",
+            `${rotation.toFixed(2)}deg`,
+          );
+
+          if (
+            Math.abs(targetX - shape.x) > 0.001 ||
+            Math.abs(targetY - shape.y) > 0.001
+          ) {
+            unsettled = true;
+          }
+        });
+
+        animationFrame = unsettled ? requestAnimationFrame(moveShapes) : 0;
+      };
+
+      const requestShapeUpdate = () => {
+        if (!animationFrame) animationFrame = requestAnimationFrame(moveShapes);
+      };
+
+      site?.addEventListener("pointermove", (event) => {
+        targetX = Math.max(-1, Math.min(1, (event.clientX / window.innerWidth) * 2 - 1));
+        targetY = Math.max(-1, Math.min(1, (event.clientY / window.innerHeight) * 2 - 1));
+        requestShapeUpdate();
+      });
+
+      site?.addEventListener("pointerleave", () => {
+        targetX = 0;
+        targetY = 0;
+        requestShapeUpdate();
+      });
+    }
+  })();
+</script>
+
+<style is:global>
+  @import "../styles/punctum.css";
+</style>

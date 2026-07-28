@@ -3,7 +3,19 @@ export const prerender = true;
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { getResearchProjects } from "../../lib/api";
 
-const projects = await getResearchProjects();
+const glyphLoomProject = {
+    title: "Glyph Loom",
+    description: "A generative typography and motion-design instrument that reconstructs live font outlines with woven bars, dots, crosses, lines, and modular grids.",
+    slug: "glyph-loom",
+    href: "/research/glyph-loom",
+    image: "/images/research/glyph-loom-cover.png",
+    tags: ["Generative Type", "Canvas", "Motion Systems"],
+    published: true,
+};
+const projects = [
+    glyphLoomProject,
+    ...(await getResearchProjects()).filter((project) => project.slug !== "glyph-loom"),
+];
 const pageTitle = "Research Projects";
 const isTensorFlowProject = (slug = "", title = "") =>
     slug.startsWith("tensorflow-") || title.toLowerCase().includes("tensorflow");

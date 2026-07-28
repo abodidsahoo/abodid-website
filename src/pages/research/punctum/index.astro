@@ -1,0 +1,93 @@
+---
+import { punctumImages } from "../../../data/punctumImages";
+import PunctumLayout from "../../../layouts/PunctumLayout.astro";
+
+const [first, second, third] = [
+  punctumImages[0],
+  punctumImages[3],
+  punctumImages[5],
+];
+---
+
+<PunctumLayout>
+  <main>
+    <section class="punctum-hero">
+      <div class="punctum-hero__copy">
+        <h1>Punctum</h1>
+        <p class="punctum-hero__intro">
+          What exactly in an image pulls you in and stays with you?
+        </p>
+        <p class="punctum-hero__support">
+          Six photographs · one mark each · about three minutes
+        </p>
+        <div class="punctum-hero__actions">
+          <a class="punctum-button punctum-button--yellow" href="/research/punctum/experiment">
+            Start <span aria-hidden="true">→</span>
+          </a>
+          <a class="punctum-button punctum-button--light" href="/research/punctum/results">
+            View results
+          </a>
+        </div>
+      </div>
+
+      <div class="punctum-hero__art" aria-label="A selection of exhibition photographs">
+        <div class="punctum-hero__shapes" aria-hidden="true">
+          <span
+            class="punctum-hero-shape punctum-hero-shape--blue-circle"
+            data-punctum-parallax-shape
+            data-depth="13"
+            data-tilt="2"
+          ></span>
+          <span
+            class="punctum-hero-shape punctum-hero-shape--red-circle"
+            data-punctum-parallax-shape
+            data-depth="-18"
+            data-tilt="-3"
+          ></span>
+          <span
+            class="punctum-hero-shape punctum-hero-shape--yellow-circle"
+            data-punctum-parallax-shape
+            data-depth="24"
+            data-tilt="4"
+          ></span>
+          <span
+            class="punctum-hero-shape punctum-hero-shape--green-circle"
+            data-punctum-parallax-shape
+            data-depth="-14"
+            data-tilt="-2"
+          ></span>
+          <span
+            class="punctum-hero-shape punctum-hero-shape--square"
+            data-punctum-parallax-shape
+            data-depth="17"
+            data-tilt="20"
+          ></span>
+          <span
+            class="punctum-hero-shape punctum-hero-shape--yellow-square"
+            data-punctum-parallax-shape
+            data-depth="-12"
+            data-tilt="-7"
+          ></span>
+        </div>
+        <figure class="punctum-photo punctum-photo--one">
+          <img src={first.url} alt="" width={first.width} height={first.height} />
+        </figure>
+        <figure class="punctum-photo punctum-photo--two">
+          <img src={second.url} alt="" width={second.width} height={second.height} />
+        </figure>
+        <figure class="punctum-photo punctum-photo--three">
+          <img src={third.url} alt="" width={third.width} height={third.height} />
+        </figure>
+      </div>
+
+      <div class="punctum-hero__signature">
+        <div class="punctum-color-dots" aria-hidden="true">
+          <span></span><span></span><span></span><span></span>
+        </div>
+        <p class="punctum-typewriter">
+          <span style="--type-steps: 24; --type-delay: 180ms">A photographic experiment</span>
+        </p>
+      </div>
+    </section>
+  </main>
+</PunctumLayout>

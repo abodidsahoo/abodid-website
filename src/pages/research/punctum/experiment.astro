@@ -1,0 +1,20 @@
+---
+import PunctumExperiment from "../../../components/punctum/PunctumExperiment";
+import { punctumImages } from "../../../data/punctumImages";
+import PunctumLayout from "../../../layouts/PunctumLayout.astro";
+
+const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "";
+---
+
+<PunctumLayout
+  title="Participate in Punctum"
+  description="Draw the one detail in a photograph that catches, moves or stays with you."
+  lockViewport={true}
+>
+  <PunctumExperiment
+    client:load
+    images={punctumImages}
+    turnstileSiteKey={turnstileSiteKey}
+    isLocalPreview={import.meta.env.DEV}
+  />
+</PunctumLayout>
