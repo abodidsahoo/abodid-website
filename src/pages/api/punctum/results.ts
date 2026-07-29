@@ -12,6 +12,11 @@ import {
   validAgeBands,
   validGenders,
 } from "../../../lib/punctum/server";
+import {
+  PUNCTUM_GENERATION_PUBLIC_SELECT,
+  serializePunctumGeneration,
+  type PunctumGenerationRow,
+} from "../../../lib/punctum/worlds/records";
 
 export const prerender = false;
 
@@ -146,6 +151,31 @@ export const GET: APIRoute = async ({ request }) => {
   const suppressed =
     isFiltered && filteredRows.length < PUNCTUM_MINIMUM_COHORT;
   const publicRows = suppressed ? [] : filteredRows;
+  const generationRows = new Map<string, PunctumGenerationRow[]>();
+  if (publicRows.length) {
+    const { data: generations, error: generationError } = await database
+      .from("punctum_generations")
+      .select(PUNCTUM_GENERATION_PUBLIC_SELECT)
+      .in(
+        "source_response_id",
+        publicRows.slice(0, 18).map((row) => row.id),
+      )
+      .eq("status", "completed")
+      .order("created_at", { ascending: true })
+      .limit(300);
+    if (!generationError) {
+      for (const generation of (generations || []) as PunctumGenerationRow[]) {
+        const existing = generationRows.get(generation.source_response_id) || [];
+        existing.push(generation);
+        generationRows.set(generation.source_response_id, existing);
+      }
+    } else if (generationError.code !== "42P01") {
+      console.warn(
+        "Punctum generation results query failed:",
+        generationError.message,
+      );
+    }
+  }
   const polygons: PublicPunctumPolygon[] = publicRows.map((row) => {
     const annotation = getAnnotation(row);
     const annotationIsVisible =
@@ -164,6 +194,9 @@ export const GET: APIRoute = async ({ request }) => {
       annotation: annotationIsVisible
         ? cleanText(annotation.text, 600) || undefined
         : undefined,
+      generations: (generationRows.get(row.id) || []).map(
+        serializePunctumGeneration,
+      ),
     };
   });
 

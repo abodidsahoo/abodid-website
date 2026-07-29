@@ -179,7 +179,7 @@ const initialProgress = punctumPath.startsWith("/research/punctum/results")
     site?.addEventListener("pointerdown", (event) => {
       if (
         event.target.closest(
-          ".punctum-draw__pointer-layer, .punctum-practice__area",
+          ".punctum-draw__pointer-layer, .punctum-practice__area, .punctum-world-draw__pointer-layer",
         )
       ) {
         playTick("draw");
@@ -189,7 +189,7 @@ const initialProgress = punctumPath.startsWith("/research/punctum/results")
     site?.addEventListener("pointerup", (event) => {
       if (
         event.target.closest(
-          ".punctum-draw__pointer-layer, .punctum-practice__area",
+          ".punctum-draw__pointer-layer, .punctum-practice__area, .punctum-world-draw__pointer-layer",
         )
       ) {
         playTick("finish");
@@ -198,13 +198,17 @@ const initialProgress = punctumPath.startsWith("/research/punctum/results")
 
     if (cursor && window.matchMedia("(pointer: fine)").matches) {
       site?.addEventListener("pointermove", (event) => {
+        // Gesture control emits pen events. Keep the mouse cursor independent so
+        // the page never renders a second pencil for the same hand movement.
+        if (event.pointerType !== "mouse") return;
+
         cursor.style.translate = `${event.clientX}px ${event.clientY}px`;
         cursor.classList.add("is-visible");
         cursor.classList.toggle(
           "is-pencil",
           Boolean(
             event.target.closest(
-              ".punctum-draw__pointer-layer, .punctum-practice__area",
+              ".punctum-draw__pointer-layer, .punctum-practice__area, .punctum-world-draw__pointer-layer",
             ),
           ),
         );

@@ -5,6 +5,7 @@ import {
   verticesToSmoothSvgPath,
 } from "../../lib/punctum/geometry";
 import PunctumFeedbackModal from "./PunctumFeedbackModal";
+import PunctumWorldModal from "./PunctumWorldModal";
 
 const AGE_LABELS = {
   "18-24": "18–24",
@@ -194,6 +195,8 @@ export default function PunctumResultDetail({ image }) {
   const [selectedId, setSelectedId] = useState("");
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [feedbackSessionId, setFeedbackSessionId] = useState("");
+  const [worldEntry, setWorldEntry] = useState(null);
+  const [openWorldsId, setOpenWorldsId] = useState("");
   const endPanelRef = useRef(null);
 
   useEffect(() => {
@@ -273,6 +276,70 @@ export default function PunctumResultDetail({ image }) {
   };
   const setFilter = (key, value) =>
     setFilters((current) => ({ ...current, [key]: value }));
+  const createWorld = (polygon) => {
+    const requestId = crypto.randomUUID();
+    const accessToken = crypto.randomUUID();
+    setWorldEntry({
+      mode: "generate",
+      source: {
+        imageUrl: image.url,
+        polygon: polygon.vertices,
+        explanation:
+          polygon.annotation || "No written explanation was added to this punctum.",
+        width: image.width,
+        height: image.height,
+      },
+      request: {
+        source: {
+          imageUrl: image.url,
+          polygon: polygon.vertices,
+          explanation:
+            polygon.annotation || "No written explanation was added to this punctum.",
+          width: image.width,
+          height: image.height,
+        },
+        body: {
+          requestId,
+          accessToken,
+          responseId: polygon.id,
+        },
+      },
+    });
+  };
+  const viewWorld = (generation) => {
+    setWorldEntry({
+      mode: "view",
+      generation,
+      source: {
+        imageUrl: generation.sourceImageUrl,
+        polygon: generation.sourcePolygonNormalized,
+        explanation: generation.viewerExplanation,
+        width: generation.sourceWidth,
+        height: generation.sourceHeight,
+      },
+    });
+  };
+  const attachGeneration = (generation) => {
+    setPayload((current) => {
+      if (!current?.polygons) return current;
+      return {
+        ...current,
+        polygons: current.polygons.map((polygon) =>
+          polygon.id === generation.sourceResponseId
+            ? {
+                ...polygon,
+                generations: [
+                  ...(polygon.generations || []).filter(
+                    (item) => item.id !== generation.id,
+                  ),
+                  generation,
+                ],
+              }
+            : polygon,
+        ),
+      };
+    });
+  };
 
   return (
     <main
@@ -419,28 +486,119 @@ export default function PunctumResultDetail({ image }) {
 
       {mode === "responses" && (
         <section className="punctum-response-grid" aria-label="Individual anonymous marks">
-          {polygons.slice(0, 18).map((polygon, index) => (
-            <article className="punctum-response-card" key={polygon.id}>
-              <button
-                type="button"
-                className="punctum-response-card__visual"
-                style={{ aspectRatio: `${image.width} / ${image.height}` }}
-                onClick={() => selectPolygon(polygon)}
-                aria-label={`Select mark ${index + 1}`}
+          {polygons.slice(0, 18).map((polygon, index) => {
+            const generations = polygon.generations || [];
+            const worldsOpen =
+              generations.length > 0 && openWorldsId === polygon.id;
+            const drawerId = `punctum-worlds-${polygon.id}`;
+
+            return (
+              <article
+                className={`punctum-response-card ${
+                  worldsOpen ? "is-worlds-open" : ""
+                }`}
+                key={polygon.id}
               >
-                <img src={image.url} alt="" loading="lazy" />
-                <PolygonLayer
-                  polygons={[polygon]}
-                  committed
-                  selectedId={selectedId}
-                />
-              </button>
-              <div className="punctum-response-card__copy">
-                <span>Mark {String(index + 1).padStart(2, "0")}</span>
-                {polygon.annotation && <p>“{polygon.annotation}”</p>}
-              </div>
-            </article>
-          ))}
+                <button
+                  type="button"
+                  className="punctum-response-card__visual"
+                  style={{ aspectRatio: `${image.width} / ${image.height}` }}
+                  onClick={() => selectPolygon(polygon)}
+                  aria-label={`Select mark ${index + 1}`}
+                >
+                  <img src={image.url} alt="" loading="lazy" />
+                  <PolygonLayer
+                    polygons={[polygon]}
+                    committed
+                    selectedId={selectedId}
+                  />
+                </button>
+
+                <span className="punctum-response-card__mark">
+                  Mark {String(index + 1).padStart(2, "0")}
+                </span>
+
+                <div className="punctum-response-card__content">
+                  <blockquote
+                    className={`punctum-response-card__quote ${
+                      polygon.annotation ? "has-comment" : "is-empty"
+                    }`}
+                  >
+                    {polygon.annotation ? <p>{polygon.annotation}</p> : null}
+                  </blockquote>
+
+                  <div className="punctum-response-card__actions">
+                    <button
+                      className="punctum-response-card__generate"
+                      type="button"
+                      onClick={() => createWorld(polygon)}
+                    >
+                      <span aria-hidden="true">✦</span>
+                      Generate a World
+                    </button>
+                    {generations.length > 0 && (
+                      <button
+                        className="punctum-response-card__worlds-toggle"
+                        type="button"
+                        aria-expanded={worldsOpen}
+                        aria-controls={drawerId}
+                        onClick={() =>
+                          setOpenWorldsId((current) =>
+                            current === polygon.id ? "" : polygon.id,
+                          )
+                        }
+                      >
+                        Generated Worlds
+                        <span>{generations.length}</span>
+                        <i aria-hidden="true">⌄</i>
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {worldsOpen && (
+                  <div
+                    className="punctum-response-card__worlds-drawer"
+                    id={drawerId}
+                    aria-label="Generated AI world lineage"
+                  >
+                    <div className="punctum-response-card__worlds">
+                      {generations.map((generation, generationIndex) => (
+                        <button
+                          type="button"
+                          onClick={() => viewWorld(generation)}
+                          key={generation.id}
+                          aria-label={`Open generated world ${generationIndex + 1}`}
+                        >
+                          <img
+                            src={generation.generatedImageUrl}
+                            alt=""
+                            loading="lazy"
+                          />
+                          <span>
+                            {generation.parentGenerationId
+                              ? `World ${generationIndex + 1} · continued`
+                              : `World ${generationIndex + 1}`}
+                          </span>
+                          {generation.postGenerationPolygon && (
+                            <PolygonLayer
+                              polygons={[
+                                {
+                                  id: `${generation.id}-new-punctum`,
+                                  vertices: generation.postGenerationPolygon,
+                                },
+                              ]}
+                              committed
+                            />
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </article>
+            );
+          })}
         </section>
       )}
 
@@ -472,6 +630,13 @@ export default function PunctumResultDetail({ image }) {
         sessionId={feedbackSessionId}
         sharePath={`/research/punctum/results/${image.slug}`}
       />
+      {worldEntry && (
+        <PunctumWorldModal
+          entry={worldEntry}
+          onClose={() => setWorldEntry(null)}
+          onGenerationCompleted={attachGeneration}
+        />
+      )}
     </main>
   );
 }

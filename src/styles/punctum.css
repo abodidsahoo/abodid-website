@@ -169,6 +169,11 @@ body.punctum-page * {
     opacity: 1;
   }
 
+  .punctum-site.has-gesture-hand-control .punctum-cursor {
+    opacity: 0 !important;
+    visibility: hidden;
+  }
+
   .punctum-cursor.is-action {
     width: 28px;
     height: 28px;
@@ -1251,6 +1256,15 @@ html[data-punctum-theme="dark"] .punctum-theme-toggle__icon {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: clamp(16px, 2vw, 30px);
+  align-items: start;
+  grid-auto-flow: row;
+}
+
+.punctum-response-card {
+  min-width: 0;
+  display: grid;
+  grid-template-rows: auto auto auto auto;
+  align-content: start;
 }
 
 .punctum-response-card__visual {
@@ -1273,22 +1287,822 @@ html[data-punctum-theme="dark"] .punctum-theme-toggle__icon {
   opacity: 0.88;
 }
 
-.punctum-response-card__copy {
-  padding-top: 10px;
-}
-
-.punctum-response-card__copy > span {
+.punctum-response-card__mark {
+  margin-top: 12px;
   color: var(--punctum-muted);
   font: 700 11px/1 "Inconsolata", monospace;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.punctum-response-card__content {
+  min-width: 0;
+  min-height: 126px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(164px, 0.52fr);
+  gap: clamp(14px, 1.3vw, 22px);
+  align-items: start;
+}
+
+.punctum-response-card__quote {
+  min-width: 0;
+  margin: 0;
+  padding: 17px 14px 20px 46px;
+  position: relative;
+}
+
+.punctum-response-card__quote.has-comment::before {
+  content: "“";
+  position: absolute;
+  left: 4px;
+  top: 9px;
+  color: var(--punctum-accent);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 52px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.punctum-response-card__quote p {
+  margin: 0;
+  color: var(--punctum-ink);
+  font-size: clamp(20px, 1.45vw, 28px);
+  font-weight: 520;
+  line-height: 1.24;
+  letter-spacing: -0.025em;
+}
+
+.punctum-response-card__quote.is-empty {
+  pointer-events: none;
+}
+
+.punctum-response-card__actions {
+  min-width: 0;
+  padding-top: 14px;
+  display: flex;
+  align-items: stretch;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.punctum-response-card__generate,
+.punctum-response-card__worlds-toggle {
+  width: 100%;
+  min-height: 38px;
+  margin: 0;
+  padding: 8px 12px;
+  border: 1px solid var(--punctum-border);
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  background: var(--punctum-surface);
+  color: var(--punctum-ink);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    translate 160ms ease;
+}
+
+.punctum-response-card__generate span {
+  color: var(--punctum-accent);
+  font-size: 15px;
+}
+
+.punctum-response-card__generate:hover,
+.punctum-response-card__generate:focus-visible,
+.punctum-response-card__worlds-toggle:hover:not(:disabled),
+.punctum-response-card__worlds-toggle:focus-visible {
+  border-color: var(--punctum-accent);
+  background: var(--punctum-surface-elevated);
+  translate: 0 -1px;
+}
+
+.punctum-response-card__worlds-toggle > span {
+  min-width: 21px;
+  height: 21px;
+  padding: 0 6px;
+  border-radius: 999px;
+  display: inline-grid;
+  place-items: center;
+  background: var(--punctum-ink);
+  color: var(--punctum-on-ink);
+  font: 700 10px/1 "Inconsolata", monospace;
+}
+
+.punctum-response-card__worlds-toggle > i {
+  margin-top: -3px;
+  font-size: 15px;
+  font-style: normal;
+  line-height: 1;
+  transition: rotate 160ms ease;
+}
+
+.punctum-response-card__worlds-toggle[aria-expanded="true"] > i {
+  rotate: 180deg;
+}
+
+.punctum-response-card__worlds-drawer {
+  min-width: 0;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--punctum-line);
+  animation: punctum-worlds-drop 190ms ease-out both;
+}
+
+@keyframes punctum-worlds-drop {
+  from {
+    opacity: 0;
+    translate: 0 -8px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+.punctum-response-card__worlds {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.punctum-response-card__worlds > button {
+  min-width: 0;
+  aspect-ratio: 3 / 2;
+  padding: 0;
+  border: 1px solid var(--punctum-line);
+  border-radius: 10px;
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  background: var(--punctum-inverse-surface);
+  color: var(--punctum-on-inverse);
+}
+
+.punctum-response-card__worlds > button > img {
+  grid-area: 1 / 1;
+  object-fit: cover;
+  opacity: 0.82;
+}
+
+.punctum-response-card__worlds > button > span {
+  z-index: 2;
+  grid-area: 1 / 1;
+  align-self: end;
+  padding: 22px 8px 7px;
+  color: #ffffff;
+  font: 700 9px/1.2 "Inconsolata", monospace;
+  letter-spacing: 0.06em;
+  text-align: left;
+  text-transform: uppercase;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.72));
+}
+
+.punctum-world-modal {
+  position: fixed;
+  z-index: 4000;
+  inset: 0;
+  overflow-y: auto;
+  background:
+    radial-gradient(circle at 88% 4%, var(--punctum-glow), transparent 34%),
+    var(--punctum-bg);
+  color: var(--punctum-ink);
+  animation: punctum-world-open 280ms ease-out both;
+}
+
+@keyframes punctum-world-open {
+  from {
+    opacity: 0;
+    translate: 0 12px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+.punctum-world-modal__header {
+  min-height: 76px;
+  padding: 13px clamp(18px, 3vw, 44px);
+  border-bottom: 1px solid var(--punctum-line);
+  position: sticky;
+  z-index: 10;
+  top: 0;
+  display: grid;
+  grid-template-columns: minmax(170px, 1fr) auto minmax(170px, 1fr);
+  align-items: center;
+  gap: 20px;
+  background: color-mix(in srgb, var(--punctum-bg) 88%, transparent);
+  backdrop-filter: blur(18px);
+}
+
+.punctum-world-modal__header > div {
+  display: grid;
+  gap: 4px;
+  text-align: center;
+}
+
+.punctum-world-modal__header > div span {
+  color: var(--punctum-muted);
+  font: 700 9px/1 "Inconsolata", monospace;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.punctum-world-modal__header > div strong {
+  font-size: 14px;
+}
+
+.punctum-world-modal__back,
+.punctum-world-modal__close {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--punctum-ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 680;
+}
+
+.punctum-world-modal__back {
+  justify-self: start;
+}
+
+.punctum-world-modal__close {
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--punctum-border);
+  border-radius: 50%;
+  justify-self: end;
+  font: 400 24px/1 sans-serif;
+}
+
+.punctum-world-modal__body {
+  width: min(1680px, 100%);
+  margin: 0 auto;
+  padding: clamp(22px, 3.3vw, 54px) clamp(18px, 3vw, 44px) 90px;
+}
+
+.punctum-world-comparison {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.58fr) minmax(0, 1.42fr);
+  gap: clamp(18px, 3vw, 46px);
+  align-items: center;
+}
+
+.punctum-world-source,
+.punctum-world-result {
+  min-width: 0;
+  margin: 0;
+}
+
+.punctum-world-model-picker {
+  min-width: 0;
+  padding: clamp(20px, 3vw, 38px);
+  border: 1px solid var(--punctum-line);
+  border-radius: 20px;
+  background: var(--punctum-surface);
+  box-shadow: var(--punctum-shadow);
+}
+
+.punctum-world-model-picker__heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(220px, 0.85fr);
+  align-items: end;
+  gap: 24px;
+}
+
+.punctum-world-model-picker__heading .punctum-eyebrow {
+  margin: 0 0 8px;
+}
+
+.punctum-world-model-picker__heading h2 {
+  max-width: 660px;
+  margin: 0;
+  font-size: clamp(27px, 3vw, 44px);
+  line-height: 1;
+  letter-spacing: -0.045em;
+}
+
+.punctum-world-model-picker__heading > p {
+  margin: 0;
+  color: var(--punctum-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.punctum-world-model-options {
+  min-width: 0;
+  margin: 28px 0 0;
+  padding: 0;
+  border: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.punctum-world-model-options > label {
+  min-width: 0;
+  min-height: 142px;
+  padding: 16px;
+  border: 1px solid var(--punctum-border);
+  border-radius: 14px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--punctum-bg);
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    translate 150ms ease;
+}
+
+.punctum-world-model-options > label:hover {
+  border-color: var(--punctum-border-strong);
+  translate: 0 -1px;
+}
+
+.punctum-world-model-options > label.is-selected {
+  border-color: var(--punctum-accent);
+  background: var(--punctum-notice-bg);
+  box-shadow: 0 0 0 1px var(--punctum-accent);
+}
+
+.punctum-world-model-options > label:has(input:focus-visible) {
+  outline: 2px solid var(--punctum-accent);
+  outline-offset: 3px;
+}
+
+.punctum-world-model-options input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.punctum-world-model-option__topline {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.punctum-world-model-option__topline strong {
+  font-size: 16px;
+  line-height: 1.15;
+}
+
+.punctum-world-model-option__topline i {
+  flex: none;
+  color: var(--punctum-muted);
+  font: 700 10px/1 "Inconsolata", monospace;
+  font-style: normal;
+  letter-spacing: 0.08em;
+}
+
+.punctum-world-model-option__meta {
+  color: var(--punctum-muted);
+  font: 700 9px/1.25 "Inconsolata", monospace;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.punctum-world-model-option__description {
+  margin-top: auto;
+  color: var(--punctum-muted);
+  font-size: 12px;
+  line-height: 1.38;
+}
+
+.punctum-world-model-picker__generate {
+  width: 100%;
+  margin-top: 18px;
+}
+
+.punctum-world-source__image,
+.punctum-world-result__image,
+.punctum-world-draw {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--punctum-line) 68%, transparent);
+  border-radius: 16px;
+  background: var(--punctum-inverse-surface);
+  box-shadow: var(--punctum-shadow);
+}
+
+.punctum-world-source__image > img,
+.punctum-world-result__final,
+.punctum-world-draw > img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.punctum-world-source__image > img {
+  opacity: 0.9;
+}
+
+.punctum-world-polygon {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.punctum-world-polygon__line {
+  fill: rgba(234, 201, 158, 0.2);
+  stroke: #fffaf0;
+  stroke-width: 2px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.punctum-world-polygon.is-new .punctum-world-polygon__line {
+  fill: rgba(138, 180, 248, 0.24);
+  stroke: #ffffff;
+  stroke-width: 2.4px;
+}
+
+.punctum-world-source figcaption,
+.punctum-world-result figcaption {
+  min-height: 58px;
+  padding-top: 12px;
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.punctum-world-source figcaption > span,
+.punctum-world-result figcaption > span {
+  flex: none;
+  color: var(--punctum-muted);
+  font: 700 10px/1 "Inconsolata", monospace;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.punctum-world-source figcaption p {
+  max-width: 380px;
+  margin: 0;
+  color: var(--punctum-muted);
+  font-size: 13px;
+  line-height: 1.42;
+  text-align: right;
+}
+
+.punctum-world-result__image {
+  display: grid;
+}
+
+.punctum-world-pixels,
+.punctum-world-result__final,
+.punctum-world-result__status,
+.punctum-world-result__failure {
+  grid-area: 1 / 1;
+  width: 100%;
+  height: 100%;
+}
+
+.punctum-world-pixels {
+  z-index: 1;
+  display: block;
+  image-rendering: auto;
+  opacity: 1;
+  transition: opacity 1.15s ease-in-out;
+}
+
+.punctum-world-result__final {
+  z-index: 2;
+  opacity: 0;
+  transition: opacity 1.15s ease-in-out;
+}
+
+.punctum-world-result__final.is-ready {
+  opacity: 1;
+}
+
+.punctum-world-result__image.is-revealing .punctum-world-pixels {
+  opacity: 0;
+}
+
+.punctum-world-result__status,
+.punctum-world-result__failure {
+  z-index: 3;
+  padding: clamp(20px, 4vw, 52px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.punctum-world-result__status {
+  pointer-events: none;
+  background: transparent;
+  opacity: 1;
+  transition: opacity 800ms ease-in-out;
+}
+
+.punctum-world-result__image.is-revealing
+  .punctum-world-result__status {
+  opacity: 0;
+}
+
+.punctum-world-result__status-stack {
+  width: clamp(260px, 46%, 480px);
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+}
+
+.punctum-world-result__status-card {
+  width: 100%;
+  aspect-ratio: 1;
+  padding: clamp(26px, 4vw, 54px);
+  border: 1px solid rgba(20, 20, 18, 0.88);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: #ffffff;
+  color: #171715;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.42),
+    12px 12px 0 rgba(18, 18, 16, 0.2);
+}
+
+.punctum-world-result__status-card span,
+.punctum-world-result__failure span {
+  font: 700 9px/1 "Inconsolata", monospace;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.punctum-world-result__status-card span {
+  color: #5d5d58;
+}
+
+.punctum-world-result__failure span {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.punctum-world-result__status-card strong,
+.punctum-world-result__failure strong {
+  max-width: 520px;
+  font-size: clamp(20px, 2.5vw, 34px);
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+}
+
+.punctum-world-result__status-card strong {
+  max-width: 390px;
+  color: #171715;
+  font-size: clamp(29px, 3.35vw, 52px);
+  font-weight: 850;
+  line-height: 0.98;
+  letter-spacing: -0.052em;
+}
+
+.punctum-world-result__progress {
+  width: 100%;
+  display: grid;
+  justify-items: center;
+  gap: 7px;
+}
+
+.punctum-world-result__progress-track {
+  width: 100%;
+  height: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 2px;
+  overflow: hidden;
+  background: rgba(13, 13, 12, 0.34);
+}
+
+.punctum-world-result__progress-track > i {
+  width: 1%;
+  height: 100%;
+  display: block;
+  background: #ffffff;
+  transition: width 120ms linear;
+}
+
+.punctum-world-result__progress output {
+  color: #ffffff;
+  font: 800 11px/1 "Inconsolata", monospace;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.punctum-world-result__failure {
+  color: #ffffff;
+  background: rgba(24, 22, 20, 0.86);
+  backdrop-filter: blur(2px);
+}
+
+.punctum-world-result__failure strong {
+  color: #ffffff;
+}
+
+.punctum-world-result__failure p {
+  margin: 2px 0 0;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.punctum-world-result__failure time {
+  color: #ffffff;
+  font-variant-numeric: tabular-nums;
+}
+
+.punctum-world-result__failure > div {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.punctum-world-result__failure .punctum-button:disabled {
+  cursor: wait;
+  opacity: 0.62;
+}
+
+.punctum-world-result__failure .punctum-text-button {
+  color: #ffffff;
+}
+
+.punctum-world-palette {
+  display: flex;
+  gap: 4px;
+}
+
+.punctum-world-palette i {
+  width: 23px;
+  height: 23px;
+  border: 1px solid color-mix(in srgb, var(--punctum-border) 58%, transparent);
+  border-radius: 50%;
+  display: block;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.16);
+}
+
+.punctum-world-reflection {
+  margin: clamp(46px, 7vw, 100px) auto 0;
+  width: min(1180px, 100%);
+  padding-top: clamp(30px, 4vw, 54px);
+  border-top: 1px solid var(--punctum-line);
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(420px, 1.1fr);
+  gap: clamp(28px, 5vw, 80px);
+  align-items: start;
+}
+
+.punctum-world-reflection__question h2 {
+  margin: 8px 0 0;
+  font-size: clamp(28px, 3.3vw, 46px);
+  line-height: 1.02;
+  letter-spacing: -0.048em;
+}
+
+.punctum-world-answers {
+  margin-top: 26px;
+  display: grid;
+  gap: 8px;
+}
+
+.punctum-world-answers button {
+  min-height: 50px;
+  padding: 10px 16px;
+  border: 1px solid var(--punctum-border);
+  border-radius: 12px;
+  background: var(--punctum-surface);
+  color: var(--punctum-ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 640;
+  text-align: left;
+}
+
+.punctum-world-answers button.is-selected {
+  border-color: var(--punctum-accent);
+  background: var(--punctum-notice-bg);
+  color: var(--punctum-notice-text);
+  box-shadow: 0 0 0 1px var(--punctum-accent);
+}
+
+.punctum-world-answers button:disabled {
+  cursor: default;
+}
+
+.punctum-world-new-mark {
+  padding: clamp(18px, 2.3vw, 28px);
+  border: 1px solid var(--punctum-line);
+  border-radius: 20px;
+  background: var(--punctum-surface);
+}
+
+.punctum-world-new-mark__heading {
+  margin-bottom: 14px;
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.punctum-world-new-mark__heading span {
+  font-size: 18px;
+  font-weight: 760;
+}
+
+.punctum-world-new-mark__heading p {
+  margin: 4px 0 0;
+  color: var(--punctum-muted);
+  font-size: 12px;
+}
+
+.punctum-world-new-mark__heading > button {
+  flex: none;
+  padding: 5px 0;
+  border: 0;
+  background: transparent;
+  color: var(--punctum-muted);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 680;
+}
+
+.punctum-world-draw {
+  touch-action: none;
+  user-select: none;
+}
+
+.punctum-world-draw__mark-layer {
+  z-index: 4;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.punctum-world-draw__pointer-layer {
+  position: absolute;
+  z-index: 5;
+  inset: 0;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.punctum-world-explanation {
+  margin-top: 16px;
+  display: grid;
+  gap: 8px;
+}
+
+.punctum-world-explanation > span {
+  color: var(--punctum-muted);
+  font: 700 10px/1 "Inconsolata", monospace;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
-.punctum-response-card__copy p {
-  margin: 8px 0 0;
+.punctum-world-explanation textarea {
+  width: 100%;
+  min-height: 86px;
+  padding: 12px 13px;
+  border: 1px solid var(--punctum-border);
+  border-radius: 10px;
+  resize: vertical;
+  background: var(--punctum-bg);
   color: var(--punctum-ink);
-  font-size: 15px;
-  line-height: 1.45;
+  font: inherit;
+  font-size: 14px;
+}
+
+.punctum-world-generate-again {
+  width: 100%;
+  margin-top: 14px;
+}
+
+.punctum-world-readonly {
+  margin: 0;
+  padding: 20px;
+  border: 1px solid var(--punctum-line);
+  border-radius: 16px;
+  color: var(--punctum-muted);
+  line-height: 1.5;
+  background: var(--punctum-surface);
 }
 
 .punctum-result-end {
@@ -1885,6 +2699,83 @@ html[data-punctum-theme="dark"] .punctum-theme-toggle__icon {
   align-items: center;
 }
 
+.punctum-practice__intro {
+  min-width: 0;
+}
+
+.punctum-gesture-opt-in {
+  margin-top: 24px;
+}
+
+.punctum-gesture-opt-in__button {
+  width: min(100%, 330px);
+  min-height: 58px;
+  padding: 10px 14px;
+  border: 1px solid var(--punctum-border);
+  border-radius: 16px;
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 12px;
+  align-items: center;
+  background: var(--punctum-surface);
+  color: var(--punctum-ink);
+  text-align: left;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 680;
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.punctum-gesture-opt-in__button:hover:not(:disabled),
+.punctum-gesture-opt-in__button:focus-visible,
+.punctum-gesture-opt-in__button.is-enabled {
+  border-color: var(--punctum-yellow);
+  background: color-mix(in srgb, var(--punctum-yellow) 7%, var(--punctum-surface));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--punctum-yellow) 11%, transparent);
+}
+
+.punctum-gesture-opt-in__button:disabled {
+  color: var(--punctum-ink);
+  cursor: default;
+  opacity: 1;
+}
+
+.punctum-gesture-opt-in__check {
+  width: 28px;
+  height: 28px;
+  border: 1.5px solid var(--punctum-border);
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  color: transparent;
+  font-size: 15px;
+}
+
+.punctum-gesture-opt-in__button.is-enabled
+  .punctum-gesture-opt-in__check {
+  border-color: var(--punctum-yellow);
+  background: var(--punctum-yellow);
+  color: var(--punctum-button-ink);
+}
+
+.punctum-practice .punctum-gesture-opt-in > p {
+  margin: 10px 0 0;
+  color: var(--punctum-muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.punctum-gesture-opt-in > small {
+  display: block;
+  margin-top: 4px;
+  color: var(--punctum-subtle);
+  font-size: 11px;
+}
+
 .punctum-practice__area {
   min-height: 330px;
   position: relative;
@@ -1952,6 +2843,148 @@ html[data-punctum-theme="dark"] .punctum-theme-toggle__icon {
 .punctum-practice .punctum-onboarding__actions {
   grid-column: 1 / -1;
   margin-top: 0;
+}
+
+.punctum-gesture-camera-source {
+  width: 1px !important;
+  height: 1px !important;
+  position: fixed !important;
+  left: -10px !important;
+  bottom: -10px !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.punctum-gesture-pointer {
+  width: 28px;
+  height: 28px;
+  position: fixed;
+  z-index: 9998;
+  left: -14px;
+  top: -14px;
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform;
+  transition: opacity 100ms ease;
+}
+
+.punctum-gesture-pointer > span {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border: 3px solid var(--punctum-surface);
+  border-radius: 50%;
+  background: var(--punctum-yellow);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--punctum-yellow) 72%, transparent),
+    0 4px 14px rgba(15, 18, 23, 0.2);
+  transition:
+    scale 100ms ease,
+    background-color 100ms ease;
+}
+
+.punctum-gesture-pointer.is-visible {
+  opacity: 1;
+}
+
+.punctum-gesture-pointer.is-action > span {
+  background: var(--punctum-mint);
+  scale: 1.18;
+}
+
+.punctum-gesture-pointer.is-pinching > span {
+  scale: 0.72;
+}
+
+.punctum-gesture-pointer.is-pencil {
+  width: 96px;
+  height: 96px;
+  left: -15.36px;
+  top: -77.28px;
+}
+
+.punctum-gesture-pointer.is-pencil > span {
+  border: 0;
+  border-radius: 0;
+  outline: 0;
+  background-color: transparent;
+  background-image: url("/images/research/punctum/pencil.png");
+  background-position: center;
+  background-size: contain;
+  background-repeat: no-repeat;
+  box-shadow: none;
+  filter: drop-shadow(0 3px 5px rgba(15, 18, 23, 0.24));
+  transition:
+    scale 100ms ease,
+    filter 100ms ease;
+}
+
+.punctum-gesture-pointer.is-pencil.is-pinching > span {
+  scale: 0.93;
+  filter:
+    drop-shadow(0 0 3px rgba(255, 255, 255, 0.92))
+    drop-shadow(0 3px 6px rgba(15, 18, 23, 0.22));
+}
+
+.punctum-gesture-hud {
+  min-height: 42px;
+  max-width: min(520px, calc(100vw - 32px));
+  padding: 8px 10px 8px 12px;
+  position: fixed;
+  z-index: 9997;
+  left: 50%;
+  bottom: max(14px, env(safe-area-inset-bottom));
+  translate: -50% 0;
+  border: 1px solid color-mix(in srgb, var(--punctum-border) 60%, transparent);
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  background: color-mix(in srgb, var(--punctum-surface) 94%, transparent);
+  color: var(--punctum-ink);
+  box-shadow: 0 7px 22px rgba(15, 18, 23, 0.12);
+  backdrop-filter: blur(14px);
+  font-size: 12px;
+  font-weight: 620;
+}
+
+.punctum-gesture-hud > i {
+  width: 9px;
+  height: 9px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #f9ab00;
+  box-shadow: 0 0 0 4px color-mix(in srgb, #f9ab00 14%, transparent);
+}
+
+.punctum-gesture-hud.is-ready > i {
+  background: var(--punctum-mint);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--punctum-mint) 14%, transparent);
+}
+
+.punctum-gesture-hud.is-error > i {
+  background: var(--punctum-coral);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--punctum-coral) 14%, transparent);
+}
+
+.punctum-gesture-hud > span {
+  min-width: 0;
+}
+
+.punctum-gesture-hud > button {
+  min-height: 28px;
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--punctum-surface-elevated);
+  color: var(--punctum-ink);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.punctum-site :where(button, a, input, textarea, select).is-gesture-pressed {
+  filter: brightness(0.94);
 }
 
 /* Single-window participant flow */
@@ -3070,6 +4103,10 @@ html[data-punctum-theme="dark"] .punctum-onboarding__card {
     position: static;
   }
 
+  .punctum-response-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .punctum-result-end {
     align-items: stretch;
     flex-direction: column;
@@ -3105,6 +4142,23 @@ html[data-punctum-theme="dark"] .punctum-onboarding__card {
   .punctum-annotation__image {
     width: min(720px, 100%);
     margin: 0 auto;
+  }
+
+  .punctum-world-comparison,
+  .punctum-world-reflection {
+    grid-template-columns: 1fr;
+  }
+
+  .punctum-world-source {
+    width: min(620px, 100%);
+  }
+
+  .punctum-world-model-picker {
+    width: min(760px, 100%);
+  }
+
+  .punctum-world-reflection {
+    width: min(720px, 100%);
   }
 }
 
@@ -3145,6 +4199,35 @@ html[data-punctum-theme="dark"] .punctum-onboarding__card {
     height: 112px;
     padding: 16px;
     font-size: 11px;
+  }
+
+  .punctum-gesture-opt-in {
+    margin-top: 16px;
+  }
+
+  .punctum-gesture-opt-in__button {
+    width: 100%;
+    min-height: 54px;
+  }
+
+  .punctum-gesture-hud {
+    max-width: none;
+    left: 12px;
+    right: 12px;
+    bottom: max(10px, env(safe-area-inset-bottom));
+    translate: 0 0;
+    border-radius: 16px;
+  }
+
+  .punctum-gesture-hud > span {
+    flex: 1;
+  }
+
+  .punctum-gesture-pointer.is-pencil {
+    width: 82px;
+    height: 82px;
+    left: -13.12px;
+    top: -66px;
   }
 
   .punctum-page-header {
@@ -3194,6 +4277,102 @@ html[data-punctum-theme="dark"] .punctum-onboarding__card {
 
   .punctum-response-grid {
     grid-template-columns: 1fr;
+  }
+
+  .punctum-response-card__content {
+    min-height: 104px;
+    grid-template-columns: minmax(0, 1fr) minmax(132px, 0.7fr);
+    gap: 10px;
+  }
+
+  .punctum-response-card__quote {
+    padding-left: 34px;
+    padding-top: 14px;
+    padding-bottom: 16px;
+  }
+
+  .punctum-response-card__quote.has-comment::before {
+    left: 1px;
+    top: 8px;
+    font-size: 42px;
+  }
+
+  .punctum-response-card__quote p {
+    font-size: 18px;
+  }
+
+  .punctum-response-card__actions {
+    padding-top: 11px;
+  }
+
+  .punctum-response-card__generate,
+  .punctum-response-card__worlds-toggle {
+    padding-inline: 9px;
+    font-size: 11px;
+  }
+
+  .punctum-world-modal__header {
+    min-height: 66px;
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+  }
+
+  .punctum-world-modal__header > div {
+    display: none;
+  }
+
+  .punctum-world-modal__body {
+    padding: 16px 14px 60px;
+  }
+
+  .punctum-world-comparison {
+    gap: 20px;
+  }
+
+  .punctum-world-model-picker {
+    padding: 20px 16px;
+  }
+
+  .punctum-world-model-picker__heading {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .punctum-world-model-options {
+    grid-template-columns: 1fr;
+    margin-top: 20px;
+  }
+
+  .punctum-world-model-options > label {
+    min-height: 0;
+  }
+
+  .punctum-world-source figcaption,
+  .punctum-world-result figcaption {
+    min-height: 0;
+    flex-direction: column;
+  }
+
+  .punctum-world-source figcaption p {
+    text-align: left;
+  }
+
+  .punctum-world-palette i {
+    width: 20px;
+    height: 20px;
+  }
+
+  .punctum-world-reflection {
+    margin-top: 52px;
+  }
+
+  .punctum-world-reflection__question h2 {
+    font-size: 30px;
+  }
+
+  .punctum-world-new-mark {
+    padding: 14px;
+    border-radius: 16px;
   }
 
   .punctum-result__controls {

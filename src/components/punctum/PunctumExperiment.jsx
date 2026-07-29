@@ -5,6 +5,11 @@ import {
   normalizePointerPoint,
   verticesToSmoothSvgPath,
 } from "../../lib/punctum/geometry";
+import {
+  getPunctumGestureStatus,
+  PUNCTUM_LEFT_FLICK_EVENT,
+  usePunctumGestureControl,
+} from "../../hooks/usePunctumGestureControl";
 import PunctumFeedbackModal from "./PunctumFeedbackModal";
 
 const AGE_BANDS = [
@@ -466,7 +471,13 @@ function VerificationStep({
   );
 }
 
-function PracticeStep({ onContinue }) {
+function PracticeStep({
+  onContinue,
+  gestureEnabled,
+  gestureState,
+  gestureStatus,
+  onEnableGesture,
+}) {
   const areaRef = useRef(null);
   const pointsRef = useRef([]);
   const drawingRef = useRef(false);
@@ -502,16 +513,50 @@ function PracticeStep({ onContinue }) {
     drawingRef.current = false;
   };
 
+  useEffect(() => {
+    const handleLeftFlick = () => onContinue();
+    window.addEventListener(PUNCTUM_LEFT_FLICK_EVENT, handleLeftFlick);
+    return () =>
+      window.removeEventListener(PUNCTUM_LEFT_FLICK_EVENT, handleLeftFlick);
+  }, [onContinue]);
+
   return (
     <OnboardingFrame step={4}>
       <div className="punctum-practice">
-        <div className="punctum-screen-heading">
-          <p className="punctum-eyebrow">Practice</p>
-          <h1>Draw one quick mark.</h1>
+        <div className="punctum-practice__intro">
+          <div className="punctum-screen-heading">
+            <p className="punctum-eyebrow">Practice</p>
+            <h1>Draw one quick mark.</h1>
+          </div>
+          <div className="punctum-gesture-opt-in">
+            <button
+              className={`punctum-gesture-opt-in__button ${
+                gestureEnabled ? "is-enabled" : ""
+              }`}
+              type="button"
+              aria-pressed={gestureEnabled}
+              disabled={gestureEnabled && gestureState !== "error"}
+              onClick={onEnableGesture}
+            >
+              <span className="punctum-gesture-opt-in__check" aria-hidden="true">
+                {gestureEnabled && gestureState !== "error" ? "✓" : ""}
+              </span>
+              <span>
+                {gestureState === "error"
+                  ? "Try gesture control again"
+                  : gestureEnabled
+                    ? "Gesture control enabled"
+                    : "Enable gesture control"}
+              </span>
+            </button>
+            <p role="status">{gestureStatus}</p>
+            <small>Camera frames stay on this device.</small>
+          </div>
         </div>
         <div
           ref={areaRef}
           className="punctum-practice__area"
+          data-punctum-gesture-draw-zone
           onPointerDown={start}
           onPointerMove={move}
           onPointerUp={finish}
@@ -638,8 +683,10 @@ function PunctumDrawingStage({
 
   const onPointerMove = (event) => {
     if (!drawingRef.current || savingRef.current) return;
-    const samples =
-      event.nativeEvent?.getCoalescedEvents?.() || [event.nativeEvent || event];
+    const coalescedEvents = event.nativeEvent?.getCoalescedEvents?.();
+    const samples = coalescedEvents?.length
+      ? coalescedEvents
+      : [event.nativeEvent || event];
     const next = [...strokeRef.current];
     for (const sample of samples) {
       const point = eventPoint(sample);
@@ -702,6 +749,21 @@ function PunctumDrawingStage({
     }
   };
 
+  useEffect(() => {
+    const handleLeftFlick = () => {
+      if (savingRef.current || committed) return;
+      if (polygon) {
+        void confirm();
+        return;
+      }
+      onSkip();
+    };
+
+    window.addEventListener(PUNCTUM_LEFT_FLICK_EVENT, handleLeftFlick);
+    return () =>
+      window.removeEventListener(PUNCTUM_LEFT_FLICK_EVENT, handleLeftFlick);
+  }, [committed, onSkip, polygon]);
+
   const imageLayerStyle = {
     left: geometry.x,
     top: geometry.y,
@@ -741,6 +803,7 @@ function PunctumDrawingStage({
           />
           <div
             className="punctum-draw__pointer-layer"
+            data-punctum-gesture-draw-zone
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}
             onPointerUp={finishDrawing}
@@ -880,6 +943,16 @@ function AnnotationStep({
   onSkip,
 }) {
   const [text, setText] = useState(initialText);
+
+  useEffect(() => {
+    const handleLeftFlick = () => {
+      if (!saving) onSkip();
+    };
+
+    window.addEventListener(PUNCTUM_LEFT_FLICK_EVENT, handleLeftFlick);
+    return () =>
+      window.removeEventListener(PUNCTUM_LEFT_FLICK_EVENT, handleLeftFlick);
+  }, [onSkip, saving]);
 
   return (
     <main className="punctum-annotation">
@@ -1023,6 +1096,59 @@ function CompletionStep({ sessionId, onRestart }) {
   );
 }
 
+function PunctumGestureRuntime({
+  enabled,
+  videoRef,
+  canvasRef,
+  pointerRef,
+  status,
+  state,
+  handDetected,
+  onDisable,
+}) {
+  return (
+    <>
+      <video
+        ref={videoRef}
+        className="punctum-gesture-camera-source"
+        autoPlay
+        playsInline
+        muted
+        aria-hidden="true"
+      />
+      <canvas
+        ref={canvasRef}
+        className="punctum-gesture-camera-source"
+        aria-hidden="true"
+      />
+      {enabled && (
+        <>
+          <div
+            ref={pointerRef}
+            className="punctum-gesture-pointer"
+            aria-hidden="true"
+          >
+            <span></span>
+          </div>
+          <div
+            className={`punctum-gesture-hud ${
+              state === "ready" && handDetected ? "is-ready" : ""
+            } ${state === "error" ? "is-error" : ""}`}
+            role="status"
+            aria-live="polite"
+          >
+            <i aria-hidden="true"></i>
+            <span>{status}</span>
+            <button type="button" onClick={onDisable}>
+              Turn off
+            </button>
+          </div>
+        </>
+      )}
+    </>
+  );
+}
+
 export default function PunctumExperiment({
   images,
   turnstileSiteKey,
@@ -1046,9 +1172,18 @@ export default function PunctumExperiment({
   const [annotationSaving, setAnnotationSaving] = useState(false);
   const [annotationError, setAnnotationError] = useState("");
   const [completedMarks, setCompletedMarks] = useState(0);
+  const [gestureEnabled, setGestureEnabled] = useState(false);
+  const gestureControl = usePunctumGestureControl({
+    enabled: gestureEnabled,
+  });
 
   const currentImage = images[currentIndex];
   const orderedImages = useMemo(() => [...images], [images]);
+  const gestureStatus = getPunctumGestureStatus({
+    enabled: gestureEnabled,
+    onboardingState: gestureControl.onboardingState,
+    handDetected: gestureControl.handDetected,
+  });
 
   useEffect(() => {
     const setupProgress = {
@@ -1194,34 +1329,44 @@ export default function PunctumExperiment({
     setCompletedMarks(0);
     setAnnotation(null);
     setAnnotationDraft("");
+    setGestureEnabled(false);
   };
 
+  const enableGestureControl = () => {
+    if (!gestureEnabled) {
+      setGestureEnabled(true);
+      return;
+    }
+    if (gestureControl.onboardingState === "error") {
+      setGestureEnabled(false);
+      window.setTimeout(() => setGestureEnabled(true), 0);
+    }
+  };
+
+  let content;
   if (step === "intro") {
-    return (
+    content = (
       <IntroStep
         onContinue={() => setStep("difference")}
         onSkip={() => setStep("profile")}
       />
     );
-  }
-  if (step === "difference") {
-    return (
+  } else if (step === "difference") {
+    content = (
       <DifferenceStep
         onContinue={() => setStep("interstitial")}
         onSkip={() => setStep("profile")}
       />
     );
-  }
-  if (step === "interstitial") {
-    return (
+  } else if (step === "interstitial") {
+    content = (
       <InterstitialStep
         onContinue={() => setStep("profile")}
         onSkip={() => setStep("profile")}
       />
     );
-  }
-  if (step === "profile") {
-    return (
+  } else if (step === "profile") {
+    content = (
       <ProfileStep
         form={form}
         setForm={setForm}
@@ -1229,9 +1374,8 @@ export default function PunctumExperiment({
         onContinue={() => setStep("consent")}
       />
     );
-  }
-  if (step === "consent") {
-    return (
+  } else if (step === "consent") {
+    content = (
       <ConsentStep
         form={form}
         setForm={setForm}
@@ -1239,9 +1383,8 @@ export default function PunctumExperiment({
         onContinue={() => setStep("verification")}
       />
     );
-  }
-  if (step === "verification") {
-    return (
+  } else if (step === "verification") {
+    content = (
       <VerificationStep
         siteKey={turnstileSiteKey}
         isLocalPreview={isLocalPreview}
@@ -1253,12 +1396,18 @@ export default function PunctumExperiment({
         onBegin={beginSession}
       />
     );
-  }
-  if (step === "practice") {
-    return <PracticeStep onContinue={() => setStep("drawing")} />;
-  }
-  if (step === "drawing") {
-    return (
+  } else if (step === "practice") {
+    content = (
+      <PracticeStep
+        onContinue={() => setStep("drawing")}
+        gestureEnabled={gestureEnabled}
+        gestureState={gestureControl.onboardingState}
+        gestureStatus={gestureStatus}
+        onEnableGesture={enableGestureControl}
+      />
+    );
+  } else if (step === "drawing") {
+    content = (
       <PunctumDrawingStage
         image={currentImage}
         index={currentIndex}
@@ -1268,9 +1417,8 @@ export default function PunctumExperiment({
         onSkip={advance}
       />
     );
-  }
-  if (step === "annotation" && annotation) {
-    return (
+  } else if (step === "annotation" && annotation) {
+    content = (
       <AnnotationStep
         image={currentImage}
         polygon={annotation.polygon}
@@ -1282,6 +1430,23 @@ export default function PunctumExperiment({
         onSkip={advance}
       />
     );
+  } else {
+    content = <CompletionStep sessionId={sessionId} onRestart={restart} />;
   }
-  return <CompletionStep sessionId={sessionId} onRestart={restart} />;
+
+  return (
+    <>
+      {content}
+      <PunctumGestureRuntime
+        enabled={gestureEnabled}
+        videoRef={gestureControl.videoRef}
+        canvasRef={gestureControl.canvasRef}
+        pointerRef={gestureControl.pointerRef}
+        status={gestureStatus}
+        state={gestureControl.onboardingState}
+        handDetected={gestureControl.handDetected}
+        onDisable={() => setGestureEnabled(false)}
+      />
+    </>
+  );
 }

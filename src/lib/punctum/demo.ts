@@ -9,6 +9,7 @@ export type PublicPunctumPolygon = {
   drawingType: string;
   createdAt?: string;
   annotation?: string;
+  generations?: Array<Record<string, unknown>>;
 };
 
 const hashString = (value: string) => {

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import test from "node:test";
+import { test } from "vitest";
 
 const stylesheetUrl = new URL("../../src/styles/punctum.css", import.meta.url);
 const stylesheet = await readFile(stylesheetUrl, "utf8");

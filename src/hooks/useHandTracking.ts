@@ -14,6 +14,7 @@ const PINCH_ENGAGE_THRESHOLD = 0.34;
 const PINCH_RELEASE_THRESHOLD = 0.5;
 const PINCH_SCALE_DEADBAND = 0.012;
 const PINCH_RELEASE_CONFIRM_MS = 72;
+const SIDE_WAVE_POSTURE_HOLD_MS = 120;
 const FINGER_GESTURE_THRESHOLD_RATIO = 0.84;
 const FINGER_GESTURE_COOLDOWN_RATIO = 0.9;
 const FINGER_GESTURE_MIN_THRESHOLD = 18;
@@ -43,6 +44,7 @@ const TAU = Math.PI * 2;
 
 type PreviewMode = 'threshold' | 'dot-matrix';
 type HandTrackingEngine = 'mediapipe' | 'tensorflow';
+type GesturePosture = 'any' | 'side-wave';
 
 interface HandLandmark {
     x: number;
@@ -141,6 +143,38 @@ const getExtendedFingerCount = (landmarks: HandLandmark[]) => {
 const isOpenHandFrame = (landmarks: HandLandmark[]) =>
     getExtendedFingerCount(landmarks) >= 3;
 
+const isSideWaveHandFrame = (landmarks: HandLandmark[]) => {
+    if (getExtendedFingerCount(landmarks) < 3) return false;
+
+    const wrist = landmarks[0];
+    const middleMcp = landmarks[9];
+    const palmLength = Math.max(distanceBetween(wrist, middleMcp), 0.04);
+    const palmAxisX = Math.abs(middleMcp.x - wrist.x);
+    const palmAxisY = Math.abs(middleMcp.y - wrist.y);
+    const palmIsMostlyVertical = palmAxisY > (palmAxisX * 0.72);
+
+    const fingertipXs = [8, 12, 16, 20].map((index) => landmarks[index].x);
+    const knuckleXs = [5, 9, 13, 17].map((index) => landmarks[index].x);
+    const fingertipSpread =
+        Math.max(...fingertipXs) - Math.min(...fingertipXs);
+    const knuckleSpread = Math.max(...knuckleXs) - Math.min(...knuckleXs);
+    const fingertipsAreVerticallyAligned =
+        fingertipSpread / palmLength < 0.62;
+    const palmLooksEdgeOn = knuckleSpread / palmLength < 0.68;
+
+    const indexMcpDepth = landmarks[5].z ?? 0;
+    const pinkyMcpDepth = landmarks[17].z ?? 0;
+    const depthTurn =
+        Math.abs(indexMcpDepth - pinkyMcpDepth) / palmLength;
+    const palmHasDepthTurn = depthTurn > 0.2;
+
+    return (
+        palmIsMostlyVertical &&
+        fingertipsAreVerticallyAligned &&
+        (palmLooksEdgeOn || palmHasDepthTurn)
+    );
+};
+
 export type OnboardingState =
     | 'requesting_camera'
     | 'loading_model'
@@ -203,6 +237,7 @@ export interface UseHandTrackingProps {
     gestureMotionSource?: 'index' | 'hand' | 'fingerCluster';
     requireOpenHand?: boolean;
     gestureMode?: 'default' | 'finger' | 'hand';
+    gesturePosture?: GesturePosture;
     pinchMode?: PinchMode;
     pinchHorizontalTravelPx?: number;
     pinchEngageThreshold?: number;
@@ -304,6 +339,7 @@ export const useHandTracking = ({
     gestureMotionSource,
     requireOpenHand = false,
     gestureMode = 'default',
+    gesturePosture = 'any',
     pinchMode = 'dual-hand-distance',
     pinchHorizontalTravelPx,
     pinchEngageThreshold,
@@ -366,6 +402,8 @@ export const useHandTracking = ({
     const onPinchChangeRef = useRef(onPinchChange);
     const requireOpenHandRef = useRef(requireOpenHand);
     const gestureModeRef = useRef<'default' | 'finger' | 'hand'>(gestureMode);
+    const gesturePostureRef = useRef<GesturePosture>(gesturePosture);
+    const gesturePostureStartedAtRef = useRef<number | null>(null);
     const pinchModeRef = useRef<PinchMode>(pinchMode);
     const pinchHorizontalTravelPxRef = useRef<number | null>(pinchHorizontalTravelPx ?? null);
     const pinchEngageThresholdRef = useRef<number | null>(pinchEngageThreshold ?? null);
@@ -429,6 +467,10 @@ export const useHandTracking = ({
     }, [gestureMode]);
 
     useEffect(() => {
+        gesturePostureRef.current = gesturePosture;
+    }, [gesturePosture]);
+
+    useEffect(() => {
         pinchModeRef.current = pinchMode;
     }, [pinchMode]);
 
@@ -453,6 +495,7 @@ export const useHandTracking = ({
         lastGesturePosRef.current = { x: 0, y: 0, timestamp: 0 };
         lastGestureTriggerRef.current = 0;
         lastTrackedHandIdRef.current = null;
+        gesturePostureStartedAtRef.current = null;
         resetFingerGestureTracking();
         pinchActiveRef.current = false;
         pinchStartDistanceRef.current = 0;
@@ -1120,6 +1163,7 @@ export const useHandTracking = ({
             setHandDetected(false);
             setIsOpenHandDetected(false);
             lastTrackedHandIdRef.current = null;
+            gesturePostureStartedAtRef.current = null;
             endActivePinch('hand_lost');
             if (hasIndexTipPointRef.current) {
                 setIndexTipPoint(null);
@@ -1553,6 +1597,7 @@ export const useHandTracking = ({
 
         if (isPinching) {
             resetFingerGestureTracking();
+            gesturePostureStartedAtRef.current = null;
             lastHandPosRef.current = { x: currentX, y: currentY, timestamp: now };
             lastGesturePosRef.current = { x: gestureCurrentX, y: gestureCurrentY, timestamp: now };
             return;
@@ -1563,6 +1608,46 @@ export const useHandTracking = ({
             lastHandPosRef.current = { x: currentX, y: currentY, timestamp: now };
             lastGesturePosRef.current = { x: gestureCurrentX, y: gestureCurrentY, timestamp: now };
             return;
+        }
+
+        if (gesturePostureRef.current === 'side-wave') {
+            if (!isSideWaveHandFrame(primaryHandFrame.landmarks)) {
+                gesturePostureStartedAtRef.current = null;
+                resetFingerGestureTracking();
+                lastHandPosRef.current = { x: currentX, y: currentY, timestamp: now };
+                lastGesturePosRef.current = {
+                    x: gestureCurrentX,
+                    y: gestureCurrentY,
+                    timestamp: now,
+                };
+                return;
+            }
+
+            if (gesturePostureStartedAtRef.current === null) {
+                gesturePostureStartedAtRef.current = now;
+                lastHandPosRef.current = { x: currentX, y: currentY, timestamp: now };
+                lastGesturePosRef.current = {
+                    x: gestureCurrentX,
+                    y: gestureCurrentY,
+                    timestamp: now,
+                };
+                return;
+            }
+
+            if (
+                now - gesturePostureStartedAtRef.current <
+                SIDE_WAVE_POSTURE_HOLD_MS
+            ) {
+                lastHandPosRef.current = { x: currentX, y: currentY, timestamp: now };
+                lastGesturePosRef.current = {
+                    x: gestureCurrentX,
+                    y: gestureCurrentY,
+                    timestamp: now,
+                };
+                return;
+            }
+        } else {
+            gesturePostureStartedAtRef.current = null;
         }
 
         if (!onGestureRef.current) {
@@ -1598,10 +1683,14 @@ export const useHandTracking = ({
 
         const gestureDx = activeGestureMode === 'finger'
             ? fingerGestureDxRef.current
-            : dx;
+            : activeGestureMode === 'hand'
+                ? gestureFrameDx
+                : dx;
         const gestureDy = activeGestureMode === 'finger'
             ? fingerGestureDyRef.current
-            : dy;
+            : activeGestureMode === 'hand'
+                ? gestureFrameDy
+                : dy;
         const gestureAngle = Math.atan2(gestureDy, gestureDx);
         const gesturePower = activeGestureMode === 'finger'
             ? (fingerGesturePathRef.current * FINGER_GESTURE_PATH_GAIN) + (gestureFrameSpeed * FINGER_GESTURE_SPEED_WEIGHT)
