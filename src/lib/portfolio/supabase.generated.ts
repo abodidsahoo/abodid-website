@@ -68,6 +68,192 @@ export type Database = {
         }
         Relationships: []
       }
+      analytics_events: {
+        Row: {
+          event_name: string
+          id: string
+          menu_context: string
+          menu_position: number | null
+          occurred_at: string
+          page_path: string
+          page_view_id: string | null
+          session_id: string
+          target_label: string | null
+          target_type: string | null
+          target_url: string | null
+        }
+        Insert: {
+          event_name: string
+          id: string
+          menu_context: string
+          menu_position?: number | null
+          occurred_at?: string
+          page_path: string
+          page_view_id?: string | null
+          session_id: string
+          target_label?: string | null
+          target_type?: string | null
+          target_url?: string | null
+        }
+        Update: {
+          event_name?: string
+          id?: string
+          menu_context?: string
+          menu_position?: number | null
+          occurred_at?: string
+          page_path?: string
+          page_view_id?: string | null
+          session_id?: string
+          target_label?: string | null
+          target_type?: string | null
+          target_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analytics_events_page_view_id_fkey"
+            columns: ["page_view_id"]
+            isOneToOne: false
+            referencedRelation: "analytics_page_views"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "analytics_events_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "analytics_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      analytics_page_views: {
+        Row: {
+          engaged_seconds: number
+          id: string
+          page_path: string
+          page_title: string | null
+          project_id: string | null
+          sequence_number: number
+          session_id: string
+          viewed_at: string
+        }
+        Insert: {
+          engaged_seconds?: number
+          id: string
+          page_path: string
+          page_title?: string | null
+          project_id?: string | null
+          sequence_number: number
+          session_id: string
+          viewed_at?: string
+        }
+        Update: {
+          engaged_seconds?: number
+          id?: string
+          page_path?: string
+          page_title?: string | null
+          project_id?: string | null
+          sequence_number?: number
+          session_id?: string
+          viewed_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analytics_page_views_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "portfolio_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "analytics_page_views_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "portfolio_projects_export"
+            referencedColumns: ["project_id"]
+          },
+          {
+            foreignKeyName: "analytics_page_views_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "portfolio_public_index"
+            referencedColumns: ["project_id"]
+          },
+          {
+            foreignKeyName: "analytics_page_views_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "portfolio_public_projects"
+            referencedColumns: ["project_id"]
+          },
+          {
+            foreignKeyName: "analytics_page_views_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "analytics_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      analytics_sessions: {
+        Row: {
+          city: string | null
+          country: string
+          created_at: string
+          ended_at: string | null
+          exit_page: string | null
+          id: string
+          landing_page: string
+          referrer_domain: string | null
+          source: string
+          started_at: string
+          total_engaged_seconds: number
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
+          visitor_id: string
+        }
+        Insert: {
+          city?: string | null
+          country?: string
+          created_at?: string
+          ended_at?: string | null
+          exit_page?: string | null
+          id: string
+          landing_page: string
+          referrer_domain?: string | null
+          source?: string
+          started_at?: string
+          total_engaged_seconds?: number
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+          visitor_id: string
+        }
+        Update: {
+          city?: string | null
+          country?: string
+          created_at?: string
+          ended_at?: string | null
+          exit_page?: string | null
+          id?: string
+          landing_page?: string
+          referrer_domain?: string | null
+          source?: string
+          started_at?: string
+          total_engaged_seconds?: number
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+          visitor_id?: string
+        }
+        Relationships: []
+      }
       awards: {
         Row: {
           category: string | null
@@ -256,6 +442,62 @@ export type Database = {
           label?: string
         }
         Relationships: []
+      }
+      contact_submissions: {
+        Row: {
+          created_at: string
+          email: string
+          enquiry_cta: string | null
+          enquiry_path: string | null
+          enquiry_source_name: string | null
+          enquiry_title: string
+          id: string
+          message: string
+          name: string
+          notification_error: string | null
+          notification_sent_at: string | null
+          session_id: string
+          submitted_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          enquiry_cta?: string | null
+          enquiry_path?: string | null
+          enquiry_source_name?: string | null
+          enquiry_title: string
+          id?: string
+          message: string
+          name: string
+          notification_error?: string | null
+          notification_sent_at?: string | null
+          session_id: string
+          submitted_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          enquiry_cta?: string | null
+          enquiry_path?: string | null
+          enquiry_source_name?: string | null
+          enquiry_title?: string
+          id?: string
+          message?: string
+          name?: string
+          notification_error?: string | null
+          notification_sent_at?: string | null
+          session_id?: string
+          submitted_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_submissions_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "analytics_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       du_workshop_feedback: {
         Row: {
@@ -669,6 +911,143 @@ export type Database = {
         }
         Relationships: []
       }
+      ideas_notes: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          title: string | null
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          title?: string | null
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          title?: string | null
+        }
+        Relationships: []
+      }
+      media_assets: {
+        Row: {
+          alt_text: string
+          caption: string
+          created_at: string
+          created_by: string | null
+          credit: string
+          duration_seconds: number | null
+          etag: string | null
+          file_size: number
+          folder_path: string
+          height: number | null
+          id: string
+          last_processed_at: string | null
+          metadata: Json
+          mime_type: string
+          object_key: string
+          origin_project_id: string | null
+          original_filename: string
+          processing_error: string | null
+          processing_status: string
+          public_url: string
+          ready_at: string | null
+          storage_bucket: string
+          storage_provider: string
+          transform_version: number
+          updated_at: string
+          width: number | null
+        }
+        Insert: {
+          alt_text?: string
+          caption?: string
+          created_at?: string
+          created_by?: string | null
+          credit?: string
+          duration_seconds?: number | null
+          etag?: string | null
+          file_size?: number
+          folder_path?: string
+          height?: number | null
+          id?: string
+          last_processed_at?: string | null
+          metadata?: Json
+          mime_type: string
+          object_key: string
+          origin_project_id?: string | null
+          original_filename: string
+          processing_error?: string | null
+          processing_status?: string
+          public_url: string
+          ready_at?: string | null
+          storage_bucket: string
+          storage_provider?: string
+          transform_version?: number
+          updated_at?: string
+          width?: number | null
+        }
+        Update: {
+          alt_text?: string
+          caption?: string
+          created_at?: string
+          created_by?: string | null
+          credit?: string
+          duration_seconds?: number | null
+          etag?: string | null
+          file_size?: number
+          folder_path?: string
+          height?: number | null
+          id?: string
+          last_processed_at?: string | null
+          metadata?: Json
+          mime_type?: string
+          object_key?: string
+          origin_project_id?: string | null
+          original_filename?: string
+          processing_error?: string | null
+          processing_status?: string
+          public_url?: string
+          ready_at?: string | null
+          storage_bucket?: string
+          storage_provider?: string
+          transform_version?: number
+          updated_at?: string
+          width?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_assets_origin_project_id_fkey"
+            columns: ["origin_project_id"]
+            isOneToOne: false
+            referencedRelation: "portfolio_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "media_assets_origin_project_id_fkey"
+            columns: ["origin_project_id"]
+            isOneToOne: false
+            referencedRelation: "portfolio_projects_export"
+            referencedColumns: ["project_id"]
+          },
+          {
+            foreignKeyName: "media_assets_origin_project_id_fkey"
+            columns: ["origin_project_id"]
+            isOneToOne: false
+            referencedRelation: "portfolio_public_index"
+            referencedColumns: ["project_id"]
+          },
+          {
+            foreignKeyName: "media_assets_origin_project_id_fkey"
+            columns: ["origin_project_id"]
+            isOneToOne: false
+            referencedRelation: "portfolio_public_projects"
+            referencedColumns: ["project_id"]
+          },
+        ]
+      }
       media_mentions: {
         Row: {
           categories: string[] | null
@@ -705,14 +1084,85 @@ export type Database = {
         }
         Relationships: []
       }
+      media_variants: {
+        Row: {
+          actual_height: number
+          actual_width: number
+          animated: boolean
+          asset_id: string
+          created_at: string
+          etag: string | null
+          file_size: number
+          id: string
+          metadata: Json
+          mime_type: string
+          object_key: string
+          public_url: string
+          quality: number
+          source_etag: string | null
+          target_width: number
+          transform_version: number
+          updated_at: string
+          variant_key: string
+        }
+        Insert: {
+          actual_height: number
+          actual_width: number
+          animated?: boolean
+          asset_id: string
+          created_at?: string
+          etag?: string | null
+          file_size?: number
+          id?: string
+          metadata?: Json
+          mime_type?: string
+          object_key: string
+          public_url: string
+          quality?: number
+          source_etag?: string | null
+          target_width: number
+          transform_version?: number
+          updated_at?: string
+          variant_key: string
+        }
+        Update: {
+          actual_height?: number
+          actual_width?: number
+          animated?: boolean
+          asset_id?: string
+          created_at?: string
+          etag?: string | null
+          file_size?: number
+          id?: string
+          metadata?: Json
+          mime_type?: string
+          object_key?: string
+          public_url?: string
+          quality?: number
+          source_etag?: string | null
+          target_width?: number
+          transform_version?: number
+          updated_at?: string
+          variant_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_variants_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "media_assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       moodboard_items: {
         Row: {
+          aspect_ratio: number | null
           created_at: string
           id: string
-          image_url: string
           image_height: number | null
+          image_url: string
           image_width: number | null
-          aspect_ratio: number | null
           published: boolean
           search_text: string
           storage_path: string
@@ -721,10 +1171,11 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          aspect_ratio?: number | null
           created_at?: string
           id?: string
-          image_url: string
           image_height?: number | null
+          image_url: string
           image_width?: number | null
           published?: boolean
           search_text?: string
@@ -734,10 +1185,11 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          aspect_ratio?: number | null
           created_at?: string
           id?: string
-          image_url?: string
           image_height?: number | null
+          image_url?: string
           image_width?: number | null
           published?: boolean
           search_text?: string
@@ -745,6 +1197,237 @@ export type Database = {
           tags?: string[]
           title?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      network_contacts: {
+        Row: {
+          archived: boolean
+          city: string | null
+          company: string | null
+          confidence: Json
+          connected_on: string | null
+          country: string | null
+          created_at: string
+          custom_fields: Json
+          do_not_contact: boolean
+          email: string | null
+          email_type: string
+          embedded_at: string | null
+          embedding: string | null
+          embedding_input_hash: string | null
+          embedding_model: string | null
+          embedding_refresh_needed: boolean
+          employment_history: Json
+          enrichment_sources: Json
+          enrichment_status: string
+          expertise_keywords: string[]
+          first_name: string | null
+          full_name: string
+          has_email: boolean
+          id: string
+          import_snapshot: Json
+          imported_at: string
+          incoming_conflicts: Json
+          last_name: string | null
+          last_seen_in_export: string
+          last_verified_at: string | null
+          linkedin_url: string | null
+          match_explanation: string | null
+          newsletter_consent_source: string | null
+          newsletter_status: string
+          notes: string | null
+          outreach_goals: string[]
+          owner_id: string
+          personal_website: string | null
+          position: string | null
+          present_in_latest_export: boolean
+          public_links: Json
+          public_summary: string | null
+          region: string | null
+          relationship_context: string | null
+          relationship_tier: string
+          search_document: unknown
+          search_text: string
+          source_company: string | null
+          source_email: string | null
+          source_position: string | null
+          source_record_key: string
+          starred: boolean
+          tags: string[]
+          updated_at: string
+          verification_state: string
+          work_categories: string[]
+        }
+        Insert: {
+          archived?: boolean
+          city?: string | null
+          company?: string | null
+          confidence?: Json
+          connected_on?: string | null
+          country?: string | null
+          created_at?: string
+          custom_fields?: Json
+          do_not_contact?: boolean
+          email?: string | null
+          email_type?: string
+          embedded_at?: string | null
+          embedding?: string | null
+          embedding_input_hash?: string | null
+          embedding_model?: string | null
+          embedding_refresh_needed?: boolean
+          employment_history?: Json
+          enrichment_sources?: Json
+          enrichment_status?: string
+          expertise_keywords?: string[]
+          first_name?: string | null
+          full_name: string
+          has_email?: boolean
+          id?: string
+          import_snapshot?: Json
+          imported_at?: string
+          incoming_conflicts?: Json
+          last_name?: string | null
+          last_seen_in_export?: string
+          last_verified_at?: string | null
+          linkedin_url?: string | null
+          match_explanation?: string | null
+          newsletter_consent_source?: string | null
+          newsletter_status?: string
+          notes?: string | null
+          outreach_goals?: string[]
+          owner_id: string
+          personal_website?: string | null
+          position?: string | null
+          present_in_latest_export?: boolean
+          public_links?: Json
+          public_summary?: string | null
+          region?: string | null
+          relationship_context?: string | null
+          relationship_tier?: string
+          search_document?: unknown
+          search_text?: string
+          source_company?: string | null
+          source_email?: string | null
+          source_position?: string | null
+          source_record_key: string
+          starred?: boolean
+          tags?: string[]
+          updated_at?: string
+          verification_state?: string
+          work_categories?: string[]
+        }
+        Update: {
+          archived?: boolean
+          city?: string | null
+          company?: string | null
+          confidence?: Json
+          connected_on?: string | null
+          country?: string | null
+          created_at?: string
+          custom_fields?: Json
+          do_not_contact?: boolean
+          email?: string | null
+          email_type?: string
+          embedded_at?: string | null
+          embedding?: string | null
+          embedding_input_hash?: string | null
+          embedding_model?: string | null
+          embedding_refresh_needed?: boolean
+          employment_history?: Json
+          enrichment_sources?: Json
+          enrichment_status?: string
+          expertise_keywords?: string[]
+          first_name?: string | null
+          full_name?: string
+          has_email?: boolean
+          id?: string
+          import_snapshot?: Json
+          imported_at?: string
+          incoming_conflicts?: Json
+          last_name?: string | null
+          last_seen_in_export?: string
+          last_verified_at?: string | null
+          linkedin_url?: string | null
+          match_explanation?: string | null
+          newsletter_consent_source?: string | null
+          newsletter_status?: string
+          notes?: string | null
+          outreach_goals?: string[]
+          owner_id?: string
+          personal_website?: string | null
+          position?: string | null
+          present_in_latest_export?: boolean
+          public_links?: Json
+          public_summary?: string | null
+          region?: string | null
+          relationship_context?: string | null
+          relationship_tier?: string
+          search_document?: unknown
+          search_text?: string
+          source_company?: string | null
+          source_email?: string | null
+          source_position?: string | null
+          source_record_key?: string
+          starred?: boolean
+          tags?: string[]
+          updated_at?: string
+          verification_state?: string
+          work_categories?: string[]
+        }
+        Relationships: []
+      }
+      network_import_runs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          duplicate_count: number
+          error_summary: Json
+          failed_count: number
+          id: string
+          inserted_count: number
+          owner_id: string
+          source_filename: string
+          source_sha256: string | null
+          started_at: string
+          status: string
+          total_rows: number
+          unchanged_count: number
+          updated_count: number
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          duplicate_count?: number
+          error_summary?: Json
+          failed_count?: number
+          id?: string
+          inserted_count?: number
+          owner_id: string
+          source_filename: string
+          source_sha256?: string | null
+          started_at?: string
+          status?: string
+          total_rows?: number
+          unchanged_count?: number
+          updated_count?: number
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          duplicate_count?: number
+          error_summary?: Json
+          failed_count?: number
+          id?: string
+          inserted_count?: number
+          owner_id?: string
+          source_filename?: string
+          source_sha256?: string | null
+          started_at?: string
+          status?: string
+          total_rows?: number
+          unchanged_count?: number
+          updated_count?: number
         }
         Relationships: []
       }
@@ -779,6 +1462,73 @@ export type Database = {
             columns: ["newsletter_id"]
             isOneToOne: false
             referencedRelation: "newsletters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      newsletter_opens: {
+        Row: {
+          broadcast_id: string | null
+          id: string
+          opened_at: string
+        }
+        Insert: {
+          broadcast_id?: string | null
+          id?: string
+          opened_at?: string
+        }
+        Update: {
+          broadcast_id?: string | null
+          id?: string
+          opened_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "newsletter_opens_broadcast_id_fkey"
+            columns: ["broadcast_id"]
+            isOneToOne: false
+            referencedRelation: "newsletter_broadcasts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      newsletter_submissions: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          name: string | null
+          session_id: string | null
+          source: string
+          submitted_at: string
+          subscriber_status: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          name?: string | null
+          session_id?: string | null
+          source: string
+          submitted_at?: string
+          subscriber_status: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string | null
+          session_id?: string | null
+          source?: string
+          submitted_at?: string
+          subscriber_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "newsletter_submissions_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "analytics_sessions"
             referencedColumns: ["id"]
           },
         ]
@@ -833,32 +1583,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
-      }
-      newsletter_opens: {
-        Row: {
-          broadcast_id: string | null
-          id: string
-          opened_at: string
-        }
-        Insert: {
-          broadcast_id?: string | null
-          id?: string
-          opened_at?: string
-        }
-        Update: {
-          broadcast_id?: string | null
-          id?: string
-          opened_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "newsletter_opens_broadcast_id_fkey"
-            columns: ["broadcast_id"]
-            isOneToOne: false
-            referencedRelation: "newsletter_broadcasts"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       obsidian_chunks: {
         Row: {
@@ -1103,80 +1827,6 @@ export type Database = {
         }
         Relationships: []
       }
-      portfolio_collaborators: {
-        Row: {
-          archived: boolean
-          created_at: string
-          id: string
-          name: string
-          organisation: string
-          primary_url: string
-          secondary_url: string
-          updated_at: string
-        }
-        Insert: {
-          archived?: boolean
-          created_at?: string
-          id?: string
-          name: string
-          organisation?: string
-          primary_url?: string
-          secondary_url?: string
-          updated_at?: string
-        }
-        Update: {
-          archived?: boolean
-          created_at?: string
-          id?: string
-          name?: string
-          organisation?: string
-          primary_url?: string
-          secondary_url?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      portfolio_organisations: {
-        Row: {
-          archived: boolean
-          created_at: string
-          id: string
-          logo_media_id: string | null
-          name: string
-          slug: string
-          updated_at: string
-          url: string
-        }
-        Insert: {
-          archived?: boolean
-          created_at?: string
-          id?: string
-          logo_media_id?: string | null
-          name: string
-          slug: string
-          updated_at?: string
-          url?: string
-        }
-        Update: {
-          archived?: boolean
-          created_at?: string
-          id?: string
-          logo_media_id?: string | null
-          name?: string
-          slug?: string
-          updated_at?: string
-          url?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "portfolio_organisations_logo_media_fk"
-            columns: ["logo_media_id"]
-            isOneToOne: false
-            referencedRelation: "media_assets"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       portfolio_project_backups: {
         Row: {
           content: Json
@@ -1216,175 +1866,22 @@ export type Database = {
             referencedRelation: "portfolio_projects"
             referencedColumns: ["id"]
           },
-        ]
-      }
-      portfolio_project_blocks: {
-        Row: {
-          block_type: string
-          content_jsonb: Json
-          created_at: string
-          id: string
-          position: number
-          revision_id: string
-          settings_jsonb: Json
-          updated_at: string
-          visible: boolean
-        }
-        Insert: {
-          block_type: string
-          content_jsonb?: Json
-          created_at?: string
-          id?: string
-          position?: number
-          revision_id: string
-          settings_jsonb?: Json
-          updated_at?: string
-          visible?: boolean
-        }
-        Update: {
-          block_type?: string
-          content_jsonb?: Json
-          created_at?: string
-          id?: string
-          position?: number
-          revision_id?: string
-          settings_jsonb?: Json
-          updated_at?: string
-          visible?: boolean
-        }
-        Relationships: [
           {
-            foreignKeyName: "portfolio_project_blocks_revision_id_fkey"
-            columns: ["revision_id"]
-            isOneToOne: false
-            referencedRelation: "portfolio_project_revisions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      portfolio_project_revisions: {
-        Row: {
-          content_blocks: Json
-          context: string
-          cover_alt: string
-          cover_focal_x: number
-          cover_focal_y: number
-          cover_media_id: string | null
-          cover_url: string
-          created_at: string
-          created_by: string | null
-          duration: string
-          id: string
-          limited_public: boolean
-          layout_style: number
-          location: string
-          lock_version: number
-          meta_description: string
-          one_line_description: string
-          outcome_heading: string
-          outcome_text: string
-          project_id: string
-          published_at: string | null
-          revision_number: number
-          search_visible: boolean
-          seo_title: string
-          social_image_media_id: string | null
-          social_image_url: string
-          specific_contribution: string
-          state: string
-          title: string
-          updated_at: string
-          work_in_progress: boolean
-          year_end: number | null
-          year_start: number | null
-        }
-        Insert: {
-          content_blocks?: Json
-          context?: string
-          cover_alt?: string
-          cover_focal_x?: number
-          cover_focal_y?: number
-          cover_media_id?: string | null
-          cover_url?: string
-          created_at?: string
-          created_by?: string | null
-          duration?: string
-          id?: string
-          limited_public?: boolean
-          layout_style?: number
-          location?: string
-          lock_version?: number
-          meta_description?: string
-          one_line_description?: string
-          outcome_heading?: string
-          outcome_text?: string
-          project_id: string
-          published_at?: string | null
-          revision_number: number
-          search_visible?: boolean
-          seo_title?: string
-          social_image_media_id?: string | null
-          social_image_url?: string
-          specific_contribution?: string
-          state?: string
-          title?: string
-          updated_at?: string
-          work_in_progress?: boolean
-          year_end?: number | null
-          year_start?: number | null
-        }
-        Update: {
-          content_blocks?: Json
-          context?: string
-          cover_alt?: string
-          cover_focal_x?: number
-          cover_focal_y?: number
-          cover_media_id?: string | null
-          cover_url?: string
-          created_at?: string
-          created_by?: string | null
-          duration?: string
-          id?: string
-          limited_public?: boolean
-          layout_style?: number
-          location?: string
-          lock_version?: number
-          meta_description?: string
-          one_line_description?: string
-          outcome_heading?: string
-          outcome_text?: string
-          project_id?: string
-          published_at?: string | null
-          revision_number?: number
-          search_visible?: boolean
-          seo_title?: string
-          social_image_media_id?: string | null
-          social_image_url?: string
-          specific_contribution?: string
-          state?: string
-          title?: string
-          updated_at?: string
-          work_in_progress?: boolean
-          year_end?: number | null
-          year_start?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "portfolio_project_revisions_project_id_fkey"
+            foreignKeyName: "portfolio_project_backups_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
-            referencedRelation: "portfolio_projects"
-            referencedColumns: ["id"]
+            referencedRelation: "portfolio_projects_export"
+            referencedColumns: ["project_id"]
           },
           {
-            foreignKeyName: "portfolio_project_revisions_project_id_fkey"
+            foreignKeyName: "portfolio_project_backups_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "portfolio_public_index"
             referencedColumns: ["project_id"]
           },
           {
-            foreignKeyName: "portfolio_project_revisions_project_id_fkey"
+            foreignKeyName: "portfolio_project_backups_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "portfolio_public_projects"
@@ -1397,13 +1894,11 @@ export type Database = {
           content: Json
           created_at: string
           created_by: string | null
-          draft_revision_id: string | null
           featured_order: number
           id: string
           lock_version: number
           published_at: string | null
           published_content: Json | null
-          published_revision_id: string | null
           published_version: number
           slug: string
           status: string
@@ -1416,13 +1911,11 @@ export type Database = {
           content?: Json
           created_at?: string
           created_by?: string | null
-          draft_revision_id?: string | null
           featured_order?: number
           id?: string
           lock_version?: number
           published_at?: string | null
           published_content?: Json | null
-          published_revision_id?: string | null
           published_version?: number
           slug: string
           status?: string
@@ -1435,13 +1928,11 @@ export type Database = {
           content?: Json
           created_at?: string
           created_by?: string | null
-          draft_revision_id?: string | null
           featured_order?: number
           id?: string
           lock_version?: number
           published_at?: string | null
           published_content?: Json | null
-          published_revision_id?: string | null
           published_version?: number
           slug?: string
           status?: string
@@ -1450,171 +1941,7 @@ export type Database = {
           updated_at?: string
           visibility?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "portfolio_projects_draft_revision_fk"
-            columns: ["draft_revision_id"]
-            isOneToOne: false
-            referencedRelation: "portfolio_project_revisions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "portfolio_projects_published_revision_fk"
-            columns: ["published_revision_id"]
-            isOneToOne: false
-            referencedRelation: "portfolio_project_revisions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      portfolio_revision_collaborators: {
-        Row: {
-          collaborator_id: string
-          display_order: number
-          organisation: string
-          primary_url: string
-          revision_id: string
-          role_label: string
-          secondary_url: string
-        }
-        Insert: {
-          collaborator_id: string
-          display_order?: number
-          organisation?: string
-          primary_url?: string
-          revision_id: string
-          role_label?: string
-          secondary_url?: string
-        }
-        Update: {
-          collaborator_id?: string
-          display_order?: number
-          organisation?: string
-          primary_url?: string
-          revision_id?: string
-          role_label?: string
-          secondary_url?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "portfolio_revision_collaborators_collaborator_id_fkey"
-            columns: ["collaborator_id"]
-            isOneToOne: false
-            referencedRelation: "portfolio_collaborators"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "portfolio_revision_collaborators_revision_id_fkey"
-            columns: ["revision_id"]
-            isOneToOne: false
-            referencedRelation: "portfolio_project_revisions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      portfolio_revision_links: {
-        Row: {
-          display_order: number
-          id: string
-          label: string
-          link_type: string
-          revision_id: string
-          url: string
-        }
-        Insert: {
-          display_order?: number
-          id?: string
-          label: string
-          link_type?: string
-          revision_id: string
-          url: string
-        }
-        Update: {
-          display_order?: number
-          id?: string
-          label?: string
-          link_type?: string
-          revision_id?: string
-          url?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "portfolio_revision_links_revision_id_fkey"
-            columns: ["revision_id"]
-            isOneToOne: false
-            referencedRelation: "portfolio_project_revisions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      portfolio_revision_organisations: {
-        Row: {
-          display_order: number
-          organisation_id: string
-          relationship_label: string
-          revision_id: string
-        }
-        Insert: {
-          display_order?: number
-          organisation_id: string
-          relationship_label?: string
-          revision_id: string
-        }
-        Update: {
-          display_order?: number
-          organisation_id?: string
-          relationship_label?: string
-          revision_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "portfolio_revision_organisations_organisation_id_fkey"
-            columns: ["organisation_id"]
-            isOneToOne: false
-            referencedRelation: "portfolio_organisations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "portfolio_revision_organisations_revision_id_fkey"
-            columns: ["revision_id"]
-            isOneToOne: false
-            referencedRelation: "portfolio_project_revisions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      portfolio_revision_taxonomy: {
-        Row: {
-          display_order: number
-          revision_id: string
-          term_id: string
-        }
-        Insert: {
-          display_order?: number
-          revision_id: string
-          term_id: string
-        }
-        Update: {
-          display_order?: number
-          revision_id?: string
-          term_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "portfolio_revision_taxonomy_revision_id_fkey"
-            columns: ["revision_id"]
-            isOneToOne: false
-            referencedRelation: "portfolio_project_revisions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "portfolio_revision_taxonomy_term_id_fkey"
-            columns: ["term_id"]
-            isOneToOne: false
-            referencedRelation: "portfolio_taxonomy_terms"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       portfolio_slug_redirects: {
         Row: {
@@ -1644,6 +1971,13 @@ export type Database = {
             foreignKeyName: "portfolio_slug_redirects_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
+            referencedRelation: "portfolio_projects_export"
+            referencedColumns: ["project_id"]
+          },
+          {
+            foreignKeyName: "portfolio_slug_redirects_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
             referencedRelation: "portfolio_public_index"
             referencedColumns: ["project_id"]
           },
@@ -1655,42 +1989,6 @@ export type Database = {
             referencedColumns: ["project_id"]
           },
         ]
-      }
-      portfolio_taxonomy_terms: {
-        Row: {
-          aliases: string[]
-          archived: boolean
-          created_at: string
-          group_type: string
-          id: string
-          label: string
-          slug: string
-          sort_order: number
-          updated_at: string
-        }
-        Insert: {
-          aliases?: string[]
-          archived?: boolean
-          created_at?: string
-          group_type: string
-          id?: string
-          label: string
-          slug: string
-          sort_order?: number
-          updated_at?: string
-        }
-        Update: {
-          aliases?: string[]
-          archived?: boolean
-          created_at?: string
-          group_type?: string
-          id?: string
-          label?: string
-          slug?: string
-          sort_order?: number
-          updated_at?: string
-        }
-        Relationships: []
       }
       profiles: {
         Row: {
@@ -1734,6 +2032,453 @@ export type Database = {
           updated_at?: string | null
           username?: string | null
           website?: string | null
+        }
+        Relationships: []
+      }
+      punctum_annotations: {
+        Row: {
+          created_at: string
+          id: string
+          moderated_at: string | null
+          moderation_status: string
+          response_id: string
+          text: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          moderated_at?: string | null
+          moderation_status?: string
+          response_id: string
+          text: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          moderated_at?: string | null
+          moderation_status?: string
+          response_id?: string
+          text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "punctum_annotations_response_id_fkey"
+            columns: ["response_id"]
+            isOneToOne: true
+            referencedRelation: "punctum_responses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      punctum_contact_options: {
+        Row: {
+          consent_version: string
+          created_at: string
+          encrypted_contact_value: string
+          id: string
+          session_id: string
+        }
+        Insert: {
+          consent_version: string
+          created_at?: string
+          encrypted_contact_value: string
+          id?: string
+          session_id: string
+        }
+        Update: {
+          consent_version?: string
+          created_at?: string
+          encrypted_contact_value?: string
+          id?: string
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "punctum_contact_options_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: true
+            referencedRelation: "punctum_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      punctum_generations: {
+        Row: {
+          access_token_hash: string
+          completed_at: string | null
+          context_crop_path: string | null
+          created_at: string
+          crop_height: number | null
+          crop_width: number | null
+          crop_x: number | null
+          crop_y: number | null
+          error_message: string | null
+          generated_image_path: string | null
+          generated_image_url: string | null
+          generation_prompt: string
+          generation_session_hash: string
+          id: string
+          idempotency_key: string
+          mask_path: string | null
+          masked_fragment_path: string | null
+          model: string
+          padding: Json
+          palette: Json
+          parent_generation_id: string | null
+          post_generation_answer: string | null
+          post_generation_explanation: string | null
+          post_generation_polygon: Json | null
+          provider: string
+          seed: number
+          source_height: number
+          source_image_id: string | null
+          source_image_url: string
+          source_polygon_normalized: Json
+          source_polygon_pixels: Json
+          source_prompt: string
+          source_response_id: string
+          source_width: number
+          status: string
+          updated_at: string
+          viewer_explanation: string
+          visual_analysis: Json
+        }
+        Insert: {
+          access_token_hash: string
+          completed_at?: string | null
+          context_crop_path?: string | null
+          created_at?: string
+          crop_height?: number | null
+          crop_width?: number | null
+          crop_x?: number | null
+          crop_y?: number | null
+          error_message?: string | null
+          generated_image_path?: string | null
+          generated_image_url?: string | null
+          generation_prompt?: string
+          generation_session_hash: string
+          id?: string
+          idempotency_key: string
+          mask_path?: string | null
+          masked_fragment_path?: string | null
+          model?: string
+          padding?: Json
+          palette?: Json
+          parent_generation_id?: string | null
+          post_generation_answer?: string | null
+          post_generation_explanation?: string | null
+          post_generation_polygon?: Json | null
+          provider?: string
+          seed: number
+          source_height: number
+          source_image_id?: string | null
+          source_image_url: string
+          source_polygon_normalized: Json
+          source_polygon_pixels?: Json
+          source_prompt?: string
+          source_response_id: string
+          source_width: number
+          status?: string
+          updated_at?: string
+          viewer_explanation?: string
+          visual_analysis?: Json
+        }
+        Update: {
+          access_token_hash?: string
+          completed_at?: string | null
+          context_crop_path?: string | null
+          created_at?: string
+          crop_height?: number | null
+          crop_width?: number | null
+          crop_x?: number | null
+          crop_y?: number | null
+          error_message?: string | null
+          generated_image_path?: string | null
+          generated_image_url?: string | null
+          generation_prompt?: string
+          generation_session_hash?: string
+          id?: string
+          idempotency_key?: string
+          mask_path?: string | null
+          masked_fragment_path?: string | null
+          model?: string
+          padding?: Json
+          palette?: Json
+          parent_generation_id?: string | null
+          post_generation_answer?: string | null
+          post_generation_explanation?: string | null
+          post_generation_polygon?: Json | null
+          provider?: string
+          seed?: number
+          source_height?: number
+          source_image_id?: string | null
+          source_image_url?: string
+          source_polygon_normalized?: Json
+          source_polygon_pixels?: Json
+          source_prompt?: string
+          source_response_id?: string
+          source_width?: number
+          status?: string
+          updated_at?: string
+          viewer_explanation?: string
+          visual_analysis?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "punctum_generations_parent_generation_id_fkey"
+            columns: ["parent_generation_id"]
+            isOneToOne: false
+            referencedRelation: "punctum_generations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "punctum_generations_source_image_id_fkey"
+            columns: ["source_image_id"]
+            isOneToOne: false
+            referencedRelation: "punctum_images"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "punctum_generations_source_response_id_fkey"
+            columns: ["source_response_id"]
+            isOneToOne: false
+            referencedRelation: "punctum_responses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      punctum_images: {
+        Row: {
+          active: boolean
+          checksum: string
+          created_at: string
+          display_order: number
+          height: number
+          id: string
+          public_url: string
+          slug: string
+          soft_background: string
+          storage_path: string
+          study_id: string
+          title: string
+          updated_at: string
+          version: number
+          width: number
+        }
+        Insert: {
+          active?: boolean
+          checksum: string
+          created_at?: string
+          display_order?: number
+          height: number
+          id?: string
+          public_url: string
+          slug: string
+          soft_background?: string
+          storage_path: string
+          study_id: string
+          title: string
+          updated_at?: string
+          version?: number
+          width: number
+        }
+        Update: {
+          active?: boolean
+          checksum?: string
+          created_at?: string
+          display_order?: number
+          height?: number
+          id?: string
+          public_url?: string
+          slug?: string
+          soft_background?: string
+          storage_path?: string
+          study_id?: string
+          title?: string
+          updated_at?: string
+          version?: number
+          width?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "punctum_images_study_id_fkey"
+            columns: ["study_id"]
+            isOneToOne: false
+            referencedRelation: "punctum_studies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      punctum_responses: {
+        Row: {
+          algorithm_version: string
+          brush_radius: number
+          centroid_x: number
+          centroid_y: number
+          created_at: string
+          drawing_type: string
+          id: string
+          idempotency_key: string
+          image_checksum: string
+          image_id: string
+          image_version: number
+          is_valid: boolean
+          normalized_area: number
+          polygon_fit_score: number | null
+          polygon_vertices: Json
+          public_visible: boolean
+          quality_flags: Json
+          session_id: string
+          vertex_count: number
+        }
+        Insert: {
+          algorithm_version: string
+          brush_radius: number
+          centroid_x: number
+          centroid_y: number
+          created_at?: string
+          drawing_type: string
+          id?: string
+          idempotency_key: string
+          image_checksum: string
+          image_id: string
+          image_version: number
+          is_valid?: boolean
+          normalized_area: number
+          polygon_fit_score?: number | null
+          polygon_vertices: Json
+          public_visible?: boolean
+          quality_flags?: Json
+          session_id: string
+          vertex_count: number
+        }
+        Update: {
+          algorithm_version?: string
+          brush_radius?: number
+          centroid_x?: number
+          centroid_y?: number
+          created_at?: string
+          drawing_type?: string
+          id?: string
+          idempotency_key?: string
+          image_checksum?: string
+          image_id?: string
+          image_version?: number
+          is_valid?: boolean
+          normalized_area?: number
+          polygon_fit_score?: number | null
+          polygon_vertices?: Json
+          public_visible?: boolean
+          quality_flags?: Json
+          session_id?: string
+          vertex_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "punctum_responses_image_id_fkey"
+            columns: ["image_id"]
+            isOneToOne: false
+            referencedRelation: "punctum_images"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "punctum_responses_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "punctum_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      punctum_sessions: {
+        Row: {
+          age_band: string | null
+          age_confirmed: boolean
+          completed_at: string | null
+          consent_version: string
+          country_code: string | null
+          gender: string | null
+          id: string
+          metadata: Json
+          public_session_id: string
+          started_at: string
+          study_id: string
+          verification_method: string
+          verified_at: string
+        }
+        Insert: {
+          age_band?: string | null
+          age_confirmed: boolean
+          completed_at?: string | null
+          consent_version: string
+          country_code?: string | null
+          gender?: string | null
+          id?: string
+          metadata?: Json
+          public_session_id?: string
+          started_at?: string
+          study_id: string
+          verification_method: string
+          verified_at: string
+        }
+        Update: {
+          age_band?: string | null
+          age_confirmed?: boolean
+          completed_at?: string | null
+          consent_version?: string
+          country_code?: string | null
+          gender?: string | null
+          id?: string
+          metadata?: Json
+          public_session_id?: string
+          started_at?: string
+          study_id?: string
+          verification_method?: string
+          verified_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "punctum_sessions_study_id_fkey"
+            columns: ["study_id"]
+            isOneToOne: false
+            referencedRelation: "punctum_studies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      punctum_studies: {
+        Row: {
+          consent_version: string
+          created_at: string
+          id: string
+          minimum_cohort_size: number
+          settings: Json
+          slug: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          consent_version: string
+          created_at?: string
+          id?: string
+          minimum_cohort_size?: number
+          settings?: Json
+          slug: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          consent_version?: string
+          created_at?: string
+          id?: string
+          minimum_cohort_size?: number
+          settings?: Json
+          slug?: string
+          status?: string
+          title?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -2091,6 +2836,93 @@ export type Database = {
         }
         Relationships: []
       }
+      xr_showcase_items: {
+        Row: {
+          canonical_url: string | null
+          created_at: string
+          created_by: string | null
+          description: string
+          effective_image_url: string | null
+          featured: boolean
+          id: string
+          image_alt: string | null
+          manual_image_url: string | null
+          metadata: Json
+          metadata_error: string | null
+          metadata_status: string
+          preview_image_url: string | null
+          primary_genre: string
+          published_at: string | null
+          search_document: unknown
+          slug: string
+          sort_order: number
+          source_domain: string | null
+          source_name: string | null
+          source_url: string | null
+          status: string
+          tags: string[]
+          title: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          canonical_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          effective_image_url?: string | null
+          featured?: boolean
+          id?: string
+          image_alt?: string | null
+          manual_image_url?: string | null
+          metadata?: Json
+          metadata_error?: string | null
+          metadata_status?: string
+          preview_image_url?: string | null
+          primary_genre?: string
+          published_at?: string | null
+          search_document?: unknown
+          slug: string
+          sort_order?: number
+          source_domain?: string | null
+          source_name?: string | null
+          source_url?: string | null
+          status?: string
+          tags?: string[]
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          canonical_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          effective_image_url?: string | null
+          featured?: boolean
+          id?: string
+          image_alt?: string | null
+          manual_image_url?: string | null
+          metadata?: Json
+          metadata_error?: string | null
+          metadata_status?: string
+          preview_image_url?: string | null
+          primary_genre?: string
+          published_at?: string | null
+          search_document?: unknown
+          slug?: string
+          sort_order?: number
+          source_domain?: string | null
+          source_name?: string | null
+          source_url?: string | null
+          status?: string
+          tags?: string[]
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       portfolio_projects_export: {
@@ -2107,6 +2939,34 @@ export type Database = {
           status: string | null
           updated_at: string | null
           visibility: string | null
+        }
+        Insert: {
+          content?: Json | null
+          created_at?: string | null
+          featured_order?: number | null
+          project_id?: string | null
+          project_name?: string | null
+          project_title?: string | null
+          published_at?: string | null
+          published_content?: Json | null
+          published_version?: number | null
+          status?: string | null
+          updated_at?: string | null
+          visibility?: string | null
+        }
+        Update: {
+          content?: Json | null
+          created_at?: string | null
+          featured_order?: number | null
+          project_id?: string | null
+          project_name?: string | null
+          project_title?: string | null
+          published_at?: string | null
+          published_content?: Json | null
+          published_version?: number | null
+          status?: string | null
+          updated_at?: string | null
+          visibility?: string | null
         }
         Relationships: []
       }
@@ -2186,6 +3046,87 @@ export type Database = {
       }
     }
     Functions: {
+      analytics_build_navigation_report:
+        | { Args: { p_start_at: string }; Returns: Json }
+        | {
+            Args: { p_start_at: string; p_traffic_class: string }
+            Returns: Json
+          }
+      analytics_build_report:
+        | { Args: { p_start_at: string }; Returns: Json }
+        | {
+            Args: { p_start_at: string; p_traffic_class: string }
+            Returns: Json
+          }
+      analytics_is_admin: { Args: never; Returns: boolean }
+      analytics_record_engagement: {
+        Args: {
+          p_engaged_seconds: number
+          p_exit_page: string
+          p_page_view_id: string
+          p_session_id: string
+        }
+        Returns: undefined
+      }
+      analytics_record_navigation_event: {
+        Args: {
+          p_event_id: string
+          p_event_name: string
+          p_menu_context: string
+          p_page_path: string
+          p_page_view_id: string
+          p_position?: number
+          p_session_id: string
+          p_target_label?: string
+          p_target_type?: string
+          p_target_url?: string
+        }
+        Returns: undefined
+      }
+      analytics_record_page_open:
+        | {
+            Args: {
+              p_city: string
+              p_country: string
+              p_landing_page: string
+              p_page_path: string
+              p_page_title: string
+              p_page_view_id: string
+              p_project_id?: string
+              p_referrer_domain: string
+              p_sequence_number: number
+              p_session_id: string
+              p_source: string
+              p_utm_campaign: string
+              p_utm_content: string
+              p_utm_medium: string
+              p_utm_source: string
+              p_utm_term: string
+              p_visitor_id: string
+            }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              p_country: string
+              p_landing_page: string
+              p_page_path: string
+              p_page_title: string
+              p_page_view_id: string
+              p_project_id?: string
+              p_referrer_domain: string
+              p_sequence_number: number
+              p_session_id: string
+              p_source: string
+              p_utm_campaign: string
+              p_utm_content: string
+              p_utm_medium: string
+              p_utm_source: string
+              p_utm_term: string
+              p_visitor_id: string
+            }
+            Returns: undefined
+          }
       is_admin: { Args: never; Returns: boolean }
       match_obsidian_chunks: {
         Args: {
@@ -2210,24 +3151,25 @@ export type Database = {
           tags: string[]
         }[]
       }
+      media_asset_id_from_url: { Args: { p_url: string }; Returns: string }
+      media_asset_manifest: { Args: { p_asset_id: string }; Returns: Json }
+      media_assets_is_admin: { Args: never; Returns: boolean }
+      network_contact_facets: { Args: { p_owner_id: string }; Returns: Json }
+      newsletter_is_admin: { Args: never; Returns: boolean }
       portfolio_create_project: { Args: { p_title?: string }; Returns: string }
       portfolio_is_admin: { Args: never; Returns: boolean }
-      portfolio_json_uuid: { Args: { p_value: string }; Returns: string | null }
+      portfolio_json_uuid: { Args: { p_value: string }; Returns: string }
       portfolio_media_reference_count: {
         Args: { p_asset_id: string }
         Returns: number
       }
-      portfolio_merge_taxonomy_terms: {
-        Args: { p_source: string; p_target: string }
-        Returns: undefined
+      portfolio_project_media_manifests: {
+        Args: { p_content: Json }
+        Returns: Json
       }
       portfolio_publish_project: {
         Args: { p_project_id: string }
         Returns: string
-      }
-      portfolio_project_media_manifests: {
-        Args: { p_content: Json }
-        Returns: Json
       }
       portfolio_reorder_projects: {
         Args: { p_project_ids: string[] }
@@ -2236,10 +3178,6 @@ export type Database = {
       portfolio_restore_revision: {
         Args: { p_project_id: string; p_revision_id: string }
         Returns: string
-      }
-      portfolio_revision_document: {
-        Args: { p_revision_id: string }
-        Returns: Json
       }
       portfolio_save_draft: {
         Args: {
@@ -2254,12 +3192,16 @@ export type Database = {
         Args: { p_project_id: string; p_slug: string }
         Returns: string
       }
+      punctum_valid_polygon: { Args: { vertices: Json }; Returns: boolean }
       search_moodboard_items: {
         Args: { lim?: number; q?: string }
         Returns: {
+          aspect_ratio: number | null
           created_at: string
           id: string
+          image_height: number | null
           image_url: string
+          image_width: number | null
           published: boolean
           search_text: string
           storage_path: string
@@ -2273,6 +3215,40 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      search_network_contacts: {
+        Args: {
+          p_city?: string
+          p_company?: string
+          p_connected_from?: string
+          p_connected_to?: string
+          p_country?: string
+          p_do_not_contact?: boolean
+          p_email_type?: string
+          p_enrichment_status?: string
+          p_expertise_keywords?: string[]
+          p_has_email?: boolean
+          p_include_archived?: boolean
+          p_limit?: number
+          p_newsletter_status?: string
+          p_offset?: number
+          p_outreach_goals?: string[]
+          p_owner_id: string
+          p_query?: string
+          p_query_embedding?: string
+          p_region?: string
+          p_relationship_tier?: string
+          p_sort?: string
+          p_tags?: string[]
+          p_verification_state?: string
+          p_work_categories?: string[]
+        }
+        Returns: {
+          contact: Json
+          match_reason: string
+          relevance_score: number
+          total_count: number
+        }[]
       }
       search_tags: {
         Args: { lim?: number; q: string }
@@ -2299,6 +3275,10 @@ export type Database = {
           inserted_count: number
           total_rows: number
         }[]
+      }
+      update_network_contact_embeddings: {
+        Args: { p_owner_id: string; p_rows: Json }
+        Returns: number
       }
     }
     Enums: {

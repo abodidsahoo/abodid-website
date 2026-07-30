@@ -1,8 +1,6 @@
 import { supabase } from "../supabaseClient";
-import { portfolioFallbackProjects } from "./fallback";
 import { slugify, toSavePayload } from "./schema";
 
-const missingSchema = (error) => ["42P01", "PGRST205", "PGRST200"].includes(error?.code);
 const cleanArray = (value) => Array.isArray(value) ? value : [];
 
 const mapTaxonomy = (term = {}) => ({
@@ -235,11 +233,10 @@ export async function getPublishedPortfolioIndex() {
     .order("featured_order", { ascending: true });
 
   if (error) {
-    if (!missingSchema(error)) console.error("Portfolio index failed:", error.message);
-    return portfolioFallbackProjects.map(mapPublicProject);
+    console.error("Portfolio index failed:", error.message);
+    return [];
   }
-  if (!data?.length) return portfolioFallbackProjects.map(mapPublicProject);
-  return data.map(mapPublicProject);
+  return (data || []).map(mapPublicProject);
 }
 
 export async function getPublishedPortfolioProject(slug) {
@@ -249,9 +246,9 @@ export async function getPublishedPortfolioProject(slug) {
     .eq("slug", slug)
     .maybeSingle();
 
-  if (error && !missingSchema(error)) console.error(`Portfolio project ${slug} failed:`, error.message);
+  if (error) console.error(`Portfolio project ${slug} failed:`, error.message);
   if (data) return mapPublicProject(data);
-  return portfolioFallbackProjects.map(mapPublicProject).find((project) => project.slug === slug) || null;
+  return null;
 }
 
 export async function getPortfolioSlugRedirect(slug) {

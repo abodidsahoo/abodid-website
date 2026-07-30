@@ -26,16 +26,14 @@ export const POST: APIRoute = async ({ request }) => {
         if (assetError) throw assetError;
         if (!asset) return jsonResponse({ deleted: false, reason: "missing" });
 
-        const { count, error: usageError } = await authorization.supabase
-            .from("portfolio_media_usages")
-            .select("id", { count: "exact", head: true })
-            .eq("asset_id", assetId);
+        const { data: referenceCount, error: usageError } = await authorization.supabase
+            .rpc("portfolio_media_reference_count", { p_asset_id: assetId });
         if (usageError) throw usageError;
-        if (Number(count || 0) > 0) {
+        if (Number(referenceCount || 0) > 0) {
             return jsonResponse({
                 deleted: false,
                 reason: "referenced",
-                referenceCount: Number(count || 0),
+                referenceCount: Number(referenceCount || 0),
             }, 409);
         }
 

@@ -107,7 +107,7 @@ export default function WorkIndex({ projects = [] }) {
   return (
     <div className="work-index-app">
       {/* Filter Bar */}
-      <div className="filter-bar">
+      {orderedProjects.length > 0 && <div className="filter-bar">
         <div className="filter-scroll">
           {categories.map((category) => (
             <button
@@ -120,9 +120,14 @@ export default function WorkIndex({ projects = [] }) {
             </button>
           ))}
         </div>
-      </div>
+      </div>}
 
-      {filtered.length > 0 ? (
+      {orderedProjects.length === 0 ? (
+        <div className="work-empty">
+          <h2>New work is being added.</h2>
+          <p>Selected projects will appear here soon.</p>
+        </div>
+      ) : filtered.length > 0 ? (
         <div className="work-card-grid">
           {filtered.map((project) => {
             const permanentCover = permanentCoverSources(project);
@@ -188,4 +193,3 @@ export default function WorkIndex({ projects = [] }) {
     </div>
   );
 }
-

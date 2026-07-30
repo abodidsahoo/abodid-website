@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import MoodboardPolaroidViewer from './MoodboardPolaroidViewer.jsx';
 import {
     BOTTOM_PADDING,
+    EDGE_PADDING,
     TOP_PADDING,
     computeFloatingLayout,
     createSeededRandom,

@@ -1,5 +1,5 @@
 const OVERLAP_LIMIT = 0.22;
-const EDGE_PADDING = 18;
+export const EDGE_PADDING = 18;
 export const TOP_PADDING = 12;
 export const BOTTOM_PADDING = 24;
 

@@ -64,6 +64,11 @@ export default defineConfig({
   ],
   site: env.PUBLIC_SITE_URL || 'https://abodid.com',
   vite: {
+    // Keep production builds from replacing dependency chunks used by the
+    // long-running local workspace server.
+    cacheDir: isDevelopmentServer
+      ? 'node_modules/.vite/development'
+      : 'node_modules/.vite/production',
     resolve: {
       dedupe: ['react', 'react-dom'],
     },

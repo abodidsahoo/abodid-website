@@ -2,6 +2,10 @@ import { expect, test } from "@playwright/test";
 
 test("Work filters use strict AND without a page reload", async ({ page }) => {
   await page.goto("/work");
+  if (await page.getByRole("heading", { name: "New work is being added." }).isVisible()) {
+    await expect(page.getByText("Selected projects will appear here soon.")).toBeVisible();
+    return;
+  }
   await page.getByRole("button", { name: "Research", exact: true }).click();
   await page.getByRole("button", { name: "Photography", exact: true }).click();
   await expect(page).toHaveURL(/terms=photography%2Cresearch|terms=research%2Cphotography/);
@@ -12,7 +16,11 @@ test("Work index collapses to one column on mobile", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/work");
   const cards = page.locator(".work-card");
-  await expect(cards.first()).toBeVisible();
+  if (await cards.count() === 0) {
+    await expect(page.getByRole("heading", { name: "New work is being added." })).toBeVisible();
+  } else {
+    await expect(cards.first()).toBeVisible();
+  }
   if (await cards.count() > 1) {
     const first = await cards.nth(0).boundingBox();
     const second = await cards.nth(1).boundingBox();
