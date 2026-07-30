@@ -105,6 +105,13 @@ const formatRetryTime = (seconds) => {
   return `${remainder}s`;
 };
 
+const isGenerationLimitFailure = (code, message) =>
+  code === "generation_rate_limit" ||
+  code === "generation_capacity_limit" ||
+  /\b429\b|quota|rate[-_\s]?limit|resource[-_\s]?exhausted|public limit/i.test(
+    message || "",
+  );
+
 function PolygonOutline({ vertices, className = "" }) {
   if (!Array.isArray(vertices) || vertices.length < 3) return null;
   return (
@@ -750,7 +757,10 @@ export default function PunctumWorldModal({
               runId,
             );
           } else if (event.type === "failed") {
-            throw new Error(event.error || "The generation failed.");
+            throw new PunctumRequestError(
+              event.error || "The generation failed.",
+              { code: event.code },
+            );
           }
         }
       }
@@ -940,6 +950,7 @@ export default function PunctumWorldModal({
   const selectedModel =
     getPunctumImageModelOption(selectedModelId) ||
     PUNCTUM_IMAGE_MODEL_OPTIONS[0];
+  const limitReached = isGenerationLimitFailure(failureCode, error);
   const completedModel =
     getPunctumImageModelOption(generation?.model) || selectedModel;
 
@@ -1049,41 +1060,68 @@ export default function PunctumWorldModal({
                 )}
                 {phase === "failed" && (
                   <div className="punctum-world-result__failure" role="alert">
-                    <span>
-                      {failureCode === "generation_rate_limit"
-                        ? "Generation limit reached"
-                        : failureCode === "generation_in_progress"
-                          ? "Generation already in progress"
-                          : "Generation paused"}
-                    </span>
-                    <strong>{error}</strong>
-                    {retrySeconds > 0 && (
-                      <p aria-live="off">
-                        Retry becomes available in{" "}
-                        <time aria-live="off">
-                          {formatRetryTime(retrySeconds)}
-                        </time>
-                        .
+                    <div className="punctum-world-result__failure-card">
+                      <span>
+                        {limitReached
+                          ? "Thank you for exploring"
+                          : failureCode === "generation_in_progress"
+                            ? "One world at a time"
+                            : "A small pause"}
+                      </span>
+                      <strong>
+                        {limitReached
+                          ? "The world-builder is taking a short rest."
+                          : failureCode === "generation_in_progress"
+                            ? "Your new world is already on its way."
+                            : "This world could not be made just now."}
+                      </strong>
+                      <p>
+                        {limitReached
+                          ? "I keep a gentle limit on AI generations so this public experiment can stay open to everyone. Please come back a little later—or explore the worlds already made from other people’s punctums."
+                          : failureCode === "generation_in_progress"
+                            ? "Let the current generation finish before beginning another. You can explore the public collection while you wait."
+                            : "Nothing you selected has been lost. You can try once more, or step into the collection of worlds that are already here."}
                       </p>
-                    )}
-                    <div>
-                      <button
-                        className="punctum-button punctum-button--yellow"
-                        type="button"
-                        onClick={retry}
-                        disabled={retrySeconds > 0}
-                      >
-                        {retrySeconds > 0
-                          ? `Retry in ${formatRetryTime(retrySeconds)}`
-                          : "Retry"}
-                      </button>
-                      <button
-                        className="punctum-text-button"
-                        type="button"
-                        onClick={goBack}
-                      >
-                        Back
-                      </button>
+                      {retrySeconds > 0 && (
+                        <p
+                          className="punctum-world-result__failure-timing"
+                          aria-live="off"
+                        >
+                          New generations may be available in{" "}
+                          <time aria-live="off">
+                            {formatRetryTime(retrySeconds)}
+                          </time>
+                          .
+                        </p>
+                      )}
+                      <div className="punctum-world-result__failure-actions">
+                        <a
+                          className="punctum-button punctum-world-result__failure-cta"
+                          href="/research/punctum/results"
+                        >
+                          Explore existing worlds
+                          <span aria-hidden="true">↗</span>
+                        </a>
+                        {!limitReached && (
+                          <button
+                            className="punctum-button punctum-world-result__failure-retry"
+                            type="button"
+                            onClick={retry}
+                            disabled={retrySeconds > 0}
+                          >
+                            {retrySeconds > 0
+                              ? `Try again in ${formatRetryTime(retrySeconds)}`
+                              : "Try again"}
+                          </button>
+                        )}
+                        <button
+                          className="punctum-text-button"
+                          type="button"
+                          onClick={goBack}
+                        >
+                          Back to this image
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}

@@ -20,6 +20,12 @@ function token(block, name) {
   return match[1];
 }
 
+function declaration(block, name) {
+  const match = block.match(new RegExp(`${name}:\\s*(#[0-9a-fA-F]{6})\\s*;`));
+  assert.ok(match, `Missing hexadecimal declaration ${name}`);
+  return match[1];
+}
+
 function relativeLuminance(hex) {
   const channels = hex
     .slice(1)
@@ -75,3 +81,14 @@ for (const [themeName, block] of Object.entries(themes)) {
     }
   });
 }
+
+test("the generation-limit softbox keeps its text comfortably legible", () => {
+  const card = themeBlock(".punctum-world-result__failure-card");
+  const body = themeBlock(".punctum-world-result__failure-card > p");
+  const background = declaration(card, "background");
+  const heading = declaration(card, "color");
+  const paragraph = declaration(body, "color");
+
+  assert.ok(contrastRatio(heading, background) >= 7);
+  assert.ok(contrastRatio(paragraph, background) >= 4.5);
+});

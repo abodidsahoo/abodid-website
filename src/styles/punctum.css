@@ -1845,7 +1845,7 @@ html[data-punctum-theme="dark"] .punctum-theme-toggle__icon {
 }
 
 .punctum-world-result__status-card span,
-.punctum-world-result__failure span {
+.punctum-world-result__failure-card > span {
   font: 700 9px/1 "Inconsolata", monospace;
   letter-spacing: 0.13em;
   text-transform: uppercase;
@@ -1855,12 +1855,12 @@ html[data-punctum-theme="dark"] .punctum-theme-toggle__icon {
   color: #5d5d58;
 }
 
-.punctum-world-result__failure span {
-  color: rgba(255, 255, 255, 0.78);
+.punctum-world-result__failure-card > span {
+  color: #62615b;
 }
 
 .punctum-world-result__status-card strong,
-.punctum-world-result__failure strong {
+.punctum-world-result__failure-card > strong {
   max-width: 520px;
   font-size: clamp(20px, 2.5vw, 34px);
   line-height: 1.08;
@@ -1908,32 +1908,95 @@ html[data-punctum-theme="dark"] .punctum-theme-toggle__icon {
 }
 
 .punctum-world-result__failure {
-  color: #ffffff;
-  background: rgba(24, 22, 20, 0.86);
-  backdrop-filter: blur(2px);
+  padding: clamp(18px, 3.6vw, 46px);
+  color: #1b1b18;
+  background: rgba(24, 22, 20, 0.68);
+  backdrop-filter: blur(5px);
 }
 
-.punctum-world-result__failure strong {
-  color: #ffffff;
+.punctum-world-result__failure-card {
+  width: min(610px, 100%);
+  padding: clamp(24px, 4vw, 48px);
+  border: 1px solid rgba(27, 27, 24, 0.22);
+  border-radius: clamp(18px, 2.2vw, 28px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  color: #1b1b18;
+  background: #fbfaf5;
+  box-shadow:
+    0 24px 70px rgba(10, 10, 9, 0.28),
+    0 0 0 1px rgba(255, 255, 255, 0.62);
 }
 
-.punctum-world-result__failure p {
-  margin: 2px 0 0;
-  color: rgba(255, 255, 255, 0.78);
-  font-size: 13px;
-  line-height: 1.4;
+.punctum-world-result__failure-card > strong {
+  max-width: 470px;
+  color: #1b1b18;
+  font-size: clamp(25px, 3vw, 42px);
+  font-weight: 820;
+  line-height: 1.02;
+  letter-spacing: -0.045em;
+}
+
+.punctum-world-result__failure-card > p {
+  max-width: 500px;
+  margin: 0;
+  color: #484741;
+  font-size: clamp(13px, 1.25vw, 16px);
+  line-height: 1.55;
+}
+
+.punctum-world-result__failure-card
+  > .punctum-world-result__failure-timing {
+  color: #5d5b53;
+  font: 650 11px/1.4 "Inconsolata", monospace;
 }
 
 .punctum-world-result__failure time {
-  color: #ffffff;
+  color: #1b1b18;
   font-variant-numeric: tabular-nums;
 }
 
-.punctum-world-result__failure > div {
-  margin-top: 12px;
+.punctum-world-result__failure-actions {
+  width: 100%;
+  margin-top: 6px;
   display: flex;
   align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
   gap: 12px;
+}
+
+.punctum-world-result__failure-cta,
+.punctum-world-result__failure-retry {
+  min-height: 46px;
+  border-radius: 999px;
+}
+
+.punctum-world-result__failure-cta {
+  border-color: #1b1b18;
+  color: #fbfaf5;
+  background: #1b1b18;
+  text-decoration: none;
+}
+
+.punctum-world-result__failure-cta span {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.punctum-world-result__failure-cta:hover,
+.punctum-world-result__failure-cta:focus-visible {
+  border-color: #34332e;
+  color: #ffffff;
+  background: #34332e;
+}
+
+.punctum-world-result__failure-retry {
+  border-color: #aaa79d;
+  color: #1b1b18;
+  background: transparent;
 }
 
 .punctum-world-result__failure .punctum-button:disabled {
@@ -1942,7 +2005,7 @@ html[data-punctum-theme="dark"] .punctum-theme-toggle__icon {
 }
 
 .punctum-world-result__failure .punctum-text-button {
-  color: #ffffff;
+  color: #3f3e39;
 }
 
 .punctum-world-palette {
@@ -4345,6 +4408,29 @@ html[data-punctum-theme="dark"] .punctum-onboarding__card {
 
   .punctum-world-model-options > label {
     min-height: 0;
+  }
+
+  .punctum-world-result.is-failed .punctum-world-result__image {
+    min-height: 520px;
+    aspect-ratio: auto !important;
+  }
+
+  .punctum-world-result__failure {
+    padding: 14px;
+  }
+
+  .punctum-world-result__failure-card {
+    padding: 28px 20px;
+  }
+
+  .punctum-world-result__failure-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .punctum-world-result__failure-cta,
+  .punctum-world-result__failure-retry {
+    width: 100%;
   }
 
   .punctum-world-source figcaption,

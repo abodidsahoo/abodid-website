@@ -17,6 +17,7 @@ import {
   type PunctumImageProvider,
 } from "../../../lib/punctum/worlds/provider";
 import { getPunctumImageModelOption } from "../../../lib/punctum/worlds/model-options";
+import { getPublicPunctumGenerationFailure } from "../../../lib/punctum/worlds/errors";
 import {
   PUNCTUM_GENERATION_PUBLIC_SELECT,
   serializePunctumGeneration,
@@ -565,20 +566,22 @@ export const POST: APIRoute = async ({ request }) => {
           generation: serializePunctumGeneration(completed),
         });
       } catch (error) {
-        const errorMessage =
-          error instanceof Error
-            ? cleanText(error.message, 500)
-            : "The new world could not be generated.";
+        const publicFailure = getPublicPunctumGenerationFailure(error);
         console.error("Punctum generation failed:", error);
         await database
           .from("punctum_generations")
           .update({
             status: "failed",
-            error_message: errorMessage,
+            error_message: publicFailure.message,
             updated_at: new Date().toISOString(),
           })
           .eq("id", generationId);
-        emit({ type: "failed", error: errorMessage, generationId });
+        emit({
+          type: "failed",
+          error: publicFailure.message,
+          code: publicFailure.code,
+          generationId,
+        });
       } finally {
         if (open) {
           try {

@@ -22,6 +22,9 @@ import {
 import {
   getPunctumGenerationQuota,
 } from "../../src/lib/punctum/worlds/server.ts";
+import {
+  getPublicPunctumGenerationFailure,
+} from "../../src/lib/punctum/worlds/errors.ts";
 
 const normalizedSquare = [
   { x: 0.1, y: 0.2 },
@@ -302,4 +305,29 @@ test("durable generation quota distinguishes an active generation", async () => 
   assert.equal(quota.inProgress, true);
   assert.equal(quota.used, 2);
   assert.equal(quota.retryAfter, 0);
+});
+
+test("provider quota details are replaced with a warm public failure", () => {
+  const failure = getPublicPunctumGenerationFailure(
+    new Error(
+      "429 You exceeded your current quota. Check billing: generativelanguage.googleapis.com/generate_content",
+    ),
+  );
+
+  assert.deepEqual(failure, {
+    code: "generation_capacity_limit",
+    message: "The world-builder has reached its current public limit.",
+  });
+  assert.doesNotMatch(failure.message, /429|billing|googleapis|quota/i);
+});
+
+test("unexpected provider failures do not expose technical details", () => {
+  const failure = getPublicPunctumGenerationFailure(
+    new Error("Secret upstream stack trace and request metadata"),
+  );
+
+  assert.deepEqual(failure, {
+    code: "generation_service_unavailable",
+    message: "The world-builder could not create this one just now.",
+  });
 });
