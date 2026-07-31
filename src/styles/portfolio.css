@@ -91,6 +91,20 @@
 .work-empty { padding: 7rem 1rem; text-align: center; border: 1px dashed var(--border-subtle); border-radius: var(--work-radius); }
 .work-empty h2 { font-size: 1.5rem; margin-bottom: 1rem; }
 .work-empty button { border: 1px dashed var(--border-subtle); background: transparent; color: var(--text-primary); border-radius: 999px; min-height: 2rem; padding: .38rem .75rem; font: inherit; font-size: .8rem; cursor: pointer; }
+.work-empty-teaser { margin-top: 1.8rem; font-size: 1.15rem; font-weight: 600; color: var(--text-primary); line-height: 1.5; max-width: 400px; margin-inline: auto; letter-spacing: -0.01em; }
+
+.work-scroll-nudge { display: flex; flex-direction: column; align-items: center; gap: .45rem; margin-top: 2.2rem; color: var(--text-tertiary, #888); }
+.work-scroll-nudge-label { font-size: .68rem; letter-spacing: .14em; text-transform: uppercase; opacity: .7; }
+.work-scroll-nudge-arrow { animation: work-nudge-bob 1.8s cubic-bezier(0.45, 0, 0.55, 1) infinite; }
+
+@keyframes work-nudge-bob {
+  0%, 100% { transform: translateY(0); opacity: .5; }
+  50%       { transform: translateY(7px); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .work-scroll-nudge-arrow { animation: none; opacity: .6; }
+}
 
 .portfolio-project { --portfolio-inline: clamp(1rem, 4vw, 3rem); padding: clamp(5rem, 10vw, 9rem) var(--portfolio-inline) 8rem; }
 .portfolio-project-header { max-width: 1040px; margin: 0 auto clamp(2.5rem, 6vw, 5rem); text-align: center; }

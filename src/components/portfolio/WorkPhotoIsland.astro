@@ -1,0 +1,64 @@
+---
+import VisualMoodboard from "../VisualMoodboard.jsx";
+import ProgressiveContentSkeleton from "../ProgressiveContentSkeleton.astro";
+import { listR2Folder, buildR2PublicUrl } from "../../lib/media/r2.ts";
+
+// Fetch images from Cloudflare R2 — variants/my-life/800/
+const { files, config } = await listR2Folder("variants/my-life/800/");
+
+// Stable sort server-side so CDN can cache the HTML.
+// The client handles all randomisation via shuffleOnMount.
+files.sort((a, b) =>
+    a.objectKey.localeCompare(b.objectKey, undefined, {
+        numeric: true,
+        sensitivity: "base",
+    }),
+);
+
+const photos = files.map((file, index) => {
+    const filename = file.objectKey.split("/").pop() || "";
+    const title =
+        filename.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ") ||
+        `Photo ${index + 1}`;
+
+    return {
+        id: file.etag || `my-life-${index}`,
+        imageUrl: buildR2PublicUrl(config, file.objectKey),
+        title,
+        tags: ["my life"],
+        aspectRatio: 1, // corrected client-side after each image loads
+    };
+});
+
+// ── Work page photo strip props ─────────────────────────────────
+// Tune these independently from the UK 2026 photos page.
+const workPhotoProps = {
+    items: photos,
+    enableInfiniteScroll: true,
+    initialVisibleRows: 4,
+    rowsPerScrollBatch: 2,
+    sizeMultiplier: 1.6,
+    spacingMultiplier: 1.05,
+    minScale: 0.7,
+    jitterWindow: 18,
+    hideSearch: true,
+    hideThemeToggle: true,
+    shuffleOnMount: true,
+    defaultSurfaceMode: "dark",
+};
+
+Astro.response.headers.set("Cache-Control", "public, max-age=0, must-revalidate");
+Astro.response.headers.set(
+    "Vercel-CDN-Cache-Control",
+    "s-maxage=300, stale-while-revalidate=86400",
+);
+---
+
+<VisualMoodboard {...workPhotoProps} client:visible>
+    <ProgressiveContentSkeleton
+        slot="fallback"
+        variant="moodboard"
+        count={8}
+        label="Loading photos"
+    />
+</VisualMoodboard>

@@ -1,6 +1,7 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import WorkIndexIsland from "../../components/portfolio/WorkIndexIsland.astro";
+import WorkPhotoIsland from "../../components/portfolio/WorkPhotoIsland.astro";
 import ProgressiveContentSkeleton from "../../components/ProgressiveContentSkeleton.astro";
 
 const title = "Work";
@@ -25,4 +26,30 @@ const description = "A curated portfolio of multidisciplinary projects spanning 
       />
     </WorkIndexIsland>
   </div>
+
+  {/* Full-width photo strip — breaks out of the shell to fill edge-to-edge */}
+  <section class="work-photo-strip" aria-label="Photo archive">
+    <WorkPhotoIsland server:defer>
+      <ProgressiveContentSkeleton
+        slot="fallback"
+        variant="moodboard"
+        count={8}
+        label="Loading photos"
+      />
+    </WorkPhotoIsland>
+  </section>
 </BaseLayout>
+
+<style>
+  .work-photo-strip {
+    width: 100vw;
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+    margin-top: 4rem;
+    min-height: 60vh;
+    overflow: hidden;
+  }
+</style>

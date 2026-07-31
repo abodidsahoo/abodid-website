@@ -234,9 +234,25 @@ export default function VisualMoodboard({
     minScale = 0.24,
     jitterWindow = 0,
     hideSearch = false,
+    hideThemeToggle = false,
+    shuffleOnMount = false,
     defaultSurfaceMode = 'light',
 }) {
     const prefersReducedMotion = useReducedMotion();
+
+    // Client-side shuffle — runs once per mount in the browser, never on the server.
+    // Each user and each reload gets a genuinely unique order regardless of CDN caching.
+    const resolvedItems = useMemo(() => {
+        if (!shuffleOnMount || items.length === 0) return items;
+        const arr = [...items];
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // intentionally empty — shuffle only on mount, never re-run
+
     const stageRef = useRef(null);
     const layoutMapRef = useRef(new Map());
     const pointerRef = useRef({ x: 0, y: 0 });
@@ -266,6 +282,7 @@ export default function VisualMoodboard({
     const [visibleCount, setVisibleCount] = useState(0);
     const deepLinkInitializedRef = useRef(false);
     const [viewerActiveId, setViewerActiveId] = useState(null);
+    const scrollFadeObserverRef = useRef(null);
     const quickModeEnabled = Boolean(enableQuickShuffle);
     const quickLimit = clamp(Math.round(Number(quickShuffleLimit) || 18), 15, 20);
     const infiniteScrollEnabled = Boolean(enableInfiniteScroll) && !quickModeEnabled;
@@ -320,6 +337,64 @@ export default function VisualMoodboard({
         };
     }, []);
 
+    // Scroll-triggered fade-in — adds .is-scroll-visible when a card
+    // enters the viewport. Cards already visible on mount are marked immediately.
+    useEffect(() => {
+        const stage = stageRef.current;
+        if (!stage || prefersReducedMotion) {
+            // If reduced motion, mark everything visible right away
+            stage?.querySelectorAll('.moodboard-card[data-scroll-fade]').forEach((el) => {
+                el.classList.add('is-scroll-visible');
+            });
+            return;
+        }
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-scroll-visible');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            },
+            {
+                // Trigger near the viewport midpoint — card must be 40% clear of the bottom
+                rootMargin: '0px 0px -40% 0px',
+                threshold: 0,
+            },
+        );
+
+        scrollFadeObserverRef.current = observer;
+
+        // Observe all current cards
+        stage.querySelectorAll('.moodboard-card[data-scroll-fade]').forEach((el) => {
+            observer.observe(el);
+        });
+
+        // Re-observe when new cards are added (infinite scroll)
+        const mutationObserver = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                mutation.addedNodes.forEach((node) => {
+                    if (node.nodeType !== 1) return;
+                    if (node.matches?.('.moodboard-card[data-scroll-fade]')) {
+                        observer.observe(node);
+                    }
+                    node.querySelectorAll?.('.moodboard-card[data-scroll-fade]').forEach((el) => {
+                        observer.observe(el);
+                    });
+                });
+            });
+        });
+
+        mutationObserver.observe(stage, { childList: true, subtree: true });
+
+        return () => {
+            observer.disconnect();
+            mutationObserver.disconnect();
+        };
+    }, [prefersReducedMotion]);
+
     const handleImageLoad = (itemId, event) => {
         const image = event.currentTarget;
         if (!image?.naturalWidth || !image?.naturalHeight) return;
@@ -334,9 +409,9 @@ export default function VisualMoodboard({
     };
 
     const jitteredItems = useMemo(() => {
-        if (jitterWindow <= 0 || !Array.isArray(items) || !items.length) return items;
-        return jitterSequence(items, jitterWindow);
-    }, [items, jitterWindow]);
+        if (jitterWindow <= 0 || !Array.isArray(resolvedItems) || !resolvedItems.length) return resolvedItems;
+        return jitterSequence(resolvedItems, jitterWindow);
+    }, [resolvedItems, jitterWindow]);
 
     const normalizedItems = useMemo(
         () =>
@@ -1047,19 +1122,21 @@ export default function VisualMoodboard({
                 )}
             </div>
 
-            <button
-                type="button"
-                className="surface-toggle-btn"
-                onClick={() => setSurfaceMode((current) => (current === 'light' ? 'dark' : 'light'))}
-                aria-label={`Switch to ${surfaceMode === 'light' ? 'dark' : 'light'} theme`}
-            >
-                <span className="surface-toggle-label desktop-control-label">
-                    {surfaceMode === 'light' ? 'Dark Theme' : 'Light Theme'}
-                </span>
-                <span className="surface-toggle-label mobile-control-label" aria-hidden="true">
-                    Light / Dark
-                </span>
-            </button>
+            {!hideThemeToggle && (
+                <button
+                    type="button"
+                    className="surface-toggle-btn"
+                    onClick={() => setSurfaceMode((current) => (current === 'light' ? 'dark' : 'light'))}
+                    aria-label={`Switch to ${surfaceMode === 'light' ? 'dark' : 'light'} theme`}
+                >
+                    <span className="surface-toggle-label desktop-control-label">
+                        {surfaceMode === 'light' ? 'Dark Theme' : 'Light Theme'}
+                    </span>
+                    <span className="surface-toggle-label mobile-control-label" aria-hidden="true">
+                        Light / Dark
+                    </span>
+                </button>
+            )}
 
             {normalizedItems.length > 1 && (
                 <button
@@ -1220,7 +1297,6 @@ export default function VisualMoodboard({
                                     y: shuffleIsActiveForItem ? collectDy + stackAnchorY : 0,
                                     scale: shuffleIsActiveForItem ? stackScaleBase * 0.98 : 1,
                                     rotate: shuffleIsActiveForItem ? stackRotateBase * 0.36 : 0,
-                                    opacity: 1,
                                 };
                                 figureTransition = prefersReducedMotion
                                     ? { duration: 0.12 }
@@ -1235,7 +1311,6 @@ export default function VisualMoodboard({
                                     y: shuffleIsActiveForItem ? collectDy + stackAnchorY : 0,
                                     scale: shuffleIsActiveForItem ? stackScaleBase : 1,
                                     rotate: shuffleIsActiveForItem ? stackRotateBase * 0.6 : 0,
-                                    opacity: 1,
                                 };
                                 figureTransition = prefersReducedMotion
                                     ? { duration: 0.12 }
@@ -1250,7 +1325,6 @@ export default function VisualMoodboard({
                                     y: shuffleIsActiveForItem ? [deployDy + stackAnchorY, 0] : 0,
                                     scale: shuffleIsActiveForItem ? [stackScaleBase, 1.01, 1] : 1,
                                     rotate: shuffleIsActiveForItem ? [stackRotateReturn * 0.12, 0] : [0, 0],
-                                    opacity: 1,
                                 };
                                 figureTransition = prefersReducedMotion
                                     ? { duration: 0.14 }
@@ -1268,7 +1342,6 @@ export default function VisualMoodboard({
                                     y: 0,
                                     scale: 1,
                                     rotate: 0,
-                                    opacity: 1,
                                 };
                                 figureTransition = prefersReducedMotion
                                     ? { duration: 0.12 }
@@ -1320,11 +1393,12 @@ export default function VisualMoodboard({
                             return (
                                 <motion.figure
                                     key={item.id}
+                                    data-scroll-fade
                                     className={`moodboard-card ${isTextCard ? 'is-text-card' : ''} ${isClickable && !isTextCard ? 'is-clickable' : ''}`}
                                     initial={
                                         prefersReducedMotion
                                             ? false
-                                            : { opacity: 0, scale: 0.92, y: 14 }
+                                            : { scale: 0.92, y: 14 }
                                     }
                                     exit={{ scale: 0.9, transition: { duration: 0.2 } }}
                                     animate={figureAnimate}
@@ -1655,6 +1729,16 @@ export default function VisualMoodboard({
                     overflow: visible;
                     pointer-events: none;
                     will-change: transform;
+                    /* Scroll-triggered fade-in — start invisible */
+                    opacity: 0;
+                    translate: 0 28px;
+                    transition: opacity 2s cubic-bezier(0.08, 1, 0.2, 1),
+                                translate 1.7s cubic-bezier(0.08, 1, 0.2, 1);
+                }
+
+                .moodboard-card.is-scroll-visible {
+                    opacity: 1;
+                    translate: 0 0;
                 }
 
                 .moodboard-card.is-clickable {

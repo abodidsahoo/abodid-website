@@ -1,0 +1,137 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import WorkPhotoIsland from "../components/portfolio/WorkPhotoIsland.astro";
+import ProgressiveContentSkeleton from "../components/ProgressiveContentSkeleton.astro";
+
+const pageTitle = "life, work, fun and everything in between.";
+const pageDescription =
+    "A glimpse into my life, work, and everything in between — through photographs.";
+
+Astro.response.headers.set("Cache-Control", "public, max-age=0, must-revalidate");
+Astro.response.headers.set(
+    "Vercel-CDN-Cache-Control",
+    "s-maxage=300, stale-while-revalidate=86400",
+);
+---
+
+<BaseLayout
+    title={pageTitle}
+    description={pageDescription}
+    fullWidth={true}
+    gridVariant="moodboard"
+    initialBackgroundColor="#0b0b0e"
+    moodboardSurface="dark"
+    hideThemeToggle={true}
+    bodyClass="life-page"
+>
+    <section class="life-shell">
+        <header class="life-header">
+            <h1 class="life-title">
+                <span class="life-title-main">people, stories, memories</span>
+                <span class="life-title-sub">and everything in between.</span>
+            </h1>
+        </header>
+
+        <div class="life-moodboard">
+            <WorkPhotoIsland server:defer>
+                <ProgressiveContentSkeleton
+                    slot="fallback"
+                    variant="moodboard"
+                    count={8}
+                    label="Loading photos"
+                />
+            </WorkPhotoIsland>
+        </div>
+    </section>
+</BaseLayout>
+
+<style>
+    :global(html:has(body.life-page)),
+    :global(body.life-page) {
+        background: #0b0b0e !important;
+        color: #f8fafc;
+    }
+
+    :global(body.life-page) {
+        --grid-color-1: rgba(255, 255, 255, 0.14);
+        --grid-color-2: rgba(255, 255, 255, 0.035);
+    }
+
+    :global(body.life-page .global-grid-bg) {
+        background-size: 72px 72px;
+        opacity: 0.18;
+        -webkit-mask-image: radial-gradient(
+            ellipse at center,
+            black 30%,
+            transparent 80%
+        );
+        mask-image: radial-gradient(
+            ellipse at center,
+            black 30%,
+            transparent 80%
+        );
+    }
+
+    :global(body.life-page .global-glow-bg) {
+        --glow-radius: 300px;
+        background-size: 72px 72px;
+        opacity: 0.72 !important;
+    }
+
+    .life-shell {
+        width: 100%;
+        min-height: 100vh;
+        background: transparent !important;
+        position: relative;
+        z-index: 1;
+    }
+
+    .life-header {
+        width: min(860px, calc(100vw - 2rem));
+        margin: 0 auto;
+        padding: clamp(3rem, 8vw, 6rem) 0 clamp(1.5rem, 4vw, 3rem);
+        text-align: center;
+    }
+
+    .life-title {
+        margin: 0;
+        font-size: clamp(1.5rem, 4.5vw, 3.8rem);
+        font-weight: 500;
+        line-height: 1.25;
+        letter-spacing: -0.02em;
+        display: flex;
+        flex-direction: column;
+        gap: 0.3em;
+    }
+
+    .life-title-main {
+        font-weight: 500;
+        color: #f8fafc;
+    }
+
+    .life-title-sub {
+        font-size: 0.52em;
+        font-weight: 300;
+        letter-spacing: 0em;
+        color: #9ba9bb;
+        line-height: 1.4;
+    }
+
+    /* Full-width breakout for the moodboard */
+    .life-moodboard {
+        width: 100vw;
+        position: relative;
+        left: 50%;
+        right: 50%;
+        margin-left: -50vw;
+        margin-right: -50vw;
+        min-height: 60vh;
+        overflow: hidden;
+    }
+
+    @media (max-width: 600px) {
+        .life-title {
+            gap: 0.1em;
+        }
+    }
+</style>

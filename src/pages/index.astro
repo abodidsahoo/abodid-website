@@ -158,7 +158,383 @@ const heroTextEffect = "smooth-blur";
             questions and unfinished thoughts.
         </p>
     </article>
+
+    {/* ── Life page slide-in panel ─────────────────────────────── */}
+    <div id="life-panel" aria-label="Life page — drag to reveal">
+        <div id="life-panel-handle" role="button" tabindex="0" aria-label="Drag to reveal life page">
+            <div class="life-handle-inner">
+                <span class="life-handle-drag-label">DRAG ME</span>
+                <span class="life-handle-grip">
+                    <i></i><i></i><i></i><i></i>
+                </span>
+            </div>
+            {/* SVG line along right edge that bends elastically like a rubber band */}
+            <svg class="life-handle-line-svg" viewBox="-140 0 280 1000" preserveAspectRatio="none" aria-hidden="true">
+                <path class="life-handle-line-path" id="life-handle-line-path" d="M 0 0 Q 0 500 0 1000" />
+            </svg>
+        </div>
+        {/* Drag shield — blocks iframe pointer capture during drag */}
+        <div id="life-panel-shield"></div>
+        <iframe id="life-panel-iframe" title="people, stories, memories"></iframe>
+    </div>
 </BaseLayout>
+
+<style>
+    #life-panel {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 300;
+        background: #0b0b0e;
+        will-change: transform;
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+    }
+
+    #life-panel-handle {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 36px;
+        height: 100%;
+        z-index: 10;
+        cursor: ew-resize;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.28);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        transition: background 0.2s ease;
+        overflow: visible;
+    }
+
+    #life-panel-handle:hover {
+        background: rgba(0, 0, 0, 0.42);
+    }
+
+    /* SVG line along the right edge of the handle */
+    .life-handle-line-svg {
+        position: absolute;
+        top: 0;
+        right: -30px;
+        width: 60px;
+        height: 100%;
+        pointer-events: none;
+        overflow: visible;
+        z-index: 12;
+    }
+
+    .life-handle-line-path {
+        fill: none;
+        stroke: rgba(255, 255, 255, 0.55);
+        stroke-width: 1.5px;
+        vector-effect: non-scaling-stroke;
+        transition: stroke 0.2s ease, stroke-width 0.2s ease;
+        d: path("M 0 0 Q 0 500 0 1000");
+    }
+
+    #life-panel-handle:hover .life-handle-line-path {
+        stroke: rgba(255, 255, 255, 0.9);
+        stroke-width: 1.8px;
+    }
+
+    .life-handle-inner {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        width: 100%;
+        height: 100%;
+    }
+
+    /* Synchronized handle move + soft breathing elastic bending animation */
+    .life-handle-nudge {
+        animation: life-handle-nudge 2.8s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+        will-change: transform;
+    }
+
+    .life-handle-nudge .life-handle-line-path {
+        animation: life-line-bend 2.8s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+        transition: none;
+    }
+
+    @keyframes life-handle-nudge {
+        0%, 100% {
+            transform: translate3d(0, 0, 0);
+        }
+        50% {
+            transform: translate3d(-9px, 0, 0);
+        }
+    }
+
+    @keyframes life-line-bend {
+        0%, 100% {
+            d: path("M 0 0 Q 0 500 0 1000");
+        }
+        50% {
+            d: path("M 0 0 Q -32 500 0 1000"); /* Soft breathing elastic curve */
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .life-handle-nudge,
+        .life-handle-nudge .life-handle-line-path {
+            animation: none;
+        }
+    }
+
+    .life-handle-drag-label {
+        writing-mode: vertical-rl;
+        transform: rotate(180deg);
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.24em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.48);
+        font-style: normal;
+        user-select: none;
+        transition: color 0.2s ease;
+    }
+
+    #life-panel-handle:hover .life-handle-drag-label {
+        color: rgba(255, 255, 255, 0.85);
+    }
+
+    .life-handle-grip {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        align-items: center;
+    }
+
+    .life-handle-grip i {
+        display: block;
+        width: 12px;
+        height: 1.5px;
+        background: rgba(255, 255, 255, 0.55);
+        border-radius: 2px;
+        font-style: normal;
+        transition: opacity 0.2s ease, width 0.2s ease;
+    }
+
+    #life-panel-handle:hover .life-handle-grip i {
+        opacity: 0.9;
+        width: 14px;
+    }
+
+    #life-panel-shield {
+        position: absolute;
+        inset: 0;
+        left: 36px;
+        z-index: 5;
+        pointer-events: none;
+    }
+
+    #life-panel-iframe {
+        position: absolute;
+        top: 0;
+        left: 36px;
+        right: 0;
+        bottom: 0;
+        width: calc(100% - 36px);
+        height: 100%;
+        border: none;
+        background: #0b0b0e;
+        display: block;
+    }
+</style>
+
+<script>
+    (() => {
+        const panel    = document.getElementById('life-panel');
+        const handle   = document.getElementById('life-panel-handle');
+        const shield   = document.getElementById('life-panel-shield');
+        const iframe   = document.getElementById('life-panel-iframe');
+        const linePath = document.getElementById('life-handle-line-path');
+        if (!panel || !handle) return;
+
+        const HANDLE_W    = 36;
+        const FRICTION    = 0.86;
+        const MIN_VEL     = 0.4;
+
+        let vpW        = window.innerWidth;
+        let minX       = 0;
+        let maxX       = Math.max(0, Math.round(vpW * 0.95 - HANDLE_W));
+        let currentX   = maxX;
+        let isDragging = false;
+        let startPtrX  = 0;
+        let startPanX  = 0;
+        let velocity   = 0;
+        let lastPtrX   = 0;
+        let lastPtrT   = 0;
+        let peakY      = 500;
+        let iframeReady = false;
+
+        // Keep oscillation hint animation permanently active on handle
+        handle.classList.add('life-handle-nudge');
+
+        panel.style.transform = `translate3d(${currentX}px, 0, 0)`;
+
+        const loadIframe = () => {
+            if (iframeReady) return;
+            iframeReady = true;
+            iframe.src = '/life';
+        };
+        setTimeout(loadIframe, 2000);
+
+        window.addEventListener('resize', () => {
+            const oldMaxX = maxX;
+            vpW  = window.innerWidth;
+            minX = 0;
+            maxX = Math.max(0, Math.round(vpW * 0.95 - HANDLE_W));
+            if (currentX >= oldMaxX - 4) {
+                currentX = maxX;
+            } else {
+                const ratio = currentX / (oldMaxX || 1);
+                currentX = Math.round(maxX * Math.min(ratio, 1));
+            }
+            panel.style.transform = `translate3d(${currentX}px, 0, 0)`;
+        }, { passive: true });
+
+        const rubberClamp = (val) => {
+            if (val < minX) return minX + (val - minX) * 0.25;
+            if (val > maxX) return maxX + (val - maxX) * 0.25;
+            return val;
+        };
+
+        const hardClamp = (val) => Math.max(minX, Math.min(maxX, val));
+
+        // ── Drag start (record cursor Y position for pinched curve) ──
+        handle.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            loadIframe();
+
+            const rect = handle.getBoundingClientRect();
+            const clickY = e.clientY - rect.top;
+            peakY = Math.max(100, Math.min(900, Math.round((clickY / (rect.height || 1)) * 1000)));
+
+            isDragging  = true;
+            startPtrX   = e.clientX;
+            startPanX   = currentX;
+            lastPtrX    = e.clientX;
+            lastPtrT    = performance.now();
+            velocity    = 0;
+
+            panel.style.transition = '';
+            shield.style.pointerEvents = 'all';
+            document.body.style.cursor = 'ew-resize';
+            document.body.style.userSelect = 'none';
+
+            handle.setPointerCapture(e.pointerId);
+        });
+
+        // ── Drag move (strong real-time cursor-pinched elastic curve) ──
+        handle.addEventListener('pointermove', (e) => {
+            if (!isDragging) return;
+
+            const now = performance.now();
+            const dt  = now - lastPtrT;
+            if (dt > 0) {
+                velocity = ((e.clientX - lastPtrX) / dt) * 16;
+            }
+            lastPtrX = e.clientX;
+            lastPtrT = now;
+
+            const delta = e.clientX - startPtrX;
+            currentX = rubberClamp(startPanX + delta);
+            panel.style.transform = `translate3d(${currentX}px, 0, 0)`;
+
+            if (linePath) {
+                const pullAmount = -delta; // positive when pulling left
+                let bendX;
+                if (pullAmount >= 0) {
+                    // Pulling left: bend strongly to left up to -125px!
+                    bendX = -Math.min(125, pullAmount * 0.42 + Math.abs(velocity) * 2.8 + 14);
+                } else {
+                    // Pushing right: flex right
+                    bendX = Math.min(60, -pullAmount * 0.35 + velocity * 2.2);
+                }
+                linePath.style.transition = 'none';
+                linePath.setAttribute('d', `M 0 0 Q ${bendX.toFixed(1)} ${peakY} 0 1000`);
+            }
+        });
+
+        // ── Drag end (elastic spring rebound & continuous breathing resumption) ──
+        const endDrag = () => {
+            if (!isDragging) return;
+            isDragging = false;
+
+            shield.style.pointerEvents = 'none';
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+
+            // Spring rebound on the elastic line, then resume continuous keyframe breathing
+            if (linePath) {
+                linePath.style.transition = 'd 0.18s cubic-bezier(0.2, 0.8, 0.2, 1)';
+                linePath.setAttribute('d', `M 0 0 Q 22 ${peakY} 0 1000`);
+                setTimeout(() => {
+                    linePath.style.transition = 'd 0.38s cubic-bezier(0.34, 1.4, 0.64, 1)';
+                    linePath.setAttribute('d', 'M 0 0 Q 0 500 0 1000');
+                    setTimeout(() => {
+                        // Resume CSS keyframe breathing oscillation seamlessly
+                        linePath.removeAttribute('d');
+                        linePath.style.transition = '';
+                    }, 380);
+                }, 180);
+            }
+
+            const FLICK_THRESHOLD = 3.5;
+            let targetX;
+
+            if (velocity < -FLICK_THRESHOLD) {
+                // Fast flick left → throw open to 0
+                targetX = minX;
+            } else if (velocity > FLICK_THRESHOLD) {
+                // Fast flick right → throw closed to base position
+                targetX = maxX;
+            } else {
+                // Soft drag & leave → rest softly right where left (midway or any position)
+                targetX = hardClamp(currentX + velocity * 8);
+            }
+
+            const distance = Math.abs(targetX - currentX);
+            const duration = Math.min(0.5, Math.max(0.28, distance / 1000));
+            const easeCurve = Math.abs(velocity) > FLICK_THRESHOLD
+                ? 'cubic-bezier(0.34, 1.25, 0.64, 1)'
+                : 'cubic-bezier(0.22, 1, 0.36, 1)';
+
+            panel.style.transition = `transform ${duration}s ${easeCurve}`;
+            currentX = targetX;
+            panel.style.transform = `translate3d(${currentX}px, 0, 0)`;
+
+            setTimeout(() => {
+                panel.style.transition = '';
+            }, duration * 1000 + 40);
+        };
+
+        handle.addEventListener('pointerup',     endDrag);
+        handle.addEventListener('pointercancel', endDrag);
+
+        // Keyboard support
+        handle.addEventListener('keydown', (e) => {
+            loadIframe();
+            if (e.key === 'ArrowLeft')  {
+                velocity = -10;
+                isDragging = true;
+                endDrag();
+            }
+            if (e.key === 'ArrowRight') {
+                velocity = 10;
+                isDragging = true;
+                endDrag();
+            }
+        });
+    })();
+</script>
 
 <style>
     :global(body.landing-redesign-page) {

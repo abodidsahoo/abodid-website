@@ -126,6 +126,15 @@ export default function WorkIndex({ projects = [] }) {
         <div className="work-empty">
           <h2>New work is being added.</h2>
           <p>Selected projects will appear here soon.</p>
+          <p className="work-empty-teaser">
+            Till then, have a glimpse of my life, work, fun and everything in between.
+          </p>
+          <div className="work-scroll-nudge" aria-hidden="true">
+            <span className="work-scroll-nudge-label">scroll</span>
+            <svg className="work-scroll-nudge-arrow" width="16" height="20" viewBox="0 0 16 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M8 1v14M2 10l6 7 6-7" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
         </div>
       ) : filtered.length > 0 ? (
         <div className="work-card-grid">

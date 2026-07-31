@@ -82,8 +82,9 @@ function pickSizeScale(random) {
 }
 
 export function resolveLaneCount(width, sizeMultiplier = 1.0) {
+    if (width < 440) return 2;
+    if (width < 768) return 3;
     const scale = Math.max(1.0, sizeMultiplier);
-    if (width < 720 * scale) return 2;
     if (width < 1040 * scale) return 3;
     if (width < 1360 * scale) return 4;
     if (width < 1760 * scale) return 5;
@@ -98,7 +99,10 @@ export function getFloatingStageSize({
     spacingMultiplier = 1.0,
 }) {
     const laneCount = resolveLaneCount(width, sizeMultiplier);
-    const referenceSquare = clamp(width * 0.2 * sizeMultiplier, 170 * sizeMultiplier, 360 * sizeMultiplier);
+    const isMobile = width < 768;
+    const referenceSquare = isMobile
+        ? clamp(width * (0.48 / laneCount), 90, 150)
+        : clamp(width * 0.2 * sizeMultiplier, 170 * sizeMultiplier, 360 * sizeMultiplier);
     const rowCount = Math.ceil(Math.max(itemCount, 1) / laneCount);
     const densityScale =
         rowCount <= 2
@@ -108,7 +112,9 @@ export function getFloatingStageSize({
                 : rowCount <= 6
                     ? 1.02
                     : 1.08;
-    const rowSpan = clamp(referenceSquare * densityScale, 144 * sizeMultiplier * spacingMultiplier, 336 * sizeMultiplier * spacingMultiplier);
+    const rowSpan = isMobile
+        ? clamp(referenceSquare * densityScale, 100 * spacingMultiplier, 180 * spacingMultiplier)
+        : clamp(referenceSquare * densityScale, 144 * sizeMultiplier * spacingMultiplier, 336 * sizeMultiplier * spacingMultiplier);
     const height = Math.max(
         viewportHeight * 0.9,
         TOP_PADDING + BOTTOM_PADDING + rowCount * rowSpan + viewportHeight * 0.3,
@@ -118,21 +124,36 @@ export function getFloatingStageSize({
 }
 
 function getBalancedCardSize(width, ratio, random, sizeMultiplier = 1.0, minScale = 0.24) {
-    const baseSquare = clamp(width * 0.17 * sizeMultiplier, 150 * sizeMultiplier, 310 * sizeMultiplier);
-    const scaleToken = Math.max(minScale, pickSizeScale(random));
+    const isMobile = width < 768;
+    const laneCount = resolveLaneCount(width, sizeMultiplier);
+    const targetLaneWidth = (width - EDGE_PADDING * 2) / Math.max(1, laneCount);
+
+    const baseSquare = isMobile
+        ? clamp(targetLaneWidth * 0.74, 90, 160)
+        : clamp(width * 0.17 * sizeMultiplier, 150 * sizeMultiplier, 310 * sizeMultiplier);
+
+    const effectiveMinScale = isMobile ? Math.min(minScale, 0.42) : minScale;
+    const scaleToken = Math.max(effectiveMinScale, pickSizeScale(random));
     const baseLongSide = baseSquare * scaleToken;
 
     let cardWidth = ratio >= 1 ? baseLongSide : baseLongSide * ratio;
     let cardHeight = ratio >= 1 ? baseLongSide / ratio : baseLongSide;
 
-    const maxWidth = clamp(width * 0.31 * sizeMultiplier, 190 * sizeMultiplier, 470 * sizeMultiplier);
-    const maxHeight = clamp(width * 0.34 * sizeMultiplier, 190 * sizeMultiplier, 490 * sizeMultiplier);
+    const maxWidth = isMobile
+        ? targetLaneWidth * 0.92
+        : clamp(width * 0.31 * sizeMultiplier, 190 * sizeMultiplier, 470 * sizeMultiplier);
+    const maxHeight = isMobile
+        ? targetLaneWidth * 1.18
+        : clamp(width * 0.34 * sizeMultiplier, 190 * sizeMultiplier, 490 * sizeMultiplier);
+
     const downScale = Math.min(maxWidth / cardWidth, maxHeight / cardHeight, 1);
 
     cardWidth *= downScale;
     cardHeight *= downScale;
 
-    const minEdge = (width < 720 ? 62 : 76) * sizeMultiplier;
+    const minEdge = isMobile
+        ? 52
+        : (width < 720 ? 62 : 76) * sizeMultiplier;
     const upScale = Math.max(minEdge / cardWidth, minEdge / cardHeight, 1);
 
     cardWidth *= upScale;
@@ -206,16 +227,19 @@ export function computeFloatingLayout(items, width, height, seedSalt = 0, sizeMu
             }
         }
 
+        const isMobile = width < 768;
+        const attemptsPerLane = isMobile ? 8 : 4;
         for (let laneRank = 0; laneRank < laneIndices.length; laneRank += 1) {
             const lane = laneIndices[laneRank];
             if (forcedLane !== -1 && lane !== forcedLane) continue;
 
             const laneBaseX = EDGE_PADDING + lane * laneWidth;
 
-            for (let attempt = 0; attempt < 3; attempt += 1) {
+            for (let attempt = 0; attempt < attemptsPerLane; attempt += 1) {
                 const centerX = laneBaseX + laneWidth * 0.5;
-                const crossLanePull = (random() - 0.5) * laneWidth * 0.42;
-                const laneBias = (lane % 2 === 0 ? -1 : 1) * laneWidth * (0.02 + random() * 0.06);
+                const maxPull = isMobile ? laneWidth * 0.92 : laneWidth * 0.68;
+                const crossLanePull = (random() - 0.5) * maxPull;
+                const laneBias = (lane % 2 === 0 ? -1 : 1) * laneWidth * (0.04 + random() * 0.08);
                 const left = clamp(
                     centerX - targetWidth / 2 + crossLanePull + laneBias,
                     EDGE_PADDING,
@@ -223,7 +247,7 @@ export function computeFloatingLayout(items, width, height, seedSalt = 0, sizeMu
                 );
 
                 const verticalOverlap = targetHeight * (0.02 + random() * 0.05);
-                const verticalJitter = (random() - 0.5) * Math.min(20, targetHeight * 0.11);
+                const verticalJitter = (random() - 0.5) * Math.min(28, targetHeight * 0.16);
                 const top = clamp(
                     laneHeights[lane] - verticalOverlap + verticalJitter,
                     topInset,
@@ -236,14 +260,16 @@ export function computeFloatingLayout(items, width, height, seedSalt = 0, sizeMu
                 }
 
                 let leftVal = left;
-                if (laneCount > 2) {
-                    if (item.id === 'text-block-1') {
-                        leftVal = clamp(leftVal + laneWidth * 0.16, EDGE_PADDING + 24, width - EDGE_PADDING - targetWidth - 24);
-                    } else if (item.id === 'text-block-2') {
-                        leftVal = clamp(leftVal - laneWidth * 0.16, EDGE_PADDING + 24, width - EDGE_PADDING - targetWidth - 24);
+                if (item.type === 'text') {
+                    if (laneCount > 2) {
+                        if (item.id === 'text-block-1') {
+                            leftVal = clamp(leftVal + laneWidth * 0.16, EDGE_PADDING + 24, width - EDGE_PADDING - targetWidth - 24);
+                        } else if (item.id === 'text-block-2') {
+                            leftVal = clamp(leftVal - laneWidth * 0.16, EDGE_PADDING + 24, width - EDGE_PADDING - targetWidth - 24);
+                        }
+                    } else {
+                        leftVal = clamp((width - targetWidth) / 2, EDGE_PADDING, width - EDGE_PADDING - targetWidth);
                     }
-                } else {
-                    leftVal = clamp((width - targetWidth) / 2, EDGE_PADDING, width - EDGE_PADDING - targetWidth);
                 }
 
                 const candidate = {
@@ -342,9 +368,11 @@ export function computeFloatingLayout(items, width, height, seedSalt = 0, sizeMu
         );
         const phaseJitter = random() * 0.14;
         const motionDelay = phaseJitter;
+        const organicRotation = 0;
 
         layout.set(item.id, {
             ...position,
+            rotation: organicRotation,
             driftX: driftX * driftXDirection,
             driftY,
             breathDirection,
