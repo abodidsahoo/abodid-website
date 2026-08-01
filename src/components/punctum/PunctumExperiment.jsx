@@ -961,7 +961,7 @@ function AnnotationStep({
   );
 }
 
-function CompletionStep({ sessionId, onRestart }) {
+function CompletionStep({ sessionId }) {
   return (
     <main className="punctum-complete">
       <div className="punctum-complete__constellation" aria-hidden="true">
@@ -971,30 +971,25 @@ function CompletionStep({ sessionId, onRestart }) {
       </div>
       <div className="punctum-complete__layout">
         <div className="punctum-complete__left">
-          <p className="punctum-eyebrow">Recorded</p>
-          <h1>Thank you for lending your attention.</h1>
-          <p>
-            What held you may not hold anyone else.<br />
-            That difference is the work.
-          </p>
+          <p className="punctum-eyebrow">Your responses have been recorded.</p>
+          <h1>
+            <span className="punctum-complete__line">Let's place your 'punctums'</span>
+            <br />
+            <span className="punctum-complete__line">in a new world!</span>
+          </h1>
+          <p>And see if you still feel the same about the 'punctum' after that.</p>
           <div className="punctum-complete__actions">
             <a
               className="punctum-button punctum-button--yellow"
-              href="/research/punctum/results"
+              href={
+                sessionId
+                  ? `/research/punctum/results?session=${encodeURIComponent(sessionId)}`
+                  : "/research/punctum/results"
+              }
             >
-              Build new worlds with your punctums
+              Reimagine your Punctum
             </a>
-            <button
-              className="punctum-button punctum-button--light"
-              type="button"
-              onClick={onRestart}
-            >
-              Play this again
-            </button>
           </div>
-          <a className="punctum-complete__archive" href="/research/projects">
-            Return to the research archive
-          </a>
         </div>
         <div className="punctum-complete__right">
           <PunctumFeedbackModal embedded={true} sessionId={sessionId} />
@@ -1132,6 +1127,7 @@ export default function PunctumExperiment({
         }),
       });
       setSessionId(payload.sessionId);
+      sessionStorage.removeItem("punctum-session-markings");
       sessionStorage.setItem("punctum-session-id", payload.sessionId);
       setStep("practice");
     } catch (error) {
@@ -1164,6 +1160,28 @@ export default function PunctumExperiment({
     setStep("drawing");
   };
 
+  const saveSessionMarking = (responseId, polygon, text = "") => {
+    try {
+      const raw = sessionStorage.getItem("punctum-session-markings") || "{}";
+      const data = JSON.parse(raw);
+      data[currentImage.id] = {
+        responseId,
+        imageId: currentImage.id,
+        imageTitle: currentImage.title,
+        imageSlug: currentImage.slug,
+        imageUrl: currentImage.url,
+        width: currentImage.width,
+        height: currentImage.height,
+        softBackground: currentImage.softBackground,
+        vertices: polygon.vertices,
+        annotation: text || data[currentImage.id]?.annotation || "",
+      };
+      sessionStorage.setItem("punctum-session-markings", JSON.stringify(data));
+    } catch {
+      // ignore
+    }
+  };
+
   const commitPolygon = async (polygon) => {
     const editingResponseId = annotation?.responseId || null;
     const payload = await fetchJson("/api/punctum/responses", {
@@ -1187,6 +1205,7 @@ export default function PunctumExperiment({
     return payload.responseId;
   };
   commitPolygon.afterGlow = (responseId, polygon) => {
+    saveSessionMarking(responseId, polygon, "");
     setAnnotation({ responseId, polygon });
     setStep("annotation");
   };
@@ -1201,6 +1220,9 @@ export default function PunctumExperiment({
     setAnnotationSaving(true);
     setAnnotationError("");
     try {
+      if (annotation?.responseId && annotation?.polygon) {
+        saveSessionMarking(annotation.responseId, annotation.polygon, text);
+      }
       await fetchJson("/api/punctum/annotations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1220,6 +1242,7 @@ export default function PunctumExperiment({
 
   const restart = () => {
     sessionStorage.removeItem("punctum-session-id");
+    sessionStorage.removeItem("punctum-session-markings");
     sessionStorage.removeItem("punctum-feedback-popup-seen");
     setStep("difference");
     setForm({

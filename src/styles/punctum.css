@@ -758,17 +758,137 @@ html[data-punctum-theme="dark"] .punctum-theme-toggle__icon {
 }
 
 .punctum-results-page {
-  height: calc(100dvh - 76px);
-  min-height: 0;
+  min-height: calc(100dvh - 76px);
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
+}
+
+.punctum-results-wrapper {
+  width: 100%;
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 0 clamp(20px, 4vw, 64px) clamp(28px, 4vh, 48px);
+}
+
+.punctum-session-results__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 36px;
+  flex-wrap: wrap;
+}
+
+.punctum-session-results__header h2 {
+  font-size: clamp(28px, 3.2vw, 44px);
+  margin: 0;
+  line-height: 1.05;
+}
+
+.punctum-session-results__header > div > p:last-child {
+  max-width: 620px;
+  margin: 12px 0 0;
+  color: var(--punctum-muted);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.punctum-session-results__list {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.punctum-session-loading {
+  min-height: 280px;
+  display: grid;
+  place-content: center;
+  text-align: center;
+}
+
+.punctum-session-loading h2 {
+  max-width: 560px;
+  margin: 0;
+  font-size: clamp(28px, 3.2vw, 44px);
+  line-height: 1.08;
+}
+
+.punctum-session-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: clamp(24px, 4vw, 48px);
+  align-items: center;
+  background: var(--punctum-surface);
+  border: 1px solid var(--punctum-border);
+  border-radius: 24px;
+  padding: clamp(20px, 3vw, 32px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+}
+
+.punctum-session-card__left {
+  position: relative;
+  width: 100%;
+  border-radius: 16px;
   overflow: hidden;
+  background: var(--punctum-sink);
+}
+
+.punctum-session-card__left img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.punctum-session-card__right {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.punctum-session-card__right h3 {
+  font-size: clamp(22px, 2.4vw, 32px);
+  margin: 0;
+  line-height: 1.1;
+}
+
+.punctum-session-card__note {
+  margin: 0;
+  padding: 12px 16px;
+  border-left: 3px solid var(--punctum-yellow);
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 0 12px 12px 0;
+  font-style: italic;
+  font-size: 15px;
+  color: var(--punctum-ink);
+}
+
+.punctum-session-card__placeholder {
+  color: var(--punctum-muted);
+  font-size: 14px;
+  margin: 0;
+}
+
+.punctum-session-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.punctum-session-banner {
+  margin-bottom: 24px;
+  display: flex;
+  justify-content: flex-start;
 }
 
 .punctum-gallery {
   min-height: 0;
   flex: 1;
-  padding: 0 clamp(20px, 4vw, 64px) clamp(28px, 4vh, 48px);
+  padding: 0;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   grid-template-rows: repeat(2, minmax(0, 1fr));
@@ -926,6 +1046,10 @@ html[data-punctum-theme="dark"] .punctum-theme-toggle__icon {
   padding: clamp(22px, 3vw, 38px) clamp(20px, 4vw, 64px) 72px;
 }
 
+.punctum-result.is-individual {
+  max-width: none;
+}
+
 .punctum-result__header {
   margin-bottom: clamp(18px, 2vw, 28px);
   display: flex;
@@ -987,7 +1111,7 @@ html[data-punctum-theme="dark"] .punctum-theme-toggle__icon {
 }
 
 @media (min-width: 901px) {
-  .punctum-result:not(.is-responses) {
+  .punctum-result:not(.is-individual) {
     min-height: calc(100dvh - 76px);
     padding-bottom: 20px;
     display: flex;
@@ -995,12 +1119,12 @@ html[data-punctum-theme="dark"] .punctum-theme-toggle__icon {
     overflow: visible;
   }
 
-  .punctum-result:not(.is-responses) .punctum-result__workspace {
+  .punctum-result:not(.is-individual) .punctum-result__workspace {
     min-height: 0;
     flex: 1;
   }
 
-  .punctum-result:not(.is-responses) .punctum-result__visual {
+  .punctum-result:not(.is-individual) .punctum-result__visual {
     min-height: 0;
     display: flex;
     flex-direction: column;
@@ -1011,6 +1135,11 @@ html[data-punctum-theme="dark"] .punctum-theme-toggle__icon {
     width: min(100%, calc((100dvh - 260px) * var(--result-ratio, 1.5)));
     margin-inline: auto;
     align-self: center;
+  }
+
+  .punctum-result.is-individual .punctum-result__controls {
+    width: 100%;
+    align-self: stretch;
   }
 }
 
@@ -1031,8 +1160,7 @@ html[data-punctum-theme="dark"] .punctum-theme-toggle__icon {
   object-fit: contain;
 }
 
-.punctum-polygon-layer,
-.punctum-heatmap {
+.punctum-polygon-layer {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -1074,23 +1202,10 @@ html[data-punctum-theme="dark"] .punctum-theme-toggle__icon {
   outline: none;
 }
 
-.punctum-polygon-layer.is-heatmap
-  .punctum-organic-mark:not(.is-selected) {
-  fill: rgba(255, 245, 225, 0.04);
-  stroke-width: 1px;
-  opacity: 0.28;
-}
-
 .punctum-polygon-layer.is-committed .punctum-organic-mark {
   fill: rgba(239, 213, 176, 0.2);
   stroke: #fff9ee;
   stroke-width: 2px;
-}
-
-.punctum-heatmap {
-  image-rendering: auto;
-  mix-blend-mode: screen;
-  opacity: 0.94;
 }
 
 .punctum-result-stage__loading {
@@ -1257,20 +1372,63 @@ html[data-punctum-theme="dark"] .punctum-theme-toggle__icon {
   line-height: 1.45;
 }
 
-.punctum-response-grid {
-  margin-top: clamp(30px, 4vw, 56px);
+.punctum-individual-grid {
+  width: 100%;
+  padding-top: clamp(12px, 2vw, 28px);
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: clamp(16px, 2vw, 30px);
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(min(100%, 300px), 1fr)
+  );
+  gap: clamp(18px, 2vw, 32px);
   align-items: start;
   grid-auto-flow: row;
 }
 
+.punctum-individual-loading {
+  min-height: 420px;
+  display: grid;
+  place-items: center;
+  color: var(--punctum-muted);
+  font: 700 12px/1 "Inconsolata", monospace;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
 .punctum-response-card {
   min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--punctum-line);
+  border-radius: 18px;
   display: grid;
   grid-template-rows: auto auto auto auto;
   align-content: start;
+  background: var(--punctum-surface);
+  box-shadow: 0 4px 18px color-mix(in srgb, var(--punctum-ink) 5%, transparent);
+  content-visibility: auto;
+  contain-intrinsic-size: 440px;
+  opacity: 0;
+  translate: 0 24px;
+  animation: punctum-individual-enter 560ms cubic-bezier(0.22, 1, 0.36, 1)
+    var(--punctum-card-delay, 0ms) forwards;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    translate 180ms ease;
+}
+
+.punctum-response-card:hover,
+.punctum-response-card:focus-within,
+.punctum-response-card.is-selected {
+  border-color: color-mix(in srgb, var(--punctum-accent) 72%, var(--punctum-line));
+  box-shadow: 0 12px 30px color-mix(in srgb, var(--punctum-ink) 10%, transparent);
+}
+
+@keyframes punctum-individual-enter {
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
 }
 
 .punctum-response-card__visual {
@@ -1280,7 +1438,7 @@ html[data-punctum-theme="dark"] .punctum-theme-toggle__icon {
   position: relative;
   overflow: hidden;
   display: block;
-  border-radius: 10px;
+  border-radius: 12px;
   background: #1c1c1b;
   color: inherit;
 }
@@ -1290,11 +1448,11 @@ html[data-punctum-theme="dark"] .punctum-theme-toggle__icon {
   height: 100%;
   display: block;
   object-fit: contain;
-  opacity: 0.88;
+  opacity: 0.92;
 }
 
 .punctum-response-card__mark {
-  margin-top: 12px;
+  margin: 13px 8px 0;
   color: var(--punctum-muted);
   font: 700 11px/1 "Inconsolata", monospace;
   letter-spacing: 0.1em;
@@ -1303,25 +1461,25 @@ html[data-punctum-theme="dark"] .punctum-theme-toggle__icon {
 
 .punctum-response-card__content {
   min-width: 0;
-  min-height: 126px;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(164px, 0.52fr);
-  gap: clamp(14px, 1.3vw, 22px);
-  align-items: start;
+  min-height: 150px;
+  padding: 0 8px 8px;
+  display: flex;
+  flex-direction: column;
 }
 
 .punctum-response-card__quote {
   min-width: 0;
   margin: 0;
-  padding: 17px 14px 20px 46px;
+  padding: 17px 0 20px 38px;
   position: relative;
+  flex: 1;
 }
 
 .punctum-response-card__quote.has-comment::before {
   content: "“";
   position: absolute;
-  left: 4px;
-  top: 9px;
+  left: 0;
+  top: 8px;
   color: var(--punctum-accent);
   font-family: Georgia, "Times New Roman", serif;
   font-size: 52px;
@@ -1332,7 +1490,7 @@ html[data-punctum-theme="dark"] .punctum-theme-toggle__icon {
 .punctum-response-card__quote p {
   margin: 0;
   color: var(--punctum-ink);
-  font-size: clamp(20px, 1.45vw, 28px);
+  font-size: clamp(17px, 1.25vw, 22px);
   font-weight: 520;
   line-height: 1.24;
   letter-spacing: -0.025em;
@@ -1342,9 +1500,17 @@ html[data-punctum-theme="dark"] .punctum-theme-toggle__icon {
   pointer-events: none;
 }
 
+.punctum-response-card__quote.is-empty p {
+  color: var(--punctum-muted);
+  font-size: 13px;
+  font-style: italic;
+  font-weight: 520;
+  letter-spacing: 0;
+}
+
 .punctum-response-card__actions {
   min-width: 0;
-  padding-top: 14px;
+  margin-top: auto;
   display: flex;
   align-items: stretch;
   flex-direction: column;
@@ -4003,43 +4169,72 @@ html[data-punctum-theme="dark"] .punctum-onboarding__card {
   position: relative;
   z-index: 2;
   width: 100%;
-  max-width: 1140px;
-  display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
-  gap: clamp(32px, 5vw, 64px);
+  max-width: 880px;
+  display: flex;
+  flex-direction: column;
   align-items: center;
+  justify-content: center;
+  gap: 48px;
+  margin: 0 auto;
+  text-align: center;
 }
 
 .punctum-complete__left {
-  text-align: left;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  padding-top: clamp(40px, 6vh, 80px);
+}
+
+.punctum-complete__left .punctum-eyebrow {
+  font-size: clamp(13px, 1.3vw, 15px);
+  margin-bottom: 16px;
+  text-transform: uppercase;
 }
 
 .punctum-complete__left h1 {
-  margin: 0 0 20px;
-  font-size: clamp(38px, 4.8vw, 68px);
-  line-height: 0.94;
-  letter-spacing: -0.06em;
+  margin: 0 0 16px;
+  font-size: clamp(32px, 4.2vw, 62px);
+  line-height: 1.08;
+  letter-spacing: -0.05em;
+  text-align: center;
+}
+
+.punctum-complete__left h1 .punctum-complete__line {
+  display: inline-block;
+  white-space: nowrap;
 }
 
 .punctum-complete__left > p {
   margin: 0 0 24px;
   color: var(--punctum-muted);
-  font-size: clamp(16px, 1.6vw, 19px);
+  font-size: clamp(14px, 1.4vw, 17px);
+  font-weight: 500;
   line-height: 1.5;
+  text-align: center;
 }
 
 .punctum-complete__left .punctum-complete__actions {
-  margin-top: 24px;
+  margin-top: 28px;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
   gap: 12px;
+  width: 100%;
+}
+
+.punctum-complete__left .punctum-button {
+  font-size: 16px;
+  min-height: 54px;
+  padding: 0 28px;
 }
 
 .punctum-complete__left .punctum-complete__archive {
-  margin: 20px 0 0;
-  text-align: left;
+  margin: 20px auto 0;
+  text-align: center;
   display: block;
   width: fit-content;
   color: var(--punctum-muted);
@@ -4049,7 +4244,8 @@ html[data-punctum-theme="dark"] .punctum-onboarding__card {
 
 .punctum-complete__right {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
+  width: 100%;
 }
 
 .punctum-feedback-embedded {
@@ -4207,6 +4403,14 @@ html[data-punctum-theme="dark"] .punctum-onboarding__card {
     aspect-ratio: 3 / 2;
   }
 
+  .punctum-session-card {
+    grid-template-columns: 1fr;
+  }
+
+  .punctum-session-card__left {
+    max-height: 520px;
+  }
+
   .punctum-about__index {
     position: static;
   }
@@ -4217,10 +4421,6 @@ html[data-punctum-theme="dark"] .punctum-onboarding__card {
 
   .punctum-result__filters {
     position: static;
-  }
-
-  .punctum-response-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .punctum-result-end {
@@ -4355,7 +4555,22 @@ html[data-punctum-theme="dark"] .punctum-onboarding__card {
   .punctum-gallery {
     grid-template-columns: 1fr;
     gap: 18px;
-    padding: 0 20px 40px;
+    padding: 0;
+  }
+
+  .punctum-results-wrapper {
+    padding-inline: 20px;
+  }
+
+  .punctum-session-results__header,
+  .punctum-session-card__actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .punctum-session-results__toggle,
+  .punctum-session-card__actions .punctum-button {
+    width: 100%;
   }
 
   .punctum-gallery-card__count {
@@ -4387,14 +4602,8 @@ html[data-punctum-theme="dark"] .punctum-onboarding__card {
     max-width: 70px;
   }
 
-  .punctum-response-grid {
-    grid-template-columns: 1fr;
-  }
-
   .punctum-response-card__content {
     min-height: 104px;
-    grid-template-columns: minmax(0, 1fr) minmax(132px, 0.7fr);
-    gap: 10px;
   }
 
   .punctum-response-card__quote {
@@ -4704,6 +4913,12 @@ html[data-punctum-theme="dark"] .punctum-onboarding__card {
   .punctum-gallery-card img,
   .punctum-nav nav a::after {
     transition: none !important;
+  }
+
+  .punctum-response-card {
+    opacity: 1;
+    translate: none;
+    animation: none;
   }
 
   .punctum-draw__mark-layer .punctum-selection-wave,

@@ -1,13 +1,94 @@
 import { useEffect, useState } from "react";
+import { verticesToSmoothSvgPath } from "../../lib/punctum/geometry";
+import PunctumWorldModal from "./PunctumWorldModal";
+
+function PolygonOutline({ vertices, className = "" }) {
+  if (!Array.isArray(vertices) || vertices.length < 3) return null;
+  return (
+    <svg
+      className={`punctum-world-polygon ${className}`.trim()}
+      viewBox="0 0 100 100"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+    >
+      <path
+        className="punctum-selection-halo punctum-selection-halo--outer"
+        d={verticesToSmoothSvgPath(vertices)}
+        vectorEffect="non-scaling-stroke"
+      />
+      <path
+        className="punctum-selection-halo punctum-selection-halo--inner"
+        d={verticesToSmoothSvgPath(vertices)}
+        vectorEffect="non-scaling-stroke"
+      />
+      <path
+        className="punctum-world-polygon__line"
+        d={verticesToSmoothSvgPath(vertices)}
+        vectorEffect="non-scaling-stroke"
+      />
+    </svg>
+  );
+}
 
 export default function PunctumResultsBrowser({ fallbackImages }) {
   const [images, setImages] = useState(
     fallbackImages.map((image) => ({ ...image, responseCount: 0 })),
   );
   const [loading, setLoading] = useState(true);
+  const [sessionLoading, setSessionLoading] = useState(true);
+  const [sessionMarkings, setSessionMarkings] = useState([]);
+  const [showCollectiveMap, setShowCollectiveMap] = useState(false);
+  const [worldEntry, setWorldEntry] = useState(null);
 
   useEffect(() => {
     let active = true;
+    let hasStoredMarkings = false;
+    try {
+      const raw = sessionStorage.getItem("punctum-session-markings");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        const list = Object.values(parsed).filter(
+          (item) => item && item.vertices && item.vertices.length >= 3,
+        );
+        if (list.length > 0 && active) {
+          hasStoredMarkings = true;
+          setSessionMarkings(list);
+        }
+      }
+    } catch {
+      // The session API below remains the source of truth.
+    }
+
+    const sessionId =
+      new URLSearchParams(window.location.search).get("session") ||
+      sessionStorage.getItem("punctum-session-id") ||
+      "";
+    if (sessionId) {
+      fetch(`/api/punctum/session?id=${encodeURIComponent(sessionId)}`)
+        .then(async (response) => {
+          if (!response.ok) throw new Error("Session unavailable");
+          return response.json();
+        })
+        .then((payload) => {
+          if (!active || !Array.isArray(payload.markings)) return;
+          if (payload.markings.length > 0) {
+            setSessionMarkings(payload.markings);
+            setShowCollectiveMap(false);
+          } else if (!hasStoredMarkings) {
+            setShowCollectiveMap(true);
+          }
+        })
+        .catch(() => {
+          if (active && !hasStoredMarkings) setShowCollectiveMap(true);
+        })
+        .finally(() => {
+          if (active) setSessionLoading(false);
+        });
+    } else {
+      setSessionLoading(false);
+      if (!hasStoredMarkings) setShowCollectiveMap(true);
+    }
+
     fetch("/api/punctum/results")
       .then(async (response) => {
         if (!response.ok) throw new Error("Results unavailable");
@@ -17,7 +98,7 @@ export default function PunctumResultsBrowser({ fallbackImages }) {
         if (active && Array.isArray(payload.images)) setImages(payload.images);
       })
       .catch(() => {
-        // The gallery remains useful as an invitation when the API is offline.
+        // Fallback gallery remains available
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -27,35 +108,149 @@ export default function PunctumResultsBrowser({ fallbackImages }) {
     };
   }, []);
 
+  const reimagineMark = (item) => {
+    const source = {
+      imageUrl: item.imageUrl,
+      polygon: item.vertices,
+      explanation: item.annotation,
+      width: item.width,
+      height: item.height,
+    };
+
+    setWorldEntry({
+      mode: "generate",
+      source,
+      request: {
+        source,
+        body: {
+          requestId: crypto.randomUUID(),
+          accessToken: crypto.randomUUID(),
+          responseId: item.responseId,
+        },
+      },
+    });
+  };
+
   return (
-    <section className="punctum-gallery" aria-busy={loading}>
-      {images.map((image) => (
-        <a
-          className="punctum-gallery-card"
-          href={`/research/punctum/results/${image.slug}`}
-          key={image.id}
-          aria-label={`View ${image.responseCount} ${
-            image.responseCount === 1 ? "mark" : "marks"
-          } on ${image.title}`}
-        >
-          <div
-            className="punctum-gallery-card__image"
-            style={{ "--card-background": image.softBackground }}
-          >
-            <img
-              src={image.url}
-              alt={image.title}
-              width={image.width}
-              height={image.height}
-              loading="lazy"
-            />
-            <span className="punctum-gallery-card__count">
-              <strong>{image.responseCount}</strong>
-              <span>{image.responseCount === 1 ? "mark" : "marks"}</span>
-            </span>
+    <section className="punctum-results-wrapper">
+      {sessionLoading && sessionMarkings.length === 0 ? (
+        <div className="punctum-session-loading" role="status">
+          <p className="punctum-eyebrow">Your session</p>
+          <h2>Gathering your punctums and notes…</h2>
+        </div>
+      ) : sessionMarkings.length > 0 && !showCollectiveMap ? (
+        <div className="punctum-session-results">
+          <div className="punctum-session-results__header">
+            <div>
+              <p className="punctum-eyebrow">Your Session Markings</p>
+              <h2>Your punctums are ready to reimagine.</h2>
+              <p>
+                Choose any marked photograph to carry its punctum into a new
+                AI-generated world.
+              </p>
+            </div>
+            <button
+              type="button"
+              className="punctum-button punctum-button--light punctum-session-results__toggle"
+              onClick={() => setShowCollectiveMap(true)}
+            >
+              See punctum markings by others →
+            </button>
           </div>
-        </a>
-      ))}
+
+          <div className="punctum-session-results__list">
+            {sessionMarkings.map((item) => (
+              <article key={item.imageId} className="punctum-session-card">
+                <div
+                  className="punctum-session-card__left"
+                  style={{ aspectRatio: `${item.width} / ${item.height}` }}
+                >
+                  <img src={item.imageUrl} alt={item.imageTitle} />
+                  <PolygonOutline vertices={item.vertices} />
+                </div>
+                <div className="punctum-session-card__right">
+                  <h3>{item.imageTitle}</h3>
+                  {item.annotation ? (
+                    <blockquote className="punctum-session-card__note">
+                      <p>"{item.annotation}"</p>
+                    </blockquote>
+                  ) : (
+                    <p className="punctum-session-card__placeholder">
+                      Your marked punctum for this photograph.
+                    </p>
+                  )}
+                  <div className="punctum-session-card__actions">
+                    <button
+                      type="button"
+                      className="punctum-button punctum-button--yellow"
+                      onClick={() => reimagineMark(item)}
+                    >
+                      <span aria-hidden="true">✦</span> Choose a model &amp;
+                      reimagine
+                    </button>
+                    <a
+                      className="punctum-button punctum-button--light"
+                      href={`/research/punctum/results/${item.imageSlug}`}
+                    >
+                      See punctum markings by others
+                    </a>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <>
+          {sessionMarkings.length > 0 && (
+            <div className="punctum-session-banner">
+              <button
+                type="button"
+                className="punctum-button punctum-button--light"
+                onClick={() => setShowCollectiveMap(false)}
+              >
+                ← View your session markings
+              </button>
+            </div>
+          )}
+          <section className="punctum-gallery" aria-busy={loading}>
+            {images.map((image) => (
+              <a
+                className="punctum-gallery-card"
+                href={`/research/punctum/results/${image.slug}`}
+                key={image.id}
+                aria-label={`View ${image.responseCount} ${
+                  image.responseCount === 1 ? "mark" : "marks"
+                } on ${image.title}`}
+              >
+                <div
+                  className="punctum-gallery-card__image"
+                  style={{ "--card-background": image.softBackground }}
+                >
+                  <img
+                    src={image.url}
+                    alt={image.title}
+                    width={image.width}
+                    height={image.height}
+                    loading="lazy"
+                  />
+                  <span className="punctum-gallery-card__count">
+                    <strong>{image.responseCount}</strong>
+                    <span>{image.responseCount === 1 ? "mark" : "marks"}</span>
+                  </span>
+                </div>
+              </a>
+            ))}
+          </section>
+        </>
+      )}
+
+      {worldEntry && (
+        <PunctumWorldModal
+          entry={worldEntry}
+          onClose={() => setWorldEntry(null)}
+        />
+      )}
     </section>
   );
 }

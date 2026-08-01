@@ -787,7 +787,7 @@ export default function PunctumWorldModal({
 
   useEffect(() => {
     if (!entry) return;
-    if (entry.mode === "generate") {
+    if (entry.mode === "generate" || entry.mode === "create") {
       lastRequestRef.current = entry.request;
       setSource(entry.source);
       setGeneration(null);
@@ -963,7 +963,9 @@ export default function PunctumWorldModal({
           type="button"
           onClick={goBack}
         >
-          ← Back to previous image
+          {generation?.parentGenerationId || lastRequestRef.current?.body?.parentGenerationId
+            ? "← Back to previous image"
+            : "← Back to your punctums"}
         </button>
         <div>
           <span>AI world</span>
