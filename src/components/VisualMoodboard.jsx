@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import MoodboardPolaroidViewer from './MoodboardPolaroidViewer.jsx';
+import MoodboardLightbox from './MoodboardLightbox.jsx';
 import {
     BOTTOM_PADDING,
     EDGE_PADDING,
@@ -240,18 +240,17 @@ export default function VisualMoodboard({
 }) {
     const prefersReducedMotion = useReducedMotion();
 
-    // Client-side shuffle — runs once per mount in the browser, never on the server.
-    // Each user and each reload gets a genuinely unique order regardless of CDN caching.
-    const resolvedItems = useMemo(() => {
-        if (!shuffleOnMount || items.length === 0) return items;
-        const arr = [...items];
-        for (let i = arr.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [arr[i], arr[j]] = [arr[j], arr[i]];
-        }
-        return arr;
+    // Keep the server and first browser render identical, then randomise once
+    // hydration has completed. This prevents image/alt mismatches on SSR islands.
+    const [clientReady, setClientReady] = useState(false);
+    const [resolvedItems, setResolvedItems] = useState(items);
+
+    useEffect(() => {
+        setClientReady(true);
+        if (!shuffleOnMount || items.length === 0) return;
+        setResolvedItems(shuffleValues(items));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []); // intentionally empty — shuffle only on mount, never re-run
+    }, []); // intentionally once per mount so every page load gets one unique order
 
     const stageRef = useRef(null);
     const layoutMapRef = useRef(new Map());
@@ -267,7 +266,13 @@ export default function VisualMoodboard({
     const [surfaceMode, setSurfaceMode] = useState(defaultSurfaceMode);
     const [stageSize, setStageSize] = useState({ width: 1200, height: 900, viewportHeight: 900 });
     const [imageRatios, setImageRatios] = useState({});
-    const [layoutSeed, setLayoutSeed] = useState(() => Math.floor(Math.random() * 1000000000));
+    const [layoutSeed, setLayoutSeed] = useState(() =>
+        hashString(
+            (Array.isArray(items) ? items : [])
+                .map((item, index) => item?.id || `item-${index}`)
+                .join('|'),
+        ),
+    );
     const [layoutOrder, setLayoutOrder] = useState([]);
     const [pendingSeed, setPendingSeed] = useState(null);
     const [pendingOrder, setPendingOrder] = useState(null);
@@ -409,9 +414,16 @@ export default function VisualMoodboard({
     };
 
     const jitteredItems = useMemo(() => {
-        if (jitterWindow <= 0 || !Array.isArray(resolvedItems) || !resolvedItems.length) return resolvedItems;
+        if (
+            !clientReady ||
+            jitterWindow <= 0 ||
+            !Array.isArray(resolvedItems) ||
+            !resolvedItems.length
+        ) {
+            return resolvedItems;
+        }
         return jitterSequence(resolvedItems, jitterWindow);
-    }, [resolvedItems, jitterWindow]);
+    }, [clientReady, resolvedItems, jitterWindow]);
 
     const normalizedItems = useMemo(
         () =>
@@ -669,6 +681,11 @@ export default function VisualMoodboard({
         visibleCount,
     ]);
 
+    const viewerItems = useMemo(
+        () => filteredItems.filter((item) => item.type !== 'text' && item.imageUrl),
+        [filteredItems],
+    );
+
     const deepLinkKey = deepLinkParam.trim();
 
     const syncDeepLink = (itemId) => {
@@ -710,10 +727,10 @@ export default function VisualMoodboard({
 
     useEffect(() => {
         if (!viewerActiveId) return;
-        if (boardItems.some((item) => item.id === viewerActiveId)) return;
+        if (viewerItems.some((item) => item.id === viewerActiveId)) return;
         setViewerActiveId(null);
         syncDeepLink('');
-    }, [boardItems, viewerActiveId]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [viewerItems, viewerActiveId]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleViewerOpen = (itemId) => {
         if (!itemId) return;
@@ -1480,8 +1497,8 @@ export default function VisualMoodboard({
             )}
 
             {enablePolaroidViewer && viewerActiveId && (
-                <MoodboardPolaroidViewer
-                    items={boardItems}
+                <MoodboardLightbox
+                    items={viewerItems}
                     activeId={viewerActiveId}
                     onClose={handleViewerClose}
                     onChange={handleViewerChange}

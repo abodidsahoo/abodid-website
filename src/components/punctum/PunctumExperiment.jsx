@@ -117,12 +117,9 @@ function OnboardingFrame({ step, children, className = "" }) {
   );
 }
 
-function StoryActions({ onContinue, onSkip, continueLabel = "Continue" }) {
+function StoryActions({ onContinue, continueLabel = "Continue" }) {
   return (
     <div className="punctum-story__actions">
-      <button className="punctum-text-button" type="button" onClick={onSkip}>
-        Skip to the experiment
-      </button>
       <button
         className="punctum-button punctum-button--yellow"
         type="button"
@@ -134,57 +131,16 @@ function StoryActions({ onContinue, onSkip, continueLabel = "Continue" }) {
   );
 }
 
-function IntroStep({ onContinue, onSkip }) {
+function DifferenceStep({ onContinue }) {
   return (
     <OnboardingFrame className="punctum-onboarding__card--centered punctum-onboarding__card--story">
       <section className="punctum-story">
-        <p className="punctum-eyebrow punctum-typewriter">
-          <span style={{ "--type-steps": 7, "--type-delay": "160ms" }}>Punctum</span>
-        </p>
-        <h1>The detail that stays.</h1>
-        <p>
-          Punctum is the part of an image that pulls you in, holds your
-          attention, and moves you.
-        </p>
-        <StoryActions onContinue={onContinue} onSkip={onSkip} />
-      </section>
-    </OnboardingFrame>
-  );
-}
-
-function DifferenceStep({ onContinue, onSkip }) {
-  return (
-    <OnboardingFrame className="punctum-onboarding__card--centered punctum-onboarding__card--story">
-      <section className="punctum-story">
-        <p className="punctum-eyebrow">One image. Many encounters.</p>
-        <h1>What touches you may remain invisible to someone else.</h1>
-        <StoryActions onContinue={onContinue} onSkip={onSkip} />
-      </section>
-    </OnboardingFrame>
-  );
-}
-
-function InterstitialStep({ onContinue, onSkip }) {
-  return (
-    <OnboardingFrame className="punctum-onboarding__card--centered punctum-onboarding__card--story">
-      <section className="punctum-story punctum-story--interstitial">
-        <div className="punctum-interstitial" aria-label="The photographer makes the image. The viewer makes it again.">
-          <p className="punctum-typewriter">
-            <span style={{ "--type-steps": 29, "--type-delay": "120ms" }}>
-              THE PHOTOGRAPHER MAKES THE IMAGE.
-            </span>
-          </p>
-          <p className="punctum-typewriter">
-            <span style={{ "--type-steps": 26, "--type-delay": "1550ms" }}>
-              THE VIEWER MAKES IT AGAIN.
-            </span>
-          </p>
-        </div>
-        <StoryActions
-          onContinue={onContinue}
-          onSkip={onSkip}
-          continueLabel="Set up"
-        />
+        <h1>
+          One image.<br />
+          Many encounters.
+        </h1>
+        <p>What touches you may remain invisible to someone else.</p>
+        <StoryActions onContinue={onContinue} />
       </section>
     </OnboardingFrame>
   );
@@ -261,8 +217,7 @@ function ProfileStep({ form, setForm, onBack, onContinue }) {
     <OnboardingFrame step={1}>
       <div className="punctum-profile">
         <div className="punctum-screen-heading">
-          <p className="punctum-eyebrow">About you</p>
-          <h1>Pick what fits.</h1>
+          <h1>About you</h1>
           <p>Skip any.</p>
         </div>
         <div className="punctum-profile__fields">
@@ -319,7 +274,6 @@ function ConsentStep({ form, setForm, onBack, onContinue }) {
         }}
       >
         <div className="punctum-screen-heading">
-          <p className="punctum-eyebrow">Before we start</p>
           <h1>Two quick checks.</h1>
         </div>
         <div className="punctum-consent__checks">
@@ -343,7 +297,7 @@ function ConsentStep({ form, setForm, onBack, onContinue }) {
               }
             />
             <span className="punctum-consent__checkmark" aria-hidden="true">✓</span>
-            <strong>My anonymous mark can join the results.</strong>
+            <strong>I allow you to use my results for research purposes.</strong>
           </label>
         </div>
         <div className="punctum-onboarding__actions">
@@ -413,8 +367,7 @@ function TurnstileVerification({
     <div className="punctum-verification-box">
       {isLocalPreview ? (
         <div className="punctum-verification-box__local">
-          <span aria-hidden="true">✓</span>
-          <strong>Ready</strong>
+          <strong>Yes of course, I am!</strong>
         </div>
       ) : siteKey ? (
         <div ref={widgetRef} />
@@ -438,11 +391,7 @@ function VerificationStep({
   return (
     <OnboardingFrame step={3} className="punctum-onboarding__card--compact">
       <div className="punctum-verification">
-        <div className="punctum-verification__symbol" aria-hidden="true">
-          <span></span>
-        </div>
-        <p className="punctum-eyebrow">Quick check</p>
-        <h1>Are you human?</h1>
+        <h1>Are You Human</h1>
         <TurnstileVerification
           siteKey={siteKey}
           isLocalPreview={isLocalPreview}
@@ -521,37 +470,10 @@ function PracticeStep({
   }, [onContinue]);
 
   return (
-    <OnboardingFrame step={4}>
+    <OnboardingFrame step={4} className="punctum-onboarding__card--compact">
       <div className="punctum-practice">
-        <div className="punctum-practice__intro">
-          <div className="punctum-screen-heading">
-            <p className="punctum-eyebrow">Practice</p>
-            <h1>Draw one quick mark.</h1>
-          </div>
-          <div className="punctum-gesture-opt-in">
-            <button
-              className={`punctum-gesture-opt-in__button ${
-                gestureEnabled ? "is-enabled" : ""
-              }`}
-              type="button"
-              aria-pressed={gestureEnabled}
-              disabled={gestureEnabled && gestureState !== "error"}
-              onClick={onEnableGesture}
-            >
-              <span className="punctum-gesture-opt-in__check" aria-hidden="true">
-                {gestureEnabled && gestureState !== "error" ? "✓" : ""}
-              </span>
-              <span>
-                {gestureState === "error"
-                  ? "Try gesture control again"
-                  : gestureEnabled
-                    ? "Gesture control enabled"
-                    : "Enable gesture control"}
-              </span>
-            </button>
-            <p role="status">{gestureStatus}</p>
-            <small>Camera frames stay on this device.</small>
-          </div>
+        <div className="punctum-screen-heading">
+          <h1>Draw one quick mark.</h1>
         </div>
         <div
           ref={areaRef}
@@ -1040,16 +962,6 @@ function AnnotationStep({
 }
 
 function CompletionStep({ sessionId, onRestart }) {
-  const [feedbackOpen, setFeedbackOpen] = useState(false);
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      sessionStorage.setItem("punctum-feedback-popup-seen", "1");
-      setFeedbackOpen(true);
-    }, 550);
-    return () => window.clearTimeout(timer);
-  }, []);
-
   return (
     <main className="punctum-complete">
       <div className="punctum-complete__constellation" aria-hidden="true">
@@ -1057,41 +969,37 @@ function CompletionStep({ sessionId, onRestart }) {
           <span style={{ "--star": index }} key={index} />
         ))}
       </div>
-      <div className="punctum-complete__content">
-        <p className="punctum-eyebrow">Recorded</p>
-        <h1>Thank you for lending your attention.</h1>
-        <p>What held you may not hold anyone else.<br />That difference is the work.</p>
-        <div className="punctum-complete__actions">
-          <a
-            className="punctum-button punctum-button--yellow"
-            href="/research/punctum/results"
-          >
-            View results
+      <div className="punctum-complete__layout">
+        <div className="punctum-complete__left">
+          <p className="punctum-eyebrow">Recorded</p>
+          <h1>Thank you for lending your attention.</h1>
+          <p>
+            What held you may not hold anyone else.<br />
+            That difference is the work.
+          </p>
+          <div className="punctum-complete__actions">
+            <a
+              className="punctum-button punctum-button--yellow"
+              href="/research/punctum/results"
+            >
+              Build new worlds with your punctums
+            </a>
+            <button
+              className="punctum-button punctum-button--light"
+              type="button"
+              onClick={onRestart}
+            >
+              Play this again
+            </button>
+          </div>
+          <a className="punctum-complete__archive" href="/research/projects">
+            Return to the research archive
           </a>
-          <button
-            className="punctum-button punctum-button--light"
-            type="button"
-            onClick={onRestart}
-          >
-            Play this again
-          </button>
         </div>
-        <button
-          className="punctum-complete__about"
-          type="button"
-          onClick={() => setFeedbackOpen(true)}
-        >
-          Maybe share with a friend
-        </button>
-        <a className="punctum-complete__archive" href="/research/projects">
-          Return to the research archive
-        </a>
+        <div className="punctum-complete__right">
+          <PunctumFeedbackModal embedded={true} sessionId={sessionId} />
+        </div>
       </div>
-      <PunctumFeedbackModal
-        open={feedbackOpen}
-        onClose={() => setFeedbackOpen(false)}
-        sessionId={sessionId}
-      />
     </main>
   );
 }
@@ -1154,7 +1062,7 @@ export default function PunctumExperiment({
   turnstileSiteKey,
   isLocalPreview,
 }) {
-  const [step, setStep] = useState("intro");
+  const [step, setStep] = useState("difference");
   const [form, setForm] = useState({
     ageBand: "",
     gender: "",
@@ -1187,9 +1095,7 @@ export default function PunctumExperiment({
 
   useEffect(() => {
     const setupProgress = {
-      intro: 0.05,
       difference: 0.09,
-      interstitial: 0.13,
       profile: 0.17,
       consent: 0.21,
       verification: 0.25,
@@ -1315,7 +1221,7 @@ export default function PunctumExperiment({
   const restart = () => {
     sessionStorage.removeItem("punctum-session-id");
     sessionStorage.removeItem("punctum-feedback-popup-seen");
-    setStep("intro");
+    setStep("difference");
     setForm({
       ageBand: "",
       gender: "",
@@ -1344,23 +1250,9 @@ export default function PunctumExperiment({
   };
 
   let content;
-  if (step === "intro") {
-    content = (
-      <IntroStep
-        onContinue={() => setStep("difference")}
-        onSkip={() => setStep("profile")}
-      />
-    );
-  } else if (step === "difference") {
+  if (step === "difference") {
     content = (
       <DifferenceStep
-        onContinue={() => setStep("interstitial")}
-        onSkip={() => setStep("profile")}
-      />
-    );
-  } else if (step === "interstitial") {
-    content = (
-      <InterstitialStep
         onContinue={() => setStep("profile")}
         onSkip={() => setStep("profile")}
       />
@@ -1370,7 +1262,7 @@ export default function PunctumExperiment({
       <ProfileStep
         form={form}
         setForm={setForm}
-        onBack={() => setStep("intro")}
+        onBack={() => setStep("difference")}
         onContinue={() => setStep("consent")}
       />
     );

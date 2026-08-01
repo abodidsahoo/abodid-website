@@ -10,9 +10,10 @@ const RATING_LABELS = {
 
 export default function PunctumFeedbackModal({
   open,
-  onClose,
+  onClose = () => {},
   sessionId = "",
   sharePath = "/research/punctum",
+  embedded = false,
 }) {
   const closeRef = useRef(null);
   const onCloseRef = useRef(onClose);
@@ -62,7 +63,7 @@ export default function PunctumFeedbackModal({
   }, [sessionId]);
 
   useEffect(() => {
-    if (!open) return undefined;
+    if (!open || embedded) return undefined;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     closeRef.current?.focus();
@@ -181,20 +182,15 @@ export default function PunctumFeedbackModal({
     onCloseRef.current();
   };
 
-  return (
-    <div
-      className="punctum-feedback-backdrop"
-      role="presentation"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget) closeModal();
-      }}
+  if (!open && !embedded) return null;
+
+  const cardContent = (
+    <section
+      className={`punctum-feedback ${submitted ? "is-thank-you" : ""}`}
+      {...(!embedded && { role: "dialog", "aria-modal": "true" })}
+      aria-labelledby="punctum-feedback-title"
     >
-      <section
-        className={`punctum-feedback ${submitted ? "is-thank-you" : ""}`}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="punctum-feedback-title"
-      >
+      {!embedded && (
         <button
           ref={closeRef}
           className="punctum-feedback__close"
@@ -204,6 +200,7 @@ export default function PunctumFeedbackModal({
         >
           ×
         </button>
+      )}
 
         {submitted ? (
           <div className="punctum-feedback__thanks" role="status">
@@ -311,6 +308,21 @@ export default function PunctumFeedbackModal({
           </>
         )}
       </section>
+  );
+
+  if (embedded) {
+    return <div className="punctum-feedback-embedded">{cardContent}</div>;
+  }
+
+  return (
+    <div
+      className="punctum-feedback-backdrop"
+      role="presentation"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) closeModal();
+      }}
+    >
+      {cardContent}
     </div>
   );
 }

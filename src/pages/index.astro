@@ -163,10 +163,14 @@ const heroTextEffect = "smooth-blur";
     <div id="life-panel" aria-label="Life page — drag to reveal">
         <div id="life-panel-handle" role="button" tabindex="0" aria-label="Drag to reveal life page">
             <div class="life-handle-inner">
-                <span class="life-handle-drag-label">DRAG ME</span>
-                <span class="life-handle-grip">
-                    <i></i><i></i><i></i><i></i>
-                </span>
+                <div class="life-handle-badge-wrapper">
+                    <span class="life-handle-text">Slide left to reveal</span>
+                    <div class="life-handle-circle" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="15 18 9 12 15 6"></polyline>
+                        </svg>
+                    </div>
+                </div>
             </div>
             {/* SVG line along right edge that bends elastically like a rubber band */}
             <svg class="life-handle-line-svg" viewBox="-140 0 280 1000" preserveAspectRatio="none" aria-hidden="true">
@@ -242,13 +246,14 @@ const heroTextEffect = "smooth-blur";
     }
 
     .life-handle-inner {
+        position: relative;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 16px;
         width: 100%;
         height: 100%;
+        overflow: visible;
     }
 
     /* Synchronized handle move + soft breathing elastic bending animation */
@@ -280,50 +285,117 @@ const heroTextEffect = "smooth-blur";
         }
     }
 
+    @keyframes life-handle-nudge-open {
+        0%, 100% {
+            transform: translate3d(0, 0, 0);
+        }
+        50% {
+            transform: translate3d(9px, 0, 0);
+        }
+    }
+
+    @keyframes life-line-bend-open {
+        0%, 100% {
+            d: path("M 0 0 Q 0 500 0 1000");
+        }
+        50% {
+            d: path("M 0 0 Q 32 500 0 1000");
+        }
+    }
+
+    #life-panel.is-open .life-handle-nudge {
+        animation-name: life-handle-nudge-open;
+    }
+
+    #life-panel.is-open .life-handle-nudge .life-handle-line-path {
+        animation-name: life-line-bend-open;
+    }
+
     @media (prefers-reduced-motion: reduce) {
         .life-handle-nudge,
-        .life-handle-nudge .life-handle-line-path {
+        .life-handle-nudge .life-handle-line-path,
+        .life-handle-nudge .life-handle-badge-wrapper {
             animation: none;
         }
     }
 
-    .life-handle-drag-label {
-        writing-mode: vertical-rl;
-        transform: rotate(180deg);
-        font-size: 0.72rem;
-        font-weight: 700;
-        letter-spacing: 0.24em;
-        text-transform: uppercase;
-        color: rgba(255, 255, 255, 0.48);
-        font-style: normal;
-        user-select: none;
-        transition: color 0.2s ease;
-    }
-
-    #life-panel-handle:hover .life-handle-drag-label {
-        color: rgba(255, 255, 255, 0.85);
-    }
-
-    .life-handle-grip {
+    .life-handle-badge-wrapper {
+        position: absolute;
+        right: -16px;
+        top: 50%;
+        transform: translateY(-50%);
         display: flex;
-        flex-direction: column;
-        gap: 5px;
         align-items: center;
+        gap: 10px;
+        z-index: 15;
+        pointer-events: none;
+        user-select: none;
+        white-space: nowrap;
     }
 
-    .life-handle-grip i {
+    .life-handle-text {
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.78);
+        text-shadow: 0 1px 6px rgba(0, 0, 0, 0.85);
+        user-select: none;
+        white-space: nowrap;
+        transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease, color 0.2s ease;
+    }
+
+    #life-panel.is-open .life-handle-text {
+        opacity: 0 !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+        transform: translateX(8px) !important;
+    }
+
+    #life-panel-handle:hover .life-handle-text {
+        color: #ffffff;
+    }
+
+    .life-handle-circle {
+        position: relative;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #ffffff;
+        color: #0b0b0e;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.25);
+        transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s ease, box-shadow 0.2s ease;
+        flex-shrink: 0;
+    }
+
+    .life-handle-circle svg {
+        transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
         display: block;
-        width: 12px;
-        height: 1.5px;
-        background: rgba(255, 255, 255, 0.55);
-        border-radius: 2px;
-        font-style: normal;
-        transition: opacity 0.2s ease, width 0.2s ease;
     }
 
-    #life-panel-handle:hover .life-handle-grip i {
-        opacity: 0.9;
-        width: 14px;
+    #life-panel.is-open .life-handle-circle svg {
+        transform: rotate(180deg) !important;
+    }
+
+    .life-handle-nudge .life-handle-badge-wrapper {
+        animation: life-badge-bend 2.8s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+    }
+
+    @keyframes life-badge-bend {
+        0%, 100% {
+            transform: translateY(-50%);
+        }
+        50% {
+            transform: translate(-3.43px, -50%);
+        }
+    }
+
+    #life-panel-handle:hover .life-handle-circle {
+        transform: scale(1.12);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.4);
     }
 
     #life-panel-shield {
@@ -346,15 +418,24 @@ const heroTextEffect = "smooth-blur";
         background: #0b0b0e;
         display: block;
     }
+
+    @media (max-width: 768px) {
+        #life-panel {
+            display: none !important;
+        }
+    }
 </style>
 
 <script>
     (() => {
-        const panel    = document.getElementById('life-panel');
-        const handle   = document.getElementById('life-panel-handle');
-        const shield   = document.getElementById('life-panel-shield');
-        const iframe   = document.getElementById('life-panel-iframe');
-        const linePath = document.getElementById('life-handle-line-path');
+        const panel        = document.getElementById('life-panel');
+        const handle       = document.getElementById('life-panel-handle');
+        const shield       = document.getElementById('life-panel-shield');
+        const iframe       = document.getElementById('life-panel-iframe');
+        const linePath     = document.getElementById('life-handle-line-path');
+        const badgeWrapper = handle ? handle.querySelector('.life-handle-badge-wrapper') : null;
+        const handleText   = handle ? handle.querySelector('.life-handle-text') : null;
+        const circleSvg    = handle ? handle.querySelector('.life-handle-circle svg') : null;
         if (!panel || !handle) return;
 
         const HANDLE_W    = 36;
@@ -379,8 +460,22 @@ const heroTextEffect = "smooth-blur";
 
         panel.style.transform = `translate3d(${currentX}px, 0, 0)`;
 
+        const updateDynamicState = (x) => {
+            const progress = maxX > 0 ? Math.max(0, Math.min(1, 1 - x / maxX)) : 0;
+            if (handleText) {
+                const opacity = Math.max(0, 1 - progress * 2.2);
+                handleText.style.opacity = opacity.toFixed(2);
+                handleText.style.visibility = opacity <= 0.01 ? 'hidden' : 'visible';
+            }
+            if (circleSvg) {
+                const rot = progress * 180;
+                circleSvg.style.transform = `rotate(${rot.toFixed(1)}deg)`;
+            }
+        };
+
         const loadIframe = () => {
             if (iframeReady) return;
+            if (window.innerWidth <= 768) return;
             iframeReady = true;
             iframe.src = '/life';
         };
@@ -398,6 +493,7 @@ const heroTextEffect = "smooth-blur";
                 currentX = Math.round(maxX * Math.min(ratio, 1));
             }
             panel.style.transform = `translate3d(${currentX}px, 0, 0)`;
+            updateDynamicState(currentX);
         }, { passive: true });
 
         const rubberClamp = (val) => {
@@ -416,6 +512,10 @@ const heroTextEffect = "smooth-blur";
             const rect = handle.getBoundingClientRect();
             const clickY = e.clientY - rect.top;
             peakY = Math.max(100, Math.min(900, Math.round((clickY / (rect.height || 1)) * 1000)));
+
+            if (badgeWrapper) {
+                badgeWrapper.style.top = `${(peakY / 10).toFixed(1)}%`;
+            }
 
             isDragging  = true;
             startPtrX   = e.clientX;
@@ -447,6 +547,7 @@ const heroTextEffect = "smooth-blur";
             const delta = e.clientX - startPtrX;
             currentX = rubberClamp(startPanX + delta);
             panel.style.transform = `translate3d(${currentX}px, 0, 0)`;
+            updateDynamicState(currentX);
 
             if (linePath) {
                 const pullAmount = -delta; // positive when pulling left
@@ -460,11 +561,17 @@ const heroTextEffect = "smooth-blur";
                 }
                 linePath.style.transition = 'none';
                 linePath.setAttribute('d', `M 0 0 Q ${bendX.toFixed(1)} ${peakY} 0 1000`);
+
+                if (badgeWrapper) {
+                    const cssOffset = (bendX * (30 / 280)).toFixed(2);
+                    badgeWrapper.style.transition = 'none';
+                    badgeWrapper.style.transform = `translate(${cssOffset}px, -50%)`;
+                }
             }
         });
 
         // ── Drag end (elastic spring rebound & continuous breathing resumption) ──
-        const endDrag = () => {
+        const endDrag = (e) => {
             if (!isDragging) return;
             isDragging = false;
 
@@ -472,17 +579,34 @@ const heroTextEffect = "smooth-blur";
             document.body.style.cursor = '';
             document.body.style.userSelect = '';
 
+            const dragDistance = e ? Math.abs(e.clientX - startPtrX) : 999;
+            const isClick = dragDistance < 5;
+
             // Spring rebound on the elastic line, then resume continuous keyframe breathing
             if (linePath) {
                 linePath.style.transition = 'd 0.18s cubic-bezier(0.2, 0.8, 0.2, 1)';
                 linePath.setAttribute('d', `M 0 0 Q 22 ${peakY} 0 1000`);
+                if (badgeWrapper) {
+                    badgeWrapper.style.transition = 'transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1), top 0.18s cubic-bezier(0.2, 0.8, 0.2, 1)';
+                    badgeWrapper.style.transform = `translate(${(22 * (30 / 280)).toFixed(2)}px, -50%)`;
+                }
                 setTimeout(() => {
                     linePath.style.transition = 'd 0.38s cubic-bezier(0.34, 1.4, 0.64, 1)';
                     linePath.setAttribute('d', 'M 0 0 Q 0 500 0 1000');
+                    if (badgeWrapper) {
+                        badgeWrapper.style.transition = 'transform 0.38s cubic-bezier(0.34, 1.4, 0.64, 1), top 0.38s cubic-bezier(0.34, 1.4, 0.64, 1)';
+                        badgeWrapper.style.transform = 'translate(0px, -50%)';
+                        badgeWrapper.style.top = '50%';
+                    }
                     setTimeout(() => {
                         // Resume CSS keyframe breathing oscillation seamlessly
                         linePath.removeAttribute('d');
                         linePath.style.transition = '';
+                        if (badgeWrapper) {
+                            badgeWrapper.style.transform = '';
+                            badgeWrapper.style.transition = '';
+                            badgeWrapper.style.top = '';
+                        }
                     }, 380);
                 }, 180);
             }
@@ -490,15 +614,19 @@ const heroTextEffect = "smooth-blur";
             const FLICK_THRESHOLD = 3.5;
             let targetX;
 
-            if (velocity < -FLICK_THRESHOLD) {
+            if (isClick) {
+                // Quick tap toggle
+                targetX = startPanX >= maxX * 0.5 ? minX : maxX;
+            } else if (velocity < -FLICK_THRESHOLD) {
                 // Fast flick left → throw open to 0
                 targetX = minX;
             } else if (velocity > FLICK_THRESHOLD) {
                 // Fast flick right → throw closed to base position
                 targetX = maxX;
             } else {
-                // Soft drag & leave → rest softly right where left (midway or any position)
-                targetX = hardClamp(currentX + velocity * 8);
+                // Soft drag → snap to minX if past 50%, else snap back to maxX
+                const projectedX = currentX + velocity * 8;
+                targetX = projectedX < (maxX * 0.5) ? minX : maxX;
             }
 
             const distance = Math.abs(targetX - currentX);
@@ -511,8 +639,44 @@ const heroTextEffect = "smooth-blur";
             currentX = targetX;
             panel.style.transform = `translate3d(${currentX}px, 0, 0)`;
 
+            // Update state during snap animation
+            if (targetX === minX) {
+                panel.classList.add('is-open');
+                if (handleText) {
+                    handleText.style.transition = `opacity ${duration}s ease, visibility ${duration}s ease`;
+                    handleText.style.opacity = '0';
+                    handleText.style.visibility = 'hidden';
+                }
+                if (circleSvg) {
+                    circleSvg.style.transition = `transform ${duration}s ${easeCurve}`;
+                    circleSvg.style.transform = 'rotate(180deg)';
+                }
+                handle.setAttribute('aria-label', 'Slide right to hide life page');
+            } else {
+                panel.classList.remove('is-open');
+                if (handleText) {
+                    handleText.style.transition = `opacity ${duration}s ease, visibility ${duration}s ease`;
+                    handleText.style.opacity = '1';
+                    handleText.style.visibility = 'visible';
+                }
+                if (circleSvg) {
+                    circleSvg.style.transition = `transform ${duration}s ${easeCurve}`;
+                    circleSvg.style.transform = 'rotate(0deg)';
+                }
+                handle.setAttribute('aria-label', 'Drag to reveal life page');
+            }
+
             setTimeout(() => {
                 panel.style.transition = '';
+                if (handleText) handleText.style.transition = '';
+                if (circleSvg) circleSvg.style.transition = '';
+                if (targetX === maxX) {
+                    if (handleText) {
+                        handleText.style.opacity = '';
+                        handleText.style.visibility = '';
+                    }
+                    if (circleSvg) circleSvg.style.transform = '';
+                }
             }, duration * 1000 + 40);
         };
 
@@ -530,6 +694,12 @@ const heroTextEffect = "smooth-blur";
             if (e.key === 'ArrowRight') {
                 velocity = 10;
                 isDragging = true;
+                endDrag();
+            }
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                isDragging = true;
+                velocity = currentX >= maxX * 0.5 ? -10 : 10;
                 endDrag();
             }
         });
