@@ -101,6 +101,63 @@ function FilterSelect({ label, value, options, onChange, labels = {} }) {
   );
 }
 
+function ToggleArrow() {
+  return (
+    <span className="punctum-response-card__toggle-arrow" aria-hidden="true">
+      <svg viewBox="0 0 16 16" focusable="false">
+        <path d="M3.75 6.25 8 10l4.25-3.75" />
+      </svg>
+    </span>
+  );
+}
+
+function ViewModeIcon({ type }) {
+  if (type === "grid") {
+    return (
+      <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+        <rect x="2.25" y="2.25" width="4.5" height="4.5" rx="0.8" />
+        <rect x="9.25" y="2.25" width="4.5" height="4.5" rx="0.8" />
+        <rect x="2.25" y="9.25" width="4.5" height="4.5" rx="0.8" />
+        <rect x="9.25" y="9.25" width="4.5" height="4.5" rx="0.8" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+      <rect x="2.25" y="2.75" width="11.5" height="10.5" rx="1.4" />
+      <path d="M5 5.75h6M5 8h6M5 10.25h3.5" />
+    </svg>
+  );
+}
+
+function GenerationThumbnail({ generation, index, onViewWorld }) {
+  return (
+    <button
+      type="button"
+      onClick={() => onViewWorld(generation)}
+      aria-label={`Open generated world ${index + 1}`}
+    >
+      <img src={generation.generatedImageUrl} alt="" loading="lazy" />
+      <span>
+        {generation.parentGenerationId
+          ? `World ${index + 1} · continued`
+          : `World ${index + 1}`}
+      </span>
+      {generation.postGenerationPolygon && (
+        <PolygonLayer
+          polygons={[
+            {
+              id: `${generation.id}-new-punctum`,
+              vertices: generation.postGenerationPolygon,
+            },
+          ]}
+          committed
+        />
+      )}
+    </button>
+  );
+}
+
 function IndividualPunctumGrid({
   image,
   polygons,
@@ -173,6 +230,13 @@ function IndividualPunctumGrid({
                   type="button"
                   aria-expanded={worldsOpen}
                   aria-controls={generations.length > 0 ? drawerId : undefined}
+                  aria-label={
+                    generations.length > 0
+                      ? `${worldsOpen ? "Hide" : "See"} ${generations.length} generated ${
+                          generations.length === 1 ? "world" : "worlds"
+                        }`
+                      : "No generated world yet"
+                  }
                   disabled={generations.length === 0}
                   title={
                     generations.length === 0
@@ -181,44 +245,60 @@ function IndividualPunctumGrid({
                   }
                   onClick={() => onToggleWorlds(polygon.id)}
                 >
-                  See Generated World
+                  <span className="punctum-response-card__action-label">
+                    {generations.length > 0
+                      ? "See Generated World"
+                      : "No worlds generated yet"}
+                  </span>
                   {generations.length > 0 && (
-                    <span>{generations.length}</span>
+                    <span className="punctum-response-card__count">
+                      {generations.length}
+                    </span>
                   )}
-                  {generations.length > 0 && (
-                    <i aria-hidden="true">⌄</i>
-                  )}
+                  {generations.length > 0 && <ToggleArrow />}
                 </button>
                 <button
                   className="punctum-response-card__comment-toggle"
                   type="button"
                   aria-expanded={commentOpen}
-                  aria-controls={commentId}
+                  aria-controls={polygon.annotation ? commentId : undefined}
+                  aria-label={
+                    polygon.annotation
+                      ? `${commentOpen ? "Hide" : "Show"} comment`
+                      : "No comment added"
+                  }
+                  disabled={!polygon.annotation}
+                  title={
+                    polygon.annotation ? undefined : "No comment was added"
+                  }
                   onClick={() =>
                     setOpenCommentId((current) =>
                       current === polygon.id ? "" : polygon.id,
                     )
                   }
                 >
-                  {commentOpen ? "Hide Comment" : "Show Comment"}
-                  <i aria-hidden="true">⌄</i>
+                  <span className="punctum-response-card__action-label">
+                    {polygon.annotation
+                      ? commentOpen
+                        ? "Hide Comment"
+                        : "Show Comment"
+                      : "No Comment Added"}
+                  </span>
+                  {polygon.annotation && (
+                    <span className="punctum-response-card__count">1</span>
+                  )}
+                  {polygon.annotation && <ToggleArrow />}
                 </button>
               </div>
             </div>
 
-            {commentOpen && (
+            {commentOpen && polygon.annotation && (
               <div
                 className="punctum-response-card__comment-drawer"
                 id={commentId}
               >
-                <blockquote
-                  className={`punctum-response-card__quote ${
-                    polygon.annotation ? "has-comment" : "is-empty"
-                  }`}
-                >
-                  <p>
-                    {polygon.annotation || "There is no comment yet."}
-                  </p>
+                <blockquote className="punctum-response-card__quote has-comment">
+                  <p>{polygon.annotation}</p>
                 </blockquote>
               </div>
             )}
@@ -231,34 +311,12 @@ function IndividualPunctumGrid({
               >
                 <div className="punctum-response-card__worlds">
                   {generations.map((generation, generationIndex) => (
-                    <button
-                      type="button"
-                      onClick={() => onViewWorld(generation)}
+                    <GenerationThumbnail
                       key={generation.id}
-                      aria-label={`Open generated world ${generationIndex + 1}`}
-                    >
-                      <img
-                        src={generation.generatedImageUrl}
-                        alt=""
-                        loading="lazy"
-                      />
-                      <span>
-                        {generation.parentGenerationId
-                          ? `World ${generationIndex + 1} · continued`
-                          : `World ${generationIndex + 1}`}
-                      </span>
-                      {generation.postGenerationPolygon && (
-                        <PolygonLayer
-                          polygons={[
-                            {
-                              id: `${generation.id}-new-punctum`,
-                              vertices: generation.postGenerationPolygon,
-                            },
-                          ]}
-                          committed
-                        />
-                      )}
-                    </button>
+                      generation={generation}
+                      index={generationIndex}
+                      onViewWorld={onViewWorld}
+                    />
                   ))}
                 </div>
               </div>
@@ -270,8 +328,136 @@ function IndividualPunctumGrid({
   );
 }
 
+function SingularPunctumView({
+  image,
+  polygon,
+  index,
+  total,
+  onCreateWorld,
+  onViewWorld,
+}) {
+  const [showAllWorlds, setShowAllWorlds] = useState(false);
+
+  useEffect(() => {
+    setShowAllWorlds(false);
+  }, [polygon?.id]);
+
+  if (!polygon) {
+    return (
+      <div className="punctum-singular-empty" role="status">
+        No individual punctum is available in this view.
+      </div>
+    );
+  }
+
+  const generations = polygon.generations || [];
+  const visibleGenerations = showAllWorlds
+    ? generations
+    : generations.slice(0, 4);
+  const hiddenWorldCount = Math.max(0, generations.length - 4);
+  const hasComment = Boolean(polygon.annotation);
+
+  return (
+    <section
+      className="punctum-singular-view"
+      aria-label={`Punctum ${index + 1} of ${total}`}
+    >
+      <article className="punctum-singular-view__main">
+        <figure
+          className="punctum-singular-view__figure"
+          style={{ aspectRatio: `${image.width} / ${image.height}` }}
+        >
+          <img
+            src={image.url}
+            alt={`${image.title}, showing punctum ${index + 1}`}
+            width={image.width}
+            height={image.height}
+          />
+          <PolygonLayer polygons={[polygon]} committed />
+          <figcaption
+            className="punctum-singular-view__counter"
+            aria-label={`Punctum ${index + 1} of ${total}`}
+          >
+            {index + 1}/{total}
+          </figcaption>
+        </figure>
+
+        <button
+          className="punctum-singular-view__reimagine"
+          type="button"
+          onClick={() => onCreateWorld(polygon)}
+        >
+          <span aria-hidden="true">✦</span>
+          Reimagine Punctum
+        </button>
+
+        <blockquote
+          className={`punctum-singular-view__quote ${
+            hasComment ? "has-comment" : "is-empty"
+          }`}
+        >
+          <p>
+            {polygon.annotation || "No comment was added to this punctum."}
+          </p>
+        </blockquote>
+      </article>
+
+      <aside className="punctum-singular-view__worlds">
+        <header>
+          <span>Generated worlds</span>
+          <strong aria-label={`${generations.length} generated worlds`}>
+            {generations.length}
+          </strong>
+        </header>
+
+        {generations.length > 0 ? (
+          <div
+            className={`punctum-singular-view__world-grid ${
+              visibleGenerations.length > 4
+                ? "has-many"
+                : `has-${visibleGenerations.length}`
+            }`}
+          >
+            {visibleGenerations.map((generation, generationIndex) => (
+              <GenerationThumbnail
+                key={generation.id}
+                generation={generation}
+                index={generationIndex}
+                onViewWorld={onViewWorld}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="punctum-singular-view__worlds-empty">
+            <span aria-hidden="true">✦</span>
+            <p>No generated worlds yet.</p>
+            <small>Reimagine this punctum to begin one.</small>
+          </div>
+        )}
+
+        {hiddenWorldCount > 0 && (
+          <button
+            className="punctum-singular-view__show-more"
+            type="button"
+            aria-expanded={showAllWorlds}
+            onClick={() => setShowAllWorlds((current) => !current)}
+          >
+            {showAllWorlds
+              ? "Show fewer worlds"
+              : `Show ${hiddenWorldCount} more ${hiddenWorldCount === 1 ? "world" : "worlds"}`}
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path d="m4 6 4 4 4-4" />
+            </svg>
+          </button>
+        )}
+      </aside>
+    </section>
+  );
+}
+
 export default function PunctumResultDetail({ image }) {
   const [mode, setMode] = useState("constellation");
+  const [individualView, setIndividualView] = useState("grid");
   const [payload, setPayload] = useState(null);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
@@ -341,8 +527,25 @@ export default function PunctumResultDetail({ image }) {
     available.country.length > 0;
   const selectedPolygon =
     polygons.find((polygon) => polygon.id === selectedId) || null;
+  const focusedPolygon = selectedPolygon || polygons[0] || null;
+  const focusedIndex = focusedPolygon
+    ? polygons.findIndex((polygon) => polygon.id === focusedPolygon.id)
+    : -1;
   const selectPolygon = (polygon) => {
     setSelectedId((current) => (current === polygon.id ? "" : polygon.id));
+  };
+  const showIndividualView = (view) => {
+    setIndividualView(view);
+    if (view === "singular" && !selectedPolygon && polygons[0]) {
+      setSelectedId(polygons[0].id);
+    }
+  };
+  const moveFocusedPolygon = (direction) => {
+    if (polygons.length <= 1) return;
+    const currentIndex = focusedIndex < 0 ? 0 : focusedIndex;
+    const nextIndex =
+      (currentIndex + direction + polygons.length) % polygons.length;
+    setSelectedId(polygons[nextIndex].id);
   };
   const setFilter = (key, value) =>
     setFilters((current) => ({ ...current, [key]: value }));
@@ -413,6 +616,10 @@ export default function PunctumResultDetail({ image }) {
     <main
       className={`punctum-result ${
         mode === "individual" ? "is-individual" : ""
+      } ${
+        mode === "individual" && individualView === "singular"
+          ? "is-singular"
+          : ""
       }`}
     >
       <header className="punctum-result__header">
@@ -433,32 +640,88 @@ export default function PunctumResultDetail({ image }) {
           style={{ "--result-ratio": image.width / image.height }}
         >
           <div className="punctum-result__controls">
-            <div className="punctum-result__modes" role="tablist" aria-label="Result view">
-              {[
-                ["constellation", "Constellation"],
-                ["individual", "Individual punctums"],
-              ].map(([value, label]) => (
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={mode === value}
-                  className={mode === value ? "is-active" : ""}
-                  onClick={() => setMode(value)}
-                  key={value}
+            <div className="punctum-result__primary-controls">
+              <div className="punctum-result__modes" role="tablist" aria-label="Result view">
+                {[
+                  ["constellation", "Constellation"],
+                  ["individual", "Individual punctums"],
+                ].map(([value, label]) => (
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={mode === value}
+                    className={mode === value ? "is-active" : ""}
+                    onClick={() => setMode(value)}
+                    key={value}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              {mode === "individual" && individualView === "singular" && (
+                <nav
+                  className="punctum-result__singular-navigation"
+                  aria-label="Browse individual punctums"
                 >
-                  {label}
-                </button>
-              ))}
+                  <button
+                    type="button"
+                    aria-label="Previous punctum"
+                    onClick={() => moveFocusedPolygon(-1)}
+                    disabled={polygons.length <= 1}
+                  >
+                    <svg viewBox="0 0 18 18" aria-hidden="true">
+                      <path d="m10.75 4.5-4.5 4.5 4.5 4.5" />
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Next punctum"
+                    onClick={() => moveFocusedPolygon(1)}
+                    disabled={polygons.length <= 1}
+                  >
+                    <svg viewBox="0 0 18 18" aria-hidden="true">
+                      <path d="m7.25 4.5 4.5 4.5-4.5 4.5" />
+                    </svg>
+                  </button>
+                </nav>
+              )}
             </div>
-            <div className="punctum-result__summary" aria-live="polite">
-              <strong>
-                {isIllustrative ? "Preview" : payload?.responseCount || 0}
-              </strong>
-              <span>
-                {isIllustrative
-                  ? "illustrative marks"
-                  : `${payload?.responseCount === 1 ? "confirmed mark" : "confirmed marks"}`}
-              </span>
+            <div className="punctum-result__controls-right">
+              {mode === "individual" && (
+                <div
+                  className="punctum-result__individual-views"
+                  role="group"
+                  aria-label="Individual punctum layout"
+                >
+                  {[
+                    ["grid", "Grid view"],
+                    ["singular", "Singular view"],
+                  ].map(([value, label]) => (
+                    <button
+                      type="button"
+                      className={individualView === value ? "is-active" : ""}
+                      aria-pressed={individualView === value}
+                      onClick={() => showIndividualView(value)}
+                      key={value}
+                    >
+                      <ViewModeIcon type={value} />
+                      <span>{label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {mode !== "individual" && (
+                <div className="punctum-result__summary" aria-live="polite">
+                  <strong>
+                    {isIllustrative ? "Preview" : payload?.responseCount || 0}
+                  </strong>
+                  <span>
+                    {isIllustrative
+                      ? "illustrative marks"
+                      : `${payload?.responseCount === 1 ? "confirmed mark" : "confirmed marks"}`}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -504,7 +767,7 @@ export default function PunctumResultDetail({ image }) {
             <div className="punctum-individual-loading" role="status">
               Gathering individual punctums…
             </div>
-          ) : (
+          ) : individualView === "grid" ? (
             <IndividualPunctumGrid
               image={image}
               polygons={polygons}
@@ -517,6 +780,15 @@ export default function PunctumResultDetail({ image }) {
                   current === polygonId ? "" : polygonId,
                 )
               }
+              onViewWorld={viewWorld}
+            />
+          ) : (
+            <SingularPunctumView
+              image={image}
+              polygon={focusedPolygon}
+              index={Math.max(0, focusedIndex)}
+              total={polygons.length}
+              onCreateWorld={createWorld}
               onViewWorld={viewWorld}
             />
           )}

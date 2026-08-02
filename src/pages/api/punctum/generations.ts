@@ -46,10 +46,10 @@ const ANSWERS = new Set([
   "unsure",
 ]);
 const ANSWER_EXPLANATIONS: Record<string, string> = {
-  yes: "The punctum still feels the same in the generated world.",
-  no: "The punctum feels different in the generated world.",
-  still: "The original fragment still feels like the punctum in the generated world.",
-  moved: "Attention moved to a different part of the generated world.",
+  yes: "The same thing still draws attention in the generated world.",
+  no: "A different detail draws attention in the generated world.",
+  still: "The same thing still draws attention in the generated world.",
+  moved: "A different detail now draws attention in the generated world.",
   disappeared: "The punctum disappeared when the original context was replaced.",
   unsure: "The viewer is unsure where the punctum sits in the generated world.",
 };
@@ -156,7 +156,7 @@ const resolveParentSource = async (
       ANSWER_EXPLANATIONS[answer] ||
       ANSWER_EXPLANATIONS.unsure,
     sourcePrompt:
-      "Is your punctum still the same?",
+      "Does the same thing still draw your attention?",
     width: parent.source_width,
     height: parent.source_height,
   };

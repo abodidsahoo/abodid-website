@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { getPunctumImageById } from "../../data/punctumImages";
 import {
   derivePunctumPolygon,
   verticesToSmoothSvgPath,
@@ -364,6 +366,7 @@ function GenerationTerminal({ onComplete }) {
 function DrawNewPunctum({
   generation,
   accessToken,
+  drawTarget,
   onGenerateAnother,
   onGenerationUpdated,
 }) {
@@ -378,16 +381,15 @@ function DrawNewPunctum({
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [savedGeneration, setSavedGeneration] = useState(
-    generation.postGenerationAnswer && generation.postGenerationPolygon
-      ? generation
-      : null,
-  );
   const [stroke, setStroke] = useState([]);
   const strokeRef = useRef([]);
   const drawingRef = useRef(false);
   const startedAtRef = useRef(0);
   const canEdit = Boolean(accessToken);
+  const sourceResultImage = getPunctumImageById(generation.sourceImageId);
+  const sourceResultHref = sourceResultImage
+    ? `/research/punctum/results/${sourceResultImage.slug}`
+    : "/research/punctum/results";
 
   useEffect(() => {
     strokeRef.current = [];
@@ -396,11 +398,6 @@ function DrawNewPunctum({
     setAnswer(normalizeReflectionAnswer(generation.postGenerationAnswer));
     setPolygon(generation.postGenerationPolygon || null);
     setExplanation(generation.postGenerationExplanation || "");
-    setSavedGeneration(
-      generation.postGenerationAnswer && generation.postGenerationPolygon
-        ? generation
-        : null,
-    );
     setError("");
   }, [generation.id]);
 
@@ -416,6 +413,8 @@ function DrawNewPunctum({
   const startDrawing = (event) => {
     if (
       !canEdit ||
+      answer !== "no" ||
+      polygon ||
       (event.pointerType === "mouse" && event.button !== 0)
     ) {
       return;
@@ -432,7 +431,6 @@ function DrawNewPunctum({
     drawingRef.current = true;
     setStroke(first);
     setPolygon(null);
-    setSavedGeneration(null);
     setError("");
   };
 
@@ -481,7 +479,6 @@ function DrawNewPunctum({
     drawingRef.current = false;
     const nextPolygon = derivePunctumPolygon(strokeRef.current);
     if (nextPolygon) setPolygon(nextPolygon.vertices);
-    setSavedGeneration(null);
   };
 
   const clearMark = () => {
@@ -489,7 +486,7 @@ function DrawNewPunctum({
     strokeRef.current = [];
     setStroke([]);
     setPolygon(null);
-    setSavedGeneration(null);
+    setError("");
   };
 
   const persist = async (nextAnswer = answer, nextPolygon = polygon) => {
@@ -508,20 +505,17 @@ function DrawNewPunctum({
     return payload.generation;
   };
 
-  const chooseAnswer = (value) => {
+  const chooseAnswer = async (value) => {
     setAnswer(value);
-    setSavedGeneration(null);
+    clearMark();
+    setExplanation("");
     setError("");
-  };
+    if (value !== "yes" || !canEdit) return;
 
-  const savePunctum = async () => {
-    if (!answer || !polygon || !canEdit) return;
     setSaving(true);
-    setError("");
     try {
-      const saved = await persist(answer, polygon);
+      const saved = await persist("still", null);
       onGenerationUpdated(saved);
-      setSavedGeneration(saved);
     } catch (requestError) {
       setError(requestError.message);
     } finally {
@@ -529,117 +523,156 @@ function DrawNewPunctum({
     }
   };
 
-  const reimaginePunctum = () => {
-    if (!savedGeneration || !polygon) return;
-    onGenerateAnother({
-      parent: { ...savedGeneration, accessToken },
-      polygon,
-      explanation,
-    });
+  const saveAndProceed = async () => {
+    if (answer !== "no" || !polygon || !canEdit) return;
+    setSaving(true);
+    setError("");
+    try {
+      const saved = await persist("moved", polygon);
+      onGenerationUpdated(saved);
+      onGenerateAnother({
+        parent: { ...saved, accessToken },
+        polygon,
+        explanation,
+      });
+    } catch (requestError) {
+      setError(requestError.message);
+    } finally {
+      setSaving(false);
+    }
   };
 
-  return (
-    <section className="punctum-world-reflection">
-      <div className="punctum-world-reflection__question">
-        <p className="punctum-eyebrow">Look again</p>
-        <h2>Is your punctum still the same?</h2>
-        <div className="punctum-world-answers">
-          {ANSWERS.map(([value, label]) => (
-            <button
-              type="button"
-              className={answer === value ? "is-selected" : ""}
-              aria-pressed={answer === value}
-              disabled={!canEdit}
-              onClick={() => chooseAnswer(value)}
-              key={value}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {canEdit && answer ? (
-        <div className="punctum-world-new-mark">
-          <div className="punctum-world-new-mark__heading">
-            <div>
-              <span>Add your new punctum</span>
-              <p>Use the pencil to mark what catches you now.</p>
-            </div>
-            {polygon && (
-              <button type="button" onClick={clearMark}>
-                Clear mark
-              </button>
-            )}
-          </div>
-          <div
-            className="punctum-world-draw"
-            style={{
-              aspectRatio: `${generation.sourceWidth} / ${generation.sourceHeight}`,
-            }}
-          >
-            <img src={generation.generatedImageUrl} alt="" />
+  const drawingSurface =
+    drawTarget && answer === "no"
+      ? createPortal(
+          <>
             {!polygon && <LiveDrawingStroke points={stroke} />}
             <PolygonOutline vertices={polygon} className="is-new" />
-            <div
-              className="punctum-world-draw__pointer-layer"
-              onPointerDown={startDrawing}
-              onPointerMove={moveDrawing}
-              onPointerUp={finishDrawing}
-              onPointerCancel={finishDrawing}
-              onLostPointerCapture={finishDrawing}
-              aria-label="Draw over the part of the generated photograph that stays with you"
-              role="application"
-            />
+            {canEdit && !polygon && (
+              <div
+                className="punctum-world-draw__pointer-layer"
+                data-punctum-gesture-draw-zone
+                onPointerDown={startDrawing}
+                onPointerMove={moveDrawing}
+                onPointerUp={finishDrawing}
+                onPointerCancel={finishDrawing}
+                onLostPointerCapture={finishDrawing}
+                aria-label="Draw over what catches your attention in the generated photograph"
+                role="application"
+                tabIndex={0}
+              />
+            )}
+          </>,
+          drawTarget,
+        )
+      : null;
+
+  return (
+    <section
+      className={`punctum-world-reflection is-${answer || "unanswered"}`}
+    >
+      {!answer && canEdit && (
+        <div className="punctum-world-reflection__question">
+          <p className="punctum-eyebrow">Look again</p>
+          <h2>Does the same thing still draw your attention?</h2>
+          <div className="punctum-world-answers">
+            {ANSWERS.map(([value, label]) => (
+              <button
+                type="button"
+                aria-pressed="false"
+                onClick={() => void chooseAnswer(value)}
+                key={value}
+              >
+                {label}
+              </button>
+            ))}
           </div>
-          <label className="punctum-world-explanation">
-            <span>Optional — what catches you now?</span>
-            <textarea
-              value={explanation}
-              maxLength={600}
-              rows={3}
-              onChange={(event) => {
-                setExplanation(event.target.value);
-                setSavedGeneration(null);
-              }}
-            />
-          </label>
+        </div>
+      )}
+
+      {answer === "yes" && (
+        <div className="punctum-world-reflection__yes" aria-live="polite">
+          <h2>Great! That’s interesting.</h2>
+          <p>
+            Your punctum must be really powerful. Changing the context of an
+            image often makes a punctum lose some of its pull. Since the same
+            thing still draws your attention here, this must be a strong one.
+          </p>
+          {saving && <span role="status">Recording your answer…</span>}
           {error && (
             <p className="punctum-form-error" role="alert">
               {error}
             </p>
           )}
-          <div className="punctum-world-new-mark__actions">
-            <button
-              className="punctum-button punctum-button--yellow punctum-world-save-punctum"
-              type="button"
-              disabled={!polygon || saving}
-              onClick={savePunctum}
+          <div className="punctum-world-reflection__results">
+            <a
+              className={`punctum-button punctum-button--yellow ${
+                saving ? "is-disabled" : ""
+              }`}
+              href={sourceResultHref}
+              aria-disabled={saving}
+              onClick={(event) => {
+                if (saving) event.preventDefault();
+              }}
             >
-              {saving ? "Saving your punctum…" : "Save and continue"}
-            </button>
-            {savedGeneration && (
-              <button
-                className="punctum-button punctum-button--light punctum-world-generate-again"
-                type="button"
-                onClick={reimaginePunctum}
-              >
-                Reimagine your Punctum →
-              </button>
-            )}
+              See what others observed
+            </a>
           </div>
         </div>
-      ) : canEdit ? (
-        <div className="punctum-world-new-mark-prompt">
-          <span>Add your new punctum</span>
-          <p>Choose yes or no to open the image and pencil.</p>
+      )}
+
+      {answer === "no" && (
+        <div className="punctum-world-reflection__new-attention">
+          <p className="punctum-eyebrow">Look once more</p>
+          <h2>Then, what draws your attention this time?</h2>
+          <p className="punctum-world-reflection__draw-instruction">
+            <span>Mark what pulls your attention in this new image.</span>
+            <span
+              className="punctum-world-reflection__draw-arrow"
+              aria-hidden="true"
+            >
+              →
+            </span>
+          </p>
+          {canEdit && polygon ? (
+            <div className="punctum-world-reflection__actions">
+              <button
+                className="punctum-button punctum-button--yellow"
+                type="button"
+                disabled={saving}
+                onClick={saveAndProceed}
+              >
+                {saving ? "Saving your punctum…" : "Save and Proceed"}
+              </button>
+              <button
+                className="punctum-text-button"
+                type="button"
+                disabled={saving}
+                onClick={clearMark}
+              >
+                Clear and redraw
+              </button>
+            </div>
+          ) : !canEdit ? (
+            <p className="punctum-world-readonly">
+              This new punctum is part of the public generation record.
+            </p>
+          ) : null}
+          {error && (
+            <p className="punctum-form-error" role="alert">
+              {error}
+            </p>
+          )}
         </div>
-      ) : (
+      )}
+
+      {!canEdit && !answer && (
         <p className="punctum-world-readonly">
           This public generation can be revisited here. New marks remain
           available only in the session that created it.
         </p>
       )}
+      {drawingSurface}
     </section>
   );
 }
@@ -676,6 +709,7 @@ export default function PunctumWorldModal({
   const [selectedModelId, setSelectedModelId] = useState(
     DEFAULT_PUNCTUM_IMAGE_MODEL_ID,
   );
+  const [drawTarget, setDrawTarget] = useState(null);
   const progressRef = useRef(entry?.mode === "view" ? 100 : 1);
   const runRef = useRef(0);
   const lastRequestRef = useRef(null);
@@ -1117,8 +1151,24 @@ export default function PunctumWorldModal({
       </header>
 
       <main className={`punctum-world-modal__body is-${phase}`}>
-        <section className="punctum-world-comparison">
-          <SourceFigure source={source} />
+        <section
+          className={`punctum-world-comparison ${
+            phase === "completed" ? "is-reflecting" : ""
+          }`}
+        >
+          <div className="punctum-world-left-column">
+            <SourceFigure source={source} />
+            {phase === "completed" && generation && (
+              <DrawNewPunctum
+                key={generation.id}
+                generation={generation}
+                accessToken={generation.accessToken}
+                drawTarget={drawTarget}
+                onGenerateAnother={generateAnother}
+                onGenerationUpdated={updateGeneration}
+              />
+            )}
+          </div>
           {phase === "selecting" ? (
             <div
               className="punctum-world-picker-slot"
@@ -1160,6 +1210,12 @@ export default function PunctumWorldModal({
                         setFinalReady(true);
                       }
                     }}
+                  />
+                )}
+                {phase === "completed" && generation && (
+                  <div
+                    className="punctum-world-draw-target"
+                    ref={setDrawTarget}
                   />
                 )}
                 {phase === "generating" && (
@@ -1275,16 +1331,6 @@ export default function PunctumWorldModal({
             </figure>
           )}
         </section>
-
-        {phase === "completed" && generation && (
-          <DrawNewPunctum
-            key={generation.id}
-            generation={generation}
-            accessToken={generation.accessToken}
-            onGenerateAnother={generateAnother}
-            onGenerationUpdated={updateGeneration}
-          />
-        )}
       </main>
     </div>
   );

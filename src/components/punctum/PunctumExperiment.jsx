@@ -1415,22 +1415,31 @@ export default function PunctumExperiment({
     setStep("drawing");
   };
 
+  const persistAnnotation = async (responseId, text, polygon) => {
+    if (!responseId) {
+      throw new Error("The punctum response is missing. Please try again.");
+    }
+    await fetchJson("/api/punctum/annotations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sessionId,
+        responseId,
+        text,
+      }),
+    });
+    if (polygon) saveSessionMarking(responseId, polygon, text);
+  };
+
+  const saveDrawingAnnotation = async (responseId, text, polygon) => {
+    await persistAnnotation(responseId, text, polygon);
+  };
+
   const saveAnnotation = async (text) => {
     setAnnotationSaving(true);
     setAnnotationError("");
     try {
-      if (annotation?.responseId && annotation?.polygon) {
-        saveSessionMarking(annotation.responseId, annotation.polygon, text);
-      }
-      await fetchJson("/api/punctum/annotations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sessionId,
-          responseId: annotation.responseId,
-          text,
-        }),
-      });
+      await persistAnnotation(annotation?.responseId, text, annotation?.polygon);
       advance();
     } catch (error) {
       setAnnotationError(error.message);
@@ -1529,7 +1538,7 @@ export default function PunctumExperiment({
         total={orderedImages.length}
         initialPolygon={annotation?.polygon || null}
         onConfirm={commitPolygon}
-        onSaveAnnotation={saveAnnotation}
+        onSaveAnnotation={saveDrawingAnnotation}
         onNextImage={advance}
         onSkip={advance}
       />

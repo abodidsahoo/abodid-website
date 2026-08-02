@@ -200,24 +200,18 @@ export const GET: APIRoute = async ({ request }) => {
     };
   });
 
-  return jsonResponse(
-    {
-      image: requestedImage,
-      polygons,
-      responseCount: filteredRows.length,
-      totalResponseCount: allRows.length,
-      suppressed,
-      minimumCohortSize: PUNCTUM_MINIMUM_COHORT,
-      filters,
-      availableFilters: {
-        age: countValues(allRows, "age_band"),
-        gender: countValues(allRows, "gender"),
-        country: countValues(allRows, "country_code"),
-      },
+  return jsonResponse({
+    image: requestedImage,
+    polygons,
+    responseCount: filteredRows.length,
+    totalResponseCount: allRows.length,
+    suppressed,
+    minimumCohortSize: PUNCTUM_MINIMUM_COHORT,
+    filters,
+    availableFilters: {
+      age: countValues(allRows, "age_band"),
+      gender: countValues(allRows, "gender"),
+      country: countValues(allRows, "country_code"),
     },
-    200,
-    {
-      "Cache-Control": "public, max-age=30, stale-while-revalidate=120",
-    },
-  );
+  });
 };
