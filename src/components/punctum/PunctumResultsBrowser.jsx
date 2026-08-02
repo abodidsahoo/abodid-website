@@ -154,7 +154,7 @@ export default function PunctumResultsBrowser({ fallbackImages }) {
               className="punctum-button punctum-button--light punctum-session-results__toggle"
               onClick={() => setShowCollectiveMap(true)}
             >
-              See punctum markings by others →
+              See punctum markings by others for all images →
             </button>
           </div>
 
@@ -169,32 +169,35 @@ export default function PunctumResultsBrowser({ fallbackImages }) {
                   <PolygonOutline vertices={item.vertices} />
                 </div>
                 <div className="punctum-session-card__right">
-                  <h3>{item.imageTitle}</h3>
-                  {item.annotation ? (
-                    <blockquote className="punctum-session-card__note">
-                      <p>"{item.annotation}"</p>
-                    </blockquote>
-                  ) : (
-                    <p className="punctum-session-card__placeholder">
-                      Your marked punctum for this photograph.
-                    </p>
-                  )}
                   <div className="punctum-session-card__actions">
                     <button
                       type="button"
                       className="punctum-button punctum-button--yellow"
                       onClick={() => reimagineMark(item)}
                     >
-                      <span aria-hidden="true">✦</span> Choose a model &amp;
-                      reimagine
+                      <span aria-hidden="true">✦</span> Reimagine Your Punctum
                     </button>
                     <a
                       className="punctum-button punctum-button--light"
                       href={`/research/punctum/results/${item.imageSlug}`}
                     >
-                      See punctum markings by others
+                      See what others noticed
                     </a>
                   </div>
+                  {item.annotation ? (
+                    <blockquote
+                      className={`punctum-session-card__note ${
+                        item.annotation.length < 40
+                          ? "is-short"
+                          : item.annotation.length < 100
+                            ? "is-medium"
+                            : "is-long"
+                      }`}
+                    >
+                      <span className="punctum-session-card__big-quote" aria-hidden="true">“</span>
+                      <p>{item.annotation}</p>
+                    </blockquote>
+                  ) : null}
                 </div>
               </article>
             ))}

@@ -9,13 +9,6 @@ import PunctumLayout from "../../../../layouts/PunctumLayout.astro";
   description="Explore anonymous photographic marks as constellations, heatmaps and response grids."
 >
   <main class="punctum-results-page">
-    <header class="punctum-page-header punctum-page-header--results">
-      <div>
-        <p class="punctum-eyebrow">Results</p>
-        <h1>A collective map of private attention</h1>
-      </div>
-      <p>Every shape began as one person’s punctum.</p>
-    </header>
     <PunctumResultsBrowser client:load fallbackImages={punctumImages} />
   </main>
 </PunctumLayout>

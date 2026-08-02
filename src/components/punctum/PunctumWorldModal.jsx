@@ -799,7 +799,7 @@ export default function PunctumWorldModal({
       setError("");
       setFailureCode("");
       setRetryAt(0);
-      setPhase("selecting");
+      generate(entry.request);
       return;
     }
     setSource(entry.source);

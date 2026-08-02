@@ -523,6 +523,8 @@ function PunctumDrawingStage({
   total,
   initialPolygon = null,
   onConfirm,
+  onSaveAnnotation,
+  onNextImage,
   onSkip,
 }) {
   const viewportRef = useRef(null);
@@ -540,6 +542,10 @@ function PunctumDrawingStage({
   const [polygon, setPolygon] = useState(initialPolygon);
   const [saving, setSaving] = useState(false);
   const [committed, setCommitted] = useState(false);
+  const [notePhase, setNotePhase] = useState(false);
+  const [noteText, setNoteText] = useState("");
+  const [noteSaving, setNoteSaving] = useState(false);
+  const [recordedResponseId, setRecordedResponseId] = useState(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -570,6 +576,10 @@ function PunctumDrawingStage({
     setPolygon(initialPolygon);
     setSaving(false);
     setCommitted(false);
+    setNotePhase(false);
+    setNoteText("");
+    setNoteSaving(false);
+    setRecordedResponseId(null);
     setError("");
   }, [image.id, initialPolygon]);
 
@@ -584,7 +594,7 @@ function PunctumDrawingStage({
   };
 
   const onPointerDown = (event) => {
-    if (committed || savingRef.current) return;
+    if (committed || notePhase || savingRef.current) return;
     if (event.pointerType === "mouse" && event.button !== 0) return;
     const point = eventPoint(event);
     if (!point) return;
@@ -662,8 +672,10 @@ function PunctumDrawingStage({
     setError("");
     try {
       const responseId = await onConfirm(polygon);
+      setRecordedResponseId(responseId);
       setCommitted(true);
-      window.setTimeout(() => onConfirm.afterGlow(responseId, polygon), 900);
+      setSaving(false);
+      setNotePhase(true);
     } catch (saveError) {
       setError(saveError.message);
       savingRef.current = false;
@@ -671,11 +683,55 @@ function PunctumDrawingStage({
     }
   };
 
+  const handleCompleteNoteAndAdvance = async () => {
+    if (noteSaving) return;
+    const trimmed = noteText.trim();
+    if (trimmed && recordedResponseId) {
+      setNoteSaving(true);
+      try {
+        await onSaveAnnotation(recordedResponseId, trimmed, polygon);
+      } catch (err) {
+        setError(err.message || "Failed to save note");
+        setNoteSaving(false);
+        return;
+      }
+    }
+    onNextImage();
+  };
+
+  const handleTextareaKeyDown = (event) => {
+    if (event.key === "Enter") {
+      if (!event.shiftKey) {
+        event.preventDefault();
+        void handleCompleteNoteAndAdvance();
+      }
+    }
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (["INPUT", "TEXTAREA"].includes(document.activeElement?.tagName)) return;
+      if (event.key === "Enter") {
+        if (!notePhase && polygon && !committed && !savingRef.current) {
+          event.preventDefault();
+          void confirm();
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [committed, notePhase, polygon]);
+
   useEffect(() => {
     const handleLeftFlick = () => {
-      if (savingRef.current || committed) return;
-      if (polygon) {
+      if (savingRef.current) return;
+      if (!notePhase && polygon && !committed) {
         void confirm();
+        return;
+      }
+      if (notePhase) {
+        void handleCompleteNoteAndAdvance();
         return;
       }
       onSkip();
@@ -684,7 +740,7 @@ function PunctumDrawingStage({
     window.addEventListener(PUNCTUM_LEFT_FLICK_EVENT, handleLeftFlick);
     return () =>
       window.removeEventListener(PUNCTUM_LEFT_FLICK_EVENT, handleLeftFlick);
-  }, [committed, onSkip, polygon]);
+  }, [committed, notePhase, polygon, noteText, recordedResponseId]);
 
   const imageLayerStyle = {
     left: geometry.x,
@@ -804,50 +860,88 @@ function PunctumDrawingStage({
       </section>
 
       <aside className="punctum-draw__controls">
-        <div>
-          <p className="punctum-eyebrow">
-            {polygon ? "Your punctum" : "Punctum"}
-          </p>
-          <h1>
-            {polygon
-              ? "Is this the area that pulled you in?"
-              : "Draw over the one detail that catches, moves, or stays with you."}
-          </h1>
-          {!polygon && <p>A dot, line, circle, or scribble.</p>}
-          {committed && (
-            <div className="punctum-draw__recorded" role="status">
-              <span>✓</span> Recorded.
-            </div>
-          )}
-          {error && (
-            <p className="punctum-form-error" role="alert">
-              {error}
+        {!notePhase ? (
+          <div>
+            <p className="punctum-eyebrow">
+              {polygon ? "Your punctum" : "Punctum"}
             </p>
-          )}
-        </div>
+            <h1>
+              {polygon
+                ? "Is this the area that pulled you in?"
+                : "Draw over that one thing in this image that draws your attention the most."}
+            </h1>
+            {!polygon && <p>A dot, line, circle, or scribble.</p>}
+            {polygon && (
+              <button
+                className="punctum-button punctum-button--yellow punctum-draw__confirm"
+                type="button"
+                onClick={confirm}
+                disabled={saving || committed}
+              >
+                {saving ? "Recording…" : "Yes!"}
+              </button>
+            )}
+            {error && (
+              <p className="punctum-form-error" role="alert">
+                {error}
+              </p>
+            )}
+          </div>
+        ) : (
+          <div>
+            <p className="punctum-eyebrow">Optional note</p>
+            <h1>What about this area caught you?</h1>
+            <p>Describe what you noticed, remembered, felt, or imagined.</p>
+            <label className="punctum-draw__note-box">
+              <span className="visually-hidden">Your optional explanation</span>
+              <textarea
+                value={noteText}
+                maxLength={180}
+                rows={3}
+                placeholder="A few words, if you want."
+                onChange={(e) => setNoteText(e.target.value)}
+                onKeyDown={handleTextareaKeyDown}
+                autoFocus
+              />
+              <div className="punctum-draw__note-meta">
+                <span className="punctum-draw__hint">
+                  Shift + Enter for new line
+                </span>
+                <small>{noteText.length} / 180</small>
+              </div>
+            </label>
+            {error && (
+              <p className="punctum-form-error" role="alert">
+                {error}
+              </p>
+            )}
+          </div>
+        )}
+
         <div className="punctum-draw__actions">
-          {polygon && (
+          {!notePhase ? (
+            <button
+              className="punctum-button punctum-button--light punctum-button--small punctum-draw__skip"
+              type="button"
+              onClick={onSkip}
+              disabled={saving}
+            >
+              Skip photo
+            </button>
+          ) : (
             <button
               className="punctum-button punctum-button--yellow"
               type="button"
-              onClick={confirm}
-              disabled={saving || committed}
+              onClick={handleCompleteNoteAndAdvance}
+              disabled={noteSaving}
             >
-              {saving && !committed
-                ? "Recording…"
-                : committed
-                  ? "Recorded"
-                  : "This is my punctum"}
+              {noteSaving
+                ? "Saving…"
+                : noteText.trim()
+                  ? "Save & Next photo →"
+                  : "Next photo →"}
             </button>
           )}
-          <button
-            className="punctum-button punctum-button--light punctum-button--small punctum-draw__skip"
-            type="button"
-            onClick={onSkip}
-            disabled={saving || committed}
-          >
-            Skip photo
-          </button>
         </div>
       </aside>
     </main>
@@ -1324,11 +1418,14 @@ export default function PunctumExperiment({
   } else if (step === "drawing") {
     content = (
       <PunctumDrawingStage
+        key={currentImage.id}
         image={currentImage}
         index={currentIndex}
         total={orderedImages.length}
         initialPolygon={annotation?.polygon || null}
         onConfirm={commitPolygon}
+        onSaveAnnotation={saveAnnotation}
+        onNextImage={advance}
         onSkip={advance}
       />
     );

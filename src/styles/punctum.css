@@ -768,7 +768,7 @@ html[data-punctum-theme="dark"] .punctum-theme-toggle__icon {
   width: 100%;
   max-width: 1140px;
   margin: 0 auto;
-  padding: 0 clamp(20px, 4vw, 64px) clamp(28px, 4vh, 48px);
+  padding: clamp(36px, 6vh, 72px) clamp(20px, 4vw, 64px) clamp(36px, 6vh, 64px);
 }
 
 .punctum-session-results__header {
@@ -781,9 +781,11 @@ html[data-punctum-theme="dark"] .punctum-theme-toggle__icon {
 }
 
 .punctum-session-results__header h2 {
-  font-size: clamp(28px, 3.2vw, 44px);
+  font-size: clamp(36px, 4.4vw, 64px);
+  font-weight: 300;
+  letter-spacing: -0.04em;
   margin: 0;
-  line-height: 1.05;
+  line-height: 0.96;
 }
 
 .punctum-session-results__header > div > p:last-child {
@@ -848,35 +850,63 @@ html[data-punctum-theme="dark"] .punctum-theme-toggle__icon {
   align-items: flex-start;
 }
 
-.punctum-session-card__right h3 {
-  font-size: clamp(22px, 2.4vw, 32px);
-  margin: 0;
-  line-height: 1.1;
-}
-
-.punctum-session-card__note {
-  margin: 0;
-  padding: 12px 16px;
-  border-left: 3px solid var(--punctum-yellow);
-  background: rgba(0, 0, 0, 0.03);
-  border-radius: 0 12px 12px 0;
-  font-style: italic;
-  font-size: 15px;
-  color: var(--punctum-ink);
-}
-
-.punctum-session-card__placeholder {
-  color: var(--punctum-muted);
-  font-size: 14px;
-  margin: 0;
-}
-
 .punctum-session-card__actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 12px;
-  margin-top: 8px;
+  margin-top: 0;
+}
+
+.punctum-session-card__note {
+  margin: 14px 0 0;
+  padding: 22px 26px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  background: color-mix(in srgb, var(--punctum-surface-elevated) 70%, var(--punctum-bg));
+  border: 1px solid color-mix(in srgb, var(--punctum-border) 40%, transparent);
+  border-radius: 20px;
+  font-style: normal;
+  color: var(--punctum-ink);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.punctum-session-card__big-quote {
+  font-size: clamp(64px, 5vw, 92px);
+  line-height: 0.65;
+  font-family: Georgia, "Times New Roman", serif;
+  color: var(--punctum-yellow);
+  opacity: 0.85;
+  user-select: none;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.punctum-session-card__note p {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  font-weight: 350;
+  word-break: break-word;
+}
+
+.punctum-session-card__note.is-short p {
+  font-size: clamp(24px, 2.4vw, 36px);
+  line-height: 1.22;
+  letter-spacing: -0.025em;
+}
+
+.punctum-session-card__note.is-medium p {
+  font-size: clamp(19px, 1.8vw, 26px);
+  line-height: 1.35;
+  letter-spacing: -0.015em;
+}
+
+.punctum-session-card__note.is-long p {
+  font-size: clamp(16px, 1.4vw, 20px);
+  line-height: 1.45;
 }
 
 .punctum-session-banner {
@@ -3907,9 +3937,37 @@ html[data-punctum-theme="dark"] .punctum-onboarding__card {
 
 .punctum-draw__controls h1 {
   margin: 0 0 12px;
-  font-size: clamp(28px, 2.3vw, 42px);
-  line-height: 0.96;
-  letter-spacing: -0.055em;
+  font-size: clamp(56px, 4.4vw, 84px);
+  font-weight: 300;
+  line-height: 1.06;
+  letter-spacing: -0.04em;
+}
+
+@media (max-width: 1360px) {
+  .punctum-draw__controls h1 {
+    font-size: clamp(34px, 3.2vw, 54px);
+    line-height: 1.08;
+    letter-spacing: -0.035em;
+  }
+}
+
+@media (max-width: 1024px) {
+  .punctum-draw {
+    grid-template-columns: minmax(0, 1.8fr) minmax(260px, 1fr);
+    gap: 20px;
+  }
+
+  .punctum-draw__controls {
+    padding: clamp(18px, 2vw, 26px);
+    gap: 16px;
+  }
+
+  .punctum-draw__controls h1 {
+    font-size: clamp(22px, 2.3vw, 34px);
+    line-height: 1.12;
+    letter-spacing: -0.025em;
+    margin-bottom: 8px;
+  }
 }
 
 .punctum-draw__controls p {
@@ -3976,6 +4034,57 @@ html[data-punctum-theme="dark"] .punctum-onboarding__card {
   min-height: 42px;
   justify-self: end;
   padding-inline: 18px;
+}
+
+.punctum-draw__confirm {
+  margin-top: 18px;
+  display: inline-flex;
+  min-width: 110px;
+}
+
+.punctum-draw__note-box {
+  margin-top: 14px;
+  display: grid;
+}
+
+.punctum-draw__controls textarea {
+  width: 100%;
+  resize: none;
+  padding: 14px 16px;
+  border: 1px solid var(--punctum-border-strong);
+  border-radius: 12px;
+  outline: 0;
+  background: var(--punctum-surface);
+  color: var(--punctum-ink);
+  font: 400 15px/1.45 "Punctum Satoshi", sans-serif;
+  box-sizing: border-box;
+}
+
+.punctum-draw__controls textarea:focus,
+.punctum-draw__controls textarea:focus-visible {
+  border-color: var(--punctum-accent);
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--punctum-accent) 20%, transparent);
+}
+
+.punctum-draw__note-meta {
+  margin-top: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.punctum-draw__hint {
+  font-size: 11px;
+  color: var(--punctum-muted);
+  opacity: 0.8;
+}
+
+.punctum-draw__note-meta small {
+  color: var(--punctum-muted);
+  font-size: 12px;
+  margin-left: auto;
 }
 
 .punctum-annotation {
@@ -4334,7 +4443,7 @@ html[data-punctum-theme="dark"] .punctum-onboarding__card {
   border: 0 !important;
 }
 
-@media (max-height: 720px) and (min-width: 621px) {
+@media (max-height: 760px) and (min-width: 769px) {
   .punctum-draw {
     padding: 10px 16px 14px;
     gap: 16px;
@@ -4346,17 +4455,18 @@ html[data-punctum-theme="dark"] .punctum-onboarding__card {
   }
 
   .punctum-draw__controls {
-    padding: 18px 22px;
-    gap: 16px;
+    padding: 16px 20px;
+    gap: 12px;
   }
 
   .punctum-draw__controls .punctum-eyebrow {
-    margin-bottom: 8px;
+    margin-bottom: 6px;
   }
 
   .punctum-draw__controls h1 {
-    margin-bottom: 9px;
-    font-size: clamp(26px, 2.2vw, 36px);
+    margin-bottom: 8px;
+    font-size: clamp(20px, 2.2vw, 30px);
+    line-height: 1.1;
   }
 
   .punctum-draw__actions .punctum-button {
@@ -4474,6 +4584,20 @@ html[data-punctum-theme="dark"] .punctum-onboarding__card {
   }
 }
 
+@media (max-width: 860px) and (orientation: portrait), (max-width: 768px) {
+  .punctum-draw {
+    height: auto;
+    min-height: calc(100dvh - 66px);
+    padding: 10px 12px 20px;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    align-content: start;
+    gap: 14px;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+}
+
 @media (max-width: 620px) {
   .punctum-nav {
     height: 66px;
@@ -4559,7 +4683,7 @@ html[data-punctum-theme="dark"] .punctum-onboarding__card {
   }
 
   .punctum-results-wrapper {
-    padding-inline: 20px;
+    padding: 32px 20px 40px;
   }
 
   .punctum-session-results__header,
@@ -4832,10 +4956,10 @@ html[data-punctum-theme="dark"] .punctum-onboarding__card {
   }
 
   .punctum-draw__controls h1 {
-    margin-bottom: 9px;
-    font-size: clamp(30px, 8vw, 36px);
-    line-height: 1.02;
-    letter-spacing: -0.045em;
+    margin-bottom: 8px;
+    font-size: clamp(24px, 5.5vw, 36px);
+    line-height: 1.12;
+    letter-spacing: -0.025em;
   }
 
   .punctum-draw__controls p {
