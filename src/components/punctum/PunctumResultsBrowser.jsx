@@ -31,6 +31,7 @@ function PolygonOutline({ vertices, className = "" }) {
 }
 
 export default function PunctumResultsBrowser({ fallbackImages }) {
+  const [mounted, setMounted] = useState(false);
   const [images, setImages] = useState(
     fallbackImages.map((image) => ({ ...image, responseCount: 0 })),
   );
@@ -40,7 +41,18 @@ export default function PunctumResultsBrowser({ fallbackImages }) {
   const [showCollectiveMap, setShowCollectiveMap] = useState(false);
   const [worldEntry, setWorldEntry] = useState(null);
 
+  const sortMarkings = (list) => {
+    if (!Array.isArray(list)) return [];
+    const imageOrder = new Map(fallbackImages.map((img, idx) => [img.id, idx]));
+    return [...list].sort((a, b) => {
+      const orderA = imageOrder.get(a.imageId) ?? 999;
+      const orderB = imageOrder.get(b.imageId) ?? 999;
+      return orderA - orderB;
+    });
+  };
+
   useEffect(() => {
+    setMounted(true);
     let active = true;
     let hasStoredMarkings = false;
     try {
@@ -52,7 +64,7 @@ export default function PunctumResultsBrowser({ fallbackImages }) {
         );
         if (list.length > 0 && active) {
           hasStoredMarkings = true;
-          setSessionMarkings(list);
+          setSessionMarkings(sortMarkings(list));
         }
       }
     } catch {
@@ -72,7 +84,7 @@ export default function PunctumResultsBrowser({ fallbackImages }) {
         .then((payload) => {
           if (!active || !Array.isArray(payload.markings)) return;
           if (payload.markings.length > 0) {
-            setSessionMarkings(payload.markings);
+            setSessionMarkings(sortMarkings(payload.markings));
             setShowCollectiveMap(false);
           } else if (!hasStoredMarkings) {
             setShowCollectiveMap(true);
@@ -133,21 +145,12 @@ export default function PunctumResultsBrowser({ fallbackImages }) {
 
   return (
     <section className="punctum-results-wrapper">
-      {sessionLoading && sessionMarkings.length === 0 ? (
-        <div className="punctum-session-loading" role="status">
-          <p className="punctum-eyebrow">Your session</p>
-          <h2>Gathering your punctums and notes…</h2>
-        </div>
-      ) : sessionMarkings.length > 0 && !showCollectiveMap ? (
+      {!showCollectiveMap ? (
         <div className="punctum-session-results">
           <div className="punctum-session-results__header">
             <div>
-              <p className="punctum-eyebrow">Your Session Markings</p>
-              <h2>Your punctums are ready to reimagine.</h2>
-              <p>
-                Choose any marked photograph to carry its punctum into a new
-                AI-generated world.
-              </p>
+              <h2>Your punctums are marked now.</h2>
+              <p>Reimagine them in a new world now with a different context.</p>
             </div>
             <button
               type="button"
@@ -158,50 +161,60 @@ export default function PunctumResultsBrowser({ fallbackImages }) {
             </button>
           </div>
 
-          <div className="punctum-session-results__list">
-            {sessionMarkings.map((item) => (
-              <article key={item.imageId} className="punctum-session-card">
-                <div
-                  className="punctum-session-card__left"
-                  style={{ aspectRatio: `${item.width} / ${item.height}` }}
-                >
-                  <img src={item.imageUrl} alt={item.imageTitle} />
-                  <PolygonOutline vertices={item.vertices} />
-                </div>
-                <div className="punctum-session-card__right">
-                  <div className="punctum-session-card__actions">
-                    <button
-                      type="button"
-                      className="punctum-button punctum-button--yellow"
-                      onClick={() => reimagineMark(item)}
-                    >
-                      <span aria-hidden="true">✦</span> Reimagine Your Punctum
-                    </button>
-                    <a
-                      className="punctum-button punctum-button--light"
-                      href={`/research/punctum/results/${item.imageSlug}`}
-                    >
-                      See what others noticed
-                    </a>
+          {!mounted || sessionLoading ? (
+            <div className="punctum-session-inline-loading" role="status">
+              <p>Loading images…</p>
+            </div>
+          ) : sessionMarkings.length > 0 ? (
+            <div className="punctum-session-results__list">
+              {sessionMarkings.map((item) => (
+                <article key={item.imageId} className="punctum-session-card">
+                  <div
+                    className="punctum-session-card__left"
+                    style={{ aspectRatio: `${item.width} / ${item.height}` }}
+                  >
+                    <img src={item.imageUrl} alt={item.imageTitle} />
+                    <PolygonOutline vertices={item.vertices} />
                   </div>
-                  {item.annotation ? (
-                    <blockquote
-                      className={`punctum-session-card__note ${
-                        item.annotation.length < 40
-                          ? "is-short"
-                          : item.annotation.length < 100
-                            ? "is-medium"
-                            : "is-long"
-                      }`}
-                    >
-                      <span className="punctum-session-card__big-quote" aria-hidden="true">“</span>
-                      <p>{item.annotation}</p>
-                    </blockquote>
-                  ) : null}
-                </div>
-              </article>
-            ))}
-          </div>
+                  <div className="punctum-session-card__right">
+                    <div className="punctum-session-card__actions">
+                      <button
+                        type="button"
+                        className="punctum-button punctum-button--yellow"
+                        onClick={() => reimagineMark(item)}
+                      >
+                        <span aria-hidden="true">✦</span> Reimagine Your Punctum
+                      </button>
+                      <a
+                        className="punctum-button punctum-button--light"
+                        href={`/research/punctum/results/${item.imageSlug}`}
+                      >
+                        See what others noticed
+                      </a>
+                    </div>
+                    {item.annotation ? (
+                      <blockquote
+                        className={`punctum-session-card__note ${
+                          item.annotation.length < 40
+                            ? "is-short"
+                            : item.annotation.length < 100
+                              ? "is-medium"
+                              : "is-long"
+                        }`}
+                      >
+                        <span className="punctum-session-card__big-quote" aria-hidden="true">“</span>
+                        <p>{item.annotation}</p>
+                      </blockquote>
+                    ) : null}
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <div className="punctum-session-inline-loading">
+              <p>No punctums marked yet.</p>
+            </div>
+          )}
         </div>
       ) : (
         <>

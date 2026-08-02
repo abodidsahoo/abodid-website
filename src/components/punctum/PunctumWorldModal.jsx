@@ -19,11 +19,35 @@ const DEFAULT_PALETTE = [
 ];
 
 const ANSWERS = [
-  ["still", "It is still the punctum."],
-  ["moved", "My punctum has moved."],
-  ["disappeared", "The punctum has disappeared."],
-  ["unsure", "I am not sure."],
+  ["yes", "Yes"],
+  ["no", "No"],
 ];
+
+const GENERATION_TERMINAL_STEPS = [
+  "Extracting your selected punctum",
+  "Mapping its shape and position",
+  "Sampling the source colour palette",
+  "Analysing surrounding visual context",
+  "Building the photographic generation prompt",
+  "Sending context to the image model",
+  "Synthesising a new visual world",
+  "Refining composition, light and texture",
+  "Rendering the final image",
+  "Preparing your generated world",
+];
+
+const TERMINAL_VISIBLE_LINES = 4;
+const TERMINAL_LINE_HEIGHT = 26;
+const TERMINAL_TYPE_DELAY = 34;
+const TERMINAL_STEP_HOLD = 950;
+
+const normalizeReflectionAnswer = (answer) => {
+  if (answer === "yes" || answer === "still") return "yes";
+  if (answer === "no" || answer === "moved" || answer === "disappeared") {
+    return "no";
+  }
+  return "";
+};
 
 const GENERATION_SESSION_STORAGE_KEY = "punctum-ai-world-session-id";
 let memoryGenerationSessionId = "";
@@ -184,6 +208,10 @@ function LiveDrawingStroke({ points }) {
 }
 
 function SourceFigure({ source }) {
+  const explanation = (source.explanation || "")
+    .replace(/^No written explanation.*$/i, "")
+    .trim();
+
   return (
     <figure className="punctum-world-source">
       <div
@@ -193,13 +221,11 @@ function SourceFigure({ source }) {
         <img src={source.imageUrl} alt="Source image for this generated world" />
         <PolygonOutline vertices={source.polygon} />
       </div>
-      <figcaption>
-        <span>Source punctum</span>
-        <p>
-          {source.explanation ||
-            "No written explanation was added to this punctum."}
-        </p>
-      </figcaption>
+      {explanation && (
+        <figcaption>
+          <p>{explanation}</p>
+        </figcaption>
+      )}
     </figure>
   );
 }
@@ -208,52 +234,130 @@ function ModelPicker({ selectedModelId, onChange, onGenerate }) {
   return (
     <section className="punctum-world-model-picker" aria-labelledby="punctum-model-heading">
       <div className="punctum-world-model-picker__heading">
-        <div>
-          <p className="punctum-eyebrow">Choose the image model</p>
-          <h2 id="punctum-model-heading">How should this punctum be reimagined?</h2>
-        </div>
-        <p>
-          Each model receives the same isolated punctum, contextual crop, and
-          photographic brief.
-        </p>
+        <h2 id="punctum-model-heading">Choose quality</h2>
       </div>
-      <fieldset className="punctum-world-model-options">
-        <legend className="visually-hidden">Available image models</legend>
-        {PUNCTUM_IMAGE_MODEL_OPTIONS.map((option) => (
-          <label
-            className={selectedModelId === option.id ? "is-selected" : ""}
-            key={option.id}
-          >
-            <input
-              type="radio"
-              name="punctum-image-model"
-              value={option.id}
-              checked={selectedModelId === option.id}
-              onChange={() => onChange(option.id)}
-            />
-            <span className="punctum-world-model-option__topline">
-              <strong>{option.label}</strong>
-              <i>{option.cost}</i>
-            </span>
-            <span className="punctum-world-model-option__meta">
-              {option.provider} · {option.resolution} · {option.badge}
-            </span>
-            <span className="punctum-world-model-option__description">
-              {option.description}
-            </span>
-          </label>
-        ))}
-      </fieldset>
-      <button
-        className="punctum-button punctum-button--yellow punctum-world-model-picker__generate"
-        type="button"
-        onClick={onGenerate}
-      >
-        Generate with{" "}
-        {getPunctumImageModelOption(selectedModelId)?.label ||
-          "selected model"}
-      </button>
+      <div className="punctum-world-model-container">
+        <div className="punctum-world-model-button-group" role="radiogroup" aria-label="Reimagine quality">
+          {PUNCTUM_IMAGE_MODEL_OPTIONS.map((option) => {
+            const isSelected = selectedModelId === option.id;
+            return (
+              <button
+                key={option.id}
+                type="button"
+                role="radio"
+                aria-checked={isSelected}
+                className={`punctum-button punctum-world-model-btn ${
+                  isSelected
+                    ? "punctum-button--yellow is-selected"
+                    : "punctum-button--light"
+                }`}
+                onClick={() => onChange(option.id)}
+              >
+                <span className="punctum-world-model-btn__title">{option.label}</span>
+                <span className="punctum-world-model-btn__tech">
+                  {option.sublabel} · {option.priceTag || option.resolution}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+        <button
+          className="punctum-button punctum-button--yellow punctum-world-model-picker__generate"
+          type="button"
+          onClick={onGenerate}
+        >
+          Generate a new world from your punctum →
+        </button>
+      </div>
     </section>
+  );
+}
+
+function GenerationTerminal({ onComplete }) {
+  const [stepIndex, setStepIndex] = useState(0);
+  const [characterCount, setCharacterCount] = useState(0);
+  const completionNotifiedRef = useRef(false);
+  const currentStep = GENERATION_TERMINAL_STEPS[stepIndex];
+
+  useEffect(() => {
+    if (!currentStep) return undefined;
+
+    if (characterCount < currentStep.length) {
+      const typeTimer = window.setTimeout(
+        () => setCharacterCount((count) => count + 1),
+        TERMINAL_TYPE_DELAY,
+      );
+      return () => window.clearTimeout(typeTimer);
+    }
+
+    if (stepIndex >= GENERATION_TERMINAL_STEPS.length - 1) {
+      if (!onComplete || completionNotifiedRef.current) return undefined;
+      const completionTimer = window.setTimeout(() => {
+        completionNotifiedRef.current = true;
+        onComplete();
+      }, TERMINAL_STEP_HOLD);
+      return () => window.clearTimeout(completionTimer);
+    }
+
+    const nextStepTimer = window.setTimeout(() => {
+      setStepIndex((index) => index + 1);
+      setCharacterCount(0);
+    }, TERMINAL_STEP_HOLD);
+    return () => window.clearTimeout(nextStepTimer);
+  }, [characterCount, currentStep, onComplete, stepIndex]);
+
+  const visibleStepCount = stepIndex + 1;
+  const offset =
+    Math.max(0, visibleStepCount - TERMINAL_VISIBLE_LINES) *
+    TERMINAL_LINE_HEIGHT;
+
+  return (
+    <div className="punctum-world-result__terminal">
+      <div className="punctum-world-result__terminal-bar" aria-hidden="true">
+        <i />
+        <i />
+        <i />
+        <span>generation.log</span>
+      </div>
+      <div
+        className="punctum-world-result__terminal-viewport"
+        aria-hidden="true"
+      >
+        <div
+          className="punctum-world-result__terminal-track"
+          style={{ transform: `translateY(-${offset}px)` }}
+        >
+          {GENERATION_TERMINAL_STEPS.slice(0, visibleStepCount).map(
+            (step, index) => {
+              const isActive = index === stepIndex;
+              return (
+                <div
+                  className={`punctum-world-result__terminal-line ${
+                    isActive ? "is-active" : "is-complete"
+                  }`}
+                  key={step}
+                >
+                  <span className="punctum-world-result__terminal-prompt">
+                    {isActive ? "›" : "✓"}
+                  </span>
+                  <span className="punctum-world-result__terminal-command">
+                    <span>
+                      {isActive ? step.slice(0, characterCount) : step}
+                    </span>
+                    {isActive && (
+                      <i className="punctum-world-result__terminal-cursor" />
+                    )}
+                  </span>
+                </div>
+              );
+            },
+          )}
+        </div>
+      </div>
+      <span className="visually-hidden" aria-live="polite">
+        {characterCount === currentStep.length ? currentStep : ""}
+      </span>
+    </div>
   );
 }
 
@@ -264,7 +368,7 @@ function DrawNewPunctum({
   onGenerationUpdated,
 }) {
   const [answer, setAnswer] = useState(
-    generation.postGenerationAnswer || "",
+    normalizeReflectionAnswer(generation.postGenerationAnswer),
   );
   const [polygon, setPolygon] = useState(
     generation.postGenerationPolygon || null,
@@ -274,18 +378,29 @@ function DrawNewPunctum({
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [savedGeneration, setSavedGeneration] = useState(
+    generation.postGenerationAnswer && generation.postGenerationPolygon
+      ? generation
+      : null,
+  );
   const [stroke, setStroke] = useState([]);
   const strokeRef = useRef([]);
   const drawingRef = useRef(false);
   const startedAtRef = useRef(0);
+  const canEdit = Boolean(accessToken);
 
   useEffect(() => {
     strokeRef.current = [];
     drawingRef.current = false;
     setStroke([]);
-    setAnswer(generation.postGenerationAnswer || "");
+    setAnswer(normalizeReflectionAnswer(generation.postGenerationAnswer));
     setPolygon(generation.postGenerationPolygon || null);
     setExplanation(generation.postGenerationExplanation || "");
+    setSavedGeneration(
+      generation.postGenerationAnswer && generation.postGenerationPolygon
+        ? generation
+        : null,
+    );
     setError("");
   }, [generation.id]);
 
@@ -300,7 +415,7 @@ function DrawNewPunctum({
 
   const startDrawing = (event) => {
     if (
-      !accessToken ||
+      !canEdit ||
       (event.pointerType === "mouse" && event.button !== 0)
     ) {
       return;
@@ -317,6 +432,7 @@ function DrawNewPunctum({
     drawingRef.current = true;
     setStroke(first);
     setPolygon(null);
+    setSavedGeneration(null);
     setError("");
   };
 
@@ -365,6 +481,7 @@ function DrawNewPunctum({
     drawingRef.current = false;
     const nextPolygon = derivePunctumPolygon(strokeRef.current);
     if (nextPolygon) setPolygon(nextPolygon.vertices);
+    setSavedGeneration(null);
   };
 
   const clearMark = () => {
@@ -372,6 +489,7 @@ function DrawNewPunctum({
     strokeRef.current = [];
     setStroke([]);
     setPolygon(null);
+    setSavedGeneration(null);
   };
 
   const persist = async (nextAnswer = answer, nextPolygon = polygon) => {
@@ -390,30 +508,20 @@ function DrawNewPunctum({
     return payload.generation;
   };
 
-  const chooseAnswer = async (value) => {
+  const chooseAnswer = (value) => {
     setAnswer(value);
+    setSavedGeneration(null);
     setError("");
-    if (!accessToken) return;
-    try {
-      const saved = await persist(value, polygon);
-      onGenerationUpdated(saved);
-    } catch (requestError) {
-      setError(requestError.message);
-    }
   };
 
-  const continueLineage = async () => {
-    if (!answer || !polygon || !accessToken) return;
+  const savePunctum = async () => {
+    if (!answer || !polygon || !canEdit) return;
     setSaving(true);
     setError("");
     try {
       const saved = await persist(answer, polygon);
       onGenerationUpdated(saved);
-      onGenerateAnother({
-        parent: { ...saved, accessToken },
-        polygon,
-        explanation,
-      });
+      setSavedGeneration(saved);
     } catch (requestError) {
       setError(requestError.message);
     } finally {
@@ -421,22 +529,27 @@ function DrawNewPunctum({
     }
   };
 
+  const reimaginePunctum = () => {
+    if (!savedGeneration || !polygon) return;
+    onGenerateAnother({
+      parent: { ...savedGeneration, accessToken },
+      polygon,
+      explanation,
+    });
+  };
+
   return (
     <section className="punctum-world-reflection">
       <div className="punctum-world-reflection__question">
         <p className="punctum-eyebrow">Look again</p>
-        <h2>
-          Does the part that originally caught your attention still feel like
-          the punctum in this new world, or has your attention moved somewhere
-          else?
-        </h2>
+        <h2>Is your punctum still the same?</h2>
         <div className="punctum-world-answers">
           {ANSWERS.map(([value, label]) => (
             <button
               type="button"
               className={answer === value ? "is-selected" : ""}
               aria-pressed={answer === value}
-              disabled={!accessToken}
+              disabled={!canEdit}
               onClick={() => chooseAnswer(value)}
               key={value}
             >
@@ -446,12 +559,12 @@ function DrawNewPunctum({
         </div>
       </div>
 
-      {accessToken ? (
+      {canEdit && answer ? (
         <div className="punctum-world-new-mark">
           <div className="punctum-world-new-mark__heading">
             <div>
-              <span>Mark the new punctum</span>
-              <p>Draw one calm, quick mark over the generated image.</p>
+              <span>Add your new punctum</span>
+              <p>Use the pencil to mark what catches you now.</p>
             </div>
             {polygon && (
               <button type="button" onClick={clearMark}>
@@ -485,7 +598,10 @@ function DrawNewPunctum({
               value={explanation}
               maxLength={600}
               rows={3}
-              onChange={(event) => setExplanation(event.target.value)}
+              onChange={(event) => {
+                setExplanation(event.target.value);
+                setSavedGeneration(null);
+              }}
             />
           </label>
           {error && (
@@ -493,16 +609,30 @@ function DrawNewPunctum({
               {error}
             </p>
           )}
-          <button
-            className="punctum-button punctum-button--yellow punctum-world-generate-again"
-            type="button"
-            disabled={!answer || !polygon || saving}
-            onClick={continueLineage}
-          >
-            {saving
-              ? "Saving your punctum…"
-              : "Generate another AI world from this punctum"}
-          </button>
+          <div className="punctum-world-new-mark__actions">
+            <button
+              className="punctum-button punctum-button--yellow punctum-world-save-punctum"
+              type="button"
+              disabled={!polygon || saving}
+              onClick={savePunctum}
+            >
+              {saving ? "Saving your punctum…" : "Save and continue"}
+            </button>
+            {savedGeneration && (
+              <button
+                className="punctum-button punctum-button--light punctum-world-generate-again"
+                type="button"
+                onClick={reimaginePunctum}
+              >
+                Reimagine your Punctum →
+              </button>
+            )}
+          </div>
+        </div>
+      ) : canEdit ? (
+        <div className="punctum-world-new-mark-prompt">
+          <span>Add your new punctum</span>
+          <p>Choose yes or no to open the image and pencil.</p>
         </div>
       ) : (
         <p className="punctum-world-readonly">
@@ -795,11 +925,7 @@ export default function PunctumWorldModal({
       setFinalImageLoaded(false);
       progressRef.current = 1;
       setProgress(1);
-      setPalette(DEFAULT_PALETTE);
-      setError("");
-      setFailureCode("");
-      setRetryAt(0);
-      generate(entry.request);
+      setPhase("selecting");
       return;
     }
     setSource(entry.source);
@@ -990,15 +1116,20 @@ export default function PunctumWorldModal({
         </button>
       </header>
 
-      <main className="punctum-world-modal__body">
+      <main className={`punctum-world-modal__body is-${phase}`}>
         <section className="punctum-world-comparison">
           <SourceFigure source={source} />
           {phase === "selecting" ? (
-            <ModelPicker
-              selectedModelId={selectedModelId}
-              onChange={setSelectedModelId}
-              onGenerate={startGeneration}
-            />
+            <div
+              className="punctum-world-picker-slot"
+              style={{ aspectRatio: `${source.width} / ${source.height}` }}
+            >
+              <ModelPicker
+                selectedModelId={selectedModelId}
+                onChange={setSelectedModelId}
+                onGenerate={startGeneration}
+              />
+            </div>
           ) : (
             <figure className={`punctum-world-result is-${phase}`}>
               <div
@@ -1035,10 +1166,11 @@ export default function PunctumWorldModal({
                   <div className="punctum-world-result__status" role="status">
                     <div className="punctum-world-result__status-stack">
                       <div className="punctum-world-result__status-card">
-                        <span>Building with {selectedModel.label}</span>
                         <strong>
-                          Reassembling your punctum into a new photographic world
+                          <span>Building a new world</span>
+                          <span>with your punctum.</span>
                         </strong>
+                        <GenerationTerminal />
                       </div>
                       <div
                         className="punctum-world-result__progress"

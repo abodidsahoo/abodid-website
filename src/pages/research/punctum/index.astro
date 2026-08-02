@@ -103,3 +103,14 @@ const [first, second, third] = [
     </section>
   </main>
 </PunctumLayout>
+
+<script>
+  document.addEventListener("keydown", (event) => {
+    const active = document.activeElement;
+    if (active && ["INPUT", "TEXTAREA"].includes(active.tagName)) return;
+    if (event.key === "Enter") {
+      event.preventDefault();
+      window.location.href = "/research/punctum/experiment";
+    }
+  });
+</script>

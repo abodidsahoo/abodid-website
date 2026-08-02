@@ -132,6 +132,17 @@ function StoryActions({ onContinue, continueLabel = "Continue" }) {
 }
 
 function DifferenceStep({ onContinue }) {
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        onContinue();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onContinue]);
+
   return (
     <OnboardingFrame className="punctum-onboarding__card--centered punctum-onboarding__card--story">
       <section className="punctum-story">
@@ -213,6 +224,17 @@ function ProfileStep({ form, setForm, onBack, onContinue }) {
   const setValue = (key, value) =>
     setForm((current) => ({ ...current, [key]: value }));
 
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        onContinue();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onContinue]);
+
   return (
     <OnboardingFrame step={1}>
       <div className="punctum-profile">
@@ -263,6 +285,17 @@ function ProfileStep({ form, setForm, onBack, onContinue }) {
 function ConsentStep({ form, setForm, onBack, onContinue }) {
   const setValue = (key, value) =>
     setForm((current) => ({ ...current, [key]: value }));
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === "Enter" && form.ageConfirmed && form.consentAccepted) {
+        event.preventDefault();
+        onContinue();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [form.ageConfirmed, form.consentAccepted, onContinue]);
 
   return (
     <OnboardingFrame step={2} className="punctum-onboarding__card--compact">
@@ -365,15 +398,11 @@ function TurnstileVerification({
 
   return (
     <div className="punctum-verification-box">
-      {isLocalPreview ? (
-        <div className="punctum-verification-box__local">
-          <strong>Yes of course, I am!</strong>
-        </div>
-      ) : siteKey ? (
+      {!isLocalPreview && siteKey ? (
         <div ref={widgetRef} />
-      ) : (
+      ) : !isLocalPreview && !siteKey ? (
         <p>Human verification is not configured. Please try again later.</p>
-      )}
+      ) : null}
     </div>
   );
 }
@@ -385,13 +414,23 @@ function VerificationStep({
   setToken,
   loading,
   error,
-  onBack,
   onBegin,
 }) {
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === "Enter" && token && !loading) {
+        event.preventDefault();
+        onBegin();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [token, loading, onBegin]);
+
   return (
     <OnboardingFrame step={3} className="punctum-onboarding__card--compact">
       <div className="punctum-verification">
-        <h1>Are You Human</h1>
+        <h1>Are You Human?</h1>
         <TurnstileVerification
           siteKey={siteKey}
           isLocalPreview={isLocalPreview}
@@ -403,16 +442,13 @@ function VerificationStep({
           </p>
         )}
         <div className="punctum-onboarding__actions">
-          <button className="punctum-text-button" type="button" onClick={onBack}>
-            Back
-          </button>
           <button
             className="punctum-button punctum-button--yellow"
             type="button"
             disabled={!token || loading}
             onClick={onBegin}
           >
-            {loading ? "Starting…" : "Continue"}
+            {loading ? "Starting…" : "Yes, of course I am!"}
           </button>
         </div>
       </div>
@@ -463,6 +499,17 @@ function PracticeStep({
   };
 
   useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        onContinue();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onContinue]);
+
+  useEffect(() => {
     const handleLeftFlick = () => onContinue();
     window.addEventListener(PUNCTUM_LEFT_FLICK_EVENT, handleLeftFlick);
     return () =>
@@ -473,7 +520,38 @@ function PracticeStep({
     <OnboardingFrame step={4} className="punctum-onboarding__card--compact">
       <div className="punctum-practice">
         <div className="punctum-screen-heading">
-          <h1>Draw one quick mark.</h1>
+          <h1>
+            Test your Pencil.
+            {points.length >= 3 && (
+              <span className="punctum-practice__check-badge" aria-label="Pencil verified">
+                <svg
+                  viewBox="0 0 48 48"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="punctum-practice__check-icon"
+                  shapeRendering="geometricPrecision"
+                >
+                  <circle
+                    cx="24"
+                    cy="24"
+                    r="21"
+                    stroke="#22c55e"
+                    strokeWidth="3.5"
+                    strokeLinecap="round"
+                    className="punctum-check-circle"
+                  />
+                  <path
+                    d="M14 24.5L21 31.5L34 16.5"
+                    stroke="#22c55e"
+                    strokeWidth="3.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="punctum-check-mark"
+                  />
+                </svg>
+              </span>
+            )}
+          </h1>
         </div>
         <div
           ref={areaRef}
@@ -665,6 +743,12 @@ function PunctumDrawingStage({
     if (derived) setPolygon(derived);
   };
 
+  const transitionCooldownRef = useRef(Date.now() + 350);
+
+  useEffect(() => {
+    transitionCooldownRef.current = Date.now() + 350;
+  }, [notePhase]);
+
   const confirm = async () => {
     if (!polygon || savingRef.current) return;
     savingRef.current = true;
@@ -675,6 +759,7 @@ function PunctumDrawingStage({
       setRecordedResponseId(responseId);
       setCommitted(true);
       setSaving(false);
+      transitionCooldownRef.current = Date.now() + 400;
       setNotePhase(true);
     } catch (saveError) {
       setError(saveError.message);
@@ -703,6 +788,8 @@ function PunctumDrawingStage({
     if (event.key === "Enter") {
       if (!event.shiftKey) {
         event.preventDefault();
+        if (Date.now() < transitionCooldownRef.current) return;
+        transitionCooldownRef.current = Date.now() + 400;
         void handleCompleteNoteAndAdvance();
       }
     }
@@ -712,16 +799,29 @@ function PunctumDrawingStage({
     const handleKeyDown = (event) => {
       if (["INPUT", "TEXTAREA"].includes(document.activeElement?.tagName)) return;
       if (event.key === "Enter") {
-        if (!notePhase && polygon && !committed && !savingRef.current) {
+        if (savingRef.current || noteSaving || Date.now() < transitionCooldownRef.current) {
           event.preventDefault();
+          return;
+        }
+        event.preventDefault();
+        transitionCooldownRef.current = Date.now() + 400;
+        if (!notePhase && polygon && !committed) {
           void confirm();
+          return;
+        }
+        if (notePhase) {
+          void handleCompleteNoteAndAdvance();
+          return;
+        }
+        if (!polygon && !notePhase) {
+          onSkip();
         }
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [committed, notePhase, polygon]);
+  }, [committed, notePhase, polygon, noteText, recordedResponseId, onSkip, noteSaving]);
 
   useEffect(() => {
     const handleLeftFlick = () => {
@@ -926,7 +1026,7 @@ function PunctumDrawingStage({
               onClick={onSkip}
               disabled={saving}
             >
-              Skip photo
+              {index === total - 1 ? "Skip & View Results →" : "Skip photo"}
             </button>
           ) : (
             <button
@@ -937,9 +1037,13 @@ function PunctumDrawingStage({
             >
               {noteSaving
                 ? "Saving…"
-                : noteText.trim()
-                  ? "Save & Next photo →"
-                  : "Next photo →"}
+                : index === total - 1
+                  ? noteText.trim()
+                    ? "Save & View Results →"
+                    : "View Results →"
+                  : noteText.trim()
+                    ? "Save & Next photo →"
+                    : "Next photo →"}
             </button>
           )}
         </div>
@@ -1296,6 +1400,7 @@ export default function PunctumExperiment({
     if (!editingResponseId) {
       setCompletedMarks((count) => count + (payload.alreadyRecorded ? 0 : 1));
     }
+    saveSessionMarking(payload.responseId, polygon, "");
     return payload.responseId;
   };
   commitPolygon.afterGlow = (responseId, polygon) => {

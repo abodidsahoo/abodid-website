@@ -168,7 +168,7 @@ test("the public model picker has a balanced default and a closed allowlist", ()
     DEFAULT_PUNCTUM_IMAGE_MODEL_ID,
     "google/gemini-3.1-flash-image",
   );
-  assert.equal(PUNCTUM_IMAGE_MODEL_OPTIONS.length, 6);
+  assert.equal(PUNCTUM_IMAGE_MODEL_OPTIONS.length, 3);
   assert.equal(
     getPunctumImageModelOption("gemini-3-pro-image")?.id,
     "google/gemini-3-pro-image",

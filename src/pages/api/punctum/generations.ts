@@ -37,8 +37,17 @@ import {
 export const prerender = false;
 export const maxDuration = 300;
 
-const ANSWERS = new Set(["still", "moved", "disappeared", "unsure"]);
+const ANSWERS = new Set([
+  "yes",
+  "no",
+  "still",
+  "moved",
+  "disappeared",
+  "unsure",
+]);
 const ANSWER_EXPLANATIONS: Record<string, string> = {
+  yes: "The punctum still feels the same in the generated world.",
+  no: "The punctum feels different in the generated world.",
   still: "The original fragment still feels like the punctum in the generated world.",
   moved: "Attention moved to a different part of the generated world.",
   disappeared: "The punctum disappeared when the original context was replaced.",
@@ -147,7 +156,7 @@ const resolveParentSource = async (
       ANSWER_EXPLANATIONS[answer] ||
       ANSWER_EXPLANATIONS.unsure,
     sourcePrompt:
-      "Does the part that originally caught your attention still feel like the punctum in this new world, or has your attention moved somewhere else?",
+      "Is your punctum still the same?",
     width: parent.source_width,
     height: parent.source_height,
   };
@@ -240,7 +249,7 @@ export const PATCH: APIRoute = async ({ request }) => {
   }
   const answer = cleanText(payload.answer, 24);
   if (!ANSWERS.has(answer)) {
-    return jsonResponse({ error: "Choose how the punctum changed." }, 400);
+    return jsonResponse({ error: "Choose yes or no." }, 400);
   }
   const polygon =
     payload.polygon === null || payload.polygon === undefined

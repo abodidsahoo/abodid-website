@@ -111,6 +111,8 @@ function IndividualPunctumGrid({
   onToggleWorlds,
   onViewWorld,
 }) {
+  const [openCommentId, setOpenCommentId] = useState("");
+
   return (
     <section
       className="punctum-individual-grid"
@@ -120,13 +122,17 @@ function IndividualPunctumGrid({
         const generations = polygon.generations || [];
         const worldsOpen =
           generations.length > 0 && openWorldsId === polygon.id;
+        const commentOpen = openCommentId === polygon.id;
         const drawerId = `punctum-worlds-${polygon.id}`;
+        const commentId = `punctum-comment-${polygon.id}`;
 
         return (
           <article
             className={`punctum-response-card ${
               selectedId === polygon.id ? "is-selected" : ""
-            } ${worldsOpen ? "is-worlds-open" : ""}`}
+            } ${worldsOpen ? "is-worlds-open" : ""} ${
+              commentOpen ? "is-comment-open" : ""
+            }`}
             style={{
               "--punctum-card-delay": `${Math.min(index, 16) * 65}ms`,
             }}
@@ -153,14 +159,6 @@ function IndividualPunctumGrid({
             </span>
 
             <div className="punctum-response-card__content">
-              <blockquote
-                className={`punctum-response-card__quote ${
-                  polygon.annotation ? "has-comment" : "is-empty"
-                }`}
-              >
-                <p>{polygon.annotation || "No written note."}</p>
-              </blockquote>
-
               <div className="punctum-response-card__actions">
                 <button
                   className="punctum-response-card__generate"
@@ -168,23 +166,62 @@ function IndividualPunctumGrid({
                   onClick={() => onCreateWorld(polygon)}
                 >
                   <span aria-hidden="true">✦</span>
-                  Generate a World
+                  Reimagine Punctum
                 </button>
-                {generations.length > 0 && (
-                  <button
-                    className="punctum-response-card__worlds-toggle"
-                    type="button"
-                    aria-expanded={worldsOpen}
-                    aria-controls={drawerId}
-                    onClick={() => onToggleWorlds(polygon.id)}
-                  >
-                    Generated Worlds
+                <button
+                  className="punctum-response-card__worlds-toggle"
+                  type="button"
+                  aria-expanded={worldsOpen}
+                  aria-controls={generations.length > 0 ? drawerId : undefined}
+                  disabled={generations.length === 0}
+                  title={
+                    generations.length === 0
+                      ? "No generated world yet"
+                      : undefined
+                  }
+                  onClick={() => onToggleWorlds(polygon.id)}
+                >
+                  See Generated World
+                  {generations.length > 0 && (
                     <span>{generations.length}</span>
+                  )}
+                  {generations.length > 0 && (
                     <i aria-hidden="true">⌄</i>
-                  </button>
-                )}
+                  )}
+                </button>
+                <button
+                  className="punctum-response-card__comment-toggle"
+                  type="button"
+                  aria-expanded={commentOpen}
+                  aria-controls={commentId}
+                  onClick={() =>
+                    setOpenCommentId((current) =>
+                      current === polygon.id ? "" : polygon.id,
+                    )
+                  }
+                >
+                  {commentOpen ? "Hide Comment" : "Show Comment"}
+                  <i aria-hidden="true">⌄</i>
+                </button>
               </div>
             </div>
+
+            {commentOpen && (
+              <div
+                className="punctum-response-card__comment-drawer"
+                id={commentId}
+              >
+                <blockquote
+                  className={`punctum-response-card__quote ${
+                    polygon.annotation ? "has-comment" : "is-empty"
+                  }`}
+                >
+                  <p>
+                    {polygon.annotation || "There is no comment yet."}
+                  </p>
+                </blockquote>
+              </div>
+            )}
 
             {worldsOpen && (
               <div
@@ -251,21 +288,6 @@ export default function PunctumResultDetail({ image }) {
 
   useEffect(() => {
     setFeedbackSessionId(sessionStorage.getItem("punctum-session-id") || "");
-    const element = endPanelRef.current;
-    if (!element || sessionStorage.getItem("punctum-feedback-popup-seen")) {
-      return undefined;
-    }
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry.isIntersecting) return;
-        sessionStorage.setItem("punctum-feedback-popup-seen", "1");
-        setFeedbackOpen(true);
-        observer.disconnect();
-      },
-      { threshold: 0.65 },
-    );
-    observer.observe(element);
-    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
@@ -332,8 +354,7 @@ export default function PunctumResultDetail({ image }) {
       source: {
         imageUrl: image.url,
         polygon: polygon.vertices,
-        explanation:
-          polygon.annotation || "No written explanation was added to this punctum.",
+        explanation: polygon.annotation || "",
         width: image.width,
         height: image.height,
       },
@@ -341,8 +362,7 @@ export default function PunctumResultDetail({ image }) {
         source: {
           imageUrl: image.url,
           polygon: polygon.vertices,
-          explanation:
-            polygon.annotation || "No written explanation was added to this punctum.",
+          explanation: polygon.annotation || "",
           width: image.width,
           height: image.height,
         },
@@ -400,17 +420,6 @@ export default function PunctumResultDetail({ image }) {
           <a className="punctum-result__back" href="/research/punctum/results">
             ← All results
           </a>
-          <h1>Where attention gathered</h1>
-        </div>
-        <div className="punctum-result__summary" aria-live="polite">
-          <strong>
-            {isIllustrative ? "Preview" : payload?.responseCount || 0}
-          </strong>
-          <span>
-            {isIllustrative
-              ? "illustrative marks"
-              : `${payload?.responseCount === 1 ? "confirmed mark" : "confirmed marks"}`}
-          </span>
         </div>
       </header>
 
@@ -441,12 +450,16 @@ export default function PunctumResultDetail({ image }) {
                 </button>
               ))}
             </div>
-            <a
-              className="punctum-result__add"
-              href="/research/punctum/experiment"
-            >
-              Add your punctum
-            </a>
+            <div className="punctum-result__summary" aria-live="polite">
+              <strong>
+                {isIllustrative ? "Preview" : payload?.responseCount || 0}
+              </strong>
+              <span>
+                {isIllustrative
+                  ? "illustrative marks"
+                  : `${payload?.responseCount === 1 ? "confirmed mark" : "confirmed marks"}`}
+              </span>
+            </div>
           </div>
 
           {mode === "constellation" ? (
