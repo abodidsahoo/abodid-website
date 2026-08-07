@@ -8,6 +8,7 @@ import SEO from "../components/SEO.astro";
 import NewsletterPopup from "../components/NewsletterPopup.jsx";
 import MagneticCursorFollower from "../components/MagneticCursorFollower.jsx";
 import RouteLoadingOverlay from "../components/RouteLoadingOverlay.astro";
+import WhatsAppButton from "../components/WhatsAppButton.astro";
 import { getPageMetadata } from "../lib/api";
 import {
   createWebPageStructuredData,
@@ -222,6 +223,7 @@ const googleFontsUrl =
     </main>
     {showNewsletterPopup && <NewsletterPopup client:idle />}
     {cursorFollowerEnabled && <MagneticCursorFollower client:idle />}
+    {!finalNoindex && <WhatsAppButton />}
 
     <script src="/scripts/journey-tracker.js" defer></script>
     {!hideFooter && <Footer />}

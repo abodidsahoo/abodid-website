@@ -14,8 +14,10 @@ import MediaLibrary from './MediaLibrary';
 import XRShowcaseManager from './XRShowcaseManager';
 import NetworkIntelligence from './NetworkIntelligence';
 import PortfolioAdminList from '../portfolio/admin/PortfolioAdminList';
+import ReadingDigestManager from './ReadingDigestManager';
 import {
     ArrowUpRight,
+    BookOpen,
     ChartNoAxesCombined,
     Camera,
     Clapperboard,
@@ -47,6 +49,7 @@ import {
 const SECTIONS = [
     { id: 'dashboard', label: 'Overview', icon: LayoutDashboard },
     { id: 'analytics', label: 'Analytics', icon: ChartNoAxesCombined },
+    { id: 'reading_digest', label: "Reader's Digest", icon: BookOpen },
     { id: 'network_intelligence', label: 'Network Intelligence', icon: Network },
     { id: 'portfolio_projects', label: 'Portfolio Projects', icon: FolderKanban },
     { id: 'xr_showcase', label: 'XR Showcase', icon: Glasses },
@@ -67,6 +70,7 @@ const SECTIONS = [
 const VALID_SECTION_IDS = new Set(SECTIONS.map((section) => section.id));
 const REQUEST_TIMEOUT_MS = 8000;
 const QUICK_ACTIONS = [
+    { label: "Reader's Digest Desk", href: '/admin/dashboard?section=reading_digest', icon: BookOpen },
     { label: 'Send a Newsletter', href: '/admin/dashboard?section=newsletter', icon: Mail },
     { label: 'Add a Link to Resource Hub', href: '/admin/dashboard?section=hub_resources&action=new', icon: Library },
     { label: 'Upload a Photo Series', href: '/admin/editor?table=photography&id=new', icon: Camera },
@@ -463,6 +467,12 @@ export default function AdminDashboard() {
                         </SectionErrorBoundary>
                     )}
 
+                    {activeSection === 'reading_digest' && (
+                        <SectionErrorBoundary>
+                            <ReadingDigestManager />
+                        </SectionErrorBoundary>
+                    )}
+
                     {activeSection === 'network_intelligence' && (
                         <SectionErrorBoundary>
                             <NetworkIntelligence accessToken={session?.access_token} />
@@ -532,7 +542,7 @@ export default function AdminDashboard() {
                         </SectionErrorBoundary>
                     )}
 
-                    {activeSection !== 'dashboard' && activeSection !== 'analytics' && activeSection !== 'network_intelligence' && activeSection !== 'portfolio_projects' && activeSection !== 'xr_showcase' && activeSection !== 'media_library' && activeSection !== 'users' && activeSection !== 'brands' && activeSection !== 'newsletter' && activeSection !== 'photo_stories' && activeSection !== 'moodboard_items' && activeSection !== 'page_metadata' && activeSection !== 'notepad' && (
+                    {activeSection !== 'dashboard' && activeSection !== 'analytics' && activeSection !== 'reading_digest' && activeSection !== 'network_intelligence' && activeSection !== 'portfolio_projects' && activeSection !== 'xr_showcase' && activeSection !== 'media_library' && activeSection !== 'users' && activeSection !== 'brands' && activeSection !== 'newsletter' && activeSection !== 'photo_stories' && activeSection !== 'moodboard_items' && activeSection !== 'page_metadata' && activeSection !== 'notepad' && (
                         <SectionErrorBoundary key={`${activeSection}-${refreshTrigger}`}>
                             <ListView
                                 table={activeSection}

@@ -1143,6 +1143,7 @@ export default function VisualMoodboard({
                 <button
                     type="button"
                     className="surface-toggle-btn"
+                    data-whatsapp-avoid
                     onClick={() => setSurfaceMode((current) => (current === 'light' ? 'dark' : 'light'))}
                     aria-label={`Switch to ${surfaceMode === 'light' ? 'dark' : 'light'} theme`}
                 >
@@ -1159,6 +1160,7 @@ export default function VisualMoodboard({
                 <button
                     type="button"
                     className={`shuffle-btn ${shufflePhase !== 'idle' ? 'busy' : ''}`}
+                    data-whatsapp-avoid
                     onClick={handleShuffle}
                     disabled={shufflePhase !== 'idle' || boardItems.length < 2}
                 >

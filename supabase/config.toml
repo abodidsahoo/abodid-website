@@ -1,0 +1,7 @@
+project_id = "personal-site"
+
+[functions.daily-reading-digest]
+# The function authenticates either the Vault-backed x-cron-secret or an
+# authenticated Supabase admin. This permits pg_net Cron calls without placing
+# a service-role JWT in the request.
+verify_jwt = false

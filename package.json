@@ -14,6 +14,7 @@
     "test:analytics": "node --test tests/analytics/*.test.mjs",
     "test:portfolio": "node --test tests/portfolio/*.test.mjs",
     "test:newsletter": "node --test tests/newsletter/*.test.mjs",
+    "test:reading-digest": "vitest run tests/reading-digest",
     "test:punctum": "vitest run tests/punctum",
     "test:glyph-loom": "vitest run src/components/glyph-loom/tests",
     "test:portfolio:integration": "node scripts/test-portfolio-integration.mjs",

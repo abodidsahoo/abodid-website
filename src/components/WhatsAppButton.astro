@@ -1,0 +1,285 @@
+---
+const phoneNumber = "447522258768";
+const openingMessage =
+  "Hi Abodid, I came across your website and would love to chat.";
+const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(openingMessage)}`;
+---
+
+<a
+  class="whatsapp-button"
+  data-whatsapp-button
+  href={whatsappUrl}
+  target="_blank"
+  rel="noopener noreferrer"
+  aria-label="Start a WhatsApp conversation with Abodid (opens in a new tab)"
+  title="Chat with me on WhatsApp"
+>
+  <span class="whatsapp-button__hint" aria-hidden="true">Let's chat</span>
+  <i class="fa-brands fa-whatsapp" aria-hidden="true"></i>
+</a>
+
+<style>
+  .whatsapp-button {
+    --whatsapp-base-bottom: 24px;
+    --whatsapp-avoidance-offset: 0px;
+
+    position: fixed;
+    right: max(1.5rem, env(safe-area-inset-right));
+    bottom: max(
+      calc(var(--whatsapp-base-bottom) + var(--whatsapp-avoidance-offset)),
+      env(safe-area-inset-bottom)
+    );
+    z-index: 10001;
+    display: grid;
+    width: 3.75rem;
+    height: 3.75rem;
+    place-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: 50%;
+    background: #25d366;
+    box-shadow:
+      0 0.75rem 2rem rgba(0, 0, 0, 0.28),
+      0 0.25rem 0.75rem rgba(37, 211, 102, 0.26);
+    color: #ffffff;
+    font-size: 1.9rem;
+    line-height: 1;
+    text-decoration: none;
+    transition:
+      bottom 180ms ease,
+      transform 180ms ease,
+      background-color 180ms ease,
+      box-shadow 180ms ease;
+  }
+
+  .whatsapp-button:hover {
+    background: #20bd5a;
+    box-shadow:
+      0 1rem 2.25rem rgba(0, 0, 0, 0.32),
+      0 0.35rem 1rem rgba(37, 211, 102, 0.34);
+    color: #ffffff;
+    transform: translateY(-3px) scale(1.03);
+  }
+
+  .whatsapp-button:focus-visible {
+    outline: 3px solid #ffffff;
+    outline-offset: 4px;
+  }
+
+  .whatsapp-button__hint {
+    position: absolute;
+    right: calc(100% + 0.75rem);
+    width: max-content;
+    padding: 0.45rem 0.7rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: 999px;
+    background: var(--bg-surface);
+    box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.2);
+    color: var(--text-primary);
+    font-family: var(--font-ui);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    line-height: 1;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(0.35rem);
+    transition:
+      opacity 160ms ease,
+      transform 160ms ease;
+  }
+
+  .whatsapp-button:hover .whatsapp-button__hint,
+  .whatsapp-button:focus-visible .whatsapp-button__hint {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  @media (max-width: 640px) {
+    .whatsapp-button {
+      --whatsapp-base-bottom: 16px;
+
+      right: max(1rem, env(safe-area-inset-right));
+      width: 3.5rem;
+      height: 3.5rem;
+      font-size: 1.75rem;
+    }
+
+    .whatsapp-button__hint {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .whatsapp-button,
+    .whatsapp-button__hint {
+      transition: none;
+    }
+  }
+
+  @media print {
+    .whatsapp-button {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  const WHATSAPP_AVOIDANCE_GAP = 12;
+  const WHATSAPP_BOTTOM_ZONE = 240;
+  const WHATSAPP_INTERACTIVE_SELECTOR =
+    "[data-whatsapp-avoid], button, a[href], [role='button']";
+
+  function initWhatsAppCollisionAvoidance() {
+    const button = document.querySelector("[data-whatsapp-button]");
+    if (!(button instanceof HTMLElement) || button.dataset.avoidanceReady) {
+      return;
+    }
+
+    button.dataset.avoidanceReady = "true";
+    let animationFrame = 0;
+
+    const isViewportAnchored = (element) => {
+      let current = element;
+
+      while (current && current !== document.body) {
+        const position = window.getComputedStyle(current).position;
+        if (position === "fixed") {
+          return true;
+        }
+        current = current.parentElement;
+      }
+
+      return false;
+    };
+
+    const reposition = () => {
+      animationFrame = 0;
+
+      if (!button.isConnected) return;
+
+      const buttonRect = button.getBoundingClientRect();
+      const buttonStyles = window.getComputedStyle(button);
+      const baseBottom =
+        Number.parseFloat(
+          buttonStyles.getPropertyValue("--whatsapp-base-bottom"),
+        ) || 24;
+      const viewportHeight = window.innerHeight;
+      const viewportWidth = window.innerWidth;
+      let requiredBottom = baseBottom;
+
+      document
+        .querySelectorAll(WHATSAPP_INTERACTIVE_SELECTOR)
+        .forEach((candidate) => {
+          if (
+            !(candidate instanceof HTMLElement) ||
+            candidate === button ||
+            button.contains(candidate)
+          ) {
+            return;
+          }
+
+          const explicitlyAvoided = candidate.hasAttribute(
+            "data-whatsapp-avoid",
+          );
+          const styles = window.getComputedStyle(candidate);
+          const rect = candidate.getBoundingClientRect();
+          const isVisible =
+            styles.display !== "none" &&
+            styles.visibility !== "hidden" &&
+            Number.parseFloat(styles.opacity || "1") > 0.05 &&
+            rect.width > 0 &&
+            rect.height > 0;
+          const isCompactControl =
+            rect.width <= Math.max(360, viewportWidth * 0.45) &&
+            rect.height <= 180;
+          const isInBottomZone =
+            rect.bottom >= viewportHeight - WHATSAPP_BOTTOM_ZONE &&
+            rect.top < viewportHeight;
+          const sharesRightCorner =
+            rect.right > buttonRect.left - WHATSAPP_AVOIDANCE_GAP &&
+            rect.left < buttonRect.right + WHATSAPP_AVOIDANCE_GAP;
+
+          if (
+            !isVisible ||
+            !isCompactControl ||
+            !isInBottomZone ||
+            !sharesRightCorner
+          ) {
+            return;
+          }
+
+          if (!explicitlyAvoided && !isViewportAnchored(candidate)) {
+            return;
+          }
+
+          requiredBottom = Math.max(
+            requiredBottom,
+            viewportHeight - rect.top + WHATSAPP_AVOIDANCE_GAP,
+          );
+        });
+
+      const nextOffset = Math.max(0, Math.ceil(requiredBottom - baseBottom));
+      const nextValue = `${nextOffset}px`;
+
+      if (
+        button.style.getPropertyValue("--whatsapp-avoidance-offset") !==
+        nextValue
+      ) {
+        button.style.setProperty("--whatsapp-avoidance-offset", nextValue);
+      }
+    };
+
+    const scheduleReposition = () => {
+      if (animationFrame) return;
+      animationFrame = window.requestAnimationFrame(reposition);
+    };
+
+    const mutationObserver = new MutationObserver((mutations) => {
+      const onlyButtonOffsetChanged = mutations.every(
+        (mutation) =>
+          mutation.target === button && mutation.attributeName === "style",
+      );
+
+      if (!onlyButtonOffsetChanged) {
+        const relevantPageChange = mutations.some((mutation) => {
+          if (mutation.type === "childList") {
+            return (
+              mutation.addedNodes.length > 0 || mutation.removedNodes.length > 0
+            );
+          }
+
+          if (!(mutation.target instanceof HTMLElement)) return false;
+
+          return (
+            mutation.target.matches(WHATSAPP_INTERACTIVE_SELECTOR) ||
+            Boolean(
+              mutation.target.querySelector("[data-whatsapp-avoid]"),
+            )
+          );
+        });
+
+        if (relevantPageChange) {
+          scheduleReposition();
+        }
+      }
+    });
+
+    mutationObserver.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["class", "style", "hidden", "aria-hidden"],
+    });
+
+    window.addEventListener("resize", scheduleReposition, { passive: true });
+    window.addEventListener("orientationchange", scheduleReposition, {
+      passive: true,
+    });
+    window.addEventListener("load", scheduleReposition, { once: true });
+
+    scheduleReposition();
+  }
+
+  initWhatsAppCollisionAvoidance();
+  document.addEventListener("astro:page-load", initWhatsAppCollisionAvoidance);
+</script>
