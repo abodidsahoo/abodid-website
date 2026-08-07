@@ -1,6 +1,80 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { personJsonLd, websiteJsonLd } from "../lib/seoData";
+import { punctumImages } from "../data/punctumImages";
+import portfoliosData from "../data/photographyPortfolios.generated.json";
+import { listR2Folder, buildR2PublicUrl } from "../lib/media/r2.ts";
+
+let uk2026Images: Array<{ url: string; title: string; bg: string }> = [];
+try {
+    const { files: r2Files, config: r2Config } = await listR2Folder("variants/uk-2026/800/");
+    r2Files.sort((a, b) => a.objectKey.localeCompare(b.objectKey, undefined, { numeric: true, sensitivity: "base" }));
+    uk2026Images = r2Files.map((file, i) => {
+        const filename = file.objectKey.split("/").pop() || "";
+        const title = filename.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ") || `UK 2026 Photo ${i + 1}`;
+        return {
+            url: buildR2PublicUrl(r2Config, file.objectKey),
+            title,
+            bg: "#111418"
+        };
+    });
+} catch (e) {
+    console.warn("Could not load UK 2026 R2 images at build time:", e);
+}
+
+let myLifeImages: Array<{ url: string; title: string; bg: string }> = [];
+try {
+    const { files: r2Files, config: r2Config } = await listR2Folder("variants/my-life/800/");
+    r2Files.sort((a, b) => a.objectKey.localeCompare(b.objectKey, undefined, { numeric: true, sensitivity: "base" }));
+    myLifeImages = r2Files.map((file, i) => {
+        const filename = file.objectKey.split("/").pop() || "";
+        const title = filename.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ") || `My Life Photo ${i + 1}`;
+        return {
+            url: buildR2PublicUrl(r2Config, file.objectKey),
+            title,
+            bg: "#111418"
+        };
+    });
+} catch (e) {
+    console.warn("Could not load my-life R2 images at build time:", e);
+}
+
+let exhibitionR2Images: Array<{ url: string; title: string; bg: string }> = [];
+try {
+    const { files: r2Files, config: r2Config } = await listR2Folder("variants/exhibition-photos/800/");
+    exhibitionR2Images = r2Files.map((file, i) => {
+        const filename = file.objectKey.split("/").pop() || "";
+        const title = filename.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ") || `Exhibition Photo ${i + 1}`;
+        return {
+            url: buildR2PublicUrl(r2Config, file.objectKey),
+            title,
+            bg: "#111418"
+        };
+    });
+} catch (e) {
+    // Ignore if variants/exhibition-photos/800/ prefix is not found
+}
+
+const punctum = punctumImages.map(img => ({ url: img.url, title: img.title, bg: img.softBackground || "#111418" }));
+const portfolioCovers = (portfoliosData.stories as Array<{ title: string; coverImage: string }>)
+    .slice(0, 18)
+    .map(s => ({ url: s.coverImage, title: s.title, bg: '#1a1a1a' }));
+
+const exhibitionPool = exhibitionR2Images.length > 0 ? exhibitionR2Images : punctum;
+
+const allImagesPool = [
+    ...uk2026Images,
+    ...myLifeImages,
+    ...exhibitionPool,
+    ...portfolioCovers,
+];
+
+// Sample images (~8 total) so each image gets generous scroll distance and ample breathing space
+const maxPanelImages = 8;
+const imageStep = Math.max(1, Math.floor(allImagesPool.length / maxPanelImages));
+const panelImages = allImagesPool.filter((_, i) => i % imageStep === 0).slice(0, maxPanelImages);
+
+
 
 const pageTitle = "Abodid Sahoo | Creative Director, Artist & Researcher";
 const pageDescription =
@@ -51,16 +125,19 @@ const heroTextEffect = "smooth-blur";
                     </span>
                 </span>
             </h1>
-            <p class="hero-lede">
-                <span>
-                    I help people use stories to communicate, educate and bring
-                    communities together.
-                </span>
-            </p>
+
         </div>
     </section>
 
+    <div class="copy-image-layout">
     <article class="landing-copy-body" aria-label="Landing page body copy">
+        <p class="hero-lede">
+            <span>
+                I help people use stories to communicate, educate and bring
+                communities together.
+            </span>
+        </p>
+
         <p>
             As a creative director, artist, and researcher, I enjoy pushing the
             boundaries of storytelling, turning it into memorable, participatory
@@ -159,26 +236,58 @@ const heroTextEffect = "smooth-blur";
         </p>
     </article>
 
-    {/* ── Solid Brand-Red Floating Sticker on Landing Page ─────────────────────────────── */}
+    {/* ── Right: Sticky exhibition image panel ───────────────────── */}
+    <div class="copy-image-wrapper" id="copy-image-wrapper">
+        <aside
+            class="copy-image-panel"
+            aria-hidden="true"
+            id="copy-image-panel"
+            data-image-pool={JSON.stringify(allImagesPool)}
+        >
+            {panelImages.map((img, i) => (
+                <figure
+                    class={`copy-panel-image${i === 0 ? ' is-active' : ''}`}
+                    data-image-index={i}
+                    style={`background-color: ${img.bg};`}
+                >
+                    <img
+                        src={img.url}
+                        alt={img.title}
+                        loading={i === 0 ? 'eager' : 'lazy'}
+                        decoding="async"
+                    />
+                </figure>
+            ))}
+        </aside>
+    </div>
+    </div>
+
+    {/* ── Reflective Floating Sticker on Landing Page ─────────────────────────────── */}
     <button
         id="life-trigger-sticker"
         class="life-sticker life-sticker-landing"
         type="button"
-        aria-label="A glimpse into my life"
-        title="A glimpse into my life"
+        aria-label="Abodid's Life — click to view photo memories"
+        title="Abodid's Life — click to view photo memories"
     >
         <div class="sticker-inner">
-            <div class="sticker-text-stack">
-                <span class="sticker-line">a glimpse</span>
-                <span class="sticker-line">into my</span>
-                <span class="sticker-line sticker-highlight">life</span>
-            </div>
+            <img
+                src="/images/abodid-life-sticker.png"
+                alt="Abodid's Life - The things we do for love"
+                class="sticker-img"
+                width="160"
+                height="160"
+                loading="eager"
+                decoding="async"
+            />
+            <div class="reflective-glare"></div>
+            <div class="reflective-sheen"></div>
         </div>
     </button>
 
     {/* ── Life page slide-in panel ─────────────────────────────── */}
     <div id="life-panel" aria-label="Life page — photo memories">
-        <!-- Solid brand-red floating return sticker on top-left corner inside the Life Panel block -->
+        <!-- Reflective floating return sticker on top-left corner inside the Life Panel block -->
         <button
             id="life-return-sticker"
             class="life-sticker life-sticker-return"
@@ -187,10 +296,19 @@ const heroTextEffect = "smooth-blur";
             title="Go back to home page"
         >
             <div class="sticker-inner">
-                <div class="sticker-text-stack">
+                <img
+                    src="/images/abodid-life-sticker.png"
+                    alt="Return home"
+                    class="sticker-img"
+                    width="110"
+                    height="110"
+                />
+                <div class="return-overlay">
                     <span class="return-arrow">←</span>
                     <span class="return-label">home</span>
                 </div>
+                <div class="reflective-glare"></div>
+                <div class="reflective-sheen"></div>
             </div>
         </button>
         <iframe id="life-panel-iframe" title="people, stories, memories"></iframe>
@@ -198,31 +316,30 @@ const heroTextEffect = "smooth-blur";
 </BaseLayout>
 
 <style>
-    /* ── Solid Brand-Red Floating Circular Sticker Styles ─────────────────────────── */
+    /* ── Reflective Floating Circular Sticker Styles ─────────────────────────── */
     .life-sticker {
         position: fixed;
         z-index: 9999;
         border-radius: 50%;
         border: none !important;
-        background: #EA2A10 !important;
-        background-color: #EA2A10 !important;
-        color: #ffffff !important;
+        background: transparent !important;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 
-            0 12px 32px rgba(234, 42, 16, 0.48), 
-            0 4px 14px rgba(0, 0, 0, 0.35), 
-            inset 0 1px 2px rgba(255, 255, 255, 0.35) !important;
-        transition: 
-            opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), 
-            transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), 
-            box-shadow 0.3s ease, 
-            background-color 0.3s ease;
         user-select: none;
         padding: 0;
         outline: none;
+        perspective: 600px;
+        --rx: 0deg;
+        --ry: 0deg;
+        --mx: 50%;
+        --my: 50%;
+        --opacity-glare: 0;
+        transition: 
+            opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), 
+            transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), 
+            box-shadow 0.3s ease;
     }
 
     .life-sticker:focus-visible {
@@ -236,43 +353,115 @@ const heroTextEffect = "smooth-blur";
         display: flex;
         align-items: center;
         justify-content: center;
-        text-align: center;
         position: relative;
         overflow: hidden;
         border-radius: 50%;
-        padding: 0.5rem;
+        box-shadow: 
+            0 14px 32px rgba(0, 0, 0, 0.6), 
+            0 4px 16px rgba(234, 42, 16, 0.45), 
+            inset 0 0 0 1.5px rgba(255, 255, 255, 0.4);
+        transform: rotateX(var(--rx)) rotateY(var(--ry));
+        transform-style: preserve-3d;
+        transition: transform 0.15s ease-out, box-shadow 0.3s ease;
     }
 
-    .sticker-text-stack {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        line-height: 1.15;
+    .sticker-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+        display: block;
+        pointer-events: none;
+        animation: vinylSpin 20s linear infinite;
+        will-change: transform;
     }
 
-    /* Landing Trigger Sticker - Upper right-hand side, clear of header space */
+    @keyframes vinylSpin {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .sticker-img {
+            animation: none;
+        }
+    }
+
+    /* Curved Glass Lens specular ambient highlight */
+    .sticker-inner::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        background: linear-gradient(
+            135deg,
+            rgba(255, 255, 255, 0.45) 0%,
+            rgba(255, 255, 255, 0.15) 30%,
+            transparent 55%,
+            rgba(0, 0, 0, 0.2) 100%
+        );
+        pointer-events: none;
+        z-index: 2;
+    }
+
+    /* Continuous animated diagonal reflective sheen streak */
+    .reflective-sheen {
+        position: absolute;
+        inset: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(
+            115deg,
+            transparent 35%,
+            rgba(255, 255, 255, 0.1) 42%,
+            rgba(255, 255, 255, 0.7) 50%,
+            rgba(255, 255, 255, 0.1) 58%,
+            transparent 65%
+        );
+        transform: rotate(25deg) translateY(-100%);
+        animation: reflectiveLightSweep 5.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        pointer-events: none;
+        z-index: 3;
+    }
+
+    @keyframes reflectiveLightSweep {
+        0%, 25% {
+            transform: rotate(25deg) translateY(-120%);
+        }
+        65%, 100% {
+            transform: rotate(25deg) translateY(120%);
+        }
+    }
+
+    /* Dynamic cursor-following specular glare highlight */
+    .reflective-glare {
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        background: radial-gradient(
+            circle at var(--mx) var(--my),
+            rgba(255, 255, 255, 0.85) 0%,
+            rgba(255, 255, 255, 0.35) 25%,
+            transparent 60%
+        );
+        opacity: var(--opacity-glare);
+        transition: opacity 0.2s ease;
+        pointer-events: none;
+        z-index: 4;
+        mix-blend-mode: overlay;
+    }
+
+    /* Landing Trigger Sticker - Upper right-hand side */
     .life-sticker-landing {
-        top: 11.5rem;
+        top: 10.5rem;
         right: 3.5rem;
-        width: 100px;
-        height: 100px;
+        width: 160px;
+        height: 160px;
         animation: stickerFloat 4.5s ease-in-out infinite;
-    }
-
-    .life-sticker-landing .sticker-line {
-        font-size: 0.65rem;
-        font-weight: 600;
-        letter-spacing: 0.02em;
-        color: #ffffff !important;
-        text-transform: lowercase;
-        white-space: nowrap;
-    }
-
-    .life-sticker-landing .sticker-highlight {
-        font-weight: 700;
-        font-size: 0.72rem;
-        letter-spacing: 0.04em;
     }
 
     @keyframes stickerFloat {
@@ -285,13 +474,14 @@ const heroTextEffect = "smooth-blur";
     }
 
     .life-sticker-landing:hover {
-        transform: translateY(-8px) scale(1.07) rotate(-1.5deg);
-        background: #EA2A10 !important;
-        background-color: #EA2A10 !important;
+        transform: translateY(-8px) scale(1.08) rotate(-1.5deg);
+    }
+
+    .life-sticker-landing:hover .sticker-inner {
         box-shadow: 
-            0 18px 44px rgba(234, 42, 16, 0.65), 
-            0 8px 20px rgba(0, 0, 0, 0.4), 
-            inset 0 1px 3px rgba(255, 255, 255, 0.45) !important;
+            0 20px 48px rgba(0, 0, 0, 0.7), 
+            0 8px 24px rgba(234, 42, 16, 0.65), 
+            inset 0 0 0 2px rgba(255, 255, 255, 0.7);
     }
 
     .life-sticker-landing:active {
@@ -341,8 +531,8 @@ const heroTextEffect = "smooth-blur";
         top: 6.5rem;
         left: 3.5rem;
         z-index: 9999;
-        width: 84px;
-        height: 84px;
+        width: 110px;
+        height: 110px;
         opacity: 0;
         transform: scale(0.85) translateX(-12px);
         pointer-events: none;
@@ -350,8 +540,27 @@ const heroTextEffect = "smooth-blur";
         transition: 
             opacity 0.4s ease 0.25s, 
             transform 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.25s, 
-            box-shadow 0.3s ease, 
-            background-color 0.3s ease;
+            box-shadow 0.3s ease;
+    }
+
+    .return-overlay {
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        background: rgba(11, 11, 14, 0.65);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: #ffffff;
+        z-index: 5;
+        transition: background 0.3s ease;
+    }
+
+    .life-sticker-return:hover .return-overlay {
+        background: rgba(180, 20, 20, 0.78);
     }
 
     @keyframes returnStickerFloat {
@@ -364,14 +573,14 @@ const heroTextEffect = "smooth-blur";
     }
 
     .life-sticker-return .return-arrow {
-        font-size: 1.25rem;
+        font-size: 1.4rem;
         font-weight: 700;
         line-height: 1;
-        margin-bottom: 1px;
+        margin-bottom: 2px;
     }
 
     .life-sticker-return .return-label {
-        font-size: 0.625rem;
+        font-size: 0.7rem;
         font-weight: 700;
         letter-spacing: 0.05em;
         text-transform: lowercase;
@@ -385,12 +594,13 @@ const heroTextEffect = "smooth-blur";
 
     .life-sticker-return:hover {
         transform: scale(1.08) rotate(-2deg);
-        background: #EA2A10 !important;
-        background-color: #EA2A10 !important;
+    }
+
+    .life-sticker-return:hover .sticker-inner {
         box-shadow: 
-            0 16px 40px rgba(234, 42, 16, 0.65), 
-            0 6px 18px rgba(0, 0, 0, 0.4), 
-            inset 0 1px 3px rgba(255, 255, 255, 0.45) !important;
+            0 16px 40px rgba(0, 0, 0, 0.7), 
+            0 6px 18px rgba(234, 42, 16, 0.65), 
+            inset 0 0 0 2px rgba(255, 255, 255, 0.7);
     }
 
     .life-sticker-return:active {
@@ -406,21 +616,17 @@ const heroTextEffect = "smooth-blur";
 
     @media (max-width: 640px) {
         .life-sticker-landing {
-            top: 9.5rem;
-            right: 1.5rem;
-            width: 88px;
-            height: 88px;
+            top: 8.5rem;
+            right: 1.25rem;
+            width: 120px;
+            height: 120px;
         }
 
         .life-sticker-return {
-            top: 5.5rem;
-            left: 1.5rem;
-            width: 76px;
-            height: 76px;
-        }
-
-        .life-sticker-landing .sticker-line {
-            font-size: 0.58rem;
+            top: 5rem;
+            left: 1.25rem;
+            width: 96px;
+            height: 96px;
         }
     }
 </style>
@@ -471,6 +677,38 @@ const heroTextEffect = "smooth-blur";
             if (e.key === 'Escape' && panel.classList.contains('is-open')) {
                 closeLifePanel();
             }
+        });
+
+        // 3D Tilt and Reflective Specular Glare Mouse Interaction
+        const handleMouseMove = (e: MouseEvent, sticker: HTMLElement) => {
+            const rect = sticker.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+
+            const rotateX = ((y - centerY) / centerY) * -12;
+            const rotateY = ((x - centerX) / centerX) * 12;
+
+            const mx = `${(x / rect.width) * 100}%`;
+            const my = `${(y / rect.height) * 100}%`;
+
+            sticker.style.setProperty('--rx', `${rotateX}deg`);
+            sticker.style.setProperty('--ry', `${rotateY}deg`);
+            sticker.style.setProperty('--mx', mx);
+            sticker.style.setProperty('--my', my);
+            sticker.style.setProperty('--opacity-glare', '0.85');
+        };
+
+        const handleMouseLeave = (sticker: HTMLElement) => {
+            sticker.style.setProperty('--rx', '0deg');
+            sticker.style.setProperty('--ry', '0deg');
+            sticker.style.setProperty('--opacity-glare', '0');
+        };
+
+        [triggerSticker, returnSticker].forEach((sticker) => {
+            sticker.addEventListener('mousemove', (e) => handleMouseMove(e, sticker));
+            sticker.addEventListener('mouseleave', () => handleMouseLeave(sticker));
         });
     })();
 </script>
@@ -608,21 +846,6 @@ const heroTextEffect = "smooth-blur";
         backface-visibility: hidden;
     }
 
-    .hero-lede {
-        max-width: 1040px;
-        margin: 0;
-        color: var(--landing-copy-color);
-        font-family: var(--font-body);
-        font-size: clamp(1.72rem, 1.05rem + 1.52vw, 2.74rem);
-        font-weight: 260;
-        line-height: 1.43;
-        letter-spacing: 0em;
-    }
-
-    .hero-lede span {
-        background: transparent;
-        padding: 0;
-    }
 
     #typewriter-text {
         --smooth-blur-mask-start: color-mix(
@@ -762,27 +985,108 @@ const heroTextEffect = "smooth-blur";
         transition-delay: 0s;
     }
 
+    /* ── Two-column copy + image layout ────────────────────────────── */
+    .copy-image-layout {
+        display: grid;
+        grid-template-columns: 520px 1fr;
+        align-items: start;
+        position: relative;
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0 24px;
+        gap: 0 48px;
+    }
+
+    /* ── Right image panel — wrapper stays in grid, panel goes fixed ── */
+    .copy-image-wrapper {
+        /* Always occupies the right grid column — prevents layout shift */
+        position: relative;
+        min-height: 200px;
+    }
+
+    .copy-image-panel {
+        width: 100%;
+        aspect-ratio: var(--panel-aspect-ratio, 4 / 3);
+        max-height: calc(100vh - 180px);
+        border-radius: 12px;
+        overflow: hidden;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: opacity 400ms ease;
+    }
+
+    .copy-image-panel.is-fixed {
+        position: fixed;
+        top: 100px;
+    }
+
+    .copy-image-panel.is-bottom {
+        position: absolute;
+        bottom: 0;
+        top: auto;
+    }
+
+    .copy-panel-image {
+        position: absolute;
+        inset: 0;
+        margin: 0;
+        padding: 0;
+        opacity: 0;
+        z-index: 1;
+        pointer-events: none;
+        visibility: hidden;
+        display: none;
+        transition: opacity 600ms ease;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .copy-panel-image.is-fading-out {
+        display: block;
+        opacity: 0;
+        z-index: 2;
+        visibility: visible;
+        pointer-events: none;
+    }
+
+    .copy-panel-image.is-active {
+        display: block;
+        opacity: 1;
+        z-index: 10;
+        pointer-events: auto;
+        visibility: visible;
+    }
+
+    .copy-panel-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        object-position: center;
+        display: block;
+        border-radius: 12px;
+    }
+
     .landing-copy-body {
         position: relative;
         z-index: 2;
-        max-width: 1100px;
-        margin: clamp(0.4rem, 1.6vh, 1.25rem) auto clamp(7rem, 14vh, 10rem);
-        padding: 0 24px;
+        margin: clamp(0.4rem, 1.6vh, 1.25rem) 0 clamp(7rem, 14vh, 10rem);
         color: var(--landing-copy-color);
         font-family: var(--font-body);
-        font-size: clamp(1.72rem, 1.05rem + 1.52vw, 2.74rem);
-        font-weight: 260;
+        font-size: clamp(1.1rem, 0.75rem + 0.9vw, 1.6rem);
+        font-weight: 380;
         line-height: 1.43;
         letter-spacing: 0em;
     }
 
     .landing-copy-body p {
-        max-width: 1040px;
+        max-width: 520px;
         margin: 0 0 clamp(2.4rem, 5vh, 4.5rem);
         color: var(--landing-copy-color);
         font-family: var(--font-body);
-        font-size: clamp(1.72rem, 1.05rem + 1.52vw, 2.74rem);
-        font-weight: 260;
+        font-size: clamp(1.1rem, 0.75rem + 0.9vw, 1.6rem);
+        font-weight: 380;
         line-height: 1.43;
         letter-spacing: 0em;
         content-visibility: auto;
@@ -790,12 +1094,11 @@ const heroTextEffect = "smooth-blur";
     }
 
     .copy-link {
-        color: inherit;
-        text-decoration: underline;
-        text-decoration-color: var(--landing-link-underline-color);
-        text-decoration-thickness: 0.045em;
-        text-underline-offset: 0.18em;
+        color: #ffffff;
+        background-color: var(--color-brand-red);
+        text-decoration: none;
         border-radius: 3px;
+        padding: 0 0.15em;
         transition:
             color 160ms ease,
             background-color 160ms ease,
@@ -805,13 +1108,27 @@ const heroTextEffect = "smooth-blur";
     .copy-link:hover,
     .copy-link:focus-visible {
         color: #ffffff;
-        background-color: var(--color-brand-red);
-        text-decoration-color: transparent;
+        background-color: transparent;
+        text-decoration: underline;
+        text-decoration-color: rgba(255, 255, 255, 0.7);
+        text-decoration-thickness: 0.06em;
+        text-underline-offset: 0.22em;
         outline: none;
     }
 
     .copy-link:focus-visible {
         box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-brand-red) 55%, transparent);
+    }
+
+    /* Light mode: hover must be readable on white background */
+    :global(html[data-theme="light"]) .copy-link:hover,
+    :global(html[data-theme="light"]) .copy-link:focus-visible {
+        color: #111418;
+        background-color: transparent;
+        text-decoration: underline;
+        text-decoration-color: rgba(17, 20, 24, 0.55);
+        text-decoration-thickness: 0.06em;
+        text-underline-offset: 0.22em;
     }
 
     @media (max-width: 979px) {
@@ -834,7 +1151,7 @@ const heroTextEffect = "smooth-blur";
         }
 
         .hero-lede {
-            font-size: clamp(1.28rem, 1.08rem + 1.1vw, 1.62rem);
+            font-size: clamp(0.9rem, 0.75rem + 0.7vw, 1.15rem);
             line-height: 1.55;
         }
     }
@@ -888,14 +1205,24 @@ const heroTextEffect = "smooth-blur";
         .landing-copy-body {
             padding-left: 0;
             padding-right: 0;
-            font-size: clamp(1.28rem, 1.08rem + 1.1vw, 1.62rem);
+            font-size: clamp(0.9rem, 0.75rem + 0.7vw, 1.15rem);
             line-height: 1.55;
         }
 
         .landing-copy-body p {
             margin-bottom: 2.35rem;
-            font-size: clamp(1.28rem, 1.08rem + 1.1vw, 1.62rem);
+            font-size: clamp(0.9rem, 0.75rem + 0.7vw, 1.15rem);
             line-height: 1.55;
+            max-width: 100%;
+        }
+
+        .copy-image-layout {
+            grid-template-columns: 1fr;
+            padding: 0 16px;
+        }
+
+        .copy-image-panel {
+            display: none;
         }
     }
 
@@ -1187,4 +1514,240 @@ const heroTextEffect = "smooth-blur";
     if (textElement && phrases.length > 0 && heroTextMode === "smooth-blur") {
         startSmoothBlurText();
     }
+
+    /* ── Scroll-driven image panel switcher + JS sticky ───────────── */
+    (function initCopyImageSwitcher() {
+        const panel   = document.getElementById("copy-image-panel");
+        const wrapper = document.getElementById("copy-image-wrapper");
+        if (!panel || !wrapper) return;
+
+        const layout  = panel.closest(".copy-image-layout");
+        const figures = Array.from(panel.querySelectorAll(".copy-panel-image"));
+        if (!figures.length) return;
+
+        function updatePanelAspectRatio(fig) {
+            if (!fig || !panel) return;
+            const img = fig.querySelector("img");
+            if (!img) return;
+
+            const applyRatio = () => {
+                if (img.naturalWidth && img.naturalHeight) {
+                    panel.style.setProperty("--panel-aspect-ratio", `${img.naturalWidth} / ${img.naturalHeight}`);
+                    if (img.naturalHeight > img.naturalWidth) {
+                        panel.classList.add("is-portrait");
+                        panel.classList.remove("is-landscape");
+                    } else {
+                        panel.classList.add("is-landscape");
+                        panel.classList.remove("is-portrait");
+                    }
+                }
+            };
+
+            if (img.complete && img.naturalWidth) {
+                applyRatio();
+            } else {
+                img.addEventListener("load", applyRatio, { once: true });
+            }
+        }
+
+        // Randomize image selection for every new visitor session
+        function shuffleArray(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        try {
+            const rawPool = panel.dataset.imagePool;
+            if (rawPool) {
+                const pool = JSON.parse(rawPool);
+                if (Array.isArray(pool) && pool.length > 0) {
+                    const shuffled = shuffleArray(pool);
+                    const selected = shuffled.slice(0, figures.length);
+                    figures.forEach((fig, i) => {
+                        if (selected[i]) {
+                            const imgData = selected[i];
+                            fig.style.backgroundColor = imgData.bg || "#111418";
+                            const img = fig.querySelector("img");
+                            if (img) {
+                                img.src = imgData.url;
+                                img.alt = imgData.title || `Photo ${i + 1}`;
+                            }
+                        }
+                    });
+                }
+            }
+        } catch (e) {
+            console.warn("Could not randomize landing panel images:", e);
+        }
+
+        /* ── Image soft crossfade on scroll ─────────────────────────────── */
+        let activeIndex = 0;
+
+        // Set aspect ratio for initial active image
+        if (figures[activeIndex]) {
+            updatePanelAspectRatio(figures[activeIndex]);
+        }
+
+        // Attach listeners across all figures to ensure aspect ratios update promptly on load
+        figures.forEach((fig) => {
+            const img = fig.querySelector("img");
+            if (!img) return;
+            if (!img.complete) {
+                img.addEventListener("load", () => {
+                    if (fig.classList.contains("is-active")) {
+                        updatePanelAspectRatio(fig);
+                    }
+                }, { once: true });
+            }
+        });
+
+        function showImage(index) {
+            const target = ((index % figures.length) + figures.length) % figures.length;
+            if (target === activeIndex) return;
+
+            const prevFig = figures[activeIndex];
+            const nextFig = figures[target];
+
+            prevFig.classList.remove("is-active");
+            prevFig.classList.add("is-fading-out");
+
+            nextFig.classList.remove("is-fading-out");
+            nextFig.classList.add("is-active");
+
+            activeIndex = target;
+            updatePanelAspectRatio(nextFig);
+
+            setTimeout(() => {
+                prevFig.classList.remove("is-fading-out");
+            }, 600);
+        }
+
+        const article = document.querySelector(".landing-copy-body");
+
+        function updateImageByScroll() {
+            if (!article) return;
+            const rect     = article.getBoundingClientRect();
+            const articleH = article.offsetHeight;
+            const viewH    = window.innerHeight;
+
+            // Track scroll distance relative to article top
+            const STICKY_TOP = 160;
+            const scrollDistance = Math.max(0, STICKY_TOP - rect.top);
+            const scrollableRange = Math.max(1, articleH - viewH * 0.35);
+            const rawProgress = Math.min(1, Math.max(0, scrollDistance / scrollableRange));
+
+            // Cycle through images across the first 78% of reading distance
+            const imageProgress = Math.min(1, rawProgress / 0.78);
+            const targetIndex = Math.min(
+                Math.floor(imageProgress * figures.length),
+                figures.length - 1
+            );
+            showImage(targetIndex);
+
+            // Vanish the image panel smoothly before the last paragraph arrives (opacity 1 -> 0 between 0.76 and 0.88 progress)
+            if (rawProgress >= 0.76) {
+                const fadeOpacity = Math.max(0, (0.88 - rawProgress) / (0.88 - 0.76));
+                panel.style.opacity = fadeOpacity.toFixed(2);
+                panel.style.pointerEvents = fadeOpacity < 0.1 ? "none" : "auto";
+            } else {
+                panel.style.opacity = "1";
+                panel.style.pointerEvents = "auto";
+            }
+        }
+
+        /* ── JS-driven sticky using wrapper rect ───────────────────── */
+        const STICKY_OFFSET = 160; // px gap below header when locked
+        let ticking = false;
+
+        function updatePanelPosition() {
+            // Use wrapper rect — always in grid flow, coords are stable
+            const wRect  = wrapper.getBoundingClientRect();
+            const lRect  = layout ? layout.getBoundingClientRect() : wRect;
+            const panelH = panel.offsetHeight;
+            // Capture width NOW while wrapper is still in flow, before any class changes
+            const fixedWidth = wRect.width + "px";
+            const fixedLeft  = wRect.left  + "px";
+
+            const shouldFix = wRect.top < STICKY_OFFSET;
+            const hitBottom = (lRect.bottom - panelH) < STICKY_OFFSET;
+
+            if (!shouldFix) {
+                // Natural — panel scrolls with page
+                panel.classList.remove("is-fixed", "is-bottom");
+                panel.style.removeProperty("width");
+                panel.style.removeProperty("left");
+                panel.style.removeProperty("top");
+            } else if (hitBottom) {
+                // End of article — anchor to bottom of wrapper
+                panel.style.width = fixedWidth;        // set width first
+                panel.style.removeProperty("left");
+                panel.style.removeProperty("top");
+                panel.classList.remove("is-fixed");
+                panel.classList.add("is-bottom");
+            } else {
+                // Locked near header — set all styles BEFORE adding is-fixed
+                // so position:fixed never fires with width:100% = viewport
+                panel.style.width = fixedWidth;
+                panel.style.left  = fixedLeft;
+                panel.style.top   = STICKY_OFFSET + "px";
+                panel.classList.remove("is-bottom");
+                panel.classList.add("is-fixed");
+            }
+        }
+
+        /* ── Clip body text at the image panel's top edge ─────────── */
+        function updateTextMask() {
+            if (!article || !panel) return;
+            const articleRect = article.getBoundingClientRect();
+            const panelRect   = panel.getBoundingClientRect();
+            const CLIP_Y      = panelRect.top; // exact Y coordinate of image top edge
+
+            if (articleRect.top >= CLIP_Y) {
+                // Article top is still below clip line — no mask needed
+                article.style.removeProperty("mask-image");
+                article.style.removeProperty("-webkit-mask-image");
+                return;
+            }
+
+            // How many px from the top of the article down to the image top edge
+            const cutPointPx = CLIP_Y - articleRect.top;
+            const fadeSize   = 24; // smooth 24px soft gradient fade at the boundary
+            const fadeStart  = Math.max(0, cutPointPx - fadeSize / 2);
+            const fadeEnd    = cutPointPx + fadeSize / 2;
+
+            const mask = `linear-gradient(to bottom,
+                transparent 0,
+                transparent ${fadeStart}px,
+                black ${fadeEnd}px,
+                black 100%)`;
+            article.style.setProperty("mask-image", mask);
+            article.style.setProperty("-webkit-mask-image", mask);
+        }
+
+        window.addEventListener("scroll", () => {
+            if (!ticking) {
+                requestAnimationFrame(() => {
+                    updatePanelPosition();
+                    updateImageByScroll();
+                    updateTextMask();
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        }, { passive: true });
+
+        window.addEventListener("resize", () => {
+            updatePanelPosition();
+            updateImageByScroll();
+            updateTextMask();
+        }, { passive: true });
+
+        updatePanelPosition();
+        updateImageByScroll();
+        updateTextMask();
+    })();
 </script>

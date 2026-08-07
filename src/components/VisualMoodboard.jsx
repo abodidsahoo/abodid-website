@@ -342,17 +342,30 @@ export default function VisualMoodboard({
         };
     }, []);
 
-    // Scroll-triggered fade-in — adds .is-scroll-visible when a card
-    // enters the viewport. Cards already visible on mount are marked immediately.
+    // Scroll-triggered fade-in — initial visible viewport cards are rendered immediately
+    // without void. Below-the-fold cards trigger slow fade as user scrolls.
     useEffect(() => {
         const stage = stageRef.current;
-        if (!stage || prefersReducedMotion) {
-            // If reduced motion, mark everything visible right away
-            stage?.querySelectorAll('.moodboard-card[data-scroll-fade]').forEach((el) => {
-                el.classList.add('is-scroll-visible');
+        if (!stage) return;
+
+        if (prefersReducedMotion) {
+            stage.querySelectorAll('.moodboard-card[data-scroll-fade]').forEach((el) => {
+                el.classList.add('is-scroll-visible', 'is-initial-visible');
             });
             return;
         }
+
+        const viewportHeight = typeof window !== 'undefined' ? (window.innerHeight || 900) : 900;
+
+        const checkAndObserveCard = (el, observerInstance) => {
+            const rect = el.getBoundingClientRect();
+            // If card top is inside or near the initial visible viewport, make it visible immediately with no void
+            if (rect.top < viewportHeight + 60) {
+                el.classList.add('is-scroll-visible', 'is-initial-visible');
+            } else if (observerInstance) {
+                observerInstance.observe(el);
+            }
+        };
 
         const observer = new IntersectionObserver(
             (entries) => {
@@ -364,29 +377,29 @@ export default function VisualMoodboard({
                 });
             },
             {
-                // Trigger near the viewport midpoint — card must be 40% clear of the bottom
-                rootMargin: '0px 0px -40% 0px',
+                // Trigger near bottom edge of viewport on scroll
+                rootMargin: '0px 0px -5% 0px',
                 threshold: 0,
             },
         );
 
         scrollFadeObserverRef.current = observer;
 
-        // Observe all current cards
+        // Check all initial cards right away
         stage.querySelectorAll('.moodboard-card[data-scroll-fade]').forEach((el) => {
-            observer.observe(el);
+            checkAndObserveCard(el, observer);
         });
 
-        // Re-observe when new cards are added (infinite scroll)
+        // Re-check & observe when cards are added dynamically
         const mutationObserver = new MutationObserver((mutations) => {
             mutations.forEach((mutation) => {
                 mutation.addedNodes.forEach((node) => {
                     if (node.nodeType !== 1) return;
                     if (node.matches?.('.moodboard-card[data-scroll-fade]')) {
-                        observer.observe(node);
+                        checkAndObserveCard(node, observer);
                     }
                     node.querySelectorAll?.('.moodboard-card[data-scroll-fade]').forEach((el) => {
-                        observer.observe(el);
+                        checkAndObserveCard(el, observer);
                     });
                 });
             });
@@ -1748,16 +1761,22 @@ export default function VisualMoodboard({
                     overflow: visible;
                     pointer-events: none;
                     will-change: transform;
-                    /* Scroll-triggered fade-in — start invisible */
+                    /* Scroll-triggered fade-in — start invisible for below-fold cards */
                     opacity: 0;
                     translate: 0 28px;
-                    transition: opacity 2s cubic-bezier(0.08, 1, 0.2, 1),
-                                translate 1.7s cubic-bezier(0.08, 1, 0.2, 1);
+                    transition: opacity 1.2s cubic-bezier(0.08, 1, 0.2, 1),
+                                translate 1s cubic-bezier(0.08, 1, 0.2, 1);
                 }
 
                 .moodboard-card.is-scroll-visible {
                     opacity: 1;
                     translate: 0 0;
+                }
+
+                .moodboard-card.is-initial-visible {
+                    opacity: 1 !important;
+                    translate: 0 0 !important;
+                    transition: none !important;
                 }
 
                 .moodboard-card.is-clickable {

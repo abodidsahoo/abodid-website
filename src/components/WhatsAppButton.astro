@@ -45,7 +45,7 @@ const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(open
     line-height: 1;
     text-decoration: none;
     transition:
-      bottom 180ms ease,
+      bottom 320ms cubic-bezier(0.16, 1, 0.3, 1),
       transform 180ms ease,
       background-color 180ms ease,
       box-shadow 180ms ease;
@@ -132,6 +132,25 @@ const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(open
         btn.style.display = "none";
       }
     });
+
+    const notifyTop = () => {
+      try {
+        window.top?.postMessage({ type: "WHATSAPP_REPOSITION_REQUEST" }, "*");
+      } catch (e) {}
+    };
+
+    notifyTop();
+    window.addEventListener("load", notifyTop, { once: true });
+    window.addEventListener("resize", notifyTop, { passive: true });
+    const observer = new MutationObserver(notifyTop);
+    if (document.body) {
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ["class", "style", "hidden", "aria-hidden"],
+      });
+    }
   }
 
   const WHATSAPP_AVOIDANCE_GAP = 12;
@@ -148,12 +167,17 @@ const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(open
     button.dataset.avoidanceReady = "true";
     let animationFrame = 0;
 
-    const isViewportAnchored = (element) => {
-      let current = element;
+    const isViewportAnchored = (element: HTMLElement) => {
+      let current: HTMLElement | null = element;
 
-      while (current && current !== document.body) {
-        const position = window.getComputedStyle(current).position;
-        if (position === "fixed") {
+      while (
+        current &&
+        current !== document.body &&
+        current !== current.ownerDocument?.documentElement
+      ) {
+        const win = current.ownerDocument?.defaultView || window;
+        const position = win.getComputedStyle(current).position;
+        if (position === "fixed" || position === "sticky") {
           return true;
         }
         current = current.parentElement;
@@ -177,56 +201,109 @@ const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(open
       const viewportWidth = window.innerWidth;
       let requiredBottom = baseBottom;
 
+      const processCandidate = (
+        candidate: Element,
+        iframeOffsetTop = 0,
+        iframeOffsetLeft = 0,
+      ) => {
+        if (
+          !(candidate instanceof HTMLElement) ||
+          candidate === button ||
+          button.contains(candidate)
+        ) {
+          return;
+        }
+
+        const explicitlyAvoided = candidate.hasAttribute(
+          "data-whatsapp-avoid",
+        );
+        const win = candidate.ownerDocument?.defaultView || window;
+        const styles = win.getComputedStyle(candidate);
+        const rawRect = candidate.getBoundingClientRect();
+        const rect = {
+          top: rawRect.top + iframeOffsetTop,
+          bottom: rawRect.bottom + iframeOffsetTop,
+          left: rawRect.left + iframeOffsetLeft,
+          right: rawRect.right + iframeOffsetLeft,
+          width: rawRect.width,
+          height: rawRect.height,
+        };
+
+        const isVisible =
+          styles.display !== "none" &&
+          styles.visibility !== "hidden" &&
+          Number.parseFloat(styles.opacity || "1") > 0.05 &&
+          rect.width > 0 &&
+          rect.height > 0;
+        const isCompactControl =
+          rect.width <= Math.max(360, viewportWidth * 0.45) &&
+          rect.height <= 180;
+        const isInBottomZone =
+          rect.bottom >= viewportHeight - WHATSAPP_BOTTOM_ZONE &&
+          rect.top < viewportHeight;
+        const sharesRightCorner =
+          rect.right > buttonRect.left - WHATSAPP_AVOIDANCE_GAP &&
+          rect.left < buttonRect.right + WHATSAPP_AVOIDANCE_GAP;
+
+        if (
+          !isVisible ||
+          !isCompactControl ||
+          !isInBottomZone ||
+          !sharesRightCorner
+        ) {
+          return;
+        }
+
+        if (!explicitlyAvoided && !isViewportAnchored(candidate)) {
+          return;
+        }
+
+        requiredBottom = Math.max(
+          requiredBottom,
+          viewportHeight - rect.top + WHATSAPP_AVOIDANCE_GAP,
+        );
+      };
+
+      // 1. Check parent document
       document
         .querySelectorAll(WHATSAPP_INTERACTIVE_SELECTOR)
-        .forEach((candidate) => {
+        .forEach((candidate) => processCandidate(candidate, 0, 0));
+
+      // 2. Check same-origin iframes (e.g. #life-panel-iframe)
+      document.querySelectorAll("iframe").forEach((iframe) => {
+        try {
+          if (!(iframe instanceof HTMLIFrameElement)) return;
+          const iframeStyles = window.getComputedStyle(iframe);
           if (
-            !(candidate instanceof HTMLElement) ||
-            candidate === button ||
-            button.contains(candidate)
+            iframeStyles.display === "none" ||
+            iframeStyles.visibility === "hidden" ||
+            Number.parseFloat(iframeStyles.opacity || "1") <= 0.05
           ) {
             return;
           }
 
-          const explicitlyAvoided = candidate.hasAttribute(
-            "data-whatsapp-avoid",
-          );
-          const styles = window.getComputedStyle(candidate);
-          const rect = candidate.getBoundingClientRect();
-          const isVisible =
-            styles.display !== "none" &&
-            styles.visibility !== "hidden" &&
-            Number.parseFloat(styles.opacity || "1") > 0.05 &&
-            rect.width > 0 &&
-            rect.height > 0;
-          const isCompactControl =
-            rect.width <= Math.max(360, viewportWidth * 0.45) &&
-            rect.height <= 180;
-          const isInBottomZone =
-            rect.bottom >= viewportHeight - WHATSAPP_BOTTOM_ZONE &&
-            rect.top < viewportHeight;
-          const sharesRightCorner =
-            rect.right > buttonRect.left - WHATSAPP_AVOIDANCE_GAP &&
-            rect.left < buttonRect.right + WHATSAPP_AVOIDANCE_GAP;
+          const iframeDoc = iframe.contentDocument;
+          if (!iframeDoc) return;
 
+          const iframeRect = iframe.getBoundingClientRect();
           if (
-            !isVisible ||
-            !isCompactControl ||
-            !isInBottomZone ||
-            !sharesRightCorner
+            iframeRect.bottom <= 0 ||
+            iframeRect.top >= viewportHeight ||
+            iframeRect.right <= 0 ||
+            iframeRect.left >= viewportWidth
           ) {
             return;
           }
 
-          if (!explicitlyAvoided && !isViewportAnchored(candidate)) {
-            return;
-          }
-
-          requiredBottom = Math.max(
-            requiredBottom,
-            viewportHeight - rect.top + WHATSAPP_AVOIDANCE_GAP,
-          );
-        });
+          iframeDoc
+            .querySelectorAll(WHATSAPP_INTERACTIVE_SELECTOR)
+            .forEach((candidate) =>
+              processCandidate(candidate, iframeRect.top, iframeRect.left),
+            );
+        } catch (e) {
+          // Ignore cross-origin iframe security restrictions
+        }
+      });
 
       const nextOffset = Math.max(0, Math.ceil(requiredBottom - baseBottom));
       const nextValue = `${nextOffset}px`;
@@ -251,26 +328,7 @@ const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(open
       );
 
       if (!onlyButtonOffsetChanged) {
-        const relevantPageChange = mutations.some((mutation) => {
-          if (mutation.type === "childList") {
-            return (
-              mutation.addedNodes.length > 0 || mutation.removedNodes.length > 0
-            );
-          }
-
-          if (!(mutation.target instanceof HTMLElement)) return false;
-
-          return (
-            mutation.target.matches(WHATSAPP_INTERACTIVE_SELECTOR) ||
-            Boolean(
-              mutation.target.querySelector("[data-whatsapp-avoid]"),
-            )
-          );
-        });
-
-        if (relevantPageChange) {
-          scheduleReposition();
-        }
+        scheduleReposition();
       }
     });
 
@@ -286,6 +344,39 @@ const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(open
       passive: true,
     });
     window.addEventListener("load", scheduleReposition, { once: true });
+    window.addEventListener("message", (event) => {
+      if (event.data && event.data.type === "WHATSAPP_REPOSITION_REQUEST") {
+        scheduleReposition();
+      }
+    });
+
+    const checkIframes = () => {
+      document.querySelectorAll("iframe").forEach((iframe) => {
+        if (
+          !(iframe instanceof HTMLIFrameElement) ||
+          iframe.dataset.whatsappObserved
+        )
+          return;
+        iframe.dataset.whatsappObserved = "true";
+        iframe.addEventListener("load", scheduleReposition);
+        try {
+          if (iframe.contentDocument && iframe.contentDocument.body) {
+            const iframeObserver = new MutationObserver(() =>
+              scheduleReposition(),
+            );
+            iframeObserver.observe(iframe.contentDocument.body, {
+              childList: true,
+              subtree: true,
+              attributes: true,
+              attributeFilter: ["class", "style", "hidden", "aria-hidden"],
+            });
+          }
+        } catch (e) {}
+      });
+    };
+
+    checkIframes();
+    setInterval(checkIframes, 2000);
 
     scheduleReposition();
   }
