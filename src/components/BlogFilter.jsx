@@ -6,7 +6,7 @@ const slugify = (str) =>
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-+|-+$/g, '');
 
-const BlogFilter = ({ posts }) => { // Changed prop from items to posts for clarity
+const BlogFilter = ({ posts }) => {
     const [activeTag, setActiveTag] = useState(() => {
         if (typeof window === 'undefined') return 'All';
         const params = new URLSearchParams(window.location.search);
@@ -24,13 +24,13 @@ const BlogFilter = ({ posts }) => { // Changed prop from items to posts for clar
         return () => window.removeEventListener('popstate', handlePopState);
     }, []);
 
-    // 1. Extract unique categories
+    // Extract unique categories for filter bar
     const allCategories = useMemo(() => {
         const categories = new Set(['All']);
         posts.forEach(post => {
             if (post.category) {
                 if (Array.isArray(post.category)) {
-                    post.category.forEach(c => categories.add(c));
+                    post.category.forEach(c => c && categories.add(c));
                 } else {
                     categories.add(post.category);
                 }
@@ -58,7 +58,7 @@ const BlogFilter = ({ posts }) => { // Changed prop from items to posts for clar
         window.history.pushState({}, '', `${window.location.pathname}${query ? `?${query}` : ''}`);
     };
 
-    // 2. Filter posts
+    // Filter posts by active category
     const filteredPosts = useMemo(() => {
         if (normalizedActiveTag === 'All') return posts;
         const targetSlug = slugify(normalizedActiveTag);
@@ -70,7 +70,7 @@ const BlogFilter = ({ posts }) => { // Changed prop from items to posts for clar
 
     return (
         <div className="blog-filter-container">
-            {/* Sticky Filter Bar */}
+            {/* Filter Bar */}
             <div className="filter-bar">
                 <div className="filter-scroll">
                     {allCategories.map(category => (
@@ -85,38 +85,46 @@ const BlogFilter = ({ posts }) => { // Changed prop from items to posts for clar
                 </div>
             </div>
 
-            {/* Blog List Layout */}
-            <ul className="blog-list">
+            {/* 2-Column Grid Replicating Recommended Card Design Pixel-by-Pixel */}
+            <ul className="blog-list-grid">
                 {filteredPosts.map((post) => (
-                    <li key={post.title}>
-                        <a href={post.href} className="post-link">
-                            {/* 1. Image Section */}
-                            <div className="post-image-wrapper">
+                    <li key={post.title || post.href}>
+                        <a href={post.href} className="blog-post-card">
+                            {/* Left Image Column: 190px Square Image */}
+                            <div className="card-image-wrapper">
                                 {post.image ? (
                                     <img
                                         src={post.image}
                                         alt={post.title}
-                                        className="post-image"
+                                        className="card-image"
                                         loading="lazy"
                                     />
                                 ) : (
-                                    <div className="post-image-placeholder"></div>
+                                    <div className="card-image-placeholder">
+                                        <span className="placeholder-icon">✦</span>
+                                    </div>
                                 )}
                             </div>
 
-                            {/* 2. Content Section */}
-                            <div className="post-content">
-                                <span className="post-date">{post.date}</span>
-                                <h3 className="post-title">{post.title}</h3>
-                                <div className="post-category">
-                                    {post.category && (Array.isArray(post.category) ? post.category[0] : post.category)}
+                            {/* Center Content Column: Date + Title + Category & View More */}
+                            <div className="card-main-col">
+                                <div className="card-header-meta">
+                                    <span className="card-date">{post.date}</span>
                                 </div>
-                            </div>
 
-                            {/* 3. Action Section */}
-                            <div className="post-action">
-                                <span className="view-more">VIEW MORE</span>
-                                <span className="arrow">→</span>
+                                <h2 className="card-title">{post.title}</h2>
+
+                                <div className="card-footer-row">
+                                    {post.category && (
+                                        <div className="card-category">
+                                            {Array.isArray(post.category) ? post.category.join(' · ') : post.category}
+                                        </div>
+                                    )}
+                                    <div className="card-action">
+                                        <span>VIEW MORE</span>
+                                        <span className="card-arrow" aria-hidden="true">→</span>
+                                    </div>
+                                </div>
                             </div>
                         </a>
                     </li>
@@ -124,219 +132,212 @@ const BlogFilter = ({ posts }) => { // Changed prop from items to posts for clar
             </ul>
 
             <style>{`
-        .blog-filter-container { width: 100%; }
+                .filter-bar {
+                    margin-bottom: 3rem;
+                    width: 100%;
+                }
 
-        /* Filter Container */
-        .filter-bar {
-            margin-bottom: 4rem;
-            padding: 0 2rem;
-            display: flex;
-            justify-content: flex-start;
-            padding: 0; /* Align with left margin */
-        }
+                .filter-scroll {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 0.6rem;
+                    max-width: 100%;
+                }
 
-        .filter-scroll {
-            display: block;
-            text-align: left;
-            width: 100%;
-            max-width: 100%; /* Allow full width */
-            overflow-x: auto; /* Horizontal scroll */
-            white-space: nowrap; /* Prevent wrapping */
-            -webkit-overflow-scrolling: touch; /* Smooth scroll on iOS */
-            padding-bottom: 1rem; /* Space for scrollbar if visible */
-            scrollbar-width: none; /* Hide scrollbar Firefox */
-        }
-        
-        .filter-scroll::-webkit-scrollbar {
-            display: none; /* Hide scrollbar Chrome/Safari */
-        }
+                .filter-btn {
+                    background: transparent;
+                    border: 1px solid var(--border-subtle);
+                    font-family: var(--font-sans, inherit);
+                    font-size: 0.78rem;
+                    font-weight: 500;
+                    color: var(--text-secondary);
+                    cursor: pointer;
+                    padding: 8px 18px;
+                    border-radius: 100px;
+                    white-space: nowrap;
+                    transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+                    text-transform: uppercase;
+                    letter-spacing: 0.06em;
+                }
 
-        .filter-btn {
-            display: inline-block;
-            margin: 0.5rem 0.3rem;
-            background: transparent;
-            border: 1px solid var(--border-subtle);
-            font-size: 0.8rem;
-            font-weight: 500;
-            color: var(--text-secondary);
-            cursor: pointer;
-            padding: 8px 16px;
-            border-radius: 100px;
-            white-space: nowrap;
-            transition: all 0.2s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
+                .filter-btn:hover {
+                    border-color: var(--text-primary);
+                    color: var(--text-primary);
+                    background: var(--bg-surface);
+                }
 
-        .filter-btn:hover {
-            border-color: var(--text-primary);
-            color: var(--text-primary);
-        }
+                .filter-btn.contrast-active,
+                .filter-btn.active,
+                .filter-btn.is-selected {
+                    background: var(--text-primary) !important;
+                    color: var(--bg-color) !important;
+                    border-color: var(--text-primary) !important;
+                }
 
+                .blog-list-grid {
+                    display: grid;
+                    grid-template-columns: repeat(2, 1fr);
+                    gap: 2rem;
+                    padding: 0;
+                    margin: 2.5rem 0 5rem;
+                    list-style: none;
+                    width: 100%;
+                }
 
+                .blog-post-card {
+                    display: grid;
+                    grid-template-columns: 190px 1fr;
+                    gap: 2rem;
+                    padding: 2rem;
+                    text-decoration: none;
+                    color: var(--text-primary);
+                    border: 1px solid var(--border-subtle);
+                    border-radius: 18px;
+                    background: color-mix(in srgb, var(--bg-surface) 25%, var(--bg-color));
+                    transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+                                border-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+                                background-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+                                box-shadow 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+                    align-items: center;
+                    height: 100%;
+                }
 
-        .blog-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            border-top: 1px solid var(--border-subtle);
-        }
+                .blog-post-card:hover {
+                    transform: translateY(-3px);
+                    border-color: color-mix(in srgb, var(--text-primary) 35%, var(--border-subtle));
+                    background: var(--bg-surface);
+                    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.16);
+                }
 
-        .blog-list li {
-            border-bottom: 1px solid var(--border-subtle);
-        }
+                .card-image-wrapper {
+                    width: 190px;
+                    height: 190px;
+                    overflow: hidden;
+                    border-radius: 14px;
+                    background: var(--bg-surface);
+                    flex-shrink: 0;
+                }
 
-        .post-link {
-            display: grid;
-            grid-template-columns: 280px 1fr 200px; /* Image | Content | Action */
-            gap: 4rem;
-            padding: 3rem 0;
-            text-decoration: none;
-            color: var(--text-primary);
-            transition: background-color 0.3s ease;
-            align-items: center; /* Center vertically */
-        }
-        
-        .post-link:hover {
-            /* Create a subtle highlight effect, maybe minimal interaction */
-        }
+                .card-image {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+                }
 
-        /* 1. Image */
-        .post-image-wrapper {
-            width: 280px;
-            height: 280px;
-            overflow: hidden;
-            background: var(--bg-surface);
-        }
-        
-        .post-image {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.5s ease;
-        }
-        
-        .post-image-placeholder {
-            width: 100%;
-            height: 100%;
-            background: var(--bg-surface);
-        }
+                .blog-post-card:hover .card-image {
+                    transform: scale(1.035);
+                }
 
-        .post-link:hover .post-image {
-            transform: scale(1.03);
-        }
+                .card-image-placeholder {
+                    display: grid;
+                    place-items: center;
+                    width: 100%;
+                    height: 100%;
+                    background: var(--bg-surface);
+                    color: var(--text-tertiary);
+                    font-size: 1.8rem;
+                }
 
-        /* 2. Content */
-        .post-content {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            height: 100%;
-        }
+                .card-main-col {
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: space-between;
+                    height: 100%;
+                    min-height: 190px;
+                    min-width: 0;
+                }
 
-        .post-date {
-            font-family: var(--font-mono);
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--text-primary);
-            margin-bottom: 2rem;
-            display: block;
-        }
+                .card-date {
+                    font-family: var(--font-mono, monospace);
+                    font-size: 0.85rem;
+                    text-transform: uppercase;
+                    letter-spacing: 0.05em;
+                    color: var(--text-tertiary);
+                }
 
-        .post-title {
-            font-family: var(--font-serif); /* Display font */
-            font-size: 2.5rem;
-            font-weight: 400;
-            line-height: 1.1;
-            margin: 0 0 1.5rem 0;
-            letter-spacing: -0.02em;
-        }
+                .card-title {
+                    font-family: var(--font-serif, "Crimson Pro", serif);
+                    font-size: 1.55rem;
+                    font-weight: 400;
+                    line-height: 1.25;
+                    margin: 0.6rem 0 1rem;
+                    color: var(--text-primary);
+                    display: -webkit-box;
+                    -webkit-line-clamp: 3;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                }
 
-        .post-category {
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-        }
+                .card-footer-row {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 1rem;
+                    margin-top: auto;
+                }
 
-        /* 3. Action */
-        .post-action {
-            display: flex;
-            align-items: center;
-            justify-content: flex-end; /* Align to right */
-            gap: 1rem;
-            font-size: 0.9rem;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            color: var(--text-tertiary); /* Muted initially */
-            transition: color 0.3s ease;
-        }
+                .card-category {
+                    font-family: var(--font-sans, inherit);
+                    font-size: 0.9rem;
+                    color: var(--text-secondary);
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
 
-        .post-link:hover .post-action {
-            color: var(--text-primary); /* Highlight on hover */
-        }
+                .card-action {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    font-family: var(--font-mono, monospace);
+                    font-size: 0.8rem;
+                    letter-spacing: 0.08em;
+                    text-transform: uppercase;
+                    color: var(--text-tertiary);
+                    transition: color 0.25s ease;
+                    white-space: nowrap;
+                    margin-left: auto;
+                }
 
-        .arrow {
-            font-size: 1.2rem;
-            transition: transform 0.3s ease;
-        }
+                .card-arrow {
+                    display: inline-block;
+                    transition: transform 0.2s ease;
+                }
 
-        .post-link:hover .arrow {
-            transform: translateX(5px);
-        }
+                .blog-post-card:hover .card-action {
+                    color: var(--text-primary);
+                }
 
+                .blog-post-card:hover .card-arrow {
+                    transform: translateX(5px);
+                }
 
-        /* Responsive */
-        @media (max-width: 968px) {
-             .post-link {
-                grid-template-columns: 200px 1fr;
-                gap: 2rem;
-                padding: 2.5rem 0;
-            }
-            .post-action {
-                grid-column: 2;
-                justify-content: flex-start;
-                margin-top: 1rem;
-            }
-            .post-image-wrapper {
-                width: 200px;
-                height: 200px;
-            }
-            .post-title {
-                font-size: 2rem;
-            }
-        }
+                @media (max-width: 1120px) {
+                    .blog-list-grid {
+                        grid-template-columns: 1fr;
+                    }
+                }
 
-        @media (max-width: 600px) {
-            .post-link {
-                display: flex;
-                flex-direction: column;
-                gap: 2rem;
-                align-items: flex-start;
-                padding: 3rem 0;
-            }
-            
-            .post-image-wrapper {
-                width: 100%;
-                height: auto;
-                aspect-ratio: 1/1;
-            }
-
-            .post-content {
-                width: 100%;
-            }
-
-            .post-title {
-                font-size: 1.8rem;
-            }
-
-            .post-action {
-                width: 100%;
-                justify-content: space-between; /* Spread out on mobile */
-                border-top: 1px solid var(--border-subtle);
-                padding-top: 1rem;
-            }
-        }
-      `}</style>
+                @media (max-width: 600px) {
+                    .blog-post-card {
+                        grid-template-columns: 120px 1fr;
+                        padding: 1.25rem;
+                        gap: 1.25rem;
+                    }
+                    .card-image-wrapper {
+                        width: 120px;
+                        height: 120px;
+                    }
+                    .card-main-col {
+                        min-height: 120px;
+                    }
+                    .card-title {
+                        font-size: 1.2rem;
+                        margin: 0.4rem 0 0.6rem;
+                    }
+                }
+            `}</style>
         </div>
     );
 };

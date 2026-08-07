@@ -12,7 +12,7 @@ const breadcrumbsFor = (folderPath) => {
   }));
 };
 
-export default function PortfolioMediaPicker({ open, multiple = false, onClose, onSelect }) {
+export default function PortfolioMediaPicker({ open, multiple = false, gifOnly = false, onClose, onSelect }) {
   const [assets, setAssets] = useState([]);
   const [folders, setFolders] = useState([]);
   const [currentFolder, setCurrentFolder] = useState(ROOT_FOLDER);
@@ -58,8 +58,12 @@ export default function PortfolioMediaPicker({ open, multiple = false, onClose, 
     const needle = query.trim().toLowerCase();
     return assets
       .filter((asset) => !needle || `${asset.originalFilename} ${asset.objectKey}`.toLowerCase().includes(needle))
+      .filter((asset) => {
+        if (!gifOnly) return true;
+        return asset.mimeType === 'image/gif' || /\.gif(?:[?#]|$)/i.test(asset.publicUrl || asset.originalFilename || '');
+      })
       .sort((first, second) => first.originalFilename.localeCompare(second.originalFilename, undefined, { numeric: true }));
-  }, [assets, query]);
+  }, [assets, query, gifOnly]);
 
   if (!open) return null;
   const breadcrumbs = breadcrumbsFor(currentFolder);

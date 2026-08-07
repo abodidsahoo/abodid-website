@@ -159,31 +159,152 @@ const heroTextEffect = "smooth-blur";
         </p>
     </article>
 
+    {/* ── Solid Brand-Red Floating Sticker on Landing Page ─────────────────────────────── */}
+    <button
+        id="life-trigger-sticker"
+        class="life-sticker life-sticker-landing"
+        type="button"
+        aria-label="A glimpse into my life"
+        title="A glimpse into my life"
+    >
+        <div class="sticker-inner">
+            <div class="sticker-text-stack">
+                <span class="sticker-line">a glimpse</span>
+                <span class="sticker-line">into my</span>
+                <span class="sticker-line sticker-highlight">life</span>
+            </div>
+        </div>
+    </button>
+
     {/* ── Life page slide-in panel ─────────────────────────────── */}
-    <div id="life-panel" aria-label="Life page — drag to reveal">
-        <div id="life-panel-handle" role="button" tabindex="0" aria-label="Drag to reveal life page">
-            <div class="life-handle-inner">
-                <div class="life-handle-badge-wrapper">
-                    <span class="life-handle-text">Slide left to reveal</span>
-                    <div class="life-handle-circle" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="15 18 9 12 15 6"></polyline>
-                        </svg>
-                    </div>
+    <div id="life-panel" aria-label="Life page — photo memories">
+        <!-- Solid brand-red floating return sticker on top-left corner inside the Life Panel block -->
+        <button
+            id="life-return-sticker"
+            class="life-sticker life-sticker-return"
+            type="button"
+            aria-label="Go back to home page"
+            title="Go back to home page"
+        >
+            <div class="sticker-inner">
+                <div class="sticker-text-stack">
+                    <span class="return-arrow">←</span>
+                    <span class="return-label">home</span>
                 </div>
             </div>
-            {/* SVG line along right edge that bends elastically like a rubber band */}
-            <svg class="life-handle-line-svg" viewBox="-140 0 280 1000" preserveAspectRatio="none" aria-hidden="true">
-                <path class="life-handle-line-path" id="life-handle-line-path" d="M 0 0 Q 0 500 0 1000" />
-            </svg>
-        </div>
-        {/* Drag shield — blocks iframe pointer capture during drag */}
-        <div id="life-panel-shield"></div>
+        </button>
         <iframe id="life-panel-iframe" title="people, stories, memories"></iframe>
     </div>
 </BaseLayout>
 
 <style>
+    /* ── Solid Brand-Red Floating Circular Sticker Styles ─────────────────────────── */
+    .life-sticker {
+        position: fixed;
+        z-index: 9999;
+        border-radius: 50%;
+        border: none !important;
+        background: #EA2A10 !important;
+        background-color: #EA2A10 !important;
+        color: #ffffff !important;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 
+            0 12px 32px rgba(234, 42, 16, 0.48), 
+            0 4px 14px rgba(0, 0, 0, 0.35), 
+            inset 0 1px 2px rgba(255, 255, 255, 0.35) !important;
+        transition: 
+            opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), 
+            transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), 
+            box-shadow 0.3s ease, 
+            background-color 0.3s ease;
+        user-select: none;
+        padding: 0;
+        outline: none;
+    }
+
+    .life-sticker:focus-visible {
+        outline: 3px solid #ffffff;
+        outline-offset: 4px;
+    }
+
+    .sticker-inner {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        border-radius: 50%;
+        padding: 0.5rem;
+    }
+
+    .sticker-text-stack {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        line-height: 1.15;
+    }
+
+    /* Landing Trigger Sticker - Upper right-hand side, clear of header space */
+    .life-sticker-landing {
+        top: 11.5rem;
+        right: 3.5rem;
+        width: 100px;
+        height: 100px;
+        animation: stickerFloat 4.5s ease-in-out infinite;
+    }
+
+    .life-sticker-landing .sticker-line {
+        font-size: 0.65rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        color: #ffffff !important;
+        text-transform: lowercase;
+        white-space: nowrap;
+    }
+
+    .life-sticker-landing .sticker-highlight {
+        font-weight: 700;
+        font-size: 0.72rem;
+        letter-spacing: 0.04em;
+    }
+
+    @keyframes stickerFloat {
+        0%, 100% {
+            transform: translateY(0px) rotate(0deg);
+        }
+        50% {
+            transform: translateY(-8px) rotate(2deg);
+        }
+    }
+
+    .life-sticker-landing:hover {
+        transform: translateY(-8px) scale(1.07) rotate(-1.5deg);
+        background: #EA2A10 !important;
+        background-color: #EA2A10 !important;
+        box-shadow: 
+            0 18px 44px rgba(234, 42, 16, 0.65), 
+            0 8px 20px rgba(0, 0, 0, 0.4), 
+            inset 0 1px 3px rgba(255, 255, 255, 0.45) !important;
+    }
+
+    .life-sticker-landing:active {
+        transform: translateY(-2px) scale(0.95);
+    }
+
+    .life-sticker-landing.is-hiding {
+        opacity: 0 !important;
+        transform: scale(0.8) translateY(-16px) !important;
+        pointer-events: none !important;
+    }
+
+    /* Fullscreen Panel */
     #life-panel {
         position: fixed;
         top: 0;
@@ -192,515 +313,163 @@ const heroTextEffect = "smooth-blur";
         height: 100vh;
         z-index: 300;
         background: #0b0b0e;
+        transform: translate3d(100vw, 0, 0);
         will-change: transform;
         -webkit-backface-visibility: hidden;
         backface-visibility: hidden;
+        transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    #life-panel-handle {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 36px;
-        height: 100%;
-        z-index: 10;
-        cursor: ew-resize;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: rgba(0, 0, 0, 0.28);
-        backdrop-filter: blur(6px);
-        -webkit-backdrop-filter: blur(6px);
-        transition: background 0.2s ease;
-        overflow: visible;
-    }
-
-    #life-panel-handle:hover {
-        background: rgba(0, 0, 0, 0.42);
-    }
-
-    /* SVG line along the right edge of the handle */
-    .life-handle-line-svg {
-        position: absolute;
-        top: 0;
-        right: -30px;
-        width: 60px;
-        height: 100%;
-        pointer-events: none;
-        overflow: visible;
-        z-index: 12;
-    }
-
-    .life-handle-line-path {
-        fill: none;
-        stroke: rgba(255, 255, 255, 0.55);
-        stroke-width: 1.5px;
-        vector-effect: non-scaling-stroke;
-        transition: stroke 0.2s ease, stroke-width 0.2s ease;
-        d: path("M 0 0 Q 0 500 0 1000");
-    }
-
-    #life-panel-handle:hover .life-handle-line-path {
-        stroke: rgba(255, 255, 255, 0.9);
-        stroke-width: 1.8px;
-    }
-
-    .life-handle-inner {
-        position: relative;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-        height: 100%;
-        overflow: visible;
-    }
-
-    /* Synchronized handle move + soft breathing elastic bending animation */
-    .life-handle-nudge {
-        animation: life-handle-nudge 2.8s cubic-bezier(0.45, 0, 0.55, 1) infinite;
-        will-change: transform;
-    }
-
-    .life-handle-nudge .life-handle-line-path {
-        animation: life-line-bend 2.8s cubic-bezier(0.45, 0, 0.55, 1) infinite;
-        transition: none;
-    }
-
-    @keyframes life-handle-nudge {
-        0%, 100% {
-            transform: translate3d(0, 0, 0);
-        }
-        50% {
-            transform: translate3d(-9px, 0, 0);
-        }
-    }
-
-    @keyframes life-line-bend {
-        0%, 100% {
-            d: path("M 0 0 Q 0 500 0 1000");
-        }
-        50% {
-            d: path("M 0 0 Q -32 500 0 1000"); /* Soft breathing elastic curve */
-        }
-    }
-
-    @keyframes life-handle-nudge-open {
-        0%, 100% {
-            transform: translate3d(0, 0, 0);
-        }
-        50% {
-            transform: translate3d(9px, 0, 0);
-        }
-    }
-
-    @keyframes life-line-bend-open {
-        0%, 100% {
-            d: path("M 0 0 Q 0 500 0 1000");
-        }
-        50% {
-            d: path("M 0 0 Q 32 500 0 1000");
-        }
-    }
-
-    #life-panel.is-open .life-handle-nudge {
-        animation-name: life-handle-nudge-open;
-    }
-
-    #life-panel.is-open .life-handle-nudge .life-handle-line-path {
-        animation-name: life-line-bend-open;
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-        .life-handle-nudge,
-        .life-handle-nudge .life-handle-line-path,
-        .life-handle-nudge .life-handle-badge-wrapper {
-            animation: none;
-        }
-    }
-
-    .life-handle-badge-wrapper {
-        position: absolute;
-        right: -16px;
-        top: 50%;
-        transform: translateY(-50%);
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        z-index: 15;
-        pointer-events: none;
-        user-select: none;
-        white-space: nowrap;
-    }
-
-    .life-handle-text {
-        font-size: 0.75rem;
-        font-weight: 600;
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
-        color: rgba(255, 255, 255, 0.78);
-        text-shadow: 0 1px 6px rgba(0, 0, 0, 0.85);
-        user-select: none;
-        white-space: nowrap;
-        transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease, color 0.2s ease;
-    }
-
-    #life-panel.is-open .life-handle-text {
-        opacity: 0 !important;
-        visibility: hidden !important;
-        pointer-events: none !important;
-        transform: translateX(8px) !important;
-    }
-
-    #life-panel-handle:hover .life-handle-text {
-        color: #ffffff;
-    }
-
-    .life-handle-circle {
-        position: relative;
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        background: #ffffff;
-        color: #0b0b0e;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.25);
-        transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s ease, box-shadow 0.2s ease;
-        flex-shrink: 0;
-    }
-
-    .life-handle-circle svg {
-        transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-        display: block;
-    }
-
-    #life-panel.is-open .life-handle-circle svg {
-        transform: rotate(180deg) !important;
-    }
-
-    .life-handle-nudge .life-handle-badge-wrapper {
-        animation: life-badge-bend 2.8s cubic-bezier(0.45, 0, 0.55, 1) infinite;
-    }
-
-    @keyframes life-badge-bend {
-        0%, 100% {
-            transform: translateY(-50%);
-        }
-        50% {
-            transform: translate(-3.43px, -50%);
-        }
-    }
-
-    #life-panel-handle:hover .life-handle-circle {
-        transform: scale(1.12);
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.4);
-    }
-
-    #life-panel-shield {
-        position: absolute;
-        inset: 0;
-        left: 36px;
-        z-index: 5;
-        pointer-events: none;
+    #life-panel.is-open {
+        transform: translate3d(0, 0, 0);
     }
 
     #life-panel-iframe {
         position: absolute;
         top: 0;
-        left: 36px;
-        right: 0;
-        bottom: 0;
-        width: calc(100% - 36px);
+        left: 0;
+        width: 100%;
         height: 100%;
         border: none;
         background: #0b0b0e;
         display: block;
     }
 
-    @media (max-width: 768px) {
-        #life-panel {
-            display: none !important;
+    /* Return Sticker inside upper left side of Life Panel block */
+    .life-sticker-return {
+        position: absolute;
+        top: 6.5rem;
+        left: 3.5rem;
+        z-index: 9999;
+        width: 84px;
+        height: 84px;
+        opacity: 0;
+        transform: scale(0.85) translateX(-12px);
+        pointer-events: none;
+        animation: returnStickerFloat 4.5s ease-in-out infinite;
+        transition: 
+            opacity 0.4s ease 0.25s, 
+            transform 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.25s, 
+            box-shadow 0.3s ease, 
+            background-color 0.3s ease;
+    }
+
+    @keyframes returnStickerFloat {
+        0%, 100% {
+            transform: translateY(0px) rotate(0deg);
+        }
+        50% {
+            transform: translateY(-6px) rotate(-1.8deg);
+        }
+    }
+
+    .life-sticker-return .return-arrow {
+        font-size: 1.25rem;
+        font-weight: 700;
+        line-height: 1;
+        margin-bottom: 1px;
+    }
+
+    .life-sticker-return .return-label {
+        font-size: 0.625rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: lowercase;
+    }
+
+    #life-panel.is-open .life-sticker-return {
+        opacity: 1;
+        transform: scale(1) translateX(0);
+        pointer-events: auto;
+    }
+
+    .life-sticker-return:hover {
+        transform: scale(1.08) rotate(-2deg);
+        background: #EA2A10 !important;
+        background-color: #EA2A10 !important;
+        box-shadow: 
+            0 16px 40px rgba(234, 42, 16, 0.65), 
+            0 6px 18px rgba(0, 0, 0, 0.4), 
+            inset 0 1px 3px rgba(255, 255, 255, 0.45) !important;
+    }
+
+    .life-sticker-return:active {
+        transform: scale(0.94);
+    }
+
+    .life-sticker-return.is-hiding {
+        opacity: 0 !important;
+        transform: scale(0.85) translateX(-12px) !important;
+        pointer-events: none !important;
+        transition: opacity 0.25s ease, transform 0.25s ease !important;
+    }
+
+    @media (max-width: 640px) {
+        .life-sticker-landing {
+            top: 9.5rem;
+            right: 1.5rem;
+            width: 88px;
+            height: 88px;
+        }
+
+        .life-sticker-return {
+            top: 5.5rem;
+            left: 1.5rem;
+            width: 76px;
+            height: 76px;
+        }
+
+        .life-sticker-landing .sticker-line {
+            font-size: 0.58rem;
         }
     }
 </style>
 
 <script>
     (() => {
-        const panel        = document.getElementById('life-panel');
-        const handle       = document.getElementById('life-panel-handle');
-        const shield       = document.getElementById('life-panel-shield');
-        const iframe       = document.getElementById('life-panel-iframe');
-        const linePath     = document.getElementById('life-handle-line-path');
-        const badgeWrapper = handle ? handle.querySelector('.life-handle-badge-wrapper') : null;
-        const handleText   = handle ? handle.querySelector('.life-handle-text') : null;
-        const circleSvg    = handle ? handle.querySelector('.life-handle-circle svg') : null;
-        if (!panel || !handle) return;
+        const panel          = document.getElementById('life-panel');
+        const iframe         = document.getElementById('life-panel-iframe') as HTMLIFrameElement | null;
+        const triggerSticker = document.getElementById('life-trigger-sticker');
+        const returnSticker  = document.getElementById('life-return-sticker');
+        if (!panel || !triggerSticker || !returnSticker) return;
 
-        const HANDLE_W    = 36;
-        const FRICTION    = 0.86;
-        const MIN_VEL     = 0.4;
-
-        let vpW        = window.innerWidth;
-        let minX       = 0;
-        let maxX       = Math.max(0, Math.round(vpW * 0.95 - HANDLE_W));
-        let currentX   = maxX;
-        let isDragging = false;
-        let startPtrX  = 0;
-        let startPanX  = 0;
-        let velocity   = 0;
-        let lastPtrX   = 0;
-        let lastPtrT   = 0;
-        let peakY      = 500;
         let iframeReady = false;
 
-        // Keep oscillation hint animation permanently active on handle
-        handle.classList.add('life-handle-nudge');
-
-        panel.style.transform = `translate3d(${currentX}px, 0, 0)`;
-
-        const updateDynamicState = (x) => {
-            const progress = maxX > 0 ? Math.max(0, Math.min(1, 1 - x / maxX)) : 0;
-            if (handleText) {
-                const opacity = Math.max(0, 1 - progress * 2.2);
-                handleText.style.opacity = opacity.toFixed(2);
-                handleText.style.visibility = opacity <= 0.01 ? 'hidden' : 'visible';
-            }
-            if (circleSvg) {
-                const rot = progress * 180;
-                circleSvg.style.transform = `rotate(${rot.toFixed(1)}deg)`;
-            }
-        };
-
         const loadIframe = () => {
-            if (iframeReady) return;
-            if (window.innerWidth <= 768) return;
+            if (iframeReady || !iframe) return;
             iframeReady = true;
             iframe.src = '/life';
         };
-        setTimeout(loadIframe, 2000);
 
-        window.addEventListener('resize', () => {
-            const oldMaxX = maxX;
-            vpW  = window.innerWidth;
-            minX = 0;
-            maxX = Math.max(0, Math.round(vpW * 0.95 - HANDLE_W));
-            if (currentX >= oldMaxX - 4) {
-                currentX = maxX;
-            } else {
-                const ratio = currentX / (oldMaxX || 1);
-                currentX = Math.round(maxX * Math.min(ratio, 1));
-            }
-            panel.style.transform = `translate3d(${currentX}px, 0, 0)`;
-            updateDynamicState(currentX);
-        }, { passive: true });
+        // Preload iframe after short delay for instantaneous display
+        setTimeout(loadIframe, 1500);
 
-        const rubberClamp = (val) => {
-            if (val < minX) return minX + (val - minX) * 0.25;
-            if (val > maxX) return maxX + (val - maxX) * 0.25;
-            return val;
+        const openLifePanel = () => {
+            loadIframe();
+            triggerSticker.classList.add('is-hiding');
+            panel.classList.add('is-open');
+            returnSticker.classList.remove('is-hiding');
+            document.body.style.overflow = 'hidden';
         };
 
-        const hardClamp = (val) => Math.max(minX, Math.min(maxX, val));
-
-        // ── Drag start (record cursor Y position for pinched curve) ──
-        handle.addEventListener('pointerdown', (e) => {
-            e.preventDefault();
-            loadIframe();
-
-            const rect = handle.getBoundingClientRect();
-            const clickY = e.clientY - rect.top;
-            peakY = Math.max(100, Math.min(900, Math.round((clickY / (rect.height || 1)) * 1000)));
-
-            if (badgeWrapper) {
-                badgeWrapper.style.top = `${(peakY / 10).toFixed(1)}%`;
-            }
-
-            isDragging  = true;
-            startPtrX   = e.clientX;
-            startPanX   = currentX;
-            lastPtrX    = e.clientX;
-            lastPtrT    = performance.now();
-            velocity    = 0;
-
-            panel.style.transition = '';
-            shield.style.pointerEvents = 'all';
-            document.body.style.cursor = 'ew-resize';
-            document.body.style.userSelect = 'none';
-
-            handle.setPointerCapture(e.pointerId);
-        });
-
-        // ── Drag move (strong real-time cursor-pinched elastic curve) ──
-        handle.addEventListener('pointermove', (e) => {
-            if (!isDragging) return;
-
-            const now = performance.now();
-            const dt  = now - lastPtrT;
-            if (dt > 0) {
-                velocity = ((e.clientX - lastPtrX) / dt) * 16;
-            }
-            lastPtrX = e.clientX;
-            lastPtrT = now;
-
-            const delta = e.clientX - startPtrX;
-            currentX = rubberClamp(startPanX + delta);
-            panel.style.transform = `translate3d(${currentX}px, 0, 0)`;
-            updateDynamicState(currentX);
-
-            if (linePath) {
-                const pullAmount = -delta; // positive when pulling left
-                let bendX;
-                if (pullAmount >= 0) {
-                    // Pulling left: bend strongly to left up to -125px!
-                    bendX = -Math.min(125, pullAmount * 0.42 + Math.abs(velocity) * 2.8 + 14);
-                } else {
-                    // Pushing right: flex right
-                    bendX = Math.min(60, -pullAmount * 0.35 + velocity * 2.2);
-                }
-                linePath.style.transition = 'none';
-                linePath.setAttribute('d', `M 0 0 Q ${bendX.toFixed(1)} ${peakY} 0 1000`);
-
-                if (badgeWrapper) {
-                    const cssOffset = (bendX * (30 / 280)).toFixed(2);
-                    badgeWrapper.style.transition = 'none';
-                    badgeWrapper.style.transform = `translate(${cssOffset}px, -50%)`;
-                }
-            }
-        });
-
-        // ── Drag end (elastic spring rebound & continuous breathing resumption) ──
-        const endDrag = (e) => {
-            if (!isDragging) return;
-            isDragging = false;
-
-            shield.style.pointerEvents = 'none';
-            document.body.style.cursor = '';
-            document.body.style.userSelect = '';
-
-            const dragDistance = e ? Math.abs(e.clientX - startPtrX) : 999;
-            const isClick = dragDistance < 5;
-
-            // Spring rebound on the elastic line, then resume continuous keyframe breathing
-            if (linePath) {
-                linePath.style.transition = 'd 0.18s cubic-bezier(0.2, 0.8, 0.2, 1)';
-                linePath.setAttribute('d', `M 0 0 Q 22 ${peakY} 0 1000`);
-                if (badgeWrapper) {
-                    badgeWrapper.style.transition = 'transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1), top 0.18s cubic-bezier(0.2, 0.8, 0.2, 1)';
-                    badgeWrapper.style.transform = `translate(${(22 * (30 / 280)).toFixed(2)}px, -50%)`;
-                }
-                setTimeout(() => {
-                    linePath.style.transition = 'd 0.38s cubic-bezier(0.34, 1.4, 0.64, 1)';
-                    linePath.setAttribute('d', 'M 0 0 Q 0 500 0 1000');
-                    if (badgeWrapper) {
-                        badgeWrapper.style.transition = 'transform 0.38s cubic-bezier(0.34, 1.4, 0.64, 1), top 0.38s cubic-bezier(0.34, 1.4, 0.64, 1)';
-                        badgeWrapper.style.transform = 'translate(0px, -50%)';
-                        badgeWrapper.style.top = '50%';
-                    }
-                    setTimeout(() => {
-                        // Resume CSS keyframe breathing oscillation seamlessly
-                        linePath.removeAttribute('d');
-                        linePath.style.transition = '';
-                        if (badgeWrapper) {
-                            badgeWrapper.style.transform = '';
-                            badgeWrapper.style.transition = '';
-                            badgeWrapper.style.top = '';
-                        }
-                    }, 380);
-                }, 180);
-            }
-
-            const FLICK_THRESHOLD = 3.5;
-            let targetX;
-
-            if (isClick) {
-                // Quick tap toggle
-                targetX = startPanX >= maxX * 0.5 ? minX : maxX;
-            } else if (velocity < -FLICK_THRESHOLD) {
-                // Fast flick left → throw open to 0
-                targetX = minX;
-            } else if (velocity > FLICK_THRESHOLD) {
-                // Fast flick right → throw closed to base position
-                targetX = maxX;
-            } else {
-                // Soft drag → snap to minX if past 50%, else snap back to maxX
-                const projectedX = currentX + velocity * 8;
-                targetX = projectedX < (maxX * 0.5) ? minX : maxX;
-            }
-
-            const distance = Math.abs(targetX - currentX);
-            const duration = Math.min(0.5, Math.max(0.28, distance / 1000));
-            const easeCurve = Math.abs(velocity) > FLICK_THRESHOLD
-                ? 'cubic-bezier(0.34, 1.25, 0.64, 1)'
-                : 'cubic-bezier(0.22, 1, 0.36, 1)';
-
-            panel.style.transition = `transform ${duration}s ${easeCurve}`;
-            currentX = targetX;
-            panel.style.transform = `translate3d(${currentX}px, 0, 0)`;
-
-            // Update state during snap animation
-            if (targetX === minX) {
-                panel.classList.add('is-open');
-                if (handleText) {
-                    handleText.style.transition = `opacity ${duration}s ease, visibility ${duration}s ease`;
-                    handleText.style.opacity = '0';
-                    handleText.style.visibility = 'hidden';
-                }
-                if (circleSvg) {
-                    circleSvg.style.transition = `transform ${duration}s ${easeCurve}`;
-                    circleSvg.style.transform = 'rotate(180deg)';
-                }
-                handle.setAttribute('aria-label', 'Slide right to hide life page');
-            } else {
-                panel.classList.remove('is-open');
-                if (handleText) {
-                    handleText.style.transition = `opacity ${duration}s ease, visibility ${duration}s ease`;
-                    handleText.style.opacity = '1';
-                    handleText.style.visibility = 'visible';
-                }
-                if (circleSvg) {
-                    circleSvg.style.transition = `transform ${duration}s ${easeCurve}`;
-                    circleSvg.style.transform = 'rotate(0deg)';
-                }
-                handle.setAttribute('aria-label', 'Drag to reveal life page');
-            }
-
+        const closeLifePanel = () => {
+            returnSticker.classList.add('is-hiding');
+            panel.classList.remove('is-open');
+            document.body.style.overflow = '';
+            
+            // Fade trigger sticker back in after transition starts
             setTimeout(() => {
-                panel.style.transition = '';
-                if (handleText) handleText.style.transition = '';
-                if (circleSvg) circleSvg.style.transition = '';
-                if (targetX === maxX) {
-                    if (handleText) {
-                        handleText.style.opacity = '';
-                        handleText.style.visibility = '';
-                    }
-                    if (circleSvg) circleSvg.style.transform = '';
-                }
-            }, duration * 1000 + 40);
+                triggerSticker.classList.remove('is-hiding');
+            }, 300);
         };
 
-        handle.addEventListener('pointerup',     endDrag);
-        handle.addEventListener('pointercancel', endDrag);
+        triggerSticker.addEventListener('click', openLifePanel);
+        returnSticker.addEventListener('click', closeLifePanel);
 
-        // Keyboard support
-        handle.addEventListener('keydown', (e) => {
-            loadIframe();
-            if (e.key === 'ArrowLeft')  {
-                velocity = -10;
-                isDragging = true;
-                endDrag();
-            }
-            if (e.key === 'ArrowRight') {
-                velocity = 10;
-                isDragging = true;
-                endDrag();
-            }
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                isDragging = true;
-                velocity = currentX >= maxX * 0.5 ? -10 : 10;
-                endDrag();
+        // Escape key support to exit panel
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && panel.classList.contains('is-open')) {
+                closeLifePanel();
             }
         });
     })();

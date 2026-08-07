@@ -11,9 +11,10 @@ import {
     NEWSLETTER_FONT_OPTIONS,
     resizeNewsletterColumns,
 } from '../../lib/newsletter/blocks.js';
-import ImageUploader from './ImageUploader';
+import { PortfolioImageUploader } from '../portfolio/admin/PortfolioBlockEditor';
+import PortfolioMediaPicker from '../portfolio/admin/PortfolioMediaPicker';
+import { supabase } from '../../lib/supabaseClient';
 import InlineLinkEditor from './InlineLinkEditor';
-import NewsletterMediaPicker from './NewsletterMediaPicker';
 
 const FONT_WEIGHTS = [400, 500, 600, 700, 800];
 const ALIGNMENTS = ['left', 'center', 'right'];
@@ -304,7 +305,7 @@ function ExistingImage({ src, alt = '', fixedHeight = null }) {
     );
 }
 
-function ColumnItemFields({ blockId, columnId, item, updateItem, mediaAccessToken, showCustomization }) {
+function ColumnItemFields({ blockId, columnId, item, updateItem, mediaAccessToken, showCustomization, setMediaPickerTarget, uploadingBlockId, setUploadingBlockId, uploadToSupabase }) {
     const alignmentOptions = ALIGNMENTS.map((alignment) => ({
         value: alignment,
         label: alignment[0].toUpperCase() + alignment.slice(1),
@@ -345,24 +346,34 @@ function ColumnItemFields({ blockId, columnId, item, updateItem, mediaAccessToke
         return (
             <>
                 <ExistingImage src={item.imageUrl || item.previewImageUrl} alt={item.imageUrl ? item.alt : item.previewImageAlt} fixedHeight={item.frameHeight || 150} />
-                <div className="image-source-actions">
-                    <ImageUploader
-                        key={item.imageUrl || item.id}
-                        bucket="newsletter-assets"
-                        path={`designer/${blockId}/${columnId}/${item.id}`}
-                        label="Upload image"
-                        onUpload={(files) => updateItem({ imageUrl: files?.[0]?.url || item.imageUrl, previewImageUrl: '' })}
-                        accept="image/*"
-                        buttonOnly
+                <div className="media-field-list" style={{ marginTop: '0.5rem', marginBottom: '0.5rem' }}>
+                    <PortfolioImageUploader
+                        hasImages={Boolean(item.imageUrl || item.previewImageUrl)}
+                        multiple={false}
+                        onUpload={async (file) => {
+                            setUploadingBlockId(`${blockId}-${columnId}-${item.id}`);
+                            try {
+                                const { url } = await uploadToSupabase(file, `designer/${blockId}/${columnId}/${item.id}`);
+                                updateItem({ imageUrl: url, previewImageUrl: '' });
+                            } finally {
+                                setUploadingBlockId(null);
+                            }
+                        }}
+                        disabled={uploadingBlockId === `${blockId}-${columnId}-${item.id}`}
+                        emptyLabel="Drop an image here"
+                        filledLabel="Replace this image"
                     />
-                    <NewsletterMediaPicker
-                        accessToken={mediaAccessToken}
-                        onSelect={({ imageUrl, alt }) => updateItem({ imageUrl, previewImageUrl: '', alt: item.alt || alt })}
-                    />
-                    <details className="image-url-action">
-                        <summary>Add image URL</summary>
-                        <label className="field-group compact-field"><span>Image URL</span><input className="box-input" type="url" value={item.imageUrl} onChange={(event) => updateItem({ imageUrl: event.target.value, previewImageUrl: '' })} placeholder="https://…" /></label>
-                    </details>
+                    <div className="media-add-row is-secondary" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', width: '100%' }}>
+                        <button type="button" className="media-choice-button" onClick={() => setMediaPickerTarget({ onSelect: (media) => updateItem({ imageUrl: media.url, previewImageUrl: '', alt: item.alt || media.alt }) })}>
+                            {item.imageUrl || item.previewImageUrl ? "Replace from library" : "Choose from library"}
+                        </button>
+                        <details className="image-url-action">
+                            <summary className="media-choice-button" style={{ listStyle: 'none' }}>{item.imageUrl || item.previewImageUrl ? "Replace with link" : "Add image link"}</summary>
+                            <div style={{ marginTop: '0.5rem' }}>
+                                <label className="field-group compact-field"><span>Image URL</span><input className="box-input" type="url" value={item.imageUrl} onChange={(event) => updateItem({ imageUrl: event.target.value, previewImageUrl: '' })} placeholder="https://…" /></label>
+                            </div>
+                        </details>
+                    </div>
                 </div>
                 <div className="control-grid">
                     <label className="field-group compact-field"><span>Caption</span><input className="box-input" value={item.caption || ''} onChange={(event) => updateItem({ caption: event.target.value })} placeholder="Optional caption" /></label>
@@ -414,7 +425,7 @@ function ColumnItemFields({ blockId, columnId, item, updateItem, mediaAccessToke
     return null;
 }
 
-function ColumnsBlockFields({ block, updateBlock, mediaAccessToken, getRandomMediaPreview, showCustomization }) {
+function ColumnsBlockFields({ block, updateBlock, mediaAccessToken, getRandomMediaPreview, showCustomization, setMediaPickerTarget, uploadingBlockId, setUploadingBlockId, uploadToSupabase }) {
     const columns = Array.isArray(block.columns) ? block.columns.slice(0, block.columnCount) : [];
     const [activeColumnId, setActiveColumnId] = useState(columns[0]?.id || null);
 
@@ -503,7 +514,7 @@ function ColumnsBlockFields({ block, updateBlock, mediaAccessToken, getRandomMed
                                         <button type="button" className="danger" onClick={() => updateColumnItems(items.filter((_, index) => index !== itemIndex))} aria-label="Delete element">×</button>
                                     </div>
                                 </div>
-                                <ColumnItemFields blockId={block.id} columnId={activeColumn.id} item={item} updateItem={(patch) => updateItem(itemIndex, patch)} mediaAccessToken={mediaAccessToken} showCustomization={showCustomization} />
+                                <ColumnItemFields blockId={block.id} columnId={activeColumn.id} item={item} updateItem={(patch) => updateItem(itemIndex, patch)} mediaAccessToken={mediaAccessToken} showCustomization={showCustomization} setMediaPickerTarget={setMediaPickerTarget} uploadingBlockId={uploadingBlockId} setUploadingBlockId={setUploadingBlockId} uploadToSupabase={uploadToSupabase} />
                                 {showCustomization && <NumberControl label="Space after element" value={item.spacingBottom} min={0} max={40} step={2} suffix="px" onChange={(value) => updateItem(itemIndex, { spacingBottom: value })} />}
                             </div>
                         ))}
@@ -515,7 +526,7 @@ function ColumnsBlockFields({ block, updateBlock, mediaAccessToken, getRandomMed
     );
 }
 
-function BlockFields({ block, updateBlock, settings, mediaAccessToken, getRandomMediaPreview, showCustomization }) {
+function BlockFields({ block, updateBlock, settings, mediaAccessToken, getRandomMediaPreview, showCustomization, setMediaPickerTarget, uploadingBlockId, setUploadingBlockId, uploadToSupabase }) {
     if (block.type === 'headingGroup') {
         return (
             <>
@@ -634,28 +645,37 @@ function BlockFields({ block, updateBlock, settings, mediaAccessToken, getRandom
         return (
             <>
                 <ExistingImage src={block.imageUrl || block.previewImageUrl} alt={block.imageUrl ? block.alt : block.previewImageAlt} />
-                <div className="image-source-actions">
-                    <ImageUploader
-                        key={block.imageUrl || block.id}
-                        bucket="newsletter-assets"
-                        path={`designer/${block.id}`}
-                        label={`Upload ${isGif ? 'GIF' : 'image'}`}
-                        onUpload={(files) => updateBlock({ imageUrl: files?.[0]?.url || block.imageUrl, previewImageUrl: '' })}
-                        accept={isGif ? 'image/gif,.gif' : 'image/*'}
-                        buttonOnly
+                <div className="media-field-list" style={{ marginTop: '0.5rem', marginBottom: '0.5rem' }}>
+                    <PortfolioImageUploader
+                        hasImages={Boolean(block.imageUrl || block.previewImageUrl)}
+                        multiple={false}
+                        onUpload={async (file) => {
+                            setUploadingBlockId(block.id);
+                            try {
+                                const { url } = await uploadToSupabase(file, `designer/${block.id}`);
+                                updateBlock({ imageUrl: url, previewImageUrl: '' });
+                            } finally {
+                                setUploadingBlockId(null);
+                            }
+                        }}
+                        disabled={uploadingBlockId === block.id}
+                        emptyLabel={`Drop ${isGif ? 'a GIF' : 'an image'} here`}
+                        filledLabel={`Replace this ${isGif ? 'GIF' : 'image'}`}
                     />
-                    <NewsletterMediaPicker
-                        accessToken={mediaAccessToken}
-                        onSelect={({ imageUrl, alt }) => updateBlock({ imageUrl, previewImageUrl: '', alt: block.alt || alt })}
-                        gifOnly={isGif}
-                    />
-                    <details className="image-url-action">
-                        <summary>Add {isGif ? 'GIF' : 'image'} URL</summary>
-                        <label className="field-group compact-field">
-                            <span>{isGif ? 'GIF' : 'Image'} URL</span>
-                            <input className="box-input" type="url" value={block.imageUrl} onChange={(event) => updateBlock({ imageUrl: event.target.value, previewImageUrl: '' })} placeholder="https://…" />
-                        </label>
-                    </details>
+                    <div className="media-add-row is-secondary" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', width: '100%' }}>
+                        <button type="button" className="media-choice-button" onClick={() => setMediaPickerTarget({ gifOnly: isGif, onSelect: (media) => updateBlock({ imageUrl: media.url, previewImageUrl: '', alt: block.alt || media.alt }) })}>
+                            {block.imageUrl || block.previewImageUrl ? "Replace from library" : "Choose from library"}
+                        </button>
+                        <details className="image-url-action">
+                            <summary className="media-choice-button" style={{ listStyle: 'none' }}>{block.imageUrl || block.previewImageUrl ? "Replace with link" : "Add image link"}</summary>
+                            <div style={{ marginTop: '0.5rem' }}>
+                                <label className="field-group compact-field">
+                                    <span>{isGif ? 'GIF' : 'Image'} URL</span>
+                                    <input className="box-input" type="url" value={block.imageUrl} onChange={(event) => updateBlock({ imageUrl: event.target.value, previewImageUrl: '' })} placeholder="https://…" />
+                                </label>
+                            </div>
+                        </details>
+                    </div>
                 </div>
                 <div className="control-grid">
                     <label className="field-group compact-field">
@@ -751,7 +771,7 @@ function BlockFields({ block, updateBlock, settings, mediaAccessToken, getRandom
     }
 
     if (block.type === 'columns') {
-        return <ColumnsBlockFields block={block} updateBlock={updateBlock} mediaAccessToken={mediaAccessToken} getRandomMediaPreview={getRandomMediaPreview} showCustomization={showCustomization} />;
+        return <ColumnsBlockFields block={block} updateBlock={updateBlock} mediaAccessToken={mediaAccessToken} getRandomMediaPreview={getRandomMediaPreview} showCustomization={showCustomization} setMediaPickerTarget={setMediaPickerTarget} uploadingBlockId={uploadingBlockId} setUploadingBlockId={setUploadingBlockId} uploadToSupabase={uploadToSupabase} />;
     }
 
     if (block.type === 'footer') {
@@ -793,6 +813,10 @@ function SortableNewsletterBlock({
     settings,
     mediaAccessToken,
     getRandomMediaPreview,
+    setMediaPickerTarget,
+    uploadingBlockId,
+    setUploadingBlockId,
+    uploadToSupabase,
 }) {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: block.id });
     const [showCustomization, setShowCustomization] = useState(false);
@@ -862,6 +886,10 @@ function SortableNewsletterBlock({
                         mediaAccessToken={mediaAccessToken}
                         getRandomMediaPreview={getRandomMediaPreview}
                         showCustomization={showCustomization}
+                        setMediaPickerTarget={setMediaPickerTarget}
+                        uploadingBlockId={uploadingBlockId}
+                        setUploadingBlockId={setUploadingBlockId}
+                        uploadToSupabase={uploadToSupabase}
                     />
                     {block.type !== 'spacer' && showCustomization && (
                         <SectionControls block={block} settings={settings} updateBlock={onUpdate} />
@@ -890,7 +918,27 @@ export function NewsletterBlockInsertToolbar({ blocks, onAddBlock }) {
     );
 }
 
+const uploadToSupabase = async (file, pathPrefix = 'designer') => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
+    const filePath = `${pathPrefix}/${fileName}`;
+
+    const { error } = await supabase.storage
+        .from('newsletter-assets')
+        .upload(filePath, file);
+
+    if (error) throw error;
+
+    const { data: { publicUrl } } = supabase.storage
+        .from('newsletter-assets')
+        .getPublicUrl(filePath);
+
+    return { url: publicUrl };
+};
+
 export default function NewsletterBlockEditor({ blocks, onChange, settings, focusBlockId, mediaAccessToken, getRandomMediaPreview }) {
+    const [mediaPickerTarget, setMediaPickerTarget] = useState(null);
+    const [uploadingBlockId, setUploadingBlockId] = useState(null);
     const [expandedBlockIds, setExpandedBlockIds] = useState(() => new Set(blocks[0]?.id ? [blocks[0].id] : []));
     const [pendingBlockId, setPendingBlockId] = useState(null);
     const sensors = useSensors(
@@ -1014,11 +1062,27 @@ export default function NewsletterBlockEditor({ blocks, onChange, settings, focu
                                 settings={settings}
                                 mediaAccessToken={mediaAccessToken}
                                 getRandomMediaPreview={getRandomMediaPreview}
+                                setMediaPickerTarget={setMediaPickerTarget}
+                                uploadingBlockId={uploadingBlockId}
+                                setUploadingBlockId={setUploadingBlockId}
+                                uploadToSupabase={uploadToSupabase}
                             />
                         ))}
                     </div>
                 </SortableContext>
             </DndContext>
+            
+            <PortfolioMediaPicker 
+                open={Boolean(mediaPickerTarget)}
+                gifOnly={Boolean(mediaPickerTarget?.gifOnly)}
+                onClose={() => setMediaPickerTarget(null)} 
+                onSelect={(media) => {
+                    if (mediaPickerTarget?.onSelect) {
+                        mediaPickerTarget.onSelect(media);
+                    }
+                    setMediaPickerTarget(null);
+                }} 
+            />
         </div>
     );
 }

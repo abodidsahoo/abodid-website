@@ -124,6 +124,16 @@ const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(open
 </style>
 
 <script>
+  // Prevent duplicate WhatsApp button when page is embedded in an iframe (e.g. life panel iframe)
+  if (window.self !== window.top) {
+    const frameButtons = document.querySelectorAll("[data-whatsapp-button]");
+    frameButtons.forEach((btn) => {
+      if (btn instanceof HTMLElement) {
+        btn.style.display = "none";
+      }
+    });
+  }
+
   const WHATSAPP_AVOIDANCE_GAP = 12;
   const WHATSAPP_BOTTOM_ZONE = 240;
   const WHATSAPP_INTERACTIVE_SELECTOR =

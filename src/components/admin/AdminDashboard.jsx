@@ -15,6 +15,7 @@ import XRShowcaseManager from './XRShowcaseManager';
 import NetworkIntelligence from './NetworkIntelligence';
 import PortfolioAdminList from '../portfolio/admin/PortfolioAdminList';
 import ReadingDigestManager from './ReadingDigestManager';
+import BlogAdminList from './BlogAdminList';
 import {
     ArrowUpRight,
     BookOpen,
@@ -542,7 +543,13 @@ export default function AdminDashboard() {
                         </SectionErrorBoundary>
                     )}
 
-                    {activeSection !== 'dashboard' && activeSection !== 'analytics' && activeSection !== 'reading_digest' && activeSection !== 'network_intelligence' && activeSection !== 'portfolio_projects' && activeSection !== 'xr_showcase' && activeSection !== 'media_library' && activeSection !== 'users' && activeSection !== 'brands' && activeSection !== 'newsletter' && activeSection !== 'photo_stories' && activeSection !== 'moodboard_items' && activeSection !== 'page_metadata' && activeSection !== 'notepad' && (
+                    {activeSection === 'blog' && (
+                        <SectionErrorBoundary>
+                            <BlogAdminList />
+                        </SectionErrorBoundary>
+                    )}
+
+                    {activeSection !== 'dashboard' && activeSection !== 'analytics' && activeSection !== 'reading_digest' && activeSection !== 'network_intelligence' && activeSection !== 'portfolio_projects' && activeSection !== 'xr_showcase' && activeSection !== 'media_library' && activeSection !== 'users' && activeSection !== 'brands' && activeSection !== 'newsletter' && activeSection !== 'photo_stories' && activeSection !== 'moodboard_items' && activeSection !== 'page_metadata' && activeSection !== 'notepad' && activeSection !== 'blog' && (
                         <SectionErrorBoundary key={`${activeSection}-${refreshTrigger}`}>
                             <ListView
                                 table={activeSection}

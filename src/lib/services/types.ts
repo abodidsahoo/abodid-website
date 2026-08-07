@@ -44,6 +44,8 @@ export interface BlogPost extends BaseEntity {
     published: boolean;
     published_at: string;
     sort_order?: number;
+    blocks?: any[];
+    content?: string;
 }
 
 export interface MediaMention extends BaseEntity {

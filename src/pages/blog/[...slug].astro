@@ -9,6 +9,7 @@ import {
 import { marked } from "marked";
 import ShareButtons from "../../components/ShareButtons.jsx";
 import ReaderModeToggle from "../../components/ReaderModeToggle.jsx";
+import BlogBlockRenderer from "../../components/blog/BlogBlockRenderer.jsx";
 import { breadcrumbJsonLd, personJsonLd, seoIdentity } from "../../lib/seoData";
 
 export const prerender = false;
@@ -29,12 +30,9 @@ if (!post) {
   return Astro.redirect("/404");
 }
 
-// Convert Markdown to HTML
-// Note: In a real app we'd use 'marked' or Astro's content collections.
-// For now, if 'marked' isn't installed, we will just display raw text or install it.
-// To be safe without installing extra deps yet: simple text or we assume HTML.
-// But Supabase usually stores Markdown.
-const contentHtml = marked.parse(post.content || "");
+// Convert Markdown to HTML if using legacy content field
+const hasBlocks = Array.isArray(post.blocks) && post.blocks.length > 0;
+const contentHtml = !hasBlocks ? marked.parse(post.content || "") : "";
 const postHref = post.href || `/blog/${post.slug || slug}`;
 const postUrl = `${seoIdentity.siteUrl}${postHref}`;
 const postDescription = post.excerpt || post.description || "";
@@ -89,7 +87,15 @@ const structuredData = [
             )
           }</span
         >
-        <span class="category">Blog</span>
+        <span class="category"
+          >{
+            post.category
+              ? Array.isArray(post.category)
+                ? post.category[0]
+                : post.category
+              : "Blog"
+          }</span
+        >
       </div>
       <h1 class="title">{post.title}</h1>
       {post.excerpt && <p class="excerpt">{post.excerpt}</p>}
@@ -103,7 +109,11 @@ const structuredData = [
       )
     }
 
-    <div class="prose" set:html={contentHtml} />
+    {hasBlocks ? (
+      <BlogBlockRenderer blocks={post.blocks} />
+    ) : (
+      <div class="prose" set:html={contentHtml} />
+    )}
 
     <ShareButtons client:only="react" title={post.title} url={Astro.url.href} />
 
@@ -314,6 +324,36 @@ const structuredData = [
     margin: 2rem 0;
     font-style: italic;
     color: var(--text-secondary);
+  }
+
+  .prose :global(figure.block-image),
+  .prose :global(figure.block-video) {
+    margin: 2rem 0;
+    padding: 0;
+    width: 100%;
+  }
+
+  .prose :global(figure.block-image img) {
+    margin: 0;
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 4px;
+  }
+
+  .prose :global(figcaption) {
+    text-align: center;
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    color: var(--text-tertiary);
+    margin-top: 0.75rem;
+  }
+
+  @media (max-width: 768px) {
+    .prose :global(.block-columns) {
+      grid-template-columns: 1fr !important;
+      gap: 1rem !important;
+    }
   }
 
   .divider {

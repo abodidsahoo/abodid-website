@@ -276,7 +276,9 @@ export async function getRecentPosts(): Promise<BlogPost[]> {
         slug: post.slug,
         published: post.published,
         description: post.excerpt || '',
-        published_at: post.published_at
+        published_at: post.published_at,
+        blocks: post.blocks,
+        content: post.content
     } as BlogPost));
 }
 
@@ -311,7 +313,9 @@ export async function getAllPosts(): Promise<BlogPost[]> {
         description: post.excerpt || '',
         slug: post.slug,
         published: post.published,
-        published_at: post.published_at
+        published_at: post.published_at,
+        blocks: post.blocks,
+        content: post.content
     } as BlogPost));
 }
 
