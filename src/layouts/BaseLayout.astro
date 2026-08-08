@@ -33,6 +33,7 @@ const {
   hideHeader = false,
   hideSideMenuRail = false,
   hideFooter = false,
+  hideWhatsAppButton = false,
   fullWidth = false,
   hideThemeToggle = false,
   altTextLogo = null,
@@ -223,7 +224,7 @@ const googleFontsUrl =
     </main>
     {showNewsletterPopup && <NewsletterPopup client:idle />}
     {cursorFollowerEnabled && <MagneticCursorFollower client:idle />}
-    {!finalNoindex && <WhatsAppButton />}
+    {!finalNoindex && !hideWhatsAppButton && <WhatsAppButton />}
 
     <script src="/scripts/journey-tracker.js" defer></script>
     {!hideFooter && <Footer />}

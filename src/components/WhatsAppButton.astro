@@ -14,7 +14,6 @@ const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(open
   aria-label="Start a WhatsApp conversation with Abodid (opens in a new tab)"
   title="Chat with me on WhatsApp"
 >
-  <span class="whatsapp-button__hint" aria-hidden="true">Let's chat</span>
   <i class="fa-brands fa-whatsapp" aria-hidden="true"></i>
 </a>
 
@@ -65,35 +64,6 @@ const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(open
     outline-offset: 4px;
   }
 
-  .whatsapp-button__hint {
-    position: absolute;
-    right: calc(100% + 0.75rem);
-    width: max-content;
-    padding: 0.45rem 0.7rem;
-    border: 1px solid var(--border-subtle);
-    border-radius: 999px;
-    background: var(--bg-surface);
-    box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.2);
-    color: var(--text-primary);
-    font-family: var(--font-ui);
-    font-size: 0.78rem;
-    font-weight: 600;
-    letter-spacing: 0.01em;
-    line-height: 1;
-    opacity: 0;
-    pointer-events: none;
-    transform: translateX(0.35rem);
-    transition:
-      opacity 160ms ease,
-      transform 160ms ease;
-  }
-
-  .whatsapp-button:hover .whatsapp-button__hint,
-  .whatsapp-button:focus-visible .whatsapp-button__hint {
-    opacity: 1;
-    transform: translateX(0);
-  }
-
   @media (max-width: 640px) {
     .whatsapp-button {
       --whatsapp-base-bottom: 16px;
@@ -103,15 +73,10 @@ const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(open
       height: 3.5rem;
       font-size: 1.75rem;
     }
-
-    .whatsapp-button__hint {
-      display: none;
-    }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .whatsapp-button,
-    .whatsapp-button__hint {
+    .whatsapp-button {
       transition: none;
     }
   }

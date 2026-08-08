@@ -1,0 +1,1362 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { buildR2PublicUrl, listR2Folder } from "../lib/media/r2.ts";
+
+const pageTitle = "Photo Album | Abodid Sahoo";
+const pageDescription =
+    "A playable photo album: scratch the record and watch memories surface.";
+const trackUrl =
+    "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/music/Declan%20McKenna%20-%20Brazil%20(Official%20Video).mp3";
+const trackBpm = 121.02;
+const beatOffsetSeconds = 0.185;
+
+let photos: Array<{ url: string; title: string }> = [];
+
+try {
+    const { files, config } = await listR2Folder("variants/my-life/800/");
+
+    files.sort((a, b) =>
+        a.objectKey.localeCompare(b.objectKey, undefined, {
+            numeric: true,
+            sensitivity: "base",
+        }),
+    );
+
+    photos = files.map((file, index) => {
+        const filename = file.objectKey.split("/").pop() || "";
+        const title =
+            filename.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ") ||
+            `Memory ${index + 1}`;
+
+        return {
+            url: buildR2PublicUrl(config, file.objectKey),
+            title,
+        };
+    });
+} catch (error) {
+    console.warn("Could not load photo album images from R2:", error);
+}
+
+const albumData = JSON.stringify({
+    photos,
+    trackUrl,
+    trackBpm,
+    beatOffsetSeconds,
+}).replace(
+    /</g,
+    "\\u003c",
+);
+
+Astro.response.headers.set("Cache-Control", "public, max-age=0, must-revalidate");
+Astro.response.headers.set(
+    "Vercel-CDN-Cache-Control",
+    "s-maxage=300, stale-while-revalidate=86400",
+);
+---
+
+<BaseLayout
+    title={pageTitle}
+    description={pageDescription}
+    image="/images/photo-album/abodid-photo-album-vinyl.png"
+    imageAlt="Abodid's Photo Album record"
+    useDynamicOgImage={false}
+    fullWidth={true}
+    hideHeader={true}
+    hideSideMenuRail={true}
+    hideFooter={true}
+    hideThemeToggle={true}
+    showNewsletterPopup={false}
+    showGlobalGrid={true}
+    showCursorFollower={false}
+    bodyClass="photo-album-page"
+>
+    <section class="album" data-photo-album aria-label="Interactive photo album">
+        <div class="memory-stage" data-memory-stage aria-live="off"></div>
+
+        <a class="album__back" href="/" aria-label="Back to abodid.com">
+            <span aria-hidden="true">←</span>
+            <span>abodid.com</span>
+        </a>
+
+        <div class="turntable" data-turntable>
+            <img
+                class="turntable__base"
+                src="/images/photo-album/turntable-base.png"
+                alt=""
+                draggable="false"
+                aria-hidden="true"
+            />
+
+            <button
+                class="record"
+                data-record
+                type="button"
+                aria-label="Scratch the record. Drag around the centre to move through the track."
+            >
+                <img
+                    src="/images/photo-album/abodid-photo-album-vinyl.png"
+                    alt=""
+                    draggable="false"
+                />
+                <span class="record__light" aria-hidden="true"></span>
+            </button>
+
+            <img
+                class="turntable__handle"
+                src="/images/photo-album/turntable-handle.png"
+                alt=""
+                draggable="false"
+                aria-hidden="true"
+            />
+        </div>
+
+        <div class="transport" data-transport aria-label="Music player">
+            <button class="transport__toggle" data-play type="button" aria-label="Play track">
+                <span class="transport__icon" data-play-icon data-state="play" aria-hidden="true"></span>
+            </button>
+            <input
+                class="transport__progress"
+                data-progress
+                type="range"
+                min="0"
+                max="1000"
+                value="0"
+                aria-label="Track position"
+            />
+        </div>
+
+        <audio
+            data-album-audio
+            src={trackUrl}
+            crossorigin="anonymous"
+            preload="auto"
+            autoplay
+            playsinline
+            loop
+        ></audio>
+        <script is:inline id="photo-album-data" type="application/json" set:html={albumData}></script>
+    </section>
+</BaseLayout>
+
+<style>
+    :global(html:has(body.photo-album-page)),
+    :global(body.photo-album-page) {
+        width: 100%;
+        min-height: 100%;
+        overflow: hidden;
+        background: var(--bg-canvas);
+        color: var(--text-primary);
+    }
+
+    :global(body.photo-album-page .whatsapp-button) {
+        display: none !important;
+    }
+
+    :global(body.photo-album-page main) {
+        min-height: 100svh;
+    }
+
+    :global(body.photo-album-page .global-grid-bg) {
+        opacity: 0.18;
+        background-size: 72px 72px;
+        -webkit-mask-image: none;
+        mask-image: none;
+    }
+
+    :global(html[data-theme="light"] body.photo-album-page .global-grid-bg) {
+        opacity: 0.11;
+    }
+
+    :global(body.photo-album-page .global-glow-bg) {
+        background-size: 72px 72px;
+    }
+
+    :global(html[data-theme="light"] body.photo-album-page .global-glow-bg) {
+        opacity: calc(var(--glow-intensity, 1) * 0.58);
+    }
+
+    .album {
+        --cream: #f7efdf;
+        --paper: #fffdf7;
+        --ink: #17100f;
+        --red: #bc1f38;
+        --energy: 0;
+        isolation: isolate;
+        position: relative;
+        width: 100%;
+        height: 100svh;
+        min-height: 0;
+        overflow: hidden;
+        background: transparent;
+    }
+
+    .album__back {
+        position: absolute;
+        top: clamp(1.1rem, 2.2vw, 2rem);
+        left: clamp(1.15rem, 3vw, 3.25rem);
+        z-index: 40;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.65rem;
+        width: max-content;
+        color: color-mix(in srgb, var(--text-primary) 72%, transparent);
+        font-size: 0.74rem;
+        letter-spacing: 0.08em;
+        text-decoration: none;
+        text-transform: uppercase;
+        transition: color 180ms ease, transform 180ms ease;
+    }
+
+    .album__back:hover {
+        color: var(--text-primary);
+        transform: translateX(-3px);
+    }
+
+    .memory-stage {
+        position: absolute;
+        inset: 0;
+        z-index: 30;
+        overflow: hidden;
+        pointer-events: none;
+    }
+
+    :global(.album-polaroid) {
+        --rotation: 0deg;
+        --entry-x: 0px;
+        --entry-y: 30px;
+        --photo-enter: 620ms;
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        z-index: var(--photo-z, 1);
+        width: clamp(118px, var(--photo-size, 16vw), 520px);
+        margin: 0;
+        padding: clamp(0.4rem, 0.65vw, 0.7rem) clamp(0.4rem, 0.65vw, 0.7rem)
+            clamp(1.45rem, 2.4vw, 2.7rem);
+        overflow: hidden;
+        border-radius: 2px;
+        background: var(--paper);
+        box-shadow:
+            0 1.25rem 3rem rgba(0, 0, 0, 0.38),
+            0 0.2rem 0.35rem rgba(0, 0, 0, 0.24);
+        opacity: 0;
+        transform: translate(-50%, -50%) translate(var(--entry-x), var(--entry-y))
+            rotate(calc(var(--rotation) * 0.45)) scale(0.92);
+        filter: saturate(0.82) sepia(0.05) blur(0.55px);
+        transition:
+            opacity var(--photo-enter) ease,
+            transform var(--photo-enter) cubic-bezier(0.16, 1, 0.3, 1),
+            filter 160ms linear;
+        will-change: transform, opacity;
+    }
+
+    :global(.album-polaroid.is-visible) {
+        opacity: 1;
+        filter: saturate(0.91) sepia(0.06) blur(0);
+        transform: translate(-50%, -50%) rotate(var(--rotation)) scale(1);
+    }
+
+    :global(.album-polaroid.is-leaving) {
+        opacity: 0;
+        filter: saturate(0.86) sepia(0.05) blur(0.4px);
+        transform: translate(-50%, -50%) translate(0, -5px)
+            rotate(calc(var(--rotation) * 1.04)) scale(0.985);
+        transition-duration: 340ms, 380ms, 100ms;
+        transition-timing-function: ease-out;
+    }
+
+    :global(.album-polaroid.is-leaving.is-reversing) {
+        filter: saturate(0.72) sepia(0.04) blur(0.55px);
+        transform: translate(-50%, -50%) rotate(calc(var(--rotation) * 0.94)) scale(0.94);
+        transition-duration: 145ms, 180ms, 90ms;
+        transition-timing-function: ease-out;
+    }
+
+    :global(.album-polaroid img) {
+        display: block;
+        width: 100%;
+        aspect-ratio: var(--photo-ratio, 1 / 1);
+        object-fit: cover;
+        background: #e6dfd4;
+        user-select: none;
+    }
+
+    .turntable {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        z-index: 20;
+        width: min(66vw, 658px, calc(60svh * 1.25));
+        aspect-ratio: 5 / 4;
+        filter: drop-shadow(0 1.7rem 2.8rem rgba(0, 0, 0, 0.34));
+        transform: translate(-50%, -50%);
+    }
+
+    .turntable__base,
+    .turntable__handle {
+        position: absolute;
+        inset: 0;
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        pointer-events: none;
+        user-select: none;
+        -webkit-user-drag: none;
+    }
+
+    .turntable__base {
+        z-index: 1;
+    }
+
+    .turntable__handle {
+        z-index: 8;
+        transform: rotate(var(--needle-angle, 0deg));
+        transform-origin: 74.5833% 31.6667%;
+        will-change: transform;
+    }
+
+    .transport {
+        position: absolute;
+        top: clamp(1.05rem, 2.2vw, 2rem);
+        right: clamp(1.1rem, 3vw, 3.25rem);
+        z-index: 42;
+        display: grid;
+        grid-template-columns: 28px minmax(0, 1fr);
+        align-items: center;
+        gap: 0.65rem;
+        width: clamp(10.5rem, 17vw, 14.5rem);
+        color: var(--text-primary);
+        pointer-events: auto;
+    }
+
+    .transport__toggle {
+        display: grid;
+        width: 28px;
+        height: 28px;
+        padding: 0;
+        place-items: center;
+        border: 0;
+        border-radius: 50%;
+        background: #2dd4bf;
+        color: #07110f;
+        cursor: pointer;
+    }
+
+    .transport__icon {
+        position: relative;
+        display: block;
+        width: 12px;
+        height: 12px;
+    }
+
+    .transport__icon[data-state="play"]::before {
+        position: absolute;
+        top: 1px;
+        left: 3px;
+        width: 0;
+        height: 0;
+        border-top: 5px solid transparent;
+        border-bottom: 5px solid transparent;
+        border-left: 8px solid currentColor;
+        content: "";
+    }
+
+    .transport__icon[data-state="pause"]::before,
+    .transport__icon[data-state="pause"]::after {
+        position: absolute;
+        top: 1px;
+        width: 4px;
+        height: 10px;
+        border-radius: 1px;
+        background: currentColor;
+        content: "";
+    }
+
+    .transport__icon[data-state="pause"]::before {
+        left: 1px;
+    }
+
+    .transport__icon[data-state="pause"]::after {
+        right: 1px;
+    }
+
+    .transport__progress {
+        --progress: 0%;
+        display: block;
+        width: 100%;
+        height: 12px;
+        margin: 0;
+        appearance: none;
+        border: 0;
+        background: transparent;
+        box-shadow: none;
+        cursor: pointer;
+        pointer-events: auto;
+    }
+
+    .transport__progress::-webkit-slider-runnable-track {
+        height: 2px;
+        border-radius: 999px;
+        background: linear-gradient(
+            90deg,
+            #2dd4bf 0 var(--progress),
+            color-mix(in srgb, var(--text-primary) 82%, transparent) var(--progress) 100%
+        );
+    }
+
+    .transport__progress::-webkit-slider-thumb {
+        width: 8px;
+        height: 8px;
+        margin-top: -3px;
+        appearance: none;
+        border: 0;
+        border-radius: 50%;
+        background: #2dd4bf;
+        box-shadow: 0 0 0 2px color-mix(in srgb, #2dd4bf 18%, transparent);
+    }
+
+    .transport__progress::-moz-range-track {
+        height: 2px;
+        border-radius: 999px;
+        background: color-mix(in srgb, var(--text-primary) 82%, transparent);
+    }
+
+    .transport__progress::-moz-range-progress {
+        height: 2px;
+        border-radius: 999px;
+        background: #2dd4bf;
+    }
+
+    .transport__progress::-moz-range-thumb {
+        width: 8px;
+        height: 8px;
+        border: 0;
+        border-radius: 50%;
+        background: #2dd4bf;
+    }
+
+    .transport__toggle:focus-visible,
+    .transport__progress:focus-visible {
+        outline: 2px solid #2dd4bf;
+        outline-offset: 3px;
+    }
+
+    .record {
+        position: absolute;
+        top: 6.7207%;
+        left: 9.4382%;
+        z-index: 4;
+        display: block;
+        width: 68.8737%;
+        aspect-ratio: 1;
+        padding: 0;
+        overflow: visible;
+        border: 0;
+        border-radius: 50%;
+        background: transparent;
+        box-shadow: 0 0.85rem 1.7rem rgba(0, 0, 0, 0.28);
+        cursor: grab;
+        clip-path: circle(32.85% at 50% 50%);
+        outline: none;
+        touch-action: none;
+        user-select: none;
+        transform: rotate(0rad);
+        transform-origin: 50% 50%;
+        will-change: transform;
+    }
+
+    .record:hover {
+        filter: brightness(1.04);
+    }
+
+    .record:active,
+    .album.is-scratching .record {
+        cursor: grabbing;
+    }
+
+    .record:focus-visible {
+        box-shadow:
+            0 0 0 4px #f7efdf,
+            0 0 0 8px #bc1f38,
+            0 0.85rem 1.7rem rgba(0, 0, 0, 0.28);
+    }
+
+    .record img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        pointer-events: none;
+        user-select: none;
+        -webkit-user-drag: none;
+    }
+
+    .record__light {
+        position: absolute;
+        inset: 1.5%;
+        border-radius: 50%;
+        background: conic-gradient(
+            from 205deg,
+            transparent 0 7%,
+            rgba(255, 255, 255, calc(0.035 + var(--energy) * 0.08)) 10%,
+            transparent 14% 48%,
+            rgba(255, 255, 255, 0.025) 52%,
+            transparent 56%
+        );
+        mix-blend-mode: screen;
+        pointer-events: none;
+    }
+
+    .album__back:focus-visible {
+        outline: 2px solid var(--cream);
+        outline-offset: 3px;
+    }
+
+    :global(.scratch-debug) {
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        z-index: 70;
+        min-width: 15rem;
+        margin: 0;
+        padding: 0.65rem 0.75rem;
+        border: 1px solid rgba(247, 239, 223, 0.22);
+        border-radius: 3px;
+        background: rgba(20, 13, 13, 0.82);
+        box-shadow: 0 0.8rem 2rem rgba(0, 0, 0, 0.28);
+        color: rgba(247, 239, 223, 0.88);
+        font: 600 0.64rem/1.55 "Inconsolata", monospace;
+        letter-spacing: 0.03em;
+        pointer-events: none;
+        white-space: pre;
+        backdrop-filter: blur(12px);
+    }
+
+    audio {
+        display: none;
+    }
+
+    @media (max-width: 640px) {
+        .album__back {
+            top: 1rem;
+            left: 1rem;
+        }
+
+        .turntable {
+            width: min(66vw, calc(60svh * 1.25));
+        }
+
+        .transport {
+            top: 1rem;
+            right: 1rem;
+            width: min(9rem, 40vw);
+        }
+
+        :global(.album-polaroid) {
+            width: clamp(112px, var(--photo-size, 40vw), 300px);
+            padding-bottom: 1.65rem;
+        }
+
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        :global(.album-polaroid) {
+            transition-duration: 80ms !important;
+        }
+    }
+</style>
+
+<script>
+    import { ScratchAudioEngine } from "../lib/photo-album/ScratchAudioEngine";
+    import {
+        ScratchPlatterController,
+        type ScratchPlatterState,
+    } from "../lib/photo-album/ScratchPlatterController";
+
+    type AlbumPhoto = { url: string; title: string };
+    type AlbumPayload = {
+        photos: AlbumPhoto[];
+        trackUrl: string;
+        trackBpm: number;
+        beatOffsetSeconds: number;
+    };
+    type PhotoSizeBand = "small" | "medium" | "large";
+
+    const clamp = (value: number, min: number, max: number) =>
+        Math.min(Math.max(value, min), max);
+
+    const initPhotoAlbum = () => {
+        const root = document.querySelector<HTMLElement>("[data-photo-album]");
+        const dataNode = document.querySelector<HTMLScriptElement>("#photo-album-data");
+        if (!root || !dataNode || root.dataset.ready === "true") return;
+
+        root.dataset.ready = "true";
+
+        let payload: AlbumPayload = {
+            photos: [],
+            trackUrl: "",
+            trackBpm: 121.02,
+            beatOffsetSeconds: 0.185,
+        };
+        try {
+            payload = JSON.parse(dataNode.textContent || "{}") as AlbumPayload;
+        } catch (error) {
+            console.error("Could not parse photo album data:", error);
+        }
+
+        const photos = Array.isArray(payload.photos) ? payload.photos : [];
+        const stage = root.querySelector<HTMLElement>("[data-memory-stage]");
+        const turntable = root.querySelector<HTMLElement>("[data-turntable]");
+        const record = root.querySelector<HTMLButtonElement>("[data-record]");
+        const handle = root.querySelector<HTMLImageElement>(".turntable__handle");
+        const audio = root.querySelector<HTMLAudioElement>("[data-album-audio]");
+        const playButton = root.querySelector<HTMLButtonElement>("[data-play]");
+        const playIcon = root.querySelector<HTMLElement>("[data-play-icon]");
+        const progress = root.querySelector<HTMLInputElement>("[data-progress]");
+        if (!stage || !turntable || !record || !handle || !audio || !playButton || !playIcon || !progress) return;
+
+        const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+        const IDLE_ANGULAR_VELOCITY = reducedMotion.matches ? 0 : 0.43;
+        const SCRUB_SECONDS_PER_RADIAN = 1.15;
+        const TRACK_BPM = Number.isFinite(payload.trackBpm) ? payload.trackBpm : 121.02;
+        const BEAT_DURATION_SECONDS = 60 / TRACK_BPM;
+        const BEAT_OFFSET_SECONDS = Number.isFinite(payload.beatOffsetSeconds)
+            ? payload.beatOffsetSeconds
+            : 0.185;
+        // Reveal one memory every two bars at this track's 4/4 tempo.
+        const IDLE_BEATS_PER_PHOTO = 8;
+        const MAX_VISIBLE_PHOTOS = window.innerWidth <= 640 ? 6 : 8;
+
+        let scratchEnergy = 0;
+        let accelerationEnergy = 0;
+        let lastScratchPhotoAt = 0;
+        let lastReversePhotoAt = 0;
+        let lastIdleBeat = Number.NEGATIVE_INFINITY;
+        let photoIndex = Math.floor(Math.random() * Math.max(photos.length, 1));
+        let photoSerial = 0;
+        let experienceStarted = false;
+        let resumeAfterScratch = false;
+        let scratchCursor = 0;
+        let lastSeekAt = 0;
+        let platter: ScratchPlatterController | null = null;
+        let lastDebugPaint = 0;
+        let needleArcDegrees = 0;
+        let needleTargetDegrees = 0;
+        let needleVibrationEnergy = 0;
+        let renderedNeedleDegrees = 0;
+        let holdDissolveTimer = 0;
+        let holdDissolved = false;
+        let spawnGeneration = 0;
+        let platterFlowDirection: -1 | 1 = 1;
+        let nextPlaybackUsesReverseRelease = false;
+        let suppressNextPlaybackBurst = false;
+        let bpmSpawningBlockedUntil = 0;
+        let platterGestureTravel = 0;
+        let platterGestureMoved = false;
+
+        const scratchAudio = new ScratchAudioEngine();
+        const debugEnabled = new URLSearchParams(window.location.search).get("debugScratch") === "true";
+        const debugNode = debugEnabled ? document.createElement("output") : null;
+        if (debugNode) {
+            debugNode.className = "scratch-debug";
+            debugNode.setAttribute("aria-live", "off");
+            root.append(debugNode);
+        }
+
+        const setPlayUi = () => {
+            const playing = !audio.paused && !(platter?.isDragging ?? false);
+            playIcon.dataset.state = playing ? "pause" : "play";
+            playButton.setAttribute("aria-label", playing ? "Pause track" : "Play track");
+        };
+
+        const photoSize = (energy: number): { band: PhotoSizeBand; size: number } => {
+            const mobile = window.innerWidth <= 640;
+            const roll = Math.random() + energy * 0.08;
+            if (roll < 0.28) {
+                return {
+                    band: "large",
+                    size: mobile ? 62 + Math.random() * 16 : 26 + Math.random() * 7,
+                };
+            }
+            if (roll < 0.72) {
+                return {
+                    band: "medium",
+                    size: mobile ? 46 + Math.random() * 14 : 17 + Math.random() * 7,
+                };
+            }
+            return {
+                band: "small",
+                size: mobile ? 31 + Math.random() * 12 : 11 + Math.random() * 5,
+            };
+        };
+
+        const photoPosition = (
+            serial: number,
+            band: PhotoSizeBand,
+            baseSize: number,
+            grazesPlayer: boolean,
+        ) => {
+            const randomBetween = (minimum: number, maximum: number) =>
+                minimum + Math.random() * Math.max(0, maximum - minimum);
+            const playerClearanceFactor = grazesPlayer ? 0.36 : 0.42;
+            const player = turntable.getBoundingClientRect();
+            const playerBounds = {
+                left: player.left / window.innerWidth * 100,
+                right: player.right / window.innerWidth * 100,
+                top: player.top / window.innerHeight * 100,
+                bottom: player.bottom / window.innerHeight * 100,
+            };
+            const topMax = Math.max(10, playerBounds.top - 3);
+            const bottomMin = Math.min(90, playerBounds.bottom + 3);
+            const leftMax = Math.max(12, playerBounds.left - 3);
+            const rightMin = Math.min(88, playerBounds.right + 3);
+            const regions = [
+                { name: "top-left", edge: "top", x: [5, 36], y: [5, topMax] },
+                { name: "top-centre", edge: "top", x: [32, 68], y: [5, topMax] },
+                { name: "top-right", edge: "top", x: [64, 95], y: [5, topMax] },
+                { name: "right-upper", edge: "side", x: [rightMin, 95], y: [playerBounds.top, 51] },
+                { name: "right-lower", edge: "side", x: [rightMin, 95], y: [49, playerBounds.bottom] },
+                { name: "bottom-right", edge: "bottom", x: [64, 95], y: [bottomMin, 98] },
+                { name: "bottom-centre", edge: "bottom", x: [32, 68], y: [bottomMin, 98] },
+                { name: "bottom-left", edge: "bottom", x: [5, 36], y: [bottomMin, 98] },
+                { name: "left-lower", edge: "side", x: [5, leftMax], y: [49, playerBounds.bottom] },
+                { name: "left-upper", edge: "side", x: [5, leftMax], y: [playerBounds.top, 51] },
+            ].filter((region) => region.x[1] > region.x[0] && region.y[1] > region.y[0]);
+            const allowedRegions = band === "large"
+                ? regions.filter((region) => region.edge === "side")
+                : regions;
+            const regionCounts = new Map<string, number>();
+            stage.querySelectorAll<HTMLElement>(".album-polaroid:not(.is-leaving)").forEach((photo) => {
+                const region = photo.dataset.region;
+                if (region) regionCounts.set(region, (regionCounts.get(region) || 0) + 1);
+            });
+            const existingRects = Array.from(
+                stage.querySelectorAll<HTMLElement>(".album-polaroid:not(.is-leaving)"),
+                (photo) => {
+                    const reserveX = Number(photo.dataset.reserveX);
+                    const reserveY = Number(photo.dataset.reserveY);
+                    const reserveWidth = Number(photo.dataset.reserveWidth);
+                    const reserveHeight = Number(photo.dataset.reserveHeight);
+                    if (
+                        Number.isFinite(reserveX) &&
+                        Number.isFinite(reserveY) &&
+                        Number.isFinite(reserveWidth) &&
+                        Number.isFinite(reserveHeight)
+                    ) {
+                        const centreX = reserveX / 100 * window.innerWidth;
+                        const centreY = reserveY / 100 * window.innerHeight;
+                        return {
+                            left: centreX - reserveWidth / 2,
+                            right: centreX + reserveWidth / 2,
+                            top: centreY - reserveHeight / 2,
+                            bottom: centreY + reserveHeight / 2,
+                        };
+                    }
+                    return photo.getBoundingClientRect();
+                },
+            );
+            let bestCandidate = {
+                x: 50,
+                y: 50,
+                score: Number.POSITIVE_INFINITY,
+                edge: allowedRegions[0].edge,
+                region: allowedRegions[0].name,
+                displayedSize: baseSize,
+                reserveWidth: 0,
+                reserveHeight: 0,
+            };
+
+            allowedRegions.forEach((region, regionIndex) => {
+                const displayedSize = region.edge === "side"
+                    ? baseSize
+                    : Math.min(baseSize, window.innerWidth <= 640 ? 42 : 17.5);
+                const estimatedWidth = clamp(
+                    displayedSize / 100 * window.innerWidth,
+                    window.innerWidth <= 640 ? 112 : 118,
+                    window.innerWidth <= 640 ? 300 : 520,
+                ) + 24;
+                // Portraits and rotated frames are taller than their declared width.
+                // A conservative footprint keeps newly loaded photos from stacking.
+                const estimatedHeight = estimatedWidth * 1.65;
+                const estimatedWidthVw = estimatedWidth / window.innerWidth * 100;
+                const estimatedHeightVh = estimatedHeight / window.innerHeight * 100;
+                const visibleHeightVh = estimatedWidth * 1.5 / window.innerHeight * 100;
+                const visibleEdgeFactor = 0.44;
+                const viewportMinimumX = estimatedWidthVw * visibleEdgeFactor;
+                const viewportMaximumX = 100 - viewportMinimumX;
+                const viewportMinimumY = visibleHeightVh * visibleEdgeFactor;
+                const viewportMaximumY = 100 - viewportMinimumY;
+                let minimumX = region.x[0];
+                let maximumX = region.x[1];
+                let minimumY = region.y[0];
+                let maximumY = region.y[1];
+                if (region.name.startsWith("right-")) {
+                    minimumX = Math.max(
+                        minimumX,
+                        playerBounds.right + estimatedWidthVw * playerClearanceFactor,
+                    );
+                } else if (region.name.startsWith("left-")) {
+                    maximumX = Math.min(
+                        maximumX,
+                        playerBounds.left - estimatedWidthVw * playerClearanceFactor,
+                    );
+                }
+                if (region.edge === "top") {
+                    maximumY = Math.min(
+                        maximumY,
+                        playerBounds.top - estimatedHeightVh * playerClearanceFactor,
+                    );
+                } else if (region.edge === "bottom") {
+                    minimumY = Math.max(
+                        minimumY,
+                        playerBounds.bottom + estimatedHeightVh * playerClearanceFactor,
+                    );
+                }
+                if (grazesPlayer) {
+                    if (region.name.startsWith("right-")) {
+                        maximumX = Math.min(maximumX, minimumX + 1.5);
+                    } else if (region.name.startsWith("left-")) {
+                        minimumX = Math.max(minimumX, maximumX - 1.5);
+                    } else if (region.edge === "top") {
+                        minimumY = Math.max(minimumY, maximumY - 1.5);
+                    } else if (region.edge === "bottom") {
+                        maximumY = Math.min(maximumY, minimumY + 1.5);
+                    }
+                }
+                minimumX = Math.max(minimumX, viewportMinimumX);
+                maximumX = Math.min(maximumX, viewportMaximumX);
+                minimumY = Math.max(minimumY, viewportMinimumY);
+                maximumY = Math.min(maximumY, viewportMaximumY);
+
+                if (minimumX > maximumX) {
+                    const visibleX = region.name.startsWith("right-")
+                        ? viewportMaximumX
+                        : viewportMinimumX;
+                    minimumX = visibleX;
+                    maximumX = visibleX;
+                }
+                if (minimumY > maximumY) {
+                    const visibleY = region.edge === "bottom"
+                        ? viewportMaximumY
+                        : viewportMinimumY;
+                    minimumY = visibleY;
+                    maximumY = visibleY;
+                }
+                // Prefer an untouched zone, but let collision avoidance win when
+                // the remaining gap would create a noticeably heavier stack.
+                const regionUsePenalty = (regionCounts.get(region.name) || 0) * 0.42;
+
+                for (let attempt = 0; attempt < 10; attempt += 1) {
+                    const x = randomBetween(minimumX, maximumX);
+                    const y = randomBetween(minimumY, maximumY);
+                    const centreX = x / 100 * window.innerWidth;
+                    const centreY = y / 100 * window.innerHeight;
+                    const candidate = {
+                        left: centreX - estimatedWidth / 2,
+                        right: centreX + estimatedWidth / 2,
+                        top: centreY - estimatedHeight / 2,
+                        bottom: centreY + estimatedHeight / 2,
+                    };
+                    const overlapScore = existingRects.reduce((total, existing) => {
+                        const clearance = 10;
+                        const overlapWidth = Math.max(
+                            0,
+                            Math.min(candidate.right, existing.right + clearance) -
+                                Math.max(candidate.left, existing.left - clearance),
+                        );
+                        const overlapHeight = Math.max(
+                            0,
+                            Math.min(candidate.bottom, existing.bottom + clearance) -
+                                Math.max(candidate.top, existing.top - clearance),
+                        );
+                        return total + overlapWidth * overlapHeight / (estimatedWidth * estimatedHeight);
+                    }, 0);
+                    const tieBreaker = ((serial + regionIndex + attempt) % 11) * 0.0004 + Math.random() * 0.008;
+                    const score = overlapScore * 5 + regionUsePenalty + tieBreaker;
+                    if (score < bestCandidate.score) {
+                        bestCandidate = {
+                            x,
+                            y,
+                            score,
+                            edge: region.edge,
+                            region: region.name,
+                            displayedSize,
+                            reserveWidth: estimatedWidth,
+                            reserveHeight: estimatedHeight,
+                        };
+                    }
+                }
+            });
+
+            return {
+                x: bestCandidate.x,
+                y: bestCandidate.y,
+                edge: bestCandidate.edge,
+                region: bestCandidate.region,
+                displayedSize: bestCandidate.displayedSize,
+                reserveWidth: bestCandidate.reserveWidth,
+                reserveHeight: bestCandidate.reserveHeight,
+            };
+        };
+
+        const removePhoto = (figure: HTMLElement, reversing = false) => {
+            if (!figure.isConnected || figure.classList.contains("is-leaving")) return;
+            if (reversing) figure.classList.add("is-reversing");
+            figure.classList.add("is-leaving");
+            window.setTimeout(() => figure.remove(), reversing ? 210 : 420);
+        };
+
+        const removeLatestPhoto = (energy: number, now = performance.now()) => {
+            const cooldown = clamp(205 - energy * 160, 42, 180);
+            if (now - lastReversePhotoAt < cooldown) return;
+            lastReversePhotoAt = now;
+            const visible = stage.querySelectorAll<HTMLElement>(
+                ".album-polaroid:not(.is-leaving)",
+            );
+            const latest = visible[visible.length - 1];
+            if (latest) removePhoto(latest, true);
+        };
+
+        const cancelQueuedPhotoSpawns = () => {
+            spawnGeneration += 1;
+        };
+
+        const dissolveVisiblePhotos = () => {
+            cancelQueuedPhotoSpawns();
+            const visible = Array.from(
+                stage.querySelectorAll<HTMLElement>(".album-polaroid:not(.is-leaving)"),
+            ).reverse();
+            visible.forEach((figure, index) => {
+                window.setTimeout(() => removePhoto(figure, true), index * 28);
+            });
+        };
+
+        const scheduleHoldDissolve = () => {
+            window.clearTimeout(holdDissolveTimer);
+            holdDissolveTimer = window.setTimeout(() => {
+                if (!platter?.isDragging || holdDissolved) return;
+                holdDissolved = true;
+                dissolveVisiblePhotos();
+            }, 330);
+        };
+
+        const spawnPhoto = (energy = 0) => {
+            if (!photos.length) return;
+
+            const current = photos[photoIndex % photos.length];
+            photoIndex = (photoIndex + 1 + Math.floor(Math.random() * 3)) % photos.length;
+            photoSerial += 1;
+
+            const figure = document.createElement("figure");
+            const image = document.createElement("img");
+            const sizing = photoSize(energy);
+            const grazesPlayer = Math.random() < 0.24;
+            const position = photoPosition(
+                photoSerial,
+                sizing.band,
+                sizing.size,
+                grazesPlayer,
+            );
+            const rotation = (Math.random() - 0.5) * (energy > 0.65 ? 20 : 13);
+            const lifetime = clamp(
+                9800 - energy * 8100 + Math.random() * (energy > 0.35 ? 700 : 1600),
+                1600,
+                11400,
+            );
+            const entryDuration = clamp(650 - energy * 390, 240, 650);
+
+            figure.className = "album-polaroid";
+            figure.style.left = `${position.x}%`;
+            figure.style.top = `${position.y}%`;
+            figure.style.setProperty("--rotation", `${rotation.toFixed(2)}deg`);
+            figure.style.setProperty("--entry-x", `${((Math.random() - 0.5) * 70).toFixed(0)}px`);
+            const entryY = position.edge === "top"
+                ? -(20 + Math.random() * 30)
+                : position.edge === "bottom"
+                    ? 20 + Math.random() * 35
+                    : (Math.random() - 0.5) * 55;
+            figure.style.setProperty("--entry-y", `${entryY.toFixed(0)}px`);
+            figure.style.setProperty("--photo-size", `${position.displayedSize.toFixed(1)}vw`);
+            figure.style.setProperty("--photo-z", `${photoSerial}`);
+            figure.style.setProperty("--photo-enter", `${entryDuration.toFixed(0)}ms`);
+            figure.dataset.size = sizing.band;
+            figure.dataset.region = position.region;
+            figure.dataset.reserveX = position.x.toFixed(3);
+            figure.dataset.reserveY = position.y.toFixed(3);
+            figure.dataset.reserveWidth = position.reserveWidth.toFixed(1);
+            figure.dataset.reserveHeight = position.reserveHeight.toFixed(1);
+
+            image.src = current.url;
+            image.alt = current.title;
+            image.decoding = "async";
+            image.draggable = false;
+            figure.append(image);
+            stage.append(figure);
+
+            image.addEventListener("load", () => {
+                const ratio = image.naturalWidth / Math.max(1, image.naturalHeight);
+                figure.style.setProperty("--photo-ratio", `${clamp(ratio, 0.68, 1.55)}`);
+                requestAnimationFrame(() => figure.classList.add("is-visible"));
+            }, { once: true });
+            image.addEventListener("error", () => figure.remove(), { once: true });
+
+            const visible = stage.querySelectorAll<HTMLElement>(".album-polaroid:not(.is-leaving)");
+            if (visible.length > MAX_VISIBLE_PHOTOS) removePhoto(visible[0]);
+            window.setTimeout(() => removePhoto(figure), lifetime);
+        };
+
+        const burstPhotos = (energy: number) => {
+            const now = performance.now();
+            const cooldown = 285 - energy * 225;
+            if (now - lastScratchPhotoAt < cooldown) return;
+            lastScratchPhotoAt = now;
+            const generation = spawnGeneration;
+            spawnPhoto(energy);
+            if (energy > 0.52) {
+                window.setTimeout(() => {
+                    if (generation === spawnGeneration) spawnPhoto(energy);
+                }, 48);
+            }
+            if (energy > 0.86) {
+                window.setTimeout(() => {
+                    if (generation === spawnGeneration) spawnPhoto(energy);
+                }, 96);
+            }
+        };
+
+        const preparePlaybackSequence = () => {
+            bpmSpawningBlockedUntil = 0;
+            cancelQueuedPhotoSpawns();
+        };
+
+        const spawnReverseReleaseSequence = () => {
+            cancelQueuedPhotoSpawns();
+            const generation = spawnGeneration;
+            const sequenceDelays = [220, 720, 1220];
+
+            // Reverse-release should feel like the album is rebuilding itself,
+            // not like a normal play burst. Hold the BPM scheduler until these
+            // three quieter cards have arrived one by one.
+            bpmSpawningBlockedUntil = performance.now() + 1450;
+            sequenceDelays.forEach((delay, index) => {
+                window.setTimeout(() => {
+                    if (generation === spawnGeneration && !audio.paused) {
+                        spawnPhoto(0.2 - index * 0.04);
+                    }
+                }, delay);
+            });
+        };
+
+        const handlePlatterStart = () => {
+            platterGestureTravel = 0;
+            platterGestureMoved = false;
+            scratchCursor = Number.isFinite(audio.currentTime) ? audio.currentTime : 0;
+            resumeAfterScratch = !audio.paused || !experienceStarted;
+            experienceStarted = true;
+            cancelQueuedPhotoSpawns();
+            root.classList.add("is-scratching");
+            needleVibrationEnergy = Math.max(needleVibrationEnergy, 0.12);
+            audio.pause();
+            void scratchAudio.init();
+            holdDissolved = false;
+            scheduleHoldDissolve();
+        };
+
+        const handlePlatterMove = (state: ScratchPlatterState) => {
+            platterGestureTravel += Math.abs(state.deltaAngle);
+            if (platterGestureTravel >= 0.012) platterGestureMoved = true;
+            const hasMotion = platterGestureMoved && Math.abs(state.deltaAngle) > 0.002;
+            if (!platterGestureMoved) return;
+            if (hasMotion) {
+                // A fresh movement begins a new hold cycle. This lets a person
+                // move, hold, move again, and hold again without releasing.
+                holdDissolved = false;
+                scheduleHoldDissolve();
+            }
+            accelerationEnergy = clamp(Math.abs(state.acceleration) / 150, 0, 1);
+            scratchEnergy = clamp(
+                Math.abs(state.velocity) / 9 * 0.72 + accelerationEnergy * 0.38,
+                0.08,
+                1,
+            );
+            const velocityArc = clamp(state.velocity / 9, -1, 1) * 1.45;
+            const accelerationKick = clamp(state.acceleration / 170, -1, 1) * 0.32;
+            needleTargetDegrees = clamp(-(velocityArc + accelerationKick), -1.75, 1.75);
+            needleVibrationEnergy = Math.max(needleVibrationEnergy, scratchEnergy);
+
+            const duration = Number.isFinite(audio.duration) && audio.duration > 0
+                ? audio.duration
+                : 0;
+            if (duration > 0) {
+                scratchCursor = (
+                    scratchCursor +
+                    state.deltaAngle * SCRUB_SECONDS_PER_RADIAN +
+                    duration
+                ) % duration;
+                if (state.nowMs - lastSeekAt > 65) {
+                    audio.currentTime = scratchCursor;
+                    lastSeekAt = state.nowMs;
+                }
+            }
+
+            scratchAudio.trigger({
+                velocity: state.velocity,
+                direction: state.direction,
+                gestureDuration: state.gestureDuration,
+                nowMs: state.nowMs,
+            });
+            if (hasMotion) {
+                if (state.direction < 0) {
+                    if (platterFlowDirection > 0) cancelQueuedPhotoSpawns();
+                    removeLatestPhoto(scratchEnergy, state.nowMs);
+                } else {
+                    if (platterFlowDirection < 0) {
+                        cancelQueuedPhotoSpawns();
+                        lastScratchPhotoAt = 0;
+                    }
+                    burstPhotos(scratchEnergy);
+                }
+                platterFlowDirection = state.direction;
+            }
+        };
+
+        const handlePlatterRelease = (state: ScratchPlatterState) => {
+            window.clearTimeout(holdDissolveTimer);
+            root.classList.remove("is-scratching");
+            needleTargetDegrees = 0;
+            if (!platterGestureMoved) {
+                scratchAudio.stopEffect();
+                if (resumeAfterScratch) {
+                    suppressNextPlaybackBurst = true;
+                    nextPlaybackUsesReverseRelease = false;
+                    void audio.play().catch(() => {
+                        suppressNextPlaybackBurst = false;
+                    });
+                }
+                return;
+            }
+            needleVibrationEnergy = Math.max(needleVibrationEnergy, scratchEnergy * 0.48);
+            if (Number.isFinite(scratchCursor) && Number.isFinite(audio.duration)) {
+                audio.currentTime = scratchCursor;
+            }
+            scratchAudio.backspin({
+                velocity: state.velocity,
+                direction: state.direction,
+                nowMs: state.nowMs,
+            });
+            if (resumeAfterScratch) {
+                nextPlaybackUsesReverseRelease = state.direction < 0;
+                void audio.play().catch(() => undefined);
+            }
+        };
+
+        platter = new ScratchPlatterController({
+            element: record,
+            idleAngularVelocity: IDLE_ANGULAR_VELOCITY,
+            onStart: handlePlatterStart,
+            onMove: handlePlatterMove,
+            onRelease: handlePlatterRelease,
+        });
+
+        const animate = (now: number) => {
+            const platterState = platter?.tick(now);
+            if (!platterState) return;
+            const { deltaSeconds } = platterState;
+
+            if (!platterState.isDragging) {
+                scratchEnergy *= Math.exp(-deltaSeconds * 1.55);
+                accelerationEnergy *= Math.exp(-deltaSeconds * 2.4);
+            }
+
+            const needleSpringStrength = platterState.isDragging ? 24 : 13;
+            const needleSpring = 1 - Math.exp(-deltaSeconds * needleSpringStrength);
+            needleArcDegrees += (needleTargetDegrees - needleArcDegrees) * needleSpring;
+            if (!platterState.isDragging) {
+                needleTargetDegrees = 0;
+                needleVibrationEnergy *= Math.exp(-deltaSeconds * 12);
+            } else {
+                needleVibrationEnergy *= Math.exp(-deltaSeconds * 1.7);
+            }
+            const vibration = needleVibrationEnergy * (
+                Math.sin(now * 0.073) * 0.105 +
+                Math.sin(now * 0.161 + 0.8) * 0.045
+            );
+            renderedNeedleDegrees = needleArcDegrees + vibration;
+            handle.style.setProperty(
+                "--needle-angle",
+                `${renderedNeedleDegrees.toFixed(3)}deg`,
+            );
+
+            const velocityEnergy = clamp(
+                (Math.abs(platterState.velocity) - Math.abs(IDLE_ANGULAR_VELOCITY)) / 8,
+                0,
+                1,
+            );
+            const displayEnergy = clamp(
+                Math.max(scratchEnergy, velocityEnergy * 0.86, accelerationEnergy * 0.7),
+                0,
+                1,
+            );
+
+            root.style.setProperty("--energy", displayEnergy.toFixed(3));
+
+            if (
+                !platterState.isDragging &&
+                !audio.paused &&
+                now >= bpmSpawningBlockedUntil
+            ) {
+                const beat = Math.floor(
+                    (audio.currentTime - BEAT_OFFSET_SECONDS) / BEAT_DURATION_SECONDS,
+                );
+                if (beat !== lastIdleBeat) {
+                    lastIdleBeat = beat;
+                    const beatWithinPhrase = ((beat % IDLE_BEATS_PER_PHOTO) +
+                        IDLE_BEATS_PER_PHOTO) % IDLE_BEATS_PER_PHOTO;
+                    if (beat >= 0 && beatWithinPhrase === 0) spawnPhoto(0);
+                }
+            }
+
+            const duration = audio.duration;
+            const current = platterState.isDragging ? scratchCursor : audio.currentTime;
+            if (Number.isFinite(duration) && duration > 0) {
+                const value = clamp(current / duration, 0, 1);
+                progress.value = String(Math.round(value * 1000));
+                progress.style.setProperty("--progress", `${(value * 100).toFixed(2)}%`);
+            }
+
+            if (debugNode && now - lastDebugPaint > 100) {
+                lastDebugPaint = now;
+                const scratchState = scratchAudio.getDebugState();
+                debugNode.textContent = [
+                    `velocity  ${platterState.velocity.toFixed(2)} rad/s`,
+                    `direction ${platterState.direction > 0 ? "clockwise" : "counter-clockwise"}`,
+                    `sound     ${scratchState.selectedSound}`,
+                    `rate      ${scratchState.playbackRate.toFixed(2)}×`,
+                    `voices    ${scratchState.activeVoices}`,
+                    `bpm       ${TRACK_BPM.toFixed(2)}`,
+                    `needle    ${renderedNeedleDegrees.toFixed(2)}°`,
+                ].join("\n");
+            }
+
+            requestAnimationFrame(animate);
+        };
+
+        playButton.addEventListener("click", () => {
+            experienceStarted = true;
+            void scratchAudio.init();
+            if (audio.paused) {
+                void audio.play().catch(() => undefined);
+            } else {
+                scratchAudio.stopEffect();
+                audio.pause();
+            }
+        });
+
+        progress.addEventListener("input", () => {
+            if (!Number.isFinite(audio.duration) || audio.duration <= 0) return;
+            audio.currentTime = Number(progress.value) / 1000 * audio.duration;
+            scratchCursor = audio.currentTime;
+            lastIdleBeat = Number.NEGATIVE_INFINITY;
+        });
+
+        audio.addEventListener("play", () => {
+            setPlayUi();
+            const currentBeat = Math.floor(
+                (audio.currentTime - BEAT_OFFSET_SECONDS) / BEAT_DURATION_SECONDS,
+            );
+            lastIdleBeat = Number.isFinite(currentBeat)
+                ? currentBeat
+                : Number.NEGATIVE_INFINITY;
+            if (suppressNextPlaybackBurst) {
+                suppressNextPlaybackBurst = false;
+            } else if (nextPlaybackUsesReverseRelease) {
+                nextPlaybackUsesReverseRelease = false;
+                spawnReverseReleaseSequence();
+            } else {
+                preparePlaybackSequence();
+            }
+        });
+        audio.addEventListener("pause", () => {
+            // Stop only the abandoned queued sequence. The next play event always
+            // creates its own complete replacement sequence.
+            cancelQueuedPhotoSpawns();
+            bpmSpawningBlockedUntil = 0;
+            setPlayUi();
+        });
+
+        record.addEventListener("keydown", (event) => {
+            if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+            event.preventDefault();
+            const shouldStartTrack = !experienceStarted;
+            experienceStarted = true;
+            const direction = event.key === "ArrowRight" ? 1 as const : -1 as const;
+            const duration = Number.isFinite(audio.duration) ? audio.duration : 0;
+            if (duration > 0) {
+                audio.currentTime = (audio.currentTime + direction * 1.5 + duration) % duration;
+            }
+            platter?.nudge(direction, 5.5);
+            scratchEnergy = 0.72;
+            needleTargetDegrees = direction * -1.15;
+            needleVibrationEnergy = 0.72;
+            if (direction < 0) {
+                cancelQueuedPhotoSpawns();
+                removeLatestPhoto(0.72);
+            } else {
+                burstPhotos(0.72);
+            }
+            platterFlowDirection = direction;
+            void scratchAudio.init().then(() => {
+                scratchCursor = audio.currentTime;
+                scratchAudio.trigger({
+                    velocity: direction * 5.5,
+                    direction,
+                    gestureDuration: 120,
+                });
+                if (shouldStartTrack) {
+                    nextPlaybackUsesReverseRelease = direction < 0;
+                    void audio.play().catch(() => undefined);
+                }
+            });
+        });
+
+        document.addEventListener(
+            "astro:before-swap",
+            () => {
+                window.clearTimeout(holdDissolveTimer);
+                cancelQueuedPhotoSpawns();
+                platter?.destroy();
+                platter = null;
+                scratchAudio.destroy();
+            },
+            { once: true },
+        );
+
+        scratchAudio.setMuted(audio.muted);
+        setPlayUi();
+
+        const beginAutomaticPlayback = async () => {
+            if (!audio.paused) {
+                experienceStarted = true;
+                setPlayUi();
+                preparePlaybackSequence();
+                return;
+            }
+
+            try {
+                await audio.play();
+                experienceStarted = true;
+            } catch {
+                // Browsers can disallow audible autoplay. Keep the stage empty
+                // until the listener presses play so every photo follows music.
+                setPlayUi();
+            }
+        };
+
+        void beginAutomaticPlayback();
+        requestAnimationFrame(animate);
+    };
+
+    document.addEventListener("astro:page-load", initPhotoAlbum);
+    initPhotoAlbum();
+</script>

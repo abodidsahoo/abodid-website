@@ -93,6 +93,7 @@ const heroTextEffect = "smooth-blur";
     description={pageDescription}
     useDynamicOgImage={false}
     showNewsletterPopup={false}
+    hideWhatsAppButton={true}
     bodyClass="landing-page landing-redesign-page"
     structuredData={[personJsonLd(), websiteJsonLd()]}
 >
@@ -239,7 +240,7 @@ const heroTextEffect = "smooth-blur";
     {/* ── Right: Sticky exhibition image panel ───────────────────── */}
     <div class="copy-image-wrapper" id="copy-image-wrapper">
         <aside
-            class="copy-image-panel"
+            class="copy-image-panel is-loading-images"
             aria-hidden="true"
             id="copy-image-panel"
             data-image-pool={JSON.stringify(allImagesPool)}
@@ -262,57 +263,28 @@ const heroTextEffect = "smooth-blur";
     </div>
     </div>
 
-    {/* ── Reflective Floating Sticker on Landing Page ─────────────────────────────── */}
-    <button
+    {/* ── Floating Photo Album link on Landing Page ─────────────────────────────── */}
+    <a
         id="life-trigger-sticker"
         class="life-sticker life-sticker-landing"
-        type="button"
-        aria-label="Abodid's Life — click to view photo memories"
-        title="Abodid's Life — click to view photo memories"
+        href="/photo-album"
+        aria-label="Open Abodid's Photo Album"
+        title="Open Abodid's Photo Album"
     >
         <div class="sticker-inner">
             <img
-                src="/images/abodid-life-sticker.png"
-                alt="Abodid's Life - The things we do for love"
-                class="sticker-img"
-                width="160"
-                height="160"
+                src="/images/photo-album/abodid-photo-album-vinyl.png"
+                alt="Abodid's Photo Album vinyl record"
+                class="sticker-img sticker-img-vinyl"
+                width="190"
+                height="190"
                 loading="eager"
                 decoding="async"
             />
             <div class="reflective-glare"></div>
             <div class="reflective-sheen"></div>
         </div>
-    </button>
-
-    {/* ── Life page slide-in panel ─────────────────────────────── */}
-    <div id="life-panel" aria-label="Life page — photo memories">
-        <!-- Reflective floating return sticker on top-left corner inside the Life Panel block -->
-        <button
-            id="life-return-sticker"
-            class="life-sticker life-sticker-return"
-            type="button"
-            aria-label="Go back to home page"
-            title="Go back to home page"
-        >
-            <div class="sticker-inner">
-                <img
-                    src="/images/abodid-life-sticker.png"
-                    alt="Return home"
-                    class="sticker-img"
-                    width="110"
-                    height="110"
-                />
-                <div class="return-overlay">
-                    <span class="return-arrow">←</span>
-                    <span class="return-label">home</span>
-                </div>
-                <div class="reflective-glare"></div>
-                <div class="reflective-sheen"></div>
-            </div>
-        </button>
-        <iframe id="life-panel-iframe" title="people, stories, memories"></iframe>
-    </div>
+    </a>
 </BaseLayout>
 
 <style>
@@ -374,6 +346,14 @@ const heroTextEffect = "smooth-blur";
         pointer-events: none;
         animation: vinylSpin 20s linear infinite;
         will-change: transform;
+    }
+
+    /* The vinyl artwork includes transparent canvas around the record. */
+    .sticker-img-vinyl {
+        width: 152%;
+        height: 152%;
+        max-width: none;
+        flex: none;
     }
 
     @keyframes vinylSpin {
@@ -455,12 +435,12 @@ const heroTextEffect = "smooth-blur";
         mix-blend-mode: overlay;
     }
 
-    /* Landing Trigger Sticker - Upper right-hand side */
+    /* Landing Trigger Sticker - Lower right-hand side */
     .life-sticker-landing {
-        top: 10.5rem;
-        right: 3.5rem;
-        width: 160px;
-        height: 160px;
+        right: max(2rem, env(safe-area-inset-right));
+        bottom: max(2rem, env(safe-area-inset-bottom));
+        width: 190px;
+        height: 190px;
         animation: stickerFloat 4.5s ease-in-out infinite;
     }
 
@@ -488,196 +468,20 @@ const heroTextEffect = "smooth-blur";
         transform: translateY(-2px) scale(0.95);
     }
 
-    .life-sticker-landing.is-hiding {
-        opacity: 0 !important;
-        transform: scale(0.8) translateY(-16px) !important;
-        pointer-events: none !important;
-    }
-
-    /* Fullscreen Panel */
-    #life-panel {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        z-index: 300;
-        background: #0b0b0e;
-        transform: translate3d(100vw, 0, 0);
-        will-change: transform;
-        -webkit-backface-visibility: hidden;
-        backface-visibility: hidden;
-        transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    #life-panel.is-open {
-        transform: translate3d(0, 0, 0);
-    }
-
-    #life-panel-iframe {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        border: none;
-        background: #0b0b0e;
-        display: block;
-    }
-
-    /* Return Sticker inside upper left side of Life Panel block */
-    .life-sticker-return {
-        position: absolute;
-        top: 6.5rem;
-        left: 3.5rem;
-        z-index: 9999;
-        width: 110px;
-        height: 110px;
-        opacity: 0;
-        transform: scale(0.85) translateX(-12px);
-        pointer-events: none;
-        animation: returnStickerFloat 4.5s ease-in-out infinite;
-        transition: 
-            opacity 0.4s ease 0.25s, 
-            transform 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.25s, 
-            box-shadow 0.3s ease;
-    }
-
-    .return-overlay {
-        position: absolute;
-        inset: 0;
-        border-radius: 50%;
-        background: rgba(11, 11, 14, 0.65);
-        backdrop-filter: blur(4px);
-        -webkit-backdrop-filter: blur(4px);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        color: #ffffff;
-        z-index: 5;
-        transition: background 0.3s ease;
-    }
-
-    .life-sticker-return:hover .return-overlay {
-        background: rgba(180, 20, 20, 0.78);
-    }
-
-    @keyframes returnStickerFloat {
-        0%, 100% {
-            transform: translateY(0px) rotate(0deg);
-        }
-        50% {
-            transform: translateY(-6px) rotate(-1.8deg);
-        }
-    }
-
-    .life-sticker-return .return-arrow {
-        font-size: 1.4rem;
-        font-weight: 700;
-        line-height: 1;
-        margin-bottom: 2px;
-    }
-
-    .life-sticker-return .return-label {
-        font-size: 0.7rem;
-        font-weight: 700;
-        letter-spacing: 0.05em;
-        text-transform: lowercase;
-    }
-
-    #life-panel.is-open .life-sticker-return {
-        opacity: 1;
-        transform: scale(1) translateX(0);
-        pointer-events: auto;
-    }
-
-    .life-sticker-return:hover {
-        transform: scale(1.08) rotate(-2deg);
-    }
-
-    .life-sticker-return:hover .sticker-inner {
-        box-shadow: 
-            0 16px 40px rgba(0, 0, 0, 0.7), 
-            0 6px 18px rgba(234, 42, 16, 0.65), 
-            inset 0 0 0 2px rgba(255, 255, 255, 0.7);
-    }
-
-    .life-sticker-return:active {
-        transform: scale(0.94);
-    }
-
-    .life-sticker-return.is-hiding {
-        opacity: 0 !important;
-        transform: scale(0.85) translateX(-12px) !important;
-        pointer-events: none !important;
-        transition: opacity 0.25s ease, transform 0.25s ease !important;
-    }
-
     @media (max-width: 640px) {
         .life-sticker-landing {
-            top: 8.5rem;
-            right: 1.25rem;
-            width: 120px;
-            height: 120px;
-        }
-
-        .life-sticker-return {
-            top: 5rem;
-            left: 1.25rem;
-            width: 96px;
-            height: 96px;
+            right: max(1rem, env(safe-area-inset-right));
+            bottom: max(1rem, env(safe-area-inset-bottom));
+            width: 140px;
+            height: 140px;
         }
     }
 </style>
 
 <script>
     (() => {
-        const panel          = document.getElementById('life-panel');
-        const iframe         = document.getElementById('life-panel-iframe') as HTMLIFrameElement | null;
         const triggerSticker = document.getElementById('life-trigger-sticker');
-        const returnSticker  = document.getElementById('life-return-sticker');
-        if (!panel || !triggerSticker || !returnSticker) return;
-
-        let iframeReady = false;
-
-        const loadIframe = () => {
-            if (iframeReady || !iframe) return;
-            iframeReady = true;
-            iframe.src = '/life';
-        };
-
-        // Preload iframe after short delay for instantaneous display
-        setTimeout(loadIframe, 1500);
-
-        const openLifePanel = () => {
-            loadIframe();
-            triggerSticker.classList.add('is-hiding');
-            panel.classList.add('is-open');
-            returnSticker.classList.remove('is-hiding');
-            document.body.style.overflow = 'hidden';
-        };
-
-        const closeLifePanel = () => {
-            returnSticker.classList.add('is-hiding');
-            panel.classList.remove('is-open');
-            document.body.style.overflow = '';
-            
-            // Fade trigger sticker back in after transition starts
-            setTimeout(() => {
-                triggerSticker.classList.remove('is-hiding');
-            }, 300);
-        };
-
-        triggerSticker.addEventListener('click', openLifePanel);
-        returnSticker.addEventListener('click', closeLifePanel);
-
-        // Escape key support to exit panel
-        window.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && panel.classList.contains('is-open')) {
-                closeLifePanel();
-            }
-        });
+        if (!triggerSticker) return;
 
         // 3D Tilt and Reflective Specular Glare Mouse Interaction
         const handleMouseMove = (e: MouseEvent, sticker: HTMLElement) => {
@@ -706,10 +510,12 @@ const heroTextEffect = "smooth-blur";
             sticker.style.setProperty('--opacity-glare', '0');
         };
 
-        [triggerSticker, returnSticker].forEach((sticker) => {
-            sticker.addEventListener('mousemove', (e) => handleMouseMove(e, sticker));
-            sticker.addEventListener('mouseleave', () => handleMouseLeave(sticker));
-        });
+        triggerSticker.addEventListener('mousemove', (e) =>
+            handleMouseMove(e, triggerSticker),
+        );
+        triggerSticker.addEventListener('mouseleave', () =>
+            handleMouseLeave(triggerSticker),
+        );
     })();
 </script>
 
@@ -823,8 +629,8 @@ const heroTextEffect = "smooth-blur";
         opacity: var(--hero-line-opacity);
         transform: translate3d(0, calc(var(--hero-line-shift) * -1), 0);
         transition:
-            opacity 0.32s linear,
-            transform 0.58s cubic-bezier(0.22, 1, 0.36, 1);
+            opacity 0.05s linear,
+            transform 0.04s linear;
         will-change: opacity, transform;
     }
 
@@ -836,8 +642,8 @@ const heroTextEffect = "smooth-blur";
         opacity: var(--hero-dynamic-opacity);
         transform: translate3d(0, calc(var(--hero-dynamic-shift) * -1), 0);
         transition:
-            opacity 0.32s linear,
-            transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+            opacity 0.05s linear,
+            transform 0.04s linear;
         will-change: opacity, transform;
     }
 
@@ -1015,6 +821,11 @@ const heroTextEffect = "smooth-blur";
         align-items: center;
         justify-content: center;
         transition: opacity 400ms ease;
+    }
+
+    .copy-image-panel.is-loading-images {
+        opacity: 0;
+        pointer-events: none;
     }
 
     .copy-image-panel.is-fixed {
@@ -1303,43 +1114,38 @@ const heroTextEffect = "smooth-blur";
                 .height ??
             88;
         const viewportHeight = Math.max(window.innerHeight, 1);
-        const fadeStart = Math.max(headerHeight + 84, viewportHeight * 0.22);
-        const exitDistance = Math.max(viewportHeight * 0.85, 680);
+        const exitDistance = Math.max(viewportHeight * 0.45, 350);
         const rawProgress = clampProgress(
-            (window.scrollY - fadeStart) / Math.max(exitDistance, 1),
+            window.scrollY / Math.max(exitDistance, 1),
         );
         const progress = smoothstep(rawProgress);
 
         heroContent?.style.setProperty(
             "--hero-copy-stage-shift",
-            `${(progress * 16).toFixed(2)}px`,
+            `${(progress * 30).toFixed(2)}px`,
         );
 
         heroWordLines.forEach((line, lineIndex) => {
-            const lineStart =
-                lineIndex === 0 ? 0 : lineIndex === 1 ? 0.38 : 0.68;
-            const lineWindow =
-                lineIndex === 0 ? 0.58 : lineIndex === 1 ? 0.68 : 0.76;
+            const lineStart = lineIndex === 0 ? 0 : 0.12;
+            const lineWindow = lineIndex === 0 ? 0.7 : 0.8;
             const lineProgress = smoothstep(
                 (progress - lineStart) / Math.max(lineWindow, 0.01),
             );
-            const lineFadeStrength =
-                lineIndex === 0 ? 1 : lineIndex === 1 ? 0.44 : 0.22;
-            const lineOpacityDrop =
-                lineIndex === 0 ? 0.78 : lineIndex === 1 ? 0.24 : 0.14;
-            const shift = (progress * 10 + lineProgress * 22) * lineFadeStrength;
+            const lineMaxShift = lineIndex === 0 ? 115 : 68;
+            const lineOpacityDrop = lineIndex === 0 ? 1.0 : 0.88;
+            const shift = lineProgress * lineMaxShift;
             const opacity = clampProgress(
-                1 - (lineProgress * lineOpacityDrop + progress * 0.025),
+                1 - (lineProgress * lineOpacityDrop),
             );
 
             setHeroLineState(line, { shift, opacity });
         });
 
         if (heroDynamicLine) {
-            const dynamicProgress = smoothstep((progress - 0.58) / 0.54);
-            const dynamicShift = progress * 5 + dynamicProgress * 10;
+            const dynamicProgress = smoothstep((progress - 0.22) / 0.78);
+            const dynamicShift = dynamicProgress * 32;
             const dynamicOpacity = clampProgress(
-                1 - (dynamicProgress * 0.28 + progress * 0.035),
+                1 - (dynamicProgress * 0.72),
             );
 
             heroDynamicLine.style.setProperty(
@@ -1516,13 +1322,13 @@ const heroTextEffect = "smooth-blur";
     }
 
     /* ── Scroll-driven image panel switcher + JS sticky ───────────── */
-    (function initCopyImageSwitcher() {
+    (async function initCopyImageSwitcher() {
         const panel   = document.getElementById("copy-image-panel");
         const wrapper = document.getElementById("copy-image-wrapper");
         if (!panel || !wrapper) return;
 
         const layout  = panel.closest(".copy-image-layout");
-        const figures = Array.from(panel.querySelectorAll(".copy-panel-image"));
+        let figures = Array.from(panel.querySelectorAll(".copy-panel-image"));
         if (!figures.length) return;
 
         function updatePanelAspectRatio(fig) {
@@ -1550,7 +1356,9 @@ const heroTextEffect = "smooth-blur";
             }
         }
 
-        // Randomize image selection for every new visitor session
+        // Randomize portrait image selection for every new visitor session.
+        // Dimensions are checked from the actual file so wide landscape images
+        // never enter the landing-page panel, even when the R2 pool changes.
         function shuffleArray(array) {
             const arr = [...array];
             for (let i = arr.length - 1; i > 0; i--) {
@@ -1560,29 +1368,79 @@ const heroTextEffect = "smooth-blur";
             return arr;
         }
 
+        function inspectPortraitImage(imageData) {
+            return new Promise((resolve) => {
+                const probe = new Image();
+                let settled = false;
+
+                const finish = (result) => {
+                    if (settled) return;
+                    settled = true;
+                    window.clearTimeout(timeoutId);
+                    resolve(result);
+                };
+
+                const timeoutId = window.setTimeout(() => finish(null), 6000);
+                probe.onload = () => {
+                    const isPortrait = probe.naturalHeight > probe.naturalWidth;
+                    finish(isPortrait ? imageData : null);
+                };
+                probe.onerror = () => finish(null);
+                probe.src = imageData.url;
+            });
+        }
+
+        async function selectPortraitImages(pool, count) {
+            const candidates = shuffleArray(
+                pool.filter((item) => item && typeof item.url === "string" && item.url)
+            );
+            const selected = [];
+            const batchSize = 10;
+
+            for (let i = 0; i < candidates.length && selected.length < count; i += batchSize) {
+                const batch = candidates.slice(i, i + batchSize);
+                const inspected = await Promise.all(batch.map(inspectPortraitImage));
+                for (const portrait of inspected) {
+                    if (portrait) selected.push(portrait);
+                    if (selected.length === count) break;
+                }
+            }
+
+            return selected;
+        }
+
         try {
             const rawPool = panel.dataset.imagePool;
             if (rawPool) {
                 const pool = JSON.parse(rawPool);
                 if (Array.isArray(pool) && pool.length > 0) {
-                    const shuffled = shuffleArray(pool);
-                    const selected = shuffled.slice(0, figures.length);
+                    const selected = await selectPortraitImages(pool, figures.length);
+
+                    if (!selected.length) {
+                        panel.hidden = true;
+                        return;
+                    }
+
+                    figures.slice(selected.length).forEach((fig) => fig.remove());
+                    figures = figures.slice(0, selected.length);
                     figures.forEach((fig, i) => {
-                        if (selected[i]) {
-                            const imgData = selected[i];
-                            fig.style.backgroundColor = imgData.bg || "#111418";
-                            const img = fig.querySelector("img");
-                            if (img) {
-                                img.src = imgData.url;
-                                img.alt = imgData.title || `Photo ${i + 1}`;
-                            }
+                        const imgData = selected[i];
+                        fig.style.backgroundColor = imgData.bg || "#111418";
+                        const img = fig.querySelector("img");
+                        if (img) {
+                            img.src = imgData.url;
+                            img.alt = imgData.title || `Photo ${i + 1}`;
                         }
                     });
                 }
             }
         } catch (e) {
-            console.warn("Could not randomize landing panel images:", e);
+            console.warn("Could not select portrait landing panel images:", e);
+            panel.hidden = true;
+            return;
         }
+
+        panel.classList.remove("is-loading-images");
 
         /* ── Image soft crossfade on scroll ─────────────────────────────── */
         let activeIndex = 0;
