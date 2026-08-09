@@ -9,6 +9,7 @@ export type ScratchPlatterState = {
     deltaAngle: number;
     deltaSeconds: number;
     gestureDuration: number;
+    pointerTravel: number;
     isDragging: boolean;
     nowMs: number;
 };
@@ -42,6 +43,11 @@ const normalizeAngle = (angle: number) => {
     return normalized;
 };
 
+const cubicEaseInOut = (progress: number) =>
+    progress < 0.5
+        ? 4 * progress * progress * progress
+        : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+
 export class ScratchPlatterController {
     private element: HTMLElement;
     private idleAngularVelocity: number;
@@ -53,14 +59,24 @@ export class ScratchPlatterController {
     private rawVelocity = 0;
     private acceleration = 0;
     private dragging = false;
+    private clickOnlyGesture = false;
     private pointerId = -1;
     private centreX = 0;
     private centreY = 0;
     private previousPointerAngle = 0;
     private previousPointerTime = 0;
+    private previousPointerX = 0;
+    private previousPointerY = 0;
+    private pointerTravel = 0;
     private previousRawVelocity = 0;
     private gestureStartedAt = 0;
     private lastFrame = performance.now();
+    private velocityTransition: {
+        from: number;
+        to: number;
+        startedAt: number;
+        durationMs: number;
+    } | null = null;
 
     constructor(options: ScratchPlatterOptions) {
         this.element = options.element;
@@ -88,6 +104,36 @@ export class ScratchPlatterController {
         return this.velocity;
     }
 
+    setIdleAngularVelocity(angularVelocity: number, transitionDurationMs = 0) {
+        const targetUnchanged =
+            Math.abs(this.idleAngularVelocity - angularVelocity) < 0.000001 &&
+            (!this.velocityTransition ||
+                Math.abs(this.velocityTransition.to - angularVelocity) < 0.000001);
+        this.idleAngularVelocity = angularVelocity;
+
+        if (targetUnchanged) return;
+
+        if (this.dragging) {
+            this.velocityTransition = null;
+            return;
+        }
+
+        if (transitionDurationMs <= 0) {
+            this.velocityTransition = null;
+            this.velocity = angularVelocity;
+            this.rawVelocity = angularVelocity;
+            this.acceleration = 0;
+            return;
+        }
+
+        this.velocityTransition = {
+            from: this.velocity,
+            to: angularVelocity,
+            startedAt: performance.now(),
+            durationMs: transitionDurationMs,
+        };
+    }
+
     tick(nowMs: number): ScratchPlatterState {
         const deltaSeconds = clamp(
             (nowMs - this.lastFrame) / 1000,
@@ -97,10 +143,32 @@ export class ScratchPlatterController {
         this.lastFrame = nowMs;
 
         if (!this.dragging) {
-            const returnStrength = 1 - Math.exp(
-                -deltaSeconds * SCRATCH_PLATTER_TUNING.returnToIdleStrength,
-            );
-            this.velocity += (this.idleAngularVelocity - this.velocity) * returnStrength;
+            if (this.velocityTransition) {
+                const progress = clamp(
+                    (nowMs - this.velocityTransition.startedAt) /
+                        this.velocityTransition.durationMs,
+                    0,
+                    1,
+                );
+                const easedProgress = cubicEaseInOut(progress);
+                this.velocity =
+                    this.velocityTransition.from +
+                    (this.velocityTransition.to - this.velocityTransition.from) *
+                        easedProgress;
+                this.rawVelocity = this.velocity;
+
+                if (progress >= 1) {
+                    this.velocity = this.velocityTransition.to;
+                    this.rawVelocity = this.velocityTransition.to;
+                    this.velocityTransition = null;
+                }
+            } else {
+                const returnStrength = 1 - Math.exp(
+                    -deltaSeconds * SCRATCH_PLATTER_TUNING.returnToIdleStrength,
+                );
+                this.velocity +=
+                    (this.idleAngularVelocity - this.velocity) * returnStrength;
+            }
             this.angle += this.velocity * deltaSeconds;
         }
 
@@ -109,6 +177,7 @@ export class ScratchPlatterController {
     }
 
     nudge(direction: ScratchDirection, velocity = 5.5) {
+        this.velocityTransition = null;
         this.velocity = direction * Math.abs(velocity);
         this.rawVelocity = this.velocity;
         this.angle += direction * 0.09;
@@ -139,6 +208,7 @@ export class ScratchPlatterController {
     private handlePointerDown = (event: PointerEvent) => {
         if (event.button !== 0) return;
         event.preventDefault();
+        this.velocityTransition = null;
 
         const bounds = this.element.getBoundingClientRect();
         this.centreX = bounds.left + bounds.width / 2;
@@ -151,15 +221,17 @@ export class ScratchPlatterController {
             this.element.offsetWidth,
             this.element.offsetHeight,
         );
-        if (distance < untransformedSize * SCRATCH_PLATTER_TUNING.centreDeadZoneRatio) {
-            return;
-        }
+        this.clickOnlyGesture =
+            distance < untransformedSize * SCRATCH_PLATTER_TUNING.centreDeadZoneRatio;
 
         const nowMs = performance.now();
         this.dragging = true;
         this.pointerId = event.pointerId;
         this.previousPointerAngle = this.pointerAngle(event);
         this.previousPointerTime = nowMs;
+        this.previousPointerX = event.clientX;
+        this.previousPointerY = event.clientY;
+        this.pointerTravel = 0;
         this.previousRawVelocity = this.velocity;
         this.gestureStartedAt = nowMs;
         this.element.setPointerCapture(event.pointerId);
@@ -171,6 +243,37 @@ export class ScratchPlatterController {
         event.preventDefault();
 
         const nowMs = performance.now();
+        this.pointerTravel += Math.hypot(
+            event.clientX - this.previousPointerX,
+            event.clientY - this.previousPointerY,
+        );
+        this.previousPointerX = event.clientX;
+        this.previousPointerY = event.clientY;
+
+        if (this.clickOnlyGesture) {
+            const distance = Math.hypot(
+                event.clientX - this.centreX,
+                event.clientY - this.centreY,
+            );
+            const untransformedSize = Math.min(
+                this.element.offsetWidth,
+                this.element.offsetHeight,
+            );
+            this.onMove?.(this.snapshot(nowMs, 0, 0));
+            if (
+                distance <
+                untransformedSize * SCRATCH_PLATTER_TUNING.centreDeadZoneRatio
+            ) return;
+
+            // Establish a stable angle once a centre-originating drag reaches
+            // the playable record surface, then scratch from the next move.
+            this.clickOnlyGesture = false;
+            this.previousPointerAngle = this.pointerAngle(event);
+            this.previousPointerTime = nowMs;
+            this.previousRawVelocity = this.velocity;
+            return;
+        }
+
         const nextPointerAngle = this.pointerAngle(event);
         const deltaAngle = normalizeAngle(nextPointerAngle - this.previousPointerAngle);
         const deltaSeconds = clamp(
@@ -222,6 +325,7 @@ export class ScratchPlatterController {
         }
         this.pointerId = -1;
         this.onRelease?.(this.snapshot(nowMs, 0, 0));
+        this.clickOnlyGesture = false;
     }
 
     private pointerAngle(event: PointerEvent) {
@@ -245,6 +349,7 @@ export class ScratchPlatterController {
             deltaAngle,
             deltaSeconds,
             gestureDuration: Math.max(0, nowMs - this.gestureStartedAt),
+            pointerTravel: this.pointerTravel,
             isDragging: this.dragging,
             nowMs,
         };

@@ -81,11 +81,69 @@ Astro.response.headers.set(
         <div class="turntable" data-turntable>
             <img
                 class="turntable__base"
-                src="/images/photo-album/turntable-base.png"
+                src="/images/photo-album/full-new.png"
                 alt=""
                 draggable="false"
                 aria-hidden="true"
             />
+
+            <label class="console-fader console-fader--scratch" data-console-fader>
+                <span class="sr-only">Scratch volume</span>
+                <img
+                    class="console-fader__track"
+                    src="/images/photo-album/volume-level.png"
+                    alt=""
+                    draggable="false"
+                    aria-hidden="true"
+                />
+                <img
+                    class="console-fader__thumb"
+                    data-fader-thumb
+                    src="/images/photo-album/volume-control-slider.png"
+                    alt=""
+                    draggable="false"
+                    aria-hidden="true"
+                />
+                <input
+                    class="console-fader__input"
+                    data-scratch-volume
+                    type="range"
+                    min="0"
+                    max="100"
+                    step="0.1"
+                    value="36.1"
+                    aria-label="Scratch volume"
+                />
+            </label>
+
+            <label class="console-fader console-fader--music" data-console-fader>
+                <span class="sr-only">Music volume</span>
+                <img
+                    class="console-fader__track"
+                    src="/images/photo-album/volume-level.png"
+                    alt=""
+                    draggable="false"
+                    aria-hidden="true"
+                />
+                <img
+                    class="console-fader__thumb"
+                    data-fader-thumb
+                    src="/images/photo-album/volume-control-slider.png"
+                    alt=""
+                    draggable="false"
+                    aria-hidden="true"
+                />
+                <input
+                    class="console-fader__input"
+                    data-music-volume
+                    type="range"
+                    min="0"
+                    max="100"
+                    step="0.1"
+                    value="84.3"
+                    aria-label="Music volume"
+                />
+            </label>
 
             <button
                 class="record"
@@ -101,12 +159,28 @@ Astro.response.headers.set(
                 <span class="record__light" aria-hidden="true"></span>
             </button>
 
+            <div class="turntable__tonearm" data-tonearm>
+                <img
+                    class="turntable__handle"
+                    src="/images/photo-album/turntable-handle.png"
+                    alt=""
+                    draggable="false"
+                    aria-hidden="true"
+                />
+                <button
+                    class="tonearm-control"
+                    data-tonearm-control
+                    type="button"
+                    aria-label="Move the tonearm on or off the record"
+                    aria-pressed="false"
+                ></button>
+            </div>
+
             <img
-                class="turntable__handle"
-                src="/images/photo-album/turntable-handle.png"
-                alt=""
+                class="turntable__prompt"
+                src="/images/photo-album/spin.png"
+                alt="Spin the vinyl"
                 draggable="false"
-                aria-hidden="true"
             />
         </div>
 
@@ -229,20 +303,18 @@ Astro.response.headers.set(
         left: 50%;
         top: 50%;
         z-index: var(--photo-z, 1);
-        width: clamp(118px, var(--photo-size, 16vw), 520px);
+        width: clamp(128px, var(--photo-size, 16vw), 440px);
         margin: 0;
-        padding: clamp(0.4rem, 0.65vw, 0.7rem) clamp(0.4rem, 0.65vw, 0.7rem)
-            clamp(1.45rem, 2.4vw, 2.7rem);
+        /* Temporary frameless treatment for the album photos. */
+        padding: 0;
         overflow: hidden;
-        border-radius: 2px;
-        background: var(--paper);
-        box-shadow:
-            0 1.25rem 3rem rgba(0, 0, 0, 0.38),
-            0 0.2rem 0.35rem rgba(0, 0, 0, 0.24);
+        border-radius: 6px;
+        background: transparent;
+        box-shadow: none;
         opacity: 0;
         transform: translate(-50%, -50%) translate(var(--entry-x), var(--entry-y))
             rotate(calc(var(--rotation) * 0.45)) scale(0.92);
-        filter: saturate(0.82) sepia(0.05) blur(0.55px);
+        filter: grayscale(1) blur(0.55px);
         transition:
             opacity var(--photo-enter) ease,
             transform var(--photo-enter) cubic-bezier(0.16, 1, 0.3, 1),
@@ -252,13 +324,13 @@ Astro.response.headers.set(
 
     :global(.album-polaroid.is-visible) {
         opacity: 1;
-        filter: saturate(0.91) sepia(0.06) blur(0);
+        filter: grayscale(1) blur(0);
         transform: translate(-50%, -50%) rotate(var(--rotation)) scale(1);
     }
 
     :global(.album-polaroid.is-leaving) {
         opacity: 0;
-        filter: saturate(0.86) sepia(0.05) blur(0.4px);
+        filter: grayscale(1) blur(0.4px);
         transform: translate(-50%, -50%) translate(0, -5px)
             rotate(calc(var(--rotation) * 1.04)) scale(0.985);
         transition-duration: 340ms, 380ms, 100ms;
@@ -266,7 +338,7 @@ Astro.response.headers.set(
     }
 
     :global(.album-polaroid.is-leaving.is-reversing) {
-        filter: saturate(0.72) sepia(0.04) blur(0.55px);
+        filter: grayscale(1) blur(0.55px);
         transform: translate(-50%, -50%) rotate(calc(var(--rotation) * 0.94)) scale(0.94);
         transition-duration: 145ms, 180ms, 90ms;
         transition-timing-function: ease-out;
@@ -277,16 +349,27 @@ Astro.response.headers.set(
         width: 100%;
         aspect-ratio: var(--photo-ratio, 1 / 1);
         object-fit: cover;
-        background: #e6dfd4;
+        background: transparent;
         user-select: none;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+        :global(.album-polaroid.is-visible) {
+            pointer-events: auto;
+        }
+
+        :global(.album-polaroid.is-visible:hover),
+        :global(.album-polaroid.is-visible.has-color) {
+            filter: grayscale(0) blur(0);
+        }
     }
 
     .turntable {
         position: absolute;
-        top: 50%;
+        top: calc(50% - 3.5svh);
         left: 50%;
         z-index: 20;
-        width: min(66vw, 658px, calc(60svh * 1.25));
+        width: min(85.8vw, 855.4px, calc(78svh * 1.25));
         aspect-ratio: 5 / 4;
         filter: drop-shadow(0 1.7rem 2.8rem rgba(0, 0, 0, 0.34));
         transform: translate(-50%, -50%);
@@ -309,11 +392,113 @@ Astro.response.headers.set(
         z-index: 1;
     }
 
-    .turntable__handle {
+    .console-fader {
+        position: absolute;
+        top: 63.2291667%;
+        z-index: 6;
+        display: block;
+        width: 2.5%;
+        height: 12.8125%;
+        cursor: ns-resize;
+        touch-action: none;
+        user-select: none;
+    }
+
+    .console-fader--scratch {
+        left: 73.5833333%;
+        --fader-thumb-top: 43.0894309%;
+    }
+
+    .console-fader--music {
+        left: 77.3333333%;
+        --fader-thumb-top: 10.5691057%;
+    }
+
+    .console-fader__track,
+    .console-fader__thumb {
+        position: absolute;
+        display: block;
+        pointer-events: none;
+        user-select: none;
+        -webkit-user-drag: none;
+    }
+
+    .console-fader__track {
+        top: 0;
+        left: 50%;
+        width: 23.3333333%;
+        height: 100%;
+        transform: translateX(-50%);
+    }
+
+    .console-fader__thumb {
+        top: var(--fader-thumb-top);
+        left: 0;
+        width: 100%;
+        height: 32.5203252%;
+        transition: top 90ms ease-out;
+        will-change: top;
+    }
+
+    .console-fader.is-dragging .console-fader__thumb {
+        transition: none;
+    }
+
+    .console-fader__input {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .turntable__tonearm {
+        position: absolute;
+        inset: 0;
         z-index: 8;
         transform: rotate(var(--needle-angle, 0deg));
         transform-origin: 74.5833% 31.6667%;
+        pointer-events: none;
         will-change: transform;
+    }
+
+    .tonearm-control {
+        position: absolute;
+        top: 63.8%;
+        left: 49.5%;
+        z-index: 1;
+        width: 7.2%;
+        height: 9.2%;
+        padding: 0;
+        border: 0;
+        border-radius: 50%;
+        outline: none;
+        background: transparent;
+        cursor: grab;
+        pointer-events: auto;
+        touch-action: none;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .turntable__tonearm.is-dragging .tonearm-control {
+        cursor: grabbing;
+    }
+
+    .turntable__prompt {
+        position: absolute;
+        top: calc(85.5% + 30px);
+        left: 50%;
+        z-index: 9;
+        display: block;
+        width: 56.35%;
+        height: auto;
+        pointer-events: none;
+        user-select: none;
+        transform: translateX(-50%);
+        -webkit-user-drag: none;
     }
 
     .transport {
@@ -544,7 +729,7 @@ Astro.response.headers.set(
         }
 
         .turntable {
-            width: min(66vw, calc(60svh * 1.25));
+            width: min(85.8vw, calc(78svh * 1.25));
         }
 
         .transport {
@@ -554,8 +739,8 @@ Astro.response.headers.set(
         }
 
         :global(.album-polaroid) {
-            width: clamp(112px, var(--photo-size, 40vw), 300px);
-            padding-bottom: 1.65rem;
+            width: clamp(120px, var(--photo-size, 40vw), 280px);
+            padding-bottom: 0;
         }
 
     }
@@ -609,23 +794,45 @@ Astro.response.headers.set(
         const stage = root.querySelector<HTMLElement>("[data-memory-stage]");
         const turntable = root.querySelector<HTMLElement>("[data-turntable]");
         const record = root.querySelector<HTMLButtonElement>("[data-record]");
-        const handle = root.querySelector<HTMLImageElement>(".turntable__handle");
+        const handle = root.querySelector<HTMLElement>("[data-tonearm]");
+        const tonearmControl = root.querySelector<HTMLButtonElement>("[data-tonearm-control]");
         const audio = root.querySelector<HTMLAudioElement>("[data-album-audio]");
         const playButton = root.querySelector<HTMLButtonElement>("[data-play]");
         const playIcon = root.querySelector<HTMLElement>("[data-play-icon]");
         const progress = root.querySelector<HTMLInputElement>("[data-progress]");
-        if (!stage || !turntable || !record || !handle || !audio || !playButton || !playIcon || !progress) return;
+        const scratchVolume = root.querySelector<HTMLInputElement>("[data-scratch-volume]");
+        const musicVolume = root.querySelector<HTMLInputElement>("[data-music-volume]");
+        if (
+            !stage ||
+            !turntable ||
+            !record ||
+            !handle ||
+            !tonearmControl ||
+            !audio ||
+            !playButton ||
+            !playIcon ||
+            !progress ||
+            !scratchVolume ||
+            !musicVolume
+        ) return;
 
         const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
         const IDLE_ANGULAR_VELOCITY = reducedMotion.matches ? 0 : 0.43;
         const SCRUB_SECONDS_PER_RADIAN = 1.15;
+        const PLATTER_DRAG_THRESHOLD_PX = 3;
+        const PLATTER_DRAG_THRESHOLD_RADIANS = 0.004;
+        const PAUSED_NEEDLE_ANGLE_DEGREES = -15;
+        const PAUSED_PLATTER_SPEED_RATIO = 0.3;
+        const PLAYBACK_SPEED_TRANSITION_MS = 650;
+        const TONEARM_CLICK_SLOP_PX = 3;
+        const TONEARM_FLICK_THRESHOLD_DEGREES_PER_MS = 0.035;
         const TRACK_BPM = Number.isFinite(payload.trackBpm) ? payload.trackBpm : 121.02;
         const BEAT_DURATION_SECONDS = 60 / TRACK_BPM;
         const BEAT_OFFSET_SECONDS = Number.isFinite(payload.beatOffsetSeconds)
             ? payload.beatOffsetSeconds
             : 0.185;
-        // Reveal one memory every two bars at this track's 4/4 tempo.
-        const IDLE_BEATS_PER_PHOTO = 8;
+        // Reveal one memory per bar so the visuals keep pace with the faster track.
+        const IDLE_BEATS_PER_PHOTO = 4;
         const MAX_VISIBLE_PHOTOS = window.innerWidth <= 640 ? 6 : 8;
 
         let scratchEnergy = 0;
@@ -633,16 +840,23 @@ Astro.response.headers.set(
         let lastScratchPhotoAt = 0;
         let lastReversePhotoAt = 0;
         let lastIdleBeat = Number.NEGATIVE_INFINITY;
-        let photoIndex = Math.floor(Math.random() * Math.max(photos.length, 1));
+        let shuffledPhotoIndexes: number[] = [];
+        let lastPhotoIndex = -1;
         let photoSerial = 0;
         let experienceStarted = false;
         let resumeAfterScratch = false;
+        let audioWasPlayingAtGestureStart = false;
+        let scratchAudibleForGesture = false;
         let scratchCursor = 0;
         let lastSeekAt = 0;
         let platter: ScratchPlatterController | null = null;
         let lastDebugPaint = 0;
         let needleArcDegrees = 0;
         let needleTargetDegrees = 0;
+        let tonearmOnRecord = !audio.paused;
+        let tonearmIsDragging = false;
+        let needleRestDegrees = tonearmOnRecord ? 0 : PAUSED_NEEDLE_ANGLE_DEGREES;
+        let needleRestTargetDegrees = needleRestDegrees;
         let needleVibrationEnergy = 0;
         let renderedNeedleDegrees = 0;
         let holdDissolveTimer = 0;
@@ -656,6 +870,76 @@ Astro.response.headers.set(
         let platterGestureMoved = false;
 
         const scratchAudio = new ScratchAudioEngine();
+        const FADER_THUMB_HEIGHT_RATIO = 40 / 123;
+        const FADER_TRAVEL_PERCENT = (1 - FADER_THUMB_HEIGHT_RATIO) * 100;
+
+        const setupFader = (
+            input: HTMLInputElement,
+            applyValue: (normalizedValue: number) => void,
+        ) => {
+            const fader = input.closest<HTMLElement>("[data-console-fader]");
+            if (!fader) return;
+            const thumb = fader.querySelector<HTMLElement>("[data-fader-thumb]");
+            let pointerGrabOffset: number | null = null;
+
+            const syncFader = () => {
+                const minimum = Number(input.min) || 0;
+                const maximum = Number(input.max) || 100;
+                const value = clamp(Number(input.value), minimum, maximum);
+                const normalizedValue = (value - minimum) / Math.max(1, maximum - minimum);
+                const thumbTop = (1 - normalizedValue) * FADER_TRAVEL_PERCENT;
+                fader.style.setProperty("--fader-thumb-top", `${thumbTop.toFixed(6)}%`);
+                applyValue(normalizedValue);
+            };
+
+            const updateFromPointer = (event: PointerEvent) => {
+                const bounds = fader.getBoundingClientRect();
+                const thumbHeight = bounds.height * FADER_THUMB_HEIGHT_RATIO;
+                const travel = Math.max(1, bounds.height - thumbHeight);
+                const thumbTop = clamp(
+                    event.clientY - bounds.top - (pointerGrabOffset ?? thumbHeight / 2),
+                    0,
+                    travel,
+                );
+                const normalizedValue = 1 - thumbTop / travel;
+                input.value = (normalizedValue * 100).toFixed(1);
+                syncFader();
+            };
+
+            fader.addEventListener("pointerdown", (event) => {
+                if (!event.isPrimary) return;
+                event.preventDefault();
+                fader.classList.add("is-dragging");
+                fader.setPointerCapture(event.pointerId);
+                input.focus({ preventScroll: true });
+                const thumbBounds = thumb?.getBoundingClientRect();
+                pointerGrabOffset = thumbBounds &&
+                        event.clientY >= thumbBounds.top &&
+                        event.clientY <= thumbBounds.bottom
+                    ? event.clientY - thumbBounds.top
+                    : null;
+                updateFromPointer(event);
+            });
+            fader.addEventListener("pointermove", (event) => {
+                if (fader.hasPointerCapture(event.pointerId)) updateFromPointer(event);
+            });
+            const finishDrag = (event: PointerEvent) => {
+                if (fader.hasPointerCapture(event.pointerId)) {
+                    fader.releasePointerCapture(event.pointerId);
+                }
+                pointerGrabOffset = null;
+                fader.classList.remove("is-dragging");
+            };
+            fader.addEventListener("pointerup", finishDrag);
+            fader.addEventListener("pointercancel", finishDrag);
+            input.addEventListener("input", syncFader);
+            syncFader();
+        };
+
+        setupFader(scratchVolume, (value) => scratchAudio.setVolume(value));
+        setupFader(musicVolume, (value) => {
+            audio.volume = value;
+        });
         const debugEnabled = new URLSearchParams(window.location.search).get("debugScratch") === "true";
         const debugNode = debugEnabled ? document.createElement("output") : null;
         if (debugNode) {
@@ -664,11 +948,177 @@ Astro.response.headers.set(
             root.append(debugNode);
         }
 
-        const setPlayUi = () => {
+        const syncPlaybackVisualState = (syncTonearmFromAudio = true) => {
+            const visuallyPaused = audio.paused && !(platter?.isDragging ?? false);
+            if (
+                syncTonearmFromAudio &&
+                !tonearmIsDragging &&
+                !(platter?.isDragging ?? false)
+            ) {
+                tonearmOnRecord = !visuallyPaused;
+                needleRestTargetDegrees = tonearmOnRecord
+                    ? 0
+                    : PAUSED_NEEDLE_ANGLE_DEGREES;
+            }
+            tonearmControl.setAttribute("aria-pressed", String(tonearmOnRecord));
+            root.classList.toggle("is-paused", visuallyPaused);
+
+            const targetAngularVelocity = visuallyPaused
+                ? IDLE_ANGULAR_VELOCITY * PAUSED_PLATTER_SPEED_RATIO
+                : IDLE_ANGULAR_VELOCITY;
+            platter?.setIdleAngularVelocity(
+                targetAngularVelocity,
+                PLAYBACK_SPEED_TRANSITION_MS,
+            );
+        };
+
+        const setPlayUi = (syncTonearmFromAudio = true) => {
             const playing = !audio.paused && !(platter?.isDragging ?? false);
             playIcon.dataset.state = playing ? "pause" : "play";
             playButton.setAttribute("aria-label", playing ? "Pause track" : "Play track");
+            syncPlaybackVisualState(syncTonearmFromAudio);
         };
+
+        let tonearmPointerId = -1;
+        let tonearmWasOnRecord = tonearmOnRecord;
+        let tonearmDragStartPointerAngle = 0;
+        let tonearmDragStartRestAngle = needleRestDegrees;
+        let tonearmPointerTravel = 0;
+        let tonearmPreviousPointerX = 0;
+        let tonearmPreviousPointerY = 0;
+        let tonearmPreviousPointerAngle = 0;
+        let tonearmPreviousPointerTime = 0;
+        let tonearmPointerVelocity = 0;
+
+        const normalizeDegrees = (degrees: number) => {
+            let normalized = degrees;
+            while (normalized > 180) normalized -= 360;
+            while (normalized < -180) normalized += 360;
+            return normalized;
+        };
+
+        const tonearmPointerAngle = (event: PointerEvent) => {
+            const bounds = turntable.getBoundingClientRect();
+            const pivotX = bounds.left + bounds.width * 0.745833;
+            const pivotY = bounds.top + bounds.height * 0.316667;
+            return Math.atan2(event.clientY - pivotY, event.clientX - pivotX) * 180 / Math.PI;
+        };
+
+        const settleTonearm = (onRecord: boolean, startPlayback = false) => {
+            tonearmOnRecord = onRecord;
+            needleRestTargetDegrees = onRecord ? 0 : PAUSED_NEEDLE_ANGLE_DEGREES;
+            tonearmControl.setAttribute("aria-pressed", String(onRecord));
+            if (onRecord) void scratchAudio.init();
+
+            if (!onRecord && !audio.paused) {
+                scratchAudio.stopEffect();
+                audio.pause();
+            } else if (onRecord && startPlayback && audio.paused) {
+                experienceStarted = true;
+                void audio.play().catch(() => setPlayUi(false));
+            } else {
+                setPlayUi(false);
+            }
+        };
+
+        const updateTonearmFromPointer = (event: PointerEvent) => {
+            const now = performance.now();
+            const pointerAngle = tonearmPointerAngle(event);
+            const angleDelta = normalizeDegrees(pointerAngle - tonearmDragStartPointerAngle);
+            const desiredAngle = clamp(
+                tonearmDragStartRestAngle + angleDelta,
+                PAUSED_NEEDLE_ANGLE_DEGREES,
+                0,
+            );
+            const deltaTime = Math.max(1, now - tonearmPreviousPointerTime);
+            const instantaneousVelocity = normalizeDegrees(
+                pointerAngle - tonearmPreviousPointerAngle,
+            ) / deltaTime;
+            if (Math.abs(instantaneousVelocity) > 0.001) {
+                tonearmPointerVelocity = instantaneousVelocity;
+            }
+            tonearmPointerTravel += Math.hypot(
+                event.clientX - tonearmPreviousPointerX,
+                event.clientY - tonearmPreviousPointerY,
+            );
+            tonearmPreviousPointerX = event.clientX;
+            tonearmPreviousPointerY = event.clientY;
+            tonearmPreviousPointerAngle = pointerAngle;
+            tonearmPreviousPointerTime = now;
+            needleRestDegrees = desiredAngle;
+            needleRestTargetDegrees = desiredAngle;
+        };
+
+        const finishTonearmGesture = (event: PointerEvent, cancelled = false) => {
+            if (!tonearmIsDragging || event.pointerId !== tonearmPointerId) return;
+            if (!cancelled) updateTonearmFromPointer(event);
+            if (tonearmControl.hasPointerCapture(event.pointerId)) {
+                tonearmControl.releasePointerCapture(event.pointerId);
+            }
+            tonearmIsDragging = false;
+            tonearmPointerId = -1;
+            handle.classList.remove("is-dragging");
+
+            if (cancelled) {
+                settleTonearm(tonearmWasOnRecord);
+                return;
+            }
+
+            const wasClick = tonearmPointerTravel <= TONEARM_CLICK_SLOP_PX;
+            const wasFlick = Math.abs(tonearmPointerVelocity) >=
+                TONEARM_FLICK_THRESHOLD_DEGREES_PER_MS;
+            const onRecord = wasClick
+                ? !tonearmWasOnRecord
+                : wasFlick
+                    ? tonearmPointerVelocity > 0
+                    : needleRestDegrees > PAUSED_NEEDLE_ANGLE_DEGREES / 2;
+            settleTonearm(onRecord, !wasClick && onRecord);
+        };
+
+        tonearmControl.addEventListener("pointerdown", (event) => {
+            if (event.button !== 0 || tonearmIsDragging) return;
+            event.preventDefault();
+            event.stopPropagation();
+            tonearmIsDragging = true;
+            tonearmPointerId = event.pointerId;
+            tonearmWasOnRecord = tonearmOnRecord;
+            tonearmDragStartPointerAngle = tonearmPointerAngle(event);
+            tonearmDragStartRestAngle = clamp(
+                needleRestDegrees,
+                PAUSED_NEEDLE_ANGLE_DEGREES,
+                0,
+            );
+            tonearmPointerTravel = 0;
+            tonearmPreviousPointerX = event.clientX;
+            tonearmPreviousPointerY = event.clientY;
+            tonearmPreviousPointerAngle = tonearmDragStartPointerAngle;
+            tonearmPreviousPointerTime = performance.now();
+            tonearmPointerVelocity = 0;
+            needleArcDegrees = 0;
+            needleTargetDegrees = 0;
+            needleVibrationEnergy = 0;
+            handle.classList.add("is-dragging");
+            tonearmControl.setPointerCapture(event.pointerId);
+        });
+        tonearmControl.addEventListener("pointermove", (event) => {
+            if (!tonearmIsDragging || event.pointerId !== tonearmPointerId) return;
+            event.preventDefault();
+            event.stopPropagation();
+            updateTonearmFromPointer(event);
+        });
+        tonearmControl.addEventListener("pointerup", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            finishTonearmGesture(event);
+        });
+        tonearmControl.addEventListener("pointercancel", (event) => {
+            finishTonearmGesture(event, true);
+        });
+        tonearmControl.addEventListener("keydown", (event) => {
+            if (event.key !== "Enter" && event.key !== " ") return;
+            event.preventDefault();
+            settleTonearm(!tonearmOnRecord);
+        });
 
         const photoSize = (energy: number): { band: PhotoSizeBand; size: number } => {
             const mobile = window.innerWidth <= 640;
@@ -676,18 +1126,18 @@ Astro.response.headers.set(
             if (roll < 0.28) {
                 return {
                     band: "large",
-                    size: mobile ? 62 + Math.random() * 16 : 26 + Math.random() * 7,
+                    size: mobile ? 55 + Math.random() * 13 : 23 + Math.random() * 6,
                 };
             }
             if (roll < 0.72) {
                 return {
                     band: "medium",
-                    size: mobile ? 46 + Math.random() * 14 : 17 + Math.random() * 7,
+                    size: mobile ? 48 + Math.random() * 10 : 18 + Math.random() * 5,
                 };
             }
             return {
                 band: "small",
-                size: mobile ? 31 + Math.random() * 12 : 11 + Math.random() * 5,
+                size: mobile ? 35 + Math.random() * 10 : 13 + Math.random() * 4,
             };
         };
 
@@ -773,8 +1223,8 @@ Astro.response.headers.set(
                     : Math.min(baseSize, window.innerWidth <= 640 ? 42 : 17.5);
                 const estimatedWidth = clamp(
                     displayedSize / 100 * window.innerWidth,
-                    window.innerWidth <= 640 ? 112 : 118,
-                    window.innerWidth <= 640 ? 300 : 520,
+                    window.innerWidth <= 640 ? 120 : 128,
+                    window.innerWidth <= 640 ? 280 : 440,
                 ) + 24;
                 // Portraits and rotated frames are taller than their declared width.
                 // A conservative footprint keeps newly loaded photos from stacking.
@@ -941,11 +1391,41 @@ Astro.response.headers.set(
             }, 330);
         };
 
+        const nextRandomPhoto = () => {
+            if (!shuffledPhotoIndexes.length) {
+                shuffledPhotoIndexes = photos.map((_, index) => index);
+                for (let index = shuffledPhotoIndexes.length - 1; index > 0; index -= 1) {
+                    const swapIndex = Math.floor(Math.random() * (index + 1));
+                    [shuffledPhotoIndexes[index], shuffledPhotoIndexes[swapIndex]] = [
+                        shuffledPhotoIndexes[swapIndex],
+                        shuffledPhotoIndexes[index],
+                    ];
+                }
+
+                const lastPosition = shuffledPhotoIndexes.length - 1;
+                const nextIndex = shuffledPhotoIndexes[lastPosition];
+                if (
+                    shuffledPhotoIndexes.length > 1 &&
+                    nextIndex === lastPhotoIndex
+                ) {
+                    [shuffledPhotoIndexes[0], shuffledPhotoIndexes[lastPosition]] = [
+                        shuffledPhotoIndexes[lastPosition],
+                        shuffledPhotoIndexes[0],
+                    ];
+                }
+            }
+
+            const nextIndex = shuffledPhotoIndexes.pop();
+            if (nextIndex === undefined) return null;
+            lastPhotoIndex = nextIndex;
+            return photos[nextIndex];
+        };
+
         const spawnPhoto = (energy = 0) => {
             if (!photos.length) return;
 
-            const current = photos[photoIndex % photos.length];
-            photoIndex = (photoIndex + 1 + Math.floor(Math.random() * 3)) % photos.length;
+            const current = nextRandomPhoto();
+            if (!current) return;
             photoSerial += 1;
 
             const figure = document.createElement("figure");
@@ -993,6 +1473,11 @@ Astro.response.headers.set(
             image.draggable = false;
             figure.append(image);
             stage.append(figure);
+            figure.addEventListener(
+                "pointerenter",
+                () => figure.classList.add("has-color"),
+                { once: true },
+            );
 
             image.addEventListener("load", () => {
                 const ratio = image.naturalWidth / Math.max(1, image.naturalHeight);
@@ -1051,21 +1536,33 @@ Astro.response.headers.set(
         const handlePlatterStart = () => {
             platterGestureTravel = 0;
             platterGestureMoved = false;
+            scratchAudibleForGesture = tonearmOnRecord;
             scratchCursor = Number.isFinite(audio.currentTime) ? audio.currentTime : 0;
-            resumeAfterScratch = !audio.paused || !experienceStarted;
+            audioWasPlayingAtGestureStart = !audio.paused;
+            resumeAfterScratch = scratchAudibleForGesture &&
+                (audioWasPlayingAtGestureStart || !experienceStarted);
             experienceStarted = true;
             cancelQueuedPhotoSpawns();
             root.classList.add("is-scratching");
-            needleVibrationEnergy = Math.max(needleVibrationEnergy, 0.12);
+            if (scratchAudibleForGesture) {
+                needleVibrationEnergy = Math.max(needleVibrationEnergy, 0.12);
+                void scratchAudio.init();
+                holdDissolved = false;
+                scheduleHoldDissolve();
+            } else {
+                scratchAudio.stopEffect();
+            }
             audio.pause();
-            void scratchAudio.init();
-            holdDissolved = false;
-            scheduleHoldDissolve();
+            syncPlaybackVisualState(false);
         };
 
         const handlePlatterMove = (state: ScratchPlatterState) => {
             platterGestureTravel += Math.abs(state.deltaAngle);
-            if (platterGestureTravel >= 0.012) platterGestureMoved = true;
+            if (
+                state.pointerTravel >= PLATTER_DRAG_THRESHOLD_PX ||
+                platterGestureTravel >= PLATTER_DRAG_THRESHOLD_RADIANS
+            ) platterGestureMoved = true;
+            if (!scratchAudibleForGesture) return;
             const hasMotion = platterGestureMoved && Math.abs(state.deltaAngle) > 0.002;
             if (!platterGestureMoved) return;
             if (hasMotion) {
@@ -1126,14 +1623,24 @@ Astro.response.headers.set(
             root.classList.remove("is-scratching");
             needleTargetDegrees = 0;
             if (!platterGestureMoved) {
-                scratchAudio.stopEffect();
-                if (resumeAfterScratch) {
+                if (audioWasPlayingAtGestureStart) {
+                    scratchAudio.stopEffect();
+                    setPlayUi();
+                } else {
                     suppressNextPlaybackBurst = true;
                     nextPlaybackUsesReverseRelease = false;
                     void audio.play().catch(() => {
                         suppressNextPlaybackBurst = false;
+                        setPlayUi();
                     });
                 }
+                return;
+            }
+            if (!scratchAudibleForGesture) {
+                scratchAudio.stopEffect();
+                scratchEnergy = 0;
+                accelerationEnergy = 0;
+                setPlayUi(false);
                 return;
             }
             needleVibrationEnergy = Math.max(needleVibrationEnergy, scratchEnergy * 0.48);
@@ -1147,13 +1654,17 @@ Astro.response.headers.set(
             });
             if (resumeAfterScratch) {
                 nextPlaybackUsesReverseRelease = state.direction < 0;
-                void audio.play().catch(() => undefined);
+                void audio.play().catch(() => setPlayUi());
+            } else {
+                setPlayUi();
             }
         };
 
         platter = new ScratchPlatterController({
             element: record,
-            idleAngularVelocity: IDLE_ANGULAR_VELOCITY,
+            idleAngularVelocity: audio.paused
+                ? IDLE_ANGULAR_VELOCITY * PAUSED_PLATTER_SPEED_RATIO
+                : IDLE_ANGULAR_VELOCITY,
             onStart: handlePlatterStart,
             onMove: handlePlatterMove,
             onRelease: handlePlatterRelease,
@@ -1172,6 +1683,9 @@ Astro.response.headers.set(
             const needleSpringStrength = platterState.isDragging ? 24 : 13;
             const needleSpring = 1 - Math.exp(-deltaSeconds * needleSpringStrength);
             needleArcDegrees += (needleTargetDegrees - needleArcDegrees) * needleSpring;
+            const needleRestSpring = 1 - Math.exp(-deltaSeconds * 8);
+            needleRestDegrees +=
+                (needleRestTargetDegrees - needleRestDegrees) * needleRestSpring;
             if (!platterState.isDragging) {
                 needleTargetDegrees = 0;
                 needleVibrationEnergy *= Math.exp(-deltaSeconds * 12);
@@ -1182,7 +1696,7 @@ Astro.response.headers.set(
                 Math.sin(now * 0.073) * 0.105 +
                 Math.sin(now * 0.161 + 0.8) * 0.045
             );
-            renderedNeedleDegrees = needleArcDegrees + vibration;
+            renderedNeedleDegrees = needleRestDegrees + needleArcDegrees + vibration;
             handle.style.setProperty(
                 "--needle-angle",
                 `${renderedNeedleDegrees.toFixed(3)}deg`,
@@ -1288,14 +1802,19 @@ Astro.response.headers.set(
         record.addEventListener("keydown", (event) => {
             if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
             event.preventDefault();
+            const direction = event.key === "ArrowRight" ? 1 as const : -1 as const;
+            platter?.nudge(direction, 5.5);
+            if (!tonearmOnRecord) {
+                scratchAudio.stopEffect();
+                setPlayUi(false);
+                return;
+            }
             const shouldStartTrack = !experienceStarted;
             experienceStarted = true;
-            const direction = event.key === "ArrowRight" ? 1 as const : -1 as const;
             const duration = Number.isFinite(audio.duration) ? audio.duration : 0;
             if (duration > 0) {
                 audio.currentTime = (audio.currentTime + direction * 1.5 + duration) % duration;
             }
-            platter?.nudge(direction, 5.5);
             scratchEnergy = 0.72;
             needleTargetDegrees = direction * -1.15;
             needleVibrationEnergy = 0.72;

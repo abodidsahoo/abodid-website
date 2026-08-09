@@ -85,6 +85,7 @@ export class ScratchAudioEngine {
     private lastDirection: ScratchDirection = 1;
     private lastSound: ScratchSoundName | "silent" = "silent";
     private muted = false;
+    private volume = 1;
     private debugState: ScratchAudioDebugState = {
         ready: false,
         selectedSound: "silent",
@@ -110,7 +111,19 @@ export class ScratchAudioEngine {
         const now = this.context.currentTime;
         this.masterGain.gain.cancelScheduledValues(now);
         this.masterGain.gain.setTargetAtTime(
-            muted ? 0.0001 : SCRATCH_AUDIO_TUNING.masterGain,
+            muted ? 0.0001 : SCRATCH_AUDIO_TUNING.masterGain * this.volume,
+            now,
+            0.012,
+        );
+    }
+
+    setVolume(volume: number) {
+        this.volume = clamp(volume, 0, 1);
+        if (!this.context || !this.masterGain) return;
+        const now = this.context.currentTime;
+        this.masterGain.gain.cancelScheduledValues(now);
+        this.masterGain.gain.setTargetAtTime(
+            this.muted ? 0.0001 : Math.max(0.0001, SCRATCH_AUDIO_TUNING.masterGain * this.volume),
             now,
             0.012,
         );
@@ -223,7 +236,7 @@ export class ScratchAudioEngine {
             this.lowpass.Q.value = 0.35;
             this.masterGain.gain.value = this.muted
                 ? 0.0001
-                : SCRATCH_AUDIO_TUNING.masterGain;
+                : Math.max(0.0001, SCRATCH_AUDIO_TUNING.masterGain * this.volume);
             this.masterGain
                 .connect(this.highpass)
                 .connect(this.lowpass)
