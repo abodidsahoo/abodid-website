@@ -4,6 +4,7 @@ import {
 } from "npm:@supabase/supabase-js@2.112.0";
 import {
   canonicalizeUrl,
+  cleanJsonText,
   type DigestCandidate,
   discoveryTooling,
   digestSubject,
@@ -12,6 +13,7 @@ import {
   filterTopicsForDay,
   isIsoDate,
   limitWords,
+  normalizeCandidates,
   normalizeTitle,
   renderDigestHtml,
   scoreCandidate,
@@ -467,11 +469,21 @@ Hard Search & Discovery Requirements:
   const rawText = provider.name === "openrouter"
     ? extractChatText(payload)
     : extractOpenAiText(payload);
-  const parsed = JSON.parse(rawText) as {
-    candidates?: DigestCandidate[];
-  };
+  const cleanedText = cleanJsonText(rawText);
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(cleanedText);
+  } catch (error) {
+    const snippet = rawText.slice(0, 300);
+    throw new Error(
+      `Failed to parse ${provider.name} JSON response (${
+        error instanceof Error ? error.message : String(error)
+      }). Raw text prefix: ${JSON.stringify(snippet)}`,
+    );
+  }
+  const candidates = normalizeCandidates(parsed);
   return {
-    candidates: Array.isArray(parsed.candidates) ? parsed.candidates : [],
+    candidates,
     responseId: typeof payload.id === "string" ? payload.id : "",
     model,
     metadata: provider.name === "openrouter"

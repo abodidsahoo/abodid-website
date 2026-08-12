@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
   canonicalizeUrl,
+  cleanJsonText,
   discoveryTooling,
   domainMatches,
   filterTopicsForDay,
   limitWords,
+  normalizeCandidates,
   renderDigestHtml,
   selectExactlyFive,
   shouldDeliverToday,
@@ -133,5 +135,54 @@ describe("delivery frequency", () => {
     expect(shouldDeliverToday("weekdays", 1, sunday)).toBe(false);
     expect(shouldDeliverToday("weekly", 1, monday)).toBe(true);
     expect(shouldDeliverToday("paused", 1, monday)).toBe(false);
+  });
+});
+
+describe("cleanJsonText helper", () => {
+  it("leaves clean JSON untouched", () => {
+    const raw = '{"candidates": []}';
+    expect(cleanJsonText(raw)).toBe('{"candidates": []}');
+  });
+
+  it("strips markdown code fences", () => {
+    const raw = '```json\n{\n  "candidates": []\n}\n```';
+    expect(cleanJsonText(raw)).toBe('{\n  "candidates": []\n}');
+  });
+
+  it("extracts JSON payload when surrounded by leading and trailing prose", () => {
+    const raw = 'Here is the requested output:\n```json\n{\n  "candidates": [{"title": "Test"}]\n}\n```\nHope this helps!';
+    expect(cleanJsonText(raw)).toBe('{\n  "candidates": [{"title": "Test"}]\n}');
+    expect(JSON.parse(cleanJsonText(raw))).toEqual({ candidates: [{ title: "Test" }] });
+  });
+
+  it("handles trailing commas in JSON text", () => {
+    const raw = '{\n  "sources": [\n    {\n      "title": "Test Title",\n      "url": "https://example.com",\n    },\n  ]\n}';
+    const cleaned = cleanJsonText(raw);
+    const parsed = JSON.parse(cleaned);
+    const candidates = normalizeCandidates(parsed);
+    expect(candidates).toHaveLength(1);
+    expect(candidates[0].title).toBe("Test Title");
+    expect(candidates[0].url).toBe("https://example.com");
+  });
+});
+
+describe("normalizeCandidates helper", () => {
+  it("normalizes objects with 'sources' root key and alternative field names", () => {
+    const parsed = {
+      sources: [
+        {
+          title: "Spatial Storytelling in Digital Art",
+          url: "https://example.com/spatial-storytelling",
+          excerpt: "Deep analysis of spatial interaction design.",
+          source: "Spatial Journal",
+        },
+      ],
+    };
+    const candidates = normalizeCandidates(parsed);
+    expect(candidates).toHaveLength(1);
+    expect(candidates[0].title).toBe("Spatial Storytelling in Digital Art");
+    expect(candidates[0].url).toBe("https://example.com/spatial-storytelling");
+    expect(candidates[0].source_name).toBe("Spatial Journal");
+    expect(candidates[0].why_it_matters).toBe("Deep analysis of spatial interaction design.");
   });
 });

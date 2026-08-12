@@ -33,7 +33,7 @@ create table public.reading_digest_settings (
   id boolean primary key default true check (id),
   recipient_name text not null default 'Abodid',
   recipient_email text not null default 'abodidsahoo@gmail.com',
-  sender_name text not null default 'Abodid reads',
+  sender_name text not null default 'Morning Page',
   sender_email text not null default 'hello@abodid.com',
   reply_to_email text,
   timezone text not null default 'Asia/Kolkata' check (timezone = 'Asia/Kolkata'),

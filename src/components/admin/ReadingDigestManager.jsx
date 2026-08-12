@@ -165,7 +165,7 @@ export default function ReadingDigestManager() {
             if (settingsRes.data) {
                 setSettings({
                     ...settingsRes.data,
-                    sender_name: (!settingsRes.data.sender_name || settingsRes.data.sender_name === 'Abodid reads') ? "Abodid's Intern" : settingsRes.data.sender_name
+                    sender_name: settingsRes.data.sender_name || "Morning Page"
                 });
             }
             if (topicsRes.data) setTopics(topicsRes.data);

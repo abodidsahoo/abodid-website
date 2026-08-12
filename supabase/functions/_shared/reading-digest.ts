@@ -43,6 +43,99 @@ export const discoveryTooling = (provider: "openai" | "openrouter") =>
       max_tool_calls: 24,
     };
 
+export const cleanJsonText = (raw: string): string => {
+  if (!raw) return "";
+  let text = raw.trim();
+
+  if (text.includes("```")) {
+    text = text
+      .replace(/^```(?:json)?\s*/i, "")
+      .replace(/\s*```$/i, "")
+      .trim();
+  }
+
+  const firstBrace = text.search(/[\{\[]/);
+  const lastBrace = Math.max(text.lastIndexOf("}"), text.lastIndexOf("]"));
+  if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+    text = text.slice(firstBrace, lastBrace + 1);
+  }
+
+  // Remove single line comments and block comments
+  text = text.replace(/\/\*[\s\S]*?\*\/|([^\\:]|^)\/\/.*$/gm, "$1");
+
+  // Remove trailing commas before closing braces/brackets
+  text = text.replace(/,\s*([}\]])/g, "$1");
+
+  return text;
+};
+
+export const normalizeCandidates = (parsed: unknown): DigestCandidate[] => {
+  if (!parsed || typeof parsed !== "object") return [];
+
+  let rawList: unknown[] = [];
+  if (Array.isArray(parsed)) {
+    rawList = parsed;
+  } else {
+    const obj = parsed as Record<string, unknown>;
+    if (Array.isArray(obj.candidates)) rawList = obj.candidates;
+    else if (Array.isArray(obj.sources)) rawList = obj.sources;
+    else if (Array.isArray(obj.articles)) rawList = obj.articles;
+    else if (Array.isArray(obj.items)) rawList = obj.items;
+    else if (Array.isArray(obj.readings)) rawList = obj.readings;
+  }
+
+  return rawList
+    .map((item) => {
+      if (!item || typeof item !== "object") return null;
+      const row = item as Record<string, unknown>;
+      const title = String(row.title ?? row.name ?? "").trim();
+      const url = String(row.url ?? row.link ?? row.canonical_url ?? "").trim();
+      if (!title || !url) return null;
+
+      const source_name =
+        String(row.source_name ?? row.source ?? row.author ?? row.publisher ?? "").trim() ||
+        domainFromUrl(url) ||
+        "Web Source";
+      const publication_date = isIsoDate(String(row.publication_date ?? row.date ?? ""))
+        ? String(row.publication_date ?? row.date)
+        : new Date().toISOString().slice(0, 10);
+      const estimated_reading_minutes = Math.max(
+        1,
+        Math.min(180, Number(row.estimated_reading_minutes ?? row.reading_time ?? row.read_time ?? 5) || 5),
+      );
+      const why_it_matters = limitWords(
+        String(row.why_it_matters ?? row.excerpt ?? row.summary ?? row.description ?? title),
+      );
+      const topic_names = Array.isArray(row.topic_names)
+        ? (row.topic_names as unknown[]).map(String).filter(Boolean)
+        : Array.isArray(row.topics)
+        ? (row.topics as unknown[]).map(String).filter(Boolean)
+        : ["General"];
+
+      const relevance_score = Math.max(
+        0,
+        Math.min(100, Number(row.relevance_score ?? row.score ?? 75) || 75),
+      );
+      const credibility_score = Math.max(
+        0,
+        Math.min(100, Number(row.credibility_score ?? row.credibility ?? 80) || 80),
+      );
+
+      return {
+        title,
+        source_name,
+        publication_date,
+        estimated_reading_minutes,
+        url,
+        why_it_matters,
+        topic_names: topic_names.length > 0 ? topic_names : ["General"],
+        relevance_score,
+        credibility_score,
+      } as DigestCandidate;
+    })
+    .filter((candidate): candidate is DigestCandidate => candidate !== null);
+};
+
 const TRACKING_PARAMETERS = new Set([
   "fbclid",
   "gclid",
