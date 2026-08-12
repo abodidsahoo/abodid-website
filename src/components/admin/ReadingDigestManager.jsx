@@ -11,7 +11,6 @@ import {
     ThumbsUp,
     ThumbsDown,
     ExternalLink,
-    RefreshCw,
     ShieldCheck,
     ShieldAlert,
     Sliders,
@@ -24,6 +23,7 @@ import {
     Calendar,
     Eye
 } from 'lucide-react';
+import AdminPageHeader from './AdminPageHeader';
 
 export default function ReadingDigestManager() {
     const [activeTab, setActiveTab] = useState('readings');
@@ -51,6 +51,8 @@ export default function ReadingDigestManager() {
     });
     const [topics, setTopics] = useState([]);
     const [sources, setSources] = useState([]);
+    const [newTopic, setNewTopic] = useState({ name: '', description: '', weight: 1.0 });
+    const [newSource, setNewSource] = useState({ domain: '', name: '', disposition: 'trusted', notes: '' });
     const [readings, setReadings] = useState([]);
     const [savedReadingIds, setSavedReadingIds] = useState(new Set());
     const [feedbackMap, setFeedbackMap] = useState(new Map());
@@ -456,46 +458,33 @@ export default function ReadingDigestManager() {
         }
     };
 
-    if (loading) {
-        return (
-            <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
-                <RefreshCw size={24} className="spin-icon" style={{ marginBottom: '1rem' }} />
-                <p>Loading Reading Digest control panel...</p>
-                <style>{`.spin-icon { animation: spin 1.2s linear infinite; } @keyframes spin { to { transform: rotate(360deg); } }`}</style>
-            </div>
-        );
-    }
-
     const latestRun = runs[0];
 
     return (
         <div className="rd-admin">
             {/* Header */}
             <div className="rd-admin-header">
-                <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '0.3rem' }}>
-                        <p className="rd-admin-kicker" style={{ margin: 0 }}>AUTOMATED RESEARCH & DAILY DIGEST</p>
+                <div className="rd-admin-page-intro">
+                    <AdminPageHeader
+                        headingId="reading-digest-title"
+                        title="Reader's Digest"
+                        description="Reading is the only habit you really need."
+                    />
+                </div>
+
+                {!loading && (
+                    <div className="rd-admin-header-actions">
                         <span className={`rd-badge ${settings.enabled && settings.frequency !== 'paused' ? 'rd-badge-success' : 'rd-badge-muted'}`}>
                             {settings.enabled && settings.frequency !== 'paused' ? 'Active' : 'Paused'}
                         </span>
+                        <button type="button" onClick={handlePreviewTestEmail} disabled={sendingTest || running} className="rd-btn rd-btn-secondary">
+                            <Send size={15} /> {previewLoading ? 'Loading Preview...' : cachedPreview ? 'Preview Test Email' : 'Preview Test Email'}
+                        </button>
+                        <button type="button" onClick={handleRunNow} disabled={running || sendingTest} className="rd-btn rd-btn-primary">
+                            <Play size={15} fill="currentColor" /> {running ? 'Running Digest...' : 'Run Digest Now'}
+                        </button>
                     </div>
-                    <h2>
-                        <BookOpen size={32} style={{ marginRight: '0.65rem', verticalAlign: 'middle' }} />
-                        Reader's Digest
-                    </h2>
-                    <span className="rd-admin-subtitle">
-                        Hi {settings.recipient_name || 'Abodid'}, I have curated these amazing articles for you to read today.
-                    </span>
-                </div>
-
-                <div className="rd-admin-header-actions">
-                    <button type="button" onClick={handlePreviewTestEmail} disabled={sendingTest || running} className="rd-btn rd-btn-secondary">
-                        <Send size={15} /> {previewLoading ? 'Loading Preview...' : cachedPreview ? 'Preview Test Email' : 'Preview Test Email'}
-                    </button>
-                    <button type="button" onClick={handleRunNow} disabled={running || sendingTest} className="rd-btn rd-btn-primary">
-                        <Play size={15} fill="currentColor" /> {running ? 'Running Digest...' : 'Run Digest Now'}
-                    </button>
-                </div>
+                )}
             </div>
 
             {/* Alert Messages */}
@@ -509,7 +498,19 @@ export default function ReadingDigestManager() {
                 </div>
             )}
 
-            {/* 2-COLUMN XR SHOWCASE GRID LAYOUT */}
+            {loading ? (
+                <section className="rd-loading-panel" role="status" aria-live="polite" aria-busy="true">
+                    <p>
+                        Loading Reader's Digest
+                        <span className="rd-loading-dots" aria-hidden="true">
+                            <span>.</span>
+                            <span>.</span>
+                            <span>.</span>
+                        </span>
+                    </p>
+                </section>
+            ) : (
+            /* 2-COLUMN XR SHOWCASE GRID LAYOUT */
             <div className="rd-admin-layout">
                 {/* LEFT SIDEBAR: CONTROLLERS & NAVIGATION */}
                 <aside className="rd-admin-sidebar">
@@ -1209,17 +1210,23 @@ export default function ReadingDigestManager() {
                     )}
                 </main>
             </div>
+            )}
 
             {/* Scoped CSS styling matching XR Showcase design system */}
             <style>{`
-                .rd-admin { display: grid; gap: 1rem; color: var(--text-primary); width: 100%; box-sizing: border-box; }
-                .rd-admin-header { display: flex; justify-content: space-between; gap: 1.5rem; align-items: flex-end; padding: 0 0 1rem; border-bottom: 1px solid var(--border-subtle); flex-wrap: wrap; }
+                .rd-admin { display: grid; gap: 2rem; color: var(--text-primary); width: 100%; max-width: var(--admin-page-content-max); margin: 0; box-sizing: border-box; }
+                .rd-admin-header { display: flex; justify-content: space-between; gap: 2rem; align-items: flex-end; padding: var(--admin-page-heading-offset-block) var(--admin-page-heading-offset-inline) 1.5rem; border-bottom: 1px solid var(--border-subtle); }
+                .rd-admin-page-intro { flex: 1 1 34rem; min-width: 0; }
                 .rd-admin-kicker { margin: 0 0 .3rem; color: var(--text-tertiary); font-size: .72rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
-                .rd-admin-header h2 { margin: 0; font-size: clamp(2rem, 4vw, 3.2rem); line-height: 1; font-weight: 700; display: flex; align-items: center; }
-                .rd-admin-subtitle { display: block; margin-top: .55rem; color: var(--text-secondary); font-size: .92rem; }
-                .rd-admin-header-actions { display: flex; gap: .55rem; align-items: center; flex-wrap: wrap; }
+                .rd-admin-header-actions { display: flex; flex: 0 0 auto; gap: .55rem; align-items: center; flex-wrap: wrap; padding-bottom: .25rem; }
 
                 .rd-admin-layout { display: grid; grid-template-columns: minmax(240px, 320px) minmax(0, 1fr); gap: 1rem; align-items: start; }
+                .rd-loading-panel { display: grid; place-items: center; min-height: 500px; padding: clamp(1.5rem, 5vw, 3rem); box-sizing: border-box; border: 1px solid var(--border-subtle); border-radius: 12px; background: var(--bg-surface); color: var(--text-secondary); }
+                .rd-loading-panel p { margin: 0; font-size: .95rem; font-weight: 700; letter-spacing: .01em; }
+                .rd-loading-dots { display: inline-flex; min-width: 1.15em; }
+                .rd-loading-dots span { opacity: .2; animation: rdLoadingDot 1.2s infinite ease-in-out; }
+                .rd-loading-dots span:nth-child(2) { animation-delay: .2s; }
+                .rd-loading-dots span:nth-child(3) { animation-delay: .4s; }
                 .rd-admin-sidebar { border: 1px solid var(--border-subtle); border-radius: 12px; background: var(--bg-surface); overflow: hidden; position: sticky; top: 1rem; display: flex; flex-direction: column; gap: 1rem; padding: 1rem; }
                 .rd-sidebar-block { display: flex; flex-direction: column; gap: 0.65rem; }
                 .rd-sidebar-controls { border-top: 1px solid var(--border-subtle); padding-top: 0.85rem; }
@@ -1277,13 +1284,24 @@ export default function ReadingDigestManager() {
                     70% { transform: scale(0.92) rotate(3deg); }
                     100% { transform: scale(1); }
                 }
+                @keyframes rdLoadingDot {
+                    0%, 20%, 100% { opacity: .2; transform: translateY(0); }
+                    45% { opacity: 1; transform: translateY(-1px); }
+                }
                 .rd-pop-anim {
                     animation: rdPop 0.38s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                }
+
+                @media (prefers-reduced-motion: reduce) {
+                    .rd-loading-dots span { animation: none; opacity: 1; }
                 }
 
                 @media(max-width: 900px) {
                     .rd-admin-layout { grid-template-columns: 1fr; }
                     .rd-admin-sidebar { position: static; }
+                }
+                @media(max-width: 1180px) {
+                    .rd-admin-header { align-items: flex-start; flex-direction: column; }
                 }
             `}</style>
 

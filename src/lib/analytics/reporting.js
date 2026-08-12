@@ -27,8 +27,22 @@ export const getAnalyticsRangeStart = (range, now = new Date(), timezoneOffsetMi
     return new Date(localNow.getTime() + (offset * 60 * 1000));
 };
 
+export const getAnalyticsMonthStart = (now = new Date(), timezoneOffsetMinutes = 0) => {
+    const offset = clampTimezoneOffset(timezoneOffsetMinutes);
+    const localNow = new Date(now.getTime() - (offset * 60 * 1000));
+    localNow.setUTCDate(1);
+    localNow.setUTCHours(0, 0, 0, 0);
+    return new Date(localNow.getTime() + (offset * 60 * 1000));
+};
+
 export const emptyAnalyticsReport = () => ({
     summary: {
+        visitors: 0,
+        sessions: 0,
+        pageViews: 0,
+        averageEngagedSeconds: 0,
+    },
+    monthlySummary: {
         visitors: 0,
         sessions: 0,
         pageViews: 0,
@@ -39,6 +53,7 @@ export const emptyAnalyticsReport = () => ({
     timeline: [],
     pages: [],
     journeys: [],
+    topRecentVisitors: [],
     commonJourneys: [],
     navigation: {
         summary: {

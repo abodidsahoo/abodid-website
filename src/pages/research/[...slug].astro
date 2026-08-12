@@ -1,6 +1,6 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import { getProjects, getProjectBySlug } from "../../lib/api";
+import { getProjectBySlug } from "../../lib/api";
 import { marked } from "marked";
 import ShareButtons from "../../components/ShareButtons.jsx";
 
@@ -9,181 +9,416 @@ export const prerender = false;
 const { slug } = Astro.params;
 const project = await getProjectBySlug(slug);
 
-if (!project) {
+if (!project || !project.published || project.visible === false) {
   return Astro.redirect("/404");
 }
 
 const contentHtml = marked.parse(project.content || "");
+const coverImage = project.cover_image || project.image;
+const experimentUrl = project.experiment_url || project.link;
+const galleryImages = Array.isArray(project.gallery_images)
+  ? project.gallery_images.filter((image) => image?.url)
+  : [];
+const tags = Array.isArray(project.tags) ? project.tags : [];
 ---
 
-<BaseLayout title={project.title}>
-  <article class="project-container">
-    <header class="project-header">
-      <div class="meta">
-        <span class="category">Code & Research</span>
+<BaseLayout title={project.title} description={project.description}>
+  <article class="research-project">
+    <header class="research-hero">
+      <div class="research-hero__signal" aria-hidden="true">
+        <span></span><span></span><span></span>
       </div>
-      <h1 class="title">{project.title}</h1>
-      <p class="excerpt">{project.description}</p>
+      <p class="research-eyebrow">Creative technology experiment</p>
+      <h1>{project.title}</h1>
+      {project.description && <p class="research-proposition">{project.description}</p>}
 
-      <div class="actions">
+      <div class="research-actions">
         {
-          project.link && (
-            <a
-              href={project.link}
-              target="_blank"
-              rel="noopener noreferrer"
-              class="btn-primary"
-            >
-              Go to Live Project ↗
+          experimentUrl && (
+            <a href={experimentUrl} target="_blank" rel="noopener noreferrer" class="launch-button">
+              <span>Launch experiment</span>
+              <span aria-hidden="true">↗</span>
             </a>
           )
         }
-        {
-          project.repo_link && (
-            <a
-              href={project.repo_link}
-              target="_blank"
-              rel="noopener noreferrer"
-              class="btn-secondary"
-            >
-              View Source Code
-            </a>
-          )
-        }
+        <a href="/research" class="research-index-link">All research</a>
       </div>
+
+      {
+        tags.length > 0 && (
+          <div class="research-tags" aria-label="Project tags">
+            {tags.map((tag) => <span>{tag}</span>)}
+          </div>
+        )
+      }
     </header>
 
     {
-      project.image && (
-        <div class="project-hero">
-          <img src={project.image} alt={project.title} loading="lazy" />
-        </div>
+      coverImage && (
+        <figure class="research-cover">
+          <img src={coverImage} alt={`${project.title} project cover`} loading="eager" />
+        </figure>
       )
     }
 
-    <div class="prose" set:html={contentHtml} />
+    {
+      project.content && (
+        <section class="research-story" aria-label="Project story">
+          <div class="research-story__label"><span>Field notes</span></div>
+          <div class="research-prose" set:html={contentHtml} />
+        </section>
+      )
+    }
 
-    <hr class="divider" />
+    {
+      galleryImages.length > 0 && (
+        <section class="research-gallery" aria-labelledby="research-gallery-title">
+          <header>
+            <p>Visual record</p>
+            <h2 id="research-gallery-title">Inside the project</h2>
+          </header>
+          <div class="research-gallery__grid">
+            {galleryImages.map((image, index) => (
+              <figure class:list={["research-gallery__item", index % 5 === 0 && "is-wide"]}>
+                <img src={image.url} alt={image.caption || `${project.title} project image ${index + 1}`} loading="lazy" />
+                {image.caption && <figcaption>{image.caption}</figcaption>}
+              </figure>
+            ))}
+          </div>
+        </section>
+      )
+    }
 
-    <div class="footer-nav">
-      <ShareButtons
-        client:only="react"
-        title={project.title}
-        url={Astro.url.href}
-      />
-      <a href="/research" class="back-link">← Back to Research</a>
-    </div>
+    {
+      experimentUrl && (
+        <section class="research-launch-panel">
+          <div>
+            <p>Ready when you are</p>
+            <h2>The project continues outside this page.</h2>
+          </div>
+          <a href={experimentUrl} target="_blank" rel="noopener noreferrer">
+            Launch experiment <span aria-hidden="true">↗</span>
+          </a>
+        </section>
+      )
+    }
+
+    <footer class="research-footer">
+      <ShareButtons client:only="react" title={project.title} url={Astro.url.href} />
+      <a href="/research">← Back to Research</a>
+    </footer>
   </article>
 </BaseLayout>
 
 <style>
-  .project-container {
-    max-width: 800px;
-    margin: 4rem auto;
-    padding: 0 1.5rem;
+  .research-project {
+    --experiment-violet: #8b5cf6;
+    --experiment-cyan: #22d3ee;
+    width: min(1180px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: clamp(3rem, 7vw, 7rem) 0 4rem;
   }
 
-  .project-header {
-    text-align: center;
-    margin-bottom: 3rem;
+  .research-hero {
+    position: relative;
+    max-width: 980px;
+    padding: clamp(1.5rem, 4vw, 3rem) 0 clamp(2.5rem, 6vw, 5rem);
   }
 
-  .meta {
-    font-family: var(--font-sans);
-    font-size: 0.9rem;
-    color: var(--text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: 1rem;
+  .research-hero::before {
+    position: absolute;
+    z-index: -1;
+    width: min(560px, 70vw);
+    aspect-ratio: 1;
+    top: -35%;
+    left: -22%;
+    border-radius: 50%;
+    background: radial-gradient(circle, color-mix(in srgb, var(--experiment-violet) 17%, transparent), transparent 68%);
+    content: "";
+    pointer-events: none;
   }
 
-  .title {
-    font-family: var(--font-serif);
-    font-size: 3rem;
-    line-height: 1.2;
-    margin-bottom: 1.5rem;
-  }
-
-  .excerpt {
-    font-size: 1.25rem;
-    color: var(--text-secondary);
-    line-height: 1.6;
-    max-width: 600px;
-    margin: 0 auto 2rem;
-  }
-
-  .actions {
+  .research-hero__signal {
     display: flex;
-    gap: 1rem;
-    justify-content: center;
+    gap: 0.35rem;
+    margin-bottom: 1.1rem;
+  }
+
+  .research-hero__signal span {
+    width: 0.42rem;
+    height: 0.42rem;
+    border-radius: 999px;
+    background: var(--experiment-violet);
+  }
+
+  .research-hero__signal span:nth-child(2) { background: var(--experiment-cyan); }
+  .research-hero__signal span:nth-child(3) { opacity: 0.35; }
+
+  .research-eyebrow,
+  .research-gallery > header p,
+  .research-launch-panel p,
+  .research-story__label {
+    margin: 0;
+    color: var(--text-tertiary);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+  }
+
+  .research-hero h1 {
+    max-width: 14ch;
+    margin: 0.55rem 0 1.25rem;
+    font-family: var(--font-sans);
+    font-size: clamp(3.4rem, 9vw, 7.8rem);
+    font-weight: 510;
+    letter-spacing: -0.065em;
+    line-height: 0.9;
+  }
+
+  .research-proposition {
+    max-width: 720px;
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: clamp(1.15rem, 2.3vw, 1.7rem);
+    font-weight: 330;
+    line-height: 1.45;
+  }
+
+  .research-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.7rem;
     margin-top: 2rem;
   }
 
-  .btn-primary {
-    display: inline-block;
-    padding: 0.8rem 1.5rem;
-    background: var(--text-primary);
-    color: var(--bg-color);
-    border-radius: 4px;
-    font-weight: 500;
-    transition: opacity 0.2s;
-  }
-
-  .btn-secondary {
-    display: inline-block;
-    padding: 0.8rem 1.5rem;
-    border: 1px solid var(--border-strong);
+  .research-actions a,
+  .research-launch-panel a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.65rem;
+    min-height: 3rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: 9px;
+    padding: 0.8rem 1.05rem;
     color: var(--text-primary);
-    border-radius: 4px;
-    font-weight: 500;
-    transition: background 0.2s;
+    font-size: 0.82rem;
+    font-weight: 720;
+    text-decoration: none;
   }
 
-  .btn-primary:hover {
-    opacity: 0.9;
+  .research-actions .launch-button,
+  .research-launch-panel a {
+    border-color: var(--experiment-violet);
+    background: var(--experiment-violet);
+    color: #fff;
+    box-shadow: 0 12px 34px color-mix(in srgb, var(--experiment-violet) 26%, transparent);
   }
-  .btn-secondary:hover {
+
+  .research-actions a:hover,
+  .research-actions a:focus-visible,
+  .research-launch-panel a:hover,
+  .research-launch-panel a:focus-visible {
+    transform: translateY(-2px);
+    outline: none;
+  }
+
+  .research-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 2rem;
+  }
+
+  .research-tags span {
+    padding: 0.35rem 0.55rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: 999px;
+    color: var(--text-tertiary);
+    font: 0.64rem/1 var(--font-mono);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .research-cover {
+    position: relative;
+    width: 100%;
+    margin: 0 0 clamp(3rem, 8vw, 7rem);
+    overflow: hidden;
+    border: 1px solid var(--border-subtle);
+    border-radius: clamp(12px, 2vw, 22px);
+    background: var(--bg-surface);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.18);
+  }
+
+  .research-cover::after {
+    position: absolute;
+    inset: 0;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: inherit;
+    content: "";
+    pointer-events: none;
+  }
+
+  .research-cover img {
+    display: block;
+    width: 100%;
+    max-height: 76vh;
+    object-fit: cover;
+  }
+
+  .research-story {
+    display: grid;
+    grid-template-columns: minmax(120px, 0.25fr) minmax(0, 0.75fr);
+    gap: clamp(1.5rem, 5vw, 5rem);
+    margin: 0 0 clamp(4rem, 9vw, 8rem);
+  }
+
+  .research-story__label {
+    padding-top: 0.7rem;
+  }
+
+  .research-prose {
+    max-width: 760px;
+    font-family: var(--font-serif);
+    font-size: clamp(1.08rem, 1.6vw, 1.25rem);
+    line-height: 1.82;
+  }
+
+  .research-prose :global(h2),
+  .research-prose :global(h3) {
+    margin: 2.2em 0 0.65em;
+    font-family: var(--font-sans);
+    font-weight: 590;
+    letter-spacing: -0.035em;
+    line-height: 1.15;
+  }
+
+  .research-prose :global(h2) { font-size: clamp(1.75rem, 3vw, 2.65rem); }
+  .research-prose :global(h3) { font-size: clamp(1.3rem, 2vw, 1.75rem); }
+  .research-prose :global(p) { margin: 0 0 1.4em; }
+  .research-prose :global(a) { color: var(--experiment-violet); text-underline-offset: 0.18em; }
+  .research-prose :global(img) { width: 100%; border-radius: 10px; }
+
+  .research-gallery {
+    margin-bottom: clamp(4rem, 9vw, 8rem);
+  }
+
+  .research-gallery > header {
+    margin-bottom: 1.5rem;
+  }
+
+  .research-gallery h2,
+  .research-launch-panel h2 {
+    margin: 0.35rem 0 0;
+    font-family: var(--font-sans);
+    font-size: clamp(2rem, 4vw, 3.6rem);
+    font-weight: 530;
+    letter-spacing: -0.05em;
+    line-height: 1;
+  }
+
+  .research-gallery__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .research-gallery__item {
+    margin: 0;
+    overflow: hidden;
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
     background: var(--bg-surface);
   }
 
-  .project-hero {
-    margin: 3rem -2rem;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  .research-gallery__item.is-wide {
+    grid-column: 1 / -1;
   }
 
-  .project-hero img {
-    width: 100%;
-    height: auto;
+  .research-gallery__item img {
     display: block;
+    width: 100%;
+    max-height: 720px;
+    object-fit: cover;
   }
 
-  .prose {
-    font-family: var(
-      --font-sans
-    ); /* Use sans for technical content? or serif? let's stick to serif for reading */
-    font-family: var(--font-serif);
-    font-size: 1.125rem;
-    line-height: 1.8;
-    color: var(--text-primary);
+  .research-gallery__item figcaption {
+    padding: 0.75rem 0.9rem;
+    border-top: 1px solid var(--border-subtle);
+    color: var(--text-tertiary);
+    font-size: 0.72rem;
   }
 
-  .divider {
-    margin: 4rem 0 2rem;
-    border: none;
+  .research-launch-panel {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 2rem;
+    margin-bottom: 4rem;
+    padding: clamp(1.5rem, 4vw, 3rem);
+    border: 1px solid color-mix(in srgb, var(--experiment-violet) 42%, var(--border-subtle));
+    border-radius: 18px;
+    background:
+      radial-gradient(circle at 92% 15%, color-mix(in srgb, var(--experiment-cyan) 14%, transparent), transparent 36%),
+      radial-gradient(circle at 5% 90%, color-mix(in srgb, var(--experiment-violet) 18%, transparent), transparent 40%),
+      var(--bg-surface);
+  }
+
+  .research-launch-panel h2 {
+    max-width: 14ch;
+  }
+
+  .research-launch-panel a {
+    flex: 0 0 auto;
+  }
+
+  .research-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-top: 1.5rem;
     border-top: 1px solid var(--border-subtle);
   }
 
-  .footer-nav {
-    text-align: center;
-  }
-
-  .back-link {
+  .research-footer > a {
     color: var(--text-secondary);
+    font-size: 0.8rem;
     text-decoration: none;
   }
-  .back-link:hover {
-    color: var(--text-primary);
+
+  @media (max-width: 760px) {
+    .research-story {
+      grid-template-columns: 1fr;
+    }
+
+    .research-story__label {
+      padding-top: 0;
+    }
+
+    .research-gallery__grid {
+      grid-template-columns: 1fr;
+    }
+
+    .research-gallery__item.is-wide {
+      grid-column: auto;
+    }
+
+    .research-launch-panel,
+    .research-footer {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .research-actions a,
+    .research-launch-panel a {
+      transition: none;
+    }
   }
 </style>

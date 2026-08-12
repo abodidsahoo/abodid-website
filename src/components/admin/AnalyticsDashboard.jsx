@@ -13,14 +13,12 @@ import {
 } from 'chart.js';
 import { Bar, Line, Pie } from 'react-chartjs-2';
 import {
-    Clock3,
-    Eye,
-    MousePointerClick,
+    ChevronRight,
     RefreshCw,
     Route,
-    UsersRound,
 } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
+import AdminPageHeader from './AdminPageHeader';
 import './analytics-dashboard.css';
 
 ChartJS.register(
@@ -42,13 +40,22 @@ const RANGE_OPTIONS = [
     { id: '90d', label: '90D' },
 ];
 
+const RANGE_CONTEXT = {
+    today: 'Data from today.',
+    '7d': 'Data from the past 7 days.',
+    '30d': 'Data from the past month.',
+    '90d': 'Data from the past 3 months.',
+};
+
 const EMPTY_REPORT = {
     summary: { visitors: 0, sessions: 0, pageViews: 0, averageEngagedSeconds: 0 },
+    monthlySummary: { visitors: 0, sessions: 0, pageViews: 0, averageEngagedSeconds: 0 },
     sources: [],
     countries: [],
     timeline: [],
     pages: [],
     journeys: [],
+    topRecentVisitors: [],
     commonJourneys: [],
     navigation: {
         summary: {
@@ -112,6 +119,19 @@ const formatJourneyTime = (value) => {
     }).format(new Date(value));
 };
 
+const formatExactJourneyTime = (value) => {
+    if (!value) return '';
+    return new Intl.DateTimeFormat('en-GB', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        timeZoneName: 'short',
+    }).format(new Date(value));
+};
+
 const formatTimelineLabel = (value, range) => {
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return '';
@@ -160,42 +180,6 @@ const useChartTheme = () => {
     return theme;
 };
 
-function MetricCard({ icon: Icon, value, label }) {
-    return (
-        <article className="analytics-metric-card">
-            <span className="analytics-metric-icon" aria-hidden="true">
-                <Icon size={17} strokeWidth={1.7} />
-            </span>
-            <strong>{value}</strong>
-            <span>{label}</span>
-        </article>
-    );
-}
-
-function RankedList({ items, labelKey, formatLabel = (value) => value }) {
-    if (!items.length) return <p className="analytics-empty-inline">No visits in this period.</p>;
-
-    return (
-        <ol className="analytics-ranked-list">
-            {items.map((item) => {
-                const label = formatLabel(item[labelKey]);
-                const share = Math.max(0, Math.min(100, Number(item.share) || 0));
-                return (
-                    <li key={`${item[labelKey]}-${item.sessions}`}>
-                        <div className="analytics-ranked-copy">
-                            <span title={label}>{label}</span>
-                            <span>{formatNumber(item.sessions)} <small>{share}%</small></span>
-                        </div>
-                        <span className="analytics-share-track" aria-hidden="true">
-                            <span style={{ width: `${share}%` }} />
-                        </span>
-                    </li>
-                );
-            })}
-        </ol>
-    );
-}
-
 function JourneyCard({ journey }) {
     const pages = Array.isArray(journey.pages) ? journey.pages : [];
 
@@ -228,18 +212,89 @@ function JourneyCard({ journey }) {
     );
 }
 
+function TopRecentVisitorCard({ journey, currentIndex, totalVisitors, onNext }) {
+    const pages = Array.isArray(journey.pages) ? journey.pages : [];
+    const navigation = pages.slice(1);
+
+    return (
+        <article className="analytics-top-visitor-card">
+            <header>
+                <div className="analytics-top-visitor-identity">
+                    <span>Traffic source</span>
+                    <h4>{journey.source || 'Direct / Unknown'}</h4>
+                    <p>From {formatCountry(journey.country)}</p>
+                </div>
+                <div
+                    className="analytics-top-visitor-duration"
+                    aria-label={`${formatDuration(journey.totalEngagedSeconds)} engaged`}
+                >
+                    <span>Time engaged</span>
+                    <strong>{formatDuration(journey.totalEngagedSeconds)}</strong>
+                </div>
+            </header>
+
+            <time dateTime={journey.startedAt}>{formatExactJourneyTime(journey.startedAt)}</time>
+
+            <dl className="analytics-top-visitor-details">
+                <div>
+                    <dt>Entered</dt>
+                    <dd title={journey.landingPage}>{journey.landingPage || pages[0]?.path || 'Unknown page'}</dd>
+                </div>
+                <div>
+                    <dt>Navigation</dt>
+                    <dd>
+                        {navigation.length ? (
+                            <ol
+                                className={`analytics-top-visitor-route ${navigation.length > 4 ? 'is-scrollable' : ''}`}
+                                tabIndex={navigation.length > 4 ? 0 : undefined}
+                                aria-label={navigation.length > 4
+                                    ? `Navigation history, ${navigation.length} pages. Scroll for more.`
+                                    : 'Navigation history'}
+                            >
+                                {navigation.map((page, index) => (
+                                    <li key={`${journey.id}-${page.sequenceNumber}-${page.path}-${index}`}>
+                                        <span title={page.title || page.path}>{page.path}</span>
+                                        <small>{formatDuration(page.engagedSeconds)}</small>
+                                    </li>
+                                ))}
+                            </ol>
+                        ) : (
+                            <span className="analytics-top-visitor-no-route">No further navigation recorded</span>
+                        )}
+                    </dd>
+                </div>
+                <div>
+                    <dt>Exit</dt>
+                    <dd title={journey.exitPage}>{journey.exitPage || pages.at(-1)?.path || 'Not recorded'}</dd>
+                </div>
+            </dl>
+
+            <div className="analytics-visitor-pager">
+                <span>{currentIndex + 1} of {totalVisitors}</span>
+                <button
+                    type="button"
+                    onClick={onNext}
+                    disabled={totalVisitors < 2}
+                >
+                    Next visitor
+                    <ChevronRight size={14} strokeWidth={1.8} aria-hidden="true" />
+                </button>
+            </div>
+        </article>
+    );
+}
+
 export default function AnalyticsDashboard({ accessToken }) {
     const [range, setRange] = useState('7d');
-    const [trafficClass, setTrafficClass] = useState('human');
     const [report, setReport] = useState(EMPTY_REPORT);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [hasLoaded, setHasLoaded] = useState(false);
     const [error, setError] = useState('');
-    const [generatedAt, setGeneratedAt] = useState('');
-    const [realtimeStatus, setRealtimeStatus] = useState('connecting');
     const [refreshKey, setRefreshKey] = useState(0);
     const [focusedJourney, setFocusedJourney] = useState(null);
+    const [topVisitorIndex, setTopVisitorIndex] = useState(0);
+    const [showAllPages, setShowAllPages] = useState(false);
     const hasLoadedRef = useRef(false);
     const chartTheme = useChartTheme();
 
@@ -260,7 +315,7 @@ export default function AnalyticsDashboard({ accessToken }) {
                 : newsletterSubmission
                     ? `&newsletterSubmission=${encodeURIComponent(newsletterSubmission)}`
                     : '';
-            const requestUrl = `/api/admin/analytics?range=${encodeURIComponent(range)}&traffic=${encodeURIComponent(trafficClass)}&timezoneOffset=${timezoneOffset}${submissionQuery}`;
+            const requestUrl = `/api/admin/analytics?range=${encodeURIComponent(range)}&traffic=human&timezoneOffset=${timezoneOffset}${submissionQuery}`;
             const requestReport = (token) => fetch(requestUrl, {
                 headers: { Authorization: `Bearer ${token}` },
                 signal,
@@ -279,7 +334,6 @@ export default function AnalyticsDashboard({ accessToken }) {
 
             setReport({ ...EMPTY_REPORT, ...(payload.report || {}) });
             setFocusedJourney(payload.focusedJourney || null);
-            setGeneratedAt(payload.generatedAt || new Date().toISOString());
             hasLoadedRef.current = true;
             setHasLoaded(true);
         } catch (requestError) {
@@ -292,7 +346,7 @@ export default function AnalyticsDashboard({ accessToken }) {
                 setRefreshing(false);
             }
         }
-    }, [accessToken, range, trafficClass]);
+    }, [accessToken, range]);
 
     useEffect(() => {
         const controller = new AbortController();
@@ -306,7 +360,6 @@ export default function AnalyticsDashboard({ accessToken }) {
         let cancelled = false;
         let channel;
         let refreshTimer;
-        setRealtimeStatus('connecting');
 
         // Realtime uses the signed-in user's JWT, so the database RLS policies
         // continue to enforce the administrator-only visibility boundary.
@@ -337,15 +390,8 @@ export default function AnalyticsDashboard({ accessToken }) {
                     schema: 'public',
                     table: 'analytics_events',
                 }, queueRefresh)
-                .subscribe((status) => {
-                    if (status === 'SUBSCRIBED') setRealtimeStatus('live');
-                    if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
-                        setRealtimeStatus('unavailable');
-                    }
-                });
-        }).catch(() => {
-            if (!cancelled) setRealtimeStatus('unavailable');
-        });
+                .subscribe();
+        }).catch(() => {});
 
         return () => {
             cancelled = true;
@@ -353,13 +399,6 @@ export default function AnalyticsDashboard({ accessToken }) {
             if (channel) void supabase.removeChannel(channel);
         };
     }, [accessToken]);
-
-    const summaryCards = useMemo(() => [
-        { label: trafficClass === 'human' ? 'Human visitors' : 'Filtered visitors', value: formatNumber(report.summary?.visitors), icon: UsersRound },
-        { label: trafficClass === 'human' ? 'Human sessions' : 'Filtered sessions', value: formatNumber(report.summary?.sessions), icon: MousePointerClick },
-        { label: 'Page views', value: formatNumber(report.summary?.pageViews), icon: Eye },
-        { label: 'Avg. engaged time', value: formatDuration(report.summary?.averageEngagedSeconds), icon: Clock3 },
-    ], [report.summary, trafficClass]);
 
     const timelineChart = useMemo(() => ({
         labels: (report.timeline || []).map((item) => formatTimelineLabel(item.bucket, range)),
@@ -482,14 +521,15 @@ export default function AnalyticsDashboard({ accessToken }) {
         maintainAspectRatio: false,
         plugins: {
             legend: {
-                position: 'bottom',
+                position: 'right',
+                align: 'center',
                 labels: {
                     color: chartTheme.muted,
                     boxWidth: 8,
                     boxHeight: 8,
                     usePointStyle: true,
-                    padding: 13,
-                    font: { size: 10 },
+                    padding: 10,
+                    font: { size: 9 },
                 },
             },
             tooltip: {
@@ -501,89 +541,54 @@ export default function AnalyticsDashboard({ accessToken }) {
     }), [chartTheme.muted]);
 
     const hasData = Number(report.summary?.sessions) > 0;
-    const liveLabel = realtimeStatus === 'live'
-        ? 'Live updates on'
-        : realtimeStatus === 'connecting'
-            ? 'Connecting live updates'
-            : 'Manual refresh only';
-    const selectTrafficClass = (nextTrafficClass) => {
-        if (nextTrafficClass === trafficClass) return;
-        setReport(EMPTY_REPORT);
-        setLoading(true);
-        setTrafficClass(nextTrafficClass);
-    };
-
+    const monthlySummary = report.monthlySummary || EMPTY_REPORT.monthlySummary;
+    const topRecentVisitors = report.topRecentVisitors || [];
+    const visibleTopVisitorIndex = topRecentVisitors.length
+        ? topVisitorIndex % topRecentVisitors.length
+        : 0;
+    const activeTopVisitor = topRecentVisitors[visibleTopVisitorIndex];
+    const pages = report.pages || [];
+    const visiblePages = showAllPages ? pages : pages.slice(0, 5);
+    const hasMorePages = pages.length > 5;
     return (
         <section className="analytics-dashboard" aria-labelledby="analytics-title">
-            <header className="analytics-header">
-                <div>
-                    <p className="analytics-eyebrow">Visitor intelligence</p>
-                    <h2 id="analytics-title">Analytics</h2>
-                    <p>{trafficClass === 'human'
-                        ? 'Credible human visits with at least 2 seconds of active, visible engagement.'
-                        : 'Sessions below 2 seconds, retained separately for traffic-source and route inspection.'}</p>
-                    <div className="analytics-status-row" aria-live="polite">
-                        <span className={`analytics-live-status is-${realtimeStatus}`}>
-                            <span aria-hidden="true" />{liveLabel}
-                        </span>
-                        {generatedAt && (
-                            <time dateTime={generatedAt}>Updated {new Intl.DateTimeFormat('en-GB', {
-                                hour: '2-digit',
-                                minute: '2-digit',
-                                second: '2-digit',
-                            }).format(new Date(generatedAt))}</time>
-                        )}
+            <div className="analytics-page-intro admin-page-intro">
+                <AdminPageHeader
+                    className="analytics-page-header"
+                    headingId="analytics-title"
+                    title="Analytics"
+                    description="Data is God. Numbers don't lie."
+                />
+                <div className="analytics-toolbar">
+                    <div className="analytics-controls">
+                        <div className="analytics-range-filter" aria-label="Analytics period">
+                            {RANGE_OPTIONS.map((option) => (
+                                <button
+                                    key={option.id}
+                                    type="button"
+                                    className={range === option.id ? 'active' : ''}
+                                    aria-pressed={range === option.id}
+                                    onClick={() => setRange(option.id)}
+                                >
+                                    {option.label}
+                                </button>
+                            ))}
+                        </div>
+                        <button
+                            type="button"
+                            className="analytics-refresh"
+                            onClick={() => setRefreshKey((value) => value + 1)}
+                            disabled={loading || refreshing}
+                            aria-label="Refresh analytics"
+                            title="Refresh analytics"
+                        >
+                            <RefreshCw size={16} className={loading || refreshing ? 'is-spinning' : ''} aria-hidden="true" />
+                        </button>
                     </div>
                 </div>
-                <div className="analytics-controls">
-                    <div className="analytics-range-filter" aria-label="Analytics period">
-                        {RANGE_OPTIONS.map((option) => (
-                            <button
-                                key={option.id}
-                                type="button"
-                                className={range === option.id ? 'active' : ''}
-                                aria-pressed={range === option.id}
-                                onClick={() => setRange(option.id)}
-                            >
-                                {option.label}
-                            </button>
-                        ))}
-                    </div>
-                    <button
-                        type="button"
-                        className="analytics-refresh"
-                        onClick={() => setRefreshKey((value) => value + 1)}
-                        disabled={loading || refreshing}
-                        aria-label="Refresh analytics"
-                        title="Refresh analytics"
-                    >
-                        <RefreshCw size={16} className={loading || refreshing ? 'is-spinning' : ''} aria-hidden="true" />
-                    </button>
-                </div>
-            </header>
-
-            <div className="analytics-traffic-tabs" role="tablist" aria-label="Traffic classification">
-                <button
-                    type="button"
-                    role="tab"
-                    aria-selected={trafficClass === 'human'}
-                    className={trafficClass === 'human' ? 'active' : ''}
-                    onClick={() => selectTrafficClass('human')}
-                >
-                    Human visits
-                    <small>2s or more</small>
-                </button>
-                <button
-                    type="button"
-                    role="tab"
-                    aria-selected={trafficClass === 'filtered'}
-                    className={trafficClass === 'filtered' ? 'active' : ''}
-                    onClick={() => selectTrafficClass('filtered')}
-                >
-                    Filtered traffic
-                    <small>Below 2s</small>
-                </button>
             </div>
+
+            <div className="admin-page-spacer" aria-hidden="true" />
 
             {error && hasLoaded && (
                 <div className="analytics-error-banner" role="alert">
@@ -591,6 +596,111 @@ export default function AnalyticsDashboard({ accessToken }) {
                     <button type="button" onClick={() => setRefreshKey((value) => value + 1)}>Retry</button>
                 </div>
             )}
+
+            <div className="analytics-top-overview">
+                <section className="analytics-top-visitors" aria-labelledby="top-recent-visitors-title">
+                    <div className="analytics-feature-heading">
+                        <div>
+                            <h3 id="top-recent-visitors-title">Top Visitors</h3>
+                            <p>Recent human visits with more than 15 seconds of active engagement.</p>
+                        </div>
+                    </div>
+                    {activeTopVisitor ? (
+                        <div className="analytics-top-visitor-stage" aria-live="polite">
+                            <TopRecentVisitorCard
+                                key={activeTopVisitor.id}
+                                journey={activeTopVisitor}
+                                currentIndex={visibleTopVisitorIndex}
+                                totalVisitors={topRecentVisitors.length}
+                                onNext={() => setTopVisitorIndex((index) => (index + 1) % topRecentVisitors.length)}
+                            />
+                        </div>
+                    ) : (
+                        <p className="analytics-top-visitors-empty">
+                            {loading ? 'Finding recent human visitors…' : 'No visits over 15 seconds have been recorded yet.'}
+                        </p>
+                    )}
+                </section>
+
+                <section className="analytics-top-sources" aria-labelledby="top-traffic-sources-title">
+                    <div className="analytics-feature-heading">
+                        <div>
+                            <h3 id="top-traffic-sources-title">Traffic Sources</h3>
+                            <p>{RANGE_CONTEXT[range]}</p>
+                        </div>
+                    </div>
+                    <div className="analytics-chart analytics-top-source-chart">
+                        {(report.sources || []).length ? (
+                            <Pie
+                                data={sourceChart}
+                                options={pieOptions}
+                                role="img"
+                                aria-label="Pie chart showing sessions by traffic source"
+                            />
+                        ) : (
+                            <p className="analytics-empty-inline">
+                                {loading ? 'Loading traffic sources…' : 'No traffic-source data in this period.'}
+                            </p>
+                        )}
+                    </div>
+                </section>
+
+                <section
+                    className={`analytics-monthly-summary ${loading ? 'is-loading' : ''}`}
+                    aria-labelledby="monthly-overview-title"
+                    aria-busy={loading}
+                >
+                    <div className="analytics-feature-heading">
+                        <div>
+                            <h3 id="monthly-overview-title">Monthly Overview</h3>
+                            <p>
+                                {`${formatNumber(monthlySummary.visitors)} human ${monthlySummary.visitors === 1 ? 'visitor' : 'visitors'} this calendar month.`}
+                            </p>
+                        </div>
+                    </div>
+                    <div className="analytics-monthly-primary">
+                        <strong>{formatNumber(monthlySummary.pageViews)}</strong>
+                        <span>Page views this month</span>
+                    </div>
+                    <div className="analytics-monthly-secondary">
+                        <div>
+                            <strong>{formatNumber(monthlySummary.visitors)}</strong>
+                            <span>Human visitors</span>
+                        </div>
+                        <div>
+                            <strong>{formatDuration(monthlySummary.averageEngagedSeconds)}</strong>
+                            <span>Average engagement</span>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <section
+                className={`analytics-panel analytics-trend-panel analytics-top-trend ${loading ? 'is-loading' : ''}`}
+                aria-labelledby="traffic-over-time-title"
+                aria-busy={loading}
+            >
+                <div className="analytics-panel-heading">
+                    <div>
+                        <h3 id="traffic-over-time-title">Traffic Over Time</h3>
+                        <p>Sessions and page views for the selected period.</p>
+                    </div>
+                </div>
+                <div className="analytics-chart analytics-line-chart">
+                    {(report.timeline || []).length ? (
+                        <Line
+                            data={timelineChart}
+                            options={cartesianOptions}
+                            role="img"
+                            aria-label="Line chart showing sessions and page views over time"
+                        />
+                    ) : (
+                        <p className="analytics-empty-inline">
+                            {loading ? 'Loading traffic over time…' : 'No time-series data in this period.'}
+                        </p>
+                    )}
+                </div>
+            </section>
 
             {focusedJourney && (
                 <section className="analytics-panel analytics-focused-journey" aria-labelledby="focused-journey-title">
@@ -613,64 +723,21 @@ export default function AnalyticsDashboard({ accessToken }) {
                 </div>
             ) : (
                 <>
-                    <div className={`analytics-metrics ${loading ? 'is-loading' : ''}`} aria-busy={loading}>
-                        {summaryCards.map((metric) => <MetricCard key={metric.label} {...metric} />)}
-                    </div>
-
                     {!loading && !hasData && (
                         <div className="analytics-message">
                             <Route size={20} strokeWidth={1.6} aria-hidden="true" />
-                            <strong>{trafficClass === 'human' ? 'No human visits in this period.' : 'No filtered traffic in this period.'}</strong>
-                            <span>{trafficClass === 'human'
-                                ? 'A session appears here after 2 seconds of active, visible engagement.'
-                                : 'Sessions with less than 2 seconds of recorded engagement appear here.'}</span>
+                            <strong>No human visits in this period.</strong>
+                            <span>A session appears here after 2 seconds of active, visible engagement.</span>
                         </div>
                     )}
 
                     {(loading || hasData) && (
                         <div className={`analytics-content ${loading ? 'is-loading' : ''}`} aria-busy={loading}>
-                            <section className="analytics-panel analytics-trend-panel">
-                                <div className="analytics-panel-heading">
-                                    <div>
-                                        <h3>Traffic over time</h3>
-                                        <p>Sessions and page views for the selected period.</p>
-                                    </div>
-                                </div>
-                                <div className="analytics-chart analytics-line-chart">
-                                    {(report.timeline || []).length ? (
-                                        <Line
-                                            data={timelineChart}
-                                            options={cartesianOptions}
-                                            role="img"
-                                            aria-label="Line chart showing sessions and page views over time"
-                                        />
-                                    ) : <p className="analytics-empty-inline">No time-series data in this period.</p>}
-                                </div>
-                            </section>
-
-                            <div className="analytics-two-column analytics-chart-grid">
+                            <div className="analytics-two-column analytics-country-row">
                                 <section className="analytics-panel">
                                     <div className="analytics-panel-heading">
                                         <div>
-                                            <h3>Traffic sources</h3>
-                                            <p>Share of sessions by acquisition source.</p>
-                                        </div>
-                                    </div>
-                                    <div className="analytics-chart analytics-pie-chart">
-                                        <Pie
-                                            data={sourceChart}
-                                            options={pieOptions}
-                                            role="img"
-                                            aria-label="Pie chart showing sessions by traffic source"
-                                        />
-                                    </div>
-                                    <RankedList items={(report.sources || []).slice(0, 5)} labelKey="source" />
-                                </section>
-
-                                <section className="analytics-panel">
-                                    <div className="analytics-panel-heading">
-                                        <div>
-                                            <h3>Visitor countries</h3>
+                                            <h3>Visitor Countries</h3>
                                             <p>Sessions from the leading visitor locations.</p>
                                         </div>
                                     </div>
@@ -683,166 +750,11 @@ export default function AnalyticsDashboard({ accessToken }) {
                                         />
                                     </div>
                                 </section>
-                            </div>
-
-                            <section className="analytics-panel analytics-navigation-panel">
-                                <div className="analytics-panel-heading">
-                                    <div>
-                                        <h3>Mobile menu performance</h3>
-                                        <p>Selections, exits and destination preference after visitors open the mobile menu.</p>
-                                    </div>
-                                    <span>
-                                        {formatNumber(report.navigation?.summary?.ctaClicks)} Hire Me ·{' '}
-                                        {formatNumber(report.navigation?.summary?.socialClicks)} social
-                                    </span>
-                                </div>
-
-                                <div className="analytics-navigation-metrics">
-                                    <div>
-                                        <strong>{formatNumber(report.navigation?.summary?.opens)}</strong>
-                                        <span>Menu opens</span>
-                                    </div>
-                                    <div>
-                                        <strong>{formatNumber(report.navigation?.summary?.selections)}</strong>
-                                        <span>Link selections</span>
-                                    </div>
-                                    <div>
-                                        <strong>{Number(report.navigation?.summary?.selectionRate || 0).toFixed(1)}%</strong>
-                                        <span>Selection rate</span>
-                                    </div>
-                                    <div>
-                                        <strong>{formatNumber(report.navigation?.summary?.dismissals)}</strong>
-                                        <span>Closed without selecting</span>
-                                    </div>
-                                </div>
-
-                                <div className="analytics-navigation-grid">
-                                    <div className="analytics-table-wrap">
-                                        <table className="analytics-navigation-table">
-                                            <caption>Selected mobile-menu destinations</caption>
-                                            <thead>
-                                                <tr>
-                                                    <th scope="col">Destination</th>
-                                                    <th scope="col">Type</th>
-                                                    <th scope="col">Clicks</th>
-                                                    <th scope="col">Visitors</th>
-                                                    <th scope="col">Share</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {(report.navigation?.links || []).length ? (
-                                                    report.navigation.links.map((link) => (
-                                                        <tr key={`${link.type}-${link.label}-${link.url}`}>
-                                                            <th scope="row">
-                                                                <span>{link.label}</span>
-                                                                <small>{link.url}</small>
-                                                            </th>
-                                                            <td><span className={`analytics-navigation-type is-${link.type || 'link'}`}>{link.type || 'link'}</span></td>
-                                                            <td>{formatNumber(link.clicks)}</td>
-                                                            <td>{formatNumber(link.visitors)}</td>
-                                                            <td>{Number(link.share || 0).toFixed(1)}%</td>
-                                                        </tr>
-                                                    ))
-                                                ) : (
-                                                    <tr>
-                                                        <td colSpan="5" className="analytics-table-empty">No mobile-menu selections in this period.</td>
-                                                    </tr>
-                                                )}
-                                            </tbody>
-                                        </table>
-                                    </div>
-
-                                    <div className="analytics-table-wrap">
-                                        <table className="analytics-navigation-table analytics-navigation-country-table">
-                                            <caption>Mobile-menu activity by country</caption>
-                                            <thead>
-                                                <tr>
-                                                    <th scope="col">Country</th>
-                                                    <th scope="col">Opens</th>
-                                                    <th scope="col">Selections</th>
-                                                    <th scope="col">Rate</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {(report.navigation?.countries || []).length ? (
-                                                    report.navigation.countries.map((country) => (
-                                                        <tr key={country.country}>
-                                                            <th scope="row">{formatCountry(country.country)}</th>
-                                                            <td>{formatNumber(country.opens)}</td>
-                                                            <td>{formatNumber(country.selections)}</td>
-                                                            <td>{Number(country.selectionRate || 0).toFixed(1)}%</td>
-                                                        </tr>
-                                                    ))
-                                                ) : (
-                                                    <tr>
-                                                        <td colSpan="4" className="analytics-table-empty">No country-level menu activity yet.</td>
-                                                    </tr>
-                                                )}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </section>
-
-                            <section className="analytics-panel analytics-pages-panel">
-                                <div className="analytics-panel-heading">
-                                    <div>
-                                        <h3>{trafficClass === 'human' ? 'Engaging pages' : 'Requested pages'}</h3>
-                                        <p>{trafficClass === 'human'
-                                            ? 'Ranked by total active, visible time.'
-                                            : 'Pages requested by sessions that did not reach the human threshold.'}</p>
-                                    </div>
-                                </div>
-                                <div className="analytics-table-wrap">
-                                    <table>
-                                        <thead>
-                                            <tr>
-                                                <th scope="col">Page</th>
-                                                <th scope="col">Views</th>
-                                                <th scope="col">Visitors</th>
-                                                <th scope="col">Avg. active</th>
-                                                <th scope="col">Total active</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {(report.pages || []).map((page) => (
-                                                <tr key={page.pagePath}>
-                                                    <th scope="row">
-                                                        <span>{page.pageTitle || page.pagePath}</span>
-                                                        <small>{page.pagePath}</small>
-                                                    </th>
-                                                    <td>{formatNumber(page.views)}</td>
-                                                    <td>{formatNumber(page.visitors)}</td>
-                                                    <td>{formatDuration(page.averageEngagedSeconds)}</td>
-                                                    <td>{formatDuration(page.totalEngagedSeconds)}</td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </section>
-
-                            <div className="analytics-journey-grid">
-                                <section className="analytics-panel">
-                                    <div className="analytics-panel-heading">
-                                        <div>
-                                            <h3>{trafficClass === 'human' ? 'Recent visitor journeys' : 'Recent filtered journeys'}</h3>
-                                            <p>{trafficClass === 'human'
-                                                ? 'Landing page to final recorded exit.'
-                                                : 'Where low-engagement traffic came from and what it requested.'}</p>
-                                        </div>
-                                    </div>
-                                    <div className="analytics-journey-list">
-                                        {(report.journeys || []).slice(0, 10).map((journey) => (
-                                            <JourneyCard key={journey.id} journey={journey} />
-                                        ))}
-                                    </div>
-                                </section>
 
                                 <section className="analytics-panel analytics-common-panel">
                                     <div className="analytics-panel-heading">
                                         <div>
-                                            <h3>Common page sequences</h3>
+                                            <h3>Common Page Sequences</h3>
                                             <p>Routes repeated during this period.</p>
                                         </div>
                                     </div>
@@ -859,6 +771,97 @@ export default function AnalyticsDashboard({ accessToken }) {
                                     </ol>
                                 </section>
                             </div>
+
+                            <section className="analytics-panel analytics-pages-panel">
+                                <div className="analytics-panel-heading">
+                                    <div>
+                                        <h3>Most Engaged Pages</h3>
+                                        <p>Ranked by total active, visible time.</p>
+                                    </div>
+                                </div>
+                                <div className="analytics-table-wrap">
+                                    <table aria-label="Most engaged pages">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col">Page</th>
+                                                <th scope="col">Views</th>
+                                                <th scope="col">Visitors</th>
+                                                <th scope="col">Avg. active</th>
+                                                <th scope="col">Total active</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="most-engaged-pages-list">
+                                            {visiblePages.map((page) => (
+                                                <tr key={page.pagePath}>
+                                                    <th scope="row">
+                                                        <span>{page.pageTitle || page.pagePath}</span>
+                                                        <small>{page.pagePath}</small>
+                                                    </th>
+                                                    <td>{formatNumber(page.views)}</td>
+                                                    <td>{formatNumber(page.visitors)}</td>
+                                                    <td>{formatDuration(page.averageEngagedSeconds)}</td>
+                                                    <td>{formatDuration(page.totalEngagedSeconds)}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {hasMorePages && (
+                                    <div className="analytics-pages-expander">
+                                        <button
+                                            type="button"
+                                            aria-controls="most-engaged-pages-list"
+                                            aria-expanded={showAllPages}
+                                            onClick={() => setShowAllPages((isExpanded) => !isExpanded)}
+                                        >
+                                            {showAllPages ? 'Show fewer' : 'Show more'}
+                                        </button>
+                                    </div>
+                                )}
+                            </section>
+
+                            <section className="analytics-panel analytics-navigation-panel">
+                                <div className="analytics-panel-heading">
+                                    <div>
+                                        <h3>Mobile Menu Performance</h3>
+                                        <p>How often mobile visitors choose a destination, and where they go.</p>
+                                    </div>
+                                </div>
+
+                                <div className="analytics-navigation-compact">
+                                    <div className="analytics-navigation-conversion">
+                                        <span>Menu selection rate</span>
+                                        <strong>{Number(report.navigation?.summary?.selectionRate || 0).toFixed(1)}%</strong>
+                                        <p>
+                                            {formatNumber(report.navigation?.summary?.selections)} of{' '}
+                                            {formatNumber(report.navigation?.summary?.opens)} menu opens led to a destination.
+                                        </p>
+                                    </div>
+
+                                    <div className="analytics-navigation-destinations">
+                                        <h4>Most selected destinations</h4>
+                                        {(report.navigation?.links || []).length ? (
+                                            <ol>
+                                                {report.navigation.links.slice(0, 5).map((link, index) => (
+                                                    <li key={`${link.type}-${link.label}-${link.url}`}>
+                                                        <span>
+                                                            <small>{String(index + 1).padStart(2, '0')}</small>
+                                                            {link.label}
+                                                        </span>
+                                                        <strong>
+                                                            {formatNumber(link.clicks)} {Number(link.clicks) === 1 ? 'click' : 'clicks'}
+                                                            <small>{Number(link.share || 0).toFixed(1)}%</small>
+                                                        </strong>
+                                                    </li>
+                                                ))}
+                                            </ol>
+                                        ) : (
+                                            <p className="analytics-navigation-empty">No menu destinations selected in this period.</p>
+                                        )}
+                                    </div>
+                                </div>
+                            </section>
+
                         </div>
                     )}
                 </>

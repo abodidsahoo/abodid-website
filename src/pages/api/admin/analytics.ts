@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import {
     emptyAnalyticsReport,
+    getAnalyticsMonthStart,
     getAnalyticsRangeStart,
     normalizeAnalyticsRange,
     normalizeAnalyticsTrafficClass,
@@ -8,6 +9,10 @@ import {
 import { createSupabaseServiceClient } from '../../../lib/supabaseServer';
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const TOP_RECENT_VISITOR_LIMIT = 3;
+const TOP_RECENT_VISITOR_SESSION_SCAN_LIMIT = 30;
+const TOP_RECENT_VISITOR_MIN_ENGAGEMENT_SECONDS = 15;
+const TOP_RECENT_VISITOR_LOOKBACK_DAYS = 95;
 
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), {
     status,
@@ -94,14 +99,21 @@ export const GET: APIRoute = async ({ request, url }) => {
             }
         }
         const timezoneOffset = Number(url.searchParams.get('timezoneOffset') || 0);
-        const startAt = getAnalyticsRangeStart(range, new Date(), timezoneOffset);
+        const now = new Date();
+        const startAt = getAnalyticsRangeStart(range, now, timezoneOffset);
+        const monthStartAt = getAnalyticsMonthStart(now, timezoneOffset);
         const reportArgs = {
             p_start_at: startAt.toISOString(),
             p_traffic_class: trafficClass,
         };
-        const [trafficResult, navigationResult] = await Promise.all([
+        const monthlyReportArgs = {
+            p_start_at: monthStartAt.toISOString(),
+            p_traffic_class: 'human',
+        };
+        const [trafficResult, navigationResult, monthlyTrafficResult] = await Promise.all([
             supabase.rpc('analytics_build_report', reportArgs),
             supabase.rpc('analytics_build_navigation_report', reportArgs),
+            supabase.rpc('analytics_build_report', monthlyReportArgs),
         ]);
 
         if (trafficResult.error) {
@@ -113,10 +125,82 @@ export const GET: APIRoute = async ({ request, url }) => {
             console.warn('[analytics] Navigation report is not available yet:', navigationResult.error.message);
         }
 
+        if (monthlyTrafficResult.error) {
+            console.warn('[analytics] Monthly summary is not available yet:', monthlyTrafficResult.error.message);
+        }
+
+        // Automated user agents never reach analytics_sessions because the collector
+        // rejects them. This stricter engagement threshold adds another confidence
+        // signal for the three human visits surfaced most prominently in the UI.
+        const recentVisitorCutoff = new Date(
+            Date.now() - (TOP_RECENT_VISITOR_LOOKBACK_DAYS * 24 * 60 * 60 * 1000),
+        ).toISOString();
+        const { data: recentVisitorSessions, error: recentVisitorSessionsError } = await supabase
+            .from('analytics_sessions')
+            .select('id, visitor_id, source, country, landing_page, exit_page, started_at, ended_at, total_engaged_seconds')
+            .gte('started_at', recentVisitorCutoff)
+            .gt('total_engaged_seconds', TOP_RECENT_VISITOR_MIN_ENGAGEMENT_SECONDS)
+            .order('started_at', { ascending: false })
+            .limit(TOP_RECENT_VISITOR_SESSION_SCAN_LIMIT);
+
+        if (recentVisitorSessionsError) {
+            console.warn('[analytics] Top recent visitors are not available yet:', recentVisitorSessionsError.message);
+        }
+
+        const seenRecentVisitorIds = new Set();
+        const distinctRecentVisitorSessions = (recentVisitorSessions || [])
+            .filter((session) => {
+                if (seenRecentVisitorIds.has(session.visitor_id)) return false;
+                seenRecentVisitorIds.add(session.visitor_id);
+                return true;
+            })
+            .slice(0, TOP_RECENT_VISITOR_LIMIT);
+        const recentVisitorIds = distinctRecentVisitorSessions.map((session) => session.id);
+        let recentVisitorPages = [];
+        if (recentVisitorIds.length) {
+            const { data, error } = await supabase
+                .from('analytics_page_views')
+                .select('session_id, page_path, page_title, sequence_number, viewed_at, engaged_seconds')
+                .in('session_id', recentVisitorIds)
+                .order('sequence_number', { ascending: true })
+                .order('viewed_at', { ascending: true });
+            if (error) {
+                console.warn('[analytics] Top recent visitor navigation is not available yet:', error.message);
+            } else {
+                recentVisitorPages = data || [];
+            }
+        }
+
+        const topRecentVisitors = distinctRecentVisitorSessions.map((session) => {
+            const pages = recentVisitorPages
+                .filter((page) => page.session_id === session.id)
+                .map((page) => ({
+                    path: page.page_path,
+                    title: page.page_title,
+                    sequenceNumber: page.sequence_number,
+                    viewedAt: page.viewed_at,
+                    engagedSeconds: page.engaged_seconds,
+                }));
+
+            return {
+                id: session.id,
+                source: session.source,
+                country: session.country,
+                landingPage: pages[0]?.path || session.landing_page,
+                exitPage: pages.at(-1)?.path || session.exit_page,
+                startedAt: session.started_at,
+                endedAt: session.ended_at,
+                totalEngagedSeconds: session.total_engaged_seconds,
+                pages,
+            };
+        });
+
         const emptyReport = emptyAnalyticsReport();
         const report = {
             ...emptyReport,
             ...(trafficResult.data || {}),
+            monthlySummary: monthlyTrafficResult.data?.summary || emptyReport.monthlySummary,
+            topRecentVisitors,
             navigation: navigationResult.data || emptyReport.navigation,
         };
 
@@ -124,6 +208,7 @@ export const GET: APIRoute = async ({ request, url }) => {
             range,
             trafficClass,
             startAt: startAt.toISOString(),
+            monthStartAt: monthStartAt.toISOString(),
             generatedAt: new Date().toISOString(),
             report,
             focusedJourney,

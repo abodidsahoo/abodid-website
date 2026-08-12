@@ -3,8 +3,11 @@ import { DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, us
 import { SortableContext, arrayMove, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { ArrowUpRight, Plus, Search } from "lucide-react";
 import { archiveAdminBlog, createAdminBlog, listAdminBlogs, reorderAdminBlogs } from "../../lib/blogAdmin";
+import AdminPageHeader from "./AdminPageHeader";
 import "../../styles/portfolio-admin.css"; // Reuse the portfolio-admin styles
+import "../../styles/blog-admin.css";
 
 const formatDate = (value) => value ? new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value)) : "Never";
 const PUBLIC_ORDER_CHANNEL = "blog-public-order";
@@ -45,7 +48,7 @@ function BlogRow({ blog, disabled }) {
   );
 }
 
-export default function BlogAdminList({ embedded = false }) {
+export default function BlogAdminList() {
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -59,7 +62,7 @@ export default function BlogAdminList({ embedded = false }) {
     try { setBlogs(await listAdminBlogs()); }
     catch (err) {
       if (err.message === "ADMIN_AUTH_REQUIRED") {
-        const next = embedded ? "/admin/dashboard?section=reading_digest" : "/admin/dashboard";
+        const next = "/admin/dashboard?section=blog";
         window.location.href = `/admin/login?next=${encodeURIComponent(next)}`;
       }
       else setError(err.message || "Could not load blogs.");
@@ -106,13 +109,29 @@ export default function BlogAdminList({ embedded = false }) {
   };
 
   return (
-    <div className={`portfolio-admin-page ${embedded ? "is-embedded" : ""}`} onClick={onClick}>
-      <header className="portfolio-admin-list-header">
-        <div>{!embedded && <a href="/admin/dashboard" className="admin-eyebrow">← Admin home</a>}<h1>Blog Posts</h1><p>Write, format, and publish your blog articles.</p></div>
-        <div className="header-actions"><a href="/blog" target="_blank" rel="noreferrer">View public Blog ↗</a><button type="button" className="primary-button" onClick={onCreate} disabled={creating}>{creating ? "Creating…" : "+ Add Post"}</button></div>
+    <div className="portfolio-admin-page blog-admin-page is-embedded" onClick={onClick}>
+      <header className="blog-admin-header">
+        <AdminPageHeader
+          headingId="blog-admin-title"
+          title="Blog Posts"
+          description="Writing is the most advanced technology."
+        />
+        <div className="blog-admin-actions">
+          <button type="button" className="blog-write-button" onClick={onCreate} disabled={creating}>
+            <Plus size={17} aria-hidden="true" />
+            {creating ? "Creating…" : "Write a new post"}
+          </button>
+          <a href="/blog" target="_blank" rel="noreferrer">
+            View blog <ArrowUpRight size={16} aria-hidden="true" />
+          </a>
+        </div>
       </header>
       <section className="portfolio-admin-toolbar">
-        <label><span className="sr-only">Search posts</span><input type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search title, excerpt or tags" /></label>
+        <label className="blog-admin-search">
+          <span className="sr-only">Search posts</span>
+          <Search size={16} aria-hidden="true" />
+          <input type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search title, excerpt or tags" />
+        </label>
         <div className="status-tabs" role="group" aria-label="Post status">{["all", "draft", "published", "archived"].map((item) => <button type="button" key={item} className={status === item ? "active" : ""} onClick={() => setStatus(item)}>{item}</button>)}</div>
       </section>
       {orderingDisabled && <p className="admin-hint">Clear search and status filters to reorder the public grid.</p>}

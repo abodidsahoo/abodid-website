@@ -83,6 +83,8 @@ export const DEFAULT_NEWSLETTER_SUBHEADING_TEXT = 'an absolutely mindblowing sub
 
 export const DEFAULT_NEWSLETTER_LINK_TEXT = 'Download the Obsidian 101 Guide';
 export const DEFAULT_NEWSLETTER_LINK_URL = 'https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/cv/Abodid-Sahoo-2026-CV.pdf?download=Abodid%20Sahoo%20-%202026%20CV.pdf';
+export const DEFAULT_NEWSLETTER_INSTAGRAM_URL = 'https://www.instagram.com/abodid.sahoo/';
+export const DEFAULT_NEWSLETTER_LINKEDIN_URL = 'https://www.linkedin.com/in/abodidsahoo/';
 
 const createDefaultNewsletterBodyLinks = () => [
     { text: 'exhibition design teams', url: 'https://abodid.com/services' },
@@ -383,6 +385,8 @@ export const createNewsletterBlock = (type, overrides = {}) => {
                 font: 'satoshi',
                 websiteLabel: 'Visit my Website',
                 websiteUrl: 'https://abodid.com',
+                instagramUrl: DEFAULT_NEWSLETTER_INSTAGRAM_URL,
+                linkedinUrl: DEFAULT_NEWSLETTER_LINKEDIN_URL,
                 fontSize: 12,
                 fontWeight: 400,
                 color: '#333333',

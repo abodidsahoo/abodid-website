@@ -175,7 +175,15 @@ export async function getProjectBySlug(slug: string): Promise<Project | null> {
         console.error(`Error fetching research ${slug}:`, error);
         return null;
     }
-    return data;
+    return {
+        ...data,
+        href: `/research/${data.slug}`,
+        image: data.cover_image,
+        tags: Array.isArray(data.tags) ? data.tags : [],
+        published: Boolean(data.published),
+        experiment_url: data.experiment_url || data.link || null,
+        gallery_images: Array.isArray(data.gallery_images) ? data.gallery_images : []
+    } as Project;
 }
 
 // --- Photography ---

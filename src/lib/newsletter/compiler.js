@@ -1,5 +1,7 @@
 import {
     createNewsletterBlock,
+    DEFAULT_NEWSLETTER_INSTAGRAM_URL,
+    DEFAULT_NEWSLETTER_LINKEDIN_URL,
     DEFAULT_NEWSLETTER_SETTINGS,
     getNewsletterColumnItems,
     getNewsletterFontOption,
@@ -512,13 +514,28 @@ const renderFooter = (block, settings) => {
     const linkColor = safeColor(block.linkColor, '#a30021');
     const align = safeAlign(block.align);
     const websiteUrl = safeUrl(block.websiteUrl);
+    const instagramUrl = safeHttpsUrl(block.instagramUrl === undefined
+        ? DEFAULT_NEWSLETTER_INSTAGRAM_URL
+        : block.instagramUrl);
+    const linkedinUrl = safeHttpsUrl(block.linkedinUrl === undefined
+        ? DEFAULT_NEWSLETTER_LINKEDIN_URL
+        : block.linkedinUrl);
     const fontSize = Math.round(clamp(block.fontSize, 10, 22, 12));
+    const socialFontSize = Math.max(9, fontSize - 2);
     const fontWeight = safeFontWeight(block.fontWeight, 400);
     const brandFontWeight = Math.max(600, fontWeight);
     const font = resolveNewsletterFont(block.font, settings.bodyFont);
+    const socialLinks = [
+        { label: 'Instagram', url: instagramUrl },
+        { label: 'LinkedIn', url: linkedinUrl },
+    ].filter((link) => link.url);
+    const socialLinksHtml = socialLinks
+        .map((link) => `<a href="${link.url}" target="_blank" style="${pinnedText(color)}text-decoration:underline;">${link.label}</a>`)
+        .join('&nbsp;&nbsp;·&nbsp;&nbsp;');
 
     return sectionTable(block, settings, `
-<p class="email-heading-font ${newsletterFontClass(font)}" style="margin:0 0 10px;${pinnedText(color)}font-family:${font.family};font-size:${fontSize + 1}px;font-weight:${brandFontWeight};line-height:1.5;text-align:${align};">${escapeNewsletterHtml(block.brandName || 'Abodid Sahoo')}</p>
+<p class="email-heading-font ${newsletterFontClass(font)}" style="margin:0 0 ${socialLinksHtml ? 4 : 10}px;${pinnedText(color)}font-family:${font.family};font-size:${fontSize + 1}px;font-weight:${brandFontWeight};line-height:1.5;text-align:${align};">${escapeNewsletterHtml(block.brandName || 'Abodid Sahoo')}</p>
+${socialLinksHtml ? `<p class="email-body-font ${newsletterFontClass(font)}" style="margin:0 0 12px;${pinnedText(color)}font-family:${font.family};font-size:${socialFontSize}px;font-weight:${fontWeight};line-height:1.5;text-align:${align};">${socialLinksHtml}</p>` : ''}
 <p class="email-body-font ${newsletterFontClass(font)}" style="margin:0 0 12px;${pinnedText(color)}font-family:${font.family};font-size:${fontSize}px;font-weight:${fontWeight};line-height:1.55;text-align:${align};">${textWithBreaks(block.message)}</p>
 <p class="email-body-font ${newsletterFontClass(font)}" style="margin:0;${pinnedText(linkColor)}font-family:${font.family};font-size:${fontSize}px;font-weight:${fontWeight};line-height:1.55;text-align:${align};">
   ${websiteUrl ? `<a href="${websiteUrl}" target="_blank" style="${pinnedText(linkColor)}text-decoration:underline;">${escapeNewsletterHtml(block.websiteLabel || 'Visit website')}</a>&nbsp;&nbsp;·&nbsp;&nbsp;` : ''}

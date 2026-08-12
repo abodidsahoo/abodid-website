@@ -2,7 +2,7 @@
     --newsletter-accent: #6d5dfc;
     --newsletter-accent-soft: rgba(109, 93, 252, 0.1);
     width: 100%;
-    max-width: none;
+    max-width: var(--admin-page-content-max);
     min-width: 0;
     margin: 0;
     padding-bottom: 4rem;
@@ -27,15 +27,17 @@
 }
 
 .newsletter-header {
+    display: block;
     align-items: flex-end;
     margin-bottom: 1.5rem;
+    padding: var(--admin-page-heading-offset-block) var(--admin-page-heading-offset-inline) 1.5rem;
+    border-bottom: 1px solid var(--border-subtle);
 }
 
 .newsletter-header .section-title {
     margin: 0.2rem 0 0.35rem;
 }
 
-.newsletter-header p,
 .newsletter-sender .management-heading p,
 .newsletter-sender .management-panel-heading p {
     margin: 0;

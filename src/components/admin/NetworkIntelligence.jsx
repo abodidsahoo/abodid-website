@@ -9,7 +9,6 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
-  Columns3,
   Download,
   Filter,
   LoaderCircle,
@@ -28,11 +27,19 @@ import {
 } from "lucide-react";
 import NetworkContactDrawer from "./NetworkContactDrawer";
 import NetworkImportDialog from "./NetworkImportDialog";
+import AdminPageHeader from "./AdminPageHeader";
+import {
+  INITIAL_NETWORK_FILTERS,
+  invalidateNetworkIntelligencePrefetch,
+  prefetchNetworkIntelligence,
+} from "../../lib/network/prefetch.js";
 import "./network-intelligence.css";
 
 const LAYOUT_STORAGE_KEY = "network-intelligence-layout-v2";
 const VIEW_STORAGE_KEY = "network-intelligence-saved-views-v1";
 const CUSTOM_COLUMN_STORAGE_KEY = "network-intelligence-custom-columns-v1";
+const CONTACT_LOADING_TARGET = 10047;
+const CONTACT_LOADING_DURATION_MS = 5500;
 
 const DEFAULT_COLUMNS = [
   { key: "name", label: "Name", width: 220, minWidth: 180, visible: true, pinned: true },
@@ -46,26 +53,7 @@ const DEFAULT_COLUMNS = [
   { key: "connected", label: "Connected", width: 138, minWidth: 112, visible: true, pinned: false },
 ];
 
-const EMPTY_FILTERS = {
-  hasEmail: null,
-  emailType: "",
-  country: "",
-  region: "",
-  city: "",
-  company: "",
-  workCategories: [],
-  expertiseKeywords: [],
-  outreachGoals: [],
-  relationshipTier: "",
-  tags: [],
-  verificationState: "",
-  enrichmentStatus: "",
-  newsletterStatus: "",
-  doNotContact: null,
-  connectedFrom: "",
-  connectedTo: "",
-  includeArchived: false,
-};
+const EMPTY_FILTERS = INITIAL_NETWORK_FILTERS;
 
 const PRESETS = [
   {
@@ -275,6 +263,66 @@ function ContactCell({ contact, column, openContact }) {
   }
 }
 
+function ContactLoadingCounter({ target = CONTACT_LOADING_TARGET }) {
+  const safeTarget = Math.max(1, Number(target) || CONTACT_LOADING_TARGET);
+  const targetRef = useRef(safeTarget);
+  const [visibleCount, setVisibleCount] = useState(1);
+
+  useEffect(() => {
+    targetRef.current = safeTarget;
+  }, [safeTarget]);
+
+  useEffect(() => {
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+      setVisibleCount(targetRef.current);
+      return undefined;
+    }
+
+    const startedAt = window.performance.now();
+    let animationFrame = 0;
+
+    const updateCounter = (now) => {
+      const progress = Math.min((now - startedAt) / CONTACT_LOADING_DURATION_MS, 1);
+      const easedProgress = progress < 0.5
+        ? 4 * progress * progress * progress
+        : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+      const nextCount = Math.min(
+        targetRef.current,
+        Math.max(1, Math.floor(targetRef.current * easedProgress)),
+      );
+
+      setVisibleCount((current) => current === nextCount ? current : nextCount);
+      if (progress < 1) animationFrame = window.requestAnimationFrame(updateCounter);
+    };
+
+    animationFrame = window.requestAnimationFrame(updateCounter);
+    return () => window.cancelAnimationFrame(animationFrame);
+  }, []);
+
+  const displayedCount = Math.min(visibleCount, safeTarget);
+  const progress = Math.min(100, (displayedCount / safeTarget) * 100);
+
+  return (
+    <div
+      className="ni-grid-state ni-contact-loading"
+      role="status"
+      aria-live="polite"
+      aria-label={`Loading ${safeTarget.toLocaleString()} contacts`}
+    >
+      <span className="ni-contact-loading-kicker" aria-hidden="true">Building your network</span>
+      <strong className="ni-contact-loading-number" aria-hidden="true">
+        {displayedCount.toLocaleString()}
+      </strong>
+      <span className="ni-contact-loading-label" aria-hidden="true">
+        {displayedCount === 1 ? "contact loading" : "contacts loading"}
+      </span>
+      <span className="ni-contact-loading-track" aria-hidden="true">
+        <span style={{ width: `${progress}%` }} />
+      </span>
+    </div>
+  );
+}
+
 export default function NetworkIntelligence({ accessToken }) {
   const [contacts, setContacts] = useState([]);
   const [total, setTotal] = useState(0);
@@ -339,10 +387,12 @@ export default function NetworkIntelligence({ accessToken }) {
     })));
   }, [columns]);
 
-  const loadFacets = async () => {
+  const loadFacets = async ({ preferPrefetch = refreshKey === 0 } = {}) => {
     if (!accessToken) return;
     try {
-      const data = await authenticatedFetch("/api/admin/network/facets");
+      const data = preferPrefetch
+        ? (await prefetchNetworkIntelligence(accessToken)).facets
+        : await authenticatedFetch("/api/admin/network/facets");
       setFacets(data);
       setSetupRequired(false);
     } catch (requestError) {
@@ -357,6 +407,15 @@ export default function NetworkIntelligence({ accessToken }) {
   useEffect(() => {
     if (!accessToken) return undefined;
     const controller = new AbortController();
+    const isInitialRequest = (
+      searchNonce === 0
+      && refreshKey === 0
+      && !smartActive
+      && !query.trim()
+      && filters === EMPTY_FILTERS
+      && page === 1
+      && sort === "relevance"
+    );
     const timer = window.setTimeout(async () => {
       setLoading(true);
       setError("");
@@ -369,7 +428,9 @@ export default function NetworkIntelligence({ accessToken }) {
           sort,
           smart: smartActive,
         };
-        const data = smartActive
+        const data = isInitialRequest
+          ? (await prefetchNetworkIntelligence(accessToken)).contacts
+          : smartActive
           ? await authenticatedFetch("/api/admin/network/contacts", {
               method: "POST",
               body: JSON.stringify(body),
@@ -384,7 +445,7 @@ export default function NetworkIntelligence({ accessToken }) {
         setSmartInterpretation(data.interpretation || null);
         setSetupRequired(false);
       } catch (requestError) {
-        if (requestError.name === "AbortError") return;
+        if (requestError.name === "AbortError" || controller.signal.aborted) return;
         setSetupRequired(Boolean(requestError.payload?.setupRequired));
         setError(requestError.message);
         setContacts([]);
@@ -392,13 +453,17 @@ export default function NetworkIntelligence({ accessToken }) {
       } finally {
         if (!controller.signal.aborted) setLoading(false);
       }
-    }, smartActive ? 0 : 240);
+    }, smartActive || isInitialRequest ? 0 : 240);
 
     return () => {
       window.clearTimeout(timer);
       controller.abort();
     };
   }, [accessToken, query, filters, page, sort, smartActive, searchNonce, refreshKey]);
+
+  useEffect(() => {
+    if (refreshKey > 0) invalidateNetworkIntelligencePrefetch(accessToken);
+  }, [accessToken, refreshKey]);
 
   useEffect(() => {
     setSelectedIds((current) => {
@@ -706,7 +771,8 @@ export default function NetworkIntelligence({ accessToken }) {
         if (result.complete || !result.processed) break;
       }
       setIndexState((current) => ({ ...current, running: false }));
-      loadFacets();
+      invalidateNetworkIntelligencePrefetch(accessToken);
+      loadFacets({ preferPrefetch: false });
     } catch (requestError) {
       setIndexState((current) => ({
         ...current,
@@ -717,6 +783,7 @@ export default function NetworkIntelligence({ accessToken }) {
   };
 
   const onImported = () => {
+    invalidateNetworkIntelligencePrefetch(accessToken);
     setRefreshKey((current) => current + 1);
     setPage(1);
   };
@@ -728,87 +795,25 @@ export default function NetworkIntelligence({ accessToken }) {
   const gridTemplateColumns = `44px ${visibleColumns.map((column) => `${column.width}px`).join(" ")}`;
 
   return (
-    <section className="network-intelligence" aria-label="Network Intelligence">
+    <section className="network-intelligence" aria-labelledby="network-intelligence-title">
       <header className="ni-utility-bar">
-        <div className="ni-title-block">
-          <span className="ni-title-icon" aria-hidden="true"><Network size={19} /></span>
-          <div>
-            <h2>Network intelligence</h2>
-            <p>
-              {facets?.total?.toLocaleString?.() || total.toLocaleString()} private contacts
+        <AdminPageHeader
+          className="ni-page-header"
+          headingId="network-intelligence-title"
+          title="Network Intelligence"
+          description="Your network is your net worth."
+        />
+
+        <div className="ni-utility-side">
+          <div className="ni-header-meta" aria-live="polite">
+            <strong>{facets?.total?.toLocaleString?.() || total.toLocaleString()} contacts</strong>
+            <span>
               {facets?.lastImport?.completed_at
-                ? ` · synced ${formatDateTime(facets.lastImport.completed_at)}`
-                : " · no completed import"}
-            </p>
+                ? `Synced ${formatDateTime(facets.lastImport.completed_at)}`
+                : "No completed import"}
+            </span>
           </div>
         </div>
-
-        <div className="ni-utility-actions">
-          {Number(facets?.pendingEmbeddings || 0) > 0 || indexState.running ? (
-            <button
-              type="button"
-              className={`ni-button ni-button-quiet ${indexState.running ? "is-working" : ""}`}
-              onClick={runSemanticIndex}
-              title="Build or refresh semantic search vectors in private batches"
-            >
-              {indexState.running
-                ? <LoaderCircle size={15} className="ni-spin" />
-                : <Sparkles size={15} />}
-              {indexState.running
-                ? `${indexState.processed.toLocaleString()} indexed · stop`
-                : `Index ${Number(facets?.pendingEmbeddings || 0).toLocaleString()}`}
-            </button>
-          ) : null}
-          <button type="button" className="ni-button ni-button-quiet" onClick={() => setShowColumns((open) => !open)}>
-            <Settings2 size={15} />
-            Columns
-          </button>
-          <button type="button" className="ni-button ni-button-primary" onClick={() => setShowImport(true)}>
-            <Upload size={15} />
-            Import / update CSV
-          </button>
-        </div>
-
-        {showColumns && (
-          <div className="ni-popover ni-column-popover">
-            <div className="ni-popover-heading">
-              <strong>Columns</strong>
-              <button type="button" aria-label="Close columns" onClick={() => setShowColumns(false)}><X size={15} /></button>
-            </div>
-            <p>Drag headers to reorder. Resize from the right edge.</p>
-            <div className="ni-column-list">
-              {columns.map((column) => (
-                <div className="ni-column-control" key={column.key}>
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={column.visible}
-                      onChange={() => setColumns((current) => current.map((item) => (
-                        item.key === column.key ? { ...item, visible: !item.visible } : item
-                      )))}
-                    />
-                    <span>{column.label}</span>
-                  </label>
-                  <button
-                    type="button"
-                    className={column.pinned ? "is-active" : ""}
-                    aria-label={`${column.pinned ? "Unpin" : "Pin"} ${column.label}`}
-                    title={`${column.pinned ? "Unpin" : "Pin"} ${column.label}`}
-                    onClick={() => setColumns((current) => current.map((item) => (
-                      item.key === column.key ? { ...item, pinned: !item.pinned } : item
-                    )))}
-                  >
-                    <Pin size={13} />
-                  </button>
-                </div>
-              ))}
-            </div>
-            <div className="ni-popover-footer">
-              <button type="button" onClick={addCustomColumn}><Plus size={14} /> Custom field</button>
-              <button type="button" onClick={resetColumns}><RefreshCw size={14} /> Reset</button>
-            </div>
-          </div>
-        )}
       </header>
 
       <div className="ni-search-shell">
@@ -890,6 +895,69 @@ export default function NetworkIntelligence({ accessToken }) {
             </select>
             <button type="button" onClick={saveCurrentView} title="Save this search and layout"><Save size={14} /> Save view</button>
             {(query || activeFilterCount > 0) && <button type="button" onClick={clearAll}>Clear all</button>}
+            {Number(facets?.pendingEmbeddings || 0) > 0 || indexState.running ? (
+              <button
+                type="button"
+                className={indexState.running ? "is-working" : ""}
+                onClick={runSemanticIndex}
+                title="Build or refresh semantic search vectors in private batches"
+              >
+                {indexState.running
+                  ? <LoaderCircle size={13} className="ni-spin" />
+                  : <Sparkles size={13} />}
+                {indexState.running
+                  ? `${indexState.processed.toLocaleString()} indexed · stop`
+                  : `Index ${Number(facets?.pendingEmbeddings || 0).toLocaleString()}`}
+              </button>
+            ) : null}
+            <div className="ni-column-control-shell">
+              <button type="button" onClick={() => setShowColumns((open) => !open)}>
+                <Settings2 size={13} /> Columns
+              </button>
+              {showColumns && (
+                <div className="ni-popover ni-column-popover">
+                  <div className="ni-popover-heading">
+                    <strong>Columns</strong>
+                    <button type="button" aria-label="Close columns" onClick={() => setShowColumns(false)}><X size={15} /></button>
+                  </div>
+                  <p>Drag headers to reorder. Resize from the right edge.</p>
+                  <div className="ni-column-list">
+                    {columns.map((column) => (
+                      <div className="ni-column-control" key={column.key}>
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={column.visible}
+                            onChange={() => setColumns((current) => current.map((item) => (
+                              item.key === column.key ? { ...item, visible: !item.visible } : item
+                            )))}
+                          />
+                          <span>{column.label}</span>
+                        </label>
+                        <button
+                          type="button"
+                          className={column.pinned ? "is-active" : ""}
+                          aria-label={`${column.pinned ? "Unpin" : "Pin"} ${column.label}`}
+                          title={`${column.pinned ? "Unpin" : "Pin"} ${column.label}`}
+                          onClick={() => setColumns((current) => current.map((item) => (
+                            item.key === column.key ? { ...item, pinned: !item.pinned } : item
+                          )))}
+                        >
+                          <Pin size={13} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="ni-popover-footer">
+                    <button type="button" onClick={addCustomColumn}><Plus size={14} /> Custom field</button>
+                    <button type="button" onClick={resetColumns}><RefreshCw size={14} /> Reset</button>
+                  </div>
+                </div>
+              )}
+            </div>
+            <button type="button" onClick={() => setShowImport(true)} title="Import or update contacts from CSV">
+              <Upload size={12} /> Update CSV
+            </button>
           </div>
         </div>
 
@@ -1112,7 +1180,7 @@ export default function NetworkIntelligence({ accessToken }) {
           </div>
 
           {loading && contacts.length === 0 ? (
-            <div className="ni-grid-state"><LoaderCircle className="ni-spin" size={20} /> Loading contacts…</div>
+            <ContactLoadingCounter target={facets?.total || total || CONTACT_LOADING_TARGET} />
           ) : contacts.length === 0 ? (
             <div className="ni-grid-state">
               <Search size={21} />
@@ -1176,7 +1244,10 @@ export default function NetworkIntelligence({ accessToken }) {
         customDefinitions={customDefinitions}
         initialDiscovery={drawerContactId ? discoverySeeds[drawerContactId] : null}
         onClose={() => setDrawerContactId(null)}
-        onChanged={() => setRefreshKey((current) => current + 1)}
+        onChanged={() => {
+          invalidateNetworkIntelligencePrefetch(accessToken);
+          setRefreshKey((current) => current + 1);
+        }}
       />
 
       <NetworkImportDialog

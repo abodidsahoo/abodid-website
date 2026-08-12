@@ -1,0 +1,204 @@
+.blog-admin-page {
+  width: 100%;
+  max-width: var(--admin-page-content-max);
+  min-height: 0;
+  padding: 0;
+  color: var(--text-primary);
+}
+
+.blog-admin-header {
+  display: grid;
+  gap: 1.4rem;
+  padding: var(--admin-page-heading-offset-block)
+    var(--admin-page-heading-offset-inline) 1.5rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.blog-admin-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.blog-admin-actions a,
+.blog-admin-actions button {
+  min-height: 2.65rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.72rem 0.95rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--admin-control-radius);
+  background: transparent;
+  color: var(--text-primary);
+  font: 700 0.76rem/1 var(--font-ui);
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color 160ms ease, background-color 160ms ease,
+    color 160ms ease, transform 160ms ease;
+}
+
+.blog-admin-actions a:hover,
+.blog-admin-actions a:focus-visible {
+  border-color: var(--border-strong);
+  background: var(--bg-surface-hover);
+  outline: none;
+}
+
+.blog-admin-actions .blog-write-button {
+  padding-inline: 1.15rem;
+  border-color: var(--text-primary);
+  background: var(--text-primary);
+  color: var(--bg-color);
+}
+
+.blog-admin-actions .blog-write-button:not(:disabled):hover,
+.blog-admin-actions .blog-write-button:not(:disabled):focus-visible {
+  transform: translateY(-1px);
+  outline: none;
+}
+
+.blog-admin-actions button:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.blog-admin-page .portfolio-admin-toolbar {
+  grid-template-columns: minmax(250px, 34rem) minmax(0, auto);
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.35rem var(--admin-page-heading-offset-inline) 1rem;
+}
+
+.blog-admin-search {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0 0.8rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--admin-control-radius);
+  background: var(--bg-surface);
+  color: var(--text-tertiary);
+}
+
+.blog-admin-page .portfolio-admin-toolbar .blog-admin-search input {
+  min-height: 2.65rem;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  outline: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.blog-admin-search:focus-within {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 2px
+    color-mix(in srgb, var(--border-focus) 24%, transparent);
+}
+
+.blog-admin-page .status-tabs {
+  grid-template-columns: repeat(4, minmax(82px, 1fr));
+  gap: 0.3rem;
+  padding: 0.25rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--admin-control-radius);
+  background: var(--bg-surface);
+  overflow: visible;
+}
+
+.blog-admin-page .status-tabs button {
+  width: auto;
+  min-width: 82px;
+  height: 2.15rem;
+  border: 0;
+  border-radius: 7px;
+  font-size: 0.69rem;
+  font-weight: 700;
+}
+
+.blog-admin-page .admin-hint,
+.blog-admin-page .admin-notice,
+.blog-admin-page .portfolio-admin-results {
+  margin-inline: var(--admin-page-heading-offset-inline);
+}
+
+.blog-admin-page .admin-hint {
+  margin-top: -0.35rem;
+  margin-bottom: 1rem;
+}
+
+.blog-admin-page .portfolio-admin-results {
+  min-height: max(260px, calc(100vh - 430px));
+  padding-bottom: 2rem;
+}
+
+.blog-admin-page .portfolio-admin-rows {
+  gap: 0.55rem;
+}
+
+.blog-admin-page .portfolio-admin-row {
+  border-radius: var(--admin-control-radius);
+  background: color-mix(in srgb, var(--bg-surface) 88%, transparent);
+  box-shadow: none;
+}
+
+.blog-admin-page .portfolio-admin-row:hover {
+  border-color: var(--border-strong);
+  box-shadow: none;
+}
+
+.blog-admin-page .admin-project-thumb {
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-color);
+}
+
+.blog-admin-page .admin-project-main h2 {
+  font-size: 0.96rem;
+  font-weight: 680;
+}
+
+.blog-admin-page .project-status {
+  font-weight: 700;
+}
+
+.blog-admin-page .admin-project-archive {
+  color: var(--text-tertiary);
+}
+
+@media (max-width: 850px) {
+  .blog-admin-page .portfolio-admin-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .blog-admin-page .status-tabs {
+    width: 100%;
+  }
+}
+
+@media (max-width: 520px) {
+  .blog-admin-header {
+    gap: 1.15rem;
+  }
+
+  .blog-admin-actions {
+    align-items: stretch;
+  }
+
+  .blog-admin-actions a,
+  .blog-admin-actions button {
+    flex: 1 1 auto;
+  }
+
+  .blog-admin-page .status-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .blog-admin-page .status-tabs button {
+    min-width: 0;
+  }
+}

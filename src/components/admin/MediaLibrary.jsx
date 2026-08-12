@@ -21,6 +21,7 @@ import {
     UploadCloud,
     X,
 } from 'lucide-react';
+import AdminPageHeader from './AdminPageHeader';
 
 const MAX_IMAGE_SIZE_BYTES = 20 * 1024 * 1024;
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
@@ -366,12 +367,13 @@ export default function MediaLibrary({ accessToken }) {
 
     return (
         <section className="media-library" aria-labelledby="media-library-title">
-            <header className="media-library-header">
-                <div>
-                    <p className="media-library-kicker">Cloudflare R2 + Supabase</p>
-                    <h2 id="media-library-title">Media Library</h2>
-                    <p>Browse, organize and upload website images from one place.</p>
-                </div>
+            <div className="media-library-header">
+                <AdminPageHeader
+                    className="media-library-page-header"
+                    headingId="media-library-title"
+                    title="Media Library"
+                    description="Browse, organize and upload website images from one place."
+                />
                 <div className="header-actions">
                     <span className={`connection-pill ${catalogueReady ? 'is-ready' : ''}`}>
                         <span /> {catalogueReady ? 'Library connected' : 'Checking connection'}
@@ -385,7 +387,7 @@ export default function MediaLibrary({ accessToken }) {
                         <RefreshCw size={15} className={loading ? 'is-spinning' : ''} /> Refresh
                     </button>
                 </div>
-            </header>
+            </div>
 
             {error && (
                 <div className="media-message is-error" role="alert">
@@ -691,12 +693,11 @@ export default function MediaLibrary({ accessToken }) {
             )}
 
             <style>{`
-                .media-library { display: flex; flex-direction: column; gap: 1rem; animation: fadeIn 0.3s ease; }
-                .media-library-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 2rem; padding-bottom: 1.15rem; border-bottom: 1px solid var(--border-subtle); }
-                .media-library-kicker { margin: 0 0 0.42rem; color: var(--text-tertiary); font-size: 0.68rem; font-weight: 650; letter-spacing: 0.08em; text-transform: uppercase; }
-                .media-library-header h2 { margin: 0; color: var(--text-primary); font-size: clamp(1.8rem, 3vw, 2.65rem); font-weight: 620; letter-spacing: -0.045em; }
-                .media-library-header p:not(.media-library-kicker) { margin: 0.48rem 0 0; color: var(--text-secondary); font-size: 0.88rem; }
+                .media-library { width: 100%; max-width: var(--admin-page-content-max); display: flex; flex-direction: column; gap: 1rem; animation: fadeIn 0.3s ease; }
+                .media-library-header { display: flex; justify-content: space-between; align-items: flex-end; gap: 2rem; padding: var(--admin-page-heading-offset-block) var(--admin-page-heading-offset-inline) 1.5rem; border-bottom: 1px solid var(--border-subtle); }
+                .media-library-page-header { min-width: 0; flex: 1 1 34rem; }
                 .header-actions, .toolbar-actions, .inspector-actions, .dialog-actions { display: flex; align-items: center; gap: 0.55rem; }
+                .media-library-header .header-actions { flex: 0 0 auto; padding-bottom: 0.25rem; }
                 .connection-pill { display: inline-flex; align-items: center; gap: 0.45rem; color: var(--text-tertiary); font-size: 0.7rem; }
                 .connection-pill > span { width: 6px; height: 6px; border-radius: 50%; background: #858585; }
                 .connection-pill.is-ready > span { background: #35d46f; box-shadow: 0 0 0 3px rgba(53,212,111,0.1); }
@@ -821,9 +822,11 @@ export default function MediaLibrary({ accessToken }) {
                     .search-field { max-width: none; }
                     .toolbar-actions { margin-left: 0; flex-wrap: wrap; }
                 }
-                @media (max-width: 760px) {
+                @media (max-width: 1180px) {
                     .media-library-header { flex-direction: column; gap: 0.8rem; }
                     .header-actions { width: 100%; justify-content: space-between; }
+                }
+                @media (max-width: 760px) {
                     .finder-window { height: max(520px, calc(100dvh - 210px)); max-height: 760px; grid-template-columns: 1fr; }
                     .finder-sidebar { display: none; }
                     .finder-items.is-grid { grid-template-columns: repeat(auto-fill, minmax(104px,1fr)); }

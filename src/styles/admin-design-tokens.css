@@ -1,0 +1,95 @@
+/*
+ * Admin design system
+ *
+ * The overview greeting is the reference treatment for every admin page title.
+ * Keep page-specific styles focused on layout and use these tokens for hierarchy.
+ */
+:root {
+  /* Page frame */
+  --admin-page-content-max: 1480px;
+  --admin-page-gutter-block: 1.25rem;
+  --admin-page-gutter-inline: 2rem;
+  --admin-page-heading-offset-block: 1.25rem;
+  --admin-page-heading-offset-inline: 0.35rem;
+  --admin-page-spacer: 1rem;
+
+  /* Page title: mirrors “Hi Abodid,” on the overview */
+  --admin-page-title-size: clamp(2.75rem, 4.2vw, 4.8rem);
+  --admin-page-title-line-size: clamp(2.695rem, 4.116vw, 4.704rem);
+  --admin-page-title-weight: 520;
+  --admin-page-title-line-height: 0.98;
+  --admin-page-title-tracking: -0.055em;
+
+  /* Page subtext: mirrors “Welcome to the admin workspace.” */
+  --admin-page-subtitle-size: clamp(1.5rem, 1.725vw, 1.725rem);
+  --admin-page-subtitle-weight: 300;
+  --admin-page-subtitle-line-height: 1.35;
+  --admin-page-subtitle-gap: 0.8rem;
+
+  /* Shared surfaces for future admin-page migrations */
+  --admin-panel-radius: 14px;
+  --admin-control-radius: 9px;
+  --admin-panel-border: 1px solid var(--border-subtle);
+}
+
+.main-content.admin-page-main {
+  padding: var(--admin-page-gutter-block) var(--admin-page-gutter-inline);
+}
+
+.admin-page-intro {
+  padding: var(--admin-page-heading-offset-block)
+    var(--admin-page-heading-offset-inline) 0.15rem;
+}
+
+.admin-page-spacer {
+  width: 100%;
+  height: var(--admin-page-spacer);
+  flex: 0 0 var(--admin-page-spacer);
+}
+
+.admin-page-header {
+  min-width: 0;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+}
+
+.admin-page-header__title {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: var(--admin-page-title-size);
+  font-weight: var(--admin-page-title-weight);
+  letter-spacing: var(--admin-page-title-tracking);
+  line-height: var(--admin-page-title-line-height);
+}
+
+.admin-page-header__description {
+  max-width: 48rem;
+  margin: var(--admin-page-subtitle-gap) 0 0;
+  color: var(--text-secondary);
+  font-size: var(--admin-page-subtitle-size);
+  font-weight: var(--admin-page-subtitle-weight);
+  line-height: var(--admin-page-subtitle-line-height);
+}
+
+@media (max-height: 650px) and (min-width: 1025px) {
+  :root {
+    --admin-page-gutter-block: 0.9rem;
+    --admin-page-heading-offset-block: 0.35rem;
+    --admin-page-title-size: 2.65rem;
+    --admin-page-subtitle-gap: 0.4rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  :root {
+    --admin-page-gutter-block: 1.5rem;
+    --admin-page-gutter-inline: 1.5rem;
+  }
+}
+
+@media (max-width: 899px) {
+  :root {
+    --admin-page-gutter-block: 1rem;
+    --admin-page-gutter-inline: 1rem;
+  }
+}

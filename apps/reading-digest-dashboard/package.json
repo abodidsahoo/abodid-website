@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "check:reading-digest-runs": "node --env-file-if-exists=.env.local check_latest_run.cjs",
+    "check:reading-digest-runs:vercel": "npx --yes vercel@latest --cwd ../.. env run --environment=production -- node apps/reading-digest-dashboard/check_latest_run.cjs"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.4",

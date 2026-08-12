@@ -10,8 +10,13 @@ import {
     newsletterHasContent,
 } from '../../lib/newsletter/blocks.js';
 import { compileNewsletterEmail } from '../../lib/newsletter/compiler.js';
-import { isNewsletterGifAsset, pickNewsletterMedia } from '../../lib/newsletter/media.js';
+import {
+    isNewsletterGifAsset,
+    pickNewsletterMedia,
+    replaceFirstNewsletterImage,
+} from '../../lib/newsletter/media.js';
 import NewsletterBlockEditor, { NewsletterBlockInsertToolbar } from './NewsletterBlockEditor';
+import AdminPageHeader from './AdminPageHeader';
 import './newsletter-sender.css';
 
 const EMPTY_EMAIL_PREVIEW_DOCUMENT = '<!doctype html><html><head></head><body></body></html>';
@@ -353,10 +358,17 @@ function FullGmailPreview({
     );
 }
 
-export default function NewsletterSender({ accessToken }) {
+export default function NewsletterSender({
+    accessToken,
+    exhibitionSample = null,
+    exhibitionMediaReady = false,
+}) {
     const [subject, setSubject] = useState('');
     const [previewText, setPreviewText] = useState('');
-    const [blocks, setBlocks] = useState(() => createDefaultNewsletterBlocks());
+    const [blocks, setBlocks] = useState(() => replaceFirstNewsletterImage(
+        createDefaultNewsletterBlocks(),
+        exhibitionSample,
+    ));
     const [emailSettings, setEmailSettings] = useState(() => ({ ...DEFAULT_NEWSLETTER_SETTINGS }));
     const [newsletterId, setNewsletterId] = useState(null);
     const [selectedTemplateId, setSelectedTemplateId] = useState(null);
@@ -394,6 +406,7 @@ export default function NewsletterSender({ accessToken }) {
     const [tempNewEmail, setTempNewEmail] = useState('');
     const moodboardMediaRef = useRef([]);
     const moodboardMediaPromiseRef = useRef(null);
+    const activeTemplateIdRef = useRef(null);
 
     useEffect(() => {
         fetchSubscribers();
@@ -555,13 +568,14 @@ export default function NewsletterSender({ accessToken }) {
         moodboardMediaPromiseRef.current = null;
         if (accessToken) {
             void getMoodboardMedia().then((media) => {
+                if (!activeTemplateIdRef.current) return;
                 setBlocks((currentBlocks) => addMoodboardPreviews(currentBlocks, media));
             });
         }
     }, [accessToken]);
 
     const addNewsletterBlock = (type) => {
-        const usesMoodboardPreview = type === 'image' || type === 'gif' || type === 'columns';
+        const usesMediaPreview = type === 'image' || type === 'gif' || type === 'columns';
         let newBlock;
 
         if (type === 'columns') {
@@ -578,9 +592,9 @@ export default function NewsletterSender({ accessToken }) {
                     })),
                 };
         } else {
-            const preview = usesMoodboardPreview ? getRandomMediaPreview(type) : {};
-            const overrides = usesMoodboardPreview
-                ? { ...preview, previewLoading: !preview.previewImageUrl }
+            const preview = usesMediaPreview ? getRandomMediaPreview(type) : {};
+            const overrides = usesMediaPreview
+                ? { ...preview, previewLoading: !preview.imageUrl && !preview.previewImageUrl }
                 : {};
             newBlock = createNewsletterBlock(type, overrides);
         }
@@ -597,7 +611,7 @@ export default function NewsletterSender({ accessToken }) {
 
         const needsPreview = type === 'columns'
             ? newBlock.columns.some((column) => column.items.some((item) => item.type === 'image' && !item.imageUrl && !item.previewImageUrl))
-            : usesMoodboardPreview && !newBlock.previewImageUrl;
+            : usesMediaPreview && !newBlock.imageUrl && !newBlock.previewImageUrl;
 
         if (needsPreview) {
             void getMoodboardMedia().then((media) => {
@@ -616,15 +630,22 @@ export default function NewsletterSender({ accessToken }) {
         if (isDraftDirty && !window.confirm('Replace the current design with this saved format?')) return;
         const selected = savedTemplates.find((template) => template.id === id);
         if (!selected) return;
+        const isDefaultTemplate = selected.id === savedTemplates[0]?.id;
+        if (isDefaultTemplate && !exhibitionMediaReady) return;
 
+        activeTemplateIdRef.current = selected.id;
         setNewsletterId(null);
         setSelectedTemplateId(selected.id);
         setTemplateName(selected.template_name || selected.subject || 'Untitled newsletter format');
         const supportedBlocks = removeRetiredNewsletterBlocks(selected.blocks);
         const nextBlocks = supportedBlocks.length ? supportedBlocks : createDefaultNewsletterBlocks();
+        const hydratedBlocks = addMoodboardPreviews(nextBlocks, moodboardMediaRef.current);
+        const displayedBlocks = isDefaultTemplate
+            ? replaceFirstNewsletterImage(hydratedBlocks, exhibitionSample)
+            : hydratedBlocks;
         setSubject(selected.subject || getPrimaryNewsletterHeading(nextBlocks));
         setPreviewText(selected.preview_text || getPrimaryNewsletterSubheading(nextBlocks));
-        setBlocks(addMoodboardPreviews(nextBlocks, moodboardMediaRef.current));
+        setBlocks(displayedBlocks);
         setEmailSettings({
             ...DEFAULT_NEWSLETTER_SETTINGS,
             ...(selected.settings || {}),
@@ -639,12 +660,22 @@ export default function NewsletterSender({ accessToken }) {
         setIsDraftDirty(false);
         setDraftStatus('saved');
         setDraftStatusMsg('');
+
     };
 
     useEffect(() => {
-        if (!savedTemplates.length || selectedTemplateId || isDraftDirty) return;
+        if (!savedTemplates.length
+            || selectedTemplateId
+            || isDraftDirty
+            || !exhibitionMediaReady) return;
         loadTemplate(savedTemplates[0].id);
-    }, [savedTemplates, selectedTemplateId, isDraftDirty]);
+    }, [
+        savedTemplates,
+        selectedTemplateId,
+        isDraftDirty,
+        exhibitionMediaReady,
+        exhibitionSample,
+    ]);
 
     const saveCampaignDraft = async () => {
         if (!draftsAvailable) {
@@ -975,11 +1006,11 @@ export default function NewsletterSender({ accessToken }) {
     return (
         <div className="newsletter-sender">
             <header className="newsletter-header">
-                <div>
-                    <span className="newsletter-eyebrow">Newsletter studio</span>
-                    <h2 className="section-title">Create a campaign</h2>
-                    <p>Draft, review, choose your audience, then send when everything is ready.</p>
-                </div>
+                <AdminPageHeader
+                    headingId="newsletter-studio-title"
+                    title="Newsletters Studio"
+                    description="Your 1,000 true fans are waiting."
+                />
             </header>
 
             <div

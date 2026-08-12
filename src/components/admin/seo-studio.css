@@ -5,7 +5,7 @@
   --seo-danger: #c94747;
   color: var(--text-primary);
   font-family: var(--font-sans);
-  max-width: 1440px;
+  max-width: var(--admin-page-content-max);
   margin: 0 auto;
 }
 
@@ -18,31 +18,33 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: 2rem;
-  padding: 1.5rem 0 2rem;
+  padding: var(--admin-page-heading-offset-block)
+    var(--admin-page-heading-offset-inline) 1.5rem;
   border-bottom: 1px solid var(--border-subtle);
 }
 
-.seo-studio-header h2 {
+.seo-studio-header > .admin-page-header {
+  flex: 1 1 34rem;
+}
+
+.seo-studio-header > .seo-button {
+  flex: 0 0 auto;
+  margin-bottom: 0.25rem;
+}
+
+.seo-studio-header.editor-header h2 {
   font-size: clamp(2rem, 4vw, 3.25rem);
   line-height: 1;
   letter-spacing: -0.045em;
   margin: 0.35rem 0 0.7rem;
 }
 
-.seo-studio-header p {
+.seo-studio-header.editor-header p {
   color: var(--text-secondary);
   font-size: 0.98rem;
   line-height: 1.6;
   margin: 0;
   max-width: 680px;
-}
-
-.seo-eyebrow {
-  color: var(--seo-accent);
-  font-size: 0.72rem;
-  font-weight: 750;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
 }
 
 .seo-button,
@@ -110,12 +112,36 @@
   transform: none;
 }
 
+.seo-overview-grid {
+  align-items: start;
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 420px);
+  height: calc(100vh - 12.5rem);
+  min-height: 500px;
+  padding: 1rem 0 1.25rem;
+}
+
+.seo-page-browser {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
 .seo-list-toolbar {
   align-items: center;
   display: flex;
   justify-content: space-between;
   gap: 1rem;
-  padding: 1.25rem 0;
+  border-bottom: 1px solid var(--border-subtle);
+  flex: 0 0 auto;
+  padding: 0.75rem;
 }
 
 .seo-list-toolbar > span {
@@ -125,13 +151,13 @@
 
 .seo-search-box {
   align-items: center;
-  background: var(--bg-surface);
+  background: var(--bg-color);
   border: 1px solid var(--border-subtle);
   border-radius: 10px;
   color: var(--text-tertiary);
   display: flex;
   gap: 0.65rem;
-  max-width: 460px;
+  max-width: 420px;
   padding: 0 0.85rem;
   width: 100%;
 }
@@ -141,45 +167,61 @@
   border: 0;
   color: var(--text-primary);
   font: inherit;
-  min-height: 44px;
+  min-height: 38px;
   outline: none;
   width: 100%;
 }
 
 .seo-page-list {
-  border: 1px solid var(--border-subtle);
-  border-radius: 14px;
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  gap: 0.45rem;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0.6rem;
+  scroll-padding-block: 0.6rem;
 }
 
-.seo-page-list-head,
 .seo-page-row {
   align-items: center;
+  background: var(--bg-color);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
   display: grid;
-  gap: 1.25rem;
-  grid-template-columns: minmax(190px, 1.15fr) minmax(220px, 1.4fr) 120px 130px 72px;
-}
-
-.seo-page-list-head {
-  background: var(--bg-surface-hover);
-  color: var(--text-tertiary);
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  padding: 0.8rem 1.15rem;
-  text-transform: uppercase;
-}
-
-.seo-page-row {
-  background: var(--bg-surface);
-  border-top: 1px solid var(--border-subtle);
-  min-height: 78px;
-  padding: 0.95rem 1.15rem;
-  transition: background 160ms ease;
+  flex: 0 0 auto;
+  grid-template-columns: minmax(0, 1fr) 138px;
+  min-height: 82px;
+  overflow: hidden;
+  transition: background 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
 }
 
 .seo-page-row:hover {
   background: var(--bg-surface-hover);
+}
+
+.seo-page-row.selected {
+  background: color-mix(in srgb, var(--seo-accent) 5%, var(--bg-color));
+  border-color: color-mix(in srgb, var(--seo-accent) 52%, var(--border-subtle));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--seo-accent) 10%, transparent);
+}
+
+.seo-page-select {
+  align-items: flex-start;
+  align-self: stretch;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  display: grid;
+  font: inherit;
+  gap: 0.45rem;
+  grid-template-columns: 1fr;
+  justify-content: center;
+  min-width: 0;
+  padding: 0.72rem 0.85rem;
+  text-align: left;
 }
 
 .seo-page-identity,
@@ -190,7 +232,7 @@
 .seo-page-identity {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.08rem;
 }
 
 .seo-page-identity strong,
@@ -201,13 +243,43 @@
 }
 
 .seo-page-identity strong {
-  font-size: 0.93rem;
+  font-size: clamp(1.15rem, 1.55vw, 1.42rem);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 1.05;
 }
 
-.seo-page-identity span,
+.seo-page-identity > span {
+  color: var(--text-tertiary);
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+}
+
 .seo-keyword-cell {
   color: var(--text-secondary);
-  font-size: 0.78rem;
+  font-size: 0.7rem;
+}
+
+.seo-page-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.seo-detail-label {
+  color: var(--text-tertiary);
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.seo-page-readiness {
+  display: grid;
+  gap: 0.28rem;
+  grid-template-columns: 1fr 1fr;
+  width: 100%;
 }
 
 .seo-keyword-cell .muted {
@@ -219,12 +291,28 @@
   border: 1px solid;
   border-radius: 999px;
   display: inline-flex;
-  font-size: 0.7rem;
+  font-size: 0.58rem;
   font-weight: 650;
-  gap: 0.28rem;
+  gap: 0.18rem;
   justify-content: center;
-  padding: 0.3rem 0.55rem;
-  width: fit-content;
+  padding: 0.2rem 0.28rem;
+  width: 100%;
+}
+
+.seo-status-pill svg {
+  height: 10px;
+  width: 10px;
+}
+
+.seo-page-actions {
+  align-items: stretch;
+  align-self: stretch;
+  border-left: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 0.38rem;
+  justify-content: center;
+  padding: 0.58rem;
 }
 
 .seo-status-pill.ready {
@@ -243,7 +331,34 @@
   background: transparent;
   border: 1px solid var(--border-subtle);
   color: var(--text-primary);
-  min-height: 34px;
+  margin: 0;
+  min-height: 29px;
+  padding: 0.3rem 0.55rem;
+  width: 100%;
+}
+
+.seo-page-row.selected .seo-edit-button {
+  background: var(--seo-accent);
+  border-color: var(--seo-accent);
+  color: #fff;
+}
+
+.seo-page-row.selected .seo-edit-button:hover {
+  background: var(--seo-accent-strong);
+  border-color: var(--seo-accent-strong);
+}
+
+.seo-page-empty {
+  align-items: center;
+  background: var(--bg-surface);
+  border: 1px dashed var(--border-subtle);
+  border-radius: 12px;
+  color: var(--text-secondary);
+  display: flex;
+  font-size: 0.82rem;
+  justify-content: center;
+  min-height: 160px;
+  padding: 1.5rem;
 }
 
 .editor-header {
@@ -287,8 +402,27 @@
 }
 
 .seo-preview-column {
+  position: static;
+}
+
+.seo-preview-column > .seo-preview-panel:first-child {
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--bg-color) 72%, transparent);
   position: sticky;
   top: 1.25rem;
+  z-index: 4;
+}
+
+.seo-overview-previews {
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 0.35rem;
+  scroll-padding-top: 0;
+}
+
+.seo-overview-previews > .seo-preview-panel:first-child {
+  top: 0;
 }
 
 .seo-panel,
@@ -712,15 +846,30 @@
   to { transform: rotate(360deg); }
 }
 
-@media (max-width: 1180px) {
-  .seo-editor-grid {
+@media (max-width: 1000px) {
+  .seo-editor-grid,
+  .seo-overview-grid {
+    height: auto;
     grid-template-columns: 1fr;
+    min-height: 0;
   }
 
   .seo-preview-column {
     display: grid;
     grid-template-columns: 1fr 1fr;
+    height: auto;
+    overflow: visible;
     position: static;
+  }
+
+  .seo-preview-column > .seo-preview-panel:first-child {
+    box-shadow: none;
+    position: static;
+  }
+
+  .seo-page-browser {
+    height: min(64vh, 680px);
+    min-height: 420px;
   }
 
   .verification-panel {
@@ -728,22 +877,17 @@
   }
 }
 
-@media (max-width: 980px) {
-  .seo-page-list-head {
-    display: none;
-  }
-
+@media (max-width: 640px) {
   .seo-page-row {
-    grid-template-columns: 1fr auto;
+    grid-template-columns: minmax(0, 1fr) 108px;
   }
 
-  .seo-keyword-cell {
-    grid-column: 1 / -1;
-    grid-row: 2;
+  .seo-page-select {
+    grid-template-columns: 1fr;
   }
 
-  .seo-page-row .seo-status-pill {
-    display: none;
+  .seo-page-readiness {
+    grid-template-columns: 1fr;
   }
 }
 

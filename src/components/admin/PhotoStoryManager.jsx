@@ -5,6 +5,7 @@ import {
     upsertPhotoStoryByUrl,
     upsertPhotoStoryLabelsByUrl,
 } from '../../lib/services/photoStories';
+import AdminPageHeader from './AdminPageHeader';
 
 function formatDate(value) {
     if (!value) return 'Never';
@@ -13,9 +14,78 @@ function formatDate(value) {
     return date.toLocaleString();
 }
 
+async function preloadPhotoAssets(rows, onProgress) {
+    const photoUrls = Array.from(
+        new Set(rows.map((row) => row.photoUrl).filter(Boolean)),
+    );
+    let loaded = 0;
+
+    onProgress({ loaded, total: photoUrls.length });
+
+    await Promise.all(
+        photoUrls.map(
+            (photoUrl) => new Promise((resolve) => {
+                const photo = new Image();
+                let settled = false;
+                let timeoutId;
+
+                const finish = () => {
+                    if (settled) return;
+                    settled = true;
+                    window.clearTimeout(timeoutId);
+                    photo.onload = null;
+                    photo.onerror = null;
+                    loaded += 1;
+                    onProgress({ loaded, total: photoUrls.length });
+                    resolve();
+                };
+
+                photo.onload = finish;
+                photo.onerror = finish;
+                photo.decoding = 'async';
+                photo.src = photoUrl;
+                timeoutId = window.setTimeout(finish, 15000);
+
+                if (photo.complete) finish();
+            }),
+        ),
+    );
+}
+
+function PhotoLoadingCounter({ loaded, total }) {
+    const hasPhotos = total > 0;
+    const progress = hasPhotos ? Math.min(100, (loaded / total) * 100) : 0;
+    const label = hasPhotos && loaded >= total
+        ? 'Photos ready'
+        : loaded === 1
+            ? 'photo loading'
+            : 'photos loading';
+
+    return (
+        <div
+            className="photo-story-loading"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+            aria-label={hasPhotos ? `${loaded} of ${total} photos loaded` : 'Finding photos to load'}
+        >
+            <span className="photo-story-loading-kicker" aria-hidden="true">Preparing photo buckets</span>
+            <strong className="photo-story-loading-number" aria-hidden="true">
+                {loaded.toLocaleString()}
+                {hasPhotos && <span>/{total.toLocaleString()}</span>}
+            </strong>
+            <span className="photo-story-loading-label" aria-hidden="true">{label}</span>
+            <span className="photo-story-loading-track" aria-hidden="true">
+                <span style={{ width: `${progress}%` }} />
+            </span>
+        </div>
+    );
+}
+
 export default function PhotoStoryManager() {
     const [assets, setAssets] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [photoLoadProgress, setPhotoLoadProgress] = useState({ loaded: 0, total: 0 });
     const [syncing, setSyncing] = useState(false);
     const [saving, setSaving] = useState(false);
     const [labelSaving, setLabelSaving] = useState(false);
@@ -46,7 +116,10 @@ export default function PhotoStoryManager() {
     const loadAssets = async ({ runSync = false } = {}) => {
         setErrorMsg('');
         if (runSync) setSyncing(true);
-        if (!runSync) setLoading(true);
+        if (!runSync) {
+            setLoading(true);
+            setPhotoLoadProgress({ loaded: 0, total: 0 });
+        }
 
         try {
             if (runSync) {
@@ -64,6 +137,10 @@ export default function PhotoStoryManager() {
                 if (keepCurrent) return current;
                 return rows[0]?.photoUrl || '';
             });
+
+            if (!runSync) {
+                await preloadPhotoAssets(rows, setPhotoLoadProgress);
+            }
         } catch (error) {
             console.error(error);
             setErrorMsg(error?.message || 'Failed to load photo stories.');
@@ -179,35 +256,41 @@ export default function PhotoStoryManager() {
         }
     };
 
-    if (loading) {
-        return <div className="photo-story-loading">Loading photo stories...</div>;
-    }
-
     return (
-        <div className="photo-story-manager">
-            <header className="photo-story-header">
-                <div>
-                    <h3>Photo Story CMS</h3>
-                    <p>
-                        {completedCount}/{assets.length} photos are manually locked. Blue dot means sample/unlocked, green means manually updated.
-                    </p>
-                </div>
-                <button
-                    className="sync-btn"
-                    onClick={() => loadAssets({ runSync: true })}
-                    disabled={syncing || saving || labelSaving}
-                >
-                    {syncing ? 'Syncing...' : 'Sync New Photos'}
-                </button>
-            </header>
-
-            <div className="photo-story-sql-hint">
-                SQL trigger query (manual run): <code>select public.sync_photo_stories_from_photography();</code>
+        <section className="photo-story-manager" aria-labelledby="photo-stories-title">
+            <div className="photo-story-header">
+                <AdminPageHeader
+                    className="photo-story-page-header"
+                    headingId="photo-stories-title"
+                    title="Photo Stories"
+                    description="Every photo carries a story."
+                />
+                {!loading && (
+                    <div className="photo-story-header-actions">
+                        <div className="photo-story-count" aria-label={`${completedCount} of ${assets.length} photo stories completed`}>
+                            <strong>{completedCount}<span>/{assets.length}</span></strong>
+                            <small>stories completed</small>
+                        </div>
+                        <button
+                            className="sync-btn"
+                            onClick={() => loadAssets({ runSync: true })}
+                            disabled={syncing || saving || labelSaving}
+                        >
+                            {syncing ? 'Syncing...' : 'Sync New Photos'}
+                        </button>
+                    </div>
+                )}
             </div>
 
             {notice && <div className="photo-story-notice success">{notice}</div>}
             {errorMsg && <div className="photo-story-notice error">{errorMsg}</div>}
 
+            {loading ? (
+                <PhotoLoadingCounter
+                    loaded={photoLoadProgress.loaded}
+                    total={photoLoadProgress.total}
+                />
+            ) : (
             <div className="photo-story-layout">
                 <section className="photo-grid-panel">
                     <div className="panel-title">Photo Buckets</div>
@@ -331,14 +414,76 @@ export default function PhotoStoryManager() {
                     )}
                 </aside>
             </div>
+            )}
 
             <style>{`
                 .photo-story-loading {
-                    padding: 1rem 0;
+                    min-height: min(58vh, 520px);
+                    border: 1px solid var(--border-subtle);
+                    border-radius: 12px;
+                    background: var(--bg-surface);
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 0.42rem;
+                    overflow: hidden;
+                    padding: 2rem;
+                    text-align: center;
+                }
+
+                .photo-story-loading-kicker {
+                    color: var(--text-tertiary);
+                    font-size: 0.62rem;
+                    font-weight: 700;
+                    letter-spacing: 0.12em;
+                    text-transform: uppercase;
+                }
+
+                .photo-story-loading-number {
+                    color: var(--text-primary);
+                    font-size: clamp(3.75rem, 8vw, 6.5rem);
+                    font-variant-numeric: tabular-nums;
+                    font-weight: 650;
+                    letter-spacing: -0.065em;
+                    line-height: 0.95;
+                }
+
+                .photo-story-loading-number span {
+                    color: var(--text-tertiary);
+                    font-size: 0.32em;
+                    font-weight: 400;
+                    letter-spacing: -0.035em;
+                }
+
+                .photo-story-loading-label {
                     color: var(--text-secondary);
+                    font-size: 0.76rem;
+                    font-weight: 650;
+                    letter-spacing: 0.02em;
+                }
+
+                .photo-story-loading-track {
+                    width: min(260px, 55vw);
+                    height: 2px;
+                    margin-top: 0.65rem;
+                    border-radius: 999px;
+                    background: var(--border-subtle);
+                    overflow: hidden;
+                }
+
+                .photo-story-loading-track > span {
+                    display: block;
+                    width: 0;
+                    height: 100%;
+                    border-radius: inherit;
+                    background: var(--text-secondary);
+                    transition: width 100ms linear;
                 }
 
                 .photo-story-manager {
+                    width: 100%;
+                    max-width: var(--admin-page-content-max);
                     display: flex;
                     flex-direction: column;
                     gap: 0.85rem;
@@ -347,20 +492,48 @@ export default function PhotoStoryManager() {
                 .photo-story-header {
                     display: flex;
                     justify-content: space-between;
-                    gap: 1rem;
+                    gap: 2rem;
+                    align-items: flex-end;
+                    padding: var(--admin-page-heading-offset-block) var(--admin-page-heading-offset-inline) 1.5rem;
+                    border-bottom: 1px solid var(--border-subtle);
+                }
+
+                .photo-story-page-header {
+                    min-width: 0;
+                    flex: 1 1 34rem;
+                }
+
+                .photo-story-header-actions {
+                    display: flex;
                     align-items: center;
+                    flex: 0 0 auto;
+                    gap: 0.9rem;
+                    padding-bottom: 0.25rem;
                 }
 
-                .photo-story-header h3 {
-                    margin: 0;
-                    font-size: 1.15rem;
-                    font-weight: 700;
+                .photo-story-count {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: flex-end;
+                    gap: 0.15rem;
                 }
 
-                .photo-story-header p {
-                    margin: 0.35rem 0 0;
-                    color: var(--text-secondary);
-                    font-size: 0.82rem;
+                .photo-story-count strong {
+                    color: var(--text-primary);
+                    font-size: var(--admin-page-subtitle-size);
+                    font-weight: 420;
+                    line-height: 1;
+                    letter-spacing: -0.035em;
+                }
+
+                .photo-story-count strong span {
+                    color: var(--text-tertiary);
+                    font-weight: 300;
+                }
+
+                .photo-story-count small {
+                    color: var(--text-tertiary);
+                    font-size: 0.62rem;
                 }
 
                 .sync-btn {
@@ -377,19 +550,6 @@ export default function PhotoStoryManager() {
                 .sync-btn:disabled {
                     opacity: 0.6;
                     cursor: not-allowed;
-                }
-
-                .photo-story-sql-hint {
-                    color: var(--text-secondary);
-                    font-size: 0.74rem;
-                    line-height: 1.45;
-                }
-
-                .photo-story-sql-hint code {
-                    background: rgba(255, 255, 255, 0.06);
-                    border: 1px solid var(--border-subtle);
-                    border-radius: 6px;
-                    padding: 0.1rem 0.35rem;
                 }
 
                 .photo-story-notice {
@@ -738,7 +898,22 @@ export default function PhotoStoryManager() {
                         height: min(42vh, 320px);
                     }
                 }
+                @media (max-width: 1180px) {
+                    .photo-story-header {
+                        align-items: flex-start;
+                        flex-direction: column;
+                    }
+
+                    .photo-story-header-actions {
+                        width: 100%;
+                        justify-content: space-between;
+                    }
+
+                    .photo-story-count {
+                        align-items: flex-start;
+                    }
+                }
             `}</style>
-        </div>
+        </section>
     );
 }

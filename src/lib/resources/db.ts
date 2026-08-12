@@ -777,7 +777,11 @@ export async function getDeletedResources(): Promise<HubResource[]> {
         .from('hub_resources')
         .select(`
       *,
-      submitter_profile:submitted_by (username, full_name, avatar_url)
+      submitter_profile:submitted_by (username, full_name, avatar_url),
+      tags:hub_resource_tags (
+        tag_id,
+        tag:hub_tags (id, name)
+      )
     `)
         .eq('status', 'deleted')
         .order('reviewed_at', { ascending: false }); // Show most recently deleted first
@@ -787,7 +791,12 @@ export async function getDeletedResources(): Promise<HubResource[]> {
         return [];
     }
 
-    return data;
+    return data.map((item: any) => ({
+        ...item,
+        tags: item.tags
+            ?.map((tagLink: any) => tagLink.tag)
+            ?.filter((tag: any) => tag !== null) || []
+    }));
 }
 
 export async function getAllResourcesAdmin(): Promise<HubResource[]> {
@@ -804,7 +813,11 @@ export async function getAllResourcesAdmin(): Promise<HubResource[]> {
         .from('hub_resources')
         .select(`
       *,
-      submitter_profile:submitted_by (username, full_name, avatar_url)
+      submitter_profile:submitted_by (username, full_name, avatar_url),
+      tags:hub_resource_tags (
+        tag_id,
+        tag:hub_tags (id, name)
+      )
     `)
         .neq('status', 'deleted') // Exclude deleted (trash)
         .order('created_at', { ascending: false });
@@ -814,5 +827,10 @@ export async function getAllResourcesAdmin(): Promise<HubResource[]> {
         return [];
     }
 
-    return data;
+    return data.map((item: any) => ({
+        ...item,
+        tags: item.tags
+            ?.map((tagLink: any) => tagLink.tag)
+            ?.filter((tag: any) => tag !== null) || []
+    }));
 }

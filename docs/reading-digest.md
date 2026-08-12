@@ -41,7 +41,7 @@ Prerequisites: the repository must be linked to the intended Supabase project an
    npx supabase secrets set READING_DIGEST_CRON_SECRET=REPLACE_WITH_THE_RANDOM_SECRET
    ```
 
-   The first discovery round uses Terra. Sol is invoked only when fewer than five candidates survive verification and the second discovery round is necessary. Use `OPENAI_API_KEY` with `READING_DIGEST_AI_PROVIDER=openai` for the direct OpenAI path. With `auto`, OpenRouter is preferred when both keys are available. Vercel environment variables are not visible to a Supabase Edge Function, so these values must also be configured in Supabase.
+   The first discovery round uses Terra. Sol is invoked only when fewer than five candidates survive verification and the second discovery round is necessary. OpenRouter discovery uses its hosted `openrouter:web_search` server tool so candidate URLs come from live results; search usage consumes OpenRouter credits in addition to model tokens. Use `OPENAI_API_KEY` with `READING_DIGEST_AI_PROVIDER=openai` for the direct OpenAI Responses API path. With `auto`, OpenRouter is preferred when both keys are available. Vercel environment variables are not visible to a Supabase Edge Function, so these values must also be configured in Supabase.
 
 3. In the Supabase SQL editor, run `supabase/reading_digest_vault_setup.sql` after replacing its three placeholders. The Vault cron secret must exactly match the Edge Function secret from step 2.
 

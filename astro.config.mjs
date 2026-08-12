@@ -69,6 +69,14 @@ export default defineConfig({
     cacheDir: isDevelopmentServer
       ? 'node_modules/.vite/development'
       : 'node_modules/.vite/production',
+    server: {
+      // Vercel's adapter writes thousands of files here during a build. If a
+      // build runs beside `astro dev`, those add events make Astro rebuild its
+      // route manifest once per output file and can exhaust file descriptors.
+      watch: {
+        ignored: ['**/.vercel/**'],
+      },
+    },
     resolve: {
       dedupe: ['react', 'react-dom'],
     },

@@ -16,6 +16,10 @@ export interface Project extends BaseEntity {
     sort_order?: number;
     link?: string;
     repo_link?: string;
+    experiment_url?: string;
+    content?: string;
+    cover_image?: string;
+    gallery_images?: { id?: string; url: string; caption?: string; sort_order?: number }[];
 }
 
 export interface PhotographyProject extends BaseEntity {

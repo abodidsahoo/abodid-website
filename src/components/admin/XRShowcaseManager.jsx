@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import {
   Archive,
   ArchiveRestore,
@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { supabase } from "../../lib/supabaseClient";
 import { xrShowcaseFilters } from "../../data/xr-showcase";
+import AdminPageHeader from "./AdminPageHeader";
 
 const EMPTY_FORM = {
   id: null,
@@ -74,6 +75,7 @@ const readJson = async (response) => {
 };
 
 function XRTagInput({ tags, onChange }) {
+  const inputId = useId();
   const [value, setValue] = useState("");
 
   const addTag = () => {
@@ -86,33 +88,52 @@ function XRTagInput({ tags, onChange }) {
   };
 
   return (
-    <div className="xr-admin-tag-editor">
-      <div className="xr-admin-tag-list">
-        {tags.map((tag) => (
-          <span className="xr-admin-tag" key={tag}>
-            {tag}
-            <button
-              type="button"
-              aria-label={`Remove ${tag}`}
-              onClick={() => onChange(tags.filter((item) => item !== tag))}
-            >
-              <X size={13} aria-hidden="true" />
-            </button>
-          </span>
-        ))}
+    <div className="xr-admin-tag-field">
+      <label htmlFor={inputId}>Filter tags</label>
+      {tags.length > 0 && (
+        <div className="xr-admin-tag-list" aria-label="Filter tags added">
+          {tags.map((tag) => (
+            <span className="xr-admin-tag" key={tag}>
+              {tag}
+              <button
+                type="button"
+                aria-label={`Remove ${tag}`}
+                onClick={() => onChange(tags.filter((item) => item !== tag))}
+              >
+                <X size={13} aria-hidden="true" />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+      <div className="xr-admin-tag-editor">
+        <input
+          id={inputId}
+          value={value}
+          placeholder="Add a filter tag…"
+          onChange={(event) => setValue(event.target.value)}
+          onKeyDown={(event) => {
+            if (
+              (event.key === "Enter" || event.key === ",") &&
+              !event.nativeEvent?.isComposing
+            ) {
+              event.preventDefault();
+              addTag();
+            }
+          }}
+          onBlur={addTag}
+        />
+        <button
+          type="button"
+          className="xr-admin-tag-add"
+          onMouseDown={(event) => event.preventDefault()}
+          onClick={addTag}
+          disabled={!value.trim()}
+          aria-label="Add filter tag"
+        >
+          <Plus size={15} aria-hidden="true" />
+        </button>
       </div>
-      <input
-        value={value}
-        placeholder="Type a tag and press Enter"
-        onChange={(event) => setValue(event.target.value)}
-        onKeyDown={(event) => {
-          if (event.key === "Enter" || event.key === ",") {
-            event.preventDefault();
-            addTag();
-          }
-        }}
-        onBlur={addTag}
-      />
     </div>
   );
 }
@@ -441,19 +462,20 @@ export default function XRShowcaseManager({ accessToken }) {
   };
 
   return (
-    <section className="xr-admin">
+    <section className="xr-admin" aria-labelledby="xr-showcase-title">
       <header className="xr-admin-header">
-        <div>
-          <p>Curated reference library</p>
-          <h2>XR Showcase</h2>
-          <span>Paste a link and publish. The page details and thumbnail are added automatically.</span>
-        </div>
+        <AdminPageHeader
+          className="xr-admin-page-header"
+          headingId="xr-showcase-title"
+          title="XR Showcase"
+          description="Your taste is the only thing that will differentiate you."
+        />
         <div className="xr-admin-header-actions">
           <a href="/xr-showcase" target="_blank" rel="noreferrer">
             View showcase <ArrowUpRight size={16} aria-hidden="true" />
           </a>
           <button type="button" onClick={startNew}>
-            <Plus size={17} aria-hidden="true" /> Add link
+            <Plus size={17} aria-hidden="true" /> Add a new link
           </button>
         </div>
       </header>
@@ -545,7 +567,7 @@ export default function XRShowcaseManager({ accessToken }) {
           <div className="xr-admin-form-heading">
             <div>
               <p>{form.id ? "Edit reference" : "New reference"}</p>
-              <h3>{form.title || "Untitled XR link"}</h3>
+              {form.id && <h3>{form.title || "Untitled XR link"}</h3>}
             </div>
             <div className="xr-admin-form-actions">
               {form.id && (
@@ -574,23 +596,70 @@ export default function XRShowcaseManager({ accessToken }) {
             </div>
           </div>
 
-          <fieldset>
-            <legend>Source link</legend>
+          <fieldset className="xr-admin-link-fieldset">
+            <legend>{form.id ? "Website link" : "Add a new link"}</legend>
             <label className="xr-admin-wide">
               <span>Website URL</span>
-              <input
-                type="url"
-                value={form.source_url}
-                placeholder="https://example.com/xr-project"
-                onChange={(event) => {
-                  updateForm("source_url", event.target.value);
-                  setMetadataSourceUrl("");
-                }}
-                onBlur={extractMetadata}
-              />
+              <div className="xr-admin-url-row">
+                <input
+                  type="url"
+                  value={form.source_url}
+                  placeholder="https://example.com/xr-project"
+                  onChange={(event) => {
+                    updateForm("source_url", event.target.value);
+                    setMetadataSourceUrl("");
+                  }}
+                  onBlur={extractMetadata}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      event.preventDefault();
+                      extractMetadata();
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={extractMetadata}
+                  disabled={
+                    extracting ||
+                    !form.source_url.trim() ||
+                    metadataSourceUrl === form.source_url.trim()
+                  }
+                >
+                  {extracting && <LoaderCircle size={16} className="spin" aria-hidden="true" />}
+                  {extracting
+                    ? "Generating…"
+                    : metadataSourceUrl === form.source_url.trim() && form.source_url.trim()
+                      ? "Details generated"
+                      : "Generate details"}
+                </button>
+              </div>
               <small>
-                Title, description, thumbnail, main category and suggested tags fill automatically.
+                Paste the page URL first. The title, thumbnail and the remaining details will fill
+                automatically below.
               </small>
+            </label>
+          </fieldset>
+
+          <fieldset className="xr-admin-title-fieldset">
+            <legend>Title</legend>
+            <label className="xr-admin-wide">
+              <span>Generated title</span>
+              <input
+                value={form.title}
+                placeholder={extracting ? "Generating title…" : "Project or reference title"}
+                maxLength={180}
+                onChange={(event) => {
+                  const title = event.target.value;
+                  setForm((current) => ({
+                    ...current,
+                    title,
+                    slug: current.id ? current.slug : slugify(title),
+                  }));
+                }}
+              />
+              <small>Generated from the website and still fully editable.</small>
             </label>
           </fieldset>
 
@@ -666,22 +735,6 @@ export default function XRShowcaseManager({ accessToken }) {
 
           <fieldset>
             <legend>Content</legend>
-            <label>
-              <span>Title</span>
-              <input
-                value={form.title}
-                placeholder="Project or reference title"
-                maxLength={180}
-                onChange={(event) => {
-                  const title = event.target.value;
-                  setForm((current) => ({
-                    ...current,
-                    title,
-                    slug: current.id ? current.slug : slugify(title),
-                  }));
-                }}
-              />
-            </label>
             <label className="xr-admin-wide">
               <span>Description</span>
               <textarea
@@ -716,25 +769,25 @@ export default function XRShowcaseManager({ accessToken }) {
               </select>
               <small>This places the reference under one broad showcase filter.</small>
             </label>
-            <label className="xr-admin-wide">
-              <span>Filter tags</span>
+            <div className="xr-admin-wide xr-admin-tag-section">
               <XRTagInput tags={form.tags} onChange={(tags) => updateForm("tags", tags)} />
               <small>Press Enter or comma after every tag.</small>
-            </label>
+            </div>
           </fieldset>
 
         </form>
       </div>
 
       <style>{`
-        .xr-admin { display:grid; gap:1rem; color:var(--text-primary); }
-        .xr-admin-header { display:flex; justify-content:space-between; gap:1.5rem; align-items:flex-end; padding:0 0 1rem; border-bottom:1px solid var(--border-subtle); }
-        .xr-admin-header p,.xr-admin-form-heading p { margin:0 0 .3rem; color:var(--text-tertiary); font-size:.72rem; font-weight:800; letter-spacing:.09em; text-transform:uppercase; }
-        .xr-admin-header h2 { margin:0; font-size:clamp(2rem,4vw,3.2rem); line-height:1; }
-        .xr-admin-header span { display:block; margin-top:.55rem; color:var(--text-secondary); font-size:.92rem; }
+        .xr-admin { display:grid; gap:2rem; width:100%; max-width:var(--admin-page-content-max); margin:0; color:var(--text-primary); }
+        .xr-admin-header { display:flex; justify-content:space-between; gap:2rem; align-items:flex-end; padding:var(--admin-page-heading-offset-block) var(--admin-page-heading-offset-inline) 1.5rem; border-bottom:1px solid var(--border-subtle); }
+        .xr-admin-page-header { min-width:0; flex:1 1 34rem; }
+        .xr-admin-form-heading p { margin:0 0 .3rem; color:var(--text-tertiary); font-size:.72rem; font-weight:800; letter-spacing:.09em; text-transform:uppercase; }
         .xr-admin-header-actions,.xr-admin-form-actions,.xr-admin-upload-row { display:flex; flex-wrap:wrap; gap:.55rem; align-items:center; }
+        .xr-admin-header-actions { flex:0 0 auto; padding-bottom:.25rem; }
         .xr-admin button,.xr-admin a { font:700 .84rem/1 var(--font-ui); }
         .xr-admin-header-actions a,.xr-admin-header-actions button,.xr-admin-form-actions button,.xr-admin-url-row button,.xr-admin-upload-row button { display:inline-flex; align-items:center; justify-content:center; gap:.4rem; min-height:2.5rem; border:1px solid var(--border-subtle); border-radius:8px; padding:.65rem .85rem; background:var(--text-primary); color:var(--bg-color); text-decoration:none; cursor:pointer; }
+        .xr-admin button:disabled { opacity:.48; cursor:not-allowed; }
         .xr-admin-header-actions a { background:transparent; color:var(--text-primary); }
         .xr-admin-alert { border:1px solid var(--border-subtle); border-radius:9px; padding:.8rem 1rem; font-size:.88rem; }
         .xr-admin-alert--error { border-color:color-mix(in srgb,#ef4444 48%,var(--border-subtle)); background:color-mix(in srgb,#ef4444 9%,transparent); color:#ef4444; }
@@ -766,6 +819,8 @@ export default function XRShowcaseManager({ accessToken }) {
         .xr-admin-form-actions button.danger { background:transparent; color:#ef4444; }
         .xr-admin-form fieldset { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; margin:0; border:0; border-top:1px solid var(--border-subtle); padding:1.4rem 0; }
         .xr-admin-form legend { grid-column:1/-1; padding:0 0 .2rem; color:var(--text-primary); font-size:.9rem; font-weight:800; }
+        .xr-admin-form .xr-admin-link-fieldset { margin:.2rem 0 .45rem; border:1px solid var(--border-strong); border-radius:12px; padding:clamp(1rem,2vw,1.35rem); background:color-mix(in srgb,var(--bg-color) 76%,var(--bg-surface-hover)); box-shadow:0 10px 30px color-mix(in srgb,#000 9%,transparent); }
+        .xr-admin-form .xr-admin-link-fieldset legend { padding:0 .45rem; font-size:clamp(1.08rem,2vw,1.3rem); }
         .xr-admin-form label { display:grid; gap:.42rem; min-width:0; }
         .xr-admin-form label>span,.xr-admin-image-controls label>span { color:var(--text-secondary); font-size:.75rem; font-weight:750; }
         .xr-admin-form input,.xr-admin-form textarea,.xr-admin-form select,.xr-admin-tag-editor { width:100%; border:1px solid var(--border-subtle); border-radius:8px; padding:.72rem .8rem; background:var(--bg-color); color:var(--text-primary); font:500 .9rem/1.4 var(--font-sans); box-sizing:border-box; }
@@ -775,20 +830,27 @@ export default function XRShowcaseManager({ accessToken }) {
         .xr-admin-wide { grid-column:1/-1; }
         .xr-admin-url-row { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:.55rem; }
         .xr-admin-url-row button { min-width:8.5rem; }
+        .xr-admin-link-fieldset input { min-height:3.3rem; border-color:var(--border-strong); background:var(--bg-surface); font-size:1rem; }
+        .xr-admin-title-fieldset { padding-top:1.15rem!important; }
         .xr-admin-image-fieldset { grid-template-columns:minmax(180px,.75fr) minmax(0,1.25fr)!important; }
         .xr-admin-preview { width:100%; aspect-ratio:16/10; border-radius:10px; border:1px solid var(--border-subtle); }
         .xr-admin-image-controls { display:grid; gap:.8rem; align-content:start; }
         .xr-admin-upload-row input[type=file] { display:none; }
         .xr-admin-upload-row button.secondary { background:transparent; color:var(--text-primary); }
-        .xr-admin-tag-editor { display:grid; gap:.55rem; padding:.55rem; }
-        .xr-admin-tag-editor>input { border:0; padding:.35rem; outline:0!important; background:transparent; }
-        .xr-admin-tag-list { display:flex; flex-wrap:wrap; gap:.35rem; }
-        .xr-admin-tag { display:inline-flex; gap:.3rem; align-items:center; border-radius:999px; padding:.3rem .45rem .3rem .6rem; background:var(--text-primary); color:var(--bg-color); font-size:.74rem; font-weight:700; }
+        .xr-admin-tag-section,.xr-admin-tag-field { display:grid; gap:.42rem; min-width:0; }
+        .xr-admin-tag-field>label { color:var(--text-secondary); font-size:.75rem; font-weight:750; }
+        .xr-admin-tag-editor { min-height:2.85rem; display:grid; grid-template-columns:minmax(0,1fr) 2rem; align-items:center; gap:.4rem; padding:.28rem .35rem .28rem .7rem; }
+        .xr-admin-tag-editor>input { min-width:0; border:0; padding:0; outline:0!important; background:transparent; box-shadow:none!important; }
+        .xr-admin-tag-add { width:2rem; height:2rem; display:grid; place-items:center; padding:0; border:0; border-radius:6px; background:var(--text-primary); color:var(--bg-color); cursor:pointer; }
+        .xr-admin-tag-add:disabled { opacity:.24; cursor:default; }
+        .xr-admin-tag-list { max-width:100%; min-height:1.75rem; display:flex; flex-wrap:wrap; align-items:center; gap:.35rem; padding:.05rem 0 .2rem; }
+        .xr-admin-tag { display:inline-flex; gap:.3rem; align-items:center; border:1px solid var(--border-subtle); border-radius:999px; padding:.3rem .42rem .3rem .58rem; background:var(--bg-surface-hover); color:var(--text-primary); font-size:.7rem; font-weight:700; }
         .xr-admin-tag button { display:grid; place-items:center; border:0; padding:0; background:transparent; color:inherit; cursor:pointer; }
         .spin { animation:xr-admin-spin .8s linear infinite; }
         @keyframes xr-admin-spin { to { transform:rotate(360deg); } }
+        @media(max-width:1180px) { .xr-admin-header { align-items:flex-start; flex-direction:column; } }
         @media(max-width:900px) { .xr-admin-layout { grid-template-columns:1fr; } .xr-admin-list { position:static; max-height:340px; } }
-        @media(max-width:640px) { .xr-admin-header,.xr-admin-form-heading { align-items:flex-start; flex-direction:column; } .xr-admin-form fieldset,.xr-admin-image-fieldset { grid-template-columns:1fr!important; } .xr-admin-wide { grid-column:auto; } .xr-admin-url-row { grid-template-columns:1fr; } }
+        @media(max-width:640px) { .xr-admin-form-heading { align-items:flex-start; flex-direction:column; } .xr-admin-form fieldset,.xr-admin-image-fieldset { grid-template-columns:1fr!important; } .xr-admin-wide { grid-column:auto; } .xr-admin-url-row { grid-template-columns:1fr; } }
         @media(prefers-reduced-motion:reduce) { .spin { animation:none; } }
       `}</style>
     </section>

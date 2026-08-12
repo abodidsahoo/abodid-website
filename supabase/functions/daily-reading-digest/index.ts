@@ -5,6 +5,7 @@ import {
 import {
   canonicalizeUrl,
   type DigestCandidate,
+  discoveryTooling,
   digestSubject,
   domainFromUrl,
   domainMatches,
@@ -49,7 +50,6 @@ type AiProvider = {
   endpoint: string;
   model: string;
   fallbackModel: string;
-  webSearchTool: Record<string, unknown>;
 };
 
 const corsHeaders = {
@@ -104,21 +104,6 @@ const resolveAiProvider = (openAiModel: string): AiProvider => {
       fallbackModel:
         Deno.env.get("READING_DIGEST_OPENROUTER_FALLBACK_MODEL")?.trim() ||
         "openai/gpt-4o-mini",
-      // Chat Completions web-search tool format (not Responses API format)
-      webSearchTool: {
-        type: "function",
-        function: {
-          name: "web_search",
-          description: "Search the web for recent articles, blog posts, and discussions.",
-          parameters: {
-            type: "object",
-            properties: {
-              query: { type: "string", description: "The search query" },
-            },
-            required: ["query"],
-          },
-        },
-      },
     };
   }
 
@@ -129,7 +114,6 @@ const resolveAiProvider = (openAiModel: string): AiProvider => {
       endpoint: "https://api.openai.com/v1/responses",
       model: targetModel,
       fallbackModel: "gpt-4o-mini",
-      webSearchTool: { type: "web_search", search_context_size: "medium" },
     };
   }
 
@@ -253,23 +237,37 @@ const extractChatText = (response: Record<string, unknown>): string => {
 };
 
 const extractChatMetadata = (response: Record<string, unknown>) => {
-  // Chat Completions doesn't expose rich citation/search metadata
-  // in the same way as the Responses API — return empty stubs.
   const citations: Array<{ url: string; title?: string }> = [];
   const searches: unknown[] = [];
-  // Some OpenRouter models include annotations in message.content array format
   const choices = Array.isArray(response.choices) ? response.choices : [];
   for (const choice of choices as Array<Record<string, unknown>>) {
     const message = choice.message as Record<string, unknown> | undefined;
     if (!Array.isArray(message?.annotations)) continue;
     for (const annotation of message.annotations as Array<Record<string, unknown>>) {
-      if (annotation.type === "url_citation" && typeof annotation.url === "string") {
+      if (annotation.type !== "url_citation") continue;
+      const nested = annotation.url_citation as Record<string, unknown> | undefined;
+      const url = typeof nested?.url === "string"
+        ? nested.url
+        : typeof annotation.url === "string"
+        ? annotation.url
+        : "";
+      if (url) {
+        const title = typeof nested?.title === "string"
+          ? nested.title
+          : typeof annotation.title === "string"
+          ? annotation.title
+          : undefined;
         citations.push({
-          url: annotation.url,
-          title: typeof annotation.title === "string" ? annotation.title : undefined,
+          url,
+          title,
         });
       }
     }
+  }
+  const usage = response.usage as Record<string, unknown> | undefined;
+  const serverToolUse = usage?.server_tool_use as Record<string, unknown> | undefined;
+  if (typeof serverToolUse?.web_search_requests === "number") {
+    searches.push({ requests: serverToolUse.web_search_requests });
   }
   return { citations, searches };
 };
@@ -381,6 +379,7 @@ Hard Search & Discovery Requirements:
 - EXACT DIRECT URLS ONLY: You MUST provide the exact, authentic URL for every specific article or research paper title. Do NOT guess arXiv IDs or fabricate URL paths. Every URL will be verified live against the page's actual HTML title — mismatched or guessed URLs will be automatically rejected.
 - NO GLOSSARY OR DICTIONARY TERMS: NEVER return Tate Glossary pages, museum dictionary entries, single-word term definitions (e.g. "Curator", "Site-Specific", "Institutional Critique"), or introductory encyclopedia pages.
 - CRITICAL & ANALYTICAL ESSAYS ONLY: Only return deep, analytical, thought-provoking long-form essays, opinion pieces, community debates, and critical research papers that offer fresh perspectives.
+- REQUIRED LIVE SEARCH: Use the hosted web-search tool before selecting candidates. Base every title and direct URL on returned search results, never model memory.
 - LIVE VALID URL GUARANTEE: Perform real web search to verify every URL exists and is active right now. Never output dead links, 404s, broken URLs, generic homepages, search result pages, or tracking links.
 - why_it_matters: Must be a single concise sentence (max 20 words) connecting directly to Abodid's creative and research practice without unsupported claims.
 - Scores must reflect subject relevance and human/source credibility.
@@ -400,15 +399,16 @@ Hard Search & Discovery Requirements:
   // OpenAI uses the Responses API; OpenRouter uses Chat Completions.
   let requestBody: Record<string, unknown>;
   if (provider.name === "openrouter") {
-    // Chat Completions format (https://openrouter.ai/docs/api-reference)
+    // Chat Completions with OpenRouter's hosted web-search server tool.
     requestBody = {
       model,
       max_tokens: 6000,
+      ...discoveryTooling(provider.name),
       messages: [
         {
           role: "system",
           content:
-            "Act as a sharp, independent cultural critic and research curator. Strictly reject generic dictionary definitions, glossary entries, and museum term pages. Perform deep web searches across Substack newsletters, independent blogs, Reddit community debates, and critical essays, and return strictly schema-valid data without hallucinations. Always respond with valid JSON that matches the requested schema.",
+            "Act as a sharp, independent cultural critic and research curator. You must use the hosted web-search tool for live discovery and ground every candidate URL in its results. Strictly reject generic dictionary definitions, glossary entries, and museum term pages. Search across Substack newsletters, independent blogs, Reddit community debates, and critical essays, then return strictly schema-valid data without hallucinations. Always respond with valid JSON that matches the requested schema.",
         },
         { role: "user", content: prompt },
       ],
@@ -428,9 +428,7 @@ Hard Search & Discovery Requirements:
       store: false,
       max_output_tokens: 6000,
       reasoning: { effort: "low" },
-      tools: [provider.webSearchTool],
-      tool_choice: "auto",
-      max_tool_calls: 24,
+      ...discoveryTooling(provider.name),
       instructions:
         "Act as a sharp, independent cultural critic and research curator. Strictly reject generic dictionary definitions, glossary entries, and museum term pages. Perform deep web searches across Substack newsletters, independent blogs, Reddit community debates, and critical essays, and return strictly schema-valid data without hallucinations.",
       input: prompt,

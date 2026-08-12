@@ -21,6 +21,28 @@ export type VerifiedDigestCandidate = DigestCandidate & {
   content_type: string;
 };
 
+export const discoveryTooling = (provider: "openai" | "openrouter") =>
+  provider === "openrouter"
+    ? {
+      tools: [{
+        type: "openrouter:web_search",
+        parameters: {
+          engine: "auto",
+          max_results: 8,
+          max_total_results: 24,
+          max_uses: 4,
+          search_context_size: "low",
+        },
+      }],
+      tool_choice: "auto",
+      max_tool_calls: 6,
+    }
+    : {
+      tools: [{ type: "web_search", search_context_size: "medium" }],
+      tool_choice: "auto",
+      max_tool_calls: 24,
+    };
+
 const TRACKING_PARAMETERS = new Set([
   "fbclid",
   "gclid",

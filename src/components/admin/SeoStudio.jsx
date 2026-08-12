@@ -19,6 +19,7 @@ import {
   normalizeSeoPagePath,
   SEO_SITE_URL,
 } from "../../lib/seoMetadata.js";
+import AdminPageHeader from "./AdminPageHeader";
 import "./seo-studio.css";
 
 const EMPTY_FORM = {
@@ -98,12 +99,15 @@ const StatusPill = ({ ready, readyLabel = "Ready", emptyLabel = "Missing" }) => 
   </span>
 );
 
+const getPageKey = (page) => page?.id || page?.page_path || "";
+
 export default function SeoStudio() {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
   const [form, setForm] = useState(null);
+  const [selectedPageKey, setSelectedPageKey] = useState("");
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [notice, setNotice] = useState(null);
@@ -145,11 +149,18 @@ export default function SeoStudio() {
     );
   }, [pages, query]);
 
-  const socialPreviewUrl = form
-    ? form.og_image_url ||
+  const selectedPage = useMemo(
+    () => pages.find((page) => getPageKey(page) === selectedPageKey) || pages[0] || null,
+    [pages, selectedPageKey],
+  );
+
+  const previewPage = form || selectedPage;
+
+  const socialPreviewUrl = previewPage
+    ? previewPage.og_image_url ||
       `/api/og?title=${encodeURIComponent(
-        form.meta_title || form.page_title || "Abodid Sahoo",
-      )}&description=${encodeURIComponent(form.meta_description || "")}`
+        previewPage.meta_title || previewPage.page_title || "Abodid Sahoo",
+      )}&description=${encodeURIComponent(previewPage.meta_description || "")}`
     : "";
 
   useEffect(() => {
@@ -169,6 +180,7 @@ export default function SeoStudio() {
   };
 
   const openEditor = (page) => {
+    setSelectedPageKey(getPageKey(page));
     setForm({
       ...EMPTY_FORM,
       ...page,
@@ -212,10 +224,16 @@ export default function SeoStudio() {
     setRows(nextRows);
     setLoading(false);
 
+    const merged = mergeManagedSeoPages(nextRows);
+    setSelectedPageKey((current) =>
+      merged.some((page) => getPageKey(page) === current)
+        ? current
+        : getPageKey(merged[0]),
+    );
+
     const editKey = preferredEdit || requestedEditRef.current;
     requestedEditRef.current = null;
     if (editKey) {
-      const merged = mergeManagedSeoPages(nextRows);
       const requestedPage = merged.find(
         (page) => page.id === editKey || page.page_path === editKey,
       );
@@ -669,15 +687,22 @@ export default function SeoStudio() {
     );
   }
 
+  const defaultPreviewPage = selectedPage || EMPTY_FORM;
+  const defaultPreviewTitle = formatSeoTitle(
+    defaultPreviewPage.meta_title || defaultPreviewPage.page_title,
+  );
+  const defaultPreviewPath = normalizeSeoPagePath(defaultPreviewPage.page_path);
+  const defaultPreviewUrl = `${SEO_SITE_URL}${defaultPreviewPath === "/" ? "/" : defaultPreviewPath}`;
+
   return (
     <section className="seo-studio">
       {notice && <div className={`seo-toast ${notice.type}`}>{notice.message}</div>}
       <header className="seo-studio-header">
-        <div>
-          <span className="seo-eyebrow">Search & social</span>
-          <h2>SEO Studio</h2>
-          <p>Give each important page one clear search topic and one strong sharing image.</p>
-        </div>
+        <AdminPageHeader
+          headingId="seo-studio-title"
+          title="SEO Studio"
+          description="Here's where the real magic happens."
+        />
         <button
           type="button"
           className="seo-button primary"
@@ -687,49 +712,115 @@ export default function SeoStudio() {
         </button>
       </header>
 
-      <div className="seo-list-toolbar">
-        <label className="seo-search-box">
-          <Search size={17} />
-          <input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Find a page or search phrase"
-            aria-label="Find a page or search phrase"
-          />
-        </label>
-        <span>{filteredPages.length} pages</span>
-      </div>
-
-      <div className="seo-page-list">
-        <div className="seo-page-list-head" aria-hidden="true">
-          <span>Page</span>
-          <span>Main search phrase</span>
-          <span>Search</span>
-          <span>Social image</span>
-          <span />
-        </div>
-        {filteredPages.map((page) => {
-          const readiness = getSeoReadiness(page);
-          return (
-            <article className="seo-page-row" key={page.id || page.page_path}>
-              <div className="seo-page-identity">
-                <strong>{page.page_title}</strong>
-                <span>{page.page_path}</span>
-              </div>
-              <div className="seo-keyword-cell">
-                {page.focus_keyword || <span className="muted">Not set</span>}
-              </div>
-              <StatusPill
-                ready={readiness.searchReady}
-                emptyLabel={readiness.state === "draft" ? "Inactive" : "Needs text"}
+      <div className="seo-overview-grid">
+        <div className="seo-page-browser">
+          <div className="seo-list-toolbar">
+            <label className="seo-search-box">
+              <Search size={17} />
+              <input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Find a page or search phrase"
+                aria-label="Find a page or search phrase"
               />
-              <StatusPill ready={readiness.socialReady} emptyLabel="Needs image" />
-              <button type="button" className="seo-edit-button" onClick={() => openEditor(page)}>
-                Edit
-              </button>
-            </article>
-          );
-        })}
+            </label>
+            <span>{filteredPages.length} pages</span>
+          </div>
+
+          <div className="seo-page-list" aria-label="SEO pages">
+            {filteredPages.map((page) => {
+              const readiness = getSeoReadiness(page);
+              const isSelected = getPageKey(page) === getPageKey(defaultPreviewPage);
+
+              return (
+                <article
+                  className={`seo-page-row ${isSelected ? "selected" : ""}`}
+                  key={getPageKey(page)}
+                >
+                  <button
+                    type="button"
+                    className="seo-page-select"
+                    onClick={() => {
+                      setSelectedPageKey(getPageKey(page));
+                      setVerification(null);
+                    }}
+                    aria-pressed={isSelected}
+                  >
+                    <span className="seo-page-identity">
+                      <strong>{page.page_title}</strong>
+                      <span>{page.page_path}</span>
+                    </span>
+                    <span className="seo-page-details">
+                      <span className="seo-detail-label">Main search phrase</span>
+                      <span className="seo-keyword-cell">
+                        {page.focus_keyword || <span className="muted">Not set</span>}
+                      </span>
+                    </span>
+                  </button>
+                  <div className="seo-page-actions">
+                    <span className="seo-page-readiness" aria-label="Page readiness">
+                      <StatusPill
+                        ready={readiness.searchReady}
+                        readyLabel="Search"
+                        emptyLabel={readiness.state === "draft" ? "Inactive" : "Search"}
+                      />
+                      <StatusPill
+                        ready={readiness.socialReady}
+                        readyLabel="Social"
+                        emptyLabel="Social"
+                      />
+                    </span>
+                    {isSelected && (
+                      <button
+                        type="button"
+                        className="seo-edit-button"
+                        onClick={() => openEditor(page)}
+                      >
+                        Edit
+                      </button>
+                    )}
+                  </div>
+                </article>
+              );
+            })}
+
+            {filteredPages.length === 0 && (
+              <div className="seo-page-empty">No pages match that search.</div>
+            )}
+          </div>
+        </div>
+
+        <aside className="seo-preview-column seo-overview-previews" aria-label="Selected page previews">
+          <section className="seo-preview-panel">
+            <div className="seo-preview-heading">
+              <span>Google preview</span>
+              <small>Approximation</small>
+            </div>
+            <div className="google-preview-card">
+              <div className="google-source-row">
+                <span className="google-favicon">A</span>
+                <div><strong>Abodid Sahoo</strong><span>{defaultPreviewUrl}</span></div>
+              </div>
+              <div className="google-title">{defaultPreviewTitle}</div>
+              <p>{defaultPreviewPage.meta_description || "Your search description will appear here."}</p>
+            </div>
+          </section>
+
+          <section className="seo-preview-panel">
+            <div className="seo-preview-heading">
+              <span>Social preview</span>
+              <small>LinkedIn / X / messages</small>
+            </div>
+            <div className="social-preview-card">
+              <img src={socialPreviewUrl} alt="Social sharing preview" />
+              <div className="social-preview-copy">
+                <span>ABODID.COM</span>
+                <strong>{defaultPreviewTitle}</strong>
+                <p>{defaultPreviewPage.meta_description || "Your social description will appear here."}</p>
+              </div>
+            </div>
+          </section>
+        </aside>
       </div>
     </section>
   );

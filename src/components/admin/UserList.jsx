@@ -13,12 +13,13 @@ import {
     X,
 } from "lucide-react";
 import { supabase } from "../../lib/supabaseClient";
+import AdminPageHeader from "./AdminPageHeader";
 import "./account-directory.css";
 
 const VIEW_OPTIONS = [
-    { value: "people", label: "People" },
-    { value: "curation", label: "Curation access" },
-    { value: "subscribed", label: "Newsletter subscribers" },
+    { value: "members", label: "Members" },
+    { value: "curators", label: "Curators" },
+    { value: "subscribed", label: "Subscribers" },
 ];
 
 const ROLE_LABELS = {
@@ -26,6 +27,9 @@ const ROLE_LABELS = {
     curator: "Curator",
     user: "Member",
 };
+
+const ACCOUNT_LOADING_TARGET = 14;
+const ACCOUNT_LOADING_DURATION_MS = 2200;
 
 const dateFormatter = new Intl.DateTimeFormat("en", {
     day: "numeric",
@@ -84,11 +88,68 @@ const getAccessToken = async () => {
     return session.access_token;
 };
 
+function AccountLoadingCounter({ target = ACCOUNT_LOADING_TARGET }) {
+    const safeTarget = Math.max(1, Number(target) || ACCOUNT_LOADING_TARGET);
+    const [visibleCount, setVisibleCount] = useState(1);
+
+    useEffect(() => {
+        setVisibleCount(1);
+
+        if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+            setVisibleCount(safeTarget);
+            return undefined;
+        }
+
+        const startedAt = window.performance.now();
+        let animationFrame = 0;
+
+        const updateCounter = (now) => {
+            const progress = Math.min((now - startedAt) / ACCOUNT_LOADING_DURATION_MS, 1);
+            const easedProgress = progress < 0.5
+                ? 4 * progress * progress * progress
+                : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+            const nextCount = Math.min(
+                safeTarget,
+                Math.max(1, Math.floor(safeTarget * easedProgress)),
+            );
+
+            setVisibleCount((current) => current === nextCount ? current : nextCount);
+            if (progress < 1) animationFrame = window.requestAnimationFrame(updateCounter);
+        };
+
+        animationFrame = window.requestAnimationFrame(updateCounter);
+        return () => window.cancelAnimationFrame(animationFrame);
+    }, [safeTarget]);
+
+    const displayedCount = Math.min(visibleCount, safeTarget);
+    const progress = Math.min(100, (displayedCount / safeTarget) * 100);
+
+    return (
+        <div
+            className="account-table-state account-loading-counter"
+            role="status"
+            aria-live="polite"
+            aria-label="Loading account directory"
+        >
+            <span className="account-loading-kicker" aria-hidden="true">Gathering your people</span>
+            <strong className="account-loading-number" aria-hidden="true">
+                {displayedCount.toLocaleString()}
+            </strong>
+            <span className="account-loading-label" aria-hidden="true">
+                {displayedCount === 1 ? "account loading" : "accounts loading"}
+            </span>
+            <span className="account-loading-track" aria-hidden="true">
+                <span style={{ width: `${progress}%` }} />
+            </span>
+        </div>
+    );
+}
+
 export default function UserList() {
     const [directory, setDirectory] = useState({ accounts: [], summary: {} });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-    const [view, setView] = useState("people");
+    const [view, setView] = useState("members");
     const [search, setSearch] = useState("");
     const [selectedAccountId, setSelectedAccountId] = useState("");
     const [openMenuId, setOpenMenuId] = useState("");
@@ -158,15 +219,11 @@ export default function UserList() {
 
         return directory.accounts.filter((account) => {
             const matchesView =
-                view === "people"
+                view === "members"
                     ? account.accountType === "person"
-                    : view === "curation"
-                        ? account.accountType === "person" && ["admin", "curator"].includes(account.role)
-                        : view === "subscribed"
-                            ? account.accountType === "person" && account.isNewsletterSubscriber
-                            : view === "anonymous"
-                                ? account.accountType === "anonymous"
-                                : account.accountType === "test";
+                    : view === "curators"
+                        ? account.accountType === "person" && account.role === "curator"
+                        : account.accountType === "person" && account.isNewsletterSubscriber;
 
             if (!matchesView) return false;
             if (!normalizedSearch) return true;
@@ -245,36 +302,35 @@ export default function UserList() {
         setOpenMenuId("");
     };
 
-    if (loading) {
-        return (
-            <div className="account-directory-state" role="status">
-                <span className="account-loader" />
-                <p>Loading accounts…</p>
-            </div>
-        );
-    }
+    const handleViewTabKeyDown = (event) => {
+        if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
 
-    if (error) {
-        return (
-            <div className="account-directory-state error" role="alert">
-                <h3>Accounts could not be loaded</h3>
-                <p>{error}</p>
-                <button type="button" onClick={fetchAccounts}>Try again</button>
-            </div>
-        );
-    }
+        event.preventDefault();
+        const currentIndex = VIEW_OPTIONS.findIndex((option) => option.value === view);
+        const nextIndex = event.key === "Home"
+            ? 0
+            : event.key === "End"
+                ? VIEW_OPTIONS.length - 1
+                : event.key === "ArrowRight"
+                    ? (currentIndex + 1) % VIEW_OPTIONS.length
+                    : (currentIndex - 1 + VIEW_OPTIONS.length) % VIEW_OPTIONS.length;
+        const nextView = VIEW_OPTIONS[nextIndex].value;
+
+        setView(nextView);
+        document.getElementById(`account-${nextView}-tab`)?.focus();
+    };
 
     const summary = directory.summary;
 
     return (
         <section className="account-directory" aria-labelledby="account-directory-title">
-            <header className="account-header">
-                <div className="account-heading">
-                    <h2 id="account-directory-title">Accounts</h2>
-                    <p>
-                        {summary.people} people <span>·</span> {summary.curationAccess} with curation access <span>·</span> {summary.accountSubscribers} subscribed
-                    </p>
-                </div>
+            <div className="account-header">
+                <AdminPageHeader
+                    className="account-heading"
+                    headingId="account-directory-title"
+                    title="Accounts"
+                    description="People who trust you with their heart and soul."
+                />
 
                 <div className="account-toolbar">
                     <label className="account-search">
@@ -287,23 +343,41 @@ export default function UserList() {
                             placeholder="Search accounts"
                         />
                     </label>
-
-                    <label className="account-view-filter">
-                        <span className="sr-only">Choose account view</span>
-                        <select value={view} onChange={(event) => setView(event.target.value)}>
-                            {VIEW_OPTIONS.map((option) => (
-                                <option key={option.value} value={option.value}>{option.label}</option>
-                            ))}
-                            <optgroup label="Maintenance">
-                                <option value="anonymous">Anonymous sessions ({summary.anonymous})</option>
-                                <option value="test">Likely test accounts ({summary.testAccounts})</option>
-                            </optgroup>
-                        </select>
-                    </label>
                 </div>
-            </header>
+            </div>
 
-            <div className="account-table-shell">
+            <div
+                className="account-view-tabs"
+                role="tablist"
+                aria-label="Account directory views"
+                data-active={view}
+                onKeyDown={handleViewTabKeyDown}
+            >
+                {VIEW_OPTIONS.map(({ value, label }) => (
+                    <button
+                        key={value}
+                        id={`account-${value}-tab`}
+                        type="button"
+                        role="tab"
+                        className={`account-view-tab ${view === value ? "active" : ""}`}
+                        aria-selected={view === value}
+                        aria-controls="account-directory-panel"
+                        tabIndex={view === value ? 0 : -1}
+                        onClick={() => setView(value)}
+                    >
+                        <span>{label}</span>
+                    </button>
+                ))}
+                <span className="account-view-glider" aria-hidden="true" />
+            </div>
+
+            <div
+                id="account-directory-panel"
+                className="account-table-shell"
+                role="tabpanel"
+                aria-labelledby={`account-${view}-tab`}
+                aria-busy={loading}
+            >
                 <div className="account-table-head" aria-hidden="true">
                     <span>Account</span>
                     <span>Access</span>
@@ -313,7 +387,19 @@ export default function UserList() {
                 </div>
 
                 <div className="account-table-body">
-                    {filteredAccounts.map((account) => {
+                    {loading && (
+                        <AccountLoadingCounter target={summary.people || ACCOUNT_LOADING_TARGET} />
+                    )}
+
+                    {!loading && error && (
+                        <div className="account-table-state error" role="alert">
+                            <h3>Accounts could not be loaded</h3>
+                            <p>{error}</p>
+                            <button type="button" onClick={fetchAccounts}>Try again</button>
+                        </div>
+                    )}
+
+                    {!loading && !error && filteredAccounts.map((account) => {
                         const isMenuOpen = openMenuId === account.id;
                         const isUpdating = updatingAccountId === account.id;
 
@@ -385,12 +471,12 @@ export default function UserList() {
                         );
                     })}
 
-                    {filteredAccounts.length === 0 && (
+                    {!loading && !error && filteredAccounts.length === 0 && (
                         <div className="account-empty-state">
                             <UserRound size={22} />
                             <h3>No matching accounts</h3>
                             <p>Try another search or account view.</p>
-                            <button type="button" onClick={() => { setSearch(""); setView("people"); }}>
+                            <button type="button" onClick={() => { setSearch(""); setView("members"); }}>
                                 Reset view
                             </button>
                         </div>

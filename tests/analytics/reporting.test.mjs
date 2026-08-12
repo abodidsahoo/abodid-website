@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
     emptyAnalyticsReport,
+    getAnalyticsMonthStart,
     getAnalyticsRangeStart,
     normalizeAnalyticsRange,
     normalizeAnalyticsTrafficClass,
@@ -36,11 +37,22 @@ test('uses the admin timezone for the Today boundary', () => {
     );
 });
 
+test('uses the admin timezone for the current month boundary', () => {
+    const now = new Date('2026-07-13T12:00:00.000Z');
+    const indiaOffset = -330;
+    assert.equal(
+        getAnalyticsMonthStart(now, indiaOffset).toISOString(),
+        '2026-06-30T18:30:00.000Z',
+    );
+});
+
 test('provides a chart-safe empty analytics report', () => {
     const report = emptyAnalyticsReport();
     assert.deepEqual(report.timeline, []);
     assert.deepEqual(report.sources, []);
+    assert.deepEqual(report.topRecentVisitors, []);
     assert.equal(report.summary.pageViews, 0);
+    assert.equal(report.monthlySummary.pageViews, 0);
     assert.equal(report.navigation.summary.opens, 0);
     assert.equal(report.navigation.summary.selectionRate, 0);
     assert.deepEqual(report.navigation.links, []);

@@ -1,17 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
+import {
+    loadNewsletterExhibitionMedia,
+    pickNewsletterMedia,
+} from '../../lib/newsletter/media.js';
+import { prefetchNetworkIntelligence } from '../../lib/network/prefetch.js';
 import UserList from './UserList';
-import TagInput from '../resources/TagInput';
 import BrandManager from './BrandManager';
 import NewsletterSender from './NewsletterSender';
 import PhotoStoryManager from './PhotoStoryManager';
 import MoodboardManager from './MoodboardManager';
 import ListView from './ListView';
 import SeoStudio from './SeoStudio';
-import AdminNotepad from './AdminNotepad';
 import AnalyticsDashboard from './AnalyticsDashboard';
+import AdminPageHeader from './AdminPageHeader';
 import MediaLibrary from './MediaLibrary';
 import XRShowcaseManager from './XRShowcaseManager';
+import AdminResourceManager from './AdminResourceManager';
+import PhotographyManager from './PhotographyManager';
+import FilmManager from './FilmManager';
+import ResearchManager from './ResearchManager';
 import NetworkIntelligence from './NetworkIntelligence';
 import PortfolioAdminList from '../portfolio/admin/PortfolioAdminList';
 import ReadingDigestManager from './ReadingDigestManager';
@@ -34,7 +42,6 @@ import {
     Menu,
     PenLine,
     ScanSearch,
-    StickyNote,
     Globe2,
     Glasses,
     Moon,
@@ -54,6 +61,7 @@ const SECTIONS = [
     { id: 'network_intelligence', label: 'Network Intelligence', icon: Network },
     { id: 'portfolio_projects', label: 'Portfolio Projects', icon: FolderKanban },
     { id: 'xr_showcase', label: 'XR Showcase', icon: Glasses },
+    { id: 'hub_resources', label: 'Curator Dashboard', icon: Library },
     { id: 'media_library', label: 'Media Library', icon: FolderOpen },
     { id: 'users', label: 'Accounts', icon: UsersRound },
     { id: 'brands', label: 'Brands', icon: Tags },
@@ -63,18 +71,15 @@ const SECTIONS = [
     { id: 'films', label: 'Films', icon: Clapperboard },
     { id: 'blog', label: 'Blog', icon: PenLine },
     { id: 'research', label: 'Research', icon: FlaskConical },
-    { id: 'hub_resources', label: 'Resources', icon: Library },
     { id: 'newsletter', label: 'Newsletter', icon: Mail },
     { id: 'page_metadata', label: 'SEO Studio', icon: ScanSearch },
-    { id: 'notepad', label: 'Notepad', icon: StickyNote },
 ];
 const VALID_SECTION_IDS = new Set(SECTIONS.map((section) => section.id));
 const REQUEST_TIMEOUT_MS = 8000;
 const QUICK_ACTIONS = [
-    { label: "Reader's Digest Desk", href: '/admin/dashboard?section=reading_digest', icon: BookOpen },
     { label: 'Send a Newsletter', href: '/admin/dashboard?section=newsletter', icon: Mail },
     { label: 'Add a Link to Resource Hub', href: '/admin/dashboard?section=hub_resources&action=new', icon: Library },
-    { label: 'Upload a Photo Series', href: '/admin/editor?table=photography&id=new', icon: Camera },
+    { label: 'Upload a Photo Series', href: '/admin/dashboard?section=photography&action=new', icon: Camera },
     { label: 'Publish an Article', href: '/admin/editor?table=blog&id=new', icon: PenLine },
     { label: 'Add an image to Moodboard', href: '/admin/dashboard?section=moodboard_items', icon: Images },
     { label: 'Check Site Analytics', href: '/admin/dashboard?section=analytics', icon: ChartNoAxesCombined },
@@ -95,6 +100,24 @@ const withTimeout = (promise, label, timeoutMs = REQUEST_TIMEOUT_MS) => {
 
     return Promise.race([promise, timeout]).finally(() => window.clearTimeout(timeoutId));
 };
+
+const preloadImage = (url) => new Promise((resolve) => {
+    if (!url || typeof Image === 'undefined') {
+        resolve();
+        return;
+    }
+
+    const image = new Image();
+    const finish = () => {
+        image.onload = null;
+        image.onerror = null;
+        resolve();
+    };
+    image.onload = finish;
+    image.onerror = finish;
+    image.src = url;
+    if (image.complete) finish();
+});
 
 class SectionErrorBoundary extends React.Component {
     constructor(props) {
@@ -132,21 +155,19 @@ export default function AdminDashboard() {
     const [loading, setLoading] = useState(true);
     const [activeSection, setActiveSection] = useState('dashboard');
     const [connectionError, setConnectionError] = useState(null);
-    const [showResourceModal, setShowResourceModal] = useState(false);
-    const [refreshTrigger, setRefreshTrigger] = useState(0);
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [newsletterExhibition, setNewsletterExhibition] = useState({
+        sample: null,
+        ready: false,
+    });
 
     useEffect(() => {
         console.log("AdminDashboard: Mounted");
         // URL State Sync
         const params = new URLSearchParams(window.location.search);
         const sectionFromUrl = params.get('section');
-        const actionFromUrl = params.get('action');
         if (sectionFromUrl && VALID_SECTION_IDS.has(sectionFromUrl)) {
             setActiveSection(sectionFromUrl);
-        }
-        if (sectionFromUrl === 'hub_resources' && actionFromUrl === 'new') {
-            setShowResourceModal(true);
         }
 
         // Simple, robust auth check
@@ -224,6 +245,68 @@ export default function AdminDashboard() {
             setLoading(false);
         }
     }, []);
+
+    useEffect(() => {
+        const accessToken = session?.access_token;
+        if (!accessToken) return undefined;
+
+        let cancelled = false;
+        setNewsletterExhibition((current) => ({ ...current, ready: false }));
+
+        const prepareNewsletterExhibition = async () => {
+            try {
+                const media = await withTimeout(
+                    loadNewsletterExhibitionMedia(accessToken),
+                    'Newsletter exhibition images'
+                );
+                const sample = pickNewsletterMedia(media, 'image');
+
+                if (sample?.publicUrl) {
+                    await withTimeout(
+                        preloadImage(sample.publicUrl),
+                        'Newsletter exhibition photo preload'
+                    ).catch(() => {});
+                }
+
+                if (!cancelled) setNewsletterExhibition({ sample, ready: true });
+            } catch (error) {
+                console.warn('Could not preload a newsletter exhibition photo:', error);
+                if (!cancelled) setNewsletterExhibition({ sample: null, ready: true });
+            }
+        };
+
+        void prepareNewsletterExhibition();
+        return () => {
+            cancelled = true;
+        };
+    }, [session?.access_token]);
+
+    useEffect(() => {
+        const accessToken = session?.access_token;
+        if (!accessToken) return undefined;
+
+        let cancelled = false;
+        const prepareNetworkIntelligence = () => {
+            if (cancelled) return;
+            void prefetchNetworkIntelligence(accessToken).catch((error) => {
+                console.warn('Could not prefetch Network Intelligence:', error);
+            });
+        };
+
+        if (typeof window.requestIdleCallback === 'function') {
+            const idleId = window.requestIdleCallback(prepareNetworkIntelligence, { timeout: 500 });
+            return () => {
+                cancelled = true;
+                window.cancelIdleCallback(idleId);
+            };
+        }
+
+        const timerId = window.setTimeout(prepareNetworkIntelligence, 0);
+        return () => {
+            cancelled = true;
+            window.clearTimeout(timerId);
+        };
+    }, [session?.access_token]);
 
     useEffect(() => {
         const standalone =
@@ -357,7 +440,7 @@ export default function AdminDashboard() {
             {/* Sidebar Navigation */}
             <aside id="admin-sidebar" className={`sidebar ${sidebarOpen ? 'is-open' : ''}`}>
                 <div className="sidebar-header">
-                    <h1 className="brand-title">Admin Panel</h1>
+                    <h1 className="brand-title">Creator Studio</h1>
                     <button
                         type="button"
                         className="sidebar-toggle"
@@ -391,9 +474,9 @@ export default function AdminDashboard() {
                 </nav>
 
                 <div className="sidebar-footer">
-                    <a href="/resources/dashboard" className="btn-curator-link" aria-label="Curator Dashboard">
+                    <a href="/resources" target="_blank" rel="noreferrer" className="btn-curator-link" aria-label="View Resource Hub">
                         <Library size={15} strokeWidth={1.7} aria-hidden="true" />
-                        <span>Curator Dashboard</span>
+                        <span>View Resource Hub</span>
                     </a>
                     <button onClick={handleLogout} className="btn-logout-sidebar" aria-label="Sign out">
                         <LogOut size={15} strokeWidth={1.7} aria-hidden="true" />
@@ -403,16 +486,18 @@ export default function AdminDashboard() {
             </aside>
 
             {/* Main Content Area */}
-            <main className={`main-content ${activeSection === 'dashboard' ? 'dashboard-main' : ''}`}>
+            <main className={`main-content ${activeSection === 'dashboard' ? 'dashboard-main' : ''} ${activeSection === 'analytics' || activeSection === 'reading_digest' || activeSection === 'network_intelligence' || activeSection === 'portfolio_projects' || activeSection === 'xr_showcase' || activeSection === 'hub_resources' || activeSection === 'media_library' || activeSection === 'users' || activeSection === 'brands' || activeSection === 'photography' || activeSection === 'photo_stories' || activeSection === 'moodboard_items' || activeSection === 'films' || activeSection === 'blog' || activeSection === 'research' || activeSection === 'newsletter' || activeSection === 'page_metadata' ? 'admin-page-main' : ''}`}>
                 <div className="content-body">
                     {activeSection === 'dashboard' && (
                         <>
                             <div className="overview-grid">
-                                <section className="dashboard-launch-section" aria-labelledby="dashboard-greeting">
-                                    <div className="dashboard-greeting">
-                                        <h2 id="dashboard-greeting">Hi Abodid,</h2>
-                                        <p>Welcome to the admin workspace.</p>
-                                    </div>
+                                <section className="dashboard-launch-section admin-page-intro" aria-labelledby="dashboard-greeting">
+                                    <AdminPageHeader
+                                        className="dashboard-greeting"
+                                        headingId="dashboard-greeting"
+                                        title="Hi Abodid,"
+                                        description="Build, publish, and keep the ideas moving."
+                                    />
                                     <div className="destination-actions">
                                         <a href="/" target="_blank" rel="noreferrer" className="destination-card destination-card-primary">
                                             <span className="destination-icon" aria-hidden="true">
@@ -438,7 +523,17 @@ export default function AdminDashboard() {
                                     </div>
                                     <div className="quick-actions-grid">
                                         {QUICK_ACTIONS.map((action) => (
-                                            <a key={action.href} href={action.href} className="quick-action-card">
+                                            <a
+                                                key={action.href}
+                                                href={action.href}
+                                                className="quick-action-card"
+                                                onClick={action.href === '/admin/dashboard?section=newsletter'
+                                                    ? (event) => {
+                                                        event.preventDefault();
+                                                        handleNav('newsletter');
+                                                    }
+                                                    : undefined}
+                                            >
                                                 <span className="quick-action-icon" aria-hidden="true">
                                                     <LineIcon icon={action.icon} size={21} />
                                                 </span>
@@ -492,6 +587,18 @@ export default function AdminDashboard() {
                         </SectionErrorBoundary>
                     )}
 
+                    {activeSection === 'hub_resources' && (
+                        <SectionErrorBoundary>
+                            <AdminResourceManager />
+                        </SectionErrorBoundary>
+                    )}
+
+                    {activeSection === 'photography' && (
+                        <SectionErrorBoundary>
+                            <PhotographyManager />
+                        </SectionErrorBoundary>
+                    )}
+
                     {activeSection === 'media_library' && (
                         <SectionErrorBoundary>
                             <MediaLibrary accessToken={session?.access_token} />
@@ -499,47 +606,48 @@ export default function AdminDashboard() {
                     )}
 
                     {activeSection === 'brands' && (
-                        <div className="brands-section">
-                            <header className="content-header" style={{ marginBottom: '2rem' }}>
-                                <h2 className="section-title">Brands & Logos</h2>
-                            </header>
+                        <SectionErrorBoundary>
                             <BrandManager />
-                        </div>
+                        </SectionErrorBoundary>
                     )}
 
                     {activeSection === 'newsletter' && (
                         <div className="newsletter-section">
-                            <NewsletterSender accessToken={session?.access_token} />
+                            <NewsletterSender
+                                accessToken={session?.access_token}
+                                exhibitionSample={newsletterExhibition.sample}
+                                exhibitionMediaReady={newsletterExhibition.ready}
+                            />
                         </div>
                     )}
 
                     {activeSection === 'photo_stories' && (
-                        <>
-                            <header className="content-header" style={{ marginBottom: '1rem' }}>
-                                <h2 className="section-title">Photo Stories</h2>
-                            </header>
+                        <SectionErrorBoundary>
                             <PhotoStoryManager />
-                        </>
+                        </SectionErrorBoundary>
                     )}
 
                     {activeSection === 'moodboard_items' && (
-                        <>
-                            <header className="content-header" style={{ marginBottom: '1rem' }}>
-                                <h2 className="section-title">Visual Moodboard</h2>
-                            </header>
+                        <SectionErrorBoundary>
                             <MoodboardManager />
-                        </>
+                        </SectionErrorBoundary>
+                    )}
+
+                    {activeSection === 'films' && (
+                        <SectionErrorBoundary>
+                            <FilmManager />
+                        </SectionErrorBoundary>
+                    )}
+
+                    {activeSection === 'research' && (
+                        <SectionErrorBoundary>
+                            <ResearchManager />
+                        </SectionErrorBoundary>
                     )}
 
                     {activeSection === 'page_metadata' && (
                         <SectionErrorBoundary>
                             <SeoStudio />
-                        </SectionErrorBoundary>
-                    )}
-
-                    {activeSection === 'notepad' && (
-                        <SectionErrorBoundary>
-                            <AdminNotepad accessToken={session?.access_token} />
                         </SectionErrorBoundary>
                     )}
 
@@ -549,33 +657,22 @@ export default function AdminDashboard() {
                         </SectionErrorBoundary>
                     )}
 
-                    {activeSection !== 'dashboard' && activeSection !== 'analytics' && activeSection !== 'reading_digest' && activeSection !== 'network_intelligence' && activeSection !== 'portfolio_projects' && activeSection !== 'xr_showcase' && activeSection !== 'media_library' && activeSection !== 'users' && activeSection !== 'brands' && activeSection !== 'newsletter' && activeSection !== 'photo_stories' && activeSection !== 'moodboard_items' && activeSection !== 'page_metadata' && activeSection !== 'notepad' && activeSection !== 'blog' && (
-                        <SectionErrorBoundary key={`${activeSection}-${refreshTrigger}`}>
+                    {activeSection !== 'dashboard' && activeSection !== 'analytics' && activeSection !== 'reading_digest' && activeSection !== 'network_intelligence' && activeSection !== 'portfolio_projects' && activeSection !== 'xr_showcase' && activeSection !== 'hub_resources' && activeSection !== 'photography' && activeSection !== 'media_library' && activeSection !== 'users' && activeSection !== 'brands' && activeSection !== 'newsletter' && activeSection !== 'photo_stories' && activeSection !== 'moodboard_items' && activeSection !== 'films' && activeSection !== 'research' && activeSection !== 'page_metadata' && activeSection !== 'blog' && (
+                        <SectionErrorBoundary key={activeSection}>
                             <ListView
                                 table={activeSection}
                                 title={SECTIONS.find(s => s.id === activeSection)?.label}
-                                onCreate={activeSection === 'hub_resources' ? () => setShowResourceModal(true) : null}
+                                onCreate={null}
                             />
                         </SectionErrorBoundary>
                     )}
                 </div>
             </main>
 
-            <ResourceModal
-                isOpen={showResourceModal}
-                onClose={() => setShowResourceModal(false)}
-                onSave={() => {
-                    setRefreshTrigger(prev => prev + 1);
-                }}
-            />
-
             <style>{`
                 :root {
                     --sidebar-width: 248px;
                     --header-height: 56px;
-                    --dashboard-greeting-size: clamp(2.75rem, 4.2vw, 4.8rem);
-                    --dashboard-greeting-line-size: clamp(2.695rem, 4.116vw, 4.704rem);
-                    --dashboard-welcome-size: clamp(1.5rem, 1.725vw, 1.725rem);
                 }
 
                 .loading-screen { 
@@ -646,12 +743,12 @@ export default function AdminDashboard() {
                     height: auto;
                     min-height: 0;
                     margin-top: 0;
-                    padding: calc(3.3rem + var(--dashboard-greeting-line-size)) 1.5rem 1.75rem;
+                    padding: calc(3.3rem + var(--admin-page-title-line-size)) 1.5rem 1.75rem;
                     display: flex; align-items: flex-start;
                 }
 
                 .brand-title { 
-                    font-size: var(--dashboard-welcome-size); font-weight: 600; line-height: 1.35; margin: 0;
+                    font-size: var(--admin-page-subtitle-size); font-weight: 600; line-height: 1.35; margin: 0;
                     letter-spacing: -0.03em; color: var(--text-primary); white-space: nowrap;
                 }
                 
@@ -733,8 +830,8 @@ export default function AdminDashboard() {
                     align-content: start; align-items: stretch; min-height: 0; animation: fadeIn 0.3s ease;
                 }
                 .dashboard-panel {
-                    min-width: 0; background: var(--bg-surface); border: 1px solid var(--border-subtle);
-                    border-radius: 14px; overflow: hidden;
+                    min-width: 0; background: var(--bg-surface); border: var(--admin-panel-border);
+                    border-radius: var(--admin-panel-radius); overflow: hidden;
                 }
                 .quick-actions-panel { grid-column: 1 / -1; }
                 .panel-heading {
@@ -817,19 +914,11 @@ export default function AdminDashboard() {
 
                 .dashboard-launch-section {
                     grid-column: 1 / -1; display: flex; flex-direction: column; align-items: flex-start;
-                    gap: 0.8rem; padding: 1.25rem 0.35rem 0.15rem;
+                    gap: 0.8rem;
                 }
                 .dashboard-greeting {
                     min-width: 0; padding: 0;
                     display: flex; flex-direction: column; justify-content: center;
-                }
-                .dashboard-greeting h2 {
-                    margin: 0; color: var(--text-primary); font-size: var(--dashboard-greeting-size);
-                    font-weight: 520; line-height: 0.98; letter-spacing: -0.055em;
-                }
-                .dashboard-greeting p {
-                    margin: 0.8rem 0 0; color: var(--text-secondary);
-                    font-size: var(--dashboard-welcome-size); font-weight: 300; line-height: 1.35;
                 }
                 .destination-actions { min-width: 0; display: flex; align-items: center; justify-content: flex-start; flex-wrap: wrap; gap: 0.65rem; }
                 .destination-card {
@@ -975,14 +1064,11 @@ export default function AdminDashboard() {
                     .main-content.dashboard-main { padding-top: 0.9rem; padding-bottom: 0.9rem; }
                     .sidebar-header { padding-top: 4.25rem; }
                     .overview-grid { gap: 0.7rem; }
-                    .dashboard-launch-section { padding-top: 0.35rem; }
-                    .dashboard-greeting h2 { font-size: 2.65rem; }
-                    .dashboard-greeting p { margin-top: 0.4rem; }
                     .quick-action-card { min-height: 84px; }
                     .world-clock-grid { padding: 0.7rem; }
                     .world-clock-item { padding: 1rem; }
                 }
-                @media (max-width: 1024px) {
+                @media (max-width: 899px) {
                     :root { --sidebar-width: 72px; }
                     .sidebar {
                         width: var(--sidebar-width); overflow: hidden;
@@ -1157,147 +1243,6 @@ function LoadingState({ message = "Loading..." }) {
                 }
                 @keyframes spin { to { transform: rotate(360deg); } }
             `}</style>
-        </div>
-    );
-}
-
-function ResourceModal({ isOpen, onClose, onSave }) {
-    const [loading, setLoading] = useState(false);
-    const [formData, setFormData] = useState({
-        title: '',
-        url: '',
-        description: '',
-        audience: 'General Audience',
-        thumbnail_url: '',
-        selectedTags: []
-    });
-
-    if (!isOpen) return null;
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        try {
-            // Get current user
-            const { data: { user } } = await supabase.auth.getUser();
-
-            const { data: newResource, error } = await supabase.from('hub_resources').insert([{
-                title: formData.title,
-                url: formData.url,
-                description: formData.description,
-                audience: formData.audience,
-                thumbnail_url: formData.thumbnail_url || null,
-                status: 'approved', // Admin-created resources are auto-approved
-                submitted_by: user?.id, // Track who created it
-            }]).select().single();
-
-            if (error) throw error;
-
-            // Add tags if any selected
-            if (newResource && formData.selectedTags.length > 0) {
-                const tagLinks = formData.selectedTags.map(tagId => ({
-                    resource_id: newResource.id,
-                    tag_id: tagId
-                }));
-
-                const { error: tagError } = await supabase
-                    .from('hub_resource_tags')
-                    .insert(tagLinks);
-
-                if (tagError) console.error('Error adding tags:', tagError);
-            }
-
-            onSave();
-            onClose();
-            setFormData({ title: '', url: '', description: '', audience: 'General Audience', thumbnail_url: '', selectedTags: [] });
-        } catch (err) {
-            alert('Error adding resource: ' + err.message);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    return (
-        <div className="modal-overlay" onClick={onClose} style={{
-            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-            background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
-        }}>
-            <div className="modal-content" onClick={e => e.stopPropagation()} style={{
-                background: 'var(--bg-surface)', padding: '2rem', borderRadius: '16px',
-                width: '100%', maxWidth: '500px', border: '1px solid var(--border-subtle)',
-                boxShadow: '0 20px 50px rgba(0,0,0,0.2)'
-            }}>
-                <h2 style={{ marginTop: 0, marginBottom: '1.5rem' }}>Add Resource</h2>
-                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    <div>
-                        <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>Title</label>
-                        <input
-                            required
-                            style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--border-subtle)', background: 'var(--bg-color)', color: 'var(--text-primary)' }}
-                            value={formData.title}
-                            onChange={e => setFormData({ ...formData, title: e.target.value })}
-                        />
-                    </div>
-                    <div>
-                        <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>URL</label>
-                        <input
-                            required type="url"
-                            style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--border-subtle)', background: 'var(--bg-color)', color: 'var(--text-primary)' }}
-                            value={formData.url}
-                            onChange={e => setFormData({ ...formData, url: e.target.value })}
-                        />
-                    </div>
-                    <div>
-                        <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>Audience</label>
-                        <select
-                            style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--border-subtle)', background: 'var(--bg-color)', color: 'var(--text-primary)' }}
-                            value={formData.audience}
-                            onChange={e => setFormData({ ...formData, audience: e.target.value })}
-                        >
-                            <option value="General Audience">General Audience</option>
-                            <option value="Designer">Designer</option>
-                            <option value="Artist">Artist</option>
-                            <option value="Filmmaker">Filmmaker</option>
-                            <option value="Creative Technologist">Creative Technologist</option>
-                            <option value="Researcher">Researcher</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>Description</label>
-                        <textarea
-                            style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--border-subtle)', background: 'var(--bg-color)', color: 'var(--text-primary)', minHeight: '80px' }}
-                            value={formData.description}
-                            onChange={e => setFormData({ ...formData, description: e.target.value })}
-                        />
-                    </div>
-                    <div>
-                        <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>Thumbnail URL</label>
-                        <input
-                            type="url"
-                            placeholder="https://example.com/image.jpg"
-                            style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--border-subtle)', background: 'var(--bg-color)', color: 'var(--text-primary)' }}
-                            value={formData.thumbnail_url}
-                            onChange={e => setFormData({ ...formData, thumbnail_url: e.target.value })}
-                        />
-                    </div>
-                    <div>
-                        <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>Tags</label>
-                        <TagInput
-                            selectedTags={formData.selectedTags}
-                            onChange={(newTags) => setFormData(prev => ({ ...prev, selectedTags: newTags }))}
-                            maxTags={5}
-                        />
-                    </div>
-                    <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-                        <button type="button" onClick={onClose} style={{ flex: 1, padding: '0.8rem', background: 'transparent', border: '1px solid var(--border-subtle)', color: 'var(--text-secondary)', borderRadius: '8px', cursor: 'pointer' }}>Cancel</button>
-                        <button type="submit" disabled={loading} style={{ flex: 1, padding: '0.8rem', background: 'var(--text-primary)', border: 'none', color: 'var(--bg-color)', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>
-                            {loading ? 'Adding...' : 'Add Resource'}
-                        </button>
-                    </div>
-                </form>
-            </div>
         </div>
     );
 }

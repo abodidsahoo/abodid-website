@@ -5,6 +5,8 @@ import { CSS } from '@dnd-kit/utilities';
 import {
     cloneNewsletterBlock,
     createNewsletterColumnItem,
+    DEFAULT_NEWSLETTER_INSTAGRAM_URL,
+    DEFAULT_NEWSLETTER_LINKEDIN_URL,
     getNewsletterColumnItems,
     NEWSLETTER_BLOCK_TYPES,
     NEWSLETTER_COLUMN_ITEM_TYPES,
@@ -781,6 +783,8 @@ function BlockFields({ block, updateBlock, settings, mediaAccessToken, getRandom
                     <label className="field-group compact-field"><span>Brand name</span><input className="box-input" value={block.brandName} onChange={(event) => updateBlock({ brandName: event.target.value })} /></label>
                     <label className="field-group compact-field"><span>Website label</span><input className="box-input" value={block.websiteLabel} onChange={(event) => updateBlock({ websiteLabel: event.target.value })} /></label>
                     <label className="field-group compact-field"><span>Website URL</span><input className="box-input" type="url" value={block.websiteUrl} onChange={(event) => updateBlock({ websiteUrl: event.target.value })} /></label>
+                    <label className="field-group compact-field"><span>Instagram URL</span><input className="box-input" type="url" value={block.instagramUrl ?? DEFAULT_NEWSLETTER_INSTAGRAM_URL} onChange={(event) => updateBlock({ instagramUrl: event.target.value })} /></label>
+                    <label className="field-group compact-field"><span>LinkedIn URL</span><input className="box-input" type="url" value={block.linkedinUrl ?? DEFAULT_NEWSLETTER_LINKEDIN_URL} onChange={(event) => updateBlock({ linkedinUrl: event.target.value })} /></label>
                 </div>
                 <label className="field-group compact-field"><span>Footer message</span><textarea className="box-input" rows="4" value={block.message} onChange={(event) => updateBlock({ message: event.target.value })} /></label>
                 {showCustomization && <div className="control-grid block-customization-panel">

@@ -4,6 +4,7 @@ import { SortableContext, arrayMove, sortableKeyboardCoordinates, verticalListSo
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { archivePortfolioProject, createPortfolioProject, listAdminProjects, reorderPortfolioProjects } from "../../../lib/portfolio/services";
+import AdminPageHeader from "../../admin/AdminPageHeader";
 import "../../../styles/portfolio-admin.css";
 
 const formatDate = (value) => value ? new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value)) : "Never";
@@ -102,9 +103,16 @@ export default function PortfolioAdminList({ embedded = false }) {
   };
 
   return (
-    <div className={`portfolio-admin-page ${embedded ? "is-embedded" : ""}`} onClick={onClick}>
+    <div className={`portfolio-admin-page ${embedded ? "is-embedded" : ""}`} onClick={onClick} aria-labelledby="portfolio-projects-title">
       <header className="portfolio-admin-list-header">
-        <div>{!embedded && <a href="/admin/dashboard" className="admin-eyebrow">← Admin home</a>}<h1>Portfolio projects</h1><p>Draft safely, publish deliberately, and control the order of the public Work grid.</p></div>
+        <div className="portfolio-admin-header-copy">
+          {!embedded && <a href="/admin/dashboard" className="admin-eyebrow">← Admin home</a>}
+          <AdminPageHeader
+            headingId="portfolio-projects-title"
+            title="Portfolio Projects"
+            description="Fuck you imposter syndrome. Show your work."
+          />
+        </div>
         <div className="header-actions"><a href="/work" target="_blank" rel="noreferrer">View public Work ↗</a><button type="button" className="primary-button" onClick={onCreate} disabled={creating}>{creating ? "Creating…" : "+ Add Project"}</button></div>
       </header>
       <section className="portfolio-admin-toolbar">

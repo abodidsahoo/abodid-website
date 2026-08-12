@@ -16,6 +16,30 @@ if (table === "page_metadata") {
   );
 }
 
+if (table === "photography") {
+  return Astro.redirect(
+    `/admin/dashboard?section=photography${
+      id === "new"
+        ? "&action=new"
+        : id
+          ? `&project=${encodeURIComponent(id)}`
+          : ""
+    }`,
+  );
+}
+
+if (table === "research") {
+  return Astro.redirect(
+    `/admin/dashboard?section=research${
+      id === "new"
+        ? "&action=new"
+        : id
+          ? `&project=${encodeURIComponent(id)}`
+          : ""
+    }`,
+  );
+}
+
 if (!table || !id) {
   return Astro.redirect("/admin/dashboard");
 }

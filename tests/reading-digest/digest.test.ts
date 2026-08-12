@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   canonicalizeUrl,
+  discoveryTooling,
   domainMatches,
   filterTopicsForDay,
   limitWords,
@@ -38,6 +39,25 @@ const candidate = (
 });
 
 describe("reading digest URL controls", () => {
+  it("enables hosted web search for OpenRouter discovery", () => {
+    expect(discoveryTooling("openrouter")).toMatchObject({
+      tools: [{
+        type: "openrouter:web_search",
+        parameters: {
+          max_results: 8,
+          max_total_results: 24,
+          max_uses: 4,
+        },
+      }],
+    });
+  });
+
+  it("enables native web search for direct OpenAI discovery", () => {
+    expect(discoveryTooling("openai")).toMatchObject({
+      tools: [{ type: "web_search" }],
+    });
+  });
+
   it("canonicalizes tracking URLs before deduplication", () => {
     expect(
       canonicalizeUrl("http://WWW.Example.org/story/?utm_source=x&b=2&a=1#top"),

@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ArrowUpRight, Eye, EyeOff, X } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
+import AdminPageHeader from './AdminPageHeader';
 
 const MOODBOARD_BUCKET = 'moodboard-assets';
 const MOODBOARD_PATH_PREFIX = 'uploads';
@@ -117,7 +119,6 @@ export default function MoodboardManager() {
     const [errorMsg, setErrorMsg] = useState('');
     const [notice, setNotice] = useState('');
     const [libraryFilter, setLibraryFilter] = useState('');
-    const [libraryTagEditors, setLibraryTagEditors] = useState({});
     const [libraryTagDrafts, setLibraryTagDrafts] = useState({});
 
     const [items, setItems] = useState([]);
@@ -341,7 +342,7 @@ export default function MoodboardManager() {
     };
 
     const handleDeleteItem = async (item) => {
-        const confirmDelete = window.confirm('Delete this moodboard image? This cannot be undone.');
+        const confirmDelete = window.confirm('Remove this image from the mood board? This cannot be undone.');
         if (!confirmDelete) return;
 
         setErrorMsg('');
@@ -358,10 +359,10 @@ export default function MoodboardManager() {
             }
 
             setItems((previous) => previous.filter((entry) => entry.id !== item.id));
-            setNotice('Moodboard image deleted.');
+            setNotice('Image removed from the mood board.');
         } catch (error) {
             console.error(error);
-            setErrorMsg(error?.message || 'Failed to delete moodboard image.');
+            setErrorMsg(error?.message || 'Failed to remove the moodboard image.');
         }
     };
 
@@ -409,15 +410,6 @@ export default function MoodboardManager() {
         return tagSet.size;
     }, [items]);
 
-    const showLibraryTagEditor = (itemId) => {
-        setLibraryTagEditors((previous) => ({ ...previous, [itemId]: true }));
-    };
-
-    const hideLibraryTagEditor = (itemId) => {
-        setLibraryTagEditors((previous) => ({ ...previous, [itemId]: false }));
-        setLibraryTagDrafts((previous) => ({ ...previous, [itemId]: '' }));
-    };
-
     const updateLibraryTagDraft = (itemId, value) => {
         setLibraryTagDrafts((previous) => ({ ...previous, [itemId]: value }));
     };
@@ -430,7 +422,7 @@ export default function MoodboardManager() {
         const currentTags = normalizeTagArray(item.tags);
         const alreadyExists = currentTags.some((tag) => tag.toLowerCase() === normalized);
         if (alreadyExists) {
-            hideLibraryTagEditor(item.id);
+            setLibraryTagDrafts((previous) => ({ ...previous, [item.id]: '' }));
             return;
         }
 
@@ -453,73 +445,86 @@ export default function MoodboardManager() {
             setErrorMsg(error.message || 'Failed to add tag.');
         } else {
             setErrorMsg('');
+            setLibraryTagDrafts((previous) => ({ ...previous, [item.id]: '' }));
         }
 
         setSavingTagItemIds((previous) => previous.filter((id) => id !== item.id));
-        hideLibraryTagEditor(item.id);
     };
 
     return (
-        <div className="moodboard-manager">
-            <header className="manager-header">
-                <div>
-                    <h3>Visual Moodboard CMS</h3>
-                    <p>
-                        Upload a batch, tag each image, publish instantly. Search on the live page supports partial keyword matches.
-                    </p>
+        <section className="moodboard-manager" aria-labelledby="visual-moodboard-title">
+            <div className="moodboard-manager-header">
+                <AdminPageHeader
+                    className="moodboard-page-header"
+                    headingId="visual-moodboard-title"
+                    title="Visual Moodboard"
+                    description="When inspiration hits you, never let it go."
+                />
+                <div className="moodboard-header-actions">
+                    <a href="/moodboard" target="_blank" rel="noreferrer" className="moodboard-view-link">
+                        View Mood Board <ArrowUpRight size={15} aria-hidden="true" />
+                    </a>
                 </div>
-                <div className="header-stats">
-                    <span>{items.length} total</span>
-                    <span>{items.filter((item) => item.published).length} live</span>
-                    <span>{uniqueTagCount} unique tags</span>
-                </div>
-            </header>
+            </div>
 
             <section className="upload-panel">
-                <div
-                    className={`dropzone ${isDragOver ? 'dragging' : ''}`}
-                    onDragOver={(event) => {
-                        event.preventDefault();
-                        setIsDragOver(true);
-                    }}
-                    onDragEnter={(event) => {
-                        event.preventDefault();
-                        setIsDragOver(true);
-                    }}
-                    onDragLeave={(event) => {
-                        event.preventDefault();
-                        setIsDragOver(false);
-                    }}
-                    onDrop={(event) => {
-                        event.preventDefault();
-                        setIsDragOver(false);
-                        appendFiles(event.dataTransfer.files);
-                    }}
-                >
-                    <div className="dropzone-copy">
-                        <strong>Drop moodboard images here</strong>
-                        <span>Each file gets one tag field. Press Enter to keep stacking tags.</span>
+                <div className="upload-overview">
+                    <div
+                        className={`dropzone ${isDragOver ? 'dragging' : ''}`}
+                        onDragOver={(event) => {
+                            event.preventDefault();
+                            setIsDragOver(true);
+                        }}
+                        onDragEnter={(event) => {
+                            event.preventDefault();
+                            setIsDragOver(true);
+                        }}
+                        onDragLeave={(event) => {
+                            event.preventDefault();
+                            setIsDragOver(false);
+                        }}
+                        onDrop={(event) => {
+                            event.preventDefault();
+                            setIsDragOver(false);
+                            appendFiles(event.dataTransfer.files);
+                        }}
+                    >
+                        <div className="dropzone-copy">
+                            <strong>Drop moodboard images here</strong>
+                            <span>Each file gets one tag field. Press Enter to keep stacking tags.</span>
+                        </div>
+
+                        <button
+                            type="button"
+                            className="dropzone-btn"
+                            onClick={() => fileInputRef.current?.click()}
+                        >
+                            Choose files
+                        </button>
+
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            multiple
+                            accept="image/*"
+                            style={{ display: 'none' }}
+                            onChange={(event) => {
+                                appendFiles(event.target.files);
+                                event.target.value = '';
+                            }}
+                        />
                     </div>
 
-                    <button
-                        type="button"
-                        className="dropzone-btn"
-                        onClick={() => fileInputRef.current?.click()}
-                    >
-                        Choose files
-                    </button>
-
-                    <input
-                        ref={fileInputRef}
-                        type="file"
-                        multiple
-                        accept="image/*"
-                        style={{ display: 'none' }}
-                        onChange={(event) => {
-                            appendFiles(event.target.files);
-                            event.target.value = '';
-                        }}
-                    />
+                    <div className="upload-stats" aria-label="Moodboard totals">
+                        <div className="upload-stat">
+                            <strong>{items.length}</strong>
+                            <span>{items.length === 1 ? 'image' : 'images'}</span>
+                        </div>
+                        <div className="upload-stat">
+                            <strong>{uniqueTagCount}</strong>
+                            <span>unique {uniqueTagCount === 1 ? 'tag' : 'tags'}</span>
+                        </div>
+                    </div>
                 </div>
 
                 {queue.length > 0 && (
@@ -539,21 +544,9 @@ export default function MoodboardManager() {
                         <div className="queue-list">
                             {queue.map((entry) => (
                                 <article key={entry.id} className="queue-row">
-                                    <img src={entry.previewUrl} alt={entry.title || entry.file.name} />
+                                    <img src={entry.previewUrl} alt="Queued moodboard image" />
 
                                     <div className="queue-main">
-                                        <input
-                                            className="queue-title"
-                                            value={entry.title}
-                                            onChange={(event) =>
-                                                updateQueueEntry(entry.id, (current) => ({
-                                                    ...current,
-                                                    title: event.target.value,
-                                                }))
-                                            }
-                                            placeholder="Image title"
-                                        />
-
                                         <div className="tag-input-grid">
                                             <input
                                                 className="tag-entry"
@@ -629,69 +622,80 @@ export default function MoodboardManager() {
                             const tags = normalizeTagArray(item.tags);
 
                             return (
-                                <article key={item.id} className="library-card">
-                                    <img src={item.image_url} alt={item.title || 'Moodboard image'} loading="lazy" />
+                                <article key={item.id} className={`library-card ${item.published ? '' : 'is-hidden'}`}>
+                                    <div className="library-image-wrap">
+                                        <img
+                                            className="library-image"
+                                            src={item.image_url}
+                                            alt="Moodboard image"
+                                            loading="lazy"
+                                        />
+
+                                        <button
+                                            type="button"
+                                            className="library-remove-btn"
+                                            onClick={() => handleDeleteItem(item)}
+                                            aria-label="Remove image from mood board"
+                                            title="Remove from mood board"
+                                        >
+                                            <X size={17} aria-hidden="true" />
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            className="library-visibility-btn"
+                                            onClick={() => togglePublished(item)}
+                                            aria-label={item.published ? 'Hide image from mood board' : 'Show image on mood board'}
+                                            title={item.published ? 'Hide from mood board' : 'Show on mood board'}
+                                        >
+                                            {item.published
+                                                ? <EyeOff size={14} aria-hidden="true" />
+                                                : <Eye size={14} aria-hidden="true" />}
+                                            <span>{item.published ? 'Hide' : 'Show'}</span>
+                                        </button>
+                                    </div>
 
                                     <div className="library-meta">
-                                        <div className="library-title" title={item.title || ''}>
-                                            {item.title || 'Untitled mood'}
-                                        </div>
-                                        <div className="library-tags">
-                                            {tags.length > 0
-                                                ? tags.map((tag) => (
-                                                    <span key={`${item.id}-${tag}`} className="library-tag">
-                                                        #{tag}
-                                                    </span>
-                                                ))
-                                                : <span className="library-tag muted">No tags</span>}
-                                            {!libraryTagEditors[item.id] && (
-                                                <button
-                                                    type="button"
-                                                    className="library-tag-add-btn"
-                                                    onClick={() => showLibraryTagEditor(item.id)}
-                                                    title="Add tag"
-                                                    disabled={savingTagItemIds.includes(item.id)}
-                                                >
-                                                    +
-                                                </button>
-                                            )}
-                                            {libraryTagEditors[item.id] && (
-                                                <input
-                                                    className="library-tag-input"
-                                                    value={libraryTagDrafts[item.id] || ''}
-                                                    placeholder="Type tag + Enter"
-                                                    onChange={(event) => updateLibraryTagDraft(item.id, event.target.value)}
-                                                    onBlur={() => hideLibraryTagEditor(item.id)}
-                                                    onKeyDown={(event) => {
-                                                        if (event.key === 'Enter') {
-                                                            event.preventDefault();
-                                                            addLibraryTag(item);
-                                                        }
-                                                        if (event.key === 'Escape') {
-                                                            event.preventDefault();
-                                                            hideLibraryTagEditor(item.id);
-                                                        }
-                                                    }}
-                                                    disabled={savingTagItemIds.includes(item.id)}
-                                                    autoFocus
-                                                />
+                                        <div className="library-tag-list" aria-label="Image tags">
+                                            {tags.length > 0 ? tags.map((tag, index) => (
+                                                <span key={`${item.id}-${tag}`} className="library-tag-item">
+                                                    <span className="library-tag-text">{tag}</span>
+                                                    {index < tags.length - 1 && <span className="library-tag-separator">, </span>}
+                                                </span>
+                                            )) : (
+                                                <span className="library-tags-empty">No tags yet</span>
                                             )}
                                         </div>
-                                        <div className="library-actions">
+
+                                        <div className="library-tag-adder">
                                             <button
                                                 type="button"
-                                                className={`library-btn ${item.published ? 'live' : ''}`}
-                                                onClick={() => togglePublished(item)}
+                                                className="library-tag-add-btn"
+                                                onClick={() => addLibraryTag(item)}
+                                                aria-label="Add tag"
+                                                title="Add tag"
+                                                disabled={savingTagItemIds.includes(item.id)}
                                             >
-                                                {item.published ? 'Live' : 'Hidden'}
+                                                +
                                             </button>
-                                            <button
-                                                type="button"
-                                                className="library-btn danger"
-                                                onClick={() => handleDeleteItem(item)}
-                                            >
-                                                Delete
-                                            </button>
+
+                                            <input
+                                                className="library-tag-input"
+                                                value={libraryTagDrafts[item.id] || ''}
+                                                placeholder="Type a tag and press Enter"
+                                                onChange={(event) => updateLibraryTagDraft(item.id, event.target.value)}
+                                                onKeyDown={(event) => {
+                                                    if (event.key === 'Enter') {
+                                                        event.preventDefault();
+                                                        addLibraryTag(item);
+                                                    }
+                                                    if (event.key === 'Escape') {
+                                                        event.preventDefault();
+                                                        updateLibraryTagDraft(item.id, '');
+                                                    }
+                                                }}
+                                                disabled={savingTagItemIds.includes(item.id)}
+                                            />
                                         </div>
                                     </div>
                                 </article>
@@ -703,49 +707,47 @@ export default function MoodboardManager() {
 
             <style>{`
                 .moodboard-manager {
+                    width: 100%;
+                    max-width: var(--admin-page-content-max);
                     display: flex;
                     flex-direction: column;
                     gap: 1.25rem;
                 }
 
-                .manager-header {
+                .moodboard-manager-header {
                     display: flex;
                     justify-content: space-between;
-                    align-items: flex-start;
-                    gap: 1rem;
-                    border: 1px solid var(--border-subtle);
-                    border-radius: 12px;
-                    background: rgba(255, 255, 255, 0.02);
-                    padding: 1rem 1.1rem;
+                    align-items: flex-end;
+                    gap: 2rem;
+                    padding: var(--admin-page-heading-offset-block) var(--admin-page-heading-offset-inline) 1.5rem;
+                    border-bottom: 1px solid var(--border-subtle);
                 }
 
-                .manager-header h3 {
-                    margin: 0;
-                    font-size: 1.25rem;
+                .moodboard-page-header {
+                    min-width: 0;
+                    flex: 1 1 34rem;
                 }
 
-                .manager-header p {
-                    margin: 0.45rem 0 0;
-                    color: var(--text-secondary);
-                    font-size: 0.85rem;
-                    line-height: 1.45;
-                    max-width: 640px;
-                }
-
-                .header-stats {
+                .moodboard-header-actions {
                     display: flex;
-                    flex-wrap: wrap;
-                    gap: 0.4rem;
-                    justify-content: flex-end;
+                    align-items: center;
+                    flex: 0 0 auto;
+                    padding-bottom: 0.25rem;
                 }
 
-                .header-stats span {
-                    padding: 0.35rem 0.65rem;
-                    border-radius: 999px;
-                    font-size: 0.72rem;
+                .moodboard-view-link {
+                    min-height: 40px;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 0.4rem;
+                    padding: 0.6rem 0.75rem;
                     border: 1px solid var(--border-subtle);
-                    background: rgba(255, 255, 255, 0.03);
-                    font-family: var(--font-ui);
+                    border-radius: 8px;
+                    background: transparent;
+                    color: var(--text-primary);
+                    font: 700 0.72rem/1 var(--font-ui);
+                    text-decoration: none;
                 }
 
                 .upload-panel,
@@ -754,6 +756,13 @@ export default function MoodboardManager() {
                     border-radius: 12px;
                     background: rgba(255, 255, 255, 0.02);
                     padding: 1rem;
+                }
+
+                .upload-overview {
+                    display: grid;
+                    grid-template-columns: minmax(0, 1.2fr) minmax(270px, 0.8fr);
+                    gap: 1rem;
+                    align-items: stretch;
                 }
 
                 .dropzone {
@@ -767,6 +776,49 @@ export default function MoodboardManager() {
                     padding: 1rem 1.1rem;
                     transition: all 0.18s ease;
                     background: rgba(255, 255, 255, 0.015);
+                }
+
+                .upload-stats {
+                    min-width: 0;
+                    min-height: 150px;
+                    display: grid;
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
+                    align-items: center;
+                    border: 1px solid var(--border-subtle);
+                    border-radius: 12px;
+                    background: rgba(255, 255, 255, 0.015);
+                }
+
+                .upload-stat {
+                    min-width: 0;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 0.45rem;
+                    padding: 1rem 0.75rem;
+                    text-align: center;
+                }
+
+                .upload-stat + .upload-stat {
+                    border-left: 1px solid var(--border-subtle);
+                }
+
+                .upload-stat strong {
+                    max-width: 100%;
+                    color: var(--text-primary);
+                    font-size: clamp(3rem, 6vw, 5.6rem);
+                    font-weight: 360;
+                    line-height: 0.82;
+                    letter-spacing: -0.075em;
+                }
+
+                .upload-stat span {
+                    color: var(--text-tertiary);
+                    font-size: 0.65rem;
+                    line-height: 1.15;
+                    letter-spacing: 0.08em;
+                    text-transform: uppercase;
                 }
 
                 .dropzone.dragging {
@@ -830,8 +882,7 @@ export default function MoodboardManager() {
                     align-items: center;
                 }
 
-                .queue-btn,
-                .library-btn {
+                .queue-btn {
                     border: 1px solid var(--border-strong);
                     border-radius: 8px;
                     min-height: 36px;
@@ -894,7 +945,6 @@ export default function MoodboardManager() {
                     min-width: 0;
                 }
 
-                .queue-title,
                 .tag-entry,
                 .library-search {
                     width: 100%;
@@ -907,7 +957,6 @@ export default function MoodboardManager() {
                     font-size: 0.78rem;
                 }
 
-                .queue-title:focus,
                 .tag-entry:focus,
                 .library-search:focus {
                     outline: none;
@@ -918,15 +967,13 @@ export default function MoodboardManager() {
                     display: block;
                 }
 
-                .queue-tags,
-                .library-tags {
+                .queue-tags {
                     display: flex;
                     flex-wrap: wrap;
                     gap: 0.4rem;
                 }
 
-                .queue-tag,
-                .library-tag {
+                .queue-tag {
                     display: inline-flex;
                     align-items: center;
                     padding: 0.24rem 0.5rem;
@@ -940,49 +987,6 @@ export default function MoodboardManager() {
 
                 .queue-tag {
                     cursor: pointer;
-                }
-
-                .library-tag.muted {
-                    border-color: var(--border-subtle);
-                    background: rgba(255, 255, 255, 0.04);
-                    color: var(--text-secondary);
-                }
-
-                .library-tag-add-btn {
-                    border: 1px solid rgba(255, 255, 255, 0.3);
-                    background: rgba(255, 255, 255, 0.04);
-                    color: var(--text-primary);
-                    border-radius: 999px;
-                    min-width: 26px;
-                    height: 26px;
-                    display: inline-flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 1rem;
-                    line-height: 1;
-                    cursor: pointer;
-                }
-
-                .library-tag-add-btn:disabled {
-                    opacity: 0.6;
-                    cursor: not-allowed;
-                }
-
-                .library-tag-input {
-                    min-width: 128px;
-                    max-width: 180px;
-                    border: 1px solid var(--border-subtle);
-                    background: rgba(255, 255, 255, 0.03);
-                    color: var(--text-primary);
-                    border-radius: 999px;
-                    min-height: 26px;
-                    padding: 0 0.55rem;
-                    font-size: 0.7rem;
-                }
-
-                .library-tag-input:focus {
-                    outline: none;
-                    border-color: rgba(234, 42, 16, 0.9);
                 }
 
                 .remove-row-btn {
@@ -1044,54 +1048,187 @@ export default function MoodboardManager() {
                     background: rgba(0, 0, 0, 0.24);
                 }
 
-                .library-card img {
+                .library-image-wrap {
+                    position: relative;
+                    overflow: hidden;
+                    background: rgba(0, 0, 0, 0.4);
+                    border-bottom: 1px solid var(--border-subtle);
+                }
+
+                .library-image {
                     width: 100%;
                     aspect-ratio: 4 / 5;
                     object-fit: cover;
                     display: block;
-                    border-bottom: 1px solid var(--border-subtle);
+                    transition: opacity 0.2s ease, filter 0.2s ease, transform 0.2s ease;
+                }
+
+                .library-card:hover .library-image {
+                    transform: scale(1.01);
+                }
+
+                .library-card.is-hidden .library-image {
+                    opacity: 0.42;
+                    filter: grayscale(0.75);
+                }
+
+                .library-remove-btn,
+                .library-visibility-btn {
+                    position: absolute;
+                    top: 0.65rem;
+                    z-index: 2;
+                    min-height: 30px;
+                    border: 1px solid rgba(255, 255, 255, 0.22);
+                    background: rgba(8, 8, 8, 0.78);
+                    color: rgba(255, 255, 255, 0.94);
+                    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.24);
+                    backdrop-filter: blur(8px);
+                    cursor: pointer;
+                }
+
+                .library-remove-btn {
+                    left: 0.65rem;
+                    width: 30px;
+                    padding: 0;
+                    border-radius: 50%;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: #ffb2b2;
+                }
+
+                .library-remove-btn:hover {
+                    border-color: rgba(255, 107, 107, 0.8);
+                    background: rgba(90, 15, 15, 0.9);
+                    color: #fff;
+                }
+
+                .library-visibility-btn {
+                    right: 0.65rem;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 0.35rem;
+                    padding: 0 0.6rem;
+                    border-radius: 7px;
+                    font: 650 0.66rem/1 var(--font-ui);
+                    opacity: 0;
+                    pointer-events: none;
+                    transform: translateY(-4px);
+                    transition: opacity 0.16s ease, transform 0.16s ease, border-color 0.16s ease;
+                }
+
+                .library-card:hover .library-visibility-btn,
+                .library-card:focus-within .library-visibility-btn {
+                    opacity: 1;
+                    pointer-events: auto;
+                    transform: translateY(0);
+                }
+
+                .library-visibility-btn:hover {
+                    border-color: rgba(255, 255, 255, 0.55);
                 }
 
                 .library-meta {
-                    padding: 0.65rem;
+                    padding: 0.7rem;
                     display: flex;
                     flex-direction: column;
-                    gap: 0.55rem;
+                    gap: 0.7rem;
                 }
 
-                .library-title {
-                    font-size: 0.83rem;
-                    font-weight: 500;
-                    white-space: nowrap;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
+                .library-tag-list {
+                    min-height: 1.2rem;
+                    color: var(--text-primary);
+                    font-size: 0.76rem;
+                    line-height: 1.55;
                 }
 
-                .library-actions {
+                .library-tag-item {
+                    white-space: normal;
+                }
+
+                .library-tag-text {
+                    text-decoration: underline;
+                    text-decoration-color: rgba(255, 255, 255, 0.42);
+                    text-underline-offset: 0.2em;
+                }
+
+                .library-tag-separator {
+                    color: var(--text-tertiary);
+                }
+
+                .library-tags-empty {
+                    color: var(--text-tertiary);
+                    font-style: italic;
+                }
+
+                .library-tag-adder {
                     display: flex;
-                    gap: 0.4rem;
+                    align-items: center;
+                    gap: 0.45rem;
                 }
 
-                .library-btn {
-                    flex: 1;
+                .library-tag-add-btn {
+                    flex: 0 0 auto;
+                    width: 24px;
+                    height: 24px;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    border: 0;
+                    background: transparent;
+                    color: var(--text-secondary);
+                    padding: 0;
+                    font: 400 1.1rem/1 var(--font-ui);
+                    cursor: pointer;
                 }
 
-                .library-btn.live {
-                    background: rgba(44, 198, 137, 0.2);
-                    border-color: rgba(44, 198, 137, 0.6);
-                    color: #7ff0c5;
+                .library-tag-add-btn:hover {
+                    color: var(--text-primary);
                 }
 
-                .library-btn.danger {
-                    color: #ffb2b2;
-                    border-color: rgba(255, 107, 107, 0.6);
-                    background: rgba(255, 107, 107, 0.14);
+                .library-tag-add-btn:disabled {
+                    opacity: 0.45;
+                    cursor: not-allowed;
+                }
+
+                .library-tag-input {
+                    width: 100%;
+                    min-width: 0;
+                    min-height: 26px;
+                    padding: 0.15rem 0;
+                    border: 0;
+                    border-bottom: 1px solid var(--border-subtle);
+                    border-radius: 0;
+                    background: transparent;
+                    color: var(--text-primary);
+                    font-size: 0.7rem;
+                }
+
+                .library-tag-input::placeholder {
+                    color: var(--text-tertiary);
+                }
+
+                .library-tag-input:focus {
+                    outline: none;
+                    border-bottom-color: rgba(234, 42, 16, 0.9);
+                }
+
+                @media (hover: none) {
+                    .library-visibility-btn {
+                        opacity: 1;
+                        pointer-events: auto;
+                        transform: none;
+                    }
+                }
+
+                @media (max-width: 1180px) {
+                    .upload-overview {
+                        grid-template-columns: minmax(0, 1.1fr) minmax(250px, 0.9fr);
+                    }
                 }
 
                 @media (max-width: 980px) {
-                    .manager-header {
-                        flex-direction: column;
-                    }
 
                     .dropzone {
                         flex-direction: column;
@@ -1114,6 +1251,24 @@ export default function MoodboardManager() {
                 }
 
                 @media (max-width: 640px) {
+                    .moodboard-manager-header {
+                        align-items: flex-start;
+                        flex-direction: column;
+                        gap: 1rem;
+                    }
+
+                    .upload-overview {
+                        grid-template-columns: 1fr;
+                    }
+
+                    .upload-stats {
+                        min-height: 120px;
+                    }
+
+                    .upload-stat strong {
+                        font-size: clamp(3.25rem, 18vw, 5rem);
+                    }
+
                     .queue-header-row,
                     .library-header-row {
                         flex-direction: column;
@@ -1125,6 +1280,6 @@ export default function MoodboardManager() {
                     }
                 }
             `}</style>
-        </div>
+        </section>
     );
 }

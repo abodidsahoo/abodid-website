@@ -1,16 +1,40 @@
-const { createClient } = require('@supabase/supabase-js');
+const requiredEnv = (names) => {
+  for (const name of names) {
+    const value = process.env[name]?.trim();
+    if (value) return value;
+  }
+  throw new Error(`Missing ${names.join(" or ")}.`);
+};
 
-const supabaseUrl = 'https://jwipqbjxpmgyevfzpjjx.supabase.co';
-const serviceKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp3aXBxYmp4cG1neWV2Znpwamp4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2ODE5MTIxNSwiZXhwIjoyMDgzNzY3MjE1fQ.SqXzrQNTcx_ZHCxRY64ZosYHNSL2c8pAFaC_m0mNAFM';
-
-const supabase = createClient(supabaseUrl, serviceKey);
+const sqlLiteral = (value) => value.replaceAll("'", "''");
 
 async function main() {
-  const q1 = `select vault.create_secret('https://jwipqbjxpmgyevfzpjjx.supabase.co', 'reading_digest_project_url', 'Base URL used by Supabase Cron');`;
-  const q2 = `select vault.create_secret('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp3aXBxYmp4cG1neWV2Znpwamp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgxOTEyMTUsImV4cCI6MjA4Mzc2NzIxNX0.eG3p3TnYZWrSukGmhWcWk9OSLdmAIIsDiIme3Or-F5o', 'reading_digest_publishable_key', 'Publishable API key for Edge gateway');`;
-  const q3 = `select vault.create_secret('rd_cron_sec_89f3a12b80041', 'reading_digest_cron_secret', 'Shared secret checked by Edge Function');`;
+  const supabaseUrl = requiredEnv([
+    "SUPABASE_URL",
+    "NEXT_PUBLIC_SUPABASE_URL",
+    "PUBLIC_SUPABASE_URL",
+  ]).replace(/\/+$/, "");
+  const publishableKey = requiredEnv([
+    "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+    "PUBLIC_SUPABASE_ANON_KEY",
+  ]);
+  const cronSecret = requiredEnv(["READING_DIGEST_CRON_SECRET"]);
 
-  console.log("Vault setup query ready.");
+  const statements = [
+    `select vault.create_secret('${sqlLiteral(supabaseUrl)}', 'reading_digest_project_url', 'Base URL used by Supabase Cron');`,
+    `select vault.create_secret('${sqlLiteral(publishableKey)}', 'reading_digest_publishable_key', 'Publishable API key for Edge gateway');`,
+    `select vault.create_secret('${sqlLiteral(cronSecret)}', 'reading_digest_cron_secret', 'Shared secret checked by Edge Function');`,
+  ];
+
+  console.log("Vault setup statements are ready from environment variables.");
+  return statements;
 }
 
-main();
+if (require.main === module) {
+  main().catch((error) => {
+    console.error(error instanceof Error ? error.message : String(error));
+    process.exitCode = 1;
+  });
+}
+
+module.exports = { main };

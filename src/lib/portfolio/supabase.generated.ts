@@ -2484,42 +2484,54 @@ export type Database = {
       }
       research: {
         Row: {
+          content: string
           cover_image: string | null
           created_at: string
           description: string | null
+          experiment_url: string | null
           featured: boolean | null
+          gallery_images: Json
           id: string
           published: boolean | null
           slug: string
           sort_order: number | null
           tags: string[] | null
           title: string
+          updated_at: string
           visible: boolean | null
         }
         Insert: {
+          content?: string
           cover_image?: string | null
           created_at?: string
           description?: string | null
+          experiment_url?: string | null
           featured?: boolean | null
+          gallery_images?: Json
           id?: string
           published?: boolean | null
           slug: string
           sort_order?: number | null
           tags?: string[] | null
           title: string
+          updated_at?: string
           visible?: boolean | null
         }
         Update: {
+          content?: string
           cover_image?: string | null
           created_at?: string
           description?: string | null
+          experiment_url?: string | null
           featured?: boolean | null
+          gallery_images?: Json
           id?: string
           published?: boolean | null
           slug?: string
           sort_order?: number | null
           tags?: string[] | null
           title?: string
+          updated_at?: string
           visible?: boolean | null
         }
         Relationships: []

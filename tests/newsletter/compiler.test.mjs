@@ -107,6 +107,8 @@ test('uses a white content canvas with a black button by default', () => {
     assert.equal(footer.brandName, 'Abodid Sahoo');
     assert.equal(footer.websiteLabel, 'Visit my Website');
     assert.equal(footer.websiteUrl, 'https://abodid.com');
+    assert.equal(footer.instagramUrl, 'https://www.instagram.com/abodid.sahoo/');
+    assert.equal(footer.linkedinUrl, 'https://www.linkedin.com/in/abodidsahoo/');
     assert.equal(
         footer.message,
         'You received this newsletter because you have subscribed to receive updates from Abodid Sahoo or you may be connected with him personally or via LinkedIn/Instagram.',
@@ -124,6 +126,11 @@ test('uses a white content canvas with a black button by default', () => {
     assert.match(html, /bgcolor="#ffffff"[^>]*background-color:#ffffff/);
     assert.match(html, /background-color:#000000/);
     assert.match(html, /color:#ffffff/);
+    assert.match(html, /href="https:\/\/www\.instagram\.com\/abodid\.sahoo\/"[^>]*>Instagram<\/a>/);
+    assert.match(html, /href="https:\/\/www\.linkedin\.com\/in\/abodidsahoo\/"[^>]*>LinkedIn<\/a>/);
+    assert.match(html, /font-size:10px[^>]*>.*Instagram.*LinkedIn/s);
+    assert.ok(html.indexOf('>Abodid Sahoo</p>') < html.indexOf('>Instagram</a>'));
+    assert.ok(html.indexOf('>Instagram</a>') < html.indexOf('You received this newsletter'));
 });
 
 test('starts a new newsletter with the complete default content sequence', () => {
@@ -366,7 +373,7 @@ test('shows unfinished buttons and images only as editor preview placeholders', 
     assert.doesNotMatch(exportedHtml, /Image preview/);
 });
 
-test('exports a loaded mood-board sample so delivery matches the editor preview', () => {
+test('exports a loaded Cloudflare exhibition sample so delivery matches the editor preview', () => {
     const image = createNewsletterBlock('image', {
         previewImageUrl: 'https://media.example.com/exhibitions/sample.jpg',
         previewImageAlt: 'Exhibition installation',
