@@ -3,6 +3,8 @@
     max-width: var(--admin-page-content-max);
     margin: 0;
     color: var(--text-primary);
+    container-name: analytics-dashboard;
+    container-type: inline-size;
 }
 
 .analytics-focused-journey {
@@ -848,10 +850,69 @@
     .analytics-journey-grid { grid-template-columns: 1fr; }
 }
 
-@media (max-width: 900px) {
+@container analytics-dashboard (max-width: 920px) {
+    .analytics-top-overview {
+        grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    }
+
+    .analytics-top-sources { border-right: 0; }
+
+    .analytics-monthly-summary {
+        display: grid;
+        grid-column: 1 / -1;
+        grid-template-columns: minmax(220px, 1.05fr) minmax(0, 1.45fr);
+        border-top: 1px solid var(--border-subtle);
+    }
+
+    .analytics-monthly-summary > .analytics-feature-heading { grid-column: 1 / -1; }
+
+    .analytics-monthly-primary {
+        min-height: 132px;
+        border-right: 1px solid var(--border-subtle);
+    }
+
+    .analytics-monthly-secondary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        border-top: 0;
+    }
+
+    .analytics-monthly-secondary > div {
+        min-height: 132px;
+        border-right: 1px solid var(--border-subtle);
+        border-bottom: 0;
+    }
+
+    .analytics-monthly-secondary > div:last-child { border-right: 0; }
+}
+
+@container analytics-dashboard (max-width: 680px) {
     .analytics-top-overview { grid-template-columns: 1fr; }
+
     .analytics-top-visitors,
-    .analytics-top-sources { border-right: 0; border-bottom: 1px solid var(--border-subtle); }
+    .analytics-top-sources {
+        border-right: 0;
+        border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .analytics-monthly-summary {
+        grid-column: auto;
+        border-top: 0;
+    }
+}
+
+@container analytics-dashboard (max-width: 520px) {
+    .analytics-monthly-summary { display: block; }
+    .analytics-monthly-primary { border-right: 0; }
+    .analytics-monthly-secondary {
+        grid-template-columns: 1fr;
+        border-top: 1px solid var(--border-subtle);
+    }
+    .analytics-monthly-secondary > div {
+        min-height: 90px;
+        border-right: 0;
+        border-bottom: 1px solid var(--border-subtle);
+    }
+    .analytics-monthly-secondary > div:last-child { border-bottom: 0; }
 }
 
 @media (max-width: 760px) {

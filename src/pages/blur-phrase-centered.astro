@@ -29,14 +29,9 @@ const panelImages = allImagesPool.filter((_, i) => i % imageStep === 0).slice(0,
 
 
 
-const pageTitle = "Abodid Sahoo | Creative Director, Artist & Researcher";
+const pageTitle = "Blur Phrase Centered | Abodid Sahoo";
 const pageDescription =
     "Abodid Sahoo helps people use stories to communicate, educate, and bring communities together through creative direction, art, research, films, exhibitions, and digital experiences.";
-
-const heroHeadingLines = [
-    ["Hi,", "I", "am", "Abodid."],
-    ["I", "love", "to", "work", "at", "the", "crossover", "of..."],
-];
 
 const heroTextEffect = "smooth-blur";
 ---
@@ -45,27 +40,21 @@ const heroTextEffect = "smooth-blur";
     title={pageTitle}
     description={pageDescription}
     useDynamicOgImage={false}
+    noindex={true}
     showNewsletterPopup={false}
     hideWhatsAppButton={true}
-    bodyClass="landing-page landing-redesign-page"
+    bodyClass="landing-page landing-redesign-page blur-phrase-centered-page"
     structuredData={[personJsonLd(), websiteJsonLd()]}
 >
     <section class="narrative-section" aria-labelledby="landing-copy-title">
-        <div class="hero-content">
-            <h1 id="landing-copy-title" class="hero-title" data-hero-copy>
-                {
-                    heroHeadingLines.map((line) => (
-                        <span class="hero-title-line" data-hero-word-line>
-                            {line.map((word) => (
-                                <span class="hero-word" data-hero-word>
-                                    {word}
-                                </span>
-                            ))}
-                        </span>
-                    ))
-                }
+        <div class="hero-content hero-content-centered">
+            <h1
+                id="landing-copy-title"
+                class="hero-title hero-title-centered"
+                data-hero-copy
+            >
                 <span
-                    class="hero-title-line hero-title-line-dynamic"
+                    class="hero-title-line hero-title-line-dynamic hero-title-line-dynamic-centered"
                     data-hero-dynamic-line
                 >
                     <span
@@ -299,7 +288,6 @@ const heroTextEffect = "smooth-blur";
 
     .hero-content {
         --hero-copy-stage-shift: 0px;
-        --hero-copy-top-offset: 110px;
         grid-area: hero-backdrop;
         align-self: start;
         position: relative;
@@ -307,7 +295,7 @@ const heroTextEffect = "smooth-blur";
         display: flex;
         flex-direction: column;
         gap: clamp(1.8rem, 3.8vh, 3.2rem);
-        margin-top: calc(clamp(16px, 2vh, 24px) + var(--hero-copy-top-offset));
+        margin-top: clamp(16px, 2vh, 24px);
         max-width: min(100%, 1040px);
         transform: translate3d(0, calc(var(--hero-copy-stage-shift) * -1), 0);
         transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
@@ -320,9 +308,9 @@ const heroTextEffect = "smooth-blur";
         gap: 0.06em;
         font-family: var(--feature-typewriter-main-font, var(--font-sans));
         font-size: clamp(
-            1.475rem,
-            0.725rem + 1.5vw,
-            2.375rem
+            2.95rem,
+            1.45rem + 3vw,
+            4.75rem
         );
         font-weight: 300;
         line-height: var(--feature-typewriter-main-line-height, 1.1);
@@ -450,7 +438,7 @@ const heroTextEffect = "smooth-blur";
             --feature-typewriter-text-font,
             var(--feature-typewriter-main-font, var(--font-sans))
         );
-        font-size: 2.36em;
+        font-size: 1.18em;
         font-weight: 300;
         line-height: var(--feature-typewriter-text-line-height, 1.1);
         letter-spacing: var(--feature-typewriter-text-letter-spacing, 0em);
@@ -571,9 +559,8 @@ const heroTextEffect = "smooth-blur";
         grid-template-columns: 520px 1fr;
         align-items: start;
         position: relative;
-        z-index: 101;
         max-width: 1100px;
-        margin: clamp(-470px, -35vw, -112px) auto 0;
+        margin: 0 auto;
         padding: 0 24px;
         gap: 0 48px;
     }
@@ -722,18 +709,14 @@ const heroTextEffect = "smooth-blur";
             --narrative-top-space: clamp(2.1rem, 5.5vh, 3.8rem);
         }
 
-        .copy-image-layout {
-            margin-top: clamp(-330px, -31vw, -96px);
-        }
-
         .hero-content {
             gap: 1.55rem;
-            margin-top: calc(clamp(12px, 1.7vh, 18px) + var(--hero-copy-top-offset));
+            margin-top: clamp(12px, 1.7vh, 18px);
             max-width: min(100%, 780px);
         }
 
         .hero-title {
-            font-size: clamp(1.125rem, 0.775rem + 1vw, 1.5rem);
+            font-size: clamp(2.25rem, 1.55rem + 2vw, 3rem);
         }
 
         .hero-lede {
@@ -755,7 +738,7 @@ const heroTextEffect = "smooth-blur";
         }
 
         .hero-title {
-            font-size: clamp(0.59rem, 3vw, 1rem) !important;
+            font-size: clamp(1.18rem, 6vw, 2rem) !important;
             line-height: 1.3 !important;
         }
 
@@ -771,7 +754,7 @@ const heroTextEffect = "smooth-blur";
             margin-top: 0.35rem;
             min-height: 1.45em;
             overflow: hidden;
-            font-size: 2em;
+            font-size: 1em;
             line-height: inherit;
             max-width: 100%;
             white-space: nowrap;
@@ -800,7 +783,6 @@ const heroTextEffect = "smooth-blur";
 
         .copy-image-layout {
             grid-template-columns: 1fr;
-            margin-top: 0;
             padding: 0 16px;
         }
 
@@ -829,6 +811,61 @@ const heroTextEffect = "smooth-blur";
             filter: none;
             transform: none;
         }
+    }
+
+    /* Blur Phrase Centered: the rest of this page remains a homepage duplicate. */
+    :global(body.blur-phrase-centered-page) {
+        padding-top: 0 !important;
+    }
+
+    .narrative-section {
+        min-height: 100vh;
+        min-height: 100svh;
+    }
+
+    .hero-content-centered {
+        position: absolute;
+        top: calc(50vh - var(--narrative-top-space));
+        top: calc(50svh - var(--narrative-top-space));
+        right: clamp(16px, 3vw, 24px);
+        left: clamp(16px, 3vw, 24px);
+        width: auto;
+        max-width: none;
+        margin-top: 0;
+        transform: translate3d(0, -50%, 0);
+    }
+
+    .hero-title-centered {
+        place-items: center;
+        font-size: clamp(0.5rem, 2.4vw, 2.5rem) !important;
+        line-height: 1.1 !important;
+        text-align: center;
+    }
+
+    .hero-title-line-dynamic-centered {
+        justify-content: center;
+        max-width: 100%;
+    }
+
+    #typewriter-text {
+        top: 0;
+        margin-top: 0;
+        font-size: 1em;
+        overflow: visible;
+    }
+
+    #typewriter-text[data-text-effect="smooth-blur"] {
+        align-items: center;
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+
+    #typewriter-text[data-text-effect="smooth-blur"]
+        :global(.smooth-blur-phrase) {
+        justify-self: center;
+        width: max-content;
+        max-width: 100%;
+        white-space: nowrap;
     }
 </style>
 

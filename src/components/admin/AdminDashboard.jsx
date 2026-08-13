@@ -90,6 +90,7 @@ const WORLD_CLOCKS = [
     { city: 'Dubai', timeZone: 'Asia/Dubai' },
     { city: 'Delhi', timeZone: 'Asia/Kolkata' },
     { city: 'Tokyo', timeZone: 'Asia/Tokyo' },
+    { city: 'Melbourne', timeZone: 'Australia/Melbourne', adaptive: true },
 ];
 
 const withTimeout = (promise, label, timeoutMs = REQUEST_TIMEOUT_MS) => {
@@ -881,6 +882,7 @@ export default function AdminDashboard() {
                     display: flex; flex-direction: column; justify-content: space-between; gap: 1.5rem;
                     border-radius: 13px; overflow: hidden; color: #22170f;
                 }
+                .world-clock-item.is-adaptive-clock { display: none; }
                 .world-clock-item.is-sunrise {
                     background: linear-gradient(145deg, #fff1d7 0%, #ffd7c8 52%, #f4c7df 100%);
                 }
@@ -1068,6 +1070,39 @@ export default function AdminDashboard() {
                     .world-clock-grid { padding: 0.7rem; }
                     .world-clock-item { padding: 1rem; }
                 }
+                @media (min-width: 1800px) {
+                    .world-clock-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+                    .world-clock-item.is-adaptive-clock { display: flex; }
+                }
+                @media (min-width: 1181px) and (max-width: 1540px) {
+                    .world-clock-grid { gap: 0.65rem; padding: 0.75rem; }
+                    .world-clock-item { padding: 0.8rem; gap: 0.75rem; }
+                    .world-clock-city { font-size: 0.88rem; }
+                    .world-clock-icon { width: 26px; height: 26px; flex-basis: 26px; }
+                    .world-clock-icon svg { width: 14px; height: 14px; }
+                    .world-clock-time { font-size: clamp(1.3rem, 2.25vw, 2.1rem); }
+                }
+                @media (max-width: 1180px) {
+                    .main-content.dashboard-main {
+                        height: auto; min-height: 100vh; overflow: visible; padding: 1.5rem;
+                    }
+                    .dashboard-main .content-body { height: auto; overflow: visible; }
+                    .overview-grid { height: auto; }
+                    .quick-actions-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
+                    .quick-action-card {
+                        min-height: 64px; padding: 1rem 1.1rem;
+                        display: flex; align-items: center;
+                        border-radius: 10px; transform: none;
+                    }
+                    .quick-action-card:hover { transform: none; }
+                    .quick-action-icon,
+                    .quick-action-card > svg { display: none; }
+                    .quick-action-copy strong {
+                        font-size: 0.98rem; font-weight: 620; line-height: 1.3;
+                    }
+                    .world-clock-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+                    .world-clock-item.is-adaptive-clock { display: flex; }
+                }
                 @media (max-width: 899px) {
                     :root { --sidebar-width: 72px; }
                     .sidebar {
@@ -1111,13 +1146,9 @@ export default function AdminDashboard() {
                     .btn-curator-link,
                     .btn-logout-sidebar { min-height: 42px; padding: 0.6rem; }
                     .main-content { padding: 1.5rem; }
-                    .main-content.dashboard-main { height: auto; min-height: 100vh; overflow: visible; padding: 1.5rem; }
-                    .dashboard-main .content-body { height: auto; }
                     .world-clock-section { grid-column: 1 / -1; }
                     .quick-actions-panel { grid-column: 1 / -1; }
                     .overview-grid { flex: none; }
-                    .quick-actions-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-                    .world-clock-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
                     .dashboard-launch-section { align-items: flex-start; }
                 }
                 @media (max-width: 899px) {
@@ -1128,14 +1159,20 @@ export default function AdminDashboard() {
                     .sidebar-footer { padding: 0.5rem; }
                     .main-content { padding: 1rem; }
                     .main-content.dashboard-main { padding: 1rem; }
+                }
+                @media (max-width: 640px) {
                     .quick-actions-grid { grid-template-columns: 1fr; }
                     .world-clock-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
                     .destination-actions { align-items: stretch; }
                     .destination-card { flex: 1 1 100%; min-height: 48px; }
                 }
                 @media (max-width: 560px) {
-                    .world-clock-grid { grid-template-columns: 1fr; }
-                    .world-clock-item { aspect-ratio: auto; min-height: 180px; }
+                    .world-clock-grid { gap: 0.65rem; padding: 0.75rem; }
+                    .world-clock-item { min-height: 0; aspect-ratio: 1 / 1; padding: 0.8rem; gap: 0.75rem; }
+                    .world-clock-city { font-size: 0.88rem; }
+                    .world-clock-icon { width: 26px; height: 26px; flex-basis: 26px; }
+                    .world-clock-icon svg { width: 14px; height: 14px; }
+                    .world-clock-time { font-size: clamp(1.3rem, 7vw, 1.8rem); }
                     .list-row-card { align-items: flex-start; gap: 1rem; padding: 1rem; }
                     .row-main-info { align-items: flex-start; flex-direction: column; gap: 0.6rem; }
                     .row-actions { margin-left: 0; }
@@ -1180,7 +1217,7 @@ function WorldClockPanel() {
                 <span>Live</span>
             </div>
             <div className="world-clock-grid">
-                {WORLD_CLOCKS.map(({ city, timeZone }) => {
+                {WORLD_CLOCKS.map(({ city, timeZone, adaptive = false }) => {
                     const time = new Intl.DateTimeFormat('en-GB', {
                         timeZone,
                         hour: '2-digit',
@@ -1202,7 +1239,7 @@ function WorldClockPanel() {
                     return (
                         <div
                             key={timeZone}
-                            className={`world-clock-item ${phase.className}`}
+                            className={`world-clock-item ${phase.className}${adaptive ? ' is-adaptive-clock' : ''}`}
                             aria-label={`${city}: ${time}, ${phase.label}`}
                         >
                             <div className="world-clock-top">
