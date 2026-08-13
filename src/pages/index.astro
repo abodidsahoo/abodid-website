@@ -1,17 +1,15 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { personJsonLd, websiteJsonLd } from "../lib/seoData";
-import { punctumImages } from "../data/punctumImages";
-import portfoliosData from "../data/photographyPortfolios.generated.json";
 import { listR2Folder, buildR2PublicUrl } from "../lib/media/r2.ts";
 
-let uk2026Images: Array<{ url: string; title: string; bg: string }> = [];
+let landingPageImages: Array<{ url: string; title: string; bg: string }> = [];
 try {
-    const { files: r2Files, config: r2Config } = await listR2Folder("variants/uk-2026/800/");
+    const { files: r2Files, config: r2Config } = await listR2Folder("variants/landing-page-01/800/");
     r2Files.sort((a, b) => a.objectKey.localeCompare(b.objectKey, undefined, { numeric: true, sensitivity: "base" }));
-    uk2026Images = r2Files.map((file, i) => {
+    landingPageImages = r2Files.map((file, i) => {
         const filename = file.objectKey.split("/").pop() || "";
-        const title = filename.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ") || `UK 2026 Photo ${i + 1}`;
+        const title = filename.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ") || `Landing page photo ${i + 1}`;
         return {
             url: buildR2PublicUrl(r2Config, file.objectKey),
             title,
@@ -19,55 +17,10 @@ try {
         };
     });
 } catch (e) {
-    console.warn("Could not load UK 2026 R2 images at build time:", e);
+    console.warn("Could not load landing-page-01 R2 images at build time:", e);
 }
 
-let myLifeImages: Array<{ url: string; title: string; bg: string }> = [];
-try {
-    const { files: r2Files, config: r2Config } = await listR2Folder("variants/my-life/800/");
-    r2Files.sort((a, b) => a.objectKey.localeCompare(b.objectKey, undefined, { numeric: true, sensitivity: "base" }));
-    myLifeImages = r2Files.map((file, i) => {
-        const filename = file.objectKey.split("/").pop() || "";
-        const title = filename.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ") || `My Life Photo ${i + 1}`;
-        return {
-            url: buildR2PublicUrl(r2Config, file.objectKey),
-            title,
-            bg: "#111418"
-        };
-    });
-} catch (e) {
-    console.warn("Could not load my-life R2 images at build time:", e);
-}
-
-let exhibitionR2Images: Array<{ url: string; title: string; bg: string }> = [];
-try {
-    const { files: r2Files, config: r2Config } = await listR2Folder("variants/exhibition-photos/800/");
-    exhibitionR2Images = r2Files.map((file, i) => {
-        const filename = file.objectKey.split("/").pop() || "";
-        const title = filename.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ") || `Exhibition Photo ${i + 1}`;
-        return {
-            url: buildR2PublicUrl(r2Config, file.objectKey),
-            title,
-            bg: "#111418"
-        };
-    });
-} catch (e) {
-    // Ignore if variants/exhibition-photos/800/ prefix is not found
-}
-
-const punctum = punctumImages.map(img => ({ url: img.url, title: img.title, bg: img.softBackground || "#111418" }));
-const portfolioCovers = (portfoliosData.stories as Array<{ title: string; coverImage: string }>)
-    .slice(0, 18)
-    .map(s => ({ url: s.coverImage, title: s.title, bg: '#1a1a1a' }));
-
-const exhibitionPool = exhibitionR2Images.length > 0 ? exhibitionR2Images : punctum;
-
-const allImagesPool = [
-    ...uk2026Images,
-    ...myLifeImages,
-    ...exhibitionPool,
-    ...portfolioCovers,
-];
+const allImagesPool = landingPageImages;
 
 // Sample images (~8 total) so each image gets generous scroll distance and ample breathing space
 const maxPanelImages = 8;
@@ -229,12 +182,26 @@ const heroTextEffect = "smooth-blur";
             activities we did there and the fun moments we had.
         </p>
 
-        <p>
+        <p class="obsidian-vault-copy">
             Curious about how I think? Ask my
             <a class="copy-link" href="/research/obsidian-vault">AI-powered
             Obsidian Vault</a> - a searchable space of my notes, ideas,
             questions and unfinished thoughts.
         </p>
+
+        <figure class="obsidian-vault-video">
+            <video
+                src="https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/video-clips/Obsidian_Timelapse.mp4"
+                autoplay
+                muted
+                loop
+                playsinline
+                preload="metadata"
+                aria-label="Timelapse preview of the AI-powered Obsidian Vault"
+            >
+                Your browser does not support embedded video.
+            </video>
+        </figure>
     </article>
 
     {/* ── Right: Sticky exhibition image panel ───────────────────── */}
@@ -902,6 +869,27 @@ const heroTextEffect = "smooth-blur";
         letter-spacing: 0em;
         content-visibility: auto;
         contain-intrinsic-size: auto 220px;
+    }
+
+    .landing-copy-body .obsidian-vault-copy {
+        margin-bottom: clamp(1rem, 2.5vh, 1.5rem);
+    }
+
+    .obsidian-vault-video {
+        width: 100%;
+        max-width: 520px;
+        aspect-ratio: 16 / 9;
+        margin: 0;
+        overflow: hidden;
+        border-radius: 12px;
+        background: #111418;
+    }
+
+    .obsidian-vault-video video {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
     }
 
     .copy-link {
