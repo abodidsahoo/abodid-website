@@ -85,6 +85,8 @@ const heroTextEffect = "smooth-blur";
         <figure class="landing-intro-video">
             <video
                 src="https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/video-clips/Obsidian_Timelapse.mp4"
+                width="1920"
+                height="1241"
                 autoplay
                 muted
                 loop
@@ -567,13 +569,18 @@ const heroTextEffect = "smooth-blur";
 
     /* ── Two-column copy + image layout ────────────────────────────── */
     .copy-image-layout {
+        --copy-layout-lower-offset: clamp(48px, 7vh, 72px);
         display: grid;
         grid-template-columns: 520px 1fr;
         align-items: start;
         position: relative;
         z-index: 101;
         max-width: 1100px;
-        margin: clamp(-470px, -35vw, -112px) auto 0;
+        margin: calc(
+                clamp(-470px, -35vw, -112px) +
+                    var(--copy-layout-lower-offset)
+            )
+            auto 0;
         padding: 0 24px;
         gap: 0 48px;
     }
@@ -723,7 +730,11 @@ const heroTextEffect = "smooth-blur";
         }
 
         .copy-image-layout {
-            margin-top: clamp(-330px, -31vw, -96px);
+            --copy-layout-lower-offset: clamp(36px, 6vh, 56px);
+            margin-top: calc(
+                clamp(-330px, -31vw, -96px) +
+                    var(--copy-layout-lower-offset)
+            );
         }
 
         .hero-content {
@@ -1263,6 +1274,8 @@ const heroTextEffect = "smooth-blur";
             const rect     = article.getBoundingClientRect();
             const articleH = article.offsetHeight;
             const viewH    = window.innerHeight;
+            const paragraphs = article.querySelectorAll("p");
+            const revealParagraph = paragraphs[1] || paragraphs[0];
 
             // Track scroll distance relative to article top
             const STICKY_TOP = 160;
@@ -1278,15 +1291,34 @@ const heroTextEffect = "smooth-blur";
             );
             showImage(targetIndex);
 
-            // Vanish the image panel smoothly before the last paragraph arrives (opacity 1 -> 0 between 0.76 and 0.88 progress)
-            if (rawProgress >= 0.76) {
-                const fadeOpacity = Math.max(0, (0.88 - rawProgress) / (0.88 - 0.76));
-                panel.style.opacity = fadeOpacity.toFixed(2);
-                panel.style.pointerEvents = fadeOpacity < 0.1 ? "none" : "auto";
-            } else {
-                panel.style.opacity = "1";
-                panel.style.pointerEvents = "auto";
+            // Keep the panel hidden initially, then reveal it gradually as the
+            // second paragraph travels from the lower viewport toward the
+            // middle. This makes the entrance scroll-driven, like the exit.
+            let revealOpacity = 1;
+            if (revealParagraph) {
+                const revealRect = revealParagraph.getBoundingClientRect();
+                const revealAnchor = revealRect.top + revealRect.height * 0.5;
+                const revealStartY = viewH * 0.72;
+                const revealEndY = viewH * 0.42;
+                revealOpacity = clampProgress(
+                    (revealStartY - revealAnchor) /
+                        Math.max(1, revealStartY - revealEndY),
+                );
             }
+
+            // Vanish the image panel smoothly before the last paragraph arrives
+            // (opacity 1 -> 0 between 0.76 and 0.88 progress).
+            let exitOpacity = 1;
+            if (rawProgress >= 0.76) {
+                exitOpacity = Math.max(
+                    0,
+                    (0.88 - rawProgress) / (0.88 - 0.76),
+                );
+            }
+
+            const panelOpacity = Math.min(revealOpacity, exitOpacity);
+            panel.style.opacity = panelOpacity.toFixed(3);
+            panel.style.pointerEvents = panelOpacity < 0.1 ? "none" : "auto";
         }
 
         /* ── JS-driven sticky using wrapper rect ───────────────────── */
@@ -1358,26 +1390,39 @@ const heroTextEffect = "smooth-blur";
             article.style.setProperty("-webkit-mask-image", mask);
         }
 
-        window.addEventListener("scroll", () => {
+        const syncPanelLayout = () => {
+            updatePanelPosition();
+            updateImageByScroll();
+            updateTextMask();
+        };
+
+        const requestPanelLayoutUpdate = () => {
             if (!ticking) {
                 requestAnimationFrame(() => {
-                    updatePanelPosition();
-                    updateImageByScroll();
-                    updateTextMask();
+                    syncPanelLayout();
                     ticking = false;
                 });
                 ticking = true;
             }
-        }, { passive: true });
+        };
 
-        window.addEventListener("resize", () => {
-            updatePanelPosition();
-            updateImageByScroll();
-            updateTextMask();
-        }, { passive: true });
+        window.addEventListener("scroll", requestPanelLayoutUpdate, { passive: true });
+        window.addEventListener("resize", requestPanelLayoutUpdate, { passive: true });
 
-        updatePanelPosition();
-        updateImageByScroll();
-        updateTextMask();
+        // Media and web fonts can change the hero's height without firing a
+        // window resize. Re-check the sticky state whenever the relevant
+        // layout boxes settle so the first paint cannot leave a stale fixed
+        // position behind.
+        const layoutObserver = new ResizeObserver(requestPanelLayoutUpdate);
+        const narrativeSection = document.querySelector(".narrative-section");
+        if (narrativeSection) layoutObserver.observe(narrativeSection);
+        layoutObserver.observe(wrapper);
+        if (layout) layoutObserver.observe(layout);
+
+        window.addEventListener("pagehide", () => layoutObserver.disconnect(), {
+            once: true,
+        });
+
+        syncPanelLayout();
     })();
 </script>
