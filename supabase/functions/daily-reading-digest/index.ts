@@ -54,6 +54,39 @@ type AiProvider = {
   fallbackModel: string;
 };
 
+class AiResponseParseError extends Error {
+  provider: AiProvider["name"];
+  responseId: string;
+  model: string;
+  rawText: string;
+
+  constructor({
+    provider,
+    responseId,
+    model,
+    rawText,
+    parseError,
+  }: {
+    provider: AiProvider["name"];
+    responseId: string;
+    model: string;
+    rawText: string;
+    parseError: unknown;
+  }) {
+    const snippet = rawText.slice(0, 300);
+    super(
+      `Failed to parse ${provider} JSON response (${
+        parseError instanceof Error ? parseError.message : String(parseError)
+      }). Raw text prefix: ${JSON.stringify(snippet)}`,
+    );
+    this.name = "AiResponseParseError";
+    this.provider = provider;
+    this.responseId = responseId;
+    this.model = model;
+    this.rawText = rawText;
+  }
+}
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-cron-secret",
@@ -469,22 +502,26 @@ Hard Search & Discovery Requirements:
   const rawText = provider.name === "openrouter"
     ? extractChatText(payload)
     : extractOpenAiText(payload);
+  const responseId = typeof payload.id === "string"
+    ? payload.id
+    : aiResponse.headers.get("x-generation-id") ?? "";
   const cleanedText = cleanJsonText(rawText);
   let parsed: unknown;
   try {
     parsed = JSON.parse(cleanedText);
   } catch (error) {
-    const snippet = rawText.slice(0, 300);
-    throw new Error(
-      `Failed to parse ${provider.name} JSON response (${
-        error instanceof Error ? error.message : String(error)
-      }). Raw text prefix: ${JSON.stringify(snippet)}`,
-    );
+    throw new AiResponseParseError({
+      provider: provider.name,
+      responseId,
+      model,
+      rawText,
+      parseError: error,
+    });
   }
   const candidates = normalizeCandidates(parsed);
   return {
     candidates,
-    responseId: typeof payload.id === "string" ? payload.id : "",
+    responseId,
     model,
     metadata: provider.name === "openrouter"
       ? extractChatMetadata(payload)
@@ -677,12 +714,28 @@ const markRunFailed = async (
   error: unknown,
 ) => {
   const message = error instanceof Error ? error.message : String(error);
+  const parseFailure = error instanceof AiResponseParseError
+    ? {
+      openai_response_ids: error.responseId ? [error.responseId] : [],
+      metadata: {
+        failure_type: "ai_response_parse",
+        ai_provider: error.provider,
+        ai_model: error.model,
+        ai_response_id: error.responseId,
+        raw_ai_response: error.rawText.replaceAll("\u0000", "�").slice(
+          0,
+          100_000,
+        ),
+      },
+    }
+    : {};
   await database
     .from("reading_digest_runs")
     .update({
       status: "failed",
       finished_at: new Date().toISOString(),
       error_message: message.slice(0, 2_000),
+      ...parseFailure,
     })
     .eq("id", runId);
 };

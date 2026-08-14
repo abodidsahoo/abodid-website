@@ -43,6 +43,55 @@ export const discoveryTooling = (provider: "openai" | "openrouter") =>
       max_tool_calls: 24,
     };
 
+const escapeControlCharactersInJsonStrings = (value: string): string => {
+  let result = "";
+  let insideString = false;
+  let escaped = false;
+
+  for (const character of value) {
+    if (!insideString) {
+      result += character;
+      if (character === '"') insideString = true;
+      continue;
+    }
+
+    if (character === '"' && !escaped) {
+      insideString = false;
+      result += character;
+      continue;
+    }
+
+    if (character === "\\" && !escaped) {
+      escaped = true;
+      result += character;
+      continue;
+    }
+
+    const codePoint = character.codePointAt(0) ?? 0;
+    if (codePoint <= 0x1f) {
+      const escape = character === "\b"
+        ? "b"
+        : character === "\t"
+        ? "t"
+        : character === "\n"
+        ? "n"
+        : character === "\f"
+        ? "f"
+        : character === "\r"
+        ? "r"
+        : `u${codePoint.toString(16).padStart(4, "0")}`;
+      result += escaped ? escape : `\\${escape}`;
+      escaped = false;
+      continue;
+    }
+
+    result += character;
+    escaped = false;
+  }
+
+  return result;
+};
+
 export const cleanJsonText = (raw: string): string => {
   if (!raw) return "";
   let text = raw.trim();
@@ -59,6 +108,11 @@ export const cleanJsonText = (raw: string): string => {
   if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
     text = text.slice(firstBrace, lastBrace + 1);
   }
+
+  // Models occasionally emit literal newlines, tabs, or other control
+  // characters inside quoted values. JSON requires those characters to be
+  // escaped, so repair only string contents while preserving valid whitespace.
+  text = escapeControlCharactersInJsonStrings(text);
 
   // Remove single line comments and block comments
   text = text.replace(/\/\*[\s\S]*?\*\/|([^\\:]|^)\/\/.*$/gm, "$1");
@@ -78,6 +132,7 @@ export const normalizeCandidates = (parsed: unknown): DigestCandidate[] => {
   } else {
     const obj = parsed as Record<string, unknown>;
     if (Array.isArray(obj.candidates)) rawList = obj.candidates;
+    else if (Array.isArray(obj.results)) rawList = obj.results;
     else if (Array.isArray(obj.sources)) rawList = obj.sources;
     else if (Array.isArray(obj.articles)) rawList = obj.articles;
     else if (Array.isArray(obj.items)) rawList = obj.items;

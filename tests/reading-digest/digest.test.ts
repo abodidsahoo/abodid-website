@@ -164,9 +164,44 @@ describe("cleanJsonText helper", () => {
     expect(candidates[0].title).toBe("Test Title");
     expect(candidates[0].url).toBe("https://example.com");
   });
+
+  it("escapes literal control characters inside JSON strings", () => {
+    const raw = `\`\`\`json
+{
+  "results": [{
+    "title": "Creative technology across\tdisciplines",
+    "url": "https://example.com/creative-technology",
+    "why_it_matters": "Connects creative technology
+to personal expression."
+  }]
+}
+\`\`\``;
+    const parsed = JSON.parse(cleanJsonText(raw));
+    const candidates = normalizeCandidates(parsed);
+
+    expect(candidates).toHaveLength(1);
+    expect(candidates[0].title).toBe("Creative technology across\tdisciplines");
+    expect(candidates[0].why_it_matters).toBe(
+      "Connects creative technology to personal expression.",
+    );
+  });
 });
 
 describe("normalizeCandidates helper", () => {
+  it("normalizes OpenRouter responses with a 'results' root key", () => {
+    const candidates = normalizeCandidates({
+      results: [{
+        title: "Creative Technology and Emotional Storytelling",
+        url: "https://example.com/creative-technology",
+      }],
+    });
+
+    expect(candidates).toHaveLength(1);
+    expect(candidates[0].title).toBe(
+      "Creative Technology and Emotional Storytelling",
+    );
+  });
+
   it("normalizes objects with 'sources' root key and alternative field names", () => {
     const parsed = {
       sources: [
