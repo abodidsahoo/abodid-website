@@ -1,0 +1,218 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const title = "Manifesto — Abodid Sahoo";
+const description = "Abodid Sahoo's manifesto on storytelling, creative direction, research, film, art and education.";
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  fullWidth={true}
+  hideFooter={true}
+  hideWhatsAppButton={true}
+  showNewsletterPopup={false}
+  showGlobalGrid={false}
+  showCursorFollower={false}
+  navigationVariant="next"
+  bodyClass="manifesto-page"
+>
+  <main class="manifesto-shell">
+    <article class="manifesto-card">
+      <header class="manifesto-heading">
+        <p><span aria-hidden="true"></span> manifesto.txt</p>
+        <h1>Manifesto</h1>
+      </header>
+
+      <div class="manifesto-copy">
+        <p class="manifesto-lede">I help people use stories to communicate, educate and bring communities together.</p>
+
+        <p>As a creative director, artist, and researcher, I enjoy pushing the boundaries of storytelling, turning it into memorable, participatory “experiences” that spark conversations and help build deeper connections.</p>
+
+        <p>From art installations and exhibitions to films and digital experiences, I create research-driven work that is intuitive and accessible. As a creative consultant, I work with <a href="/services">exhibition design teams</a>, design studios, and corporate clients, leading the creative direction and early-stage concept ideation for research-driven storytelling products of the future.</p>
+
+        <p>Sometimes I work as a <a href="/services">super connector</a>, mapping a brand’s complex ecosystem and emerging ideas with brilliant creative minds across the globe.</p>
+
+        <p>I also write extremely raw memoirs on my lived experiences to help emerging creatives navigate the creative ecosystem more effectively and with confidence. I also <a href="/blog">speak about culture, art, and technology</a> at international conferences, events, and panel discussions, inspiring audiences to see storytelling differently and to explore a more human-centred, medium-agnostic approach.</p>
+
+        <p>Additionally, I lead hands-on <a href="/workshops">filmmaking workshops</a> focused on ethics, documentation, and research. I give students situations to think about and text prompts to craft their own narratives.</p>
+
+        <p>I have worked with the <a href="/education">Royal College of Art London</a> (world’s No.1 Art and Design college - QS ranking), to design, build and document globally renowned year-end graduate shows and art exhibitions happening across campus in central London, and highly sought-after immersive venues like <a href="/photography/outernet-london-2025">Outernet</a>, <a href="/photography/frameless-london-rca-exhibition">Frameless</a>, and <a href="/photography/british-film-institute-london">British Film Institute</a>.</p>
+
+        <p>I have worked with international organisations, agencies and design studios such as Wieden+Kennedy, Pursuit of Portraits, Hermosa Design Studio and Odisha Tourism to create <a href="/films">brand films, commercials, and social media content</a>.</p>
+
+        <p>My work has been featured on RCA’s official pages. My <a href="/films">music video</a> was broadcast on VH1. I have had multiple <a href="/press">media mentions</a> in Homegrown, The Indian Express, Rolling Stone India, and others.</p>
+
+        <p>I’m a recipient of the Apple Scholarship, which covered my entire tuition fees at the Royal College of Art in London. Here’s a <a href="/blog/how-apple-funded-my-dream-at-rca">long-form article</a> I wrote that dives deep into the international education ecosystem and scholarships to help students navigate higher studies at Tier 1 international institutions.</p>
+
+        <p>I recently received a full bursary for attending the <a href="/uk2026">Cultural Heritage Data School at the University of Cambridge</a> (UOC), organised by the Cambridge Digital Humanities (CDH). This is a long-form memoir of the entire experience, from the application process and fundraising to all the activities we did there and the fun moments we had.</p>
+
+        <p>Curious about how I think? Ask my <a href="/research/obsidian-vault">AI-powered Obsidian Vault</a> - a searchable space of my notes, ideas, questions and unfinished thoughts.</p>
+      </div>
+
+      <footer class="manifesto-card__footer">
+        <a href="/home-next">Back to the studio <span aria-hidden="true">←</span></a>
+      </footer>
+    </article>
+  </main>
+</BaseLayout>
+
+<style is:global>
+  body.manifesto-page {
+    --manifesto-purple: #6657d8;
+    --manifesto-pink: #ff7eb5;
+    --manifesto-yellow: #ffe44f;
+    --manifesto-cream: #fff8e8;
+    --manifesto-ink: #15130f;
+    background: var(--manifesto-purple);
+    color: var(--manifesto-ink);
+  }
+
+  html:has(body.manifesto-page) {
+    background: var(--manifesto-purple);
+  }
+
+  body.manifesto-page .next-nav__bar {
+    border: 0;
+    background: var(--manifesto-purple);
+    color: var(--manifesto-cream);
+    backdrop-filter: none;
+  }
+
+  body.manifesto-page .next-nav__desktop a {
+    color: var(--manifesto-cream);
+  }
+
+  body.manifesto-page .next-nav__home {
+    min-height: 48px;
+    padding-inline: 1rem;
+    border: 1px solid rgba(21, 19, 15, 0.18);
+    border-radius: 15px;
+    background: var(--manifesto-yellow);
+    color: var(--manifesto-ink);
+  }
+
+  body.manifesto-page .next-nav__menu-button {
+    border-color: var(--manifesto-ink);
+    background: var(--manifesto-yellow);
+    color: var(--manifesto-ink);
+  }
+
+  body.manifesto-page .next-nav__hire {
+    border-color: var(--manifesto-ink);
+    background: var(--manifesto-pink);
+    color: var(--manifesto-ink);
+  }
+
+  @media (max-width: 760px) {
+    body.manifesto-page .next-nav__home {
+      min-height: 46px;
+      padding-inline: 0.8rem;
+    }
+  }
+</style>
+
+<style>
+  .manifesto-shell {
+    min-height: calc(100svh - var(--next-nav-height, 72px));
+    padding: clamp(1rem, 4vw, 4rem);
+    display: grid;
+    place-items: start center;
+    background: var(--manifesto-purple);
+  }
+
+  .manifesto-card {
+    width: min(100%, 760px);
+    overflow: hidden;
+    border: 1px solid var(--manifesto-ink);
+    border-radius: clamp(20px, 3vw, 34px);
+    background: var(--manifesto-cream);
+    box-shadow: 0 10px 0 rgba(21, 19, 15, 0.2);
+  }
+
+  .manifesto-heading {
+    padding: clamp(1.4rem, 4vw, 3.5rem);
+    border-bottom: 1px solid var(--manifesto-ink);
+    background: var(--manifesto-pink);
+  }
+
+  .manifesto-heading > p {
+    margin: 0 0 clamp(2.5rem, 7vw, 5.5rem);
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    color: var(--manifesto-ink);
+    font: 700 0.72rem/1 var(--font-ui, sans-serif);
+  }
+
+  .manifesto-heading > p span {
+    width: 10px;
+    aspect-ratio: 1;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+    background: var(--manifesto-yellow);
+  }
+
+  .manifesto-heading h1 {
+    margin: 0;
+    color: var(--manifesto-ink);
+    font: 720 clamp(3.5rem, 10vw, 7rem)/0.88 var(--font-display, sans-serif);
+    letter-spacing: -0.07em;
+  }
+
+  .manifesto-copy {
+    padding: clamp(1.5rem, 5vw, 4.25rem);
+  }
+
+  .manifesto-copy p {
+    margin: 0 0 1.45em;
+    color: var(--manifesto-ink);
+    font: 450 clamp(1.08rem, 2vw, 1.32rem)/1.58 var(--font-display, sans-serif);
+    letter-spacing: -0.012em;
+  }
+
+  .manifesto-copy .manifesto-lede {
+    margin-bottom: 1.8em;
+    font-size: clamp(1.7rem, 4vw, 2.8rem);
+    font-weight: 560;
+    line-height: 1.12;
+    letter-spacing: -0.04em;
+  }
+
+  .manifesto-copy a {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-color: #6657d8;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.18em;
+  }
+
+  .manifesto-card__footer {
+    padding: 1rem clamp(1.5rem, 5vw, 4.25rem) clamp(1.5rem, 5vw, 3rem);
+  }
+
+  .manifesto-card__footer a {
+    min-height: 48px;
+    padding: 0 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 2rem;
+    border: 1px solid var(--manifesto-ink);
+    border-radius: 14px;
+    background: var(--manifesto-yellow);
+    color: var(--manifesto-ink);
+    font: 700 0.8rem/1 var(--font-ui, sans-serif);
+    text-decoration: none;
+  }
+
+  @media (max-width: 620px) {
+    .manifesto-shell {
+      padding: 8px;
+    }
+
+    .manifesto-card {
+      border-radius: 20px;
+      box-shadow: 0 5px 0 rgba(21, 19, 15, 0.2);
+    }
+  }
+</style>

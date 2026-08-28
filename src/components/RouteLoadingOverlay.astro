@@ -13,6 +13,10 @@
 
 <script is:inline>
   (() => {
+    window.__abodidRouteLoadingAbort?.abort();
+    const listenerController = new AbortController();
+    window.__abodidRouteLoadingAbort = listenerController;
+    const listenerSignal = listenerController.signal;
     const overlay = document.querySelector("[data-route-loading-overlay]");
     const fallbackBar = overlay?.querySelector("[data-route-loading-fallback-bar]");
     let resetTimer = 0;
@@ -101,6 +105,7 @@
       window.cancelAnimationFrame(animationFrame);
       animationFrame = 0;
       document.documentElement.removeAttribute("data-route-loading");
+      document.documentElement.removeAttribute("aria-busy");
       overlay.setAttribute("aria-hidden", "true");
 
       if (activeBar) {
@@ -143,6 +148,7 @@
       if (document.documentElement.getAttribute("data-route-loading") === "true") return;
 
       document.documentElement.setAttribute("data-route-loading", "true");
+      document.documentElement.setAttribute("aria-busy", "true");
       overlay.setAttribute("aria-hidden", "false");
       startProgressAnimation();
 
@@ -155,7 +161,7 @@
       (event) => {
         if (getEligibleLink(event)) show();
       },
-      { capture: true },
+      { capture: true, signal: listenerSignal },
     );
 
     document.addEventListener(
@@ -163,11 +169,14 @@
       (event) => {
         if (getEligibleLink(event)) show();
       },
-      { capture: true },
+      { capture: true, signal: listenerSignal },
     );
 
-    document.addEventListener("pointercancel", reset, { capture: true });
-    window.addEventListener("pageshow", reset);
+    document.addEventListener("astro:before-preparation", show, { signal: listenerSignal });
+    document.addEventListener("astro:after-swap", reset, { signal: listenerSignal });
+    document.addEventListener("astro:page-load", reset, { signal: listenerSignal });
+    document.addEventListener("pointercancel", reset, { capture: true, signal: listenerSignal });
+    window.addEventListener("pageshow", reset, { signal: listenerSignal });
   })();
 </script>
 
@@ -231,6 +240,38 @@
 
   body[data-navigation-layout="top-bar"] .route-loading-fallback-track {
     display: none;
+  }
+
+  body[data-navigation-variant="next"] .route-loading-overlay {
+    background: transparent;
+  }
+
+  body[data-navigation-variant="next"] .route-loading-fallback-track {
+    top: calc(var(--next-nav-height, 72px) - 4px);
+    height: 4px;
+    display: block;
+    background: rgba(21, 19, 15, 0.14);
+  }
+
+  body[data-navigation-variant="next"] .route-loading-fallback-track span {
+    background: #caff48;
+  }
+
+  body[data-navigation-variant="next"] .route-loading-status {
+    position: absolute;
+    inset: calc(var(--next-nav-height, 72px) + 10px) 10px auto auto;
+    width: auto;
+    height: auto;
+    margin: 0;
+    padding: 0.65rem 0.8rem;
+    overflow: visible;
+    clip: auto;
+    border: 1px solid #15130f;
+    border-radius: 999px;
+    background: #ffe44f;
+    color: #15130f;
+    box-shadow: 0 3px 0 rgba(21, 19, 15, 0.16);
+    font: 700 0.68rem/1 var(--font-ui, sans-serif);
   }
 
   .top-menu-scroll-bar {

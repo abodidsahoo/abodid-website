@@ -3,24 +3,40 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
 
 const experiments = [
     {
-        title: "Invisible Punctums",
-        tech: "AI / Human Data",
-        type: "Research Study",
+        title: "Invisible Punctum",
+        tech: "AI / Image Perception",
+        type: "Participatory Experiment",
         year: "2026",
-        href: "/research/invisible-punctum",
-        status: "Archived",
+        href: "/research/punctum",
+        status: "Live",
     },
     {
-        title: "Obsidian Garden",
-        tech: "Markdown / Graph",
-        type: "Knowledge System",
+        title: "Hand Gesture Control",
+        tech: "Hand Tracking / Browser",
+        type: "Interaction Prototype",
+        year: "2026",
+        href: "/research/gesture-image-preview",
+        status: "Prototype",
+    },
+    {
+        title: "Obsidian Vault",
+        tech: "Markdown / AI Retrieval",
+        type: "Knowledge Microsite",
         year: "2025",
         href: "/research/obsidian-vault",
-        status: "Live Sync",
+        status: "Live",
+    },
+    {
+        title: "Polaroid Hub",
+        tech: "Photography / Interaction",
+        type: "Archive Experiment",
+        year: "2026",
+        href: "/research/polaroid-hub",
+        status: "Prototype",
     },
 ];
 
-const pageTitle = "The Lab";
+const pageTitle = "Research Lab";
 ---
 
 <BaseLayout title={pageTitle}>
@@ -29,7 +45,7 @@ const pageTitle = "The Lab";
             <div class="breadcrumb">
                 <a href="/research">Research</a> / Lab
             </div>
-            <h1>Creative Tech Experiments</h1>
+            <h1>Microsites and Interactive Experiences</h1>
         </header>
 
         <div class="table-container">

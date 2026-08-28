@@ -1,0 +1,15 @@
+---
+const snapshots = {
+  "text-led-portfolio": "/july-backup",
+  "visual-work-grid": "/landing-grid-test",
+};
+
+const slug = Astro.params.slug || "";
+const snapshotPath = snapshots[slug];
+
+if (!snapshotPath) {
+  return new Response("Homepage archive version not found", { status: 404 });
+}
+
+return Astro.rewrite(snapshotPath);
+---

@@ -54,6 +54,11 @@ const pageTitle =
             </aside>
 
             <section class="content-section">
+                <p class="project-wip-note">
+                    Work in progress — Abodid is currently adding the selected
+                    images, research paper and project material to this page.
+                </p>
+
                 <h2>The Idea</h2>
                 <p>
                     This project decodes my minute emotional gestures around the
@@ -167,6 +172,13 @@ const pageTitle =
 
     .content-section {
         margin-bottom: 3rem;
+    }
+
+    .project-wip-note {
+        padding: 1rem 1.1rem;
+        border-left: 3px solid var(--color-brand-red);
+        background: color-mix(in srgb, var(--color-brand-red) 8%, transparent);
+        color: var(--text-primary);
     }
 
     h2 {

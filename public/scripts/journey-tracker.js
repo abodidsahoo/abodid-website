@@ -562,9 +562,17 @@
     });
   }
 
-  ["pointerdown", "keydown", "scroll", "touchstart"].forEach(function (eventName) {
+  ["pointerdown", "keydown", "touchstart"].forEach(function (eventName) {
     window.addEventListener(eventName, recordInteraction, { passive: true });
   });
+
+  var lastScrollInteractionAt = 0;
+  window.addEventListener("scroll", function () {
+    var now = performance.now();
+    if (now - lastScrollInteractionAt < 750) return;
+    lastScrollInteractionAt = now;
+    recordInteraction();
+  }, { passive: true });
 
   window.addEventListener("focus", function () {
     focused = true;

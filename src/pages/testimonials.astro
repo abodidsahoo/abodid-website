@@ -1,97 +1,453 @@
 ---
+export const prerender = false;
+
 import BaseLayout from "../layouts/BaseLayout.astro";
-import TestimonialsField from "../components/TestimonialsField";
 import { supabase } from "../lib/supabase";
 
-// Fetch testimonials from Supabase
 let testimonials = [];
 let error = null;
 
 try {
-    const { data, error: supabaseError } = await supabase
-        .from("testimonials")
-        .select("*")
-        .eq("is_approved", true)
-        .order("created_at", { ascending: false });
+  const { data, error: supabaseError } = await supabase
+    .from("testimonials")
+    .select("*")
+    .eq("is_approved", true)
+    .order("created_at", { ascending: false });
 
-    if (supabaseError) {
-        console.error("Supabase error fetching testimonials:", supabaseError);
-        error = supabaseError.message;
-    } else {
-        testimonials = data || [];
-    }
-} catch (e) {
-    console.error("Unexpected error fetching testimonials:", e);
-    error = e.message;
+  if (supabaseError) {
+    console.error("Supabase error fetching testimonials:", supabaseError);
+    error = supabaseError.message;
+  } else {
+    const placeholderNames = new Set([
+      "sarah jenkins",
+      "michael chen",
+      "emily davis",
+      "david kim",
+      "jessica lee",
+    ]);
+
+    testimonials = (data || []).filter((testimonial) => {
+      const name = String(testimonial?.name || "").trim().toLowerCase();
+      const company = String(testimonial?.company || "").trim().toLowerCase();
+      const content = String(testimonial?.content || "").trim();
+      return content && !placeholderNames.has(name) && company !== "techflow";
+    });
+  }
+} catch (caughtError) {
+  console.error("Unexpected error fetching testimonials:", caughtError);
+  error = caughtError instanceof Error ? caughtError.message : "Testimonials could not be loaded.";
 }
 
-const title = "Testimonials | Abodid Sahoo";
-const description = "What people say about working with Abodid Sahoo.";
+const title = "Testimonials — Abodid Sahoo";
+const description = "Notes from people who have worked, made and collaborated with Abodid Sahoo.";
 ---
 
-<BaseLayout title={title} description={description} fullWidth={true}>
-    {/* Page Header (Constrained Width) */}
-    <div class="page-container">
-        <header class="page-header">
-            <h1>Testimonials</h1>
-            <p class="section-intro">
-                What people say about working with Abodid Sahoo.
-            </p>
-        </header>
-    </div>
+<BaseLayout
+  title={title}
+  description={description}
+  fullWidth={true}
+  hideFooter={true}
+  hideWhatsAppButton={true}
+  showNewsletterPopup={false}
+  showGlobalGrid={false}
+  showCursorFollower={false}
+  navigationVariant="next"
+  bodyClass="testimonials-v2-page"
+>
+  <main class="testimonials-v2-shell">
+    <article class="testimonials-v2-file">
+      <header class="testimonials-v2-heading">
+        <p class="testimonials-v2-file-label">
+          <span aria-hidden="true"></span> testimonials.archive
+        </p>
+        <div>
+          <h1>What people have said.</h1>
+          <p>Notes from people I have made, taught and collaborated with.</p>
+        </div>
+      </header>
 
-    {/* Full Width Interactive Field */}
-    <main class="min-h-screen">
+      <section class="testimonials-v2-board" aria-labelledby="testimonial-notes-heading">
+        <header class="testimonials-v2-board__bar">
+          <p id="testimonial-notes-heading"><span aria-hidden="true"></span> client_notes.db</p>
+          <p>{testimonials.length} {testimonials.length === 1 ? "note" : "notes"} · approved and archived</p>
+        </header>
+
         {
-            error && (
-                <div class="fixed top-24 left-1/2 -translate-x-1/2 z-50 p-4 border border-red-500 bg-red-100 text-red-700 rounded-lg">
-                    Error loading testimonials: {error}
-                </div>
-            )
+          error ? (
+            <div class="testimonials-v2-state" role="status">
+              <strong>The archive is temporarily unavailable.</strong>
+              <p>{error}</p>
+            </div>
+          ) : testimonials.length > 0 ? (
+            <div class="testimonials-v2-grid">
+              {testimonials.map((testimonial, index) => {
+                const detail = [testimonial.role, testimonial.company].filter(Boolean).join(" · ");
+                const paragraphs = String(testimonial.content || "").split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
+                return (
+                  <article class="testimonial-note">
+                    <header class="testimonial-note__bar">
+                      <span>{String(index + 1).padStart(2, "0")}</span>
+                      <span>field note</span>
+                    </header>
+                    <blockquote>
+                      {paragraphs.map((paragraph, pIdx) => (
+                        <p>
+                          {pIdx === 0 ? "“" : ""}{paragraph}{pIdx === paragraphs.length - 1 ? "”" : ""}
+                        </p>
+                      ))}
+                    </blockquote>
+                    <footer>
+                      <strong>{testimonial.name || "Anonymous"}</strong>
+                      {detail && <span>{detail}</span>}
+                    </footer>
+                  </article>
+                );
+              })}
+            </div>
+          ) : (
+            <div class="testimonials-v2-state">
+              <strong>The archive is being arranged.</strong>
+              <p>Please return shortly.</p>
+            </div>
+          )
         }
 
-        <TestimonialsField client:load testimonials={testimonials} />
-    </main>
+        <footer class="testimonials-v2-footer">
+          <div>
+            <p>Have something interesting in mind?</p>
+            <h2>Let’s make something worth talking about.</h2>
+          </div>
+          <nav aria-label="Testimonial page actions">
+            <a href="/home-next#enquiry">Start a conversation <span aria-hidden="true">↗</span></a>
+            <a href="/home-next">Back to studio <span aria-hidden="true">←</span></a>
+          </nav>
+        </footer>
+      </section>
+    </article>
+  </main>
 </BaseLayout>
 
+<style is:global>
+  body.testimonials-v2-page {
+    --testimonials-purple: #6657d8;
+    --testimonials-pink: #ff7eb5;
+    --testimonials-yellow: #ffe44f;
+    --testimonials-cream: #fff8e8;
+    --testimonials-ink: #15130f;
+    background: var(--testimonials-purple);
+    color: var(--testimonials-ink);
+  }
+
+  html:has(body.testimonials-v2-page) {
+    background: var(--testimonials-purple);
+  }
+
+  body.testimonials-v2-page .next-nav__bar {
+    border: 0;
+    background: var(--testimonials-purple);
+    color: var(--testimonials-cream);
+    backdrop-filter: none;
+  }
+
+  body.testimonials-v2-page .next-nav__desktop a {
+    color: var(--testimonials-cream);
+  }
+
+  body.testimonials-v2-page .next-nav__home,
+  body.testimonials-v2-page .next-nav__menu-button {
+    border-color: var(--testimonials-ink);
+    background: var(--testimonials-yellow);
+    color: var(--testimonials-ink);
+  }
+
+  body.testimonials-v2-page .next-nav__home {
+    min-height: 48px;
+    padding-inline: 1rem;
+    border: 1px solid rgba(21, 19, 15, 0.18);
+    border-radius: 15px;
+  }
+
+  body.testimonials-v2-page .next-nav__hire {
+    border-color: var(--testimonials-ink);
+    background: var(--testimonials-pink);
+    color: var(--testimonials-ink);
+  }
+</style>
+
 <style>
-    .page-container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding-left: 2rem;
-        padding-right: 2rem;
-        padding-top: 2rem; /* Added top padding inside container */
+  .testimonials-v2-shell {
+    min-height: calc(100svh - var(--next-nav-height, 72px));
+    padding: clamp(10px, 2.5vw, 2.5rem);
+    background: var(--testimonials-purple);
+  }
+
+  .testimonials-v2-file {
+    width: min(100%, 1500px);
+    margin-inline: auto;
+    overflow: hidden;
+    border: 1px solid var(--testimonials-ink);
+    border-radius: clamp(20px, 3vw, 34px);
+    background: var(--testimonials-cream);
+    box-shadow: 0 10px 0 rgba(21, 19, 15, 0.2);
+  }
+
+  .testimonials-v2-heading {
+    padding: clamp(1.4rem, 4vw, 3.5rem);
+    border-bottom: 1px solid var(--testimonials-ink);
+    background: var(--testimonials-pink);
+  }
+
+  .testimonials-v2-file-label,
+  .testimonials-v2-board__bar p,
+  .testimonial-note__bar {
+    margin: 0;
+    color: var(--testimonials-ink);
+    font: 700 0.72rem/1 var(--font-ui, sans-serif);
+  }
+
+  .testimonials-v2-file-label,
+  .testimonials-v2-board__bar p:first-child {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+  }
+
+  .testimonials-v2-file-label {
+    margin-bottom: clamp(2.5rem, 7vw, 5.5rem);
+  }
+
+  .testimonials-v2-file-label > span,
+  .testimonials-v2-board__bar p:first-child > span {
+    width: 10px;
+    aspect-ratio: 1;
+    flex: 0 0 auto;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+    background: var(--testimonials-yellow);
+  }
+
+  .testimonials-v2-heading > div {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(260px, 0.65fr);
+    gap: clamp(2rem, 6vw, 7rem);
+    align-items: end;
+  }
+
+  .testimonials-v2-heading h1 {
+    max-width: 9ch;
+    margin: 0;
+    color: var(--testimonials-ink);
+    font: 720 clamp(3.7rem, 9vw, 8.5rem)/0.84 var(--font-display, sans-serif);
+    letter-spacing: -0.075em;
+  }
+
+  .testimonials-v2-heading > div > p {
+    max-width: 30rem;
+    margin: 0;
+    color: var(--testimonials-ink);
+    font: 500 clamp(1.15rem, 2vw, 1.65rem)/1.32 var(--font-display, sans-serif);
+    letter-spacing: -0.025em;
+  }
+
+  .testimonials-v2-board {
+    padding: clamp(12px, 2vw, 24px);
+    background: var(--testimonials-cream);
+  }
+
+  .testimonials-v2-board__bar {
+    min-height: 54px;
+    margin-bottom: clamp(12px, 1.25vw, 18px);
+    padding: 0 clamp(0.65rem, 1.5vw, 1rem);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border: 1px solid var(--testimonials-ink);
+    border-radius: 15px;
+    background: var(--testimonials-yellow);
+  }
+
+  .testimonials-v2-board__bar p:last-child {
+    opacity: 0.72;
+    text-align: right;
+  }
+
+  .testimonials-v2-grid {
+    columns: 2 460px;
+    column-gap: clamp(12px, 1.4vw, 20px);
+  }
+
+  .testimonial-note {
+    width: 100%;
+    margin: 0 0 clamp(12px, 1.4vw, 20px);
+    break-inside: avoid;
+    box-sizing: border-box;
+    padding: clamp(1.25rem, 2.5vw, 2.25rem);
+    display: inline-flex;
+    flex-direction: column;
+    border: 1px solid var(--testimonials-ink);
+    border-radius: clamp(16px, 2vw, 24px);
+    background: var(--testimonials-cream);
+    color: var(--testimonials-ink);
+    box-shadow: 0 6px 0 rgba(21, 19, 15, 0.16);
+    transition: transform 160ms ease, box-shadow 160ms ease;
+  }
+
+  .testimonial-note:nth-child(4n + 1) { background: var(--testimonials-pink); }
+  .testimonial-note:nth-child(4n + 2) { background: var(--testimonials-yellow); }
+  .testimonial-note:nth-child(4n + 3) { background: var(--testimonials-cream); }
+  .testimonial-note:nth-child(4n + 4) {
+    background: var(--testimonials-purple);
+    color: var(--testimonials-cream);
+  }
+
+  .testimonial-note:hover {
+    z-index: 1;
+    box-shadow: 0 9px 0 rgba(21, 19, 15, 0.15);
+    transform: translateY(-3px);
+  }
+
+  .testimonial-note__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    color: inherit;
+    opacity: 0.72;
+  }
+
+  .testimonial-note blockquote {
+    margin: clamp(1.5rem, 3.5vw, 2.75rem) 0 clamp(1.5rem, 3vw, 2.25rem);
+    padding: 0;
+    border: 0;
+  }
+
+  .testimonial-note blockquote p {
+    margin: 0;
+    color: inherit;
+    font: 520 clamp(1.15rem, 1.8vw, 1.55rem)/1.32 var(--font-display, sans-serif);
+    letter-spacing: -0.03em;
+    text-wrap: pretty;
+  }
+
+  .testimonial-note blockquote p + p {
+    margin-top: 0.85rem;
+  }
+
+  .testimonial-note footer {
+    margin-top: auto;
+    padding-top: 1.15rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    border-top: 1px solid currentColor;
+  }
+
+  .testimonial-note footer strong {
+    color: inherit;
+    font: 720 1rem/1.2 var(--font-ui, sans-serif);
+  }
+
+  .testimonial-note footer span {
+    color: inherit;
+    font: 600 0.75rem/1.35 var(--font-ui, sans-serif);
+    opacity: 0.72;
+  }
+
+  .testimonials-v2-state {
+    min-height: 320px;
+    padding: 2rem;
+    display: grid;
+    place-content: center;
+    gap: 0.65rem;
+    border: 1px dashed var(--testimonials-ink);
+    border-radius: 20px;
+    text-align: center;
+  }
+
+  .testimonials-v2-state strong {
+    font: 650 clamp(1.5rem, 3vw, 2.2rem)/1.1 var(--font-display, sans-serif);
+  }
+
+  .testimonials-v2-state p {
+    max-width: 36rem;
+    margin: 0;
+    font: 500 1rem/1.5 var(--font-ui, sans-serif);
+  }
+
+  .testimonials-v2-footer {
+    margin-top: clamp(2.5rem, 6vw, 5.5rem);
+    padding: clamp(2rem, 4.5vw, 4rem) clamp(0.5rem, 2vw, 1.5rem) clamp(1rem, 2vw, 1.5rem);
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(260px, 0.85fr);
+    gap: clamp(2rem, 6vw, 7rem);
+    align-items: end;
+    border-top: 1px solid var(--testimonials-ink);
+  }
+
+  .testimonials-v2-footer p {
+    margin: 0 0 0.75rem;
+    font: 700 0.75rem/1.2 var(--font-ui, sans-serif);
+  }
+
+  .testimonials-v2-footer h2 {
+    max-width: 19ch;
+    margin: 0;
+    color: var(--testimonials-ink);
+    font: 620 clamp(2rem, 4.5vw, 4.5rem)/0.95 var(--font-display, sans-serif);
+    letter-spacing: -0.055em;
+  }
+
+  .testimonials-v2-footer nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.75rem;
+  }
+
+  .testimonials-v2-footer a {
+    min-height: 50px;
+    padding: 0 1.1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    border: 1px solid var(--testimonials-ink);
+    border-radius: 14px;
+    color: var(--testimonials-ink);
+    font: 700 0.8rem/1 var(--font-ui, sans-serif);
+    text-decoration: none;
+    transition: transform 160ms ease, box-shadow 160ms ease;
+  }
+
+  .testimonials-v2-footer a:first-child { background: var(--testimonials-pink); }
+  .testimonials-v2-footer a:last-child { background: var(--testimonials-yellow); }
+
+  .testimonials-v2-footer a:hover {
+    box-shadow: 0 4px 0 rgba(21, 19, 15, 0.16);
+    transform: translateY(-2px);
+  }
+
+  @media (max-width: 820px) {
+    .testimonials-v2-heading > div,
+    .testimonials-v2-footer {
+      grid-template-columns: 1fr;
     }
 
-    /* Header Styles (Matched from Films) */
-    .page-header {
-        margin-bottom: 4rem; /* Reduced from 5rem to be "a bit upwards" */
-        text-align: left;
-        /* Padding top handled by container + BaseLayout */
-    }
+    .testimonials-v2-heading h1 { max-width: 8ch; }
+    .testimonials-v2-heading > div > p { max-width: 24rem; }
+    .testimonials-v2-footer nav { justify-content: flex-start; }
+  }
 
-    h1 {
-        font-family: var(--font-display);
-        font-size: 3.5rem;
-        font-weight: 600;
-        margin-bottom: 1rem;
-        letter-spacing: -0.02em;
-        color: var(--text-primary, #121212);
-    }
+  @media (max-width: 680px) {
+    .testimonials-v2-shell { padding-inline: 8px; }
+    .testimonials-v2-grid { columns: 1; }
+    .testimonials-v2-board__bar { align-items: flex-start; flex-direction: column; justify-content: center; }
+    .testimonials-v2-board__bar p:last-child { text-align: left; }
+    .testimonial-note blockquote { margin-block: clamp(1.2rem, 3vw, 1.8rem); }
+  }
 
-    .section-intro {
-        font-family: var(--font-sans, system-ui, sans-serif);
-        font-size: 1.1rem;
-        color: var(--text-secondary, #666);
-        max-width: 600px;
-        margin: 0;
-        line-height: 1.6;
-    }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-        h1 {
-            font-size: 2.5rem;
-        }
-    }
+  @media (prefers-reduced-motion: reduce) {
+    .testimonial-note,
+    .testimonials-v2-footer a { transition: none; }
+  }
 </style>

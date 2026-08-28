@@ -15,6 +15,7 @@
             />
         </div>
         <input
+            class="t-body"
             type="email"
             name="email"
             placeholder="Enter your email"
@@ -38,7 +39,7 @@
             >
         </button>
     </form>
-    <p class="message" id="newsletter-message"></p>
+    <p class="message t-label" id="newsletter-message"></p>
 </div>
 
 <script>
@@ -149,10 +150,11 @@
 
     .newsletter-form {
         display: flex;
-        align-items: center;
+        align-items: stretch;
         background: transparent;
         border: 1px solid rgba(255, 255, 255, 0.3);
-        border-radius: 4px; /* Clean box */
+        border-radius: 8px; /* Clean box */
+        overflow: hidden;
         transition: all 0.3s ease;
         padding: 0;
         position: relative;
@@ -167,16 +169,27 @@
         flex: 1;
         background: transparent;
         border: none;
+        border-radius: 0;
         padding: 0.8rem 1rem;
         color: #fff;
-        font-family: var(--font-mono); /* Monospace request */
-        font-size: 0.9rem;
         outline: none;
         min-width: 0; /* Prevent overflow */
     }
 
     input::placeholder {
-        color: rgba(255, 255, 255, 0.4);
+        color: rgba(255, 255, 255, 0.5);
+    }
+
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover,
+    input:-webkit-autofill:focus,
+    input:-webkit-autofill:active {
+        -webkit-box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.08) inset !important;
+        box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.08) inset !important;
+        -webkit-text-fill-color: #fff !important;
+        caret-color: #fff !important;
+        border-radius: 0 !important;
+        transition: background-color 5000s ease-in-out 0s;
     }
 
     .newsletter-honeypot {
@@ -227,11 +240,9 @@
     }
 
     .message {
-        font-size: 0.78rem;
         margin-top: 0.35rem;
         min-height: 1.1em; /* Keep slight reserved space when message exists */
         transition: all 0.3s ease;
-        font-family: var(--font-mono);
     }
 
     .message:empty {
@@ -262,6 +273,15 @@
     }
     :global([data-theme="light"]) input::placeholder {
         color: rgba(0, 0, 0, 0.5);
+    }
+    :global([data-theme="light"]) input:-webkit-autofill,
+    :global([data-theme="light"]) input:-webkit-autofill:hover,
+    :global([data-theme="light"]) input:-webkit-autofill:focus,
+    :global([data-theme="light"]) input:-webkit-autofill:active {
+        -webkit-box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.9) inset !important;
+        box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.9) inset !important;
+        -webkit-text-fill-color: #000 !important;
+        caret-color: #000 !important;
     }
     :global([data-theme="light"]) button {
         color: #000;

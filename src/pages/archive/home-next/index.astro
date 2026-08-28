@@ -1,0 +1,79 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+
+const samples = [
+  {
+    href: "/archive/home-next/services",
+    index: "01",
+    title: "Service catalogue",
+    description: "The full grouped service-row design retained for future extraction and comparison.",
+  },
+  {
+    href: "/archive/home-next/organisations",
+    index: "02",
+    title: "Organisation archive",
+    description: "The complete organisation collection, separate from the curated homepage selection.",
+  },
+  {
+    href: "/archive/home-next/sections",
+    index: "03",
+    title: "Homepage section studies",
+    description: "Selected-work, collection, research, Obsidian and interruption designs kept as reusable studies.",
+  },
+];
+---
+
+<BaseLayout
+  title="Home Next design archive — Abodid Sahoo"
+  description="Private design studies preserved from the Home Next landing page."
+  noindex={true}
+  navigationVariant="next"
+  showGlobalGrid={false}
+  showNewsletterPopup={false}
+  bodyClass="home-next-sample-page"
+>
+  <main class="sample-index">
+    <header>
+      <p>Home Next · design archive</p>
+      <h1>Useful sections, kept within reach.</h1>
+      <span>These pages are not part of the public landing-page journey. They preserve the fuller design experiments so individual ideas can be reused later.</span>
+    </header>
+
+    <ol>
+      {samples.map((sample) => (
+        <li>
+          <a href={sample.href}>
+            <small>{sample.index}</small>
+            <div>
+              <h2>{sample.title}</h2>
+              <p>{sample.description}</p>
+            </div>
+            <b aria-hidden="true">↗</b>
+          </a>
+        </li>
+      ))}
+    </ol>
+  </main>
+</BaseLayout>
+
+<style>
+  :global(body.home-next-sample-page) { background: #f7f1e4 !important; color: #15130f; }
+  .sample-index { width: min(100% - 2rem, 1220px); margin: 0 auto; padding: clamp(4rem, 9vw, 9rem) 0; }
+  header { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, .5fr); gap: 2rem; }
+  header > p { grid-column: 1 / -1; margin: 0; font: 750 .72rem/1.2 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; }
+  h1 { max-width: 11ch; margin: 0; color: inherit; font: 620 clamp(3.2rem, 8vw, 7.6rem)/.9 var(--font-display); letter-spacing: -.07em; }
+  header > span { max-width: 34rem; align-self: end; color: #37332d; font-size: 1.05rem; line-height: 1.6; }
+  ol { margin: clamp(4rem, 8vw, 8rem) 0 0; padding: 0; border-top: 1px solid #15130f; list-style: none; }
+  li { border-bottom: 1px solid #15130f; }
+  a { min-height: 180px; padding: 1.5rem 0; display: grid; grid-template-columns: 70px 1fr auto; align-items: center; gap: 1.5rem; color: inherit; text-decoration: none; }
+  a small { font: 750 .72rem/1 var(--font-mono); }
+  a h2 { margin: 0; color: inherit; font: 600 clamp(1.8rem, 4vw, 3.8rem)/1 var(--font-display); letter-spacing: -.05em; }
+  a p { max-width: 43rem; margin: .65rem 0 0; color: #49443c; line-height: 1.5; }
+  a b { font-size: 1.5rem; transition: transform 180ms ease; }
+  a:hover b { transform: translate(.25rem, -.25rem); }
+  @media (max-width: 720px) {
+    header { grid-template-columns: 1fr; }
+    header > p { grid-column: auto; }
+    a { min-height: 150px; grid-template-columns: 42px 1fr auto; gap: .8rem; }
+  }
+</style>

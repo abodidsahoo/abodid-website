@@ -2127,7 +2127,7 @@ const LandingGridPrototype = ({
                 )}
             </AnimatePresence>
 
-            <style>{`
+            <style suppressHydrationWarning>{`
                 .landing-grid-prototype {
                     position: relative;
                     width: 100vw;

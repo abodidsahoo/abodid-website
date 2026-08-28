@@ -1,0 +1,91 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import { getHomeNextContent } from "../../../lib/homeNextContent";
+
+export const prerender = false;
+
+const content = await getHomeNextContent();
+const serviceGroups = Object.entries(
+  content.services.reduce((groups, service) => {
+    groups[service.group] = [...(groups[service.group] || []), service];
+    return groups;
+  }, {}),
+);
+---
+
+<BaseLayout
+  title="Service catalogue study — Home Next archive"
+  description="Preserved grouped service-row design from the Home Next landing page."
+  noindex={true}
+  navigationVariant="next"
+  showGlobalGrid={false}
+  showNewsletterPopup={false}
+  bodyClass="home-next-service-sample"
+>
+  <main class="service-sample">
+    <header>
+      <a href="/archive/home-next">← Design archive</a>
+      <p>Preserved sample · services</p>
+      <h1>The complete service catalogue.</h1>
+      <span>This is the fuller row-based presentation retained for future experiments. The live landing page uses a more compact disclosure pattern.</span>
+    </header>
+
+    <div class="service-sample__groups">
+      {serviceGroups.map(([group, services], groupIndex) => (
+        <section class={`service-sample__group service-sample__group--${(groupIndex % 3) + 1}`}>
+          <h2>{group}</h2>
+          <div>
+            {services.map((service) => (
+              <article>
+                <div>
+                  <h3>{service.title}</h3>
+                  <p>{service.summary}</p>
+                  {service.examples?.length > 0 && (
+                    <nav aria-label={`Related work for ${service.title}`}>
+                      <span>Related work</span>
+                      {service.examples.map((example) => <a href={example.href}>{example.label}</a>)}
+                    </nav>
+                  )}
+                </div>
+                <aside>
+                  <strong>{service.priceLabel}</strong>
+                  <a href={service.href}>{service.ctaLabel} →</a>
+                </aside>
+              </article>
+            ))}
+          </div>
+        </section>
+      ))}
+    </div>
+  </main>
+</BaseLayout>
+
+<style>
+  :global(body.home-next-service-sample) { background: #fff8e8 !important; color: #15130f; }
+  .service-sample { padding: clamp(4rem, 8vw, 8rem) clamp(1rem, 6vw, 6rem); }
+  header { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, .55fr); gap: 1.5rem 3rem; margin-bottom: clamp(3rem, 7vw, 7rem); }
+  header > a, header > p { margin: 0; color: #15130f; font: 750 .7rem/1.2 var(--font-mono); letter-spacing: .1em; text-transform: uppercase; }
+  header > a { grid-column: 1 / -1; width: fit-content; text-decoration: none; }
+  header h1 { max-width: 12ch; margin: 0; color: inherit; font: 620 clamp(3rem, 7vw, 7rem)/.92 var(--font-display); letter-spacing: -.065em; }
+  header > span { max-width: 36rem; align-self: end; color: #3d3831; line-height: 1.6; }
+  .service-sample__groups { display: grid; gap: 1.25rem; }
+  .service-sample__group { padding: clamp(1.2rem, 2.6vw, 2.4rem); display: grid; grid-template-columns: minmax(190px, .28fr) minmax(0, 1fr); gap: 2rem; border: 1px solid #15130f; border-radius: 24px; }
+  .service-sample__group--1 { background: #ffe44f; }
+  .service-sample__group--2 { background: #ff7eb5; }
+  .service-sample__group--3 { background: #caff48; }
+  .service-sample__group h2 { margin: .3rem 0 0; color: inherit; font: 750 .72rem/1.2 var(--font-mono); letter-spacing: .09em; text-transform: uppercase; }
+  article { padding: 1.5rem 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(170px, .28fr); gap: 2rem; border-top: 1px solid rgba(21,19,15,.45); }
+  article:last-child { border-bottom: 1px solid rgba(21,19,15,.45); }
+  article h3 { margin: 0; color: inherit; font: 620 clamp(1.45rem, 2.6vw, 2.5rem)/1 var(--font-display); letter-spacing: -.045em; }
+  article p { max-width: 48rem; margin: .7rem 0 0; color: #332f29; line-height: 1.5; }
+  article nav { margin-top: 1rem; display: flex; flex-wrap: wrap; gap: .55rem 1rem; font-size: .78rem; }
+  article nav span { color: #554e44; }
+  article nav a, article aside a { color: inherit; text-underline-offset: .2em; }
+  article aside { display: flex; flex-direction: column; align-items: flex-start; gap: 1.1rem; font-size: .82rem; }
+  article aside strong { font-weight: 760; }
+  @media (max-width: 780px) {
+    header, .service-sample__group, article { grid-template-columns: 1fr; }
+    .service-sample__group { gap: 1rem; }
+    article { gap: 1.2rem; }
+  }
+</style>

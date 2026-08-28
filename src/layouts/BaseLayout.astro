@@ -9,6 +9,8 @@ import NewsletterPopup from "../components/NewsletterPopup.jsx";
 import MagneticCursorFollower from "../components/MagneticCursorFollower.jsx";
 import RouteLoadingOverlay from "../components/RouteLoadingOverlay.astro";
 import WhatsAppButton from "../components/WhatsAppButton.astro";
+import NextNavigation from "../components/NextNavigation.astro";
+import { ClientRouter } from "astro:transitions";
 import { getPageMetadata } from "../lib/api";
 import {
   createWebPageStructuredData,
@@ -48,7 +50,9 @@ const {
   initialBackgroundColor = null,
   moodboardSurface = null,
   analyticsProjectId = null,
+  navigationVariant = "legacy",
 } = Astro.props;
+const useNextNavigation = navigationVariant === "next";
 const activeNavigationLayout =
   navigationLayout === NAVIGATION_LAYOUTS.leftRail.id
     ? NAVIGATION_LAYOUTS.leftRail.id
@@ -66,6 +70,7 @@ const renderedPointerVariant = cursorFollowerEnabled
   : POINTER_VARIANTS.nativeDefault.id;
 const showFloatingHeader =
   !hideHeader &&
+  !useNextNavigation &&
   (activeNavigationLayout === NAVIGATION_LAYOUTS.leftRail.id || hideSideMenuRail);
 
 // Resolve one authoritative SEO object. A published admin override wins,
@@ -83,6 +88,10 @@ const internalNoindexPatterns = [
   /^\/feedback\/?$/,
   /^\/hand-tracking-test\/?$/,
   /^\/landing-grid-test\/?$/,
+  /^\/blur-phrase-centered\/?$/,
+  /^\/july-backup\/?$/,
+  /^\/home-next\/?$/,
+  /^\/archive\/homepages(?:\/|$)/,
   /^\/bsa-qrcode\/?$/,
   /^\/research\/admin(?:\/|$)/,
   /^\/resources\/admin(?:\/|$)/,
@@ -131,6 +140,7 @@ const googleFontsUrl =
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width" />
     <meta name="generator" content={Astro.generator} />
+    <ClientRouter fallback="swap" />
     <link
       rel="alternate"
       type="application/rss+xml"
@@ -200,13 +210,15 @@ const googleFontsUrl =
     data-navigation-layout={activeNavigationLayout}
     data-pointer-variant={renderedPointerVariant}
     data-analytics-project-id={analyticsProjectId || undefined}
+    data-navigation-variant={useNextNavigation ? "next" : "legacy"}
     class={bodyClass}
   >
     <a href="#main-content" class="skip-link">Skip to main content</a>
     <RouteLoadingOverlay />
+    {!hideHeader && useNextNavigation && <NextNavigation />}
     <!-- <Header /> -->
     {showFloatingHeader && <Header hideThemeToggle={hideThemeToggle} altTextLogo={altTextLogo} />}
-    {!hideHeader && !hideSideMenuRail && (
+    {!hideHeader && !useNextNavigation && !hideSideMenuRail && (
       <SideMenuRail
         client:load
         layout={activeNavigationLayout}
@@ -473,12 +485,18 @@ const googleFontsUrl =
     let runtimeErrorSeen = false;
     let anomalyStreak = 0;
     let healthyStreak = 0;
+    let errorCheckTimer = 0;
 
     const showNotice = () => notice.classList.add("visible");
     const hideNotice = () => notice.classList.remove("visible");
 
     const onRuntimeError = () => {
       runtimeErrorSeen = true;
+      window.clearTimeout(errorCheckTimer);
+      errorCheckTimer = window.setTimeout(() => {
+        runCheck();
+        errorCheckTimer = window.setTimeout(runCheck, 500);
+      }, 0);
     };
     window.addEventListener("error", onRuntimeError);
     window.addEventListener("unhandledrejection", onRuntimeError);
@@ -497,29 +515,7 @@ const googleFontsUrl =
         return false;
       }
 
-      const candidates = main.querySelectorAll(
-        "section, article, h1, h2, h3, p, img, video, canvas, svg, [class*='card'], [class*='grid'], [class*='hero'], [class*='content']",
-      );
-
-      for (const node of candidates) {
-        const el = node as HTMLElement;
-        const styles = window.getComputedStyle(el);
-        if (
-          styles.display === "none" ||
-          styles.visibility === "hidden" ||
-          parseFloat(styles.opacity || "1") < 0.05
-        ) {
-          continue;
-        }
-
-        const rect = el.getBoundingClientRect();
-        const hasSize = rect.width > 24 && rect.height > 16;
-        if (hasSize) {
-          return true;
-        }
-      }
-
-      return false;
+      return main.childElementCount > 0 || Boolean(main.textContent?.trim());
     };
 
     const runCheck = () => {
@@ -542,26 +538,19 @@ const googleFontsUrl =
       if (healthyStreak >= 2) hideNotice();
     };
 
-    // Allow initial render/hydration to settle before checks.
+    // Check once after the initial render. Runtime errors schedule their own
+    // follow-up checks, avoiding repeated full-page layout reads while scrolling.
     const initialDelay = setTimeout(() => {
       runCheck();
-      const interval = window.setInterval(runCheck, 3000);
-
-      window.addEventListener(
-        "beforeunload",
-        () => {
-          clearInterval(interval);
-          window.removeEventListener("error", onRuntimeError);
-          window.removeEventListener("unhandledrejection", onRuntimeError);
-        },
-        { once: true },
-      );
     }, 3500);
 
     window.addEventListener(
       "beforeunload",
       () => {
         clearTimeout(initialDelay);
+        clearTimeout(errorCheckTimer);
+        window.removeEventListener("error", onRuntimeError);
+        window.removeEventListener("unhandledrejection", onRuntimeError);
       },
       { once: true },
     );

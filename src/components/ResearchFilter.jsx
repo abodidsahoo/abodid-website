@@ -7,6 +7,21 @@ const slugify = (str) =>
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-+|-+$/g, '');
 
+const getPaperAttribution = (paper) => {
+    const authors = paper.authors || (Array.isArray(paper.authors_json)
+        ? paper.authors_json
+            .map((author) => typeof author === 'string' ? author : author?.name)
+            .filter(Boolean)
+            .join(', ')
+        : '');
+
+    return [
+        authors,
+        paper.publication || paper.journal,
+        paper.published_year || paper.year,
+    ].filter(Boolean).join(' · ');
+};
+
 const ResearchFilter = ({ papers }) => {
     const [activeTag, setActiveTag] = useState(() => {
         if (typeof window === 'undefined') return 'All';
@@ -111,6 +126,11 @@ const ResearchFilter = ({ papers }) => {
 
             {/* Papers List */}
             <ul className="papers-list">
+                {filteredPapers.length === 0 && (
+                    <li className="papers-empty">
+                        The curated paper list is currently being populated.
+                    </li>
+                )}
                 {filteredPapers.map((paper, index) => (
                     <li key={paper.id || index} className="paper-card">
                         <div className="card-header">
@@ -120,6 +140,12 @@ const ResearchFilter = ({ papers }) => {
                                     className="paper-title"
                                     dangerouslySetInnerHTML={{ __html: paper.formatted_title || paper.title }}
                                 />
+
+                                {getPaperAttribution(paper) && (
+                                    <p className="paper-attribution">
+                                        {getPaperAttribution(paper)}
+                                    </p>
+                                )}
 
                                 {/* Tags */}
                                 <div className="paper-tags">
@@ -176,7 +202,7 @@ const ResearchFilter = ({ papers }) => {
                 ))}
             </ul>
 
-            <style>{`
+            <style suppressHydrationWarning>{`
                 .research-filter-container {
                     width: 100%;
                 }
@@ -223,6 +249,19 @@ const ResearchFilter = ({ papers }) => {
                     padding: 0;
                     margin: 0;
                     border-top: 1px solid var(--border-subtle);
+                }
+
+                .papers-empty {
+                    padding: 2rem 0;
+                    color: var(--text-secondary);
+                    line-height: 1.55;
+                }
+
+                .paper-attribution {
+                    margin: -0.35rem 0 0;
+                    color: var(--text-secondary);
+                    font-size: 0.85rem;
+                    line-height: 1.45;
                 }
 
                 .paper-card {

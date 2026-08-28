@@ -1,0 +1,67 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import { getHomeNextContent } from "../../../lib/homeNextContent";
+
+export const prerender = false;
+
+const content = await getHomeNextContent();
+---
+
+<BaseLayout
+  title="Organisation archive study — Home Next archive"
+  description="Complete organisation collection preserved outside the compact Home Next landing page."
+  noindex={true}
+  navigationVariant="next"
+  showGlobalGrid={false}
+  showNewsletterPopup={false}
+  bodyClass="home-next-organisation-sample"
+>
+  <main class="organisation-sample">
+    <header>
+      <a href="/archive/home-next">← Design archive</a>
+      <p>Preserved sample · organisations</p>
+      <h1>Clients, employers and collaborators.</h1>
+      <span>The full collection remains available here. The landing page uses a smaller edit so the strongest signals are legible without becoming a logo wall.</span>
+    </header>
+
+    {content.brands.length > 0 ? (
+      <ul class="organisation-grid">
+        {content.brands.map((brand) => (
+          <li>
+            <div>
+              {brand.logo_url ? <img src={brand.logo_url} alt={brand.name} loading="lazy" decoding="async" /> : <strong>{brand.name}</strong>}
+            </div>
+            <span>{brand.name}</span>
+            <small>{brand.category || brand.role || "Organisation"}</small>
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <p class="organisation-sample__empty">No organisation records are currently available.</p>
+    )}
+  </main>
+</BaseLayout>
+
+<style>
+  :global(body.home-next-organisation-sample) { background: #050505 !important; color: #fff8e8; }
+  .organisation-sample { min-height: 100vh; padding: clamp(4rem, 8vw, 8rem) clamp(1rem, 6vw, 6rem); }
+  header { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, .55fr); gap: 1.5rem 3rem; margin-bottom: clamp(3rem, 7vw, 7rem); }
+  header > a, header > p { margin: 0; color: #fff8e8; font: 750 .7rem/1.2 var(--font-mono); letter-spacing: .1em; text-transform: uppercase; }
+  header > a { grid-column: 1 / -1; width: fit-content; text-decoration: none; }
+  header h1 { max-width: 13ch; margin: 0; color: inherit; font: 620 clamp(3rem, 7vw, 7rem)/.92 var(--font-display); letter-spacing: -.065em; }
+  header > span { max-width: 36rem; align-self: end; color: #d7d0c3; line-height: 1.6; }
+  .organisation-grid { margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 1px solid #4a4a4a; border-left: 1px solid #4a4a4a; list-style: none; }
+  .organisation-grid li { min-width: 0; min-height: 210px; padding: clamp(1rem, 2.5vw, 2.2rem); display: flex; flex-direction: column; border-right: 1px solid #4a4a4a; border-bottom: 1px solid #4a4a4a; background: #050505; }
+  .organisation-grid li > div { min-height: 95px; display: flex; align-items: center; justify-content: center; }
+  .organisation-grid img { width: auto; max-width: min(100%, 130px); max-height: 68px; display: block; object-fit: contain; }
+  .organisation-grid strong { color: #fff8e8; font-size: 1.25rem; }
+  .organisation-grid span { margin-top: auto; color: #fff8e8; font-size: .86rem; font-weight: 700; }
+  .organisation-grid small { margin-top: .3rem; color: #aaa39a; font: 650 .62rem/1.2 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
+  .organisation-sample__empty { color: #fff8e8; }
+  @media (max-width: 920px) { .organisation-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  @media (max-width: 680px) {
+    header { grid-template-columns: 1fr; }
+    .organisation-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .organisation-grid li { min-height: 175px; }
+  }
+</style>

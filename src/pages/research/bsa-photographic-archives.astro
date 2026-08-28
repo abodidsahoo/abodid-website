@@ -1,0 +1,61 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const title = "British Sociological Association Research — Abodid Sahoo";
+const description = "Work in progress about photographic archives, involuntary memory resurfacing and trauma-informed recall.";
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  navigationVariant="next"
+  showGlobalGrid={false}
+  showNewsletterPopup={false}
+  bodyClass="next-research-wip-page"
+>
+  <article class="research-wip">
+    <header>
+      <p class="research-wip__eyebrow">British Sociological Association research</p>
+      <h1>Photographic archives, involuntary recall and emotional agency</h1>
+      <p class="research-wip__status">Work in progress — Abodid is currently populating this page. The official paper title and complete research material will be added by him.</p>
+    </header>
+
+    <section class="research-wip__orientation">
+      <h2>The question</h2>
+      <p>
+        Massive digital archives of photographs can become difficult to navigate meaningfully. At the same time, services such as iCloud can resurface images without a person explicitly choosing to recall them. This research asks how that recall could become more holistic, consensual and trauma-informed.
+      </p>
+    </section>
+
+    <nav class="research-wip__links" aria-label="Related material">
+      <a href="/one-photo">
+        <small>Participatory response page</small>
+        <strong>One Photo That Stays With You</strong>
+        <span>Open →</span>
+      </a>
+      <a href="/uk2026#the-conference-in-manchester">
+        <small>Personal context</small>
+        <strong>The conference in Manchester</strong>
+        <span>Read the memoir →</span>
+      </a>
+    </nav>
+  </article>
+</BaseLayout>
+
+<style>
+  :global(body.next-research-wip-page) { background: #f6f2ea !important; color: #171512; }
+  .research-wip { width: min(100% - 2rem, 1100px); margin: 0 auto; padding: clamp(4rem,9vw,9rem) 0; }
+  .research-wip header { max-width: 960px; }
+  .research-wip__eyebrow { margin: 0 0 1rem; color: var(--color-brand-red); font: 700 .72rem/1.2 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; }
+  h1 { max-width: 15ch; margin: 0; color: inherit; font: 540 clamp(3rem,8vw,7.6rem)/.93 var(--font-display); letter-spacing: -.065em; }
+  .research-wip__status { max-width: 46rem; margin: 2rem 0 0; padding: 1rem 1.1rem; border-left: 3px solid var(--color-brand-red); background: rgba(163,0,33,.06); line-height: 1.5; }
+  .research-wip__orientation { max-width: 760px; margin-top: clamp(4rem,8vw,7rem); }
+  .research-wip__orientation h2 { margin: 0 0 1rem; color: inherit; font: 570 clamp(2rem,4vw,3.6rem)/1 var(--font-display); letter-spacing: -.045em; }
+  .research-wip__orientation p { margin: 0; color: rgba(23,21,18,.68); font-size: clamp(1.1rem,2vw,1.35rem); line-height: 1.65; }
+  .research-wip__links { margin-top: clamp(4rem,8vw,7rem); display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 1rem; }
+  .research-wip__links a { min-height: 250px; padding: clamp(1.3rem,3vw,2.2rem); display: flex; flex-direction: column; border: 1px solid rgba(23,21,18,.16); border-radius: 18px; color: inherit; text-decoration: none; }
+  .research-wip__links small { color: var(--color-brand-red); font: 700 .67rem/1.2 var(--font-mono); letter-spacing: .1em; text-transform: uppercase; }
+  .research-wip__links strong { max-width: 18ch; margin: auto 0 1.5rem; font: 570 clamp(1.5rem,3vw,2.5rem)/1.08 var(--font-display); letter-spacing: -.04em; }
+  .research-wip__links span { font: 650 .85rem/1.2 var(--font-ui); }
+  @media (max-width: 700px) { .research-wip__links { grid-template-columns: 1fr; } }
+</style>

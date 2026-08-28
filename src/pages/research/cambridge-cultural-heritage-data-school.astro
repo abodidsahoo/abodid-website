@@ -1,0 +1,64 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const title = "Cambridge Cultural Heritage Data School — Abodid Sahoo";
+const description = "A professional case study about Abodid Sahoo's experience at the Cultural Heritage Data School organised by Cambridge Digital Humanities.";
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  navigationVariant="next"
+  showGlobalGrid={false}
+  showNewsletterPopup={false}
+  bodyClass="next-case-study-page"
+>
+  <article class="next-case-study">
+    <header>
+      <p class="case-study-eyebrow">Academic experience · Professional case study</p>
+      <h1>Cambridge Cultural Heritage Data School</h1>
+      <p class="case-study-status">Work in progress — Abodid is currently populating this case study.</p>
+    </header>
+
+    <section class="case-study-facts" aria-label="Case study facts">
+      <div><span>Organised by</span><strong>Cambridge Digital Humanities</strong></div>
+      <div><span>Institution</span><strong>University of Cambridge</strong></div>
+      <div><span>Participation</span><strong>Full bursary recipient</strong></div>
+    </section>
+
+    <section class="case-study-next">
+      <h2>What will be added here</h2>
+      <ul>
+        <li>The parts of the programme that shaped my professional practice</li>
+        <li>Selected activities, images and working material</li>
+        <li>How the experience connects to my research and cultural-heritage interests</li>
+      </ul>
+    </section>
+
+    <aside class="case-study-memoir">
+      <p>The personal journey, application, travel and complete experience live in a separate long-form memoir.</p>
+      <a href="/uk2026">Read the complete memoir →</a>
+    </aside>
+  </article>
+</BaseLayout>
+
+<style>
+  :global(body.next-case-study-page) { background: #f6f2ea !important; color: #171512; }
+  .next-case-study { width: min(100% - 2rem, 1100px); margin: 0 auto; padding: clamp(4rem, 9vw, 9rem) 0; }
+  .next-case-study header { max-width: 900px; }
+  .case-study-eyebrow { margin: 0 0 1rem; color: var(--color-brand-red); font: 700 .72rem/1.2 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; }
+  h1 { max-width: 13ch; margin: 0; color: inherit; font: 540 clamp(3.1rem, 8vw, 8rem)/.93 var(--font-display); letter-spacing: -.065em; }
+  .case-study-status { max-width: 44rem; margin: 2rem 0 0; padding: 1rem 1.1rem; border-left: 3px solid var(--color-brand-red); background: rgba(163,0,33,.06); font-size: 1rem; line-height: 1.5; }
+  .case-study-facts { margin-top: clamp(4rem, 8vw, 7rem); display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); border-top: 1px solid rgba(23,21,18,.16); border-left: 1px solid rgba(23,21,18,.16); }
+  .case-study-facts div { min-height: 150px; padding: 1.25rem; display: flex; flex-direction: column; justify-content: space-between; gap: 1rem; border-right: 1px solid rgba(23,21,18,.16); border-bottom: 1px solid rgba(23,21,18,.16); }
+  .case-study-facts span { color: rgba(23,21,18,.58); font: 650 .68rem/1.2 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
+  .case-study-facts strong { font: 580 clamp(1.2rem,2vw,1.7rem)/1.2 var(--font-display); }
+  .case-study-next { max-width: 720px; margin-top: clamp(4rem,8vw,7rem); }
+  .case-study-next h2 { margin: 0 0 1.25rem; color: inherit; font: 570 clamp(2rem,4vw,3.6rem)/1 var(--font-display); letter-spacing: -.045em; }
+  .case-study-next ul { margin: 0; padding-left: 1.2rem; }
+  .case-study-next li { padding: .5rem 0; line-height: 1.55; }
+  .case-study-memoir { margin-top: clamp(4rem,8vw,7rem); padding: clamp(1.5rem,4vw,3rem); border-radius: 18px; background: #171512; color: #fff; }
+  .case-study-memoir p { max-width: 48rem; margin: 0; color: rgba(255,255,255,.72); font-size: 1.05rem; line-height: 1.55; }
+  .case-study-memoir a { min-height: 52px; margin-top: 1.2rem; display: inline-flex; align-items: center; color: #fff; font-weight: 680; }
+  @media (max-width: 700px) { .case-study-facts { grid-template-columns: 1fr; } }
+</style>

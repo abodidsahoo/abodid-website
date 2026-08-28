@@ -401,45 +401,8 @@ export async function getFilms(): Promise<Film[]> {
 // --- Research Papers ---
 export async function getResearchPapers(): Promise<ResearchPaper[]> { // Using any for rough typing for now unless we add ResearchPaper type
     if (!isSupabaseConfigured() || !supabase) {
-        // Mock Data
-        return [
-            {
-                title: 'Deep Learning in Medical Imaging',
-                formatted_title: 'Deep Learning in <em>Medical Imaging</em>',
-                description: 'A comprehensive study on the application of CNNs in detecting early-stage tumors.',
-                explanation: 'This paper explores the use of Convolutional Neural Networks (CNNs) to analyze MRI scans for early detection of tumors. The study demonstrates a significant improvement in accuracy compared to traditional methods.',
-                tags: ['AI', 'Healthcare', 'Computer Vision'],
-                pdf_url: '#',
-                published_at: new Date().toISOString()
-            },
-            {
-                title: 'Sustainable Urban Planning',
-                formatted_title: 'Sustainable <strong>Urban Planning</strong> for 2030',
-                description: 'Strategies for reducing carbon footprints in metropolitan areas.',
-                explanation: 'An in-depth analysis of urban planning strategies that focus on sustainability. The paper discusses renewable energy integration, green spaces, and efficient public transportation systems.',
-                tags: ['Urban Planning', 'Sustainability', 'Environment'],
-                pdf_url: '#',
-                published_at: new Date().toISOString()
-            },
-            {
-                title: 'Quantum Computing Algorithms',
-                formatted_title: 'Quantum Computing <span>Algorithms</span>',
-                description: 'Exploring the potential of quantum supremacy in cryptography.',
-                explanation: 'A technical breakdown of quantum algorithms and their impact on modern cryptographic security. The paper proposes new encryption standards resistant to quantum attacks.',
-                tags: ['Quantum Computing', 'Cryptography', 'Physics', 'AI'],
-                pdf_url: '#',
-                published_at: new Date().toISOString()
-            },
-            {
-                title: 'Another AI Paper',
-                formatted_title: 'Another <em>AI</em> Paper',
-                description: 'Testing the filter logic.',
-                explanation: 'Just a mock paper to test multiple tags.',
-                tags: ['AI', 'Testing'],
-                pdf_url: '#',
-                published_at: new Date().toISOString()
-            }
-        ] as any;
+        // Never substitute invented papers for a curatorial collection.
+        return [];
     }
 
     const { data, error } = await supabase

@@ -58,6 +58,18 @@
     "Satoshi-Variable", "Satoshi-Regular", "Space Mono", "Inconsolata",
     monospace;
 
+  /* Canonical type system: four sizes plus two weight modifiers. */
+  --type-display: clamp(3rem, 5.7vw, 6rem);
+  --type-heading: clamp(1.5rem, 2.65vw, 2.25rem);
+  --type-body: clamp(1rem, 1.1vw, 1.125rem);
+  --type-label: 0.8rem;
+  --type-weight-display: 540;
+  --type-weight-strong: 720;
+  --type-weight-heading: 540;
+  --type-weight-heading-strong: 650;
+  --type-weight-body: 400;
+  --type-weight-label: 700;
+
   /* LAYOUT VARIABLES */
   --page-gutter: 24px;
   --max-width: 1400px;
@@ -388,6 +400,51 @@
     box-shadow 0.25s ease;
   --chip-active-bg: var(--accent-primary);
   --chip-active-text: #ffffff;
+}
+
+/*
+ * Typography utilities are intentionally authoritative. Legacy pages contain
+ * component-level font shorthands; these classes provide one predictable
+ * system while those declarations are retired incrementally.
+ */
+.t-display {
+  font-family: var(--font-display) !important;
+  font-size: var(--type-display) !important;
+  font-weight: var(--type-weight-display) !important;
+  line-height: 0.94 !important;
+  letter-spacing: -0.055em !important;
+}
+
+.t-display-strong {
+  font-weight: var(--type-weight-strong) !important;
+}
+
+.t-heading {
+  font-family: var(--font-display) !important;
+  font-size: var(--type-heading) !important;
+  font-weight: var(--type-weight-heading) !important;
+  line-height: 1.05 !important;
+  letter-spacing: -0.035em !important;
+}
+
+.t-heading-strong {
+  font-weight: var(--type-weight-heading-strong) !important;
+}
+
+.t-body {
+  font-family: var(--font-body) !important;
+  font-size: var(--type-body) !important;
+  font-weight: var(--type-weight-body) !important;
+  line-height: 1.55 !important;
+  letter-spacing: normal !important;
+}
+
+.t-label {
+  font-family: var(--font-ui) !important;
+  font-size: var(--type-label) !important;
+  font-weight: var(--type-weight-label) !important;
+  line-height: 1.2 !important;
+  letter-spacing: normal !important;
 }
 
 /* ==========================================================================

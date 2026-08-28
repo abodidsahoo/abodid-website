@@ -1,0 +1,492 @@
+---
+export const prerender = false;
+
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { getPublishedMoodboardItems } from "../lib/services/moodboard";
+
+const title = "Visual Mood Board — Abodid Sahoo";
+const description = "A living, randomly arranged collection of visual references, impulses and instincts.";
+
+const moodboardItems = await getPublishedMoodboardItems();
+const shuffledItems = [...moodboardItems];
+
+for (let index = shuffledItems.length - 1; index > 0; index -= 1) {
+  const randomIndex = Math.floor(Math.random() * (index + 1));
+  [shuffledItems[index], shuffledItems[randomIndex]] = [shuffledItems[randomIndex], shuffledItems[index]];
+}
+
+Astro.response.headers.set("Cache-Control", "no-store");
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  fullWidth={true}
+  hideFooter={true}
+  hideWhatsAppButton={true}
+  showNewsletterPopup={false}
+  showGlobalGrid={false}
+  showCursorFollower={false}
+  navigationVariant="next"
+  bodyClass="moodboard-v2-page"
+>
+  <main class="moodboard-v2-shell">
+    <article class="moodboard-v2-file">
+      <header class="moodboard-v2-heading">
+        <p><span aria-hidden="true"></span> visual_mood_board.v2</p>
+        <div>
+          <h1>Visual Mood Board</h1>
+          <p>
+            An archive of impulses and instincts.
+          </p>
+        </div>
+      </header>
+
+      <section class="moodboard-v2-board" aria-label="Randomised visual references">
+        <header class="moodboard-v2-board__bar">
+          <p><span aria-hidden="true"></span> random_order.js</p>
+          <p>{shuffledItems.length} visual fragments · reshuffled on refresh</p>
+        </header>
+
+        {
+          shuffledItems.length > 0 ? (
+            <div class="moodboard-v2-grid">
+              {shuffledItems.map((item, index) => (
+                <figure class="moodboard-v2-card">
+                  <img
+                    src={item.imageUrl}
+                    alt={item.title || "Visual moodboard reference"}
+                    width={item.imageWidth || undefined}
+                    height={item.imageHeight || undefined}
+                    loading={index < 6 ? "eager" : "lazy"}
+                    fetchpriority={index < 3 ? "high" : "low"}
+                    decoding="async"
+                  />
+                  <figcaption class="sr-only">
+                    {item.title}{item.tags.length ? ` — ${item.tags.join(", ")}` : ""}
+                  </figcaption>
+                </figure>
+              ))}
+            </div>
+          ) : (
+            <div class="moodboard-v2-empty">
+              <p>The visual archive is being rearranged. Please return shortly.</p>
+            </div>
+          )
+        }
+
+        <footer class="moodboard-v2-footer">
+          <div class="moodboard-v2-footer__top">
+            <h2 class="moodboard-v2-footer__headline">I'm glad you reached the end of this page!</h2>
+            <p class="moodboard-v2-footer__subline">
+              This is how taste compounds, not through manifestos or design systems, but through finding your people.
+            </p>
+            <div class="moodboard-v2-footer__ctas">
+              <a class="moodboard-v2-cta moodboard-v2-cta--primary" href="/home-next#enquiry">
+                Get in touch <span aria-hidden="true">↗</span>
+              </a>
+              <a class="moodboard-v2-cta moodboard-v2-cta--secondary" href="/home-next">
+                Back to studio <span aria-hidden="true">←</span>
+              </a>
+            </div>
+          </div>
+
+          <div class="moodboard-v2-footer__divider" aria-hidden="true"></div>
+
+          <div class="moodboard-v2-footer__bottom">
+            <div class="moodboard-v2-footer__meta">
+              <p class="moodboard-v2-footer__intro">
+                I love this piece I read about &ldquo;Taste&rdquo; by <a href="https://x.com/saranormous" target="_blank" rel="noopener noreferrer">Sarah Guo <span aria-hidden="true">↗</span></a>
+              </p>
+            </div>
+
+            <blockquote class="moodboard-v2-footer__quote">
+              <p>
+                Taste begins as loneliness and ends as leadership. It starts with one person who can't unsee that the button is two pixels off. Then they find another who winces at the error message. Another who loses sleep over the loading animation.
+              </p>
+              <p>
+                Suddenly you're not alone. You're a conspiracy of people who give a shit. The designer who fights for one more iteration. The engineer who refactors the hacky solution. The PM who kills the feature that would triple revenue but break the product's soul. The support rep who rewrites the docs because they're tired of explaining unclear things. Each person raising the bar simply by refusing to lower theirs.
+              </p>
+              <p>
+                This is how taste compounds—not through manifestos or design systems, but through finding your people. The ones who see what you see. Who hurt where you hurt. Who can't help but care.
+              </p>
+            </blockquote>
+          </div>
+        </footer>
+      </section>
+    </article>
+  </main>
+</BaseLayout>
+
+<style is:global>
+  body.moodboard-v2-page {
+    --mood-v2-purple: #6657d8;
+    --mood-v2-pink: #ff7eb5;
+    --mood-v2-yellow: #ffe44f;
+    --mood-v2-cream: #fff8e8;
+    --mood-v2-ink: #15130f;
+    background: var(--mood-v2-purple);
+    color: var(--mood-v2-ink);
+  }
+
+  html:has(body.moodboard-v2-page) {
+    background: var(--mood-v2-purple);
+  }
+
+  body.moodboard-v2-page .next-nav__bar {
+    border: 0;
+    background: var(--mood-v2-purple);
+    color: var(--mood-v2-cream);
+    backdrop-filter: none;
+  }
+
+  body.moodboard-v2-page .next-nav__desktop a {
+    color: var(--mood-v2-cream);
+  }
+
+  body.moodboard-v2-page .next-nav__home {
+    min-height: 48px;
+    padding-inline: 1rem;
+    border: 1px solid rgba(21, 19, 15, 0.18);
+    border-radius: 15px;
+    background: var(--mood-v2-yellow);
+    color: var(--mood-v2-ink);
+  }
+
+  body.moodboard-v2-page .next-nav__menu-button {
+    border-color: var(--mood-v2-ink);
+    background: var(--mood-v2-yellow);
+    color: var(--mood-v2-ink);
+  }
+
+  body.moodboard-v2-page .next-nav__hire {
+    border-color: var(--mood-v2-ink);
+    background: var(--mood-v2-pink);
+    color: var(--mood-v2-ink);
+  }
+
+  @media (max-width: 760px) {
+    body.moodboard-v2-page .next-nav__home {
+      min-height: 46px;
+      padding-inline: 0.8rem;
+    }
+  }
+</style>
+
+<style>
+  .moodboard-v2-shell {
+    min-height: calc(100svh - var(--next-nav-height, 72px));
+    padding: clamp(10px, 2.5vw, 2.5rem);
+    background: var(--mood-v2-purple);
+  }
+
+  .moodboard-v2-file {
+    width: min(100%, 1600px);
+    margin-inline: auto;
+    overflow: hidden;
+    border: 1px solid var(--mood-v2-ink);
+    border-radius: clamp(20px, 3vw, 34px);
+    background: var(--mood-v2-cream);
+    box-shadow: 0 10px 0 rgba(21, 19, 15, 0.2);
+  }
+
+  .moodboard-v2-heading {
+    padding: clamp(1.4rem, 4vw, 3.5rem);
+    border-bottom: 1px solid var(--mood-v2-ink);
+    background: var(--mood-v2-pink);
+  }
+
+  .moodboard-v2-heading > p,
+  .moodboard-v2-board__bar p {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    color: var(--mood-v2-ink);
+    font: 700 0.72rem/1 var(--font-ui, sans-serif);
+  }
+
+  .moodboard-v2-heading > p {
+    margin-bottom: clamp(2.5rem, 7vw, 5.5rem);
+  }
+
+  .moodboard-v2-heading > p span,
+  .moodboard-v2-board__bar p:first-child span {
+    width: 10px;
+    aspect-ratio: 1;
+    flex: 0 0 auto;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+    background: var(--mood-v2-yellow);
+  }
+
+  .moodboard-v2-heading > div {
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(260px, 0.7fr);
+    gap: clamp(2rem, 6vw, 7rem);
+    align-items: end;
+  }
+
+  .moodboard-v2-heading h1 {
+    max-width: 9ch;
+    margin: 0;
+    color: var(--mood-v2-ink);
+    font: 720 clamp(3.7rem, 9vw, 8.5rem)/0.84 var(--font-display, sans-serif);
+    letter-spacing: -0.075em;
+  }
+
+  .moodboard-v2-heading > div > p {
+    max-width: 34rem;
+    margin: 0;
+    color: var(--mood-v2-ink);
+    font: 500 clamp(1.15rem, 2vw, 1.65rem)/1.32 var(--font-display, sans-serif);
+    letter-spacing: -0.025em;
+  }
+
+  .moodboard-v2-board {
+    padding: clamp(12px, 2vw, 24px);
+    background: var(--mood-v2-cream);
+  }
+
+  .moodboard-v2-board__bar {
+    min-height: 54px;
+    margin-bottom: clamp(12px, 1.25vw, 18px);
+    padding: 0 clamp(0.65rem, 1.5vw, 1rem);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border: 1px solid var(--mood-v2-ink);
+    border-radius: 15px;
+    background: var(--mood-v2-yellow);
+  }
+
+  .moodboard-v2-board__bar p:last-child {
+    opacity: 0.7;
+    text-align: right;
+  }
+
+  .moodboard-v2-grid {
+    columns: 5 210px;
+    column-gap: clamp(10px, 1.15vw, 16px);
+  }
+
+  .moodboard-v2-card {
+    width: 100%;
+    margin: 0 0 clamp(10px, 1.15vw, 16px);
+    break-inside: avoid;
+    overflow: hidden;
+    border: 1px solid rgba(21, 19, 15, 0.2);
+    border-radius: clamp(14px, 1.5vw, 22px);
+    background: #ffffff;
+  }
+
+  .moodboard-v2-card img {
+    width: 100%;
+    height: auto;
+    display: block;
+    background: #ece8df;
+  }
+
+  .moodboard-v2-empty {
+    min-height: 320px;
+    display: grid;
+    place-items: center;
+    border: 1px dashed var(--mood-v2-ink);
+    border-radius: 20px;
+    text-align: center;
+  }
+
+  .moodboard-v2-empty p {
+    max-width: 28rem;
+    margin: 0;
+    font: 560 clamp(1.3rem, 3vw, 2rem)/1.2 var(--font-display, sans-serif);
+  }
+
+  .moodboard-v2-footer {
+    margin-top: clamp(2rem, 5vw, 5rem);
+    padding: clamp(2rem, 4.5vw, 4rem) clamp(0.75rem, 2.5vw, 2rem) clamp(1rem, 2.5vw, 2rem);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(2rem, 4vw, 3.5rem);
+    border-top: 1px solid var(--mood-v2-ink);
+  }
+
+  .moodboard-v2-footer__top {
+    max-width: 58rem;
+  }
+
+  .moodboard-v2-footer__headline {
+    max-width: 28ch;
+    margin: 0 0 0.75rem;
+    color: var(--mood-v2-ink);
+    font: 400 clamp(1.35rem, 2.5vw, 2rem)/1.15 var(--font-display, sans-serif);
+    letter-spacing: -0.02em;
+  }
+
+  .moodboard-v2-footer__subline {
+    max-width: 40rem;
+    margin: 0 0 1.75rem;
+    color: var(--mood-v2-ink);
+    font: 500 clamp(1.08rem, 1.6vw, 1.35rem)/1.42 var(--font-display, sans-serif);
+    letter-spacing: -0.015em;
+    opacity: 0.9;
+  }
+
+  .moodboard-v2-footer__ctas {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.85rem;
+  }
+
+  .moodboard-v2-cta {
+    min-height: 48px;
+    padding: 0 1.35rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    border: 1px solid var(--mood-v2-ink);
+    border-radius: 14px;
+    font: 700 0.82rem/1 var(--font-ui, sans-serif);
+    text-decoration: none;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .moodboard-v2-cta--primary {
+    background: var(--mood-v2-pink);
+    color: var(--mood-v2-ink);
+  }
+
+  .moodboard-v2-cta--secondary {
+    background: var(--mood-v2-yellow);
+    color: var(--mood-v2-ink);
+  }
+
+  .moodboard-v2-cta:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 0 rgba(21, 19, 15, 0.15);
+  }
+
+  .moodboard-v2-footer__divider {
+    height: 1px;
+    width: 100%;
+    background: rgba(21, 19, 15, 0.16);
+  }
+
+  .moodboard-v2-footer__bottom {
+    width: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 0.75fr) minmax(300px, 1.45fr);
+    gap: clamp(1.5rem, 3vw, 4rem);
+    align-items: start;
+  }
+
+  .moodboard-v2-footer__meta {
+    grid-column: 1;
+    max-width: 24rem;
+  }
+
+  .moodboard-v2-footer__intro {
+    margin: 0;
+    color: var(--mood-v2-ink);
+    font: 600 clamp(1rem, 1.35vw, 1.22rem)/1.4 var(--font-display, sans-serif);
+    letter-spacing: -0.015em;
+  }
+
+  .moodboard-v2-footer__intro a {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 3px;
+    transition: opacity 0.2s ease;
+  }
+
+  .moodboard-v2-footer__intro a:hover {
+    opacity: 0.7;
+  }
+
+  .moodboard-v2-footer__quote {
+    grid-column: 2;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    max-width: 30rem;
+  }
+
+  .moodboard-v2-footer__quote p {
+    margin: 0;
+    color: var(--mood-v2-ink);
+    font: 480 clamp(1.02rem, 1.3vw, 1.2rem)/1.62 var(--font-display, sans-serif);
+    letter-spacing: -0.015em;
+  }
+
+  @media (max-width: 900px) {
+    .moodboard-v2-heading > div {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+
+    .moodboard-v2-heading h1 {
+      max-width: 10ch;
+    }
+
+    .moodboard-v2-grid {
+      columns: 3 180px;
+    }
+
+    .moodboard-v2-footer__bottom {
+      grid-template-columns: 1fr;
+    }
+
+    .moodboard-v2-footer__meta,
+    .moodboard-v2-footer__quote {
+      grid-column: 1;
+      max-width: 100%;
+    }
+  }
+
+  @media (max-width: 620px) {
+    .moodboard-v2-shell {
+      padding: 6px;
+    }
+
+    .moodboard-v2-file {
+      border-radius: 20px;
+      box-shadow: 0 5px 0 rgba(21, 19, 15, 0.2);
+    }
+
+    .moodboard-v2-heading h1 {
+      font-size: clamp(3.25rem, 17vw, 5rem);
+    }
+
+    .moodboard-v2-board__bar {
+      align-items: flex-start;
+      flex-direction: column;
+      justify-content: center;
+      padding-block: 0.8rem;
+    }
+
+    .moodboard-v2-board__bar p:last-child {
+      text-align: left;
+    }
+
+    .moodboard-v2-grid {
+      columns: 2 135px;
+    }
+
+    .moodboard-v2-footer {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+  }
+
+  @media (max-width: 390px) {
+    .moodboard-v2-grid {
+      columns: 1;
+    }
+  }
+</style>

@@ -1,0 +1,103 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import { supabase } from "../../../lib/supabase";
+
+export const prerender = false;
+
+const fallbackVersions = [
+  {
+    slug: "text-led-portfolio",
+    title: "Text-led Portfolio",
+    active_period: "2026",
+    change_summary: "A major shift toward a written introduction, selected writing and photography projects.",
+    screenshot_url: "/archive/homepages/text-led-portfolio.png",
+    interactive_path: "/archive/homepages/text-led-portfolio",
+  },
+  {
+    slug: "visual-work-grid",
+    title: "Visual Work Grid",
+    active_period: "2026",
+    change_summary: "A major grid-based homepage that brought work from several disciplines into one visual field.",
+    screenshot_url: "/archive/homepages/visual-work-grid.png",
+    interactive_path: "/archive/homepages/visual-work-grid",
+  },
+];
+
+const { data, error } = await supabase
+  .from("homepage_archives")
+  .select("slug,title,active_period,change_summary,screenshot_url,interactive_path,sort_order")
+  .eq("published", true)
+  .order("sort_order", { ascending: true });
+
+const versions = !error && data?.length ? data : fallbackVersions;
+---
+
+<BaseLayout
+  title="Homepage Archive — Abodid Sahoo"
+  description="An interactive archive of major Abodid.com homepage redesigns."
+  noindex={true}
+  navigationVariant="next"
+  showGlobalGrid={false}
+  showNewsletterPopup={false}
+  bodyClass="homepage-archive-page"
+>
+  <main class="homepage-archive">
+    <header>
+      <p>Homepage archive</p>
+      <h1>Major redesigns, kept alive.</h1>
+      <div>
+        <p>Only substantial homepage revamps belong here. Minor experiments, backups and commit-level variations are deliberately excluded.</p>
+        <p>Each thumbnail opens an interactive version rather than a screenshot-only record.</p>
+      </div>
+    </header>
+
+    <ol class="homepage-archive__list">
+      {versions.map((version, index) => (
+        <li>
+          <a href={version.interactive_path} aria-label={`Open ${version.title} interactive homepage`}>
+            <figure>
+              {version.screenshot_url ? (
+                <img src={version.screenshot_url} alt={`${version.title} homepage thumbnail`} loading={index === 0 ? "eager" : "lazy"} decoding="async" />
+              ) : (
+                <span aria-hidden="true" />
+              )}
+            </figure>
+            <div class="homepage-archive__details">
+              <small>{version.active_period || "Archived homepage"}</small>
+              <h2>{version.title}</h2>
+              {version.change_summary && <p>{version.change_summary}</p>}
+              <strong>Open interactive version →</strong>
+            </div>
+          </a>
+        </li>
+      ))}
+    </ol>
+  </main>
+</BaseLayout>
+
+<style>
+  :global(body.homepage-archive-page) { background: #f6f2ea !important; color: #171512; }
+  .homepage-archive { width: min(100% - 2rem, 1380px); margin: 0 auto; padding: clamp(4rem,9vw,9rem) 0; }
+  .homepage-archive > header { display: grid; grid-template-columns: minmax(0,1fr) minmax(260px,.55fr); gap: 2rem; }
+  .homepage-archive > header > p { grid-column: 1/-1; margin: 0; color: var(--color-brand-red); font: 700 .72rem/1.2 var(--font-mono); letter-spacing: .13em; text-transform: uppercase; }
+  .homepage-archive h1 { max-width: 11ch; margin: 0; color: inherit; font: 540 clamp(3.2rem,8vw,8rem)/.92 var(--font-display); letter-spacing: -.065em; }
+  .homepage-archive header div { align-self: end; }
+  .homepage-archive header div p { margin: 0 0 1rem; color: rgba(23,21,18,.65); font-size: 1rem; line-height: 1.55; }
+  .homepage-archive__list { margin: clamp(4rem,9vw,9rem) 0 0; padding: 0; display: grid; gap: clamp(3rem,7vw,7rem); list-style: none; }
+  .homepage-archive__list > li > a { display: grid; grid-template-columns: minmax(0,1.2fr) minmax(280px,.55fr); gap: clamp(1.5rem,5vw,5rem); color: inherit; text-decoration: none; }
+  .homepage-archive figure { aspect-ratio: 16/10; margin: 0; overflow: hidden; border-radius: 18px; background: #ddd6ca; box-shadow: 0 24px 60px rgba(23,21,18,.12); }
+  .homepage-archive figure img,
+  .homepage-archive figure span { width: 100%; height: 100%; display: block; object-fit: cover; object-position: top; transition: transform 350ms ease; }
+  .homepage-archive a:hover figure img { transform: scale(1.012); }
+  .homepage-archive__details { align-self: center; }
+  .homepage-archive__details small { color: var(--color-brand-red); font: 700 .68rem/1.2 var(--font-mono); letter-spacing: .1em; text-transform: uppercase; }
+  .homepage-archive__details h2 { margin: .8rem 0 0; color: inherit; font: 560 clamp(2rem,4vw,4rem)/1 var(--font-display); letter-spacing: -.05em; }
+  .homepage-archive__details p { max-width: 34rem; margin: 1.2rem 0 0; color: rgba(23,21,18,.65); line-height: 1.55; }
+  .homepage-archive__details strong { min-height: 48px; margin-top: 1.4rem; display: inline-flex; align-items: center; font: 660 .86rem/1.2 var(--font-ui); }
+  @media (max-width: 760px) {
+    .homepage-archive > header,
+    .homepage-archive__list > li > a { grid-template-columns: 1fr; }
+    .homepage-archive figure { aspect-ratio: 4/3; }
+  }
+  @media (prefers-reduced-motion: reduce) { .homepage-archive figure img { transition: none; } }
+</style>

@@ -1,0 +1,145 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import { getHomeNextContent } from "../../../lib/homeNextContent";
+
+export const prerender = false;
+
+const content = await getHomeNextContent();
+---
+
+<BaseLayout
+  title="Homepage section studies — Home Next archive"
+  description="Preserved section experiments from the Home Next landing page."
+  noindex={true}
+  navigationVariant="next"
+  showGlobalGrid={false}
+  showNewsletterPopup={false}
+  bodyClass="home-next-section-sample"
+>
+  <main class="section-sample">
+    <header class="section-sample__intro">
+      <a href="/archive/home-next">← Design archive</a>
+      <p>Preserved sample · section studies</p>
+      <h1>Landing-page ideas with room to evolve.</h1>
+      <span>The fuller selected-work wall, collection navigation, research doorways, Obsidian offer and interruption panel remain here for future reuse.</span>
+    </header>
+
+    <section class="sample-block sample-block--work" aria-labelledby="sample-work-title">
+      <div class="sample-heading">
+        <p>Selected work · 01—06</p>
+        <h2 id="sample-work-title">Have a look at some projects I’m proud of.</h2>
+      </div>
+      <div class="sample-work-grid">
+        {content.selectedWork.slice(0, 6).map((project, index) => (
+          <a href={project.href || `/work/${project.slug}`}>
+            <small>{String(index + 1).padStart(2, "0")}</small>
+            <figure><img src={project.coverUrl} alt={project.coverAlt || project.title} loading="lazy" decoding="async" /></figure>
+            <h3>{project.title}</h3>
+            {project.oneLineDescription && <p>{project.oneLineDescription}</p>}
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <section class="sample-interruption">
+      <p>Work with me</p>
+      <h2>Have a role, project or collaboration in mind?</h2>
+      <a href="/home-next#enquiry">Start a conversation →</a>
+    </section>
+
+    <section class="sample-block sample-block--collections" aria-labelledby="sample-collections-title">
+      <div class="sample-heading sample-heading--split">
+        <div><p>Work</p><h2 id="sample-collections-title">Explore by collection.</h2></div>
+        <span>The work stays multidisciplinary. These collections offer a clear place to begin.</span>
+      </div>
+      <nav class="sample-collections" aria-label="Work collections">
+        {content.workCollections.map((collection) => (
+          <a href={collection.href}><small>{collection.index}</small><b>{collection.title}</b><span>↗</span></a>
+        ))}
+      </nav>
+    </section>
+
+    <section class="sample-block sample-block--research" aria-labelledby="sample-research-title">
+      <div class="sample-heading"><p>Research</p><h2 id="sample-research-title">Projects and academic work.</h2></div>
+      <div class="sample-research-grid">
+        {content.researchDestinations.map((item) => (
+          <a href={item.href}><small>{item.kind}</small><h3>{item.title}</h3><p>{item.status}</p></a>
+        ))}
+      </div>
+    </section>
+
+    <section class="sample-block sample-block--obsidian" aria-labelledby="sample-obsidian-title">
+      <div>
+        <p>Obsidian</p>
+        <h2 id="sample-obsidian-title">Curious about how I think?</h2>
+        <span>My Obsidian practice is a searchable space of notes, ideas, questions and unfinished thoughts.</span>
+      </div>
+      <dl>
+        <div><dt>One-to-one tutoring</dt><dd>£60/hour</dd></div>
+        <div><dt>Research workflow consulting</dt><dd>From £150/hour</dd></div>
+        <div><dt>Organisational vault design</dt><dd>From £150/hour</dd></div>
+      </dl>
+    </section>
+  </main>
+</BaseLayout>
+
+<style>
+  :global(body.home-next-section-sample) { background: #2444ca !important; color: #15130f; }
+  .section-sample { width: 100%; }
+  .section-sample__intro, .sample-block, .sample-interruption { padding: clamp(4rem, 8vw, 8rem) clamp(1rem, 6vw, 6rem); }
+  .section-sample__intro { min-height: 78vh; display: grid; grid-template-columns: minmax(0,1fr) minmax(260px,.55fr); align-content: center; gap: 1.5rem 3rem; background: #2444ca; color: #fff8e8; }
+  .section-sample__intro > a, .section-sample__intro > p { margin: 0; color: inherit; font: 750 .7rem/1.2 var(--font-mono); letter-spacing: .1em; text-transform: uppercase; }
+  .section-sample__intro > a { grid-column: 1 / -1; width: fit-content; text-decoration: none; }
+  .section-sample__intro h1 { max-width: 12ch; margin: 0; color: inherit; font: 620 clamp(3rem, 7vw, 7rem)/.92 var(--font-display); letter-spacing: -.065em; }
+  .section-sample__intro > span { align-self: end; color: #fff8e8; line-height: 1.6; }
+  .sample-block--work { background: #5524c7; }
+  .sample-block--collections { background: #ffe44f; }
+  .sample-block--research { background: #62e6ff; }
+  .sample-block--obsidian { background: #caff48; }
+  .sample-heading { margin-bottom: 3rem; }
+  .sample-heading--split { display: grid; grid-template-columns: minmax(0,1fr) minmax(250px,.4fr); gap: 2rem; }
+  .sample-heading p, .sample-block--obsidian p, .sample-interruption > p { margin: 0 0 1rem; font: 750 .7rem/1.2 var(--font-mono); letter-spacing: .1em; text-transform: uppercase; }
+  .sample-heading h2, .sample-block--obsidian h2, .sample-interruption h2 { max-width: 13ch; margin: 0; color: inherit; font: 620 clamp(2.7rem, 6vw, 6.5rem)/.92 var(--font-display); letter-spacing: -.065em; }
+  .sample-heading--split > span { max-width: 34rem; align-self: end; color: #3d3831; line-height: 1.55; }
+  .sample-block--work .sample-heading { color: #fff8e8; }
+  .sample-work-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: .75rem; }
+  .sample-work-grid > a { min-width: 0; padding: .75rem; display: flex; flex-direction: column; border-radius: 18px; background: #fff8e8; color: #15130f; text-decoration: none; }
+  .sample-work-grid small { font: 750 .68rem/1 var(--font-mono); }
+  .sample-work-grid figure { aspect-ratio: 4/3; margin: .75rem 0 1rem; overflow: hidden; border-radius: 12px; background: #050505; }
+  .sample-work-grid img { width: 100%; height: 100%; display: block; object-fit: cover; }
+  .sample-work-grid h3 { margin: 0; color: inherit; font: 620 1.45rem/1 var(--font-display); letter-spacing: -.04em; }
+  .sample-work-grid p { margin: .5rem 0 0; color: #443e36; font-size: .78rem; }
+  .sample-interruption { min-height: 70vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #ff875c; text-align: center; }
+  .sample-interruption h2 { max-width: 15ch; }
+  .sample-interruption a { margin-top: 2rem; padding: 1rem 1.4rem; border: 1px solid currentColor; border-radius: 999px; color: inherit; text-decoration: none; }
+  .sample-collections { display: grid; gap: .6rem; }
+  .sample-collections a { min-height: 110px; padding: 0 1.5rem; display: grid; grid-template-columns: 60px 1fr auto; align-items: center; border: 1px solid #15130f; border-radius: 20px; color: #15130f; text-decoration: none; }
+  .sample-collections a:nth-child(1) { background: #ff7eb5; }
+  .sample-collections a:nth-child(2) { background: #62e6ff; }
+  .sample-collections a:nth-child(3) { background: #ff875c; }
+  .sample-collections a:nth-child(4) { background: #caff48; }
+  .sample-collections a:nth-child(5) { background: #5524c7; color: #fff8e8; }
+  .sample-collections b { font: 600 clamp(1.5rem,3vw,3rem)/1 var(--font-display); }
+  .sample-research-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: .75rem; }
+  .sample-research-grid a { min-height: 260px; padding: 1.5rem; display: flex; flex-direction: column; border: 1px solid #15130f; border-radius: 18px; color: #15130f; text-decoration: none; }
+  .sample-research-grid a:nth-child(1) { background: #fff8e8; }
+  .sample-research-grid a:nth-child(2) { background: #ff7eb5; }
+  .sample-research-grid a:nth-child(3) { background: #ffe44f; }
+  .sample-research-grid a:nth-child(4) { background: #5524c7; color: #fff8e8; }
+  .sample-research-grid small { font: 750 .68rem/1.2 var(--font-mono); text-transform: uppercase; }
+  .sample-research-grid h3 { margin: auto 0 1rem; color: inherit; font: 620 clamp(1.5rem,3vw,3rem)/1 var(--font-display); letter-spacing: -.045em; }
+  .sample-research-grid p { margin: 0; color: inherit; }
+  .sample-block--obsidian { display: grid; grid-template-columns: minmax(0,1fr) minmax(300px,.6fr); gap: 3rem; }
+  .sample-block--obsidian > div > span { max-width: 40rem; margin-top: 1.5rem; display: block; color: #373229; line-height: 1.6; }
+  .sample-block--obsidian dl { margin: 0; padding: 1.5rem; border-radius: 20px; background: #5524c7; color: #fff8e8; }
+  .sample-block--obsidian dl div { padding: 1.2rem 0; border-bottom: 1px solid #a98df0; }
+  .sample-block--obsidian dl div:last-child { border-bottom: 0; }
+  .sample-block--obsidian dt { font-weight: 700; }
+  .sample-block--obsidian dd { margin: .4rem 0 0; color: #ffe44f; }
+  @media (max-width: 760px) {
+    .section-sample__intro, .sample-heading--split, .sample-block--obsidian { grid-template-columns: 1fr; }
+    .section-sample__intro > a { grid-column: auto; }
+    .sample-work-grid, .sample-research-grid { grid-template-columns: 1fr; }
+    .sample-collections a { grid-template-columns: 40px 1fr auto; }
+  }
+</style>

@@ -1,0 +1,460 @@
+---
+const currentPath = Astro.url.pathname;
+
+const primaryLinks = [
+  { href: "/work", label: "Work" },
+  { href: "/research", label: "Research" },
+  { href: "/services", label: "Services" },
+  { href: "/about", label: "About" },
+  { href: "/blog", label: "Blog" },
+  { href: "/contact", label: "Contact" },
+];
+
+const secondaryLinks = [
+  { href: "/photography", label: "Photography" },
+  { href: "/films", label: "Film and visual storytelling" },
+  { href: "/research-papers", label: "Papers I have curated" },
+  { href: "/obsidian-tutoring", label: "Obsidian tutoring" },
+  { href: "/moodboard", label: "Visual moodboard" },
+];
+
+const isCurrent = (href) =>
+  href === "/" ? currentPath === "/" : currentPath === href || currentPath.startsWith(`${href}/`);
+---
+
+<header class="next-nav" data-next-navigation>
+  <div class="next-nav__bar">
+    <a class="next-nav__home t-label" href="/" aria-label="Abodid home" data-astro-prefetch="viewport">
+      abodid.com
+    </a>
+
+    <nav class="next-nav__desktop" aria-label="Primary navigation">
+      {
+        primaryLinks.slice(0, 5).map((link) => (
+          <a
+            class="t-label"
+            href={link.href}
+            aria-current={isCurrent(link.href) ? "page" : undefined}
+            data-astro-prefetch="hover"
+          >
+            {link.label}
+          </a>
+        ))
+      }
+    </nav>
+
+    <div class="next-nav__actions">
+      <a class="next-nav__hire t-label" href="/home-next#enquiry" data-astro-prefetch="viewport">Hire me</a>
+      <button
+        class="next-nav__menu-button t-label"
+        type="button"
+        aria-label="Open site menu"
+        aria-expanded="false"
+        aria-controls="next-site-menu"
+        data-next-menu-open
+      >
+        <span>Menu</span>
+        <span class="next-nav__menu-icon" aria-hidden="true"><i></i><i></i></span>
+      </button>
+    </div>
+  </div>
+
+  <dialog class="next-menu" id="next-site-menu" data-next-menu>
+    <div class="next-menu__surface">
+      <div class="next-menu__topline">
+        <a href="/" class="next-menu__home t-label" data-astro-prefetch="viewport">abodid.com</a>
+        <button type="button" class="next-menu__close t-label" data-next-menu-close>
+          <span>Close</span><span aria-hidden="true">×</span>
+        </button>
+      </div>
+
+      <div class="next-menu__body">
+        <nav class="next-menu__primary" aria-label="Site navigation">
+          {
+            primaryLinks.map((link, index) => (
+              <a
+                class="t-display"
+                href={link.href}
+                aria-current={isCurrent(link.href) ? "page" : undefined}
+                data-astro-prefetch="viewport"
+              >
+                <span>{link.label}</span>
+                <small class="t-label" aria-hidden="true">{String(index + 1).padStart(2, "0")}</small>
+              </a>
+            ))
+          }
+        </nav>
+
+        <aside class="next-menu__secondary" aria-label="More destinations">
+          <p class="t-label">Explore further</p>
+          {
+            secondaryLinks.map((link) => (
+              <a class="t-body" href={link.href} data-astro-prefetch="hover">{link.label}</a>
+            ))
+          }
+          <a class="next-menu__primary-action t-label" href="/home-next#enquiry">Hire me or start a conversation</a>
+        </aside>
+      </div>
+    </div>
+  </dialog>
+</header>
+
+<script is:inline>
+  (() => {
+    const initialise = () => {
+      const navigation = document.querySelector("[data-next-navigation]");
+      if (!navigation || navigation.dataset.ready === "true") return;
+      navigation.dataset.ready = "true";
+
+      const dialog = navigation.querySelector("[data-next-menu]");
+      const openButton = navigation.querySelector("[data-next-menu-open]");
+      const closeButton = navigation.querySelector("[data-next-menu-close]");
+      if (!(dialog instanceof HTMLDialogElement) || !(openButton instanceof HTMLButtonElement)) return;
+
+      const setOpenState = (open) => {
+        openButton.setAttribute("aria-expanded", String(open));
+        openButton.setAttribute("aria-label", open ? "Close site menu" : "Open site menu");
+        document.documentElement.toggleAttribute("data-next-menu-open", open);
+      };
+
+      const openMenu = () => {
+        if (!dialog.open) dialog.showModal();
+        setOpenState(true);
+        closeButton?.focus();
+      };
+
+      const closeMenu = () => {
+        if (dialog.open) dialog.close();
+        setOpenState(false);
+        openButton.focus({ preventScroll: true });
+      };
+
+      openButton.addEventListener("click", () => dialog.open ? closeMenu() : openMenu());
+      closeButton?.addEventListener("click", closeMenu);
+      dialog.addEventListener("close", () => setOpenState(false));
+      dialog.addEventListener("click", (event) => {
+        if (event.target === dialog) closeMenu();
+      });
+      dialog.querySelectorAll("a[href]").forEach((link) => link.addEventListener("click", () => {
+        if (dialog.open) dialog.close();
+        setOpenState(false);
+      }));
+    };
+
+    initialise();
+    document.addEventListener("astro:page-load", initialise);
+  })();
+</script>
+
+<style is:global>
+  :root {
+    --next-nav-height: 72px;
+  }
+
+  body[data-navigation-variant="next"] {
+    padding-top: var(--next-nav-height);
+  }
+
+  html[data-next-menu-open] {
+    overflow: hidden;
+  }
+
+  .next-nav {
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: 10008;
+    height: var(--next-nav-height);
+    color: #171512;
+  }
+
+  .next-nav__bar {
+    height: 100%;
+    display: grid;
+    grid-template-columns: minmax(130px, 1fr) auto minmax(190px, 1fr);
+    align-items: center;
+    gap: 1.25rem;
+    padding: 0 clamp(1.1rem, 3vw, 3.25rem);
+    border-bottom: 1px solid rgba(23, 21, 18, 0.13);
+    background: color-mix(in srgb, #faf8f3 92%, transparent);
+    backdrop-filter: blur(18px) saturate(130%);
+  }
+
+  .next-nav a,
+  .next-nav button {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .next-nav__home,
+  .next-menu__home {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .next-nav__home,
+  .next-menu__home {
+    width: fit-content;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .next-nav__desktop {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: clamp(1.15rem, 2.2vw, 2rem);
+  }
+
+  .next-nav__desktop a {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    color: rgba(23, 21, 18, 0.68);
+    text-decoration: none;
+    transition: color 160ms ease;
+  }
+
+  .next-nav__desktop a:hover,
+  .next-nav__desktop a:focus-visible,
+  .next-nav__desktop a[aria-current="page"] {
+    color: #171512;
+  }
+
+  .next-nav__actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .next-nav__hire,
+  .next-nav__menu-button {
+    min-height: 48px;
+    padding: 0 1rem;
+    border-radius: 999px;
+  }
+
+  .next-nav__hire {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid rgba(23, 21, 18, 0.2);
+    color: #171512;
+    text-decoration: none;
+  }
+
+  .next-nav__menu-button {
+    display: none;
+    align-items: center;
+    gap: 0.7rem;
+    border: 1px solid #171512;
+    background: #171512;
+    color: #fff;
+    cursor: pointer;
+  }
+
+  .next-nav__menu-icon {
+    width: 18px;
+    display: grid;
+    gap: 4px;
+  }
+
+  .next-nav__menu-icon i {
+    width: 100%;
+    height: 1px;
+    display: block;
+    background: currentColor;
+  }
+
+  .next-menu {
+    width: 100vw;
+    max-width: none;
+    height: 100dvh;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #171512;
+  }
+
+  .next-menu::backdrop {
+    background: rgba(8, 8, 8, 0.48);
+    backdrop-filter: blur(5px);
+  }
+
+  .next-menu[open] {
+    animation: next-menu-in 180ms ease-out both;
+  }
+
+  .next-menu__surface {
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: #f6f2ea;
+  }
+
+  .next-menu__topline {
+    min-height: var(--next-nav-height);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0 clamp(1.1rem, 3vw, 3.25rem);
+    border-bottom: 1px solid rgba(23, 21, 18, 0.15);
+  }
+
+  .next-menu__close {
+    min-width: 88px;
+    min-height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0 1rem;
+    border: 1px solid #171512;
+    border-radius: 999px;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+  }
+
+  .next-menu__body {
+    flex: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(260px, 0.65fr);
+  }
+
+  .next-menu__primary {
+    padding: clamp(1.5rem, 5vw, 5rem) clamp(1.1rem, 6vw, 7rem);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .next-menu__primary a {
+    min-height: clamp(64px, 10vh, 92px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border-bottom: 1px solid rgba(23, 21, 18, 0.14);
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .next-menu__primary small {
+    color: rgba(23, 21, 18, 0.43);
+  }
+
+  .next-menu__secondary {
+    padding: clamp(2rem, 5vw, 5rem) clamp(1.1rem, 4vw, 4rem);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    border-left: 1px solid rgba(23, 21, 18, 0.15);
+    background: #efe9de;
+  }
+
+  .next-menu__secondary p {
+    margin: 0 0 1.3rem;
+    color: rgba(23, 21, 18, 0.54);
+    text-transform: uppercase;
+  }
+
+  .next-menu__secondary > a:not(.next-menu__primary-action) {
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .next-menu__primary-action {
+    width: 100%;
+    min-height: 56px;
+    margin-top: auto;
+    padding: 0.85rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: 12px;
+    background: var(--color-brand-red, #a30021);
+    color: #fff;
+    text-decoration: none;
+  }
+
+  .next-menu__primary-action::after {
+    content: "→";
+  }
+
+  .next-nav :focus-visible,
+  .next-menu :focus-visible {
+    outline: 2px solid var(--color-brand-red, #a30021);
+    outline-offset: 3px;
+  }
+
+  @keyframes next-menu-in {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 1050px) {
+    .next-nav__bar {
+      grid-template-columns: 1fr auto;
+    }
+
+    .next-nav__desktop {
+      display: none;
+    }
+
+    .next-nav__menu-button {
+      display: inline-flex;
+    }
+  }
+
+  @media (max-width: 720px) {
+    :root {
+      --next-nav-height: calc(64px + env(safe-area-inset-top, 0px));
+    }
+
+    .next-nav__bar,
+    .next-menu__topline {
+      padding: env(safe-area-inset-top, 0px) 1rem 0;
+    }
+
+    .next-nav__hire {
+      display: none;
+    }
+
+    .next-nav__menu-button {
+      min-width: 92px;
+      justify-content: space-between;
+    }
+
+    .next-menu__body {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .next-menu__primary {
+      padding: 1.1rem 1rem 0;
+    }
+
+    .next-menu__primary a { min-height: clamp(58px, 9.4vh, 72px); }
+
+    .next-menu__secondary {
+      flex: 1;
+      padding: 1.5rem 1rem max(1rem, env(safe-area-inset-bottom, 0px));
+      border-top: 1px solid rgba(23, 21, 18, 0.15);
+      border-left: 0;
+    }
+
+    .next-menu__secondary > a:not(.next-menu__primary-action),
+    .next-menu__secondary p {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .next-menu[open] { animation: none; }
+  }
+</style>
