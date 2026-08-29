@@ -2,6 +2,7 @@ import { supabase } from '../supabaseClient';
 import { isSupabaseConfigured } from './utils';
 import type { Project, PhotographyProject, BlogPost, Film, ResearchPaper, WorkExperience, ServiceItem } from './types';
 import { featuredPhotography as mockPhotography, recentPosts as mockPosts } from '../../utils/mockData';
+import { GESTURE_CONTROL_VIDEO_URL } from '../mediaAssets';
 
 const normalizeImageUrl = (value: unknown): string =>
     typeof value === 'string' ? value.trim() : '';
@@ -40,6 +41,7 @@ const mockResearchProjects: Project[] = [
         slug: "gesture-image-preview",
         href: "/research/gesture-image-preview",
         image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=1200",
+        video: GESTURE_CONTROL_VIDEO_URL,
         tags: ["Hand Tracking", "Interaction Design", "Research Prototype"],
         published: true,
     },
@@ -119,7 +121,8 @@ export async function getResearchProjects(): Promise<Project[]> {
                 slug: normalizedSlug,
                 href: `/research/${normalizedSlug}`,
                 tags: Array.isArray(p.tags) ? p.tags : (p.tags ? p.tags.split(',') : []),
-                image: p.cover_image
+                image: p.cover_image,
+                video: normalizedSlug === 'gesture-image-preview' ? GESTURE_CONTROL_VIDEO_URL : undefined
             };
         })
         .filter((project) => !isRemovedResearchProject(project));
@@ -156,6 +159,7 @@ export async function getProjects(): Promise<Project[]> {
                 link: p.link || p.repo_link,
                 slug: normalizedSlug,
                 image: p.cover_image,
+                video: normalizedSlug === 'gesture-image-preview' ? GESTURE_CONTROL_VIDEO_URL : undefined,
                 published: p.published
             } as Project;
         })
@@ -179,6 +183,7 @@ export async function getProjectBySlug(slug: string): Promise<Project | null> {
         ...data,
         href: `/research/${data.slug}`,
         image: data.cover_image,
+        video: data.slug === 'gesture-image-preview' ? GESTURE_CONTROL_VIDEO_URL : undefined,
         tags: Array.isArray(data.tags) ? data.tags : [],
         published: Boolean(data.published),
         experiment_url: data.experiment_url || data.link || null,

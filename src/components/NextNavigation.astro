@@ -10,6 +10,11 @@ const primaryLinks = [
   { href: "/contact", label: "Contact" },
 ];
 
+const menuPrimaryLinks = [
+  { href: "/", label: "Home" },
+  ...primaryLinks,
+];
+
 const secondaryLinks = [
   { href: "/photography", label: "Photography" },
   { href: "/films", label: "Film and visual storytelling" },
@@ -24,7 +29,7 @@ const isCurrent = (href) =>
 
 <header class="next-nav" data-next-navigation>
   <div class="next-nav__bar">
-    <a class="next-nav__home t-label" href="/" aria-label="Abodid home" data-astro-prefetch="viewport">
+    <a class="next-nav__home t-label" href="/" aria-label="Abodid Sahoo — Return to homepage" data-astro-prefetch="viewport">
       abodid.com
     </a>
 
@@ -62,7 +67,7 @@ const isCurrent = (href) =>
   <dialog class="next-menu" id="next-site-menu" data-next-menu>
     <div class="next-menu__surface">
       <div class="next-menu__topline">
-        <a href="/" class="next-menu__home t-label" data-astro-prefetch="viewport">abodid.com</a>
+        <a href="/" class="next-menu__home t-label" aria-label="Abodid Sahoo — Return to homepage" data-astro-prefetch="viewport">abodid.com</a>
         <button type="button" class="next-menu__close t-label" data-next-menu-close>
           <span>Close</span><span aria-hidden="true">×</span>
         </button>
@@ -71,7 +76,7 @@ const isCurrent = (href) =>
       <div class="next-menu__body">
         <nav class="next-menu__primary" aria-label="Site navigation">
           {
-            primaryLinks.map((link, index) => (
+            menuPrimaryLinks.map((link, index) => (
               <a
                 class="t-display"
                 href={link.href}

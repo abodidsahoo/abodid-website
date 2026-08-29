@@ -1,5 +1,6 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import { storytellingProcess } from "../lib/homeStorytellingContent";
 
 const title = "Manifesto — Abodid Sahoo";
 const description = "Abodid Sahoo's manifesto on storytelling, creative direction, research, film, art and education.";
@@ -46,6 +47,24 @@ const description = "Abodid Sahoo's manifesto on storytelling, creative directio
         <p>I’m a recipient of the Apple Scholarship, which covered my entire tuition fees at the Royal College of Art in London. Here’s a <a href="/blog/how-apple-funded-my-dream-at-rca">long-form article</a> I wrote that dives deep into the international education ecosystem and scholarships to help students navigate higher studies at Tier 1 international institutions.</p>
 
         <p>I recently received a full bursary for attending the <a href="/uk2026">Cultural Heritage Data School at the University of Cambridge</a> (UOC), organised by the Cambridge Digital Humanities (CDH). This is a long-form memoir of the entire experience, from the application process and fundraising to all the activities we did there and the fun moments we had.</p>
+
+        <section class="manifesto-process" aria-labelledby="manifesto-process-heading">
+          <header class="manifesto-process__header">
+            <p class="manifesto-process__eyebrow"><span aria-hidden="true"></span> How I work</p>
+            <h2 id="manifesto-process-heading">Research first. Medium second. Connection always.</h2>
+            <p class="manifesto-process__intro">The format changes with the question. The aim stays the same: make an idea understandable, memorable and worth sharing.</p>
+          </header>
+
+          <ol class="manifesto-process__grid">
+            {storytellingProcess.map((step, index) => (
+              <li class={`manifesto-process-card manifesto-process-card--${index + 1}`}>
+                <span class="manifesto-process-card__number">{step.number}</span>
+                <h3>{step.title}</h3>
+                <p>{step.text}</p>
+              </li>
+            ))}
+          </ol>
+        </section>
 
         <p>Curious about how I think? Ask my <a href="/research/obsidian-vault">AI-powered Obsidian Vault</a> - a searchable space of my notes, ideas, questions and unfinished thoughts.</p>
       </div>
@@ -187,6 +206,102 @@ const description = "Abodid Sahoo's manifesto on storytelling, creative directio
     text-underline-offset: 0.18em;
   }
 
+  .manifesto-process {
+    margin: clamp(2rem, 5vw, 3.5rem) 0;
+    padding: clamp(1.4rem, 3.5vw, 2.5rem);
+    border: 1px solid var(--manifesto-ink);
+    border-radius: clamp(16px, 2.5vw, 24px);
+    background: var(--manifesto-yellow);
+    color: var(--manifesto-ink);
+  }
+
+  .manifesto-process__header {
+    margin-bottom: 1.5rem;
+  }
+
+  .manifesto-process__eyebrow {
+    margin: 0 0 0.65rem !important;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font: 750 0.68rem/1 var(--font-ui, sans-serif) !important;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .manifesto-process__eyebrow span {
+    width: 8px;
+    aspect-ratio: 1;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+    background: var(--manifesto-pink);
+  }
+
+  .manifesto-process__header h2 {
+    margin: 0 0 0.75rem;
+    color: var(--manifesto-ink);
+    font: 640 clamp(1.8rem, 3.8vw, 2.75rem)/1.02 var(--font-display, sans-serif);
+    letter-spacing: -0.04em;
+  }
+
+  .manifesto-process__intro {
+    margin: 0 !important;
+    color: var(--manifesto-ink);
+    font: 450 clamp(0.95rem, 1.3vw, 1.08rem)/1.55 var(--font-ui, sans-serif) !important;
+  }
+
+  .manifesto-process__grid {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .manifesto-process-card {
+    padding: clamp(1.1rem, 2vw, 1.4rem);
+    border: 1px solid var(--manifesto-ink);
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 155px;
+    transition: transform 160ms ease, box-shadow 160ms ease;
+  }
+
+  .manifesto-process-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 0 rgba(21, 19, 15, 0.15);
+  }
+
+  .manifesto-process-card--1 { background: var(--manifesto-cream); color: var(--manifesto-ink); }
+  .manifesto-process-card--2 { background: var(--manifesto-purple); color: var(--manifesto-cream); border-color: var(--manifesto-ink); }
+  .manifesto-process-card--3 { background: var(--manifesto-pink); color: var(--manifesto-ink); }
+  .manifesto-process-card--4 { background: #ffffff; color: var(--manifesto-ink); }
+
+  .manifesto-process-card__number {
+    font: 750 0.65rem/1 var(--font-ui, sans-serif);
+    letter-spacing: 0.08em;
+    opacity: 0.85;
+    margin-bottom: 0.75rem;
+    color: inherit;
+  }
+
+  .manifesto-process-card h3 {
+    margin: 0 0 0.35rem;
+    color: inherit;
+    font: 650 clamp(1.25rem, 2vw, 1.6rem)/1.1 var(--font-display, sans-serif);
+    letter-spacing: -0.03em;
+  }
+
+  .manifesto-process-card p {
+    margin: 0 !important;
+    color: inherit !important;
+    font: 450 0.88rem/1.4 var(--font-ui, sans-serif) !important;
+    opacity: 0.92;
+  }
+
   .manifesto-card__footer {
     padding: 1rem clamp(1.5rem, 5vw, 4.25rem) clamp(1.5rem, 5vw, 3rem);
   }
@@ -213,6 +328,14 @@ const description = "Abodid Sahoo's manifesto on storytelling, creative directio
     .manifesto-card {
       border-radius: 20px;
       box-shadow: 0 5px 0 rgba(21, 19, 15, 0.2);
+    }
+
+    .manifesto-process {
+      padding: 1.2rem;
+    }
+
+    .manifesto-process__grid {
+      grid-template-columns: 1fr;
     }
   }
 </style>

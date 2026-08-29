@@ -6,9 +6,10 @@ const {
   sourceName = "home-next",
   defaultInterest = "",
   variant = "default",
+  interestOptions = [],
 } = Astro.props;
 
-const interests = [
+const defaultInterests = [
   "Creative direction and technology",
   "Exhibition documentation",
   "Event photography",
@@ -20,6 +21,10 @@ const interests = [
   "Teaching, talks or collaboration",
   "Something else",
 ];
+
+const interests = Array.isArray(interestOptions) && interestOptions.length
+  ? interestOptions
+  : defaultInterests;
 ---
 
 <section class={`inline-enquiry inline-enquiry--${variant}`} id={id} data-inline-enquiry>
@@ -42,13 +47,50 @@ const interests = [
       </label>
     </div>
 
-    <label>
-      <span class="t-label">I am interested in</span>
-      <select class="t-body" name="interest" required>
+    <div class="custom-select" data-custom-select>
+      <label class="custom-select__label-wrap" id="interest-label">
+        <span class="t-label">I am interested in</span>
+      </label>
+      <select class="custom-select__native sr-only" name="interest" required tabindex="-1" aria-hidden="true">
         <option value="" selected={!defaultInterest} disabled>Choose one</option>
         {interests.map((interest) => <option value={interest} selected={defaultInterest === interest}>{interest}</option>)}
       </select>
-    </label>
+      <div class="custom-select__control">
+        <button
+          type="button"
+          class="custom-select__trigger t-body"
+          aria-haspopup="listbox"
+          aria-expanded="false"
+          aria-labelledby="interest-label"
+          data-custom-select-trigger
+        >
+          <span class={`custom-select__selected-text ${defaultInterest ? "has-value" : ""}`} data-custom-select-text>
+            {defaultInterest || "Choose one"}
+          </span>
+          <span class="custom-select__chevron" aria-hidden="true">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </span>
+        </button>
+        <div class="custom-select__menu-wrap" data-custom-select-menu>
+          <ul class="custom-select__options" role="listbox" aria-labelledby="interest-label">
+            {interests.map((interest) => (
+              <li
+                role="option"
+                class={`custom-select__option ${defaultInterest === interest ? "is-selected" : ""}`}
+                data-value={interest}
+                aria-selected={defaultInterest === interest ? "true" : "false"}
+                tabindex="-1"
+              >
+                <span class="custom-select__option-label">{interest}</span>
+                <span class="custom-select__option-icon" aria-hidden="true">✓</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
 
     <label>
       <span class="t-label">Message</span>
@@ -72,6 +114,109 @@ const interests = [
 <script is:inline>
   (() => {
     const initialiseForms = () => {
+      document.querySelectorAll("[data-custom-select]").forEach((container) => {
+        if (!(container instanceof HTMLElement) || container.dataset.ready === "true") return;
+        container.dataset.ready = "true";
+
+        const trigger = container.querySelector("[data-custom-select-trigger]");
+        const textSpan = container.querySelector("[data-custom-select-text]");
+        const menuWrap = container.querySelector("[data-custom-select-menu]");
+        const nativeSelect = container.querySelector("select");
+        const options = Array.from(container.querySelectorAll(".custom-select__option"));
+        const form = container.closest("form");
+
+        if (!(trigger instanceof HTMLButtonElement) || !(nativeSelect instanceof HTMLSelectElement) || !(menuWrap instanceof HTMLElement)) return;
+
+        let activeIndex = options.findIndex((opt) => opt.classList.contains("is-selected"));
+
+        const openMenu = () => {
+          container.classList.add("is-open");
+          trigger.setAttribute("aria-expanded", "true");
+          const selectedOption = options[activeIndex >= 0 ? activeIndex : 0];
+          selectedOption?.scrollIntoView({ block: "nearest" });
+        };
+
+        const closeMenu = (focusTrigger = true) => {
+          container.classList.remove("is-open");
+          trigger.setAttribute("aria-expanded", "false");
+          if (focusTrigger) trigger.focus();
+        };
+
+        const selectOption = (option, focusTrigger = true) => {
+          const value = option.dataset.value || "";
+          nativeSelect.value = value;
+          nativeSelect.dispatchEvent(new Event("change", { bubbles: true }));
+          if (textSpan) textSpan.textContent = value;
+          textSpan?.classList.add("has-value");
+
+          options.forEach((opt, idx) => {
+            const isMatch = opt === option;
+            opt.classList.toggle("is-selected", isMatch);
+            opt.setAttribute("aria-selected", String(isMatch));
+            if (isMatch) activeIndex = idx;
+          });
+
+          closeMenu(focusTrigger);
+        };
+
+        trigger.addEventListener("click", (e) => {
+          e.preventDefault();
+          container.classList.contains("is-open") ? closeMenu() : openMenu();
+        });
+
+        options.forEach((opt) => {
+          opt.addEventListener("click", (e) => {
+            e.stopPropagation();
+            selectOption(opt);
+          });
+        });
+
+        trigger.addEventListener("keydown", (e) => {
+          if (e.key === "ArrowDown" || e.key === "ArrowUp" || e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            if (!container.classList.contains("is-open")) {
+              openMenu();
+            } else if (e.key === "ArrowDown") {
+              activeIndex = (activeIndex + 1) % options.length;
+              options[activeIndex]?.scrollIntoView({ block: "nearest" });
+              options.forEach((o, i) => o.classList.toggle("is-focused", i === activeIndex));
+            } else if (e.key === "ArrowUp") {
+              activeIndex = (activeIndex - 1 + options.length) % options.length;
+              options[activeIndex]?.scrollIntoView({ block: "nearest" });
+              options.forEach((o, i) => o.classList.toggle("is-focused", i === activeIndex));
+            } else if (e.key === "Enter" || e.key === " ") {
+              if (options[activeIndex]) selectOption(options[activeIndex]);
+            }
+          } else if (e.key === "Escape" && container.classList.contains("is-open")) {
+            e.preventDefault();
+            closeMenu();
+          }
+        });
+
+        const handleOutsideClick = (e) => {
+          if (container.classList.contains("is-open") && !container.contains(e.target)) {
+            closeMenu(false);
+          }
+        };
+
+        document.addEventListener("click", handleOutsideClick, true);
+        document.addEventListener("touchstart", handleOutsideClick, { capture: true, passive: true });
+
+        if (form) {
+          form.addEventListener("reset", () => {
+            setTimeout(() => {
+              if (textSpan) textSpan.textContent = "Choose one";
+              textSpan?.classList.remove("has-value");
+              options.forEach((opt) => {
+                opt.classList.remove("is-selected", "is-focused");
+                opt.setAttribute("aria-selected", "false");
+              });
+              activeIndex = -1;
+            }, 0);
+          });
+        }
+      });
+
       document.querySelectorAll("[data-inline-enquiry-form]").forEach((form) => {
         if (!(form instanceof HTMLFormElement) || form.dataset.ready === "true") return;
         form.dataset.ready = "true";
@@ -223,6 +368,172 @@ const interests = [
     padding: 0 0.9rem;
   }
 
+  .custom-select {
+    position: relative;
+    display: grid;
+    gap: 0.55rem;
+    width: 100%;
+  }
+
+  .custom-select__control {
+    position: relative;
+    width: 100%;
+  }
+
+  .custom-select__native {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+  }
+
+  .custom-select__trigger {
+    width: 100%;
+    min-height: 52px;
+    padding: 0 1rem;
+    box-sizing: border-box;
+    border: 1px solid rgba(248, 244, 236, 0.22);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.055);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    text-align: left;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: border-color 160ms ease, box-shadow 160ms ease;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .custom-select__trigger:focus-visible {
+    border-color: #ff6c65;
+    outline: 2px solid rgba(255, 108, 101, 0.3);
+    outline-offset: 2px;
+  }
+
+  .custom-select__selected-text {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    opacity: 0.7;
+  }
+
+  .custom-select__selected-text.has-value {
+    opacity: 1;
+  }
+
+  .custom-select__chevron {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: currentColor;
+    opacity: 0.75;
+    transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+    flex-shrink: 0;
+  }
+
+  .custom-select.is-open .custom-select__chevron {
+    transform: rotate(180deg);
+  }
+
+  .custom-select__menu-wrap {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    z-index: 10000;
+    opacity: 0;
+    transform: translateY(-6px) scale(0.985);
+    transform-origin: top center;
+    pointer-events: none;
+    visibility: hidden;
+    transition: opacity 180ms ease, transform 180ms cubic-bezier(0.16, 1, 0.3, 1), visibility 180ms;
+  }
+
+  .custom-select.is-open .custom-select__menu-wrap {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+    visibility: visible;
+  }
+
+  .custom-select__options {
+    margin: 0;
+    padding: 6px;
+    list-style: none;
+    max-height: 320px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 16px;
+    background: #23201b;
+    border: 1px solid rgba(248, 244, 236, 0.22);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+    display: grid;
+    gap: 3px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(248, 244, 236, 0.25) transparent;
+  }
+
+  .custom-select__options::-webkit-scrollbar {
+    width: 4px;
+  }
+  .custom-select__options::-webkit-scrollbar-thumb {
+    background: rgba(248, 244, 236, 0.25);
+    border-radius: 4px;
+  }
+
+  .custom-select__option {
+    min-height: 44px;
+    padding: 0.65rem 0.95rem;
+    border-radius: 10px;
+    color: #f8f4ec;
+    font-family: inherit;
+    font-size: 0.96rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    transition: background 140ms ease, color 140ms ease, transform 140ms ease;
+    user-select: none;
+  }
+
+  .custom-select__option:hover,
+  .custom-select__option.is-focused {
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    transform: translateX(2px);
+  }
+
+  .custom-select__option.is-selected {
+    background: #ff6c65;
+    color: #fff;
+    font-weight: 600;
+    transform: none;
+  }
+
+  .custom-select__option-icon {
+    display: none;
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+
+  .custom-select__option.is-selected .custom-select__option-icon {
+    display: inline-block;
+  }
+
   .inline-enquiry textarea {
     min-height: 140px;
     padding: 0.85rem 0.9rem;
@@ -291,6 +602,7 @@ const interests = [
 
   .inline-enquiry--pop .inline-enquiry__intro > p:not(.inline-enquiry__eyebrow),
   .inline-enquiry--pop label > span,
+  .inline-enquiry--pop .custom-select__label-wrap > span,
   .inline-enquiry--pop .inline-enquiry__submit-row p {
     color: #fff8e8;
   }
@@ -316,9 +628,67 @@ const interests = [
     outline-color: #fff8e8;
   }
 
-  .inline-enquiry--pop select option {
+  .inline-enquiry--pop .custom-select__trigger {
+    border: 1.5px solid #15130f;
+    border-radius: 15px;
     background: #fff8e8;
     color: #15130f;
+    font-size: 1.05rem;
+    font-weight: 520;
+    box-shadow: 0 2px 0 rgba(21, 19, 15, 0.12);
+  }
+
+  .inline-enquiry--pop .custom-select__trigger:focus-visible,
+  .inline-enquiry--pop .custom-select.is-open .custom-select__trigger {
+    border-color: #15130f;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(255, 228, 79, 0.8), 0 2px 0 rgba(21, 19, 15, 0.12);
+  }
+
+  .inline-enquiry--pop .custom-select__selected-text {
+    opacity: 0.65;
+    color: #15130f;
+  }
+
+  .inline-enquiry--pop .custom-select__selected-text.has-value {
+    opacity: 1;
+  }
+
+  .inline-enquiry--pop .custom-select__options {
+    background: #fff8e8;
+    border: 2px solid #15130f;
+    border-radius: 18px;
+    box-shadow: 0 16px 40px rgba(21, 19, 15, 0.22);
+    scrollbar-color: rgba(21, 19, 15, 0.3) transparent;
+  }
+
+  .inline-enquiry--pop .custom-select__options::-webkit-scrollbar-thumb {
+    background: rgba(21, 19, 15, 0.3);
+  }
+
+  .inline-enquiry--pop .custom-select__option {
+    color: #15130f;
+    font-size: 1rem;
+    font-weight: 520;
+    border-radius: 12px;
+  }
+
+  .inline-enquiry--pop .custom-select__option:hover,
+  .inline-enquiry--pop .custom-select__option.is-focused {
+    background: #ffe44f;
+    color: #15130f;
+    transform: translateX(3px);
+  }
+
+  .inline-enquiry--pop .custom-select__option.is-selected {
+    background: #15130f;
+    color: #fff8e8;
+    font-weight: 650;
+    transform: none;
+  }
+
+  .inline-enquiry--pop .custom-select__option.is-selected .custom-select__option-icon {
+    color: #ffe44f;
   }
 
   .inline-enquiry--pop .inline-enquiry__submit-row button {

@@ -10,6 +10,7 @@ export interface Project extends BaseEntity {
     slug: string;
     href: string;
     image: string; // cover_image from DB
+    video?: string;
     tags: string[];
     published: boolean;
     visible?: boolean;

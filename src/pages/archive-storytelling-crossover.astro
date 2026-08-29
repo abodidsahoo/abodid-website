@@ -1,0 +1,1428 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { personJsonLd, websiteJsonLd } from "../lib/seoData";
+import { listR2Folder, buildR2PublicUrl } from "../lib/media/r2.ts";
+
+let landingPageImages: Array<{ url: string; title: string; bg: string }> = [];
+try {
+    const { files: r2Files, config: r2Config } = await listR2Folder("variants/landing-page-01/800/");
+    r2Files.sort((a, b) => a.objectKey.localeCompare(b.objectKey, undefined, { numeric: true, sensitivity: "base" }));
+    landingPageImages = r2Files.map((file, i) => {
+        const filename = file.objectKey.split("/").pop() || "";
+        const title = filename.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ") || `Landing page photo ${i + 1}`;
+        return {
+            url: buildR2PublicUrl(r2Config, file.objectKey),
+            title,
+            bg: "#111418"
+        };
+    });
+} catch (e) {
+    console.warn("Could not load landing-page-01 R2 images at build time:", e);
+}
+
+const allImagesPool = landingPageImages;
+
+// Sample images (~8 total) so each image gets generous scroll distance and ample breathing space
+const maxPanelImages = 8;
+const imageStep = Math.max(1, Math.floor(allImagesPool.length / maxPanelImages));
+const panelImages = allImagesPool.filter((_, i) => i % imageStep === 0).slice(0, maxPanelImages);
+
+
+
+const pageTitle = "Abodid Sahoo | Creative Director, Artist & Researcher";
+const pageDescription =
+    "Abodid Sahoo helps people use stories to communicate, educate, and bring communities together through creative direction, art, research, films, exhibitions, and digital experiences.";
+
+const heroHeadingLines = [
+    ["Hi,", "I", "am", "Abodid."],
+    ["I", "love", "to", "work", "at", "the", "crossover", "of..."],
+];
+
+const heroTextEffect = "smooth-blur";
+---
+
+<BaseLayout
+    title={pageTitle}
+    description={pageDescription}
+    useDynamicOgImage={false}
+    showNewsletterPopup={false}
+    hideWhatsAppButton={true}
+    bodyClass="landing-page landing-redesign-page"
+    structuredData={[personJsonLd(), websiteJsonLd()]}
+>
+    <section class="narrative-section" aria-labelledby="landing-copy-title">
+        <div class="hero-content">
+            <h1 id="landing-copy-title" class="hero-title" data-hero-copy>
+                {
+                    heroHeadingLines.map((line) => (
+                        <span class="hero-title-line" data-hero-word-line>
+                            {line.map((word) => (
+                                <span class="hero-word" data-hero-word>
+                                    {word}
+                                </span>
+                            ))}
+                        </span>
+                    ))
+                }
+                <span
+                    class="hero-title-line hero-title-line-dynamic"
+                    data-hero-dynamic-line
+                >
+                    <span
+                        id="typewriter-text"
+                        class="typing-text"
+                        data-text-effect={heroTextEffect}
+                        aria-live="polite"
+                        aria-atomic="true"
+                    >
+                        Photography, Film & Art.
+                    </span>
+                </span>
+            </h1>
+
+        </div>
+
+        <figure class="landing-intro-video">
+            <video
+                src="https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/video-clips/Obsidian_Timelapse.mp4"
+                width="1920"
+                height="1241"
+                autoplay
+                muted
+                loop
+                playsinline
+                preload="metadata"
+                aria-label="Timelapse preview of the AI-powered Obsidian Vault"
+            >
+                Your browser does not support embedded video.
+            </video>
+        </figure>
+    </section>
+
+    <div class="copy-image-layout">
+    <article class="landing-copy-body" aria-label="Landing page body copy">
+        <p class="hero-lede">
+            <span>
+                I help people use stories to communicate, educate and bring
+                communities together.
+            </span>
+        </p>
+
+        <p>
+            As a creative director, artist, and researcher, I enjoy pushing the
+            boundaries of storytelling, turning it into memorable, participatory
+            &quot;experiences&quot; that spark conversations and help build deeper
+            connections.
+        </p>
+
+        <p>
+            From art installations and exhibitions to films and digital
+            experiences, I create research-driven work that is intuitive and
+            accessible. As a creative consultant, I work with
+            <a class="copy-link" href="/services">exhibition design teams</a>,
+            design studios, and corporate clients, leading the creative
+            direction and early-stage concept ideation for research-driven
+            storytelling products of the future.
+        </p>
+
+        <p>
+            Sometimes I work as a
+            <a class="copy-link" href="/services">super connector</a>, mapping a
+            brand&apos;s complex ecosystem and emerging ideas with brilliant
+            creative minds across the globe.
+        </p>
+
+        <p>
+            I also write extremely raw memoirs on my lived experiences to help
+            emerging creatives navigate the creative ecosystem more effectively
+            and with confidence. I also
+            <a class="copy-link" href="/blog">speak about culture, art, and
+            technology</a> at international conferences, events, and panel
+            discussions, inspiring audiences to see storytelling differently and
+            to explore a more human-centred, medium-agnostic approach.
+        </p>
+
+        <p>
+            Additionally, I lead hands-on
+            <a class="copy-link" href="/workshops">filmmaking workshops</a>
+            focused on ethics, documentation, and research. I give students
+            situations to think about and text prompts to craft their own
+            narratives.
+        </p>
+
+        <p>
+            I have worked with the
+            <a class="copy-link" href="/education">Royal College of Art London</a>
+            (world&apos;s No.1 Art and Design college - QS ranking), to design,
+            build and document globally renowned year-end graduate shows and art
+            exhibitions happening across campus in central London, and highly
+            sought-after immersive venues like
+            <a class="copy-link" href="/photography/outernet-london-2025">Outernet</a>,
+            <a class="copy-link" href="/photography/frameless-london-rca-exhibition">Frameless</a>,
+            and
+            <a class="copy-link" href="/photography/british-film-institute-london">British Film Institute</a>.
+        </p>
+
+        <p>
+            I have worked with international organisations, agencies and design
+            studios such as Wieden+Kennedy, Pursuit of Portraits, Hermosa Design
+            Studio and Odisha Tourism to create
+            <a class="copy-link" href="/films">brand films, commercials, and
+            social media content</a>.
+        </p>
+
+        <p>
+            My work has been featured on RCA&apos;s official pages. My
+            <a class="copy-link" href="/films">music video</a> was broadcast on
+            VH1. I have had multiple
+            <a class="copy-link" href="/press">media mentions</a> in Homegrown,
+            The Indian Express, Rolling Stone India, and others.
+        </p>
+
+        <p>
+            I&apos;m a recipient of the Apple Scholarship, which
+            covered my entire tuition fees at the Royal College of Art in
+            London. Here&apos;s a
+            <a class="copy-link" href="/blog/how-apple-funded-my-dream-at-rca">long-form article</a>
+            I wrote that dives deep into the international education ecosystem
+            and scholarships to help students navigate higher studies at Tier 1
+            international institutions.
+        </p>
+
+        <p>
+            I recently received a full bursary for attending the
+            <a class="copy-link" href="/uk2026">Cultural Heritage Data School at
+            the University of Cambridge</a> (UOC), organised by the Cambridge
+            Digital Humanities (CDH). This is a long-form memoir of the entire
+            experience, from the application process and fundraising to all the
+            activities we did there and the fun moments we had.
+        </p>
+
+        <p class="obsidian-vault-copy">
+            Curious about how I think? Ask my
+            <a class="copy-link" href="/research/obsidian-vault">AI-powered
+            Obsidian Vault</a> - a searchable space of my notes, ideas,
+            questions and unfinished thoughts.
+        </p>
+    </article>
+
+    {/* ── Right: Sticky exhibition image panel ───────────────────── */}
+    <div class="copy-image-wrapper" id="copy-image-wrapper">
+        <aside
+            class="copy-image-panel is-loading-images"
+            aria-hidden="true"
+            id="copy-image-panel"
+            data-image-pool={JSON.stringify(allImagesPool)}
+        >
+            {panelImages.map((img, i) => (
+                <figure
+                    class={`copy-panel-image${i === 0 ? ' is-active' : ''}`}
+                    data-image-index={i}
+                    style={`background-color: ${img.bg};`}
+                >
+                    <img
+                        src={img.url}
+                        alt={img.title}
+                        loading={i === 0 ? 'eager' : 'lazy'}
+                        decoding="async"
+                    />
+                </figure>
+            ))}
+        </aside>
+    </div>
+    </div>
+
+</BaseLayout>
+
+<style>
+    :global(body.landing-redesign-page) {
+        --landing-copy-color: rgba(224, 232, 246, 0.78);
+        --landing-link-underline-color: rgba(224, 232, 246, 0.42);
+    }
+
+    :global(html[data-theme="light"]:has(body.landing-redesign-page)) {
+        background-color: #ffffff !important;
+    }
+
+    :global(html[data-theme="light"] body.landing-redesign-page) {
+        --bg-canvas: #ffffff;
+        --bg-color: #ffffff;
+        --text-primary: #111418;
+        --text-secondary: #2f343b;
+        --text-tertiary: #565f6b;
+        --feature-typewriter-main-color: #111418;
+        --feature-typewriter-text-color: #111418;
+        --grid-color-1: rgba(18, 24, 32, 0.058);
+        --grid-color-2: rgba(18, 24, 32, 0.018);
+        --landing-copy-color: #2f343b;
+        --landing-link-underline-color: rgba(47, 52, 59, 0.42);
+        background-color: #ffffff !important;
+    }
+
+    :global(body.landing-redesign-page .header-padding) {
+        padding-top: 0 !important;
+    }
+
+    :global(body.landing-redesign-page .global-grid-bg) {
+        opacity: 0.18;
+        background-size: 72px 72px;
+        -webkit-mask-image: none;
+        mask-image: none;
+    }
+
+    :global(html[data-theme="light"] body.landing-redesign-page .global-grid-bg) {
+        opacity: 0.11;
+    }
+
+    :global(body.landing-redesign-page .global-glow-bg) {
+        background-size: 72px 72px;
+    }
+
+    :global(html[data-theme="light"] body.landing-redesign-page .global-glow-bg) {
+        opacity: calc(var(--glow-intensity, 1) * 0.58);
+    }
+
+    :global(html[data-theme="light"] body.landing-redesign-page .top-menu-bar) {
+        border-bottom-color: rgba(15, 23, 42, 0.065);
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.028);
+    }
+
+    .narrative-section {
+        --narrative-top-space: clamp(2rem, 5.5vh, 4.5rem);
+        position: relative;
+        z-index: 100;
+        display: grid;
+        grid-template-areas: "hero-backdrop";
+        padding: var(--narrative-top-space) 24px clamp(2rem, 4.5vh, 3.5rem);
+        max-width: 1100px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .hero-content {
+        --hero-copy-stage-shift: 0px;
+        --hero-copy-top-offset: 110px;
+        grid-area: hero-backdrop;
+        align-self: start;
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        gap: clamp(1.8rem, 3.8vh, 3.2rem);
+        margin-top: calc(clamp(16px, 2vh, 24px) + var(--hero-copy-top-offset));
+        max-width: min(100%, 1040px);
+        transform: translate3d(0, calc(var(--hero-copy-stage-shift) * -1), 0);
+        transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+        will-change: transform;
+    }
+
+    .hero-title {
+        margin: 0;
+        display: grid;
+        gap: 0.06em;
+        font-family: var(--feature-typewriter-main-font, var(--font-sans));
+        font-size: clamp(
+            1.475rem,
+            0.725rem + 1.5vw,
+            2.375rem
+        );
+        font-weight: 300;
+        line-height: var(--feature-typewriter-main-line-height, 1.1);
+        letter-spacing: var(--feature-typewriter-main-letter-spacing, 0em);
+        color: var(--feature-typewriter-main-color, var(--text-primary));
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .hero-title-line {
+        --hero-line-shift: 0px;
+        --hero-line-opacity: 1;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 0.12em 0.18em;
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        opacity: var(--hero-line-opacity);
+        transform: translate3d(0, calc(var(--hero-line-shift) * -1), 0);
+        transition:
+            opacity 0.05s linear,
+            transform 0.04s linear;
+        will-change: opacity, transform;
+    }
+
+    .hero-title-line-dynamic {
+        --hero-dynamic-shift: 0px;
+        --hero-dynamic-opacity: 1;
+        width: 100%;
+        max-width: min(100%, calc(100vw - 48px));
+        opacity: var(--hero-dynamic-opacity);
+        transform: translate3d(0, calc(var(--hero-dynamic-shift) * -1), 0);
+        transition:
+            opacity 0.05s linear,
+            transform 0.04s linear;
+        will-change: opacity, transform;
+    }
+
+    .hero-word {
+        display: inline-block;
+        backface-visibility: hidden;
+    }
+
+    .landing-intro-video {
+        grid-area: hero-backdrop;
+        align-self: start;
+        position: relative;
+        z-index: 1;
+        width: 100vw;
+        max-width: none;
+        margin: calc(var(--narrative-top-space) * -1) calc(50% - 50vw) 0;
+        overflow: hidden;
+        border-radius: 0;
+        background: transparent;
+        pointer-events: none;
+    }
+
+    .landing-intro-video video {
+        display: block;
+        width: 100%;
+        height: auto;
+        object-fit: contain;
+        filter: contrast(1.3) brightness(1.08) saturate(1.1);
+        mix-blend-mode: screen;
+        -webkit-mask-image: linear-gradient(
+            to bottom,
+            rgba(0, 0, 0, 0.32) 0%,
+            rgba(0, 0, 0, 0.42) 18%,
+            rgba(0, 0, 0, 0.7) 34%,
+            #000 48%,
+            #000 70%,
+            rgba(0, 0, 0, 0.82) 80%,
+            rgba(0, 0, 0, 0.38) 92%,
+            transparent 100%
+        );
+        mask-image: linear-gradient(
+            to bottom,
+            rgba(0, 0, 0, 0.32) 0%,
+            rgba(0, 0, 0, 0.42) 18%,
+            rgba(0, 0, 0, 0.7) 34%,
+            #000 48%,
+            #000 70%,
+            rgba(0, 0, 0, 0.82) 80%,
+            rgba(0, 0, 0, 0.38) 92%,
+            transparent 100%
+        );
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+    }
+
+    @supports (width: 100dvw) {
+        .landing-intro-video {
+            width: 100dvw;
+            margin-right: calc(50% - 50dvw);
+            margin-left: calc(50% - 50dvw);
+        }
+    }
+
+    :global(html[data-theme="light"]) .landing-intro-video video {
+        filter: contrast(1.3) brightness(1.08) saturate(1.1) invert(1)
+            hue-rotate(180deg);
+        mix-blend-mode: multiply;
+    }
+
+
+    #typewriter-text {
+        --smooth-blur-mask-start: color-mix(
+            in srgb,
+            var(--bg-color) 82%,
+            transparent
+        );
+        --smooth-blur-mask-mid: color-mix(
+            in srgb,
+            var(--bg-color) 70%,
+            transparent
+        );
+        --smooth-blur-mask-end: color-mix(
+            in srgb,
+            var(--bg-color) 34%,
+            transparent
+        );
+        font-family: var(
+            --feature-typewriter-text-font,
+            var(--feature-typewriter-main-font, var(--font-sans))
+        );
+        font-size: 2.36em;
+        font-weight: 300;
+        line-height: var(--feature-typewriter-text-line-height, 1.1);
+        letter-spacing: var(--feature-typewriter-text-letter-spacing, 0em);
+        color: var(
+            --feature-typewriter-text-color,
+            var(--feature-typewriter-main-color, var(--text-primary))
+        );
+        min-height: 1.2em;
+        margin-top: 0;
+        position: relative;
+        top: -2px;
+        width: 100%;
+        min-width: 0;
+        max-width: min(100%, calc(100vw - 48px));
+        white-space: nowrap;
+        overflow-wrap: break-word;
+    }
+
+    #typewriter-text[data-text-effect="smooth-blur"] {
+        display: inline-grid;
+        grid-template-areas: "stack";
+        align-items: baseline;
+        vertical-align: top;
+        width: 100%;
+        white-space: normal;
+        isolation: isolate;
+        overflow: visible;
+        padding-top: 0.14em;
+        padding-bottom: 0.18em;
+    }
+
+    #typewriter-text[data-text-effect="smooth-blur"]
+        :global(.smooth-blur-phrase) {
+        grid-area: stack;
+        position: relative;
+        display: inline-flex;
+        flex-wrap: nowrap;
+        align-items: baseline;
+        align-content: flex-start;
+        justify-content: flex-start;
+        gap: 0.14em 0.2em;
+        width: 100%;
+        max-width: 100%;
+        white-space: nowrap;
+        overflow: visible;
+        opacity: 0;
+        filter: blur(12px);
+        transform: translate3d(0, 0.18em, 0);
+        pointer-events: none;
+        transition:
+            opacity 1.35s cubic-bezier(0.22, 1, 0.36, 1),
+            transform 1.85s cubic-bezier(0.22, 1, 0.36, 1),
+            filter 1.85s cubic-bezier(0.22, 1, 0.36, 1),
+            text-shadow 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+        will-change: opacity, transform, filter, text-shadow;
+    }
+
+    #typewriter-text[data-text-effect="smooth-blur"]
+        :global(.smooth-blur-phrase.is-visible) {
+        opacity: 1;
+        filter: blur(0.15px);
+        transform: translate3d(0, 0, 0);
+    }
+
+    #typewriter-text[data-text-effect="smooth-blur"]
+        :global(.smooth-blur-phrase.is-fading) {
+        opacity: 0;
+        filter: blur(9px);
+        transform: translate3d(0.16em, -0.05em, 0);
+    }
+
+    #typewriter-text[data-text-effect="smooth-blur"]
+        :global(.smooth-blur-word) {
+        display: inline-block;
+        flex: 0 1 auto;
+        max-width: 100%;
+        opacity: 0;
+        filter: blur(8px);
+        transform: translate3d(-0.24em, 0.15em, 0);
+        text-shadow: 0 0 6px color-mix(in srgb, currentColor 30%, transparent);
+        transition:
+            opacity 1.15s linear,
+            transform 1.55s cubic-bezier(0.22, 1, 0.36, 1),
+            filter 1.55s cubic-bezier(0.22, 1, 0.36, 1),
+            text-shadow 1.15s cubic-bezier(0.22, 1, 0.36, 1);
+        transition-delay: var(--word-delay, 0s);
+        will-change: opacity, transform, filter, text-shadow;
+    }
+
+    #typewriter-text[data-text-effect="smooth-blur"]
+        :global(.smooth-blur-word-label) {
+        display: inline-block;
+        max-width: 100%;
+        overflow-wrap: break-word;
+        backface-visibility: hidden;
+    }
+
+    #typewriter-text[data-text-effect="smooth-blur"]
+        :global(.smooth-blur-phrase.is-visible .smooth-blur-word) {
+        opacity: 1;
+        filter: blur(0.08px);
+        transform: translate3d(0, 0, 0);
+        text-shadow: 0 0 1px color-mix(in srgb, currentColor 14%, transparent);
+    }
+
+    #typewriter-text[data-text-effect="smooth-blur"]
+        :global(.smooth-blur-phrase.is-fading .smooth-blur-word) {
+        opacity: 0;
+        filter: blur(6px);
+        transform: translate3d(0.18em, -0.04em, 0);
+        text-shadow: 0 0 4px color-mix(in srgb, currentColor 22%, transparent);
+        transition-delay: 0s;
+    }
+
+    /* ── Two-column copy + image layout ────────────────────────────── */
+    .copy-image-layout {
+        --copy-layout-lower-offset: clamp(48px, 7vh, 72px);
+        display: grid;
+        grid-template-columns: 520px 1fr;
+        align-items: start;
+        position: relative;
+        z-index: 101;
+        max-width: 1100px;
+        margin: calc(
+                clamp(-470px, -35vw, -112px) +
+                    var(--copy-layout-lower-offset)
+            )
+            auto 0;
+        padding: 0 24px;
+        gap: 0 48px;
+    }
+
+    /* ── Right image panel — wrapper stays in grid, panel goes fixed ── */
+    .copy-image-wrapper {
+        /* Always occupies the right grid column — prevents layout shift */
+        position: relative;
+        min-height: 200px;
+    }
+
+    .copy-image-panel {
+        width: 100%;
+        aspect-ratio: var(--panel-aspect-ratio, 4 / 3);
+        max-height: calc(100vh - 180px);
+        border-radius: 12px;
+        overflow: hidden;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: opacity 400ms ease;
+    }
+
+    .copy-image-panel.is-loading-images {
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .copy-image-panel.is-fixed {
+        position: fixed;
+        top: 100px;
+    }
+
+    .copy-image-panel.is-bottom {
+        position: absolute;
+        bottom: 0;
+        top: auto;
+    }
+
+    .copy-panel-image {
+        position: absolute;
+        inset: 0;
+        margin: 0;
+        padding: 0;
+        opacity: 0;
+        z-index: 1;
+        pointer-events: none;
+        visibility: hidden;
+        display: none;
+        transition: opacity 600ms ease;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .copy-panel-image.is-fading-out {
+        display: block;
+        opacity: 0;
+        z-index: 2;
+        visibility: visible;
+        pointer-events: none;
+    }
+
+    .copy-panel-image.is-active {
+        display: block;
+        opacity: 1;
+        z-index: 10;
+        pointer-events: auto;
+        visibility: visible;
+    }
+
+    .copy-panel-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        object-position: center;
+        display: block;
+        border-radius: 12px;
+    }
+
+    .landing-copy-body {
+        position: relative;
+        z-index: 2;
+        margin: clamp(0.4rem, 1.6vh, 1.25rem) 0 clamp(7rem, 14vh, 10rem);
+        color: var(--landing-copy-color);
+        font-family: var(--font-body);
+        font-size: clamp(1.1rem, 0.75rem + 0.9vw, 1.6rem);
+        font-weight: 380;
+        line-height: 1.43;
+        letter-spacing: 0em;
+    }
+
+    .landing-copy-body p {
+        max-width: 520px;
+        margin: 0 0 clamp(2.4rem, 5vh, 4.5rem);
+        color: var(--landing-copy-color);
+        font-family: var(--font-body);
+        font-size: clamp(1.1rem, 0.75rem + 0.9vw, 1.6rem);
+        font-weight: 380;
+        line-height: 1.43;
+        letter-spacing: 0em;
+        content-visibility: auto;
+        contain-intrinsic-size: auto 220px;
+    }
+
+    .copy-link {
+        color: #ffffff;
+        background-color: var(--color-brand-red);
+        text-decoration: none;
+        border-radius: 3px;
+        padding: 0 0.15em;
+        transition:
+            color 160ms ease,
+            background-color 160ms ease,
+            text-decoration-color 160ms ease;
+    }
+
+    .copy-link:hover,
+    .copy-link:focus-visible {
+        color: #ffffff;
+        background-color: transparent;
+        text-decoration: underline;
+        text-decoration-color: rgba(255, 255, 255, 0.7);
+        text-decoration-thickness: 0.06em;
+        text-underline-offset: 0.22em;
+        outline: none;
+    }
+
+    .copy-link:focus-visible {
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-brand-red) 55%, transparent);
+    }
+
+    /* Light mode: hover must be readable on white background */
+    :global(html[data-theme="light"]) .copy-link:hover,
+    :global(html[data-theme="light"]) .copy-link:focus-visible {
+        color: #111418;
+        background-color: transparent;
+        text-decoration: underline;
+        text-decoration-color: rgba(17, 20, 24, 0.55);
+        text-decoration-thickness: 0.06em;
+        text-underline-offset: 0.22em;
+    }
+
+    @media (max-width: 979px) {
+        .narrative-section {
+            --narrative-top-space: clamp(2.1rem, 5.5vh, 3.8rem);
+        }
+
+        .copy-image-layout {
+            --copy-layout-lower-offset: clamp(36px, 6vh, 56px);
+            margin-top: calc(
+                clamp(-330px, -31vw, -96px) +
+                    var(--copy-layout-lower-offset)
+            );
+        }
+
+        .hero-content {
+            gap: 1.55rem;
+            margin-top: calc(clamp(12px, 1.7vh, 18px) + var(--hero-copy-top-offset));
+            max-width: min(100%, 780px);
+        }
+
+        .hero-title {
+            font-size: clamp(1.125rem, 0.775rem + 1vw, 1.5rem);
+        }
+
+        .hero-lede {
+            font-size: clamp(0.9rem, 0.75rem + 0.7vw, 1.15rem);
+            line-height: 1.55;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .narrative-section {
+            --narrative-top-space: clamp(1.25rem, 4vh, 2.4rem);
+            padding-left: 0;
+            padding-right: 0;
+            padding-bottom: 1.5rem;
+        }
+
+        .hero-content {
+            gap: clamp(1.1rem, 3.5vh, 1.65rem);
+        }
+
+        .hero-title {
+            font-size: clamp(0.59rem, 3vw, 1rem) !important;
+            line-height: 1.3 !important;
+        }
+
+        .hero-title-line {
+            gap: 0.12em 0.16em;
+        }
+
+        .hero-title-line-dynamic {
+            max-width: 100%;
+        }
+
+        #typewriter-text {
+            margin-top: 0.35rem;
+            min-height: 1.45em;
+            overflow: hidden;
+            font-size: 2em;
+            line-height: inherit;
+            max-width: 100%;
+            white-space: nowrap;
+        }
+
+        #typewriter-text[data-text-effect="smooth-blur"]
+            :global(.smooth-blur-phrase) {
+            flex-wrap: nowrap;
+            max-width: 100%;
+            white-space: nowrap;
+        }
+
+        .landing-copy-body {
+            padding-left: 0;
+            padding-right: 0;
+            font-size: clamp(0.9rem, 0.75rem + 0.7vw, 1.15rem);
+            line-height: 1.55;
+        }
+
+        .landing-copy-body p {
+            margin-bottom: 2.35rem;
+            font-size: clamp(0.9rem, 0.75rem + 0.7vw, 1.15rem);
+            line-height: 1.55;
+            max-width: 100%;
+        }
+
+        .copy-image-layout {
+            grid-template-columns: 1fr;
+            margin-top: 0;
+            padding: 0 16px;
+        }
+
+        .copy-image-panel {
+            display: none;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .hero-content,
+        .hero-word,
+        .hero-title-line,
+        .hero-title-line-dynamic {
+            transition: none;
+            filter: none;
+            transform: none;
+        }
+
+        #typewriter-text[data-text-effect="smooth-blur"]
+            :global(.smooth-blur-phrase),
+        #typewriter-text[data-text-effect="smooth-blur"]
+            :global(.smooth-blur-word),
+        #typewriter-text[data-text-effect="smooth-blur"]
+            :global(.smooth-blur-word-label) {
+            transition: none;
+            filter: none;
+            transform: none;
+        }
+    }
+</style>
+
+<script>
+    const clampProgress = (value) => Math.min(1, Math.max(0, value));
+    const smoothstep = (value) => {
+        const clamped = clampProgress(value);
+        return clamped * clamped * (3 - 2 * clamped);
+    };
+
+    const prefersReducedMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+    );
+    const heroContent = document.querySelector(".hero-content");
+    const heroCopy = document.querySelector("[data-hero-copy]");
+    const textElement = document.getElementById("typewriter-text");
+    const heroTextMode = textElement?.dataset.textEffect ?? "smooth-blur";
+    const heroWordLines = Array.from(
+        document.querySelectorAll("[data-hero-word-line]"),
+    );
+    const heroDynamicLine = document.querySelector("[data-hero-dynamic-line]");
+
+    let heroCopyFrame = 0;
+
+    const setHeroLineState = (line, { shift = 0, opacity = 1 }) => {
+        line.style.setProperty("--hero-line-shift", `${shift.toFixed(2)}px`);
+        line.style.setProperty("--hero-line-opacity", opacity.toFixed(3));
+    };
+
+    const resetHeroCopyMotion = () => {
+        heroContent?.style.setProperty("--hero-copy-stage-shift", "0px");
+
+        heroWordLines.forEach((line) => {
+            setHeroLineState(line, { shift: 0, opacity: 1 });
+        });
+
+        heroDynamicLine?.style.setProperty("--hero-dynamic-shift", "0px");
+        heroDynamicLine?.style.setProperty("--hero-dynamic-opacity", "1");
+    };
+
+    const updateHeroCopyMotion = () => {
+        heroCopyFrame = 0;
+
+        if (!heroCopy || heroWordLines.length === 0) return;
+
+        if (prefersReducedMotion.matches) {
+            resetHeroCopyMotion();
+            return;
+        }
+
+        const headerHeight =
+            document.querySelector(".top-menu-shell")?.getBoundingClientRect()
+                .height ??
+            document.querySelector(".fixed-nav")?.getBoundingClientRect()
+                .height ??
+            88;
+        const viewportHeight = Math.max(window.innerHeight, 1);
+        const exitDistance = Math.max(viewportHeight * 0.45, 350);
+        const rawProgress = clampProgress(
+            window.scrollY / Math.max(exitDistance, 1),
+        );
+        const progress = smoothstep(rawProgress);
+
+        heroContent?.style.setProperty(
+            "--hero-copy-stage-shift",
+            `${(progress * 30).toFixed(2)}px`,
+        );
+
+        heroWordLines.forEach((line, lineIndex) => {
+            const lineStart = lineIndex === 0 ? 0 : 0.12;
+            const lineWindow = lineIndex === 0 ? 0.7 : 0.8;
+            const lineProgress = smoothstep(
+                (progress - lineStart) / Math.max(lineWindow, 0.01),
+            );
+            const lineMaxShift = lineIndex === 0 ? 115 : 68;
+            const lineOpacityDrop = lineIndex === 0 ? 1.0 : 0.88;
+            const shift = lineProgress * lineMaxShift;
+            const opacity = clampProgress(
+                1 - (lineProgress * lineOpacityDrop),
+            );
+
+            setHeroLineState(line, { shift, opacity });
+        });
+
+        if (heroDynamicLine) {
+            const dynamicProgress = smoothstep((progress - 0.22) / 0.78);
+            const dynamicShift = dynamicProgress * 32;
+            const dynamicOpacity = clampProgress(
+                1 - (dynamicProgress * 0.72),
+            );
+
+            heroDynamicLine.style.setProperty(
+                "--hero-dynamic-shift",
+                `${dynamicShift.toFixed(2)}px`,
+            );
+            heroDynamicLine.style.setProperty(
+                "--hero-dynamic-opacity",
+                dynamicOpacity.toFixed(3),
+            );
+        }
+    };
+
+    const requestHeroCopyMotionUpdate = () => {
+        if (heroCopyFrame !== 0) return;
+        heroCopyFrame = window.requestAnimationFrame(updateHeroCopyMotion);
+    };
+
+    if (heroCopy) {
+        updateHeroCopyMotion();
+        window.addEventListener("scroll", requestHeroCopyMotionUpdate, {
+            passive: true,
+        });
+        window.addEventListener("resize", requestHeroCopyMotionUpdate);
+        prefersReducedMotion.addEventListener?.(
+            "change",
+            requestHeroCopyMotionUpdate,
+        );
+    }
+
+    const phrases = [
+        "Photography, Film & Art.",
+        "Culture & Technology.",
+        "Research & Writing.",
+        "Design, Code & Creativity.",
+    ];
+
+    const colors = ["#D35E7F", "#D7E97B", "#A999EB", "#9BCDEF"];
+    const heroTextTimers = new Set();
+
+    const queueHeroTextTimer = (callback, delay) => {
+        const timerId = window.setTimeout(() => {
+            heroTextTimers.delete(timerId);
+            callback();
+        }, delay);
+
+        heroTextTimers.add(timerId);
+        return timerId;
+    };
+
+    window.addEventListener(
+        "pagehide",
+        () => {
+            heroTextTimers.forEach((timerId) => window.clearTimeout(timerId));
+            heroTextTimers.clear();
+        },
+        { once: true },
+    );
+
+    const runOnNextFrame = (callback) => {
+        window.requestAnimationFrame(() => {
+            window.requestAnimationFrame(callback);
+        });
+    };
+
+    function parsePhrase(phrase) {
+        const words = phrase.split(" ").filter(Boolean);
+        const fallbackTextColor = textElement
+            ? getComputedStyle(textElement).color
+            : "#FFFFFF";
+        const palette = colors.length > 0 ? colors : [fallbackTextColor];
+        let phraseColors = [...palette];
+
+        phraseColors.sort(() => Math.random() - 0.5);
+
+        while (phraseColors.length < words.length) {
+            phraseColors = phraseColors.concat(
+                [...palette].sort(() => Math.random() - 0.5),
+            );
+        }
+
+        return words.map((word, index) => {
+            return {
+                text: index === words.length - 1 ? word : `${word} `,
+                plainText: word,
+                color: phraseColors[index],
+            };
+        });
+    }
+
+    function createSmoothBlurPhrase(phrase) {
+        const phraseElement = document.createElement("span");
+        phraseElement.className = "smooth-blur-phrase";
+        phraseElement.setAttribute("aria-hidden", "true");
+
+        const phraseWords = parsePhrase(phrase);
+        phraseWords.forEach((word, index) => {
+            const wordElement = document.createElement("span");
+            wordElement.className = "smooth-blur-word";
+            wordElement.style.color = word.color;
+            wordElement.style.setProperty(
+                "--word-delay",
+                `${(index * 190) / 1000}s`,
+            );
+            const wordLabel = document.createElement("span");
+            wordLabel.className = "smooth-blur-word-label";
+            wordLabel.textContent =
+                index === phraseWords.length - 1
+                    ? word.plainText
+                    : `${word.plainText} `;
+            wordElement.append(wordLabel);
+            phraseElement.append(wordElement);
+        });
+
+        return phraseElement;
+    }
+
+    function getSmoothBlurPhraseDuration(phrase) {
+        const wordCount = phrase.split(" ").filter(Boolean).length;
+
+        return 3200 + Math.min(Math.max(wordCount - 1, 0) * 220, 960);
+    }
+
+    function startSmoothBlurText() {
+        if (!textElement) return;
+
+        let phraseIndex = 0;
+        let activePhraseElement = createSmoothBlurPhrase(phrases[phraseIndex]);
+
+        // Keep the first meaningful hero phrase paintable immediately. The
+        // animated transitions begin only when later phrases cycle.
+        activePhraseElement.classList.add("is-visible");
+        textElement.replaceChildren(activePhraseElement);
+        textElement.setAttribute("aria-label", phrases[phraseIndex]);
+        requestHeroCopyMotionUpdate();
+
+        const cyclePhrases = () => {
+            const outgoingPhraseElement = activePhraseElement;
+            phraseIndex = (phraseIndex + 1) % phrases.length;
+
+            const incomingPhraseElement = createSmoothBlurPhrase(
+                phrases[phraseIndex],
+            );
+
+            textElement.append(incomingPhraseElement);
+            textElement.setAttribute("aria-label", phrases[phraseIndex]);
+            requestHeroCopyMotionUpdate();
+
+            runOnNextFrame(() => {
+                incomingPhraseElement.classList.add("is-visible");
+                outgoingPhraseElement?.classList.add("is-fading");
+            });
+
+            activePhraseElement = incomingPhraseElement;
+
+            queueHeroTextTimer(() => {
+                outgoingPhraseElement?.remove();
+            }, 1900);
+
+            queueHeroTextTimer(
+                cyclePhrases,
+                getSmoothBlurPhraseDuration(phrases[phraseIndex]),
+            );
+        };
+
+        queueHeroTextTimer(
+            cyclePhrases,
+            1050 + getSmoothBlurPhraseDuration(phrases[phraseIndex]),
+        );
+    }
+
+    if (textElement && phrases.length > 0 && heroTextMode === "smooth-blur") {
+        startSmoothBlurText();
+    }
+
+    /* ── Scroll-driven image panel switcher + JS sticky ───────────── */
+    (async function initCopyImageSwitcher() {
+        const panel   = document.getElementById("copy-image-panel");
+        const wrapper = document.getElementById("copy-image-wrapper");
+        if (!panel || !wrapper) return;
+
+        const layout  = panel.closest(".copy-image-layout");
+        let figures = Array.from(panel.querySelectorAll(".copy-panel-image"));
+        if (!figures.length) return;
+
+        function updatePanelAspectRatio(fig) {
+            if (!fig || !panel) return;
+            const img = fig.querySelector("img");
+            if (!img) return;
+
+            const applyRatio = () => {
+                if (img.naturalWidth && img.naturalHeight) {
+                    panel.style.setProperty("--panel-aspect-ratio", `${img.naturalWidth} / ${img.naturalHeight}`);
+                    if (img.naturalHeight > img.naturalWidth) {
+                        panel.classList.add("is-portrait");
+                        panel.classList.remove("is-landscape");
+                    } else {
+                        panel.classList.add("is-landscape");
+                        panel.classList.remove("is-portrait");
+                    }
+                }
+            };
+
+            if (img.complete && img.naturalWidth) {
+                applyRatio();
+            } else {
+                img.addEventListener("load", applyRatio, { once: true });
+            }
+        }
+
+        // Randomize portrait image selection for every new visitor session.
+        // Dimensions are checked from the actual file so wide landscape images
+        // never enter the landing-page panel, even when the R2 pool changes.
+        function shuffleArray(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function inspectPortraitImage(imageData) {
+            return new Promise((resolve) => {
+                const probe = new Image();
+                let settled = false;
+
+                const finish = (result) => {
+                    if (settled) return;
+                    settled = true;
+                    window.clearTimeout(timeoutId);
+                    resolve(result);
+                };
+
+                const timeoutId = window.setTimeout(() => finish(null), 6000);
+                probe.onload = () => {
+                    const isPortrait = probe.naturalHeight > probe.naturalWidth;
+                    finish(isPortrait ? imageData : null);
+                };
+                probe.onerror = () => finish(null);
+                probe.src = imageData.url;
+            });
+        }
+
+        async function selectPortraitImages(pool, count) {
+            const candidates = shuffleArray(
+                pool.filter((item) => item && typeof item.url === "string" && item.url)
+            );
+            const selected = [];
+            const batchSize = 10;
+
+            for (let i = 0; i < candidates.length && selected.length < count; i += batchSize) {
+                const batch = candidates.slice(i, i + batchSize);
+                const inspected = await Promise.all(batch.map(inspectPortraitImage));
+                for (const portrait of inspected) {
+                    if (portrait) selected.push(portrait);
+                    if (selected.length === count) break;
+                }
+            }
+
+            return selected;
+        }
+
+        try {
+            const rawPool = panel.dataset.imagePool;
+            if (rawPool) {
+                const pool = JSON.parse(rawPool);
+                if (Array.isArray(pool) && pool.length > 0) {
+                    const selected = await selectPortraitImages(pool, figures.length);
+
+                    if (!selected.length) {
+                        panel.hidden = true;
+                        return;
+                    }
+
+                    figures.slice(selected.length).forEach((fig) => fig.remove());
+                    figures = figures.slice(0, selected.length);
+                    figures.forEach((fig, i) => {
+                        const imgData = selected[i];
+                        fig.style.backgroundColor = imgData.bg || "#111418";
+                        const img = fig.querySelector("img");
+                        if (img) {
+                            img.src = imgData.url;
+                            img.alt = imgData.title || `Photo ${i + 1}`;
+                        }
+                    });
+                }
+            }
+        } catch (e) {
+            console.warn("Could not select portrait landing panel images:", e);
+            panel.hidden = true;
+            return;
+        }
+
+        panel.classList.remove("is-loading-images");
+
+        /* ── Image soft crossfade on scroll ─────────────────────────────── */
+        let activeIndex = 0;
+
+        // Set aspect ratio for initial active image
+        if (figures[activeIndex]) {
+            updatePanelAspectRatio(figures[activeIndex]);
+        }
+
+        // Attach listeners across all figures to ensure aspect ratios update promptly on load
+        figures.forEach((fig) => {
+            const img = fig.querySelector("img");
+            if (!img) return;
+            if (!img.complete) {
+                img.addEventListener("load", () => {
+                    if (fig.classList.contains("is-active")) {
+                        updatePanelAspectRatio(fig);
+                    }
+                }, { once: true });
+            }
+        });
+
+        function showImage(index) {
+            const target = ((index % figures.length) + figures.length) % figures.length;
+            if (target === activeIndex) return;
+
+            const prevFig = figures[activeIndex];
+            const nextFig = figures[target];
+
+            prevFig.classList.remove("is-active");
+            prevFig.classList.add("is-fading-out");
+
+            nextFig.classList.remove("is-fading-out");
+            nextFig.classList.add("is-active");
+
+            activeIndex = target;
+            updatePanelAspectRatio(nextFig);
+
+            setTimeout(() => {
+                prevFig.classList.remove("is-fading-out");
+            }, 600);
+        }
+
+        const article = document.querySelector(".landing-copy-body");
+
+        function updateImageByScroll() {
+            if (!article) return;
+            const rect     = article.getBoundingClientRect();
+            const articleH = article.offsetHeight;
+            const viewH    = window.innerHeight;
+            const paragraphs = article.querySelectorAll("p");
+            const revealParagraph = paragraphs[1] || paragraphs[0];
+
+            // Track scroll distance relative to article top
+            const STICKY_TOP = 160;
+            const scrollDistance = Math.max(0, STICKY_TOP - rect.top);
+            const scrollableRange = Math.max(1, articleH - viewH * 0.35);
+            const rawProgress = Math.min(1, Math.max(0, scrollDistance / scrollableRange));
+
+            // Cycle through images across the first 78% of reading distance
+            const imageProgress = Math.min(1, rawProgress / 0.78);
+            const targetIndex = Math.min(
+                Math.floor(imageProgress * figures.length),
+                figures.length - 1
+            );
+            showImage(targetIndex);
+
+            // Keep the panel hidden initially, then reveal it gradually as the
+            // second paragraph travels from the lower viewport toward the
+            // middle. This makes the entrance scroll-driven, like the exit.
+            let revealOpacity = 1;
+            if (revealParagraph) {
+                const revealRect = revealParagraph.getBoundingClientRect();
+                const revealAnchor = revealRect.top + revealRect.height * 0.5;
+                const revealStartY = viewH * 0.72;
+                const revealEndY = viewH * 0.42;
+                revealOpacity = clampProgress(
+                    (revealStartY - revealAnchor) /
+                        Math.max(1, revealStartY - revealEndY),
+                );
+            }
+
+            // Vanish the image panel smoothly before the last paragraph arrives
+            // (opacity 1 -> 0 between 0.76 and 0.88 progress).
+            let exitOpacity = 1;
+            if (rawProgress >= 0.76) {
+                exitOpacity = Math.max(
+                    0,
+                    (0.88 - rawProgress) / (0.88 - 0.76),
+                );
+            }
+
+            const panelOpacity = Math.min(revealOpacity, exitOpacity);
+            panel.style.opacity = panelOpacity.toFixed(3);
+            panel.style.pointerEvents = panelOpacity < 0.1 ? "none" : "auto";
+        }
+
+        /* ── JS-driven sticky using wrapper rect ───────────────────── */
+        const STICKY_OFFSET = 160; // px gap below header when locked
+        let ticking = false;
+
+        function updatePanelPosition() {
+            // Use wrapper rect — always in grid flow, coords are stable
+            const wRect  = wrapper.getBoundingClientRect();
+            const lRect  = layout ? layout.getBoundingClientRect() : wRect;
+            const panelH = panel.offsetHeight;
+            // Capture width NOW while wrapper is still in flow, before any class changes
+            const fixedWidth = wRect.width + "px";
+            const fixedLeft  = wRect.left  + "px";
+
+            const shouldFix = wRect.top < STICKY_OFFSET;
+            const hitBottom = (lRect.bottom - panelH) < STICKY_OFFSET;
+
+            if (!shouldFix) {
+                // Natural — panel scrolls with page
+                panel.classList.remove("is-fixed", "is-bottom");
+                panel.style.removeProperty("width");
+                panel.style.removeProperty("left");
+                panel.style.removeProperty("top");
+            } else if (hitBottom) {
+                // End of article — anchor to bottom of wrapper
+                panel.style.width = fixedWidth;        // set width first
+                panel.style.removeProperty("left");
+                panel.style.removeProperty("top");
+                panel.classList.remove("is-fixed");
+                panel.classList.add("is-bottom");
+            } else {
+                // Locked near header — set all styles BEFORE adding is-fixed
+                // so position:fixed never fires with width:100% = viewport
+                panel.style.width = fixedWidth;
+                panel.style.left  = fixedLeft;
+                panel.style.top   = STICKY_OFFSET + "px";
+                panel.classList.remove("is-bottom");
+                panel.classList.add("is-fixed");
+            }
+        }
+
+        /* ── Clip body text at the image panel's top edge ─────────── */
+        function updateTextMask() {
+            if (!article || !panel) return;
+            const articleRect = article.getBoundingClientRect();
+            const panelRect   = panel.getBoundingClientRect();
+            const CLIP_Y      = panelRect.top; // exact Y coordinate of image top edge
+
+            if (articleRect.top >= CLIP_Y) {
+                // Article top is still below clip line — no mask needed
+                article.style.removeProperty("mask-image");
+                article.style.removeProperty("-webkit-mask-image");
+                return;
+            }
+
+            // How many px from the top of the article down to the image top edge
+            const cutPointPx = CLIP_Y - articleRect.top;
+            const fadeSize   = 24; // smooth 24px soft gradient fade at the boundary
+            const fadeStart  = Math.max(0, cutPointPx - fadeSize / 2);
+            const fadeEnd    = cutPointPx + fadeSize / 2;
+
+            const mask = `linear-gradient(to bottom,
+                transparent 0,
+                transparent ${fadeStart}px,
+                black ${fadeEnd}px,
+                black 100%)`;
+            article.style.setProperty("mask-image", mask);
+            article.style.setProperty("-webkit-mask-image", mask);
+        }
+
+        const syncPanelLayout = () => {
+            updatePanelPosition();
+            updateImageByScroll();
+            updateTextMask();
+        };
+
+        const requestPanelLayoutUpdate = () => {
+            if (!ticking) {
+                requestAnimationFrame(() => {
+                    syncPanelLayout();
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        };
+
+        window.addEventListener("scroll", requestPanelLayoutUpdate, { passive: true });
+        window.addEventListener("resize", requestPanelLayoutUpdate, { passive: true });
+
+        // Media and web fonts can change the hero's height without firing a
+        // window resize. Re-check the sticky state whenever the relevant
+        // layout boxes settle so the first paint cannot leave a stale fixed
+        // position behind.
+        const layoutObserver = new ResizeObserver(requestPanelLayoutUpdate);
+        const narrativeSection = document.querySelector(".narrative-section");
+        if (narrativeSection) layoutObserver.observe(narrativeSection);
+        layoutObserver.observe(wrapper);
+        if (layout) layoutObserver.observe(layout);
+
+        window.addEventListener("pagehide", () => layoutObserver.disconnect(), {
+            once: true,
+        });
+
+        syncPanelLayout();
+    })();
+</script>

@@ -24,17 +24,17 @@
      * MAJOR COLOR PALETTE (Added for reference)
      * Source: Step 39 Request
      */
-  --palette-red: #ea2a10;
+  --palette-red: #2444ca;
   --palette-light: #f9f8f3;
   --palette-dark: #010101;
   --palette-sand: #e0dbd3;
   --palette-grey: #9e9992;
 
   /* Grainy Glitch Palette */
-  --color-glitch-red: #ff4d30;
+  --color-glitch-red: #3b82f6;
   --color-glitch-dark: #050505;
-  /* Matte Black User Request */
-  --color-brand-red: #a30021;
+  /* Brand Blue Accent */
+  --color-brand-red: #2444ca;
   /* Menu Red */
   --color-glitch-text: #e0e0e0;
 
@@ -107,10 +107,9 @@
   --dark-header-border: #2a2a2a;
   --dark-footer-bg: #060606;
   --dark-footer-text: #edf2f8;
-  --dark-footer-border: #2a2a2a;
   --dark-link-color: var(--color-brand-red);
-  --dark-link-hover-color: #c21c3e;
-  --dark-selection-bg: var(--color-brand-red);
+  --dark-link-hover-color: #4b6ef5;
+  --dark-selection-bg: #2444ca;
 
   --light-page-bg: #f8fafc;
   --light-surface-bg: #ffffff;
@@ -127,8 +126,8 @@
   --light-footer-text: #0f172a;
   --light-footer-border: #d0d9e3;
   --light-link-color: var(--color-brand-red);
-  --light-link-hover-color: #7d0018;
-  --light-selection-bg: var(--color-brand-red);
+  --light-link-hover-color: #19339e;
+  --light-selection-bg: #2444ca;
 
   /* Runtime Theme Variables (default: dark) */
   --bg-canvas: var(--dark-page-bg);
@@ -546,13 +545,13 @@ body::-webkit-scrollbar {
 }
 
 ::selection {
-  background: var(--selection-bg);
-  color: var(--text-inverse);
+  background: var(--selection-bg, #2444ca);
+  color: #ffffff;
 }
 
 ::-moz-selection {
-  background: var(--selection-bg);
-  color: var(--text-inverse);
+  background: var(--selection-bg, #2444ca);
+  color: #ffffff;
 }
 
 [data-theme="light"] body {
