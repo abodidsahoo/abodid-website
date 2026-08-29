@@ -53,8 +53,8 @@ export const storytellingProjects = [
     href: "/research/gesture-image-preview",
     heroImage: GESTURE_CONTROL_HERO_GIF_URL,
     video: GESTURE_CONTROL_VIDEO_URL,
-    image: "https://assets.newatlas.com/dims4/default/83c8dc7/2147483647/strip/true/crop/1564x1043+0+19/resize/800x533!/format/webp/quality/90/?url=https%3A%2F%2Fnewatlas-brightspot.s3.amazonaws.com%2Farchive%2Fgest-1.jpg",
-    alt: "A hand interacting with a gesture-controlled digital interface",
+    image: GESTURE_CONTROL_HERO_GIF_URL,
+    alt: "Animated preview of hand interacting with a gesture-controlled digital interface",
   },
   {
     id: "show-me-the-way",
@@ -112,11 +112,11 @@ export const storytellingCapabilities = [
   },
   {
     number: "04",
-    title: "Super-Connection",
-    summary: "Mapping people, ideas and opportunities, then bringing the right creative minds into the room.",
-    details: ["Creative consulting", "Collaborator mapping", "Cross-cultural networks"],
+    title: "Creative Leadership & Systems",
+    summary: "Building the teams, production workflows and reusable systems that help ambitious creative work scale.",
+    details: ["Creative team direction", "Cross-disciplinary workflows", "Scalable production systems"],
     projects: [
-      { name: "Hermosa Brand Film", href: "/films" },
+      { name: "RCA Exhibition Production", href: "/experience" },
     ],
   },
 ];
@@ -150,14 +150,37 @@ export const communityDoorways = [
 ];
 
 const fallbackBrands = [
-  { id: "rca", name: "Royal College of Art", role: "Exhibitions and cultural storytelling" },
-  { id: "bfi", name: "British Film Institute", role: "Cultural documentation" },
-  { id: "outernet", name: "Outernet London", role: "Immersive venue" },
-  { id: "frameless", name: "Frameless", role: "Immersive venue" },
-  { id: "wk", name: "Wieden+Kennedy", role: "Creative collaboration" },
-  { id: "pop", name: "Pursuit of Portraits", role: "Film and visual storytelling" },
-  { id: "hermosa", name: "Hermosa Design Studio", role: "Brand film" },
-  { id: "odisha", name: "Odisha Tourism", role: "Visual storytelling" },
+  { id: "4ad97ac4-81ac-47cb-aa5c-862eac97c96f", name: "Apple", role: "Scholarship & Creative Technology", category: "Experience" },
+  { id: "2cfb65ab-aba4-47a4-b324-0b1dfff20c8f", name: "Outernet", role: "Immersive Venue", category: "Experience" },
+  { id: "623074f0-d1e4-4092-a8a8-b56cd22b1796", name: "RCA", role: "Spatial Media & Exhibitions", category: "Education" },
+  { id: "256683bf-bccc-4acd-8031-de1ddcc5e71f", name: "IBA", role: "Spatial & Exhibition Design", category: "Client" },
+  { id: "921e5d7c-c434-402c-af9b-d17e38ad79d7", name: "NID", role: "Design Research", category: "Education" },
+  { id: "e85322f2-9755-446a-a070-48b5d31af7ef", name: "VH1", role: "Broadcast Music Video", category: "Experience" },
+  { id: "55444bed-9f8b-4869-a35a-a328da03d845", name: "BFI", role: "Cultural Documentation", category: "Client" },
+  { id: "add9a123-b535-4ae6-9d8a-d68520b0098e", name: "WK", role: "Creative Direction", category: "Experience" },
+  { id: "28a8ca99-d826-46e8-a00e-619be4b17f37", name: "Hermosa", role: "Brand Film", category: "Client" },
+  { id: "a9a7330d-46ff-4c63-b7d4-b23bd976dee6", name: "Furnmill", role: "Executive Producer & Director", category: "Client" },
+  { id: "b126ee27-4283-46e1-bf32-8cc6bc88904a", name: "Pursuit Of Portraits", role: "Visual Storytelling", category: "Experience" },
+  { id: "36cf6f47-cf82-402f-9ccc-4b5b6a6d4055", name: "Uniqlo", role: "Brand Campaign", category: "Client" },
+  { id: "c60b2587-f250-4fa0-9cf5-1ef296f3cb43", name: "Frameless", role: "Immersive Venue", category: "Experience" },
+  { id: "43ed3449-a348-4fd9-9c78-4a981e0c44f9", name: "Budweiser", role: "Film & Visual Direction", category: "Client" },
+  { id: "72c368a4-36f1-4918-b7e0-77b723c34940", name: "Rolling Stone", role: "Editorial Feature", category: "other" },
+  { id: "d386926a-55ce-4858-88d6-5c3d1581b0db", name: "Odisha Tourism", role: "Visual Storytelling", category: "Client" },
+  { id: "94eaf4e6-5d42-4e56-93ba-ccfd00370601", name: "Unilever", role: "Creative Consultant", category: "Client" },
+  { id: "088b3a03-640c-4cc3-866c-4fbbe43f81d6", name: "Grand Hyatt", role: "Video Production & Editing", category: "Client" },
+  // Backup / auxiliary brands from Supabase
+  { id: "b5b60903-0fe3-46ed-9c12-6f62cb733cb7", name: "Homegrown", role: "Press Mention", category: "other" },
+  { id: "fe49641f-4bcf-44c2-88db-7c6983150559", name: "Educate Girls", role: "Video Editor", category: "Client" },
+  { id: "3af2110e-b318-422a-8458-72513c2175ec", name: "Flat Time House", role: "Videographer", category: "Client" },
+  { id: "5ee01d81-ae20-4810-9333-8d5b16db4288", name: "Platoon", role: "Location Manager", category: "Experience" },
+  { id: "a0b198ec-cd7a-42a8-9ecc-6b144b7b27f2", name: "Animal", role: "Director and Editor", category: "Experience" },
+  { id: "60013eae-1be3-4321-b737-31e3d1be43c1", name: "Nirupama", role: "Director and Editor", category: "Client" },
+  { id: "c7dd4f0b-ef8a-40be-ab38-eb53a573cffd", name: "Ricelight", role: "Video Editor & Cinematographer", category: "Experience" },
+  { id: "241e2fd2-30c1-461f-98fb-d27f338bcdf6", name: "Alonzo", role: "Creative Director", category: "Client" },
+  { id: "b25a41b2-2175-4c2a-a8cd-9aa5e022ee0a", name: "Jawa", role: "Video Editor", category: "Client" },
+  { id: "60e86af3-36d5-4961-8e0c-b9aac74be529", name: "Curves And Color", role: "Documentary Filmmaker", category: "Volunteering" },
+  { id: "5d028b82-cf2c-4c51-a5d7-b5a0fecdfac3", name: "Crazy Few Films", role: "Director's Assistant Trainee", category: "Experience" },
+  { id: "3f0231be-951e-4993-9fe8-214aeed0a588", name: "Edex", role: "Press Mention", category: "other" },
 ];
 
 const curatedTestimonialHighlights: Record<string, string> = {

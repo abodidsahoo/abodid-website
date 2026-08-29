@@ -72,27 +72,40 @@ const heroSlides = heroSlideOrder
 const heroProject = heroSlides[0] || content.projects[0];
 const letterboxedHeroSlideIds = new Set(["gesture-control", "punctum-walkthrough"]);
 
-const priorityBrandSpecs = [
-  { id: "rca", name: "Royal College of Art", matches: ["rca", "royal college of art"], role: "Experience Design" },
-  { id: "wk", name: "Wieden+Kennedy", matches: ["wieden", "kennedy"], role: "Creative Direction" },
-  { id: "hermosa", name: "Hermosa Design Studio", matches: ["hermosa"], role: "Brand Film" },
-  { id: "furnmill", name: "Furnmill", matches: ["furnmill"], role: "Executive Producer & Director" },
-  { id: "iba", name: "IBA London", matches: ["iba", "international body of art"], role: "Spatial & exhibition design" },
+const curatedBrandOrder = [
+  { match: "apple", name: "Apple", role: "Creative Technology" },
+  { match: "outernet", name: "Outernet", role: "Immersive Venue" },
+  { match: "rca", name: "Royal College of Art", role: "Spatial Media & Exhibitions" },
+  { match: "iba", name: "IBA", role: "Spatial & Exhibition Design" },
+  { match: "nid", name: "NID", role: "Design Research" },
+  { match: "vh1", name: "VH1", role: "Broadcast Music Video" },
+  { match: "bfi", name: "BFI", role: "Cultural Documentation" },
+  { match: "wieden", name: "WK", role: "Creative Direction" },
+  { match: "hermosa", name: "Hermosa Studio", role: "Brand Film" },
+  { match: "furnmill", name: "Furnmill", role: "Executive Producer & Director" },
+  { match: "pursuit", name: "Pursuit of Portraits", role: "Visual Storytelling" },
+  { match: "uniqlo", name: "Uniqlo", role: "Brand Campaign" },
+  { match: "frameless", name: "Frameless", role: "Immersive Venue" },
+  { match: "budweiser", name: "Budweiser", role: "Film & Visual Direction" },
+  { match: "rolling", name: "Rolling Stone", role: "Editorial Feature" },
+  { match: "odisha", name: "Odisha Tourism", role: "Visual Storytelling" },
+  { match: "unilever", name: "Unilever", role: "Creative Consultant" },
+  { match: "grand hyatt", name: "Grand Hyatt", role: "Video Production & Editing" },
 ];
-const featuredBrands = priorityBrandSpecs.map((spec) => {
-  const existingBrand = content.brands.find((brand) =>
-    spec.matches.some((token) => String(brand.name || "").toLowerCase().includes(token)),
+
+const featuredBrands = curatedBrandOrder.map((item, index) => {
+  const existing = content.brands.find((b: any) =>
+    String(b.name || "").toLowerCase().includes(item.match) ||
+    String(b.id || "").toLowerCase().includes(item.match),
   );
-  const storedRole = existingBrand?.role || spec.role;
-  const role = String(existingBrand?.category || "").toLowerCase() === "education"
-    ? `Education · ${storedRole}`
-    : storedRole;
-  const pillChars = Math.max(spec.name.length, String(role).length);
-  const pillSize = pillChars >= 20 ? "large" : pillChars >= 13 ? "medium" : "small";
+  const name = item.name;
+  const role = existing?.role || item.role;
+  const pillChars = Math.max(name.length, role.length);
+  const pillSize = pillChars >= 18 ? "medium" : "small";
 
   return {
-    id: existingBrand?.id || `priority-${spec.id}`,
-    name: spec.name,
+    id: existing?.id || `brand-${index}-${item.match}`,
+    name,
     role,
     pillSize,
   };
@@ -139,19 +152,21 @@ const structuredData = [
     <a class="story-nav__brand" href="/" aria-label="Abodid Sahoo homepage">abodid.com</a>
     <nav class="story-nav__links" aria-label="Primary navigation">
       <a href="#selected-work">Work</a>
-      <a href="/research-next">Research</a>
-      <a href="/workshops">Workshops</a>
+      <a href="/research">Research</a>
+      <a href="/services">Services</a>
+      <a href="/experience">Experience</a>
       <a href="/about">About</a>
     </nav>
-    <a class="story-nav__contact" href="#enquiry">Start a project <span aria-hidden="true">↗</span></a>
+    <a class="story-nav__contact" href="#enquiry">Hire me <span aria-hidden="true">↗</span></a>
     <details class="story-nav__mobile">
       <summary>Menu</summary>
       <nav aria-label="Mobile navigation">
         <a href="#selected-work">Work</a>
-        <a href="/research-next">Research</a>
-        <a href="/workshops">Workshops</a>
+        <a href="/research">Research</a>
+        <a href="/services">Services</a>
+        <a href="/experience">Experience</a>
         <a href="/about">About</a>
-        <a href="#enquiry">Start a project ↗</a>
+        <a href="#enquiry">Hire me ↗</a>
       </nav>
     </details>
   </header>
@@ -235,7 +250,14 @@ const structuredData = [
         {content.projects.map((project, index) => (
           <a class={`story-project story-project--${index + 1}`} href={project.href} data-auto-contrast>
             <figure>
-              {project.video ? (
+              {project.heroImage ? (
+                <img
+                  src={project.heroImage}
+                  alt={project.alt}
+                  loading="lazy"
+                  decoding="async"
+                />
+              ) : project.video ? (
                 <video
                   src={project.video}
                   poster={project.image}
@@ -269,7 +291,7 @@ const structuredData = [
       <header>
         <p class="story-eyebrow">Selected organisations</p>
         <h2 id="story-evidence-heading">Trusted by</h2>
-        <a href="/experience-next">View professional experience <span aria-hidden="true">↗</span></a>
+        <a href="/experience">View professional experience <span aria-hidden="true">↗</span></a>
       </header>
       <ul class="story-brands" aria-label="Clients and collaborators">
         {featuredBrands.map((brand) => (
@@ -375,7 +397,7 @@ const structuredData = [
         </div>
         <figure class="story-services__conversation-media">
           <img
-            src="https://photos.abodid.com/variants/landing-page-01/800/35-img-0652-edited-comp-0200b8a693.webp"
+            src="https://photos.abodid.com/variants/uk-2026/1600/162_UK-Trip-2026-280fe68684.webp"
             alt="Abodid Sahoo"
             loading="lazy"
             decoding="async"
@@ -429,7 +451,7 @@ const structuredData = [
         </div>
         <nav aria-label="Work links">
           <a href="/work">All Projects <span aria-hidden="true">↗</span></a>
-          <a href="/research-next">Research <span aria-hidden="true">↗</span></a>
+          <a href="/research">Research <span aria-hidden="true">↗</span></a>
           <a href="/photography">Photography <span aria-hidden="true">↗</span></a>
           <a href="/films">Filmmaking <span aria-hidden="true">↗</span></a>
           <a href="/blog">Writing <span aria-hidden="true">↗</span></a>
@@ -703,10 +725,19 @@ const structuredData = [
         startTimer();
       };
 
+      const ensureVideosPlay = () => {
+        document.querySelectorAll<HTMLVideoElement>("video[autoplay]").forEach((video) => {
+          if (video.paused) {
+            video.play().catch(() => {});
+          }
+        });
+      };
+
       const initialisePage = () => {
         applySurfaceContrast();
         initialiseTestimonials();
         initialiseHeroSlider();
+        ensureVideosPlay();
       };
 
       if (document.readyState === "loading") {
@@ -715,6 +746,7 @@ const structuredData = [
         requestAnimationFrame(initialisePage);
       }
       document.addEventListener("astro:page-load", initialisePage);
+      window.addEventListener("pageshow", ensureVideosPlay);
     })();
   </script>
 </BaseLayout>
@@ -1073,10 +1105,10 @@ const structuredData = [
   .story-capability li { padding-bottom: .65rem; border-bottom: 1px solid rgba(21, 19, 15, .25); font: 700 .68rem/1.25 var(--font-mono, monospace); letter-spacing: .06em; text-transform: uppercase; }
   .story-services__conversation {
     margin-top: clamp(1rem, 2vw, 1.5rem);
-    padding: clamp(1.2rem, 2.2vw, 1.8rem);
+    padding: clamp(2rem, 3.5vw, 3.25rem) clamp(1.4rem, 3vw, 2.5rem);
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: clamp(1.2rem, 3vw, 2.5rem);
+    grid-template-columns: minmax(0, 1.25fr) minmax(240px, .75fr);
+    gap: clamp(2rem, 5vw, 5rem);
     align-items: center;
     border: var(--home-next-border);
     border-radius: var(--home-next-radius-panel);
@@ -1117,8 +1149,10 @@ const structuredData = [
   }
   .story-services__conversation-media {
     margin: 0;
-    width: clamp(130px, 16vw, 200px);
-    height: clamp(130px, 16vw, 200px);
+    width: 100%;
+    height: 100%;
+    min-height: clamp(200px, 20vw, 280px);
+    max-height: 340px;
     flex-shrink: 0;
     overflow: hidden;
     border: 1px solid var(--pop-ink);
@@ -1129,7 +1163,7 @@ const structuredData = [
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: center 25%;
+    object-position: center 60%;
     display: block;
     transition: transform 500ms ease;
   }
@@ -1515,6 +1549,8 @@ const structuredData = [
     .story-process { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .story-process li { min-height: 250px; }
     .story-capability__content { grid-template-columns: 1fr; }
+    .story-services__conversation { grid-template-columns: 1fr; }
+    .story-services__conversation-media { width: 100%; height: auto; aspect-ratio: 16 / 10; max-height: 320px; }
     .story-writing__inner { grid-template-columns: 1fr; gap: 2.25rem; }
     .story-footer__grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));

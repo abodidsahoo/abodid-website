@@ -1,237 +1,754 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { getResearchProjects } from "../lib/api";
+import { punctumImages } from "../data/punctumImages";
+import { GESTURE_CONTROL_VIDEO_URL, GESTURE_CONTROL_HERO_GIF_URL } from "../lib/mediaAssets";
+import { breadcrumbJsonLd, personJsonLd } from "../lib/seoData";
 
-const glyphLoomProject = {
-  title: "Glyph Loom",
-  description:
-    "A generative typography and motion-design instrument that reconstructs live font outlines with woven bars, dots, crosses, lines, and modular grids.",
-  slug: "glyph-loom",
-  href: "/research/glyph-loom",
-  image: "/images/research/glyph-loom-cover.png",
-  tags: ["Generative Type", "Canvas", "Motion Systems"],
-  published: true,
-};
+export const prerender = false;
 
 const fetchedProjects = await getResearchProjects();
-const projects = [
-  glyphLoomProject,
-  ...fetchedProjects.filter((project) => project.slug !== "glyph-loom"),
+const bySlug = new Map(fetchedProjects.map((project) => [project.slug, project]));
+
+const researchSelection = [
+  {
+    slug: "invisible-punctum",
+    title: "Punctum",
+    kind: "Participatory AI experiment",
+    description: "A sociological experiment exploring visual perception, attention and the details that remain with us after an image has gone.",
+    href: "/research/punctum",
+    image: punctumImages[0]?.url,
+    tags: ["Visual perception", "AI", "Sociology"],
+  },
+  {
+    slug: "gesture-image-preview",
+    title: "Hand Gesture Control",
+    kind: "Interaction prototype",
+    description: "A hand-controlled interface for browsing photographs as though they were physical cards, with an experimental voice layer.",
+    href: "/research/gesture-image-preview",
+    video: GESTURE_CONTROL_VIDEO_URL,
+    image: GESTURE_CONTROL_HERO_GIF_URL,
+    tags: ["Computer vision", "Photography", "Interaction"],
+  },
+  {
+    slug: "obsidian-vault",
+    title: "Obsidian Vault",
+    kind: "Knowledge ecosystem",
+    description: "A public-facing experiment in connected thinking, retrieval and the long-term development of creative taste.",
+    href: "/research/obsidian-vault",
+    image: punctumImages[3]?.url,
+    tags: ["Knowledge systems", "Archives", "Retrieval"],
+  },
+  {
+    slug: "polaroid-hub",
+    title: "Polaroid Hub",
+    kind: "Photographic microsite",
+    description: "A tactile digital space for arranging, sequencing and encountering photographs outside a conventional gallery grid.",
+    href: "/research/polaroid-hub",
+    image: punctumImages[4]?.url,
+    tags: ["Photography", "Archives", "Interface"],
+  },
+].map((fallback) => {
+  const project = bySlug.get(fallback.slug);
+  return {
+    ...fallback,
+    title: fallback.slug === "invisible-punctum" ? "Punctum" : project?.title || fallback.title,
+    image: project?.image || fallback.image,
+    video: project?.video || fallback.video,
+  };
+});
+
+const title = "Research and Creative Technology — Abodid Sahoo";
+const description = "Research-driven experiments by Abodid Sahoo across visual perception, participatory AI, archives, knowledge systems and cultural technology.";
+
+const structuredData = [
+  personJsonLd(),
+  breadcrumbJsonLd([
+    { name: "Home", path: "/" },
+    { name: "Research", path: "/research" },
+  ]),
 ];
-
-const pageTitle = "Research";
-const pageDescription =
-  "Research by Abodid Sahoo exploring digital archives, AI-assisted memory, visual systems, culture, and participatory storytelling.";
-
-const isTensorFlowProject = (slug = "", title = "") =>
-  slug.startsWith("tensorflow-") || title.toLowerCase().includes("tensorflow");
 ---
 
-<BaseLayout title={pageTitle} description={pageDescription}>
-  <header class="page-header">
-    <h1>{pageTitle}</h1>
-    <p class="section-intro">
-      Explorations in digital archives, AI-driven memory, and visual systems.
-    </p>
+<BaseLayout
+  title={title}
+  description={description}
+  structuredData={structuredData}
+  fullWidth={true}
+  hideHeader={true}
+  hideFooter={true}
+  hideWhatsAppButton={true}
+  showNewsletterPopup={false}
+  showGlobalGrid={false}
+  showCursorFollower={false}
+  bodyClass="research-next-page"
+>
+  <header class="story-nav">
+    <a class="story-nav__brand" href="/" aria-label="Abodid Sahoo homepage">abodid.com</a>
+    <nav class="story-nav__links" aria-label="Primary navigation">
+      <a href="/#selected-work">Work</a>
+      <a href="/research" class="is-active">Research</a>
+      <a href="/services">Services</a>
+      <a href="/experience">Experience</a>
+      <a href="/about">About</a>
+    </nav>
+    <a class="story-nav__contact" href="/#enquiry">Hire me <span aria-hidden="true">↗</span></a>
+    <details class="story-nav__mobile">
+      <summary>Menu</summary>
+      <nav aria-label="Mobile navigation">
+        <a href="/#selected-work">Work</a>
+        <a href="/research" class="is-active">Research</a>
+        <a href="/services">Services</a>
+        <a href="/experience">Experience</a>
+        <a href="/about">About</a>
+        <a href="/#enquiry">Hire me ↗</a>
+      </nav>
+    </details>
   </header>
 
-  <div class="projects-grid">
-    {
-      projects.map((project) => (
-        <a href={project.href} class="project-card">
-          {project.image && (
-            <div class="card-image-container">
-              <img
-                src={project.image}
-                alt={project.title}
-                class="card-image"
-                loading="lazy"
-              />
-              {isTensorFlowProject(project.slug, project.title) && (
-                <div class="wip-overlay" aria-label="Work in progress">
-                  <span class="wip-overlay__badge">Work in Progress</span>
-                </div>
-              )}
-            </div>
-          )}
-          <div class="card-content">
-            <h2>{project.title}</h2>
-            <p class="description">{project.description}</p>
+  <main class="research-next">
+    <section class="research-next__hero" aria-labelledby="research-next-heading">
+      <div class="research-next__hero-copy">
+        <p class="next-eyebrow">Research · creative technology · culture</p>
+        <h1 id="research-next-heading">Experiments for understanding how people see, remember and make meaning.</h1>
+        <p class="research-next__lede">I combine cultural research, photography and emerging technology to turn difficult questions into participatory experiences people can see, touch and contribute to.</p>
+        <div class="next-actions">
+          <a href="/research/punctum">Enter Punctum <span aria-hidden="true">↗</span></a>
+          <a href="/#enquiry">Discuss a role or collaboration <span aria-hidden="true">↗</span></a>
+        </div>
+      </div>
 
-            <div class="meta-footer">
-              <div class="tags">
-                {project.tags &&
-                  project.tags.map((tag) => <span class="tag">{tag}</span>)}
-              </div>
-              <span class="arrow-icon" aria-hidden="true">→</span>
+      <div class="research-next__hero-images" aria-label="Images from the Punctum visual study">
+        {punctumImages.slice(0, 3).map((image, index) => (
+          <figure class={`research-next__hero-image research-next__hero-image--${index + 1}`}>
+            <img src={image.url} alt={image.title} loading={index === 0 ? "eager" : "lazy"} />
+            <figcaption>{String(index + 1).padStart(2, "0")} · Visual study</figcaption>
+          </figure>
+        ))}
+      </div>
+    </section>
+
+    <section class="research-next__opportunity" aria-labelledby="opportunity-heading">
+      <p class="next-eyebrow">The next environment</p>
+      <h2 id="opportunity-heading">Open to joining a culture-shaping technology team in London.</h2>
+      <div>
+        <p>I am looking for a full-time role where research, prototyping, media and cultural insight belong in the same room—especially within a creative lab or a team building public-facing cultural products.</p>
+        <p>My perspective is shaped by creative communities in London, Bangalore and Mumbai. I want my work to create more meaningful exchange between the UK and India.</p>
+      </div>
+      <ul aria-label="Areas of contribution">
+        <li>Creative technology</li>
+        <li>Design research</li>
+        <li>Rapid prototyping</li>
+        <li>Visual systems</li>
+      </ul>
+    </section>
+
+    <section class="research-next__feature" aria-labelledby="feature-heading">
+      <div class="research-next__feature-image">
+        <img src={punctumImages[5]?.url} alt="Exhibition photograph used as part of the Punctum study" loading="lazy" />
+      </div>
+      <div class="research-next__feature-copy">
+        <p class="next-eyebrow">Flagship experiment · 2026</p>
+        <h2 id="feature-heading">Punctum</h2>
+        <p class="research-next__feature-intro">What makes one detail in an image pierce a person—and why does another person remember something completely different?</p>
+        <dl>
+          <div><dt>Question</dt><dd>How do visual attention, memory and personal experience shape what stays with us?</dd></div>
+          <div><dt>Method</dt><dd>Participatory image annotation, sociological inquiry and an AI-assisted ecosystem for comparing responses.</dd></div>
+          <div><dt>Role</dt><dd>Research, photography, experience design, prototyping and system direction.</dd></div>
+        </dl>
+        <a class="next-text-link" href="/research/punctum">Explore the experiment →</a>
+      </div>
+    </section>
+
+    <section class="research-next__projects" aria-labelledby="projects-heading">
+      <header>
+        <p class="next-eyebrow">Selected experiments</p>
+        <h2 id="projects-heading">Research becomes more useful when people can enter it.</h2>
+      </header>
+      <div class="research-next__project-grid">
+        {researchSelection.map((project, index) => (
+          <a class="research-next__project" href={project.href}>
+            <figure>
+              {project.video ? (
+                <video
+                  src={project.video}
+                  poster={project.image}
+                  autoplay
+                  muted
+                  loop
+                  playsinline
+                  preload="metadata"
+                  aria-label={`${project.title} video preview`}
+                />
+              ) : (
+                <img src={project.image} alt={project.title} loading="lazy" />
+              )}
+            </figure>
+            <div>
+              <span class="next-eyebrow">{String(index + 1).padStart(2, "0")} · {project.kind}</span>
+              <h3>{project.title}</h3>
+              <p>{project.description}</p>
+              <ul aria-label={`${project.title} themes`}>{project.tags.map((tag) => <li>{tag}</li>)}</ul>
+              <strong>Open experiment ↗</strong>
             </div>
-          </div>
-        </a>
-      ))
-    }
-  </div>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <section class="research-next__method" aria-labelledby="method-heading">
+      <div class="research-next__method-header">
+        <p class="next-eyebrow">Working method</p>
+        <h2 id="method-heading">Research, prototype, observe, rebuild.</h2>
+      </div>
+      <div class="research-next__method-track-wrapper">
+        <ol class="research-next__method-grid" role="region" aria-label="Working method steps">
+          <li class="research-next__method-card">
+            <div class="research-next__card-top">
+              <span class="research-next__card-index">01</span>
+            </div>
+            <div class="research-next__card-body">
+              <strong>Find the human question</strong>
+              <p>Begin with a cultural tension or behaviour worth understanding.</p>
+            </div>
+          </li>
+          <li class="research-next__method-card">
+            <div class="research-next__card-top">
+              <span class="research-next__card-index">02</span>
+            </div>
+            <div class="research-next__card-body">
+              <strong>Make it tangible</strong>
+              <p>Translate the question into an image, interface, system or participatory encounter.</p>
+            </div>
+          </li>
+          <li class="research-next__method-card">
+            <div class="research-next__card-top">
+              <span class="research-next__card-index">03</span>
+            </div>
+            <div class="research-next__card-body">
+              <strong>Learn from use</strong>
+              <p>Observe what people notice, misunderstand, remember and contribute.</p>
+            </div>
+          </li>
+          <li class="research-next__method-card">
+            <div class="research-next__card-top">
+              <span class="research-next__card-index">04</span>
+            </div>
+            <div class="research-next__card-body">
+              <strong>Build the ecosystem</strong>
+              <p>Turn those insights into a richer product, archive or research direction.</p>
+            </div>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="research-next__closing">
+      <p class="next-eyebrow">London · India · worldwide</p>
+      <h2>Building a cultural or media-driven product?</h2>
+      <p>I am open to full-time creative technology roles, research collaborations, talks and selected consulting engagements.</p>
+      <div class="next-actions">
+        <a href="/#enquiry">Start a conversation <span aria-hidden="true">↗</span></a>
+        <a href="/experience">View experience <span aria-hidden="true">↗</span></a>
+        <a href="/">Back to Home <span aria-hidden="true">↗</span></a>
+      </div>
+    </section>
+  </main>
 </BaseLayout>
 
-<style>
-  .page-header {
-    margin-bottom: 4rem;
-    padding-top: 2rem;
-    text-align: left;
+<style is:global>
+  body.research-next-page {
+    --pop-blue: #2444ca;
+    --pop-pink: #ff7eb5;
+    --pop-yellow: #ffe44f;
+    --pop-lime: #caff48;
+    --pop-orange: #ff875c;
+    --pop-purple: #5524c7;
+    --pop-cyan: #62e6ff;
+    --pop-cream: #fff8e8;
+    --pop-ink: #15130f;
+    --pop-border: rgba(21, 19, 15, 0.78);
+    --story-ink: var(--pop-ink);
+    --story-cream: var(--pop-cream);
+    --story-gutter: clamp(1rem, 3vw, 3.5rem);
+
+    --next-ink: var(--pop-ink);
+    --next-cream: var(--pop-cream);
+    --next-lime: var(--pop-lime);
+    --next-pink: var(--pop-pink);
+    --next-yellow: var(--pop-yellow);
+    --next-blue: var(--pop-blue);
+    --next-purple: var(--pop-purple);
+    --next-cyan: var(--pop-cyan);
+    --next-orange: var(--pop-orange);
+    --color-brand-red: var(--pop-purple);
+    --link-hover-color: var(--pop-purple);
+    --theme-color-primary: var(--pop-blue);
+    --theme-color-accent: var(--pop-purple);
+
+    /* Layout Tokens */
+    --research-gap: 8px;
+    --research-page-padding: 8px;
+    --research-panel-radius: 28px;
+    --research-card-radius: 22px;
+    --research-panel-padding: clamp(1.5rem, 4vw, 4rem);
+
+    /* Typography Tokens - Desktop */
+    --research-hero-h1-family: var(--font-display, sans-serif);
+    --research-hero-h1-size: clamp(2.4rem, 4.4vw, 5.2rem);
+    --research-hero-h1-weight: 700;
+    --research-hero-h1-line-height: 0.92;
+    --research-hero-h1-spacing: -0.055em;
+    --research-hero-h1-max-width: 14ch;
+
+    --research-section-h2-family: var(--font-display, sans-serif);
+    --research-section-h2-size: clamp(2rem, 3.5vw, 4.2rem);
+    --research-section-h2-weight: 700;
+    --research-section-h2-line-height: 0.94;
+    --research-section-h2-spacing: -0.045em;
+
+    --research-feature-h2-family: var(--font-display, sans-serif);
+    --research-feature-h2-size: clamp(2.5rem, 4.2vw, 5.2rem);
+    --research-feature-h2-weight: 700;
+    --research-feature-h2-line-height: 0.9;
+    --research-feature-h2-spacing: -0.055em;
+
+    --research-feature-intro-family: var(--font-display, sans-serif);
+    --research-feature-intro-size: clamp(1.15rem, 1.6vw, 1.7rem);
+    --research-feature-intro-weight: 500;
+    --research-feature-intro-line-height: 1.25;
+
+    --research-card-h3-family: var(--font-display, sans-serif);
+    --research-card-h3-size: clamp(1.5rem, 2.2vw, 2.8rem);
+    --research-card-h3-weight: 700;
+    --research-card-h3-line-height: 0.98;
+    --research-card-h3-spacing: -0.04em;
+
+    --research-closing-h2-family: var(--font-display, sans-serif);
+    --research-closing-h2-size: clamp(2.6rem, 4.8vw, 5.8rem);
+    --research-closing-h2-weight: 700;
+    --research-closing-h2-line-height: 0.9;
+    --research-closing-h2-spacing: -0.055em;
+
+    --research-font-lede-family: var(--font-sans, sans-serif);
+    --research-font-lede-size: clamp(1rem, 1.2vw, 1.25rem);
+    --research-font-lede-weight: 450;
+    --research-font-lede-line-height: 1.45;
+
+    --research-font-body-family: var(--font-sans, sans-serif);
+    --research-font-body-size: clamp(0.92rem, 1.05vw, 1.15rem);
+    --research-font-body-weight: 450;
+    --research-font-body-line-height: 1.5;
+
+    --research-font-eyebrow-family: var(--font-ui, sans-serif);
+    --research-font-eyebrow-size: 0.72rem;
+    --research-font-eyebrow-weight: 700;
+    --research-font-eyebrow-line-height: 1.2;
+    --research-font-eyebrow-spacing: 0.06em;
+
+    --research-font-action-family: var(--font-ui, sans-serif);
+    --research-font-action-size: 0.82rem;
+    --research-font-action-weight: 700;
+    --research-font-action-line-height: 1;
+
+    background: var(--pop-blue);
+    color: var(--pop-ink);
   }
 
-  h1 {
-    font-family: var(--font-display);
-    font-size: clamp(4rem, 6vw, 4.75rem);
-    font-weight: 700;
-    line-height: 1.08;
-    margin-bottom: 1.25rem;
-    letter-spacing: -0.035em;
-    color: var(--text-primary);
+  /* Keep text contrast intentional inside every colour panel. Global theme
+     colours can otherwise leak into headings and body copy on this page. */
+  body.research-next-page .research-next {
+    color: var(--pop-ink);
   }
 
-  .section-intro {
-    font-family: var(--font-sans);
-    font-size: 1.1rem;
-    color: var(--text-secondary);
-    max-width: 600px;
-    margin: 0;
-    line-height: 1.6;
+  body.research-next-page .research-next :is(h1, h2, h3, p, li, dt, dd, strong, span) {
+    color: inherit;
   }
 
-  .projects-grid {
+  body.research-next-page .page-content-full { padding: 0; }
+
+  /* Top Navigation */
+  .story-nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    min-height: 72px;
+    padding: 0 var(--story-gutter);
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 2rem;
-    margin-bottom: 4rem;
+    grid-template-columns: minmax(140px, 1fr) auto minmax(220px, 1fr);
+    align-items: center;
+    gap: 1.5rem;
+    border-bottom: 0;
+    background: var(--pop-blue);
+    color: var(--pop-cream);
   }
 
-  .project-card {
-    display: flex;
-    flex-direction: column;
+  .story-nav a,
+  .story-nav summary {
+    color: inherit;
+    font: 700 .72rem/1 var(--font-mono, monospace);
+    letter-spacing: .08em;
     text-decoration: none;
-    background: color-mix(in srgb, var(--bg-surface) 25%, var(--bg-color));
-    border: 1px solid var(--border-subtle);
-    border-radius: 18px;
-    transition:
-      transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
-      border-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
-      background-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
-      box-shadow 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-    overflow: hidden;
-    height: 100%;
-  }
-
-  .project-card:hover {
-    transform: translateY(-4px);
-    border-color: color-mix(in srgb, var(--text-primary) 35%, var(--border-subtle));
-    background: var(--bg-surface);
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.16);
-  }
-
-  .card-image-container {
-    position: relative;
-    width: 100%;
-    aspect-ratio: 16 / 9;
-    overflow: hidden;
-    background: var(--bg-surface);
-  }
-
-  .card-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
-  }
-
-  .project-card:hover .card-image {
-    transform: scale(1.035);
-  }
-
-  .wip-overlay {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    z-index: 2;
-  }
-
-  .wip-overlay__badge {
-    font-family: var(--font-mono, monospace);
-    font-size: 0.72rem;
-    letter-spacing: 0.05em;
     text-transform: uppercase;
-    background: rgba(0, 0, 0, 0.75);
-    backdrop-filter: blur(4px);
-    color: #f59e0b;
-    border: 1px solid rgba(245, 158, 11, 0.3);
-    padding: 4px 10px;
-    border-radius: 100px;
   }
 
-  .card-content {
-    padding: 1.75rem;
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
+  .story-nav__brand {
+    width: fit-content;
+    min-height: 42px;
+    padding: 0 .9rem;
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--pop-ink);
+    border-radius: 14px;
+    background: var(--pop-yellow);
+    color: var(--pop-ink) !important;
   }
 
-  h2 {
-    font-family: var(--font-serif, var(--font-display));
-    font-size: 1.45rem;
-    font-weight: 500;
-    line-height: 1.25;
-    color: var(--text-primary);
-    margin: 0 0 0.6rem 0;
-  }
-
-  .description {
-    font-size: 0.95rem;
-    color: var(--text-secondary);
-    line-height: 1.55;
-    margin: 0 0 1.5rem 0;
-    flex-grow: 1;
-  }
-
-  .meta-footer {
+  .story-nav__links {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    margin-top: auto;
+    gap: clamp(1.2rem, 2.5vw, 2.5rem);
   }
 
-  .tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem;
+  .story-nav__links a {
+    opacity: 1;
+    transition: text-decoration-color 160ms ease;
   }
 
-  .tag {
-    font-family: var(--font-mono, monospace);
-    font-size: 0.72rem;
-    letter-spacing: 0.05em;
+  .story-nav__links a.is-active,
+  .story-nav__mobile nav a.is-active {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    text-decoration-thickness: 2px;
+  }
+
+  .story-nav__links a:hover,
+  .story-nav__links a:focus-visible {
+    opacity: 1;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    text-decoration-thickness: 2px;
+  }
+
+  .story-nav__contact {
+    justify-self: end;
+    min-height: 44px;
+    padding: 0 1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    border: 1px solid var(--pop-ink);
+    border-radius: 14px;
+    background: var(--pop-pink);
+    color: var(--pop-ink) !important;
+    transition: transform 180ms ease, box-shadow 180ms ease;
+  }
+
+  .story-nav__contact:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 0 var(--pop-ink);
+  }
+
+  .story-nav__mobile {
+    display: none;
+  }
+
+  .research-next { padding: var(--research-page-padding); background: var(--pop-blue); }
+  .research-next :is(h1, h2, h3, p) { margin-top: 0; }
+  .next-eyebrow {
+    margin: 0;
+    font-family: var(--research-font-eyebrow-family);
+    font-size: var(--research-font-eyebrow-size);
+    font-weight: var(--research-font-eyebrow-weight);
+    line-height: var(--research-font-eyebrow-line-height);
+    letter-spacing: var(--research-font-eyebrow-spacing);
     text-transform: uppercase;
-    color: var(--text-tertiary);
-    background: var(--bg-surface);
-    border: 1px solid var(--border-subtle);
-    padding: 3px 8px;
-    border-radius: 4px;
+  }
+  .next-actions { display: flex; flex-wrap: wrap; gap: .55rem; }
+  .next-actions a {
+    min-height: 54px;
+    padding: 0 1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border: 1px solid currentColor;
+    border-radius: 14px;
+    color: inherit;
+    text-decoration: none;
+    font-family: var(--research-font-action-family);
+    font-size: var(--research-font-action-size);
+    font-weight: var(--research-font-action-weight);
+    line-height: var(--research-font-action-line-height);
+  }
+  .next-actions a:first-child { background: var(--next-cream); }
+
+  .research-next__hero { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(420px, .95fr); gap: var(--research-gap); }
+  .research-next__hero-copy, .research-next__hero-images { min-height: calc(100svh - 88px); border: 1px solid rgba(21,19,15,.3); border-radius: var(--research-panel-radius); overflow: hidden; }
+  .research-next__hero-copy { padding: var(--research-panel-padding); display: flex; flex-direction: column; background: var(--next-lime); }
+  .research-next__hero-copy h1 {
+    max-width: var(--research-hero-h1-max-width);
+    margin: auto 0 1.5rem;
+    font-family: var(--research-hero-h1-family);
+    font-size: var(--research-hero-h1-size);
+    font-weight: var(--research-hero-h1-weight);
+    line-height: var(--research-hero-h1-line-height);
+    letter-spacing: var(--research-hero-h1-spacing);
+    overflow-wrap: break-word;
+    word-break: normal;
+    text-wrap: balance;
+  }
+  .research-next__lede {
+    max-width: 62ch;
+    margin-bottom: 1.5rem;
+    font-family: var(--research-font-lede-family);
+    font-size: var(--research-font-lede-size);
+    font-weight: var(--research-font-lede-weight);
+    line-height: var(--research-font-lede-line-height);
+  }
+  .research-next__hero-images { position: relative; background: var(--next-yellow); }
+  .research-next__hero-image { position: absolute; overflow: hidden; border: 1px solid var(--next-ink); border-radius: 18px; background: var(--next-cream); box-shadow: 0 14px 35px rgba(21,19,15,.2); }
+  .research-next__hero-image img { width: 100%; height: 100%; display: block; object-fit: cover; }
+  .research-next__hero-image figcaption { position: absolute; left: 10px; bottom: 10px; padding: .45rem .6rem; border-radius: 999px; background: rgba(21,19,15,.78); color: var(--next-cream); font: 700 .65rem/1 var(--font-ui, sans-serif); }
+  .research-next__hero-image--1 { inset: 5% 7% 34% 7%; transform: rotate(-2deg); }
+  .research-next__hero-image--2 { inset: 38% 28% 7% 4%; transform: rotate(2.5deg); }
+  .research-next__hero-image--3 { inset: 46% 4% 5% 52%; transform: rotate(-1deg); }
+
+  .research-next__opportunity { margin-top: var(--research-gap); padding: var(--research-panel-padding); display: grid; grid-template-columns: .55fr 1.4fr 1fr; gap: clamp(2rem, 5vw, 6rem); border: 1px solid rgba(21,19,15,.3); border-radius: var(--research-panel-radius); background: var(--next-pink); }
+  .research-next__opportunity h2 {
+    font-family: var(--research-section-h2-family);
+    font-size: var(--research-section-h2-size);
+    font-weight: var(--research-section-h2-weight);
+    line-height: var(--research-section-h2-line-height);
+    letter-spacing: var(--research-section-h2-spacing);
+    overflow-wrap: break-word;
+  }
+  .research-next__opportunity > div p {
+    font-family: var(--research-font-body-family);
+    font-size: var(--research-font-body-size);
+    font-weight: var(--research-font-body-weight);
+    line-height: var(--research-font-body-line-height);
+  }
+  .research-next__opportunity ul, .research-next__project ul { margin: 0; padding: 0; display: flex; flex-wrap: wrap; align-content: flex-start; gap: .4rem; list-style: none; }
+  .research-next__opportunity li, .research-next__project li { padding: .45rem .6rem; border: 1px solid currentColor; border-radius: 999px; font: 700 .68rem/1 var(--font-ui, sans-serif); }
+
+  .research-next__feature { margin-top: var(--research-gap); display: grid; grid-template-columns: 1.1fr .9fr; gap: var(--research-gap); }
+  .research-next__feature-image, .research-next__feature-copy { min-height: 720px; border: 1px solid rgba(21,19,15,.3); border-radius: var(--research-panel-radius); overflow: hidden; }
+  .research-next__feature-image img { width: 100%; height: 100%; display: block; object-fit: cover; }
+  .research-next__feature-copy { padding: var(--research-panel-padding); display: flex; flex-direction: column; background: var(--next-cyan); }
+  .research-next__feature-copy h2 {
+    margin: auto 0 1rem;
+    font-family: var(--research-feature-h2-family);
+    font-size: var(--research-feature-h2-size);
+    font-weight: var(--research-feature-h2-weight);
+    line-height: var(--research-feature-h2-line-height);
+    letter-spacing: var(--research-feature-h2-spacing);
+    overflow-wrap: break-word;
+  }
+  .research-next__feature-intro {
+    font-family: var(--research-feature-intro-family);
+    font-size: var(--research-feature-intro-size);
+    font-weight: var(--research-feature-intro-weight);
+    line-height: var(--research-feature-intro-line-height);
+    overflow-wrap: break-word;
+  }
+  .research-next__feature-copy dl { display: grid; gap: .8rem; }
+  .research-next__feature-copy dl div { padding-top: .8rem; display: grid; grid-template-columns: 90px 1fr; gap: 1rem; border-top: 1px solid rgba(21,19,15,.3); }
+  .research-next__feature-copy dt { font: 700 .7rem/1.2 var(--font-ui, sans-serif); text-transform: uppercase; }
+  .research-next__feature-copy dd { margin: 0; line-height: 1.45; }
+  .next-text-link { width: fit-content; margin-top: 1.5rem; color: inherit; font-weight: 700; text-underline-offset: .25em; }
+
+  .research-next__projects { margin-top: var(--research-gap); padding: var(--research-panel-padding); border: 1px solid rgba(255,248,232,.25); border-radius: var(--research-panel-radius); background: var(--next-purple); color: var(--next-cream); }
+  .research-next__projects > header { display: grid; grid-template-columns: .5fr 1.5fr; gap: 2rem; margin-bottom: 3rem; }
+  .research-next__projects > header h2 {
+    max-width: 12ch;
+    font-family: var(--research-section-h2-family);
+    font-size: var(--research-section-h2-size);
+    font-weight: var(--research-section-h2-weight);
+    line-height: var(--research-section-h2-line-height);
+    letter-spacing: var(--research-section-h2-spacing);
+    overflow-wrap: break-word;
+  }
+  .research-next__project-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--research-gap); }
+  .research-next__project { min-height: 650px; display: grid; grid-template-rows: clamp(320px, 34vw, 480px) 1fr; border: 1px solid rgba(21,19,15,.3); border-radius: var(--research-card-radius); overflow: hidden; background: var(--next-cream); color: var(--next-ink); text-decoration: none; }
+  .research-next__project figure { min-height: 0; margin: 0; overflow: hidden; }
+  .research-next__project :is(img, video) { width: 100%; height: 100%; display: block; object-fit: cover; transition: transform 400ms ease; }
+  .research-next__project:hover :is(img, video) { transform: scale(1.035); }
+  .research-next__project > div { padding: 1.25rem; display: flex; flex-direction: column; }
+  .research-next__project h3 {
+    margin: 2.5rem 0 .7rem;
+    font-family: var(--research-card-h3-family);
+    font-size: var(--research-card-h3-size);
+    font-weight: var(--research-card-h3-weight);
+    line-height: var(--research-card-h3-line-height);
+    letter-spacing: var(--research-card-h3-spacing);
+    overflow-wrap: break-word;
+  }
+  .research-next__project p { line-height: 1.5; }
+  .research-next__project strong { display: block; margin-top: auto; padding-top: 1.5rem; font: 700 .72rem/1 var(--font-ui, sans-serif); }
+
+  .research-next__method { margin-top: var(--research-gap); padding: var(--research-panel-padding); border: 1px solid rgba(21,19,15,.3); border-radius: var(--research-panel-radius); background: var(--next-yellow); }
+  .research-next__method-header { margin-bottom: clamp(2rem, 3.5vw, 3.5rem); }
+  .research-next__method-header h2 {
+    max-width: 16ch;
+    margin: 1.5rem 0 0;
+    font-family: var(--research-section-h2-family);
+    font-size: var(--research-section-h2-size);
+    font-weight: var(--research-section-h2-weight);
+    line-height: var(--research-section-h2-line-height);
+    letter-spacing: var(--research-section-h2-spacing);
+    overflow-wrap: break-word;
   }
 
-  .arrow-icon {
-    font-family: var(--font-mono, monospace);
-    font-size: 1rem;
-    color: var(--text-tertiary);
-    transition: transform 0.2s ease, color 0.2s ease;
+  .research-next__method-track-wrapper { width: 100%; }
+  .research-next__method-grid { margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(14px, 1.6vw, 22px); list-style: none; align-items: stretch; }
+  .research-next__method-card { height: 100%; min-height: 0; padding: clamp(1.35rem, 1.7vw, 1.8rem); display: flex; flex-direction: column; justify-content: flex-start; gap: 1.25rem; border: 1px solid rgba(21,19,15,.28); border-radius: 20px; background: var(--next-cream); box-shadow: 0 4px 18px rgba(21,19,15,.04); transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 220ms cubic-bezier(0.16, 1, 0.3, 1), border-color 220ms ease; }
+  .research-next__method-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(21,19,15,.1); border-color: rgba(21,19,15,.55); }
+  .research-next__card-top { display: flex; align-items: center; justify-content: space-between; }
+  .research-next__card-index { display: inline-flex; align-items: center; justify-content: center; padding: .35rem .65rem; border-radius: 999px; background: rgba(21,19,15,.06); border: 1px solid rgba(21,19,15,.12); font: 700 .75rem/1 var(--font-ui, sans-serif); letter-spacing: .04em; }
+  .research-next__card-body { display: flex; flex-direction: column; gap: 0.75rem; flex: 1; }
+  .research-next__card-body strong { display: flex; align-items: flex-end; min-height: 2.3em; margin: 0; font: 700 clamp(1.25rem, 1.55vw, 1.65rem)/1.12 var(--font-display, sans-serif); letter-spacing: -.04em; }
+  .research-next__card-body p { margin: 0; font-size: clamp(.9rem, 1vw, 1rem); line-height: 1.5; color: rgba(21,19,15,.84); }
+
+  @media (max-width: 1120px) {
+    .research-next__method-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .research-next__card-body strong { min-height: 0; }
   }
 
-  .project-card:hover .arrow-icon {
-    color: var(--text-primary);
-    transform: translateX(4px);
+  .research-next__closing { margin-top: var(--research-gap); min-height: 660px; padding: var(--research-panel-padding); display: flex; flex-direction: column; border: 1px solid rgba(21,19,15,.3); border-radius: var(--research-panel-radius); background: var(--next-orange); }
+  .research-next__closing h2 {
+    max-width: 12ch;
+    margin: auto 0 1rem;
+    font-family: var(--research-closing-h2-family);
+    font-size: var(--research-closing-h2-size);
+    font-weight: var(--research-closing-h2-weight);
+    line-height: var(--research-closing-h2-line-height);
+    letter-spacing: var(--research-closing-h2-spacing);
+    overflow-wrap: break-word;
   }
+  .research-next__closing > p:not(:first-child) { max-width: 60ch; font-size: 1.15rem; line-height: 1.5; }
 
-  @media (max-width: 860px) {
-    .projects-grid {
-      grid-template-columns: 1fr;
-      gap: 1.75rem;
+  @media (max-width: 980px) {
+    .story-nav {
+      grid-template-columns: 1fr auto;
     }
+    .story-nav__links,
+    .story-nav__contact {
+      display: none;
+    }
+    .story-nav__mobile {
+      position: relative;
+      display: block;
+      justify-self: end;
+    }
+    .story-nav__mobile summary {
+      min-height: 44px;
+      padding: 0 .9rem;
+      display: flex;
+      align-items: center;
+      border: 1px solid var(--next-ink);
+      border-radius: 14px;
+      background: var(--next-yellow);
+      color: var(--next-ink);
+      cursor: pointer;
+      list-style: none;
+    }
+    .story-nav__mobile summary::-webkit-details-marker {
+      display: none;
+    }
+    .story-nav__mobile nav {
+      position: fixed;
+      inset: 72px 0 auto;
+      padding: 1.5rem clamp(1rem, 3vw, 3.5rem) 2rem;
+      display: grid;
+      gap: 0;
+      background: var(--next-yellow);
+      border-bottom: 1px solid var(--next-ink);
+      z-index: 99;
+    }
+    .story-nav__mobile nav a {
+      padding: 1rem 0;
+      border-bottom: 1px solid rgba(23, 21, 15, 0.2);
+      font-size: .85rem;
+      color: var(--next-ink);
+    }
+  }
+
+  @media (max-width: 760px) {
+    body.research-next-page {
+      --research-page-padding: 6px;
+      --research-gap: 6px;
+      --research-panel-radius: 22px;
+      --research-card-radius: 18px;
+      --research-panel-padding: 1.5rem 1.25rem;
+
+      /* Mobile Sized Typography Tokens - smaller & proportional to prevent cutoff */
+      --research-hero-h1-size: clamp(1.45rem, 6.2vw, 2.15rem);
+      --research-hero-h1-line-height: 1.04;
+      --research-hero-h1-spacing: -0.03em;
+      --research-hero-h1-max-width: 100%;
+
+      --research-section-h2-size: clamp(1.35rem, 5.4vw, 1.85rem);
+      --research-section-h2-line-height: 1.08;
+      --research-section-h2-spacing: -0.025em;
+
+      --research-feature-h2-size: clamp(1.75rem, 6.8vw, 2.4rem);
+      --research-feature-h2-line-height: 1.02;
+      --research-feature-h2-spacing: -0.035em;
+
+      --research-feature-intro-size: clamp(0.98rem, 3.8vw, 1.2rem);
+      --research-feature-intro-line-height: 1.35;
+
+      --research-card-h3-size: clamp(1.25rem, 4.8vw, 1.65rem);
+      --research-card-h3-line-height: 1.08;
+      --research-card-h3-spacing: -0.025em;
+
+      --research-closing-h2-size: clamp(1.5rem, 6.5vw, 2.3rem);
+      --research-closing-h2-line-height: 1.04;
+      --research-closing-h2-spacing: -0.03em;
+
+      --research-font-lede-size: clamp(0.92rem, 3.6vw, 1.05rem);
+      --research-font-body-size: clamp(0.88rem, 3.4vw, 0.98rem);
+    }
+
+    .research-next__hero, .research-next__feature { grid-template-columns: 1fr; gap: var(--research-gap); }
+    .research-next__hero-copy { min-height: auto; padding: 2.25rem 1.25rem; }
+    .research-next__hero-copy h1 { margin: 1.5rem 0 1.25rem; }
+    .research-next__hero-images { min-height: 520px; }
+    .research-next__opportunity { grid-template-columns: 1fr; gap: 2rem; }
+    .research-next__feature-image { min-height: 440px; }
+    .research-next__feature-copy { min-height: auto; padding: 2.25rem 1.25rem; }
+    .research-next__feature-copy h2 { margin: 1rem 0 1rem; }
+    .research-next__projects > header { grid-template-columns: 1fr; gap: 1rem; margin-bottom: 2rem; }
+    .research-next__projects > header h2 { max-width: 100%; }
+    .research-next__project-grid { grid-template-columns: 1fr; }
+    .research-next__project { min-height: 520px; }
+    .research-next__project h3 { margin: 1.5rem 0 .5rem; }
+    .research-next__method { padding: clamp(1.5rem, 5vw, 2.2rem) clamp(1rem, 4vw, 1.5rem); }
+    .research-next__method-track-wrapper {
+      margin: 0 calc(-1 * clamp(1rem, 4vw, 1.5rem));
+      padding: 4px clamp(1rem, 4vw, 1.5rem) 12px;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .research-next__method-track-wrapper::-webkit-scrollbar { display: none; }
+    .research-next__method-grid {
+      display: flex;
+      flex-flow: row nowrap;
+      gap: 12px;
+      width: max-content;
+    }
+    .research-next__method-card {
+      flex: 0 0 clamp(270px, 78vw, 320px);
+      min-height: 250px;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+    }
+    .research-next__closing { min-height: auto; padding: 2.5rem 1.25rem; }
+    .research-next__closing h2 { margin: 1.25rem 0 1rem; max-width: 100%; }
+    .next-actions { flex-direction: column; }
+    .next-actions a { width: 100%; }
   }
 </style>

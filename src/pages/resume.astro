@@ -1,0 +1,427 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { getWorkExperience } from "../lib/services/content";
+import type { WorkExperience } from "../lib/services/types";
+
+const pageTitle = "Resume — Abodid Sahoo";
+const allExperience = await getWorkExperience();
+
+const categories = [
+    { id: "work", label: "Resume" },
+    { id: "education", label: "Education" },
+    { id: "award", label: "Awards" },
+];
+---
+
+<BaseLayout title={pageTitle} description="Work history, education, and awards by Abodid Sahoo across creative direction, photography, and creative technology.">
+    <div class="page-container">
+        <header class="page-header">
+            <h1>Resume</h1>
+            <p class="subtitle">
+                A glimpse into my work history, education, and awards in a
+                single place.
+            </p>
+
+            <div class="tabs-container">
+                <div class="tabs-nav" role="tablist">
+                    {
+                        categories.map((cat, index) => (
+                            <button
+                                class={`tab-btn ${index === 0 ? "active" : ""}`}
+                                data-tab={cat.id}
+                                role="tab"
+                                aria-selected={index === 0}
+                                aria-controls={`panel-${cat.id}`}
+                            >
+                                {cat.label}
+                            </button>
+                        ))
+                    }
+                    <div class="tab-glider"></div>
+                </div>
+            </div>
+        </header>
+
+        <div class="content-area">
+            {
+                allExperience.map((item) => (
+                    <article
+                        class="experience-item resume-item"
+                        data-category={item.category || "work"}
+                    >
+                        <div class="role-header">
+                            <h2 class="role">{item.role}</h2>
+                        </div>
+                        <div class="meta-row">
+                            <span class="company">{item.company}</span>
+                            <span class="duration">({item.duration})</span>
+                        </div>
+                        <p class="description">{item.description}</p>
+                    </article>
+                ))
+            }
+
+            <p id="no-content-msg" class="no-content hidden">
+                No entries found for this category.
+            </p>
+        </div>
+    </div>
+</BaseLayout>
+
+<script>
+    function initResumeTabs() {
+        const tabsContainer = document.querySelector(".tabs-nav") as HTMLElement;
+        const glider = document.querySelector(".tab-glider") as HTMLElement;
+        const items = document.querySelectorAll(".resume-item, .experience-item");
+        const noContentMsg = document.getElementById("no-content-msg");
+
+        if (!tabsContainer || !glider) return;
+
+        function getTabs(): HTMLElement[] {
+            return Array.from(document.querySelectorAll(".tab-btn"));
+        }
+
+        let currentTab: HTMLElement | null = null;
+
+        function updateGlider(targetTab: HTMLElement, animate = true) {
+            if (!glider || !targetTab || !tabsContainer) return;
+
+            const tabRect = targetTab.getBoundingClientRect();
+            const navRect = tabsContainer.getBoundingClientRect();
+
+            const left = tabRect.left - navRect.left;
+            const width = tabRect.width;
+
+            if (!animate || width === 0) {
+                glider.style.width = `${width}px`;
+                glider.style.transform = `translateX(${left}px)`;
+                glider.style.opacity = "1";
+                glider.dataset.prevLeft = left.toString();
+                glider.dataset.prevWidth = width.toString();
+                currentTab = targetTab;
+                return;
+            }
+
+            const currentLeft = parseFloat(
+                glider.dataset.prevLeft || String(left),
+            );
+            const currentWidth = parseFloat(
+                glider.dataset.prevWidth || String(width),
+            );
+
+            if (currentLeft === left && currentWidth === width) {
+                glider.style.width = `${width}px`;
+                glider.style.transform = `translateX(${left}px)`;
+                glider.style.opacity = "1";
+                return;
+            }
+
+            const isMovingRight = left > currentLeft;
+            const skewAmount = isMovingRight ? -18 : 18;
+            const stretchAmount = 1.1;
+            const squashAmount = 0.9;
+
+            glider.style.opacity = "1";
+
+            const animation = glider.animate(
+                [
+                    {
+                        width: `${currentWidth}px`,
+                        transform: `translateX(${currentLeft}px) scale(1, 1) skewX(0deg)`,
+                    },
+                    {
+                        width: `${width * 0.94}px`,
+                        offset: 0.4,
+                        transform: `translateX(${currentLeft + (left - currentLeft) * 0.4}px) scale(${stretchAmount}, ${squashAmount}) skewX(${skewAmount}deg)`,
+                    },
+                    {
+                        offset: 0.7,
+                        transform: `translateX(${currentLeft + (left - currentLeft) * 0.8}px) scale(${stretchAmount - 0.05}, ${squashAmount + 0.05}) skewX(${skewAmount * 0.3}deg)`,
+                    },
+                    {
+                        width: `${width}px`,
+                        transform: `translateX(${left}px) scale(1, 1) skewX(0deg)`,
+                    },
+                ],
+                {
+                    duration: 400,
+                    easing: "cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+                    fill: "forwards",
+                },
+            );
+
+            animation.onfinish = () => {
+                glider.style.width = `${width}px`;
+                glider.style.transform = `translateX(${left}px)`;
+            };
+
+            glider.dataset.prevLeft = left.toString();
+            glider.dataset.prevWidth = width.toString();
+            currentTab = targetTab;
+        }
+
+        function switchTab(categoryId: string, animate = true) {
+            const tabs = getTabs();
+            let activeTabEl: HTMLElement | null = null;
+            tabs.forEach((tab) => {
+                const isActive = tab.getAttribute("data-tab") === categoryId;
+                tab.classList.toggle("active", isActive);
+                tab.setAttribute("aria-selected", isActive ? "true" : "false");
+                if (isActive) activeTabEl = tab;
+            });
+
+            if (activeTabEl) {
+                updateGlider(activeTabEl, animate);
+            }
+
+            let hasVisibleItems = false;
+            items.forEach((item) => {
+                const itemCategory = item.getAttribute("data-category");
+                const isMatch =
+                    itemCategory === categoryId ||
+                    (categoryId === "work" && (!itemCategory || itemCategory === "work")) ||
+                    (categoryId === "award" && itemCategory === "conference");
+
+                if (isMatch) {
+                    item.classList.remove("hidden");
+                    (item as HTMLElement).style.animation = "none";
+                    (item as HTMLElement).offsetHeight;
+                    (item as HTMLElement).style.animation =
+                        "fadeInUp 0.35s ease-out forwards";
+                    hasVisibleItems = true;
+                } else {
+                    item.classList.add("hidden");
+                }
+            });
+
+            if (noContentMsg) {
+                if (hasVisibleItems) {
+                    noContentMsg.classList.add("hidden");
+                } else {
+                    noContentMsg.classList.remove("hidden");
+                }
+            }
+        }
+
+        // Attach click listener to container via event delegation
+        tabsContainer.onclick = (e) => {
+            const target = (e.target as HTMLElement).closest(".tab-btn") as HTMLElement;
+            if (target) {
+                const category = target.getAttribute("data-tab");
+                if (category) switchTab(category, true);
+            }
+        };
+
+        const activeTab = document.querySelector(".tab-btn.active") as HTMLElement || getTabs()[0];
+        if (activeTab) {
+            const initialCategory = activeTab.getAttribute("data-tab") || "work";
+            switchTab(initialCategory, false);
+            requestAnimationFrame(() => {
+                updateGlider(activeTab, false);
+            });
+        }
+
+        window.onresize = () => {
+            const active = document.querySelector(".tab-btn.active") as HTMLElement;
+            if (active) updateGlider(active, false);
+        };
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initResumeTabs);
+    } else {
+        initResumeTabs();
+    }
+    document.addEventListener("astro:page-load", initResumeTabs);
+</script>
+
+<style>
+    .page-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding-bottom: 6rem;
+    }
+
+    .page-header {
+        margin-bottom: 4rem;
+        padding-top: var(--space-lg);
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        align-items: flex-start;
+    }
+
+    h1 {
+        font-size: 3.5rem;
+        margin: 0;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+    }
+
+    .subtitle {
+        font-size: 1.1rem;
+        color: var(--text-secondary);
+        max-width: 60ch;
+        line-height: 1.6;
+        margin-top: -0.5rem;
+    }
+
+    /* --- TABS --- */
+    .tabs-container {
+        margin-top: 1rem;
+        background: #f0f0f0;
+        padding: 0.4rem;
+        border-radius: 100px;
+        display: inline-flex;
+    }
+
+    .tabs-nav {
+        display: flex;
+        gap: 0;
+        position: relative;
+    }
+
+    .tab-btn {
+        background: transparent;
+        border: none;
+        padding: 0.8rem 2.5rem;
+        font-family: var(--font-sans);
+        font-size: 1.1rem;
+        font-weight: 500;
+        color: #666;
+        cursor: pointer;
+        position: relative;
+        z-index: 2;
+        transition: color 0.3s ease;
+        outline: none;
+        border-radius: 100px;
+        white-space: nowrap;
+    }
+
+    .tab-btn:hover {
+        color: #000;
+    }
+
+    .tab-btn.active {
+        color: white !important;
+        font-weight: 600;
+    }
+
+    .tab-glider {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        background-color: #006400;
+        border-radius: 100px;
+        z-index: 1;
+        transition:
+            transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1),
+            width 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+        pointer-events: none;
+        opacity: 0;
+    }
+
+    /* --- CONTENT --- */
+    .content-area {
+        min-height: 400px;
+    }
+
+    .resume-item,
+    .experience-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        padding-bottom: 3rem;
+    }
+
+    .resume-item.hidden,
+    .experience-item.hidden {
+        display: none;
+    }
+
+    .role {
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0;
+        line-height: 1.2;
+    }
+
+    .meta-row {
+        display: flex;
+        align-items: baseline;
+        gap: 0.5rem;
+        font-family: var(--font-mono);
+        font-size: 0.9rem;
+        color: var(--text-tertiary);
+    }
+
+    .company {
+        color: var(--text-secondary);
+        font-weight: 500;
+        font-family: var(--font-sans);
+    }
+
+    .duration {
+        opacity: 0.8;
+    }
+
+    .description {
+        margin-top: 0.5rem;
+        font-size: 1.05rem;
+        line-height: 1.6;
+        color: var(--text-secondary);
+        max-width: 65ch;
+    }
+
+    .no-content {
+        color: var(--text-tertiary);
+        font-style: italic;
+        margin-top: 2rem;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @media (max-width: 600px) {
+        .tabs-container {
+            width: 100%;
+            overflow-x: auto;
+            border-radius: 12px;
+            padding: 0.3rem;
+        }
+
+        .tabs-nav {
+            width: 100%;
+        }
+
+        .tab-btn {
+            padding: 0.7rem 1.2rem;
+            font-size: 0.95rem;
+            flex: 1;
+            text-align: center;
+        }
+
+        .meta-row {
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .role {
+            font-size: 1.2rem;
+        }
+    }
+</style>

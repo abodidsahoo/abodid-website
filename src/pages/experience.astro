@@ -1,446 +1,682 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { getWorkExperience } from "../lib/services/content";
-import type { WorkExperience } from "../lib/services/types";
+import photographyPortfolios from "../data/photographyPortfolios.generated.json";
 
-const pageTitle = "Experience";
+export const prerender = false;
+
 const allExperience = await getWorkExperience();
+const workExperience = allExperience.filter((item) => !item.category || item.category === "work");
+const education = allExperience.filter((item) => item.category === "education");
+const recognition = allExperience.filter((item) => ["award", "conference"].includes(item.category || ""));
 
-// Group data by category for initial static rendering (opt) or just pass all to client
-// We will pass all data to a client component or handle it via vanilla JS in script tag
-// For simplicity and interaction speed, we'll use vanilla JS for tabs.
+const photoBySlug = new Map(photographyPortfolios.stories.map((story) => [story.slug, story]));
+const selectedContexts = [
+  {
+    slug: "outernet-london-2025",
+    eyebrow: "Cultural venue · London",
+    title: "Outernet London",
+    role: "Trusted for last-minute documentation without a detailed brief at a cultural landmark visited by audiences from 100+ countries.",
+  },
+  {
+    slug: "british-film-institute-london",
+    eyebrow: "Film institution · London",
+    title: "British Film Institute",
+    role: "Recommended to RCA's brand team for human-centred photography; featured on its homepage and internal pages for a four-day programme welcoming 20,000+ visitors.",
+  },
+  {
+    slug: "into-the-flux",
+    eyebrow: "International Body of Art · London",
+    title: "Into the Flux",
+    role: "Commissioned for space design, lighting, technical troubleshooting, health and safety, installation and archival photography for 10,000+ visitors.",
+  },
+  {
+    slug: "digital-direction-rca-gradshow-in-white-city",
+    eyebrow: "Arts education · London",
+    title: "Royal College of Art",
+    role: "Graduate-show photography and exhibition production during a week attracting 100,000+ visitors.",
+  },
+].map((context) => {
+  const story = photoBySlug.get(context.slug);
+  return {
+    ...context,
+    href: story?.projectHref || `/photography/${context.slug}`,
+    image: story?.coverImage,
+  };
+});
 
-const categories = [
-    { id: "work", label: "Experience" },
-    { id: "education", label: "Education" },
-    { id: "award", label: "Awards" },
-];
+const title = "Experience — Abodid Sahoo";
+const description = "Selected experience across cultural photography, exhibition production, creative technology, research and visual storytelling in London and India.";
 ---
 
-<BaseLayout title={pageTitle}>
-    <div class="page-container">
-        <header class="page-header">
-            <h1>Experience</h1>
-            <p class="subtitle">
-                A glimpse into my work experience, education, and awards in a
-                single place.
-            </p>
+<BaseLayout
+  title={title}
+  description={description}
+  fullWidth={true}
+  hideHeader={true}
+  hideFooter={true}
+  hideWhatsAppButton={true}
+  showNewsletterPopup={false}
+  showGlobalGrid={false}
+  showCursorFollower={false}
+  bodyClass="experience-next-page"
+>
+  <header class="story-nav">
+    <a class="story-nav__brand" href="/" aria-label="Abodid Sahoo homepage">abodid.com</a>
+    <nav class="story-nav__links" aria-label="Primary navigation">
+      <a href="/#selected-work">Work</a>
+      <a href="/research">Research</a>
+      <a href="/services">Services</a>
+      <a href="/experience" class="is-active">Experience</a>
+      <a href="/about">About</a>
+    </nav>
+    <a class="story-nav__contact" href="/#enquiry">Hire me <span aria-hidden="true">↗</span></a>
+    <details class="story-nav__mobile">
+      <summary>Menu</summary>
+      <nav aria-label="Mobile navigation">
+        <a href="/#selected-work">Work</a>
+        <a href="/research">Research</a>
+        <a href="/services">Services</a>
+        <a href="/experience" class="is-active">Experience</a>
+        <a href="/about">About</a>
+        <a href="/#enquiry">Hire me ↗</a>
+      </nav>
+    </details>
+  </header>
 
-            <div class="tabs-container">
-                <div class="tabs-nav" role="tablist">
-                    {
-                        categories.map((cat, index) => (
-                            <button
-                                class={`tab-btn ${index === 0 ? "active" : ""}`}
-                                data-tab={cat.id}
-                                role="tab"
-                                aria-selected={index === 0}
-                                aria-controls={`panel-${cat.id}`}
-                            >
-                                {cat.label}
-                            </button>
-                        ))
-                    }
-                    <div class="tab-glider"></div>
-                </div>
-            </div>
-        </header>
-
-        <div class="content-area">
-            {
-                allExperience.map((item) => (
-                    <article
-                        class="experience-item"
-                        data-category={item.category || "work"}
-                    >
-                        <div class="role-header">
-                            <h2 class="role">{item.role}</h2>
-                        </div>
-                        <div class="meta-row">
-                            <span class="company">{item.company}</span>
-                            <span class="duration">({item.duration})</span>
-                        </div>
-                        <p class="description">{item.description}</p>
-                    </article>
-                ))
-            }
-
-            <p id="no-content-msg" class="no-content hidden">
-                No entries found for this category.
-            </p>
+  <main class="experience-next">
+    <section class="experience-next__hero" aria-labelledby="experience-next-heading">
+      <div class="experience-next__hero-copy">
+        <p class="experience-eyebrow">Experience · London and India</p>
+        <h1 id="experience-next-heading">A cross-disciplinary practice built between culture, images, spaces and systems.</h1>
+        <p>I work across photography, cultural documentation, exhibition production, research and creative technology—bringing together the people and practical details required to make ambitious work visible.</p>
+        <div class="experience-actions">
+          <a href="/#enquiry">Start a conversation <span aria-hidden="true">↗</span></a>
+          <a href="/resume">View full resume / CV <span aria-hidden="true">↗</span></a>
+          <a href="/research">View research practice <span aria-hidden="true">↗</span></a>
         </div>
-    </div>
+      </div>
+      <div class="experience-next__hero-mosaic">
+        {selectedContexts.slice(0, 3).map((context, index) => (
+          <figure class={`experience-next__hero-photo experience-next__hero-photo--${index + 1}`}>
+            <img src={context.image} alt={context.title} loading={index === 0 ? "eager" : "lazy"} />
+            <figcaption>{context.title}</figcaption>
+          </figure>
+        ))}
+        <div class="experience-next__hero-note">
+          <span>London</span><b>↔</b><span>Bangalore</span><b>↔</b><span>Mumbai</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="experience-next__position" aria-labelledby="position-heading">
+      <div class="experience-next__position-header">
+        <p class="experience-eyebrow">What I bring</p>
+        <h2 id="position-heading">A photographer's eye, a researcher's curiosity and the production instinct to make things happen.</h2>
+      </div>
+      <div class="experience-next__position-track-wrapper">
+        <div class="experience-next__position-grid" role="region" aria-label="Key capabilities and perspective">
+          <article class="experience-next__position-card">
+            <div class="experience-next__position-card-top">
+              <span class="experience-next__card-index">01</span>
+            </div>
+            <div class="experience-next__position-card-body">
+              <h3>Cultural sensitivity</h3>
+              <p>Experience working around artists, institutions, graduate shows, cultural venues and public audiences.</p>
+            </div>
+          </article>
+          <article class="experience-next__position-card">
+            <div class="experience-next__position-card-top">
+              <span class="experience-next__card-index">02</span>
+            </div>
+            <div class="experience-next__position-card-body">
+              <h3>Visual documentation</h3>
+              <p>Images that preserve the essence of a space while giving communications teams material they can use.</p>
+            </div>
+          </article>
+          <article class="experience-next__position-card">
+            <div class="experience-next__position-card-top">
+              <span class="experience-next__card-index">03</span>
+            </div>
+            <div class="experience-next__position-card-body">
+              <h3>Systems thinking</h3>
+              <p>Research and knowledge structures that connect references, decisions and creative development over time.</p>
+            </div>
+          </article>
+          <article class="experience-next__position-card">
+            <div class="experience-next__position-card-top">
+              <span class="experience-next__card-index">04</span>
+            </div>
+            <div class="experience-next__position-card-body">
+              <h3>Cross-cultural networks</h3>
+              <p>A working perspective, active relationships and creative ecosystem spanning communities in the UK and India.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="experience-next__contexts" aria-labelledby="contexts-heading">
+      <header>
+        <p class="experience-eyebrow">Selected professional contexts</p>
+        <h2 id="contexts-heading">Work inside spaces where culture is being made.</h2>
+      </header>
+      <div class="experience-next__context-grid">
+        {selectedContexts.map((context, index) => (
+          <a class="experience-next__context" href={context.href}>
+            <figure><img src={context.image} alt={context.title} loading="lazy" /></figure>
+            <div>
+              <span class="experience-eyebrow">{String(index + 1).padStart(2, "0")} · {context.eyebrow}</span>
+              <h3>{context.title}</h3>
+              <p>{context.role}</p>
+              <strong>View the work ↗</strong>
+            </div>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <section class="experience-next__timeline" aria-labelledby="timeline-heading">
+      <header>
+        <p class="experience-eyebrow">Professional timeline</p>
+        <h2 id="timeline-heading">Roles, responsibilities and places of learning.</h2>
+      </header>
+      <div class="experience-next__timeline-list">
+        {workExperience.map((item, index) => (
+          <article>
+            <span class="experience-next__timeline-index">{String(index + 1).padStart(2, "0")}</span>
+            <div><p class="experience-eyebrow">{item.duration}</p><h3>{item.role}</h3></div>
+            <div><strong>{item.company}</strong><p>{item.description}</p></div>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    {(education.length > 0 || recognition.length > 0) && (
+      <section class="experience-next__learning" aria-labelledby="learning-heading">
+        <header>
+          <p class="experience-eyebrow">Education and recognition</p>
+          <h2 id="learning-heading">The academic practice behind the commercial work.</h2>
+        </header>
+        <div class="experience-next__learning-grid">
+          {[...education, ...recognition].map((item, index) => (
+            <article>
+              <span class="experience-eyebrow">{String(index + 1).padStart(2, "0")} · {item.duration}</span>
+              <h3>{item.role}</h3>
+              <strong>{item.company}</strong>
+              <p>{item.description}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <section class="experience-next__future" aria-labelledby="future-heading">
+      <div>
+        <p class="experience-eyebrow">What comes next</p>
+        <h2 id="future-heading">A full-time creative technology role in London—with space to keep making cultural experiments.</h2>
+        <p>I am especially interested in teams shaping how technology participates in media, culture and public imagination. I can contribute across research, visual direction, prototyping and the translation of complex ideas into experiences.</p>
+        <div class="experience-actions">
+          <a href="/research">Explore research and experiments <span aria-hidden="true">↗</span></a>
+          <a href="/resume">View full resume / CV <span aria-hidden="true">↗</span></a>
+          <a href="/#enquiry">Hire me <span aria-hidden="true">↗</span></a>
+        </div>
+      </div>
+      <figure>
+        <img src="https://photos.abodid.com/originals/exhibition-photos/rca-digital-direction-2024-gradshow-abodid-346.jpg" alt="A photographed installation from an RCA graduate exhibition" loading="lazy" />
+      </figure>
+    </section>
+  </main>
 </BaseLayout>
 
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const tabsContainer = document.querySelector(".tabs-nav");
-        const tabs = document.querySelectorAll(".tab-btn");
-        const glider = document.querySelector(".tab-glider") as HTMLElement;
-        const items = document.querySelectorAll(".experience-item");
-        const noContentMsg = document.getElementById("no-content-msg");
+<style is:global>
+  body.experience-next-page {
+    --pop-blue: #2444ca;
+    --pop-pink: #ff7eb5;
+    --pop-yellow: #ffe44f;
+    --pop-lime: #caff48;
+    --pop-orange: #ff875c;
+    --pop-purple: #5524c7;
+    --pop-cyan: #62e6ff;
+    --pop-cream: #fff8e8;
+    --pop-ink: #15130f;
+    --pop-border: rgba(21, 19, 15, 0.78);
+    --story-ink: var(--pop-ink);
+    --story-cream: var(--pop-cream);
+    --story-gutter: clamp(1rem, 3vw, 3.5rem);
 
-        // Initialize state
-        let currentTab: HTMLElement | null = null;
-        // let isAnimating = false; // Removed unused var
+    --experience-ink: var(--pop-ink);
+    --experience-cream: var(--pop-cream);
+    --experience-lime: var(--pop-lime);
+    --experience-pink: var(--pop-pink);
+    --experience-yellow: var(--pop-yellow);
+    --experience-blue: var(--pop-blue);
+    --experience-purple: var(--pop-purple);
+    --experience-cyan: var(--pop-cyan);
+    --experience-orange: var(--pop-orange);
+    --color-brand-red: var(--pop-purple);
+    --link-hover-color: var(--pop-purple);
+    --theme-color-primary: var(--pop-blue);
+    --theme-color-accent: var(--pop-purple);
 
-        function updateGlider(targetTab: HTMLElement) {
-            // Added explicit check for tabsContainer to fix lint
-            if (!glider || !targetTab || !tabsContainer) return;
+    /* Layout Tokens */
+    --experience-gap: 8px;
+    --experience-page-padding: 8px;
+    --experience-panel-radius: 28px;
+    --experience-card-radius: 22px;
+    --experience-panel-padding: clamp(1.5rem, 4vw, 4rem);
 
-            const tabRect = targetTab.getBoundingClientRect();
-            const navRect = tabsContainer.getBoundingClientRect();
+    /* Typography Tokens - Desktop */
+    --experience-hero-h1-family: var(--font-display, sans-serif);
+    --experience-hero-h1-size: clamp(2.4rem, 4.4vw, 5.2rem);
+    --experience-hero-h1-weight: 700;
+    --experience-hero-h1-line-height: 0.92;
+    --experience-hero-h1-spacing: -0.055em;
+    --experience-hero-h1-max-width: 14ch;
 
-            // Calculate new position and dimensions
-            const left = tabRect.left - navRect.left;
-            const width = tabRect.width;
+    --experience-section-h2-family: var(--font-display, sans-serif);
+    --experience-section-h2-size: clamp(2rem, 3.5vw, 4.2rem);
+    --experience-section-h2-weight: 700;
+    --experience-section-h2-line-height: 0.94;
+    --experience-section-h2-spacing: -0.045em;
 
-            // Get current state (or default if first run)
-            const currentLeft = parseFloat(
-                glider.dataset.prevLeft || String(left),
-            );
-            const currentWidth = parseFloat(
-                glider.dataset.prevWidth || String(width),
-            );
+    --experience-card-h3-family: var(--font-display, sans-serif);
+    --experience-card-h3-size: clamp(1.5rem, 2.2vw, 2.8rem);
+    --experience-card-h3-weight: 700;
+    --experience-card-h3-line-height: 0.98;
+    --experience-card-h3-spacing: -0.04em;
 
-            // If no movement, just set and return
-            if (currentLeft === left && currentWidth === width) {
-                glider.style.width = `${width}px`;
-                glider.style.transform = `translateX(${left}px)`;
-                return;
-            }
+    --experience-future-h2-family: var(--font-display, sans-serif);
+    --experience-future-h2-size: clamp(2.5rem, 4.2vw, 5.2rem);
+    --experience-future-h2-weight: 700;
+    --experience-future-h2-line-height: 0.9;
+    --experience-future-h2-spacing: -0.055em;
 
-            // Determine direction
-            const isMovingRight = left > currentLeft;
+    --experience-font-body-family: var(--font-sans, sans-serif);
+    --experience-font-body-size: clamp(0.92rem, 1.05vw, 1.15rem);
+    --experience-font-body-weight: 450;
+    --experience-font-body-line-height: 1.5;
 
-            // Expected physics (Enhanced Jelly):
-            // Intensity multipliers for "squash a bit more"
-            const skewAmount = isMovingRight ? -25 : 25; // Increased skew from 15 to 25
-            const stretchAmount = 1.15; // Increased stretch
-            const squashAmount = 0.85; // Increased squash (more compression)
+    --experience-font-eyebrow-family: var(--font-ui, sans-serif);
+    --experience-font-eyebrow-size: 0.72rem;
+    --experience-font-eyebrow-weight: 700;
+    --experience-font-eyebrow-line-height: 1.2;
+    --experience-font-eyebrow-spacing: 0.06em;
 
-            // Use WAAPI for precise control over keyframes
-            const animation = glider.animate(
-                [
-                    {
-                        width: `${currentWidth}px`,
-                        transform: `translateX(${currentLeft}px) scale(1, 1) skewX(0deg)`,
-                    },
-                    {
-                        // Mid-flight: High distortion
-                        width: `${width * 0.9}px`,
-                        offset: 0.4, // Peak slightly earlier than half
-                        transform: `translateX(${currentLeft + (left - currentLeft) * 0.4}px) scale(${stretchAmount}, ${squashAmount}) skewX(${skewAmount}deg)`,
-                    },
-                    {
-                        // Overshoot / Settlement preparation
-                        offset: 0.7,
-                        transform: `translateX(${currentLeft + (left - currentLeft) * 0.8}px) scale(${stretchAmount - 0.05}, ${squashAmount + 0.05}) skewX(${skewAmount * 0.3}deg)`,
-                    },
-                    {
-                        // Arrival
-                        width: `${width}px`,
-                        transform: `translateX(${left}px) scale(1, 1) skewX(0deg)`,
-                    },
-                ],
-                {
-                    duration: 600, // Slightly longer for visibility of effect
-                    easing: "cubic-bezier(0.175, 0.885, 0.32, 1.275)", // Elastic-like ease
-                    fill: "forwards",
-                },
-            );
+    --experience-font-action-family: var(--font-ui, sans-serif);
+    --experience-font-action-size: 0.82rem;
+    --experience-font-action-weight: 700;
+    --experience-font-action-line-height: 1;
 
-            // Commit final state
-            animation.onfinish = () => {
-                glider.style.width = `${width}px`;
-                glider.style.transform = `translateX(${left}px)`;
-            };
+    background: var(--pop-pink);
+    color: var(--pop-ink);
+  }
 
-            // Store new position
-            glider.dataset.prevLeft = left.toString();
-            glider.dataset.prevWidth = width.toString();
-            currentTab = targetTab;
-        }
+  /* Lock each panel to its intended contrast pair so global theme colours do
+     not turn headings and supporting copy white on bright backgrounds. */
+  body.experience-next-page .experience-next {
+    color: var(--pop-ink);
+  }
 
-        // Initialize Glider on the active tab
-        const initialActive = document.querySelector(
-            ".tab-btn.active",
-        ) as HTMLElement;
-        if (initialActive) {
-            requestAnimationFrame(() => {
-                // Check if tabsContainer exists for safety in init
-                if (!tabsContainer) return;
+  body.experience-next-page .experience-next :is(h1, h2, h3, p, li, dt, dd, strong, span) {
+    color: inherit;
+  }
 
-                // Initial setup without animation
-                const tabRect = initialActive.getBoundingClientRect();
-                const navRect = tabsContainer.getBoundingClientRect();
-                const left = tabRect.left - navRect.left;
-                const width = tabRect.width;
+  body.experience-next-page .page-content-full { padding: 0; }
 
-                glider.style.width = `${width}px`;
-                glider.style.transform = `translateX(${left}px)`;
+  /* Top Navigation */
+  .story-nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    min-height: 72px;
+    padding: 0 var(--story-gutter);
+    display: grid;
+    grid-template-columns: minmax(140px, 1fr) auto minmax(220px, 1fr);
+    align-items: center;
+    gap: 1.5rem;
+    border-bottom: 0;
+    background: var(--pop-pink);
+    color: var(--pop-ink);
+  }
 
-                glider.dataset.prevLeft = left.toString();
-                glider.dataset.prevWidth = width.toString();
-                currentTab = initialActive;
+  .story-nav a,
+  .story-nav summary {
+    color: inherit;
+    font: 700 .72rem/1 var(--font-mono, monospace);
+    letter-spacing: .08em;
+    text-decoration: none;
+    text-transform: uppercase;
+  }
 
-                // Reveal
-                requestAnimationFrame(() => {
-                    glider.style.opacity = "1";
-                });
-            });
-        }
+  .story-nav__brand {
+    width: fit-content;
+    min-height: 42px;
+    padding: 0 .9rem;
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--pop-ink);
+    border-radius: 14px;
+    background: var(--pop-yellow);
+    color: var(--pop-ink) !important;
+  }
 
-        function switchTab(categoryId: string) {
-            // Update Tab Styles
-            tabs.forEach((tab) => {
-                const isActive = tab.getAttribute("data-tab") === categoryId;
-                tab.classList.toggle("active", isActive);
-                tab.setAttribute("aria-selected", isActive ? "true" : "false");
+  .story-nav__links {
+    display: flex;
+    align-items: center;
+    gap: clamp(1.2rem, 2.5vw, 2.5rem);
+  }
 
-                if (isActive) {
-                    updateGlider(tab as HTMLElement);
-                }
-            });
+  .story-nav__links a {
+    opacity: 1;
+    transition: text-decoration-color 160ms ease;
+  }
 
-            // Filter Content (Logic remains same)
-            let hasVisibleItems = false;
-            items.forEach((item) => {
-                const itemCategory = item.getAttribute("data-category");
-                const isMatch =
-                    itemCategory === categoryId ||
-                    (categoryId === "award" && itemCategory === "conference");
+  .story-nav__links a.is-active,
+  .story-nav__mobile nav a.is-active {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    text-decoration-thickness: 2px;
+  }
 
-                if (isMatch) {
-                    item.classList.remove("hidden");
-                    (item as HTMLElement).style.animation = "none";
-                    (item as HTMLElement).offsetHeight;
-                    (item as HTMLElement).style.animation =
-                        "fadeInUp 0.4s ease-out forwards";
-                    hasVisibleItems = true;
-                } else {
-                    item.classList.add("hidden");
-                }
-            });
+  .story-nav__links a:hover,
+  .story-nav__links a:focus-visible {
+    opacity: 1;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    text-decoration-thickness: 2px;
+  }
 
-            if (noContentMsg) {
-                if (hasVisibleItems) {
-                    noContentMsg.classList.add("hidden");
-                } else {
-                    noContentMsg.classList.remove("hidden");
-                }
-            }
-        }
+  .story-nav__contact {
+    justify-self: end;
+    min-height: 44px;
+    padding: 0 1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    border: 1px solid var(--pop-ink);
+    border-radius: 14px;
+    background: var(--pop-yellow);
+    color: var(--pop-ink) !important;
+    transition: transform 180ms ease, box-shadow 180ms ease;
+  }
 
-        // Add Click Listeners
-        tabs.forEach((tab) => {
-            tab.addEventListener("click", () => {
-                const category = tab.getAttribute("data-tab");
-                if (category) switchTab(category);
-            });
-        });
+  .story-nav__contact:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 0 var(--pop-ink);
+  }
 
-        // Handle Resize to readjust glider
-        window.addEventListener("resize", () => {
-            const active = document.querySelector(
-                ".tab-btn.active",
-            ) as HTMLElement;
-            if (active) updateGlider(active);
-        });
+  .story-nav__mobile {
+    display: none;
+  }
 
-        // Initial Filter
-        switchTab("work");
-    });
-</script>
+  .experience-next { padding: var(--experience-page-padding); background: var(--pop-pink); }
+  .experience-next :is(h1, h2, h3, p) { margin-top: 0; }
+  .experience-eyebrow {
+    margin: 0;
+    font-family: var(--experience-font-eyebrow-family);
+    font-size: var(--experience-font-eyebrow-size);
+    font-weight: var(--experience-font-eyebrow-weight);
+    line-height: var(--experience-font-eyebrow-line-height);
+    letter-spacing: var(--experience-font-eyebrow-spacing);
+    text-transform: uppercase;
+  }
+  .experience-actions { display: flex; flex-wrap: wrap; gap: .55rem; }
+  .experience-actions a {
+    min-height: 54px;
+    padding: 0 1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border: 1px solid currentColor;
+    border-radius: 14px;
+    color: inherit;
+    text-decoration: none;
+    font-family: var(--experience-font-action-family);
+    font-size: var(--experience-font-action-size);
+    font-weight: var(--experience-font-action-weight);
+    line-height: var(--experience-font-action-line-height);
+  }
+  .experience-actions a:first-child { background: var(--experience-cream); }
 
-<style>
-    .page-container {
-        max-width: 800px;
-        margin: 0 auto;
-        padding-bottom: 6rem;
+  .experience-next__hero { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(430px, .92fr); gap: var(--experience-gap); }
+  .experience-next__hero-copy, .experience-next__hero-mosaic { min-height: calc(100svh - 88px); border: 1px solid rgba(21,19,15,.3); border-radius: var(--experience-panel-radius); overflow: hidden; }
+  .experience-next__hero-copy { padding: var(--experience-panel-padding); display: flex; flex-direction: column; background: var(--experience-yellow); }
+  .experience-next__hero-copy h1 {
+    max-width: var(--experience-hero-h1-max-width);
+    margin: auto 0 1.5rem;
+    font-family: var(--experience-hero-h1-family);
+    font-size: var(--experience-hero-h1-size);
+    font-weight: var(--experience-hero-h1-weight);
+    line-height: var(--experience-hero-h1-line-height);
+    letter-spacing: var(--experience-hero-h1-spacing);
+    overflow-wrap: break-word;
+    word-break: normal;
+    text-wrap: balance;
+  }
+  .experience-next__hero-copy > p:not(:first-child) {
+    max-width: 64ch;
+    margin-bottom: 1.5rem;
+    font-family: var(--experience-font-body-family);
+    font-size: clamp(1.05rem, 1.3vw, 1.3rem);
+    line-height: 1.5;
+  }
+  .experience-next__hero-mosaic { position: relative; background: var(--experience-blue); }
+  .experience-next__hero-photo { position: absolute; margin: 0; overflow: hidden; border: 1px solid var(--experience-ink); border-radius: 18px; background: var(--experience-cream); box-shadow: 0 14px 36px rgba(21,19,15,.27); }
+  .experience-next__hero-photo img { width: 100%; height: 100%; display: block; object-fit: cover; }
+  .experience-next__hero-photo figcaption { position: absolute; left: 10px; bottom: 10px; padding: .45rem .6rem; border-radius: 999px; background: rgba(21,19,15,.78); color: var(--experience-cream); font: 700 .65rem/1 var(--font-ui, sans-serif); }
+  .experience-next__hero-photo--1 { inset: 5% 8% 45% 6%; transform: rotate(1.5deg); }
+  .experience-next__hero-photo--2 { inset: 41% 38% 8% 4%; transform: rotate(-2deg); }
+  .experience-next__hero-photo--3 { inset: 48% 4% 5% 51%; transform: rotate(2.5deg); }
+  .experience-next__hero-note { position: absolute; z-index: 5; top: 28px; right: 28px; padding: .7rem .8rem; display: flex; gap: .55rem; border: 1px solid var(--experience-ink); border-radius: 999px; background: var(--experience-lime); font: 700 .65rem/1 var(--font-ui, sans-serif); }
+
+  .experience-next__position { margin-top: var(--experience-gap); padding: var(--experience-panel-padding); border: 1px solid rgba(21,19,15,.3); border-radius: var(--experience-panel-radius); background: var(--experience-lime); }
+  .experience-next__position-header { margin-bottom: clamp(2rem, 3.5vw, 3.5rem); }
+  .experience-next__position-header h2 {
+    max-width: 16ch;
+    margin: 1.5rem 0 0;
+    font-family: var(--experience-section-h2-family);
+    font-size: var(--experience-section-h2-size);
+    font-weight: var(--experience-section-h2-weight);
+    line-height: var(--experience-section-h2-line-height);
+    letter-spacing: var(--experience-section-h2-spacing);
+    overflow-wrap: break-word;
+  }
+  
+  .experience-next__position-track-wrapper { width: 100%; }
+  .experience-next__position-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(14px, 1.6vw, 22px); align-items: stretch; }
+  .experience-next__position-card { height: 100%; min-height: 0; padding: clamp(1.35rem, 1.7vw, 1.8rem); display: flex; flex-direction: column; justify-content: flex-start; gap: 1.25rem; border: 1px solid rgba(21,19,15,.28); border-radius: 20px; background: var(--experience-cream); box-shadow: 0 4px 18px rgba(21,19,15,.04); transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 220ms cubic-bezier(0.16, 1, 0.3, 1), border-color 220ms ease; }
+  .experience-next__position-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(21,19,15,.1); border-color: rgba(21,19,15,.55); }
+  .experience-next__position-card-top { display: flex; align-items: center; justify-content: space-between; }
+  .experience-next__card-index { display: inline-flex; align-items: center; justify-content: center; padding: .35rem .65rem; border-radius: 999px; background: rgba(21,19,15,.06); border: 1px solid rgba(21,19,15,.12); font: 700 .75rem/1 var(--font-ui, sans-serif); letter-spacing: .04em; }
+  .experience-next__position-card-body { display: flex; flex-direction: column; gap: 0.75rem; flex: 1; }
+  .experience-next__position-card-body h3 { margin: 0; min-height: 2.3em; display: flex; align-items: flex-end; font: 700 clamp(1.25rem, 1.55vw, 1.65rem)/1.12 var(--font-display, sans-serif); letter-spacing: -.04em; }
+  .experience-next__position-card-body p { margin: 0; font-size: clamp(.9rem, 1vw, 1rem); line-height: 1.5; color: rgba(21,19,15,.84); }
+
+  @media (max-width: 1120px) {
+    .experience-next__position-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .experience-next__position-card-body h3 { min-height: 0; }
+  }
+
+  .experience-next__contexts { margin-top: var(--experience-gap); padding: var(--experience-panel-padding); border: 1px solid rgba(255,248,232,.25); border-radius: var(--experience-panel-radius); background: var(--experience-purple); color: var(--experience-cream); }
+  .experience-next__contexts > header, .experience-next__timeline > header, .experience-next__learning > header { display: grid; grid-template-columns: .5fr 1.5fr; gap: 2rem; margin-bottom: 3rem; }
+  .experience-next__contexts > header h2, .experience-next__timeline > header h2, .experience-next__learning > header h2 {
+    max-width: 12ch;
+    font-family: var(--experience-section-h2-family);
+    font-size: var(--experience-section-h2-size);
+    font-weight: var(--experience-section-h2-weight);
+    line-height: var(--experience-section-h2-line-height);
+    letter-spacing: var(--experience-section-h2-spacing);
+    overflow-wrap: break-word;
+  }
+  .experience-next__context-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--experience-gap); }
+  .experience-next__context { min-height: 650px; display: grid; grid-template-rows: clamp(320px, 34vw, 480px) 1fr; overflow: hidden; border: 1px solid rgba(21,19,15,.3); border-radius: var(--experience-card-radius); background: var(--experience-cream); color: var(--experience-ink); text-decoration: none; }
+  .experience-next__context figure { min-height: 0; margin: 0; overflow: hidden; }
+  .experience-next__context img { width: 100%; height: 100%; display: block; object-fit: cover; transition: transform 400ms ease; }
+  .experience-next__context:hover img { transform: scale(1.035); }
+  .experience-next__context > div { padding: 1.25rem; display: flex; flex-direction: column; }
+  .experience-next__context h3 {
+    margin: 2.5rem 0 .7rem;
+    font-family: var(--experience-card-h3-family);
+    font-size: var(--experience-card-h3-size);
+    font-weight: var(--experience-card-h3-weight);
+    line-height: var(--experience-card-h3-line-height);
+    letter-spacing: var(--experience-card-h3-spacing);
+    overflow-wrap: break-word;
+  }
+  .experience-next__context p { line-height: 1.5; }
+  .experience-next__context strong { display: block; margin-top: auto; padding-top: 1.5rem; font: 700 .72rem/1 var(--font-ui, sans-serif); }
+
+  .experience-next__timeline { margin-top: var(--experience-gap); padding: var(--experience-panel-padding); border: 1px solid rgba(21,19,15,.3); border-radius: var(--experience-panel-radius); background: var(--experience-cyan); }
+  .experience-next__timeline-list { display: grid; }
+  .experience-next__timeline-list article { padding: 1.5rem 0; display: grid; grid-template-columns: 55px minmax(220px,.65fr) 1.35fr; gap: 1.5rem; border-top: 1px solid rgba(21,19,15,.3); }
+  .experience-next__timeline-index { font: 700 .72rem/1 var(--font-ui, sans-serif); }
+  .experience-next__timeline-list h3 { margin: .5rem 0 0; font: 700 clamp(1.5rem, 2.1vw, 2.7rem)/1 var(--font-display, sans-serif); letter-spacing: -.04em; }
+  .experience-next__timeline-list strong { font-size: 1.05rem; }
+  .experience-next__timeline-list article > div:last-child p { max-width: 68ch; margin: .65rem 0 0; line-height: 1.5; }
+
+  .experience-next__learning { margin-top: var(--experience-gap); padding: var(--experience-panel-padding); border: 1px solid rgba(21,19,15,.3); border-radius: var(--experience-panel-radius); background: var(--experience-cream); }
+  .experience-next__learning-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--experience-gap); }
+  .experience-next__learning-grid article { min-height: 360px; padding: 1.5rem; display: flex; flex-direction: column; border: 1px solid rgba(21,19,15,.3); border-radius: 18px; background: var(--experience-yellow); }
+  .experience-next__learning-grid article:nth-child(2n) { background: var(--experience-pink); }
+  .experience-next__learning-grid h3 {
+    margin: auto 0 .75rem;
+    font-family: var(--experience-card-h3-family);
+    font-size: var(--experience-card-h3-size);
+    font-weight: var(--experience-card-h3-weight);
+    line-height: var(--experience-card-h3-line-height);
+    letter-spacing: var(--experience-card-h3-spacing);
+    overflow-wrap: break-word;
+  }
+  .experience-next__learning-grid p { line-height: 1.5; }
+
+  .experience-next__future { margin-top: var(--experience-gap); display: grid; grid-template-columns: 1.05fr .95fr; gap: var(--experience-gap); }
+  .experience-next__future > div, .experience-next__future figure { min-height: 700px; margin: 0; border: 1px solid rgba(21,19,15,.3); border-radius: var(--experience-panel-radius); overflow: hidden; }
+  .experience-next__future > div { padding: var(--experience-panel-padding); display: flex; flex-direction: column; background: var(--experience-orange); }
+  .experience-next__future h2 {
+    max-width: 12ch;
+    margin: auto 0 1rem;
+    font-family: var(--experience-future-h2-family);
+    font-size: var(--experience-future-h2-size);
+    font-weight: var(--experience-future-h2-weight);
+    line-height: var(--experience-future-h2-line-height);
+    letter-spacing: var(--experience-future-h2-spacing);
+    overflow-wrap: break-word;
+  }
+  .experience-next__future > div > p:not(:first-child) { max-width: 62ch; line-height: 1.5; }
+  .experience-next__future figure img { width: 100%; height: 100%; display: block; object-fit: cover; }
+
+  @media (max-width: 980px) {
+    .story-nav {
+      grid-template-columns: 1fr auto;
+    }
+    .story-nav__links,
+    .story-nav__contact {
+      display: none;
+    }
+    .story-nav__mobile {
+      position: relative;
+      display: block;
+      justify-self: end;
+    }
+    .story-nav__mobile summary {
+      min-height: 44px;
+      padding: 0 .9rem;
+      display: flex;
+      align-items: center;
+      border: 1px solid var(--pop-ink);
+      border-radius: 14px;
+      background: var(--pop-yellow);
+      color: var(--pop-ink);
+      cursor: pointer;
+      list-style: none;
+    }
+    .story-nav__mobile summary::-webkit-details-marker {
+      display: none;
+    }
+    .story-nav__mobile nav {
+      position: fixed;
+      inset: 72px 0 auto;
+      padding: 1.5rem clamp(1rem, 3vw, 3.5rem) 2rem;
+      display: grid;
+      gap: 0;
+      background: var(--pop-yellow);
+      border-bottom: 1px solid var(--pop-ink);
+      z-index: 99;
+    }
+    .story-nav__mobile nav a {
+      padding: 1rem 0;
+      border-bottom: 1px solid rgba(23, 21, 15, 0.2);
+      font-size: .85rem;
+      color: var(--pop-ink);
+    }
+  }
+
+  @media (max-width: 760px) {
+    body.experience-next-page {
+      --experience-page-padding: 6px;
+      --experience-gap: 6px;
+      --experience-panel-radius: 22px;
+      --experience-card-radius: 18px;
+      --experience-panel-padding: 1.5rem 1.25rem;
+
+      /* Mobile Sized Typography Tokens */
+      --experience-hero-h1-size: clamp(1.45rem, 6.2vw, 2.15rem);
+      --experience-hero-h1-line-height: 1.04;
+      --experience-hero-h1-spacing: -0.03em;
+      --experience-hero-h1-max-width: 100%;
+
+      --experience-section-h2-size: clamp(1.35rem, 5.4vw, 1.85rem);
+      --experience-section-h2-line-height: 1.08;
+      --experience-section-h2-spacing: -0.025em;
+
+      --experience-card-h3-size: clamp(1.25rem, 4.8vw, 1.65rem);
+      --experience-card-h3-line-height: 1.08;
+      --experience-card-h3-spacing: -0.025em;
+
+      --experience-future-h2-size: clamp(1.5rem, 6.5vw, 2.3rem);
+      --experience-future-h2-line-height: 1.04;
+      --experience-future-h2-spacing: -0.03em;
     }
 
-    .page-header {
-        margin-bottom: 4rem;
-        padding-top: var(--space-lg);
-        display: flex;
-        flex-direction: column;
-        gap: 1.5rem;
-        align-items: flex-start;
+    .experience-next__hero, .experience-next__future { grid-template-columns: 1fr; gap: var(--experience-gap); }
+    .experience-next__hero-copy { min-height: auto; padding: 2.25rem 1.25rem; }
+    .experience-next__hero-copy h1 { margin: 1.5rem 0 1.25rem; }
+    .experience-next__hero-mosaic { min-height: 520px; }
+    .experience-next__position { padding: clamp(1.5rem, 5vw, 2.2rem) clamp(1rem, 4vw, 1.5rem); }
+    .experience-next__position-track-wrapper {
+      margin: 0 calc(-1 * clamp(1rem, 4vw, 1.5rem));
+      padding: 4px clamp(1rem, 4vw, 1.5rem) 12px;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
     }
-
-    h1 {
-        font-size: 3.5rem;
-        margin: 0;
-        font-weight: 700;
-        letter-spacing: -0.02em;
+    .experience-next__position-track-wrapper::-webkit-scrollbar { display: none; }
+    .experience-next__position-grid {
+      display: flex;
+      flex-flow: row nowrap;
+      gap: 12px;
+      width: max-content;
     }
-
-    .subtitle {
-        font-size: 1.1rem;
-        color: var(--text-secondary);
-        max-width: 60ch;
-        line-height: 1.6;
-        margin-top: -0.5rem;
+    .experience-next__position-card {
+      flex: 0 0 clamp(270px, 78vw, 320px);
+      min-height: 250px;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
     }
-
-    /* --- TABS --- */
-    .tabs-container {
-        margin-top: 1rem;
-        background: #f0f0f0; /* Light Gray Background for the container */
-        /* To match "All three of them could be within one big background" 
-           Assuming a pill shape or bar shape */
-        padding: 0.4rem;
-        border-radius: 100px; /* Pill shape container */
-        display: inline-flex;
-    }
-
-    .tabs-nav {
-        display: flex;
-        gap: 0; /* Gap handled by padding/layout */
-        position: relative;
-    }
-
-    .tab-btn {
-        background: transparent;
-        border: none;
-        padding: 0.8rem 2.5rem; /* Bigger buttons */
-        font-family: var(--font-sans);
-        font-size: 1.1rem;
-        font-weight: 500;
-        color: #666;
-        cursor: pointer;
-        position: relative;
-        z-index: 2; /* Above glider */
-        transition: color 0.3s ease;
-        outline: none;
-        border-radius: 100px;
-        white-space: nowrap;
-    }
-
-    .tab-btn:hover {
-        color: #000;
-    }
-
-    .tab-btn.active {
-        color: white !important;
-        font-weight: 600;
-    }
-
-    /* The Glider (Active Background) */
-    .tab-glider {
-        position: absolute;
-        top: 0;
-        left: 0;
-        height: 100%;
-        background-color: #006400; /* Deep Green */
-        border-radius: 100px;
-        z-index: 1; /* Behind text */
-        transition:
-            transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1),
-            width 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
-        pointer-events: none;
-        opacity: 0; /* Hidden initially until JS calculates pos */
-    }
-
-    /* --- CONTENT --- */
-    .content-area {
-        min-height: 400px;
-    }
-
-    .experience-item {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-        padding-bottom: 3rem;
-    }
-
-    .experience-item.hidden {
-        display: none;
-    }
-
-    .role {
-        font-size: 1.4rem;
-        font-weight: 600;
-        color: var(--text-primary);
-        margin: 0;
-        line-height: 1.2;
-    }
-
-    .meta-row {
-        display: flex;
-        align-items: baseline;
-        gap: 0.5rem;
-        font-family: var(--font-mono);
-        font-size: 0.9rem;
-        color: var(--text-tertiary);
-    }
-
-    .company {
-        color: var(--text-secondary);
-        font-weight: 500;
-        font-family: var(--font-sans);
-    }
-
-    .duration {
-        opacity: 0.8;
-    }
-
-    .description {
-        margin-top: 0.5rem;
-        font-size: 1.05rem;
-        line-height: 1.6;
-        color: var(--text-secondary);
-        max-width: 65ch;
-    }
-
-    .no-content {
-        color: var(--text-tertiary);
-        font-style: italic;
-        margin-top: 2rem;
-    }
-
-    .hidden {
-        display: none;
-    }
-
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(10px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    @media (max-width: 600px) {
-        .tabs-container {
-            width: 100%;
-            overflow-x: auto;
-            border-radius: 12px;
-            padding: 0.3rem;
-        }
-
-        .tabs-nav {
-            width: 100%;
-        }
-
-        .tab-btn {
-            padding: 0.7rem 1.2rem;
-            font-size: 0.95rem;
-            flex: 1;
-            text-align: center;
-        }
-
-        .meta-row {
-            flex-direction: column;
-            gap: 0;
-        }
-
-        .role {
-            font-size: 1.2rem;
-        }
-    }
+    .experience-next__context-grid, .experience-next__learning-grid { grid-template-columns: 1fr; }
+    .experience-next__contexts > header, .experience-next__timeline > header, .experience-next__learning > header { grid-template-columns: 1fr; gap: 1rem; margin-bottom: 2rem; }
+    .experience-next__contexts > header h2, .experience-next__timeline > header h2, .experience-next__learning > header h2 { max-width: 100%; }
+    .experience-next__timeline-list article { grid-template-columns: 42px 1fr; }
+    .experience-next__timeline-list article > div:last-child { grid-column: 2; }
+    .experience-next__context { min-height: 520px; }
+    .experience-next__context h3 { margin: 1.5rem 0 .5rem; }
+    .experience-next__future > div { min-height: auto; padding: 2.5rem 1.25rem; }
+    .experience-next__future figure { min-height: 440px; }
+    .experience-next__future h2 { margin: 1.25rem 0 1rem; max-width: 100%; }
+    .experience-actions { flex-direction: column; }
+    .experience-actions a { width: 100%; }
+  }
 </style>

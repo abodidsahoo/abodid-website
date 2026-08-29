@@ -1,0 +1,237 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { getResearchProjects } from "../lib/api";
+
+const glyphLoomProject = {
+  title: "Glyph Loom",
+  description:
+    "A generative typography and motion-design instrument that reconstructs live font outlines with woven bars, dots, crosses, lines, and modular grids.",
+  slug: "glyph-loom",
+  href: "/research/glyph-loom",
+  image: "/images/research/glyph-loom-cover.png",
+  tags: ["Generative Type", "Canvas", "Motion Systems"],
+  published: true,
+};
+
+const fetchedProjects = await getResearchProjects();
+const projects = [
+  glyphLoomProject,
+  ...fetchedProjects.filter((project) => project.slug !== "glyph-loom"),
+];
+
+const pageTitle = "Research (Archive)";
+const pageDescription =
+  "Archive of research by Abodid Sahoo exploring digital archives, AI-assisted memory, visual systems, culture, and participatory storytelling.";
+
+const isTensorFlowProject = (slug = "", title = "") =>
+  slug.startsWith("tensorflow-") || title.toLowerCase().includes("tensorflow");
+---
+
+<BaseLayout title={pageTitle} description={pageDescription}>
+  <header class="page-header">
+    <h1>{pageTitle}</h1>
+    <p class="section-intro">
+      Explorations in digital archives, AI-driven memory, and visual systems.
+    </p>
+  </header>
+
+  <div class="projects-grid">
+    {
+      projects.map((project) => (
+        <a href={project.href} class="project-card">
+          {project.image && (
+            <div class="card-image-container">
+              <img
+                src={project.image}
+                alt={project.title}
+                class="card-image"
+                loading="lazy"
+              />
+              {isTensorFlowProject(project.slug, project.title) && (
+                <div class="wip-overlay" aria-label="Work in progress">
+                  <span class="wip-overlay__badge">Work in Progress</span>
+                </div>
+              )}
+            </div>
+          )}
+          <div class="card-content">
+            <h2>{project.title}</h2>
+            <p class="description">{project.description}</p>
+
+            <div class="meta-footer">
+              <div class="tags">
+                {project.tags &&
+                  project.tags.map((tag) => <span class="tag">{tag}</span>)}
+              </div>
+              <span class="arrow-icon" aria-hidden="true">→</span>
+            </div>
+          </div>
+        </a>
+      ))
+    }
+  </div>
+</BaseLayout>
+
+<style>
+  .page-header {
+    margin-bottom: 4rem;
+    padding-top: 2rem;
+    text-align: left;
+  }
+
+  h1 {
+    font-family: var(--font-display);
+    font-size: clamp(4rem, 6vw, 4.75rem);
+    font-weight: 700;
+    line-height: 1.08;
+    margin-bottom: 1.25rem;
+    letter-spacing: -0.035em;
+    color: var(--text-primary);
+  }
+
+  .section-intro {
+    font-family: var(--font-sans);
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    max-width: 600px;
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  .projects-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+    margin-bottom: 4rem;
+  }
+
+  .project-card {
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    background: color-mix(in srgb, var(--bg-surface) 25%, var(--bg-color));
+    border: 1px solid var(--border-subtle);
+    border-radius: 18px;
+    transition:
+      transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+      border-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+      background-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+      box-shadow 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    overflow: hidden;
+    height: 100%;
+  }
+
+  .project-card:hover {
+    transform: translateY(-4px);
+    border-color: color-mix(in srgb, var(--text-primary) 35%, var(--border-subtle));
+    background: var(--bg-surface);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.16);
+  }
+
+  .card-image-container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: var(--bg-surface);
+  }
+
+  .card-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .project-card:hover .card-image {
+    transform: scale(1.035);
+  }
+
+  .wip-overlay {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 2;
+  }
+
+  .wip-overlay__badge {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(4px);
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    padding: 4px 10px;
+    border-radius: 100px;
+  }
+
+  .card-content {
+    padding: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+  }
+
+  h2 {
+    font-family: var(--font-serif, var(--font-display));
+    font-size: 1.45rem;
+    font-weight: 500;
+    line-height: 1.25;
+    color: var(--text-primary);
+    margin: 0 0 0.6rem 0;
+  }
+
+  .description {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    line-height: 1.55;
+    margin: 0 0 1.5rem 0;
+    flex-grow: 1;
+  }
+
+  .meta-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: auto;
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .tag {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+
+  .arrow-icon {
+    font-family: var(--font-mono, monospace);
+    font-size: 1rem;
+    color: var(--text-tertiary);
+    transition: transform 0.2s ease, color 0.2s ease;
+  }
+
+  .project-card:hover .arrow-icon {
+    color: var(--text-primary);
+    transform: translateX(4px);
+  }
+
+  @media (max-width: 860px) {
+    .projects-grid {
+      grid-template-columns: 1fr;
+      gap: 1.75rem;
+    }
+  }
+</style>

@@ -1,7 +1,7 @@
 import { supabase } from "./supabase";
 import { getPublishedPortfolioIndex } from "./portfolio/services.js";
 import photographyPortfolios from "../data/photographyPortfolios.generated.json";
-import { GESTURE_CONTROL_VIDEO_URL } from "./mediaAssets";
+import { GESTURE_CONTROL_VIDEO_URL, GESTURE_CONTROL_HERO_GIF_URL } from "./mediaAssets";
 
 export interface PositioningProject {
   id: string;
@@ -101,7 +101,7 @@ export const flagshipProjects: PositioningProject[] = [
     role: "Creative Technologist & UI Engineer",
     context: "MediaPipe Computer Vision prototype",
     metric: "Zero-touch spatial browsing",
-    coverUrl: "https://assets.newatlas.com/dims4/default/83c8dc7/2147483647/strip/true/crop/1564x1043+0+19/resize/800x533!/format/webp/quality/90/?url=https%3A%2F%2Fnewatlas-brightspot.s3.amazonaws.com%2Farchive%2Fgest-1.jpg",
+    coverUrl: GESTURE_CONTROL_HERO_GIF_URL,
     coverAlt: "Gesture control interface prototype",
     href: "/research/gesture-image-preview",
     video: GESTURE_CONTROL_VIDEO_URL,

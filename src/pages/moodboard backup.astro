@@ -35,38 +35,42 @@ Astro.response.headers.set("Cache-Control", "no-store");
   bodyClass="story-moodboard-page"
 >
   <header class="story-nav">
-    <a class="story-nav__brand" href="/" aria-label="Abodid Sahoo homepage"
-      >abodid.com</a
-    >
-    <nav class="story-nav__links" aria-label="Primary navigation">
-      <a href="/#selected-work">Work</a>
-      <a href="/research">Research</a>
-      <a href="/services">Services</a>
-      <a href="/experience">Experience</a>
-      <a href="/about">About</a>
-    </nav>
-    <a class="story-nav__contact" href="/#enquiry"
-      >Hire me <span aria-hidden="true">↗</span></a
-    >
-    <details class="story-nav__mobile">
-      <summary>Menu</summary>
-      <nav aria-label="Mobile navigation">
+    <div class="story-nav__inner">
+      <a class="story-nav__brand" href="/" aria-label="Abodid Sahoo homepage"
+        >abodid.com</a
+      >
+      <nav class="story-nav__links" aria-label="Primary navigation">
         <a href="/#selected-work">Work</a>
         <a href="/research">Research</a>
         <a href="/services">Services</a>
         <a href="/experience">Experience</a>
         <a href="/about">About</a>
-        <a href="/#enquiry">Hire me ↗</a>
       </nav>
-    </details>
+      <a class="story-nav__contact" href="/#enquiry"
+        >Hire me <span aria-hidden="true">↗</span></a
+      >
+      <details class="story-nav__mobile">
+        <summary>Menu</summary>
+        <nav aria-label="Mobile navigation">
+          <a href="/#selected-work">Work</a>
+          <a href="/research">Research</a>
+          <a href="/services">Services</a>
+          <a href="/experience">Experience</a>
+          <a href="/about">About</a>
+          <a href="/#enquiry">Hire me ↗</a>
+        </nav>
+      </details>
+    </div>
   </header>
 
   <main class="moodboard-shell">
     <article class="moodboard-file">
       <header class="moodboard-heading">
-        <p class="moodboard-file-tag">taste.js</p>
+        <p class="moodboard-file-tag">
+          <span class="moodboard-dot" aria-hidden="true"></span> taste.js
+        </p>
         <div class="moodboard-heading__hero">
-          <h1>Mood Board</h1>
+          <h1>Visual Mood Board</h1>
           <p>An archive of impulses and instincts.</p>
         </div>
       </header>
@@ -175,7 +179,6 @@ Astro.response.headers.set("Cache-Control", "no-store");
     --pop-yellow: #ffe44f;
     --pop-cream: #fff8e8;
     --pop-ink: #15130f;
-    --story-gutter: clamp(1rem, 3vw, 3.5rem);
     --pop-border: 1px solid var(--pop-ink);
     /* Exact same resets as landing page */
     margin: 0;
@@ -221,7 +224,7 @@ Astro.response.headers.set("Cache-Control", "no-store");
     gap: 1.5rem !important;
     border-bottom: 0 !important;
     background: var(--pop-blue) !important;
-    color: var(--pop-ink) !important;
+    color: var(--pop-cream) !important;
   }
   body.story-moodboard-page .story-nav a,
   body.story-moodboard-page .story-nav summary {
@@ -249,7 +252,6 @@ Astro.response.headers.set("Cache-Control", "no-store");
     gap: clamp(1.2rem, 2.5vw, 2.5rem) !important;
   }
   body.story-moodboard-page .story-nav__links a {
-    color: var(--pop-cream) !important;
     opacity: 1;
     transition: text-decoration-color 160ms ease;
   }
@@ -282,7 +284,7 @@ Astro.response.headers.set("Cache-Control", "no-store");
     display: none !important;
   }
 
-  @media (max-width: 980px) {
+  @media (max-width: 860px) {
     body.story-moodboard-page .story-nav {
       grid-template-columns: 1fr auto !important;
     }
@@ -332,17 +334,13 @@ Astro.response.headers.set("Cache-Control", "no-store");
 <style>
   /* ── Moodboard Layout ───────────────────── */
   .moodboard-shell {
-    width: 100%;
-    padding: 8px;
-    box-sizing: border-box;
+    padding: clamp(10px, 2vw, 20px);
     background: var(--pop-blue);
   }
 
   .moodboard-file {
-    width: 100%;
-    max-width: none;
-    margin-inline: 0;
-    box-sizing: border-box;
+    width: min(100%, 1600px);
+    margin-inline: auto;
     overflow: hidden;
     border: 1px solid var(--pop-ink);
     border-radius: clamp(20px, 3vw, 34px);
@@ -366,6 +364,15 @@ Astro.response.headers.set("Cache-Control", "no-store");
     font: 700 0.72rem/1 var(--font-mono, monospace);
     letter-spacing: 0.06em;
     text-transform: uppercase;
+  }
+
+  .moodboard-dot {
+    width: 10px;
+    height: 10px;
+    flex: 0 0 auto;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+    background: var(--pop-yellow);
   }
 
   .moodboard-legacy-link {
@@ -557,7 +564,7 @@ Astro.response.headers.set("Cache-Control", "no-store");
     }
   }
 
-  @media (max-width: 760px) {
+  @media (max-width: 768px) {
     .moodboard-heading__hero {
       grid-template-columns: 1fr;
       gap: 1rem;
@@ -566,7 +573,7 @@ Astro.response.headers.set("Cache-Control", "no-store");
       columns: 2;
     }
     .moodboard-shell {
-      padding: 6px;
+      padding: 8px;
     }
   }
 

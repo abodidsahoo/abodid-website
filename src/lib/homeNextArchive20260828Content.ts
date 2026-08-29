@@ -1,6 +1,7 @@
 import { supabase } from "./supabase";
 import { getPublishedPortfolioIndex } from "./portfolio/services.js";
 import photographyPortfolios from "../data/photographyPortfolios.generated.json";
+import { GESTURE_CONTROL_HERO_GIF_URL } from "./mediaAssets";
 
 type CurationRow = {
   id: string;
@@ -263,7 +264,7 @@ const mixedWorkFallbacks = {
     slug: "gesture-image-preview",
     title: "Hand Gesture Control",
     oneLineDescription: "A hand-gesture-controlled card stack for previewing photographs with an optional voice-trigger layer.",
-    coverUrl: "https://assets.newatlas.com/dims4/default/83c8dc7/2147483647/strip/true/crop/1564x1043+0+19/resize/800x533!/format/webp/quality/90/?url=https%3A%2F%2Fnewatlas-brightspot.s3.amazonaws.com%2Farchive%2Fgest-1.jpg",
+    coverUrl: GESTURE_CONTROL_HERO_GIF_URL,
     coverAlt: "Hand gesture interface research reference image",
     href: "/research/gesture-image-preview",
     workInProgress: true,
