@@ -1,457 +1,55 @@
 ---
-import BaseLayout from "../layouts/BaseLayout.astro";
-import {
-    breadcrumbJsonLd,
-    personJsonLd,
-    serviceJsonLd,
-} from "../lib/seoData";
+import ObsidianLandingPage from "../components/obsidian/ObsidianLandingPage.astro";
 
-const pageTitle = "Obsidian Tutor for Students, Researchers & Writers";
-const description =
-    "Book one-to-one Obsidian tutoring with Abodid Sahoo for research notes, second brain setup, thesis workflows, writing systems, tags, backlinks, templates, and graph view.";
-const contactHref =
-    "/contact?from=%2Fobsidian-tutoring&source_name=obsidian-tutoring&cta=book-obsidian-tutoring";
-
-const outcomes = [
-    "A clean Obsidian vault that fits your actual work",
-    "A note-making method for readings, lectures, ideas, sources, and drafts",
-    "Templates for rough notes, source notes, main notes, tags, and indexes",
-    "A research dashboard for thesis, applications, essays, or long projects",
-    "A calmer way to return to older ideas without losing context",
+const accordions = [
+  { title: "Start", body: "Obsidian from zero, without the confusing internet rabbit hole." },
+  { title: "Connect", body: "Notes, tags, backlinks and metadata that connect related thoughts." },
+  { title: "Recall", body: "Find the right idea when you need to write, speak, create or make a decision." },
 ];
 
-const sessionTypes = [
-    {
-        title: "Start from zero",
-        body: "Install Obsidian, create your vault, understand the interface, and build your first useful folder and note system.",
-    },
-    {
-        title: "Fix a messy vault",
-        body: "Audit your current notes, remove friction, simplify folders, repair tags, and create a system you can keep using.",
-    },
-    {
-        title: "Research and thesis workflow",
-        body: "Set up source notes, concept tags, writing indexes, references, dashboards, and repeatable writing habits.",
-    },
-    {
-        title: "Advanced plugins and AI support",
-        body: "Use tools like Dataview, Omnisearch, Smart Connections, and graph analysis without making the vault fragile.",
-    },
-];
-
-const structuredData = [
-    personJsonLd(),
-    breadcrumbJsonLd([
-        { name: "Home", path: "/" },
-        { name: "Obsidian Tutoring", path: "/obsidian-tutoring" },
-    ]),
-    serviceJsonLd({
-        path: "/obsidian-tutoring",
-        name: pageTitle,
-        description,
-        serviceType:
-            "Obsidian tutoring, second brain coaching, research workflow tutoring, and knowledge management classes",
-    }),
+const hubLinks = [
+  {
+    title: "Academic Researchers",
+    body: "Zotero, citations, synthesis and academic writing.",
+    href: "/obsidian-for-researchers",
+  },
+  {
+    title: "Creative Artists & Filmmakers",
+    body: "Ideas, locations, people, references and projects.",
+    href: "/obsidian-for-filmmakers",
+  },
+  {
+    title: "Bloggers & Writers",
+    body: "Bookmarks, research, thoughts and growing long-form writing.",
+    href: "/obsidian-for-writers",
+  },
 ];
 ---
 
-<BaseLayout title={pageTitle} description={description} structuredData={structuredData}>
-    <script
-        slot="head"
-        is:inline
-        src="https://www.paypal.com/sdk/js?client-id=BAAttsc6sE2ZkLVzJoPcVG15j0pqEpXApDZoUGhEZNQeCJgmigK9JATqcL-2lIUyZ9AzTLV9Qo3BorAYaY&components=hosted-buttons&disable-funding=venmo&currency=GBP"
-    ></script>
-
-    <main class="tutoring-page">
-        <header class="hero">
-            <p class="eyebrow">Obsidian tutoring</p>
-            <h1>One-to-one Obsidian classes for serious notes, research, writing, and long-term ideas.</h1>
-            <p class="lead">
-                I help students, researchers, writers, educators, artists, and
-                working professionals build a second brain that is practical,
-                personal, and easy to return to.
-            </p>
-            <div class="actions">
-                <a href="#obsidian-tutoring-checkout" class="primary-action">Pay now</a>
-                <a href={contactHref} class="secondary-action">Ask before booking</a>
-                <a href="/workshops/obsidian" class="secondary-action">View full course</a>
-            </div>
-        </header>
-
-        <section
-            id="obsidian-tutoring-checkout"
-            class="checkout-section"
-            aria-labelledby="checkout-title"
-        >
-            <div class="checkout-copy">
-                <p class="eyebrow">Fast checkout</p>
-                <h2 id="checkout-title">Ready to begin? Book your Obsidian tutoring through PayPal.</h2>
-                <p>
-                    Use this secure checkout if you already know you want a
-                    one-to-one session. After payment, send me your current
-                    vault questions or research context so I can prepare the
-                    session around your actual workflow.
-                </p>
-                <ul class="checkout-points" aria-label="Checkout details">
-                    <li>PayPal-hosted checkout in GBP</li>
-                    <li>Works with PayPal and supported cards</li>
-                    <li>Best for students, researchers, writers, and educators</li>
-                </ul>
-            </div>
-
-            <aside class="checkout-card" aria-label="PayPal checkout">
-                <p class="checkout-label">Obsidian tutoring checkout</p>
-                <div
-                    id="paypal-container-7GPVW8RZD86W4"
-                    class="paypal-checkout"
-                    data-paypal-hosted-button
-                ></div>
-                <p class="paypal-loading" data-paypal-status hidden>
-                    Loading secure PayPal checkout...
-                </p>
-                <p class="checkout-note">
-                    Need a custom plan first?
-                    <a href={contactHref}>Message me before paying</a>.
-                </p>
-            </aside>
-        </section>
-
-        <section class="section" aria-labelledby="session-types-title">
-            <div class="section-heading">
-                <p class="eyebrow">Class formats</p>
-                <h2 id="session-types-title">Tutoring can start wherever you are.</h2>
-            </div>
-            <div class="grid">
-                {
-                    sessionTypes.map((session) => (
-                        <article class="panel">
-                            <h3>{session.title}</h3>
-                            <p>{session.body}</p>
-                        </article>
-                    ))
-                }
-            </div>
-        </section>
-
-        <section class="split-section">
-            <div>
-                <p class="eyebrow">You leave with</p>
-                <h2>A vault that helps your ideas become usable.</h2>
-            </div>
-            <ul class="check-list">
-                {outcomes.map((item) => <li>{item}</li>)}
-            </ul>
-        </section>
-
-        <section class="cta-section" aria-label="Book Obsidian tutoring">
-            <p class="eyebrow">Start</p>
-            <h2>Send me what you are trying to organize.</h2>
-            <p>
-                You can share your background, current note problem, deadline,
-                and whether you want one session, a short tutoring block, or
-                the full four-session course.
-            </p>
-            <a href={contactHref} class="primary-action">Contact Abodid</a>
-        </section>
-    </main>
-
-    <script is:inline>
-        (() => {
-            const selector = "#paypal-container-7GPVW8RZD86W4";
-            const container = document.querySelector(selector);
-            const status = document.querySelector("[data-paypal-status]");
-
-            if (!container) return;
-
-            const setStatus = (message) => {
-                if (!status) return;
-                status.hidden = !message;
-                status.textContent = message || "";
-            };
-
-            const renderPayPal = () => {
-                if (container.dataset.rendered === "true") {
-                    return true;
-                }
-
-                if (!window.paypal?.HostedButtons) {
-                    return false;
-                }
-
-                window.paypal
-                    .HostedButtons({
-                        hostedButtonId: "7GPVW8RZD86W4",
-                    })
-                    .render(selector);
-
-                container.dataset.rendered = "true";
-                setStatus("");
-                return true;
-            };
-
-            if (renderPayPal()) return;
-
-            setStatus("Loading secure PayPal checkout...");
-
-            const intervalId = window.setInterval(() => {
-                if (renderPayPal()) {
-                    window.clearInterval(intervalId);
-                }
-            }, 200);
-
-            window.setTimeout(() => {
-                if (renderPayPal()) return;
-
-                window.clearInterval(intervalId);
-                setStatus(
-                    "PayPal is taking longer than expected. Refresh the page or message me before paying.",
-                );
-            }, 5000);
-        })();
-    </script>
-</BaseLayout>
-
-<style>
-    .tutoring-page {
-        max-width: 1100px;
-        margin: 0 auto;
-        padding: clamp(3rem, 7vw, 6rem) 24px 8rem;
-    }
-
-    .hero {
-        max-width: 900px;
-        margin-bottom: clamp(2.75rem, 6vw, 4.5rem);
-    }
-
-    .eyebrow {
-        font-family: var(--font-mono);
-        font-size: 0.78rem;
-        letter-spacing: 0.16em;
-        text-transform: uppercase;
-        color: var(--text-tertiary);
-        margin: 0 0 1rem;
-    }
-
-    h1 {
-        margin: 0 0 1rem;
-        font-size: clamp(2.5rem, 6vw, 4.5rem);
-        line-height: 1.02;
-        letter-spacing: 0;
-        color: var(--text-primary);
-    }
-
-    h2 {
-        margin: 0;
-        font-size: clamp(1.7rem, 3vw, 2.4rem);
-        line-height: 1.15;
-        color: var(--text-primary);
-    }
-
-    .lead,
-    .cta-section p,
-    .panel p,
-    .check-list {
-        color: var(--text-secondary);
-        line-height: 1.6;
-    }
-
-    .lead {
-        max-width: 760px;
-        font-size: 1.18rem;
-    }
-
-    .actions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.85rem;
-        margin-top: 1.75rem;
-    }
-
-    .primary-action,
-    .secondary-action {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 44px;
-        border-radius: 8px;
-        padding: 0.82rem 1.05rem;
-        font-weight: 700;
-        text-decoration: none;
-    }
-
-    .primary-action {
-        background: var(--text-primary);
-        color: var(--bg-color);
-    }
-
-    .secondary-action {
-        border: 1px solid var(--border-strong);
-        color: var(--text-primary);
-    }
-
-    .section {
-        margin-bottom: 4rem;
-    }
-
-    .checkout-section {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) minmax(20rem, 0.62fr);
-        gap: clamp(1.25rem, 4vw, 2rem);
-        align-items: stretch;
-        margin: 0 0 clamp(4rem, 8vw, 6rem);
-        padding: clamp(1.25rem, 4vw, 2rem);
-        scroll-margin-top: 6rem;
-        border: 1px solid var(--border-subtle);
-        border-radius: 8px;
-        background:
-            linear-gradient(
-                135deg,
-                color-mix(in srgb, var(--bg-surface) 96%, transparent),
-                color-mix(in srgb, var(--bg-surface) 84%, transparent)
-            ),
-            var(--bg-surface);
-        box-shadow: 0 18px 60px rgba(0, 0, 0, 0.12);
-    }
-
-    .checkout-copy {
-        min-width: 0;
-    }
-
-    .checkout-copy h2 {
-        max-width: 720px;
-    }
-
-    .checkout-copy p {
-        max-width: 720px;
-        margin: 1rem 0 0;
-        color: var(--text-secondary);
-        font-size: 1.05rem;
-        line-height: 1.65;
-    }
-
-    .checkout-points {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.65rem;
-        margin: 1.3rem 0 0;
-        padding: 0;
-        list-style: none;
-    }
-
-    .checkout-points li {
-        border: 1px solid var(--border-subtle);
-        border-radius: 999px;
-        padding: 0.48rem 0.7rem;
-        color: var(--text-secondary);
-        background: color-mix(in srgb, var(--bg-canvas) 42%, transparent);
-        font-size: 0.9rem;
-        line-height: 1.25;
-    }
-
-    .checkout-card {
-        display: flex;
-        min-width: 0;
-        flex-direction: column;
-        justify-content: center;
-        padding: clamp(1rem, 3vw, 1.35rem);
-        border: 1px solid var(--border-strong);
-        border-radius: 8px;
-        background: color-mix(in srgb, var(--bg-canvas) 50%, transparent);
-    }
-
-    .checkout-label {
-        margin: 0 0 0.85rem;
-        color: var(--text-primary);
-        font-weight: 800;
-    }
-
-    .paypal-checkout {
-        width: 100%;
-        min-width: 0;
-        min-height: 3.25rem;
-    }
-
-    .paypal-loading,
-    .checkout-note {
-        color: var(--text-secondary);
-        font-size: 0.92rem;
-        line-height: 1.5;
-    }
-
-    .paypal-loading {
-        margin: 0.85rem 0 0;
-    }
-
-    .checkout-note {
-        margin: 1rem 0 0;
-    }
-
-    .checkout-note a {
-        color: var(--text-primary);
-        font-weight: 700;
-        text-underline-offset: 4px;
-    }
-
-    .section-heading {
-        max-width: 720px;
-        margin-bottom: 1.5rem;
-    }
-
-    .grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 1rem;
-    }
-
-    .panel,
-    .cta-section {
-        border: 1px solid var(--border-subtle);
-        background: var(--bg-surface);
-        border-radius: 8px;
-        padding: 1.5rem;
-    }
-
-    .panel h3 {
-        margin: 0 0 0.75rem;
-        font-size: 1.2rem;
-        color: var(--text-primary);
-    }
-
-    .panel p {
-        margin: 0;
-    }
-
-    .split-section {
-        display: grid;
-        grid-template-columns: 0.9fr 1.1fr;
-        gap: 2rem;
-        align-items: start;
-        margin-bottom: 4rem;
-    }
-
-    .check-list {
-        margin: 0;
-        padding-left: 1.2rem;
-    }
-
-    .check-list li + li {
-        margin-top: 0.75rem;
-    }
-
-    .cta-section p {
-        max-width: 720px;
-        margin-bottom: 1.25rem;
-    }
-
-    @media (max-width: 760px) {
-        .checkout-section,
-        .grid,
-        .split-section {
-            grid-template-columns: 1fr;
-        }
-
-        .checkout-section {
-            padding: 1.25rem;
-        }
-    }
-</style>
+<ObsidianLandingPage
+  pageTitle="Obsidian Tutoring"
+  description="One-to-one Obsidian tutoring with Abodid Sahoo. Build a simple note system that helps you capture, connect and recall ideas when you need them."
+  path="/obsidian-tutoring"
+  eyebrow="1:1 Obsidian Tutoring"
+  headingLines={["Stop watching Obsidian tutorials.", "Start using it."]}
+  bodyBeforeStrong="I'll show you my real vault, understand how you currently take notes, and help you build a simple system that works for the way "
+  bodyStrong="you"
+  bodyAfterStrong=" think."
+  bodyEmphasis="Capture ideas. Connect them. Recall them efficiently when you actually need them."
+  priceLines={[
+    { text: "£90/hour", strike: true },
+    { text: "£60/hour until 31 December 2026", strong: true },
+  ]}
+  showPayment={true}
+  secondaryCta="Book 1:1 tutoring →"
+  secondHeading="Your notes should find their way back to you."
+  visualHeading="[[an-idea]] ↔ [[another-idea]]"
+  visualCta="Move your cursor to reveal the live vault tags ↗"
+  visualDetails={["backlinks: 2", "type: thought", "status: connected"]}
+  accordions={accordions}
+  hubHeading="Looking for something more specific?"
+  hubLinks={hubLinks}
+  endPrompt="Not sure where you fit?"
+  sourceName="obsidian-tutoring"
+  contactInterest="General Obsidian tutoring"
+/>

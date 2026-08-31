@@ -1,0 +1,190 @@
+<dialog class="obsidian-payment-dialog" data-obsidian-payment-dialog aria-labelledby="obsidian-payment-title">
+  <div class="obsidian-payment-dialog__surface">
+    <button class="obsidian-payment-dialog__close" type="button" data-obsidian-payment-close aria-label="Close payment window">×</button>
+    <p class="obsidian-payment-dialog__eyebrow">1:1 Obsidian tutoring</p>
+    <h2 id="obsidian-payment-title">Book your tutoring session.</h2>
+    <p class="obsidian-payment-dialog__price"><s>£90/hour</s> <strong>£60/hour until 31 December 2026</strong></p>
+    <div
+      id="paypal-container-7GPVW8RZD86W4"
+      class="obsidian-payment-dialog__paypal"
+      data-paypal-hosted-button
+    ></div>
+    <p class="obsidian-payment-dialog__status" data-paypal-status hidden>Loading secure PayPal checkout…</p>
+    <p class="obsidian-payment-dialog__note">PayPal-hosted checkout in GBP. You can use PayPal or a supported card.</p>
+  </div>
+</dialog>
+
+<script is:inline>
+  (() => {
+    const initialisePayment = () => {
+      const dialog = document.querySelector("[data-obsidian-payment-dialog]");
+      const openButtons = document.querySelectorAll("[data-obsidian-payment-open]");
+      const closeButton = dialog?.querySelector("[data-obsidian-payment-close]");
+      const container = dialog?.querySelector("[data-paypal-hosted-button]");
+      const status = dialog?.querySelector("[data-paypal-status]");
+
+      if (!(dialog instanceof HTMLDialogElement) || !(container instanceof HTMLElement)) return;
+      if (dialog.dataset.ready === "true") return;
+      dialog.dataset.ready = "true";
+
+      const setStatus = (message) => {
+        if (!(status instanceof HTMLElement)) return;
+        status.hidden = !message;
+        status.textContent = message || "";
+      };
+
+      const renderPayPal = () => {
+        if (container.dataset.rendered === "true") return true;
+        if (!window.paypal?.HostedButtons) return false;
+        window.paypal.HostedButtons({ hostedButtonId: "7GPVW8RZD86W4" }).render("#paypal-container-7GPVW8RZD86W4");
+        container.dataset.rendered = "true";
+        setStatus("");
+        return true;
+      };
+
+      const ensurePayPal = () => {
+        if (renderPayPal()) return;
+        setStatus("Loading secure PayPal checkout…");
+        const intervalId = window.setInterval(() => {
+          if (renderPayPal()) window.clearInterval(intervalId);
+        }, 200);
+        window.setTimeout(() => {
+          if (renderPayPal()) return;
+          window.clearInterval(intervalId);
+          setStatus("PayPal is taking longer than expected. Refresh the page or book a discovery call first.");
+        }, 5000);
+      };
+
+      openButtons.forEach((button) => button.addEventListener("click", () => {
+        if (!dialog.open) dialog.showModal();
+        ensurePayPal();
+      }));
+      closeButton?.addEventListener("click", () => dialog.close());
+      dialog.addEventListener("click", (event) => {
+        if (event.target === dialog) dialog.close();
+      });
+    };
+
+    initialisePayment();
+    document.addEventListener("astro:page-load", initialisePayment);
+  })();
+</script>
+
+<style>
+  .obsidian-payment-dialog {
+    width: min(560px, calc(100vw - 2rem));
+    max-height: calc(100svh - 2rem);
+    margin: auto;
+    padding: 0;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-lg);
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    box-shadow: 0 28px 90px rgba(0, 0, 0, 0.45);
+  }
+
+  .obsidian-payment-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.72);
+    backdrop-filter: blur(8px);
+  }
+
+  .obsidian-payment-dialog__surface {
+    position: relative;
+    padding: clamp(1.35rem, 5vw, 2.4rem);
+  }
+
+  .obsidian-payment-dialog__close {
+    position: absolute;
+    top: 0.8rem;
+    right: 0.8rem;
+    width: 42px;
+    height: 42px;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-base);
+    background: var(--bg-canvas);
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .obsidian-payment-dialog__eyebrow {
+    margin: 0 0 0.75rem;
+    color: var(--accent-primary);
+    font: 700 0.72rem/1 var(--font-mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .obsidian-payment-dialog h2 {
+    max-width: 12ch;
+    margin: 0;
+    font-size: clamp(2rem, 6vw, 3.3rem);
+    line-height: 0.98;
+  }
+
+  .obsidian-payment-dialog__price {
+    display: grid;
+    gap: 0.25rem;
+    margin: 1.1rem 0 1.5rem;
+    color: var(--text-secondary);
+  }
+
+  .obsidian-payment-dialog__price strong { color: var(--text-primary); }
+  .obsidian-payment-dialog__paypal { min-height: 48px; }
+
+  .obsidian-payment-dialog__status,
+  .obsidian-payment-dialog__note {
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+    line-height: 1.45;
+  }
+
+  .obsidian-payment-dialog__note { margin: 1rem 0 0; }
+  .obsidian-payment-dialog {
+    border: 1px solid #15130f;
+    border-radius: 24px;
+    background: #fff8e8;
+    color: #15130f;
+    box-shadow: 8px 8px 0 #15130f;
+  }
+
+  .obsidian-payment-dialog::backdrop {
+    background: rgba(85, 36, 199, 0.8);
+    backdrop-filter: none;
+  }
+
+  .obsidian-payment-dialog__surface {
+    padding: clamp(1.35rem, 5vw, 2.4rem);
+  }
+
+  .obsidian-payment-dialog__close {
+    border: 1px solid #15130f;
+    border-radius: 12px;
+    background: #ffe44f;
+    color: #15130f;
+  }
+
+  .obsidian-payment-dialog__eyebrow {
+    width: fit-content;
+    padding: 0.5rem 0.65rem;
+    border: 1px solid #15130f;
+    border-radius: 999px;
+    background: #ff7eb5;
+    color: #15130f;
+  }
+
+  .obsidian-payment-dialog h2 {
+    color: #15130f;
+    letter-spacing: -0.055em;
+    text-wrap: balance;
+  }
+
+  .obsidian-payment-dialog__price,
+  .obsidian-payment-dialog__status,
+  .obsidian-payment-dialog__note {
+    color: #5f584e;
+  }
+
+  .obsidian-payment-dialog__price strong { color: #15130f; }
+</style>

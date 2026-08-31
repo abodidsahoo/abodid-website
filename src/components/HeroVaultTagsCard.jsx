@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { vaultTags as fallbackVaultTags } from '../utils/tags';
 
 // Vivid palette popping against the blue background (pink, yellow, cream, lime)
@@ -37,17 +37,26 @@ function OdometerNumber({ value }) {
   );
 }
 
+/**
+ * @param {{
+ *   heading?: string,
+ *   cta?: string,
+ *   href?: string,
+ *   details?: string[],
+ *   ariaLabel?: string,
+ * }} props
+ */
 export default function HeroVaultTagsCard({
   heading = "A glimpse into my second brain.",
   cta = "Move cursor to surface vault tags ↗",
   href = "/research/obsidian-vault",
+  details = [],
+  ariaLabel = "Obsidian Vault Interactive Explorer",
 }) {
   const [activeTags, setActiveTags] = useState([]);
-  const [tags, setTags] = useState(fallbackVaultTags);
-  const [tagCount, setTagCount] = useState(() => {
-    // Start randomly between 572 and 596
-    return Math.floor(Math.random() * (596 - 572 + 1)) + 572;
-  });
+  const [, setTags] = useState(fallbackVaultTags);
+  // Keep the server and browser renders identical; the live count advances after hydration.
+  const [tagCount, setTagCount] = useState(593);
 
   const containerRef = useRef(null);
   const activeTagsRef = useRef([]);
@@ -205,7 +214,7 @@ export default function HeroVaultTagsCard({
       href={href}
       className="hero-vault-tags-card story-hero__future-card"
       data-auto-contrast
-      aria-label="Obsidian Vault Interactive Explorer"
+      aria-label={ariaLabel}
     >
       <div className="hero-vault-tags-card__backdrop" aria-hidden="true">
         {activeTags.map((tag) => (
@@ -237,6 +246,13 @@ export default function HeroVaultTagsCard({
         <div className="hero-vault-tags-card__top">
           <h2 className="hero-vault-tags-card__heading">{heading}</h2>
           <span className="hero-vault-tags-card__cta">{cta}</span>
+          {Array.isArray(details) && details.length > 0 ? (
+            <span className="hero-vault-tags-card__details" aria-hidden="true">
+              {details.map((detail, index) => (
+                <span key={`${detail}-${index}`}>{detail}</span>
+              ))}
+            </span>
+          ) : null}
         </div>
 
         <div className="hero-vault-tags-card__bottom">
@@ -250,7 +266,7 @@ export default function HeroVaultTagsCard({
         </div>
       </div>
 
-      <style>{`
+      <style suppressHydrationWarning>{`
         .hero-vault-tags-card {
           position: relative;
           min-height: 0;
@@ -348,6 +364,28 @@ export default function HeroVaultTagsCard({
           letter-spacing: 0.04em;
           text-transform: uppercase;
           opacity: 0.88;
+        }
+
+        .hero-vault-tags-card__details {
+          max-width: min(100%, 34rem);
+          margin-top: 0.55rem;
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.45rem;
+        }
+
+        .hero-vault-tags-card__details > span {
+          display: inline-flex;
+          align-items: center;
+          min-height: 29px;
+          padding: 0.35rem 0.6rem;
+          border: 1px solid rgba(253, 251, 247, 0.42);
+          border-radius: 999px;
+          background: rgba(23, 21, 15, 0.22);
+          color: var(--pop-cream, #fdfbf7);
+          font: 700 0.68rem/1.15 var(--font-mono, monospace);
+          letter-spacing: 0.025em;
+          backdrop-filter: blur(8px);
         }
 
         .hero-vault-tags-card__bottom {

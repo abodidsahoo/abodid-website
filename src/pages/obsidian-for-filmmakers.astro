@@ -1,0 +1,38 @@
+---
+import ObsidianLandingPage from "../components/obsidian/ObsidianLandingPage.astro";
+
+const accordions = [
+  { title: "Capture", body: "Save locations, references, images, links, people and unfinished ideas while they are fresh." },
+  { title: "Connect", body: "Use [[links]], tags and backlinks to connect projects, people and references." },
+  { title: "Recall", body: "Search one person, location or idea and rediscover everything connected to it." },
+];
+---
+
+<ObsidianLandingPage
+  pageTitle="Obsidian for Creative Artists & Filmmakers"
+  description="Build an Obsidian vault that connects films, locations, people, casting, music, references and production ideas."
+  path="/obsidian-for-filmmakers"
+  eyebrow="Obsidian for Creatives"
+  headingLines={["Stop hunting for scattered ideas.", "Start connecting them."]}
+  body="Build a creative vault where films, locations, people, casting, music, visual references and production ideas naturally connect."
+  workflow={["[[Film]]", "[[Location]]", "[[Actor]]", "[[Music]]", "[[Reference]]"]}
+  workflowConnector="↔"
+  priceLines={[
+    { text: "£150/hour", strong: true },
+    { text: "1 or 2-hour sessions available", small: true },
+  ]}
+  secondHeading="One idea can lead everywhere."
+  visualHeading="[[Location]]"
+  visualCta="Move your cursor to surface the connected references ↗"
+  visualDetails={["[[Film]]", "[[Character]]", "[[Photographer]]", "[[Costume]]", "[[Song]]", "backlinks: 6"]}
+  accordions={accordions}
+  closingLines={["The logistics can be organised.", "Protect the ideas."]}
+  endPrompt="Want to protect the ideas and organise the logistics?"
+  crossLink={{
+    label: "Just getting started?",
+    title: "Explore general Obsidian tutoring",
+    href: "/obsidian-tutoring",
+  }}
+  sourceName="obsidian-for-filmmakers"
+  contactInterest="Obsidian for creative artists and filmmakers"
+/>

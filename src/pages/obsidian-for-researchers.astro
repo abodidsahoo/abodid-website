@@ -1,0 +1,40 @@
+---
+import ObsidianLandingPage from "../components/obsidian/ObsidianLandingPage.astro";
+
+const accordions = [
+  { title: "Read", body: "Bring papers and references from Zotero into your vault using Better BibTeX." },
+  { title: "Synthesise", body: "Turn sources into your own notes, connections, questions and arguments." },
+  { title: "Write", body: "Build essays, papers or thesis chapters while Pandoc handles the final citation workflow." },
+];
+---
+
+<ObsidianLandingPage
+  pageTitle="Obsidian for Academic Researchers"
+  description="Connect Zotero, citations, notes and arguments in Obsidian so you can focus on research writing and thinking."
+  path="/obsidian-for-researchers"
+  eyebrow="Obsidian for Researchers"
+  headingLines={["Stop managing references.", "Start developing ideas."]}
+  body="Connect your reading, citations, notes and arguments so you can stop managing references and start developing ideas."
+  workflow={["Zotero", "Obsidian", "Synthesis", "Writing", "Bibliography"]}
+  workflowConnector="→"
+  priceLines={[
+    { text: "£150 / specialist session", strong: true },
+    { text: "or" },
+    { text: "6 sessions · £450 when booked together", strong: true },
+    { text: "Typically completed over one month.", small: true },
+  ]}
+  secondHeading="Write the thought. Keep the source with it."
+  visualHeading="[[grades-reduce-student-autonomy]]"
+  visualCta="An existing academic note, with its source retained ↗"
+  visualDetails={["Source: Zotero", "[[education]]", "[[autonomy]]", "[[assessment]]"]}
+  accordions={accordions}
+  closingLines={["Your vault remembers the references.", "You concentrate on the argument."]}
+  endPrompt="Ready to make the research easier to return to?"
+  crossLink={{
+    label: "New to Obsidian?",
+    title: "Start with general Obsidian tutoring",
+    href: "/obsidian-tutoring",
+  }}
+  sourceName="obsidian-for-researchers"
+  contactInterest="Obsidian for academic research"
+/>

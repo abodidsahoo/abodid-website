@@ -76,7 +76,6 @@ export const storytellingProjects = [
     outcome: "A living research ecosystem",
     href: "/research/obsidian-vault",
     video: "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/video-clips/Obsidian_Timelapse.mp4",
-    image: punctumImages[3]?.url || punctumImages[1]?.url,
     alt: "Timelapse video preview of the connected Obsidian knowledge vault",
   },
 ];

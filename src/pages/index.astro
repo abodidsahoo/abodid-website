@@ -214,12 +214,11 @@ const structuredData = [
                 ) : project.video ? (
                   <video
                     src={project.video}
-                    poster={project.image}
                     autoplay
                     muted
                     loop
                     playsinline
-                    preload="metadata"
+                    preload="auto"
                     aria-label={project.alt}
                   />
                 ) : (
@@ -260,12 +259,11 @@ const structuredData = [
               ) : project.video ? (
                 <video
                   src={project.video}
-                  poster={project.image}
                   autoplay
                   muted
                   loop
                   playsinline
-                  preload="metadata"
+                  preload="auto"
                   aria-label={project.alt}
                 />
               ) : (
@@ -727,8 +725,22 @@ const structuredData = [
 
       const ensureVideosPlay = () => {
         document.querySelectorAll<HTMLVideoElement>("video[autoplay]").forEach((video) => {
-          if (video.paused) {
-            video.play().catch(() => {});
+          const playVideo = () => {
+            if (video.paused) video.play().catch(() => {});
+          };
+
+          if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+            playVideo();
+          } else {
+            video.addEventListener("canplay", playVideo, { once: true });
+          }
+
+          if (video.dataset.viewportPlaybackReady !== "true") {
+            video.dataset.viewportPlaybackReady = "true";
+            const observer = new IntersectionObserver((entries) => {
+              if (entries.some((entry) => entry.isIntersecting)) playVideo();
+            }, { threshold: 0.1 });
+            observer.observe(video);
           }
         });
       };

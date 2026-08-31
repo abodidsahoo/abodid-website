@@ -1,0 +1,35 @@
+---
+import ObsidianLandingPage from "../components/obsidian/ObsidianLandingPage.astro";
+
+const accordions = [
+  { title: "Collect", body: "Capture articles, Chrome pages, Vimeo, YouTube, bookmarks and spontaneous thoughts directly into Obsidian." },
+  { title: "Connect", body: "Turn saved material into smaller ideas and connect them through [[links]], backlinks and tags." },
+  { title: "Write", body: "As connections accumulate, recurring themes start becoming articles, sections and chapters." },
+];
+---
+
+<ObsidianLandingPage
+  pageTitle="Obsidian for Bloggers & Writers"
+  description="Collect bookmarks, quotes, research and unfinished thoughts in Obsidian, then connect them into articles, essays and chapters."
+  path="/obsidian-for-writers"
+  eyebrow="Obsidian for Writers"
+  headingLines={["Stop forcing the structure.", "Start connecting the ideas."]}
+  body="Collect articles, bookmarks, videos, quotes and unfinished thoughts — then connect them until themes, arguments and stories begin to emerge."
+  priceLines={[
+    { text: "£150/hour", strong: true },
+  ]}
+  secondHeading="Stop writing everything in one document."
+  visualHeading="[[an-observation]]"
+  visualCta="One note can feed several future pieces ↗"
+  visualDetails={["[[memory]]", "[[design]]", "[[culture]]", "→ Chapter / Article / Essay"]}
+  accordions={accordions}
+  closingLines={["Don't force the book into existence.", "Build the ideas.", "Let the structure emerge."]}
+  endPrompt="Ready to let the structure emerge?"
+  crossLink={{
+    label: "Need help learning Obsidian first?",
+    title: "Start with general Obsidian tutoring",
+    href: "/obsidian-tutoring",
+  }}
+  sourceName="obsidian-for-writers"
+  contactInterest="Obsidian for bloggers and writers"
+/>
