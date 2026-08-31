@@ -167,11 +167,17 @@ const credentials = [
           The Ethos · Manifesto Core
         </p>
         <h2 id="manifesto-core-heading" class="about-manifesto-quote">
-          Why before what
+          Why Before What.
         </h2>
         <p class="about-manifesto-text">
-          The format always changes with the question. Whether it is turning an abandoned London garage into an exhibition for 10,000 visitors in 48 hours (<em>Into the Flux</em>), mapping 180,000 photographs to explore visual perception (<em>Punctum</em>), or directing cinematography broadcast on VH1 — I don't start with a preset medium. I start with the human truth, find the tension, and build whatever space, interface, or film makes it unforgettable.
+          With a medium-agnostic approach, I start with the reason for why the project needs to exist and then figure out the medium which works best for the most effective creative expression.
         </p>
+        <div class="about-actions-row about-manifesto-actions">
+          <a class="about-btn about-btn--primary" href="/manifesto">
+            <span>Read full manifesto</span>
+            <b aria-hidden="true">↗</b>
+          </a>
+        </div>
       </div>
     </section>
 
@@ -251,27 +257,6 @@ const credentials = [
           <a class="about-btn about-btn--secondary" href={CV_DOWNLOAD_URL} download={CV_FILE_NAME}>
             <span>Download Complete CV (2026)</span>
             <b aria-hidden="true">↓</b>
-          </a>
-        </div>
-      </div>
-
-      <div class="about-cta-panel__links">
-        <div class="about-contact-list">
-          <a href="mailto:hello@abodid.com" class="about-contact-pill">
-            <span>Direct Email</span>
-            <strong>hello@abodid.com ↗</strong>
-          </a>
-          <a href="https://uk.linkedin.com/in/abodidsahoo" target="_blank" rel="noopener noreferrer" class="about-contact-pill">
-            <span>LinkedIn</span>
-            <strong>abodidsahoo ↗</strong>
-          </a>
-          <a href="https://github.com/abodidsahoo" target="_blank" rel="noopener noreferrer" class="about-contact-pill">
-            <span>GitHub</span>
-            <strong>abodidsahoo ↗</strong>
-          </a>
-          <a href="https://instagram.com/abodid.sahoo" target="_blank" rel="noopener noreferrer" class="about-contact-pill">
-            <span>Instagram</span>
-            <strong>@abodid.sahoo ↗</strong>
           </a>
         </div>
       </div>
@@ -744,6 +729,10 @@ const credentials = [
     max-width: 960px;
   }
 
+  .about-manifesto-actions {
+    margin-top: clamp(1.5rem, 2.5vw, 2rem);
+  }
+
   /* 3. Panel Sections */
   .about-panel {
     padding: clamp(1.75rem, 3.5vw, 4rem);
@@ -941,7 +930,7 @@ const credentials = [
   .about-cta-panel {
     padding: clamp(2rem, 4vw, 4.5rem);
     display: grid;
-    grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.95fr);
+    grid-template-columns: minmax(0, 1fr);
     gap: 2.5rem;
     align-items: center;
     border: var(--home-next-border);
@@ -962,44 +951,6 @@ const credentials = [
     margin: 0 0 2rem;
     color: rgba(21, 19, 15, 0.88) !important;
     font: 450 clamp(0.98rem, 1.3vw, 1.15rem)/1.55 var(--font-body, sans-serif) !important;
-  }
-
-  .about-contact-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.65rem;
-  }
-
-  .about-contact-pill {
-    padding: 0.9rem 1.25rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    border: 1px solid var(--pop-ink);
-    border-radius: var(--home-next-radius-control);
-    background: var(--pop-cream);
-    color: var(--pop-ink) !important;
-    text-decoration: none !important;
-    transition: transform var(--home-next-motion), background var(--home-next-motion);
-  }
-
-  .about-contact-pill:hover {
-    background: var(--pop-yellow);
-    transform: translateX(4px);
-  }
-
-  .about-contact-pill span {
-    font: 750 0.68rem/1 var(--font-mono, monospace);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    opacity: 0.75;
-    color: inherit;
-  }
-
-  .about-contact-pill strong {
-    font: 600 0.92rem/1.2 var(--font-mono, monospace);
-    color: inherit;
   }
 
   /* Global Story Footer */

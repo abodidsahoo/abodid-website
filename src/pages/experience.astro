@@ -214,7 +214,7 @@ const description = "Selected experience across cultural photography, exhibition
     <section class="experience-next__future" aria-labelledby="future-heading">
       <div>
         <p class="experience-eyebrow">What comes next</p>
-        <h2 id="future-heading">A full-time creative technology role in London—with space to keep making cultural experiments.</h2>
+        <h2 id="future-heading">A full-time creative technology role in London with space to keep making cultural experiments.</h2>
         <p>I am especially interested in teams shaping how technology participates in media, culture and public imagination. I can contribute across research, visual direction, prototyping and the translation of complex ideas into experiences.</p>
         <div class="experience-actions">
           <a href="/research">Explore research and experiments <span aria-hidden="true">↗</span></a>
@@ -222,9 +222,6 @@ const description = "Selected experience across cultural photography, exhibition
           <a href="/#enquiry">Hire me <span aria-hidden="true">↗</span></a>
         </div>
       </div>
-      <figure>
-        <img src="https://photos.abodid.com/originals/exhibition-photos/rca-digital-direction-2024-gradshow-abodid-346.jpg" alt="A photographed installation from an RCA graduate exhibition" loading="lazy" />
-      </figure>
     </section>
   </main>
 </BaseLayout>
@@ -551,11 +548,11 @@ const description = "Selected experience across cultural photography, exhibition
   }
   .experience-next__learning-grid p { line-height: 1.5; }
 
-  .experience-next__future { margin-top: var(--experience-gap); display: grid; grid-template-columns: 1.05fr .95fr; gap: var(--experience-gap); }
-  .experience-next__future > div, .experience-next__future figure { min-height: 700px; margin: 0; border: 1px solid rgba(21,19,15,.3); border-radius: var(--experience-panel-radius); overflow: hidden; }
+  .experience-next__future { width: 100%; margin-top: var(--experience-gap); }
+  .experience-next__future > div { width: 100%; min-height: 700px; margin: 0; border: 1px solid rgba(21,19,15,.3); border-radius: var(--experience-panel-radius); overflow: hidden; }
   .experience-next__future > div { padding: var(--experience-panel-padding); display: flex; flex-direction: column; background: var(--experience-orange); }
   .experience-next__future h2 {
-    max-width: 12ch;
+    max-width: 22ch;
     margin: auto 0 1rem;
     font-family: var(--experience-future-h2-family);
     font-size: var(--experience-future-h2-size);
@@ -565,7 +562,6 @@ const description = "Selected experience across cultural photography, exhibition
     overflow-wrap: break-word;
   }
   .experience-next__future > div > p:not(:first-child) { max-width: 62ch; line-height: 1.5; }
-  .experience-next__future figure img { width: 100%; height: 100%; display: block; object-fit: cover; }
 
   @media (max-width: 980px) {
     .story-nav {
@@ -674,7 +670,6 @@ const description = "Selected experience across cultural photography, exhibition
     .experience-next__context { min-height: 520px; }
     .experience-next__context h3 { margin: 1.5rem 0 .5rem; }
     .experience-next__future > div { min-height: auto; padding: 2.5rem 1.25rem; }
-    .experience-next__future figure { min-height: 440px; }
     .experience-next__future h2 { margin: 1.25rem 0 1rem; max-width: 100%; }
     .experience-actions { flex-direction: column; }
     .experience-actions a { width: 100%; }

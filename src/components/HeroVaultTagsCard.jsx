@@ -41,20 +41,34 @@ function OdometerNumber({ value }) {
  * @param {{
  *   heading?: string,
  *   cta?: string,
+ *   helperText?: string,
  *   href?: string,
  *   details?: string[],
+ *   metricLabel?: string,
+ *   statusText?: string,
+ *   showFooter?: boolean,
+ *   tagPool?: string[],
+ *   variant?: "vault" | "papers",
  *   ariaLabel?: string,
  * }} props
  */
 export default function HeroVaultTagsCard({
   heading = "A glimpse into my second brain.",
   cta = "Move cursor to surface vault tags ↗",
+  helperText = "",
   href = "/research/obsidian-vault",
   details = [],
+  metricLabel = "",
+  statusText = "",
+  showFooter = true,
+  tagPool = [],
+  variant = "vault",
   ariaLabel = "Obsidian Vault Interactive Explorer",
 }) {
+  const hasCustomTagPool = Array.isArray(tagPool) && tagPool.length > 0;
+  const initialTagPool = hasCustomTagPool ? tagPool : fallbackVaultTags;
   const [activeTags, setActiveTags] = useState([]);
-  const [, setTags] = useState(fallbackVaultTags);
+  const [, setTags] = useState(initialTagPool);
   // Keep the server and browser renders identical; the live count advances after hydration.
   const [tagCount, setTagCount] = useState(593);
 
@@ -62,7 +76,7 @@ export default function HeroVaultTagsCard({
   const activeTagsRef = useRef([]);
   const lastSpawnPosition = useRef({ x: -999, y: -999 });
   const tagIdCounter = useRef(0);
-  const tagsRef = useRef(fallbackVaultTags);
+  const tagsRef = useRef(initialTagPool);
 
   // Exact lightweight physics matching visual-tag-cloud
   const CHECK_INTERVAL = 15;
@@ -81,6 +95,11 @@ export default function HeroVaultTagsCard({
   })();
 
   useEffect(() => {
+    if (hasCustomTagPool) {
+      tagsRef.current = tagPool;
+      return undefined;
+    }
+
     let isMounted = true;
     const fetchTags = async () => {
       try {
@@ -100,7 +119,7 @@ export default function HeroVaultTagsCard({
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [hasCustomTagPool, tagPool]);
 
   useEffect(() => {
     // Wait a few seconds on initial landing before the first subtle roll
@@ -212,7 +231,7 @@ export default function HeroVaultTagsCard({
     <a
       ref={containerRef}
       href={href}
-      className="hero-vault-tags-card story-hero__future-card"
+      className={`hero-vault-tags-card hero-vault-tags-card--${variant} story-hero__future-card`}
       data-auto-contrast
       aria-label={ariaLabel}
     >
@@ -245,6 +264,9 @@ export default function HeroVaultTagsCard({
       <div className="hero-vault-tags-card__content">
         <div className="hero-vault-tags-card__top">
           <h2 className="hero-vault-tags-card__heading">{heading}</h2>
+          {helperText ? (
+            <span className="hero-vault-tags-card__helper">{helperText}</span>
+          ) : null}
           <span className="hero-vault-tags-card__cta">{cta}</span>
           {Array.isArray(details) && details.length > 0 ? (
             <span className="hero-vault-tags-card__details" aria-hidden="true">
@@ -255,15 +277,23 @@ export default function HeroVaultTagsCard({
           ) : null}
         </div>
 
-        <div className="hero-vault-tags-card__bottom">
-          <OdometerNumber value={tagCount} />
-          <div className="hero-vault-tags-card__sync-status">
-            <span className="hero-vault-tags-card__live-dot" aria-hidden="true" />
-            <span className="hero-vault-tags-card__sync-text">
-              live sync <span className="hero-vault-tags-card__sync-sep">//</span> {formattedDate}
-            </span>
+        {showFooter ? (
+          <div className="hero-vault-tags-card__bottom">
+            {metricLabel ? (
+              <span className="hero-vault-tags-card__metric-label">{metricLabel}</span>
+            ) : (
+              <OdometerNumber value={tagCount} />
+            )}
+            <div className="hero-vault-tags-card__sync-status">
+              {!metricLabel ? <span className="hero-vault-tags-card__live-dot" aria-hidden="true" /> : null}
+              <span className="hero-vault-tags-card__sync-text">
+                {statusText || (
+                  <>live sync <span className="hero-vault-tags-card__sync-sep">//</span> {formattedDate}</>
+                )}
+              </span>
+            </div>
           </div>
-        </div>
+        ) : null}
       </div>
 
       <style suppressHydrationWarning>{`
@@ -366,6 +396,47 @@ export default function HeroVaultTagsCard({
           opacity: 0.88;
         }
 
+        .hero-vault-tags-card__helper {
+          max-width: 48ch;
+          display: block;
+          color: var(--pop-cream, #fdfbf7);
+          font: 500 clamp(0.9rem, 1.05vw, 1.08rem)/1.45 var(--font-body, sans-serif);
+          opacity: 0.88;
+        }
+
+        .hero-vault-tags-card--papers .hero-vault-tags-card__heading {
+          max-width: 17ch;
+          font-size: clamp(2.05rem, 3.2vw, 3.45rem);
+        }
+
+        .hero-vault-tags-card--papers .hero-vault-tags-card__cta {
+          width: fit-content;
+          min-height: 54px;
+          margin-top: 0.45rem;
+          padding: 0 1rem;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          border: 1px solid var(--pop-ink, #17150f);
+          border-radius: 14px;
+          background: var(--pop-cream, #fdfbf7);
+          color: var(--pop-ink, #17150f) !important;
+          font-family: var(--research-font-action-family, var(--font-ui, sans-serif));
+          font-size: var(--research-font-action-size, 0.82rem);
+          font-weight: var(--research-font-action-weight, 700);
+          line-height: var(--research-font-action-line-height, 1);
+          letter-spacing: 0;
+          text-transform: none;
+          opacity: 1;
+          transition: transform 180ms ease, box-shadow 180ms ease;
+        }
+
+        .hero-vault-tags-card--papers:hover .hero-vault-tags-card__cta,
+        .hero-vault-tags-card--papers:focus-visible .hero-vault-tags-card__cta {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 0 var(--pop-ink, #17150f);
+        }
+
         .hero-vault-tags-card__details {
           max-width: min(100%, 34rem);
           margin-top: 0.55rem;
@@ -405,6 +476,14 @@ export default function HeroVaultTagsCard({
           letter-spacing: -0.03em;
           text-transform: uppercase;
           line-height: 1;
+        }
+
+        .hero-vault-tags-card__metric-label {
+          display: inline-flex;
+          color: var(--pop-cream, #fdfbf7);
+          font: 800 clamp(1.45rem, 2.5vw, 2.2rem)/1 var(--font-mono, monospace);
+          letter-spacing: -0.03em;
+          text-transform: uppercase;
         }
 
         .odometer-digits {
