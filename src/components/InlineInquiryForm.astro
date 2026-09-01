@@ -11,6 +11,7 @@ const {
   eyebrow = "Enquiry",
   messageLabel = "Message",
   messagePlaceholder = "What are you making, organising, learning or documenting?",
+  messageRequired = true,
   submitLabel = "Send enquiry",
   showEmailLink = true,
 } = Astro.props;
@@ -111,7 +112,7 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
         name="message"
         rows={compact ? 3 : 5}
         maxlength="4800"
-        required
+        required={messageRequired}
         placeholder={messagePlaceholder}
       ></textarea>
     </label>

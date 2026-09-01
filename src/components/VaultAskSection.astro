@@ -1,5 +1,5 @@
 <section class="vault-ask-section" data-vault-ask>
-    <form class="vault-ask-box" data-vault-form>
+    <form class="vault-ask-box" data-vault-form aria-describedby="vault-search-status vault-search-error">
         <textarea
             data-vault-input
             name="question"
@@ -13,17 +13,25 @@
         </button>
     </form>
 
-    <p class="vault-ask-status" data-vault-status hidden>Searching the vault...</p>
-    <p class="vault-ask-error" data-vault-error hidden></p>
+    <p id="vault-search-status" class="vault-ask-status" data-vault-status role="status" aria-live="polite" hidden>
+        Searching the vault...
+    </p>
+    <p id="vault-search-error" class="vault-ask-error" data-vault-error role="alert" hidden></p>
 
-    <div class="vault-answer" data-vault-answer hidden>
-        <div class="vault-answer-text" data-vault-answer-text></div>
-    </div>
+    <article class="vault-result" data-vault-result aria-live="polite" hidden>
+        <header class="vault-result__header">
+            <p class="vault-result__label">Answer from the vault</p>
+        </header>
 
-    <div class="vault-sources" data-vault-sources hidden>
-        <p class="vault-sources-label">Sources</p>
-        <ul class="vault-source-list" data-vault-source-list></ul>
-    </div>
+        <div class="vault-answer" data-vault-answer>
+            <div class="vault-answer-text" data-vault-answer-text></div>
+        </div>
+
+        <div class="vault-sources" data-vault-sources hidden>
+            <p class="vault-sources-label">Notes used</p>
+            <ul class="vault-source-list" data-vault-source-list></ul>
+        </div>
+    </article>
 
     <div class="vault-citation-popover" data-vault-citation-popover hidden>
         <a class="vault-citation-popover__title" data-popover-title href="#"></a>
@@ -89,6 +97,7 @@
             const submitButton = root.querySelector("[data-vault-submit]");
             const statusNode = root.querySelector("[data-vault-status]");
             const errorNode = root.querySelector("[data-vault-error]");
+            const resultPanel = root.querySelector("[data-vault-result]");
             const answerPanel = root.querySelector("[data-vault-answer]");
             const answerText = root.querySelector("[data-vault-answer-text]");
             const sourcesPanel = root.querySelector("[data-vault-sources]");
@@ -110,6 +119,7 @@
                 if (submitButton) submitButton.disabled = isLoading;
                 if (input) input.disabled = isLoading;
                 if (statusNode) statusNode.hidden = !isLoading;
+                root.setAttribute("aria-busy", String(isLoading));
                 root.classList.toggle("is-loading", isLoading);
             };
 
@@ -128,6 +138,12 @@
             const clearSources = () => {
                 if (sourceList) sourceList.replaceChildren();
                 if (sourcesPanel) sourcesPanel.hidden = true;
+            };
+
+            const clearResult = () => {
+                if (answerText) answerText.replaceChildren();
+                clearSources();
+                if (resultPanel) resultPanel.hidden = true;
             };
 
             const makeSearchAwareHref = (href) => {
@@ -275,9 +291,10 @@
             const renderAnswer = (payload, question = activeQuestion) => {
                 activePayload = payload;
                 activeQuestion = question;
-                if (answerPanel) answerPanel.hidden = false;
                 renderAnswerText(payload.answer || "", payload.sources || []);
                 renderSources(payload);
+                if (answerPanel) answerPanel.hidden = false;
+                if (resultPanel) resultPanel.hidden = false;
             };
 
             const positionPopover = (anchor) => {
@@ -343,6 +360,7 @@
                 setLoading(true);
                 setError("");
                 hidePopover();
+                clearResult();
 
                 try {
                     const response = await fetch("/api/vault-chat", {
@@ -567,16 +585,35 @@
         color: #ff8f8f;
     }
 
-    .vault-answer {
+    .vault-result {
         margin-top: 1.4rem;
-        padding: 1.4rem;
+        padding: 1.15rem;
         border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 24px;
+        border-radius: 18px;
         background: rgba(8, 8, 8, 0.82);
         color: rgba(255, 255, 255, 0.88);
-        line-height: 1.7;
         box-shadow: 0 16px 60px rgba(0, 0, 0, 0.22);
         backdrop-filter: blur(12px);
+    }
+
+    .vault-result__header {
+        margin: 0 0 1rem;
+        padding: 0 0 0.7rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+    }
+
+    .vault-result__label {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 0.75rem;
+        font-weight: 620;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+
+    .vault-answer {
+        color: inherit;
+        line-height: 1.66;
     }
 
     .vault-answer-text {
@@ -609,7 +646,9 @@
     }
 
     .vault-sources {
-        margin-top: 1rem;
+        margin-top: 1.15rem;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.14);
     }
 
     .vault-sources-label {
@@ -731,8 +770,8 @@
             font-size: 0.86rem;
         }
 
-        .vault-answer {
-            border-radius: 18px;
+        .vault-result {
+            border-radius: 14px;
             padding: 0.9rem;
         }
 

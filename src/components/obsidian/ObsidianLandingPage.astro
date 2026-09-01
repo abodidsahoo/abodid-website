@@ -2,7 +2,7 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import HeroVaultTagsCard from "../HeroVaultTagsCard.jsx";
 import InlineInquiryForm from "../InlineInquiryForm.astro";
-import ChromaticStoryFooter from "./ChromaticStoryFooter.astro";
+import SiteFooter from "../SiteFooter.astro";
 import ObsidianPaymentDialog from "./ObsidianPaymentDialog.astro";
 import {
   breadcrumbJsonLd,
@@ -341,7 +341,7 @@ const headingParts = headingLines.map((line) => {
     </section>
   </div>
 
-  <ChromaticStoryFooter />
+  <SiteFooter />
 
   {showPayment && <ObsidianPaymentDialog />}
 

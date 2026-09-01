@@ -1,20 +1,19 @@
 ---
-export const prerender = false; // Must be false for server-side auth check
-import BaseLayout from "../../../layouts/BaseLayout.astro";
-import { getVaultTags, getVaultNotes } from "../../../lib/github";
-import VaultAskSection from "../../../components/VaultAskSection.astro";
+export const prerender = false;
 
-// Configuration
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import InlineInquiryForm from "../../../components/InlineInquiryForm.astro";
+import VaultAskSection from "../../../components/VaultAskSection.astro";
+import { getVaultTags, getVaultNotes } from "../../../lib/github";
+
 const ITEMS_PER_PAGE = 24;
 
-// Server-Side Logic
 let error = "";
 let allNotes = [];
 let initialNotes = [];
 let remainingNotes = [];
 let tags = [];
 
-// Always Fetch Data
 try {
     const [tagsData, notesData] = await Promise.all([
         getVaultTags(),
@@ -23,542 +22,789 @@ try {
 
     tags = tagsData || [];
     allNotes = notesData || [];
-    
-    // Split for Infinite Scroll
     initialNotes = allNotes.slice(0, ITEMS_PER_PAGE);
     remainingNotes = allNotes.slice(ITEMS_PER_PAGE);
 } catch (e) {
     console.error("Error fetching vault data:", e);
-    if (e instanceof Error) {
-        error = e.message;
-    } else {
-        error = "Failed to fetch vault data from GitHub. Check server logs.";
-    }
+    error = e instanceof Error
+        ? e.message
+        : "Failed to fetch vault data from GitHub. Check server logs.";
 }
 
 const pageTitle = "Obsidian Vault";
+const pageDescription = "Ask questions across Abodid Sahoo's public Obsidian notes, or browse the live note and tag archive.";
 ---
 
-<BaseLayout title={pageTitle} fullWidth={true}>
-    <!-- Load Fonts: Poppins (Weights 100-500) & Inconsolata & Space Mono -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@300;400;500;600&family=Poppins:wght@100;200;300;400;500&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-
-    <div class="vault-container">
-        {/* --- UNLOCKED STATE (SPLIT VIEW) --- */}
-        <section class="vault-view-split">
-            <header class="vault-header-split">
-                 <h1>Abodid's Vault</h1>
-                 <p class="subtitle">Live sync from GitHub. {allNotes.length} notes, {tags.length} tags.</p>
-                 {error && <p class="error-msg" style="text-align:center; margin-top:1rem;">{error}</p>}
-                 <VaultAskSection />
-            </header>
-            
-            {/* --- MOBILE: CHOICE SCREEN (Visible only on mobile start) --- */}
-            <div id="mobile-choice-screen" class="mobile-only">
-                <button class="choice-btn" data-target="notes">
-                    <span class="icon">📝</span>
-                    <span class="label">Browse Notes</span>
-                </button>
-                <button class="choice-btn" data-target="tags">
-                    <span class="icon">🏷️</span>
-                    <span class="label">Browse Tags</span>
-                </button>
-            </div>
-
-            {/* --- MOBILE: STICKY CONTROLS (Hidden initially) --- */}
-            <div id="mobile-controls" class="mobile-sticky-header mobile-only hidden">
-                <div class="segmented-control">
-                    <button class="seg-btn active" data-view="notes">Notes</button>
-                    <button class="seg-btn" data-view="tags">Tags</button>
-                </div>
-            </div>
-
-            <div class="split-layout" id="vault-layout">
-                {/* --- LEFT: NOTES LIST (Single Column Vertical, 50% Width) --- */}
-                <div class="notes-column mobile-view-target">
-                    <div class="notes-header-small desktop-only">
-                        <h2>Notes</h2>
-                    </div>
-                    <div class="vault-list" id="notes-grid">
-                        {initialNotes.length === 0 ? (
-                            <div class="empty-state">
-                                <p>No notes found. Check GitHub connection.</p>
-                            </div>
-                        ) : (
-                            initialNotes.map((file) => (
-                                <a href={`/research/obsidian-vault/${file.name.replace(".md", "")}`} class="note-card">
-                                    <div class="note-info">
-                                        <h3>{file.name.replace(".md", "").replace(/-/g, " ")}</h3>
-                                    </div>
-                                </a>
-                            ))
-                        )}
-                    </div>
-                    
-                    {/* Sentinel for Infinite Scroll */}
-                    {remainingNotes.length > 0 && (
-                        <div id="scroll-sentinel" class="loading-indicator">
-                            <span>Loading more notes...</span>
+<BaseLayout
+    title={pageTitle}
+    description={pageDescription}
+    fullWidth={true}
+    showGlobalGrid={false}
+    bodyClass="vault-pop-page"
+>
+    <div class="vault-page">
+        <section class="vault-workspace" aria-labelledby="vault-title">
+            <div class="vault-workspace__grid">
+                <article class="vault-world-file">
+                    <header class="vault-heading-panel">
+                        <div class="vault-heading-panel__hero">
+                            <h1 id="vault-title">Obsidian Vault</h1>
+                            <p>Abodid’s Second Brain</p>
                         </div>
-                    )}
-                </div>
+                        {error && <p class="vault-error" role="alert">{error}</p>}
+                    </header>
 
-                {/* --- RIGHT: TAG CLOUD (50% Width) --- */}
-                <aside class="tags-column mobile-view-target">
-                    <div class="tags-header-small desktop-only">
-                        <h2>Tags</h2>
+                    <div class="vault-world-archive">
+                        <section class="vault-panel vault-notes-panel" aria-labelledby="vault-notes-title">
+                    <div class="vault-panel__topline vault-panel__topline--bordered">
+                        <div>
+                            <p class="vault-eyebrow">Browse the archive</p>
+                            <h2 id="vault-notes-title">Notes</h2>
+                        </div>
+                        <span class="vault-count">{allNotes.length} entries</span>
                     </div>
-                    <div class="tag-cloud-wrapper">
-                        {tags.map((tag) => (
-                            <a href={`/research/obsidian-vault/tag/${encodeURIComponent(tag.name.replace(".md", ""))}`} class="vault-tag">
-                                {tag.name.replace(".md", "").replace(/-/g, " ")}
-                            </a>
-                        ))}
+
+                    <div class="vault-notes-scroll-shell">
+                        <div class="vault-notes-scroll" tabindex="0" aria-label="Scrollable list of vault notes">
+                            <div class="vault-list" id="notes-grid">
+                            {initialNotes.length === 0 ? (
+                                <div class="vault-empty-state">
+                                    <p>No notes found. Check the GitHub connection.</p>
+                                </div>
+                            ) : (
+                                initialNotes.map((file, index) => (
+                                    <a href={`/research/obsidian-vault/${file.name.replace(".md", "")}`} class="note-card">
+                                        <span class="note-card__index" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+                                        <h3>{file.name.replace(".md", "").replace(/-/g, " ")}</h3>
+                                        <span class="note-card__arrow" aria-hidden="true">→</span>
+                                    </a>
+                                ))
+                            )}
+                            </div>
+
+                            {remainingNotes.length > 0 && (
+                                <div id="scroll-sentinel" class="loading-indicator" aria-live="polite">
+                                    <span>Loading more notes…</span>
+                                </div>
+                            )}
+                        </div>
                     </div>
-                </aside>
+                        </section>
+
+                        <aside class="vault-panel vault-tags-panel" aria-labelledby="vault-tags-title">
+                    <div class="vault-panel__topline vault-panel__topline--bordered">
+                        <div>
+                            <p class="vault-eyebrow">Follow a thread</p>
+                            <h2 id="vault-tags-title">Tags</h2>
+                        </div>
+                        <span class="vault-count">{tags.length} topics</span>
+                    </div>
+
+                    <div class="vault-tags-scroll-shell">
+                        <div class="tag-cloud-wrapper" tabindex="0" aria-label="Scrollable list of vault tags">
+                            {tags.map((tag) => (
+                                <a href={`/research/obsidian-vault/tag/${encodeURIComponent(tag.name.replace(".md", ""))}`} class="vault-tag">
+                                    {tag.name.replace(".md", "").replace(/-/g, " ")}
+                                </a>
+                            ))}
+                        </div>
+                    </div>
+                        </aside>
+                    </div>
+                </article>
+
+                <section class="vault-panel vault-question-panel" aria-labelledby="vault-question-title">
+                    <div class="vault-panel__topline">
+                        <p class="vault-eyebrow">Semantic question</p>
+                    </div>
+                    <div class="vault-question-panel__intro">
+                        <h2 id="vault-question-title">Ask my vault, anything.</h2>
+                        <p>Describe an idea in your own words. The vault will find related notes and cite the sources it used.</p>
+                    </div>
+                    <VaultAskSection />
+                </section>
+
+                <header class="vault-panel vault-intro-panel">
+                    <div class="vault-panel__topline">
+                        <p class="vault-eyebrow">Build your own vault</p>
+                    </div>
+                    <div class="vault-intro-panel__copy">
+                        <h2>Your notes should work for you.</h2>
+                        <p>
+                            I build simple Obsidian vaults for researchers, filmmakers
+                            and anyone who wants their ideas easier to find—even if
+                            you have never used Obsidian before.
+                        </p>
+                        <a class="vault-intro-panel__cta" href="#obsidian-interest">
+                            Build your vault with me <span aria-hidden="true">→</span>
+                        </a>
+                    </div>
+                </header>
             </div>
+        </section>
+
+        <section class="vault-interest-band" aria-label="Obsidian enquiry">
+            <InlineInquiryForm
+                id="obsidian-interest"
+                eyebrow="Work with me"
+                heading="Put the power of Obsidian to work."
+                intro="Use Obsidian for a calmer note-taking experience, or work with me to shape a vault around the way you think."
+                sourceName="obsidian-vault-interest"
+                defaultInterest="Obsidian vault interest"
+                variant="pop"
+                compact={true}
+                messageLabel="Optional message"
+                messagePlaceholder="Tell me what you want your notes to help you do."
+                messageRequired={false}
+                submitLabel="Express interest →"
+                showEmailLink={true}
+            />
         </section>
     </div>
 </BaseLayout>
 
-{/* Client-Side Infinite Scroll Script */}
 {remainingNotes.length > 0 && (
-    <script define:vars={{ remainingNotes, ITEMS_PER_PAGE }}>
-        /* ... existing scroll script ... */
+    <script is:inline define:vars={{ remainingNotes, ITEMS_PER_PAGE }}>
         let currentNotes = remainingNotes;
-        const grid = document.getElementById('notes-grid');
-        const sentinel = document.getElementById('scroll-sentinel');
+        let renderedNoteCount = ITEMS_PER_PAGE;
+        const grid = document.getElementById("notes-grid");
+        const sentinel = document.getElementById("scroll-sentinel");
 
         const observer = new IntersectionObserver((entries) => {
-            if (entries[0].isIntersecting && currentNotes.length > 0) {
-                loadMore();
-            }
-        }, { rootMargin: '200px' });
+            if (entries[0].isIntersecting && currentNotes.length > 0) loadMore();
+        }, { rootMargin: "160px" });
 
         if (sentinel) observer.observe(sentinel);
 
         function loadMore() {
+            if (!grid || !sentinel) return;
             const batch = currentNotes.slice(0, ITEMS_PER_PAGE);
             currentNotes = currentNotes.slice(ITEMS_PER_PAGE);
-
             const fragment = document.createDocumentFragment();
-            batch.forEach((file) => {
-                const a = document.createElement('a');
-                a.href = `/research/obsidian-vault/${file.name.replace(".md", "")}`;
-                a.className = 'note-card fade-in';
-                
-                a.innerHTML = `
-                    <div class="note-info">
-                        <h3>${file.name.replace(".md", "").replace(/-/g, " ")}</h3>
-                    </div>
-                `;
-                fragment.appendChild(a);
+
+            batch.forEach((file, index) => {
+                const link = document.createElement("a");
+                link.href = `/research/obsidian-vault/${file.name.replace(".md", "")}`;
+                link.className = "note-card fade-in";
+
+                const itemNumber = document.createElement("span");
+                itemNumber.className = "note-card__index";
+                itemNumber.setAttribute("aria-hidden", "true");
+                itemNumber.textContent = String(renderedNoteCount + index + 1).padStart(2, "0");
+
+                const title = document.createElement("h3");
+                title.textContent = file.name.replace(".md", "").replace(/-/g, " ");
+
+                const arrow = document.createElement("span");
+                arrow.className = "note-card__arrow";
+                arrow.setAttribute("aria-hidden", "true");
+                arrow.textContent = "→";
+
+                link.append(itemNumber, title, arrow);
+                fragment.appendChild(link);
             });
-            
+
+            renderedNoteCount += batch.length;
             grid.appendChild(fragment);
 
             if (currentNotes.length === 0) {
-                sentinel.style.display = 'none';
+                sentinel.style.display = "none";
                 observer.disconnect();
             }
         }
     </script>
 )}
 
-<script>
-    // MOBILE IA LOGIC
-    document.addEventListener('DOMContentLoaded', () => {
-        const isMobile = window.matchMedia("(max-width: 1100px)").matches;
-        if (!isMobile) return;
-
-        const choiceScreen = document.getElementById('mobile-choice-screen');
-        const mobileControls = document.getElementById('mobile-controls');
-        const layout = document.getElementById('vault-layout');
-        const notesCol = document.querySelector('.notes-column');
-        const tagsCol = document.querySelector('.tags-column');
-        
-        // Initial State: Show Choice, Hide Layout
-        if(choiceScreen) choiceScreen.style.display = 'flex';
-        if(layout) layout.style.display = 'none';
-
-        function switchView(view) {
-            // Hide Choice
-            if(choiceScreen) choiceScreen.style.display = 'none';
-            
-            // Show Controls & Layout
-            if(mobileControls) mobileControls.classList.remove('hidden');
-            if(layout) layout.style.display = 'block'; // Or flex/grid? Split-layout has grid.
-
-            // Toggle Columns
-            if (view === 'notes') {
-                if(notesCol) notesCol.style.display = 'block';
-                if(tagsCol) tagsCol.style.display = 'none';
-                updateSegButtons('notes');
-            } else {
-                if(notesCol) notesCol.style.display = 'none';
-                if(tagsCol) tagsCol.style.display = 'block';
-                updateSegButtons('tags');
-            }
-        }
-
-        function updateSegButtons(activeView) {
-            const btns = document.querySelectorAll('.seg-btn');
-            btns.forEach(btn => {
-                if(btn.dataset.view === activeView) btn.classList.add('active');
-                else btn.classList.remove('active');
-            });
-        }
-
-        // Choice Buttons
-        document.querySelectorAll('.choice-btn').forEach(btn => {
-            btn.addEventListener('click', () => switchView(btn.dataset.target));
-        });
-
-        // Segmented Controls
-        document.querySelectorAll('.seg-btn').forEach(btn => {
-            btn.addEventListener('click', () => switchView(btn.dataset.view));
-        });
-    });
-</script>
-
 <style is:global>
-    /* VARIABLES */
     :root {
-        --vault-bg: var(--bg-surface);
-        --vault-text: var(--text-primary);
-        --vault-border: var(--border-subtle);
-        --vault-pill-bg: rgba(0, 0, 0, 0.18);
-        --vault-pill-hover-bg: rgba(0, 0, 0, 0.26);
+        --pop-blue: #2444ca;
+        --pop-pink: #ff7eb5;
+        --pop-yellow: #ffe44f;
+        --pop-lime: #caff48;
+        --pop-purple: #5524c7;
+        --pop-cream: #fff8e8;
+        --pop-ink: #15130f;
+        --pop-border: rgba(21, 19, 15, 0.78);
+        --pop-line: rgba(21, 19, 15, 0.24);
+        --vault-gap: 8px;
+        --vault-panel-radius: clamp(18px, 2vw, 28px);
+        --vault-card-radius: clamp(14px, 1.5vw, 22px);
+        --vault-control-radius: 14px;
+        --vault-motion: 180ms ease;
     }
 
-    [data-theme="light"] {
-        --vault-pill-bg: rgba(255, 255, 255, 0.84);
-        --vault-pill-hover-bg: rgba(255, 255, 255, 0.95);
+    body.vault-pop-page { background: var(--pop-blue); color: var(--pop-ink); }
+
+    .vault-pop-page .vault-page {
+        width: 100%;
+        overflow: clip;
+        background: var(--pop-blue);
+        font-family: "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
     }
 
-    .vault-container {
-        max-width: 96vw;
+    .vault-workspace { padding: var(--vault-gap); background: var(--pop-blue); }
+
+    .vault-workspace__grid {
+        width: min(100%, 1480px);
         margin: 0 auto;
-        padding: 1rem 2rem;
-        min-height: 80vh;
-    }
-
-    /* --- LAYOUT GRID: 50/50 SPLIT --- */
-    .split-layout {
         display: grid;
-        grid-template-columns: 1fr 1fr; /* Big Notes, Small Tags */
-        gap: 0rem; /* Large gap between the two main columns */
-        margin-top: 2rem;
-        align-items: start;
-        background: transparent;
-        border-radius: 0;
-        padding: 1.2rem 0;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        gap: var(--vault-gap);
+        align-items: stretch;
     }
-    
-    @media (max-width: 1100px) {
-        .split-layout {
-            grid-template-columns: 1fr;
-            gap: 3rem;
-            display: none; /* Controlled by JS */
-        }
-        .tags-column {
-            width: 100%;
-        }
-        .notes-column,
-        .tags-column {
-            border: none !important;
-            border-radius: 0 !important;
-            padding: 0 !important;
-            background: transparent !important;
-        }
-        
-        .desktop-only { display: none; }
-        
-        /* Mobile Choice Screen */
-        .mobile-only { display: flex; }
-        #mobile-choice-screen {
-            flex-direction: column;
-            gap: 1rem;
-            margin: 4rem 0;
-        }
-        
-        .choice-btn {
-            background: var(--bg-surface);
-            border: 1px solid var(--border-subtle);
-            padding: 2rem;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-            cursor: pointer;
-            width: 100%;
-            transition: all 0.2s;
-        }
-        .choice-btn:active { background: var(--border-subtle); }
-        .choice-btn .icon { font-size: 2rem; }
-        .choice-btn .label { font-family: var(--font-display); font-size: 1.2rem; font-weight: 500; color: var(--text-main); }
 
-        /* Sticky Control */
-        .mobile-sticky-header {
-            position: sticky;
-            top: 0px; /* Adjust for fixed header? */
-            z-index: 100;
-            background: var(--vault-bg);
-            padding: 1rem 0;
-            border-bottom: 1px solid var(--border-subtle);
-            width: 100%;
-        }
-        .hidden { display: none !important; }
-        
-        .segmented-control {
-            display: flex;
-            background: var(--bg-surface);
-            border-radius: 8px;
-            padding: 4px;
-            width: 100%;
-        }
-        
-        .seg-btn {
-            flex: 1;
-            background: transparent;
-            border: none;
-            padding: 0.6rem;
-            border-radius: 6px;
-            color: var(--text-tertiary);
-            font-weight: 500;
-            cursor: pointer;
-        }
-        .seg-btn.active {
-            background: var(--vault-border); /* Highlight */
-            color: white;
-        }
-    }
-    
-    /* Default Hide Mobile Elements on Desktop */
-    .mobile-only { display: none; }
-    .desktop-only { display: block; }
-
-    /* NOTES COLUMN */
-    .notes-column {
+    .vault-panel {
         min-width: 0;
-        border-right: none;
-        padding: 0.8rem 6rem 0.8rem 0.8rem;
+        padding: clamp(1.35rem, 2.8vw, 2.75rem);
+        border: 1px solid var(--pop-border);
+        border-radius: var(--vault-panel-radius);
     }
 
-    /* TAGS COLUMN */
-    .tags-column {
-        padding: 0.8rem 0.8rem 0.8rem 3.5rem;
-    }
-    
-    .notes-header-small h2, .tags-header-small h2 {
-        font-size: 1.2rem;
-        text-transform: uppercase;
-        color: var(--text-tertiary);
-        letter-spacing: 1px;
-        margin-bottom: 2rem;
+    .vault-world-file {
+        grid-column: 1 / -1;
+        overflow: hidden;
+        border: 1px solid var(--pop-border);
+        border-radius: var(--vault-panel-radius);
+        background: var(--pop-cream);
     }
 
-    /* VERTICAL LIST FOR NOTES */
-    .vault-list {
+    .vault-heading-panel {
+        padding: clamp(3rem, 6vw, 6rem) clamp(1.4rem, 4vw, 3.5rem);
+        border-bottom: 1px solid var(--pop-ink);
+        background: var(--pop-pink);
+    }
+
+    .vault-heading-panel__hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1.3fr) minmax(260px, 0.7fr);
+        align-items: end;
+        gap: clamp(2rem, 6vw, 7rem);
+    }
+
+    .vault-heading-panel h1 {
+        max-width: 9ch;
+        margin: 0;
+        color: var(--pop-ink);
+        font: 720 clamp(3.7rem, 9vw, 8.5rem)/0.84 "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
+        letter-spacing: -0.075em;
+        text-wrap: balance;
+    }
+
+    .vault-heading-panel__hero > p {
+        max-width: 34rem;
+        margin: 0 0 0.5rem;
+        color: var(--pop-ink);
+        font: 500 clamp(1.15rem, 2vw, 1.65rem)/1.32 "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
+        letter-spacing: -0.025em;
+        text-wrap: pretty;
+    }
+
+    .vault-world-archive {
+        display: grid;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        background: var(--pop-cream);
+    }
+
+    .vault-world-archive .vault-panel {
+        border: 0;
+        border-radius: 0;
+    }
+
+    .vault-world-archive .vault-tags-panel {
+        border-left: 1px solid var(--pop-ink);
+    }
+
+    .vault-intro-panel {
+        grid-column: 1 / -1;
+        min-height: 350px;
+        align-self: start;
         display: flex;
         flex-direction: column;
-        /* 2. COMPACT SPACING: Reduced gap */
-        gap: 1.2rem; 
+        justify-content: flex-start;
+        background: var(--pop-pink);
     }
 
-    /* SHARED HEADER */
-    .vault-header, .vault-header-split {
-        text-align: center;
-        margin-bottom: 2rem;
+    .vault-question-panel {
+        grid-column: 1 / -1;
+        min-height: 480px;
+        display: flex;
+        flex-direction: column;
+        background: var(--pop-yellow);
     }
-    
-    .vault-header-split {
+
+    .vault-notes-panel { grid-column: span 7; background: var(--pop-cream); }
+
+    .vault-tags-panel {
+        grid-column: span 5;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        background: var(--pop-cream);
+    }
+
+    .vault-panel__topline {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1.5rem;
+    }
+
+    .vault-panel__topline--bordered {
         margin-bottom: 1rem;
         padding-bottom: 1rem;
-        border-bottom: 1px solid var(--border-subtle);
+        align-items: flex-end;
+        border-bottom: 1px solid currentColor;
     }
 
-    h1 {
-        font-family: var(--font-ui);
-        letter-spacing: -2px;
-        margin-bottom: 0.5rem;
-    }
-    
-    .vault-header h1 { font-size: 3rem; }
-    .vault-header-split h1 { font-size: 2.5rem; }
-
-    .subtitle {
-        color: var(--text-secondary);
-        font-size: 1.1rem;
-    }
-
-    /* --- COMPONENTS --- */
-
-    /* Locked State */
-    .pitch-content, .login-form-wrapper {
-        max-width: 600px;
-        margin: 0 auto 3rem auto;
-        text-align: center;
-    }
-    
-    .login-form-wrapper {
-        padding: 3rem;
-        background: var(--bg-surface);
-        border: 1px solid var(--border-subtle);
-        border-radius: 16px;
-        max-width: 500px; /* Slightly tighter container */
-        margin: 0 auto 3rem auto;
-    }
-    
-    .login-label {
-        font-family: var(--font-display);
-        font-size: 1.8rem; /* Much bigger */
-        font-weight: 800; /* Extra bold */
-        letter-spacing: -0.5px;
-        margin-bottom: 2rem;
-        color: var(--text-main);
+    .vault-eyebrow,
+    .vault-count,
+    .loading-indicator {
+        margin: 0;
+        font: 750 clamp(0.68rem, 0.9vw, 0.78rem)/1.35 "Satoshi-Variable", "Satoshi-Regular", "Space Mono", "Inconsolata", monospace;
+        letter-spacing: 0.09em;
         text-transform: uppercase;
     }
-    
-    .login-form { 
-        display: flex; 
-        flex-direction: column; /* Stacked */
-        gap: 1rem; 
-        align-items: center;
+
+    .vault-intro-panel__copy { margin: clamp(2rem, 4vw, 3.75rem) 0 0; }
+
+    .vault-intro-panel h2 {
+        max-width: 10ch;
+        margin: 0;
+        color: var(--pop-ink);
+        font: 620 clamp(2.65rem, 4.6vw, 4.8rem)/0.9 "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
+        letter-spacing: -0.06em;
+        text-wrap: balance;
     }
 
-    .login-form input {
-        width: 100%;
-        padding: 1rem 1.2rem;
-        border: 1px solid var(--border-subtle);
-        background: #000; /* Darker input background */
-        color: #fff;
-        border-radius: 8px;
-        font-size: 1rem;
-        text-align: center; /* Centered input text */
-        font-family: var(--font-ui);
-        transition: all 0.3s ease;
-    }
-    
-    .login-form input:focus {
-        border-color: #fff;
-        outline: none;
-        box-shadow: 0 0 0 2px rgba(255,255,255,0.2);
-    }
-    
-    .btn-unlock {
-        width: 100%; /* Full width button */
-        background: #fff;
-        color: #000;
-        font-weight: 800;
-        font-size: 1rem;
-        text-transform: uppercase;
-        padding: 1.2rem;
-        border-radius: 8px;
-        letter-spacing: 1px;
-        transition: transform 0.2s, box-shadow 0.2s;
-    }
-    
-    .btn-unlock:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(255,255,255,0.2);
-        opacity: 1;
+    .vault-intro-panel__copy > p {
+        max-width: 34rem;
+        margin: 1.8rem 0 0;
+        color: rgba(21, 19, 15, 0.82);
+        font-size: clamp(1rem, 1.35vw, 1.22rem);
+        line-height: 1.48;
+        text-wrap: pretty;
     }
 
-    /* Tags: PILL SHAPE + FLOW */
-    .tag-cloud-wrapper {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.8rem; /* Relaxed gap */
-    }
-    
-    .vault-tag {
+    .vault-intro-panel__cta {
+        width: fit-content;
+        min-height: 50px;
+        margin-top: 1.5rem;
+        padding: 0 1rem;
         display: inline-flex;
         align-items: center;
-        padding: 0.5rem 1rem; /* Slightly larger pills */
-        background: var(--vault-pill-bg);
-        border: 1px solid var(--border-subtle);
-        border-radius: 50px; 
-        font-family: var(--feature-obsidian-tag-font, var(--font-display)); 
-        font-size: var(--feature-obsidian-tag-size, 0.85rem); 
-        font-weight: var(--feature-obsidian-tag-weight, 380); 
-        line-height: var(--feature-obsidian-tag-line-height, 1);
-        letter-spacing: var(--feature-obsidian-tag-letter-spacing, 0em);
-        color: var(--feature-obsidian-tag-color, var(--text-secondary));
+        gap: 0.65rem;
+        border: 1px solid var(--pop-ink);
+        border-radius: var(--vault-control-radius);
+        background: var(--pop-yellow);
+        color: var(--pop-ink);
+        font-size: 0.82rem;
+        font-weight: 720;
+        letter-spacing: 0.045em;
         text-decoration: none;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-    
-    .vault-tag:hover {
-        border-color: var(--text-primary);
-        color: var(--text-primary);
-        background: var(--vault-pill-hover-bg);
+        text-transform: uppercase;
+        transition: transform var(--vault-motion), box-shadow var(--vault-motion);
     }
 
-    /* NOTE CARD */
-    
-    .note-card {
-        display: block; 
-        /* 3. COMPACT CARD: Reduced padding */
-        padding: 1.2rem; 
-        border-radius: 8px; 
-        text-decoration: none;
-        color: var(--text-primary);
-        transition: transform 0.2s, background 0.2s;
-        border: 1px solid var(--border-subtle); 
-        background: var(--vault-pill-bg);
-        width: 100%;
-        margin-bottom: 0; 
+    .vault-intro-panel__cta:hover,
+    .vault-intro-panel__cta:focus-visible {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 0 var(--pop-ink);
+        outline: 2px solid var(--pop-purple);
+        outline-offset: 3px;
     }
 
-    .note-card:hover {
-        transform: translateX(4px); 
-        background: var(--vault-pill-hover-bg);
-        border-color: var(--text-secondary);
+    .vault-intro-panel__cta span { transition: transform var(--vault-motion); }
+    .vault-intro-panel__cta:hover span,
+    .vault-intro-panel__cta:focus-visible span { transform: translateX(4px); }
+
+    .vault-error {
+        margin: 1rem 0 0;
+        padding: 0.8rem 1rem;
+        border: 1px solid var(--pop-ink);
+        border-radius: var(--vault-control-radius);
+        background: var(--pop-cream);
+        color: #7c0018;
     }
-    
-    .note-info h3 {
-        font-family: var(--feature-obsidian-note-title-font, var(--font-display));
-        font-weight: var(--feature-obsidian-note-title-weight, 500); 
-        /* 4. TYPOGRAPHY: Smaller, Darker */
-        font-size: var(--feature-obsidian-note-title-size, 1rem); 
-        line-height: var(--feature-obsidian-note-title-line-height, 1.3);
-        letter-spacing: var(--feature-obsidian-note-title-letter-spacing, 0em);
+
+    .vault-question-panel__intro { margin-top: clamp(2.5rem, 5vw, 4.75rem); }
+
+    .vault-question-panel h2,
+    .vault-notes-panel h2,
+    .vault-tags-panel h2 {
         margin: 0;
-        color: var(--feature-obsidian-note-title-color, #8a8a8a); /* Darker/Greyer */
+        color: var(--pop-ink);
+        font-family: "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
+        font-weight: 620;
+        letter-spacing: -0.055em;
+        text-wrap: balance;
+    }
+
+    .vault-question-panel h2 {
+        max-width: 12ch;
+        font-size: clamp(2.75rem, 5vw, 5.8rem);
+        line-height: 0.88;
+    }
+
+    .vault-question-panel__intro > p {
+        max-width: 39rem;
+        margin: 1.25rem 0 0;
+        color: rgba(21, 19, 15, 0.78);
+        font-size: clamp(0.96rem, 1.15vw, 1.08rem);
+        line-height: 1.48;
+    }
+
+    .vault-notes-panel h2,
+    .vault-tags-panel h2 {
+        margin-top: 0.35rem;
+        font-size: clamp(2.3rem, 4vw, 4.25rem);
+        line-height: 0.9;
+    }
+
+    .vault-count { text-align: right; }
+
+    .vault-notes-scroll,
+    .tag-cloud-wrapper {
+        height: clamp(460px, 54vw, 660px);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        scrollbar-width: thin;
+        scrollbar-color: var(--pop-ink) transparent;
+    }
+
+    .vault-notes-scroll:focus-visible,
+    .tag-cloud-wrapper:focus-visible {
+        outline: 3px solid var(--pop-purple);
+        outline-offset: 4px;
+        border-radius: var(--vault-control-radius);
+    }
+
+    .vault-list { display: grid; }
+
+    .note-card {
+        min-height: 66px;
+        padding: 0.85rem 0.85rem 0.85rem 0.25rem;
+        display: grid;
+        grid-template-columns: 3rem minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 0.8rem;
+        border-bottom: 1px solid var(--pop-line);
+        color: var(--pop-ink);
+        text-decoration: none;
+        transition: background var(--vault-motion), padding var(--vault-motion);
+    }
+
+    .note-card:first-child { border-top: 1px solid var(--pop-line); }
+
+    .note-card:hover,
+    .note-card:focus-visible {
+        padding-left: 0.75rem;
+        background: var(--pop-yellow);
+        outline: 0;
+    }
+
+    .note-card__index {
+        font: 700 0.7rem/1 "Satoshi-Variable", "Satoshi-Regular", "Space Mono", monospace;
+        letter-spacing: 0.08em;
+        opacity: 0.62;
+    }
+
+    .note-card h3 {
+        margin: 0;
+        color: var(--pop-ink);
+        font-size: clamp(0.98rem, 1.25vw, 1.16rem);
+        font-weight: 560;
+        line-height: 1.25;
+        letter-spacing: -0.015em;
         text-transform: capitalize;
     }
 
-    /* Animation */
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
+    .note-card__arrow { font-size: 1.15rem; transition: transform var(--vault-motion); }
+    .note-card:hover .note-card__arrow,
+    .note-card:focus-visible .note-card__arrow { transform: translateX(4px); }
+
+    .loading-indicator { padding: 1rem; text-align: center; }
+
+    .vault-empty-state {
+        min-height: 240px;
+        display: grid;
+        place-items: center;
+        border: 1px dashed var(--pop-border);
+        border-radius: var(--vault-card-radius);
+    }
+
+    .vault-notes-scroll-shell,
+    .vault-tags-scroll-shell { position: relative; min-height: 0; flex: 1; }
+
+    .vault-notes-scroll-shell::after,
+    .vault-tags-scroll-shell::after {
+        content: "";
+        position: absolute;
+        z-index: 1;
+        inset: auto 0 0;
+        height: 7.5rem;
+        pointer-events: none;
+        background: linear-gradient(to bottom, rgba(255, 248, 232, 0), var(--pop-cream) 88%);
+    }
+
+    .tag-cloud-wrapper {
+        align-content: flex-start;
+        padding: 0.15rem 0 6.5rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+    }
+
+    .vault-tag {
+        min-height: 44px;
+        padding: 0.72rem 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        border: 1px solid var(--pop-ink);
+        border-radius: var(--vault-control-radius);
+        background: var(--pop-cream);
+        color: var(--pop-ink);
+        font-family: "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
+        font-size: clamp(0.98rem, 1.25vw, 1.16rem);
+        font-weight: 560;
+        line-height: 1.25;
+        letter-spacing: -0.015em;
+        font-variant-caps: normal;
+        text-decoration: none;
+        text-transform: lowercase;
+        transition: transform var(--vault-motion), background var(--vault-motion), box-shadow var(--vault-motion);
+    }
+
+    .vault-tag:nth-child(4n + 2) { background: var(--pop-yellow); }
+    .vault-tag:nth-child(7n + 3) { background: var(--pop-lime); }
+
+    .vault-tag:hover,
+    .vault-tag:focus-visible {
+        transform: translateY(-2px);
+        background: var(--pop-yellow);
+        box-shadow: 0 3px 0 var(--pop-ink);
+        outline: none;
+    }
+
+    .vault-interest-band {
+        padding: clamp(4rem, 6.5vw, 7rem) clamp(1rem, 6vw, 6rem);
+        border-top: 8px solid var(--pop-blue);
+        background: var(--pop-purple);
+        color: var(--pop-cream);
+    }
+
+    .vault-interest-band .inline-enquiry--pop { width: min(100%, 1480px); }
+
+    .vault-interest-band .inline-enquiry--pop h2 {
+        max-width: 9ch;
+        color: var(--pop-cream);
+        font-size: clamp(3rem, 6.7vw, 7rem);
+        line-height: 0.9;
+        letter-spacing: -0.065em;
+    }
+
+    .vault-interest-band .inline-enquiry--pop .inline-enquiry__intro > p:not(.inline-enquiry__eyebrow) {
+        max-width: 31rem;
+        color: var(--pop-cream);
+    }
+
+    .vault-interest-band .inline-enquiry--pop input,
+    .vault-interest-band .inline-enquiry--pop textarea {
+        border: 1px solid var(--pop-ink);
+        border-radius: var(--vault-control-radius);
+        background: var(--pop-cream);
+        color: var(--pop-ink);
+    }
+
+    .vault-interest-band .inline-enquiry--pop .inline-enquiry__submit-row button {
+        min-width: 190px;
+        border-radius: var(--vault-control-radius);
+        transition: transform var(--vault-motion), box-shadow var(--vault-motion);
+    }
+
+    .vault-interest-band .inline-enquiry--pop .inline-enquiry__submit-row button:hover,
+    .vault-interest-band .inline-enquiry--pop .inline-enquiry__submit-row button:focus-visible {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 0 var(--pop-ink);
+        outline: 2px solid var(--pop-cream);
+        outline-offset: 3px;
+    }
+
+    .vault-question-panel .vault-ask-section {
+        width: 100%;
+        margin: auto 0 0;
+        padding: clamp(2rem, 4vw, 3.5rem) 0 0;
+    }
+
+    .vault-question-panel .vault-ask-box {
+        min-height: 78px;
+        padding: 1rem 7.25rem 1rem 1.25rem;
+        border: 1px solid var(--pop-ink);
+        border-radius: 18px;
+        background: var(--pop-cream);
+        box-shadow: none;
+        backdrop-filter: none;
+    }
+
+    .vault-question-panel .vault-ask-box:focus-within {
+        border-color: var(--pop-ink);
+        background: var(--pop-cream);
+        box-shadow: 0 0 0 3px var(--pop-purple);
+    }
+
+    .vault-question-panel .vault-ask-box textarea { color: var(--pop-ink); font-size: 1rem; }
+    .vault-question-panel .vault-ask-box textarea::placeholder { color: rgba(21, 19, 15, 0.58); }
+
+    .vault-question-panel .vault-ask-submit {
+        min-width: 88px;
+        min-height: 50px;
+        border: 1px solid var(--pop-ink);
+        border-radius: var(--vault-control-radius);
+        background: var(--pop-pink);
+        color: var(--pop-ink);
+    }
+
+    .vault-question-panel .vault-ask-submit:hover:not(:disabled),
+    .vault-question-panel .vault-ask-submit:focus-visible {
+        transform: translateY(-2px);
+        background: var(--pop-lime);
+        box-shadow: 0 3px 0 var(--pop-ink);
+        outline: none;
+    }
+
+    .vault-question-panel .vault-ask-status { color: rgba(21, 19, 15, 0.76); }
+    .vault-question-panel .vault-sources-label { color: rgba(255, 248, 232, 0.72); }
+    .vault-question-panel .vault-ask-error { color: #7c0018; }
+
+    .vault-question-panel .vault-result {
+        border: 1px solid var(--pop-ink);
+        border-radius: var(--vault-control-radius);
+        border-left: 7px solid var(--pop-pink);
+        background: var(--pop-purple);
+        color: var(--pop-cream);
+        box-shadow: none;
+        backdrop-filter: none;
+    }
+
+    .vault-question-panel .vault-result__header,
+    .vault-question-panel .vault-sources { border-color: rgba(255, 248, 232, 0.28); }
+
+    .vault-question-panel .vault-result__label { color: var(--pop-cream); }
+
+    .vault-question-panel .vault-source-row {
+        border: 1px solid var(--pop-cream);
+        border-radius: var(--vault-control-radius);
+        background: transparent;
+        color: var(--pop-cream);
+        box-shadow: none;
+    }
+
+    .vault-question-panel .vault-citation {
+        border-color: var(--pop-cream);
+        background: var(--pop-yellow);
+        color: var(--pop-ink);
+    }
+
+    .vault-question-panel .vault-source-title,
+    .vault-question-panel .vault-source-title:visited,
+    .vault-question-panel .vault-source-title:hover { color: var(--pop-cream); }
+
+    .vault-question-panel .vault-citation-popover {
+        border-color: var(--pop-ink);
+        background: var(--pop-cream);
+        color: var(--pop-ink);
+    }
+
+    .vault-question-panel .vault-citation-popover__title { color: var(--pop-ink); }
+    .vault-question-panel .vault-citation-popover__meta,
+    .vault-question-panel .vault-citation-popover blockquote { color: rgba(21, 19, 15, 0.72); }
+
+    @keyframes vaultFadeIn {
+        from { opacity: 0; transform: translateY(8px); }
         to { opacity: 1; transform: translateY(0); }
     }
-    .fade-in { animation: fadeIn 0.3s ease-out forwards; }
-    
-    .error-msg { color: #ff6b6b; margin-top: 1rem; }
-    .hint-text { margin-top: 1rem; font-size: 0.8rem; color: var(--text-tertiary); }
-    
-    .loading-indicator {
-        margin-top: 2rem;
-        text-align: center;
-        color: var(--text-tertiary);
-        font-family: var(--font-ui);
-        grid-column: 1 / -1;
-        font-size: 0.8rem;
+
+    .fade-in { animation: vaultFadeIn 240ms ease-out forwards; }
+
+    @media (max-width: 980px) {
+        .vault-workspace__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .vault-world-file { grid-column: 1 / -1; }
+        .vault-world-archive { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .vault-intro-panel,
+        .vault-question-panel { grid-column: 1 / -1; }
+        .vault-world-archive .vault-notes-panel,
+        .vault-world-archive .vault-tags-panel { grid-column: span 1; }
+        .vault-intro-panel { min-height: 350px; }
+        .vault-question-panel { min-height: 500px; }
+        .vault-notes-scroll,
+        .tag-cloud-wrapper { height: 560px; }
+        .vault-interest-band .inline-enquiry--pop { gap: 3rem; }
     }
 
-    @media (max-width: 700px) {
-        .vault-container {
-            max-width: 100vw;
-            padding: 0.85rem 0.7rem;
+    @media (max-width: 720px) {
+        .vault-workspace__grid { grid-template-columns: 1fr; }
+        .vault-panel { padding: 1.25rem; }
+        .vault-world-file { grid-column: 1; }
+        .vault-heading-panel { padding: 3rem 1.25rem; }
+        .vault-heading-panel__hero {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
         }
+        .vault-heading-panel h1 {
+            font-size: clamp(3.7rem, 18vw, 6rem);
+            line-height: 0.86;
+        }
+        .vault-heading-panel__hero > p {
+            margin-bottom: 0;
+            font-size: clamp(1.05rem, 4.5vw, 1.3rem);
+        }
+        .vault-world-archive { grid-template-columns: 1fr; }
+        .vault-world-archive .vault-notes-panel,
+        .vault-world-archive .vault-tags-panel { grid-column: 1; }
+        .vault-world-archive .vault-tags-panel {
+            border-top: 1px solid var(--pop-ink);
+            border-left: 0;
+        }
+        .vault-intro-panel,
+        .vault-question-panel { grid-column: 1; }
+        .vault-intro-panel,
+        .vault-question-panel,
+        .vault-notes-panel,
+        .vault-tags-panel { min-height: auto; }
+        .vault-intro-panel { min-height: auto; }
+        .vault-question-panel { min-height: 480px; }
+        .vault-intro-panel h2 { font-size: clamp(2.75rem, 13vw, 4.4rem); line-height: 0.92; }
+        .vault-question-panel h2 { font-size: clamp(2.65rem, 12vw, 4.6rem); line-height: 0.91; }
+        .vault-intro-panel__copy { margin: 2.75rem 0 0; }
+        .vault-notes-scroll,
+        .tag-cloud-wrapper { height: min(72svh, 560px); }
+        .vault-question-panel .vault-ask-section { padding-top: 2rem; }
+        .vault-question-panel .vault-ask-box {
+            min-height: 70px;
+            padding: 0.8rem 5.4rem 0.8rem 0.9rem;
+            border-radius: var(--vault-control-radius);
+        }
+        .vault-question-panel .vault-ask-submit {
+            right: 0.6rem;
+            bottom: 0.6rem;
+            min-width: 68px;
+            min-height: 46px;
+        }
+        .note-card { grid-template-columns: 2.35rem minmax(0, 1fr) auto; }
+        .vault-interest-band { padding: 4rem 1rem; }
+        .vault-interest-band .inline-enquiry--pop h2 {
+            font-size: clamp(3rem, 14vw, 5rem);
+            line-height: 0.92;
+        }
+    }
 
-        .vault-header-split {
-            margin-bottom: 0.75rem;
+    @media (prefers-reduced-motion: reduce) {
+        .vault-page *,
+        .vault-page *::before,
+        .vault-page *::after {
+            scroll-behavior: auto !important;
+            transition-duration: 0.01ms !important;
+            animation-duration: 0.01ms !important;
         }
     }
 </style>

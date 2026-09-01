@@ -1,0 +1,191 @@
+---
+const pathname = Astro.url.pathname.replace(/\/$/, "") || "/";
+const onHomepage = pathname === "/";
+
+const navigationItems = [
+  { href: onHomepage ? "#selected-work" : "/#selected-work", label: "Work", active: onHomepage || pathname === "/work" || pathname.startsWith("/work/") },
+  { href: "/research", label: "Research", active: pathname === "/research" || pathname.startsWith("/research/") },
+  { href: "/services", label: "Services", active: pathname === "/services" || pathname.startsWith("/services/") },
+  { href: "/experience", label: "Experience", active: pathname === "/experience" || pathname.startsWith("/experience/") },
+  { href: "/about", label: "About", active: pathname === "/about" || pathname.startsWith("/about/") },
+];
+
+const contactHref = onHomepage ? "#enquiry" : "/#enquiry";
+---
+
+<header class="site-header">
+  <a class="site-header__brand" href="/" aria-label="Abodid Sahoo homepage">abodid.com</a>
+
+  <nav class="site-header__links" aria-label="Primary navigation">
+    {navigationItems.map((item) => (
+      <a href={item.href} class:list={{ "is-active": item.active }} aria-current={item.active ? "page" : undefined}>
+        {item.label}
+      </a>
+    ))}
+  </nav>
+
+  <a class="site-header__contact" href={contactHref}>
+    Hire me <span aria-hidden="true">↗</span>
+  </a>
+
+  <details class="site-header__mobile">
+    <summary>Menu</summary>
+    <nav aria-label="Mobile navigation">
+      {navigationItems.map((item) => (
+        <a href={item.href} class:list={{ "is-active": item.active }} aria-current={item.active ? "page" : undefined}>
+          {item.label}
+        </a>
+      ))}
+      <a href={contactHref}>Hire me ↗</a>
+    </nav>
+  </details>
+</header>
+
+<style>
+  .site-header {
+    --site-blue: #2444ca;
+    --site-pink: #ff7eb5;
+    --site-yellow: #ffe44f;
+    --site-cream: #fff8e8;
+    --site-ink: #15130f;
+    --site-gutter: clamp(1rem, 3vw, 3.5rem);
+    --site-control-radius: 14px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    min-height: 72px;
+    padding: 0 var(--site-gutter);
+    display: grid;
+    grid-template-columns: minmax(140px, 1fr) auto minmax(220px, 1fr);
+    align-items: center;
+    gap: 1.5rem;
+    border-bottom: 0;
+    background: var(--site-blue);
+    color: var(--site-cream);
+  }
+
+  .site-header a,
+  .site-header summary {
+    color: inherit;
+    font: 700 0.72rem/1 var(--font-mono, monospace);
+    letter-spacing: 0.08em;
+    text-decoration: none;
+    text-transform: uppercase;
+  }
+
+  .site-header__brand {
+    width: fit-content;
+    min-height: 42px;
+    padding: 0 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--site-ink);
+    border-radius: var(--site-control-radius);
+    background: var(--site-yellow);
+    color: var(--site-ink) !important;
+  }
+
+  .site-header__links {
+    display: flex;
+    align-items: center;
+    gap: clamp(1.2rem, 2.5vw, 2.5rem);
+  }
+
+  .site-header__links a {
+    opacity: 1;
+    transition: text-decoration-color 160ms ease;
+  }
+
+  .site-header__links a.is-active,
+  .site-header__mobile nav a.is-active,
+  .site-header__links a:hover,
+  .site-header__links a:focus-visible {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    text-decoration-thickness: 2px;
+  }
+
+  .site-header__contact {
+    justify-self: end;
+    min-height: 44px;
+    padding: 0 1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1px solid var(--site-ink);
+    border-radius: var(--site-control-radius);
+    background: var(--site-pink);
+    color: var(--site-ink) !important;
+    transition: transform 180ms ease, box-shadow 180ms ease;
+  }
+
+  .site-header__contact:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 0 var(--site-ink);
+  }
+
+  .site-header__mobile {
+    display: none;
+  }
+
+  @media (max-width: 980px) {
+    .site-header {
+      grid-template-columns: 1fr auto;
+    }
+
+    .site-header__links,
+    .site-header__contact {
+      display: none;
+    }
+
+    .site-header__mobile {
+      position: relative;
+      display: block;
+      justify-self: end;
+    }
+
+    .site-header__mobile summary {
+      min-height: 44px;
+      padding: 0 0.9rem;
+      display: flex;
+      align-items: center;
+      border: 1px solid var(--site-ink);
+      border-radius: var(--site-control-radius);
+      background: var(--site-yellow);
+      color: var(--site-ink);
+      cursor: pointer;
+      list-style: none;
+    }
+
+    .site-header__mobile summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .site-header__mobile nav {
+      position: fixed;
+      inset: 72px 0 auto;
+      padding: 1.5rem var(--site-gutter) 2rem;
+      display: grid;
+      gap: 0;
+      border-bottom: 1px solid var(--site-ink);
+      background: var(--site-yellow);
+      color: var(--site-ink);
+    }
+
+    .site-header__mobile nav a {
+      padding: 1rem 0;
+      border-bottom: 1px solid rgba(21, 19, 15, 0.2);
+      font-size: 0.85rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .site-header *,
+    .site-header *::before,
+    .site-header *::after {
+      scroll-behavior: auto !important;
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+    }
+  }
+</style>

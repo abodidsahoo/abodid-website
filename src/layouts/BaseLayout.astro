@@ -1,15 +1,13 @@
 ---
 import "../styles/global.css";
 import "../styles/brands.css";
-import Header from "../components/Header.jsx";
-import SideMenuRail from "../components/SideMenuRail.jsx";
-import Footer from "../components/Footer.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
 import SEO from "../components/SEO.astro";
 import NewsletterPopup from "../components/NewsletterPopup.jsx";
 import MagneticCursorFollower from "../components/MagneticCursorFollower.jsx";
 import RouteLoadingOverlay from "../components/RouteLoadingOverlay.astro";
 import WhatsAppButton from "../components/WhatsAppButton.astro";
-import NextNavigation from "../components/NextNavigation.astro";
 import { ClientRouter } from "astro:transitions";
 import { getPageMetadata } from "../lib/api";
 import {
@@ -68,11 +66,6 @@ const cursorFollowerEnabled =
 const renderedPointerVariant = cursorFollowerEnabled
   ? POINTER_VARIANTS.customMagneticFollower.id
   : POINTER_VARIANTS.nativeDefault.id;
-const showFloatingHeader =
-  !hideHeader &&
-  !useNextNavigation &&
-  (activeNavigationLayout === NAVIGATION_LAYOUTS.leftRail.id || hideSideMenuRail);
-
 // Resolve one authoritative SEO object. A published admin override wins,
 // followed by the page's own defaults.
 const pagePath = Astro.url.pathname;
@@ -215,17 +208,7 @@ const googleFontsUrl =
   >
     <a href="#main-content" class="skip-link">Skip to main content</a>
     <RouteLoadingOverlay />
-    {!hideHeader && useNextNavigation && <NextNavigation />}
-    <!-- <Header /> -->
-    {showFloatingHeader && <Header hideThemeToggle={hideThemeToggle} altTextLogo={altTextLogo} />}
-    {!hideHeader && !useNextNavigation && !hideSideMenuRail && (
-      <SideMenuRail
-        client:load
-        layout={activeNavigationLayout}
-        hideThemeToggle={hideThemeToggle}
-        altTextLogo={altTextLogo}
-      />
-    )}
+    {!hideHeader && <SiteHeader />}
     {showGlobalGrid && <div class="global-grid-bg"></div>}
     {showGlobalGrid && <div class="global-glow-bg"></div>}
     <main
@@ -239,7 +222,7 @@ const googleFontsUrl =
     {!finalNoindex && !hideWhatsAppButton && <WhatsAppButton />}
 
     <script src="/scripts/journey-tracker.js" defer></script>
-    {!hideFooter && <Footer />}
+    {!hideFooter && <SiteFooter />}
   </body>
 </html>
 

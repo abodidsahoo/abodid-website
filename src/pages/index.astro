@@ -138,8 +138,6 @@ const structuredData = [
   description={description}
   structuredData={structuredData}
   fullWidth={true}
-  hideHeader={true}
-  hideFooter={true}
   hideWhatsAppButton={true}
   showNewsletterPopup={false}
   showGlobalGrid={false}
@@ -147,29 +145,6 @@ const structuredData = [
   bodyClass="story-home-page"
 >
   <link slot="head" rel="preload" as="image" href={heroProject.heroImage || heroProject.image} />
-
-  <header class="story-nav">
-    <a class="story-nav__brand" href="/" aria-label="Abodid Sahoo homepage">abodid.com</a>
-    <nav class="story-nav__links" aria-label="Primary navigation">
-      <a href="#selected-work" class="is-active">Work</a>
-      <a href="/research">Research</a>
-      <a href="/services">Services</a>
-      <a href="/experience">Experience</a>
-      <a href="/about">About</a>
-    </nav>
-    <a class="story-nav__contact" href="#enquiry">Hire me <span aria-hidden="true">↗</span></a>
-    <details class="story-nav__mobile">
-      <summary>Menu</summary>
-      <nav aria-label="Mobile navigation">
-        <a href="#selected-work" class="is-active">Work</a>
-        <a href="/research">Research</a>
-        <a href="/services">Services</a>
-        <a href="/experience">Experience</a>
-        <a href="/about">About</a>
-        <a href="#enquiry">Hire me ↗</a>
-      </nav>
-    </details>
-  </header>
 
   <main class="story-home">
     <section class="story-hero" aria-labelledby="story-hero-heading">
@@ -439,88 +414,6 @@ const structuredData = [
       </div>
     </section>
   </main>
-
-  <footer class="story-footer" aria-label="Site directory and footer">
-    <div class="story-footer__grid">
-      <div class="story-footer__card story-footer__card--work">
-        <div class="story-footer__card-header">
-          <h3 class="story-footer__title">Work</h3>
-          <span class="story-footer__index">01</span>
-        </div>
-        <nav aria-label="Work links">
-          <a href="/work">All Projects <span aria-hidden="true">↗</span></a>
-          <a href="/research">Research <span aria-hidden="true">↗</span></a>
-          <a href="/photography">Photography <span aria-hidden="true">↗</span></a>
-          <a href="/films">Filmmaking <span aria-hidden="true">↗</span></a>
-          <a href="/blog">Writing <span aria-hidden="true">↗</span></a>
-        </nav>
-      </div>
-
-      <div class="story-footer__card story-footer__card--curation">
-        <div class="story-footer__card-header">
-          <h3 class="story-footer__title">Curation</h3>
-          <span class="story-footer__index">02</span>
-        </div>
-        <nav aria-label="Curation links">
-          <a href="/resources">Resource Hub <span aria-hidden="true">↗</span></a>
-          <a href="/moodboard">Visual Moodboard <span aria-hidden="true">↗</span></a>
-          <a href="/xr-showcase">XR Showcase <span aria-hidden="true">↗</span></a>
-          <a href="/curated-videos">Must Watch Videos <span aria-hidden="true">↗</span></a>
-          <a href="/research/obsidian-vault">Obsidian Vault <span aria-hidden="true">↗</span></a>
-        </nav>
-      </div>
-
-      <div class="story-footer__card story-footer__card--workshops">
-        <div class="story-footer__card-header">
-          <h3 class="story-footer__title">Workshops</h3>
-          <span class="story-footer__index">03</span>
-        </div>
-        <nav aria-label="Workshops links">
-          <a href="/obsidian-tutoring">Obsidian Tutoring <span aria-hidden="true">↗</span></a>
-          <a href="/premiere-pro-masterclass">Video Editing Masterclass <span aria-hidden="true">↗</span></a>
-          <a href="/workshops">Photography <span aria-hidden="true">↗</span></a>
-          <a href="/workshops/video-editing-storytelling-class-1">Filmmaking <span aria-hidden="true">↗</span></a>
-          <a href="/workshops">Autoethnography <span aria-hidden="true">↗</span></a>
-        </nav>
-      </div>
-
-      <div class="story-footer__card story-footer__card--about">
-        <div class="story-footer__card-header">
-          <h3 class="story-footer__title">About</h3>
-          <span class="story-footer__index">04</span>
-        </div>
-        <nav aria-label="About links">
-          <a href="/about">About <span aria-hidden="true">↗</span></a>
-          <a href="/awards">Awards <span aria-hidden="true">↗</span></a>
-          <a href="/press">Press Mentions <span aria-hidden="true">↗</span></a>
-          <a href="/manifesto">Manifesto <span aria-hidden="true">↗</span></a>
-          <a href="https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/cv/Abodid%20Sahoo%20-%20Photography%20&%20AI%20-%20CV.pdf" target="_blank" rel="noopener noreferrer">Resume <span aria-hidden="true">↗</span></a>
-        </nav>
-      </div>
-    </div>
-
-    <div class="story-footer__bottom-card">
-      <div class="story-footer__brand-group">
-        <a class="story-footer__brand" href="/" aria-label="Abodid Sahoo homepage">abodid.com</a>
-        <span class="story-footer__copyright">© {new Date().getFullYear()} Abodid Sahoo. All rights reserved.</span>
-      </div>
-
-      <div class="story-footer__social">
-        <a href="https://www.instagram.com/abodid.sahoo" target="_blank" rel="noopener noreferrer">Instagram ↗</a>
-        <a href="https://uk.linkedin.com/in/abodidsahoo" target="_blank" rel="noopener noreferrer">LinkedIn ↗</a>
-        <a href="https://vimeo.com/abodidsahoo" target="_blank" rel="noopener noreferrer">Vimeo ↗</a>
-        <a href="https://github.com/abodidsahoo" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
-      </div>
-
-      <div class="story-footer__legal">
-        <a href="/privacy">Privacy Policy</a>
-        <span aria-hidden="true">·</span>
-        <a href="/sitemap">Sitemap</a>
-        <span aria-hidden="true">·</span>
-        <a href="/architecture">Architecture</a>
-      </div>
-    </div>
-  </footer>
 
   <script is:inline define:vars={{ cloudflareExhibitionFallbacks }}>
     (() => {
@@ -812,33 +705,6 @@ const structuredData = [
   body.story-home-page :is(a, button, summary) { -webkit-tap-highlight-color: transparent; }
   [data-auto-contrast] { color: var(--surface-foreground, inherit); }
   [data-auto-contrast] :where(h1, h2, h3, h4, p, span, small, strong, b, dt, dd, a) { color: inherit; }
-
-  .story-nav {
-    position: sticky; top: 0; z-index: 50; min-height: 72px; padding: 0 var(--story-gutter);
-    display: grid; grid-template-columns: minmax(140px, 1fr) auto minmax(220px, 1fr); align-items: center; gap: 1.5rem;
-    border-bottom: 0; background: var(--pop-blue); color: var(--pop-cream);
-  }
-
-  .story-nav a, .story-nav summary { color: inherit; font: 700 .72rem/1 var(--font-mono, monospace); letter-spacing: .08em; text-decoration: none; text-transform: uppercase; }
-  .story-nav__brand { width: fit-content; min-height: 42px; padding: 0 .9rem; display: inline-flex; align-items: center; border: 1px solid var(--pop-ink); border-radius: var(--home-next-radius-control); background: var(--pop-yellow); color: var(--pop-ink) !important; }
-  .story-nav__links { display: flex; align-items: center; gap: clamp(1.2rem, 2.5vw, 2.5rem); }
-  .story-nav__links a { opacity: 1; transition: text-decoration-color 160ms ease; }
-  .story-nav__links a.is-active,
-  .story-nav__mobile nav a.is-active {
-    text-decoration: underline;
-    text-underline-offset: 4px;
-    text-decoration-thickness: 2px;
-  }
-  .story-nav__links a:hover,
-  .story-nav__links a:focus-visible {
-    opacity: 1;
-    text-decoration: underline;
-    text-underline-offset: 4px;
-    text-decoration-thickness: 2px;
-  }
-  .story-nav__contact { justify-self: end; min-height: 44px; padding: 0 1rem; display: inline-flex; align-items: center; gap: .5rem; border: 1px solid var(--pop-ink); border-radius: var(--home-next-radius-control); background: var(--pop-pink); color: var(--pop-ink) !important; transition: transform var(--home-next-motion), box-shadow var(--home-next-motion); }
-  .story-nav__contact:hover { transform: translateY(-2px); box-shadow: 0 4px 0 var(--story-ink); }
-  .story-nav__mobile { display: none; }
 
   .story-home { overflow: clip; }
   .story-hero { min-height: var(--home-next-hero-height); padding: var(--home-next-gap); display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(360px, 1fr); gap: var(--home-next-gap); align-items: stretch; background: var(--pop-blue); }
@@ -1373,199 +1239,11 @@ const structuredData = [
     margin-top: .6rem;
   }
 
-  .story-footer {
-    padding-top: clamp(2.5rem, 5vw, 4.5rem);
-    padding-inline: var(--home-next-gap);
-    padding-bottom: var(--home-next-gap);
-    background: var(--pop-pink);
-    color: var(--pop-ink);
-    border-top: none;
-  }
-  .story-footer a { color: inherit; text-decoration: none; }
-  .story-footer__grid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: var(--home-next-gap);
-  }
-  .story-footer__card {
-    padding: clamp(1.4rem, 2.4vw, 2.2rem);
-    border: var(--home-next-border);
-    border-radius: var(--home-next-radius-panel);
-    display: flex;
-    flex-direction: column;
-    gap: 1.15rem;
-    transition: transform var(--home-next-motion), box-shadow var(--home-next-motion);
-  }
-  .story-footer__card--work { background: var(--pop-yellow); color: var(--pop-ink); }
-  .story-footer__card--curation {
-    background: var(--pop-blue);
-    border-color: rgba(255, 248, 232, 0.45);
-    color: var(--pop-cream);
-  }
-  .story-footer__card--workshops { background: var(--pop-lime); color: var(--pop-ink); }
-  .story-footer__card--about { background: var(--pop-cream); color: var(--pop-ink); }
-  .story-footer__card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 18px rgba(21, 19, 15, 0.08);
-  }
-  .story-footer__card--curation:hover {
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
-  }
-  .story-footer__card-header {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: .75rem;
-    border-bottom: 1.5px solid currentColor;
-    padding-bottom: .85rem;
-  }
-  .story-footer__title {
-    margin: 0;
-    font: 750 clamp(1.3rem, 1.8vw, 1.85rem)/1 var(--font-display, sans-serif);
-    letter-spacing: -.035em;
-    text-transform: uppercase;
-    color: inherit;
-  }
-  .story-footer__index {
-    font: 750 clamp(1.3rem, 1.8vw, 1.85rem)/1 var(--font-display, sans-serif);
-    letter-spacing: -.035em;
-    color: inherit;
-    opacity: .92;
-  }
-  .story-footer__card nav {
-    display: flex;
-    flex-direction: column;
-    gap: .35rem;
-  }
-  .story-footer__card nav a {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: .52rem 0;
-    border-bottom: 1px solid rgba(21, 19, 15, .22);
-    color: var(--pop-ink);
-    font: 750 clamp(.75rem, .88vw, .84rem)/1.35 var(--font-mono, monospace);
-    letter-spacing: .05em;
-    text-transform: uppercase;
-    text-decoration: none;
-    transition: transform var(--home-next-motion), color var(--home-next-motion);
-  }
-  .story-footer__card--curation nav a {
-    color: var(--pop-cream);
-    border-bottom-color: rgba(255, 248, 232, 0.28);
-  }
-  .story-footer__card nav a:last-child {
-    border-bottom: none;
-  }
-  .story-footer__card nav a:hover {
-    transform: translateX(4px);
-  }
-  .story-footer__card--curation nav a:hover {
-    color: var(--pop-yellow);
-  }
-  .story-footer__card nav a span {
-    opacity: .75;
-    font-size: .88rem;
-    transition: transform var(--home-next-motion), opacity var(--home-next-motion);
-  }
-  .story-footer__card nav a:hover span {
-    opacity: 1;
-    transform: translate(2px, -2px);
-  }
-  .story-footer__bottom-card {
-    margin-top: var(--home-next-gap);
-    padding: clamp(1rem, 1.8vw, 1.35rem) clamp(1.2rem, 2.5vw, 2.2rem);
-    border: var(--home-next-border);
-    border-radius: var(--home-next-radius-panel);
-    background: var(--pop-cream);
-    color: var(--pop-ink);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 1.25rem;
-  }
-  .story-footer__brand-group {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 1.25rem;
-  }
-  .story-footer__brand {
-    min-height: 38px;
-    padding: 0 .9rem;
-    display: inline-flex;
-    align-items: center;
-    border: 1px solid var(--pop-ink);
-    border-radius: var(--home-next-radius-control);
-    background: var(--pop-yellow);
-    color: var(--pop-ink) !important;
-    font: 750 .74rem/1 var(--font-mono, monospace);
-    letter-spacing: .08em;
-    text-transform: uppercase;
-    transition: transform var(--home-next-motion), box-shadow var(--home-next-motion);
-  }
-  .story-footer__brand:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 3px 0 var(--pop-ink);
-  }
-  .story-footer__copyright {
-    font: 600 .72rem/1.35 var(--font-mono, monospace);
-    color: rgba(21, 19, 15, .82);
-  }
-  .story-footer__social {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: .5rem;
-  }
-  .story-footer__social a {
-    min-height: 34px;
-    padding: 0 .75rem;
-    display: inline-flex;
-    align-items: center;
-    border: 1px solid var(--pop-ink);
-    border-radius: var(--home-next-radius-control);
-    background: #ffffff;
-    color: var(--pop-ink);
-    font: 700 .68rem/1 var(--font-mono, monospace);
-    letter-spacing: .05em;
-    text-transform: uppercase;
-    transition: background-color var(--home-next-motion), transform var(--home-next-motion);
-  }
-  .story-footer__social a:hover {
-    background: var(--pop-pink);
-    transform: translateY(-2px);
-  }
-  .story-footer__legal {
-    display: flex;
-    align-items: center;
-    gap: .85rem;
-    font: 650 .7rem/1.3 var(--font-mono, monospace);
-    text-transform: uppercase;
-    color: rgba(21, 19, 15, .75);
-  }
-  .story-footer__legal a {
-    color: inherit;
-    transition: color 160ms ease;
-  }
-  .story-footer__legal a:hover {
-    color: #000000;
-    text-decoration: underline;
-  }
-
   @media (max-width: 980px) {
     :root {
       --home-next-hero-title-font: 480 clamp(1.25rem, 3.2vw, 1.75rem)/1.15 var(--font-display, sans-serif);
       --home-next-hero-statement-font: 300 clamp(1.9rem, 4.2vw, 2.9rem)/1.02 var(--font-display, sans-serif);
     }
-    .story-nav { grid-template-columns: 1fr auto; }
-    .story-nav__links, .story-nav__contact { display: none; }
-    .story-nav__mobile { position: relative; display: block; justify-self: end; }
-    .story-nav__mobile summary { min-height: 44px; padding: 0 .9rem; display: flex; align-items: center; border: 1px solid var(--pop-ink); border-radius: var(--home-next-radius-control); background: var(--pop-yellow); color: var(--pop-ink); cursor: pointer; list-style: none; }
-    .story-nav__mobile summary::-webkit-details-marker { display: none; }
-    .story-nav__mobile nav { position: fixed; inset: 72px 0 auto; padding: 1.5rem var(--story-gutter) 2rem; display: grid; gap: 0; background: var(--story-yellow); border-bottom: 1px solid var(--story-ink); }
-    .story-nav__mobile nav a { padding: 1rem 0; border-bottom: 1px solid rgba(23,21,15,.2); font-size: .85rem; }
     .story-hero { min-height: auto; grid-template-columns: 1fr; padding: 8px; }
     .story-hero__rail { grid-template-rows: auto auto; }
     .story-hero__visual { min-height: 0; aspect-ratio: 3 / 2; }
@@ -1576,10 +1254,6 @@ const structuredData = [
     .story-services__conversation { grid-template-columns: 1fr; }
     .story-services__conversation-media { width: 100%; height: auto; aspect-ratio: 16 / 10; max-height: 320px; }
     .story-writing__inner { grid-template-columns: 1fr; gap: 2.25rem; }
-    .story-footer__grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: var(--home-next-gap);
-    }
   }
 
   @media (max-width: 720px) {
@@ -1632,37 +1306,10 @@ const structuredData = [
     .story-quotes { margin-right: calc(-1 * var(--story-gutter)); padding-right: var(--story-gutter); }
     .story-quote { min-height: 420px; flex-basis: min(86vw, 360px); padding: 1.5rem; }
     :is(.story-evidence, .story-services, .story-enquiry, .story-writing) { padding-inline: 1rem; }
-    .story-footer {
-      padding-top: 2rem;
-      padding-inline: var(--home-next-gap);
-      padding-bottom: var(--home-next-gap);
-    }
-    .story-footer__grid {
-      grid-template-columns: 1fr;
-      gap: var(--home-next-gap);
-    }
-    .story-footer__bottom-card {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 1.25rem;
-    }
-    .story-footer__brand-group {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: .5rem;
-    }
-    .story-footer__social {
-      width: 100%;
-      flex-wrap: wrap;
-    }
-    .story-footer__legal {
-      flex-wrap: wrap;
-      gap: .6rem .8rem;
-    }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .story-home *, .story-nav * { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+    .story-home * { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
     .story-brand-pill__track > strong, .story-brand-pill__track > span { transition: none !important; }
   }
 </style>
