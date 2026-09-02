@@ -638,7 +638,7 @@ const pageDescription = "Ask questions across Abodid Sahoo's public Obsidian not
 
     .vault-question-panel .vault-ask-box {
         min-height: 78px;
-        padding: 1rem 7.25rem 1rem 1.25rem;
+        padding: 0.8rem 0.8rem 0.8rem 1.25rem;
         border: 1px solid var(--pop-ink);
         border-radius: 18px;
         background: var(--pop-cream);
@@ -652,10 +652,19 @@ const pageDescription = "Ask questions across Abodid Sahoo's public Obsidian not
         box-shadow: 0 0 0 3px var(--pop-purple);
     }
 
-    .vault-question-panel .vault-ask-box textarea { color: var(--pop-ink); font-size: 1rem; }
+    .vault-question-panel .vault-ask-box textarea {
+        min-height: 50px;
+        box-sizing: border-box;
+        padding: 13px 0;
+        color: var(--pop-ink);
+        font-size: 1rem;
+        line-height: 24px;
+    }
     .vault-question-panel .vault-ask-box textarea::placeholder { color: rgba(21, 19, 15, 0.58); }
 
     .vault-question-panel .vault-ask-submit {
+        position: static;
+        align-self: end;
         min-width: 88px;
         min-height: 50px;
         border: 1px solid var(--pop-ink);
@@ -673,41 +682,54 @@ const pageDescription = "Ask questions across Abodid Sahoo's public Obsidian not
     }
 
     .vault-question-panel .vault-ask-status { color: rgba(21, 19, 15, 0.76); }
-    .vault-question-panel .vault-sources-label { color: rgba(255, 248, 232, 0.72); }
+    .vault-question-panel .vault-sources-label { color: var(--pop-ink); }
     .vault-question-panel .vault-ask-error { color: #7c0018; }
 
     .vault-question-panel .vault-result {
+        --text-primary: var(--pop-ink);
+        --text-secondary: rgba(21, 19, 15, 0.72);
+        --type-paragraph-color: var(--pop-ink);
         border: 1px solid var(--pop-ink);
         border-radius: var(--vault-control-radius);
-        border-left: 7px solid var(--pop-pink);
-        background: var(--pop-purple);
-        color: var(--pop-cream);
+        background: var(--pop-cream);
+        color: var(--pop-ink);
         box-shadow: none;
         backdrop-filter: none;
     }
 
     .vault-question-panel .vault-result__header,
-    .vault-question-panel .vault-sources { border-color: rgba(255, 248, 232, 0.28); }
+    .vault-question-panel .vault-sources { border-color: var(--pop-line); }
 
-    .vault-question-panel .vault-result__label { color: var(--pop-cream); }
+    .vault-question-panel .vault-result__label { color: var(--pop-ink); }
+
+    .vault-question-panel .vault-answer-text,
+    .vault-question-panel .vault-answer-text p,
+    .vault-question-panel .vault-answer-text li,
+    .vault-question-panel .vault-answer-text blockquote,
+    .vault-question-panel .vault-answer-text th,
+    .vault-question-panel .vault-answer-text td,
+    .vault-question-panel .vault-answer-text code,
+    .vault-question-panel .vault-answer-text a {
+        color: var(--pop-ink);
+    }
 
     .vault-question-panel .vault-source-row {
-        border: 1px solid var(--pop-cream);
+        border: 1px solid var(--pop-line);
         border-radius: var(--vault-control-radius);
         background: transparent;
-        color: var(--pop-cream);
+        color: var(--pop-ink);
         box-shadow: none;
     }
 
     .vault-question-panel .vault-citation {
-        border-color: var(--pop-cream);
+        border-color: var(--pop-ink);
         background: var(--pop-yellow);
         color: var(--pop-ink);
     }
 
     .vault-question-panel .vault-source-title,
     .vault-question-panel .vault-source-title:visited,
-    .vault-question-panel .vault-source-title:hover { color: var(--pop-cream); }
+    .vault-question-panel .vault-source-title:hover { color: var(--pop-ink); }
 
     .vault-question-panel .vault-citation-popover {
         border-color: var(--pop-ink);
@@ -781,12 +803,14 @@ const pageDescription = "Ask questions across Abodid Sahoo's public Obsidian not
         .vault-question-panel .vault-ask-section { padding-top: 2rem; }
         .vault-question-panel .vault-ask-box {
             min-height: 70px;
-            padding: 0.8rem 5.4rem 0.8rem 0.9rem;
+            padding: 0.65rem 0.65rem 0.65rem 0.9rem;
             border-radius: var(--vault-control-radius);
         }
+        .vault-question-panel .vault-ask-box textarea {
+            min-height: 46px;
+            padding: 11px 0;
+        }
         .vault-question-panel .vault-ask-submit {
-            right: 0.6rem;
-            bottom: 0.6rem;
             min-width: 68px;
             min-height: 46px;
         }

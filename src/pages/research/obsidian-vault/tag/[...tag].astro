@@ -1,6 +1,9 @@
 ---
 export const prerender = false;
+
 import BaseLayout from "../../../../layouts/BaseLayout.astro";
+import { findNotesReferencing } from "../../../../lib/vault.js";
+import { findIndexedNotesByWikiLink } from "../../../../lib/vault-note-index.js";
 
 const { tag } = Astro.params;
 
@@ -10,622 +13,287 @@ if (!tag) {
 
 const activeTagSlug = decodeURIComponent(tag).replace(/\.md$/i, "");
 const activeTagName = activeTagSlug.replace(/-/g, " ");
-const pageTitle = `Tag: ${activeTagName}`;
+const displayTagName = activeTagName.replace(/\b\w/g, (letter) => letter.toUpperCase());
+const pageTitle = `${displayTagName} | Obsidian Vault`;
+
+let notes = [];
+
+try {
+    notes = await findIndexedNotesByWikiLink(activeTagSlug);
+} catch (indexError) {
+    console.warn("[vault-tag-page] Indexed lookup failed; using GitHub fallback:", indexError);
+    const legacyNotes = await findNotesReferencing(activeTagSlug);
+    notes = legacyNotes.map((note) => {
+        const slug = note.name.replace(/\.md$/i, "");
+        return {
+            name: note.name,
+            title: slug.replace(/-/g, " "),
+            slug,
+            href: `/research/obsidian-vault/${encodeURIComponent(slug)}`,
+        };
+    });
+}
+
+Astro.response.headers.set(
+    "Cache-Control",
+    "public, max-age=60, s-maxage=300, stale-while-revalidate=86400",
+);
 ---
 
-<BaseLayout title={pageTitle}>
-    <div class="note-container">
-        <nav class="note-nav">
-            <a href="/research/obsidian-vault" class="back-pill">← Back to Vault</a>
-        </nav>
+<BaseLayout
+    title={pageTitle}
+    description={`Notes connected to ${activeTagName} in Abodid Sahoo's public Obsidian vault.`}
+    fullWidth={true}
+    showGlobalGrid={false}
+    bodyClass="vault-tag-minimal-page"
+>
+    <main class="vault-tag-page" aria-labelledby="tag-title">
+        <article class="vault-tag-document">
+            <div class="vault-tag-inner">
+                <a href="/research/obsidian-vault" class="vault-tag-back">
+                    <span aria-hidden="true">←</span>
+                    <span>Back to Vault</span>
+                </a>
 
-        <article class="note-content">
-            <h1>{pageTitle}</h1>
+                <header class="vault-tag-header">
+                    <h1 id="tag-title">Connected notes</h1>
+                    <p>Notes tagged with <strong>{displayTagName}</strong>.</p>
+                </header>
 
-            <div
-                class="tag-results is-animating"
-                data-tag-view
-                data-tag-name={activeTagName}
-                data-tag-slug={activeTagSlug}
-            >
-                <div class="results-rail">
-                    <div class="tag-search-console is-searching" aria-live="polite">
-                        <p class="search-line search-line-main" data-search-main>
-                            Preparing vault scan
-                        </p>
-                        <p class="search-line search-line-sub" data-search-sub>
-                            Loading note index and references...
-                        </p>
+                <section class="vault-tag-results" aria-labelledby="results-title">
+                    <p class="vault-tag-status" aria-live="polite">
+                        <span aria-hidden="true"></span>
+                        <span>
+                            {notes.length === 0
+                                ? "No connected notes found."
+                                : `${notes.length} connected ${notes.length === 1 ? "note" : "notes"} found.`}
+                        </span>
+                    </p>
+
+                    <div class="vault-tag-results-heading">
+                        <h2 id="results-title">Results</h2>
+                        <p>{notes.length} {notes.length === 1 ? "note" : "notes"}</p>
                     </div>
 
-                    <div
-                        class="search-results-divider"
-                        data-results-divider
-                        aria-hidden="true"
-                    ></div>
-
-                    <div class="results-section-heading" aria-hidden="true">
-                        <h2 data-results-heading>Notes</h2>
+                    <div class="vault-tag-list">
+                        {notes.length > 0 ? (
+                            notes.map((note) => (
+                                <a class="vault-tag-note" href={note.href}>
+                                    <span>{note.title}</span>
+                                    <span class="vault-tag-note__arrow" aria-hidden="true">→</span>
+                                </a>
+                            ))
+                        ) : (
+                            <p class="vault-tag-empty">
+                                No public notes currently reference “{activeTagName}”.
+                            </p>
+                        )}
                     </div>
-
-                    <div class="notes-column-preview">
-                        <div class="vault-list" data-results-list>
-                            <p class="search-pending">Waiting for vault scan...</p>
-                        </div>
-                    </div>
-
-                    <div class="results-end-nav">
-                        <a href="/research/obsidian-vault" class="back-pill">← Back to Vault</a>
-                    </div>
-                </div>
+                </section>
             </div>
         </article>
-    </div>
+    </main>
 </BaseLayout>
 
-<script>
-    (() => {
-        let activeRunToken = 0;
-        let activeController = null;
-        let lastStartedAt = 0;
-
-        const SEARCH_TIMEOUT_MS = 9000;
-        const RETRY_LOCK_MS = 1200;
-
-        const createRetryMarkup = (message) => `
-            <div class="search-retry-card result-reveal is-visible">
-                <p class="search-retry-card__text">${message}</p>
-                <button class="search-retry-card__button" type="button" data-search-retry>
-                    Search again
-                </button>
-            </div>
-        `;
-
-        const initTagSearch = () => {
-        const tagView = document.querySelector("[data-tag-view]");
-        if (!tagView) return;
-        if (tagView.dataset.searchInitialized === "true") return;
-        tagView.dataset.searchInitialized = "true";
-
-        const tagName = tagView.getAttribute("data-tag-name") || "this tag";
-        const tagSlug = tagView.getAttribute("data-tag-slug") || "";
-        const listNode = tagView.querySelector("[data-results-list]");
-        const mainLine = tagView.querySelector("[data-search-main]");
-        const subLine = tagView.querySelector("[data-search-sub]");
-        const searchConsole = tagView.querySelector(".tag-search-console");
-        const resultsHeading = tagView.querySelector("[data-results-heading]");
-
-        const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-        const updateLines = (main, sub) => {
-            if (mainLine) mainLine.textContent = main;
-            if (subLine) subLine.textContent = sub;
-        };
-
-        const updateResultsHeading = (count) => {
-            if (!resultsHeading) return;
-            resultsHeading.textContent = `Notes [${count}]`;
-        };
-
-        const renderResults = (notes) => {
-            if (!listNode) return [];
-            listNode.innerHTML = "";
-
-            if (!notes.length) {
-                updateResultsHeading(0);
-                const empty = document.createElement("p");
-                empty.className = "no-results result-reveal";
-                empty.textContent = "No notes found referencing this tag.";
-                listNode.appendChild(empty);
-                return [empty];
-            }
-
-            updateResultsHeading(notes.length);
-
-            const nodes = notes.map((note, index) => {
-                const card = document.createElement("a");
-                card.className = "note-card result-reveal";
-                card.href = note.href;
-                card.style.setProperty("--stagger-index", String(index));
-
-                const info = document.createElement("div");
-                info.className = "note-info";
-                const title = document.createElement("h3");
-                title.textContent = note.slug.replace(/-/g, " ");
-
-                info.appendChild(title);
-                card.appendChild(info);
-                listNode.appendChild(card);
-                return card;
-            });
-
-            return nodes;
-        };
-
-        const setRetryState = (message) => {
-            if (!listNode) return;
-            updateResultsHeading(0);
-            listNode.innerHTML = createRetryMarkup(message);
-            const retryButton = listNode.querySelector("[data-search-retry]");
-            if (retryButton) {
-                retryButton.addEventListener("click", () => {
-                    run({ force: true });
-                }, { once: true });
-            }
-        };
-
-        const resetPendingState = () => {
-            if (!listNode) return;
-            listNode.innerHTML = '<p class="search-pending">Waiting for vault scan...</p>';
-        };
-
-        const run = async ({ force = false } = {}) => {
-            const now = Date.now();
-            if (!force && now - lastStartedAt < RETRY_LOCK_MS) return;
-            lastStartedAt = now;
-
-            const runToken = ++activeRunToken;
-            let statusTimer = null;
-
-            if (activeController) {
-                activeController.abort();
-            }
-
-            const controller = new AbortController();
-            activeController = controller;
-            const timeoutId = window.setTimeout(() => {
-                controller.abort("timeout");
-            }, SEARCH_TIMEOUT_MS);
-
-            tagView.classList.add("is-animating");
-            tagView.classList.remove("is-complete");
-            if (searchConsole) searchConsole.classList.add("is-searching");
-            resetPendingState();
-            updateResultsHeading("...");
-
-            updateLines(
-                `Searching tag "${tagName}"...`,
-                "Extracting vault references and backlinks..."
-            );
-
-            const phases = [
-                {
-                    main: "Scanning note graph for exact tag matches...",
-                    sub: `Reading linked notes and metadata for "${tagName}"...`,
-                },
-                {
-                    main: "Compiling candidate notes...",
-                    sub: "Merging backlinks and wiki-link references...",
-                },
-                {
-                    main: "Finalizing ranked list...",
-                    sub: "Preparing the note stack for reveal...",
-                },
-            ];
-
-            let phaseIndex = 0;
-            statusTimer = window.setInterval(() => {
-                const phase = phases[phaseIndex % phases.length];
-                updateLines(phase.main, phase.sub);
-                phaseIndex += 1;
-            }, 900);
-
-            let payload = null;
-            let fetchError = null;
-            try {
-                const response = await fetch(
-                    `/api/vault-tag-search.json?tag=${encodeURIComponent(tagSlug || tagName)}`,
-                    { cache: "no-store", signal: controller.signal },
-                );
-                payload = await response.json();
-                if (!response.ok || !payload?.ok) {
-                    fetchError = payload?.error || "Search failed.";
-                }
-            } catch (error) {
-                fetchError = error?.name === "AbortError"
-                    ? "Search took too long."
-                    : "Network error while searching the vault.";
-            } finally {
-                window.clearTimeout(timeoutId);
-            }
-
-            if (statusTimer) window.clearInterval(statusTimer);
-            if (runToken !== activeRunToken) return;
-
-            if (searchConsole) searchConsole.classList.remove("is-searching");
-            activeController = null;
-
-            if (fetchError) {
-                updateLines(
-                    fetchError === "Search took too long." ? "Search paused." : "Search failed.",
-                    fetchError === "Search took too long."
-                        ? "The vault scan stalled. You can run the search again."
-                        : fetchError,
-                );
-                setRetryState(
-                    fetchError === "Search took too long."
-                        ? "The search seems stuck. Try running it again."
-                        : "The search hit a network problem. Please try again."
-                );
-                return;
-            }
-
-            const notes = Array.isArray(payload?.notes) ? payload.notes : [];
-            const noteCount = typeof payload?.count === "number" ? payload.count : notes.length;
-            updateResultsHeading(noteCount);
-
-            updateLines(
-                "Search complete.",
-                noteCount === 0
-                    ? `No matches found for "${tagName}".`
-                    : `Found ${noteCount} ${noteCount === 1 ? "note" : "notes"} with "${tagName}".`,
-            );
-            tagView.classList.add("is-complete");
-
-            await pause(180);
-
-            const resultNodes = renderResults(notes);
-            resultNodes.forEach((node, index) => {
-                const delay = 170 * index;
-                window.setTimeout(() => {
-                    node.classList.add("is-visible");
-                }, delay);
-            });
-
-            window.setTimeout(() => {
-                tagView.classList.remove("is-animating");
-            }, Math.max(700, 170 * resultNodes.length + 240));
-        };
-
-        run();
-
-        window.addEventListener("pageshow", (event) => {
-            if (event.persisted) {
-                run({ force: true });
-            }
-        });
-    };
-
-        if (document.readyState === "loading") {
-            document.addEventListener("DOMContentLoaded", initTagSearch, { once: true });
-        } else {
-            initTagSearch();
-        }
-    })();
-</script>
-
-<style>
+<style is:global>
     :root {
-        --vault-pill-bg: rgba(0, 0, 0, 0.18);
-        --vault-pill-hover-bg: rgba(0, 0, 0, 0.26);
-        --vault-note-pattern-dot: rgba(255, 255, 255, 0.08);
-        --vault-note-sheen: rgba(255, 255, 255, 0.03);
+        --pop-blue: #2444ca;
+        --pop-yellow: #ffe44f;
+        --pop-purple: #5524c7;
+        --pop-cream: #fff8e8;
+        --pop-ink: #15130f;
+        --pop-border: rgba(21, 19, 15, 0.72);
+        --pop-line: rgba(21, 19, 15, 0.2);
     }
 
-    [data-theme="light"] {
-        --vault-pill-bg: rgba(255, 255, 255, 0.84);
-        --vault-pill-hover-bg: rgba(255, 255, 255, 0.95);
-        --vault-note-pattern-dot: rgba(15, 23, 42, 0.08);
-        --vault-note-sheen: rgba(255, 255, 255, 0.58);
+    body.vault-tag-minimal-page {
+        background: var(--pop-blue);
+        color: var(--pop-ink);
     }
 
-    .note-container {
-        max-width: 800px;
+    .vault-tag-page {
+        width: 100%;
+        padding: clamp(0.5rem, 2vw, 1.5rem);
+        background: var(--pop-blue);
+        font-family: "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
+    }
+
+    .vault-tag-document {
+        width: min(100%, 900px);
         margin: 0 auto;
-        padding: 2rem 1rem;
+        border: 1px solid var(--pop-border);
+        border-radius: clamp(16px, 2vw, 22px);
+        background: var(--pop-cream);
     }
 
-    .results-rail {
-        width: min(100%, 34rem);
+    .vault-tag-inner {
+        width: min(100%, 720px);
+        margin: 0 auto;
+        padding: clamp(1.4rem, 5vw, 4.5rem) clamp(1.15rem, 5vw, 3.5rem);
     }
 
-    .note-nav {
-        margin-bottom: 2rem;
-    }
-
-    .back-pill {
+    .vault-tag-back {
         display: inline-flex;
+        min-height: 44px;
         align-items: center;
-        justify-content: center;
-        gap: 0.25rem;
-        padding: 0.52rem 0.9rem;
-        border: 1px solid var(--border-subtle);
-        border-radius: 999px;
-        background: var(--bg-canvas);
-        color: color-mix(in srgb, var(--text-primary) 74%, var(--text-secondary) 26%);
+        gap: 0.5rem;
+        padding-inline: 0.2rem;
+        color: var(--pop-ink);
         text-decoration: none;
-        font-size: 0.78rem;
-        font-family: var(--font-ui);
-        font-weight: 550;
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
-        transition: color 0.2s, border-color 0.2s, background 0.2s, transform 0.2s;
+        font-size: 1.05rem;
+        font-weight: 680;
+        line-height: 1;
+        transition: background 160ms ease, padding 160ms ease;
     }
 
-    .back-pill:hover {
-        color: var(--text-primary);
-        border-color: var(--text-secondary);
-        background: var(--bg-surface);
-        transform: translateY(-1px);
+    .vault-tag-back:hover {
+        padding-inline: 0.7rem;
+        background: var(--pop-yellow);
     }
 
-    .note-content h1 {
-        font-size: 2.5rem;
-        margin-bottom: 2rem;
-        text-transform: capitalize;
+    .vault-tag-back:focus-visible,
+    .vault-tag-note:focus-visible {
+        outline: 3px solid var(--pop-purple);
+        outline-offset: 3px;
     }
 
-    .tag-search-console {
-        border: 1px solid var(--border-subtle);
-        border-radius: 10px;
-        background: var(--bg-canvas);
-        padding: 0.95rem 1rem;
-        display: grid;
-        gap: 0.25rem;
+    .vault-tag-header {
+        margin-top: clamp(2.5rem, 6vw, 4.5rem);
+        padding-bottom: clamp(1.75rem, 4vw, 2.75rem);
+        border-bottom: 1px solid var(--pop-line);
     }
 
-    .tag-search-console.is-searching {
-        animation: searchGlow 1.8s ease-in-out infinite;
-        border-color: rgba(120, 170, 255, 0.45);
-    }
-
-    .search-line {
+    .vault-tag-header h1 {
+        max-width: 20ch;
         margin: 0;
-        font-family: var(--font-ui);
-        letter-spacing: 0.02em;
+        color: var(--pop-ink);
+        font-size: clamp(2rem, 4vw, 2.9rem);
+        font-weight: 560;
+        line-height: 1.08;
+        letter-spacing: -0.04em;
+        text-wrap: balance;
     }
 
-    .search-line-main {
-        color: var(--text-primary);
-        font-size: 0.85rem;
+    .vault-tag-header p {
+        margin: 0.75rem 0 0;
+        color: rgba(21, 19, 15, 0.72);
+        font-size: 1rem;
+        line-height: 1.5;
     }
 
-    .tag-search-console.is-searching .search-line-main::after {
-        content: "...";
-        display: inline-block;
-        width: 0;
-        overflow: hidden;
-        vertical-align: bottom;
-        animation: scanDots 1.2s steps(4, end) infinite;
+    .vault-tag-header strong {
+        color: var(--pop-ink);
+        font-weight: 620;
     }
 
-    .search-line-sub {
-        color: var(--text-secondary);
-        font-size: 0.78rem;
+    .vault-tag-results {
+        padding-top: clamp(1.75rem, 4vw, 2.75rem);
     }
 
-    @keyframes scanDots {
-        to {
-            width: 1.15em;
-        }
-    }
-
-    @keyframes searchGlow {
-        0% {
-            box-shadow: 0 0 0 rgba(120, 170, 255, 0);
-        }
-        50% {
-            box-shadow: 0 0 0.9rem rgba(120, 170, 255, 0.22);
-        }
-        100% {
-            box-shadow: 0 0 0 rgba(120, 170, 255, 0);
-        }
-    }
-
-    .notes-column-preview {
-        min-width: 0;
-        border-right: none;
-        padding: 0;
-    }
-
-    .results-end-nav {
+    .vault-tag-status {
         display: flex;
-        justify-content: center;
-        margin-top: 4rem;
-        margin-bottom: 2.75rem;
-        padding-top: 0.75rem;
-    }
-
-    .results-section-heading {
-        margin: 0 0 2rem;
-        opacity: 0;
-        transform: translateY(6px);
-        transition:
-            opacity 0.24s ease,
-            transform 0.24s ease;
-        pointer-events: none;
-    }
-
-    .results-section-heading h2 {
+        min-height: 44px;
+        align-items: center;
+        gap: 0.65rem;
         margin: 0;
-        font-size: 1.2rem;
-        text-transform: uppercase;
-        color: #9aa6bf;
-        letter-spacing: 1px;
-        font-weight: 500;
+        color: var(--pop-ink);
+        font-size: 0.88rem;
+        line-height: 1.4;
     }
 
-    .search-results-divider {
-        width: 100%;
-        height: 0;
-        margin: 0;
-        background: rgba(255, 255, 255, 0.94);
-        opacity: 0;
-        transition:
-            height 0.24s ease,
-            margin 0.24s ease,
-            opacity 0.24s ease;
-    }
-
-    .tag-results.is-complete .search-results-divider {
-        height: 3px;
-        margin: 2rem 0 2rem;
-        opacity: 1;
-    }
-
-    .tag-results.is-complete .results-section-heading {
-        opacity: 1;
-        transform: translateY(0);
-    }
-
-    .vault-list {
-        display: flex;
-        flex-direction: column;
-        gap: 1.2rem;
-    }
-
-    .search-pending {
-        margin: 0;
-        color: var(--text-tertiary);
-        border: 1px dashed var(--border-subtle);
-        border-radius: 8px;
-        padding: 0.95rem 1rem;
-        font-size: 0.82rem;
-        font-family: var(--font-ui);
-        background: rgba(255, 255, 255, 0.02);
-    }
-
-    /* Result cards are injected client-side, so their selectors need to stay global. */
-    :global(.tag-results .note-card) {
+    .vault-tag-status > span:first-child {
         display: block;
-        position: relative;
-        overflow: hidden;
-        isolation: isolate;
-        padding: 1.2rem;
-        border-radius: 8px;
-        text-decoration: none;
-        color: var(--text-primary);
-        transition: transform 0.2s, background 0.2s, border-color 0.2s;
-        border: 1px solid var(--border-subtle);
-        background:
-            linear-gradient(135deg, var(--vault-note-sheen), transparent 48%),
-            var(--vault-pill-bg);
-        width: 100%;
-        margin-bottom: 0;
-        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+        width: 8px;
+        height: 8px;
+        flex: 0 0 auto;
+        border-radius: 50%;
+        background: currentColor;
     }
 
-    :global(.tag-results .note-card::before) {
-        content: "";
-        position: absolute;
-        inset: 0;
-        z-index: 0;
-        pointer-events: none;
-        opacity: 0.32;
-        background-image:
-            radial-gradient(circle, var(--vault-note-pattern-dot) 0.8px, transparent 0.9px);
-        background-size: 10px 10px;
-        background-position: 0 0;
-        -webkit-mask-image: linear-gradient(112deg, transparent 0%, rgba(0, 0, 0, 0.42) 30%, rgba(0, 0, 0, 0.92) 100%);
-        mask-image: linear-gradient(112deg, transparent 0%, rgba(0, 0, 0, 0.42) 30%, rgba(0, 0, 0, 0.92) 100%);
+    .vault-tag-results-heading {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-top: 1.5rem;
+        padding: 0 0 0.85rem;
+        border-bottom: 1px solid var(--pop-border);
     }
 
-    :global(.tag-results .note-card:hover) {
-        transform: translateX(4px);
-        background:
-            linear-gradient(135deg, var(--vault-note-sheen), transparent 48%),
-            var(--vault-pill-hover-bg);
-        border-color: var(--text-secondary);
-    }
-
-    :global(.tag-results .note-info) {
-        position: relative;
-        z-index: 1;
-    }
-
-    :global(.tag-results .note-info h3) {
-        font-family: var(--feature-obsidian-note-title-font, var(--font-display));
-        font-weight: var(--feature-obsidian-note-title-weight, 500);
-        font-size: var(--feature-obsidian-note-title-size, 1rem);
-        line-height: var(--feature-obsidian-note-title-line-height, 1.3);
-        letter-spacing: var(--feature-obsidian-note-title-letter-spacing, 0em);
+    .vault-tag-results-heading h2,
+    .vault-tag-results-heading p {
         margin: 0;
-        color: var(--feature-obsidian-note-title-color, #8a8a8a);
-        text-transform: capitalize;
+        color: var(--pop-ink);
     }
 
-    :global(.tag-results .result-reveal) {
-        opacity: 1;
-        transform: translateY(0);
-        filter: none;
+    .vault-tag-results-heading h2 {
+        font-size: 1rem;
+        font-weight: 650;
+        letter-spacing: -0.01em;
     }
 
-    :global(.tag-results.is-animating .result-reveal) {
-        opacity: 0;
-        transform: translateY(10px);
-        filter: blur(1px);
+    .vault-tag-results-heading p {
+        color: rgba(21, 19, 15, 0.62);
+        font-size: 0.82rem;
     }
 
-    :global(.tag-results.is-animating .result-reveal.is-visible) {
-        opacity: 1;
-        transform: translateY(0);
-        filter: none;
-        transition:
-            opacity 0.45s ease,
-            transform 0.45s ease,
-            filter 0.45s ease;
-    }
-
-    :global(.tag-results .no-results) {
-        margin: 0;
-        color: var(--text-secondary);
-        border: 1px solid var(--border-subtle);
-        border-radius: 8px;
-        background:
-            linear-gradient(135deg, var(--vault-note-sheen), transparent 48%),
-            var(--vault-pill-bg);
-        padding: 1rem;
-        font-family: var(--font-ui);
-        font-size: 0.86rem;
-    }
-
-    :global(.tag-results .search-retry-card) {
+    .vault-tag-list {
         display: grid;
-        gap: 0.9rem;
+    }
+
+    .vault-tag-empty {
         margin: 0;
-        padding: 1rem;
-        border: 1px solid var(--border-subtle);
-        border-radius: 8px;
-        background:
-            linear-gradient(135deg, var(--vault-note-sheen), transparent 48%),
-            var(--vault-pill-bg);
+        padding: 1.25rem 0;
+        color: rgba(21, 19, 15, 0.62);
+        font-size: 0.9rem;
+        line-height: 1.5;
     }
 
-    :global(.tag-results .search-retry-card__text) {
-        margin: 0;
-        color: var(--text-secondary);
-        font-family: var(--font-ui);
-        font-size: 0.86rem;
+    .vault-tag-note {
+        display: flex;
+        min-height: 68px;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem 0;
+        border-bottom: 1px solid var(--pop-line);
+        color: var(--pop-ink);
+        text-decoration: none;
+        font-size: clamp(0.98rem, 1.6vw, 1.08rem);
+        font-weight: 520;
+        line-height: 1.35;
+        letter-spacing: -0.01em;
+        transition: background 160ms ease, padding 160ms ease;
     }
 
-    :global(.tag-results .search-retry-card__button) {
-        justify-self: start;
-        border: 1px solid var(--border-subtle);
-        border-radius: 999px;
-        background: var(--bg-canvas);
-        color: var(--text-primary);
-        padding: 0.55rem 0.95rem;
-        font-family: var(--font-ui);
-        font-size: 0.8rem;
-        letter-spacing: 0.03em;
-        text-transform: uppercase;
-        cursor: pointer;
-        transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+    .vault-tag-note:hover {
+        padding-inline: 0.75rem;
+        background: var(--pop-yellow);
     }
 
-    :global(.tag-results .search-retry-card__button:hover) {
-        border-color: var(--text-secondary);
-        background: var(--bg-surface);
-        transform: translateY(-1px);
+    .vault-tag-note__arrow {
+        flex: 0 0 auto;
+        font-size: 1.1rem;
     }
 
-    @media (max-width: 1100px) {
-        .note-container {
-            padding: 1rem;
+    @media (max-width: 720px) {
+        .vault-tag-page {
+            padding: 5px;
         }
 
-        .notes-column-preview {
-            padding: 0;
+        .vault-tag-document {
+            border-radius: 14px;
+        }
+
+        .vault-tag-header h1 {
+            font-size: clamp(2rem, 9vw, 2.8rem);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .vault-tag-back,
+        .vault-tag-note {
+            transition: none;
         }
     }
 </style>

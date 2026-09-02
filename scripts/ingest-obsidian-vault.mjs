@@ -7,6 +7,7 @@ import path from "node:path";
 import {
   createChunksForNote,
   createEmbedding,
+  createNoteIndexRecord,
   createSupabaseServiceClient,
   detectSensitiveVaultContent,
   getRuntimeEnv,
@@ -215,6 +216,26 @@ async function loadExistingRows(supabase) {
   return rows;
 }
 
+async function loadExistingNoteRows(supabase) {
+  const rows = [];
+  const pageSize = 1000;
+  let from = 0;
+
+  while (true) {
+    const { data, error } = await supabase
+      .from("obsidian_notes")
+      .select("note_id,file_path")
+      .range(from, from + pageSize - 1);
+
+    if (error) throw error;
+    rows.push(...(data || []));
+    if (!data || data.length < pageSize) break;
+    from += pageSize;
+  }
+
+  return rows;
+}
+
 function makeChunkKey(filePath, chunkIndex) {
   return `${filePath}::${chunkIndex}`;
 }
@@ -238,6 +259,41 @@ async function deleteRowsById(supabase, ids) {
       .from("obsidian_chunks")
       .delete()
       .in("id", batch);
+
+    if (error) throw error;
+    deleted += batch.length;
+  }
+
+  return deleted;
+}
+
+async function upsertNoteIndex(supabase, rows) {
+  const batchSize = 500;
+  let upserted = 0;
+
+  for (let i = 0; i < rows.length; i += batchSize) {
+    const batch = rows.slice(i, i + batchSize);
+    const { error } = await supabase
+      .from("obsidian_notes")
+      .upsert(batch, { onConflict: "note_id" });
+
+    if (error) throw error;
+    upserted += batch.length;
+  }
+
+  return upserted;
+}
+
+async function deleteNoteRowsById(supabase, noteIds) {
+  const batchSize = 500;
+  let deleted = 0;
+
+  for (let i = 0; i < noteIds.length; i += batchSize) {
+    const batch = noteIds.slice(i, i + batchSize);
+    const { error } = await supabase
+      .from("obsidian_notes")
+      .delete()
+      .in("note_id", batch);
 
     if (error) throw error;
     deleted += batch.length;
@@ -279,6 +335,8 @@ async function ingest() {
     chunksPrivacyUpdated: 0,
     chunksUpserted: 0,
     staleChunksDeleted: 0,
+    notesIndexed: 0,
+    staleNotesDeleted: 0,
     notesMarkedPrivateByDetector: 0,
     sensitivePrivateFiles: [],
     errors: 0,
@@ -296,19 +354,23 @@ async function ingest() {
 
   let supabase = null;
   let existingRows = [];
+  let existingNoteRows = [];
   const existingByKey = new Map();
 
   if (!dryRun) {
     supabase = createSupabaseServiceClient();
     existingRows = await loadExistingRows(supabase);
+    existingNoteRows = await loadExistingNoteRows(supabase);
     for (const row of existingRows) {
       existingByKey.set(makeChunkKey(row.file_path, row.chunk_index), row);
     }
     console.log(`[vault-ingest] Existing chunks: ${existingRows.length}`);
+    console.log(`[vault-ingest] Existing note index rows: ${existingNoteRows.length}`);
   }
 
   const pendingChunks = [];
   const privacyOnlyChunks = [];
+  const noteIndexRows = [];
   const currentKeys = new Set();
   const currentPaths = new Set();
 
@@ -322,6 +384,11 @@ async function ingest() {
           summary.sensitivePrivateFiles.push(note.filePath);
         }
       }
+      noteIndexRows.push(createNoteIndexRecord({
+        filePath: note.filePath,
+        markdown: note.markdown,
+        isPublic: !startsWithAnyPath(note.filePath, privatePaths),
+      }));
       const chunks = createChunksForNote({
         filePath: note.filePath,
         markdown: note.markdown,
@@ -353,7 +420,7 @@ async function ingest() {
     }
   }
 
-  const staleIds = dryRun
+  const staleIds = dryRun || Number.isFinite(limit)
     ? []
     : existingRows
         .filter((row) => {
@@ -362,11 +429,18 @@ async function ingest() {
         })
         .map((row) => row.id);
 
+  const staleNoteIds = dryRun || Number.isFinite(limit)
+    ? []
+    : existingNoteRows
+        .filter((row) => !currentPaths.has(row.file_path))
+        .map((row) => row.note_id);
+
   console.log(`[vault-ingest] Chunks prepared: ${summary.chunksCreated}`);
   console.log(`[vault-ingest] Chunks marked private: ${summary.chunksMarkedPrivate}`);
   console.log(`[vault-ingest] Chunks unchanged: ${summary.chunksSkippedUnchanged}`);
   console.log(`[vault-ingest] Chunks privacy-only updates: ${privacyOnlyChunks.length}`);
   console.log(`[vault-ingest] Chunks pending embeddings: ${pendingChunks.length}`);
+  console.log(`[vault-ingest] Notes prepared for exact-link index: ${noteIndexRows.length}`);
   if (summary.notesMarkedPrivateByDetector > 0) {
     console.log(
       `[vault-ingest] Notes marked private by detector: ${summary.notesMarkedPrivateByDetector}`,
@@ -380,6 +454,13 @@ async function ingest() {
     console.log("[vault-ingest] Dry run complete. No embeddings or database writes performed.");
     return summary;
   }
+
+  summary.notesIndexed = await upsertNoteIndex(supabase, noteIndexRows);
+  if (staleNoteIds.length > 0) {
+    summary.staleNotesDeleted = await deleteNoteRowsById(supabase, staleNoteIds);
+  }
+  console.log(`[vault-ingest] Note index rows upserted: ${summary.notesIndexed}`);
+  console.log(`[vault-ingest] Stale note index rows deleted: ${summary.staleNotesDeleted}`);
 
   if (privacyOnlyChunks.length > 0) {
     summary.chunksPrivacyUpdated = await updateChunkPublicStatus(
@@ -439,6 +520,8 @@ async function ingest() {
   console.log(`  Chunks privacy updated: ${summary.chunksPrivacyUpdated}`);
   console.log(`  Chunks inserted/updated: ${summary.chunksUpserted}`);
   console.log(`  Stale chunks deleted: ${summary.staleChunksDeleted}`);
+  console.log(`  Note index rows upserted: ${summary.notesIndexed}`);
+  console.log(`  Stale note index rows deleted: ${summary.staleNotesDeleted}`);
   console.log(`  Errors: ${summary.errors}`);
   console.log(`  Finished in: ${elapsedSeconds}s`);
 
@@ -449,6 +532,7 @@ ingest().catch((error) => {
   console.error("[vault-ingest] Failed:", error.message || error);
   if (
     String(error.message || "").includes("obsidian_chunks") ||
+    String(error.message || "").includes("obsidian_notes") ||
     String(error.message || "").includes("match_obsidian_chunks")
   ) {
     console.error(

@@ -212,6 +212,52 @@ export function extractInlineTags(markdown) {
   return Array.from(tags);
 }
 
+export function normalizeWikiLinkTarget(value) {
+  return String(value || "")
+    .split("|")[0]
+    .split("#")[0]
+    .replace(/\.md$/i, "")
+    .trim()
+    .toLowerCase();
+}
+
+export function extractWikiLinks(markdown) {
+  const links = new Set();
+  const wikiLinkPattern = /(!?)\[\[([^\]]+)\]\]/g;
+  let match = wikiLinkPattern.exec(markdown || "");
+
+  while (match) {
+    const isEmbed = match[1] === "!";
+    const target = normalizeWikiLinkTarget(match[2]);
+    if (!isEmbed && target) links.add(target);
+    match = wikiLinkPattern.exec(markdown || "");
+  }
+
+  return Array.from(links).sort((a, b) => a.localeCompare(b));
+}
+
+export function createNoteIndexRecord({ filePath, markdown, isPublic = true }) {
+  const { frontmatter, content } = parseMarkdownNote(markdown);
+  const noteTitle =
+    (typeof frontmatter.title === "string" && frontmatter.title.trim()) ||
+    noteTitleFromPath(filePath);
+  const shouldPublish =
+    Boolean(isPublic) && detectSensitiveVaultContent(markdown).length === 0;
+
+  return {
+    note_id: noteIdFromPath(filePath),
+    note_title: noteTitle,
+    file_path: filePath,
+    folder_path: folderPathFromFilePath(filePath),
+    wiki_links: extractWikiLinks(content),
+    is_public: shouldPublish,
+    content_hash: crypto
+      .createHash("sha256")
+      .update(markdown || "")
+      .digest("hex"),
+  };
+}
+
 export function estimateTokens(text) {
   if (!text) return 0;
   const wordCount = text.trim().split(/\s+/).filter(Boolean).length;

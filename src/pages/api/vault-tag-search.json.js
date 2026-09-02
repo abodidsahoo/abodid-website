@@ -1,6 +1,21 @@
 export const prerender = false;
 
 import { findNotesReferencing } from "../../lib/vault";
+import { findIndexedNotesByWikiLink } from "../../lib/vault-note-index.js";
+
+const CACHE_CONTROL = "public, max-age=60, s-maxage=300, stale-while-revalidate=86400";
+
+function serializeLegacyNotes(notes) {
+    return notes.map((note) => {
+        const slug = note.name.replace(/\.md$/i, "");
+        return {
+            name: note.name,
+            title: slug.replace(/-/g, " "),
+            slug,
+            href: `/research/obsidian-vault/${encodeURIComponent(slug)}`,
+        };
+    });
+}
 
 export async function GET({ url }) {
     const rawTag = (url.searchParams.get("tag") || "").trim();
@@ -18,16 +33,16 @@ export async function GET({ url }) {
     }
 
     try {
-        const notes = await findNotesReferencing(rawTag);
+        let serialized;
+        let source = "supabase-index";
 
-        const serialized = notes.map((note) => {
-            const slug = note.name.replace(/\.md$/i, "");
-            return {
-                name: note.name,
-                slug,
-                href: `/research/obsidian-vault/${encodeURIComponent(slug)}`,
-            };
-        });
+        try {
+            serialized = await findIndexedNotesByWikiLink(rawTag);
+        } catch (indexError) {
+            source = "github-fallback";
+            console.warn("[vault-tag-search] Indexed lookup failed; using GitHub fallback:", indexError);
+            serialized = serializeLegacyNotes(await findNotesReferencing(rawTag));
+        }
 
         return new Response(
             JSON.stringify({
@@ -35,12 +50,13 @@ export async function GET({ url }) {
                 tag: rawTag,
                 count: serialized.length,
                 notes: serialized,
+                source,
             }),
             {
                 status: 200,
                 headers: {
                     "Content-Type": "application/json",
-                    "Cache-Control": "no-store",
+                    "Cache-Control": CACHE_CONTROL,
                 },
             },
         );
