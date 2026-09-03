@@ -730,9 +730,9 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
   }
 
   .inline-enquiry--obsidian h2 {
-    max-width: 11ch;
-    font-size: clamp(1.7rem, 3vw, 2.55rem);
-    line-height: 0.98;
+    max-width: 18ch;
+    font-size: clamp(2.4rem, 4.5vw, 4.8rem);
+    line-height: 0.94;
   }
 
   .inline-enquiry--obsidian .inline-enquiry__form {
@@ -791,9 +791,9 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
   .inline-enquiry--obsidian {
     width: 100%;
     display: grid;
-    grid-template-columns: minmax(250px, 0.7fr) minmax(0, 1.3fr);
-    gap: clamp(1.25rem, 3vw, 2.5rem);
-    padding: clamp(1.35rem, 3vw, 2.4rem);
+    grid-template-columns: minmax(280px, 0.85fr) minmax(0, 1.15fr);
+    gap: clamp(1.5rem, 3.5vw, 3rem);
+    padding: clamp(1.5rem, 3.5vw, 2.75rem);
     border: 1px solid #15130f;
     border-radius: clamp(18px, 2vw, 26px);
     background: #ff7eb5;
@@ -802,13 +802,13 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
 
   .inline-enquiry--obsidian .inline-enquiry__intro {
     position: static;
-    align-self: center;
+    align-self: start !important;
   }
 
   .inline-enquiry--obsidian .inline-enquiry__eyebrow {
     width: fit-content;
     margin-bottom: 0.75rem !important;
-    padding: 0.5rem 0.65rem;
+    padding: 0.45rem 0.65rem;
     border: 1px solid #15130f;
     border-radius: 999px;
     background: #ffe44f;
@@ -816,17 +816,22 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
   }
 
   .inline-enquiry--obsidian h2 {
-    max-width: 10ch;
+    max-width: 14ch;
     color: #15130f;
-    font-size: clamp(2.25rem, 4.2vw, 4.5rem);
+    font-family: var(--font-display);
+    font-size: clamp(2.4rem, 4.5vw, 4.8rem);
+    font-weight: 640;
     line-height: 0.9;
-    letter-spacing: -0.055em;
+    letter-spacing: -0.06em;
     text-wrap: balance;
+    margin-top: 0;
   }
 
   .inline-enquiry--obsidian .inline-enquiry__form {
     display: grid;
-    gap: 0.75rem;
+    gap: 0.85rem;
+    align-self: start;
+    margin-top: 2.6rem;
   }
 
   .inline-enquiry--obsidian .inline-enquiry__field-row {
@@ -837,10 +842,16 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
 
   .inline-enquiry--obsidian label {
     display: grid;
-    gap: 0.45rem;
+    gap: 0.18rem;
   }
 
-  .inline-enquiry--obsidian label > span,
+  .inline-enquiry--obsidian label > span {
+    display: block;
+    margin-bottom: 0.1rem;
+    color: #15130f;
+    font-weight: 700;
+  }
+
   .inline-enquiry--obsidian .inline-enquiry__submit-row p {
     color: #15130f;
   }
@@ -897,21 +908,21 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
   @media (max-width: 980px) {
     .inline-enquiry--obsidian {
       grid-template-columns: 1fr;
-      gap: 1.5rem;
-      padding: 1.35rem;
-    }
-
-    .inline-enquiry--obsidian h2 { max-width: 13ch; }
-    .inline-enquiry--obsidian .inline-enquiry__field-row { grid-template-columns: 1fr; }
-  }
-
-  @media (max-width: 680px) {
-    .inline-enquiry--obsidian {
-      padding: 1.15rem;
+      gap: 1.75rem;
+      padding: clamp(1.25rem, 4vw, 2rem);
     }
 
     .inline-enquiry--obsidian h2 {
-      font-size: clamp(2.45rem, 12vw, 3.8rem);
+      max-width: 100%;
+      font-size: clamp(2.2rem, 8vw, 3.6rem);
+    }
+
+    .inline-enquiry--obsidian .inline-enquiry__form {
+      margin-top: 0;
+    }
+
+    .inline-enquiry--obsidian .inline-enquiry__field-row {
+      grid-template-columns: 1fr;
     }
   }
 </style>

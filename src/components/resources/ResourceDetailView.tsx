@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { Pencil } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
+import { clearResourcePageData, getResourceViewer, loadResourceDetail, RESOURCE_DATA_CHANGED } from '../../lib/resources/pageData';
+import ResourceLoading from './ResourceLoading';
 import type { HubResource } from '../../lib/resources/types';
 import AdminTrashActions from './AdminTrashActions';
 import ResourceDetailActions from './ResourceDetailActions';
@@ -16,69 +19,67 @@ export default function ResourceDetailView({ initialResource, resourceId }: Prop
     const [role, setRole] = useState<string | null>(null);
     const [checkingAuth, setCheckingAuth] = useState(true);
 
+    const [reconnecting, setReconnecting] = useState(false);
+
     useEffect(() => {
-        const checkClientAuth = async () => {
+        let active = true;
+        let running = false;
+        let rerun = false;
+        let timer: ReturnType<typeof setTimeout>;
+        const syncResource = async () => {
+            if (!active) return;
+            if (running) { rerun = true; return; }
+            running = true;
+            clearTimeout(timer);
             try {
-                // 1. Read cached profile role
-                const cached = localStorage.getItem('curator_profile');
-                if (cached) {
-                    try {
-                        const parsed = JSON.parse(cached);
-                        if (parsed.role) setRole(parsed.role);
-                    } catch (e) {}
-                }
-
-                // 2. Fetch client session & profile
-                if (supabase) {
-                    const { data: { session } } = await supabase.auth.getSession();
-                    if (session?.user && !session.user.is_anonymous) {
-                        setUser(session.user);
-                        const { data: profile } = await supabase
-                            .from('profiles')
-                            .select('role')
-                            .eq('id', session.user.id)
-                            .single();
-                        if (profile?.role) {
-                            setRole(profile.role);
-                            try {
-                                const raw = localStorage.getItem('curator_profile');
-                                const existing = raw ? JSON.parse(raw) : {};
-                                localStorage.setItem('curator_profile', JSON.stringify({ ...existing, role: profile.role }));
-                            } catch (e) {}
-                        }
-                    }
-
-                    // 3. Fetch fresh resource data if missing initial data
-                    if (!initialResource) {
-                        const { data, error } = await supabase
-                            .from('hub_resources')
-                            .select(`
-                                *,
-                                submitter_profile:submitted_by (username, full_name, avatar_url),
-                                tags:hub_resource_tags (
-                                    tag_id,
-                                    tag:hub_tags (name)
-                                )
-                            `)
-                            .eq('id', resourceId)
-                            .single();
-
-                        if (data) {
-                            setResource({
-                                ...data,
-                                tags: data.tags?.map((t: any) => t.tag) || []
-                            });
-                        }
-                    }
-                }
-            } catch (e) {
-                console.error('ResourceDetailView: Error checking auth or fetching resource', e);
-            } finally {
+                const viewer = await getResourceViewer();
+                const next = await loadResourceDetail(resourceId, viewer?.user.id || null);
+                if (!active) return;
+                setUser(viewer?.user || null);
+                setRole(viewer?.role || null);
+                setResource(next);
                 setCheckingAuth(false);
+                setReconnecting(false);
+            } catch (error) {
+                if (!active) return;
+                console.error('Resource connection interrupted:', error);
+                setReconnecting(true);
+                timer = setTimeout(syncResource, 8_000);
+            } finally {
+                running = false;
+                if (active && rerun) {
+                    rerun = false;
+                    void syncResource();
+                }
             }
         };
-
-        checkClientAuth();
+        setResource(initialResource);
+        setCheckingAuth(true);
+        void syncResource();
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+            if (event === 'SIGNED_OUT') {
+                clearResourcePageData();
+                setUser(null);
+                setRole(null);
+                setResource(current => current?.status === 'approved' ? current : null);
+                setCheckingAuth(true);
+            }
+            if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+                clearTimeout(timer);
+                timer = setTimeout(syncResource, 0);
+            }
+        });
+        window.addEventListener('online', syncResource);
+        window.addEventListener('pageshow', syncResource);
+        window.addEventListener(RESOURCE_DATA_CHANGED, syncResource);
+        return () => {
+            active = false;
+            clearTimeout(timer);
+            subscription.unsubscribe();
+            window.removeEventListener('online', syncResource);
+            window.removeEventListener('pageshow', syncResource);
+            window.removeEventListener(RESOURCE_DATA_CHANGED, syncResource);
+        };
     }, [resourceId, initialResource]);
 
     const isStaff = role === 'admin' || role === 'curator';
@@ -125,13 +126,7 @@ export default function ResourceDetailView({ initialResource, resourceId }: Prop
     }
 
     if (!resource || (checkingAuth && !canView)) {
-        return (
-            <div className="resources-editorial" style={{ paddingBlock: '40px' }}>
-                <div className="detail-page-card" style={{ textAlign: 'center', padding: '60px 24px' }}>
-                    <p className="submit-subtitle">Loading resource details...</p>
-                </div>
-            </div>
-        );
+        return <div className="resources-editorial"><ResourceLoading label="Loading resource." reconnecting={reconnecting} /></div>;
     }
 
     return (
@@ -167,14 +162,15 @@ export default function ResourceDetailView({ initialResource, resourceId }: Prop
                 )}
 
                 {/* Navigation Bar */}
-                <div style={{ marginBottom: '28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
+                <div className="detail-navigation">
                     <a href={isStaff ? "/resources/dashboard" : "/resources"} className="detail-back-btn">
                         &larr; Back to {isStaff ? "Dashboard" : "Resources"}
                     </a>
 
                     {role === 'admin' && (
-                        <a href={`/resources/${resource.id}/edit`} className="detail-back-btn" style={{ background: 'var(--pop-yellow)' }}>
-                            ✎ Edit Resource
+                        <a href={`/resources/${resource.id}/edit`} className="detail-back-btn detail-edit-btn">
+                            <Pencil size={16} strokeWidth={2} aria-hidden="true" />
+                            <span>Edit Resource</span>
                         </a>
                     )}
                 </div>
@@ -236,8 +232,8 @@ export default function ResourceDetailView({ initialResource, resourceId }: Prop
                                 </span>
                             </div>
 
-                            <div className="meta-item" style={{ marginLeft: 'auto' }}>
-                                <AdminEditButton resourceId={resource.id} />
+                            <div className="meta-item detail-edit-action">
+                                <AdminEditButton resourceId={resource.id} isAdmin={role === 'admin'} />
                             </div>
                         </div>
 
@@ -264,7 +260,7 @@ export default function ResourceDetailView({ initialResource, resourceId }: Prop
                         <ResourceDetailActions resourceId={resource.id} initialUpvotes={resource.upvotes_count || 0} />
 
                         {/* Action Buttons */}
-                        <div style={{ marginTop: '36px', display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <div className="detail-resource-links">
                             <a href={resource.url} target="_blank" rel="noopener noreferrer" className="detail-cta-primary">
                                 Visit Website ↗
                             </a>

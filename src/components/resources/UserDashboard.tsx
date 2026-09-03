@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { getBookmarkedResources } from '../../lib/resources/db';
 import type { HubResource } from '../../lib/resources/types';
+import ResourceLoading from './ResourceLoading';
 
 interface UserDashboardProps {
     user?: any;
@@ -79,15 +80,7 @@ export default function UserDashboard({ user: propUser }: UserDashboardProps) {
     };
 
     if (loading) {
-        return (
-            <div className="curator-dashboard">
-                <div className="loading">Loading your dashboard...</div>
-                <style>{`
-                    .curator-dashboard { max-width: 1200px; margin: 0 auto; padding: 2rem; }
-                    .loading { text-align: center; padding: 4rem 1rem; color: var(--text-secondary); }
-                `}</style>
-            </div>
-        );
+        return <ResourceLoading />;
     }
 
     return (

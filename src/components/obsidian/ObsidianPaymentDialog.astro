@@ -1,190 +1,316 @@
 <dialog class="obsidian-payment-dialog" data-obsidian-payment-dialog aria-labelledby="obsidian-payment-title">
   <div class="obsidian-payment-dialog__surface">
-    <button class="obsidian-payment-dialog__close" type="button" data-obsidian-payment-close aria-label="Close payment window">×</button>
-    <p class="obsidian-payment-dialog__eyebrow">1:1 Obsidian tutoring</p>
+    <button class="obsidian-payment-dialog__close" type="button" data-obsidian-payment-close aria-label="Close booking window">×</button>
+    <p class="obsidian-payment-dialog__eyebrow">1:1 Obsidian Tutoring</p>
     <h2 id="obsidian-payment-title">Book your tutoring session.</h2>
-    <p class="obsidian-payment-dialog__price"><s>£90/hour</s> <strong>£60/hour until 31 December 2026</strong></p>
-    <div
-      id="paypal-container-7GPVW8RZD86W4"
-      class="obsidian-payment-dialog__paypal"
-      data-paypal-hosted-button
-    ></div>
-    <p class="obsidian-payment-dialog__status" data-paypal-status hidden>Loading secure PayPal checkout…</p>
-    <p class="obsidian-payment-dialog__note">PayPal-hosted checkout in GBP. You can use PayPal or a supported card.</p>
+    <div class="obsidian-payment-dialog__price">
+      <s>£90/hour</s>
+      <strong>£60/hour until 31 December 2026</strong>
+    </div>
+
+    <form class="obsidian-booking-form" data-obsidian-booking-form>
+      <label class="obsidian-booking-field">
+        <span>Email Address</span>
+        <input type="email" name="email" placeholder="you@example.com" required />
+      </label>
+
+      <button type="submit" class="obsidian-booking-submit-btn" data-booking-submit-btn>
+        Submit Booking Request →
+      </button>
+    </form>
+
+    <div class="obsidian-booking-success-message" data-booking-success-message style="display: none;">
+      <div class="success-badge">✓ Request Received!</div>
+      <p class="success-text">I will reach out to you within the next 24 hours to take this ahead.</p>
+    </div>
   </div>
 </dialog>
 
 <script is:inline>
   (() => {
-    const initialisePayment = () => {
+    const initialiseBookingDialog = () => {
       const dialog = document.querySelector("[data-obsidian-payment-dialog]");
       const openButtons = document.querySelectorAll("[data-obsidian-payment-open]");
       const closeButton = dialog?.querySelector("[data-obsidian-payment-close]");
-      const container = dialog?.querySelector("[data-paypal-hosted-button]");
-      const status = dialog?.querySelector("[data-paypal-status]");
+      const form = dialog?.querySelector("[data-obsidian-booking-form]");
+      const successMsg = dialog?.querySelector("[data-booking-success-message]");
+      const submitBtn = dialog?.querySelector("[data-booking-submit-btn]");
 
-      if (!(dialog instanceof HTMLDialogElement) || !(container instanceof HTMLElement)) return;
+      if (!(dialog instanceof HTMLDialogElement)) return;
       if (dialog.dataset.ready === "true") return;
       dialog.dataset.ready = "true";
 
-      const setStatus = (message) => {
-        if (!(status instanceof HTMLElement)) return;
-        status.hidden = !message;
-        status.textContent = message || "";
-      };
+      openButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          if (!dialog.open) {
+            if (form) form.style.display = "flex";
+            if (successMsg) successMsg.style.display = "none";
+            if (submitBtn) {
+              submitBtn.disabled = false;
+              submitBtn.textContent = "Submit Booking Request →";
+            }
+            dialog.showModal();
+          }
+        });
+      });
 
-      const renderPayPal = () => {
-        if (container.dataset.rendered === "true") return true;
-        if (!window.paypal?.HostedButtons) return false;
-        window.paypal.HostedButtons({ hostedButtonId: "7GPVW8RZD86W4" }).render("#paypal-container-7GPVW8RZD86W4");
-        container.dataset.rendered = "true";
-        setStatus("");
-        return true;
-      };
-
-      const ensurePayPal = () => {
-        if (renderPayPal()) return;
-        setStatus("Loading secure PayPal checkout…");
-        const intervalId = window.setInterval(() => {
-          if (renderPayPal()) window.clearInterval(intervalId);
-        }, 200);
-        window.setTimeout(() => {
-          if (renderPayPal()) return;
-          window.clearInterval(intervalId);
-          setStatus("PayPal is taking longer than expected. Refresh the page or book a discovery call first.");
-        }, 5000);
-      };
-
-      openButtons.forEach((button) => button.addEventListener("click", () => {
-        if (!dialog.open) dialog.showModal();
-        ensurePayPal();
-      }));
       closeButton?.addEventListener("click", () => dialog.close());
       dialog.addEventListener("click", (event) => {
         if (event.target === dialog) dialog.close();
       });
+
+      if (form) {
+        form.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = "Submitting...";
+          }
+
+          const formData = new FormData(form);
+          const email = formData.get("email");
+
+          try {
+            await fetch("/api/contact", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                email: email,
+                name: "1:1 Tutoring Session Request",
+                interest: "Obsidian 1:1 Tutoring Session (£60/hour)",
+                message: "1:1 Obsidian tutoring booking request",
+                sourceName: "obsidian-tutoring-dialog"
+              })
+            });
+          } catch (err) {
+            console.error("Submission error:", err);
+          }
+
+          if (form) form.style.display = "none";
+          if (successMsg) successMsg.style.display = "block";
+        });
+      }
     };
 
-    initialisePayment();
-    document.addEventListener("astro:page-load", initialisePayment);
+    initialiseBookingDialog();
+    document.addEventListener("astro:page-load", initialiseBookingDialog);
   })();
 </script>
 
 <style>
   .obsidian-payment-dialog {
-    width: min(560px, calc(100vw - 2rem));
-    max-height: calc(100svh - 2rem);
+    width: min(520px, calc(100vw - 2rem));
     margin: auto;
     padding: 0;
-    border: 1px solid var(--border-strong);
-    border-radius: var(--radius-lg);
-    background: var(--bg-surface);
-    color: var(--text-primary);
-    box-shadow: 0 28px 90px rgba(0, 0, 0, 0.45);
+    border: 1.5px solid #15130f;
+    border-radius: clamp(20px, 2.5vw, 28px);
+    background: #fff8e8;
+    color: #15130f;
+    box-shadow: 10px 10px 0 #15130f;
   }
 
   .obsidian-payment-dialog::backdrop {
-    background: rgba(0, 0, 0, 0.72);
-    backdrop-filter: blur(8px);
+    background: rgba(36, 68, 202, 0.78);
+    backdrop-filter: blur(4px);
   }
 
   .obsidian-payment-dialog__surface {
     position: relative;
-    padding: clamp(1.35rem, 5vw, 2.4rem);
+    padding: clamp(1.75rem, 5vw, 2.75rem);
   }
 
   .obsidian-payment-dialog__close {
     position: absolute;
-    top: 0.8rem;
-    right: 0.8rem;
-    width: 42px;
-    height: 42px;
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-base);
-    background: var(--bg-canvas);
-    color: var(--text-primary);
-    font-size: 1.5rem;
-    line-height: 1;
-    cursor: pointer;
-  }
-
-  .obsidian-payment-dialog__eyebrow {
-    margin: 0 0 0.75rem;
-    color: var(--accent-primary);
-    font: 700 0.72rem/1 var(--font-mono);
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-  }
-
-  .obsidian-payment-dialog h2 {
-    max-width: 12ch;
-    margin: 0;
-    font-size: clamp(2rem, 6vw, 3.3rem);
-    line-height: 0.98;
-  }
-
-  .obsidian-payment-dialog__price {
-    display: grid;
-    gap: 0.25rem;
-    margin: 1.1rem 0 1.5rem;
-    color: var(--text-secondary);
-  }
-
-  .obsidian-payment-dialog__price strong { color: var(--text-primary); }
-  .obsidian-payment-dialog__paypal { min-height: 48px; }
-
-  .obsidian-payment-dialog__status,
-  .obsidian-payment-dialog__note {
-    color: var(--text-secondary);
-    font-size: 0.82rem;
-    line-height: 1.45;
-  }
-
-  .obsidian-payment-dialog__note { margin: 1rem 0 0; }
-  .obsidian-payment-dialog {
-    border: 1px solid #15130f;
-    border-radius: 24px;
-    background: #fff8e8;
-    color: #15130f;
-    box-shadow: 8px 8px 0 #15130f;
-  }
-
-  .obsidian-payment-dialog::backdrop {
-    background: rgba(85, 36, 199, 0.8);
-    backdrop-filter: none;
-  }
-
-  .obsidian-payment-dialog__surface {
-    padding: clamp(1.35rem, 5vw, 2.4rem);
-  }
-
-  .obsidian-payment-dialog__close {
-    border: 1px solid #15130f;
+    top: 1.25rem;
+    right: 1.25rem;
+    width: 40px;
+    height: 40px;
+    border: 1.5px solid #15130f;
     border-radius: 12px;
     background: #ffe44f;
     color: #15130f;
+    font-size: 1.5rem;
+    font-weight: 800;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 2px 2px 0 #15130f;
+    transition: transform 120ms ease, background 120ms ease;
+  }
+
+  .obsidian-payment-dialog__close:hover {
+    background: #caff48;
+    transform: translateY(-1px);
   }
 
   .obsidian-payment-dialog__eyebrow {
     width: fit-content;
-    padding: 0.5rem 0.65rem;
-    border: 1px solid #15130f;
+    margin: 0 0 1rem;
+    padding: 6px 14px;
+    border: 1.5px solid #15130f;
     border-radius: 999px;
     background: #ff7eb5;
     color: #15130f;
+    font-family: var(--font-sans);
+    font-size: 0.72rem;
+    font-weight: 750;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    box-shadow: 0 2px 0 #15130f;
   }
 
   .obsidian-payment-dialog h2 {
+    margin: 0 0 0.8rem;
     color: #15130f;
-    letter-spacing: -0.055em;
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 4.5vw, 2.6rem);
+    font-weight: 720;
+    line-height: 0.96;
+    letter-spacing: -0.045em;
     text-wrap: balance;
   }
 
-  .obsidian-payment-dialog__price,
-  .obsidian-payment-dialog__status,
-  .obsidian-payment-dialog__note {
-    color: #5f584e;
+  .obsidian-payment-dialog__price {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin: 1.25rem 0 1.75rem;
+    color: #15130f;
+    font-family: var(--font-sans);
   }
 
-  .obsidian-payment-dialog__price strong { color: #15130f; }
+  .obsidian-payment-dialog__price s {
+    color: rgba(21, 19, 15, 0.65);
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+
+  .obsidian-payment-dialog__price strong {
+    color: #15130f;
+    font-size: 1.15rem;
+    font-weight: 750;
+    letter-spacing: -0.01em;
+  }
+
+  .obsidian-booking-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .obsidian-booking-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .obsidian-booking-field span {
+    display: block;
+    font-family: var(--font-sans);
+    font-size: 0.74rem;
+    font-weight: 750;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #15130f;
+  }
+
+  .obsidian-booking-field input {
+    width: 100%;
+    min-height: 54px;
+    padding: 0 1.1rem;
+    box-sizing: border-box;
+    border: 1.5px solid #15130f;
+    border-radius: 14px;
+    background: #ffffff !important;
+    color: #15130f !important;
+    font-family: var(--font-sans);
+    font-size: 1.05rem;
+    font-weight: 700 !important;
+    transition: border-color 150ms ease, background 150ms ease, box-shadow 150ms ease;
+  }
+
+  .obsidian-booking-field input:-webkit-autofill,
+  .obsidian-booking-field input:-webkit-autofill:hover,
+  .obsidian-booking-field input:-webkit-autofill:focus,
+  .obsidian-booking-field input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+    -webkit-text-fill-color: #15130f !important;
+    caret-color: #15130f !important;
+    font-weight: 700 !important;
+    border-color: #15130f !important;
+    transition: background-color 5000s ease-in-out 0s;
+  }
+
+  .obsidian-booking-field input::placeholder {
+    color: rgba(21, 19, 15, 0.45);
+    font-family: var(--font-sans);
+    font-weight: 450;
+    opacity: 1;
+  }
+
+  .obsidian-booking-field input:focus {
+    outline: none;
+    border-color: #2444ca;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(36, 68, 202, 0.25);
+  }
+
+  .obsidian-booking-submit-btn {
+    min-height: 54px;
+    width: 100%;
+    margin-top: 0.25rem;
+    padding: 0 1.6rem;
+    border: 1.5px solid #15130f;
+    border-radius: 14px;
+    background: #ffe44f;
+    color: #15130f;
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    font-weight: 750;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    box-shadow: 0 4px 0 #15130f;
+    cursor: pointer;
+    transition: background 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+  }
+
+  .obsidian-booking-submit-btn:hover {
+    background: #caff48;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 #15130f;
+  }
+
+  .obsidian-booking-submit-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 0 #15130f;
+  }
+
+  .obsidian-booking-success-message {
+    padding: 1.4rem;
+    border: 1.5px solid #15130f;
+    border-radius: 16px;
+    background: #caff48;
+    color: #15130f;
+    box-shadow: 4px 4px 0 #15130f;
+    margin-top: 0.75rem;
+  }
+
+  .success-badge {
+    font-family: var(--font-sans);
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 0.45rem;
+  }
+
+  .success-text {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: 1.05rem;
+    font-weight: 600;
+    line-height: 1.4;
+  }
 </style>

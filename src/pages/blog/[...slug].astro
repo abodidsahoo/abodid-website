@@ -8,7 +8,6 @@ import {
 } from "../../lib/api";
 import { marked } from "marked";
 import ShareButtons from "../../components/ShareButtons.jsx";
-import ReaderModeToggle from "../../components/ReaderModeToggle.jsx";
 import BlogBlockRenderer from "../../components/blog/BlogBlockRenderer.jsx";
 import { breadcrumbJsonLd, personJsonLd, seoIdentity } from "../../lib/seoData";
 
@@ -30,6 +29,11 @@ if (!post) {
   Astro.response.status = 404;
   return Astro.rewrite("/404");
 }
+
+Astro.response.headers.set(
+  "Cache-Control",
+  "public, max-age=300, s-maxage=3600, stale-while-revalidate=86400"
+);
 
 // Convert Markdown to HTML if using legacy content field
 const hasBlocks = Array.isArray(post.blocks) && post.blocks.length > 0;
@@ -71,460 +75,1135 @@ const structuredData = [
   description={postDescription}
   image={postImage}
   type="article"
-  bodyClass="blog-post-page"
+  fullWidth={true}
+  showGlobalGrid={false}
+  navigationVariant="next"
+  bodyClass="blog-post-pop-page"
   structuredData={structuredData}
 >
-  <article class="post-container">
-    <header class="post-header">
-      <div class="reader-mode-wrapper">
-        <ReaderModeToggle client:only="react" />
-      </div>
-      <div class="meta">
-        <span class="date"
-          >{
-            new Date(post.published_at || post.created_at).toLocaleDateString(
-              "en-US",
-              { year: "numeric", month: "long", day: "numeric" },
-            )
-          }</span
-        >
-        <span class="category"
-          >{
-            post.category
-              ? Array.isArray(post.category)
-                ? post.category[0]
-                : post.category
-              : "Blog"
-          }</span
-        >
-      </div>
-      <h1 class="title">{post.title}</h1>
-      {post.excerpt && <p class="excerpt">{post.excerpt}</p>}
-    </header>
+  <main class="blog-post-page">
+    <article class="blog-post-document" aria-labelledby="post-title">
+      <div class="blog-post-inner">
+        <header class="blog-post-header">
+          <div class="blog-post-meta-bar">
+            <span class="blog-post-tag">
+              {
+                post.category
+                  ? Array.isArray(post.category)
+                    ? post.category[0]
+                    : post.category
+                  : "Blog"
+              }
+            </span>
+            <span class="blog-post-date">
+              {
+                new Date(post.published_at || post.created_at).toLocaleDateString(
+                  "en-US",
+                  { year: "numeric", month: "long", day: "numeric" },
+                )
+              }
+            </span>
+          </div>
 
-    {
-      post.cover_image && (
-        <div class="cover-image">
-          <img src={post.cover_image} alt={post.title} loading="lazy" />
-        </div>
-      )
-    }
+          <h1 id="post-title" class="blog-post-title">{post.title}</h1>
 
-    {hasBlocks ? (
-      <BlogBlockRenderer blocks={post.blocks} />
-    ) : (
-      <div class="prose" set:html={contentHtml} />
-    )}
+          {post.excerpt && <p class="blog-post-excerpt">{post.excerpt}</p>}
+        </header>
 
-    <ShareButtons client:only="react" title={post.title} url={Astro.url.href} />
-
-    <hr class="divider" />
-
-    {
-      relatedPost && (
-        <div class="related-section">
-          <p class="related-label">You may also like</p>
-          <a href={relatedPost.href} class="related-card">
-            <div class="related-image-wrapper">
-              {relatedPost.image ? (
-                <img
-                  src={relatedPost.image}
-                  alt={relatedPost.title}
-                  class="related-image"
-                  loading="lazy"
-                />
-              ) : (
-                <div class="related-image-placeholder" />
-              )}
-            </div>
-
-            <div class="related-content">
-              <span class="related-date">{relatedPost.date}</span>
-              <h3 class="related-title">{relatedPost.title}</h3>
-              <div class="related-category">
-                {relatedPost.category &&
-                  (Array.isArray(relatedPost.category)
-                    ? relatedPost.category[0]
-                    : relatedPost.category)}
-              </div>
-            </div>
-
-            <div class="related-action">
-              <span>VIEW MORE</span>
-              <span class="arrow">→</span>
-            </div>
-          </a>
-        </div>
-      )
-    }
-
-    <div class="post-footer">
-      <div class="nav-links">
-        <a href="/blog" class="back-link">← Back to Blog</a>
         {
-          nextPost && (
-            <a href={nextPost.href} class="next-link">
-              Go to Next Article →
-            </a>
+          post.cover_image && (
+            <div class="blog-cover-image-container">
+              <img src={post.cover_image} alt={post.title} loading="lazy" />
+            </div>
           )
         }
+
+        <section class="blog-post-content" aria-label={`Article content: ${post.title}`}>
+          <div class="blog-post-skeleton" id="blog-post-skeleton" style="display: none;">
+            <div class="skeleton-badge">
+              <span class="skeleton-dot"></span>
+              <span>Loading Story Content...</span>
+            </div>
+            <div class="skeleton-line skeleton-line--heading"></div>
+            <div class="skeleton-line"></div>
+            <div class="skeleton-line skeleton-line--medium"></div>
+            <div class="skeleton-line"></div>
+            <div class="skeleton-line skeleton-line--short"></div>
+            <div class="skeleton-line skeleton-line--heading"></div>
+            <div class="skeleton-line"></div>
+            <div class="skeleton-line skeleton-line--medium"></div>
+          </div>
+
+          <div class="blog-post-real-content" id="blog-post-real-content">
+            {hasBlocks ? (
+              <BlogBlockRenderer blocks={post.blocks} />
+            ) : (
+              <div class="prose" set:html={contentHtml} />
+            )}
+          </div>
+
+          <div class="blog-post-utility-row">
+            <a href="/blog" class="blog-back-pill" data-astro-prefetch="hover">
+              <span aria-hidden="true">←</span>
+              <span>Back to Blog</span>
+            </a>
+
+            <ShareButtons client:only="react" title={post.title} url={Astro.url.href} />
+          </div>
+
+          {
+            relatedPost && (
+              <div class="blog-related-section">
+                <span class="blog-related-label">Recommended Further Reading</span>
+                <a href={relatedPost.href} class="blog-related-card" data-astro-prefetch="hover">
+                  <div class="blog-related-image-wrapper">
+                    {relatedPost.image ? (
+                      <img
+                        src={relatedPost.image}
+                        alt={relatedPost.title}
+                        class="blog-related-image"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div class="blog-related-image-placeholder">
+                        <span>{relatedPost.category || "Essay"}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div class="blog-related-content">
+                    <div class="blog-related-meta">
+                      <span class="blog-related-tag">
+                        {relatedPost.category &&
+                          (Array.isArray(relatedPost.category)
+                            ? relatedPost.category[0]
+                            : relatedPost.category)}
+                      </span>
+                      <span class="blog-related-date">{relatedPost.date}</span>
+                    </div>
+
+                    <h3 class="blog-related-title">{relatedPost.title}</h3>
+
+                    {(relatedPost.excerpt || relatedPost.description) && (
+                      <p class="blog-related-excerpt">
+                        {relatedPost.excerpt || relatedPost.description}
+                      </p>
+                    )}
+
+                    <div class="blog-related-action">
+                      <span>Read Article</span>
+                      <span class="arrow" aria-hidden="true">→</span>
+                    </div>
+                  </div>
+                </a>
+              </div>
+            )
+          }
+
+          <nav class="blog-post-nav" aria-label="Article navigation">
+            <a href="/blog" class="blog-nav-link blog-nav-link--back" data-astro-prefetch="hover">
+              <span aria-hidden="true">←</span>
+              <span>Back to Index</span>
+            </a>
+            {
+              nextPost && (
+                <a href={nextPost.href} class="blog-nav-link blog-nav-link--next" data-astro-prefetch="hover">
+                  <span>Next Article</span>
+                  <span aria-hidden="true">→</span>
+                </a>
+              )
+            }
+          </nav>
+        </section>
       </div>
-    </div>
-  </article>
+    </article>
+  </main>
 </BaseLayout>
 
-<style>
-  .post-container {
-    max-width: 720px;
-    margin: 4rem auto;
-    padding: 0 1.5rem;
+<style is:global>
+  :root {
+    --pop-blue: #2444ca;
+    --pop-pink: #ff7eb5;
+    --pop-yellow: #ffe44f;
+    --pop-lime: #caff48;
+    --pop-purple: #5524c7;
+    --pop-cyan: #62e6ff;
+    --pop-cream: #fff8e8;
+    --pop-ink: #15130f;
+    --pop-border: rgba(21, 19, 15, 0.78);
+    --pop-line: rgba(21, 19, 15, 0.24);
   }
 
-  .post-header {
-    text-align: center;
-    margin-bottom: 3rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+  /* High Specificity Overrides to prevent global.css or theme scripts from washing out the Pop Editorial Look */
+  html body.blog-post-pop-page,
+  html[data-theme="light"] body.blog-post-pop-page,
+  html[data-theme="dark"] body.blog-post-pop-page,
+  html[data-reader-mode="true"] body.blog-post-pop-page {
+    background: #2444ca !important;
+    background-color: #2444ca !important;
+    color: #15130f !important;
+    min-height: 100vh !important;
   }
 
-  .reader-mode-wrapper {
-    margin-bottom: 1rem;
+  html body.blog-post-pop-page #main-content,
+  html body.blog-post-pop-page .page-content-full,
+  html body.blog-post-pop-page .page-content {
+    background: transparent !important;
+    background-color: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
   }
 
-  .meta {
+  /* Hide background grid/glow effects on pop editorial blog posts */
+  body.blog-post-pop-page .global-grid-bg,
+  body.blog-post-pop-page .global-glow-bg {
+    display: none !important;
+  }
+
+  .blog-post-pop-page .blog-post-page {
+    width: 100%;
+    padding: clamp(0.5rem, 2.5vw, 1.75rem);
+    background: var(--pop-blue);
     font-family: var(--font-sans);
-    font-size: 0.9rem;
-    color: var(--text-tertiary);
+    box-sizing: border-box;
+  }
+
+  .blog-post-document {
+    --text-primary: var(--pop-ink);
+    --text-secondary: rgba(21, 19, 15, 0.78);
+    --type-paragraph-color: var(--pop-ink);
+    width: min(100%, 920px);
+    margin: 0 auto;
+    border: 1.5px solid var(--pop-border);
+    border-radius: clamp(18px, 2.5vw, 28px);
+    background: var(--pop-cream);
+    box-shadow: 0 10px 0 rgba(21, 19, 15, 0.25);
+    overflow: hidden;
+  }
+
+  .blog-post-inner {
+    width: min(100%, 740px);
+    margin: 0 auto;
+    padding: clamp(1.5rem, 5vw, 4.5rem) clamp(1.2rem, 5vw, 3.5rem);
+  }
+
+  /* Header */
+  .blog-post-header {
+    padding-bottom: clamp(1.75rem, 4vw, 2.75rem);
+    border-bottom: 1px solid var(--pop-line);
+  }
+
+  .blog-post-meta-bar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem 1rem;
+    margin-bottom: clamp(1.25rem, 3vw, 2rem);
+  }
+
+  .blog-post-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 14px;
+    border: 1px solid var(--pop-border);
+    border-radius: 999px;
+    background: var(--pop-yellow);
+    color: var(--pop-ink);
+    font-family: var(--font-sans);
+    font-size: 0.72rem;
+    font-weight: 750;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    box-shadow: 0 2px 0 var(--pop-ink);
+  }
+
+  .blog-post-date {
+    font-family: var(--font-sans);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--pop-ink);
+    opacity: 0.75;
+  }
+
+  .blog-post-title {
+    max-width: 24ch;
+    margin: 0 0 clamp(1rem, 2.5vw, 1.5rem);
+    color: var(--pop-ink);
+    font-family: var(--font-display);
+    font-size: clamp(2.2rem, 4.5vw, 3.8rem);
+    font-weight: 720;
+    line-height: 0.94;
+    letter-spacing: -0.05em;
+    text-wrap: balance;
+    overflow-wrap: anywhere;
+  }
+
+  .blog-post-excerpt {
+    margin: 0;
+    color: rgba(21, 19, 15, 0.82);
+    font-family: var(--font-sans);
+    font-size: clamp(1.15rem, 2vw, 1.4rem);
+    font-weight: 450;
+    line-height: 1.4;
+    letter-spacing: -0.02em;
+    font-style: italic;
+  }
+
+  /* Cover Image Container */
+  .blog-cover-image-container {
+    margin: clamp(2rem, 4vw, 3.5rem) 0 clamp(1.5rem, 3vw, 2.5rem);
+    border: 1px solid var(--pop-border);
+    border-radius: clamp(12px, 1.5vw, 18px);
+    overflow: hidden;
+    background: var(--pop-ink);
+  }
+
+  .blog-cover-image-container img {
+    width: 100%;
+    height: auto;
+    max-height: 70vh;
+    object-fit: cover;
+    display: block;
+    transition: transform 500ms ease;
+  }
+
+  .blog-cover-image-container:hover img {
+    transform: scale(1.02);
+  }
+
+  /* Content area */
+  .blog-post-content {
+    padding-top: clamp(1.5rem, 4vw, 2.5rem);
+  }
+
+  .prose,
+  .block-based-prose {
+    width: 100%;
+    color: var(--pop-ink);
+    font-family: "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
+    font-size: clamp(1rem, 1.2vw, 1.08rem);
+    font-weight: 420;
+    line-height: 1.7;
+    letter-spacing: -0.006em;
+    overflow-wrap: anywhere;
+  }
+
+  .prose > :first-child,
+  .block-based-prose > :first-child {
+    margin-top: 0;
+  }
+
+  .prose h1,
+  .prose h2,
+  .prose h3,
+  .prose h4,
+  .block-based-prose h2,
+  .block-based-prose h3 {
+    color: var(--pop-ink);
+    font-family: "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
+    font-weight: 620;
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+  }
+
+  .prose h2,
+  .block-based-prose h2 {
+    margin: 2.75rem 0 1rem;
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    line-height: 1.08;
+  }
+
+  .prose h3,
+  .block-based-prose h3 {
+    margin: 2.25rem 0 0.85rem;
+    font-size: clamp(1.3rem, 2.2vw, 1.65rem);
+    line-height: 1.15;
+  }
+
+  .prose p,
+  .block-based-prose p,
+  .prose ul,
+  .prose ol,
+  .prose blockquote,
+  .prose pre,
+  .prose figure,
+  .block-based-prose figure {
+    margin: 0 0 1.5rem;
+  }
+
+  .prose ul,
+  .prose ol {
+    padding-left: 1.4rem;
+  }
+
+  .prose li {
+    margin: 0.45rem 0;
+    padding-left: 0.2rem;
+  }
+
+  .prose strong,
+  .block-based-prose strong {
+    font-weight: 750 !important;
+    color: #15130f !important;
+  }
+
+  .prose a,
+  .block-based-prose a {
+    color: #2444ca !important;
+    font-weight: 600 !important;
+    text-decoration-line: underline !important;
+    text-decoration-color: #2444ca !important;
+    text-decoration-thickness: 0.12em !important;
+    text-underline-offset: 0.2em !important;
+    transition: background 160ms ease, color 160ms ease;
+  }
+
+  .prose a:hover,
+  .block-based-prose a:hover {
+    color: #15130f !important;
+    background: #ffe44f !important;
+  }
+
+  .prose blockquote,
+  .block-based-prose blockquote {
+    margin: 2rem 0;
+    padding: 1.25rem 1.6rem;
+    border-left: 4px solid #2444ca !important;
+    background: #fdebb8 !important;
+    border-radius: 0 12px 12px 0;
+    color: #15130f !important;
+    font-style: italic;
+  }
+
+  .prose blockquote p,
+  .block-based-prose blockquote p {
+    color: #15130f !important;
+    font-weight: 520 !important;
+    opacity: 1 !important;
+    margin: 0;
+  }
+
+  .prose blockquote cite {
+    display: block;
+    margin-top: 0.5rem;
+    font-style: normal;
+    font-family: var(--font-sans);
+    font-size: 0.82rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    margin-bottom: 1rem;
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
+    color: var(--pop-ink);
   }
 
-  .title {
-    font-family: var(--font-serif);
-    font-size: 3rem;
-    font-weight: 400;
-    line-height: 1.2;
-    margin-bottom: 1.5rem;
-    color: var(--text-primary);
-  }
-
-  @media (max-width: 600px) {
-    .title {
-      font-size: 1.75rem; /* ~28px */
-      line-height: 1.25;
-    }
-  }
-
-  .excerpt {
-    font-family: var(--font-serif);
-    font-size: 1.25rem;
-    color: var(--text-secondary);
-    line-height: 1.6;
-    max-width: 600px;
-    margin: 0 auto;
-    font-style: italic;
-  }
-
-  .cover-image {
-    width: 100vw;
-    max-width: 1200px; /* Target size approx 1.5x of 720px + margins */
-    position: relative;
-    left: 50%;
-    transform: translateX(-50%);
-    margin-top: 4rem;
-    margin-bottom: 3rem;
-    border-radius: 8px;
-    overflow: hidden;
-    background-color: var(--bg-surface);
-  }
-
-  @media (max-width: 1250px) {
-    .cover-image {
-      width: 95vw; /* Graceful degradation */
-    }
-  }
-
-  @media (max-width: 600px) {
-    .cover-image {
-      width: 100%; /* Respect container padding */
-      left: auto;
-      transform: none;
-      border-radius: 8px; /* Keep radius on mobile */
-      margin-top: 1rem;
-      margin-bottom: 2rem;
-      max-height: 40vh; /* Reduced height config */
-      object-fit: cover;
-    }
-
-    .cover-image img {
-      height: 100%;
-      width: 100%;
-      object-fit: cover;
-    }
-  }
-
-  .cover-image img {
-    width: 100%;
-    height: auto;
-    display: block;
-  }
-
-  /* Typography for the article content */
-  .prose {
-    font-family: var(--font-serif);
-    font-size: 1.125rem; /* 18px */
-    line-height: 1.8;
-    color: var(--text-primary);
-  }
-
-  /* Deep Selection for dynamic HTML content */
-  .prose :global(h2) {
-    font-family: var(--font-sans);
-    font-size: 1.5rem;
-    margin-top: 3rem;
-    margin-bottom: 1rem;
-    font-weight: 600;
-    letter-spacing: -0.02em;
-  }
-
-  .prose :global(p) {
-    margin-bottom: 1.5rem;
-  }
-
-  .prose :global(a) {
-    color: var(--text-primary);
-    text-decoration: underline;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 4px;
-    opacity: 0.8;
-  }
-
-  .prose :global(ul) {
-    margin-bottom: 1.5rem;
-    padding-left: 1.5rem;
-  }
-
-  .prose :global(li) {
-    margin-bottom: 0.5rem;
-  }
-
-  .prose :global(img) {
-    width: 100%;
+  .prose code {
+    padding: 0.14em 0.4em;
+    border: 1px solid var(--pop-line);
     border-radius: 4px;
-    margin: 2rem 0;
+    background: var(--pop-yellow);
+    color: var(--pop-ink);
+    font-family: var(--font-mono);
+    font-size: 0.88em;
+    letter-spacing: -0.025em;
   }
 
-  .prose :global(blockquote) {
-    border-left: 2px solid var(--accent-light);
-    padding-left: 1.5rem;
-    margin: 2rem 0;
-    font-style: italic;
-    color: var(--text-secondary);
+  .prose pre {
+    max-width: 100%;
+    overflow-x: auto;
+    padding: 1.25rem;
+    border: 1px solid var(--pop-border);
+    border-radius: 12px;
+    background: var(--pop-ink);
+    color: var(--pop-cream);
   }
 
-  .prose :global(figure.block-image),
-  .prose :global(figure.block-video) {
-    margin: 2rem 0;
+  .prose pre code {
     padding: 0;
-    width: 100%;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: inherit;
   }
 
-  .prose :global(figure.block-image img) {
-    margin: 0;
+  .prose hr,
+  .block-divider {
+    height: 1px;
+    margin: clamp(2.5rem, 5vw, 4.5rem) 0;
+    border: 0;
+    background: var(--pop-border);
+  }
+
+  .prose img,
+  .block-based-prose img {
+    display: block;
     width: 100%;
     height: auto;
-    display: block;
-    border-radius: 4px;
+    margin: 2rem auto;
+    border: 1px solid var(--pop-border);
+    border-radius: clamp(10px, 1.2vw, 16px);
   }
 
-  .prose :global(figcaption) {
-    text-align: center;
+  .prose figure,
+  .block-based-prose figure {
+    margin: 2rem 0;
+  }
+
+  .prose figcaption,
+  .block-based-prose figcaption {
     font-family: var(--font-sans);
-    font-size: 0.85rem;
-    color: var(--text-tertiary);
+    font-size: 0.8rem;
+    text-align: center;
+    color: rgba(21, 19, 15, 0.72);
     margin-top: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .block-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin: 2rem 0;
   }
 
   @media (max-width: 768px) {
-    .prose :global(.block-columns) {
+    .block-columns {
       grid-template-columns: 1fr !important;
-      gap: 1rem !important;
+      gap: 1.25rem !important;
     }
   }
 
-  .divider {
-    margin: 4rem 0 2rem;
-    border: none;
-    border-top: 1px solid var(--border-subtle);
+  /* Utility Row */
+  .blog-post-utility-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin: clamp(3rem, 6vw, 4.5rem) 0 0;
+    padding: 1.5rem 0;
+    border-top: 1px solid var(--pop-line);
+    border-bottom: 1px solid var(--pop-line);
+  }
+
+  .blog-back-pill {
+    display: inline-flex;
+    min-height: 48px;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.15rem;
+    border: 1px solid var(--pop-border);
+    border-radius: 14px;
+    background: var(--pop-yellow);
+    color: var(--pop-ink);
+    text-decoration: none;
+    font-family: var(--font-sans);
+    font-size: 0.92rem;
+    font-weight: 700;
+    box-shadow: 0 3px 0 var(--pop-ink);
+    transition: transform 180ms ease, background 180ms ease, box-shadow 180ms ease;
+  }
+
+  .blog-back-pill:hover {
+    background: var(--pop-lime);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 0 var(--pop-ink);
+  }
+
+  .blog-post-utility-row .share-component {
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .blog-post-utility-row .share-icons {
+    gap: 0.5rem;
+  }
+
+  .blog-post-utility-row .share-btn {
+    width: 44px;
+    height: 44px;
+    border: 1px solid var(--pop-border);
+    border-radius: 12px;
+    background: var(--pop-cream);
+    color: var(--pop-ink);
+  }
+
+  .blog-post-utility-row .share-btn:hover {
+    border-color: var(--pop-border);
+    background: var(--pop-pink);
+    color: var(--pop-ink);
+    transform: translateY(-2px);
+    box-shadow: 0 3px 0 var(--pop-ink);
   }
 
   /* Related Section */
-  .related-section {
-    margin-bottom: 4rem;
+  .blog-related-section {
+    margin: clamp(3rem, 6vw, 4.5rem) 0 0;
   }
 
-  .related-label {
+  .blog-related-label {
+    display: block;
     font-family: var(--font-sans);
-    font-size: 0.85rem;
-    color: var(--text-tertiary);
+    font-size: 0.76rem;
+    font-weight: 750;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: 1.5rem;
+    letter-spacing: 0.08em;
+    color: var(--pop-ink);
+    margin-bottom: 1.25rem;
   }
 
-  .related-card {
+  .blog-related-card {
     display: grid;
-    grid-template-columns: 200px 1fr auto;
-    gap: 2rem;
-    padding: 2rem;
+    grid-template-columns: clamp(200px, 30%, 250px) 1fr;
+    gap: clamp(1.25rem, 3vw, 2rem);
+    padding: clamp(1.25rem, 3vw, 1.75rem);
+    border: 1.5px solid var(--pop-border);
+    border-radius: clamp(16px, 2vw, 24px);
+    background: #ffffff;
+    color: var(--pop-ink);
     text-decoration: none;
-    color: var(--text-primary);
-    border: 1px solid var(--border-subtle);
-    border-radius: 12px;
-    transition:
-      transform 0.3s ease,
-      border-color 0.3s ease;
-    align-items: center;
+    align-items: stretch;
+    box-shadow: 0 6px 0 var(--pop-ink);
+    transition: transform 200ms ease, background 200ms ease, box-shadow 200ms ease;
   }
 
-  .related-card:hover {
-    transform: translateY(-2px);
-    border-color: var(--text-secondary);
+  .blog-related-card:hover {
+    background: var(--pop-pink);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 0 var(--pop-ink);
+    color: var(--pop-ink);
+    text-decoration: none;
   }
 
-  .related-image-wrapper {
-    width: 200px;
-    height: 200px;
+  .blog-related-image-wrapper {
+    width: 100%;
+    height: 100%;
+    min-height: 100%;
     overflow: hidden;
-    border-radius: 6px;
-    background: var(--bg-surface);
+    border: 1px solid var(--pop-border);
+    border-radius: 14px;
+    background: var(--pop-ink);
+    position: relative;
   }
 
-  .related-image {
+  .blog-related-image {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: center;
+    display: block;
+    transition: transform 450ms ease;
   }
 
-  .related-image-placeholder {
+  .blog-related-card:hover .blog-related-image {
+    transform: scale(1.04);
+  }
+
+  .blog-related-image-placeholder {
     width: 100%;
     height: 100%;
-    background: var(--bg-surface);
-  }
-
-  .related-content {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-  }
-
-  .related-date {
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--text-tertiary);
-    margin-bottom: 0.5rem;
-  }
-
-  .related-title {
-    font-family: var(--font-serif);
-    font-size: 1.5rem;
-    font-weight: 400;
-    line-height: 1.2;
-    margin: 0 0 0.5rem 0;
-  }
-
-  .related-category {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-  }
-
-  .related-action {
+    background: var(--pop-cyan);
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    justify-content: center;
+    font-family: var(--font-sans);
     font-size: 0.8rem;
-    letter-spacing: 0.05em;
+    font-weight: 750;
     text-transform: uppercase;
-    color: var(--text-tertiary);
-    transition: color 0.3s ease;
+    letter-spacing: 0.08em;
+    color: var(--pop-ink);
   }
 
-  .related-card:hover .related-action {
-    color: var(--text-primary);
+  .blog-related-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
   }
 
-  .related-card:hover .arrow {
+  .blog-related-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .blog-related-tag {
+    padding: 4px 12px;
+    border: 1px solid var(--pop-border);
+    border-radius: 999px;
+    background: var(--pop-yellow);
+    color: var(--pop-ink);
+    font-family: var(--font-sans);
+    font-size: 0.68rem;
+    font-weight: 750;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    box-shadow: 0 2px 0 var(--pop-ink);
+  }
+
+  .blog-related-date {
+    font-family: var(--font-sans);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--pop-ink);
+    opacity: 0.75;
+  }
+
+  .blog-related-title {
+    margin: 0;
+    color: var(--pop-ink);
+    font-family: var(--font-display);
+    font-size: clamp(1.35rem, 2.2vw, 1.75rem);
+    font-weight: 720;
+    line-height: 1.12;
+    letter-spacing: -0.035em;
+  }
+
+  .blog-related-excerpt {
+    margin: 0;
+    color: rgba(21, 19, 15, 0.82);
+    font-family: var(--font-body);
+    font-size: clamp(0.95rem, 1.1vw, 1.05rem);
+    font-weight: 420;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .blog-related-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    align-self: flex-start;
+    margin-top: 0.25rem;
+    padding: 6px 14px;
+    border: 1px solid var(--pop-border);
+    border-radius: 12px;
+    background: var(--pop-yellow);
+    color: var(--pop-ink);
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    font-weight: 750;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    box-shadow: 0 2px 0 var(--pop-ink);
+    transition: transform 180ms ease, background 180ms ease;
+  }
+
+  .blog-related-card:hover .blog-related-action {
+    background: var(--pop-lime);
+  }
+
+  .blog-related-card:hover .blog-related-action .arrow {
     transform: translateX(4px);
-    transition: transform 0.2s ease;
+    transition: transform 180ms ease;
   }
 
-  @media (max-width: 768px) {
-    .related-card {
-      grid-template-columns: 100px 1fr;
-      padding: 1.5rem;
-      gap: 1.5rem;
+  /* Navigation Footer */
+  .blog-post-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: clamp(2.5rem, 5vw, 4rem);
+  }
+
+  .blog-nav-link {
+    display: inline-flex;
+    min-height: 54px;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.85rem 1.35rem;
+    border: 1.5px solid var(--pop-border);
+    border-radius: 16px;
+    background: var(--pop-cream);
+    color: var(--pop-ink);
+    text-decoration: none;
+    font-family: var(--font-sans);
+    font-size: clamp(0.95rem, 1.5vw, 1.05rem);
+    font-weight: 720;
+    box-shadow: 0 3px 0 var(--pop-ink);
+    transition: transform 180ms ease, background 180ms ease, box-shadow 180ms ease;
+  }
+
+  .blog-nav-link:hover {
+    background: var(--pop-yellow);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 var(--pop-ink);
+    color: var(--pop-ink);
+    text-decoration: none;
+  }
+
+  .blog-nav-link--next {
+    margin-left: auto;
+    background: var(--pop-lime);
+  }
+
+  .blog-nav-link--next:hover {
+    background: var(--pop-yellow);
+  }
+
+  @media (max-width: 680px) {
+    .blog-related-card {
+      grid-template-columns: 1fr;
+      gap: 1.25rem;
     }
-    .related-action {
-      display: none; /* Hide on smaller screens or move */
+
+    .blog-related-image-wrapper {
+      height: 200px;
+      min-height: 200px;
     }
-    .related-image-wrapper {
-      width: 100px;
-      height: 100px;
+
+    .blog-post-nav {
+      flex-direction: column;
+      align-items: stretch;
     }
-    .related-title {
-      font-size: 1.2rem;
+
+    .blog-nav-link {
+      justify-content: center;
+      width: 100%;
     }
   }
 
   @media (max-width: 500px) {
-    .related-card {
-      grid-template-columns: 1fr;
-      gap: 1rem;
+    .blog-post-pop-page .blog-post-page {
+      padding: 6px;
     }
-    .related-image-wrapper {
-      width: 100%;
-      height: 200px;
+
+    .blog-post-inner {
+      padding-inline: 0.9rem;
     }
-  }
 
-  /* Footer Nav */
-  .post-footer {
-    margin-bottom: 4rem;
-  }
-
-  .nav-links {
+    .blog-post-title {
+      font-size: clamp(1.85rem, 8vw, 2.5rem);
+     /* Skeleton Reader UI */
+  .blog-post-skeleton {
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
+    gap: 1.15rem;
+    padding: 0.5rem 0 3rem;
+  }
+
+  .skeleton-badge {
+    display: inline-flex;
     align-items: center;
+    gap: 0.5rem;
+    padding: 6px 14px;
+    border: 1px solid var(--pop-border);
+    border-radius: 999px;
+    background: var(--pop-yellow);
+    color: var(--pop-ink);
     font-family: var(--font-sans);
-    font-size: 0.9rem;
+    font-size: 0.75rem;
+    font-weight: 750;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    box-shadow: 0 2px 0 var(--pop-ink);
+    align-self: flex-start;
+    animation: popSkeletonPulse 0.9s infinite alternate ease-in-out;
   }
 
-  .back-link,
-  .next-link {
-    color: var(--text-secondary);
-    text-decoration: none;
-    transition: color 0.2s;
-    font-weight: 500;
+  .skeleton-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--pop-purple);
+    animation: popDotPulse 0.8s infinite alternate ease-in-out;
   }
 
-  .back-link:hover,
-  .next-link:hover {
-    color: var(--text-primary);
+  .skeleton-line {
+    width: 100%;
+    height: 18px;
+    border-radius: 8px;
+    background: rgba(21, 19, 15, 0.1);
+    animation: popSkeletonPulse 1.1s infinite alternate ease-in-out;
   }
 
-  .next-link {
-    text-align: right;
+  .skeleton-line--short { width: 62%; }
+  .skeleton-line--medium { width: 84%; }
+  .skeleton-line--heading {
+    height: 32px;
+    width: 48%;
+    margin-top: 1.5rem;
+    border-radius: 10px;
+    background: rgba(21, 19, 15, 0.16);
   }
 
-  :global(body.blog-post-page .site-footer .brands-zone) {
-    display: none;
+  @keyframes popSkeletonPulse {
+    0% { opacity: 0.35; }
+    100% { opacity: 0.85; }
+  }
+
+  @keyframes popDotPulse {
+    0% { transform: scale(0.8); opacity: 0.5; }
+    100% { transform: scale(1.3); opacity: 1; }
+  }
+
+  .blog-post-real-content {
+    transition: opacity 250ms ease;
+  }
+
+  /* Instant loading states */
+  .blog-related-card.is-loading {
+    background: var(--pop-yellow) !important;
+    border-color: var(--pop-ink) !important;
+    box-shadow: 0 4px 0 var(--pop-ink) !important;
+    cursor: wait;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .blog-cover-image-container img,
+    .blog-back-pill,
+    .blog-related-card,
+    .blog-related-image,
+    .blog-nav-link,
+    .blog-post-utility-row .share-btn {
+      transition: none !important;
+    }
+
+    .blog-related-card:hover,
+    .blog-nav-link:hover,
+    .blog-back-pill:hover {
+      transform: none !important;
+    }
   }
 </style>
+
+<script is:inline>
+  (function () {
+    window.__PRELOADED_POSTS__ = window.__PRELOADED_POSTS__ || {};
+
+    function preloadRecommendedPost() {
+      const relatedCard = document.querySelector(".blog-related-card");
+      if (!relatedCard) return;
+
+      const href = relatedCard.getAttribute("href");
+      if (!href || !href.startsWith("/blog/")) return;
+
+      const targetSlug = href.replace("/blog/", "").replace(/\/$/, "");
+      if (window.__PRELOADED_POSTS__[targetSlug]) return;
+
+      fetch("/api/blog-post.json?slug=" + encodeURIComponent(targetSlug), { priority: "low" })
+        .then(function (res) {
+          return res.json();
+        })
+        .then(function (data) {
+          if (data && data.post) {
+            window.__PRELOADED_POSTS__[targetSlug] = data;
+          }
+        })
+        .catch(function () {});
+    }
+
+    function updateRelatedCard(relData) {
+      const relCard = document.querySelector(".blog-related-card");
+      if (!relCard) return;
+
+      relCard.setAttribute("href", relData.href);
+      const relTitle = relCard.querySelector(".blog-related-title");
+      const relTag = relCard.querySelector(".blog-related-tag");
+      const relDate = relCard.querySelector(".blog-related-date");
+      const relExcerpt = relCard.querySelector(".blog-related-excerpt");
+      const relImg = relCard.querySelector(".blog-related-image");
+
+      if (relTitle) relTitle.textContent = relData.title;
+      if (relTag)
+        relTag.textContent = Array.isArray(relData.category)
+          ? relData.category[0]
+          : relData.category || "Blog";
+      if (relDate) relDate.textContent = relData.date;
+      if (relExcerpt)
+        relExcerpt.textContent = relData.excerpt || relData.description || "";
+      if (relImg && relData.image) relImg.src = relData.image;
+    }
+
+    function setupInstantPreloadedNavigation() {
+      const relatedCard = document.querySelector(".blog-related-card");
+      if (!relatedCard) return;
+
+      // ⚡ Preload recommended article into client memory immediately on page load!
+      preloadRecommendedPost();
+
+      relatedCard.addEventListener(
+        "click",
+        function (e) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+
+          const href = relatedCard.getAttribute("href");
+          if (!href || !href.startsWith("/blog/")) return;
+
+          const targetSlug = href.replace("/blog/", "").replace(/\/$/, "");
+          const cachedData = window.__PRELOADED_POSTS__[targetSlug];
+
+          const titleEl = relatedCard.querySelector(".blog-related-title");
+          const tagEl = relatedCard.querySelector(".blog-related-tag");
+          const dateEl = relatedCard.querySelector(".blog-related-date");
+          const excerptEl = relatedCard.querySelector(".blog-related-excerpt");
+          const imgEl = relatedCard.querySelector(".blog-related-image");
+
+          const fallbackTitle = titleEl ? titleEl.textContent : "";
+          const fallbackTag = tagEl ? tagEl.textContent : "Blog";
+          const fallbackDate = dateEl ? dateEl.textContent : "";
+          const fallbackExcerpt = excerptEl ? excerptEl.textContent : "";
+          const fallbackImgSrc = imgEl ? imgEl.getAttribute("src") : "";
+
+          const docContainer = document.querySelector(".blog-post-document");
+
+          // 1. INSTANTLY vanish the old page in 0ms
+          if (docContainer) {
+            docContainer.style.visibility = "hidden";
+          }
+
+          // Disable any smooth scroll CSS overrides on html/body so scroll jumps in 0ms
+          const origHtmlScroll = document.documentElement.style.scrollBehavior;
+          const origBodyScroll = document.body.style.scrollBehavior;
+          document.documentElement.style.scrollBehavior = "auto";
+          document.body.style.scrollBehavior = "auto";
+
+          // Jump viewport to (0,0) instantly
+          window.history.pushState({}, "", href);
+          window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+          document.documentElement.scrollTop = 0;
+          document.body.scrollTop = 0;
+
+          // 2. INSTANTLY (0ms) populate Header Shell
+          const mainTitle = document.getElementById("post-title");
+          const mainTag = document.querySelector(".blog-post-tag");
+          const mainDate = document.querySelector(".blog-post-date");
+          const mainExcerpt = document.querySelector(".blog-post-excerpt");
+          const mainCoverContainer = document.querySelector(".blog-cover-image-container");
+          const mainCoverImg = mainCoverContainer ? mainCoverContainer.querySelector("img") : null;
+
+          const skeleton = document.getElementById("blog-post-skeleton");
+          const realContent = document.getElementById("blog-post-real-content");
+
+          if (cachedData && cachedData.post) {
+            // ⚡ INSTANT MEMORY HIT: Render title, header, cover image AND body text instantly in 0ms!
+            if (mainTitle) mainTitle.textContent = cachedData.post.title;
+            if (mainTag) {
+              const cat = cachedData.post.category;
+              mainTag.textContent = Array.isArray(cat) ? cat[0] : cat || "Blog";
+            }
+            if (mainDate) {
+              const d = cachedData.post.published_at || cachedData.post.created_at;
+              mainDate.textContent = new Date(d).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              });
+            }
+            if (mainExcerpt) {
+              const exc = cachedData.post.excerpt || cachedData.post.description || "";
+              mainExcerpt.textContent = exc;
+              mainExcerpt.style.display = exc ? "block" : "none";
+            }
+
+            if (mainCoverImg && cachedData.post.cover_image) {
+              mainCoverImg.src = cachedData.post.cover_image;
+              if (mainCoverContainer) mainCoverContainer.style.display = "block";
+            } else if (mainCoverContainer && !cachedData.post.cover_image) {
+              mainCoverContainer.style.display = "none";
+            }
+
+            if (realContent && cachedData.contentHtml) {
+              realContent.innerHTML = '<div class="prose">' + cachedData.contentHtml + "</div>";
+              realContent.style.display = "block";
+              realContent.style.opacity = "1";
+            }
+
+            if (skeleton) skeleton.style.display = "none";
+
+            // Update bottom recommended reading card for NEXT article and preload it!
+            if (cachedData.relatedPost) {
+              updateRelatedCard(cachedData.relatedPost);
+              preloadRecommendedPost();
+            }
+          } else {
+            // Fallback if clicked before background fetch completed
+            if (mainTitle && fallbackTitle) mainTitle.textContent = fallbackTitle;
+            if (mainTag && fallbackTag) mainTag.textContent = fallbackTag;
+            if (mainDate && fallbackDate) mainDate.textContent = fallbackDate;
+            if (mainExcerpt) {
+              mainExcerpt.textContent = fallbackExcerpt;
+              mainExcerpt.style.display = fallbackExcerpt ? "block" : "none";
+            }
+
+            if (mainCoverImg && fallbackImgSrc) {
+              mainCoverImg.src = fallbackImgSrc;
+              if (mainCoverContainer) mainCoverContainer.style.display = "block";
+            }
+
+            if (skeleton) skeleton.style.display = "flex";
+            if (realContent) realContent.style.display = "none";
+
+            fetch("/api/blog-post.json?slug=" + encodeURIComponent(targetSlug))
+              .then((res) => res.json())
+              .then((data) => {
+                if (!data || data.error || !data.post) return;
+                window.__PRELOADED_POSTS__[targetSlug] = data;
+
+                if (data.contentHtml && realContent) {
+                  realContent.innerHTML = '<div class="prose">' + data.contentHtml + "</div>";
+                }
+
+                if (skeleton) skeleton.style.display = "none";
+                if (realContent) realContent.style.display = "block";
+
+                if (data.relatedPost) {
+                  updateRelatedCard(data.relatedPost);
+                  preloadRecommendedPost();
+                }
+              });
+          }
+
+          // 3. Restore visibility and CSS scroll behavior at the top of the fresh new page
+          document.documentElement.style.scrollBehavior = origHtmlScroll;
+          document.body.style.scrollBehavior = origBodyScroll;
+          if (docContainer) {
+            docContainer.style.visibility = "visible";
+          }
+        },
+        true
+      );
+    }
+
+    function checkCurrentPageMemoryCache() {
+      const currentSlug = decodeURIComponent(
+        window.location.pathname.replace("/blog/", "").replace(/\/$/, "")
+      );
+      if (!currentSlug || !window.__PRELOADED_POSTS__ || !window.__PRELOADED_POSTS__[currentSlug]) return;
+
+      const cachedData = window.__PRELOADED_POSTS__[currentSlug];
+      const skeleton = document.getElementById("blog-post-skeleton");
+      const realContent = document.getElementById("blog-post-real-content");
+
+      if (cachedData.contentHtml && realContent) {
+        realContent.innerHTML = '<div class="prose">' + cachedData.contentHtml + "</div>";
+        realContent.style.display = "block";
+        realContent.style.opacity = "1";
+      }
+      if (skeleton) skeleton.style.display = "none";
+    }
+
+    function initBlogPage() {
+      checkCurrentPageMemoryCache();
+      setupInstantPreloadedNavigation();
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", initBlogPage);
+    } else {
+      initBlogPage();
+    }
+    document.addEventListener("astro:page-load", initBlogPage);
+  })();
+</script>

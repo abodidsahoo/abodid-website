@@ -1,12 +1,6 @@
 ---
 import ObsidianLandingPage from "../components/obsidian/ObsidianLandingPage.astro";
 
-const accordions = [
-  { title: "Start", body: "Obsidian from zero, without the confusing internet rabbit hole." },
-  { title: "Connect", body: "Notes, tags, backlinks and metadata that connect related thoughts." },
-  { title: "Recall", body: "Find the right idea when you need to write, speak, create or make a decision." },
-];
-
 const hubLinks = [
   {
     title: "Academic Researchers",
@@ -42,14 +36,11 @@ const hubLinks = [
   ]}
   showPayment={true}
   secondaryCta="Book 1:1 tutoring →"
-  secondHeading="Your notes should find their way back to you."
-  visualHeading="[[an-idea]] ↔ [[another-idea]]"
-  visualCta="Move your cursor to reveal the live vault tags ↗"
-  visualDetails={["backlinks: 2", "type: thought", "status: connected"]}
-  accordions={accordions}
   hubHeading="Looking for something more specific?"
   hubLinks={hubLinks}
-  endPrompt="Not sure where you fit?"
+  discoveryHeading="Book your free discovery call today."
+  submitLabel="Yes, I'm Interested"
+  finalAppealText="Your notes should find their way back to you when you need them the most."
   sourceName="obsidian-tutoring"
   contactInterest="General Obsidian tutoring"
 />

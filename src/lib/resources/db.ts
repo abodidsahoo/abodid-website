@@ -1,4 +1,5 @@
 import { supabase } from '../supabaseClient';
+import { invalidateResourcePageData } from './pageData';
 import type { HubResource, CreateResourcePayload, CuratorApprovalPayload, HubTag, Profile, ResourceAudience } from './types';
 
 // --- Types for Filter Params ---
@@ -258,6 +259,7 @@ export async function submitResource(payload: CreateResourcePayload): Promise<{ 
 
         await sendSubmissionConfirmationEmail(resource);
 
+        invalidateResourcePageData();
         return { success: true, data: resource };
 
     } catch (e: any) {
@@ -340,6 +342,7 @@ export async function updateResourceStatus(
             .eq('id', resourceId);
 
         if (error) throw error;
+        invalidateResourcePageData();
         return { success: true };
 
     } catch (e: any) {
@@ -398,6 +401,7 @@ export async function updateResource(
             }
         }
 
+        invalidateResourcePageData();
         return { success: true };
 
     } catch (e: any) {
@@ -631,6 +635,7 @@ export async function approveResource(
             console.warn('Approval email not sent:', result.emailResult.reason);
         }
 
+        invalidateResourcePageData();
         return { success: true };
     } catch (e: any) {
         console.error('Approval failed:', e);
@@ -676,6 +681,7 @@ export async function rejectResource(resourceId: string, reason?: string): Promi
             console.warn('Rejection email not sent:', payload.emailResult.reason);
         }
 
+        invalidateResourcePageData();
         return { success: true };
 
     } catch (e: any) {
@@ -704,6 +710,7 @@ export async function deleteResource(resourceId: string): Promise<{ success: boo
             .eq('id', resourceId);
 
         if (error) throw error;
+        invalidateResourcePageData();
         return { success: true };
 
     } catch (e: any) {
@@ -731,6 +738,7 @@ export async function restoreResource(resourceId: string): Promise<{ success: bo
             .eq('id', resourceId);
 
         if (error) throw error;
+        invalidateResourcePageData();
         return { success: true };
 
     } catch (e: any) {
@@ -757,6 +765,7 @@ export async function permanentDeleteResource(resourceId: string): Promise<{ suc
             .eq('id', resourceId);
 
         if (error) throw error;
+        invalidateResourcePageData();
         return { success: true };
 
     } catch (e: any) {

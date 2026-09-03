@@ -1,32 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Check, X } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
-import { approveResource, rejectResource, getPendingResources, deleteResource, restoreResource, permanentDeleteResource, getDeletedResources, getAllResourcesAdmin } from '../../lib/resources/db';
+import { approveResource, rejectResource, deleteResource, restoreResource, permanentDeleteResource } from '../../lib/resources/db';
 import type { User } from '@supabase/supabase-js';
 import TagInput from './TagInput';
 import { uploadResourceThumbnail } from '../../lib/resources/storage';
+import { getCachedDashboard, loadDashboardData, RESOURCE_DATA_CHANGED, type DashboardResource } from '../../lib/resources/pageData';
+import ResourceLoading from './ResourceLoading';
 
-interface Profile {
-    id: string;
-    full_name: string | null;
-    role: string;
-}
-
-interface Submission {
-    id: string;
-    title: string;
-    url: string;
-    description: string | null;
-    thumbnail_url: string | null;
-    audience?: string | null;
-    tags?: Array<{ id: string; name: string }>;
-    status: 'pending' | 'approved' | 'rejected' | 'deleted';
-    created_at: string;
-    reviewed_at: string | null;
-    rejection_reason: string | null;
-    admin_notes?: string | null;
-    submitted_by?: string;
-    submitter_profile?: any;
-}
+type Submission = DashboardResource;
 
 interface CurationDraft {
     selectedTags: string[];
@@ -42,12 +24,14 @@ interface Props {
 }
 
 export default function CuratorDashboard({ user, role }: Props) {
-    const [loading, setLoading] = useState(true);
+    const [initialData] = useState(() => getCachedDashboard(user.id, role));
+    const [loading, setLoading] = useState(!initialData);
+    const refreshRef = useRef<() => void>(() => {});
     // User/Profile come from props now
-    const [submissions, setSubmissions] = useState<Submission[]>([]);
-    const [pendingSubmissions, setPendingSubmissions] = useState<Submission[]>([]);
-    const [deletedSubmissions, setDeletedSubmissions] = useState<Submission[]>([]);
-    const [globalResources, setGlobalResources] = useState<Submission[]>([]);
+    const [submissions, setSubmissions] = useState<Submission[]>(initialData?.submissions || []);
+    const [pendingSubmissions, setPendingSubmissions] = useState<Submission[]>(initialData?.pending || []);
+    const [deletedSubmissions, setDeletedSubmissions] = useState<Submission[]>(initialData?.deleted || []);
+    const [globalResources, setGlobalResources] = useState<Submission[]>(initialData?.resources || []);
     const [filter, setFilter] = useState('all'); // all, pending, approved, rejected, deleted, global
     const [error, setError] = useState<string | null>(null);
     const [curationByResource, setCurationByResource] = useState<Record<string, CurationDraft>>({});
@@ -57,60 +41,59 @@ export default function CuratorDashboard({ user, role }: Props) {
     const [isModerating, setIsModerating] = useState(false);
     const [moderationError, setModerationError] = useState<string | null>(null);
 
-    const fetchData = async () => {
-        if (!user) return;
-        setLoading(true);
-        setError(null);
-        try {
-            const requests: Promise<any>[] = [
-                fetchSubmissions(user.id),
-                fetchPendingSubmissions(),
-                fetchDeletedSubmissions(),
-                fetchGlobalResources()
-            ];
-            await Promise.all(requests);
-        } catch (err: any) {
-            console.error('Dashboard load error:', err);
-            setError('Failed to load dashboard data. Please try again.');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const refreshDataSilent = async () => {
-        if (!user) return;
-        try {
-            const requests: Promise<any>[] = [
-                fetchSubmissions(user.id),
-                fetchPendingSubmissions(),
-                fetchDeletedSubmissions(),
-                fetchGlobalResources()
-            ];
-            await Promise.all(requests);
-        } catch (err: any) {
-            console.error('Background refresh error:', err);
-        }
-    };
+    const refreshDataSilent = () => refreshRef.current();
 
     useEffect(() => {
-        fetchData();
-
-        // Auto-refresh every 60s silently in background
-        const intervalId = setInterval(() => {
-            refreshDataSilent();
-        }, 60000);
-
-        // Auto-refresh silently whenever curator switches back to window/tab
-        const handleFocus = () => {
-            refreshDataSilent();
+        let active = true;
+        let running = false;
+        let rerun = false;
+        let retryTimer: ReturnType<typeof setTimeout>;
+        const refresh = async () => {
+            if (!active) return;
+            if (running) { rerun = true; return; }
+            running = true;
+            clearTimeout(retryTimer);
+            try {
+                const next = await loadDashboardData(user.id, role, true);
+                if (!active) return;
+                setSubmissions(next.submissions);
+                setPendingSubmissions(next.pending);
+                setDeletedSubmissions(next.deleted);
+                setGlobalResources(next.resources);
+                setError(null);
+                setLoading(false);
+            } catch (error) {
+                if (!active) return;
+                console.error('Dashboard update interrupted:', error);
+                setError('Connection interrupted. Reconnecting automatically…');
+                // Keep the current dashboard visible during a connection failure.
+                retryTimer = setTimeout(refresh, 8_000);
+            } finally {
+                running = false;
+                if (active && rerun) {
+                    rerun = false;
+                    void refresh();
+                }
+            }
         };
-        window.addEventListener('focus', handleFocus);
-
+        refreshRef.current = refresh;
+        void refresh();
+        const interval = setInterval(refresh, 60_000);
+        window.addEventListener('focus', refresh);
+        window.addEventListener('online', refresh);
+        window.addEventListener('pageshow', refresh);
+        window.addEventListener(RESOURCE_DATA_CHANGED, refresh);
         return () => {
-            clearInterval(intervalId);
-            window.removeEventListener('focus', handleFocus);
+            active = false;
+            clearTimeout(retryTimer);
+            clearInterval(interval);
+            refreshRef.current = () => {};
+            window.removeEventListener('focus', refresh);
+            window.removeEventListener('online', refresh);
+            window.removeEventListener('pageshow', refresh);
+            window.removeEventListener(RESOURCE_DATA_CHANGED, refresh);
         };
-    }, [user, role]);
+    }, [user.id, role]);
 
     useEffect(() => {
         setCurationByResource(prev => {
@@ -138,39 +121,6 @@ export default function CuratorDashboard({ user, role }: Props) {
             return next;
         });
     }, [pendingSubmissions]);
-
-    const handleRefresh = () => {
-        fetchData();
-    };
-
-    const fetchSubmissions = async (userId: string) => {
-        if (!supabase) return;
-
-        const { data, error } = await supabase
-            .from('hub_resources')
-            .select('*')
-            .eq('submitted_by', userId)
-            .order('created_at', { ascending: false });
-
-        if (!error && data) {
-            setSubmissions(data as Submission[]);
-        }
-    };
-
-    const fetchPendingSubmissions = async () => {
-        const pending = await getPendingResources();
-        setPendingSubmissions(pending as unknown as Submission[]);
-    };
-
-    const fetchDeletedSubmissions = async () => {
-        const deleted = await getDeletedResources();
-        setDeletedSubmissions(deleted as unknown as Submission[]);
-    };
-
-    const fetchGlobalResources = async () => {
-        const global = await getAllResourcesAdmin();
-        setGlobalResources(global as unknown as Submission[]);
-    };
 
     const getDraft = (submission: Submission): CurationDraft => {
         return curationByResource[submission.id] || {
@@ -251,8 +201,8 @@ export default function CuratorDashboard({ user, role }: Props) {
         });
         if (!result.success) {
             // Revert on failure (simplified: just reload or show alert)
-            fetchPendingSubmissions();
-            if (user) fetchSubmissions(user.id);
+            refreshDataSilent();
+            if (user) refreshDataSilent();
             return { success: false, error: result.error || 'Failed to approve.' };
         }
 
@@ -266,7 +216,7 @@ export default function CuratorDashboard({ user, role }: Props) {
 
         const result = await rejectResource(resourceId, reason || '');
         if (!result.success) {
-            fetchPendingSubmissions();
+            refreshDataSilent();
             return { success: false, error: result.error || 'Failed to reject.' };
         }
 
@@ -342,9 +292,9 @@ export default function CuratorDashboard({ user, role }: Props) {
         if (!result.success) {
             // Revert by refetching
             alert('Failed to delete. Refreshing...');
-            fetchGlobalResources();
-            if (user) fetchSubmissions(user.id);
-            fetchDeletedSubmissions();
+            refreshDataSilent();
+            if (user) refreshDataSilent();
+            refreshDataSilent();
         }
     };
 
@@ -371,9 +321,9 @@ export default function CuratorDashboard({ user, role }: Props) {
         const result = await restoreResource(resourceId);
         if (!result.success) {
             alert('Failed to restore. Refreshing...');
-            fetchDeletedSubmissions();
-            fetchPendingSubmissions();
-            if (user) fetchSubmissions(user.id);
+            refreshDataSilent();
+            refreshDataSilent();
+            if (user) refreshDataSilent();
         }
     };
 
@@ -389,8 +339,8 @@ export default function CuratorDashboard({ user, role }: Props) {
         const result = await permanentDeleteResource(resourceId);
         if (!result.success) {
             alert('Failed to delete. Refreshing...');
-            fetchDeletedSubmissions();
-            if (user) fetchSubmissions(user.id);
+            refreshDataSilent();
+            if (user) refreshDataSilent();
         }
     };
 
@@ -418,24 +368,7 @@ export default function CuratorDashboard({ user, role }: Props) {
         }
     };
 
-    if (loading) {
-        return (
-            <div className="curator-dashboard">
-                <div className="loading">Loading your dashboard...</div>
-            </div>
-        );
-    }
-
-    if (error) {
-        return (
-            <div className="curator-dashboard">
-                <div className="error-state" style={{ textAlign: 'center', padding: '4rem' }}>
-                    <p style={{ color: '#EF4444', marginBottom: '1rem' }}>{error}</p>
-                    <button onClick={handleRefresh} className="btn-secondary">Retry</button>
-                </div>
-            </div>
-        );
-    }
+    if (loading) return <ResourceLoading reconnecting={Boolean(error)} />;
 
     const pendingCount = pendingSubmissions.length;
     const approvedCount = globalResources.length > 0 ? globalResources.filter(r => r.status === 'approved').length : submissions.filter(s => s.status === 'approved').length;
@@ -446,6 +379,7 @@ export default function CuratorDashboard({ user, role }: Props) {
 
     return (
         <div className="curator-dashboard">
+            {error && <p className="resource-connection-status" role="status">{error}</p>}
             <div className="curator-header">
                 <div>
                     <h1>Curator Dashboard</h1>
@@ -568,36 +502,38 @@ export default function CuratorDashboard({ user, role }: Props) {
                                                 />
                                             </div>
 
-                                            <div className="curation-row" style={{ borderTop: '1px solid rgba(21, 19, 15, 0.1)', paddingTop: '14px' }}>
-                                                <label className="curation-label" htmlFor={`thumbnail-upload-${submission.id}`} style={{ display: 'block', font: '750 0.7rem/1.3 var(--resources-mono)', letterSpacing: '0.09em', textTransform: 'uppercase', color: 'var(--pop-ink)', marginBottom: '8px' }}>Upload Custom Thumbnail (Optional)</label>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+                                            <div className="curation-row thumbnail-upload">
+                                                <label className="thumbnail-upload-label" htmlFor={`thumbnail-upload-${submission.id}`}>
+                                                    Custom thumbnail <span>Optional</span>
+                                                </label>
+                                                <div className="thumbnail-upload-controls">
                                                     <input
                                                         id={`thumbnail-upload-${submission.id}`}
                                                         type="file"
                                                         accept="image/*"
                                                         className="thumbnail-upload-input"
-                                                        style={{ font: '500 0.85rem var(--resources-font)', maxWidth: '280px' }}
+                                                        disabled={getDraft(submission).isUploading}
                                                         onChange={(e) => {
                                                             const file = e.target.files?.[0] || null;
                                                             handleThumbnailUpload(submission, file);
                                                             e.currentTarget.value = '';
                                                         }}
                                                     />
-                                                    {getDraft(submission).isUploading && (
-                                                        <p className="thumbnail-upload-status" style={{ color: 'var(--pop-blue)', fontSize: '0.85rem', fontWeight: 700, margin: 0 }}>Uploading thumbnail...</p>
-                                                    )}
-                                                    {getDraft(submission).uploadError && (
-                                                        <p className="thumbnail-upload-error" style={{ color: '#b91c1c', fontSize: '0.85rem', fontWeight: 700, margin: 0 }}>{getDraft(submission).uploadError}</p>
-                                                    )}
                                                     {getDraft(submission).thumbnailUrl && (
                                                         <img
                                                             src={getDraft(submission).thumbnailUrl}
                                                             alt={`Thumbnail preview for ${submission.title}`}
-                                                            style={{ width: '100px', height: '56px', objectFit: 'cover', borderRadius: '10px', border: '1px solid var(--pop-border)' }}
+                                                            className="curation-thumbnail-preview"
                                                             loading="lazy"
                                                         />
                                                     )}
                                                 </div>
+                                                {getDraft(submission).isUploading && (
+                                                    <p className="thumbnail-upload-status" role="status">Uploading thumbnail…</p>
+                                                )}
+                                                {getDraft(submission).uploadError && (
+                                                    <p className="thumbnail-upload-error" role="alert">{getDraft(submission).uploadError}</p>
+                                                )}
                                             </div>
                                         </div>
 
@@ -607,13 +543,15 @@ export default function CuratorDashboard({ user, role }: Props) {
                                                 onClick={() => openModerationDialog(submission, 'approve')}
                                                 className="btn-approve"
                                             >
-                                                ✓ Approve & Publish
+                                                <Check size={16} strokeWidth={2} aria-hidden="true" />
+                                                <span>Approve & Publish</span>
                                             </button>
                                             <button
                                                 onClick={() => openModerationDialog(submission, 'reject')}
                                                 className="btn-reject"
                                             >
-                                                ✗ Reject
+                                                <X size={16} strokeWidth={2} aria-hidden="true" />
+                                                <span>Reject</span>
                                             </button>
                                             <a
                                                 href={submission.url}
@@ -1283,33 +1221,6 @@ export default function CuratorDashboard({ user, role }: Props) {
                     color: var(--text-secondary);
                     text-transform: uppercase;
                     letter-spacing: 0.04em;
-                }
-
-                .thumbnail-upload-input {
-                    width: 100%;
-                    font-size: 0.9rem;
-                    color: var(--text-primary);
-                }
-
-                .thumbnail-upload-status {
-                    margin: 0.5rem 0 0;
-                    font-size: 0.8rem;
-                    color: var(--text-secondary);
-                }
-
-                .thumbnail-upload-error {
-                    margin: 0.5rem 0 0;
-                    font-size: 0.8rem;
-                    color: #EF4444;
-                }
-
-                .curation-thumbnail-preview {
-                    margin-top: 0.625rem;
-                    width: 100%;
-                    max-height: 180px;
-                    object-fit: cover;
-                    border-radius: 6px;
-                    border: 1px solid var(--border-subtle);
                 }
 
                 .empty-state {

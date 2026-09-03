@@ -1,11 +1,15 @@
 export const prerender = false;
 
-import { getVaultNotes } from "../../lib/github.js";
+import { getVaultNotes, getFileContent } from "../../lib/github.js";
 import { findNotesReferencing } from "../../lib/vault.js";
 import {
   createSupabaseServiceClient,
   sourceHrefForFilePath,
+  extractExplicitTags,
+  normalizeWikiLinkTarget,
 } from "../../lib/vault-rag.js";
+import { getIndexedNoteBySlug } from "../../lib/vault-note-index.js";
+import { marked } from "marked";
 
 const VAULT_PATH_PREFIX = "6 - Main Notes/";
 
@@ -134,9 +138,12 @@ function redirectTo(href) {
 export async function GET({ url }) {
   const currentFilePath = cleanFilePath(url.searchParams.get("file"));
   const firstTag = cleanTag(url.searchParams.get("tag"));
+  const wantsJson = url.searchParams.get("json") === "true";
 
   if (!currentFilePath) {
-    return redirectTo("/research/obsidian-vault");
+    return wantsJson
+      ? new Response(JSON.stringify({ error: "Invalid file path" }), { status: 400 })
+      : redirectTo("/research/obsidian-vault");
   }
 
   let relatedNote = null;
@@ -173,7 +180,79 @@ export async function GET({ url }) {
     }
   }
 
-  return redirectTo(
-    hrefForNote(relatedNote) || "/research/obsidian-vault",
-  );
+  const targetHref = hrefForNote(relatedNote) || "/research/obsidian-vault";
+
+  if (wantsJson) {
+    const slug = decodeURIComponent(
+      targetHref.replace("/research/obsidian-vault/", "").replace(/\/$/, "")
+    );
+
+    let htmlContent = "";
+    let displayTitle = slug.replace(/-/g, " ");
+    let targetFirstTag = "";
+    let targetFilePath = `6 - Main Notes/${slug}.md`;
+
+    try {
+      const indexedNote = await getIndexedNoteBySlug(slug).catch(() => null);
+      const rawContent =
+        indexedNote?.markdown_content ||
+        (await getFileContent(targetFilePath).catch(() => null));
+
+      if (rawContent) {
+        const explicitTags =
+          Array.isArray(indexedNote?.tags) && indexedNote.tags.length > 0
+            ? indexedNote.tags
+            : extractExplicitTags(rawContent);
+        const tagSet = new Set(
+          explicitTags.map(normalizeWikiLinkTarget).filter(Boolean)
+        );
+        targetFirstTag = indexedNote?.first_tag || explicitTags[0] || "";
+
+        let content = rawContent.replace(/!\[\[(.*?)\]\]/g, (match, filename) => {
+          const cleanFilename = filename.split("|")[0];
+          return `![](/research/obsidian-vault/assets/${cleanFilename})`;
+        });
+
+        content = content.replace(
+          /!\[(.*?)\]\((.*?)(?:7%20-%20Assets|7 - Assets)\/(.*?)\)/g,
+          "![$1](/research/obsidian-vault/assets/$3)"
+        );
+
+        content = content.replace(/\[\[(.*?)\]\]/g, (match, raw) => {
+          const parts = raw.split("|");
+          const linkTargetRaw = (parts[0] || "").trim();
+          const linkText = (parts[1] || parts[0] || "").trim();
+          const linkTarget = linkTargetRaw.replace(/\.md$/i, "");
+          const isTag = tagSet.has(normalizeWikiLinkTarget(linkTarget));
+          const hrefBase = isTag
+            ? "/research/obsidian-vault/tag/"
+            : "/research/obsidian-vault/";
+          return `[${linkText}](${hrefBase}${encodeURIComponent(linkTarget)})`;
+        });
+
+        htmlContent = await marked.parse(content);
+      }
+    } catch (e) {
+      console.warn("Failed parsing preloaded vault note:", e);
+    }
+
+    return new Response(
+      JSON.stringify({
+        href: targetHref,
+        slug,
+        displayTitle,
+        firstTag: targetFirstTag,
+        filePath: targetFilePath,
+        htmlContent,
+      }),
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "public, max-age=60, s-maxage=300",
+        },
+      }
+    );
+  }
+
+  return redirectTo(targetHref);
 }

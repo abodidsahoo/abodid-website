@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { getUserStats } from '../../lib/resources/db';
+import { clearResourcePageData } from '../../lib/resources/pageData';
 
 interface Profile {
     username: string;
@@ -91,12 +92,18 @@ export default function AuthHeader({ theme = 'default' }: Props) {
         checkUser();
 
         if (!supabase) return;
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-            await syncProfile(session);
+        let authUpdateTimer: ReturnType<typeof setTimeout>;
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_OUT') clearResourcePageData();
+            // Supabase waits for auth callbacks while holding its session lock.
+            // Profile/stat queries must begin only after that callback returns.
+            clearTimeout(authUpdateTimer);
+            authUpdateTimer = setTimeout(() => { void syncProfile(session); }, 0);
         });
 
         return () => {
             clearTimeout(timer);
+            clearTimeout(authUpdateTimer);
             subscription.unsubscribe();
         };
     }, []);

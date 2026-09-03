@@ -689,3 +689,165 @@ const structuredData = [
         }
     }
 </style>
+
+<script is:inline>
+  (function () {
+    window.__PRELOADED_VAULT_NOTES__ = window.__PRELOADED_VAULT_NOTES__ || {};
+
+    function preloadVaultRelatedNote() {
+      const btn = document.querySelector(".vault-note-end-action--related");
+      if (!btn) return;
+
+      const rawHref = btn.getAttribute("href");
+      if (!rawHref) return;
+
+      if (rawHref.startsWith("/research/obsidian-vault/") && !rawHref.includes("/api/")) {
+        const slug = decodeURIComponent(rawHref.replace("/research/obsidian-vault/", "").replace(/\/$/, ""));
+        if (window.__PRELOADED_VAULT_NOTES__[slug]) return;
+      }
+
+      const fetchUrl = rawHref.includes("json=true")
+        ? rawHref
+        : rawHref + (rawHref.includes("?") ? "&json=true" : "?json=true");
+
+      fetch(fetchUrl, { priority: "low" })
+        .then(function (res) {
+          return res.json();
+        })
+        .then(function (data) {
+          if (data && data.slug && data.htmlContent) {
+            window.__PRELOADED_VAULT_NOTES__[data.slug] = data;
+            btn.setAttribute("href", data.href);
+            const btnText = btn.querySelector("span:first-child");
+            if (btnText && data.displayTitle) {
+              btnText.textContent = "Read Related Note: " + data.displayTitle;
+            }
+          }
+        })
+        .catch(function () {});
+    }
+
+    function setupVaultInstantNavigation() {
+      const btn = document.querySelector(".vault-note-end-action--related");
+      if (!btn) return;
+
+      // ⚡ Preload related note into client memory immediately on page load!
+      preloadVaultRelatedNote();
+
+      btn.addEventListener(
+        "click",
+        function (e) {
+          const href = btn.getAttribute("href");
+          if (!href) return;
+
+          e.preventDefault();
+          e.stopImmediatePropagation();
+
+          let targetSlug = "";
+          if (href.startsWith("/research/obsidian-vault/")) {
+            targetSlug = decodeURIComponent(
+              href.replace("/research/obsidian-vault/", "").replace(/\/$/, "")
+            );
+          }
+
+          const cachedData = targetSlug ? window.__PRELOADED_VAULT_NOTES__[targetSlug] : null;
+          const docContainer = document.querySelector(".vault-note-document");
+
+          // 1. INSTANTLY vanish old note in 0ms
+          if (docContainer) {
+            docContainer.style.visibility = "hidden";
+          }
+
+          // Disable any smooth scroll CSS overrides on html/body so scroll jumps in 0ms
+          const origHtmlScroll = document.documentElement.style.scrollBehavior;
+          const origBodyScroll = document.body.style.scrollBehavior;
+          document.documentElement.style.scrollBehavior = "auto";
+          document.body.style.scrollBehavior = "auto";
+
+          // Jump viewport to (0,0) instantly
+          window.history.pushState(
+            {},
+            "",
+            href.startsWith("/api/") ? "/research/obsidian-vault" : href
+          );
+          window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+          document.documentElement.scrollTop = 0;
+          document.body.scrollTop = 0;
+
+          const titleEl = document.getElementById("note-title");
+          const markdownBody = document.querySelector(".markdown-body");
+
+          if (cachedData) {
+            // ⚡ INSTANT MEMORY HIT: Render title & HTML body instantly in 0ms!
+            if (titleEl) titleEl.textContent = cachedData.displayTitle;
+            if (markdownBody) markdownBody.innerHTML = cachedData.htmlContent;
+
+            // Restore visibility
+            document.documentElement.style.scrollBehavior = origHtmlScroll;
+            document.body.style.scrollBehavior = origBodyScroll;
+            if (docContainer) docContainer.style.visibility = "visible";
+
+            // Update related note API link for the NEXT note and preload IT!
+            const newFilePath =
+              cachedData.filePath || `6 - Main Notes/${cachedData.slug}.md`;
+            const newRelatedHref =
+              "/api/vault-related-note?file=" +
+              encodeURIComponent(newFilePath) +
+              (cachedData.firstTag ? "&tag=" + encodeURIComponent(cachedData.firstTag) : "");
+            btn.setAttribute("href", newRelatedHref);
+            const btnText = btn.querySelector("span:first-child");
+            if (btnText) btnText.textContent = "Read Another Related Note";
+
+            preloadVaultRelatedNote();
+          } else {
+            // Fallback: fetch JSON immediately
+            const fetchUrl = href.includes("json=true")
+              ? href
+              : href + (href.includes("?") ? "&json=true" : "?json=true");
+
+            fetch(fetchUrl)
+              .then(function (res) {
+                return res.json();
+              })
+              .then(function (data) {
+                if (data && data.htmlContent) {
+                  window.__PRELOADED_VAULT_NOTES__[data.slug] = data;
+                  if (titleEl) titleEl.textContent = data.displayTitle;
+                  if (markdownBody) markdownBody.innerHTML = data.htmlContent;
+                  if (data.href) window.history.replaceState({}, "", data.href);
+
+                  const newFilePath =
+                    data.filePath || `6 - Main Notes/${data.slug}.md`;
+                  const newRelatedHref =
+                    "/api/vault-related-note?file=" +
+                    encodeURIComponent(newFilePath) +
+                    (data.firstTag ? "&tag=" + encodeURIComponent(data.firstTag) : "");
+                  btn.setAttribute("href", newRelatedHref);
+                  const btnText = btn.querySelector("span:first-child");
+                  if (btnText) btnText.textContent = "Read Another Related Note";
+
+                  preloadVaultRelatedNote();
+                } else {
+                  window.location.href = href;
+                }
+                document.documentElement.style.scrollBehavior = origHtmlScroll;
+                document.body.style.scrollBehavior = origBodyScroll;
+                if (docContainer) docContainer.style.visibility = "visible";
+              })
+              .catch(function () {
+                window.location.href = href;
+              });
+          }
+        },
+        true
+      );
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", setupVaultInstantNavigation);
+    } else {
+      setupVaultInstantNavigation();
+    }
+    document.addEventListener("astro:page-load", setupVaultInstantNavigation);
+  })();
+</script>

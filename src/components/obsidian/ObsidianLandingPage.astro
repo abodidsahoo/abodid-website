@@ -50,11 +50,11 @@ interface Props {
   priceLines?: PriceLine[];
   showPayment?: boolean;
   secondaryCta?: string;
-  secondHeading: string;
+  secondHeading?: string;
   supportingLines?: string[];
   supportStrong?: boolean;
-  visualHeading: string;
-  visualCta: string;
+  visualHeading?: string;
+  visualCta?: string;
   visualDetails?: string[];
   accordions?: AccordionItem[];
   closingLines?: string[];
@@ -62,6 +62,9 @@ interface Props {
   hubLinks?: HubLink[];
   endPrompt?: string;
   crossLink?: CrossLink | null;
+  discoveryHeading?: string;
+  submitLabel?: string;
+  finalAppealText?: string;
   sourceName: string;
   contactInterest: string;
 }
@@ -82,11 +85,11 @@ const {
   priceLines = [],
   showPayment = false,
   secondaryCta = "",
-  secondHeading,
+  secondHeading = "",
   supportingLines = [],
   supportStrong = false,
-  visualHeading,
-  visualCta,
+  visualHeading = "",
+  visualCta = "",
   visualDetails = [],
   accordions = [],
   closingLines = [],
@@ -94,6 +97,9 @@ const {
   hubLinks = [],
   endPrompt = "",
   crossLink = null,
+  discoveryHeading = "",
+  submitLabel = "",
+  finalAppealText = "",
   sourceName,
   contactInterest,
 } = Astro.props as Props;
@@ -247,44 +253,60 @@ const headingParts = headingLines.map((line) => {
     </section>
 
     <section class="obsidian-system" aria-labelledby="obsidian-system-heading">
-      <div class:list={["obsidian-system__heading", { "has-support": supportingLines.length > 0 }]}>
-        <h2 id="obsidian-system-heading">{secondHeading}</h2>
-        {
-          supportingLines.length > 0 && (
-            <div class:list={["obsidian-system__support", { "is-strong": supportStrong }]}>
-              {supportingLines.map((line) => <p>{line}</p>)}
-            </div>
-          )
-        }
-      </div>
+      {
+        secondHeading && (
+          <div class:list={["obsidian-system__heading", { "has-support": supportingLines.length > 0 }]}>
+            <h2 id="obsidian-system-heading">{secondHeading}</h2>
+            {
+              supportingLines.length > 0 && (
+                <div class:list={["obsidian-system__support", { "is-strong": supportStrong }]}>
+                  {supportingLines.map((line) => <p>{line}</p>)}
+                </div>
+              )
+            }
+          </div>
+        )
+      }
 
-      <div class="obsidian-system__grid">
-        <div class="obsidian-proof">
-          <HeroVaultTagsCard
-            client:load
-            heading={visualHeading}
-            cta={visualCta}
-            details={visualDetails}
-            ariaLabel={`${pageTitle} connected-note example. Move the cursor over the card to reveal live vault tags.`}
-          />
-        </div>
+      {
+        (accordions.length > 0 || visualHeading) && (
+          <div class="obsidian-system__grid">
+            {
+              visualHeading && (
+                <div class="obsidian-proof">
+                  <HeroVaultTagsCard
+                    client:load
+                    heading={visualHeading}
+                    cta={visualCta}
+                    details={visualDetails}
+                    ariaLabel={`${pageTitle} connected-note example. Move the cursor over the card to reveal live vault tags.`}
+                  />
+                </div>
+              )
+            }
 
-        <div class="obsidian-accordions" aria-label="What we will cover">
-          {
-            accordions.map((item, index) => (
-              <details>
-                <summary>
-                  <span class="obsidian-accordion__index">{String(index + 1).padStart(2, "0")}</span>
-                  <span class="obsidian-accordion__title">{item.title}</span>
-                  <span class="obsidian-accordion__label">Open note</span>
-                  <span class="obsidian-accordion__toggle" aria-hidden="true"><span></span></span>
-                </summary>
-                <div class="obsidian-accordion__body"><p>{item.body}</p></div>
-              </details>
-            ))
-          }
-        </div>
-      </div>
+            {
+              accordions.length > 0 && (
+                <div class="obsidian-accordions" aria-label="What we will cover">
+                  {
+                    accordions.map((item, index) => (
+                      <details>
+                        <summary>
+                          <span class="obsidian-accordion__index">{String(index + 1).padStart(2, "0")}</span>
+                          <span class="obsidian-accordion__title">{item.title}</span>
+                          <span class="obsidian-accordion__label">Open note</span>
+                          <span class="obsidian-accordion__toggle" aria-hidden="true"><span></span></span>
+                        </summary>
+                        <div class="obsidian-accordion__body"><p>{item.body}</p></div>
+                      </details>
+                    ))
+                  }
+                </div>
+              )
+            }
+          </div>
+        )
+      }
 
       {
         closingLines.length > 0 && (
@@ -310,24 +332,30 @@ const headingParts = headingLines.map((line) => {
         )
       }
 
-      <div class="obsidian-end">
-        <div>
-          {endPrompt && <p>{endPrompt}</p>}
-          <a class="btn-primary obsidian-primary-cta" href="#discovery-call">Book a free 15-minute discovery call</a>
-        </div>
-        {
-          crossLink && (
-            <p class="obsidian-cross-link">
-              <span>{crossLink.label}</span>
-              <a href={crossLink.href}>{crossLink.title} <span aria-hidden="true">→</span></a>
-            </p>
-          )
-        }
-      </div>
+      {
+        (endPrompt || crossLink) && (
+          <div class="obsidian-end">
+            {endPrompt && (
+              <div>
+                <p>{endPrompt}</p>
+                <a class="btn-primary obsidian-primary-cta" href="#discovery-call">Book a free 15-minute discovery call</a>
+              </div>
+            )}
+            {
+              crossLink && (
+                <p class="obsidian-cross-link">
+                  <span>{crossLink.label}</span>
+                  <a href={crossLink.href}>{crossLink.title} <span aria-hidden="true">→</span></a>
+                </p>
+              )
+            }
+          </div>
+        )
+      }
 
       <InlineInquiryForm
         id="discovery-call"
-  heading="Book your call today."
+        heading={discoveryHeading || "Book your free discovery call today."}
         eyebrow="Discovery call"
         sourceName={sourceName}
         defaultInterest={contactInterest}
@@ -335,9 +363,17 @@ const headingParts = headingLines.map((line) => {
         compact={true}
         messageLabel="What are you trying to organise?"
         messagePlaceholder="Tell me what is scattered, stuck or difficult to recall."
-        submitLabel="Book my free 15 minutes"
+        submitLabel={submitLabel || "Yes, I'm Interested"}
         showEmailLink={false}
       />
+
+      {
+        finalAppealText && (
+          <div class="obsidian-final-appeal">
+            <h2>{finalAppealText}</h2>
+          </div>
+        )
+      }
     </section>
   </div>
 
@@ -1200,7 +1236,10 @@ const headingParts = headingLines.map((line) => {
   }
 
   .obsidian-system {
-    padding: 8px 0 0;
+    padding: clamp(2.5rem, 5vw, 4.5rem) 0 clamp(2.5rem, 5vw, 4.5rem);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(2.5rem, 5vw, 4.5rem);
     border-top: 0;
   }
 
@@ -1417,7 +1456,7 @@ const headingParts = headingLines.map((line) => {
   }
 
   .obsidian-hub {
-    margin-top: 8px;
+    margin-top: 0;
     padding: clamp(1.4rem, 3vw, 2.6rem);
     border: 1px solid var(--pop-ink);
     border-radius: var(--home-next-radius-panel);
@@ -1426,6 +1465,19 @@ const headingParts = headingLines.map((line) => {
 
   .obsidian-hub h2 {
     font-size: clamp(2.4rem, 4.5vw, 4.8rem);
+  }
+
+  .obsidian-system :global(.inline-enquiry--obsidian) {
+    grid-template-columns: minmax(320px, 1fr) minmax(0, 1.05fr);
+  }
+
+  .obsidian-system :global(.inline-enquiry--obsidian h2) {
+    max-width: 14ch !important;
+    font-family: var(--font-display) !important;
+    font-size: clamp(2.4rem, 4.5vw, 4.8rem) !important;
+    font-weight: 640 !important;
+    line-height: 0.9 !important;
+    letter-spacing: -0.06em !important;
   }
 
   .obsidian-hub__grid {
@@ -1470,7 +1522,7 @@ const headingParts = headingLines.map((line) => {
 
   .obsidian-end {
     min-height: 150px;
-    margin: 8px 0;
+    margin: 0;
     padding: clamp(1.25rem, 2.5vw, 2rem);
     display: grid;
     grid-template-columns: minmax(0, 1.4fr) minmax(250px, 0.6fr);
@@ -1486,6 +1538,31 @@ const headingParts = headingLines.map((line) => {
     margin: 0 0 0.65rem;
     color: var(--pop-cream);
     font: 650 var(--type-body)/1.2 var(--font-display);
+  }
+
+  .obsidian-final-appeal {
+    width: 100%;
+    margin-top: 0;
+    padding: clamp(2.5rem, 5vw, 4.2rem) clamp(1.5rem, 4vw, 3rem);
+    border: 1.5px solid #15130f;
+    border-radius: clamp(18px, 2vw, 28px);
+    background: #ffe44f;
+    color: #15130f;
+    text-align: center;
+    box-shadow: 6px 6px 0 #15130f;
+    box-sizing: border-box;
+  }
+
+  .obsidian-final-appeal h2 {
+    max-width: 26ch;
+    margin: 0 auto;
+    color: #15130f;
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 4.2vw, 3.8rem);
+    font-weight: 750;
+    line-height: 1.05;
+    letter-spacing: -0.045em;
+    text-wrap: balance;
   }
 
   .obsidian-end .obsidian-primary-cta {
@@ -1606,6 +1683,16 @@ const headingParts = headingLines.map((line) => {
     .obsidian-accordions summary { min-height: 98px; }
     .obsidian-hub__grid { grid-template-columns: 1fr; }
     .obsidian-hub__grid a { min-height: 140px; }
+
+    .obsidian-system :global(.inline-enquiry--obsidian) {
+      grid-template-columns: 1fr !important;
+      gap: 1.75rem !important;
+    }
+
+    .obsidian-system :global(.inline-enquiry--obsidian h2) {
+      max-width: 100% !important;
+      font-size: clamp(2.2rem, 8vw, 3.6rem) !important;
+    }
   }
 
   @media (max-width: 680px) {

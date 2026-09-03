@@ -40,7 +40,7 @@ const description = resource?.description || "Curated creative tools & resources
 ---
 
 <BaseLayout title={title} description={description} fullWidth={true} showGlobalGrid={false} bodyClass="resources-editorial-page" navigationVariant="next">
-    <ResourceDetailView client:only="react" initialResource={resource} resourceId={id as string} />
+    <ResourceDetailView client:load initialResource={resource} resourceId={id as string} />
 </BaseLayout>
 
 <style>

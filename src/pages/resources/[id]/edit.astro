@@ -5,6 +5,7 @@ import { getCurrentProfile } from "../../../lib/resources/db";
 import EditResourceForm from "../../../components/resources/EditResourceForm";
 import type { HubResource } from "../../../lib/resources/types";
 import "../../../styles/resources.css";
+import "../../../styles/resources-editorial.css";
 
 const { id } = Astro.params;
 
@@ -48,8 +49,8 @@ if (!resource) {
 const title = `Edit ${resource.title}`;
 ---
 
-<BaseLayout title={title}>
-    <div class="hub-container">
+<BaseLayout title={title} fullWidth={true} showGlobalGrid={false} bodyClass="resources-editorial-page" navigationVariant="next">
+    <div class="resources-editorial resource-edit-page">
         <EditResourceForm client:load resource={resource} />
     </div>
 </BaseLayout>

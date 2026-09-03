@@ -3,8 +3,10 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import BlogFilter from "../../components/BlogFilter.jsx";
 import { getAllPosts } from "../../lib/api";
 import { breadcrumbJsonLd, personJsonLd } from "../../lib/seoData";
+import "../../styles/blog-editorial.css";
 
 const recentPosts = await getAllPosts();
+const initialTag = Astro.url.searchParams.get("tag") || Astro.url.searchParams.get("category") || "All";
 const pageTitle = "Blog";
 const description =
   "Writing by Abodid Sahoo on creative technology, photography, filmmaking, research workflows, Obsidian, AI, visual culture, and learning.";
@@ -17,47 +19,30 @@ const structuredData = [
 ];
 ---
 
-<BaseLayout title={pageTitle} description={description} structuredData={structuredData}>
-  <header class="page-header">
-    <h1>Blog</h1>
-    <p class="section-intro">
-      Notes on creative technology, photography, filmmaking, research workflows,
-      Obsidian, AI, visual culture, and learning.
-    </p>
-  </header>
-
-  <div class="blog-container">
-    <BlogFilter posts={recentPosts} client:load />
+<BaseLayout
+  title={pageTitle}
+  description={description}
+  structuredData={structuredData}
+  fullWidth
+  navigationVariant="next"
+  showGlobalGrid={false}
+  bodyClass="blog-page"
+>
+  <div class="blog-editorial">
+    <div class="blog-file">
+      <header class="blog-masthead">
+        <p class="blog-file-tag">blog.js — notes & reflections</p>
+        <div class="blog-masthead__hero">
+          <h1>Blog</h1>
+          <p>
+            Notes on creative technology, photography, filmmaking, research workflows,
+            Obsidian, AI, visual culture, and learning.
+          </p>
+        </div>
+      </header>
+      <div class="blog-board">
+        <BlogFilter posts={recentPosts} initialTag={initialTag} client:load />
+      </div>
+    </div>
   </div>
 </BaseLayout>
-
-<style>
-  .blog-container {
-    margin-bottom: var(--space-3xl);
-    margin-bottom: var(--space-3xl);
-  }
-
-  .page-header {
-    margin-bottom: 4rem;
-    padding-top: 2rem;
-    text-align: left;
-  }
-
-  h1 {
-    font-family: var(--font-display);
-    font-size: clamp(4rem, 6vw, 4.75rem);
-    font-weight: 700;
-    line-height: 1.08;
-    margin-bottom: 1.25rem;
-    letter-spacing: -0.035em;
-    color: var(--text-primary);
-  }
-
-  .section-intro {
-    font-family: var(--font-sans);
-    font-size: 1.1rem;
-    color: var(--text-secondary);
-    max-width: 600px;
-    line-height: 1.6;
-  }
-</style>
