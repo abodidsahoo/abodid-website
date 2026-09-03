@@ -14,106 +14,91 @@ interface Props {
 }
 
 export default function AuthHeader({ theme = 'default' }: Props) {
-    const [profile, setProfile] = useState<Profile | null>(null);
+    const [profile, setProfile] = useState<Profile | null>(() => {
+        if (typeof window === 'undefined') return null;
+        const cached = localStorage.getItem('curator_profile');
+        if (!cached) return null;
+        try {
+            return JSON.parse(cached);
+        } catch {
+            return null;
+        }
+    });
     const [sessionUser, setSessionUser] = useState<any>(null);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState<boolean>(() => {
+        if (typeof window === 'undefined') return true;
+        return !localStorage.getItem('curator_profile');
+    });
 
     // Determine base font based on theme
     const quoteFont = theme === 'scifi' ? '"Inconsolata", monospace' : 'var(--font-sans)';
 
-    // Determine base font based on theme - Moved inside component or passed to styles
-    // But since we use it in render, let's keep it derived.
-
     useEffect(() => {
-        // Safety timeout - force loading to false after 2s max
         const timer = setTimeout(() => setLoading(false), 2000);
 
-        // 0. Try to load from cache immediately for instant UI
-        const cached = localStorage.getItem('curator_profile');
-        if (cached) {
-            try {
-                const parsed = JSON.parse(cached);
-                setProfile(parsed);
-                setLoading(false); // Show cached data immediately
-                clearTimeout(timer);
-            } catch (e) {
-                console.error("Cache parse error", e);
+        const syncProfile = async (session: any) => {
+            if (!session?.user || session.user.is_anonymous) {
+                setProfile(null);
+                setSessionUser(null);
+                localStorage.removeItem('curator_profile');
+                setLoading(false);
+                return;
             }
-        }
+
+            setSessionUser(session.user);
+            setLoading(false);
+
+            try {
+                if (!supabase) return;
+                const { data } = await supabase
+                    .from('profiles')
+                    .select('username, full_name, role')
+                    .eq('id', session.user.id)
+                    .single();
+
+                if (data) {
+                    const stats = await getUserStats(session.user.id);
+                    const fullProfile: Profile = { ...data, stats };
+                    setProfile(fullProfile);
+                    localStorage.setItem('curator_profile', JSON.stringify(fullProfile));
+                }
+            } catch (e) {
+                console.error("Profile fetch error in AuthHeader", e);
+            }
+        };
 
         const checkUser = async () => {
             if (!supabase) {
-                if (!cached) setLoading(false);
+                setLoading(false);
                 return;
             }
             try {
-                // 1. Check Session
-                const { data: { session } } = await supabase.auth.getSession();
-
-                if (session?.user) {
-                    setSessionUser(session.user);
-                    // Don't modify loading state if we have session but no profile yet -> wait for profile
-                    // Actually, let's set loading false so we render fallback
-                    if (!cached) setLoading(false);
-
-                    // 2. Fetch Profile if logged in
-                    const { data } = await supabase
-                        .from('profiles')
-                        .select('username, full_name, role')
-                        .eq('id', session.user.id)
-                        .single();
-
-                    if (data) {
-                        // 3. Fetch Stats
-                        const stats = await getUserStats(session.user.id);
-                        const fullProfile = { ...data, stats };
-
-                        setProfile(fullProfile);
-                        // Update cache
-                        localStorage.setItem('curator_profile', JSON.stringify(fullProfile));
-                    }
+                const { data: { session }, error } = await supabase.auth.getSession();
+                if (error || !session) {
+                    await syncProfile(null);
                 } else {
-                    // No session, clear profile and cache
-                    setProfile(null);
-                    setSessionUser(null);
-                    localStorage.removeItem('curator_profile');
+                    await syncProfile(session);
                 }
             } catch (e) {
-                console.error("Auth check failed", e);
+                console.error("Auth check failed in AuthHeader", e);
+                await syncProfile(null);
             } finally {
+                clearTimeout(timer);
                 setLoading(false);
             }
         };
 
         checkUser();
 
-        // Listen for changes
         if (!supabase) return;
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-            if (event === 'SIGNED_IN' && session) {
-                setSessionUser(session.user);
-                if (!supabase) return;
-                const { data } = await supabase.from('profiles').select('username, full_name, role').eq('id', session.user.id).single();
-                const stats = await getUserStats(session.user.id);
-                if (data) {
-                    const fullProfile: Profile = {
-                        username: data.username,
-                        full_name: data.full_name,
-                        role: data.role,
-                        stats
-                    };
-                    setProfile(fullProfile);
-                    localStorage.setItem('curator_profile', JSON.stringify(fullProfile));
-                }
-            } else if (event === 'SIGNED_OUT') {
-                setProfile(null);
-                setSessionUser(null);
-                localStorage.removeItem('curator_profile');
-            }
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+            await syncProfile(session);
         });
 
-        return () => subscription.unsubscribe();
-
+        return () => {
+            clearTimeout(timer);
+            subscription.unsubscribe();
+        };
     }, []);
 
     if (loading) {

@@ -1,16 +1,28 @@
-<footer class="story-footer" aria-label="Site directory and footer" data-site-footer>
-  <div class="story-footer__grid">
+---
+interface Props {
+  showNavigation?: boolean;
+}
+
+const { showNavigation = true } = Astro.props;
+---
+
+<footer
+  class:list={["story-footer", { "story-footer--bottom-only": !showNavigation }]}
+  aria-label={showNavigation ? "Site directory and footer" : "Site footer"}
+  data-site-footer
+>
+  {showNavigation && <div class="story-footer__grid">
     <div class="story-footer__card story-footer__card--work">
       <div class="story-footer__card-header">
         <h3 class="story-footer__title">Work</h3>
         <span class="story-footer__index">01</span>
       </div>
       <nav aria-label="Work links">
-        <a href="/work">All Projects <span aria-hidden="true">↗</span></a>
-        <a href="/research">Research <span aria-hidden="true">↗</span></a>
-        <a href="/photography">Photography <span aria-hidden="true">↗</span></a>
-        <a href="/films">Filmmaking <span aria-hidden="true">↗</span></a>
-        <a href="/blog">Writing <span aria-hidden="true">↗</span></a>
+        <a href="/work">All Projects <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+        <a href="/research">Research <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+        <a href="/photography">Photography <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+        <a href="/films">Filmmaking <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+        <a href="/blog">Writing <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
       </nav>
     </div>
 
@@ -20,11 +32,11 @@
         <span class="story-footer__index">02</span>
       </div>
       <nav aria-label="Curation links">
-        <a href="/resources">Resource Hub <span aria-hidden="true">↗</span></a>
-        <a href="/moodboard">Visual Moodboard <span aria-hidden="true">↗</span></a>
-        <a href="/xr-showcase">XR Showcase <span aria-hidden="true">↗</span></a>
-        <a href="/curated-videos">Must Watch Videos <span aria-hidden="true">↗</span></a>
-        <a href="/research/obsidian-vault">Obsidian Vault <span aria-hidden="true">↗</span></a>
+        <a href="/resources">Resource Hub <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+        <a href="/moodboard">Visual Moodboard <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+        <a href="/xr-showcase">XR Showcase <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+        <a href="/curated-videos">Must Watch Videos <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+        <a href="/research/obsidian-vault">Obsidian Vault <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
       </nav>
     </div>
 
@@ -34,11 +46,11 @@
         <span class="story-footer__index">03</span>
       </div>
       <nav aria-label="Workshops links">
-        <a href="/obsidian-tutoring">Obsidian Tutoring <span aria-hidden="true">↗</span></a>
-        <a href="/premiere-pro-masterclass">Video Editing Masterclass <span aria-hidden="true">↗</span></a>
-        <a href="/workshops">Photography <span aria-hidden="true">↗</span></a>
-        <a href="/workshops/video-editing-storytelling-class-1">Filmmaking <span aria-hidden="true">↗</span></a>
-        <a href="/workshops">Autoethnography <span aria-hidden="true">↗</span></a>
+        <a href="/obsidian-tutoring">Obsidian Tutoring <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+        <a href="/premiere-pro-masterclass">Video Editing Masterclass <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+        <a href="/workshops">Photography <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+        <a href="/workshops/video-editing-storytelling-class-1">Filmmaking <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+        <a href="/workshops">Autoethnography <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
       </nav>
     </div>
 
@@ -48,14 +60,14 @@
         <span class="story-footer__index">04</span>
       </div>
       <nav aria-label="About links">
-        <a href="/about">About <span aria-hidden="true">↗</span></a>
-        <a href="/awards">Awards <span aria-hidden="true">↗</span></a>
-        <a href="/press">Press Mentions <span aria-hidden="true">↗</span></a>
-        <a href="/manifesto">Manifesto <span aria-hidden="true">↗</span></a>
-        <a href="https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/cv/Abodid%20Sahoo%20-%20Photography%20&%20AI%20-%20CV.pdf" target="_blank" rel="noopener noreferrer">Resume <span aria-hidden="true">↗</span></a>
+        <a href="/about">About <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+        <a href="/awards">Awards <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+        <a href="/press">Press Mentions <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+        <a href="/manifesto">Manifesto <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+        <a href="https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/cv/Abodid%20Sahoo%20-%20Photography%20&%20AI%20-%20CV.pdf" target="_blank" rel="noopener noreferrer">Resume <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
       </nav>
     </div>
-  </div>
+  </div>}
 
   <div class="story-footer__bottom-card">
     <div class="story-footer__brand-group">
@@ -64,10 +76,10 @@
     </div>
 
     <div class="story-footer__social">
-      <a href="https://www.instagram.com/abodid.sahoo" target="_blank" rel="noopener noreferrer">Instagram ↗</a>
-      <a href="https://uk.linkedin.com/in/abodidsahoo" target="_blank" rel="noopener noreferrer">LinkedIn ↗</a>
-      <a href="https://vimeo.com/abodidsahoo" target="_blank" rel="noopener noreferrer">Vimeo ↗</a>
-      <a href="https://github.com/abodidsahoo" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+      <a href="https://www.instagram.com/abodid.sahoo" target="_blank" rel="noopener noreferrer">Instagram <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+      <a href="https://uk.linkedin.com/in/abodidsahoo" target="_blank" rel="noopener noreferrer">LinkedIn <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+      <a href="https://vimeo.com/abodidsahoo" target="_blank" rel="noopener noreferrer">Vimeo <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+      <a href="https://github.com/abodidsahoo" target="_blank" rel="noopener noreferrer">GitHub <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
     </div>
 
     <div class="story-footer__legal">
@@ -102,6 +114,14 @@
   .story-footer a {
     color: inherit;
     text-decoration: none;
+  }
+
+  .story-footer.story-footer--bottom-only {
+    padding: var(--home-next-gap);
+  }
+
+  .story-footer--bottom-only .story-footer__bottom-card {
+    margin-top: 0;
   }
 
   .story-footer__grid {

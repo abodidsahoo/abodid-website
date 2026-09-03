@@ -37,10 +37,19 @@ Abodid Sahoo is a Royal College of Art (RCA), London alumnus, creative technolog
 
 - [Blog](https://abodid.com/blog) - Writing on creative technology, photography, filmmaking, research workflows, Obsidian, AI, visual culture, and learning.
 - [Research](https://abodid.com/research) - Research projects and experiments.
-- [Research Projects](https://abodid.com/research/projects) - Index of research projects.
+- [Curated Research Papers](https://abodid.com/research-papers) - Curated papers contextualized around memory, emotion, and autoethnography.
 - [Obsidian Vault](https://abodid.com/research/obsidian-vault) - Public-facing Obsidian vault interface.
+- [Obsidian Vault Directory](https://abodid.com/research/obsidian-vault/directory) - Complete browseable directory of public vault notes.
 - [Second Brain](https://abodid.com/research/second-brain) - Second brain and knowledge workflow project.
+- [HTML Sitemap](https://abodid.com/sitemap) - Complete crawlable index of all public projects, notes, and writings.
 - [RSS Feed](https://abodid.com/rss.xml) - Blog feed.
+
+## Sitemaps And Machine Discovery
+
+- [Sitemap Index](https://abodid.com/sitemap-index.xml) - Primary XML sitemap index.
+- [Work Sitemap](https://abodid.com/work-sitemap.xml) - Commercial and selected portfolio work.
+- [Content Sitemap](https://abodid.com/content-sitemap.xml) - Dynamic content: blog, photography, research, films, and research papers.
+- [Vault Sitemap](https://abodid.com/vault-sitemap.xml) - Complete public Obsidian notes.
 
 ## Preferred Entity Description
 

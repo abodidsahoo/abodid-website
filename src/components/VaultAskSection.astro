@@ -5,13 +5,17 @@
             name="question"
             autocomplete="off"
             rows="1"
+            required
+            minlength="2"
+            maxlength="800"
             placeholder="Ask Abodid's Vault anything..."
             aria-label="Ask Abodid's Vault anything"
         ></textarea>
-        <button class="vault-ask-submit" data-vault-submit type="submit">
+        <button class="vault-ask-submit" data-vault-submit type="submit" disabled>
             <span>Ask</span>
         </button>
     </form>
+    <noscript><p class="vault-ask-error">Enable JavaScript to ask the vault a question.</p></noscript>
 
     <p id="vault-search-status" class="vault-ask-status" data-vault-status role="status" aria-live="polite" hidden>
         Searching the vault...
@@ -61,7 +65,6 @@
             "H4", "H5", "H6", "HR", "LI", "OL", "P", "PRE", "STRONG",
             "TABLE", "TBODY", "TD", "TH", "THEAD", "TR", "UL",
         ]);
-        const roots = document.querySelectorAll("[data-vault-ask]");
 
         const sanitizeMarkdown = (html) => {
             const template = document.createElement("template");
@@ -120,9 +123,10 @@
 
         const updateSearchUrl = (searchId, replace = false) => {
             const url = new URL(window.location.href);
+            url.searchParams.delete("question");
             url.searchParams.set("vaultSearch", searchId);
             const method = replace ? "replaceState" : "pushState";
-            window.history[method]({ vaultSearch: searchId }, "", url);
+            window.history[method]({ ...window.history.state, vaultSearch: searchId }, "", url);
         };
 
         const loadStoredState = (searchId) => {
@@ -138,21 +142,24 @@
 
         const saveStoredState = (searchId, state) => {
             if (!searchId || !state) return;
-            sessionStorage.setItem(
-                `${STORAGE_PREFIX}${searchId}`,
-                JSON.stringify({
-                    ...state,
-                    searchId,
-                    savedAt: Date.now(),
-                    scrollY: window.scrollY,
-                }),
-            );
-            sessionStorage.setItem(ACTIVE_SEARCH_KEY, searchId);
+            try {
+                sessionStorage.setItem(
+                    `${STORAGE_PREFIX}${searchId}`,
+                    JSON.stringify({
+                        ...state,
+                        searchId,
+                        savedAt: Date.now(),
+                        scrollY: window.scrollY,
+                    }),
+                );
+                sessionStorage.setItem(ACTIVE_SEARCH_KEY, searchId);
+            } catch {
+                // A full or blocked browser store must not turn a valid answer into an error.
+            }
         };
 
-        roots.forEach((root) => {
+        const initializeVaultAsk = () => document.querySelectorAll("[data-vault-ask]").forEach((root) => {
             if (root.dataset.initialized === "true") return;
-            root.dataset.initialized = "true";
 
             const form = root.querySelector("[data-vault-form]");
             const input = root.querySelector("[data-vault-input]");
@@ -169,6 +176,12 @@
             const popoverTitle = root.querySelector("[data-popover-title]");
             const popoverMeta = root.querySelector("[data-popover-meta]");
             const popoverExcerpt = root.querySelector("[data-popover-excerpt]");
+            if (!form || !input || !submitButton) return;
+            root.dataset.initialized = "true";
+
+            const lifecycle = new AbortController();
+            const listenerOptions = { signal: lifecycle.signal };
+            let pendingRequest = null;
             const history = [];
             let activePayload = null;
             let activeQuestion = "";
@@ -466,6 +479,8 @@
             };
 
             const submitQuestion = async (question) => {
+                if (pendingRequest || lifecycle.signal.aborted) return;
+                pendingRequest = new AbortController();
                 setLoading(true);
                 setError("");
                 hidePopover();
@@ -481,11 +496,16 @@
                             question,
                             history,
                         }),
+                        signal: pendingRequest.signal,
                     });
 
                     const payload = await response.json().catch(() => ({}));
+                    if (lifecycle.signal.aborted) return;
                     if (!response.ok) {
                         throw new Error(payload.error || "Vault search failed.");
+                    }
+                    if (typeof payload.answer !== "string" || !payload.answer.trim()) {
+                        throw new Error("The vault returned an empty answer. Please try again.");
                     }
 
                     activeSearchId = createSearchId();
@@ -500,13 +520,17 @@
                     });
                     updateSearchUrl(activeSearchId);
                 } catch (error) {
+                    if (lifecycle.signal.aborted) return;
                     const message = error instanceof Error
                         ? error.message
                         : "Vault search failed.";
                     setError(message);
                 } finally {
-                    setLoading(false);
-                    if (input) input.focus();
+                    pendingRequest = null;
+                    if (!lifecycle.signal.aborted) {
+                        setLoading(false);
+                        input.focus();
+                    }
                 }
             };
 
@@ -540,17 +564,20 @@
                     return;
                 }
                 hidePopover();
-            });
+            }, listenerOptions);
 
             window.addEventListener("scroll", hidePopoverOnViewportChange, {
                 passive: true,
+                signal: lifecycle.signal,
             });
             document.addEventListener("scroll", hidePopoverOnViewportChange, {
                 passive: true,
                 capture: true,
+                signal: lifecycle.signal,
             });
             window.addEventListener("resize", hidePopoverOnViewportChange, {
                 passive: true,
+                signal: lifecycle.signal,
             });
 
             window.addEventListener("beforeunload", () => {
@@ -560,29 +587,41 @@
                     payload: activePayload,
                     history,
                 });
-            });
+            }, listenerOptions);
 
             window.addEventListener("popstate", () => {
                 activeSearchId = getSearchIdFromUrl();
                 restoreSearchState();
-            });
+            }, listenerOptions);
 
-            if (!form || !input) return;
+            document.addEventListener("astro:before-swap", () => {
+                if (activeSearchId && activePayload) {
+                    saveStoredState(activeSearchId, {
+                        question: activeQuestion,
+                        payload: activePayload,
+                        history,
+                    });
+                }
+                pendingRequest?.abort();
+                lifecycle.abort();
+                submitButton.disabled = true;
+                delete root.dataset.initialized;
+            }, { once: true, signal: lifecycle.signal });
 
-            input.addEventListener("input", resizeQuestionInput);
+            input.addEventListener("input", resizeQuestionInput, listenerOptions);
             input.addEventListener("keydown", (event) => {
                 if (event.isComposing) return;
                 if (event.key !== "Enter" || event.shiftKey) return;
                 event.preventDefault();
                 form.requestSubmit();
-            });
+            }, listenerOptions);
 
             form.addEventListener("submit", (event) => {
                 event.preventDefault();
                 const question = input.value.trim();
                 if (!question) return;
                 submitQuestion(question);
-            });
+            }, listenerOptions);
 
             answerToggle?.addEventListener("click", () => {
                 if (!answerPanel) return;
@@ -591,11 +630,25 @@
                 answerToggle.innerHTML = isExpanded
                     ? 'Show less <span aria-hidden="true">↑</span>'
                     : 'Show more <span aria-hidden="true">↓</span>';
-            });
+            }, listenerOptions);
 
+            // Recover the question from URLs produced by the old native GET submission.
+            const url = new URL(window.location.href);
+            const legacyQuestion = url.searchParams.get("question");
+            if (legacyQuestion) {
+                input.value = legacyQuestion.trim();
+                url.searchParams.delete("question");
+                window.history.replaceState(window.history.state, "", url);
+            }
             resizeQuestionInput();
             restoreSearchState();
+            submitButton.disabled = false;
         });
+
+        // Astro's ClientRouter replaces the DOM without rerunning bundled scripts.
+        // Initialize each new Vault form, including returns from notes and browser history.
+        initializeVaultAsk();
+        document.addEventListener("astro:page-load", initializeVaultAsk);
     })();
 </script>
 

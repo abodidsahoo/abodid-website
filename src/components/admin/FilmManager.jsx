@@ -21,17 +21,27 @@ import { supabase } from '../../lib/supabaseClient';
 import AdminPageHeader from './AdminPageHeader';
 import ImageUploader from './ImageUploader';
 
+const slugify = (str) =>
+    String(str || '')
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+
 const EMPTY_FILM = {
     id: null,
+    slug: '',
     title: '',
     roles: [],
     categories: [],
+    shade: '',
     video_url: '',
     thumbnail_url: '',
     year: '',
     description: '',
     published: false,
     sort_order: 0,
+    video_published_at: '',
 };
 
 const normalizeList = (value) => {
@@ -51,14 +61,17 @@ const normalizeList = (value) => {
 const normalizeFilm = (row) => ({
     ...EMPTY_FILM,
     ...row,
+    slug: String(row?.slug || ''),
     title: String(row?.title || ''),
     roles: normalizeList(row?.roles?.length ? row.roles : row?.role),
     categories: normalizeList(row?.categories?.length ? row.categories : row?.genre),
+    shade: String(row?.shade || row?.color || ''),
     video_url: String(row?.video_url || ''),
     thumbnail_url: String(row?.thumbnail_url || ''),
     year: row?.year ?? '',
     description: String(row?.description || ''),
     published: Boolean(row?.published),
+    video_published_at: row?.video_published_at || '',
 });
 
 const getYouTubeId = (url) => {
@@ -309,17 +322,24 @@ export default function FilmManager() {
         updateUrl({ isNew: true });
     };
 
-    const buildPayload = (published = form.published) => ({
-        title: form.title.trim(),
-        roles: normalizeList(form.roles),
-        categories: normalizeList(form.categories),
-        video_url: form.video_url.trim() || null,
-        thumbnail_url: form.thumbnail_url.trim() || null,
-        year: form.year ? Number(form.year) : null,
-        description: form.description || null,
-        published,
-        sort_order: Number.isFinite(Number(form.sort_order)) ? Number(form.sort_order) : films.length,
-    });
+    const buildPayload = (published = form.published) => {
+        const existingSlug = form.slug?.trim();
+        const slug = existingSlug ? slugify(existingSlug) : slugify(form.title);
+        return {
+            title: form.title.trim(),
+            slug: slug || null,
+            roles: normalizeList(form.roles),
+            categories: normalizeList(form.categories),
+            shade: form.shade?.trim() || null,
+            video_url: form.video_url.trim() || null,
+            thumbnail_url: form.thumbnail_url.trim() || null,
+            year: form.year ? Number(form.year) : null,
+            description: form.description || null,
+            published,
+            sort_order: Number.isFinite(Number(form.sort_order)) ? Number(form.sort_order) : films.length,
+            video_published_at: form.video_published_at ? new Date(form.video_published_at).toISOString() : null,
+        };
+    };
 
     const saveFilm = async ({ publish = form.published, successMessage } = {}) => {
         const payload = buildPayload(publish);
@@ -552,6 +572,15 @@ export default function FilmManager() {
                                     onChange={(event) => setField('year', event.target.value)}
                                 />
                             </label>
+                            <label className="film-year-field">
+                                <span>URL Slug</span>
+                                <input
+                                    type="text"
+                                    value={form.slug}
+                                    placeholder={slugify(form.title) || 'film-slug'}
+                                    onChange={(event) => setField('slug', event.target.value)}
+                                />
+                            </label>
                             <FilmTokenField
                                 label="Roles"
                                 values={form.roles}
@@ -564,6 +593,15 @@ export default function FilmManager() {
                                 onChange={(categories) => setField('categories', categories)}
                                 placeholder="Add a tag…"
                             />
+                            <label className="film-year-field">
+                                <span>Pop Shade</span>
+                                <input
+                                    type="text"
+                                    value={form.shade}
+                                    placeholder="pink / yellow / lime / cream / blue"
+                                    onChange={(event) => setField('shade', event.target.value)}
+                                />
+                            </label>
                             <label className="film-description-field">
                                 <span>Description</span>
                                 <textarea

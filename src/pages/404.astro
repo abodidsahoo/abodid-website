@@ -1,11 +1,14 @@
 ---
+export const prerender = false;
 import BaseLayout from "../layouts/BaseLayout.astro";
+
+Astro.response.status = 404;
 
 const title = "Ghost Town | 404";
 const description = "Sorry, this is a ghost town.";
 ---
 
-<BaseLayout title={title}>
+<BaseLayout title={title} description={description} noindex={true} robots="noindex, nofollow">
     <div class="error-container">
         <div class="sky-background">
             <div class="moon"></div>

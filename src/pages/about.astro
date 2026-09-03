@@ -154,7 +154,7 @@ const credentials = [
         <div class="about-actions-row about-manifesto-actions">
           <a class="about-btn about-btn--primary" href="/manifesto">
             <span>Read full manifesto</span>
-            <b aria-hidden="true">↗</b>
+            <b class="link-destination-arrow" aria-hidden="true">↗</b>
           </a>
         </div>
       </div>
@@ -170,7 +170,7 @@ const credentials = [
           </p>
           <h2 id="offerings-heading" class="about-panel__title">What I build & direct</h2>
         </div>
-        <a class="about-panel__link" href="/services">View services detail <span aria-hidden="true">↗</span></a>
+        <a class="about-panel__link" href="/services"><span class="link-label">View services detail</span> <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
       </header>
 
       <div class="about-offerings-grid">
@@ -221,7 +221,7 @@ const credentials = [
         <div class="about-actions-row">
           <a class="about-btn about-btn--primary" href="/#enquiry">
             <span>Start a project</span>
-            <b aria-hidden="true">↗</b>
+            <b class="link-destination-arrow" aria-hidden="true">↗</b>
           </a>
           <a class="about-btn about-btn--secondary" href={CV_DOWNLOAD_URL} download={CV_FILE_NAME}>
             <span>Download Complete CV (2026)</span>
@@ -569,11 +569,16 @@ const credentials = [
   .about-panel__link {
     padding-bottom: 0.3rem;
     color: var(--pop-ink) !important;
-    border-bottom: 1px solid currentColor;
     font: 750 0.72rem/1 var(--font-mono, monospace) !important;
     letter-spacing: 0.08em;
     text-decoration: none !important;
     text-transform: uppercase;
+  }
+
+  .about-panel__link > .link-label {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.3rem;
   }
 
   .about-panel__link:hover {

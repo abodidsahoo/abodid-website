@@ -54,7 +54,7 @@ const content = await getHomeNextContent();
       </div>
       <nav class="sample-collections" aria-label="Work collections">
         {content.workCollections.map((collection) => (
-          <a href={collection.href}><small>{collection.index}</small><b>{collection.title}</b><span>↗</span></a>
+          <a href={collection.href}><small>{collection.index}</small><b>{collection.title}</b><span class="link-destination-arrow" aria-hidden="true">↗</span></a>
         ))}
       </nav>
     </section>

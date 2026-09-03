@@ -1,0 +1,360 @@
+---
+export const prerender = false;
+
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getFilmBySlug } from "../../lib/api";
+import {
+  breadcrumbJsonLd,
+  personJsonLd,
+  seoIdentity,
+  videoObjectJsonLd,
+} from "../../lib/seoData";
+
+const { slug } = Astro.params;
+const film = await getFilmBySlug(slug || "");
+
+if (!film) {
+  Astro.response.status = 404;
+  return Astro.rewrite("/404");
+}
+
+function getEmbedUrl(url: string): string | null {
+  if (!url) return null;
+  try {
+    if (url.includes("vimeo.com")) {
+      const match = url.match(/vimeo\.com\/(?:video\/)?([0-9]+)/);
+      return match ? `https://player.vimeo.com/video/${match[1]}?dnt=1` : url;
+    }
+    if (url.includes("youtu.be/")) {
+      const id = url.split("youtu.be/")[1]?.split("?")[0];
+      return id ? `https://www.youtube-nocookie.com/embed/${id}` : url;
+    }
+    if (url.includes("youtube.com")) {
+      const parsed = new URL(url);
+      const id = parsed.searchParams.get("v") || parsed.pathname.split("/").pop();
+      return id ? `https://www.youtube-nocookie.com/embed/${id}` : url;
+    }
+  } catch {
+    return url;
+  }
+  return url;
+}
+
+const canonicalUrl = `${seoIdentity.siteUrl}/films/${film.slug}`;
+const embedUrl = film.videoUrl ? getEmbedUrl(film.videoUrl) : null;
+const pageTitle = `${film.title} | Films`;
+const pageDescription =
+  film.description ||
+  `Watch ${film.title} (${film.year || "Film"}), a film by Abodid Sahoo exploring visual storytelling.`;
+
+const structuredData = [
+  personJsonLd(),
+  breadcrumbJsonLd([
+    { name: "Home", path: "/" },
+    { name: "Films", path: "/films" },
+    { name: film.title, path: `/films/${film.slug}` },
+  ]),
+  videoObjectJsonLd({
+    title: film.title,
+    description: pageDescription,
+    url: canonicalUrl,
+    thumbnailUrl: film.image || undefined,
+    embedUrl: embedUrl || undefined,
+    contentUrl: film.videoUrl || undefined,
+    uploadDate:
+      film.video_published_at ||
+      (film.year ? `${film.year}-01-01T00:00:00Z` : undefined),
+    categories: film.categories,
+    roles: film.roles,
+  }),
+];
+---
+
+<BaseLayout
+  title={pageTitle}
+  description={pageDescription}
+  image={film.image}
+  type="article"
+  structuredData={structuredData}
+  fullWidth={true}
+  showGlobalGrid={false}
+  showNewsletterPopup={false}
+  hideWhatsAppButton={true}
+  bodyClass="film-detail"
+  navigationVariant="next"
+>
+  <div class="film-detail-page">
+    <nav class="film-back-nav" aria-label="Breadcrumb navigation">
+      <a href="/films" class="film-back-link">
+        <span aria-hidden="true">←</span>
+        <span class="film-link-label">All Films</span>
+      </a>
+    </nav>
+
+    <article class="film-article" aria-labelledby="film-heading">
+      {(embedUrl || film.image) && (
+        <div class="film-media-section">
+          {embedUrl ? (
+            <div class="film-player-wrapper">
+              <iframe
+                src={embedUrl}
+                title={`Play ${film.title}`}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowfullscreen
+                loading="eager"
+              />
+            </div>
+          ) : film.image ? (
+            <figure class="film-poster-wrapper">
+              <img src={film.image} alt={`${film.title} film poster`} />
+            </figure>
+          ) : null}
+        </div>
+      )}
+
+      <div class="film-details">
+        <header class="film-header">
+          <div class="film-identity">
+            <h1 id="film-heading">{film.title}</h1>
+            {(film.year || film.categories?.length > 0) && (
+              <p class="film-meta-line">
+                {film.year && <span>{film.year}</span>}
+                {film.categories?.map((category) => <span>{category}</span>)}
+              </p>
+            )}
+          </div>
+
+          {film.roles && film.roles.length > 0 && (
+            <p class="film-roles-line">
+              <span class="film-label">Abodid’s role</span>
+              <span>{film.roles.join(" · ")}</span>
+            </p>
+          )}
+        </header>
+
+        {film.description && (
+          <section class="film-synopsis" aria-labelledby="synopsis-heading">
+            <h2 id="synopsis-heading" class="film-label">About the film</h2>
+            <p class="film-description-text">{film.description}</p>
+          </section>
+        )}
+
+        {film.videoUrl && (
+          <footer class="film-footer">
+            <a
+              href={film.videoUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="film-source-link"
+            >
+              <span class="film-link-label">Watch on original platform</span>
+              <span aria-hidden="true">↗</span>
+            </a>
+          </footer>
+        )}
+      </div>
+    </article>
+  </div>
+</BaseLayout>
+
+<style>
+  :global(body.film-detail) {
+    --pop-blue: #2444ca;
+    --pop-pink: #ff7eb5;
+    --pop-cream: #fff8e8;
+    --pop-ink: #15130f;
+    --pop-purple: #5524c7;
+    --pop-border: rgba(21, 19, 15, 0.78);
+    --pop-line: rgba(21, 19, 15, 0.24);
+    --bg-canvas: var(--pop-blue);
+  }
+
+  .film-detail-page {
+    padding: 8px;
+    background: var(--pop-blue);
+    color: var(--pop-ink);
+    font-family: var(--font-body);
+  }
+
+  .film-detail-page :is(h1, h2, p) {
+    margin: 0;
+    color: inherit;
+  }
+
+  .film-back-nav {
+    max-width: 1360px;
+    margin: 0 auto;
+    padding: 0 16px 8px;
+    color: var(--pop-cream);
+  }
+
+  .film-back-link,
+  .film-source-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    max-width: 100%;
+    color: inherit;
+    font-size: 0.85rem;
+    font-weight: 550;
+    line-height: 1.4;
+    text-decoration: none;
+  }
+
+  .film-detail-page a:is(:hover, :focus-visible) .film-link-label {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    text-decoration-thickness: 1.5px;
+  }
+
+  .film-detail-page a:focus-visible {
+    outline: 2px solid var(--pop-purple);
+    outline-offset: 4px;
+    border-radius: 4px;
+  }
+
+  .film-back-link:focus-visible {
+    outline-color: var(--pop-cream);
+  }
+
+  .film-detail-page a [aria-hidden] {
+    display: inline-block;
+    flex-shrink: 0;
+    text-decoration: none;
+  }
+
+  .film-article {
+    max-width: 1360px;
+    margin: 0 auto;
+    padding: 10px;
+    border: 1px solid var(--pop-border);
+    border-radius: clamp(18px, 2vw, 28px);
+    background: var(--pop-pink);
+  }
+
+  .film-media-section {
+    overflow: hidden;
+    border: 1px solid var(--pop-border);
+    border-radius: clamp(10px, 1.2vw, 16px);
+    background: var(--pop-ink);
+  }
+
+  .film-player-wrapper {
+    width: 100%;
+    max-width: max(640px, calc((100svh - 224px) * 16 / 9));
+    margin: 0 auto;
+    aspect-ratio: 16 / 9;
+  }
+
+  .film-player-wrapper iframe {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  .film-poster-wrapper {
+    margin: 0;
+  }
+
+  .film-poster-wrapper img {
+    width: 100%;
+    max-height: 80svh;
+    object-fit: contain;
+  }
+
+  .film-details {
+    padding: 24px clamp(8px, 2vw, 24px) 8px;
+  }
+
+  .film-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+    gap: 24px 48px;
+    align-items: start;
+  }
+
+  .film-identity,
+  .film-roles-line {
+    min-width: 0;
+  }
+
+  .film-header h1 {
+    font: 550 clamp(1.2rem, 1.8vw, 1.6rem)/1.3 var(--font-display);
+    letter-spacing: -0.025em;
+    overflow-wrap: anywhere;
+    text-wrap: pretty;
+  }
+
+  .film-meta-line {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 0;
+    margin-top: 8px !important;
+    font: 450 0.82rem/1.5 var(--font-body);
+  }
+
+  .film-meta-line span + span::before {
+    content: "/";
+    margin: 0 10px;
+  }
+
+  .film-roles-line {
+    display: grid;
+    gap: 8px;
+    font: 450 0.9rem/1.5 var(--font-body);
+  }
+
+  .film-detail-page .film-label {
+    font: 650 0.68rem/1.5 var(--font-mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .film-synopsis {
+    display: grid;
+    grid-template-columns: minmax(120px, 0.35fr) minmax(0, 1fr);
+    gap: 16px 32px;
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid var(--pop-line);
+  }
+
+  .film-description-text {
+    max-width: 68ch;
+    font: 450 0.95rem/1.65 var(--font-body);
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+  }
+
+  .film-footer {
+    margin-top: 16px;
+  }
+
+  @media (max-width: 980px) {
+    .film-header {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .film-back-nav {
+      padding-inline: 8px;
+    }
+
+    .film-article {
+      padding: 8px;
+    }
+
+    .film-details {
+      padding: 20px 8px 8px;
+    }
+
+    .film-synopsis {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+  }
+</style>

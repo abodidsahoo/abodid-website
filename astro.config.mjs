@@ -8,45 +8,11 @@ import vercel from '@astrojs/vercel';
 import sitemap from '@astrojs/sitemap';
 
 import { loadEnv } from 'vite';
-
-const excludedSitemapPathPatterns = [
-  /^\/admin(?:\/|$)/,
-  /^\/api(?:\/|$)/,
-  /^\/login\/?$/,
-  /^\/unauthorized\/?$/,
-  /^\/unsubscribe\/?$/,
-  /^\/payments\/?$/,
-  /^\/club\/payment-/,
-  /^\/collaboration\/measurements\/?$/,
-  /^\/du-workshop-responses\/?$/,
-  /^\/feedback\/?$/,
-  /^\/hand-tracking-test\/?$/,
-  /^\/landing-grid-test\/?$/,
-  /^\/blur-phrase-centered\/?$/,
-  /^\/home-next\/?$/,
-  /^\/archive\/homepages(?:\/|$)/,
-  /^\/bsa-qrcode\/?$/,
-  /^\/research\/admin(?:\/|$)/,
-  /^\/resources\/admin(?:\/|$)/,
-  /^\/resources\/auth(?:\/|$)/,
-  /^\/resources\/curator\/?$/,
-  /^\/resources\/dashboard\/?$/,
-  /^\/resources\/saved\/?$/,
-  /^\/resources\/.*\/edit\/?$/,
-  /^\/research\/visual-moodboard\/?$/,
-  /^\/workshops\/video-editing-storytelling-class-1\/?$/,
-  /^\/workshops\/video-editing-storytelling-class-2\/?$/,
-  /^\/july-backup\/?$/,
-];
-
-/** @param {string} page */
-const shouldIncludeInSitemap = (page) => {
-  const pathname = new URL(page).pathname;
-  return !excludedSitemapPathPatterns.some((pattern) => pattern.test(pathname));
-};
+import { shouldIncludeInSitemap } from './src/lib/searchVisibility.ts';
 
 const isDevelopmentServer = process.argv.includes('dev');
 const env = loadEnv(isDevelopmentServer ? 'development' : 'production', process.cwd(), '');
+const siteUrl = env.PUBLIC_SITE_URL || 'https://abodid.com';
 
 // https://astro.build/config
 export default defineConfig({
@@ -63,9 +29,14 @@ export default defineConfig({
     react(),
     sitemap({
       filter: shouldIncludeInSitemap,
+      customSitemaps: [
+        `${siteUrl}/work-sitemap.xml`,
+        `${siteUrl}/content-sitemap.xml`,
+        `${siteUrl}/vault-sitemap.xml`,
+      ],
     }),
   ],
-  site: env.PUBLIC_SITE_URL || 'https://abodid.com',
+  site: siteUrl,
   vite: {
     // Keep production builds from replacing dependency chunks used by the
     // long-running local workspace server.

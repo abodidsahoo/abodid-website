@@ -1,0 +1,163 @@
+---
+export const prerender = false;
+
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import "../../styles/research-paper-detail.css";
+import { getResearchPaperBySlug } from "../../lib/api";
+import {
+  breadcrumbJsonLd,
+  curatedResearchPaperJsonLd,
+  personJsonLd,
+  seoIdentity,
+} from "../../lib/seoData";
+
+const { slug } = Astro.params;
+const paper = await getResearchPaperBySlug(slug || "");
+
+if (!paper) {
+  Astro.response.status = 404;
+  return Astro.rewrite("/404");
+}
+
+function getPaperAuthorsList(record: any): string[] {
+  if (Array.isArray(record.authors_json) && record.authors_json.length > 0) {
+    return record.authors_json
+      .map((a: any) => (typeof a === "string" ? a : a?.name))
+      .filter(Boolean);
+  }
+  if (record.authors && typeof record.authors === "string") {
+    return record.authors
+      .split(",")
+      .map((s: string) => s.trim())
+      .filter(Boolean);
+  }
+  return [];
+}
+
+const authors = getPaperAuthorsList(paper);
+const publicationYear = paper.year || paper.published_year;
+const journalOrPub = paper.journal || paper.publication;
+const abstractText = paper.description || paper.abstract;
+
+const canonicalUrl = `${seoIdentity.siteUrl}/research-papers/${paper.slug}`;
+const pageTitle = `${paper.title} | Curated Research`;
+const pageDescription =
+  paper.description ||
+  paper.abstract ||
+  `Read ${paper.title}, a paper curated by Abodid Sahoo connecting to themes in memory, emotion, and autoethnography.`;
+
+const structuredData = [
+  personJsonLd(),
+  breadcrumbJsonLd([
+    { name: "Home", path: "/" },
+    { name: "Research Papers", path: "/research-papers" },
+    { name: paper.title, path: `/research-papers/${paper.slug}` },
+  ]),
+  curatedResearchPaperJsonLd({
+    title: paper.title,
+    description: pageDescription,
+    url: canonicalUrl,
+    pdfUrl: paper.pdf_url || undefined,
+    publishedDate:
+      paper.published_at ||
+      (publicationYear ? `${publicationYear}-01-01T00:00:00Z` : undefined),
+    authors: authors.length > 0 ? authors : undefined,
+    tags: paper.tags,
+  }),
+];
+---
+
+<BaseLayout
+  title={pageTitle}
+  description={pageDescription}
+  type="article"
+  structuredData={structuredData}
+  fullWidth={true}
+  showGlobalGrid={false}
+  bodyClass="research-paper-detail"
+  navigationVariant="next"
+>
+  <div class="paper-detail-page">
+    <nav class="paper-back-nav" aria-label="Breadcrumb navigation">
+      <a href="/research-papers" class="paper-back-link">
+        <span class="paper-arrow" aria-hidden="true">←</span>
+        <span class="paper-link-label">All curated papers</span>
+      </a>
+      <span class="paper-eyebrow">The reading shelf</span>
+    </nav>
+
+    <article class="paper-article" aria-labelledby="paper-heading">
+      <div class="paper-hero">
+        <header class="paper-header">
+          <p class="paper-eyebrow">Research / Curated paper</p>
+          <h1 id="paper-heading" set:html={paper.formatted_title || paper.title} />
+
+          {paper.tags && paper.tags.length > 0 && (
+            <div class="paper-topics">
+              <p class="paper-eyebrow">Filed under</p>
+              <nav class="paper-tags" aria-label="Paper topics">
+                {paper.tags.map((tag) => (
+                  <a class="paper-tag" href={`/research-papers?tag=${encodeURIComponent(tag)}`}>
+                    <span class="paper-link-label">{tag}</span>
+                    <span class="paper-arrow" aria-hidden="true">↗</span>
+                  </a>
+                ))}
+              </nav>
+            </div>
+          )}
+        </header>
+
+        <aside class="paper-context" aria-labelledby="paper-context-heading">
+          <div class="paper-context-intro">
+            <p class="paper-eyebrow">About this selection</p>
+            <h2 id="paper-context-heading">Curated by<br />Abodid Sahoo.</h2>
+            <p class="paper-curator-notice" role="note">
+              <strong>Curated paper:</strong> This paper was authored by its respective researchers. Abodid Sahoo collected and contextualized this work as part of ongoing research into memory, emotion, autoethnography, and visual culture.
+            </p>
+          </div>
+
+          {(authors.length > 0 || journalOrPub || publicationYear) && (
+            <dl class="paper-facts">
+              {authors.length > 0 && <div><dt>Author{authors.length > 1 ? "s" : ""}</dt><dd>{authors.join(", ")}</dd></div>}
+              {journalOrPub && <div><dt>Publication</dt><dd>{journalOrPub}</dd></div>}
+              {publicationYear && <div><dt>Year</dt><dd>{publicationYear}</dd></div>}
+            </dl>
+          )}
+
+          <a href="/research-papers" class="paper-collection-button">
+            <span class="paper-link-label">View the Entire Collection</span>
+            <span class="paper-arrow" aria-hidden="true">→</span>
+          </a>
+        </aside>
+      </div>
+
+      {paper.explanation && (
+        <section class="paper-reading-section paper-curator-section" aria-labelledby="curator-note-heading">
+          <div class="paper-section-title">
+            <p class="paper-eyebrow">The connection</p>
+            <h2 id="curator-note-heading">Curator’s note</h2>
+            <p class="paper-byline">By Abodid Sahoo</p>
+          </div>
+          <div class="paper-reading-copy"><p>{paper.explanation}</p></div>
+        </section>
+      )}
+
+      {(abstractText || paper.pdf_url) && (
+        <section class="paper-reading-section paper-abstract-section" aria-labelledby="abstract-heading">
+          <div class="paper-section-title">
+            <h2 id="abstract-heading">{abstractText ? "Abstract" : "Original paper"}</h2>
+          </div>
+          <div class="paper-reading-copy">
+            {abstractText && <p>{abstractText}</p>}
+            {paper.pdf_url && (
+              <a id="paper-source" href={paper.pdf_url} target="_blank" rel="noopener noreferrer" class="paper-source-link" aria-label="View PDF (opens in a new tab)">
+                <span class="paper-link-label">View PDF</span>
+                <span class="paper-arrow" aria-hidden="true">↗</span>
+              </a>
+            )}
+          </div>
+        </section>
+      )}
+    </article>
+  </div>
+</BaseLayout>

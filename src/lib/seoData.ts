@@ -187,3 +187,154 @@ export const breadcrumbJsonLd = (
         item: siteUrlForPath(item.path),
     })),
 });
+
+export const videoObjectJsonLd = ({
+    title,
+    description,
+    url,
+    thumbnailUrl,
+    embedUrl,
+    contentUrl,
+    uploadDate,
+    categories,
+    roles,
+}: {
+    title: string;
+    description: string;
+    url: string;
+    thumbnailUrl?: string;
+    embedUrl?: string;
+    contentUrl?: string;
+    uploadDate?: string;
+    categories?: string[];
+    roles?: string[];
+}) => ({
+    "@context": "https://schema.org",
+    "@type": "VideoObject",
+    "@id": `${url}#video`,
+    name: title,
+    description: description || title,
+    url,
+    thumbnailUrl: thumbnailUrl ? [thumbnailUrl] : undefined,
+    uploadDate: uploadDate || undefined,
+    contentUrl: contentUrl || undefined,
+    embedUrl: embedUrl || undefined,
+    author: {
+        "@id": seoIdentity.personId,
+    },
+    creator: {
+        "@id": seoIdentity.personId,
+    },
+    genre: categories && categories.length > 0 ? categories : undefined,
+    keywords: roles && roles.length > 0 ? roles : undefined,
+});
+
+export const curatedResearchPaperJsonLd = ({
+    title,
+    description,
+    url,
+    pdfUrl,
+    publishedDate,
+    authors,
+    tags,
+}: {
+    title: string;
+    description: string;
+    url: string;
+    pdfUrl?: string;
+    publishedDate?: string;
+    authors?: string[];
+    tags?: string[];
+}) => ({
+    "@context": "https://schema.org",
+    "@type": "ScholarlyArticle",
+    "@id": `${url}#article`,
+    headline: title,
+    name: title,
+    description: description || title,
+    url,
+    sameAs: pdfUrl || undefined,
+    datePublished: publishedDate || undefined,
+    author:
+        authors && authors.length > 0
+            ? authors.map((authorName) => ({
+                  "@type": "Person",
+                  name: authorName,
+              }))
+            : undefined,
+    editor: {
+        "@id": seoIdentity.personId,
+    },
+    maintainer: {
+        "@id": seoIdentity.personId,
+    },
+    keywords: tags && tags.length > 0 ? tags : undefined,
+    isPartOf: {
+        "@type": "Collection",
+        name: "Curated Research Papers",
+        url: siteUrlForPath("/research-papers"),
+        curator: {
+            "@id": seoIdentity.personId,
+        },
+    },
+});
+
+export const vaultNoteJsonLd = ({
+    title,
+    description,
+    url,
+    dateModified,
+}: {
+    title: string;
+    description: string;
+    url: string;
+    dateModified?: string;
+}) => ({
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "@id": `${url}#article`,
+    headline: title,
+    description,
+    mainEntityOfPage: url,
+    author: {
+        "@id": seoIdentity.personId,
+    },
+    dateModified: dateModified || undefined,
+    isPartOf: {
+        "@type": "Collection",
+        name: "Obsidian Vault",
+        url: siteUrlForPath("/research/obsidian-vault"),
+    },
+});
+
+export const creativeWorkJsonLd = ({
+    title,
+    description,
+    url,
+    image,
+    dateCreated,
+    dateModified,
+    keywords,
+}: {
+    title: string;
+    description: string;
+    url: string;
+    image?: string;
+    dateCreated?: string;
+    dateModified?: string;
+    keywords?: string[];
+}) => ({
+    "@context": "https://schema.org",
+    "@type": "CreativeWork",
+    "@id": `${url}#work`,
+    name: title,
+    description,
+    url,
+    image: image ? [image] : undefined,
+    dateCreated: dateCreated || undefined,
+    dateModified: dateModified || undefined,
+    creator: {
+        "@id": seoIdentity.personId,
+    },
+    keywords: keywords && keywords.length > 0 ? keywords : undefined,
+});

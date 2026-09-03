@@ -665,6 +665,13 @@ a:focus-visible {
   text-decoration: var(--link-hover-underline);
 }
 
+/* An atomic inline box prevents a link's underline from crossing its arrow.
+   text-decoration: none alone cannot stop decoration from an inline ancestor. */
+.link-destination-arrow {
+  display: inline-block;
+  text-decoration: none !important;
+}
+
 button,
 input,
 select,

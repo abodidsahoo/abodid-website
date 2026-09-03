@@ -148,6 +148,11 @@ export function noteTitleFromPath(filePath) {
   return filename.replace(/\.md$/i, "").replace(/-/g, " ").trim() || "Untitled";
 }
 
+export function noteSlugFromPath(filePath) {
+  const filename = (filePath || "").split("/").pop() || "";
+  return filename.replace(/\.md$/i, "").trim();
+}
+
 export function noteIdFromPath(filePath) {
   return crypto.createHash("sha1").update(filePath || "").digest("hex");
 }
@@ -236,8 +241,56 @@ export function extractWikiLinks(markdown) {
   return Array.from(links).sort((a, b) => a.localeCompare(b));
 }
 
-export function createNoteIndexRecord({ filePath, markdown, isPublic = true }) {
+export function extractExplicitTags(markdown) {
+  const tags = [];
+  const seen = new Set();
+  const lines = String(markdown || "").split(/\r?\n/);
+
+  for (const line of lines) {
+    const normalizedLine = line
+      .trim()
+      .replace(/^[-*]\s+/, "")
+      .replace(/\*\*|__/g, "");
+    const lineMatch = normalizedLine.match(/^tags\s*::?\s*(.*)$/i);
+    if (!lineMatch) continue;
+
+    const wikiLinkPattern = /\[\[([^\]]+)\]\]/g;
+    let linkMatch = wikiLinkPattern.exec(lineMatch[1] || "");
+
+    while (linkMatch) {
+      const target = String(linkMatch[1] || "")
+        .split("|")[0]
+        .split("#")[0]
+        .replace(/\.md$/i, "")
+        .trim();
+      const key = target.toLowerCase();
+      if (target && !seen.has(key)) {
+        seen.add(key);
+        tags.push(target);
+      }
+      linkMatch = wikiLinkPattern.exec(lineMatch[1] || "");
+    }
+  }
+
+  return tags;
+}
+
+export function extractFirstExplicitTag(markdown) {
+  return extractExplicitTags(markdown)[0] || null;
+}
+
+export function createNoteIndexRecord({
+  filePath,
+  markdown,
+  isPublic = true,
+  sourceSha = null,
+}) {
   const { frontmatter, content } = parseMarkdownNote(markdown);
+  const tags = extractExplicitTags(content);
+  const contentHash = crypto
+    .createHash("sha256")
+    .update(markdown || "")
+    .digest("hex");
   const noteTitle =
     (typeof frontmatter.title === "string" && frontmatter.title.trim()) ||
     noteTitleFromPath(filePath);
@@ -249,12 +302,14 @@ export function createNoteIndexRecord({ filePath, markdown, isPublic = true }) {
     note_title: noteTitle,
     file_path: filePath,
     folder_path: folderPathFromFilePath(filePath),
+    slug: noteSlugFromPath(filePath),
+    markdown_content: markdown || "",
     wiki_links: extractWikiLinks(content),
+    tags,
+    first_tag: tags[0] || null,
     is_public: shouldPublish,
-    content_hash: crypto
-      .createHash("sha256")
-      .update(markdown || "")
-      .digest("hex"),
+    content_hash: contentHash,
+    source_sha: sourceSha || contentHash,
   };
 }
 

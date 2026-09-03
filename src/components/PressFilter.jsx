@@ -124,7 +124,7 @@ const PressFilter = ({ items }) => {
                             {/* 3. Action Section */}
                             <div className="mention-action">
                                 <span>READ ARTICLE</span>
-                                <span className="arrow">↗</span>
+                                <span className="arrow link-destination-arrow" aria-hidden="true">↗</span>
                             </div>
                         </a>
                     </li>

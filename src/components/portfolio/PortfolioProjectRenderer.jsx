@@ -186,7 +186,7 @@ function RichText({ text = "" }) {
 function ExternalProjectLink({ href, label, className = "" }) {
   if (!href) return null;
   return <a className={`portfolio-external-link ${className}`.trim()} href={href} {...externalLinkProps(href)}>
-    <span>{label || "Open link"}</span><b aria-hidden="true">↗</b>
+    <span>{label || "Open link"}</span><b className="link-destination-arrow" aria-hidden="true">↗</b>
   </a>;
 }
 
@@ -512,7 +512,7 @@ function Block({ block }) {
               if (item.type === "heading") return item.text ? <h3 key={item.id || itemIndex}>{item.text}</h3> : null;
               if (item.type === "text") return item.text ? <div className="portfolio-rich-text" key={item.id || itemIndex}><RichText text={item.text} /></div> : null;
               if (item.type === "image") return href ? <ImageFigure key={item.id || itemIndex} media={{ url: href, alt: item.alt, caption: item.caption }} fit="cover" /> : null;
-              if (item.type === "button") return href ? <a className="portfolio-cta portfolio-column-button" key={item.id || itemIndex} href={href} {...externalLinkProps(href)}>{item.label || "Open link"}<span aria-hidden="true">↗</span></a> : null;
+              if (item.type === "button") return href ? <a className="portfolio-cta portfolio-column-button" key={item.id || itemIndex} href={href} {...externalLinkProps(href)}>{item.label || "Open link"}<span className="link-destination-arrow" aria-hidden="true">↗</span></a> : null;
               if (["link", "external_link"].includes(item.type)) return href && item.text ? <ExternalProjectLink className="is-column-link" key={item.id || itemIndex} href={href} label={item.text} /> : null;
               return null;
             })}
@@ -566,7 +566,7 @@ function Block({ block }) {
     }
     case "link": {
       const href = safeHref(content.url);
-      body = href && content.text ? <a className="portfolio-text-link" href={href} {...externalLinkProps(href)}>{content.text}<span aria-hidden="true">↗</span></a> : null;
+      body = href && content.text ? <a className="portfolio-text-link" href={href} {...externalLinkProps(href)}>{content.text}<span className="link-destination-arrow" aria-hidden="true">↗</span></a> : null;
       break;
     }
     case "divider": body = <hr />; break;

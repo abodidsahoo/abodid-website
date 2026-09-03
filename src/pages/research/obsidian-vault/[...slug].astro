@@ -1,9 +1,20 @@
 ---
 export const prerender = false;
 import BaseLayout from "../../../layouts/BaseLayout.astro";
-import { getFileContent, getVaultTags } from "../../../lib/github";
+import { getFileContent } from "../../../lib/github";
+import {
+    extractExplicitTags,
+    normalizeWikiLinkTarget,
+} from "../../../lib/vault-rag.js";
+import { getIndexedNoteBySlug } from "../../../lib/vault-note-index.js";
 import { marked } from "marked";
 import ShareButtons from "../../../components/ShareButtons.jsx";
+import {
+    breadcrumbJsonLd,
+    personJsonLd,
+    seoIdentity,
+    vaultNoteJsonLd,
+} from "../../../lib/seoData";
 
 const { slug } = Astro.params;
 const fromVaultSearchId = Astro.url.searchParams.get("fromVaultSearch") || "";
@@ -12,32 +23,96 @@ const vaultSearchHref = fromVaultSearchId
     : "";
 
 if (!slug) {
-    return Astro.redirect("/research/obsidian-vault");
+    Astro.response.status = 404;
+    return Astro.rewrite("/404");
+}
+
+function extractFirstUsefulParagraph(markdown: string): string {
+    if (!markdown) return "";
+    const lines = markdown.split("\n");
+    const paragraphLines: string[] = [];
+    let inFrontmatter = false;
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (i === 0 && line === "---") {
+            inFrontmatter = true;
+            continue;
+        }
+        if (inFrontmatter) {
+            if (line === "---") inFrontmatter = false;
+            continue;
+        }
+        if (
+            !line ||
+            line.startsWith("#") ||
+            line.startsWith("---") ||
+            line.startsWith("Tags:") ||
+            line.startsWith("tags:") ||
+            line.startsWith("Date:") ||
+            line.startsWith("date:") ||
+            line.startsWith("![[") ||
+            line.startsWith("![")
+        ) {
+            if (paragraphLines.length > 0) break;
+            continue;
+        }
+        paragraphLines.push(line);
+    }
+
+    const rawParagraph = paragraphLines.join(" ");
+    const cleaned = rawParagraph
+        .replace(/\[\[([^\]|]+)\|([^\]]+)\]\]/g, "$2")
+        .replace(/\[\[([^\]]+)\]\]/g, "$1")
+        .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+        .replace(/[*_`#~]/g, "")
+        .replace(/\s+/g, " ")
+        .trim();
+
+    if (cleaned.length > 160) {
+        const truncated = cleaned.slice(0, 157);
+        const lastSpace = truncated.lastIndexOf(" ");
+        return (lastSpace > 100 ? truncated.slice(0, lastSpace) : truncated) + "...";
+    }
+    return cleaned;
 }
 
 let htmlContent = "";
 let title = slug.split("/").pop() || "Note";
 let firstTag = "";
+let metaDescription = "";
+let noteUpdatedAt: string | undefined = undefined;
 
 try {
     const cleanSlug = slug.endsWith(".md") ? slug : `${slug}.md`;
     const filePathNotes = `6 - Main Notes/${cleanSlug}`;
-    const rawContent = await getFileContent(filePathNotes);
+    const noteSlug = cleanSlug.replace(/\.md$/i, "");
+    let indexedNote = null;
 
-    if (rawContent === null) {
-        const fallbackTag = cleanSlug.replace(/\.md$/i, "");
-        return Astro.redirect(`/research/obsidian-vault/tag/${encodeURIComponent(fallbackTag)}`);
+    try {
+        indexedNote = await getIndexedNoteBySlug(noteSlug);
+        if (indexedNote?.updated_at) {
+            noteUpdatedAt = indexedNote.updated_at;
+        }
+    } catch (indexError) {
+        console.warn("[vault-note] Supabase content lookup failed; using GitHub fallback:", indexError);
     }
 
-    let content = rawContent;
+    const rawContent = indexedNote?.markdown_content || await getFileContent(filePathNotes);
 
-    const tagsData = await getVaultTags();
-    const tagSet = new Set(
-        (tagsData || [])
-            .filter((item) => item?.type === "file")
-            .map((item) => item?.name?.replace(/\.md$/i, "").toLowerCase())
-            .filter(Boolean),
-    );
+    if (rawContent === null) {
+        Astro.response.status = 404;
+        return Astro.rewrite("/404");
+    }
+
+    metaDescription = extractFirstUsefulParagraph(rawContent);
+
+    let content = rawContent;
+    const explicitTags = Array.isArray(indexedNote?.tags) && indexedNote.tags.length > 0
+        ? indexedNote.tags
+        : extractExplicitTags(content);
+    const tagSet = new Set(explicitTags.map(normalizeWikiLinkTarget).filter(Boolean));
+    firstTag = indexedNote?.first_tag || explicitTags[0] || "";
 
     content = content.replace(/!\[\[(.*?)\]\]/g, (match, filename) => {
         const cleanFilename = filename.split("|")[0];
@@ -54,8 +129,7 @@ try {
         const linkTargetRaw = (parts[0] || "").trim();
         const linkText = (parts[1] || parts[0] || "").trim();
         const linkTarget = linkTargetRaw.replace(/\.md$/i, "");
-        const isTag = tagSet.has(linkTarget.toLowerCase());
-        if (isTag && !firstTag) firstTag = linkTarget;
+        const isTag = tagSet.has(normalizeWikiLinkTarget(linkTarget));
         const hrefBase = isTag ? "/research/obsidian-vault/tag/" : "/research/obsidian-vault/";
         return `[${linkText}](${hrefBase}${encodeURIComponent(linkTarget)})`;
     });
@@ -80,33 +154,59 @@ try {
     htmlContent = "<p>Error loading note.</p>";
 }
 
+Astro.response.headers.set(
+    "Cache-Control",
+    fromVaultSearchId
+        ? "private, no-store"
+        : "public, max-age=60, s-maxage=300, stale-while-revalidate=86400",
+);
+
 const displayTitle = title.replace(/-/g, " ");
 const currentFilePath = `6 - Main Notes/${title}.md`;
 const relatedNoteHref = `/api/vault-related-note?file=${encodeURIComponent(currentFilePath)}${
     firstTag ? `&tag=${encodeURIComponent(firstTag)}` : ""
 }`;
+
+const finalMetaDescription =
+    metaDescription ||
+    `Read ${displayTitle}, a note from Abodid Sahoo's public Obsidian vault.`;
+const noteCanonicalUrl = `${seoIdentity.siteUrl}/research/obsidian-vault/${encodeURIComponent(title)}`;
+
+const structuredData = [
+    personJsonLd(),
+    breadcrumbJsonLd([
+        { name: "Home", path: "/" },
+        { name: "Research", path: "/research" },
+        { name: "Obsidian Vault", path: "/research/obsidian-vault" },
+        { name: displayTitle, path: `/research/obsidian-vault/${encodeURIComponent(title)}` },
+    ]),
+    vaultNoteJsonLd({
+        title: displayTitle,
+        description: finalMetaDescription,
+        url: noteCanonicalUrl,
+        dateModified: noteUpdatedAt,
+    }),
+];
 ---
 
 <BaseLayout
     title={`${displayTitle} | Obsidian Vault`}
-    description={`Read ${displayTitle}, a note from Abodid Sahoo's public Obsidian vault.`}
+    description={finalMetaDescription}
     fullWidth={true}
     showGlobalGrid={false}
     bodyClass="vault-note-pop-page"
+    structuredData={structuredData}
 >
     <main class="vault-note-page">
         <article class="vault-note-document" aria-labelledby="note-title">
             <div class="vault-note-inner">
-                <nav class="vault-note-nav" aria-label="Note navigation">
-                    {vaultSearchHref && (
+                {vaultSearchHref && (
+                    <nav class="vault-note-nav" aria-label="Note navigation">
                         <a href={vaultSearchHref} class="vault-note-link">
                             <span aria-hidden="true">←</span> Back to search
                         </a>
-                    )}
-                    <a href="/research/obsidian-vault" class="vault-note-link">
-                        <span aria-hidden="true">←</span> Back to vault
-                    </a>
-                </nav>
+                    </nav>
+                )}
 
                 <header class="vault-note-header">
                     <h1 id="note-title">{displayTitle}</h1>
@@ -145,6 +245,7 @@ const relatedNoteHref = `/api/vault-related-note?file=${encodeURIComponent(curre
         --pop-blue: #2444ca;
         --pop-pink: #ff7eb5;
         --pop-yellow: #ffe44f;
+        --pop-lime: #caff48;
         --pop-purple: #5524c7;
         --pop-cream: #fff8e8;
         --pop-ink: #15130f;
@@ -440,20 +541,25 @@ const relatedNoteHref = `/api/vault-related-note?file=${encodeURIComponent(curre
 
     .vault-note-back-link {
         display: inline-flex;
-        min-height: 44px;
+        min-height: 52px;
         align-items: center;
         gap: 0.45rem;
+        padding: 0.85rem 1.05rem;
+        border: 1px solid var(--pop-border);
+        border-radius: 14px;
+        background: var(--pop-yellow);
         color: var(--pop-ink);
         text-decoration: none;
         font-size: clamp(0.95rem, 2vw, 1.08rem);
         font-weight: 680;
         line-height: 1.2;
         white-space: nowrap;
-        transition: background 160ms ease;
+        transition: transform 180ms ease, background 180ms ease;
     }
 
     .vault-note-back-link:hover {
-        background: var(--pop-yellow);
+        background: var(--pop-lime);
+        transform: translateY(-2px);
     }
 
     .vault-note-back-link:focus-visible {

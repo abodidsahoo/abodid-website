@@ -547,11 +547,13 @@ export async function getBookmarkedResources(userId: string): Promise<HubResourc
         .in('id', ids)
         .eq('status', 'approved'); // Only approved? Usually yes.
 
-    if (error) return [];
+    if (error || !data) return [];
 
     let resources = data.map((item: any) => ({
         ...item,
-        tags: item.tags.map((t: any) => t.tag)
+        tags: item.tags
+            ?.map((t: any) => t.tag)
+            ?.filter((tag: any) => tag !== null) || []
     }));
 
     return resources;
@@ -769,9 +771,9 @@ export async function getDeletedResources(): Promise<HubResource[]> {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return [];
 
-    // Verify Admin
+    // Verify Curator or Admin Role
     const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
-    if (profile?.role !== 'admin') return [];
+    if (profile?.role !== 'admin' && profile?.role !== 'curator') return [];
 
     const { data, error } = await supabase
         .from('hub_resources')
@@ -805,9 +807,9 @@ export async function getAllResourcesAdmin(): Promise<HubResource[]> {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return [];
 
-    // Verify Admin
+    // Verify Curator or Admin Role
     const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
-    if (profile?.role !== 'admin') return [];
+    if (profile?.role !== 'admin' && profile?.role !== 'curator') return [];
 
     const { data, error } = await supabase
         .from('hub_resources')

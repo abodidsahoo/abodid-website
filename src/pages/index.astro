@@ -162,7 +162,7 @@ const structuredData = [
         <p class="story-hero__statement">{content.hero.statement}</p>
         <p class="story-hero__lede">{content.hero.lede}</p>
         <div class="story-actions">
-          <a class="story-button story-button--secondary" href="#enquiry">Let’s build together <span aria-hidden="true">↗</span></a>
+          <a class="story-button story-button--secondary" href="#enquiry">Let’s build together <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
         </div>
       </div>
 
@@ -253,7 +253,7 @@ const structuredData = [
                 <div><dt>Role</dt><dd>{project.role}</dd></div>
                 <div><dt>Outcome</dt><dd>{project.outcome}</dd></div>
               </dl>
-              <span class="story-project__link"><span>View project</span> <b aria-hidden="true">↗</b></span>
+              <span class="story-project__link"><span>View project</span> <b class="link-destination-arrow" aria-hidden="true">↗</b></span>
             </div>
           </a>
         ))}
@@ -264,7 +264,7 @@ const structuredData = [
       <header>
         <p class="story-eyebrow">Selected organisations</p>
         <h2 id="story-evidence-heading">Trusted by</h2>
-        <a href="/experience">View professional experience <span aria-hidden="true">↗</span></a>
+        <a href="/experience"><span class="link-label">View professional experience</span> <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
       </header>
       <ul class="story-brands" aria-label="Clients and collaborators">
         {featuredBrands.map((brand) => (
@@ -318,7 +318,7 @@ const structuredData = [
       <header class="story-section-heading story-section-heading--dark-text">
         <p class="story-eyebrow">Ways to work together</p>
         <h2 id="story-services-heading">Work with me</h2>
-        <a href="#enquiry">Discuss an engagement <span aria-hidden="true">↗</span></a>
+        <a href="#enquiry"><span class="link-label">Discuss an engagement</span> <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
       </header>
       <div class="story-capabilities">
         {content.capabilities.map((capability, index) => (
@@ -340,7 +340,7 @@ const structuredData = [
                         <Fragment key={project.name}>
                           <a class="story-capability__project-link" href={project.href}>
                             <span>{project.name}</span>
-                            <b aria-hidden="true">↗</b>
+                            <b class="link-destination-arrow" aria-hidden="true">↗</b>
                           </a>
                           {pIdx < capability.projects.length - 1 && <span class="story-capability__project-sep" aria-hidden="true">,</span>}
                         </Fragment>
@@ -405,7 +405,7 @@ const structuredData = [
           <p class="story-eyebrow">Blog & newsletter</p>
           <h2 id="story-writing-heading">I love writing!</h2>
           <p class="story-writing__intro">Read my essays and memoirs on visual culture, art, and creative technology.</p>
-          <a class="story-button story-button--primary" href="/blog">Go to the blog <span aria-hidden="true">↗</span></a>
+          <a class="story-button story-button--primary" href="/blog">Go to the blog <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
         </div>
         <div class="story-writing__newsletter" data-auto-contrast>
           <p>Receive my writings and hand-picked curated resources to boost your creativity, productivity and research acumen.</p>
@@ -617,7 +617,9 @@ const structuredData = [
       };
 
       const ensureVideosPlay = () => {
-        document.querySelectorAll<HTMLVideoElement>("video[autoplay]").forEach((video) => {
+        document.querySelectorAll("video[autoplay]").forEach((element) => {
+          if (!(element instanceof HTMLVideoElement)) return;
+          const video = element;
           const playVideo = () => {
             if (video.paused) video.play().catch(() => {});
           };
@@ -626,6 +628,9 @@ const structuredData = [
             playVideo();
           } else {
             video.addEventListener("canplay", playVideo, { once: true });
+            // Videos inserted by Astro's client-side page swap can retain their
+            // src attribute without selecting/loading the media resource.
+            if (video.readyState === HTMLMediaElement.HAVE_NOTHING) video.load();
           }
 
           if (video.dataset.viewportPlaybackReady !== "true") {
@@ -760,8 +765,10 @@ const structuredData = [
   .story-section-heading { margin-bottom: clamp(3rem, 6vw, 6rem); display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1rem 3rem; align-items: end; }
   .story-section-heading .story-eyebrow { grid-column: 1 / -1; }
   .story-section-heading h2 { max-width: 13ch; margin-bottom: 0; color: inherit; font: 620 clamp(3rem, 6.7vw, 7rem)/.9 var(--font-display, sans-serif); letter-spacing: -.065em; }
-  .story-section-heading > a { padding-bottom: .35rem; color: inherit; border-bottom: 1px solid currentColor; font: 700 .72rem/1 var(--font-mono, monospace); letter-spacing: .08em; text-decoration: none; text-transform: uppercase; }
+  .story-section-heading > a { padding-bottom: .35rem; color: inherit; font: 700 .72rem/1 var(--font-mono, monospace); letter-spacing: .08em; text-decoration: none; text-transform: uppercase; }
   .story-section-heading > a:hover { color: #ffffff !important; }
+  .story-section-heading > a > .link-label,
+  .story-evidence > header a > .link-label { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .35rem; }
   .story-work__grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--home-next-gap); align-items: stretch; }
   .story-project { grid-column: span 6; min-height: clamp(540px, 54vw, 720px); min-width: 0; padding: var(--home-next-card-inset) var(--home-next-card-inset) clamp(1.1rem, 2vw, 1.6rem); display: flex; flex-direction: column; gap: var(--home-next-gap); overflow: hidden; border: var(--home-next-border); border-radius: var(--home-next-radius-panel); background: var(--pop-pink); color: var(--pop-ink); text-decoration: none; transition: transform var(--home-next-motion), box-shadow var(--home-next-motion); }
   .story-project:hover .story-project__link > span,
@@ -1075,7 +1082,7 @@ const structuredData = [
   .story-evidence > header { margin-bottom: clamp(3rem, 7vw, 7rem); display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1rem 3rem; align-items: end; }
   .story-evidence > header .story-eyebrow { grid-column: 1 / -1; }
   .story-evidence > header h2 { max-width: 13ch; margin: 0; font: 630 clamp(3rem, 7vw, 7.5rem)/.88 var(--font-display, sans-serif); letter-spacing: -.07em; }
-  .story-evidence > header a { padding-bottom: .35rem; color: inherit; border-bottom: 1px solid currentColor; font: 750 .68rem/1 var(--font-mono, monospace); letter-spacing: .08em; text-decoration: none; text-transform: uppercase; }
+  .story-evidence > header a { padding-bottom: .35rem; color: inherit; font: 750 .68rem/1 var(--font-mono, monospace); letter-spacing: .08em; text-decoration: none; text-transform: uppercase; }
   .story-brands {
     margin: 0;
     padding: .5rem 0 2rem;

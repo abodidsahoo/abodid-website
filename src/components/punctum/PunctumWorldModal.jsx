@@ -1290,7 +1290,7 @@ export default function PunctumWorldModal({
                           href="/research/punctum/results"
                         >
                           Explore existing worlds
-                          <span aria-hidden="true">↗</span>
+                          <span className="link-destination-arrow" aria-hidden="true">↗</span>
                         </a>
                         {!limitReached && (
                           <button

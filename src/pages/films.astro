@@ -8,39 +8,52 @@ const pageDescription =
   "Films by Abodid Sahoo spanning visual storytelling, brand films, documentary work, and experimental cinematography.";
 ---
 
-<BaseLayout title={pageTitle} description={pageDescription}>
+<BaseLayout
+  title={pageTitle}
+  description={pageDescription}
+  fullWidth={true}
+  navigationVariant="next"
+  bodyClass="films-moodboard-page"
+>
   <!-- Plyr CSS -->
   <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
 
-  <div class="films-container">
-    <header class="page-header">
-      <h1>Films</h1>
-      <p class="section-intro">
-        A curation of visual stories, brand films, and experimental
-        cinematography.
-      </p>
-    </header>
+  <main class="films-shell">
+    <article class="films-file">
+      <header class="films-heading">
+        <p class="films-file-tag">films.js — video curation</p>
+        <div class="films-heading__hero">
+          <h1>Films</h1>
+          <p>
+            A curation of visual stories, brand films, and experimental
+            cinematography.
+          </p>
+        </div>
+      </header>
 
-    <FilmsIsland server:defer>
-      <ProgressiveContentSkeleton
-        slot="fallback"
-        variant="films"
-        count={4}
-        label="Loading films"
-      />
-    </FilmsIsland>
-  </div>
+      <section class="films-board">
+        <FilmsIsland server:defer>
+          <ProgressiveContentSkeleton
+            slot="fallback"
+            variant="films"
+            count={4}
+            label="Loading films"
+          />
+        </FilmsIsland>
+      </section>
+    </article>
+  </main>
 
   <div id="video-modal" class="video-modal">
     <div class="video-container">
-      <button class="close-btn" onclick="closeVideo()">
+      <button class="close-btn" onclick="closeVideo()" aria-label="Close video player">
         <svg
           width="24"
           height="24"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          stroke-width="2"
+          stroke-width="2.5"
           xmlns="http://www.w3.org/2000/svg"
         >
           <path d="M18 6L6 18M6 6l12 12"></path>
@@ -90,7 +103,6 @@ const pageDescription =
 
       // Explicitly clear and update iframe
       const iframe = container.querySelector("iframe");
-      // Force a slight delay or just direct update? Direct update usually fine if player is gone.
       iframe.src = embedSrc;
 
       // 3. Initialize Plyr (fresh instance)
@@ -138,14 +150,12 @@ const pageDescription =
 
       if (player) {
         player.stop();
-        // Optional: Destory here too to be super safe, but usually stop is enough until next open
         player.destroy();
         player = null;
       }
 
       document.body.style.overflow = "";
 
-      // Clear iframe src to stop any residual loading/audio
       const iframe = document.querySelector("#player iframe");
       if (iframe) iframe.src = "";
     };
@@ -157,57 +167,87 @@ const pageDescription =
   </script>
 </BaseLayout>
 
-<style>
-  /* Plyr Overrides for "Clean & Elegant" Look */
-  :global(.plyr) {
-    --plyr-color-main: white; /* Clean white accent */
-    --plyr-video-control-color: white;
-    --plyr-video-control-color-hover: #e0e0e0;
-    font-family: var(--font-sans, system-ui, sans-serif);
-    border-radius: 8px;
-    overflow: hidden;
-  }
-
-  :global(.plyr__control--overlaid) {
-    background: rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(5px);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    color: white;
-  }
-
-  :global(.plyr__control--overlaid:hover) {
-    background: white;
-    color: black;
-  }
-
-  .films-container {
-    margin-bottom: var(--space-3xl);
-  }
-
-  /* Header */
-  .page-header {
-    margin-bottom: 4rem;
-    padding-top: 2rem;
-    text-align: left;
-  }
-
-  h1 {
-    font-family: var(--font-display);
-    font-size: clamp(4rem, 6vw, 4.75rem);
-    font-weight: 700;
-    line-height: 1.08;
-    margin-bottom: 1.25rem;
-    letter-spacing: -0.035em;
-    color: var(--text-primary);
-  }
-
-  .section-intro {
-    font-family: var(--font-sans);
-    font-size: 1.1rem;
-    color: var(--text-secondary);
-    max-width: 600px;
+<style is:global>
+  body.films-moodboard-page {
+    --pop-blue: #2444ca;
+    --pop-purple: #6657d8;
+    --pop-pink: #ff7eb5;
+    --pop-yellow: #ffe44f;
+    --pop-cream: #fff8e8;
+    --pop-ink: #15130f;
+    --pop-border: rgba(21, 19, 15, 0.78);
+    --pop-line: rgba(21, 19, 15, 0.24);
+    --resources-font: "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
+    --resources-mono: "Satoshi-Variable", "Satoshi-Regular", "Space Mono", "Inconsolata", monospace;
     margin: 0;
-    line-height: 1.6;
+    padding: 0 !important;
+    background: var(--pop-blue) !important;
+    color: var(--pop-ink);
+    min-height: 100vh;
+    color-scheme: light;
+  }
+</style>
+
+<style>
+  .films-shell {
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+    background: var(--pop-blue);
+    min-height: 100vh;
+  }
+
+  .films-file {
+    width: 100%;
+    max-width: none;
+    margin-inline: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+    border: 1px solid var(--pop-ink);
+    border-radius: clamp(20px, 3vw, 34px);
+    background: var(--pop-cream);
+    box-shadow: 0 10px 0 rgba(21, 19, 15, 0.2);
+  }
+
+  .films-heading {
+    padding: clamp(1.6rem, 4vw, 3.5rem);
+    border-bottom: 1px solid var(--pop-ink);
+    background: var(--pop-pink);
+  }
+
+  .films-file-tag {
+    margin-bottom: clamp(1.5rem, 4vw, 3.5rem);
+    color: var(--pop-ink);
+    font: 700 0.72rem/1 var(--resources-mono, monospace);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .films-heading__hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(260px, 0.7fr);
+    gap: clamp(1.5rem, 4vw, 5rem);
+    align-items: end;
+  }
+
+  .films-heading h1 {
+    margin: 0;
+    color: var(--pop-ink);
+    font: 720 clamp(3.5rem, 8.5vw, 7.5rem)/0.86 var(--resources-font, sans-serif);
+    letter-spacing: -0.075em;
+  }
+
+  .films-heading__hero p {
+    max-width: 36rem;
+    margin: 0;
+    color: var(--pop-ink);
+    font: 500 clamp(1.1rem, 1.8vw, 1.55rem)/1.32 var(--resources-font, sans-serif);
+    letter-spacing: -0.025em;
+  }
+
+  .films-board {
+    padding: clamp(1.2rem, 3.5vw, 3rem);
+    background: var(--pop-cream);
   }
 
   /* Modal */
@@ -217,15 +257,15 @@ const pageDescription =
     right: 0;
     bottom: 0;
     left: var(--app-rail-width, 0px);
-    background: rgba(0, 0, 0, 0.95);
+    background: rgba(21, 19, 15, 0.92);
     z-index: 9999;
     display: flex;
     align-items: center;
     justify-content: center;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.3s ease;
-    backdrop-filter: blur(5px);
+    transition: opacity 180ms ease;
+    backdrop-filter: blur(8px);
   }
 
   .video-modal.active {
@@ -234,48 +274,47 @@ const pageDescription =
   }
 
   .video-container {
-    width: 90%;
+    width: 92%;
     max-width: 1200px;
     position: relative;
-    border-radius: 8px;
-    box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+    border-radius: 20px;
+    border: 1px solid var(--pop-ink);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+    background: var(--pop-ink);
+    overflow: hidden;
   }
 
   .close-btn {
     position: absolute;
-    top: -60px;
-    right: 0;
+    top: 14px;
+    right: 14px;
     width: 44px;
     height: 44px;
-    background: white;
-    border: none;
+    background: var(--pop-yellow);
+    border: 1px solid var(--pop-ink);
     border-radius: 50%;
-    color: black;
+    color: var(--pop-ink);
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    transition:
-      transform 0.2s ease,
-      background-color 0.2s;
-    z-index: 20;
+    box-shadow: 0 3px 0 var(--pop-ink);
+    transition: transform 180ms ease, background 180ms ease;
+    z-index: 30;
   }
 
   .close-btn:hover {
-    transform: scale(1.1);
-    background-color: #f0f0f0;
+    transform: scale(1.08);
+    background: var(--pop-pink);
   }
 
-  /* Responsive */
-  @media (max-width: 768px) {
-    h1 {
-      font-size: 2.5rem;
+  @media (max-width: 760px) {
+    .films-heading__hero {
+      grid-template-columns: 1fr;
+      gap: 1rem;
     }
-
-    .close-btn {
-      top: -50px;
-      right: 0;
+    .films-shell {
+      padding: 4px;
     }
   }
 </style>

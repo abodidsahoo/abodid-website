@@ -72,12 +72,12 @@ const description = content.hero.lede;
           </h1>
           <div class="studio-block__actions">
             <a class="t-label" href="#selected-work">View selected photography <span aria-hidden="true">↓</span></a>
-            <a class="t-label" href="#enquiry">Check availability <span aria-hidden="true">↗</span></a>
+            <a class="t-label" href="#enquiry">Check availability <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
           </div>
         </header>
 
         <a class="studio-block studio-block--showreel" href="/photography" aria-label="Explore selected cultural photography">
-          <span class="studio-window-bar t-label"><b></b><span>cultural_documentation_01—04</span><small>View series ↗</small></span>
+          <span class="studio-window-bar t-label"><b></b><span>cultural_documentation_01—04</span><small>View series <span class="link-destination-arrow" aria-hidden="true">↗</span></small></span>
           <span class="studio-polaroid studio-photo-sequence">
             {heroPhotography.map((project, index) => (
               <img
@@ -108,8 +108,8 @@ const description = content.hero.lede;
         <aside class="studio-block studio-block--hire" data-colour-cycle="2">
           <small class="t-label">Available for commissions</small>
           <strong class="t-heading t-heading-strong">Documenting an exhibition, festival or cultural event?</strong>
-          <a class="studio-manifesto-link studio-vibe-link t-label" href="/photography">View photography <span aria-hidden="true">↗</span></a>
-          <a class="studio-hire-cta t-label" href="#enquiry">Check availability <b aria-hidden="true">↗</b></a>
+          <a class="studio-manifesto-link studio-vibe-link t-label" href="/photography">View photography <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+          <a class="studio-hire-cta t-label" href="#enquiry">Check availability <b class="link-destination-arrow" aria-hidden="true">↗</b></a>
         </aside>
 
         <div class="studio-palette-stack">
@@ -134,7 +134,7 @@ const description = content.hero.lede;
         <header class="selected-wall__intro" data-colour-cycle="1">
           <p class="t-label">Selected photography · 01—{String(Math.min(content.selectedWork.length, 6)).padStart(2, "0")}</p>
           <h2 class="t-display t-display-strong" id="selected-work-heading">Documenting culture as it happens.</h2>
-          <a class="selected-wall__link t-label" href="/photography" data-astro-prefetch="hover">See all photography <span aria-hidden="true">↗</span></a>
+          <a class="selected-wall__link t-label" href="/photography" data-astro-prefetch="hover">See all photography <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
         </header>
         {
           content.selectedWork.slice(0, 6).map((project, index) => (
@@ -163,7 +163,7 @@ const description = content.hero.lede;
               <div>
                 <h3 class="t-heading t-heading-strong">{project.title}</h3>
                 {project.oneLineDescription && <p class="t-body">{project.oneLineDescription}</p>}
-                <span class="selected-work-card__open t-label">View series <b aria-hidden="true">↗</b></span>
+                <span class="selected-work-card__open t-label">View series <b class="link-destination-arrow" aria-hidden="true">↗</b></span>
               </div>
             </a>
           ))
@@ -172,7 +172,7 @@ const description = content.hero.lede;
         <aside class="selected-wall__intro selected-work-more" data-colour-cycle="1">
           <h2 class="t-display t-display-strong">Want to see more?</h2>
           <a class="selected-wall__link t-label" href="/photography" data-astro-prefetch="hover">
-            View all photography <span aria-hidden="true">↗</span>
+            View all photography <span class="link-destination-arrow" aria-hidden="true">↗</span>
           </a>
         </aside>
       </div>
@@ -234,15 +234,15 @@ const description = content.hero.lede;
         <h2 class="t-display t-display-strong" id="career-doorway-heading">I also build experiments for understanding how people see, remember and make meaning.</h2>
         <p class="t-body">I am open to the right full-time role with a creative technology team building cultural or media-driven products—and to collaborations connecting creative ecosystems across India and the UK.</p>
         <div class="career-doorway__actions">
-          <a class="t-label" href="/research-next">Explore research and experiments <span aria-hidden="true">↗</span></a>
-          <a class="t-label" href="/experience-next">View experience <span aria-hidden="true">↗</span></a>
+          <a class="t-label" href="/research-next">Explore research and experiments <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+          <a class="t-label" href="/experience-next">View experience <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
         </div>
       </div>
       <a class="career-doorway__experiment" href="/research/punctum" aria-label="Explore Punctum">
         <img src="https://photos.abodid.com/originals/exhibition-photos/rca-outernet-digital-direction-2024-gradshow-abodid-18.jpg" alt="An exhibition photograph used in the Punctum experiment" loading="lazy" />
         <span class="t-label">Flagship experiment</span>
         <strong class="t-heading t-heading-strong">Punctum</strong>
-        <small class="t-body">AI, sociology and visual attention ↗</small>
+        <small class="t-body">AI, sociology and visual attention <span class="link-destination-arrow" aria-hidden="true">↗</span></small>
       </a>
     </section>
 

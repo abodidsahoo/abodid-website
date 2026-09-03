@@ -98,23 +98,23 @@ export default function ResourceDetailActions({ resourceId, initialUpvotes }: Pr
         <div className="detail-actions" aria-label="Resource actions">
             <button
                 type="button"
-                className={`detail-action-btn ${isUpvoted ? 'active' : ''}`}
+                className={`detail-action-btn btn-upvote ${isUpvoted ? 'active' : ''}`}
                 onClick={handleToggleUpvote}
                 disabled={busyAction !== null}
                 aria-pressed={isUpvoted}
             >
-                <span>Upvote</span>
+                <span>{isUpvoted ? '▲ Upvoted' : '▲ Upvote'}</span>
                 <span className="count">{upvotesCount}</span>
             </button>
 
             <button
                 type="button"
-                className={`detail-action-btn ${isBookmarked ? 'active' : ''}`}
+                className={`detail-action-btn btn-save ${isBookmarked ? 'active' : ''}`}
                 onClick={handleToggleBookmark}
                 disabled={busyAction !== null}
                 aria-pressed={isBookmarked}
             >
-                <span>Save</span>
+                <span>{isBookmarked ? '🔖 Saved' : '🔖 Save'}</span>
             </button>
 
             <style>{`
@@ -122,36 +122,52 @@ export default function ResourceDetailActions({ resourceId, initialUpvotes }: Pr
                     display: flex;
                     flex-wrap: wrap;
                     align-items: center;
-                    gap: 10px;
-                    margin-top: 28px;
+                    gap: 12px;
+                    margin-top: 24px;
+                    margin-bottom: 24px;
                 }
 
                 .detail-action-btn {
                     display: inline-flex;
                     align-items: center;
+                    justify-content: center;
                     gap: 8px;
-                    border: 1px solid transparent;
-                    background: var(--bg-surface-hover);
-                    color: var(--text-primary);
-                    border-radius: 12px;
-                    padding: 11px 16px;
-                    font-size: 0.92rem;
-                    font-weight: 600;
+                    min-height: 44px;
+                    padding: 10px 20px;
+                    border: 1px solid var(--pop-border, rgba(21, 19, 15, 0.78)) !important;
+                    border-radius: 12px !important;
+                    background: var(--pop-cream, #fff8e8) !important;
+                    color: var(--pop-ink, #15130f) !important;
+                    font: 700 0.9rem/1 var(--resources-font, system-ui) !important;
                     cursor: pointer;
-                    box-shadow: inset 0 0 0 1px var(--border-subtle);
-                    transition: all 0.2s ease, box-shadow 0.2s ease;
+                    box-shadow: none !important;
+                    transition: background 180ms ease, transform 180ms ease;
                 }
 
                 .detail-action-btn:hover:not(:disabled) {
-                    background: var(--bg-surface);
-                    box-shadow: inset 0 0 0 1px var(--text-primary);
-                    transform: translateY(-1px);
+                    transform: translateY(-2px);
                 }
 
-                .detail-action-btn.active {
-                    background: var(--text-primary);
-                    color: var(--bg-color);
-                    box-shadow: none;
+                .detail-action-btn.btn-upvote:hover:not(:disabled) {
+                    background: var(--pop-yellow, #ffe44f) !important;
+                }
+
+                .detail-action-btn.btn-save:hover:not(:disabled) {
+                    background: var(--pop-pink, #ff7eb5) !important;
+                }
+
+                .detail-action-btn.btn-upvote.active {
+                    background: var(--pop-yellow, #ffe44f) !important;
+                    color: var(--pop-ink, #15130f) !important;
+                    border-color: var(--pop-ink, #15130f) !important;
+                    font-weight: 800 !important;
+                }
+
+                .detail-action-btn.btn-save.active {
+                    background: var(--pop-pink, #ff7eb5) !important;
+                    color: var(--pop-ink, #15130f) !important;
+                    border-color: var(--pop-ink, #15130f) !important;
+                    font-weight: 800 !important;
                 }
 
                 .detail-action-btn:disabled {
@@ -160,18 +176,18 @@ export default function ResourceDetailActions({ resourceId, initialUpvotes }: Pr
                 }
 
                 .detail-action-btn .count {
-                    color: var(--text-tertiary);
-                    background: rgba(15, 23, 42, 0.08);
-                    font-size: 0.85rem;
-                    min-width: 1.6ch;
-                    padding: 0 7px;
+                    color: var(--pop-ink, #15130f);
+                    background: var(--pop-cream, #fff8e8);
+                    border: 1px solid var(--pop-border, rgba(21, 19, 15, 0.78));
+                    font: 750 0.78rem/1 var(--resources-mono, monospace);
+                    padding: 3px 8px;
                     border-radius: 999px;
-                    line-height: 1.4;
+                    margin-left: 2px;
                 }
 
                 .detail-action-btn.active .count {
-                    color: var(--bg-color);
-                    background: rgba(255, 255, 255, 0.2);
+                    background: var(--pop-cream, #fff8e8);
+                    color: var(--pop-ink, #15130f);
                 }
             `}</style>
         </div>

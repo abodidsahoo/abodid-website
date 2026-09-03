@@ -13,6 +13,7 @@
     "build": "astro build",
     "test:analytics": "node --test tests/analytics/*.test.mjs",
     "test:portfolio": "node --test tests/portfolio/*.test.mjs",
+    "test:seo": "node --test tests/seo/*.test.mjs",
     "test:newsletter": "node --test tests/newsletter/*.test.mjs",
     "test:reading-digest": "vitest run tests/reading-digest",
     "test:punctum": "vitest run tests/punctum",

@@ -3,6 +3,12 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import { getProjectBySlug } from "../../lib/api";
 import { marked } from "marked";
 import ShareButtons from "../../components/ShareButtons.jsx";
+import {
+  breadcrumbJsonLd,
+  creativeWorkJsonLd,
+  personJsonLd,
+  seoIdentity,
+} from "../../lib/seoData";
 
 export const prerender = false;
 
@@ -10,7 +16,8 @@ const { slug } = Astro.params;
 const project = await getProjectBySlug(slug);
 
 if (!project || !project.published || project.visible === false) {
-  return Astro.redirect("/404");
+  Astro.response.status = 404;
+  return Astro.rewrite("/404");
 }
 
 const contentHtml = marked.parse(project.content || "");
@@ -20,9 +27,34 @@ const galleryImages = Array.isArray(project.gallery_images)
   ? project.gallery_images.filter((image) => image?.url)
   : [];
 const tags = Array.isArray(project.tags) ? project.tags : [];
+
+const canonicalUrl = `${seoIdentity.siteUrl}/research/${project.slug}`;
+const structuredData = [
+  personJsonLd(),
+  breadcrumbJsonLd([
+    { name: "Home", path: "/" },
+    { name: "Research", path: "/research" },
+    { name: project.title, path: `/research/${project.slug}` },
+  ]),
+  creativeWorkJsonLd({
+    title: project.title,
+    description: project.description || project.title,
+    url: canonicalUrl,
+    image: coverImage || undefined,
+    dateCreated: project.created_at || undefined,
+    dateModified: project.updated_at || undefined,
+    keywords: tags.length > 0 ? tags : undefined,
+  }),
+];
 ---
 
-<BaseLayout title={project.title} description={project.description}>
+<BaseLayout
+  title={project.title}
+  description={project.description}
+  image={coverImage}
+  type="article"
+  structuredData={structuredData}
+>
   <article class="research-project">
     <header class="research-hero">
       <div class="research-hero__signal" aria-hidden="true">
@@ -37,7 +69,7 @@ const tags = Array.isArray(project.tags) ? project.tags : [];
           experimentUrl && (
             <a href={experimentUrl} target="_blank" rel="noopener noreferrer" class="launch-button">
               <span>Launch experiment</span>
-              <span aria-hidden="true">↗</span>
+              <span class="link-destination-arrow" aria-hidden="true">↗</span>
             </a>
           )
         }
@@ -97,7 +129,7 @@ const tags = Array.isArray(project.tags) ? project.tags : [];
             <h2>The project continues outside this page.</h2>
           </div>
           <a href={experimentUrl} target="_blank" rel="noopener noreferrer">
-            Launch experiment <span aria-hidden="true">↗</span>
+            Launch experiment <span class="link-destination-arrow" aria-hidden="true">↗</span>
           </a>
         </section>
       )

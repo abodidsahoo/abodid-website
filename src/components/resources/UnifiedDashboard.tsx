@@ -4,9 +4,20 @@ import CuratorDashboard from './CuratorDashboard';
 import UserDashboard from './UserDashboard';
 
 export default function UnifiedDashboard() {
-    const [loading, setLoading] = useState(true);
-    const [userRole, setUserRole] = useState<string | null>(null);
+    const getInitialRole = () => {
+        try {
+            const cached = localStorage.getItem('curator_profile');
+            if (cached) {
+                const parsed = JSON.parse(cached);
+                if (parsed.role) return parsed.role;
+            }
+        } catch (e) {}
+        return null;
+    };
+
+    const [userRole, setUserRole] = useState<string | null>(getInitialRole);
     const [user, setUser] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         checkUserRole();
@@ -16,41 +27,43 @@ export default function UnifiedDashboard() {
         try {
             if (!supabase) {
                 console.error('UnifiedDashboard: Supabase missing');
-                window.location.href = '/login';
+                localStorage.removeItem('curator_profile');
+                window.location.href = '/login?redirect=/resources/dashboard';
                 return;
             }
 
-            // Safety timeout
-            const timeoutId = setTimeout(() => {
-                console.warn('UnifiedDashboard: Loading timed out, forcing render');
-                setLoading(false);
-            }, 3000);
+            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
-            const { data: { session } } = await supabase.auth.getSession();
-
-            if (!session) {
-                console.log('UnifiedDashboard: No session');
-                window.location.href = '/login';
+            if (sessionError || !session || session.user?.is_anonymous) {
+                console.log('UnifiedDashboard: No valid non-anonymous session', sessionError);
+                localStorage.removeItem('curator_profile');
+                window.location.href = '/login?redirect=/resources/dashboard';
                 return;
             }
 
-            setUser(session.user); // Need to store user
+            setUser(session.user);
 
-            // Get user profile to check role
-            const { data: profileData, error } = await supabase
+            // Fetch profile & update role in background/parallel
+            const { data: profileData } = await supabase
                 .from('profiles')
-                .select('role')
+                .select('username, full_name, role')
                 .eq('id', session.user.id)
                 .single();
 
-            if (error) {
-                console.error('UnifiedDashboard: Profile fetch error', error);
+            if (profileData) {
+                setUserRole(profileData.role || 'user');
+                try {
+                    localStorage.setItem('curator_profile', JSON.stringify(profileData));
+                } catch (e) {}
+            } else if (!userRole) {
+                setUserRole('user');
             }
-
-            clearTimeout(timeoutId);
-            setUserRole(profileData?.role || 'user');
         } catch (e) {
             console.error('UnifiedDashboard: Error checking role', e);
+            if (!userRole) {
+                localStorage.removeItem('curator_profile');
+                window.location.href = '/login?redirect=/resources/dashboard';
+            }
         } finally {
             setLoading(false);
         }
@@ -62,7 +75,7 @@ export default function UnifiedDashboard() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                minHeight: '100vh',
+                minHeight: '50vh',
                 color: 'var(--text-secondary)'
             }}>
                 Loading your dashboard...

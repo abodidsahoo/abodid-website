@@ -4,9 +4,11 @@ import { getApprovedResources } from '../../lib/resources/db';
 
 // --- Re-implementing Resource Card (React) ---
 const ReactResourceCard = ({
-    resource
+    resource,
+    editorial = false
 }: {
     resource: HubResource;
+    editorial?: boolean;
 }) => {
     const getAudienceColor = (audience: string | null) => {
         switch (audience) {
@@ -32,19 +34,19 @@ const ReactResourceCard = ({
             href={`/resources/${resource.id}`}
             className="resource-card-react"
             style={{ '--accent-color': accentColor } as any}
-            onMouseMove={handleMouseMove}
+            onMouseMove={editorial ? undefined : handleMouseMove}
         >
             {/* Thumbnail - Clean, no overlay */}
             <div className="thumbnail-container">
                 {resource.thumbnail_url ? (
-                    <img src={resource.thumbnail_url} alt={resource.title || 'Resource'} className="thumbnail" loading="lazy" />
+                    <img src={resource.thumbnail_url} alt={editorial ? '' : resource.title || 'Resource'} className="thumbnail" loading="lazy" />
                 ) : (
-                    <div className="thumbnail-placeholder">🔗</div>
+                    <div className="thumbnail-placeholder" aria-hidden={editorial || undefined}>{editorial ? '↗' : '🔗'}</div>
                 )}
             </div>
 
             <div className="content">
-                <h3 className="title">{resource.title}</h3>
+                <h3 className="title"><span>{resource.title}</span></h3>
 
                 {resource.description && <p className="description">{resource.description}</p>}
 
@@ -54,11 +56,11 @@ const ReactResourceCard = ({
                             t && <span key={t.id || `tag-${idx}`} className="tag">{t.name}</span>
                         ))}
                     </div>
-
+                    {editorial && <span className="resource-card-arrow" aria-hidden="true">↗</span>}
                 </div>
             </div>
 
-            <span className="hover-cue" aria-hidden="true">👆 Click to view details</span>
+            {!editorial && <span className="hover-cue" aria-hidden="true">👆 Click to view details</span>}
         </a>
     );
 };
@@ -69,14 +71,18 @@ interface Props {
     initialResources: HubResource[];
     availableTags?: { id: string; name: string }[];
     showSearch?: boolean;
+    variant?: 'default' | 'editorial';
+    initialQuery?: string;
+    initialAudience?: string;
 }
 
-export default function ResourceFeed({ initialResources, showSearch = true }: Props) {
+export default function ResourceFeed({ initialResources, showSearch = true, variant = 'default', initialQuery = '', initialAudience = '' }: Props) {
+    const editorial = variant === 'editorial';
     // Store ALL resources for client-side filtering
     const [allResources, setAllResources] = useState<HubResource[]>(initialResources);
 
-    const [query, setQuery] = useState('');
-    const [audience, setAudience] = useState('');
+    const [query, setQuery] = useState(initialQuery);
+    const [audience, setAudience] = useState(initialAudience);
 
     // Fetch fresh data on mount to catch updates
     useEffect(() => {
@@ -105,7 +111,7 @@ export default function ResourceFeed({ initialResources, showSearch = true }: Pr
 
         // 2. Filter by Query (Simple text match on Title/Desc/Tags)
         if (query.trim()) {
-            const q = query.toLowerCase();
+            const q = query.trim().toLowerCase();
             result = result.filter(r =>
                 r.title.toLowerCase().includes(q) ||
                 (r.description && r.description.toLowerCase().includes(q)) ||
@@ -130,12 +136,14 @@ export default function ResourceFeed({ initialResources, showSearch = true }: Pr
 
             {/* Big Search Header */}
             {showSearch && (
-                <>
+                <div className="resource-discovery">
                     <div className="filter-header">
                         <div className="search-wrapper-large">
                             <svg className="search-icon-large" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                             <input
                                 type="text"
+                                aria-label="Search resources"
+                                aria-controls={editorial ? 'resource-results' : undefined}
                                 className="search-input-large"
                                 placeholder="Search for tools, inspiration, articles..."
                                 value={query}
@@ -153,11 +161,12 @@ export default function ResourceFeed({ initialResources, showSearch = true }: Pr
                     </div>
 
                     {/* Audience Filters */}
-                    <div className="audience-section">
+                    <div className="audience-section" role="group" aria-label="Filter resources by audience">
                         <div className="audience-label">Find resources relevant for:</div>
                         <div className="audience-filters">
                             <button
                                 className={`filter-chip ${audience === '' ? 'active' : ''}`}
+                                aria-pressed={audience === ''}
                                 onClick={() => setAudience('')}
                             >
                                 Everyone
@@ -166,6 +175,7 @@ export default function ResourceFeed({ initialResources, showSearch = true }: Pr
                                 <button
                                     key={aud}
                                     className={`filter-chip ${audience === aud ? 'active' : ''}`}
+                                    aria-pressed={audience === aud}
                                     onClick={() => setAudience(aud === audience ? '' : aud)}
                                 >
                                     {aud}
@@ -173,20 +183,31 @@ export default function ResourceFeed({ initialResources, showSearch = true }: Pr
                             ))}
                         </div>
                     </div>
-                </>
+                </div>
             )}
 
             {/* Resources Grid */}
-            <div className="resource-grid">
+            {editorial && (
+                <div className="resource-results-heading">
+                    <h2>{query.trim() || audience ? 'Filtered resources' : 'All resources'}</h2>
+                    <div className="resource-results-meta">
+                        <span role="status" aria-live="polite" aria-atomic="true">
+                            {filteredResources.length} {filteredResources.length === 1 ? 'resource' : 'resources'}
+                        </span>
+                        {(query || audience) && <button className="resource-clear" onClick={() => { setQuery(''); setAudience(''); }}>Clear filters</button>}
+                    </div>
+                </div>
+            )}
+            <div className="resource-grid" id={editorial ? 'resource-results' : undefined}>
                 {filteredResources.map(res => (
-                    <div key={res.id} style={{ height: '100%', animation: 'fadeIn 0.3s ease' }}>
-                        <ReactResourceCard resource={res} />
+                    <div key={res.id} style={{ height: '100%', animation: editorial ? undefined : 'fadeIn 0.3s ease' }}>
+                        <ReactResourceCard resource={res} editorial={editorial} />
                     </div>
                 ))}
             </div>
 
             {filteredResources.length === 0 && (
-                <div style={{ textAlign: 'center', padding: '64px 0', color: 'var(--text-secondary)' }}>
+                <div className="resource-empty" style={{ textAlign: 'center', padding: '64px 0', color: 'var(--text-secondary)' }}>
                     <p style={{ fontSize: '1.2rem', marginBottom: '8px' }}>No matches found.</p>
                     <button
                         onClick={() => { setQuery(''); setAudience(''); }}
@@ -199,6 +220,12 @@ export default function ResourceFeed({ initialResources, showSearch = true }: Pr
 
             <style>{`
             .feed-container {
+                display: flex;
+                flex-direction: column;
+                gap: 32px;
+            }
+
+            .resource-discovery {
                 display: flex;
                 flex-direction: column;
                 gap: 32px;

@@ -2012,7 +2012,7 @@ const LandingGridPrototype = ({
                                                 onPointerDown={(event) => event.stopPropagation()}
                                             >
                                                 {meta.cta}
-                                                <span aria-hidden="true">↗</span>
+                                                <span className="link-destination-arrow" aria-hidden="true">↗</span>
                                             </a>
                                         ) : (
                                             <span className="tile-cta ghost">...</span>

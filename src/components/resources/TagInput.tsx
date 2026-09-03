@@ -214,41 +214,46 @@ export default function TagInput({ selectedTags, onChange, maxTags = 3, label = 
             <style>{`
                 .tag-input-container { position:relative; min-width:0; }
                 .tag-input-field {
-                    min-height:46px; width:100%; display:flex; flex-wrap:wrap; align-items:center; gap:6px;
-                    padding:6px 9px; border:1px solid var(--border-subtle); border-radius:8px;
-                    background:var(--bg-color); color:var(--text-primary); cursor:text; box-sizing:border-box;
+                    min-height:48px; width:100%; display:flex; flex-wrap:wrap; align-items:center; gap:6px;
+                    padding:8px 12px; border:1px solid var(--pop-border, rgba(21, 19, 15, 0.78)); border-radius:12px;
+                    background:var(--pop-cream, #fff8e8); color:var(--pop-ink, #15130f); cursor:text; box-sizing:border-box;
                 }
-                .tag-input-field:focus-within { outline:2px solid var(--border-focus); outline-offset:2px; }
+                .tag-input-field:focus-within {
+                    border-color: var(--pop-blue, #2b56ff) !important;
+                    outline: 1px solid var(--pop-blue, #2b56ff) !important;
+                    outline-offset: 0px !important;
+                    box-shadow: 0 0 0 1px var(--pop-blue, #2b56ff);
+                }
                 .tag-input-field input {
-                    flex:1 1 180px; min-width:130px; min-height:30px; margin:0; padding:2px 4px;
-                    border:0; outline:0; background:transparent; color:var(--text-primary);
-                    font:500 .86rem/1.35 var(--font-sans);
+                    flex:1 1 180px; min-width:130px; min-height:32px; margin:0; padding:2px 4px;
+                    border:0; outline:0; background:transparent; color:var(--pop-ink, #15130f);
+                    font:600 .9rem/1.35 var(--resources-font, sans-serif);
                 }
-                .tag-input-field input::placeholder { color:var(--text-tertiary); }
+                .tag-input-field input::placeholder { color:rgba(21, 19, 15, 0.6); }
                 .selected-tag-chip {
-                    display:inline-flex; align-items:center; gap:5px; max-width:100%; padding:5px 7px 5px 9px;
-                    border:1px solid var(--border-subtle); border-radius:999px; background:var(--bg-surface-hover);
-                    color:var(--text-primary); font-size:.73rem; font-weight:700; line-height:1;
+                    display:inline-flex; align-items:center; gap:6px; max-width:100%; padding:6px 10px;
+                    border:1px solid var(--pop-border, rgba(21, 19, 15, 0.78)); border-radius:999px; background:var(--pop-yellow, #ffe44f);
+                    color:var(--pop-ink, #15130f); font-size:.76rem; font-weight:800; line-height:1;
                 }
                 .selected-tag-chip button {
-                    width:18px; height:18px; display:grid; place-items:center; margin:0; padding:0; border:0;
-                    border-radius:50%; background:transparent; color:var(--text-tertiary); cursor:pointer;
-                    font:600 15px/1 var(--font-sans);
+                    width:20px; height:20px; display:grid; place-items:center; margin:0; padding:0; border:0;
+                    border-radius:50%; background:transparent; color:var(--pop-ink, #15130f); cursor:pointer;
+                    font:700 15px/1 var(--resources-font, sans-serif);
                 }
-                .selected-tag-chip button:hover { background:var(--bg-color); color:var(--text-primary); }
+                .selected-tag-chip button:hover { background:var(--pop-pink, #ff7eb5); color:var(--pop-ink, #15130f); }
                 .suggestions-dropdown {
                     position:absolute; top:calc(100% + 6px); left:0; right:0; z-index:80; overflow:auto;
-                    max-height:230px; padding:5px; border:1px solid var(--border-subtle); border-radius:9px;
-                    background:var(--bg-surface); box-shadow:0 16px 42px rgba(0,0,0,.18);
+                    max-height:240px; padding:6px; border:1px solid var(--pop-border, rgba(21, 19, 15, 0.78)); border-radius:14px;
+                    background:var(--pop-cream, #fff8e8); box-shadow:0 12px 32px rgba(21, 19, 15, 0.16);
                 }
                 .suggestions-dropdown button {
                     width:100%; display:flex; align-items:center; justify-content:space-between; gap:1rem;
-                    padding:9px 10px; border:0; border-radius:6px; background:transparent;
-                    color:var(--text-primary); text-align:left; cursor:pointer; font:600 .8rem/1.25 var(--font-sans);
+                    padding:10px 12px; border:0; border-radius:8px; background:transparent;
+                    color:var(--pop-ink, #15130f); text-align:left; cursor:pointer; font:700 .85rem/1.25 var(--resources-font, sans-serif);
                 }
-                .suggestions-dropdown button:hover,.suggestions-dropdown button.focused { background:var(--bg-surface-hover); }
-                .suggestions-dropdown small { color:var(--text-tertiary); font-size:.66rem; font-weight:600; }
-                .suggestions-dropdown .create-option { border-top:1px solid var(--border-subtle); border-radius:0 0 6px 6px; color:var(--text-secondary); }
+                .suggestions-dropdown button:hover,.suggestions-dropdown button.focused { background:var(--pop-yellow, #ffe44f); }
+                .suggestions-dropdown small { color:rgba(21, 19, 15, 0.7); font-size:.7rem; font-weight:700; text-transform:uppercase; }
+                .suggestions-dropdown .create-option { border-top:1px solid var(--pop-line, rgba(21, 19, 15, 0.24)); border-radius:0 0 8px 8px; color:var(--pop-ink, #15130f); }
             `}</style>
         </div>
     );

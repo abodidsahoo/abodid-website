@@ -1,21 +1,56 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 const ShareButtons = ({ title, url }) => {
     const [shareUrl, setShareUrl] = useState('');
-    const [copied, setCopied] = useState(false);
+    const [copyStatus, setCopyStatus] = useState('idle');
+    const feedbackTimer = useRef(null);
 
     useEffect(() => {
         setShareUrl(url || window.location.href);
     }, [url]);
 
+    useEffect(() => () => {
+        if (feedbackTimer.current) window.clearTimeout(feedbackTimer.current);
+    }, []);
+
+    const showCopyStatus = (status) => {
+        setCopyStatus(status);
+        if (feedbackTimer.current) window.clearTimeout(feedbackTimer.current);
+        feedbackTimer.current = window.setTimeout(() => setCopyStatus('idle'), 2400);
+    };
+
+    const copyWithFallback = (text) => {
+        const field = document.createElement('textarea');
+        field.value = text;
+        field.setAttribute('readonly', '');
+        field.style.position = 'fixed';
+        field.style.opacity = '0';
+        field.style.pointerEvents = 'none';
+        document.body.appendChild(field);
+        field.select();
+        field.setSelectionRange(0, field.value.length);
+        const didCopy = document.execCommand('copy');
+        field.remove();
+        if (!didCopy) throw new Error('Clipboard copy was not available.');
+    };
+
     const handleCopy = async () => {
-        if (navigator.clipboard) {
+        const targetUrl = shareUrl || window.location.href;
+
+        try {
+            if (navigator.clipboard?.writeText && window.isSecureContext) {
+                await navigator.clipboard.writeText(targetUrl);
+            } else {
+                copyWithFallback(targetUrl);
+            }
+            showCopyStatus('copied');
+        } catch (clipboardError) {
             try {
-                await navigator.clipboard.writeText(shareUrl);
-                setCopied(true);
-                setTimeout(() => setCopied(false), 2000);
-            } catch (err) {
-                console.error('Failed to copy text: ', err);
+                copyWithFallback(targetUrl);
+                showCopyStatus('copied');
+            } catch (fallbackError) {
+                console.error('Failed to copy link:', clipboardError, fallbackError);
+                showCopyStatus('error');
             }
         }
     };
@@ -28,11 +63,21 @@ const ShareButtons = ({ title, url }) => {
             <div className="share-icons">
                 {/* Copy Link */}
                 <button
+                    type="button"
                     onClick={handleCopy}
-                    className={`share-btn copy-btn ${copied ? 'active' : ''}`}
-                    title="Copy Link"
+                    className={`share-btn copy-btn ${copyStatus === 'copied' ? 'active' : ''}`}
+                    title={copyStatus === 'copied' ? 'Link copied' : 'Copy link'}
+                    aria-label={copyStatus === 'copied' ? 'Link copied' : 'Copy link'}
                 >
-                    {copied && <span className="tooltip">Copied!</span>}
+                    {copyStatus !== 'idle' && (
+                        <span
+                            className={`tooltip ${copyStatus === 'error' ? 'is-error' : ''}`}
+                            role="status"
+                            aria-live="polite"
+                        >
+                            {copyStatus === 'copied' ? 'Link copied' : 'Could not copy'}
+                        </span>
+                    )}
                     <svg className="icon-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
                         <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
@@ -130,17 +175,29 @@ const ShareButtons = ({ title, url }) => {
 
                 .tooltip {
                     position: absolute;
-                    top: -30px;
+                    bottom: calc(100% + 10px);
                     left: 50%;
                     transform: translateX(-50%);
-                    background: var(--text-primary);
-                    color: var(--bg-color);
-                    padding: 4px 8px;
-                    border-radius: 4px;
-                    font-size: 0.75rem;
+                    z-index: 20;
+                    padding: 6px 9px;
+                    border: 1px solid rgba(255, 248, 232, 0.35);
+                    border-radius: 6px;
+                    background: #15130f;
+                    color: #fff8e8;
+                    box-shadow: 0 5px 14px rgba(21, 19, 15, 0.2);
+                    font-family: "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
+                    font-size: 0.76rem;
+                    font-weight: 650;
+                    line-height: 1.2;
+                    letter-spacing: 0;
                     white-space: nowrap;
                     pointer-events: none;
                     animation: fadeIn 0.2s ease;
+                }
+
+                .tooltip.is-error {
+                    background: #8f224c;
+                    color: #fff8e8;
                 }
 
                 @keyframes fadeIn {

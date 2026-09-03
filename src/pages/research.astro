@@ -3,7 +3,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import HeroVaultTagsCard from "../components/HeroVaultTagsCard";
 import { getResearchProjects } from "../lib/api";
 import { punctumImages } from "../data/punctumImages";
-import { GESTURE_CONTROL_VIDEO_URL, GESTURE_CONTROL_HERO_GIF_URL } from "../lib/mediaAssets";
+import { GESTURE_CONTROL_VIDEO_URL, GESTURE_CONTROL_HERO_GIF_URL, OBSIDIAN_VAULT_VIDEO_URL } from "../lib/mediaAssets";
 import { breadcrumbJsonLd, personJsonLd } from "../lib/seoData";
 
 export const prerender = false;
@@ -37,6 +37,7 @@ const researchSelection = [
     kind: "Knowledge ecosystem",
     description: "A public-facing experiment in connected thinking, retrieval and the long-term development of creative taste.",
     href: "/research/obsidian-vault",
+    video: OBSIDIAN_VAULT_VIDEO_URL,
     image: punctumImages[3]?.url,
     tags: ["Knowledge systems", "Archives", "Retrieval"],
   },
@@ -125,7 +126,7 @@ const structuredData = [
       <a href="/experience">Experience</a>
       <a href="/about">About</a>
     </nav>
-    <a class="story-nav__contact" href="/#enquiry">Hire me <span aria-hidden="true">↗</span></a>
+    <a class="story-nav__contact" href="/#enquiry">Hire me <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
     <details class="story-nav__mobile">
       <summary>Menu</summary>
       <nav aria-label="Mobile navigation">
@@ -134,7 +135,7 @@ const structuredData = [
         <a href="/services">Services</a>
         <a href="/experience">Experience</a>
         <a href="/about">About</a>
-        <a href="/#enquiry">Hire me ↗</a>
+        <a href="/#enquiry">Hire me <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
       </nav>
     </details>
   </header>
@@ -146,8 +147,8 @@ const structuredData = [
         <h1 id="research-next-heading">Experiments for understanding how people see, remember and make meaning.</h1>
         <p class="research-next__lede">I combine cultural research, photography and emerging technology to turn difficult questions into participatory experiences people can see, touch and contribute to.</p>
         <div class="next-actions">
-          <a href="/research/punctum">Enter Punctum <span aria-hidden="true">↗</span></a>
-          <a href="/#enquiry">Discuss a role or collaboration <span aria-hidden="true">↗</span></a>
+          <a href="/research/punctum">Enter Punctum <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+          <a href="/#enquiry">Discuss a role or collaboration <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
         </div>
       </div>
 
@@ -196,30 +197,15 @@ const structuredData = [
         <HeroVaultTagsCard
           client:load
           variant="papers"
+          interactive={false}
           heading="A curated collection of research papers."
-          helperText="My research topics span photography, memory, autoethnography, grief, visual culture and human emotion—gathered into a collection of papers I have built over the years."
-          cta="View research ↗"
+          helperText="A collection of research papers I have built over the years along the lines of my research interests."
+          cta="View all Papers"
           href="/research-papers"
           showFooter={false}
-          tagPool={["photography", "memory", "autoethnography", "grief", "visual culture", "human emotion", "archives", "sociology"]}
           ariaLabel="Open the curated collection of research papers"
         />
       </aside>
-    </section>
-
-    <section class="research-next__opportunity" aria-labelledby="opportunity-heading">
-      <p class="next-eyebrow">The next environment</p>
-      <h2 id="opportunity-heading">Open to joining a culture-shaping technology team in London.</h2>
-      <div>
-        <p>I am looking for a full-time role where research, prototyping, media and cultural insight belong in the same room—especially within a creative lab or a team building public-facing cultural products.</p>
-        <p>My perspective is shaped by creative communities in London, Bangalore and Mumbai. I want my work to create more meaningful exchange between the UK and India.</p>
-      </div>
-      <ul aria-label="Areas of contribution">
-        <li>Creative technology</li>
-        <li>Design research</li>
-        <li>Rapid prototyping</li>
-        <li>Visual systems</li>
-      </ul>
     </section>
 
     <section class="research-next__feature" aria-labelledby="feature-heading">
@@ -240,9 +226,8 @@ const structuredData = [
     </section>
 
     <section class="research-next__projects" aria-labelledby="projects-heading">
-      <header>
-        <p class="next-eyebrow">Selected experiments</p>
-        <h2 id="projects-heading">Research becomes more useful when people can enter it.</h2>
+      <header class="research-next__projects-header">
+        <h2 id="projects-heading">Selected experiments</h2>
       </header>
       <div class="research-next__project-grid">
         {researchSelection.map((project, index) => (
@@ -256,7 +241,7 @@ const structuredData = [
                   muted
                   loop
                   playsinline
-                  preload="metadata"
+                  preload="auto"
                   aria-label={`${project.title} video preview`}
                 />
               ) : (
@@ -268,7 +253,7 @@ const structuredData = [
               <h3>{project.title}</h3>
               <p>{project.description}</p>
               <ul aria-label={`${project.title} themes`}>{project.tags.map((tag) => <li>{tag}</li>)}</ul>
-              <strong>Open experiment ↗</strong>
+              <strong>Open experiment <span class="link-destination-arrow" aria-hidden="true">↗</span></strong>
             </div>
           </a>
         ))}
@@ -327,9 +312,9 @@ const structuredData = [
       <h2>Building a cultural or media-driven product?</h2>
       <p>I am open to full-time creative technology roles, research collaborations, talks and selected consulting engagements.</p>
       <div class="next-actions">
-        <a href="/#enquiry">Start a conversation <span aria-hidden="true">↗</span></a>
-        <a href="/experience">View experience <span aria-hidden="true">↗</span></a>
-        <a href="/">Back to Home <span aria-hidden="true">↗</span></a>
+        <a href="/#enquiry">Start a conversation <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+        <a href="/experience">View experience <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+        <a href="/">Back to Home <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
       </div>
     </section>
   </main>
@@ -405,9 +390,40 @@ const structuredData = [
     startTimer();
   };
 
-  document.addEventListener("astro:page-load", initialiseResearchShowcase);
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initialiseResearchShowcase, { once: true });
-  else initialiseResearchShowcase();
+  const ensureVideosPlay = () => {
+    document.querySelectorAll("video[autoplay]").forEach((element) => {
+      if (!(element instanceof HTMLVideoElement)) return;
+      const video = element;
+      const playVideo = () => {
+        if (video.paused) video.play().catch(() => {});
+      };
+
+      if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+        playVideo();
+      } else {
+        video.addEventListener("canplay", playVideo, { once: true });
+        if (video.readyState === HTMLMediaElement.HAVE_NOTHING) video.load();
+      }
+
+      if (video.dataset.viewportPlaybackReady !== "true") {
+        video.dataset.viewportPlaybackReady = "true";
+        const observer = new IntersectionObserver((entries) => {
+          if (entries.some((entry) => entry.isIntersecting)) playVideo();
+        }, { threshold: 0.1 });
+        observer.observe(video);
+      }
+    });
+  };
+
+  const initialisePage = () => {
+    initialiseResearchShowcase();
+    ensureVideosPlay();
+  };
+
+  document.addEventListener("astro:page-load", initialisePage);
+  window.addEventListener("pageshow", ensureVideosPlay);
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initialisePage, { once: true });
+  else initialisePage();
 </script>
 
 <style is:global>
@@ -686,23 +702,8 @@ const structuredData = [
   .research-next__showcase-slide--letterboxed .research-next__showcase-media > :is(img, video) { object-fit: contain; border: 0; border-radius: var(--home-next-radius-media); background: #000; box-shadow: none; }
   .research-next__showcase-slide--letterboxed:hover .research-next__showcase-media > :is(img, video) { transform: scale(1.015); }
 
-  .research-next__opportunity { margin-top: var(--research-gap); padding: var(--research-panel-padding); display: grid; grid-template-columns: .55fr 1.4fr 1fr; gap: clamp(2rem, 5vw, 6rem); border: 1px solid rgba(21,19,15,.3); border-radius: var(--research-panel-radius); background: var(--next-pink); }
-  .research-next__opportunity h2 {
-    font-family: var(--research-section-h2-family);
-    font-size: var(--research-section-h2-size);
-    font-weight: var(--research-section-h2-weight);
-    line-height: var(--research-section-h2-line-height);
-    letter-spacing: var(--research-section-h2-spacing);
-    overflow-wrap: break-word;
-  }
-  .research-next__opportunity > div p {
-    font-family: var(--research-font-body-family);
-    font-size: var(--research-font-body-size);
-    font-weight: var(--research-font-body-weight);
-    line-height: var(--research-font-body-line-height);
-  }
-  .research-next__opportunity ul, .research-next__project ul { margin: 0; padding: 0; display: flex; flex-wrap: wrap; align-content: flex-start; gap: .4rem; list-style: none; }
-  .research-next__opportunity li, .research-next__project li { padding: .45rem .6rem; border: 1px solid currentColor; border-radius: 999px; font: 700 .68rem/1 var(--font-ui, sans-serif); }
+  .research-next__project ul { margin: 0; padding: 0; display: flex; flex-wrap: wrap; align-content: flex-start; gap: .4rem; list-style: none; }
+  .research-next__project li { padding: .45rem .6rem; border: 1px solid currentColor; border-radius: 999px; font: 700 .68rem/1 var(--font-ui, sans-serif); }
 
   .research-next__feature { margin-top: var(--research-gap); display: grid; grid-template-columns: 1.1fr .9fr; gap: var(--research-gap); }
   .research-next__feature-image, .research-next__feature-copy { min-height: 720px; border: 1px solid rgba(21,19,15,.3); border-radius: var(--research-panel-radius); overflow: hidden; }
@@ -731,12 +732,13 @@ const structuredData = [
   .next-text-link { width: fit-content; margin-top: 1.5rem; color: inherit; font-weight: 700; text-underline-offset: .25em; }
 
   .research-next__projects { margin-top: var(--research-gap); padding: var(--research-panel-padding); border: 1px solid rgba(255,248,232,.25); border-radius: var(--research-panel-radius); background: var(--next-purple); color: var(--next-cream); }
-  .research-next__projects > header { display: grid; grid-template-columns: .5fr 1.5fr; gap: 2rem; margin-bottom: 3rem; }
+  .research-next__projects > header { display: block; margin-bottom: clamp(1.75rem, 3vw, 2.75rem); }
   .research-next__projects > header h2 {
-    max-width: 12ch;
+    max-width: none;
+    margin: 0;
     font-family: var(--research-section-h2-family);
     font-size: var(--research-section-h2-size);
-    font-weight: var(--research-section-h2-weight);
+    font-weight: 800;
     line-height: var(--research-section-h2-line-height);
     letter-spacing: var(--research-section-h2-spacing);
     overflow-wrap: break-word;

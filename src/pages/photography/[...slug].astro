@@ -8,6 +8,12 @@ import {
   getOptimizedImageSrcSet,
   getOptimizedImageUrl,
 } from "../../lib/imageOptimization.js";
+import {
+  breadcrumbJsonLd,
+  creativeWorkJsonLd,
+  personJsonLd,
+  seoIdentity,
+} from "../../lib/seoData";
 
 export const prerender = false;
 
@@ -29,7 +35,8 @@ const project = (await getPhotographyBySlug(
 )) as PhotographyPageProject | null;
 
 if (!project) {
-  return Astro.redirect("/404");
+  Astro.response.status = 404;
+  return Astro.rewrite("/404");
 }
 
 const contentHtml = marked.parse(project.content || "");
@@ -47,12 +54,34 @@ const storagePathFromUrl = (url: string) => {
     return "";
   }
 };
+
+const canonicalUrl = `${seoIdentity.siteUrl}/photography/${slug}`;
+const description = project.intro || project.description || `Photography project ${project.title} by Abodid Sahoo.`;
+const coverImage = project.cover_image || project.image || project.images?.[0];
+
+const structuredData = [
+  personJsonLd(),
+  breadcrumbJsonLd([
+    { name: "Home", path: "/" },
+    { name: "Photography", path: "/photography" },
+    { name: project.title, path: `/photography/${slug}` },
+  ]),
+  creativeWorkJsonLd({
+    title: project.title,
+    description,
+    url: canonicalUrl,
+    image: coverImage || undefined,
+    dateCreated: project.date || undefined,
+  }),
+];
 ---
 
 <BaseLayout
   title={project.title}
-  description={project.intro || project.description}
-  image={project.cover_image || project.image}
+  description={description}
+  image={coverImage}
+  type="article"
+  structuredData={structuredData}
 >
   <article class="photography-article">
     <header class="project-header">

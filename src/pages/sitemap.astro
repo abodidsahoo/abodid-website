@@ -1,39 +1,408 @@
 ---
-export const prerender = true;
+export const prerender = false;
 import BaseLayout from "../layouts/BaseLayout.astro";
 import VisualSitemap from "../components/VisualSitemap.astro";
+import { getPublishedPortfolioIndex } from "../lib/portfolio/services";
+import {
+  getAllPosts,
+  getAllPhotography,
+  getResearchProjects,
+  getFilms,
+  getResearchPapers,
+} from "../lib/api";
+import { getAllPublicVaultNotes } from "../lib/vault-note-index.js";
+import { breadcrumbJsonLd, personJsonLd } from "../lib/seoData";
 
-const title = "Sitemap";
-const description = "The constellation of this digital space.";
+const [rawWork, photos, research, films, posts, papers, vaultNotes] =
+  await Promise.all([
+    getPublishedPortfolioIndex().catch(() => []),
+    getAllPhotography().catch(() => []),
+    getResearchProjects().catch(() => []),
+    getFilms().catch(() => []),
+    getAllPosts().catch(() => []),
+    getResearchPapers().catch(() => []),
+    getAllPublicVaultNotes().catch(() => []),
+  ]);
+
+const workProjects = rawWork.filter((p) => p.searchVisible !== false);
+const publishedPhotos = photos.filter((p) => p.published !== false && p.slug);
+const publishedResearch = research.filter(
+  (r) => r.published !== false && (r as any).visible !== false && r.slug,
+);
+const publishedFilms = films.filter((f) => f.published !== false && f.slug);
+const publishedPosts = posts.filter((b) => b.published !== false && b.slug);
+const publishedPapers = papers.filter((rp) => rp.published !== false && rp.slug);
+
+const title = "Sitemap & Complete Directory";
+const description =
+  "The constellation and complete crawlable directory of Abodid Sahoo’s work, research, films, photography, writing, and Obsidian notes.";
+
+const structuredData = [
+  personJsonLd(),
+  breadcrumbJsonLd([
+    { name: "Home", path: "/" },
+    { name: "Sitemap", path: "/sitemap" },
+  ]),
+];
 ---
 
-<BaseLayout title={title}>
-    <header class="page-header">
-        <h1>The Map</h1>
-        <p class="subtitle">{description}</p>
-    </header>
+<BaseLayout
+  title={title}
+  description={description}
+  structuredData={structuredData}
+>
+  <header class="page-header">
+    <h1>The Map</h1>
+    <p class="subtitle">The constellation of this digital space.</p>
+  </header>
 
+  <section class="visual-sitemap-section" aria-label="Visual constellation sitemap">
     <div class="sitemap-container">
-        <VisualSitemap />
+      <VisualSitemap />
     </div>
+  </section>
+
+  <section class="complete-directory-section" aria-labelledby="directory-heading">
+    <div class="directory-container">
+      <div class="directory-section-header">
+        <h2 id="directory-heading">Complete Directory</h2>
+        <p class="directory-section-desc">
+          A server-rendered, up-to-date index of all indexable projects, notes, and writings.
+        </p>
+      </div>
+
+      <div class="directory-grid">
+        <!-- Work -->
+        <article class="directory-group" aria-labelledby="group-work">
+          <div class="group-header">
+            <h3 id="group-work">
+              <a href="/work">Work ({workProjects.length})</a>
+            </h3>
+          </div>
+          <ul class="directory-links">
+            {workProjects.map((item) => (
+              <li>
+                <a href={`/work/${item.slug}`}>{item.title}</a>
+              </li>
+            ))}
+          </ul>
+        </article>
+
+        <!-- Research -->
+        <article class="directory-group" aria-labelledby="group-research">
+          <div class="group-header">
+            <h3 id="group-research">
+              <a href="/research">Research ({publishedResearch.length})</a>
+            </h3>
+          </div>
+          <ul class="directory-links">
+            {publishedResearch.map((item) => (
+              <li>
+                <a href={`/research/${item.slug}`}>{item.title}</a>
+              </li>
+            ))}
+          </ul>
+        </article>
+
+        <!-- Photography -->
+        <article class="directory-group" aria-labelledby="group-photography">
+          <div class="group-header">
+            <h3 id="group-photography">
+              <a href="/photography">Photography ({publishedPhotos.length})</a>
+            </h3>
+          </div>
+          <ul class="directory-links">
+            {publishedPhotos.map((item) => (
+              <li>
+                <a href={`/photography/${item.slug}`}>{item.title}</a>
+              </li>
+            ))}
+          </ul>
+        </article>
+
+        <!-- Films -->
+        <article class="directory-group" aria-labelledby="group-films">
+          <div class="group-header">
+            <h3 id="group-films">
+              <a href="/films">Films ({publishedFilms.length})</a>
+            </h3>
+          </div>
+          <ul class="directory-links">
+            {publishedFilms.map((item) => (
+              <li>
+                <a href={`/films/${item.slug}`}>{item.title}</a>
+              </li>
+            ))}
+          </ul>
+        </article>
+
+        <!-- Blog -->
+        <article class="directory-group" aria-labelledby="group-blog">
+          <div class="group-header">
+            <h3 id="group-blog">
+              <a href="/blog">Blog ({publishedPosts.length})</a>
+            </h3>
+          </div>
+          <ul class="directory-links">
+            {publishedPosts.map((item) => (
+              <li>
+                <a href={`/blog/${item.slug}`}>{item.title}</a>
+              </li>
+            ))}
+          </ul>
+        </article>
+
+        <!-- Research Papers -->
+        <article class="directory-group" aria-labelledby="group-papers">
+          <div class="group-header">
+            <h3 id="group-papers">
+              <a href="/research-papers">Curated Papers ({publishedPapers.length})</a>
+            </h3>
+          </div>
+          <ul class="directory-links">
+            {publishedPapers.map((item) => (
+              <li>
+                <a href={`/research-papers/${item.slug}`}>{item.title}</a>
+              </li>
+            ))}
+          </ul>
+        </article>
+      </div>
+
+      <!-- Obsidian Vault Notes Section -->
+      <article class="directory-vault-section" aria-labelledby="group-vault">
+        <div class="vault-section-topline">
+          <div>
+            <h3 id="group-vault">
+              <a href="/research/obsidian-vault">Obsidian Vault Notes ({vaultNotes.length})</a>
+            </h3>
+            <p class="vault-topline-sub">
+              Public second brain notes from <code>6 - Main Notes</code>.
+            </p>
+          </div>
+          <a href="/research/obsidian-vault/directory" class="vault-all-link">
+            <span>Browse Complete Vault Directory</span>
+            <span aria-hidden="true">→</span>
+          </a>
+        </div>
+
+        <div class="vault-notes-grid">
+          {vaultNotes.slice(0, 48).map((note) => (
+            <a href={note.href} class="vault-note-pill">
+              {note.title}
+            </a>
+          ))}
+          {vaultNotes.length > 48 && (
+            <a href="/research/obsidian-vault/directory" class="vault-more-pill">
+              +{vaultNotes.length - 48} more notes in vault directory →
+            </a>
+          )}
+        </div>
+      </article>
+    </div>
+  </section>
 </BaseLayout>
 
 <style>
-    .page-header {
-        margin-bottom: 2rem;
-        text-align: center;
-    }
+  .page-header {
+    margin-bottom: 2rem;
+    text-align: center;
+  }
 
-    .subtitle {
-        color: var(--text-secondary);
-        font-family: var(--font-serif);
-        font-style: italic;
-    }
+  .subtitle {
+    color: var(--text-secondary);
+    font-family: var(--font-serif);
+    font-style: italic;
+  }
 
-    h1 {
-        font-family: var(--font-display);
-        font-size: 3rem;
-        font-weight: 500;
-        margin-bottom: 0.5rem;
-    }
+  h1 {
+    font-family: var(--font-display);
+    font-size: clamp(2.5rem, 5vw, 3.5rem);
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+  }
+
+  .visual-sitemap-section {
+    margin-bottom: 4rem;
+  }
+
+  .complete-directory-section {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 6rem;
+    border-top: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.1));
+  }
+
+  .directory-section-header {
+    margin-bottom: 2.5rem;
+  }
+
+  .directory-section-header h2 {
+    font-family: var(--font-display);
+    font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+    font-weight: 600;
+    margin: 0 0 0.5rem;
+    color: var(--text-primary);
+  }
+
+  .directory-section-desc {
+    color: var(--text-secondary);
+    font-size: 1.05rem;
+    margin: 0;
+  }
+
+  .directory-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2.5rem 2rem;
+    margin-bottom: 3.5rem;
+  }
+
+  .directory-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+
+  .group-header h3 {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.12));
+  }
+
+  .group-header a {
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: color 150ms ease;
+  }
+
+  .group-header a:hover {
+    color: var(--accent-primary, #ffe44f);
+  }
+
+  .directory-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+
+  .directory-links li a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    transition: color 150ms ease;
+  }
+
+  .directory-links li a:hover {
+    color: var(--text-primary);
+    text-decoration: underline;
+  }
+
+  .directory-vault-section {
+    padding-top: 2.5rem;
+    border-top: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.1));
+  }
+
+  .vault-section-topline {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .vault-section-topline h3 {
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    font-weight: 600;
+    margin: 0 0 0.35rem;
+  }
+
+  .vault-section-topline h3 a {
+    color: var(--text-primary);
+    text-decoration: none;
+  }
+
+  .vault-section-topline h3 a:hover {
+    color: var(--accent-primary, #ffe44f);
+  }
+
+  .vault-topline-sub {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin: 0;
+  }
+
+  .vault-topline-sub code {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.85em;
+    padding: 0.15rem 0.35rem;
+    border-radius: 4px;
+    background: var(--bg-surface-secondary, rgba(255, 255, 255, 0.08));
+  }
+
+  .vault-all-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    text-decoration: none;
+    padding: 0.45rem 0.85rem;
+    border-radius: 6px;
+    border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.15));
+    transition: background 150ms ease;
+  }
+
+  .vault-all-link:hover {
+    background: var(--bg-surface-secondary, rgba(255, 255, 255, 0.08));
+  }
+
+  .vault-notes-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .vault-note-pill {
+    display: inline-block;
+    padding: 0.35rem 0.75rem;
+    border-radius: 6px;
+    border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.12));
+    background: var(--bg-surface, rgba(255, 255, 255, 0.04));
+    color: var(--text-secondary);
+    font-size: 0.88rem;
+    text-decoration: none;
+    transition: background 150ms ease, color 150ms ease;
+  }
+
+  .vault-note-pill:hover {
+    background: var(--bg-surface-secondary, rgba(255, 255, 255, 0.1));
+    color: var(--text-primary);
+  }
+
+  .vault-more-pill {
+    display: inline-block;
+    padding: 0.35rem 0.85rem;
+    border-radius: 6px;
+    background: var(--accent-primary, #ffe44f);
+    color: #111;
+    font-size: 0.88rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: opacity 150ms ease;
+  }
+
+  .vault-more-pill:hover {
+    opacity: 0.9;
+  }
 </style>

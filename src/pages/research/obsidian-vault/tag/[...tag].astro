@@ -38,6 +38,9 @@ Astro.response.headers.set(
     "Cache-Control",
     "public, max-age=60, s-maxage=300, stale-while-revalidate=86400",
 );
+
+const isIndexable = notes.length >= 3;
+const robotsDirective = isIndexable ? undefined : "noindex, follow";
 ---
 
 <BaseLayout
@@ -46,6 +49,8 @@ Astro.response.headers.set(
     fullWidth={true}
     showGlobalGrid={false}
     bodyClass="vault-tag-minimal-page"
+    noindex={!isIndexable}
+    robots={robotsDirective}
 >
     <main class="vault-tag-page" aria-labelledby="tag-title">
         <article class="vault-tag-document">

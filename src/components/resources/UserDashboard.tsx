@@ -36,18 +36,17 @@ export default function UserDashboard({ user: propUser }: UserDashboardProps) {
     const fetchData = async (userId: string) => {
         setLoading(true);
         try {
-            // 1. Fetch Submissions
             if (supabase) {
-                const { data: subs } = await supabase
-                    .from('hub_resources')
-                    .select('*')
-                    .eq('submitted_by', userId)
-                    .order('created_at', { ascending: false });
+                const [subsResult, bookmarked] = await Promise.all([
+                    supabase
+                        .from('hub_resources')
+                        .select('*')
+                        .eq('submitted_by', userId)
+                        .order('created_at', { ascending: false }),
+                    getBookmarkedResources(userId)
+                ]);
 
-                if (subs) setSubmissions(subs);
-
-                // 2. Fetch Bookmarks
-                const bookmarked = await getBookmarkedResources(userId);
+                if (subsResult.data) setSubmissions(subsResult.data);
                 setBookmarks(bookmarked);
             }
         } catch (e) {

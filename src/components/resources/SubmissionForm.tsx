@@ -21,8 +21,17 @@ export default function SubmissionForm() {
             return;
         }
 
-        const { data: { session } } = await supabase.auth.getSession();
-        setIsAuthenticated(!!session);
+        try {
+            const { data: { session }, error } = await supabase.auth.getSession();
+            if (error || !session || session.user?.is_anonymous) {
+                setIsAuthenticated(false);
+                return;
+            }
+            setIsAuthenticated(true);
+        } catch (err) {
+            console.error('Auth check error in SubmissionForm:', err);
+            setIsAuthenticated(false);
+        }
     };
 
     // Form State
@@ -203,85 +212,81 @@ export default function SubmissionForm() {
     return (
         <form onSubmit={handleSubmit} className="submission-card-container">
             {error && (
-                <div style={{ padding: '12px', background: '#fee2e2', color: '#b91c1c', borderRadius: '8px', marginBottom: '16px', maxWidth: '800px', margin: '0 auto 24px' }}>
+                <div style={{ padding: '14px', background: '#fee2e2', color: '#b91c1c', borderRadius: '12px', border: '1px solid #fca5a5', marginBottom: '20px', maxWidth: '760px', margin: '0 auto 20px' }}>
                     {error}
                 </div>
             )}
 
-            <div className="submission-card">
-                {/* Header Section with Pastel Background */}
-                <div className="form-header">
-                    <h2 style={{ fontFamily: 'var(--font-sans)', fontSize: '2rem', fontWeight: '700', marginBottom: '12px', letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
+            <div className="submission-clean-card">
+                {/* Header section cleanly inside the single card */}
+                <div style={{ marginBottom: '32px' }}>
+                    <h2 className="submit-title">
                         Submit a resource
                     </h2>
-                    <p style={{ fontFamily: 'var(--font-sans)', fontSize: '1rem', color: 'var(--text-secondary)', lineHeight: '1.5', maxWidth: '500px', margin: '0 auto' }}>
-                        Share a useful link. You write why it is useful, and the curator adds tags and thumbnail before publishing.
+                    <p className="submit-subtitle">
+                        Share a useful link. Tell us why it is useful, and the curator will review, tag, and publish it to the hub.
                     </p>
                 </div>
 
-                {/* Form Content */}
-                <div className="form-body">
-                    {/* URL Route */}
-                    <div className="form-row">
-                        <div className="hub-form-group">
-                            <label className="hub-label">URL *</label>
-                            <div style={{ position: 'relative' }}>
-                                <input
-                                    type="url"
-                                    required
-                                    className="hub-input"
-                                    value={formData.url}
-                                    onChange={handleUrlPaste}
-                                    onBlur={handleUrlPaste}
-                                    placeholder="Paste verified link..."
-                                />
-                                {fetchingMeta && (
-                                    <div style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', fontSize: '14px' }}>✨</div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="form-row">
-                        <div className="hub-form-group">
-                            <label className="hub-label">Title (auto-generated) *</label>
+                {/* Form Fields */}
+                <div className="form-row" style={{ marginBottom: '20px' }}>
+                    <div className="hub-form-group">
+                        <label className="hub-label">URL *</label>
+                        <div style={{ position: 'relative' }}>
                             <input
-                                type="text"
+                                type="url"
                                 required
                                 className="hub-input"
-                                value={formData.title}
-                                onChange={e => setFormData({ ...formData, title: e.target.value })}
-                                placeholder="Auto-filled from your URL"
+                                value={formData.url}
+                                onChange={handleUrlPaste}
+                                onBlur={handleUrlPaste}
+                                placeholder="Paste verified link..."
                             />
+                            {fetchingMeta && (
+                                <div style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', fontSize: '16px' }}>✨</div>
+                            )}
                         </div>
                     </div>
+                </div>
 
-                    {/* Description Route */}
-                    <div className="form-row">
-                        <div className="hub-form-group">
-                            <label className="hub-label">Why is it useful? *</label>
-                            <textarea
-                                required
-                                className="hub-textarea"
-                                value={formData.description}
-                                onChange={e => setFormData({ ...formData, description: e.target.value })}
-                                placeholder="Tell us why this is worth sharing."
-                                style={{ minHeight: '100px' }}
-                            />
-                        </div>
+                <div className="form-row" style={{ marginBottom: '20px' }}>
+                    <div className="hub-form-group">
+                        <label className="hub-label">Title (auto-filled) *</label>
+                        <input
+                            type="text"
+                            required
+                            className="hub-input"
+                            value={formData.title}
+                            onChange={e => setFormData({ ...formData, title: e.target.value })}
+                            placeholder="Auto-filled from your link..."
+                        />
                     </div>
+                </div>
 
-                    {/* Submit Button */}
-                    <div style={{ marginTop: '32px' }}>
-                        <button type="submit" className="hub-btn" disabled={loading}>
-                            {loading ? 'Submitting...' : 'Submit Resource'}
-                        </button>
+                <div className="form-row" style={{ marginBottom: '24px' }}>
+                    <div className="hub-form-group">
+                        <label className="hub-label">Why is it useful? *</label>
+                        <textarea
+                            required
+                            className="hub-textarea"
+                            value={formData.description}
+                            onChange={e => setFormData({ ...formData, description: e.target.value })}
+                            placeholder="Tell us why this resource is worth sharing..."
+                            style={{ minHeight: '120px' }}
+                        />
                     </div>
+                </div>
 
-                    {/* Honeypot */}
-                    <div style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', height: 0, width: 0, overflow: 'hidden' }}>
-                        <input type="text" tabIndex={-1} autoComplete="off" value={formData.honeypot} onChange={e => setFormData({ ...formData, honeypot: e.target.value })} />
-                    </div>
+                {/* Submit Button */}
+                <div>
+                    <button type="submit" className="hub-btn" disabled={loading} style={{ width: '100%' }}>
+                        {loading ? 'Submitting...' : 'Submit Resource ↗'}
+                    </button>
+                </div>
+
+                {/* Honeypot */}
+                <div style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', height: 0, width: 0, overflow: 'hidden' }}>
+                    <input type="text" tabIndex={-1} autoComplete="off" value={formData.honeypot} onChange={e => setFormData({ ...formData, honeypot: e.target.value })} />
                 </div>
             </div>
 

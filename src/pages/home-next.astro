@@ -157,7 +157,7 @@ const structuredData = [
       <a href="/experience">Experience</a>
       <a href="/about">About</a>
     </nav>
-    <a class="story-nav__contact" href="#enquiry">Hire me <span aria-hidden="true">↗</span></a>
+    <a class="story-nav__contact" href="#enquiry">Hire me <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
     <details class="story-nav__mobile">
       <summary>Menu</summary>
       <nav aria-label="Mobile navigation">
@@ -166,7 +166,7 @@ const structuredData = [
         <a href="/services">Services</a>
         <a href="/experience">Experience</a>
         <a href="/about">About</a>
-        <a href="#enquiry">Hire me ↗</a>
+        <a href="#enquiry">Hire me <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
       </nav>
     </details>
   </header>
@@ -187,7 +187,7 @@ const structuredData = [
         <p class="story-hero__statement">{content.hero.statement}</p>
         <p class="story-hero__lede">{content.hero.lede}</p>
         <div class="story-actions">
-          <a class="story-button story-button--secondary" href="#enquiry">Let’s build together <span aria-hidden="true">↗</span></a>
+          <a class="story-button story-button--secondary" href="#enquiry">Let’s build together <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
         </div>
       </div>
 
@@ -278,7 +278,7 @@ const structuredData = [
                 <div><dt>Role</dt><dd>{project.role}</dd></div>
                 <div><dt>Outcome</dt><dd>{project.outcome}</dd></div>
               </dl>
-              <span class="story-project__link"><span>View project</span> <b aria-hidden="true">↗</b></span>
+              <span class="story-project__link"><span>View project</span> <b class="link-destination-arrow" aria-hidden="true">↗</b></span>
             </div>
           </a>
         ))}
@@ -289,7 +289,7 @@ const structuredData = [
       <header>
         <p class="story-eyebrow">Selected organisations</p>
         <h2 id="story-evidence-heading">Trusted by</h2>
-        <a href="/experience">View professional experience <span aria-hidden="true">↗</span></a>
+        <a href="/experience"><span class="link-label">View professional experience</span> <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
       </header>
       <ul class="story-brands" aria-label="Clients and collaborators">
         {featuredBrands.map((brand) => (
@@ -343,7 +343,7 @@ const structuredData = [
       <header class="story-section-heading story-section-heading--dark-text">
         <p class="story-eyebrow">Ways to work together</p>
         <h2 id="story-services-heading">Work with me</h2>
-        <a href="#enquiry">Discuss an engagement <span aria-hidden="true">↗</span></a>
+        <a href="#enquiry"><span class="link-label">Discuss an engagement</span> <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
       </header>
       <div class="story-capabilities">
         {content.capabilities.map((capability, index) => (
@@ -365,7 +365,7 @@ const structuredData = [
                         <Fragment key={project.name}>
                           <a class="story-capability__project-link" href={project.href}>
                             <span>{project.name}</span>
-                            <b aria-hidden="true">↗</b>
+                            <b class="link-destination-arrow" aria-hidden="true">↗</b>
                           </a>
                           {pIdx < capability.projects.length - 1 && <span class="story-capability__project-sep" aria-hidden="true">,</span>}
                         </Fragment>
@@ -430,7 +430,7 @@ const structuredData = [
           <p class="story-eyebrow">Blog & newsletter</p>
           <h2 id="story-writing-heading">I love writing!</h2>
           <p class="story-writing__intro">Read my essays and memoirs on visual culture, art, and creative technology.</p>
-          <a class="story-button story-button--primary" href="/blog">Go to the blog <span aria-hidden="true">↗</span></a>
+          <a class="story-button story-button--primary" href="/blog">Go to the blog <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
         </div>
         <div class="story-writing__newsletter" data-auto-contrast>
           <p>Receive my writings and hand-picked curated resources to boost your creativity, productivity and research acumen.</p>
@@ -448,11 +448,11 @@ const structuredData = [
           <span class="story-footer__index">01</span>
         </div>
         <nav aria-label="Work links">
-          <a href="/work">All Projects <span aria-hidden="true">↗</span></a>
-          <a href="/research">Research <span aria-hidden="true">↗</span></a>
-          <a href="/photography">Photography <span aria-hidden="true">↗</span></a>
-          <a href="/films">Filmmaking <span aria-hidden="true">↗</span></a>
-          <a href="/blog">Writing <span aria-hidden="true">↗</span></a>
+          <a href="/work">All Projects <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+          <a href="/research">Research <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+          <a href="/photography">Photography <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+          <a href="/films">Filmmaking <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+          <a href="/blog">Writing <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
         </nav>
       </div>
 
@@ -462,11 +462,11 @@ const structuredData = [
           <span class="story-footer__index">02</span>
         </div>
         <nav aria-label="Curation links">
-          <a href="/resources">Resource Hub <span aria-hidden="true">↗</span></a>
-          <a href="/moodboard">Visual Moodboard <span aria-hidden="true">↗</span></a>
-          <a href="/xr-showcase">XR Showcase <span aria-hidden="true">↗</span></a>
-          <a href="/curated-videos">Must Watch Videos <span aria-hidden="true">↗</span></a>
-          <a href="/research/obsidian-vault">Obsidian Vault <span aria-hidden="true">↗</span></a>
+          <a href="/resources">Resource Hub <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+          <a href="/moodboard">Visual Moodboard <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+          <a href="/xr-showcase">XR Showcase <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+          <a href="/curated-videos">Must Watch Videos <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+          <a href="/research/obsidian-vault">Obsidian Vault <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
         </nav>
       </div>
 
@@ -476,11 +476,11 @@ const structuredData = [
           <span class="story-footer__index">03</span>
         </div>
         <nav aria-label="Workshops links">
-          <a href="/obsidian-tutoring">Obsidian Tutoring <span aria-hidden="true">↗</span></a>
-          <a href="/premiere-pro-masterclass">Video Editing Masterclass <span aria-hidden="true">↗</span></a>
-          <a href="/workshops">Photography <span aria-hidden="true">↗</span></a>
-          <a href="/workshops/video-editing-storytelling-class-1">Filmmaking <span aria-hidden="true">↗</span></a>
-          <a href="/workshops">Autoethnography <span aria-hidden="true">↗</span></a>
+          <a href="/obsidian-tutoring">Obsidian Tutoring <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+          <a href="/premiere-pro-masterclass">Video Editing Masterclass <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+          <a href="/workshops">Photography <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+          <a href="/workshops/video-editing-storytelling-class-1">Filmmaking <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+          <a href="/workshops">Autoethnography <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
         </nav>
       </div>
 
@@ -490,11 +490,11 @@ const structuredData = [
           <span class="story-footer__index">04</span>
         </div>
         <nav aria-label="About links">
-          <a href="/about">About <span aria-hidden="true">↗</span></a>
-          <a href="/awards">Awards <span aria-hidden="true">↗</span></a>
-          <a href="/press">Press Mentions <span aria-hidden="true">↗</span></a>
-          <a href="/manifesto">Manifesto <span aria-hidden="true">↗</span></a>
-          <a href="https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/cv/Abodid%20Sahoo%20-%20Photography%20&%20AI%20-%20CV.pdf" target="_blank" rel="noopener noreferrer">Resume <span aria-hidden="true">↗</span></a>
+          <a href="/about">About <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+          <a href="/awards">Awards <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+          <a href="/press">Press Mentions <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+          <a href="/manifesto">Manifesto <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+          <a href="https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/cv/Abodid%20Sahoo%20-%20Photography%20&%20AI%20-%20CV.pdf" target="_blank" rel="noopener noreferrer">Resume <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
         </nav>
       </div>
     </div>
@@ -506,10 +506,10 @@ const structuredData = [
       </div>
 
       <div class="story-footer__social">
-        <a href="https://www.instagram.com/abodid.sahoo" target="_blank" rel="noopener noreferrer">Instagram ↗</a>
-        <a href="https://uk.linkedin.com/in/abodidsahoo" target="_blank" rel="noopener noreferrer">LinkedIn ↗</a>
-        <a href="https://vimeo.com/abodidsahoo" target="_blank" rel="noopener noreferrer">Vimeo ↗</a>
-        <a href="https://github.com/abodidsahoo" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+        <a href="https://www.instagram.com/abodid.sahoo" target="_blank" rel="noopener noreferrer">Instagram <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+        <a href="https://uk.linkedin.com/in/abodidsahoo" target="_blank" rel="noopener noreferrer">LinkedIn <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+        <a href="https://vimeo.com/abodidsahoo" target="_blank" rel="noopener noreferrer">Vimeo <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+        <a href="https://github.com/abodidsahoo" target="_blank" rel="noopener noreferrer">GitHub <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
       </div>
 
       <div class="story-footer__legal">
@@ -882,8 +882,10 @@ const structuredData = [
   .story-section-heading { margin-bottom: clamp(3rem, 6vw, 6rem); display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1rem 3rem; align-items: end; }
   .story-section-heading .story-eyebrow { grid-column: 1 / -1; }
   .story-section-heading h2 { max-width: 13ch; margin-bottom: 0; color: inherit; font: 620 clamp(3rem, 6.7vw, 7rem)/.9 var(--font-display, sans-serif); letter-spacing: -.065em; }
-  .story-section-heading > a { padding-bottom: .35rem; color: inherit; border-bottom: 1px solid currentColor; font: 700 .72rem/1 var(--font-mono, monospace); letter-spacing: .08em; text-decoration: none; text-transform: uppercase; }
+  .story-section-heading > a { padding-bottom: .35rem; color: inherit; font: 700 .72rem/1 var(--font-mono, monospace); letter-spacing: .08em; text-decoration: none; text-transform: uppercase; }
   .story-section-heading > a:hover { color: #ffffff !important; }
+  .story-section-heading > a > .link-label,
+  .story-evidence > header a > .link-label { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .35rem; }
   .story-work__grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--home-next-gap); align-items: stretch; }
   .story-project { grid-column: span 6; min-height: clamp(540px, 54vw, 720px); min-width: 0; padding: var(--home-next-card-inset) var(--home-next-card-inset) clamp(1.1rem, 2vw, 1.6rem); display: flex; flex-direction: column; gap: var(--home-next-gap); overflow: hidden; border: var(--home-next-border); border-radius: var(--home-next-radius-panel); background: var(--pop-pink); color: var(--pop-ink); text-decoration: none; transition: transform var(--home-next-motion), box-shadow var(--home-next-motion); }
   .story-project:hover .story-project__link > span,
@@ -1197,7 +1199,7 @@ const structuredData = [
   .story-evidence > header { margin-bottom: clamp(3rem, 7vw, 7rem); display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1rem 3rem; align-items: end; }
   .story-evidence > header .story-eyebrow { grid-column: 1 / -1; }
   .story-evidence > header h2 { max-width: 13ch; margin: 0; font: 630 clamp(3rem, 7vw, 7.5rem)/.88 var(--font-display, sans-serif); letter-spacing: -.07em; }
-  .story-evidence > header a { padding-bottom: .35rem; color: inherit; border-bottom: 1px solid currentColor; font: 750 .68rem/1 var(--font-mono, monospace); letter-spacing: .08em; text-decoration: none; text-transform: uppercase; }
+  .story-evidence > header a { padding-bottom: .35rem; color: inherit; font: 750 .68rem/1 var(--font-mono, monospace); letter-spacing: .08em; text-decoration: none; text-transform: uppercase; }
   .story-brands {
     margin: 0;
     padding: .5rem 0 2rem;

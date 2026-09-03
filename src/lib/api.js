@@ -21,7 +21,9 @@ import {
     getNextPost,
     getRelatedPost,
     getFilms,
-    getResearchPapers
+    getFilmBySlug,
+    getResearchPapers,
+    getResearchPaperBySlug,
 } from './services/content';
 
 // User Service
@@ -54,7 +56,9 @@ export {
     getNextPost,
     getRelatedPost,
     getFilms,
+    getFilmBySlug,
     getResearchPapers,
+    getResearchPaperBySlug,
     // User
     getMediaMentions,
     getAwards,

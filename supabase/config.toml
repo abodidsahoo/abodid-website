@@ -5,3 +5,8 @@ project_id = "personal-site"
 # authenticated Supabase admin. This permits pg_net Cron calls without placing
 # a service-role JWT in the request.
 verify_jwt = false
+
+[functions.sync-obsidian-vault]
+# GitHub Actions authenticates with the dedicated VAULT_SYNC_SECRET. The
+# service-role key remains inside Supabase and is never shared with GitHub.
+verify_jwt = false

@@ -1,0 +1,313 @@
+---
+export const prerender = false;
+
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import { getAllPublicVaultNotes } from "../../../lib/vault-note-index.js";
+import {
+  breadcrumbJsonLd,
+  personJsonLd,
+  seoIdentity,
+} from "../../../lib/seoData";
+
+const notes = await getAllPublicVaultNotes().catch(() => []);
+
+// Group notes by first alphanumeric letter
+const groupedNotes = new Map<string, typeof notes>();
+
+for (const note of notes) {
+  const firstChar = (note.title.trim()[0] || "#").toUpperCase();
+  const groupKey = /[A-Z]/.test(firstChar) ? firstChar : "#";
+  if (!groupedNotes.has(groupKey)) {
+    groupedNotes.set(groupKey, []);
+  }
+  groupedNotes.get(groupKey)!.push(note);
+}
+
+const sortedGroups = Array.from(groupedNotes.keys()).sort((a, b) => {
+  if (a === "#") return 1;
+  if (b === "#") return -1;
+  return a.localeCompare(b);
+});
+
+const pageTitle = "Complete Notes Directory | Obsidian Vault";
+const pageDescription = `Browse all ${notes.length} public notes from Abodid Sahoo’s public Obsidian vault and second brain.`;
+
+const structuredData = [
+  personJsonLd(),
+  breadcrumbJsonLd([
+    { name: "Home", path: "/" },
+    { name: "Research", path: "/research" },
+    { name: "Obsidian Vault", path: "/research/obsidian-vault" },
+    { name: "Notes Directory", path: "/research/obsidian-vault/directory" },
+  ]),
+];
+---
+
+<BaseLayout
+  title={pageTitle}
+  description={pageDescription}
+  fullWidth={true}
+  showGlobalGrid={false}
+  bodyClass="vault-directory-page"
+  structuredData={structuredData}
+>
+  <main class="directory-shell">
+    <div class="directory-card">
+      <nav class="directory-nav" aria-label="Breadcrumb navigation">
+        <a href="/research/obsidian-vault" class="directory-back-link">
+          <span aria-hidden="true">←</span>
+          <span>Back to Vault Home</span>
+        </a>
+      </nav>
+
+      <header class="directory-header">
+        <p class="directory-eyebrow">Public Knowledge Base</p>
+        <h1>Complete Notes Directory</h1>
+        <p class="directory-intro">
+          A server-rendered index of all {notes.length} public notes from Abodid Sahoo’s Obsidian vault.
+        </p>
+
+        <nav class="letter-quicknav" aria-label="Alphabetical jump navigation">
+          {sortedGroups.map((letter) => (
+            <a href={`#group-${letter}`} class="letter-jump-link">
+              {letter}
+            </a>
+          ))}
+        </nav>
+      </header>
+
+      <div class="directory-body">
+        {notes.length === 0 ? (
+          <p class="directory-empty">No notes currently available.</p>
+        ) : (
+          sortedGroups.map((letter) => {
+            const letterNotes = groupedNotes.get(letter) || [];
+            return (
+              <section class="letter-section" id={`group-${letter}`} aria-labelledby={`letter-heading-${letter}`}>
+                <div class="letter-header">
+                  <h2 id={`letter-heading-${letter}`} class="letter-badge">{letter}</h2>
+                  <span class="letter-count">{letterNotes.length} {letterNotes.length === 1 ? 'note' : 'notes'}</span>
+                </div>
+                <ul class="notes-directory-list">
+                  {letterNotes.map((note) => (
+                    <li class="directory-item">
+                      <a href={note.href} class="directory-note-link" title={note.title}>
+                        <span class="directory-note-title">{note.title}</span>
+                        <span class="directory-note-arrow" aria-hidden="true">→</span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            );
+          })
+        )}
+      </div>
+    </div>
+  </main>
+</BaseLayout>
+
+<style is:global>
+  :root {
+    --pop-blue: #2444ca;
+    --pop-pink: #ff7eb5;
+    --pop-yellow: #ffe44f;
+    --pop-lime: #caff48;
+    --pop-purple: #5524c7;
+    --pop-cream: #fff8e8;
+    --pop-ink: #15130f;
+    --pop-border: rgba(21, 19, 15, 0.78);
+    --pop-line: rgba(21, 19, 15, 0.2);
+  }
+
+  body.vault-directory-page {
+    background: var(--pop-blue);
+    color: var(--pop-ink);
+  }
+
+  .directory-shell {
+    width: 100%;
+    padding: clamp(0.75rem, 2.5vw, 2rem);
+    background: var(--pop-blue);
+    font-family: "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
+  }
+
+  .directory-card {
+    width: min(100%, 1100px);
+    margin: 0 auto;
+    padding: clamp(1.5rem, 4vw, 3.5rem);
+    border: 1px solid var(--pop-border);
+    border-radius: clamp(16px, 2vw, 24px);
+    background: var(--pop-cream);
+  }
+
+  .directory-nav {
+    margin-bottom: 2rem;
+  }
+
+  .directory-back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--pop-ink);
+    text-decoration: none;
+    font-size: 1.05rem;
+    font-weight: 680;
+    transition: background 160ms ease, padding 160ms ease;
+  }
+
+  .directory-back-link:hover {
+    padding-inline: 0.5rem;
+    background: var(--pop-yellow);
+  }
+
+  .directory-eyebrow {
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--pop-purple);
+    margin: 0 0 0.5rem;
+  }
+
+  .directory-header h1 {
+    font-size: clamp(2.2rem, 5vw, 3.8rem);
+    font-weight: 750;
+    letter-spacing: -0.04em;
+    line-height: 1.05;
+    margin: 0 0 1rem;
+    color: var(--pop-ink);
+  }
+
+  .directory-intro {
+    font-size: 1.15rem;
+    color: rgba(21, 19, 15, 0.78);
+    margin: 0 0 2rem;
+    max-width: 45ch;
+  }
+
+  .letter-quicknav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    padding: 1rem 0;
+    margin-bottom: 2.5rem;
+    border-top: 1px solid var(--pop-line);
+    border-bottom: 1px solid var(--pop-line);
+  }
+
+  .letter-jump-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    font-weight: 650;
+    font-size: 0.95rem;
+    color: var(--pop-ink);
+    text-decoration: none;
+    border-radius: 6px;
+    border: 1px solid var(--pop-line);
+    transition: background 140ms ease, border-color 140ms ease;
+  }
+
+  .letter-jump-link:hover {
+    background: var(--pop-yellow);
+    border-color: var(--pop-ink);
+  }
+
+  .letter-section {
+    margin-bottom: 3rem;
+  }
+
+  .letter-header {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid var(--pop-ink);
+    margin-bottom: 1rem;
+  }
+
+  .letter-badge {
+    font-size: 1.8rem;
+    font-weight: 750;
+    margin: 0;
+    color: var(--pop-ink);
+  }
+
+  .letter-count {
+    font-size: 0.88rem;
+    color: rgba(21, 19, 15, 0.62);
+  }
+
+  .notes-directory-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 0.75rem;
+    align-items: stretch;
+  }
+
+  .directory-item {
+    display: flex;
+    height: 100%;
+  }
+
+  .directory-note-link {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.85rem;
+    padding: 0.75rem 0.95rem;
+    border-radius: 10px;
+    border: 1px solid var(--pop-line);
+    background: rgba(255, 255, 255, 0.75);
+    color: var(--pop-ink);
+    text-decoration: none;
+    transition: background 140ms ease, border-color 140ms ease, transform 140ms ease, box-shadow 140ms ease;
+    box-shadow: 0 1px 2px rgba(21, 19, 15, 0.04);
+  }
+
+  .directory-note-link:hover {
+    background: var(--pop-yellow);
+    border-color: var(--pop-ink);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(21, 19, 15, 0.08);
+  }
+
+  .directory-note-title {
+    flex: 1;
+    font-size: 0.94rem;
+    font-weight: 560;
+    line-height: 1.4;
+    min-height: calc(2 * 1.4em); /* Standard 2-line height: 1-line titles keep the 2nd line as clean empty space */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-wrap: pretty;
+  }
+
+  .directory-note-arrow {
+    font-size: 1.05rem;
+    flex-shrink: 0;
+    color: rgba(21, 19, 15, 0.45);
+    transition: transform 140ms ease, color 140ms ease;
+  }
+
+  .directory-note-link:hover .directory-note-arrow {
+    color: var(--pop-ink);
+    transform: translateX(3px);
+  }
+
+  .directory-empty {
+    font-size: 1.1rem;
+    color: rgba(21, 19, 15, 0.65);
+    padding: 2rem 0;
+  }
+</style>

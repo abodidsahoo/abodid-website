@@ -2,29 +2,33 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import SubmissionForm from "../../components/resources/SubmissionForm";
 import "../../styles/resources.css";
+import "../../styles/resources-editorial.css";
 
 const title = "Submit a Resource";
 const description = "Share a useful tool or article with the community.";
 ---
 
-<BaseLayout title={title} description={description}>
-    <div class="hub-container">
-        <h1 class="sr-only">{title}</h1>
-        <SubmissionForm client:only="react">
-            <div slot="fallback" class="hub-form text-center p-8">
-                <div style="font-size: 14px; color: var(--text-secondary);">
-                    Loading...
+<BaseLayout title={title} description={description} fullWidth={true} showGlobalGrid={false} bodyClass="resources-editorial-page" navigationVariant="next">
+    <div class="resources-editorial" style="padding-block: 40px;">
+        <div style="max-width: 760px; margin: 0 auto; padding: 0 16px;">
+            <h1 class="sr-only">{title}</h1>
+            <SubmissionForm client:only="react">
+                <div slot="fallback" class="text-center p-8">
+                    <div style="font-size: 14px; color: var(--pop-ink);">
+                        Loading form...
+                    </div>
                 </div>
-            </div>
-        </SubmissionForm>
+            </SubmissionForm>
 
-        <div style="text-align: center; margin-top: 24px;">
-            <a
-                href="/resources"
-                style="color: var(--text-secondary); text-decoration: underline;"
-            >
-                &larr; Back to Resources
-            </a>
+            <div style="text-align: center; margin-top: 24px;">
+                <a
+                    href="/resources"
+                    class="resource-clear"
+                    style="display: inline-flex; align-items: center; gap: 6px; text-decoration: none; font-weight: 600;"
+                >
+                    &larr; Back to Resources
+                </a>
+            </div>
         </div>
     </div>
 </BaseLayout>

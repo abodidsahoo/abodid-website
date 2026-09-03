@@ -129,6 +129,7 @@ async function fetchVaultFromGitHub({ includePaths, excludePaths }) {
         return {
           filePath: file.path,
           markdown: content,
+          sourceSha: file.sha || null,
         };
       }),
     );
@@ -163,6 +164,7 @@ async function walkLocalVault(rootDir, includePaths, excludePaths) {
       notes.push({
         filePath: relativePath,
         markdown: await fs.readFile(absolutePath, "utf-8"),
+        sourceSha: null,
       });
     }
   }
@@ -388,6 +390,7 @@ async function ingest() {
         filePath: note.filePath,
         markdown: note.markdown,
         isPublic: !startsWithAnyPath(note.filePath, privatePaths),
+        sourceSha: note.sourceSha,
       }));
       const chunks = createChunksForNote({
         filePath: note.filePath,

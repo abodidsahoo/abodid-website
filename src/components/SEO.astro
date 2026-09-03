@@ -7,6 +7,7 @@ export interface Props {
     imageAlt?: string;
     useDynamicOgImage?: boolean;
     noindex?: boolean;
+    robots?: string;
     structuredData?: Record<string, unknown> | Record<string, unknown>[];
 }
 
@@ -20,6 +21,7 @@ const {
     imageAlt,
     useDynamicOgImage = true,
     noindex = false,
+    robots,
     structuredData,
 } = Astro.props;
 
@@ -64,7 +66,11 @@ const serializeJsonLd = (item: Record<string, unknown>) =>
 <title>{formattedTitle}</title>
 <meta name="title" content={formattedTitle} />
 <meta name="description" content={description} />
-{noindex && <meta name="robots" content="noindex, nofollow" />}
+{robots ? (
+    <meta name="robots" content={robots} />
+) : noindex ? (
+    <meta name="robots" content="noindex, nofollow" />
+) : null}
 
 <!-- Open Graph / Facebook -->
 <meta property="og:type" content={type} />

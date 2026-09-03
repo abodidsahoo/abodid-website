@@ -1,261 +1,345 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import "../styles/resources.css";
+import "../styles/resources-editorial.css";
 
 const title = "Login | Resource Hub";
 ---
 
 <BaseLayout title={title}>
-    <div class="login-container">
-        <div class="login-card">
-            <h1 class="hub-title" id="page-title">Curator Login</h1>
-            <p class="hub-subtitle" id="page-subtitle">
-                Log in to continue your curation journey.
-            </p>
-
-            <form id="auth-form" method="POST">
-                {/* Full Name - Hidden by default (Login Mode) */}
-                <div
-                    class="hub-form-group"
-                    id="name-group"
-                    style="display: none;"
-                >
-                    <label class="hub-label">Full Name</label>
-                    <input
-                        type="text"
-                        id="fullname"
-                        class="hub-input"
-                        placeholder="Jane Doe"
-                        maxlength="80"
-                    />
-                    <p class="field-hint">
-                        Use letters, spaces, apostrophes, or hyphens.
-                    </p>
-                    <p
-                        id="name-error"
-                        class="field-error"
-                        style="display: none;"
-                    >
-                    </p>
+    <div class="resources-editorial-page">
+        <div class="resources-editorial">
+            <div class="login-editorial-container">
+                <div class="login-editorial-nav">
+                    <a href="/resources" class="detail-back-btn">
+                        ← Back to Resources
+                    </a>
                 </div>
 
-                <div class="hub-form-group" id="email-group">
-                    <label class="hub-label">Email Address</label>
-                    <input
-                        type="email"
-                        id="email"
-                        class="hub-input"
-                        required
-                        placeholder="you@example.com"
-                    />
-                    <p class="field-hint">
-                        Email can include numbers and symbols.
-                    </p>
-                    <p
-                        id="email-error"
-                        class="field-error"
-                        style="display: none;"
-                    >
-                    </p>
-                </div>
+                <div class="submission-clean-card login-editorial-card">
+                    <div class="login-header-group">
+                        <span class="status-badge-editorial" id="status-pill">🔐 CURATOR PORTAL</span>
+                        <h1 class="submit-title" id="page-title">Curator Login</h1>
+                        <p class="submit-subtitle" id="page-subtitle">
+                            Log in to continue your curation journey.
+                        </p>
+                    </div>
 
-                <div class="hub-form-group" id="password-group">
-                    <label class="hub-label" id="password-label">Password</label
-                    >
-                    <div class="password-field">
-                        <input
-                            type="password"
-                            id="password"
-                            class="hub-input"
-                            required
-                            placeholder="••••••••"
-                            minlength="6"
-                            autocomplete="current-password"
-                        />
-                        <button
-                            type="button"
-                            id="password-toggle"
-                            class="password-toggle"
-                            aria-label="Show password"
-                            aria-pressed="false"
+                    <form id="auth-form" method="POST" class="editorial-auth-form">
+                        {/* Full Name - Hidden by default (Login Mode) */}
+                        <div
+                            class="hub-form-group"
+                            id="name-group"
+                            style="display: none;"
                         >
-                            <svg
-                                id="eye-open"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                            >
-                                <path
-                                    d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"
-                                ></path>
-                                <circle cx="12" cy="12" r="3"></circle>
-                            </svg>
-                            <svg
-                                id="eye-closed"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
+                            <label class="hub-label">Full Name *</label>
+                            <input
+                                type="text"
+                                id="fullname"
+                                class="hub-input"
+                                placeholder="Jane Doe"
+                                maxlength="80"
+                            />
+                            <p class="field-hint">
+                                Use letters, spaces, apostrophes, or hyphens.
+                            </p>
+                            <p
+                                id="name-error"
+                                class="field-error"
                                 style="display: none;"
                             >
-                                <path d="M3 3l18 18"></path>
-                                <path d="M10.6 10.6a2 2 0 1 0 2.8 2.8"></path>
-                                <path
-                                    d="M9.4 5.2A10.6 10.6 0 0 1 12 5c6.5 0 10 7 10 7a16.5 16.5 0 0 1-3.2 4.3"
-                                ></path>
-                                <path
-                                    d="M6.7 6.7C4.3 8.2 2.8 10.7 2 12c0 0 3.5 7 10 7 1.7 0 3.2-.5 4.5-1.2"
-                                ></path>
-                            </svg>
+                            </p>
+                        </div>
+
+                        <div class="hub-form-group" id="email-group">
+                            <label class="hub-label">Email Address *</label>
+                            <input
+                                type="email"
+                                id="email"
+                                class="hub-input"
+                                required
+                                placeholder="you@example.com"
+                            />
+                            <p class="field-hint">
+                                Email can include numbers and symbols.
+                            </p>
+                            <p
+                                id="email-error"
+                                class="field-error"
+                                style="display: none;"
+                            >
+                            </p>
+                        </div>
+
+                        <div class="hub-form-group" id="password-group">
+                            <label class="hub-label" id="password-label">Password *</label>
+                            <div class="password-field-wrapper">
+                                <input
+                                    type="password"
+                                    id="password"
+                                    class="hub-input"
+                                    required
+                                    placeholder="••••••••"
+                                    minlength="6"
+                                    autocomplete="current-password"
+                                />
+                                <button
+                                    type="button"
+                                    id="password-toggle"
+                                    class="password-toggle-btn"
+                                    aria-label="Show password"
+                                    aria-pressed="false"
+                                >
+                                    <svg
+                                        id="eye-open"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                    >
+                                        <path
+                                            d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"
+                                        ></path>
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                    </svg>
+                                    <svg
+                                        id="eye-closed"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        style="display: none;"
+                                    >
+                                        <path d="M3 3l18 18"></path>
+                                        <path d="M10.6 10.6a2 2 0 1 0 2.8 2.8"></path>
+                                        <path
+                                            d="M9.4 5.2A10.6 10.6 0 0 1 12 5c6.5 0 10 7 10 7a16.5 16.5 0 0 1-3.2 4.3"
+                                        ></path>
+                                        <path
+                                            d="M6.7 6.7C4.3 8.2 2.8 10.7 2 12c0 0 3.5 7 10 7 1.7 0 3.2-.5 4.5-1.2"
+                                        ></path>
+                                    </svg>
+                                </button>
+                            </div>
+                            <p id="password-hint" class="field-hint">
+                                Minimum 6 characters.
+                            </p>
+                            <p
+                                id="password-error"
+                                class="field-error"
+                                style="display: none;"
+                            >
+                            </p>
+                        </div>
+
+                        <div
+                            class="hub-form-group"
+                            id="confirm-password-group"
+                            style="display: none;"
+                        >
+                            <label class="hub-label">Confirm New Password *</label>
+                            <input
+                                type="password"
+                                id="confirm-password"
+                                class="hub-input"
+                                placeholder="••••••••"
+                                minlength="6"
+                                autocomplete="new-password"
+                            />
+                            <p class="field-hint">Re-enter your new password.</p>
+                            <p
+                                id="confirm-password-error"
+                                class="field-error"
+                                style="display: none;"
+                            >
+                            </p>
+                        </div>
+
+                        <div class="form-actions-row" id="forgot-action-row">
+                            <button
+                                type="button"
+                                id="forgot-password-btn"
+                                class="forgot-link-btn"
+                            >
+                                Forgot password?
+                            </button>
+                        </div>
+
+                        <button type="submit" class="hub-btn submit-btn-editorial" id="submit-btn">
+                            Log In ↗
                         </button>
+                    </form>
+
+                    <div id="message" class="auth-message-editorial" style="display: none;"></div>
+
+                    <div class="toggle-mode-wrapper" id="toggle-mode-wrapper">
+                        <span class="toggle-text" id="switch-text">Don't have an account?</span>
+                        <button id="mode-toggle" class="toggle-pill-btn">Sign Up</button>
                     </div>
-                    <p id="password-hint" class="field-hint">
-                        Minimum 6 characters.
-                    </p>
-                    <p
-                        id="password-error"
-                        class="field-error"
-                        style="display: none;"
-                    >
-                    </p>
                 </div>
-
-                <div
-                    class="hub-form-group"
-                    id="confirm-password-group"
-                    style="display: none;"
-                >
-                    <label class="hub-label">Confirm New Password</label>
-                    <input
-                        type="password"
-                        id="confirm-password"
-                        class="hub-input"
-                        placeholder="••••••••"
-                        minlength="6"
-                        autocomplete="new-password"
-                    />
-                    <p class="field-hint">Re-enter your new password.</p>
-                    <p
-                        id="confirm-password-error"
-                        class="field-error"
-                        style="display: none;"
-                    >
-                    </p>
-                </div>
-
-                <div class="form-actions-row" id="forgot-action-row">
-                    <button
-                        type="button"
-                        id="forgot-password-btn"
-                        class="inline-action-btn"
-                    >
-                        Forgot password?
-                    </button>
-                </div>
-
-                <button type="submit" class="hub-btn" id="submit-btn">
-                    Log In
-                </button>
-            </form>
-
-            <div id="message" class="auth-message" style="display: none;"></div>
-
-            <div class="toggle-mode-wrapper" id="toggle-mode-wrapper">
-                <p class="toggle-text">
-                    <span id="switch-text">Don't have an account?</span>
-                    <button id="mode-toggle" class="toggle-btn">Sign Up</button>
-                </p>
             </div>
         </div>
     </div>
 </BaseLayout>
 
 <style>
-    .login-container {
-        display: flex;
-        justify-content: center;
+    .login-editorial-container {
+        max-width: 620px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    .login-editorial-nav {
+        margin-bottom: 20px;
+    }
+
+    .detail-back-btn {
+        min-height: 40px;
+        padding: 8px 16px;
+        border: 1px solid var(--pop-border);
+        border-radius: 12px;
+        background: var(--pop-cream);
+        color: var(--pop-ink);
+        font: 750 0.74rem/1 var(--resources-mono);
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        text-decoration: none;
+        display: inline-flex;
         align-items: center;
-        min-height: 80vh;
-        padding: 24px;
+        gap: 6px;
+        transition: background 180ms ease, transform 180ms ease;
     }
 
-    .login-card {
-        background: var(--bg-surface);
-        border: 1px solid var(--border-subtle);
-        border-radius: 24px;
-        padding: 64px;
-        width: 100%;
-        max-width: 580px;
-        text-align: center;
-        box-shadow: 0 4px 40px rgba(0, 0, 0, 0.08);
+    .detail-back-btn:hover {
+        background: var(--pop-yellow);
+        transform: translateY(-2px);
     }
 
-    .hub-title {
-        font-family: var(--font-sans);
-        font-size: 3.5rem; /* Very Large Font */
-        font-weight: 800;
-        color: var(--text-primary);
-        margin-bottom: 16px;
-        letter-spacing: -0.04em;
-        line-height: 1.1;
+    .status-badge-editorial {
+        display: inline-block;
+        padding: 4px 12px;
+        border: 1px solid var(--pop-border);
+        border-radius: 999px;
+        background: var(--pop-yellow);
+        color: var(--pop-ink);
+        font: 800 0.72rem/1 var(--resources-mono);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 14px;
     }
 
-    .hub-subtitle {
-        font-family: var(--font-sans);
-        font-size: 1.1rem;
-        color: var(--text-secondary);
-        margin-bottom: 48px;
-        line-height: 1.6;
-    }
-
-    .hub-form-group {
-        margin-bottom: 24px;
+    .login-header-group {
         text-align: left;
+        margin-bottom: 24px;
     }
 
-    .hub-label {
-        display: block;
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: var(--text-secondary);
-        margin-bottom: 8px;
+    .editorial-auth-form {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .password-field-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .password-toggle-btn {
+        position: absolute;
+        right: 12px;
+        border: 1px solid var(--pop-border);
+        background: var(--pop-cream);
+        color: var(--pop-ink);
+        cursor: pointer;
+        padding: 6px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 180ms ease;
+    }
+
+    .password-toggle-btn:hover {
+        background: var(--pop-yellow);
+    }
+
+    .password-toggle-btn svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    .submit-btn-editorial {
+        width: 100%;
+        margin-top: 8px;
+    }
+
+    .forgot-link-btn {
+        background: none;
+        border: none;
+        color: var(--pop-ink);
+        font: 700 0.82rem/1 var(--resources-mono);
         text-transform: uppercase;
         letter-spacing: 0.05em;
+        cursor: pointer;
+        text-decoration: underline;
+        padding: 0;
     }
 
-    .hub-input {
-        width: 100%;
-        padding: 16px;
-        background: var(--bg-surface);
-        border: 1px solid var(--border-subtle);
-        border-radius: 12px;
-        font-size: 1.1rem;
-        color: var(--text-primary);
-        transition: all 0.2s ease;
+    .forgot-link-btn:hover {
+        color: var(--pop-purple);
     }
 
-    .hub-input:focus {
-        outline: none;
-        border-color: var(--text-primary);
-        box-shadow: 0 0 0 4px var(--bg-surface-hover);
+    .auth-message-editorial {
+        margin-top: 20px;
+        padding: 14px 18px;
+        border: 1px solid var(--pop-border);
+        border-radius: 14px;
+        font: 700 0.9rem/1.4 var(--resources-font);
     }
 
-    .hub-input.is-invalid {
-        border-color: #dc2626;
-        box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.12);
+    .toggle-mode-wrapper {
+        margin-top: 32px;
+        padding-top: 20px;
+        border-top: 1px solid var(--pop-line);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .toggle-text {
+        font: 600 0.92rem/1 var(--resources-font);
+        color: var(--pop-ink);
+        opacity: 0.85;
+    }
+
+    .toggle-pill-btn {
+        padding: 8px 18px;
+        border: 1px solid var(--pop-border);
+        border-radius: 999px;
+        background: var(--pop-cream);
+        color: var(--pop-ink);
+        font: 800 0.76rem/1 var(--resources-mono);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: background 180ms ease, transform 180ms ease;
+    }
+
+    .toggle-pill-btn:hover {
+        background: var(--pop-pink);
+        transform: translateY(-1px);
     }
 
     .field-hint {
-        margin-top: 8px;
-        margin-bottom: 0;
-        color: var(--text-secondary);
-        font-size: 0.85rem;
-        line-height: 1.4;
+        margin-top: 6px;
+        font: 500 0.8rem/1.3 var(--resources-font);
+        color: rgba(21, 19, 15, 0.7);
     }
 
     .field-hint.is-warning {
@@ -267,132 +351,14 @@ const title = "Login | Resource Hub";
     }
 
     .field-error {
-        margin-top: 8px;
-        margin-bottom: 0;
-        color: #dc2626;
-        font-size: 0.85rem;
-        line-height: 1.4;
-    }
-
-    .password-field {
-        position: relative;
-    }
-
-    .password-field .hub-input {
-        padding-right: 52px;
-    }
-
-    .password-toggle {
-        position: absolute;
-        right: 12px;
-        top: 50%;
-        transform: translateY(-50%);
-        border: none;
-        background: transparent;
-        color: var(--text-secondary);
-        cursor: pointer;
-        padding: 6px;
-        border-radius: 8px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .password-toggle:hover {
-        color: var(--text-primary);
-        background: var(--bg-surface-hover);
-    }
-
-    .password-toggle svg {
-        width: 18px;
-        height: 18px;
-    }
-
-    .hub-btn {
-        width: 100%;
-        padding: 18px;
-        background: var(--text-primary);
-        color: var(--bg-surface);
-        font-size: 1.1rem;
-        font-weight: 600;
-        border: none;
-        border-radius: 12px;
-        cursor: pointer;
-        margin-top: 16px;
-        transition: opacity 0.2s ease;
-    }
-
-    html[data-theme="light"] .hub-btn {
-        background-color: #000000;
-        color: #ffffff;
-    }
-    html[data-theme="dark"] .hub-btn {
-        background: #ffffff;
-        color: #000000;
-    }
-
-    .hub-btn:hover {
-        opacity: 0.9;
-    }
-
-    .form-actions-row {
-        display: flex;
-        justify-content: flex-end;
-        margin-top: -8px;
-        margin-bottom: 8px;
-    }
-
-    .inline-action-btn {
-        background: none;
-        border: none;
-        color: var(--text-primary);
-        font-size: 0.9rem;
-        font-weight: 600;
-        cursor: pointer;
-        text-decoration: underline;
-        padding: 0;
-    }
-
-    .inline-action-btn:hover {
-        opacity: 0.8;
-    }
-
-    .auth-message {
-        margin-top: 24px;
-        padding: 16px;
-        border-radius: 12px;
-        font-weight: 500;
-        font-size: 0.95rem;
-    }
-
-    .toggle-mode-wrapper {
-        margin-top: 40px;
-        padding-top: 24px;
-        border-top: 1px solid var(--border-subtle);
-    }
-
-    .toggle-text {
-        font-size: 1rem;
-        color: var(--text-secondary);
-    }
-
-    .toggle-btn {
-        background: none;
-        border: none;
-        color: var(--text-primary);
-        font-weight: 700;
-        cursor: pointer;
-        text-decoration: underline;
-        margin-left: 8px;
-        font-size: inherit;
+        margin-top: 6px;
+        font: 700 0.82rem/1.3 var(--resources-font);
+        color: #b91c1c;
     }
 
     @media (max-width: 600px) {
-        .login-card {
-            padding: 40px 24px;
-        }
-        .hub-title {
-            font-size: 2.5rem;
+        .submission-clean-card {
+            padding: 24px 16px;
         }
     }
 </style>
@@ -600,6 +566,8 @@ const title = "Login | Resource Hub";
             }
         }
 
+        const statusPill = document.getElementById("status-pill");
+
         if (mode === "signup") {
             if (!isLinking) {
                 if (pageTitle) pageTitle.innerText = "Join the Ecosystem";
@@ -608,6 +576,7 @@ const title = "Login | Resource Hub";
                         "Create an account to save and share resources.";
                 }
             }
+            if (statusPill) statusPill.innerText = "✨ NEW ACCOUNT";
             if (switchText) switchText.innerText = "Already have an account?";
             if (toggleBtn) toggleBtn.innerText = "Log In";
             if (passwordLabel) passwordLabel.innerText = "Password";
@@ -617,6 +586,7 @@ const title = "Login | Resource Hub";
                 pageSubtitle.innerText =
                     "Enter your email and we will send a secure reset link.";
             }
+            if (statusPill) statusPill.innerText = "🔑 RECOVERY";
             if (switchText) switchText.innerText = "Remembered your password?";
             if (toggleBtn) toggleBtn.innerText = "Log In";
             if (passwordLabel) passwordLabel.innerText = "Password";
@@ -626,6 +596,7 @@ const title = "Login | Resource Hub";
                 pageSubtitle.innerText =
                     "Choose a strong new password for your account.";
             }
+            if (statusPill) statusPill.innerText = "🔒 NEW PASSWORD";
             if (passwordLabel) passwordLabel.innerText = "New Password";
         } else {
             if (pageTitle) pageTitle.innerText = "Curator Login";
@@ -633,6 +604,7 @@ const title = "Login | Resource Hub";
                 pageSubtitle.innerText =
                     "Log in to continue your curation journey.";
             }
+            if (statusPill) statusPill.innerText = "🔐 CURATOR PORTAL";
             if (switchText) switchText.innerText = "Don't have an account?";
             if (toggleBtn) toggleBtn.innerText = "Sign Up";
             if (passwordLabel) passwordLabel.innerText = "Password";
@@ -877,6 +849,10 @@ const title = "Login | Resource Hub";
                 return;
             }
 
+            const params = new URLSearchParams(window.location.search);
+            const redirect = params.get("redirect");
+            const emailRedirectTo = `${window.location.origin}/login${redirect ? `?redirect=${encodeURIComponent(redirect)}` : ""}`;
+
             if (authMode === "signup") {
                 if (isLinking) {
                     // Upgrade Anonymous -> Real
@@ -891,6 +867,7 @@ const title = "Login | Resource Hub";
                         email,
                         password,
                         options: {
+                            emailRedirectTo,
                             data: {
                                 full_name: fullName,
                                 username: safeUsername,
@@ -911,6 +888,25 @@ const title = "Login | Resource Hub";
 
             const hasSession = (data as any).session || isLinking;
 
+            if (authMode === "signup" && data?.user) {
+                // Ensure profile exists for all signups
+                const { error: upsertError } = await supabase
+                    .from("profiles")
+                    .upsert(
+                        {
+                            id: data.user.id,
+                            username: safeUsername || buildBaseUsername(email),
+                            full_name: fullName || buildBaseUsername(email),
+                            role: "user",
+                        },
+                        { onConflict: "id" },
+                    );
+
+                if (upsertError) {
+                    console.error("Profile upsert failed:", upsertError);
+                }
+            }
+
             if (authMode === "signup" && !hasSession && !isLinking) {
                 showMsg(
                     "Account created! Please check your email to confirm.",
@@ -918,30 +914,22 @@ const title = "Login | Resource Hub";
                 );
                 submitBtn.innerText = "Check Email";
             } else {
-                if (isLinking) {
-                    // Manually ensure profile exists (upsert)
-                    const { error: upsertError } = await supabase
-                        .from("profiles")
-                        .upsert({
-                            id: (data.user as any)?.id,
-                            username: safeUsername || buildBaseUsername(email),
-                            full_name: fullName,
-                            role: "user",
-                        });
-
-                    if (upsertError) {
-                        console.error("Profile upsert failed:", upsertError);
-                    }
-                }
-
                 showMsg("Success! Redirecting...", "success");
 
                 // Smart redirect based on user role
                 const { data: profile } = await supabase
                     .from("profiles")
-                    .select("role")
+                    .select("username, full_name, role")
                     .eq("id", (data.user as any)?.id)
                     .single();
+
+                if (profile) {
+                    try {
+                        localStorage.setItem('curator_profile', JSON.stringify(profile));
+                    } catch (e) {
+                        console.error('Failed to cache profile', e);
+                    }
+                }
 
                 const params = new URLSearchParams(window.location.search);
                 const redirect = params.get("redirect");
@@ -1059,6 +1047,7 @@ const title = "Login | Resource Hub";
         const params = new URLSearchParams(window.location.search);
         const mode = params.get("mode");
         const link = params.get("link");
+        const redirect = params.get("redirect");
         const hashParams = new URLSearchParams(window.location.hash.slice(1));
         const hashType = hashParams.get("type");
 
@@ -1066,6 +1055,12 @@ const title = "Login | Resource Hub";
             data: { session },
         } = await supabase.auth.getSession();
         const isAnonymous = session?.user?.is_anonymous;
+
+        // Automatically forward authenticated non-anonymous users if redirect target is present
+        if (session && !isAnonymous && redirect && !mode && hashType !== "recovery") {
+            window.location.assign(redirect);
+            return;
+        }
 
         if (link === "true" && isAnonymous) {
             isLinking = true;

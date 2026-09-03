@@ -62,14 +62,13 @@ export default function CuratorDashboard({ user, role }: Props) {
         setLoading(true);
         setError(null);
         try {
-            await fetchSubmissions(user.id);
-            if (role === 'curator' || role === 'admin') {
-                await fetchPendingSubmissions();
-            }
-            if (role === 'admin') {
-                await fetchDeletedSubmissions();
-                await fetchGlobalResources();
-            }
+            const requests: Promise<any>[] = [
+                fetchSubmissions(user.id),
+                fetchPendingSubmissions(),
+                fetchDeletedSubmissions(),
+                fetchGlobalResources()
+            ];
+            await Promise.all(requests);
         } catch (err: any) {
             console.error('Dashboard load error:', err);
             setError('Failed to load dashboard data. Please try again.');
@@ -78,8 +77,39 @@ export default function CuratorDashboard({ user, role }: Props) {
         }
     };
 
+    const refreshDataSilent = async () => {
+        if (!user) return;
+        try {
+            const requests: Promise<any>[] = [
+                fetchSubmissions(user.id),
+                fetchPendingSubmissions(),
+                fetchDeletedSubmissions(),
+                fetchGlobalResources()
+            ];
+            await Promise.all(requests);
+        } catch (err: any) {
+            console.error('Background refresh error:', err);
+        }
+    };
+
     useEffect(() => {
         fetchData();
+
+        // Auto-refresh every 60s silently in background
+        const intervalId = setInterval(() => {
+            refreshDataSilent();
+        }, 60000);
+
+        // Auto-refresh silently whenever curator switches back to window/tab
+        const handleFocus = () => {
+            refreshDataSilent();
+        };
+        window.addEventListener('focus', handleFocus);
+
+        return () => {
+            clearInterval(intervalId);
+            window.removeEventListener('focus', handleFocus);
+        };
     }, [user, role]);
 
     useEffect(() => {
@@ -116,7 +146,6 @@ export default function CuratorDashboard({ user, role }: Props) {
     const fetchSubmissions = async (userId: string) => {
         if (!supabase) return;
 
-        setLoading(true);
         const { data, error } = await supabase
             .from('hub_resources')
             .select('*')
@@ -126,7 +155,6 @@ export default function CuratorDashboard({ user, role }: Props) {
         if (!error && data) {
             setSubmissions(data as Submission[]);
         }
-        setLoading(false);
     };
 
     const fetchPendingSubmissions = async () => {
@@ -409,9 +437,12 @@ export default function CuratorDashboard({ user, role }: Props) {
         );
     }
 
-    const pendingCount = submissions.filter(s => s.status === 'pending').length;
-    const approvedCount = submissions.filter(s => s.status === 'approved').length;
-    const rejectedCount = submissions.filter(s => s.status === 'rejected').length;
+    const pendingCount = pendingSubmissions.length;
+    const approvedCount = globalResources.length > 0 ? globalResources.filter(r => r.status === 'approved').length : submissions.filter(s => s.status === 'approved').length;
+    const archivedCount = deletedSubmissions.length + submissions.filter(s => s.status === 'rejected').length;
+
+    // Set initial filter tab to pending if there are pending items
+    const activeFilter = filter === 'all' ? (pendingCount > 0 ? 'pending' : 'approved') : filter;
 
     return (
         <div className="curator-dashboard">
@@ -420,18 +451,15 @@ export default function CuratorDashboard({ user, role }: Props) {
                     <h1>Curator Dashboard</h1>
                     <p className="welcome">Welcome back, {user?.user_metadata?.full_name || user?.email}!</p>
 
-                    <div style={{ marginTop: '1.5rem', marginBottom: '1rem' }}>
+                    <div style={{ marginTop: '1.25rem' }}>
                         <a href="/resources/submit" className="btn-submit-new-prominent">
                             + Submit New Resource
                         </a>
                     </div>
                 </div>
                 <div className="dashboard-header-actions">
-                    <button onClick={handleRefresh} className="btn-refresh-text">
-                        Refresh
-                    </button>
                     <a href="/resources" className="btn-back-logo">
-                        Back to Resources
+                        Back to Resources ↗
                     </a>
                     {role === 'admin' && (
                         <a
@@ -440,7 +468,7 @@ export default function CuratorDashboard({ user, role }: Props) {
                             target="_blank"
                             rel="noopener noreferrer"
                         >
-                            Admin Panel
+                            Admin Panel ↗
                         </a>
                     )}
                     <button
@@ -462,177 +490,193 @@ export default function CuratorDashboard({ user, role }: Props) {
                 </div>
             </div>
 
-            <div className="stats-grid">
-                <div className="stat-card">
-                    <div className="stat-value">{submissions.length}</div>
-                    <div className="stat-label">Total Submissions</div>
-                </div>
-                <div className="stat-card pending">
-                    <div className="stat-value">{role === 'curator' || role === 'admin' ? pendingSubmissions.length : pendingCount}</div>
-                    <div className="stat-label">Pending Review</div>
-                </div>
-                <div className="stat-card approved">
-                    <div className="stat-value">{approvedCount}</div>
-                    <div className="stat-label">Approved</div>
-                </div>
-                <div className="stat-card rejected">
-                    <div className="stat-value">{rejectedCount}</div>
-                    <div className="stat-label">Rejected</div>
-                </div>
-                {role === 'admin' && (
-                    <div className="stat-card deleted">
-                        <div className="stat-value">{deletedSubmissions.length}</div>
-                        <div className="stat-label">Trash</div>
-                    </div>
-                )}
-            </div>
-
-            <div style={{ marginBottom: '1.5rem' }}>
-                <div className="quick-nav-buttons">
-                    <a href="/resources" className="btn-quick-nav">
-                        <span style={{ marginRight: '0.5rem' }}>🔍</span>
-                        Explore All Approved Resources
-                    </a>
-                    <a href={`/resources/u/${user?.user_metadata?.username || 'me'}`} className="btn-quick-nav">
-                        <span style={{ marginRight: '0.5rem' }}>⭐</span>
-                        View Saved Collection
-                    </a>
-                </div>
-            </div>
-
-            {/* Submit button moved to top section */}
-
+            {/* Unified Curation Queue & Library */}
             <div className="submissions-section">
                 <div className="section-header">
-                    <h2>{filter === 'global' ? 'Global Library (All Users)' : 'My Submissions'}</h2>
+                    <h2>
+                        {activeFilter === 'pending' && '⏱ Pending Submissions to Review'}
+                        {activeFilter === 'approved' && '✓ Live Approved Resources'}
+                        {activeFilter === 'history' && '📁 Archived & Rejected Submissions'}
+                    </h2>
                     <div className="filter-tabs">
                         <button
-                            className={filter === 'all' ? 'active' : ''}
-                            onClick={() => setFilter('all')}
-                        >
-                            All ({submissions.length})
-                        </button>
-                        <button
-                            className={filter === 'pending' ? 'active' : ''}
+                            className={activeFilter === 'pending' ? 'active' : ''}
                             onClick={() => setFilter('pending')}
                         >
-                            Pending ({pendingCount})
+                            ⏱ Pending Review ({pendingCount})
                         </button>
                         <button
-                            className={filter === 'approved' ? 'active' : ''}
+                            className={activeFilter === 'approved' ? 'active' : ''}
                             onClick={() => setFilter('approved')}
                         >
-                            Approved ({approvedCount})
+                            ✓ Live on Hub ({approvedCount})
                         </button>
                         <button
-                            className={filter === 'rejected' ? 'active' : ''}
-                            onClick={() => setFilter('rejected')}
+                            className={activeFilter === 'history' ? 'active' : ''}
+                            onClick={() => setFilter('history')}
                         >
-                            Rejected ({rejectedCount})
+                            📁 Archive & Trash ({archivedCount})
                         </button>
-                        {role === 'admin' && (
-                            <>
-                                <button
-                                    className={filter === 'deleted' ? 'active' : ''}
-                                    onClick={() => setFilter('deleted')}
-                                >
-                                    Trash ({deletedSubmissions.length})
-                                </button>
-                                <button
-                                    className={filter === 'global' ? 'active' : ''}
-                                    onClick={() => setFilter('global')}
-                                    style={{ marginLeft: '1rem', borderLeft: '1px solid var(--border-subtle)' }}
-                                >
-                                    Global Library ({globalResources.length})
-                                </button>
-                            </>
-                        )}
                     </div>
                 </div>
 
-                {filter === 'global' ? (
+                {/* 1. PENDING REVIEW TAB */}
+                {activeFilter === 'pending' && (
                     <div className="submissions-list">
-                        {globalResources.map(submission => (
-                            <div key={submission.id} className="submission-card">
-                                {submission.thumbnail_url && (
-                                    <div className="card-thumbnail">
-                                        <img src={submission.thumbnail_url} alt={submission.title} loading="lazy" />
-                                        <span
-                                            className="status-badge-overlay"
-                                            style={{
-                                                background: getStatusColor(submission.status)
-                                            }}
-                                        >
-                                            {submission.status.toUpperCase()}
-                                        </span>
-                                    </div>
-                                )}
-                                <div className="card-content">
-                                    <div className="submission-header">
-                                        <h3>{submission.title}</h3>
-                                    </div>
-                                    <p className="submission-url">{submission.url}</p>
-                                    <div className="submission-actions">
-                                        <a href={`/resources/${submission.id}`} className="btn-view">View Resource</a>
-                                        {role === 'admin' && (
-                                            <button
-                                                onClick={() => handleDelete(submission.id)}
-                                                className="btn-delete"
-                                                title="Move to Trash"
-                                            >
-                                                <span>🗑</span> Delete
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
+                        {pendingSubmissions.length === 0 ? (
+                            <div className="empty-state" style={{ padding: '3rem 1rem', textAlign: 'center' }}>
+                                <div style={{ fontSize: '2.5rem', marginBottom: '12px' }}>🎉</div>
+                                <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: '0 0 8px', color: 'var(--pop-ink)' }}>No pending submissions!</h3>
+                                <p style={{ color: 'rgba(21, 19, 15, 0.75)', margin: 0 }}>All submitted resources have been reviewed.</p>
                             </div>
-                        ))}
-                    </div>
-                ) : filter === 'deleted' ? null : (
-                    filteredSubmissions.length === 0 ? (
-                        <div className="empty-state">
-                            <p>No submissions found.</p>
-                            <a href="/resources/submit" className="btn-secondary">Submit Your First Resource</a>
-                        </div>
-                    ) : (
-                        <div className="submissions-list">
-                            {filteredSubmissions.map(submission => (
-                                <div key={submission.id} className="submission-card">
-                                    {submission.thumbnail_url && (
-                                        <div className="card-thumbnail">
-                                            <img src={submission.thumbnail_url} alt={submission.title} loading="lazy" />
+                        ) : (
+                            pendingSubmissions.map(submission => (
+                                <div key={submission.id} className="submission-card pending-review" style={{ background: 'var(--pop-cream)', border: '1px solid var(--pop-border)', borderRadius: '20px', padding: '24px', marginBottom: '16px' }}>
+                                    <div className="card-content">
+                                        <div className="submission-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px', marginBottom: '8px' }}>
+                                            <h3 style={{ font: '620 1.4rem/1.2 var(--resources-font)', color: 'var(--pop-ink)', margin: 0 }}>{submission.title}</h3>
                                             <span
-                                                className="status-badge-overlay"
+                                                className="status-badge"
                                                 style={{
-                                                    background: getStatusColor(submission.status)
+                                                    background: 'var(--pop-yellow)',
+                                                    color: 'var(--pop-ink)',
+                                                    border: '1px solid var(--pop-border)',
+                                                    fontSize: '0.72rem',
+                                                    padding: '4px 10px',
+                                                    borderRadius: '100px',
+                                                    fontWeight: 800,
+                                                    letterSpacing: '0.08em',
+                                                    textTransform: 'uppercase'
                                                 }}
                                             >
-                                                {submission.status.toUpperCase()}
+                                                ⏱ pending review
                                             </span>
                                         </div>
-                                    )}
-                                    <div className="card-content">
-                                        <div className="submission-header">
-                                            <h3>{submission.title}</h3>
-                                        </div>
-                                        <p className="submission-url">{submission.url}</p>
-
-                                        {(submission.admin_notes || submission.rejection_reason) && (
-                                            <div className="rejection-reason">
-                                                <strong>Curator note:</strong> {submission.admin_notes || submission.rejection_reason}
-                                            </div>
+                                        <p className="submission-url" style={{ color: 'rgba(21, 19, 15, 0.75)', fontSize: '0.9rem', margin: '0 0 12px 0', wordBreak: 'break-all' }}>{submission.url}</p>
+                                        {submission.description && (
+                                            <p className="submission-description" style={{ color: 'var(--pop-ink)', fontSize: '0.98rem', lineHeight: '1.5', margin: '0 0 16px 0' }}>{submission.description}</p>
                                         )}
-                                        <div className="submission-actions">
-                                            <a href={`/resources/${submission.id}`} className="btn-view">View Resource</a>
-                                            {submission.status === 'pending' && (
-                                                <a href={`/resources/submit?edit=${submission.id}`} className="btn-edit">Edit</a>
-                                            )}
-                                            {role === 'admin' && submission.status !== 'deleted' && (
+
+                                        {/* Curation Controls: Tags & Thumbnail */}
+                                        <div className="curation-box">
+                                            <div className="curation-row">
+                                                <label className="curation-label" style={{ display: 'block', font: '750 0.7rem/1.3 var(--resources-mono)', letterSpacing: '0.09em', textTransform: 'uppercase', color: 'var(--pop-ink)', marginBottom: '8px' }}>Assign Curator Tags</label>
+                                                <TagInput
+                                                    selectedTags={getDraft(submission).selectedTags}
+                                                    onChange={(newTags) => setDraft(submission.id, { selectedTags: newTags })}
+                                                    maxTags={5}
+                                                />
+                                            </div>
+
+                                            <div className="curation-row" style={{ borderTop: '1px solid rgba(21, 19, 15, 0.1)', paddingTop: '14px' }}>
+                                                <label className="curation-label" htmlFor={`thumbnail-upload-${submission.id}`} style={{ display: 'block', font: '750 0.7rem/1.3 var(--resources-mono)', letterSpacing: '0.09em', textTransform: 'uppercase', color: 'var(--pop-ink)', marginBottom: '8px' }}>Upload Custom Thumbnail (Optional)</label>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+                                                    <input
+                                                        id={`thumbnail-upload-${submission.id}`}
+                                                        type="file"
+                                                        accept="image/*"
+                                                        className="thumbnail-upload-input"
+                                                        style={{ font: '500 0.85rem var(--resources-font)', maxWidth: '280px' }}
+                                                        onChange={(e) => {
+                                                            const file = e.target.files?.[0] || null;
+                                                            handleThumbnailUpload(submission, file);
+                                                            e.currentTarget.value = '';
+                                                        }}
+                                                    />
+                                                    {getDraft(submission).isUploading && (
+                                                        <p className="thumbnail-upload-status" style={{ color: 'var(--pop-blue)', fontSize: '0.85rem', fontWeight: 700, margin: 0 }}>Uploading thumbnail...</p>
+                                                    )}
+                                                    {getDraft(submission).uploadError && (
+                                                        <p className="thumbnail-upload-error" style={{ color: '#b91c1c', fontSize: '0.85rem', fontWeight: 700, margin: 0 }}>{getDraft(submission).uploadError}</p>
+                                                    )}
+                                                    {getDraft(submission).thumbnailUrl && (
+                                                        <img
+                                                            src={getDraft(submission).thumbnailUrl}
+                                                            alt={`Thumbnail preview for ${submission.title}`}
+                                                            style={{ width: '100px', height: '56px', objectFit: 'cover', borderRadius: '10px', border: '1px solid var(--pop-border)' }}
+                                                            loading="lazy"
+                                                        />
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Action Buttons */}
+                                        <div className="submission-actions" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+                                            <button
+                                                onClick={() => openModerationDialog(submission, 'approve')}
+                                                className="btn-approve"
+                                            >
+                                                ✓ Approve & Publish
+                                            </button>
+                                            <button
+                                                onClick={() => openModerationDialog(submission, 'reject')}
+                                                className="btn-reject"
+                                            >
+                                                ✗ Reject
+                                            </button>
+                                            <a
+                                                href={submission.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="btn-preview"
+                                            >
+                                                Visit Link ↗
+                                            </a>
+                                            {role === 'admin' && (
                                                 <button
                                                     onClick={() => handleDelete(submission.id)}
                                                     className="btn-delete"
                                                     title="Move to Trash"
-                                                    style={{ gap: '0.5rem' }}
+                                                >
+                                                    🗑 Delete
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                )}
+
+                {/* 2. APPROVED LIVE LIBRARY TAB */}
+                {activeFilter === 'approved' && (
+                    <div className="submissions-list">
+                        {(globalResources.length > 0 ? globalResources.filter(r => r.status === 'approved') : submissions.filter(s => s.status === 'approved')).length === 0 ? (
+                            <div className="empty-state" style={{ padding: '3rem 1rem', textAlign: 'center' }}>
+                                <p style={{ color: 'rgba(21, 19, 15, 0.75)' }}>No approved resources yet.</p>
+                            </div>
+                        ) : (
+                            (globalResources.length > 0 ? globalResources.filter(r => r.status === 'approved') : submissions.filter(s => s.status === 'approved')).map(submission => (
+                                <div key={submission.id} className="submission-card" style={{ background: 'var(--pop-cream)', border: '1px solid var(--pop-border)', borderRadius: '20px', padding: '20px', marginBottom: '12px' }}>
+                                    <div className="card-content">
+                                        <div className="submission-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px', marginBottom: '6px' }}>
+                                            <h3 style={{ font: '620 1.25rem/1.2 var(--resources-font)', color: 'var(--pop-ink)', margin: 0 }}>{submission.title}</h3>
+                                            <span
+                                                className="status-badge"
+                                                style={{
+                                                    background: 'var(--pop-lime)',
+                                                    color: 'var(--pop-ink)',
+                                                    border: '1px solid var(--pop-border)',
+                                                    fontSize: '0.68rem',
+                                                    padding: '3px 8px',
+                                                    borderRadius: '100px',
+                                                    fontWeight: 800,
+                                                    textTransform: 'uppercase'
+                                                }}
+                                            >
+                                                ✓ Approved
+                                            </span>
+                                        </div>
+                                        <p className="submission-url" style={{ color: 'rgba(21, 19, 15, 0.75)', fontSize: '0.85rem', margin: '0 0 12px 0', wordBreak: 'break-all' }}>{submission.url}</p>
+                                        <div className="submission-actions" style={{ display: 'flex', gap: '8px' }}>
+                                            <a href={`/resources/${submission.id}`} className="btn-view">View Resource ↗</a>
+                                            {role === 'admin' && (
+                                                <button
+                                                    onClick={() => handleDelete(submission.id)}
+                                                    className="btn-delete"
+                                                    title="Move to Trash"
                                                 >
                                                     <span>🗑</span> Delete
                                                 </button>
@@ -640,130 +684,68 @@ export default function CuratorDashboard({ user, role }: Props) {
                                         </div>
                                     </div>
                                 </div>
-                            ))}
-                        </div>
-                    )
-                )}
-            </div>
-
-            {/* Pending Submissions from Others (Curator Moderation) */}
-            {pendingSubmissions.length > 0 && (
-                <div className="submissions-section">
-                    <div className="section-header">
-                        <h2>🔍 Pending Submissions to Review</h2>
-                        <span className="pending-count">{pendingSubmissions.length} pending</span>
+                            ))
+                        )}
                     </div>
+                )}
 
+                {/* 3. ARCHIVE & TRASH TAB */}
+                {activeFilter === 'history' && (
                     <div className="submissions-list">
-                        {pendingSubmissions.map(submission => (
-                            <div key={submission.id} className="submission-card pending-review">
-                                {submission.thumbnail_url && (
-                                    <div className="card-thumbnail">
-                                        <img src={submission.thumbnail_url} alt={submission.title} loading="lazy" />
-                                    </div>
-                                )}
-                                <div className="card-content">
-                                    <div className="submission-header">
-                                        <h3>{submission.title}</h3>
-                                    </div>
-                                    <p className="submission-url">{submission.url}</p>
-                                    {submission.description && (
-                                        <p className="submission-description">{submission.description}</p>
-                                    )}
-                                    <div style={{ marginBottom: '1rem' }}>
-                                        <span
-                                            className="status-badge"
-                                            style={{
-                                                background: '#F59E0B',
-                                                color: 'white',
-                                                fontSize: '0.75rem',
-                                                padding: '0.25rem 0.75rem',
-                                                borderRadius: '100px',
-                                                fontWeight: 600,
-                                                letterSpacing: '0.05em',
-                                                textTransform: 'uppercase'
-                                            }}
-                                        >
-                                            ⏱ pending
-                                        </span>
-                                    </div>
-                                    <div className="curation-box">
-                                        <div className="curation-row">
-                                            <label className="curation-label">Curator tags</label>
-                                            <TagInput
-                                                selectedTags={getDraft(submission).selectedTags}
-                                                onChange={(newTags) => setDraft(submission.id, { selectedTags: newTags })}
-                                                maxTags={5}
-                                            />
-                                        </div>
-
-                                        <div className="curation-row">
-                                            <label className="curation-label" htmlFor={`thumbnail-upload-${submission.id}`}>Add thumbnail</label>
-                                            <input
-                                                id={`thumbnail-upload-${submission.id}`}
-                                                type="file"
-                                                accept="image/*"
-                                                className="thumbnail-upload-input"
-                                                onChange={(e) => {
-                                                    const file = e.target.files?.[0] || null;
-                                                    handleThumbnailUpload(submission, file);
-                                                    e.currentTarget.value = '';
+                        {[...deletedSubmissions, ...submissions.filter(s => s.status === 'rejected')].length === 0 ? (
+                            <div className="empty-state" style={{ padding: '3rem 1rem', textAlign: 'center' }}>
+                                <p style={{ color: 'rgba(21, 19, 15, 0.75)' }}>No archived or deleted submissions.</p>
+                            </div>
+                        ) : (
+                            [...deletedSubmissions, ...submissions.filter(s => s.status === 'rejected')].map(submission => (
+                                <div key={submission.id} className="submission-card" style={{ background: 'var(--pop-cream)', border: '1px solid var(--pop-border)', borderRadius: '20px', padding: '20px', marginBottom: '12px' }}>
+                                    <div className="card-content">
+                                        <div className="submission-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px', marginBottom: '6px' }}>
+                                            <h3 style={{ font: '620 1.25rem/1.2 var(--resources-font)', color: 'var(--pop-ink)', margin: 0 }}>{submission.title}</h3>
+                                            <span
+                                                className="status-badge"
+                                                style={{
+                                                    background: submission.status === 'rejected' ? 'var(--pop-orange)' : 'var(--pop-pink)',
+                                                    color: 'var(--pop-ink)',
+                                                    border: '1px solid var(--pop-border)',
+                                                    fontSize: '0.68rem',
+                                                    padding: '3px 8px',
+                                                    borderRadius: '100px',
+                                                    fontWeight: 800,
+                                                    textTransform: 'uppercase'
                                                 }}
-                                            />
-                                            {getDraft(submission).isUploading && (
-                                                <p className="thumbnail-upload-status">Uploading thumbnail...</p>
+                                            >
+                                                {submission.status === 'rejected' ? '✗ Rejected' : '🗑 In Trash'}
+                                            </span>
+                                        </div>
+                                        <p className="submission-url" style={{ color: 'rgba(21, 19, 15, 0.75)', fontSize: '0.85rem', margin: '0 0 8px 0', wordBreak: 'break-all' }}>{submission.url}</p>
+                                        {(submission.admin_notes || submission.rejection_reason) && (
+                                            <div className="rejection-reason" style={{ background: 'var(--pop-yellow)', border: '1px solid var(--pop-border)', padding: '8px 12px', borderRadius: '8px', fontSize: '0.85rem', color: 'var(--pop-ink)', margin: '8px 0 12px' }}>
+                                                <strong>Curator Note:</strong> {submission.admin_notes || submission.rejection_reason}
+                                            </div>
+                                        )}
+                                        <div className="submission-actions" style={{ display: 'flex', gap: '8px' }}>
+                                            {role === 'admin' && submission.status === 'deleted' && (
+                                                <>
+                                                    <button onClick={() => handleRestore(submission.id)} className="btn-approve">
+                                                        Restore
+                                                    </button>
+                                                    <button onClick={() => handlePermanentDelete(submission.id)} className="btn-delete">
+                                                        Delete Forever
+                                                    </button>
+                                                </>
                                             )}
-                                            {getDraft(submission).uploadError && (
-                                                <p className="thumbnail-upload-error">{getDraft(submission).uploadError}</p>
-                                            )}
-                                            {getDraft(submission).thumbnailUrl && (
-                                                <img
-                                                    src={getDraft(submission).thumbnailUrl}
-                                                    alt={`Thumbnail preview for ${submission.title}`}
-                                                    className="curation-thumbnail-preview"
-                                                    loading="lazy"
-                                                />
+                                            {submission.status === 'rejected' && (
+                                                <a href={`/resources/${submission.id}`} className="btn-preview">View Details ↗</a>
                                             )}
                                         </div>
-                                    </div>
-                                    <div className="submission-actions">
-                                        <button
-                                            onClick={() => openModerationDialog(submission, 'approve')}
-                                            className="btn-approve"
-                                        >
-                                            ✓ Approve
-                                        </button>
-                                        <button
-                                            onClick={() => openModerationDialog(submission, 'reject')}
-                                            className="btn-reject"
-                                        >
-                                            ✗ Reject
-                                        </button>
-                                        <a
-                                            href={submission.url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="btn-preview"
-                                        >
-                                            Preview →
-                                        </a>
-                                        {role === 'admin' && (
-                                            <button
-                                                onClick={() => handleDelete(submission.id)}
-                                                className="btn-delete"
-                                                title="Move to Trash"
-                                                style={{ gap: '0.5rem' }}
-                                            >
-                                                <span>🗑</span> Delete
-                                            </button>
-                                        )}
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            ))
+                        )}
                     </div>
-                </div>
-            )}
+                )}
+            </div>
 
             {moderationAction && moderationTarget && (
                 <div className="moderation-modal-backdrop" onClick={closeModerationDialog}>
@@ -1401,7 +1383,8 @@ export default function CuratorDashboard({ user, role }: Props) {
                 .moderation-modal-backdrop {
                     position: fixed;
                     inset: 0;
-                    background: rgba(0, 0, 0, 0.45);
+                    background: rgba(21, 19, 15, 0.65);
+                    backdrop-filter: blur(4px);
                     display: flex;
                     align-items: center;
                     justify-content: center;
@@ -1411,59 +1394,65 @@ export default function CuratorDashboard({ user, role }: Props) {
 
                 .moderation-modal {
                     width: min(560px, 100%);
-                    background: var(--bg-surface);
-                    border: 1px solid var(--border-subtle);
-                    border-radius: 12px;
-                    padding: 1rem;
-                    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+                    background: var(--pop-cream, #fff8e8);
+                    border: 1px solid var(--pop-border, rgba(21, 19, 15, 0.78));
+                    border-radius: 20px;
+                    padding: 28px;
+                    box-shadow: 0 20px 50px rgba(21, 19, 15, 0.25);
+                    color: var(--pop-ink, #15130f);
                 }
 
                 .moderation-modal h3 {
                     margin: 0 0 0.5rem;
-                    font-size: 1.2rem;
-                    color: var(--text-primary);
+                    font: 720 1.6rem/1.1 var(--resources-font, sans-serif);
+                    color: var(--pop-ink, #15130f);
                 }
 
                 .moderation-modal-subtitle {
                     margin: 0 0 0.75rem;
-                    color: var(--text-secondary);
-                    font-size: 0.9rem;
+                    color: rgba(21, 19, 15, 0.8);
+                    font: 450 0.92rem/1.4 var(--resources-font, sans-serif);
                 }
 
                 .moderation-modal-resource {
-                    margin: 0 0 0.75rem;
-                    color: var(--text-primary);
-                    font-size: 0.9rem;
+                    margin: 0 0 1rem;
+                    color: var(--pop-ink, #15130f);
+                    font: 600 0.95rem/1.4 var(--resources-font, sans-serif);
+                    background: var(--pop-yellow, #ffe44f);
+                    padding: 8px 12px;
+                    border-radius: 8px;
+                    border: 1px solid var(--pop-border, rgba(21, 19, 15, 0.78));
                 }
 
                 .moderation-note-input {
                     width: 100%;
-                    border: 1px solid var(--border-subtle);
-                    border-radius: 8px;
-                    background: var(--bg-surface-hover);
-                    color: var(--text-primary);
-                    padding: 0.75rem;
+                    border: 1px solid var(--pop-border, rgba(21, 19, 15, 0.78));
+                    border-radius: 12px;
+                    background: var(--pop-cream, #fff8e8);
+                    color: var(--pop-ink, #15130f);
+                    padding: 12px;
                     resize: vertical;
                     min-height: 120px;
-                    font-size: 0.95rem;
+                    font: 450 0.95rem/1.4 var(--resources-font, sans-serif);
                 }
 
                 .moderation-note-input:focus {
-                    outline: 1px solid var(--text-primary);
-                    border-color: var(--text-primary);
+                    outline: 3px solid var(--pop-purple, #5524c7);
+                    outline-offset: 2px;
                 }
 
                 .moderation-error {
                     margin: 0.75rem 0 0;
-                    color: #EF4444;
+                    color: #b91c1c;
+                    font-weight: 700;
                     font-size: 0.85rem;
                 }
 
                 .moderation-actions {
-                    margin-top: 1rem;
+                    margin-top: 1.5rem;
                     display: flex;
                     justify-content: flex-end;
-                    gap: 0.5rem;
+                    gap: 0.75rem;
                     flex-wrap: wrap;
                 }
 

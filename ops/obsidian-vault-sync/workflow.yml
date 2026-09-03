@@ -1,0 +1,39 @@
+name: Sync vault to Supabase
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "6 - Main Notes/**/*.md"
+      - ".github/scripts/sync-supabase.mjs"
+      - ".github/workflows/sync-vault-to-supabase.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sync-vault-to-supabase
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out vault
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Sync notes and embeddings
+        run: node .github/scripts/sync-supabase.mjs
+        env:
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_REF: ${{ github.ref }}
+          GITHUB_SHA: ${{ github.sha }}
+          VAULT_SYNC_ENDPOINT: https://jwipqbjxpmgyevfzpjjx.supabase.co/functions/v1/sync-obsidian-vault
+          VAULT_SYNC_SECRET: ${{ secrets.VAULT_SYNC_SECRET }}

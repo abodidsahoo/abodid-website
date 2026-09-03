@@ -6,12 +6,8 @@ import InlineInquiryForm from "../../../components/InlineInquiryForm.astro";
 import VaultAskSection from "../../../components/VaultAskSection.astro";
 import { getVaultTags, getVaultNotes } from "../../../lib/github";
 
-const ITEMS_PER_PAGE = 24;
-
 let error = "";
 let allNotes = [];
-let initialNotes = [];
-let remainingNotes = [];
 let tags = [];
 
 try {
@@ -22,8 +18,6 @@ try {
 
     tags = tagsData || [];
     allNotes = notesData || [];
-    initialNotes = allNotes.slice(0, ITEMS_PER_PAGE);
-    remainingNotes = allNotes.slice(ITEMS_PER_PAGE);
 } catch (e) {
     console.error("Error fetching vault data:", e);
     error = e instanceof Error
@@ -61,18 +55,21 @@ const pageDescription = "Ask questions across Abodid Sahoo's public Obsidian not
                             <p class="vault-eyebrow">Browse the archive</p>
                             <h2 id="vault-notes-title">Notes</h2>
                         </div>
-                        <span class="vault-count">{allNotes.length} entries</span>
+                        <div class="vault-topline-meta">
+                            <a href="/research/obsidian-vault/directory" class="vault-browse-all-link">Browse all {allNotes.length} notes →</a>
+                            <span class="vault-count">{allNotes.length} entries</span>
+                        </div>
                     </div>
 
                     <div class="vault-notes-scroll-shell">
                         <div class="vault-notes-scroll" tabindex="0" aria-label="Scrollable list of vault notes">
                             <div class="vault-list" id="notes-grid">
-                            {initialNotes.length === 0 ? (
+                            {allNotes.length === 0 ? (
                                 <div class="vault-empty-state">
                                     <p>No notes found. Check the GitHub connection.</p>
                                 </div>
                             ) : (
-                                initialNotes.map((file, index) => (
+                                allNotes.map((file, index) => (
                                     <a href={`/research/obsidian-vault/${file.name.replace(".md", "")}`} class="note-card">
                                         <span class="note-card__index" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
                                         <h3>{file.name.replace(".md", "").replace(/-/g, " ")}</h3>
@@ -81,13 +78,13 @@ const pageDescription = "Ask questions across Abodid Sahoo's public Obsidian not
                                 ))
                             )}
                             </div>
-
-                            {remainingNotes.length > 0 && (
-                                <div id="scroll-sentinel" class="loading-indicator" aria-live="polite">
-                                    <span>Loading more notes…</span>
-                                </div>
-                            )}
                         </div>
+                    </div>
+                    <div class="vault-directory-link-banner">
+                        <a href="/research/obsidian-vault/directory" class="vault-directory-cta">
+                            <span>Browse complete directory of all {allNotes.length} notes</span>
+                            <span aria-hidden="true">→</span>
+                        </a>
                     </div>
                         </section>
 
@@ -162,58 +159,6 @@ const pageDescription = "Ask questions across Abodid Sahoo's public Obsidian not
         </section>
     </div>
 </BaseLayout>
-
-{remainingNotes.length > 0 && (
-    <script is:inline define:vars={{ remainingNotes, ITEMS_PER_PAGE }}>
-        let currentNotes = remainingNotes;
-        let renderedNoteCount = ITEMS_PER_PAGE;
-        const grid = document.getElementById("notes-grid");
-        const sentinel = document.getElementById("scroll-sentinel");
-
-        const observer = new IntersectionObserver((entries) => {
-            if (entries[0].isIntersecting && currentNotes.length > 0) loadMore();
-        }, { rootMargin: "160px" });
-
-        if (sentinel) observer.observe(sentinel);
-
-        function loadMore() {
-            if (!grid || !sentinel) return;
-            const batch = currentNotes.slice(0, ITEMS_PER_PAGE);
-            currentNotes = currentNotes.slice(ITEMS_PER_PAGE);
-            const fragment = document.createDocumentFragment();
-
-            batch.forEach((file, index) => {
-                const link = document.createElement("a");
-                link.href = `/research/obsidian-vault/${file.name.replace(".md", "")}`;
-                link.className = "note-card fade-in";
-
-                const itemNumber = document.createElement("span");
-                itemNumber.className = "note-card__index";
-                itemNumber.setAttribute("aria-hidden", "true");
-                itemNumber.textContent = String(renderedNoteCount + index + 1).padStart(2, "0");
-
-                const title = document.createElement("h3");
-                title.textContent = file.name.replace(".md", "").replace(/-/g, " ");
-
-                const arrow = document.createElement("span");
-                arrow.className = "note-card__arrow";
-                arrow.setAttribute("aria-hidden", "true");
-                arrow.textContent = "→";
-
-                link.append(itemNumber, title, arrow);
-                fragment.appendChild(link);
-            });
-
-            renderedNoteCount += batch.length;
-            grid.appendChild(fragment);
-
-            if (currentNotes.length === 0) {
-                sentinel.style.display = "none";
-                observer.disconnect();
-            }
-        }
-    </script>
-)}
 
 <style is:global>
     :root {
@@ -357,8 +302,7 @@ const pageDescription = "Ask questions across Abodid Sahoo's public Obsidian not
     }
 
     .vault-eyebrow,
-    .vault-count,
-    .loading-indicator {
+    .vault-count {
         margin: 0;
         font: 750 clamp(0.68rem, 0.9vw, 0.78rem)/1.35 "Satoshi-Variable", "Satoshi-Regular", "Space Mono", "Inconsolata", monospace;
         letter-spacing: 0.09em;
@@ -462,6 +406,48 @@ const pageDescription = "Ask questions across Abodid Sahoo's public Obsidian not
 
     .vault-count { text-align: right; }
 
+    .vault-topline-meta {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 0.25rem;
+    }
+
+    .vault-browse-all-link {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--pop-purple);
+        text-decoration: underline;
+        text-underline-offset: 2px;
+        transition: color var(--vault-motion);
+    }
+
+    .vault-browse-all-link:hover {
+        color: var(--pop-ink);
+    }
+
+    .vault-directory-link-banner {
+        padding: 0.85rem 1rem;
+        border-top: 1px solid var(--pop-line);
+        background: rgba(255, 255, 255, 0.4);
+    }
+
+    .vault-directory-cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.92rem;
+        font-weight: 650;
+        color: var(--pop-ink);
+        text-decoration: none;
+        transition: color var(--vault-motion);
+    }
+
+    .vault-directory-cta:hover {
+        text-decoration: underline;
+        color: var(--pop-purple);
+    }
+
     .vault-notes-scroll,
     .tag-cloud-wrapper {
         height: clamp(460px, 54vw, 660px);
@@ -478,7 +464,8 @@ const pageDescription = "Ask questions across Abodid Sahoo's public Obsidian not
         border-radius: var(--vault-control-radius);
     }
 
-    .vault-list { display: grid; }
+    /* Keep the final title above the scroll area's bottom fade. */
+    .vault-list { display: grid; padding-bottom: 7.5rem; }
 
     .note-card {
         min-height: 66px;
@@ -521,8 +508,6 @@ const pageDescription = "Ask questions across Abodid Sahoo's public Obsidian not
     .note-card__arrow { font-size: 1.15rem; transition: transform var(--vault-motion); }
     .note-card:hover .note-card__arrow,
     .note-card:focus-visible .note-card__arrow { transform: translateX(4px); }
-
-    .loading-indicator { padding: 1rem; text-align: center; }
 
     .vault-empty-state {
         min-height: 240px;
@@ -740,13 +725,6 @@ const pageDescription = "Ask questions across Abodid Sahoo's public Obsidian not
     .vault-question-panel .vault-citation-popover__title { color: var(--pop-ink); }
     .vault-question-panel .vault-citation-popover__meta,
     .vault-question-panel .vault-citation-popover blockquote { color: rgba(21, 19, 15, 0.72); }
-
-    @keyframes vaultFadeIn {
-        from { opacity: 0; transform: translateY(8px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    .fade-in { animation: vaultFadeIn 240ms ease-out forwards; }
 
     @media (max-width: 980px) {
         .vault-workspace__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { Fragment, useState, useEffect, useRef } from 'react';
 import { vaultTags as fallbackVaultTags } from '../utils/tags';
 
 // Vivid palette popping against the blue background (pink, yellow, cream, lime)
@@ -49,6 +49,7 @@ function OdometerNumber({ value }) {
  *   showFooter?: boolean,
  *   tagPool?: string[],
  *   variant?: "vault" | "papers",
+ *   interactive?: boolean,
  *   ariaLabel?: string,
  * }} props
  */
@@ -63,6 +64,7 @@ export default function HeroVaultTagsCard({
   showFooter = true,
   tagPool = [],
   variant = "vault",
+  interactive = variant !== "papers",
   ariaLabel = "Obsidian Vault Interactive Explorer",
 }) {
   const hasCustomTagPool = Array.isArray(tagPool) && tagPool.length > 0;
@@ -95,6 +97,8 @@ export default function HeroVaultTagsCard({
   })();
 
   useEffect(() => {
+    if (!interactive) return undefined;
+
     if (hasCustomTagPool) {
       tagsRef.current = tagPool;
       return undefined;
@@ -119,7 +123,7 @@ export default function HeroVaultTagsCard({
     return () => {
       isMounted = false;
     };
-  }, [hasCustomTagPool, tagPool]);
+  }, [hasCustomTagPool, tagPool, interactive]);
 
   useEffect(() => {
     // Wait a few seconds on initial landing before the first subtle roll
@@ -143,6 +147,8 @@ export default function HeroVaultTagsCard({
   }, []);
 
   useEffect(() => {
+    if (!interactive) return;
+
     const container = containerRef.current;
     if (!container) return;
 
@@ -225,41 +231,45 @@ export default function HeroVaultTagsCard({
     return () => {
       container.removeEventListener('mousemove', handleMouseMove);
     };
-  }, []);
+  }, [interactive]);
+
+  const isCardLink = variant !== "papers";
+  const CardTag = isCardLink ? "a" : "div";
 
   return (
-    <a
+    <CardTag
       ref={containerRef}
-      href={href}
-      className={`hero-vault-tags-card hero-vault-tags-card--${variant} story-hero__future-card`}
+      {...(isCardLink ? { href, "aria-label": ariaLabel } : { role: "region", "aria-label": ariaLabel })}
+      className={`hero-vault-tags-card hero-vault-tags-card--${variant} ${interactive ? 'hero-vault-tags-card--interactive' : 'hero-vault-tags-card--non-interactive'} story-hero__future-card`}
       data-auto-contrast
-      aria-label={ariaLabel}
     >
-      <div className="hero-vault-tags-card__backdrop" aria-hidden="true">
-        {activeTags.map((tag) => (
-          <div
-            key={tag.id}
-            className="hero-floating-tag"
-            style={{
-              position: 'absolute',
-              left: `${tag.x}px`,
-              top: `${tag.y}px`,
-              transform: 'translate(-50%, -50%)',
-            }}
-          >
-            <span
-              className="hero-tag-content"
+      {interactive ? (
+        <div className="hero-vault-tags-card__backdrop" aria-hidden="true">
+          {activeTags.map((tag) => (
+            <div
+              key={tag.id}
+              className="hero-floating-tag"
               style={{
-                backgroundColor: tag.theme.bg,
-                color: tag.theme.color,
-                borderColor: tag.theme.border,
+                position: 'absolute',
+                left: `${tag.x}px`,
+                top: `${tag.y}px`,
+                transform: 'translate(-50%, -50%)',
               }}
             >
-              #{tag.text}
-            </span>
-          </div>
-        ))}
-      </div>
+              <span
+                className="hero-tag-content"
+                style={{
+                  backgroundColor: tag.theme.bg,
+                  color: tag.theme.color,
+                  borderColor: tag.theme.border,
+                }}
+              >
+                #{tag.text}
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : null}
 
       <div className="hero-vault-tags-card__content">
         <div className="hero-vault-tags-card__top">
@@ -267,7 +277,25 @@ export default function HeroVaultTagsCard({
           {helperText ? (
             <span className="hero-vault-tags-card__helper">{helperText}</span>
           ) : null}
-          <span className="hero-vault-tags-card__cta">{cta}</span>
+          {isCardLink ? (
+            <span className="hero-vault-tags-card__cta">
+              {cta.split("↗").map((text, index) => (
+                <Fragment key={index}>
+                  {index > 0 && <span className="link-destination-arrow" aria-hidden="true">↗</span>}
+                  {text}
+                </Fragment>
+              ))}
+            </span>
+          ) : (
+            <a href={href} className="hero-vault-tags-card__cta">
+              {cta.split("↗").map((text, index) => (
+                <Fragment key={index}>
+                  {index > 0 && <span className="link-destination-arrow" aria-hidden="true">↗</span>}
+                  {text}
+                </Fragment>
+              ))}
+            </a>
+          )}
           {Array.isArray(details) && details.length > 0 ? (
             <span className="hero-vault-tags-card__details" aria-hidden="true">
               {details.map((detail, index) => (
@@ -315,6 +343,12 @@ export default function HeroVaultTagsCard({
           cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32' fill='none'%3E%3Cline x1='8' y1='8' x2='26' y2='26' stroke='%23fdfbf7' stroke-width='4.5' stroke-linecap='round'/%3E%3Cline x1='8' y1='8' x2='16' y2='16' stroke='%23f78bb1' stroke-width='2.5' stroke-linecap='round'/%3E%3Cline x1='16' y1='16' x2='26' y2='26' stroke='%2317150f' stroke-width='2.5' stroke-linecap='round'/%3E%3Cpath d='M5 0L6.5 3.5L10 5L6.5 6.5L5 10L3.5 6.5L0 5L3.5 3.5Z' fill='%23fdfbf7' stroke='%2317150f' stroke-width='0.8'/%3E%3Ccircle cx='5' cy='5' r='1.2' fill='%23f6e05e'/%3E%3Cpath d='M13 1L14 3.2L16.2 4.2L14 5.2L13 7.5L12 5.2L9.8 4.2L12 3.2Z' fill='%23f6e05e'/%3E%3Cpath d='M2 12L3 14.2L5.2 15.2L3 16.2L2 18.5L1 16.2L-1.2 15.2L1 14.2Z' fill='%23f78bb1'/%3E%3C/svg%3E") 4 4, crosshair;
           user-select: none;
           isolation: isolate;
+        }
+
+        .hero-vault-tags-card:hover,
+        .hero-vault-tags-card:focus-visible {
+          color: var(--pop-cream, #fdfbf7) !important;
+          text-decoration: none !important;
         }
 
         .hero-vault-tags-card__backdrop {
@@ -380,7 +414,7 @@ export default function HeroVaultTagsCard({
         .hero-vault-tags-card__heading {
           max-width: 14ch;
           margin: 0;
-          color: var(--pop-cream, #fdfbf7);
+          color: var(--pop-cream, #fdfbf7) !important;
           font: 620 clamp(1.85rem, 2.9vw, 3.1rem)/0.94 var(--font-display, sans-serif);
           letter-spacing: -0.045em;
           text-wrap: balance;
@@ -399,9 +433,20 @@ export default function HeroVaultTagsCard({
         .hero-vault-tags-card__helper {
           max-width: 48ch;
           display: block;
-          color: var(--pop-cream, #fdfbf7);
+          color: var(--pop-cream, #fdfbf7) !important;
           font: 500 clamp(0.9rem, 1.05vw, 1.08rem)/1.45 var(--font-body, sans-serif);
-          opacity: 0.88;
+          opacity: 1 !important;
+        }
+
+        .hero-vault-tags-card:hover .hero-vault-tags-card__heading,
+        .hero-vault-tags-card:hover .hero-vault-tags-card__helper {
+          color: var(--pop-cream, #fdfbf7) !important;
+          opacity: 1 !important;
+        }
+
+        .hero-vault-tags-card--non-interactive,
+        .hero-vault-tags-card--papers {
+          cursor: default;
         }
 
         .hero-vault-tags-card--papers .hero-vault-tags-card__heading {
@@ -409,7 +454,17 @@ export default function HeroVaultTagsCard({
           font-size: clamp(2.05rem, 3.2vw, 3.45rem);
         }
 
-        .hero-vault-tags-card--papers .hero-vault-tags-card__cta {
+        .hero-vault-tags-card--papers .hero-vault-tags-card__content {
+          pointer-events: auto;
+        }
+
+        .hero-vault-tags-card--papers .hero-vault-tags-card__cta,
+        .hero-vault-tags-card--non-interactive .hero-vault-tags-card__cta {
+          cursor: pointer;
+          pointer-events: auto;
+          position: relative;
+          z-index: 10;
+          text-decoration: none;
           width: fit-content;
           min-height: 54px;
           margin-top: 0.45rem;
@@ -431,10 +486,18 @@ export default function HeroVaultTagsCard({
           transition: transform 180ms ease, box-shadow 180ms ease;
         }
 
-        .hero-vault-tags-card--papers:hover .hero-vault-tags-card__cta,
-        .hero-vault-tags-card--papers:focus-visible .hero-vault-tags-card__cta {
+        .hero-vault-tags-card--papers .hero-vault-tags-card__cta:hover,
+        .hero-vault-tags-card--papers .hero-vault-tags-card__cta:focus-visible,
+        .hero-vault-tags-card--non-interactive .hero-vault-tags-card__cta:hover,
+        .hero-vault-tags-card--non-interactive .hero-vault-tags-card__cta:focus-visible {
           transform: translateY(-2px);
           box-shadow: 0 4px 0 var(--pop-ink, #17150f);
+        }
+
+        .hero-vault-tags-card--papers .hero-vault-tags-card__cta:active,
+        .hero-vault-tags-card--non-interactive .hero-vault-tags-card__cta:active {
+          transform: translateY(0);
+          box-shadow: 0 2px 0 var(--pop-ink, #17150f);
         }
 
         .hero-vault-tags-card__details {
@@ -578,6 +641,6 @@ export default function HeroVaultTagsCard({
           }
         }
       `}</style>
-    </a>
+    </CardTag>
   );
 }

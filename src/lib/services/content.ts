@@ -2,7 +2,7 @@ import { supabase } from '../supabaseClient';
 import { isSupabaseConfigured } from './utils';
 import type { Project, PhotographyProject, BlogPost, Film, ResearchPaper, WorkExperience, ServiceItem } from './types';
 import { featuredPhotography as mockPhotography, recentPosts as mockPosts } from '../../utils/mockData';
-import { GESTURE_CONTROL_VIDEO_URL } from '../mediaAssets';
+import { GESTURE_CONTROL_VIDEO_URL, OBSIDIAN_VAULT_VIDEO_URL } from '../mediaAssets';
 
 const normalizeImageUrl = (value: unknown): string =>
     typeof value === 'string' ? value.trim() : '';
@@ -122,7 +122,12 @@ export async function getResearchProjects(): Promise<Project[]> {
                 href: `/research/${normalizedSlug}`,
                 tags: Array.isArray(p.tags) ? p.tags : (p.tags ? p.tags.split(',') : []),
                 image: p.cover_image,
-                video: normalizedSlug === 'gesture-image-preview' ? GESTURE_CONTROL_VIDEO_URL : undefined
+                video:
+                    normalizedSlug === 'gesture-image-preview'
+                        ? GESTURE_CONTROL_VIDEO_URL
+                        : normalizedSlug === 'obsidian-vault'
+                        ? OBSIDIAN_VAULT_VIDEO_URL
+                        : undefined
             };
         })
         .filter((project) => !isRemovedResearchProject(project));
@@ -159,7 +164,12 @@ export async function getProjects(): Promise<Project[]> {
                 link: p.link || p.repo_link,
                 slug: normalizedSlug,
                 image: p.cover_image,
-                video: normalizedSlug === 'gesture-image-preview' ? GESTURE_CONTROL_VIDEO_URL : undefined,
+                video:
+                    normalizedSlug === 'gesture-image-preview'
+                        ? GESTURE_CONTROL_VIDEO_URL
+                        : normalizedSlug === 'obsidian-vault'
+                        ? OBSIDIAN_VAULT_VIDEO_URL
+                        : undefined,
                 published: p.published
             } as Project;
         })
@@ -183,7 +193,12 @@ export async function getProjectBySlug(slug: string): Promise<Project | null> {
         ...data,
         href: `/research/${data.slug}`,
         image: data.cover_image,
-        video: data.slug === 'gesture-image-preview' ? GESTURE_CONTROL_VIDEO_URL : undefined,
+        video:
+            data.slug === 'gesture-image-preview'
+                ? GESTURE_CONTROL_VIDEO_URL
+                : data.slug === 'obsidian-vault'
+                ? OBSIDIAN_VAULT_VIDEO_URL
+                : undefined,
         tags: Array.isArray(data.tags) ? data.tags : [],
         published: Boolean(data.published),
         experiment_url: data.experiment_url || data.link || null,
@@ -379,6 +394,34 @@ export async function getRelatedPost(currentSlug: string, category: string | str
 }
 
 // --- Films ---
+export const slugify = (text: string): string =>
+    String(text || '')
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+
+const normalizeFilmRecord = (film: any): Film => {
+    const title = film.title || '';
+    const slug = (film.slug && String(film.slug).trim()) || slugify(title);
+    return {
+        id: film.id,
+        slug,
+        title,
+        description: film.description || '',
+        year: film.year ? String(film.year) : '',
+        image: film.thumbnail_url || film.image || '',
+        videoUrl: film.video_url || film.videoUrl || '',
+        roles: film.roles || [],
+        categories: film.categories || [],
+        shade: film.shade || film.color || null,
+        published: Boolean(film.published),
+        sort_order: film.sort_order,
+        updated_at: film.updated_at || film.created_at,
+        video_published_at: film.video_published_at || null,
+    };
+};
+
 export async function getFilms(): Promise<Film[]> {
     if (!isSupabaseConfigured() || !supabase) return [];
 
@@ -391,20 +434,61 @@ export async function getFilms(): Promise<Film[]> {
 
     if (error) return [];
 
-    return data.map((film: any) => ({
-        title: film.title,
-        description: film.description,
-        year: film.year,
-        image: film.thumbnail_url,
-        videoUrl: film.video_url,
-        roles: film.roles || [],
-        categories: film.categories || [],
-        published: film.published
-    } as Film));
+    return data.map(normalizeFilmRecord);
+}
+
+export async function getFilmBySlug(slug: string): Promise<Film | null> {
+    const cleanSlug = decodeURIComponent(slug || '').trim().toLowerCase();
+    if (!cleanSlug) return null;
+
+    if (!isSupabaseConfigured() || !supabase) return null;
+
+    const { data, error } = await supabase
+        .from('films')
+        .select('*')
+        .eq('published', true)
+        .ilike('slug', cleanSlug)
+        .maybeSingle();
+
+    if (!error && data) {
+        return normalizeFilmRecord(data);
+    }
+
+    // Fallback: search all published films in case slug column was null in database
+    const allFilms = await getFilms();
+    const match = allFilms.find(
+        (f) => f.slug?.toLowerCase() === cleanSlug || slugify(f.title) === cleanSlug,
+    );
+    return match || null;
 }
 
 // --- Research Papers ---
-export async function getResearchPapers(): Promise<ResearchPaper[]> { // Using any for rough typing for now unless we add ResearchPaper type
+const normalizeResearchPaperRecord = (paper: any): ResearchPaper => {
+    const title = paper.title || '';
+    const slug = (paper.slug && String(paper.slug).trim()) || slugify(title);
+    return {
+        id: paper.id,
+        slug,
+        title,
+        formatted_title: paper.formatted_title,
+        description: paper.description || paper.abstract || '',
+        explanation: paper.explanation,
+        tags: Array.isArray(paper.tags) ? paper.tags : [],
+        pdf_url: paper.pdf_url || paper.source_url || '',
+        published_at: paper.published_at || paper.created_at,
+        published: paper.published !== false,
+        updated_at: paper.updated_at || paper.created_at,
+        authors: paper.authors,
+        authors_json: paper.authors_json,
+        journal: paper.journal || paper.publication,
+        publication: paper.publication || paper.journal,
+        year: paper.year || paper.published_year,
+        published_year: paper.published_year || paper.year,
+        abstract: paper.abstract || paper.description,
+    };
+};
+
+export async function getResearchPapers(): Promise<ResearchPaper[]> {
     if (!isSupabaseConfigured() || !supabase) {
         // Never substitute invented papers for a curatorial collection.
         return [];
@@ -421,7 +505,32 @@ export async function getResearchPapers(): Promise<ResearchPaper[]> { // Using a
         return [];
     }
 
-    return data;
+    return (data || []).map(normalizeResearchPaperRecord);
+}
+
+export async function getResearchPaperBySlug(slug: string): Promise<ResearchPaper | null> {
+    const cleanSlug = decodeURIComponent(slug || '').trim().toLowerCase();
+    if (!cleanSlug) return null;
+
+    if (!isSupabaseConfigured() || !supabase) return null;
+
+    const { data, error } = await supabase
+        .from('research_papers')
+        .select('*')
+        .eq('published', true)
+        .ilike('slug', cleanSlug)
+        .maybeSingle();
+
+    if (!error && data) {
+        return normalizeResearchPaperRecord(data);
+    }
+
+    // Fallback: search all published papers
+    const allPapers = await getResearchPapers();
+    const match = allPapers.find(
+        (p) => p.slug?.toLowerCase() === cleanSlug || slugify(p.title) === cleanSlug,
+    );
+    return match || null;
 }
 
 // --- Work Experience ---

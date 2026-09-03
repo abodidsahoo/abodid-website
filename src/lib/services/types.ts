@@ -94,6 +94,8 @@ export interface Education extends BaseEntity {
 }
 
 export interface Film extends BaseEntity {
+    id?: string;
+    slug?: string;
     title: string;
     description: string;
     year: string;
@@ -101,8 +103,11 @@ export interface Film extends BaseEntity {
     videoUrl: string; // video_url
     roles: string[];
     categories: string[];
+    shade?: string | null;
     published: boolean;
     sort_order?: number;
+    updated_at?: string;
+    video_published_at?: string | null;
 }
 
 export interface TimelineCard extends BaseEntity {
@@ -126,6 +131,8 @@ export interface CVsResponse {
 }
 
 export interface ResearchPaper extends BaseEntity {
+    id?: string;
+    slug?: string;
     title: string;
     formatted_title?: string;
     description: string;
@@ -134,6 +141,14 @@ export interface ResearchPaper extends BaseEntity {
     pdf_url: string;
     published_at: string;
     published?: boolean;
+    updated_at?: string;
+    authors?: string;
+    authors_json?: Array<string | { name?: string }>;
+    journal?: string;
+    publication?: string;
+    year?: number | string;
+    published_year?: number | string;
+    abstract?: string;
 }
 
 export interface PageMetadata extends BaseEntity {

@@ -25,7 +25,7 @@ const contactHref = onHomepage ? "#enquiry" : "/#enquiry";
   </nav>
 
   <a class="site-header__contact" href={contactHref}>
-    Hire me <span aria-hidden="true">↗</span>
+    Hire me <span class="link-destination-arrow" aria-hidden="true">↗</span>
   </a>
 
   <details class="site-header__mobile">
@@ -36,7 +36,7 @@ const contactHref = onHomepage ? "#enquiry" : "/#enquiry";
           {item.label}
         </a>
       ))}
-      <a href={contactHref}>Hire me ↗</a>
+      <a href={contactHref}>Hire me <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
     </nav>
   </details>
 </header>

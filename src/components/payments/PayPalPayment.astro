@@ -1,0 +1,149 @@
+---
+interface Props {
+  appearance?: "light" | "inherit";
+}
+const { appearance = "inherit" } = Astro.props;
+
+// Preserve the existing hosted checkout in its own document so other PayPal
+// products can coexist without sharing SDK configuration or container IDs.
+const paypalFrameSrcdoc = `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      color-scheme: light;
+    }
+
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      background: transparent;
+    }
+
+    body {
+      min-width: 0;
+      overflow: hidden;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    #paypal-container-22T4QFMFG6BDS {
+      width: 100%;
+      min-width: 0;
+    }
+  </style>
+  <script src="https://www.paypal.com/sdk/js?client-id=BAAQE8TkamhCfaYjOOl_ZjtgKbY0ZCtyOzmdOe83xf_zWg30P2ZzyrL0_v1NsBdll_k9zw5wYPq9KJkXy8&components=hosted-buttons&disable-funding=venmo&currency=GBP"></script>
+</head>
+<body>
+  <div id="paypal-container-22T4QFMFG6BDS"></div>
+  <script>
+    (() => {
+      const notifyHeight = () => {
+        const checkout = document.querySelector(
+          "#paypal-container-22T4QFMFG6BDS",
+        );
+        const height = Math.max(
+          (checkout?.scrollHeight || 0) + 16,
+          48,
+        );
+
+        window.parent.postMessage(
+          {
+            type: "abodid:paypal-frame-height",
+            height,
+          },
+          "*",
+        );
+      };
+
+      try {
+        const parentTheme =
+          window.parent.document.documentElement.getAttribute("data-theme");
+
+        if ("${appearance}" === "inherit" && parentTheme === "dark") {
+          document.documentElement.setAttribute("data-theme", "dark");
+        }
+      } catch (_error) {
+        // The checkout still works if the parent theme is unavailable.
+      }
+
+      const renderPayPal = () => {
+        if (!window.paypal?.HostedButtons) {
+          return false;
+        }
+
+        window.paypal
+          .HostedButtons({
+            hostedButtonId: "22T4QFMFG6BDS",
+          })
+          .render("#paypal-container-22T4QFMFG6BDS");
+
+        notifyHeight();
+        window.setTimeout(notifyHeight, 500);
+        window.setTimeout(notifyHeight, 1500);
+
+        if ("ResizeObserver" in window) {
+          new ResizeObserver(notifyHeight).observe(document.body);
+        }
+
+        return true;
+      };
+
+      if (renderPayPal()) return;
+
+      const intervalId = window.setInterval(() => {
+        if (renderPayPal()) {
+          window.clearInterval(intervalId);
+        }
+      }, 200);
+
+      window.setTimeout(() => {
+        window.clearInterval(intervalId);
+        notifyHeight();
+      }, 5000);
+    })();
+  </script>
+</body>
+</html>`;
+---
+
+<iframe
+  class="paypal-native-frame"
+  data-paypal-frame
+  title="PayPal checkout"
+  srcdoc={paypalFrameSrcdoc}
+  allow="payment *"
+  allowpaymentrequest
+  referrerpolicy="strict-origin-when-cross-origin"
+></iframe>
+
+<script>
+  // One listener serves every instance, including after Astro navigation.
+  window.addEventListener("message", (event) => {
+    if (!event.data || event.data.type !== "abodid:paypal-frame-height") return;
+    const frame = Array.from(document.querySelectorAll<HTMLIFrameElement>("[data-paypal-frame]"))
+      .find((candidate) => event.source === candidate.contentWindow);
+    if (!frame) return;
+    const nextHeight = Number(event.data.height);
+    if (Number.isFinite(nextHeight)) {
+      frame.style.height = `${Math.min(Math.max(Math.ceil(nextHeight), 48), 1200)}px`;
+    }
+  });
+</script>
+
+<style>
+  .paypal-native-frame {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    height: 360px;
+    border: 0;
+    color-scheme: light;
+  }
+</style>

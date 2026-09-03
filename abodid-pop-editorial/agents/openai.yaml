@@ -1,0 +1,5 @@
+interface:
+  display_name: "Abodid Pop Editorial"
+  short_description: "Redesign pages in Abodid’s pop-editorial style"
+  brand_color: "#2444CA"
+  default_prompt: "Use $abodid-pop-editorial to redesign this page in my saved visual language."

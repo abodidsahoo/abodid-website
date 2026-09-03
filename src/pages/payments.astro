@@ -1,453 +1,283 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import StripePayment from "../components/payments/StripePayment.astro";
+import PayPalPayment from "../components/payments/PayPalPayment.astro";
+import RazorpayPayment from "../components/payments/RazorpayPayment.astro";
 
 const pageTitle = "Payments";
 const pageDescription =
-    "Payment page for Abodid Sahoo. International payments can use PayPal, and India payments can use the India checkout route.";
-
-const paypalFrameSrcdoc = `<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    :root {
-      color-scheme: light;
-    }
-
-    :root[data-theme="dark"] {
-      color-scheme: dark;
-    }
-
-    html,
-    body {
-      margin: 0;
-      padding: 0;
-      background: transparent;
-    }
-
-    body {
-      min-width: 0;
-      overflow: hidden;
-      font-family: Arial, Helvetica, sans-serif;
-    }
-
-    #paypal-container-22T4QFMFG6BDS {
-      width: 100%;
-      min-width: 0;
-    }
-  </style>
-  <script src="https://www.paypal.com/sdk/js?client-id=BAAQE8TkamhCfaYjOOl_ZjtgKbY0ZCtyOzmdOe83xf_zWg30P2ZzyrL0_v1NsBdll_k9zw5wYPq9KJkXy8&components=hosted-buttons&disable-funding=venmo&currency=GBP"></script>
-</head>
-<body>
-  <div id="paypal-container-22T4QFMFG6BDS"></div>
-  <script>
-    (() => {
-      const notifyHeight = () => {
-        const checkout = document.querySelector(
-          "#paypal-container-22T4QFMFG6BDS",
-        );
-        const height = Math.max(
-          document.body.scrollHeight,
-          checkout?.scrollHeight || 0,
-          360,
-        );
-
-        window.parent.postMessage(
-          {
-            type: "abodid:paypal-frame-height",
-            height,
-          },
-          "*",
-        );
-      };
-
-      try {
-        const parentTheme =
-          window.parent.document.documentElement.getAttribute("data-theme");
-
-        if (parentTheme === "dark") {
-          document.documentElement.setAttribute("data-theme", "dark");
-        }
-      } catch (_error) {
-        // The checkout still works if the parent theme is unavailable.
-      }
-
-      const renderPayPal = () => {
-        if (!window.paypal?.HostedButtons) {
-          return false;
-        }
-
-        window.paypal
-          .HostedButtons({
-            hostedButtonId: "22T4QFMFG6BDS",
-          })
-          .render("#paypal-container-22T4QFMFG6BDS");
-
-        notifyHeight();
-        window.setTimeout(notifyHeight, 500);
-        window.setTimeout(notifyHeight, 1500);
-
-        if ("ResizeObserver" in window) {
-          new ResizeObserver(notifyHeight).observe(document.body);
-        }
-
-        return true;
-      };
-
-      if (renderPayPal()) return;
-
-      const intervalId = window.setInterval(() => {
-        if (renderPayPal()) {
-          window.clearInterval(intervalId);
-        }
-      }, 200);
-
-      window.setTimeout(() => {
-        window.clearInterval(intervalId);
-        notifyHeight();
-      }, 5000);
-    })();
-  </script>
-</body>
-</html>`;
+  "Pay Abodid Sahoo with PayPal or Stripe, or use Razorpay for payments from India.";
 ---
 
 <BaseLayout
-    title={pageTitle}
-    description={pageDescription}
-    noindex={true}
-    showNewsletterPopup={false}
-    hideFooter={true}
+  title={pageTitle}
+  description={pageDescription}
+  noindex={true}
+  showNewsletterPopup={false}
+  showGlobalGrid={false}
+  fullWidth={true}
+  showFooterNavigation={false}
+  bodyClass="payments-page"
 >
-    <section class="payments-shell">
-        <div class="payments-frame">
-            <header class="payments-header">
-                <p class="payments-kicker">Payments</p>
-                <h1>Choose a payment method</h1>
-                <p class="payments-intro">
-                    Use PayPal for international payments. Use the India payment
-                    option for UPI, Indian cards, and net banking.
-                </p>
-            </header>
+  <section class="payments-shell" aria-labelledby="payments-heading">
+    <header class="payments-header">
+      <div>
+        <p class="payments-kicker">Abodid Sahoo / Payments</p>
+        <h1 id="payments-heading">Choose a<br />payment method<span>.</span></h1>
+      </div>
+      <div class="payments-intro">
+        <p>Good work.<br /><em>Easy payments.</em></p>
+        <p>Use PayPal or Stripe for international payments, or Razorpay for payments from India.</p>
+      </div>
+    </header>
 
-            <div class="payment-panels" aria-label="Payment options">
-                <article class="payment-panel">
-                    <div class="gateway-visual gateway-visual-paypal">
-                        <span>PayPal</span>
-                    </div>
-
-                    <div class="payment-details">
-                        <p class="payment-region">International</p>
-                        <h2>PayPal</h2>
-                        <p>
-                            For payments from outside India. This checkout uses
-                            GBP and opens through PayPal.
-                        </p>
-
-                        <div class="payment-action">
-                            <p class="payment-action-label">
-                                International Payment
-                            </p>
-                            <div class="gateway-checkout-surface">
-                                <iframe
-                                    class="paypal-native-frame"
-                                    data-paypal-frame
-                                    title="PayPal checkout"
-                                    srcdoc={paypalFrameSrcdoc}
-                                    allow="payment *"
-                                    allowpaymentrequest
-                                    referrerpolicy="strict-origin-when-cross-origin"
-                                ></iframe>
-                            </div>
-                        </div>
-                    </div>
-                </article>
-
-                <article class="payment-panel">
-                    <div class="gateway-visual gateway-visual-india">
-                        <span>Razorpay</span>
-                    </div>
-
-                    <div class="payment-details">
-                        <p class="payment-region">India</p>
-                        <h2>India payment</h2>
-                        <p>
-                            For payments from India. Use this option for UPI,
-                            Indian cards, and net banking.
-                        </p>
-
-                        <div class="payment-action">
-                            <p class="payment-action-label">Pay Now</p>
-                            <div class="gateway-checkout-surface">
-                                <form class="razorpay-widget">
-                                    <script
-                                        is:inline
-                                        src="https://checkout.razorpay.com/v1/payment-button.js"
-                                        data-payment_button_id="pl_T1pqkmNlgYnS0d"
-                                        async
-                                    ></script>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </article>
+    <div id="payment-options" class="payment-panels" aria-label="Payment options">
+      <article class="payment-panel payment-panel--paypal" aria-labelledby="paypal-heading">
+        <div class="payment-details">
+          <p class="payment-region">01 / International · GBP</p>
+          <div class="payment-heading-row">
+            <div>
+              <h2 id="paypal-heading">PayPal</h2>
+              <p class="payment-summary">For payments from outside India.<br /> Enter the agreed amount in GBP.</p>
             </div>
+          </div>
+          <div class="payment-action">
+            <p class="payment-action-label">International payment</p>
+            <div class="gateway-checkout-surface"><PayPalPayment appearance="light" /></div>
+          </div>
         </div>
-    </section>
+      </article>
 
-    <script is:inline>
-        (() => {
-            const frame = document.querySelector("[data-paypal-frame]");
+      <article class="payment-panel payment-panel--stripe" aria-labelledby="stripe-heading">
+        <div class="payment-details">
+          <p class="payment-region">02 / International</p>
+          <div class="payment-heading-row">
+            <div>
+              <h2 id="stripe-heading">Stripe</h2>
+              <p class="payment-summary">Pay securely through Stripe.<br /> Review your payment at checkout.</p>
+            </div>
+          </div>
+          <div class="payment-action">
+            <p class="payment-action-label">Stripe checkout</p>
+            <div class="gateway-checkout-surface"><StripePayment /></div>
+          </div>
+        </div>
+      </article>
 
-            window.addEventListener("message", (event) => {
-                const data = event.data;
+      <article class="payment-panel payment-panel--india" aria-labelledby="razorpay-heading">
+        <div class="payment-details">
+          <p class="payment-region">03 / India</p>
+          <div class="payment-heading-row">
+            <div>
+              <h2 id="razorpay-heading">Razorpay</h2>
+              <p class="payment-summary">For payments from India.<br /> UPI, Indian cards &amp; net banking.</p>
+            </div>
+          </div>
+          <div class="payment-action">
+            <p class="payment-action-label">India payment</p>
+            <div class="gateway-checkout-surface razorpay-checkout-box">
+              <p>Click the button to initiate payment.</p>
+              <RazorpayPayment />
+            </div>
+          </div>
+        </div>
+      </article>
+    </div>
 
-                if (
-                    !frame ||
-                    !data ||
-                    data.type !== "abodid:paypal-frame-height" ||
-                    event.source !== frame.contentWindow
-                ) {
-                    return;
-                }
-
-                const nextHeight = Number(data.height);
-
-                if (Number.isFinite(nextHeight)) {
-                    frame.style.height = `${Math.min(
-                        Math.max(Math.ceil(nextHeight), 360),
-                        1200,
-                    )}px`;
-                }
-            });
-        })();
-    </script>
+    <footer class="payments-note">
+      <p>Payments go directly through your chosen provider.</p>
+      <a href="/">Back to abodid.com <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+    </footer>
+  </section>
 </BaseLayout>
 
 <style>
-    .payments-shell {
-        width: 100%;
-        min-height: 100vh;
-        padding: clamp(3.5rem, 7vh, 5.5rem) 0 clamp(3rem, 7vh, 5rem);
-    }
+  :global(body.payments-page) {
+    background: #2444ca;
+  }
 
-    .payments-frame {
-        max-width: 1120px;
-        margin: 0 auto;
-    }
+  .payments-shell {
+    --pop-blue: #2444ca;
+    --pop-pink: #ff7eb5;
+    --pop-yellow: #ffe44f;
+    --pop-purple: #5524c7;
+    --pop-cream: #fff8e8;
+    --pop-ink: #15130f;
+    --pop-border: rgba(21, 19, 15, 0.78);
+    --pop-line: rgba(21, 19, 15, 0.24);
+    --payments-gutter: clamp(16px, 3vw, 40px);
+    color: var(--pop-cream);
+    background: var(--pop-blue);
+    padding: 0 8px;
+    width: 100%;
+  }
 
-    .payments-header {
-        max-width: 760px;
-        margin: 0 0 2rem;
-    }
+  .payment-panels,
+  .payments-note {
+    max-width: 1400px;
+    width: calc(100% - 2 * var(--payments-gutter));
+    margin-inline: auto;
+  }
 
-    .payments-kicker,
-    .payment-region,
-    .payment-action-label {
-        margin: 0;
-        font-family: var(--font-ui);
-        font-size: 0.8rem;
-        font-weight: 650;
-        line-height: 1.2;
-        letter-spacing: 0;
-        color: var(--text-tertiary);
-    }
+  .payments-header {
+    max-width: 1480px;
+    margin-inline: auto;
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) minmax(240px, 0.65fr);
+    gap: 32px;
+    align-items: end;
+    padding: clamp(32px, 4vw, 56px) var(--payments-gutter) 64px;
+  }
 
-    .payments-header h1 {
-        margin: 0.55rem 0 0;
-        font-family: var(--font-display);
-        font-size: clamp(2.15rem, 4vw, 3.5rem);
-        font-weight: 800;
-        line-height: 1.05;
-        letter-spacing: 0;
-        color: var(--text-primary);
-    }
+  .payments-kicker,
+  .payment-region,
+  .payment-action-label {
+    margin: 0;
+    font: 750 0.72rem/1.35 var(--font-mono);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: inherit;
+  }
 
-    .payments-intro {
-        max-width: 650px;
-        margin: 1rem 0 0;
-        color: var(--text-secondary);
-        font-family: var(--font-body);
-        font-size: 1.06rem;
-        line-height: 1.7;
-        letter-spacing: 0;
-    }
+  .payments-header h1 {
+    margin: 24px 0 0;
+    font: 620 clamp(3rem, 6.5vw, 6rem)/0.94 var(--font-display);
+    letter-spacing: -0.065em;
+    color: inherit;
+  }
 
-    .payment-panels {
-        display: grid;
-        gap: 1.25rem;
-    }
+  .payments-header h1 span { color: var(--pop-yellow); }
+  .payments-intro p { color: inherit; margin: 0; }
+  .payments-intro p:first-child {
+    font: 480 clamp(1.35rem, 2vw, 1.8rem)/1.12 var(--font-display);
+    letter-spacing: -0.03em;
+  }
+  .payments-intro em { font-style: normal; color: var(--pop-yellow); }
+  .payments-intro p + p {
+    max-width: 34ch;
+    margin-top: 12px;
+    font: 450 0.96rem/1.45 var(--font-body);
+  }
+  .payment-panels {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    align-items: start;
+    scroll-margin-top: 88px;
+  }
+  .payment-panel {
+    width: 100%;
+    min-width: 0;
+    border: 1px solid var(--pop-border);
+    border-radius: 22px;
+    color: var(--pop-ink);
+  }
+  .payment-panel--stripe { background: var(--pop-pink); }
+  .payment-panel--paypal { background: var(--pop-cream); }
+  .payment-panel--india { background: var(--pop-yellow); }
+  .payment-details { padding: 28px 24px; }
+  .payment-heading-row { margin-top: 16px; }
+  .payment-panel h2 {
+    margin: 0;
+    color: inherit;
+    font: 620 clamp(2rem, 3.4vw, 3.2rem)/1 var(--font-display);
+    letter-spacing: -0.045em;
+  }
+  .payment-summary {
+    margin: 12px 0 0;
+    color: inherit;
+    font: 450 0.96rem/1.45 var(--font-body);
+    text-wrap: pretty;
+  }
+  .payment-action {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--pop-line);
+  }
+  .payment-action-label { margin-bottom: 12px; }
+  .gateway-checkout-surface {
+    width: 100%;
+    max-width: 400px;
+    min-width: 0;
+    margin-inline: auto;
+    color-scheme: light;
+  }
+  .payment-panel--stripe .gateway-checkout-surface {
+    /* Center Stripe's native frame while the surrounding card stays fluid. */
+    max-width: 288px;
+  }
+  .razorpay-checkout-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 224px;
+    padding: 32px 20px;
+    border: 1px solid var(--pop-line);
+    border-radius: 6px;
+    background: var(--pop-cream);
+    text-align: center;
+  }
+  .razorpay-checkout-box p {
+    margin: 0 0 16px;
+    color: var(--pop-ink);
+    font: 450 0.96rem/1.45 var(--font-body);
+    text-wrap: balance;
+  }
+  .payments-note {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 0 24px;
+    font: 450 0.8rem/1.4 var(--font-body);
+  }
+  .payments-note p { margin: 0; color: inherit; }
+  .payments-note a {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 44px;
+    color: inherit;
+    text-underline-offset: 4px;
+    white-space: nowrap;
+  }
+  .payments-shell a:focus-visible {
+    outline: 3px solid var(--pop-yellow);
+    outline-offset: 4px;
+    border-radius: 4px;
+  }
+  .payments-shell a:hover { text-decoration: underline; }
 
-    .payment-panel {
-        display: grid;
-        grid-template-columns: minmax(18rem, 0.9fr) minmax(24rem, 1.1fr);
-        min-height: 22rem;
-        min-width: 0;
-        overflow: hidden;
-        border: 1px solid var(--border-subtle);
-        border-radius: 8px;
-        background:
-            linear-gradient(
-                135deg,
-                color-mix(in srgb, var(--bg-surface) 96%, transparent),
-                color-mix(in srgb, var(--bg-surface) 82%, transparent)
-            ),
-            var(--bg-surface);
-        box-shadow: 0 18px 60px rgba(0, 0, 0, 0.14);
-    }
-
-    .gateway-visual {
-        min-height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: clamp(2rem, 6vw, 4rem);
-        border-right: 1px solid var(--border-subtle);
-        font-family: var(--font-display);
-        font-size: clamp(2rem, 4.5vw, 3.6rem);
-        font-weight: 850;
-        line-height: 1;
-        letter-spacing: 0;
-        text-align: center;
-    }
-
-    .gateway-visual span {
-        display: inline-block;
-    }
-
-    .gateway-visual-paypal {
-        color: #ffffff;
-        background:
-            radial-gradient(
-                circle at 18% 18%,
-                rgba(255, 255, 255, 0.95),
-                transparent 34%
-            ),
-            linear-gradient(
-                135deg,
-                rgba(255, 255, 255, 0.96) 0%,
-                rgba(176, 211, 255, 0.94) 42%,
-                rgba(0, 94, 214, 0.98) 100%
-            );
-        text-shadow: 0 1px 22px rgba(0, 35, 84, 0.46);
-    }
-
-    .gateway-visual-india {
-        color: #1d4d77;
-        background:
-            radial-gradient(
-                circle at 22% 18%,
-                rgba(255, 255, 255, 0.98),
-                transparent 36%
-            ),
-            linear-gradient(
-                135deg,
-                rgba(255, 255, 255, 0.98) 0%,
-                rgba(238, 246, 255, 0.96) 54%,
-                rgba(122, 166, 205, 0.92) 100%
-            );
-    }
-
-    .payment-details {
-        display: flex;
-        min-width: 0;
-        flex-direction: column;
-        padding: clamp(1.25rem, 3vw, 2rem);
-    }
-
-    .payment-panel h2 {
-        margin: 0.55rem 0 0;
-        font-family: var(--font-display);
-        font-size: clamp(1.45rem, 2.5vw, 2rem);
-        font-weight: 750;
-        line-height: 1.1;
-        letter-spacing: 0;
-        color: var(--text-primary);
-    }
-
-    .payment-panel p:not(.payment-region):not(.payment-action-label) {
-        margin: 0.9rem 0 0;
-        color: var(--text-secondary);
-        font-family: var(--font-body);
-        font-size: 0.98rem;
-        line-height: 1.65;
-        letter-spacing: 0;
-    }
-
-    .payment-action {
-        margin-top: auto;
-        padding-top: 1.5rem;
-    }
-
-    .payment-action-label {
-        margin-bottom: 0.75rem;
-        color: var(--text-secondary);
-    }
-
-    .gateway-checkout-surface {
-        display: block;
-        width: 100%;
-        min-height: 4rem;
-        padding: 1rem;
-        border: 1px solid var(--border-subtle);
-        border-radius: 8px;
-        background: color-mix(in srgb, var(--bg-canvas) 30%, transparent);
-    }
-
-    .paypal-native-frame,
-    .razorpay-widget {
-        display: block;
-        width: 100%;
-        min-width: 0;
-        min-height: 3.25rem;
-    }
-
-    .paypal-native-frame {
-        height: 31rem;
-        overflow: hidden;
-        border: 0;
-    }
-
-    @media (max-width: 860px) {
-        .payment-panel {
-            grid-template-columns: 1fr;
-        }
-
-        .gateway-visual {
-            min-height: 12rem;
-            border-right: 0;
-            border-bottom: 1px solid var(--border-subtle);
-        }
-    }
-
-    @media (max-width: 640px) {
-        .payments-shell {
-            padding: 4.75rem 0 3rem;
-        }
-
-        .payments-frame {
-            max-width: none;
-            margin: 0;
-        }
-
-        .payments-header {
-            padding: 0 1.25rem;
-        }
-
-        .payment-panels {
-            gap: 1rem;
-            margin-top: 1.5rem;
-        }
-
-        .payment-panel {
-            border-left: 0;
-            border-right: 0;
-            border-radius: 0;
-        }
-
-        .gateway-visual {
-            min-height: 10.5rem;
-        }
-    }
+  /* Keep room for each checkout and 24px side padding before stacking. */
+  @media (max-width: 1130px) {
+    .payment-panels { grid-template-columns: minmax(0, 1fr); }
+  }
+  @media (max-width: 980px) {
+    .payments-header { grid-template-columns: 1fr; gap: 24px; }
+    .payments-intro { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+    .payments-intro p + p { margin-top: 0; }
+    .payment-summary br { display: none; }
+  }
+  @media (max-width: 780px) {
+    .payments-shell { --payments-gutter: 16px; }
+    .payments-header { padding: 32px var(--payments-gutter) 40px; gap: 20px; }
+    .payments-header h1 { margin-top: 16px; font-size: clamp(2.6rem, 10vw, 4.4rem); line-height: 0.98; letter-spacing: -0.055em; }
+    .payments-intro { display: block; }
+    .payments-intro p:first-child { display: none; }
+    .payments-intro p + p { max-width: 40ch; }
+    .payment-panel { border-radius: 18px; }
+    .payments-note { flex-direction: column; align-items: start; gap: 4px; padding: 20px 0; }
+  }
+  @media (max-width: 370px) {
+    /* Keep the native checkout wide enough on the smallest screens. */
+    .payments-shell { --payments-gutter: 0px; }
+  }
+  @media (max-width: 480px) {
+    .payment-details { padding: 24px 16px; }
+  }
+  @media (max-width: 337px) {
+    /* Preserve Stripe's 288px frame by reducing only our card's side inset. */
+    .payment-panel--stripe .payment-details { padding-inline: 7px; }
+  }
 </style>

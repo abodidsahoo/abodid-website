@@ -14,6 +14,7 @@ import {
   createWebPageStructuredData,
   resolvePageSeo,
 } from "../lib/seoMetadata.js";
+import { shouldNoindex } from "../lib/searchVisibility.ts";
 import {
   ACTIVE_NAVIGATION_LAYOUT,
   ACTIVE_POINTER_VARIANT,
@@ -29,10 +30,12 @@ const {
   type,
   useDynamicOgImage = true,
   noindex,
+  robots,
   structuredData,
   hideHeader = false,
   hideSideMenuRail = false,
   hideFooter = false,
+  showFooterNavigation = true,
   hideWhatsAppButton = false,
   fullWidth = false,
   hideThemeToggle = false,
@@ -69,31 +72,6 @@ const renderedPointerVariant = cursorFollowerEnabled
 // Resolve one authoritative SEO object. A published admin override wins,
 // followed by the page's own defaults.
 const pagePath = Astro.url.pathname;
-const internalNoindexPatterns = [
-  /^\/admin(?:\/|$)/,
-  /^\/api(?:\/|$)/,
-  /^\/login\/?$/,
-  /^\/unauthorized\/?$/,
-  /^\/unsubscribe\/?$/,
-  /^\/club\/payment-/,
-  /^\/collaboration\/measurements\/?$/,
-  /^\/du-workshop-responses\/?$/,
-  /^\/feedback\/?$/,
-  /^\/hand-tracking-test\/?$/,
-  /^\/landing-grid-test\/?$/,
-  /^\/blur-phrase-centered\/?$/,
-  /^\/july-backup\/?$/,
-  /^\/home-next\/?$/,
-  /^\/archive\/homepages(?:\/|$)/,
-  /^\/bsa-qrcode\/?$/,
-  /^\/research\/admin(?:\/|$)/,
-  /^\/resources\/admin(?:\/|$)/,
-  /^\/resources\/auth(?:\/|$)/,
-  /^\/resources\/curator\/?$/,
-  /^\/resources\/dashboard\/?$/,
-  /^\/resources\/saved\/?$/,
-  /^\/resources\/.*\/edit\/?$/,
-];
 const dbMetadata = await getPageMetadata(pagePath);
 const resolvedSeo = resolvePageSeo({
   metadata: dbMetadata,
@@ -101,7 +79,7 @@ const resolvedSeo = resolvePageSeo({
 });
 const finalOgType = resolvedSeo.type === "article" ? "article" : "website";
 const finalNoindex =
-  internalNoindexPatterns.some((pattern) => pattern.test(pagePath)) ||
+  shouldNoindex(pagePath) ||
   noindex === true ||
   resolvedSeo.noindex;
 const automaticStructuredData = dbMetadata
@@ -161,6 +139,7 @@ const googleFontsUrl =
       type={finalOgType}
       useDynamicOgImage={finalUseDynamicOgImage}
       noindex={finalNoindex}
+      robots={robots}
       structuredData={finalStructuredData}
     />
     <!-- Dynamic SEO & Social Images applied -->
@@ -222,7 +201,7 @@ const googleFontsUrl =
     {!finalNoindex && !hideWhatsAppButton && <WhatsAppButton />}
 
     <script src="/scripts/journey-tracker.js" defer></script>
-    {!hideFooter && <SiteFooter />}
+    {!hideFooter && <SiteFooter showNavigation={showFooterNavigation} />}
   </body>
 </html>
 

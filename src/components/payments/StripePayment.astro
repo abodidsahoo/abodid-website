@@ -1,0 +1,34 @@
+<stripe-buy-button
+  buy-button-id="buy_btn_1UBHZdKa33KIMUWuNtt0OBoG"
+  publishable-key="pk_live_51MhJi6Ka33KIMUWu346ex5sH1Q36XRuy5JFt4ZHIdkwW9R6vvnDOJq38O92gaUTVrMOBAh7gF0sxJ8RMqxYKbnpK00XFTzmsMX"
+></stripe-buy-button>
+
+<script>
+  const loadStripeBuyButton = () => {
+    if (!document.querySelector("stripe-buy-button")) return;
+    if (customElements.get("stripe-buy-button")) return;
+    const src = "https://js.stripe.com/v3/buy-button.js";
+    if (document.querySelector(`script[src="${src}"]`)) return;
+    const script = document.createElement("script");
+    script.async = true;
+    script.src = src;
+    // Keep a pending SDK load alive when navigating between pages.
+    script.setAttribute("data-astro-persist", "abodid-stripe-sdk");
+    script.addEventListener("error", () => script.remove(), { once: true });
+    document.head.append(script);
+  };
+
+  // Stripe owns the embedded frame and its dimensions. Fit the surrounding
+  // page layout to the checkout instead of overriding the vendor's styles.
+  loadStripeBuyButton();
+  document.addEventListener("astro:page-load", loadStripeBuyButton);
+</script>
+
+<style>
+  stripe-buy-button {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    color-scheme: light;
+  }
+</style>
