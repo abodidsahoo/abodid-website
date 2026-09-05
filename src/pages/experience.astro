@@ -7,8 +7,6 @@ export const prerender = false;
 
 const allExperience = await getWorkExperience();
 const workExperience = allExperience.filter((item) => !item.category || item.category === "work");
-const education = allExperience.filter((item) => item.category === "education");
-const recognition = allExperience.filter((item) => ["award", "conference"].includes(item.category || ""));
 
 const photoBySlug = new Map(photographyPortfolios.stories.map((story) => [story.slug, story]));
 const selectedContexts = [
@@ -63,7 +61,7 @@ const description = "Selected experience across cultural photography, exhibition
   <header class="story-nav">
     <a class="story-nav__brand" href="/" aria-label="Abodid Sahoo homepage">abodid.com</a>
     <nav class="story-nav__links" aria-label="Primary navigation">
-      <a href="/#selected-work">Work</a>
+      <a href="/work">Work</a>
       <a href="/research">Research</a>
       <a href="/services">Services</a>
       <a href="/experience" class="is-active">Experience</a>
@@ -73,7 +71,7 @@ const description = "Selected experience across cultural photography, exhibition
     <details class="story-nav__mobile">
       <summary>Menu</summary>
       <nav aria-label="Mobile navigation">
-        <a href="/#selected-work">Work</a>
+        <a href="/work">Work</a>
         <a href="/research">Research</a>
         <a href="/services">Services</a>
         <a href="/experience" class="is-active">Experience</a>
@@ -191,24 +189,6 @@ const description = "Selected experience across cultural photography, exhibition
       </div>
     </section>
 
-    {(education.length > 0 || recognition.length > 0) && (
-      <section class="experience-next__learning" aria-labelledby="learning-heading">
-        <header>
-          <p class="experience-eyebrow">Education and recognition</p>
-          <h2 id="learning-heading">The academic practice behind the commercial work.</h2>
-        </header>
-        <div class="experience-next__learning-grid">
-          {[...education, ...recognition].map((item, index) => (
-            <article>
-              <span class="experience-eyebrow">{String(index + 1).padStart(2, "0")} · {item.duration}</span>
-              <h3>{item.role}</h3>
-              <strong>{item.company}</strong>
-              <p>{item.description}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-    )}
 
     <section class="experience-next__future" aria-labelledby="future-heading">
       <div>

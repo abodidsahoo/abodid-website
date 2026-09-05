@@ -1,0 +1,152 @@
+---
+export const prerender = false;
+
+import BaseLayout from "../layouts/BaseLayout.astro";
+import VisualMoodboard from "../components/VisualMoodboard.jsx";
+import ProgressiveContentSkeleton from "../components/ProgressiveContentSkeleton.astro";
+import { listR2Folder, buildR2PublicUrl } from "../lib/media/r2.ts";
+
+const pageTitle = "Boudoir Mood Board — Abodid Sahoo";
+const pageDescription =
+  "A visual mood board and photographic study of boudoir portraiture, lighting, shadow, and intimate human form.";
+
+// Fetch 1600px and 800px variants from Cloudflare R2
+const { files: files1600, config } = await listR2Folder("variants/boudoir/1600/");
+const { files: files800 } = await listR2Folder("variants/boudoir/800/");
+
+const fileMap = new Map<string, { key1600?: string; key800?: string; etag?: string }>();
+
+(files1600 || []).forEach((file) => {
+  const filename = file.objectKey.split("/").pop() || "";
+  fileMap.set(filename, { key1600: file.objectKey, etag: file.etag || undefined });
+});
+
+(files800 || []).forEach((file) => {
+  const filename = file.objectKey.split("/").pop() || "";
+  const existing = fileMap.get(filename) || { etag: file.etag || undefined };
+  existing.key800 = file.objectKey;
+  fileMap.set(filename, existing);
+});
+
+const sortedFilenames = Array.from(fileMap.keys()).sort((a, b) =>
+  a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" })
+);
+
+const photos = sortedFilenames.map((filename, index) => {
+  const data = fileMap.get(filename)!;
+  const gridKey = data.key800 || data.key1600 || "";
+  const highResKey = data.key1600 || data.key800 || "";
+  const titleStem = filename.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
+  const title = titleStem.length > 3 ? titleStem : `Boudoir Study ${index + 1}`;
+  const id = `boudoir-${index + 1}`;
+
+  return {
+    id,
+    title,
+    imageUrl: buildR2PublicUrl(config, highResKey),
+    thumbnailUrl: buildR2PublicUrl(config, gridKey),
+    tags: ["boudoir", "portrait", "visual study"],
+    aspectRatio: 1,
+  };
+});
+
+const visualMoodboardProps = {
+  items: photos,
+  enablePolaroidViewer: true,
+  deepLinkParam: "photo",
+  enableInfiniteScroll: true,
+  initialVisibleRows: 5,
+  rowsPerScrollBatch: 2,
+  sizeMultiplier: 1.7,
+  spacingMultiplier: 1.05,
+  minScale: 0.65,
+  jitterWindow: 12,
+  hideSearch: false,
+  shuffleOnMount: true,
+  defaultSurfaceMode: "dark",
+};
+
+Astro.response.headers.set(
+  "Cache-Control",
+  "public, max-age=0, must-revalidate",
+);
+Astro.response.headers.set(
+  "Vercel-CDN-Cache-Control",
+  "s-maxage=300, stale-while-revalidate=86400",
+);
+---
+
+<BaseLayout
+  title={pageTitle}
+  description={pageDescription}
+  fullWidth={true}
+  gridVariant="moodboard"
+  initialBackgroundColor="#0b0b0e"
+  moodboardSurface="dark"
+  hideThemeToggle={false}
+>
+  <section class="visual-moodboard-page">
+    <header class="moodboard-hero">
+      <h1 class="moodboard-subheading">Boudoir Visual Mood Board</h1>
+      <p class="moodboard-tagline">
+        Click any photograph to open the Polaroid frame viewer & derive its extracted color palette.
+      </p>
+    </header>
+
+    <VisualMoodboard {...visualMoodboardProps} client:only="react">
+      <ProgressiveContentSkeleton
+        slot="fallback"
+        variant="moodboard"
+        count={9}
+        label="Loading boudoir visual moodboard"
+      />
+    </VisualMoodboard>
+  </section>
+</BaseLayout>
+
+<style>
+  :global(body[data-grid-variant="moodboard"]) {
+    --grid-color-1: rgba(255, 255, 255, 0.12);
+    --grid-color-2: rgba(255, 255, 255, 0.03);
+    --mood-page-bg: #0b0b0e;
+    --mood-title-color: rgba(249, 234, 230, 0.96);
+    --mood-title-border: rgba(255, 255, 255, 0.3);
+    --mood-title-bg: rgba(0, 0, 0, 0.24);
+    --mood-body-color: rgba(238, 224, 217, 0.9);
+    background: var(--mood-page-bg) !important;
+    color: var(--mood-body-color);
+  }
+
+  .visual-moodboard-page {
+    position: relative;
+    min-height: 100vh;
+    width: 100%;
+    z-index: 1;
+    padding-top: 1.5rem;
+  }
+
+  .moodboard-hero {
+    width: min(860px, calc(100vw - 2rem));
+    margin: 0 auto 1.25rem;
+    text-align: center;
+    padding: 0.25rem 0;
+  }
+
+  .moodboard-subheading {
+    margin: 0.4rem auto 0.6rem;
+    color: #f9eae6 !important;
+    font-family: var(--font-ui, sans-serif);
+    font-size: clamp(1.8rem, 4.5vw, 3.8rem);
+    font-weight: 650;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+  }
+
+  .moodboard-tagline {
+    margin: 0 auto 1.2rem;
+    color: rgba(238, 224, 217, 0.78);
+    font-family: var(--font-body, sans-serif);
+    font-size: clamp(0.95rem, 1.3vw, 1.15rem);
+    max-width: 620px;
+  }
+</style>

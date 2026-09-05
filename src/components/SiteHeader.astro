@@ -3,7 +3,7 @@ const pathname = Astro.url.pathname.replace(/\/$/, "") || "/";
 const onHomepage = pathname === "/";
 
 const navigationItems = [
-  { href: onHomepage ? "#selected-work" : "/#selected-work", label: "Work", active: onHomepage || pathname === "/work" || pathname.startsWith("/work/") },
+  { href: "/work", label: "Work", active: pathname === "/work" || pathname.startsWith("/work/") },
   { href: "/research", label: "Research", active: pathname === "/research" || pathname.startsWith("/research/") },
   { href: "/services", label: "Services", active: pathname === "/services" || pathname.startsWith("/services/") },
   { href: "/experience", label: "Experience", active: pathname === "/experience" || pathname.startsWith("/experience/") },

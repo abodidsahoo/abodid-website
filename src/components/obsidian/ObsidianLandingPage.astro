@@ -370,7 +370,13 @@ const headingParts = headingLines.map((line) => {
       {
         finalAppealText && (
           <div class="obsidian-final-appeal">
-            <h2>{finalAppealText}</h2>
+            <blockquote>
+              <h2 class="obsidian-final-appeal__quote">
+                <span class="obsidian-final-appeal__line">"Your notes should find their way back to you</span>
+                <span class="obsidian-final-appeal__line">when you need them the most."</span>
+              </h2>
+              <cite class="obsidian-final-appeal__author">— Abodid Sahoo</cite>
+            </blockquote>
           </div>
         )
       }
@@ -841,8 +847,8 @@ const headingParts = headingLines.map((line) => {
 
   .obsidian-hub__grid a > span {
     color: var(--text-secondary);
-    font-size: 0.9rem;
-    line-height: 1.4;
+    font-size: var(--type-body);
+    line-height: 1.45;
   }
 
   .obsidian-end {
@@ -1236,15 +1242,15 @@ const headingParts = headingLines.map((line) => {
   }
 
   .obsidian-system {
-    padding: clamp(2.5rem, 5vw, 4.5rem) 0 clamp(2.5rem, 5vw, 4.5rem);
+    padding: 8px 0 0;
     display: flex;
     flex-direction: column;
-    gap: clamp(2.5rem, 5vw, 4.5rem);
+    gap: 8px;
     border-top: 0;
   }
 
   .obsidian-system__heading {
-    margin: 0 0 8px;
+    margin: 0;
     padding: clamp(1.4rem, 3vw, 2.6rem);
     display: grid;
     grid-template-columns: 1fr;
@@ -1435,7 +1441,7 @@ const headingParts = headingLines.map((line) => {
 
   .obsidian-closing {
     min-height: clamp(150px, 18vw, 220px);
-    margin: 8px 0 0;
+    margin: 0;
     padding: clamp(1.4rem, 3vw, 2.6rem);
     display: flex;
     flex-direction: column;
@@ -1515,8 +1521,8 @@ const headingParts = headingLines.map((line) => {
 
   .obsidian-hub__grid a > span {
     color: color-mix(in srgb, var(--pop-ink) 78%, transparent);
-    font-size: 0.92rem;
-    line-height: 1.35;
+    font-size: var(--type-body);
+    line-height: 1.42;
     text-wrap: pretty;
   }
 
@@ -1541,9 +1547,16 @@ const headingParts = headingLines.map((line) => {
   }
 
   .obsidian-final-appeal {
+    container-type: inline-size;
     width: 100%;
     margin-top: 0;
-    padding: clamp(2.5rem, 5vw, 4.2rem) clamp(1.5rem, 4vw, 3rem);
+    margin-bottom: clamp(2.5rem, 5vw, 4.5rem);
+    min-height: clamp(260px, 34vh, 440px);
+    padding: clamp(3rem, 6vw, 5.5rem) clamp(1rem, 3vw, 2.5rem);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
     border: 1.5px solid #15130f;
     border-radius: clamp(18px, 2vw, 28px);
     background: #ffe44f;
@@ -1553,16 +1566,43 @@ const headingParts = headingLines.map((line) => {
     box-sizing: border-box;
   }
 
-  .obsidian-final-appeal h2 {
-    max-width: 26ch;
-    margin: 0 auto;
+  .obsidian-final-appeal blockquote {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .obsidian-final-appeal__quote {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 0 1.5rem;
     color: #15130f;
     font-family: var(--font-display);
-    font-size: clamp(2rem, 4.2vw, 3.8rem);
+    font-size: clamp(0.75rem, 3.25cqi, 3.2rem);
     font-weight: 750;
-    line-height: 1.05;
-    letter-spacing: -0.045em;
-    text-wrap: balance;
+    font-style: normal;
+    line-height: 1.15;
+    letter-spacing: -0.04em;
+    text-align: center;
+  }
+
+  .obsidian-final-appeal__line {
+    display: block;
+    white-space: nowrap;
+  }
+
+  .obsidian-final-appeal__author {
+    color: rgba(21, 19, 15, 0.82);
+    font-family: var(--font-mono);
+    font-size: clamp(1rem, 1.4vw, 1.25rem);
+    font-weight: 700;
+    font-style: normal;
+    letter-spacing: 0.02em;
+    text-transform: none;
   }
 
   .obsidian-end .obsidian-primary-cta {
@@ -1693,10 +1733,28 @@ const headingParts = headingLines.map((line) => {
       max-width: 100% !important;
       font-size: clamp(2.2rem, 8vw, 3.6rem) !important;
     }
+
+    .obsidian-final-appeal {
+      min-height: clamp(200px, 28vh, 340px);
+      padding: clamp(2rem, 4vw, 3.5rem) 1rem;
+    }
+
+    .obsidian-final-appeal__author {
+      font-size: clamp(0.9rem, 2.2vw, 1.1rem);
+    }
   }
 
   @media (max-width: 680px) {
     .obsidian-site { padding: 6px; }
+
+    .obsidian-final-appeal {
+      min-height: 160px;
+      padding: 1.5rem 0.65rem;
+    }
+
+    .obsidian-final-appeal__author {
+      font-size: 0.82rem;
+    }
 
     .obsidian-hero h1,
     .obsidian-site--research .obsidian-hero h1,

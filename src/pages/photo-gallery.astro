@@ -2,24 +2,106 @@
 export const prerender = false;
 
 import BaseLayout from "../layouts/BaseLayout.astro";
-import { getPublishedMoodboardItems } from "../lib/services/moodboard";
+import { getAllPhotography } from "../lib/api";
+import { featuredPhotography as mockPhotography } from "../utils/mockData";
 
-const title = "Mood Board — Abodid Sahoo";
+const title = "Photo Gallery — Abodid Sahoo";
 const description =
-  "A living, randomly arranged collection of visual references, impulses and instincts.";
+  "A living, randomly arranged collection of photography, visual stories, and captured moments.";
 
-const moodboardItems = await getPublishedMoodboardItems();
-const shuffledItems = [...moodboardItems];
+// Fast Safe Fetch Helper
+const safeFetch = async <T,>(fn: () => Promise<T>, fallback: T): Promise<T> => {
+  try {
+    return await fn();
+  } catch (e) {
+    console.error("Photography data fetch failed:", e);
+    return fallback;
+  }
+};
 
-for (let index = shuffledItems.length - 1; index > 0; index -= 1) {
+const rawProjects = await safeFetch(getAllPhotography, mockPhotography as any);
+
+interface PhotoItem {
+  id: string;
+  imageUrl: string;
+  title: string;
+  category?: string;
+  href: string;
+}
+
+// Extract and flatten all cover images and gallery images from projects
+const extractedPhotos: PhotoItem[] = [];
+const seenUrls = new Set<string>();
+
+rawProjects.forEach((project: any, pIdx: number) => {
+  const projectTitle = project.title || "Photography";
+  const projectHref = project.href || (project.slug ? `/photography/${project.slug}` : "/photography");
+  const projectCategory = project.category || "Photography";
+
+  // Cover image
+  if (project.image && typeof project.image === "string" && project.image.trim().startsWith("http") && !seenUrls.has(project.image)) {
+    seenUrls.add(project.image);
+    extractedPhotos.push({
+      id: `photo-cover-${pIdx}`,
+      imageUrl: project.image,
+      title: projectTitle,
+      category: projectCategory,
+      href: projectHref,
+    });
+  }
+
+  // Gallery images
+  if (Array.isArray(project.images)) {
+    project.images.forEach((imgUrl: string, imgIdx: number) => {
+      if (imgUrl && typeof imgUrl === "string" && imgUrl.trim().startsWith("http") && !seenUrls.has(imgUrl)) {
+        seenUrls.add(imgUrl);
+        extractedPhotos.push({
+          id: `photo-gal-${pIdx}-${imgIdx}`,
+          imageUrl: imgUrl,
+          title: projectTitle,
+          category: projectCategory,
+          href: projectHref,
+        });
+      }
+    });
+  }
+});
+
+// Fallback to mock images if none found
+if (extractedPhotos.length === 0 && Array.isArray(mockPhotography)) {
+  mockPhotography.forEach((item: any, idx: number) => {
+    if (item.image && typeof item.image === "string" && item.image.trim().startsWith("http")) {
+      extractedPhotos.push({
+        id: `photo-mock-${idx}`,
+        imageUrl: item.image,
+        title: item.title || "Photography",
+        category: item.category || "Photography",
+        href: item.href || "/photography",
+      });
+    }
+  });
+}
+
+// Pre-randomize photo items server-side
+const shuffledPhotos = [...extractedPhotos];
+for (let index = shuffledPhotos.length - 1; index > 0; index -= 1) {
   const randomIndex = Math.floor(Math.random() * (index + 1));
-  [shuffledItems[index], shuffledItems[randomIndex]] = [
-    shuffledItems[randomIndex],
-    shuffledItems[index],
+  [shuffledPhotos[index], shuffledPhotos[randomIndex]] = [
+    shuffledPhotos[randomIndex],
+    shuffledPhotos[index],
   ];
 }
 
-Astro.response.headers.set("Cache-Control", "no-store");
+// Distribute images left-to-right across 4 columns so Row 1 loads [0,1,2,3], Row 2 loads [4,5,6,7]
+const colCount = 4;
+const columnsData: { item: PhotoItem; origIndex: number }[][] = Array.from({ length: colCount }, () => []);
+
+shuffledPhotos.forEach((item, index) => {
+  const colIdx = index % colCount;
+  columnsData[colIdx].push({ item, origIndex: index });
+});
+
+Astro.response.headers.set("Cache-Control", "public, max-age=60, s-maxage=3600, stale-while-revalidate=86400");
 ---
 
 <BaseLayout
@@ -34,73 +116,87 @@ Astro.response.headers.set("Cache-Control", "no-store");
   showCursorFollower={false}
   bodyClass="story-moodboard-page"
 >
+  <Fragment slot="head">
+    {
+      shuffledPhotos.slice(0, 4).map((item) => (
+        <link rel="preload" as="image" href={item.imageUrl} fetchpriority="high" />
+      ))
+    }
+  </Fragment>
+
   <header class="story-nav">
-    <div class="story-nav__inner">
-      <a class="story-nav__brand" href="/" aria-label="Abodid Sahoo homepage"
-        >abodid.com</a
-      >
-      <nav class="story-nav__links" aria-label="Primary navigation">
+    <a class="story-nav__brand" href="/" aria-label="Abodid Sahoo homepage"
+      >abodid.com</a
+    >
+    <nav class="story-nav__links" aria-label="Primary navigation">
+      <a href="/#selected-work">Work</a>
+      <a href="/research">Research</a>
+      <a href="/services">Services</a>
+      <a href="/experience">Experience</a>
+      <a href="/about">About</a>
+    </nav>
+    <a class="story-nav__contact" href="/#enquiry"
+      >Hire me <span class="link-destination-arrow" aria-hidden="true">↗</span></a
+    >
+    <details class="story-nav__mobile">
+      <summary>Menu</summary>
+      <nav aria-label="Mobile navigation">
         <a href="/#selected-work">Work</a>
         <a href="/research">Research</a>
         <a href="/services">Services</a>
         <a href="/experience">Experience</a>
         <a href="/about">About</a>
+        <a href="/#enquiry">Hire me <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
       </nav>
-      <a class="story-nav__contact" href="/#enquiry"
-        >Hire me <span class="link-destination-arrow" aria-hidden="true">↗</span></a
-      >
-      <details class="story-nav__mobile">
-        <summary>Menu</summary>
-        <nav aria-label="Mobile navigation">
-          <a href="/#selected-work">Work</a>
-          <a href="/research">Research</a>
-          <a href="/services">Services</a>
-          <a href="/experience">Experience</a>
-          <a href="/about">About</a>
-          <a href="/#enquiry">Hire me <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
-        </nav>
-      </details>
-    </div>
+    </details>
   </header>
 
   <main class="moodboard-shell">
     <article class="moodboard-file">
       <header class="moodboard-heading">
+        <div class="moodboard-heading__tag">
+          <span>photos.js</span>
+          <span>Photography Gallery</span>
+        </div>
         <div class="moodboard-heading__hero">
-          <h1>Visual Mood Board</h1>
-          <p>An archive of impulses and instincts.</p>
+          <h1>Photo Gallery</h1>
+          <p>A living, randomized archive of photography, visual stories, and captured moments.</p>
         </div>
       </header>
 
       <section
         class="moodboard-board"
-        aria-label="Randomised visual references"
+        aria-label="Randomised photography gallery"
       >
         {
-          shuffledItems.length > 0 ? (
+          shuffledPhotos.length > 0 ? (
             <div class="moodboard-grid">
-              {shuffledItems.map((item, index) => (
-                <figure class="moodboard-card">
-                  <img
-                    src={item.imageUrl}
-                    alt={item.title || "Visual moodboard reference"}
-                    width={item.imageWidth || undefined}
-                    height={item.imageHeight || undefined}
-                    loading={index < 10 ? "eager" : "lazy"}
-                    fetchpriority={index < 5 ? "high" : "low"}
-                    decoding="async"
-                  />
-                  <figcaption class="sr-only">
-                    {item.title}
-                    {item.tags.length ? ` — ${item.tags.join(", ")}` : ""}
-                  </figcaption>
-                </figure>
+              {columnsData.map((colItems) => (
+                <div class="moodboard-col">
+                  {colItems.map(({ item, origIndex }) => (
+                    <figure class="moodboard-card">
+                      <a href={item.href} class="moodboard-card__link">
+                        <img
+                          src={item.imageUrl}
+                          alt={item.title || "Photography gallery item"}
+                          loading={origIndex < 12 ? "eager" : "lazy"}
+                          fetchpriority={origIndex < 4 ? "high" : (origIndex < 12 ? "auto" : "low")}
+                          decoding={origIndex < 4 ? "sync" : "async"}
+                          onerror="this.closest('.moodboard-card').style.display='none'"
+                        />
+                      </a>
+                      <figcaption class="sr-only">
+                        {item.title}
+                      </figcaption>
+                    </figure>
+                  ))}
+                </div>
               ))}
             </div>
           ) : (
             <div class="moodboard-empty">
               <p>
-                The visual archive is being rearranged. Please return shortly.
+                The photo archive is being rearranged. Please return shortly.
               </p>
             </div>
           )
@@ -115,8 +211,8 @@ Astro.response.headers.set("Cache-Control", "no-store");
               <a class="moodboard-cta moodboard-cta--primary" href="/#enquiry">
                 Get in touch <span class="link-destination-arrow" aria-hidden="true">↗</span>
               </a>
-              <a class="moodboard-cta moodboard-cta--secondary" href="/photo-gallery">
-                Check out my Work <span class="link-destination-arrow" aria-hidden="true">↗</span>
+              <a class="moodboard-cta moodboard-cta--secondary" href="/moodboard">
+                Visual Mood Board <span class="link-destination-arrow" aria-hidden="true">↗</span>
               </a>
             </div>
           </div>
@@ -169,8 +265,8 @@ Astro.response.headers.set("Cache-Control", "no-store");
     --pop-yellow: #ffe44f;
     --pop-cream: #fff8e8;
     --pop-ink: #15130f;
+    --story-gutter: clamp(1rem, 3vw, 3.5rem);
     --pop-border: 1px solid var(--pop-ink);
-    /* Exact same resets as landing page */
     margin: 0;
     padding: 0 !important;
     background: var(--pop-blue) !important;
@@ -184,7 +280,6 @@ Astro.response.headers.set("Cache-Control", "no-store");
     padding: 0;
   }
 
-  /* Mirror landing page: zero out main, keep overflow visible for sticky header */
   body.story-moodboard-page main.page-content-full {
     margin: 0;
     padding: 0 !important;
@@ -214,7 +309,7 @@ Astro.response.headers.set("Cache-Control", "no-store");
     gap: 1.5rem !important;
     border-bottom: 0 !important;
     background: var(--pop-blue) !important;
-    color: var(--pop-cream) !important;
+    color: var(--pop-ink) !important;
   }
   body.story-moodboard-page .story-nav a,
   body.story-moodboard-page .story-nav summary {
@@ -242,6 +337,7 @@ Astro.response.headers.set("Cache-Control", "no-store");
     gap: clamp(1.2rem, 2.5vw, 2.5rem) !important;
   }
   body.story-moodboard-page .story-nav__links a {
+    color: var(--pop-cream) !important;
     opacity: 1;
     transition: text-decoration-color 160ms ease;
   }
@@ -274,7 +370,7 @@ Astro.response.headers.set("Cache-Control", "no-store");
     display: none !important;
   }
 
-  @media (max-width: 860px) {
+  @media (max-width: 980px) {
     body.story-moodboard-page .story-nav {
       grid-template-columns: 1fr auto !important;
     }
@@ -324,13 +420,17 @@ Astro.response.headers.set("Cache-Control", "no-store");
 <style>
   /* ── Moodboard Layout ───────────────────── */
   .moodboard-shell {
-    padding: clamp(10px, 2vw, 20px);
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
     background: var(--pop-blue);
   }
 
   .moodboard-file {
-    width: min(100%, 1600px);
-    margin-inline: auto;
+    width: 100%;
+    max-width: none;
+    margin-inline: 0;
+    box-sizing: border-box;
     overflow: hidden;
     border: 1px solid var(--pop-ink);
     border-radius: clamp(20px, 3vw, 34px);
@@ -354,23 +454,6 @@ Astro.response.headers.set("Cache-Control", "no-store");
     font: 700 0.72rem/1 var(--font-mono, monospace);
     letter-spacing: 0.06em;
     text-transform: uppercase;
-  }
-
-  .moodboard-dot {
-    width: 10px;
-    height: 10px;
-    flex: 0 0 auto;
-    border: 1px solid currentColor;
-    border-radius: 50%;
-    background: var(--pop-yellow);
-  }
-
-  .moodboard-legacy-link {
-    font-size: 0.72rem;
-    color: var(--pop-ink);
-    text-decoration: underline;
-    text-underline-offset: 3px;
-    font-weight: 700;
   }
 
   .moodboard-heading__hero {
@@ -403,19 +486,26 @@ Astro.response.headers.set("Cache-Control", "no-store");
   }
 
   .moodboard-grid {
-    columns: 4;
-    column-gap: var(--grid-gap);
-    orphans: 1;
-    widows: 1;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--grid-gap);
+    align-items: start;
+  }
+
+  .moodboard-col {
+    display: flex;
+    flex-direction: column;
+    gap: var(--grid-gap);
   }
 
   .moodboard-card {
-    break-inside: avoid;
-    margin: 0 0 var(--grid-gap) 0;
+    margin: 0;
     padding: 0;
     display: block;
     overflow: hidden;
     border-radius: 14px;
+    min-height: 180px;
+    background: #eadecc;
     transition: transform 200ms ease;
   }
 
@@ -423,11 +513,16 @@ Astro.response.headers.set("Cache-Control", "no-store");
     transform: translateY(-2px);
   }
 
+  .moodboard-card__link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+  }
+
   .moodboard-card img {
     width: 100%;
     height: auto;
     display: block;
-    /* Kill the 3-4px inline gap browsers add under images */
     vertical-align: bottom;
     line-height: 0;
   }
@@ -462,13 +557,6 @@ Astro.response.headers.set("Cache-Control", "no-store");
     font: 700 clamp(2rem, 4.5vw, 3.8rem)/0.95 var(--font-display, sans-serif);
     letter-spacing: -0.05em;
     max-width: 30ch;
-  }
-
-  .moodboard-footer__subline {
-    margin: 0;
-    max-width: 38rem;
-    font: 700 clamp(1.25rem, 2.2vw, 1.75rem)/1.3 var(--font-display, sans-serif);
-    opacity: 0.95;
   }
 
   .moodboard-footer__ctas {
@@ -567,26 +655,26 @@ Astro.response.headers.set("Cache-Control", "no-store");
 
   @media (max-width: 1100px) {
     .moodboard-grid {
-      columns: 3;
+      grid-template-columns: repeat(3, 1fr);
     }
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: 760px) {
     .moodboard-heading__hero {
       grid-template-columns: 1fr;
       gap: 1rem;
     }
     .moodboard-grid {
-      columns: 2;
+      grid-template-columns: repeat(2, 1fr);
     }
     .moodboard-shell {
-      padding: 8px;
+      padding: 6px;
     }
   }
 
   @media (max-width: 480px) {
     .moodboard-grid {
-      columns: 1;
+      grid-template-columns: repeat(1, 1fr);
     }
   }
 </style>

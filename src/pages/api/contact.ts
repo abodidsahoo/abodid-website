@@ -137,6 +137,30 @@ ${strongest ? `<p style="margin:5px 0 0;color:#66635e;font-size:14px;line-height
     return { html, text };
 }
 
+async function ensureAnalyticsSession(
+    supabase: ReturnType<typeof createSupabaseServiceClient>,
+    sessionId: string,
+    enquiryPath?: string,
+    sourceName?: string
+) {
+    if (!supabase) return;
+    const visitorId = crypto.randomUUID();
+    const nowIso = new Date().toISOString();
+    await supabase.from('analytics_sessions').upsert(
+        {
+            id: sessionId,
+            visitor_id: visitorId,
+            source: sourceName || 'Direct Visit',
+            landing_page: enquiryPath || '/',
+            exit_page: enquiryPath || '/',
+            country: 'Unknown',
+            started_at: nowIso,
+            ended_at: nowIso,
+        },
+        { onConflict: 'id', ignoreDuplicates: true }
+    );
+}
+
 export const POST: APIRoute = async ({ request }) => {
     let submissionId = '';
     try {
@@ -148,12 +172,14 @@ export const POST: APIRoute = async ({ request }) => {
             return json({ error: 'Please write your message using words and spaces.' }, 422);
         }
         if (!isUuid(payload.sessionId)) {
-            return json({ error: 'Your visit expired. Please refresh the page and try again.' }, 400);
+            payload.sessionId = crypto.randomUUID();
         }
 
         const resendKey = import.meta.env.RESEND_API_KEY || process.env.RESEND_API_KEY;
         const supabase = createSupabaseServiceClient();
         if (!resendKey || !supabase) return json({ error: 'The contact service is temporarily unavailable.' }, 503);
+
+        await ensureAnalyticsSession(supabase, payload.sessionId, payload.enquiryPath, payload.sourceName);
 
         const enquiryTitle = resolveEnquiryTitle(payload);
         const { data: submission, error: submissionError } = await supabase

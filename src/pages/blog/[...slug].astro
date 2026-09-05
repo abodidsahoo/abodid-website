@@ -884,7 +884,10 @@ const structuredData = [
 
     .blog-post-title {
       font-size: clamp(1.85rem, 8vw, 2.5rem);
-     /* Skeleton Reader UI */
+    }
+  }
+
+  /* Skeleton Reader UI */
   .blog-post-skeleton {
     display: flex;
     flex-direction: column;
@@ -1114,10 +1117,15 @@ const structuredData = [
               mainCoverContainer.style.display = "none";
             }
 
-            if (realContent && cachedData.contentHtml) {
-              realContent.innerHTML = '<div class="prose">' + cachedData.contentHtml + "</div>";
+            if (realContent) {
+              realContent.innerHTML =
+                '<div class="prose block-based-prose">' + (cachedData.contentHtml || "") + "</div>";
               realContent.style.display = "block";
               realContent.style.opacity = "1";
+            }
+
+            if (cachedData.post && cachedData.post.title) {
+              document.title = cachedData.post.title + " — Abodid Sahoo";
             }
 
             if (skeleton) skeleton.style.display = "none";
@@ -1151,12 +1159,17 @@ const structuredData = [
                 if (!data || data.error || !data.post) return;
                 window.__PRELOADED_POSTS__[targetSlug] = data;
 
-                if (data.contentHtml && realContent) {
-                  realContent.innerHTML = '<div class="prose">' + data.contentHtml + "</div>";
+                if (realContent) {
+                  realContent.innerHTML =
+                    '<div class="prose block-based-prose">' + (data.contentHtml || "") + "</div>";
+                  realContent.style.display = "block";
+                }
+
+                if (data.post && data.post.title) {
+                  document.title = data.post.title + " — Abodid Sahoo";
                 }
 
                 if (skeleton) skeleton.style.display = "none";
-                if (realContent) realContent.style.display = "block";
 
                 if (data.relatedPost) {
                   updateRelatedCard(data.relatedPost);
@@ -1186,17 +1199,26 @@ const structuredData = [
       const skeleton = document.getElementById("blog-post-skeleton");
       const realContent = document.getElementById("blog-post-real-content");
 
-      if (cachedData.contentHtml && realContent) {
-        realContent.innerHTML = '<div class="prose">' + cachedData.contentHtml + "</div>";
+      if (realContent && cachedData.contentHtml) {
+        realContent.innerHTML =
+          '<div class="prose block-based-prose">' + cachedData.contentHtml + "</div>";
         realContent.style.display = "block";
         realContent.style.opacity = "1";
       }
       if (skeleton) skeleton.style.display = "none";
     }
 
+    let isPopstateBound = false;
+
     function initBlogPage() {
       checkCurrentPageMemoryCache();
       setupInstantPreloadedNavigation();
+      if (!isPopstateBound) {
+        window.addEventListener("popstate", function () {
+          window.location.reload();
+        });
+        isPopstateBound = true;
+      }
     }
 
     if (document.readyState === "loading") {

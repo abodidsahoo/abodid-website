@@ -50,8 +50,18 @@ const offerings = [
 const credentials = [
   {
     institution: "Royal College of Art (RCA), London",
-    highlight: "Apple Scholar · Full Tuition Scholarship",
-    detail: "World's #1 Art & Design institution (QS Ranking). Led and documented major year-end graduate shows across central London.",
+    highlight: "MA Digital Direction · Apple Scholar",
+    detail: "Awarded a full tuition scholarship by Apple to pursue an MA. Thesis, photobook, and exhibition showcased at the RCA Graduate Show 2023 in London.",
+  },
+  {
+    institution: "National Institute of Design (NID), Ahmedabad",
+    highlight: "M.Des · Film & Video Communication",
+    detail: "Crafted short films and audio stories on anxiety, healing, and mental health. Left NID after a year and moved to London for a fully funded master's at the Royal College of Art.",
+  },
+  {
+    institution: "National Institute of Technology (NIT), Rourkela",
+    highlight: "B.Tech + M.Tech · Mechanical Engineering",
+    detail: "Specialised in Mechatronics and Automation, aerial drone photography, and photogrammetry. President of the filmmaking club and Festival Director for Roots creative conference.",
   },
   {
     institution: "University of Cambridge (CDH)",
@@ -92,10 +102,6 @@ const credentials = [
     <section class="about-hero-grid" aria-labelledby="about-name">
       <div class="about-hero-card">
         <div class="about-masthead" style="border-bottom: 0;">
-          <p class="about-badge">
-            <span class="manifesto-dot" aria-hidden="true"></span>
-            about.txt
-          </p>
           <p class="about-pill-tag">
             <img src="/images/map-pin.png" alt="" aria-hidden="true" />
             <span>London & Bengaluru</span>
@@ -110,12 +116,8 @@ const credentials = [
           I turn research, archives, and emerging technology into participatory experiences that help people connect.
         </p>
 
-        <p class="about-hero-lede">
-          Royal College of Art alumnus and Apple Scholar. My work bridges spatial design, cinema, AI knowledge systems, and cultural documentation — moving between London underground garage exhibitions, institutional spaces, and interactive web prototypes.
-        </p>
-
         <div class="about-actions-row">
-          <a class="about-btn about-btn--primary" href={CV_DOWNLOAD_URL} download={CV_FILE_NAME}>
+          <a class="about-btn about-btn--primary" href={CV_DOWNLOAD_URL} download={CV_FILE_NAME} target="_blank" rel="noopener noreferrer">
             <span>Download 2026 CV (PDF)</span>
             <b aria-hidden="true">↓</b>
           </a>
@@ -130,10 +132,6 @@ const credentials = [
             loading="eager"
             fetchpriority="high"
           />
-          <figcaption>
-            <strong>Abodid Sahoo</strong>
-            <small>RCA Alumnus · Apple Scholar</small>
-          </figcaption>
         </figure>
       </aside>
     </section>
@@ -142,7 +140,6 @@ const credentials = [
     <section class="about-manifesto-banner" aria-labelledby="manifesto-core-heading">
       <div class="about-manifesto-banner__inner">
         <p class="about-badge">
-          <span class="manifesto-dot manifesto-dot--pink" aria-hidden="true"></span>
           The Ethos · Manifesto Core
         </p>
         <h2 id="manifesto-core-heading" class="about-manifesto-quote">
@@ -165,7 +162,6 @@ const credentials = [
       <header class="about-panel__header">
         <div>
           <p class="about-badge">
-            <span class="manifesto-dot manifesto-dot--yellow" aria-hidden="true"></span>
             Disciplines & Capabilities
           </p>
           <h2 id="offerings-heading" class="about-panel__title">What I build & direct</h2>
@@ -193,15 +189,20 @@ const credentials = [
     <!-- 4. Credentials & Recognition -->
     <section class="about-credentials" aria-labelledby="credentials-heading">
       <header class="about-credentials__header">
-        <h2 id="credentials-heading" class="about-credentials__title">Credentials</h2>
+        <p class="about-badge" style="color: var(--pop-cream);">
+          Education & Academic Recognition
+        </p>
+        <h2 id="credentials-heading" class="about-credentials__title">Credentials & Honors</h2>
       </header>
 
-      <div class="about-credentials__list">
-        {credentials.map((cred) => (
-          <article class="about-credential-row">
-            <h3>{cred.institution}</h3>
-            <p class="about-credential-row__highlight">{cred.highlight}</p>
-            <p class="about-credential-row__detail">{cred.detail}</p>
+      <div class="about-credentials-grid">
+        {credentials.map((cred, idx) => (
+          <article class={`about-credential-card about-credential-card--${(idx % 6) + 1}`}>
+            <div class="about-credential-card__top">
+              <span class="about-credential-card__tag">{cred.highlight}</span>
+              <h3 class="about-credential-card__title">{cred.institution}</h3>
+            </div>
+            <p class="about-credential-card__detail">{cred.detail}</p>
           </article>
         ))}
       </div>
@@ -211,7 +212,6 @@ const credentials = [
     <section class="about-cta-panel" aria-labelledby="cta-heading">
       <div class="about-cta-panel__copy">
         <p class="about-badge">
-          <span class="manifesto-dot" aria-hidden="true"></span>
           Reviewer & Collaborator Direct Line
         </p>
         <h2 id="cta-heading" class="about-cta-panel__title">Let’s build something unforgettable.</h2>
@@ -223,7 +223,7 @@ const credentials = [
             <span>Start a project</span>
             <b class="link-destination-arrow" aria-hidden="true">↗</b>
           </a>
-          <a class="about-btn about-btn--secondary" href={CV_DOWNLOAD_URL} download={CV_FILE_NAME}>
+          <a class="about-btn about-btn--secondary" href={CV_DOWNLOAD_URL} download={CV_FILE_NAME} target="_blank" rel="noopener noreferrer">
             <span>Download Complete CV (2026)</span>
             <b aria-hidden="true">↓</b>
           </a>
@@ -302,24 +302,6 @@ const credentials = [
     font: 750 clamp(0.68rem, 0.9vw, 0.78rem)/1.35 var(--font-mono, monospace);
     letter-spacing: 0.11em;
     text-transform: uppercase;
-  }
-
-  .manifesto-dot {
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    border: 1px solid currentColor;
-    background: var(--pop-yellow);
-    display: inline-block;
-    flex-shrink: 0;
-  }
-
-  .manifesto-dot--pink {
-    background: var(--pop-pink);
-  }
-
-  .manifesto-dot--yellow {
-    background: var(--pop-yellow);
   }
 
   /* 1. Hero Grid */
@@ -676,10 +658,9 @@ const credentials = [
     letter-spacing: -0.01em;
   }
 
-  /* 4. Credentials / Evidence Band */
+  /* 4. Credentials / Pop Editorial Cards Grid */
   .about-credentials {
     padding: clamp(1.75rem, 3.5vw, 4rem);
-    overflow: hidden;
     border: var(--home-next-border);
     border-radius: var(--home-next-radius-panel);
     background: var(--pop-blue);
@@ -687,57 +668,100 @@ const credentials = [
   }
 
   .about-credentials__header {
-    margin-bottom: clamp(2rem, 3.5vw, 3.5rem);
+    margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
   }
 
   .about-credentials__title {
     margin: 0;
     color: var(--pop-cream) !important;
-    font: 620 clamp(2.8rem, 6vw, 6.25rem)/0.94 var(--font-display, sans-serif) !important;
-    letter-spacing: normal !important;
+    font: 620 clamp(2.4rem, 5vw, 4.8rem)/0.94 var(--font-display, sans-serif) !important;
+    letter-spacing: -0.04em !important;
   }
 
-  .about-credentials__list {
-    padding: 0 clamp(1.4rem, 3vw, 3rem);
+  .about-credentials-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: var(--home-next-gap);
+  }
+
+  .about-credential-card {
+    padding: clamp(1.4rem, 2.2vw, 2.1rem);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 1.25rem;
+    min-height: 240px;
     border: 1px solid var(--pop-ink);
     border-radius: var(--home-next-radius-card);
+    transition: transform var(--home-next-motion), box-shadow var(--home-next-motion);
+  }
+
+  .about-credential-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 0 var(--pop-ink);
+  }
+
+  /* Pop Editorial Palette Rotation */
+  .about-credential-card--1 {
+    background: var(--pop-pink);
+    color: var(--pop-ink);
+  }
+
+  .about-credential-card--2 {
+    background: var(--pop-yellow);
+    color: var(--pop-ink);
+  }
+
+  .about-credential-card--3 {
     background: var(--pop-cream);
     color: var(--pop-ink);
   }
 
-  .about-credential-row {
-    padding: clamp(1.6rem, 3vw, 3rem) 0;
-    border-top: 1px solid var(--pop-border);
+  .about-credential-card--4 {
+    background: var(--pop-lime);
     color: var(--pop-ink);
   }
 
-  .about-credential-row:first-child {
-    border-top: 0;
+  .about-credential-card--5 {
+    background: var(--pop-cyan);
+    color: var(--pop-ink);
   }
 
-  .about-credential-row h3 {
-    max-width: 28ch;
-    margin: 0 0 0.7rem;
-    color: var(--pop-ink) !important;
-    font: 620 clamp(1.65rem, 2.6vw, 3rem)/1.02 var(--font-display, sans-serif) !important;
-    letter-spacing: normal !important;
-    text-wrap: pretty;
+  .about-credential-card--6 {
+    background: var(--pop-orange);
+    color: var(--pop-ink);
   }
 
-  .about-credential-row__highlight {
-    margin: 0 0 0.8rem;
-    color: var(--pop-ink) !important;
-    font: 750 clamp(0.7rem, 0.9vw, 0.8rem)/1.4 var(--font-mono, monospace) !important;
+  .about-credential-card__top {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+
+  .about-credential-card__tag {
+    display: inline-block;
+    align-self: flex-start;
+    padding: 0.32rem 0.6rem;
+    border: 1px solid var(--pop-ink);
+    border-radius: 8px;
+    background: rgba(21, 19, 15, 0.08);
+    color: var(--pop-ink);
+    font: 750 0.65rem/1.2 var(--font-mono, monospace);
     letter-spacing: 0.08em;
     text-transform: uppercase;
   }
 
-  .about-credential-row__detail {
-    max-width: 72ch;
+  .about-credential-card__title {
     margin: 0;
-    color: rgba(21, 19, 15, 0.84) !important;
-    font: 450 clamp(0.92rem, 1.05vw, 1rem)/1.55 var(--font-body, sans-serif) !important;
-    text-wrap: pretty;
+    color: var(--pop-ink) !important;
+    font: 640 clamp(1.35rem, 1.8vw, 1.75rem)/1.08 var(--font-display, sans-serif) !important;
+    letter-spacing: -0.035em !important;
+  }
+
+  .about-credential-card__detail {
+    margin: 0;
+    color: rgba(21, 19, 15, 0.88) !important;
+    font: 450 clamp(0.88rem, 1.05vw, 0.98rem)/1.5 var(--font-body, sans-serif) !important;
   }
 
   /* CTA Panel */
@@ -787,15 +811,15 @@ const credentials = [
 
   @media (max-width: 720px) {
     .about-credentials {
-      padding: 1rem;
+      padding: 1.25rem 1rem;
     }
 
     .about-credentials__header {
       margin-bottom: 1.5rem;
     }
 
-    .about-credentials__list {
-      padding-inline: 1rem;
+    .about-credentials-grid {
+      grid-template-columns: 1fr;
     }
   }
   </style>

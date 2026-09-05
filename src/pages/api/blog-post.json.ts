@@ -1,5 +1,6 @@
 import { getPostBySlug, getNextPost, getRelatedPost } from "../../lib/api";
 import { marked } from "marked";
+import { renderBlocksToHtml } from "../../lib/blogBlockRenderer.js";
 
 export const prerender = false;
 
@@ -25,7 +26,9 @@ export async function GET({ request }: { request: Request }) {
     }
 
     const hasBlocks = Array.isArray(post.blocks) && post.blocks.length > 0;
-    const contentHtml = !hasBlocks ? await marked.parse(post.content || "") : "";
+    const contentHtml = hasBlocks
+      ? renderBlocksToHtml(post.blocks)
+      : await marked.parse(post.content || "");
 
     const primaryCategory = post?.category
       ? Array.isArray(post.category)

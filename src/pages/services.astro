@@ -1,5 +1,6 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import InlineInquiryForm from "../components/InlineInquiryForm.astro";
 import { breadcrumbJsonLd, personJsonLd, serviceJsonLd } from "../lib/seoData";
 import { CV_DOWNLOAD_URL } from "../lib/cv";
 import { getHomeStorytellingContent } from "../lib/homeStorytellingContent";
@@ -180,7 +181,7 @@ const structuredData = [
   <header class="services-nav">
     <a class="services-nav__brand" href="/" aria-label="Abodid Sahoo homepage">abodid.com</a>
     <nav class="services-nav__links" aria-label="Primary navigation">
-      <a href="/#selected-work">Work</a>
+      <a href="/work">Work</a>
       <a href="/research">Research</a>
       <a href="/services" class="is-active">Services</a>
       <a href="/experience">Experience</a>
@@ -192,7 +193,7 @@ const structuredData = [
     <details class="services-nav__mobile">
       <summary>Menu</summary>
       <nav aria-label="Mobile navigation">
-        <a href="/#selected-work">Work</a>
+        <a href="/work">Work</a>
         <a href="/research">Research</a>
         <a href="/services" class="is-active">Services</a>
         <a href="/experience">Experience</a>
@@ -321,34 +322,24 @@ const structuredData = [
       </div>
     </section>
 
-    <section class="services-evidence" aria-labelledby="evidence-heading">
-      <div class="services-evidence__statement">
-        <p class="services-eyebrow">The thread through the work</p>
-        <h2 id="evidence-heading">From research and team alignment to the final public encounter.</h2>
-        <p>
-          I connect the creative, technical and operational parts of a project so that teams can
-          move with confidence and the audience experiences one coherent idea.
-        </p>
-      </div>
-      <dl class="services-evidence__stats">
-        {evidence.map((item) => (
-          <div>
-            <dt>{item.figure}</dt>
-            <dd>{item.label}</dd>
-          </div>
-        ))}
-      </dl>
-    </section>
 
-    <section class="services-cta" aria-labelledby="cta-heading">
-      <p class="services-eyebrow">Role, team or early idea</p>
-      <h2 id="cta-heading">Let’s work it out.</h2>
-      <p>
-        Bring the brief, the unresolved question or the ambitious half-formed idea. We can start there.
-      </p>
-      <a class="services-button services-button--cream" href={contactHref}>
-        Start a conversation <span class="link-destination-arrow" aria-hidden="true">↗</span>
-      </a>
+    <section class="story-enquiry" aria-label="Project enquiry">
+      <InlineInquiryForm
+        id="enquiry"
+        heading="Write to me."
+        intro=""
+        sourceName="services-page-storytelling"
+        variant="pop"
+        interestOptions={[
+          "Creative direction and experience design",
+          "Exhibitions, installations and spatial design",
+          "Digital prototyping and storytelling products",
+          "Photography, film or cultural documentation",
+          "Ecosystem mapping or strategic consulting",
+          "Speaking, teaching or workshops",
+          "Something else",
+        ]}
+      />
     </section>
   </main>
 
@@ -1407,5 +1398,24 @@ const structuredData = [
     .story-footer__card,
     .story-footer__brand,
     .story-footer__social a { transition-duration: .01ms !important; }
+  }
+  .story-enquiry {
+    padding-block: clamp(4rem, 6.5vw, 7rem);
+    padding-inline: clamp(1rem, 6vw, 6rem);
+    background: var(--services-purple, #5524c7);
+    color: var(--services-cream, #fff8e8);
+  }
+  .story-enquiry .inline-enquiry__intro > p:not(.inline-enquiry__eyebrow),
+  .story-enquiry .inline-enquiry__intro > a,
+  .story-enquiry .inline-enquiry--pop label > span,
+  .story-enquiry .inline-enquiry--pop .custom-select__label-wrap > span,
+  .story-enquiry .inline-enquiry--pop .inline-enquiry__submit-row p {
+    color: var(--services-cream, #fff8e8);
+  }
+
+  @media (max-width: 720px) {
+    .story-enquiry {
+      padding-inline: 1rem;
+    }
   }
 </style>

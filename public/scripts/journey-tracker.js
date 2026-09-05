@@ -376,7 +376,15 @@
     }
   }
 
-  if (analyticsIsExcluded()) return;
+  if (analyticsIsExcluded()) {
+    var fallbackSessionId = createUuid() || "00000000-0000-4000-8000-000000000000";
+    window.__abodidAnalytics = window.__abodidAnalytics || {
+      getSessionId: function () { return fallbackSessionId; },
+      trackMenuEvent: function () { return Promise.resolve(); },
+      prepareSubmission: function () { return Promise.resolve(); },
+    };
+    return;
+  }
 
   var now = Date.now();
   var pathname = analyticsCleanString(window.location.pathname || "/", 240);

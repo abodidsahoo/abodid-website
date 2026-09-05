@@ -10,6 +10,10 @@
 
     <form class="obsidian-booking-form" data-obsidian-booking-form>
       <label class="obsidian-booking-field">
+        <span>Name</span>
+        <input type="text" name="name" placeholder="Your Name" required />
+      </label>
+      <label class="obsidian-booking-field">
         <span>Email Address</span>
         <input type="email" name="email" placeholder="you@example.com" required />
       </label>
@@ -18,6 +22,8 @@
         Submit Booking Request →
       </button>
     </form>
+
+    <div class="obsidian-booking-error-message" data-booking-error-message style="display: none;"></div>
 
     <div class="obsidian-booking-success-message" data-booking-success-message style="display: none;">
       <div class="success-badge">✓ Request Received!</div>
@@ -34,17 +40,33 @@
       const closeButton = dialog?.querySelector("[data-obsidian-payment-close]");
       const form = dialog?.querySelector("[data-obsidian-booking-form]");
       const successMsg = dialog?.querySelector("[data-booking-success-message]");
+      const errorMsg = dialog?.querySelector("[data-booking-error-message]");
       const submitBtn = dialog?.querySelector("[data-booking-submit-btn]");
 
       if (!(dialog instanceof HTMLDialogElement)) return;
       if (dialog.dataset.ready === "true") return;
       dialog.dataset.ready = "true";
 
+      const getTracking = () => ({
+        sessionId:
+          window.__abodidAnalytics &&
+          typeof window.__abodidAnalytics.getSessionId === "function"
+            ? window.__abodidAnalytics.getSessionId()
+            : "",
+        enquiryPath: window.location.pathname,
+        sourceName: "obsidian-tutoring-dialog",
+        cta: "book-tutoring-dialog",
+      });
+
       openButtons.forEach((button) => {
         button.addEventListener("click", () => {
           if (!dialog.open) {
             if (form) form.style.display = "flex";
             if (successMsg) successMsg.style.display = "none";
+            if (errorMsg) {
+              errorMsg.style.display = "none";
+              errorMsg.textContent = "";
+            }
             if (submitBtn) {
               submitBtn.disabled = false;
               submitBtn.textContent = "Submit Booking Request →";
@@ -66,28 +88,53 @@
             submitBtn.disabled = true;
             submitBtn.textContent = "Submitting...";
           }
+          if (errorMsg) {
+            errorMsg.style.display = "none";
+            errorMsg.textContent = "";
+          }
 
           const formData = new FormData(form);
-          const email = formData.get("email");
+          const email = String(formData.get("email") || "").trim();
+          const name = String(formData.get("name") || "").trim() || (email.split("@")[0] || "Obsidian Client");
 
           try {
-            await fetch("/api/contact", {
+            if (
+              window.__abodidAnalytics &&
+              typeof window.__abodidAnalytics.prepareSubmission === "function"
+            ) {
+              await window.__abodidAnalytics.prepareSubmission();
+            }
+
+            const response = await fetch("/api/contact", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
+                name: name,
                 email: email,
-                name: "1:1 Tutoring Session Request",
-                interest: "Obsidian 1:1 Tutoring Session (£60/hour)",
-                message: "1:1 Obsidian tutoring booking request",
-                sourceName: "obsidian-tutoring-dialog"
-              })
+                message: "1:1 Obsidian tutoring booking request (£60/hour)",
+                tracking: getTracking(),
+              }),
             });
+
+            const result = await response.json().catch(() => ({}));
+            if (!response.ok) {
+              throw new Error(result.error || "Could not submit booking request. Please try again.");
+            }
+
+            if (form) form.style.display = "none";
+            if (successMsg) successMsg.style.display = "block";
           } catch (err) {
             console.error("Submission error:", err);
+            if (errorMsg) {
+              errorMsg.textContent = err instanceof Error ? err.message : "Submission failed. Please try again.";
+              errorMsg.style.display = "block";
+            }
+          } finally {
+            if (submitBtn) {
+              submitBtn.disabled = false;
+              submitBtn.textContent = "Submit Booking Request →";
+            }
           }
-
-          if (form) form.style.display = "none";
-          if (successMsg) successMsg.style.display = "block";
         });
       }
     };
@@ -295,6 +342,20 @@
     color: #15130f;
     box-shadow: 4px 4px 0 #15130f;
     margin-top: 0.75rem;
+  }
+
+  .obsidian-booking-error-message {
+    padding: 1rem 1.2rem;
+    border: 1.5px solid #15130f;
+    border-radius: 14px;
+    background: #ff7e7e;
+    color: #15130f;
+    font-family: var(--font-sans);
+    font-size: 0.95rem;
+    font-weight: 650;
+    line-height: 1.4;
+    margin-top: 0.75rem;
+    box-shadow: 3px 3px 0 #15130f;
   }
 
   .success-badge {

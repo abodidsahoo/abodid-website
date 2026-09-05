@@ -2,24 +2,75 @@
 export const prerender = false;
 
 import BaseLayout from "../layouts/BaseLayout.astro";
+import { listR2Folder, buildR2PublicUrl } from "../lib/media/r2";
 import { getPublishedMoodboardItems } from "../lib/services/moodboard";
 
-const title = "Mood Board — Abodid Sahoo";
+const title = "Behind The Scenes — Abodid Sahoo";
 const description =
-  "A living, randomly arranged collection of visual references, impulses and instincts.";
+  "A living, randomly arranged collection of behind the scenes moments, studio process, and life behind the work.";
 
-const moodboardItems = await getPublishedMoodboardItems();
-const shuffledItems = [...moodboardItems];
+interface BtsPhotoItem {
+  id: string;
+  imageUrl: string;
+  title: string;
+}
 
-for (let index = shuffledItems.length - 1; index > 0; index -= 1) {
+let btsPhotos: BtsPhotoItem[] = [];
+
+try {
+  const { files, config } = await listR2Folder("variants/my-life/800/");
+  if (files && files.length > 0) {
+    files.sort((a, b) =>
+      a.objectKey.localeCompare(b.objectKey, undefined, {
+        numeric: true,
+        sensitivity: "base",
+      }),
+    );
+    btsPhotos = files.map((file, index) => {
+      const filename = file.objectKey.split("/").pop() || "";
+      const title =
+        filename.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ") ||
+        `BTS Moment ${index + 1}`;
+      return {
+        id: file.etag || `my-life-${index}`,
+        imageUrl: buildR2PublicUrl(config, file.objectKey),
+        title,
+      };
+    });
+  }
+} catch (e) {
+  console.error("Failed to fetch R2 BTS images:", e);
+}
+
+// Fallback or supplement with moodboard items if R2 folder is empty
+if (btsPhotos.length === 0) {
+  try {
+    const moodboardItems = await getPublishedMoodboardItems();
+    btsPhotos = moodboardItems.map((item, idx) => ({
+      id: item.id || `bts-mb-${idx}`,
+      imageUrl: item.imageUrl,
+      title: item.title || `Behind The Scenes ${idx + 1}`,
+    }));
+  } catch (e) {
+    console.error("Failed to fetch moodboard fallback items:", e);
+  }
+}
+
+// Pre-randomize photo items server-side
+const shuffledPhotos = [...btsPhotos];
+for (let index = shuffledPhotos.length - 1; index > 0; index -= 1) {
   const randomIndex = Math.floor(Math.random() * (index + 1));
-  [shuffledItems[index], shuffledItems[randomIndex]] = [
-    shuffledItems[randomIndex],
-    shuffledItems[index],
+  [shuffledPhotos[index], shuffledPhotos[randomIndex]] = [
+    shuffledPhotos[randomIndex],
+    shuffledPhotos[index],
   ];
 }
 
-Astro.response.headers.set("Cache-Control", "no-store");
+Astro.response.headers.set("Cache-Control", "public, max-age=0, must-revalidate");
+Astro.response.headers.set(
+  "Vercel-CDN-Cache-Control",
+  "s-maxage=300, stale-while-revalidate=86400",
+);
 ---
 
 <BaseLayout
@@ -34,65 +85,71 @@ Astro.response.headers.set("Cache-Control", "no-store");
   showCursorFollower={false}
   bodyClass="story-moodboard-page"
 >
+  <Fragment slot="head">
+    {
+      shuffledPhotos.slice(0, 4).map((item) => (
+        <link rel="preload" as="image" href={item.imageUrl} fetchpriority="high" />
+      ))
+    }
+  </Fragment>
+
   <header class="story-nav">
-    <div class="story-nav__inner">
-      <a class="story-nav__brand" href="/" aria-label="Abodid Sahoo homepage"
-        >abodid.com</a
-      >
-      <nav class="story-nav__links" aria-label="Primary navigation">
-        <a href="/#selected-work">Work</a>
+    <a class="story-nav__brand" href="/" aria-label="Abodid Sahoo homepage">abodid.com</a>
+    <nav class="story-nav__links" aria-label="Primary navigation">
+      <a href="/work">Work</a>
+      <a href="/research">Research</a>
+      <a href="/services">Services</a>
+      <a href="/experience">Experience</a>
+      <a href="/about">About</a>
+    </nav>
+    <a class="story-nav__contact" href="/#enquiry"
+      >Hire me <span class="link-destination-arrow" aria-hidden="true">↗</span></a
+    >
+    <details class="story-nav__mobile">
+      <summary>Menu</summary>
+      <nav aria-label="Mobile navigation">
+        <a href="/work">Work</a>
         <a href="/research">Research</a>
         <a href="/services">Services</a>
         <a href="/experience">Experience</a>
         <a href="/about">About</a>
+        <a href="/#enquiry">Hire me <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
       </nav>
-      <a class="story-nav__contact" href="/#enquiry"
-        >Hire me <span class="link-destination-arrow" aria-hidden="true">↗</span></a
-      >
-      <details class="story-nav__mobile">
-        <summary>Menu</summary>
-        <nav aria-label="Mobile navigation">
-          <a href="/#selected-work">Work</a>
-          <a href="/research">Research</a>
-          <a href="/services">Services</a>
-          <a href="/experience">Experience</a>
-          <a href="/about">About</a>
-          <a href="/#enquiry">Hire me <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
-        </nav>
-      </details>
-    </div>
+    </details>
   </header>
 
   <main class="moodboard-shell">
     <article class="moodboard-file">
       <header class="moodboard-heading">
+        <div class="moodboard-heading__tag">
+          <span>bts.js</span>
+          <span>Behind The Scenes</span>
+        </div>
         <div class="moodboard-heading__hero">
-          <h1>Visual Mood Board</h1>
-          <p>An archive of impulses and instincts.</p>
+          <h1>Behind The Scenes</h1>
+          <p>A living, raw visual archive of captured moments, studio process, and life behind the projects.</p>
         </div>
       </header>
 
       <section
         class="moodboard-board"
-        aria-label="Randomised visual references"
+        aria-label="Behind the scenes photo archive"
       >
         {
-          shuffledItems.length > 0 ? (
+          shuffledPhotos.length > 0 ? (
             <div class="moodboard-grid">
-              {shuffledItems.map((item, index) => (
+              {shuffledPhotos.map((item, index) => (
                 <figure class="moodboard-card">
                   <img
                     src={item.imageUrl}
-                    alt={item.title || "Visual moodboard reference"}
-                    width={item.imageWidth || undefined}
-                    height={item.imageHeight || undefined}
-                    loading={index < 10 ? "eager" : "lazy"}
-                    fetchpriority={index < 5 ? "high" : "low"}
-                    decoding="async"
+                    alt={item.title || "Behind the scenes moment"}
+                    loading={index < 12 ? "eager" : "lazy"}
+                    fetchpriority={index < 4 ? "high" : (index < 12 ? "auto" : "low")}
+                    decoding={index < 4 ? "sync" : "async"}
+                    onerror="this.closest('.moodboard-card').style.display='none'"
                   />
                   <figcaption class="sr-only">
                     {item.title}
-                    {item.tags.length ? ` — ${item.tags.join(", ")}` : ""}
                   </figcaption>
                 </figure>
               ))}
@@ -100,7 +157,7 @@ Astro.response.headers.set("Cache-Control", "no-store");
           ) : (
             <div class="moodboard-empty">
               <p>
-                The visual archive is being rearranged. Please return shortly.
+                The behind the scenes archive is being updated. Please return shortly.
               </p>
             </div>
           )
@@ -115,7 +172,7 @@ Astro.response.headers.set("Cache-Control", "no-store");
               <a class="moodboard-cta moodboard-cta--primary" href="/#enquiry">
                 Get in touch <span class="link-destination-arrow" aria-hidden="true">↗</span>
               </a>
-              <a class="moodboard-cta moodboard-cta--secondary" href="/photo-gallery">
+              <a class="moodboard-cta moodboard-cta--secondary" href="/work">
                 Check out my Work <span class="link-destination-arrow" aria-hidden="true">↗</span>
               </a>
             </div>
@@ -169,8 +226,8 @@ Astro.response.headers.set("Cache-Control", "no-store");
     --pop-yellow: #ffe44f;
     --pop-cream: #fff8e8;
     --pop-ink: #15130f;
+    --story-gutter: clamp(1rem, 3vw, 3.5rem);
     --pop-border: 1px solid var(--pop-ink);
-    /* Exact same resets as landing page */
     margin: 0;
     padding: 0 !important;
     background: var(--pop-blue) !important;
@@ -184,7 +241,6 @@ Astro.response.headers.set("Cache-Control", "no-store");
     padding: 0;
   }
 
-  /* Mirror landing page: zero out main, keep overflow visible for sticky header */
   body.story-moodboard-page main.page-content-full {
     margin: 0;
     padding: 0 !important;
@@ -198,7 +254,7 @@ Astro.response.headers.set("Cache-Control", "no-store");
     -webkit-tap-highlight-color: transparent;
   }
 
-  /* ── Force header to exactly match landing page — full specificity via body class ── */
+  /* ── Force header to exactly match landing page ── */
   body.story-moodboard-page .story-nav {
     position: sticky !important;
     top: 0 !important;
@@ -214,7 +270,7 @@ Astro.response.headers.set("Cache-Control", "no-store");
     gap: 1.5rem !important;
     border-bottom: 0 !important;
     background: var(--pop-blue) !important;
-    color: var(--pop-cream) !important;
+    color: var(--pop-ink) !important;
   }
   body.story-moodboard-page .story-nav a,
   body.story-moodboard-page .story-nav summary {
@@ -242,6 +298,7 @@ Astro.response.headers.set("Cache-Control", "no-store");
     gap: clamp(1.2rem, 2.5vw, 2.5rem) !important;
   }
   body.story-moodboard-page .story-nav__links a {
+    color: var(--pop-cream) !important;
     opacity: 1;
     transition: text-decoration-color 160ms ease;
   }
@@ -274,7 +331,7 @@ Astro.response.headers.set("Cache-Control", "no-store");
     display: none !important;
   }
 
-  @media (max-width: 860px) {
+  @media (max-width: 980px) {
     body.story-moodboard-page .story-nav {
       grid-template-columns: 1fr auto !important;
     }
@@ -322,15 +379,19 @@ Astro.response.headers.set("Cache-Control", "no-store");
 </style>
 
 <style>
-  /* ── Moodboard Layout ───────────────────── */
+  /* ── BTS Layout ───────────────────── */
   .moodboard-shell {
-    padding: clamp(10px, 2vw, 20px);
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
     background: var(--pop-blue);
   }
 
   .moodboard-file {
-    width: min(100%, 1600px);
-    margin-inline: auto;
+    width: 100%;
+    max-width: none;
+    margin-inline: 0;
+    box-sizing: border-box;
     overflow: hidden;
     border: 1px solid var(--pop-ink);
     border-radius: clamp(20px, 3vw, 34px);
@@ -356,23 +417,6 @@ Astro.response.headers.set("Cache-Control", "no-store");
     text-transform: uppercase;
   }
 
-  .moodboard-dot {
-    width: 10px;
-    height: 10px;
-    flex: 0 0 auto;
-    border: 1px solid currentColor;
-    border-radius: 50%;
-    background: var(--pop-yellow);
-  }
-
-  .moodboard-legacy-link {
-    font-size: 0.72rem;
-    color: var(--pop-ink);
-    text-decoration: underline;
-    text-underline-offset: 3px;
-    font-weight: 700;
-  }
-
   .moodboard-heading__hero {
     display: grid;
     grid-template-columns: minmax(0, 1.3fr) minmax(260px, 0.7fr);
@@ -381,10 +425,10 @@ Astro.response.headers.set("Cache-Control", "no-store");
   }
 
   .moodboard-heading h1 {
-    max-width: 9ch;
+    max-width: 12ch;
     margin: 0;
     color: var(--pop-ink);
-    font: 720 clamp(3.7rem, 9vw, 8.5rem)/0.84 var(--font-display, sans-serif);
+    font: 720 clamp(3.2rem, 8vw, 7.5rem)/0.84 var(--font-display, sans-serif);
     letter-spacing: -0.075em;
   }
 
@@ -427,7 +471,6 @@ Astro.response.headers.set("Cache-Control", "no-store");
     width: 100%;
     height: auto;
     display: block;
-    /* Kill the 3-4px inline gap browsers add under images */
     vertical-align: bottom;
     line-height: 0;
   }
@@ -462,13 +505,6 @@ Astro.response.headers.set("Cache-Control", "no-store");
     font: 700 clamp(2rem, 4.5vw, 3.8rem)/0.95 var(--font-display, sans-serif);
     letter-spacing: -0.05em;
     max-width: 30ch;
-  }
-
-  .moodboard-footer__subline {
-    margin: 0;
-    max-width: 38rem;
-    font: 700 clamp(1.25rem, 2.2vw, 1.75rem)/1.3 var(--font-display, sans-serif);
-    opacity: 0.95;
   }
 
   .moodboard-footer__ctas {
@@ -571,7 +607,7 @@ Astro.response.headers.set("Cache-Control", "no-store");
     }
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: 760px) {
     .moodboard-heading__hero {
       grid-template-columns: 1fr;
       gap: 1rem;
@@ -580,7 +616,7 @@ Astro.response.headers.set("Cache-Control", "no-store");
       columns: 2;
     }
     .moodboard-shell {
-      padding: 8px;
+      padding: 6px;
     }
   }
 
