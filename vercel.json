@@ -1,3 +1,35 @@
 {
-  "trailingSlash": false
+  "trailingSlash": false,
+  "rewrites": [
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "photos.abodid.com"
+        }
+      ],
+      "destination": "/photography-portfolio"
+    },
+    {
+      "source": "/robots.txt",
+      "has": [
+        {
+          "type": "host",
+          "value": "photos.abodid.com"
+        }
+      ],
+      "destination": "/photography-portfolio/robots.txt"
+    },
+    {
+      "source": "/sitemap.xml",
+      "has": [
+        {
+          "type": "host",
+          "value": "photos.abodid.com"
+        }
+      ],
+      "destination": "/photography-portfolio/sitemap.xml"
+    }
+  ]
 }

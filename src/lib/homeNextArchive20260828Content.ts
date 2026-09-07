@@ -285,11 +285,11 @@ const mixedWorkFallbacks = {
 
 const exhibitionFallbackImages = [
   {
-    url: "https://photos.abodid.com/variants/exhibition-photos/1600/breathe-variations-rca-2023-abodid-sahoo-12-d06e2bea64.webp",
+    url: "https://assets.abodid.com/photos/variants/exhibition-photos/1600/breathe-variations-rca-2023-abodid-sahoo-12-d06e2bea64.webp",
     alt: "A moving-image installation seen through visitors at an RCA exhibition",
   },
   {
-    url: "https://photos.abodid.com/variants/exhibition-photos/1600/hidden-exhibition-rca-abodid-35-736387d606.webp",
+    url: "https://assets.abodid.com/photos/variants/exhibition-photos/1600/hidden-exhibition-rca-abodid-35-736387d606.webp",
     alt: "An artist seated beside an installation in a brick exhibition space",
   },
 ];

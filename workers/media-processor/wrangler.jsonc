@@ -8,7 +8,7 @@
   "r2_buckets": [
     {
       "binding": "MEDIA_BUCKET",
-      "bucket_name": "photos"
+      "bucket_name": "assets"
     }
   ],
   "images": {
@@ -27,8 +27,8 @@
     ]
   },
   "vars": {
-    "R2_BUCKET_NAME": "photos",
-    "PUBLIC_BASE_URL": "https://photos.abodid.com",
+    "R2_BUCKET_NAME": "assets",
+    "PUBLIC_BASE_URL": "https://assets.abodid.com",
     "TRANSFORM_VERSION": "1"
   }
 }

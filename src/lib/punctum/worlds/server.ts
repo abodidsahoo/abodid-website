@@ -103,26 +103,7 @@ export const getPunctumGenerationQuota = async ({
   };
 };
 
-const uploadToBucket = async ({
-  database,
-  bucket,
-  path,
-  buffer,
-  upsert = false,
-}: {
-  database: SupabaseClient;
-  bucket: string;
-  path: string;
-  buffer: Buffer;
-  upsert?: boolean;
-}) => {
-  const { error } = await database.storage.from(bucket).upload(path, buffer, {
-    contentType: "image/png",
-    cacheControl: bucket === "punctum-generated-worlds" ? "31536000" : "3600",
-    upsert,
-  });
-  if (error) throw new Error(`Image storage failed: ${error.message}`);
-};
+import { uploadToR2 } from "../../storage/r2Client";
 
 export const storePunctumArtifacts = async ({
   database,
@@ -134,35 +115,31 @@ export const storePunctumArtifacts = async ({
   punctum: ProcessedPunctum;
 }) => {
   const basePath = `${generationId}`;
-  const paths = {
-    maskedFragmentPath: `${basePath}/punctum.png`,
-    contextCropPath: `${basePath}/context.png`,
-    maskPath: `${basePath}/mask.png`,
-  };
-  await Promise.all([
-    uploadToBucket({
-      database,
-      bucket: "punctum-world-artifacts",
-      path: paths.maskedFragmentPath,
+  const r2OriginalBasePath = `photos/originals/punctum-experiment/artifacts/${basePath}`;
+
+  const [fragmentRes, cropRes, maskRes] = await Promise.all([
+    uploadToR2({
+      key: `${r2OriginalBasePath}/punctum.png`,
       buffer: punctum.maskedFragment,
-      upsert: true,
+      contentType: "image/png",
     }),
-    uploadToBucket({
-      database,
-      bucket: "punctum-world-artifacts",
-      path: paths.contextCropPath,
+    uploadToR2({
+      key: `${r2OriginalBasePath}/context.png`,
       buffer: punctum.paddedCrop,
-      upsert: true,
+      contentType: "image/png",
     }),
-    uploadToBucket({
-      database,
-      bucket: "punctum-world-artifacts",
-      path: paths.maskPath,
+    uploadToR2({
+      key: `${r2OriginalBasePath}/mask.png`,
       buffer: punctum.polygonMask,
-      upsert: true,
+      contentType: "image/png",
     }),
   ]);
-  return paths;
+
+  return {
+    maskedFragmentPath: fragmentRes.publicUrl,
+    contextCropPath: cropRes.publicUrl,
+    maskPath: maskRes.publicUrl,
+  };
 };
 
 export const storeGeneratedWorld = async ({
@@ -176,19 +153,18 @@ export const storeGeneratedWorld = async ({
   generationId: string;
   buffer: Buffer;
 }) => {
-  const path = `${sourceResponseId}/${generationId}.png`;
-  await uploadToBucket({
-    database,
-    bucket: "punctum-generated-worlds",
-    path,
+  const key = `photos/originals/punctum-experiment/generated-worlds/${sourceResponseId}/${generationId}.png`;
+
+  const result = await uploadToR2({
+    key,
     buffer,
-    upsert: true,
+    contentType: "image/png",
   });
-  const { data } = database.storage
-    .from("punctum-generated-worlds")
-    .getPublicUrl(path);
-  if (!data.publicUrl) throw new Error("The generated image URL is unavailable.");
-  return { path, publicUrl: data.publicUrl };
+
+  return {
+    path: result.key,
+    publicUrl: result.publicUrl,
+  };
 };
 
 export type PunctumGenerationSource = {

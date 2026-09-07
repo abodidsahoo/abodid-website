@@ -73,7 +73,7 @@ try {
 
   uploadedStoragePath = `originals/${projectResult.data.storage_folder}/integration-${crypto.randomUUID()}.png`;
   const onePixelPng = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=", "base64");
-  const uploadedUrl = `https://photos.abodid.com/${uploadedStoragePath}`;
+  const uploadedUrl = `https://assets.abodid.com/${uploadedStoragePath}`;
   const assetInsert = await adminClient.from("media_assets").insert({
     storage_provider: "cloudflare_r2",
     storage_bucket: "photos",

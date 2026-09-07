@@ -37,7 +37,7 @@ export const punctumImages: PunctumImage[] = [
     slug: "rca-outernet-digital-direction-2024-gradshow-abodid-18",
     title: "Exhibition photograph 01",
     sequence: 1,
-    url: "https://photos.abodid.com/originals/exhibition-photos/rca-outernet-digital-direction-2024-gradshow-abodid-18.jpg",
+    url: "https://assets.abodid.com/photos/originals/exhibition-photos/rca-outernet-digital-direction-2024-gradshow-abodid-18.jpg",
     objectKey:
       "originals/exhibition-photos/rca-outernet-digital-direction-2024-gradshow-abodid-18.jpg",
     width: 1920,
@@ -51,7 +51,7 @@ export const punctumImages: PunctumImage[] = [
     slug: "rca-digital-direction-2024-gradshow-abodid-146",
     title: "Exhibition photograph 02",
     sequence: 2,
-    url: "https://photos.abodid.com/originals/exhibition-photos/rca-digital-direction-2024-gradshow-abodid-146.jpg",
+    url: "https://assets.abodid.com/photos/originals/exhibition-photos/rca-digital-direction-2024-gradshow-abodid-146.jpg",
     objectKey:
       "originals/exhibition-photos/rca-digital-direction-2024-gradshow-abodid-146.jpg",
     width: 1920,
@@ -65,7 +65,7 @@ export const punctumImages: PunctumImage[] = [
     slug: "rca-grad-show-truman-brewery-abodid-97",
     title: "Exhibition photograph 03",
     sequence: 3,
-    url: "https://photos.abodid.com/originals/exhibition-photos/rca-grad-show-truman-brewery-abodid-97.jpg",
+    url: "https://assets.abodid.com/photos/originals/exhibition-photos/rca-grad-show-truman-brewery-abodid-97.jpg",
     objectKey:
       "originals/exhibition-photos/rca-grad-show-truman-brewery-abodid-97.jpg",
     width: 1920,
@@ -79,7 +79,7 @@ export const punctumImages: PunctumImage[] = [
     slug: "rca-digital-direction-2024-gradshow-abodid-346",
     title: "Exhibition photograph 04",
     sequence: 4,
-    url: "https://photos.abodid.com/originals/exhibition-photos/rca-digital-direction-2024-gradshow-abodid-346.jpg",
+    url: "https://assets.abodid.com/photos/originals/exhibition-photos/rca-digital-direction-2024-gradshow-abodid-346.jpg",
     objectKey:
       "originals/exhibition-photos/rca-digital-direction-2024-gradshow-abodid-346.jpg",
     width: 1920,
@@ -93,7 +93,7 @@ export const punctumImages: PunctumImage[] = [
     slug: "rca-2023-ting-photoshoot-collab-9",
     title: "Exhibition photograph 05",
     sequence: 5,
-    url: "https://photos.abodid.com/originals/exhibition-photos/rca-2023-ting-photoshoot-collab-9.jpg",
+    url: "https://assets.abodid.com/photos/originals/exhibition-photos/rca-2023-ting-photoshoot-collab-9.jpg",
     objectKey:
       "originals/exhibition-photos/rca-2023-ting-photoshoot-collab-9.jpg",
     width: 1920,
@@ -107,7 +107,7 @@ export const punctumImages: PunctumImage[] = [
     slug: "into-the-flux-iba-london88",
     title: "Exhibition photograph 06",
     sequence: 6,
-    url: "https://photos.abodid.com/originals/exhibition-photos/into-the-flux-iba-london88.jpg",
+    url: "https://assets.abodid.com/photos/originals/exhibition-photos/into-the-flux-iba-london88.jpg",
     objectKey:
       "originals/exhibition-photos/into-the-flux-iba-london88.jpg",
     width: 1980,

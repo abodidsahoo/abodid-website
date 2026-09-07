@@ -25,8 +25,8 @@ import AdminPageHeader from './AdminPageHeader';
 
 const MAX_IMAGE_SIZE_BYTES = 20 * 1024 * 1024;
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-const isOriginalCollectionFolder = (folder) => folder.startsWith('originals/');
-const canCreateOriginalFolder = (folder) => folder === 'originals' || folder.startsWith('originals/');
+const isOriginalCollectionFolder = (folder) => folder.startsWith('originals/') || folder.startsWith('photos/originals/');
+const canCreateOriginalFolder = (folder) => folder === 'originals' || folder.startsWith('originals/') || folder === 'photos/originals' || folder.startsWith('photos/originals/');
 
 const formatBytes = (value) => {
     const bytes = Number(value || 0);
@@ -93,10 +93,10 @@ export default function MediaLibrary({ accessToken }) {
     const [files, setFiles] = useState([]);
     const [folders, setFolders] = useState([]);
     const [rootFolders, setRootFolders] = useState([
-        { name: 'originals', path: 'originals' },
-        { name: 'variants', path: 'variants' },
+        { name: 'originals', path: 'photos/originals' },
+        { name: 'variants', path: 'photos/variants' },
     ]);
-    const [currentFolder, setCurrentFolder] = useState('originals');
+    const [currentFolder, setCurrentFolder] = useState('photos/originals');
     const [selectedKey, setSelectedKey] = useState('');
     const [query, setQuery] = useState('');
     const [searchFiles, setSearchFiles] = useState([]);
@@ -437,8 +437,8 @@ export default function MediaLibrary({ accessToken }) {
                     </div>
                     <div className="storage-note">
                         <span>R2 bucket</span>
-                        <strong>photos</strong>
-                        <small>Images are served from photos.abodid.com</small>
+                        <strong>assets</strong>
+                        <small>Images are served from assets.abodid.com</small>
                     </div>
                 </aside>
 

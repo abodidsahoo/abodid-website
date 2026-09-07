@@ -1,6 +1,7 @@
 import { defineMiddleware } from 'astro:middleware';
 import { createClient } from '@supabase/supabase-js';
 import { normalizePagePath } from './lib/urlNormalization.js';
+import { photographyDestination } from './lib/photography/routing.mjs';
 
 const privatePagePatterns = [
     /^\/admin(?:\/|$)/,
@@ -38,6 +39,18 @@ const canCachePublicPage = (context: PublicCacheContext, response: Response) => 
 
 export const onRequest = defineMiddleware(async (context, next) => {
     const requestUrl = new URL(context.request.url);
+    const photographyPath = photographyDestination(requestUrl);
+    if (photographyPath) {
+        const target = new URL(photographyPath, requestUrl);
+        target.search = requestUrl.search;
+        // next(url) rewrites once without re-entering domain middleware.
+        const response = await next(target);
+        if (response.status === 200) {
+            response.headers.set('Cache-Control', 'public, max-age=0, must-revalidate');
+            response.headers.set('Vercel-CDN-Cache-Control', 's-maxage=300, stale-while-revalidate=86400');
+        }
+        return response;
+    }
     if (requestUrl.pathname !== '/' && requestUrl.pathname.endsWith('/')) {
         const destination = `${normalizePagePath(requestUrl.pathname)}${requestUrl.search}`;
         return new Response(null, {

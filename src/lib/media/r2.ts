@@ -12,8 +12,8 @@ export const R2_UPLOAD_EXPIRY_SECONDS = 5 * 60;
 export const R2_CACHE_CONTROL = "public, max-age=31536000, immutable";
 export const R2_BROWSER_MAX_ITEMS = 2_000;
 export const R2_SEARCH_MAX_OBJECTS = 25_000;
-export const R2_ORIGINALS_PREFIX = "originals";
-export const R2_VARIANTS_PREFIX = "variants";
+export const R2_ORIGINALS_PREFIX = "photos/originals";
+export const R2_VARIANTS_PREFIX = "photos/variants";
 
 const MIME_TYPES_BY_EXTENSION: Record<string, string> = {
     avif: "image/avif",
@@ -154,14 +154,15 @@ export const normalizeR2FolderPath = (value: unknown) => {
 
 export const isR2OriginalFolder = (value: unknown, { allowRoot = false } = {}) => {
     const folder = normalizeR2FolderPath(value);
+    const prefixes = ["photos/originals", "originals"];
     return allowRoot
-        ? folder === R2_ORIGINALS_PREFIX || folder.startsWith(`${R2_ORIGINALS_PREFIX}/`)
-        : folder.startsWith(`${R2_ORIGINALS_PREFIX}/`);
+        ? prefixes.some((p) => folder === p || folder.startsWith(`${p}/`))
+        : prefixes.some((p) => folder.startsWith(`${p}/`));
 };
 
 export const assertR2OriginalObjectKey = (value: unknown) => {
     const key = assertSafeR2ObjectKey(value);
-    if (!key.startsWith(`${R2_ORIGINALS_PREFIX}/`) || key.endsWith("/")) {
+    if ((!key.startsWith("photos/originals/") && !key.startsWith("originals/")) || key.endsWith("/")) {
         throw new Error("Original images must be stored inside the originals folder.");
     }
     return key;

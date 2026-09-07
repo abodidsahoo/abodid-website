@@ -29,54 +29,17 @@ type MediaVariantRow = {
   object_key: string;
 };
 
-const ORIGINAL_PREFIX = "originals/";
-const MAX_IMAGE_SIZE_BYTES = 20 * 1024 * 1024;
-const CACHE_CONTROL = "public, max-age=31536000, immutable";
-const QUALITY = 82;
-const ALLOWED_MIME_TYPES = new Set([
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-  "image/gif",
-]);
-
-const cleanBaseUrl = (value: string) => value.replace(/\/+$/, "");
-
-const publicUrlFor = (env: Env, objectKey: string) => {
-  const encoded = objectKey
-    .split("/")
-    .map((segment) => encodeURIComponent(segment))
-    .join("/");
-  return `${cleanBaseUrl(env.PUBLIC_BASE_URL)}/${encoded}`;
-};
-
-const inferMimeType = (key: string) => {
-  const extension = key.split(".").pop()?.toLowerCase();
-  if (extension === "jpg" || extension === "jpeg") return "image/jpeg";
-  if (extension === "png") return "image/png";
-  if (extension === "webp") return "image/webp";
-  if (extension === "gif") return "image/gif";
-  return "application/octet-stream";
-};
-
-const originalFilenameFor = (objectKey: string) => {
-  const filename = objectKey.split("/").pop() || "image";
-  try {
-    return decodeURIComponent(filename);
-  } catch {
-    return filename;
-  }
-};
-
-const storageFolderFor = (objectKey: string) =>
-  objectKey.slice(ORIGINAL_PREFIX.length).split("/").filter(Boolean)[0] || null;
+const isOriginalKey = (key: string) => key.startsWith("originals/") || key.startsWith("photos/originals/");
 
 const variantObjectKey = (
   originalKey: string,
   variantKey: "800" | "1600",
   sourceEtag: string,
 ) => {
-  const relative = originalKey.slice(ORIGINAL_PREFIX.length);
+  let isPhotosPrefix = originalKey.startsWith("photos/originals/");
+  let prefixLength = isPhotosPrefix ? "photos/originals/".length : "originals/".length;
+  let relative = originalKey.slice(prefixLength);
+
   const slashIndex = relative.lastIndexOf("/");
   const directory = slashIndex >= 0 ? relative.slice(0, slashIndex) : "";
   const filename = slashIndex >= 0 ? relative.slice(slashIndex + 1) : relative;
@@ -84,6 +47,10 @@ const variantObjectKey = (
   const stem = dotIndex > 0 ? filename.slice(0, dotIndex) : filename;
   const fingerprint = sourceEtag.replace(/[^a-zA-Z0-9]/g, "").slice(0, 10) || "source";
   const outputName = `${stem}-${fingerprint}.webp`;
+
+  if (isPhotosPrefix) {
+    return ["photos/variants", directory, variantKey, outputName].filter(Boolean).join("/");
+  }
   return ["variants", directory, variantKey, outputName].filter(Boolean).join("/");
 };
 
