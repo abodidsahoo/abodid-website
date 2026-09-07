@@ -7,7 +7,7 @@ class StudioHeader extends HTMLElement {
   connectedCallback() {
     this.innerHTML = `
       <header class="site-header">
-        <a class="brand" href="${href('/')}" aria-label="Podcast Abodid home"><span class="brand-mark">A</span><span>Podcast / Abodid</span></a>
+        <a class="brand" href="${href('/')}" aria-label="The Mesmerizer Studio home"><span class="brand-mark">M</span><span>The Mesmerizer Studio.</span></a>
         <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav"><span>Menu</span><span aria-hidden="true">＋</span></button>
         <nav id="site-nav" class="site-nav" aria-label="Primary navigation">
           ${navItems.map(([label, url]) => `<a href="${href(url)}"><span>${label}</span></a>`).join('')}
@@ -29,8 +29,8 @@ class StudioFooter extends HTMLElement {
   connectedCallback() {
     this.innerHTML = `
       <footer class="site-footer">
-        <a class="footer-wordmark" href="${href('/')}">Podcast / Abodid</a>
-        <p>Ebbsfleet Valley, Kent<br><span>Exact address shared after confirmation.</span></p>
+        <a class="footer-wordmark" href="${href('/')}">The Mesmerizer Studio.</a>
+        <p>Ebbsfleet Valley, Kent<br><span>DA10 1DE</span></p>
         <div class="footer-links"><a href="mailto:hello@abodid.com">hello@abodid.com</a><a href="${href('/policies/')}">Policies</a></div>
         <p class="copyright">© ${new Date().getFullYear()} Abodid Sahoo</p>
       </footer>`;
@@ -68,7 +68,7 @@ document.querySelectorAll('[data-mail-form]').forEach((form) => {
     const data = new FormData(form);
     const lines = [];
     for (const [key, value] of data.entries()) if (String(value).trim()) lines.push(`${key}: ${value}`);
-    const subject = encodeURIComponent(`Podcast studio enquiry — ${data.get('project') || data.get('offer') || 'new project'}`);
+    const subject = encodeURIComponent(`The Mesmerizer Studio enquiry — ${data.get('project') || data.get('offer') || 'new project'}`);
     const body = encodeURIComponent(lines.join('\n'));
     if (status) status.textContent = 'Your email app is opening with the brief ready to send.';
     window.location.href = `mailto:hello@abodid.com?subject=${subject}&body=${body}`;
@@ -85,3 +85,29 @@ const reveal = new IntersectionObserver((entries) => {
   entries.forEach((entry) => { if (entry.isIntersecting) entry.target.classList.add('revealed'); });
 }, { threshold: 0.08 });
 document.querySelectorAll('[data-reveal]').forEach((el) => reveal.observe(el));
+
+const videoDialog = document.querySelector('[data-video-dialog]');
+const videoOpen = document.querySelector('[data-video-open]');
+const videoClose = document.querySelector('[data-video-close]');
+const videoPlayer = document.querySelector('[data-video-player]');
+const expandedVideoUrl = 'https://www.youtube-nocookie.com/embed/GI9cg_s6B2Q?autoplay=1&rel=0';
+
+const closeVideo = () => {
+  if (videoDialog?.open) videoDialog.close();
+};
+
+videoOpen?.addEventListener('click', () => {
+  if (!videoDialog || !videoPlayer) return;
+  videoPlayer.src = expandedVideoUrl;
+  videoDialog.showModal();
+  document.body.classList.add('dialog-open');
+});
+
+videoClose?.addEventListener('click', closeVideo);
+videoDialog?.addEventListener('click', (event) => {
+  if (event.target === videoDialog) closeVideo();
+});
+videoDialog?.addEventListener('close', () => {
+  if (videoPlayer) videoPlayer.src = '';
+  document.body.classList.remove('dialog-open');
+});
