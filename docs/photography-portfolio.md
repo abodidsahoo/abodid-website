@@ -47,3 +47,13 @@ After release verify `/`, `/robots.txt`, `/sitemap.xml`, all nine series, one li
 ### Route confirmed
 
 The user selected `/photography-portfolio`. The completed portfolio and its search endpoints now live there. Both Astro middleware and Vercel host rewrites target that route. The original `/photography` page is preserved.
+
+### Mobile image and palette audit
+
+The current catalog previously defaulted to original URLs when per-folder variants were absent. The resolver now also reuses variants for renamed originals when full ETags match, prefers 1600, then 800, then retains the original only if neither exists. At this audit: 820 images resolve to 1600, 49 to 800 only, and 409 have no usable variant. Bulk upload of 867 missing responsive files requires the user's explicit approval; `scripts/backfill-photography-variants.mjs` is dry-run unless passed `--upload`.
+
+The first two gallery covers use existing optimized files, are preloaded responsively, and have high fetch priority. Mobile captions are server-rendered with a compact 11px wordmark. Whole-archive/whole-album preloading was removed; only one likely next image is warmed. Requests receive the checked-in catalog immediately while live inventory refreshes in the background. Palette image downloads no longer block page rendering.
+
+Hover colors use populated color bins and an actual sampled pixel, without warm-tone weighting or saturation/lightness forcing. Foreground black or white is selected by contrast. Precomputed cover palettes are keyed by image URL in `photographyPalettes.generated.json`.
+
+Refresh cached inventory with `node scripts/audit-photography-r2.mjs`, then `node scripts/cache-photography-preview.mjs` to refresh the local catalog, cover dimensions and palette cache. Both read Cloudflare/public images without uploading. Publish the resulting code/data changes through the existing release workflow.

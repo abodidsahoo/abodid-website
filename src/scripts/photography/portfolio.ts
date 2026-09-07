@@ -8,6 +8,7 @@ type Group = {
   label: string;
   cover: PortfolioPhoto;
   images: PortfolioPhoto[];
+  imageCount: number;
   palette: Palette;
 };
 
@@ -41,8 +42,8 @@ const cancelReset = () => {
 const applyPalette = (bg: string, textColor: string, subtextColor: string, isDark: boolean) => {
   cancelReset();
   document.documentElement.style.setProperty('--page-bg', bg);
-  document.documentElement.style.setProperty('--page-text', '#141414');
-  document.documentElement.style.setProperty('--page-subtext', 'rgba(20,20,20,0.68)');
+  document.documentElement.style.setProperty('--page-text', textColor);
+  document.documentElement.style.setProperty('--page-subtext', subtextColor);
   document.documentElement.style.setProperty('--page-bg-alpha', 'rgba(255,255,255,0.92)');
 };
 
@@ -128,7 +129,7 @@ const floatingPreview = document.querySelector<HTMLElement>('#index-floating-pre
 const floatingImg = document.querySelector<HTMLImageElement>('#index-floating-img');
 let currentCoverUrl = '';
 
-// Preload cache for zero-latency image transitions
+// Preload cache for zero-latency image transitions & pre-decoding
 const preloadedUrls = new Set<string>();
 
 function preloadUrl(url?: string) {
@@ -137,38 +138,25 @@ function preloadUrl(url?: string) {
   const img = new Image();
   img.decoding = 'async';
   img.src = url;
-}
-
-function preloadGroup(gIndex: number) {
-  const g = groups[gIndex];
-  if (!g?.images) return;
-  for (const p of g.images) {
-    preloadUrl(p.large);
-    preloadUrl(p.small);
+  if (img.decode) {
+    img.decode().catch(() => {});
   }
 }
 
 function preloadAround(gIndex: number) {
-  preloadGroup(gIndex);
-  preloadGroup((gIndex + 1) % groups.length);
-  preloadGroup((gIndex - 1 + groups.length) % groups.length);
-}
-
-// Preload project covers immediately
-groups.forEach(g => {
-  const url = g.cover?.small || g.cover?.large;
-  if (url) preloadUrl(url);
-});
-
-// Background idle preload
-if (typeof window !== 'undefined') {
-  const idlePreload = () => {
-    groups.forEach((_, idx) => preloadGroup(idx));
-  };
-  if ('requestIdleCallback' in window) {
-    (window as any).requestIdleCallback(idlePreload, { timeout: 2000 });
+  const g = groups[gIndex];
+  const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
+  if (!g || connection?.saveData) return;
+  if (lightbox?.open && gIndex === activeGroup) {
+    const len = g.images.length;
+    if (len > 1) {
+      const nextIdx = (activePhoto + 1) % len;
+      const prevIdx = (activePhoto - 1 + len) % len;
+      preloadUrl(g.images[nextIdx]?.large);
+      preloadUrl(g.images[prevIdx]?.large);
+    }
   } else {
-    setTimeout(idlePreload, 1500);
+    preloadUrl(g.images[0]?.large);
   }
 }
 
@@ -237,7 +225,8 @@ function createProjectElement(group: Group, i: number): HTMLElement {
   article.className = 'project';
   article.dataset.category = group.category || '';
   article.dataset.index = String(i);
-  article.dataset.paletteBg = group.palette?.bg || '#fbfbf9';
+  const bgColor = group.palette?.bg || '#fbfbf9';
+  article.dataset.paletteBg = bgColor;
   article.dataset.paletteDark = group.palette?.isDark ? 'true' : 'false';
   article.dataset.paletteText = group.palette?.textColor || '#141414';
   article.dataset.paletteSubtext = group.palette?.subtextColor || 'rgba(20,20,20,0.68)';
@@ -248,13 +237,16 @@ function createProjectElement(group: Group, i: number): HTMLElement {
 
   const coverLarge = group.cover.large;
   const coverSmall = group.cover.small || coverLarge;
-  const count = group.images.length;
+  const count = group.imageCount;
   const title = group.title;
   const category = group.category || 'Editorial';
   const numStr = String(i + 1).padStart(2, '0');
 
   const widthAttr = group.cover.width ? `width="${group.cover.width}"` : '';
   const heightAttr = group.cover.height ? `height="${group.cover.height}"` : '';
+  const wrapStyle = group.cover.width && group.cover.height
+    ? `style="aspect-ratio:${group.cover.width}/${group.cover.height};background-color:${bgColor};"`
+    : `style="background-color:${bgColor};"`;
 
   article.innerHTML = `
     <a
@@ -267,11 +259,11 @@ function createProjectElement(group: Group, i: number): HTMLElement {
       data-count="${count}"
       aria-label="View ${title}, ${count} photographs"
     >
-      <div class="image-wrap">
+      <div class="image-wrap" ${wrapStyle}>
         <img
           src="${coverLarge}"
           srcset="${coverSmall} 800w, ${coverLarge} 1600w"
-          sizes="(max-width: 600px) 90vw, 42vw"
+          sizes="(max-width: 600px) 90vw, (max-width: 1200px) 45vw, 42vw"
           ${widthAttr}
           ${heightAttr}
           loading="lazy"
@@ -288,6 +280,7 @@ function createProjectElement(group: Group, i: number): HTMLElement {
           </div>
         </div>
       </div>
+      <div class="mobile-caption"><span>${title}</span><small>(${count})</small></div>
       <div class="index-row">
         <span class="index-num">${numStr}</span>
         <div class="index-info">
@@ -309,7 +302,7 @@ const initialProjects = [...gallery.querySelectorAll<HTMLElement>('.project')];
 initialProjects.forEach(bindProjectCard);
 
 let loadedCount = initialProjects.length;
-const CHUNK_SIZE = 6;
+const CHUNK_SIZE = 4;
 
 function loadNextBatch() {
   if (loadedCount >= groups.length) return;
@@ -340,10 +333,10 @@ const sentinel = document.querySelector('#scroll-sentinel');
 let sentinelObserver: IntersectionObserver | null = null;
 if (sentinel && 'IntersectionObserver' in window) {
   sentinelObserver = new IntersectionObserver(entries => {
-    if (entries[0].isIntersecting) {
+    if (entries[0].isIntersecting && !document.querySelector('dialog[open]')) {
       loadNextBatch();
     }
-  }, { rootMargin: '500px 0px 500px 0px' });
+  }, { rootMargin: '180px 0px 180px 0px' });
   sentinelObserver.observe(sentinel);
 }
 
@@ -375,10 +368,58 @@ const inquiry = document.querySelector<HTMLDialogElement>('#inquiry')!;
 const photoImage = document.querySelector<HTMLImageElement>('#lightbox-image')!;
 const details = document.querySelector<HTMLElement>('#photo-details')!;
 const detailsToggle = document.querySelector<HTMLButtonElement>('#details-toggle')!;
+const lightboxStage = document.querySelector<HTMLElement>('.lightbox-stage')!;
 let activeGroup = 0, activePhoto = 0;
 let viewerTrigger: HTMLElement | null = null;
 let inquiryTrigger: HTMLElement | null = null;
 let imageFallback = false;
+
+// Zoom and gesture state
+let currentScale = 1;
+let currentPanX = 0;
+let currentPanY = 0;
+let isPanning = false;
+let panStartX = 0;
+let panStartY = 0;
+let initialPanX = 0;
+let initialPanY = 0;
+let pinchStartDistance = 0;
+let pinchStartScale = 1;
+let lastTapTime = 0;
+let touchStartX = 0;
+let touchStartY = 0;
+let isDismissing = false;
+
+function applyTransform(scale: number, panX: number, panY: number) {
+  currentScale = Math.max(1, Math.min(3.5, scale));
+  if (currentScale <= 1.02) {
+    currentScale = 1;
+    currentPanX = 0;
+    currentPanY = 0;
+    photoImage.style.transform = '';
+    lightboxStage?.classList.remove('is-zoomed', 'is-panning');
+  } else {
+    currentPanX = panX;
+    currentPanY = panY;
+    photoImage.style.transform = `translate3d(${panX}px, ${panY}px, 0) scale(${currentScale})`;
+    lightboxStage?.classList.add('is-zoomed');
+  }
+}
+
+function resetZoom() {
+  applyTransform(1, 0, 0);
+}
+
+function dismissLightbox() {
+  if (isDismissing) return;
+  isDismissing = true;
+  lightbox.classList.add('is-dismissing');
+  setTimeout(() => {
+    if (lightbox.open) lightbox.close();
+    lightbox.classList.remove('is-dismissing');
+    isDismissing = false;
+  }, 220);
+}
 
 const currentPhoto = () => groups[activeGroup]?.images[activePhoto];
 const text = (selector: string, value: string) => {
@@ -390,12 +431,13 @@ function renderPhoto() {
   const photo = currentPhoto();
   if (!photo) return;
   imageFallback = false;
+  resetZoom();
 
   text('#lightbox-title', photo.title);
   text('#lightbox-location', photo.location || photo.category);
-  text('#lightbox-count', `${String(activePhoto + 1).padStart(2, '0')} / ${String(groups[activeGroup].images.length).padStart(2, '0')}`);
-  text('#photo-story', photo.story || 'From the photographic archive of Abodid Sahoo.');
-  text('#photo-camera', photo.camera ? `Camera / ${photo.camera}` : 'Camera details available on inquiry.');
+  text('#lightbox-count', `${String(activePhoto + 1).padStart(2, '0')} / ${String(groups[activeGroup].imageCount).padStart(2, '0')}`);
+  text('#photo-story', photo.story || `${photo.title} — ${photo.category.toLowerCase()} photography by Abodid Sahoo.`);
+  text('#photo-camera', photo.camera ? `Camera / ${photo.camera}` : '');
 
   photoImage.alt = photo.alt;
   photoImage.srcset = `${photo.small} 800w, ${photo.large} 1600w`;
@@ -411,26 +453,66 @@ function renderPhoto() {
 
   const prevBtn = document.querySelector<HTMLButtonElement>('#previous-photo');
   const nextBtn = document.querySelector<HTMLButtonElement>('#next-photo');
-  if (prevBtn) prevBtn.disabled = false;
-  if (nextBtn) nextBtn.disabled = false;
+  if (prevBtn) prevBtn.disabled = groups[activeGroup].images.length < groups[activeGroup].imageCount;
+  if (nextBtn) nextBtn.disabled = groups[activeGroup].images.length < groups[activeGroup].imageCount;
 
   preloadAround(activeGroup);
+  syncDirectMail();
 }
 
-photoImage.addEventListener('load', () => { photoImage.classList.remove('loading'); text('#image-load-status', 'Photograph loaded'); });
+photoImage.addEventListener('load', () => {
+  photoImage.classList.remove('loading');
+  text('#image-load-status', 'Photograph loaded');
+});
+
 photoImage.addEventListener('error', () => {
   if (!imageFallback) {
     imageFallback = true;
     photoImage.removeAttribute('srcset');
-    photoImage.src = currentPhoto().original;
-  } else { photoImage.classList.remove('loading'); text('#image-load-status', 'This photograph is temporarily unavailable. Please try the next image.'); }
+    photoImage.src = currentPhoto().small;
+  } else {
+    photoImage.classList.remove('loading');
+    text('#image-load-status', 'This photograph is temporarily unavailable. Please try the next image.');
+  }
 });
 
+const seriesRequests = new Map<number, Promise<void>>();
+function loadSeries(index: number) {
+  const group = groups[index];
+  if (group.images.length >= group.imageCount) return Promise.resolve();
+  if (!seriesRequests.has(index)) {
+    const endpoint = `/photography-portfolio/series.json?id=${encodeURIComponent(group.id)}`;
+    const request = fetch(endpoint).then(async response => {
+      if (!response.ok) throw new Error('Could not load this series. Close and reopen to retry.');
+      const result = await response.json();
+      group.images = result.images;
+      group.imageCount = result.images.length;
+    }).finally(() => seriesRequests.delete(index));
+    seriesRequests.set(index, request);
+  }
+  return seriesRequests.get(index)!;
+}
+
 function openGroup(index: number, trigger: HTMLElement) {
-  activeGroup = index; activePhoto = 0; viewerTrigger = trigger;
-  details.hidden = true; detailsToggle.setAttribute('aria-expanded', 'false'); detailsToggle.textContent = 'Details +';
+  activeGroup = index;
+  activePhoto = 0;
+  viewerTrigger = trigger;
+  details.hidden = true;
+  detailsToggle.setAttribute('aria-expanded', 'false');
+  detailsToggle.textContent = 'Details +';
+  resetZoom();
   preloadAround(activeGroup);
-  renderPhoto(); cursor.classList.remove('visible'); lightbox.showModal();
+  renderPhoto();
+  cursor.classList.remove('visible');
+  lightbox.showModal();
+  const url = new URL(location.href);
+  url.hash = '';
+  url.searchParams.set('series', groups[index].id);
+  url.searchParams.delete('image');
+  history.pushState({ portfolioViewer: true }, '', url);
+  void loadSeries(index).then(() => {
+    if (lightbox.open && activeGroup === index) renderPhoto();
+  }).catch(error => text('#image-load-status', error.message));
 }
 
 // Event Delegation for Lightbox Trigger Clicks across all cards
@@ -439,49 +521,125 @@ gallery.addEventListener('click', event => {
   if (!link) return;
   if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
   event.preventDefault();
-  link.blur();
   const groupIndex = Number(link.dataset.group);
   preloadAround(groupIndex);
   openGroup(groupIndex, link);
 });
 
 function movePhoto(direction: number) {
-  const currentImages = groups[activeGroup]?.images || [];
-  if (direction > 0) {
-    if (activePhoto + 1 < currentImages.length) {
-      activePhoto++;
-    } else {
-      activeGroup = (activeGroup + 1) % groups.length;
-      activePhoto = 0;
-    }
-  } else {
-    if (activePhoto - 1 >= 0) {
-      activePhoto--;
-    } else {
-      activeGroup = (activeGroup - 1 + groups.length) % groups.length;
-      activePhoto = Math.max(0, (groups[activeGroup]?.images.length || 1) - 1);
-    }
-  }
-  preloadAround(activeGroup);
+  const group = groups[activeGroup];
+  if (group.images.length < group.imageCount) return;
+  resetZoom();
+  activePhoto = (activePhoto + direction + group.images.length) % group.images.length;
+  const url = new URL(location.href);
+  url.searchParams.set('image', currentPhoto().id);
+  history.replaceState(history.state, '', url);
   renderPhoto();
 }
 
 const prevArrow = document.querySelector<HTMLButtonElement>('#previous-photo');
 const nextArrow = document.querySelector<HTMLButtonElement>('#next-photo');
-prevArrow?.addEventListener('mousedown', (e) => e.preventDefault());
-prevArrow?.addEventListener('click', (e) => {
+prevArrow?.addEventListener('mousedown', e => e.preventDefault());
+prevArrow?.addEventListener('click', e => {
   e.stopPropagation();
-  prevArrow.blur();
   movePhoto(-1);
 });
-nextArrow?.addEventListener('mousedown', (e) => e.preventDefault());
-nextArrow?.addEventListener('click', (e) => {
+nextArrow?.addEventListener('mousedown', e => e.preventDefault());
+nextArrow?.addEventListener('click', e => {
   e.stopPropagation();
-  nextArrow.blur();
   movePhoto(1);
 });
 
-photoImage.addEventListener('click', (event) => {
+// Touch Gesture System: Multi-touch pinch zoom, pan, double-tap, and swipe-down dismiss
+photoImage.addEventListener('touchstart', (event: TouchEvent) => {
+  if (event.touches.length === 2) {
+    pinchStartDistance = Math.hypot(
+      event.touches[0].clientX - event.touches[1].clientX,
+      event.touches[0].clientY - event.touches[1].clientY
+    );
+    pinchStartScale = currentScale;
+  } else if (event.touches.length === 1) {
+    const touch = event.touches[0];
+    touchStartX = touch.clientX;
+    touchStartY = touch.clientY;
+    if (currentScale > 1.05) {
+      isPanning = true;
+      panStartX = touch.clientX;
+      panStartY = touch.clientY;
+      initialPanX = currentPanX;
+      initialPanY = currentPanY;
+      lightboxStage?.classList.add('is-panning');
+    }
+  }
+}, { passive: true });
+
+photoImage.addEventListener('touchmove', (event: TouchEvent) => {
+  if (event.touches.length === 2 && pinchStartDistance > 0) {
+    event.preventDefault();
+    const dist = Math.hypot(
+      event.touches[0].clientX - event.touches[1].clientX,
+      event.touches[0].clientY - event.touches[1].clientY
+    );
+    const newScale = pinchStartScale * (dist / pinchStartDistance);
+    applyTransform(newScale, currentPanX, currentPanY);
+  } else if (event.touches.length === 1 && currentScale > 1.05 && isPanning) {
+    event.preventDefault();
+    const dx = event.touches[0].clientX - panStartX;
+    const dy = event.touches[0].clientY - panStartY;
+    const maxPanX = (window.innerWidth * (currentScale - 1)) / 2;
+    const maxPanY = (window.innerHeight * (currentScale - 1)) / 2;
+    const targetPanX = Math.max(-maxPanX, Math.min(maxPanX, initialPanX + dx));
+    const targetPanY = Math.max(-maxPanY, Math.min(maxPanY, initialPanY + dy));
+    applyTransform(currentScale, targetPanX, targetPanY);
+  }
+}, { passive: false });
+
+photoImage.addEventListener('touchend', (event: TouchEvent) => {
+  const now = Date.now();
+  if (event.touches.length === 0 && event.changedTouches.length === 1) {
+    const touch = event.changedTouches[0];
+    const dx = touch.clientX - touchStartX;
+    const dy = touch.clientY - touchStartY;
+
+    // Double tap toggle (zoom in / reset)
+    if (Math.abs(dx) < 15 && Math.abs(dy) < 15 && now - lastTapTime < 300) {
+      lastTapTime = 0;
+      if (currentScale > 1.2) {
+        resetZoom();
+      } else {
+        applyTransform(2.2, 0, 0);
+      }
+      return;
+    }
+    lastTapTime = now;
+
+    if (currentScale > 1.05) {
+      isPanning = false;
+      lightboxStage?.classList.remove('is-panning');
+      return;
+    }
+
+    // Swipe gestures when not zoomed
+    if (dy > 70 && dy > Math.abs(dx) * 1.3) {
+      dismissLightbox();
+    } else if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.4) {
+      movePhoto(dx < 0 ? 1 : -1);
+    }
+  }
+
+  if (event.touches.length === 0) {
+    isPanning = false;
+    lightboxStage?.classList.remove('is-panning');
+  }
+}, { passive: true });
+
+photoImage.addEventListener('dblclick', () => {
+  if (currentScale > 1.1) resetZoom();
+  else applyTransform(2.2, 0, 0);
+});
+
+photoImage.addEventListener('click', event => {
+  if (currentScale > 1.05) return;
   const rect = photoImage.getBoundingClientRect();
   const clickX = event.clientX - rect.left;
   if (clickX > rect.width / 2) {
@@ -492,18 +650,12 @@ photoImage.addEventListener('click', (event) => {
 });
 
 lightbox.addEventListener('keydown', event => {
-  if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') { event.preventDefault(); movePhoto(event.key === 'ArrowLeft' ? -1 : 1); }
+  if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+    event.preventDefault();
+    movePhoto(event.key === 'ArrowLeft' ? -1 : 1);
+  }
+  if (event.key === 'Escape') resetZoom();
 });
-
-let touchStart: { x: number; y: number } | undefined;
-photoImage.addEventListener('touchstart', event => { if (event.touches.length === 1) touchStart = { x: event.touches[0].clientX, y: event.touches[0].clientY }; }, { passive: true });
-photoImage.addEventListener('touchend', event => {
-  if (!touchStart) return;
-  const dx = event.changedTouches[0].clientX - touchStart.x;
-  const dy = event.changedTouches[0].clientY - touchStart.y;
-  if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) movePhoto(dx < 0 ? 1 : -1);
-  touchStart = undefined;
-}, { passive: true });
 
 detailsToggle.addEventListener('click', () => {
   details.hidden = !details.hidden;
@@ -533,40 +685,140 @@ for (const dialog of [lightbox, inquiry]) {
 }
 
 lightbox.addEventListener('close', () => {
+  resetZoom();
+  if (history.state?.portfolioViewer) history.back();
   if (!inquiry.open) {
-    if (viewerTrigger) viewerTrigger.blur();
+    viewerTrigger?.focus({ preventScroll: true });
     resetPalette();
   }
 });
 
 inquiry.addEventListener('close', () => {
-  if (inquiryTrigger) inquiryTrigger.blur();
+  inquiryTrigger?.focus({ preventScroll: true });
   resetPalette();
 });
 
+// Conversion & Inquiry System
 const form = document.querySelector<HTMLFormElement>('#inquiry-form')!;
+const intentChips = document.querySelectorAll<HTMLButtonElement>('.intent-chip');
+const typeSelect = form.elements.namedItem('type') as HTMLSelectElement;
+const briefTextarea = form.elements.namedItem('brief') as HTMLTextAreaElement;
+const directMailLink = document.querySelector<HTMLAnchorElement>('#inquiry-direct-mail');
+
+function syncDirectMail() {
+  if (!directMailLink) return;
+  const photo = currentPhoto();
+  const type = typeSelect?.value || 'Commission inquiry';
+  const subject = photo ? `Photography inquiry: ${photo.title} (${type})` : `Photography inquiry: ${type} — Abodid Sahoo`;
+  const body = briefTextarea?.value || 'Hello Abodid,\n\nI’d like to discuss a photography commission or image licensing:\n';
+  directMailLink.href = `mailto:hello@abodid.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+
+function setInquiryType(typeName: string) {
+  if (typeSelect) typeSelect.value = typeName;
+  intentChips.forEach(chip => {
+    chip.classList.toggle('is-active', chip.dataset.intent === typeName);
+  });
+  if (typeName === 'Image licensing') {
+    const photo = currentPhoto();
+    if (photo && briefTextarea && !briefTextarea.value.includes(photo.title)) {
+      briefTextarea.value = `I'd like to license the photograph "${photo.title}" (${photo.original}).\n\nUsage type (Editorial / Commercial / Print):\nTerritory / Medium:\nDuration: `;
+    }
+  }
+  syncDirectMail();
+}
+
+intentChips.forEach(chip => {
+  chip.addEventListener('click', () => {
+    const intent = chip.dataset.intent;
+    if (intent) setInquiryType(intent);
+  });
+});
+
+typeSelect?.addEventListener('change', () => {
+  setInquiryType(typeSelect.value);
+});
+
+briefTextarea?.addEventListener('input', () => {
+  syncDirectMail();
+});
+
 function openInquiry(trigger?: HTMLElement, photo?: PortfolioPhoto) {
   inquiryTrigger = lightbox.open ? viewerTrigger : trigger || null;
   if (lightbox.open) lightbox.close();
   if (photo) {
-    (form.elements.namedItem('type') as HTMLSelectElement).value = 'Image licensing';
-    (form.elements.namedItem('brief') as HTMLTextAreaElement).value = `I'd like to discuss licensing this photograph:\n${photo.title}\n${photo.original}\n\nIntended use, territory and duration: `;
+    setInquiryType('Image licensing');
+    if (briefTextarea) {
+      briefTextarea.value = `I'd like to discuss licensing this photograph:\n${photo.title}\n${photo.original}\n\nIntended use, territory and duration: `;
+    }
   }
+  syncDirectMail();
+  const about = document.querySelector<HTMLDialogElement>('#about');
+  if (about?.open) about.close();
   inquiry.showModal();
 }
 
-document.querySelectorAll<HTMLElement>('[data-open-inquiry]').forEach(link => link.addEventListener('click', event => { event.preventDefault(); openInquiry(link); }));
+document.querySelectorAll<HTMLElement>('[data-open-inquiry]').forEach(link => link.addEventListener('click', event => {
+  event.preventDefault();
+  openInquiry(link);
+}));
+
 document.querySelector<HTMLButtonElement>('#license-photo')!.addEventListener('click', event => openInquiry(event.currentTarget as HTMLElement, currentPhoto()));
 
-form.addEventListener('submit', event => {
+form.addEventListener('submit', async event => {
   event.preventDefault();
   if (!form.reportValidity()) return;
+  const submit = form.querySelector<HTMLButtonElement>('[type=submit]')!;
+  if (submit.disabled) return;
   const data = new FormData(form);
-  const body = `Name: ${data.get('name')}\nEmail: ${data.get('email')}\nLocation / dates: ${data.get('location')}\n\n${data.get('brief')}`;
-  const url = `mailto:hello@abodid.com?subject=${encodeURIComponent(`${data.get('type')} — ${data.get('name')}`)}&body=${encodeURIComponent(body)}`;
-  window.location.href = url;
-  text('#inquiry-note', 'Your email draft is ready. Send it from your email app. If no app opened, copy your brief and email hello@abodid.com.');
+  submit.disabled = true;
+  submit.textContent = 'Sending…';
+  text('#inquiry-note', 'Sending your inquiry…');
+  try {
+    const response = await fetch('/api/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: data.get('name'),
+        email: data.get('email'),
+        message: `${data.get('type')}\nLocation / dates: ${data.get('location')}\n\n${data.get('brief')}`,
+        tracking: {
+          enquiryPath: location.pathname,
+          sourceName: 'Photography portfolio',
+          cta: String(data.get('type')),
+        },
+      }),
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Your inquiry could not be sent.');
+    form.reset();
+    text('#inquiry-note', 'Thank you. Your inquiry has been received.');
+  } catch (error) {
+    text('#inquiry-note', `${error instanceof Error ? error.message : 'Your inquiry could not be sent.'} Your brief is still here. You can also email hello@abodid.com.`);
+  } finally {
+    submit.disabled = false;
+    submit.textContent = 'Send inquiry ↗';
+  }
 });
 
 if (window.location.hash === '#inquiry') openInquiry();
-window.addEventListener('hashchange', () => { if (window.location.hash === '#inquiry' && !inquiry.open) openInquiry(); });
+window.addEventListener('hashchange', () => {
+  if (window.location.hash === '#inquiry' && !inquiry.open) openInquiry();
+});
+
+window.addEventListener('popstate', () => {
+  if (!new URL(location.href).searchParams.has('series') && lightbox.open) lightbox.close();
+});
+
+const sharedUrl = new URL(location.href);
+const sharedSeries = groups.findIndex(g => g.id === sharedUrl.searchParams.get('series'));
+if (sharedSeries >= 0) {
+  activeGroup = sharedSeries;
+  lightbox.showModal();
+  renderPhoto();
+  void loadSeries(sharedSeries).then(() => {
+    const image = groups[sharedSeries].images.findIndex(p => p.id === sharedUrl.searchParams.get('image'));
+    activePhoto = Math.max(0, image);
+    renderPhoto();
+  }).catch(error => text('#image-load-status', error.message));
+}

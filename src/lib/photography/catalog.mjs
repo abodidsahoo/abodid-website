@@ -33,6 +33,11 @@ const seriesRules = [
 ];
 export function buildCatalog(objects, metadata = {}, folders = DEFAULT_FOLDERS) {
   const keys = new Set(objects.map(x => x.key));
+  const matchingOriginals = new Map();
+  for (const object of objects.filter(x => isPortfolioKey(x.key))) {
+    const hash = object.etag?.replaceAll('"', '');
+    if (hash) matchingOriginals.set(hash, [...(matchingOriginals.get(hash) || []), object.key]);
+  }
   return objects.filter(x => isPortfolioKey(x.key, folders)).map(object => {
     const relative = object.key.slice(ORIGINAL_PREFIX.length);
     const slash = relative.lastIndexOf('/');
@@ -40,7 +45,7 @@ export function buildCatalog(objects, metadata = {}, folders = DEFAULT_FOLDERS) 
     const filename = relative.slice(slash + 1);
     const stem = filename.replace(/\.[^.]+$/, '');
     const folder = relative.split('/')[0];
-    const category = /^exhibition/.test(folder) ? 'Exhibitions' : humanize(folder);
+    const category = /exhibit|gradshow|grad-show|outernet|flux|frameless|digital-direction|breathe|mres|ma-print/.test(folder) ? 'Exhibitions' : /fashion|uncanny|widow/.test(folder) ? 'Fashion' : /ting|prakruti|navratti|suheda|boudoir/.test(folder) ? 'Portraits' : /market|bus-ride|football|art-fair/.test(folder) ? 'Documentary' : /my-life|uk-2026|birthday/.test(folder) ? 'Personal' : 'Photography';
     const rule = seriesRules.find(([prefix]) => stem.startsWith(prefix));
     const details = metadata[object.key] || {};
     const series = details.series || rule?.[1] || directory.replaceAll('/', '-');
@@ -49,12 +54,22 @@ export function buildCatalog(objects, metadata = {}, folders = DEFAULT_FOLDERS) 
       const prefix = `photos/variants/${directory}/${size}/${stem}`;
       const fingerprint = object.etag?.replace(/[^a-zA-Z0-9]/g, '').slice(0, 10);
       const candidates = [`${prefix}-${fingerprint}.webp`, `${prefix}.webp`];
-      return candidates.find(key => keys.has(key));
+      const direct = candidates.find(key => keys.has(key));
+      if (direct) return direct;
+      // Renamed series can reuse variants only when the full original ETag matches.
+      for (const other of matchingOriginals.get(object.etag?.replaceAll('"', '')) || []) {
+        const rel = other.slice(ORIGINAL_PREFIX.length);
+        const cut = rel.lastIndexOf('/');
+        const base = `photos/variants/${rel.slice(0,cut)}/${size}/${rel.slice(cut+1).replace(/\.[^.]+$/, '')}`;
+        const match = [`${base}-${fingerprint}.webp`, `${base}.webp`].find(key => keys.has(key));
+        if (match) return match;
+      }
+      return undefined;
     };
     const smallKey = variant(800), largeKey = variant(1600);
     const origUrl = publicUrl(object.key);
-    const small = smallKey ? publicUrl(smallKey) : origUrl;
-    const large = largeKey ? publicUrl(largeKey) : origUrl;
+    const small = smallKey ? publicUrl(smallKey) : largeKey ? publicUrl(largeKey) : origUrl;
+    const large = largeKey ? publicUrl(largeKey) : smallKey ? publicUrl(smallKey) : origUrl;
     return {
       id: stem, key: object.key, category, series, title,
       label: details.label || rule?.[3] || category,

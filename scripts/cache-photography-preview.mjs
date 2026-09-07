@@ -1,0 +1,13 @@
+import fs from 'node:fs';
+import sharp from 'sharp';
+import {buildCatalog,isPortfolioKey} from '../src/lib/photography/catalog.mjs';
+import {dominantColor} from '../src/lib/photography/dominantColor.mjs';
+const all=JSON.parse(fs.readFileSync('/tmp/photography-audit/inventory.json'));
+const safe=all.filter(x=>isPortfolioKey(x.key)||(x.key.startsWith('photos/variants/')&&!/punctum|avatar|landing-page|site-assets|site-graphics|ui-assets/i.test(x.key)));
+const meta=JSON.parse(fs.readFileSync('src/data/photographyMetadata.json'));const photos=buildCatalog(safe,meta);const grouped=new Map();for(const p of photos)grouped.set(p.series,[...(grouped.get(p.series)||[]),p]);
+const covers={outernet:'-18',ting:'-9','into-the-flux':'london88','digital-direction':'-146',hidden:'-35','truman-brewery':'-97','breathe-variations':'-12'};
+const selected=[...grouped.values()].map(images=>images.find(x=>x.id.endsWith(covers[x.series]||'\0'))||images[0]);
+const palettes={};let cursor=0;
+await Promise.all(Array.from({length:4},async()=>{while(cursor<selected.length){const photo=selected[cursor++];const r=await fetch(photo.small,{signal:AbortSignal.timeout(20000)});if(!r.ok)throw Error(r.status+' '+photo.small);const b=Buffer.from(await r.arrayBuffer());const m=await sharp(b).metadata();meta[photo.key]={...meta[photo.key],width:m.width,height:m.height};const pixels=await sharp(b).resize(120,120,{fit:'inside',kernel:'nearest'}).ensureAlpha().raw().toBuffer();palettes[photo.small]=dominantColor(pixels);}}));
+fs.writeFileSync('src/data/photographyR2.generated.json',JSON.stringify(safe,null,2)+'\n');fs.writeFileSync('src/data/photographyMetadata.json',JSON.stringify(meta,null,2)+'\n');fs.writeFileSync('src/data/photographyPalettes.generated.json',JSON.stringify(palettes,null,2)+'\n');
+const missing=photos.filter(p=>p.large===p.original);fs.writeFileSync('/tmp/photography-audit/missing-variants.json',JSON.stringify(missing.map(p=>({key:p.key,small:p.small,large:p.large})),null,2));console.log({photos:photos.length,series:selected.length,originalFallbacks:missing.length,variants:photos.length-missing.length});console.log(palettes);

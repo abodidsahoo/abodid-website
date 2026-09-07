@@ -1,27 +1,22 @@
 ---
 import { getPortfolioPhotos, groupPortfolio } from '../../lib/photography/server';
-import { extractPaletteFromServerImage } from '../../lib/photography/serverPalette';
+import { getSavedPalette } from '../../lib/photography/serverPalette';
 import '../../styles/photography/portfolio.css';
 export const prerender = false;
 const photos = await getPortfolioPhotos();
 const groups = groupPortfolio(photos);
-const groupsWithPalette = await Promise.all(groups.map(async (group) => {
-  const coverUrl = group.cover.small || group.cover.large;
-  const palette = await extractPaletteFromServerImage(coverUrl);
-  return { ...group, palette };
-}));
-// Fisher-Yates shuffle so project positions randomize on every refresh
+const groupsWithPalette = groups.map(group => ({...group, palette: getSavedPalette(group.cover.small || group.cover.large)}));
+// Keep the opening selection consistent across visits.
 const shuffledGroups = [...groupsWithPalette];
-for (let i = shuffledGroups.length - 1; i > 0; i--) {
-  const j = Math.floor(Math.random() * (i + 1));
-  [shuffledGroups[i], shuffledGroups[j]] = [shuffledGroups[j], shuffledGroups[i]];
-}
-const INITIAL_SSR_COUNT = 8;
+// Lead with optimized covers so a cold mobile visit never starts with a full original.
+const optimizedLeads = shuffledGroups.filter(g => g.cover.small.includes('/variants/')).slice(0, 2);
+shuffledGroups.splice(0, shuffledGroups.length, ...optimizedLeads, ...shuffledGroups.filter(g => !optimizedLeads.includes(g)));
+const INITIAL_SSR_COUNT = 4;
 const initialGroups = shuffledGroups.slice(0, INITIAL_SSR_COUNT);
 const canonical = 'https://photos.abodid.com/';
 const description = 'Photography by Abodid Sahoo. Exhibitions, people and places, observed with feeling. Available worldwide for editorial, commercial, fine art and documentary commissions and image licensing.';
 const person = { '@type': 'Person', '@id': `${canonical}#photographer`, name: 'Abodid Sahoo', jobTitle: 'Photographer', url: canonical, email: 'hello@abodid.com', sameAs: ['https://abodid.com', 'https://www.instagram.com/abodid.sahoo'], knowsAbout: ['Exhibition photography', 'Editorial photography', 'Commercial photography', 'Fine art photography', 'Documentary photography'], alumniOf: { '@type': 'CollegeOrUniversity', name: 'Royal College of Art', url: 'https://www.rca.ac.uk/' } };
-const structuredData = { '@context': 'https://schema.org', '@graph': [person, { '@type': 'ImageGallery', '@id': `${canonical}#gallery`, name: 'Abodid Sahoo — Selected Photography', description, url: canonical, author: { '@id': person['@id'] }, mainEntity: photos.map(photo => ({ '@type': 'ImageObject', '@id': `${canonical}#${photo.id}`, name: photo.title, caption: photo.alt, description: photo.story || photo.alt, contentUrl: photo.large, thumbnailUrl: photo.small, creator: { '@id': person['@id'] }, creditText: 'Abodid Sahoo', copyrightNotice: '© Abodid Sahoo. All rights reserved.', acquireLicensePage: `${canonical}#inquiry`, ...(photo.location ? { contentLocation: { '@type': 'Place', name: photo.location } } : {}) })) }, { '@type': 'Service', name: 'Worldwide photography commissions and image licensing', provider: { '@id': person['@id'] }, areaServed: 'Worldwide', serviceType: ['Editorial photography', 'Commercial photography', 'Fine art photography', 'Documentary photography', 'Image licensing'], url: `${canonical}#inquiry` }] };
+const structuredData = { '@context': 'https://schema.org', '@graph': [person, { '@type': 'ImageGallery', '@id': `${canonical}#gallery`, name: 'Abodid Sahoo — Selected Photography', description, url: canonical, author: { '@id': person['@id'] }, mainEntity: groups.map(group => group.cover).map(photo => ({ '@type': 'ImageObject', '@id': `${canonical}#${photo.id}`, name: photo.title, caption: photo.alt, description: photo.story || photo.alt, contentUrl: photo.large, thumbnailUrl: photo.small, creator: { '@id': person['@id'] }, creditText: 'Abodid Sahoo', copyrightNotice: '© Abodid Sahoo. All rights reserved.', acquireLicensePage: `${canonical}#inquiry`, ...(photo.location ? { contentLocation: { '@type': 'Place', name: photo.location } } : {}) })) }, { '@type': 'Service', name: 'Worldwide photography commissions and image licensing', provider: { '@id': person['@id'] }, areaServed: 'Worldwide', serviceType: ['Editorial photography', 'Commercial photography', 'Fine art photography', 'Documentary photography', 'Image licensing'], url: `${canonical}#inquiry` }] };
 ---
 <!doctype html>
 <html lang="en">
@@ -35,6 +30,7 @@ const structuredData = { '@context': 'https://schema.org', '@graph': [person, { 
     <link rel="canonical" href={canonical} />
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='white'/%3E%3Ctext x='10' y='59' font-size='56' font-family='Georgia' font-style='italic'%3Ea.%3C/text%3E%3C/svg%3E" />
     <link rel="preconnect" href="https://assets.abodid.com" />
+    {initialGroups.slice(0,2).map(group => <link rel="preload" as="image" href={group.cover.large} imagesrcset={`${group.cover.small} 800w, ${group.cover.large} 1600w`} imagesizes="(max-width: 600px) 90vw, 42vw" fetchpriority="high" />)}
     <meta property="og:type" content="website" />
     <meta property="og:url" content={canonical} />
     <meta property="og:title" content="Abodid Sahoo — Photographer" />
@@ -79,15 +75,15 @@ const structuredData = { '@context': 'https://schema.org', '@graph': [person, { 
               data-count={group.images.length}
               aria-label={`View ${group.title}, ${group.images.length} photographs`}
             >
-              <div class="image-wrap">
+              <div class="image-wrap" style={group.cover.width && group.cover.height ? `aspect-ratio:${group.cover.width}/${group.cover.height};background-color:${group.palette.bg};` : `background-color:${group.palette.bg};`}>
                 <img
                   src={group.cover.large}
                   srcset={`${group.cover.small} 800w, ${group.cover.large} 1600w`}
-                  sizes="(max-width: 600px) 90vw, 42vw"
+                  sizes="(max-width: 600px) 90vw, (max-width: 1200px) 45vw, 42vw"
                   width={group.cover.width || undefined}
                   height={group.cover.height || undefined}
                   loading={i < 2 ? 'eager' : 'lazy'}
-                  fetchpriority={i === 0 ? 'high' : 'auto'}
+                  fetchpriority={i < 2 ? 'high' : 'auto'}
                   decoding="async"
                   alt={group.cover.alt}
                 />
@@ -101,6 +97,7 @@ const structuredData = { '@context': 'https://schema.org', '@graph': [person, { 
                   </div>
                 </div>
               </div>
+              <div class="mobile-caption"><span>{group.title}</span><small>({group.images.length})</small></div>
               <div class="index-row">
                 <span class="index-num">{String(i + 1).padStart(2, '0')}</span>
                 <div class="index-info">
@@ -120,20 +117,42 @@ const structuredData = { '@context': 'https://schema.org', '@graph': [person, { 
         <div id="scroll-sentinel" aria-hidden="true" style="grid-column: 1 / -1; height: 1px; width: 100%;"></div>
       </section>
       <p id="gallery-status" class="sr-only" aria-live="polite"></p>
-      <section class="closing" id="about">
-        <span class="eyebrow">Abodid Sahoo / Photography</span>
-        <h2>People. Places. Memories.</h2>
-        <div class="closing-copy"><p>I’m Abodid, a photographer and Royal College of Art alumnus. I photograph exhibitions, people and cultural spaces, drawn to the small gestures that give a place its life.</p><p>For editorial, commercial, fine art and documentary commissions. From the first conversation to the final frame, wherever your story takes us.</p><a class="text-link" href="#inquiry" data-open-inquiry>Worldwide commissions & licensing <span aria-hidden="true">↗</span></a></div>
-      </section>
+
     </main>
     <footer class="site-footer">
       <span>© {new Date().getFullYear()} Abodid Sahoo</span>
       <a href="https://www.instagram.com/abodid.sahoo" target="_blank" rel="noopener noreferrer">Instagram ↗</a>
     </footer>
     <span class="cursor-label" aria-hidden="true">View series ↗</span>
+      <dialog class="about-dialog closing" id="about" aria-labelledby="about-title">
+        <button data-close-about aria-label="Close About">Close ×</button>
+        <span class="eyebrow">Abodid Sahoo / Photography</span>
+        <h2 id="about-title">People. Places. Memories.</h2>
+        <div class="closing-copy"><p>I’m Abodid, a photographer and Royal College of Art alumnus. I photograph exhibitions, people and cultural spaces, drawn to the small gestures that give a place its life.</p><p>For editorial, commercial, fine art and documentary commissions. From the first conversation to the final frame, wherever your story takes us.</p><a class="text-link" href="#inquiry" data-open-inquiry>Worldwide commissions & licensing <span aria-hidden="true">↗</span></a></div>
+      </dialog>
+    <script is:inline>
+      // Bind immediately: About does not wait for gallery initialization or images.
+      (() => {
+        const panel = document.getElementById('about');
+        let trigger;
+        const open = () => { if (!panel.open) panel.showModal(); };
+        document.addEventListener('click', event => {
+          const link = event.target.closest('[data-open-about]');
+          if (!link) return;
+          event.preventDefault(); trigger = link; open();
+        });
+        panel.querySelector('[data-close-about]').addEventListener('click', () => panel.close());
+        panel.addEventListener('close', () => {
+          if (location.hash === '#about') history.replaceState(null, '', location.pathname + location.search);
+          trigger?.focus({preventScroll:true});
+        });
+        if (location.hash === '#about') open();
+        window.addEventListener('hashchange', () => { if (location.hash === '#about') open(); });
+      })();
+    </script>
     <dialog id="lightbox" aria-labelledby="lightbox-title">
       <div class="lightbox-top"><span id="lightbox-count" aria-live="polite"></span><button data-close aria-label="Close photo viewer">Close ×</button></div>
-      <div class="lightbox-stage"><button id="previous-photo" class="photo-arrow" aria-label="Previous photograph">←</button><img id="lightbox-image" alt="" sizes="(max-width: 600px) 94vw, 85vw" /><button id="next-photo" class="photo-arrow" aria-label="Next photograph">→</button></div>
+      <div class="lightbox-stage"><button id="previous-photo" class="photo-arrow" aria-label="Previous photograph">←</button><div class="lightbox-zoom-viewport"><img id="lightbox-image" alt="" sizes="(max-width: 600px) 94vw, 85vw" /></div><button id="next-photo" class="photo-arrow" aria-label="Next photograph">→</button></div>
       <div class="lightbox-bottom"><div><h2 id="lightbox-title"></h2><p id="lightbox-location"></p></div><button id="details-toggle" aria-expanded="false" aria-controls="photo-details">Details +</button><button id="license-photo">License this image ↗</button></div>
       <div id="photo-details" hidden><p id="photo-story"></p><p id="photo-camera"></p><p>Photograph © Abodid Sahoo. Licensing by arrangement.</p></div>
       <p class="sr-only" id="image-load-status" aria-live="polite"></p>
@@ -143,18 +162,25 @@ const structuredData = { '@context': 'https://schema.org', '@graph': [person, { 
       <p class="drawer-availability"><i aria-hidden="true"></i> Available for global travel / Q4 2026</p>
       <h2 id="inquiry-title">A new story<br /><em>starts here.</em></h2>
       <p class="drawer-intro">Worldwide commissions & image licensing.<br />Tell me what you have in mind.</p>
+      <div class="inquiry-intent-chips" role="group" aria-label="Quick inquiry preset">
+        <button type="button" class="intent-chip is-active" data-intent="Editorial commission">Editorial</button>
+        <button type="button" class="intent-chip" data-intent="Commercial commission">Commercial</button>
+        <button type="button" class="intent-chip" data-intent="Image licensing">Licensing</button>
+        <button type="button" class="intent-chip" data-intent="Fine art commission">Fine Art / Print</button>
+        <button type="button" class="intent-chip" data-intent="Documentary commission">Documentary</button>
+      </div>
       <form id="inquiry-form">
-        <label>Your name<input name="name" autocomplete="name" required maxlength="100" placeholder="Name / studio" /></label>
+        <label>Your name<input name="name" autocomplete="name" required maxlength="100" placeholder="Name / studio / publication" /></label>
         <label>Email<input name="email" type="email" autocomplete="email" required maxlength="200" placeholder="you@studio.com" /></label>
-        <div class="form-row"><label>Interested in<select name="type"><option>Editorial commission</option><option>Commercial commission</option><option>Fine art commission</option><option>Documentary commission</option><option>Image licensing</option></select></label><label>Location / dates<input name="location" maxlength="150" placeholder="Anywhere in the world" /></label></div>
-        <label>Your brief<textarea name="brief" rows="3" maxlength="3000" required placeholder="The idea, timing and approximate budget…"></textarea></label>
-        <button class="send-inquiry" type="submit">Compose inquiry <span aria-hidden="true">↗</span></button>
-        <p class="form-note" id="inquiry-note" role="status">Opens your email app with your brief ready to send.</p>
+        <div class="form-row"><label>Interested in<select name="type"><option>Editorial commission</option><option>Commercial commission</option><option>Image licensing</option><option>Fine art commission</option><option>Documentary commission</option></select></label><label>Location / dates<input name="location" maxlength="150" placeholder="City or region" /></label></div>
+        <label>Your brief<textarea name="brief" rows="3" maxlength="3000" required placeholder="The idea, publication, timing or usage scope…"></textarea></label>
+        <button class="send-inquiry" type="submit">Send inquiry <span aria-hidden="true">↗</span></button>
+        <p class="form-note" id="inquiry-note" role="status">Send your brief directly, or use the direct email link below.</p>
       </form>
-      <a class="direct-email" href="mailto:hello@abodid.com">hello@abodid.com ↗</a>
+      <a class="direct-email" id="inquiry-direct-mail" href="mailto:hello@abodid.com?subject=Photography%20Inquiry%20%E2%80%94%20Abodid%20Sahoo">hello@abodid.com ↗</a>
     </dialog>
     <noscript><style>.project-caption{opacity:1!important;transform:none!important}#view-toggle{display:none}</style><p class="noscript-message">For commissions and licensing, email <a href="mailto:hello@abodid.com">hello@abodid.com</a>. Select a photograph to view it.</p></noscript>
-    <script id="portfolio-data" type="application/json" set:html={JSON.stringify(shuffledGroups).replaceAll('<', '\u003c')} />
+    <script id="portfolio-data" type="application/json" set:html={JSON.stringify(shuffledGroups.map(group => ({...group, imageCount:group.images.length, images:[group.cover]}))).replaceAll('<', '\u003c')} />
     <script src="../../scripts/photography/portfolio.ts"></script>
   </body>
 </html>

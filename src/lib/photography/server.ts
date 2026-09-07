@@ -41,6 +41,7 @@ async function refresh(): Promise<PortfolioPhoto[]> {
 }
 export async function getPortfolioPhotos(): Promise<PortfolioPhoto[]> {
   if (cache && cache.expires > Date.now()) return cache.photos;
+  if (!cache) cache = { photos: fallback(), expires: 0 };
   if (!pending) pending = refresh().then(photos => {
     cache = { photos, expires: Date.now() + TTL };
     return photos;
@@ -50,7 +51,7 @@ export async function getPortfolioPhotos(): Promise<PortfolioPhoto[]> {
     cache = { photos, expires: Date.now() + 60_000 };
     return photos;
   }).finally(() => { pending = undefined; });
-  return pending;
+  return cache.photos;
 }
 export function groupPortfolio(photos: PortfolioPhoto[]) {
   const order = ['outernet', 'ting', 'into-the-flux', 'digital-direction', 'hidden', 'truman-brewery', 'breathe-variations', 'print', 'mres'];
