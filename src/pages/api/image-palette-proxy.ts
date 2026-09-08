@@ -1,6 +1,9 @@
 import type { APIRoute } from "astro";
 
-const ALLOWED_HOSTS = new Set(["assets.abodid.com"]);
+const ALLOWED_HOSTS = new Set([
+  "assets.abodid.com",
+  "jwipqbjxpmgyevfzpjjx.supabase.co",
+]);
 
 export const GET: APIRoute = async ({ request }) => {
   const requestUrl = new URL(request.url);

@@ -35,6 +35,7 @@ export default function MoodboardPolaroidViewer({
     onChange,
     sharedAssetCacheRef = null,
     preloadRadius = 5,
+    showTitles = true,
 }) {
     const normalizedItems = useMemo(
         () =>
@@ -381,18 +382,20 @@ export default function MoodboardPolaroidViewer({
                         </motion.div>
 
                         <div
-                            className="lightbox-caption"
+                            className={`lightbox-caption${showTitles ? '' : ' lightbox-caption--palette-only'}`}
                             style={{
                                 width: layoutWidth,
                                 opacity: layoutWidth !== 'auto' ? 1 : 0,
                                 transition: 'opacity 0.1s',
                             }}
                         >
-                            <div className="caption-copy">
-                                <h3 className="lightbox-title" title={currentItem.title}>
-                                    {currentItem.title}
-                                </h3>
-                            </div>
+                            {showTitles && (
+                                <div className="caption-copy">
+                                    <h3 className="lightbox-title" title={currentItem.title}>
+                                        {currentItem.title}
+                                    </h3>
+                                </div>
+                            )}
                             <PaletteExtractor
                                 imageUrl={currentItem.paletteImageUrl || imageUrl}
                                 onExtract={handleDominantColor}
@@ -480,6 +483,10 @@ export default function MoodboardPolaroidViewer({
                         align-items: center;
                         gap: 2rem;
                         overflow: hidden;
+                    }
+
+                    .lightbox-caption--palette-only {
+                        justify-content: flex-end;
                     }
 
                     .caption-copy {

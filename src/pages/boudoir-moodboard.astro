@@ -5,7 +5,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import BoudoirMoodboard from "../components/BoudoirMoodboard.jsx";
 import { listR2Folder, buildR2PublicUrl } from "../lib/media/r2.ts";
 
-const pageTitle = "Boudoir Mood Board — Abodid Sahoo";
+const pageTitle = "Boudoir Board — Abodid Sahoo";
 const pageDescription =
   "A visual mood board and photographic study of boudoir portraiture, lighting, shadow, and intimate human form.";
 
@@ -34,11 +34,9 @@ const photos = sortedFilenames.map((filename, index) => {
   const data = fileMap.get(filename)!;
   const gridKey = data.key800 || data.key1600 || "";
   const highResKey = data.key1600 || data.key800 || "";
-  const titleStem = filename.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
-
   return {
     id: `boudoir-${index + 1}`,
-    title: titleStem.length > 3 ? titleStem : `Boudoir Study ${index + 1}`,
+    title: `Boudoir photograph ${index + 1}`,
     imageUrl: buildR2PublicUrl(publicAssetConfig, highResKey),
     thumbnailUrl: buildR2PublicUrl(publicAssetConfig, gridKey),
     paletteImageUrl: `/api/image-palette-proxy?url=${encodeURIComponent(
@@ -55,7 +53,7 @@ Astro.response.headers.set("Vercel-CDN-Cache-Control", "s-maxage=300, stale-whil
   title={pageTitle}
   description={pageDescription}
   fullWidth={true}
-  hideHeader={true}
+  hideHeader={false}
   hideFooter={false}
   hideWhatsAppButton={true}
   showNewsletterPopup={false}
@@ -63,31 +61,17 @@ Astro.response.headers.set("Vercel-CDN-Cache-Control", "s-maxage=300, stale-whil
   showCursorFollower={false}
   bodyClass="story-moodboard-page"
 >
-  <header class="story-nav">
-    <a class="story-nav__brand" href="/" aria-label="Abodid Sahoo homepage">abodid.com</a>
-    <nav class="story-nav__links" aria-label="Primary navigation">
-      <a href="/work">Work</a><a href="/research">Research</a><a href="/services">Services</a><a href="/experience">Experience</a><a href="/about">About</a>
-    </nav>
-    <a class="story-nav__contact" href="/#enquiry">Hire me <span aria-hidden="true">↗</span></a>
-    <details class="story-nav__mobile">
-      <summary>Menu</summary>
-      <nav aria-label="Mobile navigation">
-        <a href="/work">Work</a><a href="/research">Research</a><a href="/services">Services</a><a href="/experience">Experience</a><a href="/about">About</a><a href="/#enquiry">Hire me ↗</a>
-      </nav>
-    </details>
-  </header>
-
   <main class="moodboard-shell">
     <article class="moodboard-file">
       <header class="moodboard-heading">
         <div class="moodboard-heading__hero">
-          <h1>Boudoir Mood Board</h1>
+          <h1>Boudoir Board</h1>
           <p>An intimate archive of light, shadow and human form.</p>
         </div>
       </header>
 
       <section class="moodboard-board" aria-label="Boudoir photographic studies">
-        <BoudoirMoodboard items={photos} deepLinkParam="photo" client:load />
+        <BoudoirMoodboard items={photos} deepLinkParam="photo" showTitles={false} client:load />
 
         <footer class="moodboard-footer">
           <h2>Every photograph carries its own atmosphere.</h2>
@@ -115,32 +99,6 @@ Astro.response.headers.set("Vercel-CDN-Cache-Control", "s-maxage=300, stale-whil
   html:has(body.story-moodboard-page) { background: var(--pop-blue); }
   body.story-moodboard-page #main-content { padding: 0 !important; }
   body.story-moodboard-page .skip-link { z-index: 11000; }
-
-  body.story-moodboard-page .story-nav {
-    position: sticky; top: 0; z-index: 1000; min-height: 72px;
-    padding: 0 var(--story-gutter); display: grid;
-    grid-template-columns: auto 1fr auto; align-items: center;
-    gap: clamp(1rem, 3vw, 3rem); border-bottom: 1px solid var(--pop-ink);
-    background: var(--pop-blue); color: white;
-  }
-  body.story-moodboard-page .story-nav a {
-    color: inherit; text-decoration: none;
-    font: 700 0.76rem/1 var(--font-mono, monospace);
-    letter-spacing: 0.06em; text-transform: uppercase;
-  }
-  body.story-moodboard-page .story-nav__brand {
-    font: 750 1rem/1 var(--font-display, sans-serif) !important;
-    letter-spacing: -0.03em !important; text-transform: lowercase !important;
-  }
-  body.story-moodboard-page .story-nav__links {
-    display: flex; justify-content: center; gap: clamp(1rem, 2.5vw, 2.25rem);
-  }
-  body.story-moodboard-page .story-nav__contact {
-    min-height: 42px; padding: 0 1rem; display: inline-flex;
-    align-items: center; gap: 0.5rem; border: 1px solid var(--pop-ink);
-    border-radius: 14px; background: var(--pop-pink); color: var(--pop-ink);
-  }
-  body.story-moodboard-page .story-nav__mobile { display: none; }
 
   .moodboard-shell { width: 100%; padding: 8px; box-sizing: border-box; background: var(--pop-blue); }
   .moodboard-file {
@@ -178,24 +136,6 @@ Astro.response.headers.set("Vercel-CDN-Cache-Control", "s-maxage=300, stale-whil
   }
   .moodboard-footer p { margin: 1rem 0 0; font: 600 1rem/1.4 var(--font-mono, monospace); }
 
-  @media (max-width: 980px) {
-    body.story-moodboard-page .story-nav { grid-template-columns: 1fr auto; }
-    body.story-moodboard-page .story-nav__links,
-    body.story-moodboard-page .story-nav__contact { display: none; }
-    body.story-moodboard-page .story-nav__mobile { position: relative; display: block; justify-self: end; }
-    body.story-moodboard-page .story-nav__mobile summary {
-      min-height: 44px; padding: 0 0.9rem; display: flex; align-items: center;
-      border: 1px solid var(--pop-ink); border-radius: 14px;
-      background: var(--pop-yellow); color: var(--pop-ink); cursor: pointer; list-style: none;
-    }
-    body.story-moodboard-page .story-nav__mobile nav {
-      position: fixed; inset: 72px 0 auto; padding: 1.5rem var(--story-gutter) 2rem;
-      display: grid; background: var(--pop-yellow); border-bottom: 1px solid var(--pop-ink);
-    }
-    body.story-moodboard-page .story-nav__mobile nav a {
-      padding: 1rem 0; color: var(--pop-ink); border-bottom: 1px solid rgba(23, 21, 15, 0.2);
-    }
-  }
   @media (max-width: 760px) {
     .moodboard-heading__hero { grid-template-columns: 1fr; gap: 1rem; }
     .moodboard-shell { padding: 6px; }

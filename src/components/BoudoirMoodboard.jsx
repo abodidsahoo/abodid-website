@@ -16,7 +16,11 @@ const cancelIdle = (id) => {
     else window.clearTimeout(id);
 };
 
-export default function BoudoirMoodboard({ items = [], deepLinkParam = 'photo' }) {
+export default function BoudoirMoodboard({
+    items = [],
+    deepLinkParam = 'photo',
+    showTitles = true,
+}) {
     const photos = useMemo(
         () => (Array.isArray(items) ? items : []).filter(
             (item) => item?.id && item?.imageUrl && item?.thumbnailUrl,
@@ -174,6 +178,7 @@ export default function BoudoirMoodboard({ items = [], deepLinkParam = 'photo' }
                     onChange={changePhoto}
                     sharedAssetCacheRef={assetCacheRef}
                     preloadRadius={2}
+                    showTitles={showTitles}
                 />
             )}
 
