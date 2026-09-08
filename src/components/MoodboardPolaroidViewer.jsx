@@ -33,6 +33,8 @@ export default function MoodboardPolaroidViewer({
     activeId = null,
     onClose,
     onChange,
+    sharedAssetCacheRef = null,
+    preloadRadius = 5,
 }) {
     const normalizedItems = useMemo(
         () =>
@@ -53,6 +55,9 @@ export default function MoodboardPolaroidViewer({
                             (typeof item?.href === 'string' && item.href.trim()) ||
                             '',
                         imageUrl,
+                        paletteImageUrl:
+                            (typeof item?.paletteImageUrl === 'string' && item.paletteImageUrl.trim()) ||
+                            imageUrl,
                     };
                 })
                 .filter(Boolean),
@@ -74,7 +79,8 @@ export default function MoodboardPolaroidViewer({
     const [pendingOffset, setPendingOffset] = useState(0);
     const [overlayColor, setOverlayColor] = useState('rgba(10,10,10,0.95)');
     const imgRef = useRef(null);
-    const assetCacheRef = useRef({});
+    const localAssetCacheRef = useRef({});
+    const assetCacheRef = sharedAssetCacheRef || localAssetCacheRef;
 
     const currentItem = normalizedItems[currentIndex] || null;
     const imageUrl = currentItem?.imageUrl || '';
@@ -130,7 +136,7 @@ export default function MoodboardPolaroidViewer({
         if (!normalizedItems.length) return undefined;
 
         const indexesToPreload = [];
-        for (let i = 1; i <= 5; i += 1) {
+        for (let i = 1; i <= preloadRadius; i += 1) {
             indexesToPreload.push((currentIndex + i) % normalizedItems.length);
             indexesToPreload.push(
                 (currentIndex - i + normalizedItems.length) % normalizedItems.length,
@@ -147,7 +153,7 @@ export default function MoodboardPolaroidViewer({
             preloadLink.href = item.imageUrl;
             document.head.appendChild(preloadLink);
 
-            analyzeImage(item.imageUrl)
+            analyzeImage(item.paletteImageUrl || item.imageUrl)
                 .then((result) => {
                     assetCacheRef.current[item.imageUrl] = result;
                 })
@@ -155,7 +161,7 @@ export default function MoodboardPolaroidViewer({
         });
 
         return undefined;
-    }, [currentIndex, normalizedItems]);
+    }, [currentIndex, normalizedItems, preloadRadius, assetCacheRef]);
 
     useEffect(() => {
         if (isLayoutStable && shutterState === 'closed') {
@@ -388,7 +394,7 @@ export default function MoodboardPolaroidViewer({
                                 </h3>
                             </div>
                             <PaletteExtractor
-                                imageUrl={imageUrl}
+                                imageUrl={currentItem.paletteImageUrl || imageUrl}
                                 onExtract={handleDominantColor}
                                 inline={true}
                                 initialPalette={cachedData?.palette}
