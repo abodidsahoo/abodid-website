@@ -10,9 +10,10 @@ const pageTitle = "Boudoir Mood Board — Abodid Sahoo";
 const pageDescription =
   "A visual mood board and photographic study of boudoir portraiture, lighting, shadow, and intimate human form.";
 
-// Fetch 1600px and 800px variants from Cloudflare R2
-const { files: files1600, config } = await listR2Folder("variants/boudoir/1600/");
-const { files: files800 } = await listR2Folder("variants/boudoir/800/");
+// Fetch 1600px and 800px variants from Cloudflare R2.
+const { files: files1600, config } = await listR2Folder("photos/variants/boudoir/1600/");
+const { files: files800 } = await listR2Folder("photos/variants/boudoir/800/");
+const publicAssetConfig = { ...config, publicBaseUrl: "https://assets.abodid.com" };
 
 const fileMap = new Map<string, { key1600?: string; key800?: string; etag?: string }>();
 
@@ -43,8 +44,8 @@ const photos = sortedFilenames.map((filename, index) => {
   return {
     id,
     title,
-    imageUrl: buildR2PublicUrl(config, highResKey),
-    thumbnailUrl: buildR2PublicUrl(config, gridKey),
+    imageUrl: buildR2PublicUrl(publicAssetConfig, highResKey),
+    thumbnailUrl: buildR2PublicUrl(publicAssetConfig, gridKey),
     tags: ["boudoir", "portrait", "visual study"],
     aspectRatio: 1,
   };
