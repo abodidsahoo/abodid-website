@@ -253,8 +253,11 @@ export const inferR2MimeType = (objectKey: string) => {
     return MIME_TYPES_BY_EXTENSION[extension] || "application/octet-stream";
 };
 
-export const listR2Folder = async (folder: unknown) => {
-    const config = getR2Config();
+export const listR2Folder = async (folder: unknown, bucketOverride?: string) => {
+    const baseConfig = getR2Config();
+    const config = bucketOverride?.trim()
+        ? { ...baseConfig, bucket: bucketOverride.trim() }
+        : baseConfig;
     const client = createR2Client(config);
     const folderPath = normalizeR2FolderPath(folder);
     const prefix = folderPath ? `${folderPath}/` : "";

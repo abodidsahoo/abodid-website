@@ -10,11 +10,10 @@ const pageTitle = "Boudoir Mood Board — Abodid Sahoo";
 const pageDescription =
   "A visual mood board and photographic study of boudoir portraiture, lighting, shadow, and intimate human form.";
 
-// The private bucket retains legacy keys while the public CDN serves them under /photos.
-const { files: files1600, config } = await listR2Folder("variants/boudoir/1600/");
-const { files: files800 } = await listR2Folder("variants/boudoir/800/");
+// Boudoir media lives in the current assets bucket under the shared /photos tree.
+const { files: files1600, config } = await listR2Folder("photos/variants/boudoir/1600/", "assets");
+const { files: files800 } = await listR2Folder("photos/variants/boudoir/800/", "assets");
 const publicAssetConfig = { ...config, publicBaseUrl: "https://assets.abodid.com" };
-const publicObjectKey = (key: string) => key.startsWith("photos/") ? key : `photos/${key}`;
 
 const fileMap = new Map<string, { key1600?: string; key800?: string; etag?: string }>();
 
@@ -45,8 +44,8 @@ const photos = sortedFilenames.map((filename, index) => {
   return {
     id,
     title,
-    imageUrl: buildR2PublicUrl(publicAssetConfig, publicObjectKey(highResKey)),
-    thumbnailUrl: buildR2PublicUrl(publicAssetConfig, publicObjectKey(gridKey)),
+    imageUrl: buildR2PublicUrl(publicAssetConfig, highResKey),
+    thumbnailUrl: buildR2PublicUrl(publicAssetConfig, gridKey),
     tags: ["boudoir", "portrait", "visual study"],
     aspectRatio: 1,
   };
