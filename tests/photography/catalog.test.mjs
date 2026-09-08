@@ -13,8 +13,8 @@ test('verified exhibition catalog publishes 56 images with both variants', () =>
     assert.match(photo.large, /\/1600\/.+\.webp$/);
   }
 });
-test('research and site graphics are excluded even if configured', () => {
-  for (const folder of ['punctum-experiment','invisible-punctum','profile-avatars','landing-page-01','site-assets']) {
+test('private sets, research, and site graphics are excluded even if configured', () => {
+  for (const folder of ['boudoir','punctum-experiment','invisible-punctum','profile-avatars','landing-page-01','site-assets']) {
     assert.equal(isPortfolioKey(`photos/originals/${folder}/test.jpg`, [folder]), false);
   }
 

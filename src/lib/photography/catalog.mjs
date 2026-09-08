@@ -1,7 +1,7 @@
 export const ASSET_ORIGIN = 'https://assets.abodid.com';
 export const ORIGINAL_PREFIX = 'photos/originals/';
 export const DEFAULT_FOLDERS = ['exhibitions', 'exhibition-photos', 'documentary', 'editorial', 'fine-art', 'commercial'];
-const forbidden = /(?:punctum|avatar|landing-page|site-assets|site-graphics|ui-assets|profile-avatars)/i;
+const forbidden = /(?:boudoir|punctum|avatar|landing-page|site-assets|site-graphics|ui-assets|profile-avatars)/i;
 export const isPortfolioKey = (key) => {
   if (!key.startsWith(ORIGINAL_PREFIX) || forbidden.test(key) || key.includes('..')) return false;
   const parts = key.slice(ORIGINAL_PREFIX.length).split('/');
