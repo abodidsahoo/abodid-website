@@ -158,7 +158,7 @@ export default function BoudoirMoodboard({ items = [], deepLinkParam = 'photo' }
                                 src={item.thumbnailUrl}
                                 alt={item.title}
                                 loading={index < 12 ? 'eager' : 'lazy'}
-                                fetchPriority={index < 6 ? 'high' : 'low'}
+                                fetchpriority={index < 6 ? 'high' : 'low'}
                                 decoding="async"
                             />
                         </button>
