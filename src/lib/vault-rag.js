@@ -165,9 +165,10 @@ export function folderPathFromFilePath(filePath) {
 
 export function sourceHrefForFilePath(filePath) {
   const filename = (filePath || "").split("/").pop() || "";
-  const slug = filename.replace(/\.md$/i, "");
-  if (!slug) return null;
-  return `/research/obsidian-vault/${encodeURIComponent(slug)}`;
+  const rawSlug = filename.replace(/\.md$/i, "");
+  if (!rawSlug) return null;
+  const cleanSlug = rawSlug.replace(/\?+$/, "");
+  return `/research/obsidian-vault/${encodeURIComponent(cleanSlug)}`;
 }
 
 export function normalizeTags(...tagInputs) {
@@ -284,7 +285,10 @@ export function stripLegacyVaultMetadata(markdown) {
     index += 1;
   }
 
-  return lines.slice(index).join("\n").trimStart();
+  const remaining = lines.slice(index).join("\n").trimStart();
+  return remaining
+    .replace(/^(?:\s*<br\s*\/?>|\s*&nbsp;|\s*\r?\n)+/gi, "")
+    .trimStart();
 }
 
 export function extractVaultNoteMetadata(markdown) {

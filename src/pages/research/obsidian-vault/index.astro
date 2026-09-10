@@ -52,7 +52,6 @@ const pageDescription = "Ask questions across Abodid Sahoo's public Obsidian not
                         <section class="vault-panel vault-notes-panel" aria-labelledby="vault-notes-title">
                     <div class="vault-panel__topline vault-panel__topline--bordered">
                         <div>
-                            <p class="vault-eyebrow">Browse the archive</p>
                             <h2 id="vault-notes-title">Notes</h2>
                         </div>
                         <div class="vault-topline-meta">
@@ -69,9 +68,9 @@ const pageDescription = "Ask questions across Abodid Sahoo's public Obsidian not
                                 </div>
                             ) : (
                                 allNotes.map((file, index) => (
-                                    <a href={`/research/obsidian-vault/${file.name.replace(".md", "")}`} class="note-card">
+                                    <a href={file.href} class="note-card">
                                         <span class="note-card__index" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
-                                        <h3>{file.name.replace(".md", "").replace(/-/g, " ")}</h3>
+                                        <h3>{file.title || file.name.replace(".md", "").replace(/-/g, " ")}</h3>
                                         <span class="note-card__arrow" aria-hidden="true">→</span>
                                     </a>
                                 ))
@@ -90,7 +89,6 @@ const pageDescription = "Ask questions across Abodid Sahoo's public Obsidian not
                         <aside class="vault-panel vault-tags-panel" aria-labelledby="vault-tags-title">
                     <div class="vault-panel__topline vault-panel__topline--bordered">
                         <div>
-                            <p class="vault-eyebrow">Follow a thread</p>
                             <h2 id="vault-tags-title">Topics</h2>
                         </div>
                         <span class="vault-count">{topics.length} topics</span>
@@ -181,7 +179,7 @@ const pageDescription = "Ask questions across Abodid Sahoo's public Obsidian not
 
     .vault-pop-page .vault-page {
         width: 100%;
-        overflow: clip;
+        overflow: visible;
         background: var(--pop-blue);
         font-family: "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
     }
@@ -617,14 +615,16 @@ const pageDescription = "Ask questions across Abodid Sahoo's public Obsidian not
     .vault-question-panel .vault-ask-section {
         width: 100%;
         margin: auto 0 0;
-        padding: clamp(2rem, 4vw, 3.5rem) 0 0;
+        padding: clamp(1.5rem, 3vw, 2.75rem) 0 0;
     }
 
     .vault-question-panel .vault-ask-box {
-        min-height: 78px;
-        padding: 0.8rem 0.8rem 0.8rem 1.25rem;
+        width: 100%;
+        max-width: min(68%, 760px);
+        min-height: 66px;
+        padding: 0.65rem 0.65rem 0.65rem 1.25rem;
         border: 1px solid var(--pop-ink);
-        border-radius: 18px;
+        border-radius: var(--vault-control-radius);
         background: var(--pop-cream);
         box-shadow: none;
         backdrop-filter: none;
@@ -637,9 +637,9 @@ const pageDescription = "Ask questions across Abodid Sahoo's public Obsidian not
     }
 
     .vault-question-panel .vault-ask-box textarea {
-        min-height: 50px;
+        min-height: 46px;
         box-sizing: border-box;
-        padding: 13px 0;
+        padding: 11px 0;
         color: var(--pop-ink);
         font-size: 1rem;
         line-height: 24px;
@@ -649,8 +649,8 @@ const pageDescription = "Ask questions across Abodid Sahoo's public Obsidian not
     .vault-question-panel .vault-ask-submit {
         position: static;
         align-self: end;
-        min-width: 88px;
-        min-height: 50px;
+        min-width: 82px;
+        min-height: 46px;
         border: 1px solid var(--pop-ink);
         border-radius: var(--vault-control-radius);
         background: var(--pop-pink);
@@ -665,7 +665,15 @@ const pageDescription = "Ask questions across Abodid Sahoo's public Obsidian not
         outline: none;
     }
 
-    .vault-question-panel .vault-ask-status { color: rgba(21, 19, 15, 0.76); }
+    .vault-question-panel .vault-ask-status { color: var(--pop-ink); }
+    .vault-question-panel .vault-ask-status__inner {
+        border-color: var(--pop-ink);
+        background: var(--pop-cream);
+        box-shadow: 0 3px 0 var(--pop-ink);
+    }
+    .vault-question-panel .vault-ask-status__icon { color: var(--pop-ink); }
+    .vault-question-panel .vault-ask-status__text { color: var(--pop-ink); }
+    .vault-question-panel .vault-ask-status__dots { color: var(--pop-ink); }
     .vault-question-panel .vault-sources-label { color: var(--pop-ink); }
     .vault-question-panel .vault-ask-error { color: #7c0018; }
 
@@ -673,6 +681,8 @@ const pageDescription = "Ask questions across Abodid Sahoo's public Obsidian not
         --text-primary: var(--pop-ink);
         --text-secondary: rgba(21, 19, 15, 0.72);
         --type-paragraph-color: var(--pop-ink);
+        width: 100%;
+        max-width: none;
         border: 1px solid var(--pop-ink);
         border-radius: var(--vault-control-radius);
         background: var(--pop-cream);
@@ -682,7 +692,8 @@ const pageDescription = "Ask questions across Abodid Sahoo's public Obsidian not
     }
 
     .vault-question-panel .vault-result__header,
-    .vault-question-panel .vault-sources { border-color: var(--pop-line); }
+    .vault-question-panel .vault-context-space,
+    .vault-question-panel .vault-bibliography { border-color: var(--pop-line); }
 
     .vault-question-panel .vault-result__label { color: var(--pop-ink); }
 
@@ -698,32 +709,32 @@ const pageDescription = "Ask questions across Abodid Sahoo's public Obsidian not
     }
 
     .vault-question-panel .vault-source-row {
-        border: 1px solid var(--pop-line);
-        border-radius: var(--vault-control-radius);
+        border: 0;
+        border-top: 1px solid var(--pop-line);
+        border-radius: 0;
         background: transparent;
         color: var(--pop-ink);
         box-shadow: none;
     }
 
+    .vault-question-panel .vault-source-row:last-child { border-bottom: 1px solid var(--pop-line); }
+
     .vault-question-panel .vault-citation {
-        border-color: var(--pop-ink);
+        border-color: currentColor;
         background: var(--pop-yellow);
         color: var(--pop-ink);
+    }
+
+    .vault-question-panel .vault-citation:hover,
+    .vault-question-panel .vault-citation:focus-visible,
+    .vault-question-panel .vault-citation.is-active {
+        background: var(--pop-ink);
+        color: var(--pop-cream);
     }
 
     .vault-question-panel .vault-source-title,
     .vault-question-panel .vault-source-title:visited,
     .vault-question-panel .vault-source-title:hover { color: var(--pop-ink); }
-
-    .vault-question-panel .vault-citation-popover {
-        border-color: var(--pop-ink);
-        background: var(--pop-cream);
-        color: var(--pop-ink);
-    }
-
-    .vault-question-panel .vault-citation-popover__title { color: var(--pop-ink); }
-    .vault-question-panel .vault-citation-popover__meta,
-    .vault-question-panel .vault-citation-popover blockquote { color: rgba(21, 19, 15, 0.72); }
 
     @media (max-width: 980px) {
         .vault-workspace__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -741,6 +752,12 @@ const pageDescription = "Ask questions across Abodid Sahoo's public Obsidian not
     }
 
     @media (max-width: 720px) {
+        body.vault-pop-page:has(.vault-result:not([hidden])) .whatsapp-button {
+            visibility: hidden;
+            opacity: 0;
+            pointer-events: none;
+        }
+
         .vault-workspace__grid { grid-template-columns: 1fr; }
         .vault-panel { padding: 1.25rem; }
         .vault-world-file { grid-column: 1; }
@@ -771,7 +788,7 @@ const pageDescription = "Ask questions across Abodid Sahoo's public Obsidian not
         .vault-notes-panel,
         .vault-tags-panel { min-height: auto; }
         .vault-intro-panel { min-height: auto; }
-        .vault-question-panel { min-height: 480px; }
+        .vault-question-panel { min-height: auto; }
         .vault-intro-panel h2 { font-size: clamp(2.75rem, 13vw, 4.4rem); line-height: 0.92; }
         .vault-question-panel h2 { font-size: clamp(2.65rem, 12vw, 4.6rem); line-height: 0.91; }
         .vault-intro-panel__copy { margin: 2.75rem 0 0; }
@@ -779,8 +796,9 @@ const pageDescription = "Ask questions across Abodid Sahoo's public Obsidian not
         .tag-cloud-wrapper { height: min(72svh, 560px); }
         .vault-question-panel .vault-ask-section { padding-top: 2rem; }
         .vault-question-panel .vault-ask-box {
-            min-height: 70px;
-            padding: 0.65rem 0.65rem 0.65rem 0.9rem;
+            max-width: 100%;
+            min-height: 64px;
+            padding: 0.6rem 0.6rem 0.6rem 0.9rem;
             border-radius: var(--vault-control-radius);
         }
         .vault-question-panel .vault-ask-box textarea {

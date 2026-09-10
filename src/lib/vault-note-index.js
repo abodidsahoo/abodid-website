@@ -82,7 +82,8 @@ export async function getIndexedNoteBySlug(slug) {
 
   const lookup = (async () => {
     const supabase = getSupabaseClient();
-    const { data, error } = await supabase
+    // 1. Try exact slug
+    let { data, error } = await supabase
       .from("obsidian_notes")
       .select(
         "note_title,file_path,slug,markdown_content,tags,first_tag,content_hash,source_sha,created_at,updated_at",
@@ -91,18 +92,57 @@ export async function getIndexedNoteBySlug(slug) {
       .eq("slug", normalizedSlug)
       .maybeSingle();
 
+    // 2. Try with question mark (e.g. is-writing-art?)
+    if (!data && !error && !normalizedSlug.includes("?")) {
+      const qRes = await supabase
+        .from("obsidian_notes")
+        .select(
+          "note_title,file_path,slug,markdown_content,tags,first_tag,content_hash,source_sha,created_at,updated_at",
+        )
+        .eq("is_public", true)
+        .eq("slug", `${normalizedSlug}?`)
+        .maybeSingle();
+      if (qRes.data) data = qRes.data;
+    }
+
+    // 3. Try with prefix/token pattern matching on slug or file_path
+    if (!data && !error) {
+      const cleanPattern = normalizedSlug.replace(/[^a-zA-Z0-9_-]/g, "");
+      const tokens = normalizedSlug.split(/[^a-zA-Z0-9]+/).filter(Boolean);
+      const tokenPattern = tokens.length > 1 ? `%${tokens.join("%")}%` : null;
+
+      if (cleanPattern.length > 2) {
+        const queryFilter = tokenPattern
+          ? `slug.ilike.${cleanPattern}%,file_path.ilike.06-main-notes/${cleanPattern}%.md,slug.ilike.${tokenPattern},file_path.ilike.06-main-notes/${tokenPattern}.md`
+          : `slug.ilike.${cleanPattern}%,file_path.ilike.06-main-notes/${cleanPattern}%.md,file_path.ilike.6 - Main Notes/${cleanPattern}%.md`;
+
+        const fuzzyRes = await supabase
+          .from("obsidian_notes")
+          .select(
+            "note_title,file_path,slug,markdown_content,tags,first_tag,content_hash,source_sha,created_at,updated_at",
+          )
+          .eq("is_public", true)
+          .or(queryFilter)
+          .limit(1)
+          .maybeSingle();
+        if (fuzzyRes.data) data = fuzzyRes.data;
+      }
+    }
+
     if (error) throw error;
     const note = data?.source_sha ? data : null;
-    noteContentCache.set(normalizedSlug, {
-      expiresAt: Date.now() + NOTE_INDEX_CACHE_TTL_MS,
-      note,
-    });
+    if (note) {
+      noteContentCache.set(normalizedSlug, {
+        expiresAt: Date.now() + NOTE_INDEX_CACHE_TTL_MS,
+        note,
+      });
+    }
     return note;
   })();
 
   pendingNoteLookups.set(normalizedSlug, lookup);
 
-    try {
+  try {
     return await lookup;
   } finally {
     pendingNoteLookups.delete(normalizedSlug);
@@ -123,12 +163,13 @@ export async function getAllPublicVaultNotes() {
     if (!error && Array.isArray(data) && data.length > 0) {
       return data.map((note) => {
         const filename = note.file_path.split("/").pop() || "";
-        const slug = note.slug || filename.replace(/\.md$/i, "");
+        const rawSlug = note.slug || filename.replace(/\.md$/i, "");
+        const cleanSlug = rawSlug.replace(/\?+$/, "");
         return {
           name: filename,
-          title: note.note_title || slug.replace(/-/g, " "),
-          slug,
-          href: `/research/obsidian-vault/${encodeURIComponent(slug)}`,
+          title: note.note_title || rawSlug.replace(/-/g, " "),
+          slug: cleanSlug,
+          href: `/research/obsidian-vault/${encodeURIComponent(cleanSlug)}`,
           updated_at: note.updated_at || note.created_at || null,
           tags: Array.isArray(note.tags) ? note.tags : [],
         };
@@ -143,12 +184,13 @@ export async function getAllPublicVaultNotes() {
     const { getVaultNotes } = await import("./github.js");
     const files = await getVaultNotes();
     return (files || []).map((file) => {
-      const slug = file.name.replace(/\.md$/i, "");
+      const rawSlug = file.name.replace(/\.md$/i, "");
+      const cleanSlug = rawSlug.replace(/\?+$/, "");
       return {
         name: file.name,
-        title: slug.replace(/-/g, " "),
-        slug,
-        href: `/research/obsidian-vault/${encodeURIComponent(slug)}`,
+        title: rawSlug.replace(/-/g, " "),
+        slug: cleanSlug,
+        href: `/research/obsidian-vault/${encodeURIComponent(cleanSlug)}`,
         updated_at: null,
         tags: [],
       };

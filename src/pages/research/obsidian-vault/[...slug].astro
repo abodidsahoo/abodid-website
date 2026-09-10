@@ -19,12 +19,10 @@ import {
     seoIdentity,
     vaultNoteJsonLd,
 } from "../../../lib/seoData";
+import "../../../styles/vault-note.css";
 
 const { slug } = Astro.params;
 const fromVaultSearchId = Astro.url.searchParams.get("fromVaultSearch") || "";
-const vaultSearchHref = fromVaultSearchId
-    ? `/research/obsidian-vault?vaultSearch=${encodeURIComponent(fromVaultSearchId)}`
-    : "";
 
 if (!slug) {
     return Astro.redirect("/404");
@@ -106,6 +104,8 @@ function extractFirstUsefulParagraph(markdown: string): string {
         .replace(/\[\[([^\]|]+)\|([^\]]+)\]\]/g, "$2")
         .replace(/\[\[([^\]]+)\]\]/g, "$1")
         .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+        .replace(/==([^=]+)==/g, "$1")
+        .replace(/%%[\s\S]*?%%/g, "")
         .replace(/[*_`#~]/g, "")
         .replace(/\s+/g, " ")
         .trim();
@@ -142,7 +142,10 @@ try {
         console.warn("[vault-note] Supabase content lookup failed; using GitHub fallback:", indexError);
     }
 
-    const rawContent = indexedNote?.markdown_content || await getFileContent(filePathNotes);
+    let rawContent = indexedNote?.markdown_content || await getFileContent(filePathNotes);
+    if (rawContent === null && !cleanSlug.includes("?")) {
+        rawContent = await getFileContent(`06-main-notes/${noteSlug}?.md`);
+    }
 
     if (rawContent === null) {
         try {
@@ -163,6 +166,17 @@ try {
     topicTags = metadata.tags;
     noteDate = formatMetadataDate(metadata.date);
     let content = stripLegacyVaultMetadata(metadata.content);
+    // Deliberately strip any leading blank lines, HTML line breaks (<br>, <br/>), &nbsp;, or empty paragraphs from Obsidian notes
+    content = content
+        .replace(/^(?:\s*<br\s*\/?>|\s*&nbsp;|\s*\r?\n)+/gi, "")
+        .trimStart();
+
+    // Strip Obsidian comments %% ... %%
+    content = content.replace(/%%[\s\S]*?%%/g, "");
+
+    // Convert Obsidian highlight syntax ==highlighted text== to HTML <mark>
+    content = content.replace(/==([^=\r\n]+)==/g, "<mark>$1</mark>");
+
     const tagSet = new Set(
         [...noteTypes, ...topicTags].map(normalizeWikiLinkTarget).filter(Boolean),
     );
@@ -192,6 +206,12 @@ try {
     });
 
     const renderer = new marked.Renderer();
+    renderer.link = ({ href, title, text }) => {
+        const titleAttr = title ? ` title="${title}"` : "";
+        const isExternal = /^https?:\/\//i.test(href || "");
+        const targetAttrs = isExternal ? ' target="_blank" rel="noopener noreferrer"' : "";
+        return `<a href="${href}"${titleAttr}${targetAttrs}>${text}</a>`;
+    };
     renderer.image = ({ href, title, text }) => {
         if (
             href &&
@@ -205,6 +225,11 @@ try {
     };
 
     htmlContent = await marked.parse(content, { renderer });
+    // Remove any leading empty paragraphs, break tags, or whitespace from the rendered HTML
+    htmlContent = htmlContent
+        .replace(/^(?:\s*<p>(?:\s*<br\s*\/?>|\s*&nbsp;|\s*)*<\/p>|\s*<br\s*\/?>)+/gi, "")
+        .trim();
+
     title =
         (typeof metadata.frontmatter.title === "string" && metadata.frontmatter.title.trim()) ||
         cleanSlug.replace(/\.md$/i, "");
@@ -215,9 +240,11 @@ try {
 
 Astro.response.headers.set(
     "Cache-Control",
-    fromVaultSearchId
-        ? "private, no-store"
-        : "public, max-age=60, s-maxage=300, stale-while-revalidate=86400",
+    import.meta.env.DEV
+        ? "no-cache, no-store, must-revalidate"
+        : fromVaultSearchId
+            ? "private, no-store"
+            : "public, max-age=60, s-maxage=300, stale-while-revalidate=86400",
 );
 
 const routeSlug = slug.replace(/\.md$/i, "");
@@ -261,46 +288,36 @@ const structuredData = [
     <main class="vault-note-page">
         <article class="vault-note-document" aria-labelledby="note-title">
             <div class="vault-note-inner">
-                {vaultSearchHref && (
-                    <nav class="vault-note-nav" aria-label="Note navigation">
-                        <a href={vaultSearchHref} class="vault-note-link">
-                            <span aria-hidden="true">←</span> Back to search
-                        </a>
-                    </nav>
-                )}
-
                 <header class="vault-note-header">
+                    <!-- Eyebrow Note Type (Classification kicker above title) -->
+                    {noteTypes.length > 0 && (
+                        <div class="vault-note-eyebrow">
+                            {noteTypes.map((noteType) => (
+                                <a href={metadataHref(noteType)} class="vault-note-type-tag">{noteType.replace(/-/g, " ")}</a>
+                            ))}
+                        </div>
+                    )}
+
                     <h1 id="note-title">{displayTitleFormatted}</h1>
 
-                    {(noteDate || noteTypes.length > 0 || topicTags.length > 0) && (
-                        <div class="vault-note-metadata" aria-label="Note details">
+                    <!-- Supplementary Metadata Below Title (Date + Topics) -->
+                    {(noteDate || topicTags.length > 0) && (
+                        <div class="vault-note-meta" aria-label="Note metadata">
                             {noteDate && (
-                                <div class="vault-note-metadata__date">
-                                    <span class="vault-note-metadata__label">Published</span>
-                                    <time>{noteDate}</time>
-                                </div>
+                                <time class="vault-note-date" datetime={noteDate}>{noteDate}</time>
                             )}
-
-                            {noteTypes.length > 0 && (
-                                <div class="vault-note-metadata__group vault-note-metadata__group--type">
-                                    <span class="vault-note-metadata__label">Note type</span>
-                                    <div class="vault-note-type-links">
-                                        {noteTypes.map((noteType) => (
-                                            <a href={metadataHref(noteType)}>{noteType.replace(/-/g, " ")}</a>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
                             {topicTags.length > 0 && (
-                                <div class="vault-note-metadata__group vault-note-metadata__group--topics">
-                                    <span class="vault-note-metadata__label">Topics</span>
-                                    <div class="vault-note-topic-links">
-                                        {topicTags.map((tag) => (
-                                            <a href={metadataHref(tag)}>{tag.replace(/-/g, " ")}</a>
+                                <>
+                                    {noteDate && <span class="vault-note-meta-sep" aria-hidden="true">·</span>}
+                                    <div class="vault-note-topics">
+                                        {topicTags.map((tag, idx) => (
+                                            <span class="vault-note-topic-item">
+                                                {idx > 0 && <span class="vault-note-meta-sep-slash" aria-hidden="true">/</span>}
+                                                <a href={metadataHref(tag)} class="vault-note-topic-link">{tag.replace(/-/g, " ")}</a>
+                                            </span>
                                         ))}
                                     </div>
-                                </div>
+                                </>
                             )}
                         </div>
                     )}
@@ -309,12 +326,9 @@ const structuredData = [
                 <section class="vault-note-content" aria-label={`Note: ${displayTitle}`}>
                     <div class="markdown-body" set:html={htmlContent} />
 
-                    <div class="vault-note-utility-row">
-                        <a href="/research/obsidian-vault" class="vault-note-back-link">
-                            <span aria-hidden="true">←</span>
-                            <span>Back to Vault</span>
-                        </a>
-
+                    <!-- Tier 1: Share bar directly below content -->
+                    <div class="vault-note-share-bar">
+                        <span class="vault-note-share-label">Share</span>
                         <ShareButtons
                             client:only="react"
                             title={displayTitle}
@@ -322,605 +336,52 @@ const structuredData = [
                         />
                     </div>
 
+                    <!-- Tier 2: Read related note -->
                     <nav class="vault-note-end-nav" aria-label="Continue reading">
                         <a href={relatedNoteHref} class="vault-note-end-action vault-note-end-action--related">
-                            <span>Read Another Related Note</span>
-                            <span aria-hidden="true">→</span>
+                            <div class="vault-note-end-action__content">
+                                <span class="vault-note-end-action__kicker">Read Related Note</span>
+                                <span class="vault-note-end-action__title">Explore Another Related Note</span>
+                            </div>
+                            <div class="vault-note-end-action__arrow-circle" aria-hidden="true">
+                                <span>→</span>
+                            </div>
                         </a>
                     </nav>
+
+                    <!-- Tier 3: Bottom Navigation buttons -->
+                    <div class="vault-note-nav-row">
+                        <button
+                            type="button"
+                            class="vault-note-nav-btn vault-note-nav-btn--prev"
+                            onclick="if (window.history.length > 1) { window.history.back(); } else { window.location.href = '/research/obsidian-vault'; }"
+                            aria-label="Back to previous page"
+                        >
+                            <span aria-hidden="true">←</span>
+                            <span>Back to previous page</span>
+                        </button>
+
+                        <a href="/research/obsidian-vault" class="vault-note-nav-btn vault-note-nav-btn--main">
+                            <span>Go to Main Vault</span>
+                            <span aria-hidden="true">→</span>
+                        </a>
+                    </div>
                 </section>
             </div>
         </article>
     </main>
 </BaseLayout>
 
-<style is:global>
-    :root {
-        --pop-blue: #2444ca;
-        --pop-pink: #ff7eb5;
-        --pop-yellow: #ffe44f;
-        --pop-lime: #caff48;
-        --pop-purple: #5524c7;
-        --pop-cream: #fff8e8;
-        --pop-ink: #15130f;
-        --pop-border: rgba(21, 19, 15, 0.72);
-        --pop-line: rgba(21, 19, 15, 0.2);
-    }
-
-    body.vault-note-pop-page {
-        background: var(--pop-blue);
-        color: var(--pop-ink);
-    }
-
-    .vault-note-pop-page .vault-note-page {
-        width: 100%;
-        padding: clamp(0.5rem, 2vw, 1.5rem);
-        background: var(--pop-blue);
-        font-family: "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
-    }
-
-    .vault-note-document {
-        --text-primary: var(--pop-ink);
-        --text-secondary: rgba(21, 19, 15, 0.72);
-        --type-paragraph-color: var(--pop-ink);
-        width: min(100%, 900px);
-        margin: 0 auto;
-        border: 1px solid var(--pop-border);
-        border-radius: clamp(16px, 2vw, 22px);
-        background: var(--pop-cream);
-    }
-
-    .vault-note-inner {
-        width: min(100%, 720px);
-        margin: 0 auto;
-        padding: clamp(1.4rem, 5vw, 4.5rem) clamp(1.15rem, 5vw, 3.5rem);
-    }
-
-    .vault-note-nav,
-    .vault-note-end-nav {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.7rem 1.15rem;
-    }
-
-    .vault-note-nav {
-        margin-bottom: clamp(2.25rem, 6vw, 4.5rem);
-    }
-
-    .vault-note-link {
-        display: inline-flex;
-        min-height: 44px;
-        align-items: center;
-        gap: 0.4rem;
-        color: var(--pop-ink);
-        text-decoration: underline;
-        text-decoration-color: var(--pop-line);
-        text-underline-offset: 4px;
-        font-size: 0.82rem;
-        font-weight: 620;
-        line-height: 1.2;
-        transition: text-decoration-color 160ms ease, background 160ms ease;
-    }
-
-    .vault-note-link:hover {
-        background: var(--pop-yellow);
-        text-decoration-color: var(--pop-ink);
-    }
-
-    .vault-note-link:focus-visible,
-    .markdown-body a:focus-visible {
-        outline: 3px solid var(--pop-purple);
-        outline-offset: 3px;
-    }
-
-    .vault-note-header {
-        padding-bottom: clamp(1.75rem, 4vw, 2.75rem);
-        border-bottom: 1px solid var(--pop-line);
-    }
-
-    .vault-note-header h1 {
-        max-width: none;
-        margin: 0;
-        color: var(--pop-ink);
-        font-size: clamp(1.9rem, 4vw, 2.8rem);
-        font-weight: 560;
-        line-height: 1.15;
-        letter-spacing: -0.035em;
-        text-wrap: pretty;
-        overflow-wrap: break-word;
-    }
-
-    .vault-note-metadata {
-        display: grid;
-        grid-template-columns: minmax(9rem, 0.72fr) minmax(0, 1.4fr);
-        gap: 1px;
-        margin-top: clamp(1.75rem, 4vw, 2.5rem);
-        overflow: hidden;
-        border: 1px solid var(--pop-border);
-        border-radius: 14px;
-        background: var(--pop-border);
-    }
-
-    .vault-note-metadata__date,
-    .vault-note-metadata__group {
-        min-width: 0;
-        padding: 1rem 1.05rem;
-        background: rgba(255, 255, 255, 0.54);
-    }
-
-    .vault-note-metadata__date {
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        gap: 0.65rem;
-    }
-
-    .vault-note-metadata__date time {
-        color: var(--pop-ink);
-        font-size: 0.92rem;
-        font-weight: 640;
-        line-height: 1.3;
-    }
-
-    .vault-note-metadata__label {
-        display: block;
-        margin-bottom: 0.7rem;
-        color: rgba(21, 19, 15, 0.62);
-        font-size: 0.75rem;
-        font-weight: 720;
-        line-height: 1.2;
-        letter-spacing: 0.075em;
-        text-transform: uppercase;
-    }
-
-    .vault-note-metadata__date .vault-note-metadata__label {
-        margin-bottom: 0;
-    }
-
-    .vault-note-metadata__group--type {
-        background: var(--pop-yellow);
-    }
-
-    .vault-note-metadata__group--type:first-child,
-    .vault-note-metadata__date:only-child {
-        grid-column: 1 / -1;
-    }
-
-    .vault-note-metadata__group--topics {
-        grid-column: 1 / -1;
-        background: rgba(255, 255, 255, 0.7);
-    }
-
-    .vault-note-type-links,
-    .vault-note-topic-links {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 0.55rem;
-    }
-
-    .vault-note-type-links a {
-        color: var(--pop-ink);
-        font-size: clamp(1rem, 2.4vw, 1.2rem);
-        font-weight: 720;
-        line-height: 1.2;
-        text-decoration-line: underline;
-        text-decoration-color: var(--pop-purple);
-        text-decoration-thickness: 0.12em;
-        text-underline-offset: 0.24em;
-        text-transform: capitalize;
-        transition: background 160ms ease, color 160ms ease;
-    }
-
-    .vault-note-type-links a:hover,
-    .vault-note-type-links a:focus-visible {
-        background: var(--pop-purple);
-        color: var(--pop-cream);
-    }
-
-    .vault-note-topic-links a {
-        display: inline-flex;
-        min-height: 36px;
-        align-items: center;
-        padding: 0.46rem 0.72rem;
-        border: 1px solid var(--pop-border);
-        border-radius: 999px;
-        background: var(--pop-cream);
-        color: var(--pop-ink);
-        font-size: 0.84rem;
-        font-weight: 650;
-        line-height: 1.2;
-        text-decoration: none;
-        text-transform: capitalize;
-        transition: background 160ms ease, transform 160ms ease;
-    }
-
-    .vault-note-topic-links a:hover {
-        background: var(--pop-lime);
-        transform: translateY(-1px);
-    }
-
-    .vault-note-type-links a:focus-visible,
-    .vault-note-topic-links a:focus-visible {
-        outline: 3px solid var(--pop-purple);
-        outline-offset: 3px;
-    }
-
-    .vault-note-content {
-        padding-top: clamp(2rem, 5vw, 3.75rem);
-    }
-
-    .markdown-body {
-        width: 100%;
-        color: var(--pop-ink);
-        font-family: var(--feature-obsidian-note-body-font, "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif);
-        font-size: var(--feature-obsidian-note-body-size, clamp(1rem, 1.2vw, 1.08rem));
-        font-weight: var(--feature-obsidian-note-body-weight, 420);
-        line-height: var(--feature-obsidian-note-body-line-height, 1.7);
-        letter-spacing: var(--feature-obsidian-note-body-letter-spacing, -0.006em);
-        overflow-wrap: break-word;
-        word-break: normal;
-    }
-
-    .markdown-body > :first-child {
-        margin-top: 0;
-    }
-
-    .markdown-body > :last-child {
-        margin-bottom: 0;
-    }
-
-    .markdown-body h1,
-    .markdown-body h2,
-    .markdown-body h3,
-    .markdown-body h4,
-    .markdown-body h5,
-    .markdown-body h6 {
-        color: var(--pop-ink);
-        font-family: "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
-        font-weight: 620;
-        letter-spacing: -0.03em;
-        text-wrap: balance;
-    }
-
-    .markdown-body h1 {
-        margin: 2.75rem 0 1rem;
-        font-size: clamp(1.85rem, 3.5vw, 2.55rem);
-        line-height: 1.08;
-    }
-
-    .markdown-body h2 {
-        margin: 2.75rem 0 0.9rem;
-        font-size: clamp(1.55rem, 2.8vw, 2rem);
-        line-height: 1.12;
-    }
-
-    .markdown-body h3 {
-        margin: 2.25rem 0 0.75rem;
-        font-size: clamp(1.25rem, 2vw, 1.55rem);
-        line-height: 1.2;
-    }
-
-    .markdown-body h4,
-    .markdown-body h5,
-    .markdown-body h6 {
-        margin: 2rem 0 0.7rem;
-        font-size: 1.08rem;
-        line-height: 1.25;
-    }
-
-    .markdown-body p,
-    .markdown-body ul,
-    .markdown-body ol,
-    .markdown-body blockquote,
-    .markdown-body pre,
-    .markdown-body table {
-        margin: 0 0 1.35rem;
-    }
-
-    .markdown-body p,
-    .markdown-body li,
-    .markdown-body th,
-    .markdown-body td {
-        color: var(--pop-ink);
-    }
-
-    .markdown-body ul,
-    .markdown-body ol {
-        padding-left: 1.35rem;
-    }
-
-    .markdown-body li {
-        margin: 0.35rem 0;
-        padding-left: 0.25rem;
-    }
-
-    .markdown-body li::marker {
-        color: var(--pop-ink);
-    }
-
-    .markdown-body strong {
-        font-weight: 720;
-    }
-
-    .markdown-body a {
-        color: var(--pop-ink);
-        text-decoration-line: underline;
-        text-decoration-color: var(--pop-purple);
-        text-decoration-thickness: 0.12em;
-        text-underline-offset: 0.2em;
-        transition: background 160ms ease;
-        overflow-wrap: break-word;
-        word-break: break-word;
-    }
-
-    .markdown-body a:hover {
-        background: var(--pop-yellow);
-    }
-
-    .markdown-body blockquote {
-        padding: 0 0 0 1.15rem;
-        border-left: 2px solid var(--pop-border);
-        color: rgba(21, 19, 15, 0.78);
-        font-style: italic;
-    }
-
-    .markdown-body blockquote > :last-child {
-        margin-bottom: 0;
-    }
-
-    .markdown-body blockquote p {
-        color: rgba(21, 19, 15, 0.78);
-    }
-
-    .markdown-body code {
-        padding: 0.12em 0.38em;
-        border: 1px solid var(--pop-line);
-        border-radius: 4px;
-        background: var(--pop-yellow);
-        font-family: "Space Mono", "Inconsolata", monospace;
-        font-size: 0.87em;
-        letter-spacing: -0.025em;
-    }
-
-    .markdown-body pre {
-        max-width: 100%;
-        overflow-x: auto;
-        padding: 1.25rem;
-        border: 1px solid var(--pop-border);
-        border-radius: 8px;
-        background: var(--pop-ink);
-        color: var(--pop-cream);
-    }
-
-    .markdown-body pre code {
-        padding: 0;
-        border: 0;
-        border-radius: 0;
-        background: transparent;
-        color: inherit;
-    }
-
-    .markdown-body hr {
-        height: 1px;
-        margin: clamp(2.5rem, 5vw, 4.5rem) 0;
-        border: 0;
-        background: var(--pop-border);
-    }
-
-    .markdown-body img {
-        display: block;
-        width: auto;
-        max-width: 100%;
-        height: auto;
-        margin: 2rem auto;
-        border: 1px solid var(--pop-border);
-        border-radius: 8px;
-    }
-
-    .markdown-body table {
-        display: block;
-        width: 100%;
-        overflow-x: auto;
-        border-collapse: collapse;
-        border: 1px solid var(--pop-border);
-    }
-
-    .markdown-body th,
-    .markdown-body td {
-        min-width: 10rem;
-        padding: 0.75rem 0.9rem;
-        border: 1px solid var(--pop-line);
-        text-align: left;
-        vertical-align: top;
-    }
-
-    .markdown-body th {
-        background: rgba(255, 228, 79, 0.34);
-        font-weight: 720;
-    }
-
-    .vault-note-utility-row {
-        display: grid;
-        grid-template-columns: auto 1fr;
-        align-items: center;
-        gap: 1rem;
-        width: 100%;
-        margin: clamp(3rem, 6vw, 4.5rem) 0 0;
-        padding: 1.5rem 0;
-        border-top: 1px solid var(--pop-line);
-        border-bottom: 1px solid var(--pop-line);
-    }
-
-    .vault-note-back-link {
-        display: inline-flex;
-        min-height: 52px;
-        align-items: center;
-        gap: 0.45rem;
-        padding: 0.85rem 1.05rem;
-        border: 1px solid var(--pop-border);
-        border-radius: 14px;
-        background: var(--pop-yellow);
-        color: var(--pop-ink);
-        text-decoration: none;
-        font-size: clamp(0.95rem, 2vw, 1.08rem);
-        font-weight: 680;
-        line-height: 1.2;
-        white-space: nowrap;
-        transition: transform 180ms ease, background 180ms ease;
-    }
-
-    .vault-note-back-link:hover {
-        background: var(--pop-lime);
-        transform: translateY(-2px);
-    }
-
-    .vault-note-back-link:focus-visible {
-        outline: 3px solid var(--pop-purple);
-        outline-offset: 3px;
-    }
-
-    .vault-note-content .share-component {
-        justify-self: end;
-        width: auto;
-        margin: 0;
-        padding: 0;
-        border: 0;
-        font-family: "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
-    }
-
-    .vault-note-content .share-icons {
-        gap: 0.5rem;
-    }
-
-    .vault-note-content .share-btn {
-        width: 42px;
-        height: 42px;
-        border: 1px solid var(--pop-line);
-        border-radius: 10px;
-        background: transparent;
-        color: var(--pop-ink);
-    }
-
-    .vault-note-content .share-btn:hover {
-        border-color: var(--pop-border);
-        background: var(--pop-yellow);
-        color: var(--pop-ink);
-        transform: translateY(-1px);
-        box-shadow: none;
-    }
-
-    .vault-note-end-nav {
-        display: block;
-        margin-top: 8px;
-    }
-
-    .vault-note-end-action {
-        display: flex;
-        min-height: 64px;
-        align-items: center;
-        gap: 0.75rem;
-        padding: 1rem 1.1rem;
-        border: 1px solid var(--pop-border);
-        border-radius: 14px;
-        color: var(--pop-ink);
-        text-decoration: none;
-        font-size: 0.9rem;
-        font-weight: 680;
-        line-height: 1.2;
-        transition: transform 180ms ease, background 180ms ease;
-    }
-
-    .vault-note-end-action--related {
-        justify-content: space-between;
-        width: 100%;
-        min-height: 72px;
-        padding-inline: clamp(1.1rem, 4vw, 1.5rem);
-        background: var(--pop-pink);
-        font-size: clamp(0.95rem, 2vw, 1.08rem);
-    }
-
-    .vault-note-end-action:hover {
-        transform: translateY(-2px);
-        background: var(--pop-yellow);
-    }
-
-    .vault-note-end-action:focus-visible {
-        outline: 3px solid var(--pop-purple);
-        outline-offset: 3px;
-    }
-
-    @media (max-width: 720px) {
-        .vault-note-pop-page .vault-note-page {
-            padding: 5px;
-        }
-
-        .vault-note-document {
-            border-radius: 14px;
-        }
-
-        .vault-note-header h1 {
-            font-size: clamp(1.9rem, 9vw, 2.8rem);
-        }
-
-        .vault-note-metadata {
-            grid-template-columns: 1fr;
-        }
-
-        .vault-note-metadata__group--topics {
-            grid-column: auto;
-        }
-
-        .vault-note-utility-row {
-            gap: 0.75rem;
-        }
-
-        .vault-note-content .share-icons {
-            gap: 0.25rem;
-        }
-
-        .vault-note-content .share-btn {
-            width: 44px;
-            height: 44px;
-        }
-    }
-
-    @media (max-width: 400px) {
-        .vault-note-inner {
-            padding-inline: 0.75rem;
-        }
-    }
-
-    @media (max-width: 340px) {
-        .vault-note-utility-row {
-            grid-template-columns: 1fr;
-        }
-
-        .vault-note-content .share-component {
-            justify-self: start;
-        }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-        .vault-note-link,
-        .vault-note-back-link,
-        .vault-note-end-action,
-        .vault-note-content .share-btn {
-            transition: none;
-        }
-    }
-</style>
-
 <script is:inline>
   (function () {
     function setupVaultRelatedNotePreload() {
-      const btn = document.querySelector(".vault-note-end-action--related");
+      var btn = document.querySelector(".vault-note-end-action--related");
       if (!btn) return;
 
-      const rawHref = btn.getAttribute("href");
+      var rawHref = btn.getAttribute("href");
       if (!rawHref || !rawHref.includes("/api/vault-related-note")) return;
 
-      const fetchUrl = rawHref.includes("json=true")
+      var fetchUrl = rawHref.includes("json=true")
         ? rawHref
         : rawHref + (rawHref.includes("?") ? "&json=true" : "?json=true");
 
@@ -931,12 +392,16 @@ const structuredData = [
         .then(function (data) {
           if (data && data.href) {
             btn.setAttribute("href", data.href);
-            const btnText = btn.querySelector("span:first-child");
-            if (btnText && data.displayTitle) {
-              btnText.textContent = "Read Related Note: " + data.displayTitle;
+            var kickerEl = btn.querySelector(".vault-note-end-action__kicker");
+            if (kickerEl) {
+              kickerEl.textContent = "Read Related Note";
+            }
+            var titleEl = btn.querySelector(".vault-note-end-action__title");
+            if (titleEl && data.displayTitle) {
+              titleEl.textContent = data.displayTitle;
             }
             if (!document.querySelector('link[rel="prefetch"][href="' + data.href + '"]')) {
-              const link = document.createElement("link");
+              var link = document.createElement("link");
               link.rel = "prefetch";
               link.href = data.href;
               document.head.appendChild(link);

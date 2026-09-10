@@ -17,9 +17,15 @@
     </form>
     <noscript><p class="vault-ask-error">Enable JavaScript to ask the vault a question.</p></noscript>
 
-    <p id="vault-search-status" class="vault-ask-status" data-vault-status role="status" aria-live="polite" hidden>
-        Searching the vault...
-    </p>
+    <div id="vault-search-status" class="vault-ask-status" data-vault-status role="status" aria-live="polite" hidden>
+        <div class="vault-ask-status__inner">
+            <span class="vault-ask-status__icon" aria-hidden="true">✦</span>
+            <span class="vault-ask-status__text" data-vault-status-text>Browsing through Abodid's personal notes & journals</span>
+            <span class="vault-ask-status__dots" aria-hidden="true">
+                <span class="dot dot-1">.</span><span class="dot dot-2">.</span><span class="dot dot-3">.</span>
+            </span>
+        </div>
+    </div>
     <p id="vault-search-error" class="vault-ask-error" data-vault-error role="alert" hidden></p>
 
     <article class="vault-result" data-vault-result aria-live="polite" hidden>
@@ -36,22 +42,48 @@
                     aria-expanded="false"
                     hidden
                 >
-                    Show more <span aria-hidden="true">↓</span>
+                    <span data-vault-answer-toggle-label>Continue reading</span>
+                    <span aria-hidden="true">↓</span>
                 </button>
             </section>
 
-            <aside class="vault-sources" data-vault-sources hidden>
-                <p class="vault-sources-label">Notes used</p>
-                <ul class="vault-source-list" data-vault-source-list></ul>
+            <aside class="vault-context-space" data-vault-context-space aria-label="Citation context">
+                <section
+                    id="vault-source-inspector"
+                    class="vault-source-inspector"
+                    data-vault-source-inspector
+                    tabindex="-1"
+                    aria-live="polite"
+                    hidden
+                >
+                    <div class="vault-source-inspector__topline">
+                        <p class="vault-source-inspector__label" data-inspector-label>Source</p>
+                        <button
+                            class="vault-source-inspector__close"
+                            data-inspector-close
+                            type="button"
+                            aria-label="Close source preview"
+                        >×</button>
+                    </div>
+                    <h3 data-inspector-title></h3>
+                    <p class="vault-source-inspector__meta" data-inspector-meta></p>
+                    <blockquote data-inspector-excerpt></blockquote>
+                    <a class="vault-source-inspector__link" data-inspector-link href="#">
+                        <span>Open note</span><span aria-hidden="true">↗</span>
+                    </a>
+                </section>
             </aside>
         </div>
-    </article>
 
-    <div class="vault-citation-popover" data-vault-citation-popover hidden>
-        <a class="vault-citation-popover__title" data-popover-title href="#"></a>
-        <p class="vault-citation-popover__meta" data-popover-meta></p>
-        <blockquote data-popover-excerpt></blockquote>
-    </div>
+        <details class="vault-bibliography" data-vault-sources hidden>
+            <summary>
+                <span data-vault-sources-label>Sources</span>
+                <span class="vault-bibliography__count" data-vault-sources-count aria-hidden="true">00</span>
+                <span class="vault-bibliography__arrow" aria-hidden="true">↓</span>
+            </summary>
+            <ol class="vault-source-list" data-vault-source-list></ol>
+        </details>
+    </article>
 </section>
 
 <script>
@@ -165,19 +197,68 @@
             const input = root.querySelector("[data-vault-input]");
             const submitButton = root.querySelector("[data-vault-submit]");
             const statusNode = root.querySelector("[data-vault-status]");
+            const statusTextNode = root.querySelector("[data-vault-status-text]");
             const errorNode = root.querySelector("[data-vault-error]");
             const resultPanel = root.querySelector("[data-vault-result]");
             const answerPanel = root.querySelector("[data-vault-answer]");
             const answerText = root.querySelector("[data-vault-answer-text]");
             const answerToggle = root.querySelector("[data-vault-answer-toggle]");
+            const answerToggleLabel = root.querySelector("[data-vault-answer-toggle-label]");
             const sourcesPanel = root.querySelector("[data-vault-sources]");
+            const sourcesLabel = root.querySelector("[data-vault-sources-label]");
+            const sourcesCount = root.querySelector("[data-vault-sources-count]");
             const sourceList = root.querySelector("[data-vault-source-list]");
-            const popover = root.querySelector("[data-vault-citation-popover]");
-            const popoverTitle = root.querySelector("[data-popover-title]");
-            const popoverMeta = root.querySelector("[data-popover-meta]");
-            const popoverExcerpt = root.querySelector("[data-popover-excerpt]");
+            const resultLayout = root.querySelector(".vault-result__layout");
+            const contextSpace = root.querySelector("[data-vault-context-space]");
+            const sourceInspector = root.querySelector("[data-vault-source-inspector]");
+            const inspectorLabel = root.querySelector("[data-inspector-label]");
+            const inspectorTitle = root.querySelector("[data-inspector-title]");
+            const inspectorMeta = root.querySelector("[data-inspector-meta]");
+            const inspectorExcerpt = root.querySelector("[data-inspector-excerpt]");
+            const inspectorLink = root.querySelector("[data-inspector-link]");
+            const inspectorClose = root.querySelector("[data-inspector-close]");
             if (!form || !input || !submitButton) return;
             root.dataset.initialized = "true";
+
+            const SEARCH_STATUS_MESSAGES = [
+                "Browsing through Abodid's personal notes & journals",
+                "Connecting related thoughts, essays, and ideas",
+                "Distilling insights from the second brain",
+                "Synthesizing references and citations for you",
+            ];
+            let statusInterval = null;
+            let statusMessageIndex = 0;
+
+            const updateStatusText = (text) => {
+                if (!statusTextNode) return;
+                statusTextNode.classList.add("is-switching");
+                setTimeout(() => {
+                    if (statusTextNode) {
+                        statusTextNode.textContent = text;
+                        statusTextNode.classList.remove("is-switching");
+                    }
+                }, 220);
+            };
+
+            const startStatusRotation = () => {
+                stopStatusRotation();
+                statusMessageIndex = 0;
+                if (statusTextNode) {
+                    statusTextNode.textContent = SEARCH_STATUS_MESSAGES[0];
+                    statusTextNode.classList.remove("is-switching");
+                }
+                statusInterval = setInterval(() => {
+                    statusMessageIndex = (statusMessageIndex + 1) % SEARCH_STATUS_MESSAGES.length;
+                    updateStatusText(SEARCH_STATUS_MESSAGES[statusMessageIndex]);
+                }, 2600);
+            };
+
+            const stopStatusRotation = () => {
+                if (statusInterval) {
+                    clearInterval(statusInterval);
+                    statusInterval = null;
+                }
+            };
 
             const lifecycle = new AbortController();
             const listenerOptions = { signal: lifecycle.signal };
@@ -186,8 +267,11 @@
             let activePayload = null;
             let activeQuestion = "";
             let activeSearchId = getSearchIdFromUrl();
-            let popoverPinned = false;
             let citedCitationNumbers = new Set();
+            let activeCitationButton = null;
+            let pinnedCitationButton = null;
+            let suppressNextCitationFocusPreview = false;
+            let inspectorPositionFrame = 0;
 
             const sourceByCitation = new Map();
 
@@ -195,6 +279,11 @@
                 if (submitButton) submitButton.disabled = isLoading;
                 if (input) input.disabled = isLoading;
                 if (statusNode) statusNode.hidden = !isLoading;
+                if (isLoading) {
+                    startStatusRotation();
+                } else {
+                    stopStatusRotation();
+                }
                 root.setAttribute("aria-busy", String(isLoading));
                 root.classList.toggle("is-loading", isLoading);
             };
@@ -213,10 +302,46 @@
 
             const clearSources = () => {
                 if (sourceList) sourceList.replaceChildren();
-                if (sourcesPanel) sourcesPanel.hidden = true;
+                if (sourcesPanel) {
+                    sourcesPanel.hidden = true;
+                    sourcesPanel.open = false;
+                }
+                if (sourcesLabel) sourcesLabel.textContent = "Sources";
+                if (sourcesCount) sourcesCount.textContent = "00";
+            };
+
+            const closeSourceInspector = ({ restoreFocus = false, clearPinned = true } = {}) => {
+                if (!sourceInspector) return;
+                const previousButton = activeCitationButton;
+                if (previousButton) {
+                    previousButton.classList.remove("is-active");
+                    previousButton.setAttribute("aria-expanded", "false");
+                }
+                if (clearPinned && pinnedCitationButton) {
+                    pinnedCitationButton.classList.remove("is-pinned");
+                    pinnedCitationButton.setAttribute("aria-expanded", "false");
+                    pinnedCitationButton = null;
+                }
+                activeCitationButton = null;
+                sourceInspector.hidden = true;
+                sourceInspector.classList.remove("is-fixed");
+                sourceInspector.style.removeProperty("--vault-inspector-top");
+                sourceInspector.style.removeProperty("--vault-inspector-left");
+                sourceInspector.style.removeProperty("--vault-inspector-width");
+                if (contextSpace && sourceInspector.parentElement !== contextSpace) {
+                    contextSpace.appendChild(sourceInspector);
+                }
+                if (restoreFocus && previousButton) {
+                    suppressNextCitationFocusPreview = true;
+                    previousButton.focus();
+                    window.requestAnimationFrame(() => {
+                        suppressNextCitationFocusPreview = false;
+                    });
+                }
             };
 
             const clearResult = () => {
+                closeSourceInspector();
                 if (answerText) answerText.replaceChildren();
                 if (answerPanel) {
                     answerPanel.classList.remove("is-collapsible", "is-expanded");
@@ -224,7 +349,9 @@
                 if (answerToggle) {
                     answerToggle.hidden = true;
                     answerToggle.setAttribute("aria-expanded", "false");
-                    answerToggle.innerHTML = 'Show more <span aria-hidden="true">↓</span>';
+                    if (answerToggleLabel) answerToggleLabel.textContent = "Continue reading";
+                    const arrow = answerToggle.querySelector("[aria-hidden='true']");
+                    if (arrow) arrow.textContent = "↓";
                 }
                 clearSources();
                 if (resultPanel) resultPanel.hidden = true;
@@ -234,16 +361,42 @@
                 if (!answerPanel || !answerText || !answerToggle) return;
 
                 answerPanel.classList.remove("is-expanded");
-                answerPanel.classList.add("is-collapsible");
                 answerToggle.hidden = true;
                 answerToggle.setAttribute("aria-expanded", "false");
-                answerToggle.innerHTML = 'Show more <span aria-hidden="true">↓</span>';
+                if (answerToggleLabel) answerToggleLabel.textContent = "Continue reading";
+                const disclosureArrow = answerToggle.querySelector("[aria-hidden='true']");
+                if (disclosureArrow) disclosureArrow.textContent = "↓";
 
-                window.requestAnimationFrame(() => {
-                    const needsDisclosure = answerText.scrollHeight > answerText.clientHeight + 2;
-                    answerPanel.classList.toggle("is-collapsible", needsDisclosure);
-                    answerToggle.hidden = !needsDisclosure;
+                const meaningfulTags = new Set(["P", "UL", "OL", "BLOCKQUOTE", "TABLE", "PRE"]);
+                const blocks = Array.from(answerText.children).filter((element) =>
+                    element.textContent?.trim(),
+                );
+                let meaningfulCount = 0;
+                let cutIndex = -1;
+
+                blocks.forEach((block, index) => {
+                    block.removeAttribute("data-vault-continuation");
+                    block.hidden = false;
+                    if (meaningfulTags.has(block.tagName)) meaningfulCount += 1;
+                    if (meaningfulCount === 3 && cutIndex === -1) cutIndex = index + 1;
                 });
+
+                const continuation = cutIndex > 0 ? blocks.slice(cutIndex) : [];
+                const hasMeaningfulContinuation = continuation.some((block) =>
+                    meaningfulTags.has(block.tagName) && block.textContent?.trim(),
+                );
+
+                if (!hasMeaningfulContinuation) {
+                    answerPanel.classList.remove("is-collapsible");
+                    return;
+                }
+
+                continuation.forEach((block) => {
+                    block.dataset.vaultContinuation = "true";
+                    block.hidden = true;
+                });
+                answerPanel.classList.add("is-collapsible");
+                answerToggle.hidden = false;
             };
 
             const makeSearchAwareHref = (href) => {
@@ -270,17 +423,44 @@
                 const button = document.createElement("button");
                 button.type = "button";
                 button.className = "vault-citation";
-                button.textContent = `[ ${citationNumber} ]`;
+                button.textContent = `[${citationNumber}]`;
                 button.setAttribute("aria-label", `Show source ${citationNumber}`);
+                button.setAttribute("aria-controls", "vault-source-inspector");
+                button.setAttribute("aria-expanded", "false");
                 button.dataset.citation = String(citationNumber);
-                button.addEventListener("mouseenter", () => showPopover(button, false));
-                button.addEventListener("focus", () => showPopover(button, false));
-                button.addEventListener("mouseleave", hideHoverPopover);
-                button.addEventListener("blur", hideHoverPopover);
+                button.addEventListener("pointerenter", () => {
+                    if (getEvidenceMode() !== "margin") return;
+                    showSourceInspector(button);
+                });
+                button.addEventListener("pointerleave", () => {
+                    if (getEvidenceMode() !== "margin" || pinnedCitationButton === button) return;
+                    if (pinnedCitationButton) {
+                        showSourceInspector(pinnedCitationButton, { pin: true });
+                    } else if (activeCitationButton === button) {
+                        closeSourceInspector({ clearPinned: false });
+                    }
+                });
+                button.addEventListener("focus", () => {
+                    if (suppressNextCitationFocusPreview) {
+                        suppressNextCitationFocusPreview = false;
+                        return;
+                    }
+                    if (getEvidenceMode() === "margin") showSourceInspector(button);
+                });
+                button.addEventListener("blur", () => {
+                    if (getEvidenceMode() !== "margin" || pinnedCitationButton === button) return;
+                    if (pinnedCitationButton) {
+                        showSourceInspector(pinnedCitationButton, { pin: true });
+                    } else if (activeCitationButton === button) {
+                        closeSourceInspector({ clearPinned: false });
+                    }
+                });
                 button.addEventListener("click", (event) => {
                     event.preventDefault();
-                    popoverPinned = true;
-                    showPopover(button, true);
+                    showSourceInspector(button, {
+                        moveFocus: event.detail === 0,
+                        pin: true,
+                    });
                 });
                 return button;
             };
@@ -383,29 +563,47 @@
 
                 const fragment = document.createDocumentFragment();
 
-                groups.forEach((group) => {
+                groups.forEach((group, index) => {
                     const item = document.createElement("li");
                     item.className = "vault-source-row";
+
+                    const indexNode = document.createElement("span");
+                    indexNode.className = "vault-source-index";
+                    indexNode.textContent = String(index + 1).padStart(2, "0");
+                    indexNode.setAttribute("aria-hidden", "true");
+                    item.appendChild(indexNode);
+
+                    const sourceCopy = document.createElement("div");
+                    sourceCopy.className = "vault-source-copy";
 
                     const link = document.createElement("a");
                     link.className = "vault-source-title";
                     link.href = makeSearchAwareHref(group.href);
                     link.textContent = group.note_title || "Untitled note";
                     attachSourceLinkHandler(link);
-                    item.appendChild(link);
+                    sourceCopy.appendChild(link);
 
-                    const citationWrap = document.createElement("span");
-                    citationWrap.className = "vault-source-citations";
-                    (group.citations || []).forEach((citationNumber) => {
-                        const citation = renderCitationPill(citationNumber);
-                        citationWrap.appendChild(citation);
-                    });
-                    item.appendChild(citationWrap);
+                    const reference = document.createElement("span");
+                    reference.className = "vault-source-reference";
+                    reference.textContent = `Cited ${group.citations.map((number) => `[${number}]`).join(", ")}`;
+                    sourceCopy.appendChild(reference);
+
+                    item.appendChild(sourceCopy);
 
                     fragment.appendChild(item);
                 });
 
                 sourceList.appendChild(fragment);
+                if (sourcesLabel) {
+                    sourcesLabel.textContent = "Sources";
+                }
+                if (sourcesCount) sourcesCount.textContent = String(groups.length).padStart(2, "0");
+                if (sourcesPanel) {
+                    sourcesPanel.querySelector("summary")?.setAttribute(
+                        "aria-label",
+                        `Sources, ${groups.length} ${groups.length === 1 ? "note" : "notes"}`,
+                    );
+                }
                 if (sourcesPanel) sourcesPanel.hidden = false;
             };
 
@@ -419,63 +617,121 @@
                 resetAnswerDisclosure();
             };
 
-            const positionPopover = (anchor) => {
-                if (!popover) return;
-                const rect = anchor.getBoundingClientRect();
-                const popoverRect = popover.getBoundingClientRect();
-                const gap = 10;
-                const left = Math.min(
-                    Math.max(16, rect.left + rect.width / 2 - popoverRect.width / 2),
-                    window.innerWidth - popoverRect.width - 16,
-                );
-                let top = rect.bottom + gap;
-                if (top + popoverRect.height > window.innerHeight - 16) {
-                    top = Math.max(16, rect.top - popoverRect.height - gap);
-                }
-                popover.style.left = `${left}px`;
-                popover.style.top = `${top}px`;
+            const getEvidenceMode = () => {
+                if (!resultLayout) return "inline";
+                return getComputedStyle(resultLayout)
+                    .getPropertyValue("--vault-evidence-mode")
+                    .trim() || "inline";
             };
 
-            const showPopover = (anchor, pinned = false) => {
-                if (!popover) return;
+            const getTopLevelAnswerBlock = (anchor) => {
+                if (!answerText) return null;
+                let block = anchor.parentElement;
+                while (block && block.parentElement !== answerText) {
+                    block = block.parentElement;
+                }
+                return block?.parentElement === answerText ? block : null;
+            };
+
+            const clearInspectorPositioning = () => {
+                if (!sourceInspector) return;
+                sourceInspector.classList.remove("is-fixed");
+                sourceInspector.style.removeProperty("--vault-inspector-top");
+                sourceInspector.style.removeProperty("--vault-inspector-left");
+                sourceInspector.style.removeProperty("--vault-inspector-width");
+            };
+
+            const updateMarginInspectorPosition = () => {
+                if (
+                    !sourceInspector ||
+                    !contextSpace ||
+                    sourceInspector.hidden ||
+                    getEvidenceMode() !== "margin"
+                ) {
+                    clearInspectorPositioning();
+                    return;
+                }
+
+                const contextRect = contextSpace.getBoundingClientRect();
+                const contextStyle = getComputedStyle(contextSpace);
+                const paddingLeft = Number.parseFloat(contextStyle.paddingLeft) || 0;
+                const paddingRight = Number.parseFloat(contextStyle.paddingRight) || 0;
+                const inspectorHeight = sourceInspector.offsetHeight;
+                const stickyTop = Math.min(112, Math.max(88, window.innerHeight * 0.09));
+                const endBound = contextRect.bottom - inspectorHeight;
+                const top = Math.max(contextRect.top, Math.min(stickyTop, endBound));
+                const width = Math.min(480, contextRect.width - paddingLeft - paddingRight);
+
+                sourceInspector.style.setProperty("--vault-inspector-top", `${Math.round(top)}px`);
+                sourceInspector.style.setProperty("--vault-inspector-left", `${Math.round(contextRect.left + paddingLeft)}px`);
+                sourceInspector.style.setProperty("--vault-inspector-width", `${Math.max(0, Math.round(width))}px`);
+                sourceInspector.classList.add("is-fixed");
+            };
+
+            const requestInspectorPositionUpdate = () => {
+                if (inspectorPositionFrame) return;
+                inspectorPositionFrame = window.requestAnimationFrame(() => {
+                    inspectorPositionFrame = 0;
+                    updateMarginInspectorPosition();
+                });
+            };
+
+            const placeSourceInspector = (anchor = activeCitationButton) => {
+                if (!sourceInspector || !contextSpace) return;
+                if (getEvidenceMode() === "margin") {
+                    if (sourceInspector.parentElement !== contextSpace) {
+                        contextSpace.appendChild(sourceInspector);
+                    }
+                    requestInspectorPositionUpdate();
+                    return;
+                }
+
+                clearInspectorPositioning();
+                const block = anchor ? getTopLevelAnswerBlock(anchor) : null;
+                if (block) block.insertAdjacentElement("afterend", sourceInspector);
+            };
+
+            const showSourceInspector = (anchor, { moveFocus = false, pin = false } = {}) => {
+                if (!sourceInspector) return;
                 const citationNumber = Number.parseInt(anchor.dataset.citation || "", 10);
                 const source = sourceByCitation.get(citationNumber);
                 if (!source) return;
 
-                popoverPinned = pinned || popoverPinned;
-
-                if (popoverTitle) {
-                    popoverTitle.textContent = source.note_title || "Untitled note";
-                    popoverTitle.href = makeSearchAwareHref(source.href);
-                    attachSourceLinkHandler(popoverTitle);
+                if (activeCitationButton && activeCitationButton !== anchor) {
+                    activeCitationButton.classList.remove("is-active");
+                    activeCitationButton.setAttribute("aria-expanded", "false");
                 }
-                if (popoverMeta) {
-                    const meta = source.heading ? `Section: ${source.heading}` : "";
-                    popoverMeta.textContent = meta;
-                    popoverMeta.hidden = !meta;
+                activeCitationButton = anchor;
+                anchor.classList.add("is-active");
+                anchor.setAttribute("aria-expanded", "true");
+
+                if (pin) {
+                    if (pinnedCitationButton && pinnedCitationButton !== anchor) {
+                        pinnedCitationButton.classList.remove("is-pinned");
+                        pinnedCitationButton.setAttribute("aria-expanded", "false");
+                    }
+                    pinnedCitationButton = anchor;
+                    anchor.classList.add("is-pinned");
                 }
-                if (popoverExcerpt) {
-                    popoverExcerpt.textContent = source.excerpt || "";
+
+                if (inspectorLabel) inspectorLabel.textContent = `Source [${citationNumber}]`;
+                if (inspectorTitle) inspectorTitle.textContent = source.note_title || "Untitled note";
+                if (inspectorMeta) {
+                    inspectorMeta.textContent = source.heading ? `From: ${source.heading}` : "";
+                    inspectorMeta.hidden = !source.heading;
+                }
+                if (inspectorExcerpt) {
+                    inspectorExcerpt.textContent = source.excerpt || "No excerpt is available for this reference.";
+                }
+                if (inspectorLink) {
+                    inspectorLink.href = makeSearchAwareHref(source.href);
+                    attachSourceLinkHandler(inspectorLink);
                 }
 
-                popover.hidden = false;
-                window.requestAnimationFrame(() => positionPopover(anchor));
-            };
-
-            const hidePopover = () => {
-                if (!popover) return;
-                popoverPinned = false;
-                popover.hidden = true;
-            };
-
-            const hideHoverPopover = () => {
-                if (popoverPinned) return;
-                hidePopover();
-            };
-
-            const hidePopoverOnViewportChange = () => {
-                if (!popover || popover.hidden) return;
-                hidePopover();
+                placeSourceInspector(anchor);
+                sourceInspector.hidden = false;
+                requestInspectorPositionUpdate();
+                if (moveFocus) window.requestAnimationFrame(() => sourceInspector.focus());
             };
 
             const submitQuestion = async (question) => {
@@ -483,7 +739,6 @@
                 pendingRequest = new AbortController();
                 setLoading(true);
                 setError("");
-                hidePopover();
                 clearResult();
 
                 try {
@@ -555,30 +810,24 @@
                 }
             };
 
-            document.addEventListener("click", (event) => {
-                if (!popover || popover.hidden) return;
-                if (
-                    popover.contains(event.target) ||
-                    event.target.closest?.(".vault-citation")
-                ) {
-                    return;
-                }
-                hidePopover();
+            const resultResizeObserver = typeof ResizeObserver === "undefined" || !resultPanel
+                ? null
+                : new ResizeObserver(() => {
+                    if (activeCitationButton && !sourceInspector?.hidden) {
+                        placeSourceInspector(activeCitationButton);
+                    }
+                });
+            if (resultPanel) resultResizeObserver?.observe(resultPanel);
+
+            inspectorClose?.addEventListener("click", () => {
+                closeSourceInspector({ restoreFocus: true });
             }, listenerOptions);
 
-            window.addEventListener("scroll", hidePopoverOnViewportChange, {
+            window.addEventListener("scroll", requestInspectorPositionUpdate, {
+                ...listenerOptions,
                 passive: true,
-                signal: lifecycle.signal,
             });
-            document.addEventListener("scroll", hidePopoverOnViewportChange, {
-                passive: true,
-                capture: true,
-                signal: lifecycle.signal,
-            });
-            window.addEventListener("resize", hidePopoverOnViewportChange, {
-                passive: true,
-                signal: lifecycle.signal,
-            });
+            window.addEventListener("resize", requestInspectorPositionUpdate, listenerOptions);
 
             window.addEventListener("beforeunload", () => {
                 if (!activeSearchId || !activePayload) return;
@@ -603,7 +852,10 @@
                     });
                 }
                 pendingRequest?.abort();
+                resultResizeObserver?.disconnect();
+                if (inspectorPositionFrame) window.cancelAnimationFrame(inspectorPositionFrame);
                 lifecycle.abort();
+                stopStatusRotation();
                 submitButton.disabled = true;
                 delete root.dataset.initialized;
             }, { once: true, signal: lifecycle.signal });
@@ -624,12 +876,20 @@
             }, listenerOptions);
 
             answerToggle?.addEventListener("click", () => {
-                if (!answerPanel) return;
+                if (!answerPanel || !answerText) return;
                 const isExpanded = answerPanel.classList.toggle("is-expanded");
                 answerToggle.setAttribute("aria-expanded", String(isExpanded));
-                answerToggle.innerHTML = isExpanded
-                    ? 'Show less <span aria-hidden="true">↑</span>'
-                    : 'Show more <span aria-hidden="true">↓</span>';
+                answerText.querySelectorAll("[data-vault-continuation]").forEach((block) => {
+                    block.hidden = !isExpanded;
+                });
+                if (!isExpanded && activeCitationButton?.closest("[data-vault-continuation]")) {
+                    closeSourceInspector();
+                }
+                if (answerToggleLabel) {
+                    answerToggleLabel.textContent = isExpanded ? "Show less" : "Continue reading";
+                }
+                const arrow = answerToggle.querySelector("[aria-hidden='true']");
+                if (arrow) arrow.textContent = isExpanded ? "↑" : "↓";
             }, listenerOptions);
 
             // Recover the question from URLs produced by the old native GET submission.
@@ -654,9 +914,9 @@
 
 <style is:global>
     .vault-ask-section {
-        width: min(100%, 1100px);
-        margin: 2rem auto 2.4rem;
-        padding: 0 1.5rem;
+        width: 100%;
+        margin: 1.5rem 0 2rem;
+        padding: 0;
         text-align: left;
     }
 
@@ -665,10 +925,12 @@
         grid-template-columns: minmax(0, 1fr) auto;
         align-items: end;
         gap: 0.85rem;
-        min-height: 72px;
-        padding: 0.7rem 0.7rem 0.7rem 1.5rem;
+        width: 100%;
+        max-width: min(68%, 760px);
+        min-height: 66px;
+        padding: 0.65rem 0.65rem 0.65rem 1.25rem;
         border: 1px solid rgba(255, 255, 255, 0.14);
-        border-radius: 32px;
+        border-radius: 20px;
         background: rgba(8, 8, 8, 0.76);
         box-shadow: 0 20px 80px rgba(0, 0, 0, 0.35);
         backdrop-filter: blur(14px);
@@ -689,9 +951,9 @@
     .vault-ask-box textarea {
         display: block;
         width: 100%;
-        min-height: 48px;
+        min-height: 46px;
         box-sizing: border-box;
-        padding: 12px 0;
+        padding: 11px 0;
         border: 0;
         outline: 0;
         resize: none;
@@ -699,7 +961,7 @@
         background: transparent;
         color: #f5f5f5;
         font: inherit;
-        font-size: 1.05rem;
+        font-size: 1.02rem;
         line-height: 24px;
     }
 
@@ -716,14 +978,14 @@
         align-self: end;
         align-items: center;
         justify-content: center;
-        min-width: 84px;
-        min-height: 46px;
+        min-width: 82px;
+        min-height: 44px;
         border: 1px solid rgba(255, 255, 255, 0.16);
         border-radius: 999px;
         background: #f5f5f5;
         color: #050505;
         font: inherit;
-        font-size: 0.92rem;
+        font-size: 0.9rem;
         font-weight: 650;
         cursor: pointer;
         transition:
@@ -744,7 +1006,7 @@
 
     .vault-ask-status,
     .vault-ask-error {
-        margin: 0.85rem 1.4rem 0;
+        margin: 0.9rem 0 0;
         font-size: 0.92rem;
         line-height: 1.5;
     }
@@ -753,13 +1015,90 @@
         color: var(--text-secondary);
     }
 
+    .vault-ask-status__inner {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.55rem;
+        padding: 0.45rem 0.9rem;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 999px;
+        background: rgba(8, 8, 8, 0.6);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        backdrop-filter: blur(10px);
+    }
+
+    .vault-ask-status__icon {
+        display: inline-block;
+        font-size: 0.85rem;
+        color: var(--pop-yellow, #ffe44f);
+        animation: vaultIconSpin 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    @keyframes vaultIconSpin {
+        0% { transform: rotate(0deg) scale(0.9); opacity: 0.7; }
+        50% { transform: rotate(180deg) scale(1.15); opacity: 1; }
+        100% { transform: rotate(360deg) scale(0.9); opacity: 0.7; }
+    }
+
+    .vault-ask-status__text {
+        display: inline-block;
+        font-weight: 520;
+        letter-spacing: -0.01em;
+        transition: opacity 0.22s ease, transform 0.22s ease;
+    }
+
+    .vault-ask-status__text.is-switching {
+        opacity: 0;
+        transform: translateY(3px);
+    }
+
+    .vault-ask-status__dots {
+        display: inline-flex;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+    }
+
+    .vault-ask-status__dots .dot {
+        opacity: 0.2;
+        animation: vaultDotPulse 1.4s infinite;
+    }
+
+    .vault-ask-status__dots .dot-1 {
+        animation-delay: 0s;
+    }
+
+    .vault-ask-status__dots .dot-2 {
+        animation-delay: 0.22s;
+    }
+
+    .vault-ask-status__dots .dot-3 {
+        animation-delay: 0.44s;
+    }
+
+    @keyframes vaultDotPulse {
+        0%, 100% {
+            opacity: 0.2;
+            transform: translateY(0);
+        }
+        35% {
+            opacity: 1;
+            transform: translateY(-2px);
+        }
+        70% {
+            opacity: 0.2;
+            transform: translateY(0);
+        }
+    }
+
     .vault-ask-error {
         color: #ff8f8f;
     }
 
     .vault-result {
-        margin-top: 1.4rem;
-        padding: clamp(1.25rem, 2.6vw, 2.25rem);
+        width: 100%;
+        max-width: 960px;
+        margin-top: 1.5rem;
+        padding: clamp(1.25rem, 2.5vw, 2.1rem);
         border: 1px solid var(--pop-ink, #15130f);
         border-radius: 18px;
         background: var(--pop-cream, #fff8e8);
@@ -770,9 +1109,9 @@
 
     .vault-result__layout {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) minmax(15rem, 0.62fr);
+        grid-template-columns: minmax(0, 1.35fr) minmax(220px, 300px);
         align-items: start;
-        gap: clamp(2rem, 5vw, 5.5rem);
+        gap: clamp(1.5rem, 3.5vw, 3rem);
     }
 
     .vault-result__header {
@@ -792,27 +1131,30 @@
 
     .vault-answer {
         color: inherit;
-        line-height: 1.58;
+        line-height: 1.62;
     }
 
     .vault-answer-text {
-        width: min(100%, 32ch);
+        width: 100%;
+        max-width: 68ch;
+        font-size: clamp(0.95rem, 1.05vw, 1.02rem);
+        line-height: 1.65;
         overflow-wrap: anywhere;
     }
 
     .vault-answer.is-collapsible:not(.is-expanded) .vault-answer-text {
-        max-height: 13.5rem;
+        max-height: 14rem;
         overflow: hidden;
     }
 
     .vault-answer-toggle {
         display: inline-flex;
-        min-height: 44px;
+        min-height: 42px;
         align-items: center;
         justify-content: center;
         gap: 0.45rem;
         margin-top: 1.15rem;
-        padding: 0.65rem 0.9rem;
+        padding: 0.6rem 0.9rem;
         border: 1px solid var(--pop-ink, #15130f);
         border-radius: 12px;
         background: var(--pop-yellow, #ffe44f);
@@ -945,7 +1287,7 @@
 
     .vault-sources {
         margin: 0;
-        padding: 0 0 0 clamp(1.25rem, 3vw, 2.5rem);
+        padding: 0 0 0 clamp(1.25rem, 2.5vw, 2rem);
         border: 0;
         border-left: 1px solid var(--pop-line, rgba(21, 19, 15, 0.24));
     }
@@ -1048,34 +1390,9 @@
         line-height: 1.55;
     }
 
-    @media (max-width: 700px) {
-        .vault-ask-section {
-            margin: 1.35rem auto 2rem;
-            padding: 0;
-        }
-
+    @media (max-width: 860px) {
         .vault-ask-box {
-            min-height: 64px;
-            gap: 0.55rem;
-            padding: 0.55rem 0.55rem 0.55rem 0.9rem;
-            border-radius: 24px;
-        }
-
-        .vault-ask-box textarea {
-            min-height: 42px;
-            padding: 9px 0;
-            font-size: 0.96rem;
-        }
-
-        .vault-ask-submit {
-            min-width: 62px;
-            min-height: 42px;
-            font-size: 0.86rem;
-        }
-
-        .vault-result {
-            border-radius: 14px;
-            padding: 1.1rem;
+            max-width: 100%;
         }
 
         .vault-result__layout {
@@ -1088,9 +1405,497 @@
             border-left: 0;
             border-top: 1px solid var(--pop-line, rgba(21, 19, 15, 0.24));
         }
+    }
+
+    @media (max-width: 700px) {
+        .vault-ask-section {
+            margin: 1.35rem 0 2rem;
+            padding: 0;
+        }
+
+        .vault-ask-box {
+            min-height: 60px;
+            gap: 0.55rem;
+            padding: 0.55rem 0.55rem 0.55rem 0.9rem;
+            border-radius: 18px;
+        }
+
+        .vault-ask-box textarea {
+            min-height: 40px;
+            padding: 8px 0;
+            font-size: 0.95rem;
+        }
+
+        .vault-ask-submit {
+            min-width: 60px;
+            min-height: 40px;
+            font-size: 0.85rem;
+        }
+
+        .vault-result {
+            border-radius: 14px;
+            padding: 1.1rem;
+        }
 
         .vault-source-row {
             padding: 0.64rem 0.75rem;
+        }
+    }
+
+    /* Reading-first result: one editorial sheet, one contextual margin. */
+    .vault-result {
+        container-name: vault-result;
+        container-type: inline-size;
+        max-width: none;
+        margin-top: clamp(1.5rem, 3vw, 2.5rem);
+        padding: clamp(1.4rem, 3.5vw, 3.5rem);
+        overflow: visible;
+    }
+
+    .vault-result__layout {
+        --vault-evidence-mode: margin;
+        display: grid;
+        grid-template-columns: minmax(0, 70ch) minmax(16rem, 1fr);
+        align-items: stretch;
+        gap: clamp(2.5rem, 6vw, 7rem);
+    }
+
+    .vault-result__header {
+        margin-bottom: clamp(1.5rem, 3vw, 2.4rem);
+        padding-bottom: 0.85rem;
+        border-bottom: 1px solid var(--pop-ink, #15130f);
+    }
+
+    .vault-result__label,
+    .vault-source-inspector__label {
+        font: 750 clamp(0.72rem, 0.9vw, 0.8rem)/1.35 "Satoshi-Variable", "Satoshi-Regular", "Space Mono", "Inconsolata", monospace;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+    }
+
+    .vault-answer {
+        min-width: 0;
+        line-height: 1.62;
+    }
+
+    .vault-answer-text {
+        width: 100%;
+        max-width: 70ch;
+        font-size: clamp(1rem, 1.08vw, 1.1rem);
+        line-height: 1.68;
+        overflow: visible;
+    }
+
+    .vault-answer-text > p:first-child {
+        margin-bottom: 1.4rem;
+        font-size: clamp(1.14rem, 1.45vw, 1.42rem);
+        font-weight: 520;
+        line-height: 1.5;
+        letter-spacing: -0.022em;
+    }
+
+    .vault-answer-text [hidden] {
+        display: none;
+    }
+
+    .vault-answer.is-collapsible:not(.is-expanded) .vault-answer-text {
+        max-height: none;
+        overflow: visible;
+    }
+
+    .vault-answer-toggle {
+        min-height: 44px;
+        margin-top: 1.35rem;
+        padding: 0.45rem 0;
+        border: 0;
+        border-bottom: 1px solid currentColor;
+        border-radius: 0;
+        background: transparent;
+        font-size: 0.88rem;
+        letter-spacing: 0.01em;
+    }
+
+    .vault-answer-toggle:hover,
+    .vault-answer-toggle:focus-visible {
+        transform: none;
+        background: transparent;
+        box-shadow: none;
+        outline: 2px solid var(--pop-purple, #5524c7);
+        outline-offset: 4px;
+    }
+
+    .vault-context-space {
+        position: relative;
+        align-self: stretch;
+        min-width: 0;
+        min-height: 18rem;
+        padding-left: clamp(1.5rem, 3vw, 3rem);
+        border-left: 1px solid var(--pop-line, rgba(21, 19, 15, 0.24));
+    }
+
+    .vault-source-inspector {
+        position: sticky;
+        top: clamp(5.5rem, 9vh, 7rem);
+        align-self: start;
+        width: 100%;
+        max-width: 30rem;
+        padding: 0;
+        color: var(--pop-ink, #15130f);
+        outline: none;
+    }
+
+    .vault-source-inspector[hidden] {
+        display: none;
+    }
+
+    .vault-source-inspector.is-fixed {
+        position: fixed;
+        z-index: 3;
+        top: var(--vault-inspector-top);
+        left: var(--vault-inspector-left);
+        width: var(--vault-inspector-width);
+    }
+
+    .vault-source-inspector:focus-visible {
+        outline: 2px solid var(--pop-purple, #5524c7);
+        outline-offset: 8px;
+    }
+
+    .vault-source-inspector__topline {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding-bottom: 0.8rem;
+        border-bottom: 1px solid var(--pop-ink, #15130f);
+    }
+
+    .vault-source-inspector__label {
+        margin: 0;
+    }
+
+    .vault-source-inspector__close {
+        display: inline-grid;
+        width: 44px;
+        height: 44px;
+        margin: -0.7rem -0.7rem -0.7rem 0;
+        padding: 0;
+        place-items: center;
+        border: 0;
+        background: transparent;
+        color: inherit;
+        font: 500 1.45rem/1 "Satoshi-Variable", "Satoshi-Regular", sans-serif;
+        cursor: pointer;
+    }
+
+    .vault-source-inspector__close:hover,
+    .vault-source-inspector__close:focus-visible {
+        background: var(--pop-yellow, #ffe44f);
+        outline: 2px solid var(--pop-purple, #5524c7);
+        outline-offset: 2px;
+    }
+
+    .vault-source-inspector h3 {
+        margin: 1.35rem 0 0;
+        color: var(--pop-ink, #15130f);
+        font: 620 clamp(1.45rem, 2vw, 2.15rem)/1.02 "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
+        letter-spacing: -0.045em;
+        overflow-wrap: anywhere;
+        text-wrap: balance;
+    }
+
+    .vault-source-inspector__meta {
+        margin: 0.65rem 0 0;
+        color: rgba(21, 19, 15, 0.68);
+        font-size: 0.78rem;
+        line-height: 1.45;
+        overflow-wrap: anywhere;
+    }
+
+    .vault-source-inspector blockquote {
+        display: -webkit-box;
+        margin: 1.4rem 0 0;
+        padding: 0 0 0 1rem;
+        border-left: 2px solid var(--pop-ink, #15130f);
+        color: rgba(21, 19, 15, 0.82);
+        font-size: clamp(0.92rem, 1vw, 1rem);
+        font-style: normal;
+        line-height: 1.62;
+        overflow-wrap: anywhere;
+        overflow: hidden;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 12;
+    }
+
+    .vault-source-inspector__link {
+        display: inline-flex;
+        min-height: 44px;
+        align-items: center;
+        gap: 0.45rem;
+        margin-top: 1.15rem;
+        color: inherit;
+        font-size: 0.86rem;
+        font-weight: 720;
+        text-decoration: none;
+    }
+
+    .vault-source-inspector__link > span:first-child {
+        text-decoration: underline;
+        text-decoration-thickness: 1.5px;
+        text-underline-offset: 4px;
+    }
+
+    .vault-source-inspector__link > span:last-child {
+        display: inline-block;
+        text-decoration: none;
+        transition: transform 180ms ease;
+    }
+
+    .vault-source-inspector__link:hover > span:last-child,
+    .vault-source-inspector__link:focus-visible > span:last-child {
+        transform: translate(2px, -2px);
+    }
+
+    .vault-source-inspector__link:focus-visible {
+        outline: 2px solid var(--pop-purple, #5524c7);
+        outline-offset: 3px;
+    }
+
+    .vault-citation {
+        display: inline-flex;
+        min-width: 0;
+        min-height: 1.4em;
+        margin: 0 0.08em;
+        padding: 0 0.18em;
+        align-items: center;
+        justify-content: center;
+        border: 0;
+        border-bottom: 1px solid currentColor;
+        border-radius: 2px;
+        background: var(--pop-yellow, #ffe44f);
+        color: var(--pop-ink, #15130f);
+        font: 720 0.78em/1.35 "Satoshi-Variable", "Satoshi-Regular", "Space Mono", "Inconsolata", monospace;
+        vertical-align: 0.08em;
+        cursor: pointer;
+    }
+
+    .vault-citation:hover,
+    .vault-citation:focus-visible,
+    .vault-citation.is-active {
+        transform: none;
+        border-color: var(--pop-ink, #15130f);
+        background: var(--pop-ink, #15130f);
+        color: var(--pop-cream, #fff8e8);
+        box-shadow: none;
+        outline: none;
+    }
+
+    .vault-citation:focus-visible {
+        outline: 2px solid var(--pop-purple, #5524c7);
+        outline-offset: 2px;
+    }
+
+    .vault-citation.is-pinned:not(:focus-visible) {
+        outline: 2px solid var(--pop-pink, #ff7eb5);
+        outline-offset: 1px;
+    }
+
+    .vault-bibliography {
+        width: min(100%, 70ch);
+        margin-top: clamp(2rem, 4vw, 3.5rem);
+        padding-top: 1rem;
+        border-top: 1px solid var(--pop-ink, #15130f);
+    }
+
+    .vault-bibliography[hidden] {
+        display: none;
+    }
+
+    .vault-bibliography summary {
+        display: inline-flex;
+        min-height: 48px;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.15rem;
+        border: 1px solid var(--pop-border, rgba(21, 19, 15, 0.78));
+        border-radius: 12px;
+        background: var(--pop-yellow, #ffe44f);
+        color: inherit;
+        font-size: 0.92rem;
+        font-weight: 680;
+        line-height: 1.2;
+        cursor: pointer;
+        list-style: none;
+        transition: transform 180ms ease, background 180ms ease;
+    }
+
+    .vault-bibliography summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .vault-bibliography summary:focus-visible {
+        outline: 3px solid var(--pop-purple, #5524c7);
+        outline-offset: 3px;
+    }
+
+    .vault-bibliography summary:hover,
+    .vault-bibliography[open] summary {
+        background: var(--pop-lime, #caff48);
+        transform: translateY(-2px);
+    }
+
+    .vault-bibliography__count {
+        min-width: 2.2rem;
+        margin-left: 0.2rem;
+        padding-left: 0.7rem;
+        border-left: 1px solid currentColor;
+        font-size: 0.72rem;
+        font-weight: 750;
+        letter-spacing: 0.08em;
+        text-align: right;
+    }
+
+    .vault-bibliography__arrow {
+        display: inline-block;
+        transition: transform 180ms ease;
+    }
+
+    .vault-bibliography[open] .vault-bibliography__arrow {
+        transform: rotate(180deg);
+    }
+
+    .vault-source-list {
+        display: block;
+        max-height: none;
+        margin: 1rem 0 0;
+        padding: 0;
+        overflow: visible;
+        list-style: none;
+    }
+
+    .vault-source-row {
+        display: grid;
+        grid-template-columns: 2.5rem minmax(0, 1fr);
+        gap: 1rem;
+        margin: 0;
+        padding: 0.9rem 0;
+        border: 0;
+        border-top: 1px solid var(--pop-line, rgba(21, 19, 15, 0.24));
+        border-radius: 0;
+        background: transparent;
+    }
+
+    .vault-source-row:last-child {
+        border-bottom: 1px solid var(--pop-line, rgba(21, 19, 15, 0.24));
+    }
+
+    .vault-source-index {
+        padding-top: 0.1rem;
+        color: rgba(21, 19, 15, 0.62);
+        font-size: 0.72rem;
+        font-weight: 720;
+        letter-spacing: 0.08em;
+    }
+
+    .vault-source-copy {
+        display: flex;
+        min-width: 0;
+        flex-direction: column;
+        gap: 0.28rem;
+    }
+
+    .vault-source-title {
+        color: inherit;
+        font-size: 1rem;
+        font-weight: 620;
+        line-height: 1.35;
+        overflow-wrap: anywhere;
+        text-decoration: none;
+    }
+
+    .vault-source-title:hover,
+    .vault-source-title:focus-visible {
+        color: inherit;
+        text-decoration: underline;
+        text-decoration-thickness: 1.5px;
+        text-underline-offset: 4px;
+    }
+
+    .vault-source-title:focus-visible {
+        outline: 2px solid var(--pop-purple, #5524c7);
+        outline-offset: 2px;
+    }
+
+    .vault-source-reference {
+        color: rgba(21, 19, 15, 0.62);
+        font-size: 0.74rem;
+        line-height: 1.4;
+    }
+
+    @container vault-result (max-width: 68rem) {
+        .vault-result__layout {
+            --vault-evidence-mode: inline;
+            grid-template-columns: minmax(0, 70ch);
+            gap: 0;
+        }
+
+        .vault-context-space {
+            display: none;
+        }
+
+        .vault-answer-text > .vault-source-inspector {
+            position: static;
+            max-width: none;
+            margin: 1.25rem 0 1.5rem;
+            padding: 1.1rem 0 1.25rem;
+            border-top: 1px solid var(--pop-ink, #15130f);
+            border-bottom: 1px solid var(--pop-ink, #15130f);
+        }
+
+        .vault-answer-text > .vault-source-inspector blockquote {
+            -webkit-line-clamp: 8;
+        }
+    }
+
+    @media (max-width: 700px) {
+        .vault-result {
+            padding: 1.25rem;
+        }
+
+        .vault-result__header {
+            margin-bottom: 1.25rem;
+        }
+
+        .vault-answer-text {
+            font-size: 1rem;
+            line-height: 1.62;
+        }
+
+        .vault-answer-text > p:first-child {
+            font-size: 1.12rem;
+        }
+
+        .vault-source-row {
+            grid-template-columns: 2rem minmax(0, 1fr);
+            gap: 0.65rem;
+            padding: 0.85rem 0;
+        }
+
+        .vault-bibliography summary {
+            width: 100%;
+            justify-content: space-between;
+        }
+
+        .vault-bibliography__count {
+            margin-left: auto;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .vault-source-inspector__link > span:last-child,
+        .vault-bibliography__arrow,
+        .vault-bibliography summary {
+            transition-duration: 0.01ms;
         }
     }
 </style>

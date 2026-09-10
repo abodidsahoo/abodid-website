@@ -46,10 +46,13 @@ try {
 
 Astro.response.headers.set(
     "Cache-Control",
-    "public, max-age=60, s-maxage=300, stale-while-revalidate=86400",
+    import.meta.env.DEV
+        ? "no-cache, no-store, must-revalidate"
+        : "public, max-age=60, s-maxage=300, stale-while-revalidate=86400",
 );
 
 const isIndexable = notes.length >= 3;
+const hasManyNotes = notes.length >= 5;
 const robotsDirective = isIndexable ? undefined : "noindex, follow";
 ---
 
@@ -65,14 +68,21 @@ const robotsDirective = isIndexable ? undefined : "noindex, follow";
     <main class="vault-topic-page" aria-labelledby="topic-title">
         <article class="vault-topic-document">
             <div class="vault-topic-inner">
-                <a href="/research/obsidian-vault" class="vault-topic-back">
-                    <span aria-hidden="true">←</span>
-                    <span>Back to Vault</span>
-                </a>
-
                 <header class="vault-topic-header">
-                    <h1 id="topic-title">{displayTopicNameFormatted}</h1>
-                    <p>Notes connected to topic <strong>{displayTopicName}</strong>.</p>
+                    <div class="vault-topic-header__row">
+                        <h1 id="topic-title">{displayTopicNameFormatted}</h1>
+                        {hasManyNotes && (
+                            <button
+                                type="button"
+                                class="vault-topic-back-btn"
+                                onclick="if (window.history.length > 1) { window.history.back(); } else { window.location.href = '/research/obsidian-vault'; }"
+                                aria-label="Go back to previous page"
+                            >
+                                <span aria-hidden="true">←</span>
+                                <span>Back to previous page</span>
+                            </button>
+                        )}
+                    </div>
                 </header>
 
                 <section class="vault-topic-results" aria-labelledby="results-title">
@@ -96,6 +106,23 @@ const robotsDirective = isIndexable ? undefined : "noindex, follow";
                         )}
                     </div>
                 </section>
+
+                <div class="vault-topic-nav-row">
+                    <button
+                        type="button"
+                        class="vault-topic-nav-btn vault-topic-nav-btn--prev"
+                        onclick="if (window.history.length > 1) { window.history.back(); } else { window.location.href = '/research/obsidian-vault'; }"
+                        aria-label="Back to previous page"
+                    >
+                        <span aria-hidden="true">←</span>
+                        <span>Back to previous page</span>
+                    </button>
+
+                    <a href="/research/obsidian-vault" class="vault-topic-nav-btn vault-topic-nav-btn--main">
+                        <span>Go to Main Vault</span>
+                        <span aria-hidden="true">→</span>
+                    </a>
+                </div>
             </div>
         </article>
     </main>
@@ -106,6 +133,8 @@ const robotsDirective = isIndexable ? undefined : "noindex, follow";
         --pop-blue: #2444ca;
         --pop-yellow: #ffe44f;
         --pop-purple: #5524c7;
+        --pop-pink: #ff4d8d;
+        --pop-lime: #b8f044;
         --pop-cream: #fff8e8;
         --pop-ink: #15130f;
         --pop-border: rgba(21, 19, 15, 0.72);
@@ -138,35 +167,18 @@ const robotsDirective = isIndexable ? undefined : "noindex, follow";
         padding: clamp(1.4rem, 5vw, 4.5rem) clamp(1.15rem, 5vw, 3.5rem);
     }
 
-    .vault-topic-back {
-        display: inline-flex;
-        min-height: 44px;
-        align-items: center;
-        gap: 0.5rem;
-        padding-inline: 0.2rem;
-        color: var(--pop-ink);
-        text-decoration: none;
-        font-size: 1.05rem;
-        font-weight: 680;
-        line-height: 1;
-        transition: background 160ms ease, padding 160ms ease;
-    }
-
-    .vault-topic-back:hover {
-        padding-inline: 0.7rem;
-        background: var(--pop-yellow);
-    }
-
-    .vault-topic-back:focus-visible,
-    .vault-topic-note:focus-visible {
-        outline: 3px solid var(--pop-purple);
-        outline-offset: 3px;
-    }
-
     .vault-topic-header {
-        margin-top: clamp(2.5rem, 6vw, 4.5rem);
-        padding-bottom: clamp(1.75rem, 4vw, 2.75rem);
+        margin-top: 0;
+        padding-bottom: clamp(1.25rem, 3vw, 2rem);
         border-bottom: 1px solid var(--pop-line);
+    }
+
+    .vault-topic-header__row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1.25rem;
+        flex-wrap: wrap;
     }
 
     .vault-topic-header h1 {
@@ -181,16 +193,41 @@ const robotsDirective = isIndexable ? undefined : "noindex, follow";
         overflow-wrap: break-word;
     }
 
-    .vault-topic-header p {
-        margin: 0.75rem 0 0;
-        color: rgba(21, 19, 15, 0.72);
-        font-size: 1rem;
-        line-height: 1.5;
+    a.vault-topic-back-btn,
+    button.vault-topic-back-btn,
+    .vault-topic-back-btn {
+        display: inline-flex;
+        min-height: 48px;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.75rem 1.15rem;
+        border: 1px solid var(--pop-border);
+        border-radius: 12px;
+        background: var(--pop-yellow);
+        color: var(--pop-ink);
+        font-family: inherit;
+        font-size: clamp(0.92rem, 1.8vw, 1rem);
+        font-weight: 680;
+        line-height: 1.2;
+        white-space: nowrap;
+        text-decoration: none;
+        cursor: pointer;
+        transition: transform 180ms ease, background 180ms ease;
     }
 
-    .vault-topic-header strong {
+    a.vault-topic-back-btn:hover,
+    button.vault-topic-back-btn:hover,
+    .vault-topic-back-btn:hover {
+        background: var(--pop-lime);
         color: var(--pop-ink);
-        font-weight: 620;
+        transform: translateY(-2px);
+    }
+
+    .vault-topic-back-btn:focus-visible,
+    .vault-topic-note:focus-visible,
+    .vault-topic-nav-btn:focus-visible {
+        outline: 3px solid var(--pop-purple);
+        outline-offset: 3px;
     }
 
     .vault-topic-results {
@@ -263,6 +300,52 @@ const robotsDirective = isIndexable ? undefined : "noindex, follow";
         font-size: 1.1rem;
     }
 
+    .vault-topic-nav-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-top: clamp(2rem, 4vw, 3rem);
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--pop-border);
+        flex-wrap: wrap;
+    }
+
+    a.vault-topic-nav-btn,
+    button.vault-topic-nav-btn,
+    .vault-topic-nav-btn {
+        display: inline-flex;
+        min-height: 48px;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.15rem;
+        border: 1px solid var(--pop-border);
+        border-radius: 12px;
+        background: var(--pop-yellow);
+        color: var(--pop-ink);
+        font-family: inherit;
+        font-size: clamp(0.92rem, 1.8vw, 1rem);
+        font-weight: 680;
+        line-height: 1.2;
+        white-space: nowrap;
+        text-decoration: none;
+        cursor: pointer;
+        transition: transform 180ms ease, background 180ms ease;
+    }
+
+    a.vault-topic-nav-btn:hover,
+    button.vault-topic-nav-btn:hover,
+    .vault-topic-nav-btn:hover {
+        background: var(--pop-lime);
+        color: var(--pop-ink);
+        transform: translateY(-2px);
+    }
+
+    .vault-topic-nav-btn:focus-visible {
+        outline: 3px solid var(--pop-purple);
+        outline-offset: 3px;
+    }
+
     @media (max-width: 720px) {
         .vault-topic-page {
             padding: 5px;
@@ -278,8 +361,9 @@ const robotsDirective = isIndexable ? undefined : "noindex, follow";
     }
 
     @media (prefers-reduced-motion: reduce) {
-        .vault-topic-back,
-        .vault-topic-note {
+        .vault-topic-back-btn,
+        .vault-topic-note,
+        .vault-topic-nav-btn {
             transition: none;
         }
     }

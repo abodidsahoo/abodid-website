@@ -210,6 +210,9 @@ export async function getFileContent(filePath) {
     } else if (result === null && filePath.startsWith('06-main-notes/')) {
         result = await fetchPath(filePath.replace('06-main-notes/', '6 - Main Notes/'));
     }
+    if (result === null && !filePath.includes('?')) {
+        result = await fetchPath(filePath.replace(/\.md$/i, '?.md'));
+    }
     return result;
 }
 
@@ -219,6 +222,25 @@ export async function getFileContent(filePath) {
  * @returns {Promise<ArrayBuffer|null>}
  */
 export async function getFileRaw(filePath) {
+    // 1. Local filesystem check
+    try {
+        const localCandidates = [
+            path.resolve(process.cwd(), filePath),
+            path.resolve(process.cwd(), `../obsidian-vault/${filePath}`),
+            path.resolve(process.cwd(), `../../obsidian-vault/${filePath}`),
+            path.resolve('/Users/abodid/Documents/GitHub/obsidian-vault', filePath),
+        ];
+        for (const loc of localCandidates) {
+            if (fs.existsSync(loc)) {
+                const buf = fs.readFileSync(loc);
+                return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
+            }
+        }
+    } catch (fsErr) {
+        // Fall back to GitHub
+    }
+
+    // 2. GitHub Network Fetch
     const encodedPath = filePath.split('/').map(segment => encodeURIComponent(segment)).join('/');
     const url = `${GITHUB_API_BASE}/repos/${REPO_OWNER}/${REPO_NAME}/contents/${encodedPath}`;
 
@@ -226,16 +248,13 @@ export async function getFileRaw(filePath) {
         const response = await fetch(url, { headers: getAuthHeaders() });
 
         if (!response.ok) {
-            console.error(`Failed to fetch raw file ${filePath}: ${response.statusText}`);
             return null;
         }
 
         const data = await response.json();
 
         if (data.content && data.encoding === 'base64') {
-            // Decode base64 to binary string
             const binaryString = atob(data.content.replace(/\n/g, ''));
-            // Convert to ArrayBuffer
             const len = binaryString.length;
             const bytes = new Uint8Array(len);
             for (let i = 0; i < len; i++) {
@@ -244,7 +263,6 @@ export async function getFileRaw(filePath) {
             return bytes.buffer;
         }
 
-        // Fallback: If it's a large file, GitHub might provide download_url and no content
         if (data.download_url) {
             const rawRes = await fetch(data.download_url);
             return await rawRes.arrayBuffer();
@@ -252,7 +270,6 @@ export async function getFileRaw(filePath) {
 
         return null;
     } catch (error) {
-        console.error("Error fetching raw file:", error);
         return null;
     }
 }
