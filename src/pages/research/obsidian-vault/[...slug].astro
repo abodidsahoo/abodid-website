@@ -160,6 +160,9 @@ try {
     );
     firstTag = indexedNote?.first_tag || topicTags[0] || noteTypes[0] || "";
 
+    // Clean stray unclosed brackets before image tags (e.g. [![alt](url) without closing ])
+    content = content.replace(/^\[(!\[[^\]]+\]\([^)]+\))(?!\s*\]\([^)]+\))/gm, "$1");
+
     content = content.replace(/!\[\[(.*?)\]\]/g, (match, filename) => {
         const cleanFilename = filename.split("|")[0];
         return `![](/research/obsidian-vault/assets/${cleanFilename})`;

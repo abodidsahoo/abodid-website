@@ -209,7 +209,12 @@ export async function GET({ url }) {
         );
         targetFirstTag = indexedNote?.first_tag || explicitTags[0] || "";
 
-        let content = rawContent.replace(/!\[\[(.*?)\]\]/g, (match, filename) => {
+        let content = rawContent.replace(
+          /^\[(!\[[^\]]+\]\([^)]+\))(?!\s*\]\([^)]+\))/gm,
+          "$1"
+        );
+
+        content = content.replace(/!\[\[(.*?)\]\]/g, (match, filename) => {
           const cleanFilename = filename.split("|")[0];
           return `![](/research/obsidian-vault/assets/${cleanFilename})`;
         });
