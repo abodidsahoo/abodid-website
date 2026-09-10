@@ -14,6 +14,16 @@ if (!topic) {
 const activeTopicSlug = decodeURIComponent(topic).replace(/\.md$/i, "");
 const activeTopicName = activeTopicSlug.replace(/-/g, " ");
 const displayTopicName = activeTopicName.replace(/\b\w/g, (letter) => letter.toUpperCase());
+
+function preventOrphans(text: string): string {
+    const words = String(text || "").trim().split(/\s+/);
+    if (words.length <= 3) return text;
+    const lastWord = words.pop();
+    const secondLast = words.pop();
+    return `${words.join(" ")} ${secondLast}\u00A0${lastWord}`;
+}
+
+const displayTopicNameFormatted = preventOrphans(displayTopicName);
 const pageTitle = `${displayTopicName} | Obsidian Vault`;
 
 let notes = [];
@@ -61,7 +71,7 @@ const robotsDirective = isIndexable ? undefined : "noindex, follow";
                 </a>
 
                 <header class="vault-topic-header">
-                    <h1 id="topic-title">{displayTopicName}</h1>
+                    <h1 id="topic-title">{displayTopicNameFormatted}</h1>
                     <p>Notes connected to topic <strong>{displayTopicName}</strong>.</p>
                 </header>
 
@@ -160,14 +170,15 @@ const robotsDirective = isIndexable ? undefined : "noindex, follow";
     }
 
     .vault-topic-header h1 {
-        max-width: 20ch;
+        max-width: none;
         margin: 0;
         color: var(--pop-ink);
         font-size: clamp(2rem, 4vw, 2.9rem);
         font-weight: 560;
         line-height: 1.08;
         letter-spacing: -0.04em;
-        text-wrap: balance;
+        text-wrap: pretty;
+        overflow-wrap: break-word;
     }
 
     .vault-topic-header p {

@@ -58,6 +58,14 @@ function formatMetadataDate(value: unknown): string {
     }).format(raw);
 }
 
+function preventOrphans(text: string): string {
+    const words = String(text || "").trim().split(/\s+/);
+    if (words.length <= 3) return text;
+    const lastWord = words.pop();
+    const secondLast = words.pop();
+    return `${words.join(" ")} ${secondLast}\u00A0${lastWord}`;
+}
+
 function extractFirstUsefulParagraph(markdown: string): string {
     if (!markdown) return "";
     const lines = markdown.split("\n");
@@ -214,6 +222,7 @@ Astro.response.headers.set(
 
 const routeSlug = slug.replace(/\.md$/i, "");
 const displayTitle = title === routeSlug ? title.replace(/-/g, " ") : title;
+const displayTitleFormatted = preventOrphans(displayTitle);
 const currentFilePath = `06-main-notes/${routeSlug}.md`;
 const relatedNoteHref = `/api/vault-related-note?file=${encodeURIComponent(currentFilePath)}${
     firstTag ? `&tag=${encodeURIComponent(firstTag)}` : ""
@@ -261,7 +270,7 @@ const structuredData = [
                 )}
 
                 <header class="vault-note-header">
-                    <h1 id="note-title">{displayTitle}</h1>
+                    <h1 id="note-title">{displayTitleFormatted}</h1>
 
                     {(noteDate || noteTypes.length > 0 || topicTags.length > 0) && (
                         <div class="vault-note-metadata" aria-label="Note details">
@@ -417,7 +426,7 @@ const structuredData = [
         font-weight: 560;
         line-height: 1.15;
         letter-spacing: -0.035em;
-        text-wrap: balance;
+        text-wrap: pretty;
         overflow-wrap: break-word;
     }
 
