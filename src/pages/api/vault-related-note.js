@@ -188,58 +188,20 @@ export async function GET({ url }) {
       targetHref.replace("/research/obsidian-vault/", "").replace(/\/$/, "")
     );
 
-    let htmlContent = "";
     let displayTitle = slug.replace(/-/g, " ");
     let targetFirstTag = "";
-    let targetFilePath = `06-main-notes/${slug}.md`;
+    const targetFilePath = `06-main-notes/${slug}.md`;
 
     try {
       const indexedNote = await getIndexedNoteBySlug(slug).catch(() => null);
-      const rawContent =
-        indexedNote?.markdown_content ||
-        (await getFileContent(targetFilePath).catch(() => null));
-
-      if (rawContent) {
-        const explicitTags =
-          Array.isArray(indexedNote?.tags) && indexedNote.tags.length > 0
-            ? indexedNote.tags
-            : extractExplicitTags(rawContent);
-        const tagSet = new Set(
-          explicitTags.map(normalizeWikiLinkTarget).filter(Boolean)
-        );
-        targetFirstTag = indexedNote?.first_tag || explicitTags[0] || "";
-
-        let content = rawContent.replace(
-          /^\[(!\[[^\]]+\]\([^)]+\))(?!\s*\]\([^)]+\))/gm,
-          "$1"
-        );
-
-        content = content.replace(/!\[\[(.*?)\]\]/g, (match, filename) => {
-          const cleanFilename = filename.split("|")[0];
-          return `![](/research/obsidian-vault/assets/${cleanFilename})`;
-        });
-
-        content = content.replace(
-          /!\[(.*?)\]\((.*?)(?:07-assets|07%20-%20assets|7%20-%20Assets|7 - Assets)\/(.*?)\)/g,
-          "![$1](/research/obsidian-vault/assets/$3)"
-        );
-
-        content = content.replace(/\[\[(.*?)\]\]/g, (match, raw) => {
-          const parts = raw.split("|");
-          const linkTargetRaw = (parts[0] || "").trim();
-          const linkText = (parts[1] || parts[0] || "").trim();
-          const linkTarget = linkTargetRaw.replace(/\.md$/i, "");
-          const isTag = tagSet.has(normalizeWikiLinkTarget(linkTarget));
-          const hrefBase = isTag
-            ? "/research/obsidian-vault/topic/"
-            : "/research/obsidian-vault/";
-          return `[${linkText}](${hrefBase}${encodeURIComponent(linkTarget)})`;
-        });
-
-        htmlContent = await marked.parse(content);
+      if (indexedNote?.note_title) {
+        displayTitle = indexedNote.note_title;
+      }
+      if (indexedNote?.first_tag) {
+        targetFirstTag = indexedNote.first_tag;
       }
     } catch (e) {
-      console.warn("Failed parsing preloaded vault note:", e);
+      console.warn("Failed fetching related note details:", e);
     }
 
     return new Response(
@@ -249,7 +211,6 @@ export async function GET({ url }) {
         displayTitle,
         firstTag: targetFirstTag,
         filePath: targetFilePath,
-        htmlContent,
       }),
       {
         headers: {
