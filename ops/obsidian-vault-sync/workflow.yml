@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
     paths:
+      - "06-main-notes/**/*.md"
       - "6 - Main Notes/**/*.md"
       - ".github/scripts/sync-supabase.mjs"
       - ".github/workflows/sync-vault-to-supabase.yml"

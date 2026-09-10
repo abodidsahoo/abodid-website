@@ -17,12 +17,11 @@ export async function GET({ params, request, cookies }) {
     }
 
     // 2. Fetch from GitHub
-    // User's structure is "7 - Assets/filename.png"
-    // We decode the path param in case it comes in encoded, but we need to ensure the folder part is correct.
-    // The 'path' param matches what comes after /assets/ in the URL.
-    const folder = "7 - Assets";
-    const githubPath = `${folder}/${path}`;
-    const fileBuffer = await getFileRaw(githubPath);
+    // User's structure is "07-assets/filename.png" (legacy: "7 - Assets/filename.png")
+    let fileBuffer = await getFileRaw(`07-assets/${path}`);
+    if (!fileBuffer) {
+        fileBuffer = await getFileRaw(`7 - Assets/${path}`);
+    }
 
     if (!fileBuffer) {
         return new Response("Not found", { status: 404 });

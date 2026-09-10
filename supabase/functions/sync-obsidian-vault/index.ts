@@ -46,7 +46,8 @@ type PreparedChunk = {
 
 const EXPECTED_REPOSITORY = "abodidsahoo/obsidian-vault";
 const EXPECTED_REF = "refs/heads/main";
-const NOTES_ROOT = "6 - Main Notes/";
+const NOTES_ROOT = "06-main-notes/";
+const LEGACY_NOTES_ROOT = "6 - Main Notes/";
 const EMBEDDING_MODEL = "openai/text-embedding-3-small";
 const EMBEDDING_DIMENSIONS = 1536;
 const EMBEDDING_BATCH_SIZE = 16;
@@ -106,22 +107,55 @@ const folderPathFromFilePath = (filePath: string) => {
 const stripWrappingQuotes = (value: string) =>
   value.trim().replace(/^(?:"([\s\S]*)"|'([\s\S]*)')$/, "$1$2").trim();
 
+const parseYamlList = (value: string) => {
+  const trimmed = value.trim();
+  if (!trimmed) return [];
+  if (/^\[\[[^\]]+\]\]$/.test(trimmed)) {
+    return [stripWrappingQuotes(trimmed)];
+  }
+  const unwrapped = trimmed.replace(/^\[|\]$/g, "");
+  return unwrapped
+    .split(",")
+    .map(stripWrappingQuotes)
+    .filter(Boolean);
+};
+
+const normalizeYamlKey = (value: string) =>
+  value.trim().toLowerCase().replace(/[\s_-]+/g, "");
+
 const parseMarkdownNote = (markdown: string) => {
   const match = markdown.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/);
   if (!match) return { frontmatter: {}, content: markdown };
 
-  const yaml = match[1];
+  const lines = match[1].split(/\r?\n/);
   const frontmatter: Record<string, unknown> = {};
-  const title = yaml.match(/^title\s*:\s*(.+)$/im)?.[1];
-  if (title) frontmatter.title = stripWrappingQuotes(title);
+  for (let index = 0; index < lines.length; index += 1) {
+    const field = lines[index].match(/^([A-Za-z][A-Za-z0-9 _-]*)\s*:\s*(.*)$/);
+    if (!field) continue;
 
-  const tagsLine = yaml.match(/^tags?\s*:\s*(.*)$/im)?.[1]?.trim();
-  if (tagsLine) {
-    frontmatter.tags = tagsLine
-      .replace(/^\[|\]$/g, "")
-      .split(",")
-      .map(stripWrappingQuotes)
-      .filter(Boolean);
+    const key = normalizeYamlKey(field[1]);
+    let rawValue = field[2].trim();
+    const blockValues: string[] = [];
+    if (!rawValue) {
+      for (let next = index + 1; next < lines.length; next += 1) {
+        const item = lines[next].match(/^\s+-\s+(.+)$/);
+        if (!item) break;
+        blockValues.push(stripWrappingQuotes(item[1]));
+        index = next;
+      }
+    }
+
+    const listValue = blockValues.length ? blockValues : parseYamlList(rawValue);
+    const scalarValue = stripWrappingQuotes(rawValue);
+    if (key === "title" && scalarValue) frontmatter.title = scalarValue;
+    if (["tag", "topic"].includes(key) && listValue.length) frontmatter.tag = listValue;
+    if (["tags", "topics"].includes(key) && listValue.length) frontmatter.tags = listValue;
+    if (["notetype", "type"].includes(key) && listValue.length) {
+      frontmatter.noteType = listValue;
+    }
+    if (["date", "created", "createdat", "createddate"].includes(key) && scalarValue) {
+      frontmatter.date = scalarValue;
+    }
   }
 
   return {
@@ -202,7 +236,15 @@ const normalizeTags = (...inputs: unknown[]) => {
     }
     String(value)
       .split(/[,\n]/)
-      .map((tag) => tag.trim().replace(/^#/, "").replace(/^\[\[/, "").replace(/\]\]$/, ""))
+      .map((tag) => tag
+        .trim()
+        .replace(/^#/, "")
+        .replace(/^\[\[/, "")
+        .replace(/\]\]$/, "")
+        .split("|")[0]
+        .split("#")[0]
+        .replace(/\.md$/i, "")
+        .trim())
       .filter(Boolean)
       .forEach((tag) => tags.add(tag));
   };
@@ -215,7 +257,9 @@ const isPublicNote = (markdown: string) =>
 
 const createNoteRecord = async (note: IncomingNote): Promise<NoteRecord> => {
   const { frontmatter, content } = parseMarkdownNote(note.markdown);
-  const tags = extractExplicitTags(content);
+  const yamlTags = normalizeTags(frontmatter.tags, frontmatter.tag);
+  const tags = yamlTags.length ? yamlTags : extractExplicitTags(content);
+  const noteTypes = normalizeTags(frontmatter.noteType);
   const title = typeof frontmatter.title === "string" && frontmatter.title.trim()
     ? frontmatter.title.trim()
     : noteTitleFromPath(note.filePath);
@@ -227,7 +271,11 @@ const createNoteRecord = async (note: IncomingNote): Promise<NoteRecord> => {
     folder_path: folderPathFromFilePath(note.filePath),
     slug: noteSlugFromPath(note.filePath),
     markdown_content: note.markdown,
-    wiki_links: extractWikiLinks(content),
+    wiki_links: Array.from(new Set([
+      ...extractWikiLinks(content),
+      ...noteTypes.map(normalizeWikiLinkTarget),
+      ...tags.map(normalizeWikiLinkTarget),
+    ].filter(Boolean))).sort((left, right) => left.localeCompare(right)),
     tags,
     first_tag: tags[0] || null,
     is_public: isPublicNote(note.markdown),
@@ -429,7 +477,7 @@ Deno.serve(async (request) => {
     const incoming = payload.notes.filter((note) =>
       note &&
       typeof note.filePath === "string" &&
-      note.filePath.startsWith(NOTES_ROOT) &&
+      (note.filePath.startsWith(NOTES_ROOT) || note.filePath.startsWith(LEGACY_NOTES_ROOT)) &&
       note.filePath.endsWith(".md") &&
       typeof note.markdown === "string" &&
       typeof note.sourceSha === "string" &&
@@ -449,7 +497,10 @@ Deno.serve(async (request) => {
     const incomingPaths = new Set(incoming.map((note) => note.filePath));
     const stalePaths = (existing || [])
       .map((row: { file_path: string }) => row.file_path)
-      .filter((filePath: string) => filePath.startsWith(NOTES_ROOT) && !incomingPaths.has(filePath));
+      .filter((filePath: string) =>
+        (filePath.startsWith(NOTES_ROOT) || filePath.startsWith(LEGACY_NOTES_ROOT)) &&
+        !incomingPaths.has(filePath)
+      );
     const existingByPath = new Map(
       (existing || []).map((row: { file_path: string; source_sha: string; is_public: boolean }) =>
         [row.file_path, row]

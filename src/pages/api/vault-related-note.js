@@ -11,11 +11,12 @@ import {
 import { getIndexedNoteBySlug } from "../../lib/vault-note-index.js";
 import { marked } from "marked";
 
-const VAULT_PATH_PREFIX = "6 - Main Notes/";
-
 function cleanFilePath(value) {
   const filePath = String(value || "").trim().slice(0, 400);
-  if (!filePath.startsWith(VAULT_PATH_PREFIX) || !filePath.endsWith(".md")) {
+  if (
+    (!filePath.startsWith("06-main-notes/") && !filePath.startsWith("6 - Main Notes/")) ||
+    !filePath.endsWith(".md")
+  ) {
     return "";
   }
   return filePath;
@@ -190,7 +191,7 @@ export async function GET({ url }) {
     let htmlContent = "";
     let displayTitle = slug.replace(/-/g, " ");
     let targetFirstTag = "";
-    let targetFilePath = `6 - Main Notes/${slug}.md`;
+    let targetFilePath = `06-main-notes/${slug}.md`;
 
     try {
       const indexedNote = await getIndexedNoteBySlug(slug).catch(() => null);
@@ -214,7 +215,7 @@ export async function GET({ url }) {
         });
 
         content = content.replace(
-          /!\[(.*?)\]\((.*?)(?:7%20-%20Assets|7 - Assets)\/(.*?)\)/g,
+          /!\[(.*?)\]\((.*?)(?:07-assets|07%20-%20assets|7%20-%20Assets|7 - Assets)\/(.*?)\)/g,
           "![$1](/research/obsidian-vault/assets/$3)"
         );
 
@@ -225,7 +226,7 @@ export async function GET({ url }) {
           const linkTarget = linkTargetRaw.replace(/\.md$/i, "");
           const isTag = tagSet.has(normalizeWikiLinkTarget(linkTarget));
           const hrefBase = isTag
-            ? "/research/obsidian-vault/tag/"
+            ? "/research/obsidian-vault/topic/"
             : "/research/obsidian-vault/";
           return `[${linkText}](${hrefBase}${encodeURIComponent(linkTarget)})`;
         });

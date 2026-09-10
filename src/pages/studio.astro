@@ -4,8 +4,6 @@ import InlineInquiryForm from "../components/InlineInquiryForm.astro";
 import Newsletter from "../components/Newsletter.astro";
 import { getHomePositioningContent } from "../lib/homePositioningContent";
 
-export const prerender = false;
-
 const content = await getHomePositioningContent();
 
 const heroPhotography = [

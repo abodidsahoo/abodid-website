@@ -4,25 +4,25 @@ export const prerender = false;
 import BaseLayout from "../../../layouts/BaseLayout.astro";
 import InlineInquiryForm from "../../../components/InlineInquiryForm.astro";
 import VaultAskSection from "../../../components/VaultAskSection.astro";
-import { getVaultTags, getVaultNotes } from "../../../lib/github";
+import { getAllVaultTopics, getAllPublicVaultNotes } from "../../../lib/vault-note-index.js";
 
 let error = "";
 let allNotes = [];
-let tags = [];
+let topics = [];
 
 try {
-    const [tagsData, notesData] = await Promise.all([
-        getVaultTags(),
-        getVaultNotes(),
+    const [topicsData, notesData] = await Promise.all([
+        getAllVaultTopics(),
+        getAllPublicVaultNotes(),
     ]);
 
-    tags = tagsData || [];
+    topics = topicsData || [];
     allNotes = notesData || [];
 } catch (e) {
     console.error("Error fetching vault data:", e);
     error = e instanceof Error
         ? e.message
-        : "Failed to fetch vault data from GitHub. Check server logs.";
+        : "Failed to fetch vault data. Check server logs.";
 }
 
 const pageTitle = "Obsidian Vault";
@@ -91,16 +91,16 @@ const pageDescription = "Ask questions across Abodid Sahoo's public Obsidian not
                     <div class="vault-panel__topline vault-panel__topline--bordered">
                         <div>
                             <p class="vault-eyebrow">Follow a thread</p>
-                            <h2 id="vault-tags-title">Tags</h2>
+                            <h2 id="vault-tags-title">Topics</h2>
                         </div>
-                        <span class="vault-count">{tags.length} topics</span>
+                        <span class="vault-count">{topics.length} topics</span>
                     </div>
 
                     <div class="vault-tags-scroll-shell">
-                        <div class="tag-cloud-wrapper" tabindex="0" aria-label="Scrollable list of vault tags">
-                            {tags.map((tag) => (
-                                <a href={`/research/obsidian-vault/tag/${encodeURIComponent(tag.name.replace(".md", ""))}`} class="vault-tag">
-                                    {tag.name.replace(".md", "").replace(/-/g, " ")}
+                        <div class="tag-cloud-wrapper" tabindex="0" aria-label="Scrollable list of vault topics">
+                            {topics.map((topic) => (
+                                <a href={topic.href} class="vault-tag">
+                                    {topic.name.replace(/-/g, " ")}
                                 </a>
                             ))}
                         </div>

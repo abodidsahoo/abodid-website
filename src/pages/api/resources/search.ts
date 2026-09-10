@@ -1,3 +1,5 @@
+export const prerender = false;
+
 import type { APIRoute } from 'astro';
 import { getApprovedResources } from '../../../lib/resources/db';
 import type { ResourceAudience } from '../../../lib/resources/types';

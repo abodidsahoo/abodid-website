@@ -34,9 +34,9 @@ export async function getAllVaultNotes() {
         const treeData = await treeRes.json();
         if (!treeData.tree) return [];
 
-        // 3. Filter for Markdown files in "6 - Main Notes"
+        // 3. Filter for Markdown files in "06-main-notes" or legacy "6 - Main Notes"
         const noteFiles = treeData.tree.filter(item =>
-            item.path.startsWith('6 - Main Notes/') &&
+            (item.path.startsWith('06-main-notes/') || item.path.startsWith('6 - Main Notes/')) &&
             item.path.endsWith('.md') &&
             item.type === 'blob'
         );

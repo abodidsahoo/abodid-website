@@ -53,16 +53,28 @@ export async function getPortfolioPhotos(): Promise<PortfolioPhoto[]> {
   }).finally(() => { pending = undefined; });
   return cache.photos;
 }
-export function groupPortfolio(photos: PortfolioPhoto[]) {
-  const order = ['outernet', 'ting', 'into-the-flux', 'digital-direction', 'hidden', 'truman-brewery', 'breathe-variations', 'print', 'mres'];
-  const covers: Record<string, string> = { outernet: '-18', ting: '-9', 'into-the-flux': 'london88', 'digital-direction': '-146', hidden: '-35', 'truman-brewery': '-97', 'breathe-variations': '-12' };
+export function groupPortfolio(photos: PortfolioPhoto[], shuffle = true) {
   const groups = new Map<string, PortfolioPhoto[]>();
   for (const photo of photos) {
     const key = photo.series;
     groups.set(key, [...(groups.get(key) || []), photo]);
   }
-  return [...groups.entries()].map(([id, images]) => {
-    const first = images.find(x => x.id.endsWith(covers[x.series] || '\0')) || images[0];
-    return { id, title: first.title, category: first.category, label: first.label, cover: first, images: [first, ...images.filter(x => x !== first)] };
-  }).sort((a, b) => (order.indexOf(a.cover.series) < 0 ? 99 : order.indexOf(a.cover.series)) - (order.indexOf(b.cover.series) < 0 ? 99 : order.indexOf(b.cover.series)));
+  const result = [...groups.entries()].map(([id, images]) => {
+    const first = images[0];
+    return {
+      id,
+      title: first.title,
+      category: first.category,
+      label: first.label,
+      cover: first,
+      images,
+    };
+  });
+  if (shuffle) {
+    for (let i = result.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [result[i], result[j]] = [result[j], result[i]];
+    }
+  }
+  return result;
 }

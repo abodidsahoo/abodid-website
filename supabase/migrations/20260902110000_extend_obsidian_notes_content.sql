@@ -22,10 +22,10 @@ comment on column public.obsidian_notes.markdown_content is
   'Complete public Markdown source used to render individual vault notes without a GitHub request.';
 
 comment on column public.obsidian_notes.tags is
-  'Wiki-link targets extracted only from explicit Tags: metadata lines in the note body.';
+  'Topic tags extracted from YAML frontmatter, with legacy Tags: metadata lines as a fallback.';
 
 comment on column public.obsidian_notes.first_tag is
-  'First wiki-link target from an explicit Tags: line; note-type metadata is intentionally excluded.';
+  'First YAML topic tag, with a legacy Tags: metadata line as a fallback; note type remains separate.';
 
 comment on column public.obsidian_notes.source_sha is
   'Git blob SHA from the source repository, used for incremental webhook synchronization.';

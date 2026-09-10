@@ -6,8 +6,6 @@ import { punctumImages } from "../data/punctumImages";
 import { GESTURE_CONTROL_VIDEO_URL, GESTURE_CONTROL_HERO_GIF_URL, OBSIDIAN_VAULT_VIDEO_URL } from "../lib/mediaAssets";
 import { breadcrumbJsonLd, personJsonLd } from "../lib/seoData";
 
-export const prerender = false;
-
 const fetchedProjects = await getResearchProjects();
 const bySlug = new Map(fetchedProjects.map((project) => [project.slug, project]));
 

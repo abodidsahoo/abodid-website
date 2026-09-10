@@ -195,6 +195,9 @@ export function normalizeTags(...tagInputs) {
           .replace(/^#/, "")
           .replace(/^\[\[/, "")
           .replace(/\]\]$/, "")
+          .split("|")[0]
+          .split("#")[0]
+          .replace(/\.md$/i, "")
           .trim();
         if (cleaned) tags.add(cleaned);
       });
@@ -202,6 +205,126 @@ export function normalizeTags(...tagInputs) {
 
   tagInputs.forEach(addTag);
   return Array.from(tags).sort((a, b) => a.localeCompare(b));
+}
+
+function firstDefinedFrontmatterValue(frontmatter, keys) {
+  for (const key of keys) {
+    if (frontmatter?.[key] !== undefined && frontmatter?.[key] !== null) {
+      return frontmatter[key];
+    }
+  }
+
+  const normalizedKeys = new Set(
+    keys.map((key) => String(key).toLowerCase().replace(/[\s_-]+/g, "")),
+  );
+  for (const [key, value] of Object.entries(frontmatter || {})) {
+    const normalizedKey = key.toLowerCase().replace(/[\s_-]+/g, "");
+    if (normalizedKeys.has(normalizedKey) && value !== undefined && value !== null) {
+      return value;
+    }
+  }
+  return undefined;
+}
+
+function extractLegacyMetadataLinks(markdown, labelPattern) {
+  const values = [];
+  const seen = new Set();
+  const lines = String(markdown || "").split(/\r?\n/);
+
+  for (const line of lines.slice(0, 12)) {
+    const normalizedLine = line
+      .trim()
+      .replace(/^[-*]\s+/, "")
+      .replace(/\*\*|__/g, "");
+    const lineMatch = normalizedLine.match(labelPattern);
+    if (!lineMatch) continue;
+
+    const wikiLinkPattern = /\[\[([^\]]+)\]\]/g;
+    let linkMatch = wikiLinkPattern.exec(lineMatch[1] || "");
+    while (linkMatch) {
+      const target = normalizeTags(linkMatch[1])[0];
+      const key = String(target || "").toLowerCase();
+      if (target && !seen.has(key)) {
+        seen.add(key);
+        values.push(target);
+      }
+      linkMatch = wikiLinkPattern.exec(lineMatch[1] || "");
+    }
+  }
+
+  return values;
+}
+
+function extractLegacyDate(markdown) {
+  for (const line of String(markdown || "").split(/\r?\n/).slice(0, 12)) {
+    const normalizedLine = line.trim().replace(/\*\*|__/g, "");
+    const labelled = normalizedLine.match(/^date\s*::?\s*(.+)$/i)?.[1];
+    if (labelled) return labelled.trim();
+    const bare = normalizedLine.match(/^(\d{4}-\d{2}-\d{2})(?:[ T]+\d{1,2}:\d{2}(?::\d{2})?)?$/)?.[0];
+    if (bare) return bare.trim();
+  }
+  return null;
+}
+
+export function stripLegacyVaultMetadata(markdown) {
+  const lines = String(markdown || "").split(/\r?\n/);
+  let index = 0;
+
+  while (index < lines.length) {
+    const normalizedLine = lines[index]
+      .trim()
+      .replace(/^[-*]\s+/, "")
+      .replace(/\*\*|__/g, "");
+    const isMetadata =
+      !normalizedLine ||
+      /^(?:date|status|note\s*type|tags|topics|aliases)\s*::?\s*/i.test(normalizedLine) ||
+      /^\d{4}-\d{2}-\d{2}(?:[ T]+\d{1,2}:\d{2}(?::\d{2})?)?(?:\s+(?:status|note\s*type|tags|topics)\s*:.*)?$/i.test(normalizedLine);
+
+    if (!isMetadata) break;
+    index += 1;
+  }
+
+  return lines.slice(index).join("\n").trimStart();
+}
+
+export function extractVaultNoteMetadata(markdown) {
+  const { frontmatter, content } = parseMarkdownNote(markdown);
+  const yamlNoteTypes = normalizeTags(
+    firstDefinedFrontmatterValue(frontmatter, [
+      "noteType",
+      "note_type",
+      "note-type",
+      "Note Type",
+      "type",
+    ]),
+  );
+  const noteTypes = yamlNoteTypes.length > 0
+    ? yamlNoteTypes
+    : extractLegacyMetadataLinks(content, /^note\s*type\s*::?\s*(.*)$/i);
+  const yamlTags = normalizeTags(
+    frontmatter.topics,
+    frontmatter.topic,
+    frontmatter.tags,
+    frontmatter.tag,
+  );
+  const tags = yamlTags.length > 0 ? yamlTags : extractExplicitTags(content);
+  const yamlDate = firstDefinedFrontmatterValue(frontmatter, [
+    "date",
+    "created",
+    "createdAt",
+    "created_at",
+    "created-date",
+    "Created Date",
+  ]);
+  const date = yamlDate ?? extractLegacyDate(content);
+
+  return {
+    frontmatter,
+    content,
+    noteTypes,
+    tags,
+    date: date ?? null,
+  };
 }
 
 export function extractInlineTags(markdown) {
@@ -285,8 +408,7 @@ export function createNoteIndexRecord({
   isPublic = true,
   sourceSha = null,
 }) {
-  const { frontmatter, content } = parseMarkdownNote(markdown);
-  const tags = extractExplicitTags(content);
+  const { frontmatter, content, noteTypes, tags } = extractVaultNoteMetadata(markdown);
   const contentHash = crypto
     .createHash("sha256")
     .update(markdown || "")
@@ -304,7 +426,13 @@ export function createNoteIndexRecord({
     folder_path: folderPathFromFilePath(filePath),
     slug: noteSlugFromPath(filePath),
     markdown_content: markdown || "",
-    wiki_links: extractWikiLinks(content),
+    wiki_links: Array.from(
+      new Set([
+        ...extractWikiLinks(content),
+        ...noteTypes.map(normalizeWikiLinkTarget),
+        ...tags.map(normalizeWikiLinkTarget),
+      ].filter(Boolean)),
+    ).sort((a, b) => a.localeCompare(b)),
     tags,
     first_tag: tags[0] || null,
     is_public: shouldPublish,

@@ -1,3 +1,5 @@
+export const prerender = false;
+
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 

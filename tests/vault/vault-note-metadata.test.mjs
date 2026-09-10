@@ -5,7 +5,38 @@ import {
   createNoteIndexRecord,
   extractExplicitTags,
   extractFirstExplicitTag,
+  extractVaultNoteMetadata,
+  stripLegacyVaultMetadata,
 } from "../../src/lib/vault-rag.js";
+
+test("extracts note type, date, and topic tags from YAML frontmatter", () => {
+  const markdown = `---
+title: A useful quotation
+date: 2026-09-10
+note_type: "[[quotes]]"
+tags:
+  - creativity
+  - "[[writing|Writing]]"
+---
+
+The note body starts here.`;
+
+  const metadata = extractVaultNoteMetadata(markdown);
+  assert.deepEqual(metadata.noteTypes, ["quotes"]);
+  assert.deepEqual(metadata.tags, ["creativity", "writing"]);
+  assert.equal(metadata.content.trim(), "The note body starts here.");
+  assert.ok(metadata.date);
+
+  const record = createNoteIndexRecord({
+    filePath: "6 - Main Notes/a-useful-quotation.md",
+    markdown,
+  });
+
+  assert.deepEqual(record.tags, ["creativity", "writing"]);
+  assert.ok(record.wiki_links.includes("quotes"));
+  assert.ok(record.wiki_links.includes("creativity"));
+  assert.ok(record.wiki_links.includes("writing"));
+});
 
 test("extracts tags only from an explicit Tags: line", () => {
   const markdown = [
@@ -21,6 +52,25 @@ test("extracts tags only from an explicit Tags: line", () => {
     "efficiency",
   ]);
   assert.equal(extractFirstExplicitTag(markdown), "learning");
+});
+
+test("keeps legacy note metadata out of the article while older index rows catch up", () => {
+  const markdown = [
+    "2025-03-20  07:57",
+    "Note Type: [[quotes]]",
+    "Tags: [[chess]], [[win]]",
+    "",
+    "This chess analogy is the actual note body.",
+  ].join("\n");
+
+  const metadata = extractVaultNoteMetadata(markdown);
+  assert.equal(metadata.date, "2025-03-20  07:57");
+  assert.deepEqual(metadata.noteTypes, ["quotes"]);
+  assert.deepEqual(metadata.tags, ["chess", "win"]);
+  assert.equal(
+    stripLegacyVaultMetadata(metadata.content),
+    "This chess analogy is the actual note body.",
+  );
 });
 
 test("supports bold and Dataview-style Tags metadata", () => {

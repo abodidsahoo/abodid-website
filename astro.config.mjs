@@ -16,7 +16,9 @@ const siteUrl = env.PUBLIC_SITE_URL || 'https://abodid.com';
 
 // https://astro.build/config
 export default defineConfig({
-  output: 'server',
+  // Build public pages as static HTML by default. Routes that genuinely need
+  // request-time behavior opt in with `export const prerender = false`.
+  output: 'static',
   adapter: vercel(),
   // In development, accept the alternate form long enough for project
   // middleware to issue the same 308 redirect generated for production.

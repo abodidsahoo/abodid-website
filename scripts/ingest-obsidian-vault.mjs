@@ -15,13 +15,14 @@ import {
   getVaultEmbeddingModel,
 } from "../src/lib/vault-rag.js";
 
-const DEFAULT_INCLUDE_PATHS = ["6 - Main Notes"];
+const DEFAULT_INCLUDE_PATHS = ["06-main-notes", "6 - Main Notes"];
 const DEFAULT_EXCLUDE_PATHS = [
   ".git",
   ".obsidian",
   "node_modules",
   ".trash",
   "trash",
+  "07-assets",
   "7 - Assets",
   "Attachments",
   "attachments",
@@ -79,7 +80,7 @@ function getGithubHeaders() {
   const token = getRuntimeEnv("GITHUB_TOKEN");
   return token
     ? {
-        Authorization: `token ${token}`,
+        Authorization: `Bearer ${token}`,
         Accept: "application/vnd.github.v3+json",
         "User-Agent": "Astro-Obsidian-Vault-Ingest",
       }
@@ -102,42 +103,28 @@ async function fetchJson(url, options = {}) {
   return data;
 }
 
+import { execSync } from "node:child_process";
+
 async function fetchVaultFromGitHub({ includePaths, excludePaths }) {
   const owner = getRuntimeEnv("GITHUB_OWNER") || "abodidsahoo";
   const repo = getRuntimeEnv("GITHUB_REPO") || "obsidian-vault";
   const branch = getRuntimeEnv("GITHUB_BRANCH") || "main";
-  const treeUrl = `https://api.github.com/repos/${owner}/${repo}/git/trees/${encodeURIComponent(branch)}?recursive=1`;
-  const treeData = await fetchJson(treeUrl, { headers: getGithubHeaders() });
-  const files = (treeData.tree || [])
-    .filter((item) => item.type === "blob")
-    .filter((item) => shouldIndexPath(item.path, includePaths, excludePaths));
-
-  const selectedFiles = Number.isFinite(limit) ? files.slice(0, limit) : files;
-  const notes = [];
-  const batchSize = 20;
-
-  for (let i = 0; i < selectedFiles.length; i += batchSize) {
-    const batch = selectedFiles.slice(i, i + batchSize);
-    const results = await Promise.all(
-      batch.map(async (file) => {
-        const blob = await fetchJson(file.url, { headers: getGithubHeaders() });
-        const content = Buffer.from(
-          String(blob.content || "").replace(/\n/g, ""),
-          "base64",
-        ).toString("utf-8");
-
-        return {
-          filePath: file.path,
-          markdown: content,
-          sourceSha: file.sha || null,
-        };
-      }),
-    );
-
-    notes.push(...results);
+  const tarballUrl = `https://api.github.com/repos/${owner}/${repo}/tarball/${encodeURIComponent(branch)}`;
+  
+  const response = await fetch(tarballUrl, { headers: getGithubHeaders() });
+  if (!response.ok) {
+    throw new Error(`GitHub tarball download failed with status ${response.status}.`);
   }
 
-  return notes;
+  const buffer = Buffer.from(await response.arrayBuffer());
+  const tmpDir = path.resolve(".astro/tmp-vault");
+  await fs.rm(tmpDir, { recursive: true, force: true });
+  await fs.mkdir(tmpDir, { recursive: true });
+  const tarFile = path.join(tmpDir, "vault.tar.gz");
+  await fs.writeFile(tarFile, buffer);
+  execSync(`tar -xzf "${tarFile}" -C "${tmpDir}" --strip-components=1`);
+
+  return await walkLocalVault(tmpDir, includePaths, excludePaths);
 }
 
 async function walkLocalVault(rootDir, includePaths, excludePaths) {
@@ -458,12 +445,12 @@ async function ingest() {
     return summary;
   }
 
-  summary.notesIndexed = await upsertNoteIndex(supabase, noteIndexRows);
   if (staleNoteIds.length > 0) {
     summary.staleNotesDeleted = await deleteNoteRowsById(supabase, staleNoteIds);
+    console.log(`[vault-ingest] Stale note index rows deleted: ${summary.staleNotesDeleted}`);
   }
+  summary.notesIndexed = await upsertNoteIndex(supabase, noteIndexRows);
   console.log(`[vault-ingest] Note index rows upserted: ${summary.notesIndexed}`);
-  console.log(`[vault-ingest] Stale note index rows deleted: ${summary.staleNotesDeleted}`);
 
   if (privacyOnlyChunks.length > 0) {
     summary.chunksPrivacyUpdated = await updateChunkPublicStatus(

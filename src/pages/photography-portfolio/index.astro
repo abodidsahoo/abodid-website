@@ -2,16 +2,11 @@
 import { getPortfolioPhotos, groupPortfolio } from '../../lib/photography/server';
 import { getSavedPalette } from '../../lib/photography/serverPalette';
 import '../../styles/photography/portfolio.css';
-export const prerender = false;
 const photos = await getPortfolioPhotos();
-const groups = groupPortfolio(photos);
+const groups = groupPortfolio(photos, true);
 const groupsWithPalette = groups.map(group => ({...group, palette: getSavedPalette(group.cover.small || group.cover.large)}));
-// Keep the opening selection consistent across visits.
 const shuffledGroups = [...groupsWithPalette];
-// Lead with optimized covers so a cold mobile visit never starts with a full original.
-const optimizedLeads = shuffledGroups.filter(g => g.cover.small.includes('/variants/')).slice(0, 2);
-shuffledGroups.splice(0, shuffledGroups.length, ...optimizedLeads, ...shuffledGroups.filter(g => !optimizedLeads.includes(g)));
-const INITIAL_SSR_COUNT = 4;
+const INITIAL_SSR_COUNT = 6;
 const initialGroups = shuffledGroups.slice(0, INITIAL_SSR_COUNT);
 const canonical = 'https://photos.abodid.com/';
 const description = 'Photography by Abodid Sahoo. Exhibitions, people and places, observed with feeling. Available worldwide for editorial, commercial, fine art and documentary commissions and image licensing.';
@@ -22,7 +17,7 @@ const structuredData = { '@context': 'https://schema.org', '@graph': [person, { 
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Abodid Sahoo — Photographer · Worldwide Commissions</title>
     <meta name="description" content={description} />
     <meta name="robots" content="index, follow, max-image-preview:large" />
@@ -30,7 +25,7 @@ const structuredData = { '@context': 'https://schema.org', '@graph': [person, { 
     <link rel="canonical" href={canonical} />
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='white'/%3E%3Ctext x='10' y='59' font-size='56' font-family='Georgia' font-style='italic'%3Ea.%3C/text%3E%3C/svg%3E" />
     <link rel="preconnect" href="https://assets.abodid.com" />
-    {initialGroups.slice(0,2).map(group => <link rel="preload" as="image" href={group.cover.large} imagesrcset={`${group.cover.small} 800w, ${group.cover.large} 1600w`} imagesizes="(max-width: 600px) 90vw, 42vw" fetchpriority="high" />)}
+    {initialGroups.slice(0,2).map(group => <link rel="preload" as="image" href={group.cover.small} imagesrcset={`${group.cover.small} 800w, ${group.cover.large} 1600w`} imagesizes="(max-width: 600px) 90vw, 42vw" fetchpriority="high" />)}
     <meta property="og:type" content="website" />
     <meta property="og:url" content={canonical} />
     <meta property="og:title" content="Abodid Sahoo — Photographer" />
@@ -77,7 +72,7 @@ const structuredData = { '@context': 'https://schema.org', '@graph': [person, { 
             >
               <div class="image-wrap" style={group.cover.width && group.cover.height ? `aspect-ratio:${group.cover.width}/${group.cover.height};background-color:${group.palette.bg};` : `background-color:${group.palette.bg};`}>
                 <img
-                  src={group.cover.large}
+                  src={group.cover.small}
                   srcset={`${group.cover.small} 800w, ${group.cover.large} 1600w`}
                   sizes="(max-width: 600px) 90vw, (max-width: 1200px) 45vw, 42vw"
                   width={group.cover.width || undefined}

@@ -2,7 +2,11 @@ import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 
-const NOTES_ROOT = "6 - Main Notes";
+import fsSync from "node:fs";
+
+const NOTES_ROOT = fsSync.existsSync(path.resolve(process.cwd(), "06-main-notes"))
+  ? "06-main-notes"
+  : "6 - Main Notes";
 
 const requiredEnv = (name) => {
   const value = process.env[name]?.trim();

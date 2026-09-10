@@ -5,8 +5,6 @@ import { breadcrumbJsonLd, personJsonLd, serviceJsonLd } from "../lib/seoData";
 import { CV_DOWNLOAD_URL } from "../lib/cv";
 import { getHomeStorytellingContent } from "../lib/homeStorytellingContent";
 
-export const prerender = false;
-
 const content = await getHomeStorytellingContent();
 const heroSlideCopy: Record<string, { category: string; outcome: string }> = {
   "into-the-flux": {

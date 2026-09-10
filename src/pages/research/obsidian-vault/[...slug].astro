@@ -3,10 +3,14 @@ export const prerender = false;
 import BaseLayout from "../../../layouts/BaseLayout.astro";
 import { getFileContent } from "../../../lib/github";
 import {
-    extractExplicitTags,
+    extractVaultNoteMetadata,
     normalizeWikiLinkTarget,
+    stripLegacyVaultMetadata,
 } from "../../../lib/vault-rag.js";
-import { getIndexedNoteBySlug } from "../../../lib/vault-note-index.js";
+import {
+    findIndexedNotesByWikiLink,
+    getIndexedNoteBySlug,
+} from "../../../lib/vault-note-index.js";
 import { marked } from "marked";
 import ShareButtons from "../../../components/ShareButtons.jsx";
 import {
@@ -23,8 +27,35 @@ const vaultSearchHref = fromVaultSearchId
     : "";
 
 if (!slug) {
-    Astro.response.status = 404;
-    return Astro.rewrite("/404");
+    return Astro.redirect("/404");
+}
+
+function metadataHref(value: string): string {
+    const target = String(value || "")
+        .replace(/^#/, "")
+        .replace(/^\[\[/, "")
+        .replace(/\]\]$/, "")
+        .split("|")[0]
+        .split("#")[0]
+        .replace(/\.md$/i, "")
+        .trim();
+    return `/research/obsidian-vault/topic/${encodeURIComponent(target)}`;
+}
+
+function formatMetadataDate(value: unknown): string {
+    if (!value) return "";
+    const stringValue = String(value);
+    const dateOnly = stringValue.match(/^(\d{4}-\d{2}-\d{2})/i)?.[1];
+    const raw = value instanceof Date
+        ? value
+        : new Date(dateOnly ? `${dateOnly}T00:00:00Z` : stringValue);
+    if (Number.isNaN(raw.getTime())) return String(value);
+    return new Intl.DateTimeFormat("en-GB", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+        timeZone: "UTC",
+    }).format(raw);
 }
 
 function extractFirstUsefulParagraph(markdown: string): string {
@@ -49,6 +80,8 @@ function extractFirstUsefulParagraph(markdown: string): string {
             line.startsWith("---") ||
             line.startsWith("Tags:") ||
             line.startsWith("tags:") ||
+            line.startsWith("Topics:") ||
+            line.startsWith("topics:") ||
             line.startsWith("Date:") ||
             line.startsWith("date:") ||
             line.startsWith("![[") ||
@@ -82,10 +115,13 @@ let title = slug.split("/").pop() || "Note";
 let firstTag = "";
 let metaDescription = "";
 let noteUpdatedAt: string | undefined = undefined;
+let noteTypes: string[] = [];
+let topicTags: string[] = [];
+let noteDate = "";
 
 try {
     const cleanSlug = slug.endsWith(".md") ? slug : `${slug}.md`;
-    const filePathNotes = `6 - Main Notes/${cleanSlug}`;
+    const filePathNotes = `06-main-notes/${cleanSlug}`;
     const noteSlug = cleanSlug.replace(/\.md$/i, "");
     let indexedNote = null;
 
@@ -101,18 +137,28 @@ try {
     const rawContent = indexedNote?.markdown_content || await getFileContent(filePathNotes);
 
     if (rawContent === null) {
-        Astro.response.status = 404;
-        return Astro.rewrite("/404");
+        try {
+            const legacyTagMatches = await findIndexedNotesByWikiLink(noteSlug);
+            if (legacyTagMatches.length > 0) {
+                return Astro.redirect(metadataHref(noteSlug), 308);
+            }
+        } catch (tagLookupError) {
+            console.warn("[vault-note] Legacy tag redirect lookup failed:", tagLookupError);
+        }
+        return Astro.redirect("/404");
     }
 
     metaDescription = extractFirstUsefulParagraph(rawContent);
 
-    let content = rawContent;
-    const explicitTags = Array.isArray(indexedNote?.tags) && indexedNote.tags.length > 0
-        ? indexedNote.tags
-        : extractExplicitTags(content);
-    const tagSet = new Set(explicitTags.map(normalizeWikiLinkTarget).filter(Boolean));
-    firstTag = indexedNote?.first_tag || explicitTags[0] || "";
+    const metadata = extractVaultNoteMetadata(rawContent);
+    noteTypes = metadata.noteTypes;
+    topicTags = metadata.tags;
+    noteDate = formatMetadataDate(metadata.date);
+    let content = stripLegacyVaultMetadata(metadata.content);
+    const tagSet = new Set(
+        [...noteTypes, ...topicTags].map(normalizeWikiLinkTarget).filter(Boolean),
+    );
+    firstTag = indexedNote?.first_tag || topicTags[0] || noteTypes[0] || "";
 
     content = content.replace(/!\[\[(.*?)\]\]/g, (match, filename) => {
         const cleanFilename = filename.split("|")[0];
@@ -120,7 +166,7 @@ try {
     });
 
     content = content.replace(
-        /!\[(.*?)\]\((.*?)(?:7%20-%20Assets|7 - Assets)\/(.*?)\)/g,
+        /!\[(.*?)\]\((.*?)(?:07-assets|07%20-%20assets|7%20-%20Assets|7 - Assets)\/(.*?)\)/g,
         "![$1](/research/obsidian-vault/assets/$3)",
     );
 
@@ -130,7 +176,7 @@ try {
         const linkText = (parts[1] || parts[0] || "").trim();
         const linkTarget = linkTargetRaw.replace(/\.md$/i, "");
         const isTag = tagSet.has(normalizeWikiLinkTarget(linkTarget));
-        const hrefBase = isTag ? "/research/obsidian-vault/tag/" : "/research/obsidian-vault/";
+        const hrefBase = isTag ? "/research/obsidian-vault/topic/" : "/research/obsidian-vault/";
         return `[${linkText}](${hrefBase}${encodeURIComponent(linkTarget)})`;
     });
 
@@ -138,7 +184,7 @@ try {
     renderer.image = ({ href, title, text }) => {
         if (
             href &&
-            (href.includes("7 - Assets") || href.includes("7%20-%20Assets"))
+            (href.includes("07-assets") || href.includes("07%20-%20assets") || href.includes("7 - Assets") || href.includes("7%20-%20Assets"))
         ) {
             const parts = href.split("/");
             const filename = parts[parts.length - 1];
@@ -148,7 +194,9 @@ try {
     };
 
     htmlContent = await marked.parse(content, { renderer });
-    title = cleanSlug.replace(/\.md$/i, "");
+    title =
+        (typeof metadata.frontmatter.title === "string" && metadata.frontmatter.title.trim()) ||
+        cleanSlug.replace(/\.md$/i, "");
 } catch (error) {
     console.error(error);
     htmlContent = "<p>Error loading note.</p>";
@@ -161,8 +209,9 @@ Astro.response.headers.set(
         : "public, max-age=60, s-maxage=300, stale-while-revalidate=86400",
 );
 
-const displayTitle = title.replace(/-/g, " ");
-const currentFilePath = `6 - Main Notes/${title}.md`;
+const routeSlug = slug.replace(/\.md$/i, "");
+const displayTitle = title === routeSlug ? title.replace(/-/g, " ") : title;
+const currentFilePath = `06-main-notes/${routeSlug}.md`;
 const relatedNoteHref = `/api/vault-related-note?file=${encodeURIComponent(currentFilePath)}${
     firstTag ? `&tag=${encodeURIComponent(firstTag)}` : ""
 }`;
@@ -170,7 +219,7 @@ const relatedNoteHref = `/api/vault-related-note?file=${encodeURIComponent(curre
 const finalMetaDescription =
     metaDescription ||
     `Read ${displayTitle}, a note from Abodid Sahoo's public Obsidian vault.`;
-const noteCanonicalUrl = `${seoIdentity.siteUrl}/research/obsidian-vault/${encodeURIComponent(title)}`;
+const noteCanonicalUrl = `${seoIdentity.siteUrl}/research/obsidian-vault/${encodeURIComponent(routeSlug)}`;
 
 const structuredData = [
     personJsonLd(),
@@ -178,7 +227,7 @@ const structuredData = [
         { name: "Home", path: "/" },
         { name: "Research", path: "/research" },
         { name: "Obsidian Vault", path: "/research/obsidian-vault" },
-        { name: displayTitle, path: `/research/obsidian-vault/${encodeURIComponent(title)}` },
+        { name: displayTitle, path: `/research/obsidian-vault/${encodeURIComponent(routeSlug)}` },
     ]),
     vaultNoteJsonLd({
         title: displayTitle,
@@ -210,6 +259,39 @@ const structuredData = [
 
                 <header class="vault-note-header">
                     <h1 id="note-title">{displayTitle}</h1>
+
+                    {(noteDate || noteTypes.length > 0 || topicTags.length > 0) && (
+                        <div class="vault-note-metadata" aria-label="Note details">
+                            {noteDate && (
+                                <div class="vault-note-metadata__date">
+                                    <span class="vault-note-metadata__label">Published</span>
+                                    <time>{noteDate}</time>
+                                </div>
+                            )}
+
+                            {noteTypes.length > 0 && (
+                                <div class="vault-note-metadata__group vault-note-metadata__group--type">
+                                    <span class="vault-note-metadata__label">Note type</span>
+                                    <div class="vault-note-type-links">
+                                        {noteTypes.map((noteType) => (
+                                            <a href={metadataHref(noteType)}>{noteType.replace(/-/g, " ")}</a>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {topicTags.length > 0 && (
+                                <div class="vault-note-metadata__group vault-note-metadata__group--topics">
+                                    <span class="vault-note-metadata__label">Topics</span>
+                                    <div class="vault-note-topic-links">
+                                        {topicTags.map((tag) => (
+                                            <a href={metadataHref(tag)}>{tag.replace(/-/g, " ")}</a>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </header>
 
                 <section class="vault-note-content" aria-label={`Note: ${displayTitle}`}>
@@ -334,6 +416,122 @@ const structuredData = [
         letter-spacing: -0.035em;
         text-wrap: balance;
         overflow-wrap: anywhere;
+    }
+
+    .vault-note-metadata {
+        display: grid;
+        grid-template-columns: minmax(9rem, 0.72fr) minmax(0, 1.4fr);
+        gap: 1px;
+        margin-top: clamp(1.75rem, 4vw, 2.5rem);
+        overflow: hidden;
+        border: 1px solid var(--pop-border);
+        border-radius: 14px;
+        background: var(--pop-border);
+    }
+
+    .vault-note-metadata__date,
+    .vault-note-metadata__group {
+        min-width: 0;
+        padding: 1rem 1.05rem;
+        background: rgba(255, 255, 255, 0.54);
+    }
+
+    .vault-note-metadata__date {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 0.65rem;
+    }
+
+    .vault-note-metadata__date time {
+        color: var(--pop-ink);
+        font-size: 0.92rem;
+        font-weight: 640;
+        line-height: 1.3;
+    }
+
+    .vault-note-metadata__label {
+        display: block;
+        margin-bottom: 0.7rem;
+        color: rgba(21, 19, 15, 0.62);
+        font-size: 0.75rem;
+        font-weight: 720;
+        line-height: 1.2;
+        letter-spacing: 0.075em;
+        text-transform: uppercase;
+    }
+
+    .vault-note-metadata__date .vault-note-metadata__label {
+        margin-bottom: 0;
+    }
+
+    .vault-note-metadata__group--type {
+        background: var(--pop-yellow);
+    }
+
+    .vault-note-metadata__group--type:first-child,
+    .vault-note-metadata__date:only-child {
+        grid-column: 1 / -1;
+    }
+
+    .vault-note-metadata__group--topics {
+        grid-column: 1 / -1;
+        background: rgba(255, 255, 255, 0.7);
+    }
+
+    .vault-note-type-links,
+    .vault-note-topic-links {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.55rem;
+    }
+
+    .vault-note-type-links a {
+        color: var(--pop-ink);
+        font-size: clamp(1rem, 2.4vw, 1.2rem);
+        font-weight: 720;
+        line-height: 1.2;
+        text-decoration-line: underline;
+        text-decoration-color: var(--pop-purple);
+        text-decoration-thickness: 0.12em;
+        text-underline-offset: 0.24em;
+        text-transform: capitalize;
+        transition: background 160ms ease, color 160ms ease;
+    }
+
+    .vault-note-type-links a:hover,
+    .vault-note-type-links a:focus-visible {
+        background: var(--pop-purple);
+        color: var(--pop-cream);
+    }
+
+    .vault-note-topic-links a {
+        display: inline-flex;
+        min-height: 36px;
+        align-items: center;
+        padding: 0.46rem 0.72rem;
+        border: 1px solid var(--pop-border);
+        border-radius: 999px;
+        background: var(--pop-cream);
+        color: var(--pop-ink);
+        font-size: 0.84rem;
+        font-weight: 650;
+        line-height: 1.2;
+        text-decoration: none;
+        text-transform: capitalize;
+        transition: background 160ms ease, transform 160ms ease;
+    }
+
+    .vault-note-topic-links a:hover {
+        background: var(--pop-lime);
+        transform: translateY(-1px);
+    }
+
+    .vault-note-type-links a:focus-visible,
+    .vault-note-topic-links a:focus-visible {
+        outline: 3px solid var(--pop-purple);
+        outline-offset: 3px;
     }
 
     .vault-note-content {
@@ -650,6 +848,14 @@ const structuredData = [
             font-size: clamp(1.9rem, 9vw, 2.8rem);
         }
 
+        .vault-note-metadata {
+            grid-template-columns: 1fr;
+        }
+
+        .vault-note-metadata__group--topics {
+            grid-column: auto;
+        }
+
         .vault-note-utility-row {
             gap: 0.75rem;
         }
@@ -789,7 +995,7 @@ const structuredData = [
 
             // Update related note API link for the NEXT note and preload IT!
             const newFilePath =
-              cachedData.filePath || `6 - Main Notes/${cachedData.slug}.md`;
+              cachedData.filePath || `06-main-notes/${cachedData.slug}.md`;
             const newRelatedHref =
               "/api/vault-related-note?file=" +
               encodeURIComponent(newFilePath) +
@@ -817,7 +1023,7 @@ const structuredData = [
                   if (data.href) window.history.replaceState({}, "", data.href);
 
                   const newFilePath =
-                    data.filePath || `6 - Main Notes/${data.slug}.md`;
+                    data.filePath || `06-main-notes/${data.slug}.md`;
                   const newRelatedHref =
                     "/api/vault-related-note?file=" +
                     encodeURIComponent(newFilePath) +

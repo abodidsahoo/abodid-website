@@ -51,7 +51,7 @@ export function getAuthHeaders() {
         console.warn("GITHUB_TOKEN is missing. Requests will be rate-limited.");
     }
     return token ? {
-        Authorization: `token ${token}`,
+        Authorization: `Bearer ${token}`,
         Accept: "application/vnd.github.v3+json",
         "User-Agent": "Astro-Obsidian-Vault",
     } : {
@@ -154,18 +154,20 @@ export async function getRepoContents(path = "") {
 }
 
 export async function getVaultTags() {
-
-    const data = await getRepoContents("3 - Tags");
-    return data || [];
+    const data = await getRepoContents("03-tags");
+    if (data && data.length > 0) return data;
+    const legacy = await getRepoContents("3 - Tags");
+    return legacy || [];
 }
 
 export async function getVaultNotes() {
+    let contents = await getRepoContents("06-main-notes");
+    if (!contents || contents.length === 0) {
+        contents = await getRepoContents("6 - Main Notes");
+    }
 
-    // Hardcoded path to ensure no variable resolution issues
-    const contents = await getRepoContents("6 - Main Notes");
-
-    if (contents.length === 0) {
-        console.warn("[GitHub] No contents found in '6 - Main Notes'");
+    if (!contents || contents.length === 0) {
+        console.warn("[GitHub] No contents found in '06-main-notes' or '6 - Main Notes'");
         return [];
     }
 
@@ -182,36 +184,33 @@ export async function getVaultNotes() {
  * @returns {Promise<string|null>}
  */
 export async function getFileContent(filePath) {
-    const encodedPath = filePath.split('/').map(encodeURIComponent).join('/');
-    const url = `${GITHUB_API_BASE}/repos/${REPO_OWNER}/${REPO_NAME}/contents/${encodedPath}`;
-
-    try {
-        const response = await fetch(url, { headers: getAuthHeaders() });
-
-        if (!response.ok) {
-            // 404 is expected if file doesn't exist
+    const fetchPath = async (targetPath) => {
+        const encodedPath = targetPath.split('/').map(encodeURIComponent).join('/');
+        const url = `${GITHUB_API_BASE}/repos/${REPO_OWNER}/${REPO_NAME}/contents/${encodedPath}`;
+        try {
+            const response = await fetch(url, { headers: getAuthHeaders() });
+            if (!response.ok) return null;
+            const data = await response.json();
+            if (data.content && data.encoding === 'base64') {
+                return Buffer.from(data.content, 'base64').toString('utf-8');
+            }
+            if (data.download_url) {
+                const rawRes = await fetch(data.download_url);
+                return await rawRes.text();
+            }
+            return "";
+        } catch (e) {
             return null;
         }
+    };
 
-        const data = await response.json();
-
-        // Content is base64 encoded
-        if (data.content && data.encoding === 'base64') {
-            // Basic base64 decode (handles UTF-8 better than atob sometimes, but atob is standard in Node 18+)
-            return Buffer.from(data.content, 'base64').toString('utf-8');
-        }
-
-        // Fallback for large files
-        if (data.download_url) {
-            const rawRes = await fetch(data.download_url);
-            return await rawRes.text();
-        }
-
-        return "";
-    } catch (error) {
-        console.error("Error fetching file content:", error);
-        return null;
+    let result = await fetchPath(filePath);
+    if (result === null && filePath.startsWith('6 - Main Notes/')) {
+        result = await fetchPath(filePath.replace('6 - Main Notes/', '06-main-notes/'));
+    } else if (result === null && filePath.startsWith('06-main-notes/')) {
+        result = await fetchPath(filePath.replace('06-main-notes/', '6 - Main Notes/'));
     }
+    return result;
 }
 
 /**

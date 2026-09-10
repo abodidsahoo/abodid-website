@@ -1,3 +1,5 @@
+export const prerender = false;
+
 import { generateOgImage } from '../../lib/og-helper';
 
 export const config = {

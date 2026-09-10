@@ -1,3 +1,5 @@
+export const prerender = false;
+
 import type { APIRoute } from 'astro';
 
 const OPENAI_API_KEY = import.meta.env.OPENAI_API_KEY;

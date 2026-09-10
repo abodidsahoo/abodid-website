@@ -85,7 +85,7 @@ export async function getIndexedNoteBySlug(slug) {
     const { data, error } = await supabase
       .from("obsidian_notes")
       .select(
-        "note_title,file_path,slug,markdown_content,tags,first_tag,content_hash,source_sha",
+        "note_title,file_path,slug,markdown_content,tags,first_tag,content_hash,source_sha,created_at,updated_at",
       )
       .eq("is_public", true)
       .eq("slug", normalizedSlug)
@@ -116,7 +116,7 @@ export async function getAllPublicVaultNotes() {
       .from("obsidian_notes")
       .select("note_title,file_path,slug,updated_at,created_at,tags")
       .eq("is_public", true)
-      .ilike("file_path", "6 - Main Notes/%")
+      .or("file_path.ilike.06-main-notes/%,file_path.ilike.6 - Main Notes/%")
       .order("note_title", { ascending: true })
       .limit(2000);
 
@@ -157,4 +157,25 @@ export async function getAllPublicVaultNotes() {
     console.error("[vault-notes] Fallback to GitHub failed:", err);
     return [];
   }
+}
+
+export async function getAllVaultTopics() {
+  const notes = await getAllPublicVaultNotes();
+  const topicCounts = new Map();
+  for (const note of notes) {
+    for (const tag of note.tags || []) {
+      const clean = String(tag || "").trim();
+      if (!clean) continue;
+      topicCounts.set(clean, (topicCounts.get(clean) || 0) + 1);
+    }
+  }
+
+  return Array.from(topicCounts.entries())
+    .map(([name, count]) => ({
+      name,
+      slug: name,
+      count,
+      href: `/research/obsidian-vault/topic/${encodeURIComponent(name)}`,
+    }))
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
 }

@@ -1,3 +1,5 @@
+export const prerender = false;
+
 import type { APIRoute } from 'astro';
 const OPENROUTER_API_KEY = import.meta.env.OPENROUTER_API_KEY;
 const SITE_URL = import.meta.env.SITE || 'https://abodid.com';

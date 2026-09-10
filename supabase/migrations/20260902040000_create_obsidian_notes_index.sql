@@ -40,4 +40,4 @@ comment on table public.obsidian_notes is
   'One row per indexed Obsidian note for fast exact tag and wiki-link lookups.';
 
 comment on column public.obsidian_notes.wiki_links is
-  'Normalized lowercase Obsidian wiki-link targets extracted during vault ingestion.';
+  'Normalized lowercase Obsidian links plus YAML note-type and topic-tag targets used by connected-note pages.';

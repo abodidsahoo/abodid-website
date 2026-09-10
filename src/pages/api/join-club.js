@@ -1,3 +1,5 @@
+export const prerender = false;
+
 import { supabase } from '../../lib/supabaseClient';
 
 export const POST = async ({ request }) => {

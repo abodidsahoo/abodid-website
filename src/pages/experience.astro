@@ -3,8 +3,6 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import { getWorkExperience } from "../lib/services/content";
 import photographyPortfolios from "../data/photographyPortfolios.generated.json";
 
-export const prerender = false;
-
 const allExperience = await getWorkExperience();
 const workExperience = allExperience.filter((item) => !item.category || item.category === "work");
 

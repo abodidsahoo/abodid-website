@@ -261,7 +261,7 @@ function createProjectElement(group: Group, i: number): HTMLElement {
     >
       <div class="image-wrap" ${wrapStyle}>
         <img
-          src="${coverLarge}"
+          src="${coverSmall}"
           srcset="${coverSmall} 800w, ${coverLarge} 1600w"
           sizes="(max-width: 600px) 90vw, (max-width: 1200px) 45vw, 42vw"
           ${widthAttr}
@@ -663,6 +663,8 @@ detailsToggle.addEventListener('click', () => {
   detailsToggle.textContent = details.hidden ? 'Details +' : 'Details −';
 });
 
+let lastModalCloseTime = 0;
+
 for (const dialog of [lightbox, inquiry]) {
   const closeBtn = dialog.querySelector<HTMLButtonElement>('[data-close]');
   if (closeBtn) {
@@ -672,7 +674,6 @@ for (const dialog of [lightbox, inquiry]) {
       if (dialog.open) dialog.close();
     };
     closeBtn.addEventListener('click', handleClose);
-    closeBtn.addEventListener('pointerdown', handleClose);
   }
   dialog.addEventListener('click', event => {
     if (event.target === dialog) {
@@ -685,6 +686,7 @@ for (const dialog of [lightbox, inquiry]) {
 }
 
 lightbox.addEventListener('close', () => {
+  lastModalCloseTime = Date.now();
   resetZoom();
   if (history.state?.portfolioViewer) history.back();
   if (!inquiry.open) {
@@ -694,9 +696,18 @@ lightbox.addEventListener('close', () => {
 });
 
 inquiry.addEventListener('close', () => {
+  lastModalCloseTime = Date.now();
   inquiryTrigger?.focus({ preventScroll: true });
   resetPalette();
 });
+
+// Guard against mobile tap click bleed-through on header buttons right after modal dismissal
+document.querySelector('.site-header')?.addEventListener('click', (e) => {
+  if (Date.now() - lastModalCloseTime < 450) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+}, true);
 
 // Conversion & Inquiry System
 const form = document.querySelector<HTMLFormElement>('#inquiry-form')!;
