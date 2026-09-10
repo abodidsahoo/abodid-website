@@ -410,15 +410,15 @@ const structuredData = [
     }
 
     .vault-note-header h1 {
-        max-width: 22ch;
+        max-width: none;
         margin: 0;
         color: var(--pop-ink);
         font-size: clamp(1.9rem, 4vw, 2.8rem);
         font-weight: 560;
-        line-height: 1.1;
+        line-height: 1.15;
         letter-spacing: -0.035em;
         text-wrap: balance;
-        overflow-wrap: anywhere;
+        overflow-wrap: break-word;
     }
 
     .vault-note-metadata {
@@ -549,7 +549,8 @@ const structuredData = [
         font-weight: var(--feature-obsidian-note-body-weight, 420);
         line-height: var(--feature-obsidian-note-body-line-height, 1.7);
         letter-spacing: var(--feature-obsidian-note-body-letter-spacing, -0.006em);
-        overflow-wrap: anywhere;
+        overflow-wrap: break-word;
+        word-break: normal;
     }
 
     .markdown-body > :first-child {
@@ -640,6 +641,8 @@ const structuredData = [
         text-decoration-thickness: 0.12em;
         text-underline-offset: 0.2em;
         transition: background 160ms ease;
+        overflow-wrap: break-word;
+        word-break: break-word;
     }
 
     .markdown-body a:hover {

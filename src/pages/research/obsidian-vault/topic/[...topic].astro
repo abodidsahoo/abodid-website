@@ -66,15 +66,6 @@ const robotsDirective = isIndexable ? undefined : "noindex, follow";
                 </header>
 
                 <section class="vault-topic-results" aria-labelledby="results-title">
-                    <p class="vault-topic-status" aria-live="polite">
-                        <span aria-hidden="true"></span>
-                        <span>
-                            {notes.length === 0
-                                ? "No connected notes found."
-                                : `${notes.length} connected ${notes.length === 1 ? "note" : "notes"} found.`}
-                        </span>
-                    </p>
-
                     <div class="vault-topic-results-heading">
                         <h2 id="results-title">Results</h2>
                         <p>{notes.length} {notes.length === 1 ? "note" : "notes"}</p>
@@ -192,27 +183,7 @@ const robotsDirective = isIndexable ? undefined : "noindex, follow";
     }
 
     .vault-topic-results {
-        padding-top: clamp(1.75rem, 4vw, 2.75rem);
-    }
-
-    .vault-topic-status {
-        display: flex;
-        min-height: 44px;
-        align-items: center;
-        gap: 0.65rem;
-        margin: 0;
-        color: var(--pop-ink);
-        font-size: 0.88rem;
-        line-height: 1.4;
-    }
-
-    .vault-topic-status > span:first-child {
-        display: block;
-        width: 8px;
-        height: 8px;
-        flex: 0 0 auto;
-        border-radius: 50%;
-        background: currentColor;
+        padding-top: clamp(1rem, 2.5vw, 1.75rem);
     }
 
     .vault-topic-results-heading {
@@ -220,7 +191,7 @@ const robotsDirective = isIndexable ? undefined : "noindex, follow";
         align-items: baseline;
         justify-content: space-between;
         gap: 1rem;
-        margin-top: 1.5rem;
+        margin-top: 0;
         padding: 0 0 0.85rem;
         border-bottom: 1px solid var(--pop-border);
     }
