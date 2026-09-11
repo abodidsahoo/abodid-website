@@ -7,9 +7,9 @@ import PunctumLayout from "../../../../layouts/PunctumLayout.astro";
 
 const requestedSlug = Astro.params.imageSlug || "";
 const image = getPunctumImageBySlug(requestedSlug);
-if (!image) return Astro.redirect("/research/punctum/results", 302);
+if (!image) return Astro.redirect("/lab/punctum/results", 302);
 if (requestedSlug !== image.slug) {
-  return Astro.redirect(`/research/punctum/results/${image.slug}`, 301);
+  return Astro.redirect(`/lab/punctum/results/${image.slug}`, 301);
 }
 ---
 

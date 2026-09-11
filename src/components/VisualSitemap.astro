@@ -7,6 +7,7 @@ import {
     getFilms,
 } from "../lib/api";
 import { getApprovedResources } from "../lib/resources/db";
+import { curationPath, curationUrl } from "../lib/curationRoutes.js";
 
 // Fetch Content
 const allPosts = await getAllPosts();
@@ -14,6 +15,10 @@ const allPhotography = await getAllPhotography();
 const allPapers = await getResearchPapers();
 const allFilms = await getFilms();
 const allResources = await getApprovedResources({});
+const curationResources = allResources.map((resource) => ({
+    ...resource,
+    href: curationUrl(curationPath.resource(resource.id)),
+}));
 
 // Helper to limit items and shorten names
 const limitItems = (items, limit, parentHref) => {
@@ -75,12 +80,12 @@ const mapData = {
                 },
                 {
                     name: "Obsidian Vault",
-                    href: "/research/obsidian-vault",
+                    href: "/obsidian-vault",
                     desc: "Digital Brain",
                 },
                 {
                     name: "Polaroid Hub",
-                    href: "/research/polaroid-hub",
+                    href: "/lab/photo-board",
                     desc: "Analog",
                 },
             ],
@@ -99,10 +104,10 @@ const mapData = {
         },
 
         {
-            name: "Resources",
-            href: "/resources",
-            desc: "Library",
-            children: limitItems(allResources, 5, "/resources"),
+            name: "Curation",
+            href: curationUrl(curationPath.home),
+            desc: "Selected resources",
+            children: limitItems(curationResources, 5, curationUrl(curationPath.home)),
         },
         { name: "Club", href: "/club/welcome", desc: "Join" },
         { name: "Services", href: "/services", desc: "Work" },

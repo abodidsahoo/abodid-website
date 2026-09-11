@@ -1,38 +1,23 @@
 export const prerender = false;
 
 import type { APIRoute } from 'astro';
-import { confirmUser } from '../../../lib/resources/admin';
+import { authorizeAdminRequest, jsonResponse } from '../../../lib/admin/serverAuth';
 
-export const POST: APIRoute = async ({ request, locals }) => {
+export const POST: APIRoute = async ({ request }) => {
     try {
-        // Check if user is authenticated and admin
-        const session = await locals.runtime.env.supabase.auth.getSession();
-        if (!session?.data?.session) {
-            return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), {
-                status: 401,
-                headers: { 'Content-Type': 'application/json' }
-            });
-        }
+        const authorization = await authorizeAdminRequest(request);
+        if (!authorization.ok) return authorization.response;
 
         const { userId } = await request.json();
 
         if (!userId) {
-            return new Response(JSON.stringify({ success: false, error: 'Missing userId' }), {
-                status: 400,
-                headers: { 'Content-Type': 'application/json' }
-            });
+            return jsonResponse({ success: false, error: 'Missing userId' }, 400);
         }
 
-        const result = await confirmUser(userId);
-
-        return new Response(JSON.stringify(result), {
-            status: result.success ? 200 : 400,
-            headers: { 'Content-Type': 'application/json' }
-        });
+        const { error } = await authorization.supabase.auth.admin.updateUserById(userId, { email_confirm: true });
+        if (error) return jsonResponse({ success: false, error: error.message }, 400);
+        return jsonResponse({ success: true });
     } catch (error) {
-        return new Response(JSON.stringify({ success: false, error: 'Server error' }), {
-            status: 500,
-            headers: { 'Content-Type': 'application/json' }
-        });
+        return jsonResponse({ success: false, error: 'Server error' }, 500);
     }
 };

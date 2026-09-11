@@ -2,6 +2,7 @@ export const prerender = false;
 
 import { findNotesReferencing } from "../../lib/vault";
 import { findIndexedNotesByWikiLink } from "../../lib/vault-note-index.js";
+import { vaultNoteHref } from "../../lib/vault-paths.js";
 
 const CACHE_CONTROL = "public, max-age=60, s-maxage=300, stale-while-revalidate=86400";
 
@@ -12,7 +13,7 @@ function serializeLegacyNotes(notes) {
             name: note.name,
             title: slug.replace(/-/g, " "),
             slug,
-            href: `/research/obsidian-vault/${encodeURIComponent(slug)}`,
+            href: vaultNoteHref(slug),
         };
     });
 }

@@ -149,7 +149,7 @@ export default function SubmissionForm() {
                         You need to be logged in to submit resources to the hub.
                     </p>
                     <a
-                        href="/login?redirect=/resources/submit"
+                        href="/login?redirect=%2Fsubmit"
                         className="hub-btn"
                         style={{
                             display: 'inline-flex',
@@ -182,7 +182,7 @@ export default function SubmissionForm() {
                     </p>
                     <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
                         <button
-                            onClick={() => window.location.href = '/resources'}
+                            onClick={() => window.location.href = '/'}
                             className="hub-btn"
                         >
                             View on Hub

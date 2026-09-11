@@ -61,11 +61,11 @@ const TILE_META = {
     showreel: { tag: 'SHOWREEL', cta: 'ALL FILMS', href: '/films' },
     films: { tag: 'FILMS', cta: 'SHOW ALL', href: '/films' },
     photos: { tag: 'PHOTO STORIES', cta: 'SHOW ALL', href: '/photography' },
-    notes: { tag: 'OBSIDIAN NOTES', cta: 'DAILY NOTES', href: '/research/obsidian-vault' },
-    resources: { tag: 'USEFUL RESOURCES', cta: 'HUB', href: '/resources' },
+    notes: { tag: 'OBSIDIAN NOTES', cta: 'DAILY NOTES', href: '/obsidian-vault' },
+    resources: { tag: 'CURATION', cta: 'EXPLORE', href: 'https://curation.abodid.com' },
     research: { tag: 'RESEARCH', cta: 'ALL PROJECTS', href: '/research/projects' },
     current: { tag: 'WHAT AM I UP TO', cta: 'READ BLOG', href: '/blog' },
-    tags: { tag: 'OBSIDIAN TAGS', cta: 'VAULT', href: '/research/obsidian-vault' },
+    tags: { tag: 'OBSIDIAN TAGS', cta: 'VAULT', href: '/obsidian-vault' },
     newsletter: { tag: 'NEWSLETTER', cta: 'JOIN', href: '/newsletter' },
     site: { tag: 'SITE', cta: '', href: '' },
     social: { tag: 'SOCIAL', cta: '', href: '' },
@@ -1000,7 +1000,7 @@ function NotesTicker({ notes, visibleCount = 3, interval = 4300 }) {
                     {current.map((note, index) => (
                         <a
                             key={`${note.id || note.href || note.title}-${index}`}
-                            href={note.href || '/research/obsidian-vault'}
+                            href={note.href || '/obsidian-vault'}
                             className="note-line"
                             onPointerDown={(event) => event.stopPropagation()}
                         >
@@ -1030,7 +1030,7 @@ function TagsNodeGrid({ tags, density = 'regular' }) {
                     return {
                         id: `tag-${raw}-${index}`,
                         label: raw,
-                        href: `/research/obsidian-vault/${encodeURIComponent(raw)}`,
+                        href: `/obsidian-vault/${encodeURIComponent(raw)}`,
                     };
                 }
 
@@ -1047,7 +1047,7 @@ function TagsNodeGrid({ tags, density = 'regular' }) {
                     .trim();
 
                 const href = String(
-                    tag?.href || `/research/obsidian-vault/${encodeURIComponent(rawSlug)}`,
+                    tag?.href || `/obsidian-vault/${encodeURIComponent(rawSlug)}`,
                 );
 
                 return {
@@ -1061,12 +1061,12 @@ function TagsNodeGrid({ tags, density = 'regular' }) {
         if (mapped.length) return mapped;
 
         return [
-            { id: 'fallback-memory', label: 'Memory', href: '/research/obsidian-vault/memory' },
-            { id: 'fallback-archive', label: 'Archive', href: '/research/obsidian-vault/archive' },
-            { id: 'fallback-story', label: 'Story', href: '/research/obsidian-vault/story' },
-            { id: 'fallback-identity', label: 'Identity', href: '/research/obsidian-vault/identity' },
-            { id: 'fallback-practice', label: 'Practice', href: '/research/obsidian-vault/practice' },
-            { id: 'fallback-notes', label: 'Notes', href: '/research/obsidian-vault/notes' },
+            { id: 'fallback-memory', label: 'Memory', href: '/obsidian-vault/memory' },
+            { id: 'fallback-archive', label: 'Archive', href: '/obsidian-vault/archive' },
+            { id: 'fallback-story', label: 'Story', href: '/obsidian-vault/story' },
+            { id: 'fallback-identity', label: 'Identity', href: '/obsidian-vault/identity' },
+            { id: 'fallback-practice', label: 'Practice', href: '/obsidian-vault/practice' },
+            { id: 'fallback-notes', label: 'Notes', href: '/obsidian-vault/notes' },
         ];
     }, [tags]);
 
@@ -1370,14 +1370,14 @@ const LandingGridPrototype = ({
                     title: truncate(note.title || 'Untitled Note', 60),
                     summary: truncate(note.summary || note.path || 'Daily vault index item.', 88),
                     image: note.image || '',
-                    href: note.href || '/research/obsidian-vault',
+                    href: note.href || '/obsidian-vault',
                 })),
                 {
                     id: 'note-fallback',
                     title: 'Daily notes feed waiting...',
                     summary: 'Obsidian items will appear here one by one.',
                     image: '',
-                    href: '/research/obsidian-vault',
+                    href: '/obsidian-vault',
                 },
             ),
         [notes],
@@ -1391,14 +1391,14 @@ const LandingGridPrototype = ({
                     title: truncate(resource.title || 'Resource', 58),
                     summary: truncate(resource.summary || resource.description || 'Reference from the resource hub.', 82),
                     image: resource.image || resource.thumbnail_url || '',
-                    href: resource.href || resource.url || '/resources',
+                    href: resource.href || resource.url || 'https://curation.abodid.com',
                 })),
                 {
                     id: 'resource-fallback',
                     title: 'Resource hub queue...',
                     summary: 'New tools, references, and links will rotate here.',
                     image: '',
-                    href: '/resources',
+                    href: 'https://curation.abodid.com',
                 },
             ),
         [resources],
@@ -1458,7 +1458,7 @@ const LandingGridPrototype = ({
                         id: `tag-${cleaned}-${index}`,
                         slug: cleaned,
                         label: truncate(cleaned, 28),
-                        href: `/research/obsidian-vault/${encodeURIComponent(cleaned)}`,
+                        href: `/obsidian-vault/${encodeURIComponent(cleaned)}`,
                     };
                 }
 
@@ -1476,7 +1476,7 @@ const LandingGridPrototype = ({
                     slug,
                     label: truncate(label, 28),
                     href:
-                        tag?.href || `/research/obsidian-vault/${encodeURIComponent(slug)}`,
+                        tag?.href || `/obsidian-vault/${encodeURIComponent(slug)}`,
                 };
             })
             .filter(Boolean);
@@ -1488,31 +1488,31 @@ const LandingGridPrototype = ({
                     id: 'tag-memory-fallback',
                     slug: 'memory',
                     label: 'Memory',
-                    href: '/research/obsidian-vault/memory',
+                    href: '/obsidian-vault/memory',
                 },
                 {
                     id: 'tag-archive-fallback',
                     slug: 'archive',
                     label: 'Archive',
-                    href: '/research/obsidian-vault/archive',
+                    href: '/obsidian-vault/archive',
                 },
                 {
                     id: 'tag-story-fallback',
                     slug: 'story',
                     label: 'Story',
-                    href: '/research/obsidian-vault/story',
+                    href: '/obsidian-vault/story',
                 },
                 {
                     id: 'tag-identity-fallback',
                     slug: 'identity',
                     label: 'Identity',
-                    href: '/research/obsidian-vault/identity',
+                    href: '/obsidian-vault/identity',
                 },
                 {
                     id: 'tag-ritual-fallback',
                     slug: 'ritual',
                     label: 'Ritual',
-                    href: '/research/obsidian-vault/ritual',
+                    href: '/obsidian-vault/ritual',
                 },
             ];
     }, [obsidianTags]);

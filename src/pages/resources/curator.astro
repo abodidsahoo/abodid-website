@@ -1,12 +1,11 @@
 ---
 export const prerender = false;
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import CuratorDashboard from "../../components/resources/CuratorDashboard";
+import ResourceAdminPanel from "../../components/resources/ResourceAdminPanel";
 import "../../styles/resources.css";
-
-const title = "Curator Dashboard";
+import "../../styles/resources-editorial.css";
 ---
 
-<BaseLayout title={title}>
-    <CuratorDashboard client:load />
+<BaseLayout title="Curation Admin" noindex={true} fullWidth={true} showGlobalGrid={false} bodyClass="resources-editorial-page" navigationVariant="next">
+  <ResourceAdminPanel client:only="react" view="dashboard" />
 </BaseLayout>

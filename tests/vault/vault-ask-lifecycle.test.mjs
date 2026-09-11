@@ -36,6 +36,7 @@ class Element extends EventTarget {
     };
   }
   setAttribute(name, value) { this.attributes.set(name, value); }
+  querySelector() { return null; }
   querySelectorAll() { return []; }
   replaceChildren(...children) { this.children = children; }
   appendChild(child) { this.children.push(child); }
@@ -54,7 +55,7 @@ function createRoot() {
   return root;
 }
 
-function setup({ url = "http://localhost/research/obsidian-vault", fetchImpl, blockStorage = false } = {}) {
+function setup({ url = "http://localhost/obsidian-vault", fetchImpl, blockStorage = false } = {}) {
   let root = createRoot();
   const document = new EventTarget();
   document.querySelectorAll = () => root ? [root] : [];
@@ -87,6 +88,8 @@ function setup({ url = "http://localhost/research/obsidian-vault", fetchImpl, bl
     URLSearchParams,
     AbortController: TestAbortController,
     Error,
+    setInterval: () => 1,
+    clearInterval: () => {},
     NodeFilter: { SHOW_TEXT: 4 },
     marked: { parse: (text) => text },
     sessionStorage: {
@@ -105,7 +108,7 @@ function setup({ url = "http://localhost/research/obsidian-vault", fetchImpl, bl
   return {
     document, window, calls,
     get root() { return root; },
-    navigate(nextRoot, nextUrl = "http://localhost/research/obsidian-vault") {
+    navigate(nextRoot, nextUrl = "http://localhost/obsidian-vault") {
       document.dispatchEvent(new Event("astro:before-swap"));
       root = nextRoot;
       window.location = new URL(nextUrl);
@@ -135,7 +138,7 @@ test("initial form is disabled until initialized and mounts only once", async ()
 test("Vault → note → Vault remounts and submits grief via the API, not native GET", async () => {
   const app = setup();
   const oldRoot = app.root;
-  app.navigate(null, "http://localhost/research/obsidian-vault/example-note");
+  app.navigate(null, "http://localhost/obsidian-vault/example-note");
   assert.equal(oldRoot.get("submit").disabled, true);
   assert.equal(oldRoot.dataset.initialized, undefined);
   app.navigate(createRoot());
@@ -155,11 +158,11 @@ test("navigation aborts an in-flight request and ignores any late answer", async
   app.submit();
   app.submit();
   assert.equal(app.calls.length, 1, "duplicate submits are ignored while busy");
-  app.navigate(null, "http://localhost/research/obsidian-vault/example-note");
+  app.navigate(null, "http://localhost/obsidian-vault/example-note");
   assert.equal(app.calls[0][1].signal.aborted, true);
   finish({ ok: true, json: async () => ({ answer: "Late answer", sources: [] }) });
   await setImmediate();
-  assert.equal(app.window.location.pathname, "/research/obsidian-vault/example-note");
+  assert.equal(app.window.location.pathname, "/obsidian-vault/example-note");
   assert.equal(app.window.location.search, "");
 });
 
@@ -173,7 +176,7 @@ test("blocked browser storage does not hide or report a successful answer as fai
 });
 
 test("legacy question URLs restore the draft without automatically spending an API request", () => {
-  const app = setup({ url: "http://localhost/research/obsidian-vault?question=Tell+me+more+about+grief.%0A" });
+  const app = setup({ url: "http://localhost/obsidian-vault?question=Tell+me+more+about+grief.%0A" });
   assert.equal(app.root.get("input").value, "Tell me more about grief.");
   assert.equal(app.window.location.search, "");
   assert.equal(app.calls.length, 0);
@@ -193,7 +196,7 @@ test("returning to a saved search restores the answer without repeating the API 
   app.submit();
   await setImmediate();
   const searchUrl = app.window.location.href;
-  app.navigate(null, "http://localhost/research/obsidian-vault/example-note");
+  app.navigate(null, "http://localhost/obsidian-vault/example-note");
   app.navigate(createRoot(), searchUrl);
   assert.equal(app.root.get("input").value, "Tell me more about grief.");
   assert.equal(app.root.get("result").hidden, false);

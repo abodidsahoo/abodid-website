@@ -1,25 +1,26 @@
 ---
 export const prerender = false;
-import BaseLayout from "../../../layouts/BaseLayout.astro";
-import { getFileContent } from "../../../lib/github";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getFileContent } from "../../lib/github";
 import {
     extractVaultNoteMetadata,
     normalizeWikiLinkTarget,
     stripLegacyVaultMetadata,
-} from "../../../lib/vault-rag.js";
+} from "../../lib/vault-rag.js";
 import {
     findIndexedNotesByWikiLink,
     getIndexedNoteBySlug,
-} from "../../../lib/vault-note-index.js";
+    getRelatedVaultNote,
+} from "../../lib/vault-note-index.js";
 import { marked } from "marked";
-import ShareButtons from "../../../components/ShareButtons.jsx";
+import ShareButtons from "../../components/ShareButtons.jsx";
 import {
     breadcrumbJsonLd,
     personJsonLd,
     seoIdentity,
     vaultNoteJsonLd,
-} from "../../../lib/seoData";
-import "../../../styles/vault-note.css";
+} from "../../lib/seoData";
+import "../../styles/vault-note.css";
 
 const { slug } = Astro.params;
 const fromVaultSearchId = Astro.url.searchParams.get("fromVaultSearch") || "";
@@ -37,7 +38,7 @@ function metadataHref(value: string): string {
         .split("#")[0]
         .replace(/\.md$/i, "")
         .trim();
-    return `/research/obsidian-vault/topic/${encodeURIComponent(target)}`;
+    return `/obsidian-vault/topic/${encodeURIComponent(target)}`;
 }
 
 function formatMetadataDate(value: unknown): string {
@@ -187,12 +188,12 @@ try {
 
     content = content.replace(/!\[\[(.*?)\]\]/g, (match, filename) => {
         const cleanFilename = filename.split("|")[0];
-        return `![](/research/obsidian-vault/assets/${cleanFilename})`;
+        return `![](/obsidian-vault/assets/${cleanFilename})`;
     });
 
     content = content.replace(
         /!\[(.*?)\]\((.*?)(?:07-assets|07%20-%20assets|7%20-%20Assets|7 - Assets)\/(.*?)\)/g,
-        "![$1](/research/obsidian-vault/assets/$3)",
+        "![$1](/obsidian-vault/assets/$3)",
     );
 
     content = content.replace(/\[\[(.*?)\]\]/g, (match, raw) => {
@@ -201,7 +202,7 @@ try {
         const linkText = (parts[1] || parts[0] || "").trim();
         const linkTarget = linkTargetRaw.replace(/\.md$/i, "");
         const isTag = tagSet.has(normalizeWikiLinkTarget(linkTarget));
-        const hrefBase = isTag ? "/research/obsidian-vault/topic/" : "/research/obsidian-vault/";
+        const hrefBase = isTag ? "/obsidian-vault/topic/" : "/obsidian-vault/";
         return `[${linkText}](${hrefBase}${encodeURIComponent(linkTarget)})`;
     });
 
@@ -219,7 +220,7 @@ try {
         ) {
             const parts = href.split("/");
             const filename = parts[parts.length - 1];
-            return `<img src="/research/obsidian-vault/assets/${filename}" alt="${text}" title="${title || ""}" />`;
+            return `<img src="/obsidian-vault/assets/${filename}" alt="${text}" title="${title || ""}" />`;
         }
         return `<img src="${href}" alt="${text}" title="${title || ""}" />`;
     };
@@ -251,22 +252,39 @@ const routeSlug = slug.replace(/\.md$/i, "");
 const displayTitle = title === routeSlug ? title.replace(/-/g, " ") : title;
 const displayTitleFormatted = preventOrphans(displayTitle);
 const currentFilePath = `06-main-notes/${routeSlug}.md`;
-const relatedNoteHref = `/api/vault-related-note?file=${encodeURIComponent(currentFilePath)}${
-    firstTag ? `&tag=${encodeURIComponent(firstTag)}` : ""
-}`;
+
+let relatedNote = null;
+try {
+    relatedNote = await getRelatedVaultNote({
+        slug: routeSlug,
+        tags: [...topicTags, ...noteTypes],
+        firstTag,
+        filePath: currentFilePath,
+    });
+} catch (relatedErr) {
+    console.warn("[vault-note] Server-side related note lookup failed:", relatedErr);
+}
+
+const relatedNoteTitle =
+    relatedNote?.title ||
+    (relatedNote?.slug ? relatedNote.slug.replace(/-/g, " ") : "Explore Another Related Note");
+const relatedNoteHref =
+    relatedNote?.href ||
+    `/api/vault-related-note?file=${encodeURIComponent(currentFilePath)}${
+        firstTag ? `&tag=${encodeURIComponent(firstTag)}` : ""
+    }`;
 
 const finalMetaDescription =
     metaDescription ||
     `Read ${displayTitle}, a note from Abodid Sahoo's public Obsidian vault.`;
-const noteCanonicalUrl = `${seoIdentity.siteUrl}/research/obsidian-vault/${encodeURIComponent(routeSlug)}`;
+const noteCanonicalUrl = `${seoIdentity.siteUrl}/obsidian-vault/${encodeURIComponent(routeSlug)}`;
 
 const structuredData = [
     personJsonLd(),
     breadcrumbJsonLd([
         { name: "Home", path: "/" },
-        { name: "Research", path: "/research" },
-        { name: "Obsidian Vault", path: "/research/obsidian-vault" },
-        { name: displayTitle, path: `/research/obsidian-vault/${encodeURIComponent(routeSlug)}` },
+        { name: "Obsidian Vault", path: "/obsidian-vault" },
+        { name: displayTitle, path: `/obsidian-vault/${encodeURIComponent(routeSlug)}` },
     ]),
     vaultNoteJsonLd({
         title: displayTitle,
@@ -342,7 +360,7 @@ const structuredData = [
                         <a href={relatedNoteHref} class="vault-note-end-action vault-note-end-action--related">
                             <div class="vault-note-end-action__content">
                                 <span class="vault-note-end-action__kicker">Read Related Note</span>
-                                <span class="vault-note-end-action__title">Explore Another Related Note</span>
+                                <span class="vault-note-end-action__title">{relatedNoteTitle}</span>
                             </div>
                             <div class="vault-note-end-action__arrow-circle" aria-hidden="true">
                                 <span>→</span>
@@ -355,14 +373,14 @@ const structuredData = [
                         <button
                             type="button"
                             class="vault-note-nav-btn vault-note-nav-btn--prev"
-                            onclick="if (window.history.length > 1) { window.history.back(); } else { window.location.href = '/research/obsidian-vault'; }"
+                            onclick="if (window.history.length > 1) { window.history.back(); } else { window.location.href = '/obsidian-vault'; }"
                             aria-label="Back to previous page"
                         >
                             <span aria-hidden="true">←</span>
                             <span>Back to previous page</span>
                         </button>
 
-                        <a href="/research/obsidian-vault" class="vault-note-nav-btn vault-note-nav-btn--main">
+                        <a href="/obsidian-vault" class="vault-note-nav-btn vault-note-nav-btn--main">
                             <span>Go to Main Vault</span>
                             <span aria-hidden="true">→</span>
                         </a>
@@ -380,7 +398,18 @@ const structuredData = [
       if (!btn) return;
 
       var rawHref = btn.getAttribute("href");
-      if (!rawHref || !rawHref.includes("/api/vault-related-note")) return;
+      if (!rawHref) return;
+
+      // If it's already a direct note link, prefetch it directly
+      if (!rawHref.includes("/api/vault-related-note")) {
+        if (!document.querySelector('link[rel="prefetch"][href="' + rawHref + '"]')) {
+          var link = document.createElement("link");
+          link.rel = "prefetch";
+          link.href = rawHref;
+          document.head.appendChild(link);
+        }
+        return;
+      }
 
       var fetchUrl = rawHref.includes("json=true")
         ? rawHref
@@ -393,10 +422,6 @@ const structuredData = [
         .then(function (data) {
           if (data && data.href) {
             btn.setAttribute("href", data.href);
-            var kickerEl = btn.querySelector(".vault-note-end-action__kicker");
-            if (kickerEl) {
-              kickerEl.textContent = "Read Related Note";
-            }
             var titleEl = btn.querySelector(".vault-note-end-action__title");
             if (titleEl && data.displayTitle) {
               titleEl.textContent = data.displayTitle;

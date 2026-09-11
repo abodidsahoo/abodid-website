@@ -27,7 +27,7 @@ export default function AdminTrashActions({ resourceId }: Props) {
         const result = await permanentDeleteResource(resourceId);
         if (result.success) {
             alert('Resource permanently deleted.');
-            window.location.href = '/resources';
+            window.location.href = '/';
         } else {
             alert('Failed to delete: ' + result.error);
             setLoading(false);

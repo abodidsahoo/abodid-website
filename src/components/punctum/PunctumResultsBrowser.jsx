@@ -187,7 +187,7 @@ export default function PunctumResultsBrowser({ fallbackImages }) {
                       </button>
                       <a
                         className="punctum-button punctum-button--light"
-                        href={`/research/punctum/results/${item.imageSlug}`}
+                        href={`/lab/punctum/results/${item.imageSlug}`}
                       >
                         See what others noticed
                       </a>
@@ -233,7 +233,7 @@ export default function PunctumResultsBrowser({ fallbackImages }) {
             {images.map((image) => (
               <a
                 className="punctum-gallery-card"
-                href={`/research/punctum/results/${image.slug}`}
+                href={`/lab/punctum/results/${image.slug}`}
                 key={image.id}
                 aria-label={`View ${image.responseCount} ${
                   image.responseCount === 1 ? "mark" : "marks"

@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
+import { curationPath, curationUrl } from '../../../lib/curationRoutes.js';
 
 export const prerender = false;
 
@@ -195,10 +196,9 @@ export const POST: APIRoute = async ({ request }) => {
 
         let emailResult = { sent: false, reason: 'Missing RESEND_API_KEY' };
         if (resendKey) {
-            const baseUrl = new URL(request.url).origin;
-            const dashboardUrl = `${baseUrl}/resources/dashboard`;
-            const hubUrl = `${baseUrl}/resources`;
-            const moodboardUrl = `${baseUrl}/moodboard`;
+            const dashboardUrl = curationUrl(curationPath.dashboard);
+            const hubUrl = curationUrl(curationPath.home);
+            const moodboardUrl = 'https://abodid.com/moodboard';
             const emailContent = buildSubmissionEmail({
                 submitterName,
                 title: safeTitle,

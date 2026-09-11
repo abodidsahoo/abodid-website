@@ -3,7 +3,16 @@ interface Props {
   showNavigation?: boolean;
 }
 
-const { showNavigation = true } = Astro.props;
+import { isCurationHostname } from "../lib/curationRoutes.js";
+
+const { showNavigation: requestedNavigation = true } = Astro.props;
+const isCuration = isCurationHostname(Astro.url.hostname);
+const showNavigation = requestedNavigation && !isCuration;
+const brandHref = isCuration ? "/" : "/";
+const brandLabel = isCuration ? "curation.abodid.com" : "abodid.com";
+const privacyHref = isCuration ? "https://abodid.com/privacy" : "/privacy";
+const sitemapHref = isCuration ? "/sitemap.xml" : "/sitemap";
+const architectureHref = isCuration ? "https://abodid.com/architecture" : "/architecture";
 ---
 
 <footer
@@ -32,11 +41,11 @@ const { showNavigation = true } = Astro.props;
         <span class="story-footer__index">02</span>
       </div>
       <nav aria-label="Curation links">
-        <a href="/resources">Resource Hub <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+        <a href="https://curation.abodid.com">Curation by Abodid <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
         <a href="/moodboard">Visual Moodboard <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
         <a href="/xr-showcase">XR Showcase <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
         <a href="/curated-videos">Must Watch Videos <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
-        <a href="/research/obsidian-vault">Obsidian Vault <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+        <a href="/obsidian-vault">Obsidian Vault <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
       </nav>
     </div>
 
@@ -71,7 +80,7 @@ const { showNavigation = true } = Astro.props;
 
   <div class="story-footer__bottom-card">
     <div class="story-footer__brand-group">
-      <a class="story-footer__brand" href="/" aria-label="Abodid Sahoo homepage">abodid.com</a>
+      <a class="story-footer__brand" href={brandHref} aria-label={isCuration ? "Curation by Abodid homepage" : "Abodid Sahoo homepage"}>{brandLabel}</a>
       <span class="story-footer__copyright">© {new Date().getFullYear()} Abodid Sahoo. All rights reserved.</span>
     </div>
 
@@ -83,11 +92,11 @@ const { showNavigation = true } = Astro.props;
     </div>
 
     <div class="story-footer__legal">
-      <a href="/privacy">Privacy Policy</a>
+      <a href={privacyHref}>Privacy Policy</a>
       <span aria-hidden="true">·</span>
-      <a href="/sitemap">Sitemap</a>
+      <a href={sitemapHref}>Sitemap</a>
       <span aria-hidden="true">·</span>
-      <a href="/architecture">Architecture</a>
+      <a href={architectureHref}>Architecture</a>
     </div>
   </div>
 </footer>

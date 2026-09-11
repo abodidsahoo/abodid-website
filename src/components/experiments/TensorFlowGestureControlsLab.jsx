@@ -7,7 +7,7 @@ const TensorFlowGestureControlsLab = ({ images = [] }) => {
             images={images}
             backLinkHref="/research/tensorflow-gesture-controls"
             backLinkLabel="Back to Project Details"
-            secondaryLinkHref="/research/gesture-image-preview"
+            secondaryLinkHref="/lab/image-flick"
             secondaryLinkLabel="Check the similar experiment done with MediaPipe"
             kicker="TensorFlow.js Prototype"
             title="TensorFlow Gesture Controls"

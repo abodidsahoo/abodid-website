@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import matter from "gray-matter";
 import { createClient } from "@supabase/supabase-js";
+import { vaultNoteHref } from "./vault-paths.js";
 
 export const DEFAULT_EMBEDDING_MODEL = "openai/text-embedding-3-small";
 export const DEFAULT_EMBEDDING_DIMENSIONS = 1536;
@@ -168,7 +169,7 @@ export function sourceHrefForFilePath(filePath) {
   const rawSlug = filename.replace(/\.md$/i, "");
   if (!rawSlug) return null;
   const cleanSlug = rawSlug.replace(/\?+$/, "");
-  return `/research/obsidian-vault/${encodeURIComponent(cleanSlug)}`;
+  return vaultNoteHref(cleanSlug);
 }
 
 export function normalizeTags(...tagInputs) {

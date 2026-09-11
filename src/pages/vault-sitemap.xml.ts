@@ -1,5 +1,6 @@
 import type { APIRoute } from "astro";
 import { getAllPublicVaultNotes } from "../lib/vault-note-index.js";
+import { vaultNoteHref } from "../lib/vault-paths.js";
 import {
   buildSitemapXml,
   createXmlResponse,
@@ -16,7 +17,7 @@ export const GET: APIRoute = async ({ site }) => {
   const entries: SitemapEntry[] = notes.map((note) => ({
     url: formatCanonicalUrl(
       base,
-      `/research/obsidian-vault/${encodeURIComponent(note.slug)}`,
+      vaultNoteHref(note.slug),
     ),
     lastmod: note.updated_at,
   }));

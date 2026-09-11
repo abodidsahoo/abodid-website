@@ -17,7 +17,7 @@ export default function SavedResourceList() {
 
             if (!user) {
                 // Not logged in
-                window.location.href = '/login?redirect=/resources/saved';
+                window.location.href = '/login?redirect=%2Fsaved';
                 return;
             }
             setUser(user);
@@ -50,7 +50,7 @@ export default function SavedResourceList() {
                 <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>
                     Browse the hub, open any resource, then tap Save to keep it for later.
                 </p>
-                <a href="/resources" className="hub-btn-primary">Browse Hub</a>
+                <a href="/" className="hub-btn-primary">Browse Curation</a>
                 {/* Internal style for button since we are in React and might not have global css scope for this class if valid, but assuming it exists or inline it */}
                 <style>{`
                     .hub-btn-primary {

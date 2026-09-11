@@ -8,6 +8,7 @@ import {
     getApprovedResources,
     getBookmarkedResources,
 } from "../../../lib/resources/db";
+import { curationPath, curationUrl } from "../../../lib/curationRoutes.js";
 import "../../../styles/resources.css";
 
 const { username } = Astro.params;
@@ -33,7 +34,7 @@ const title = `${profile.full_name || profile.username}'s Profile`;
 const description = `Curated resources by ${profile.full_name || profile.username}`;
 ---
 
-<BaseLayout title={title} description={description}>
+<BaseLayout title={title} description={description} canonicalUrl={curationUrl(curationPath.curator(username))}>
     <header class="profile-header">
         <div class="avatar-container">
             {

@@ -8,9 +8,9 @@ const {
 } = Astro.props;
 
 const punctumPath = Astro.url.pathname.replace(/\/+$/, "");
-const initialProgress = punctumPath.startsWith("/research/punctum/results")
+const initialProgress = punctumPath.startsWith("/lab/punctum/results")
   ? 1
-  : punctumPath === "/research/punctum/experiment"
+  : punctumPath === "/lab/punctum/experiment"
     ? 0.05
     : 0.025;
 ---
@@ -47,14 +47,14 @@ const initialProgress = punctumPath.startsWith("/research/punctum/results")
 
   <div class:list={["punctum-site", lockViewport && "is-viewport-locked"]}>
     <header class="punctum-nav">
-      <a class="punctum-wordmark" href="/research/punctum" aria-label="Punctum home">
+      <a class="punctum-wordmark" href="/lab/punctum" aria-label="Punctum home">
         <span class="punctum-wordmark__mark" aria-hidden="true"></span>
         Punctum
       </a>
       <nav aria-label="Punctum">
-        <a href="/research/punctum/experiment">Participate</a>
-        <a href="/research/punctum/results">Results</a>
-        <a href="/research/punctum/about">About</a>
+        <a href="/lab/punctum/experiment">Participate</a>
+        <a href="/lab/punctum/results">Results</a>
+        <a href="/lab/punctum/about">About</a>
         <button
           class="punctum-theme-toggle"
           type="button"

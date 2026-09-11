@@ -338,7 +338,7 @@ function ConsentStep({ form, setForm, onBack, onContinue }) {
             Back
           </button>
           <div className="punctum-onboarding__action-group">
-            <a href="/research/punctum/about">Privacy</a>
+            <a href="/lab/punctum/about">Privacy</a>
             <button
               className="punctum-button punctum-button--yellow"
               type="submit"
@@ -1181,8 +1181,8 @@ function CompletionStep({ sessionId }) {
               className="punctum-button punctum-button--yellow"
               href={
                 sessionId
-                  ? `/research/punctum/results?session=${encodeURIComponent(sessionId)}`
-                  : "/research/punctum/results"
+                  ? `/lab/punctum/results?session=${encodeURIComponent(sessionId)}`
+                  : "/lab/punctum/results"
               }
             >
               Reimagine your Punctum

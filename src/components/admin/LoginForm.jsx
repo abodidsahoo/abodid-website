@@ -44,7 +44,7 @@ export default function LoginForm() {
     if (profile?.role === 'admin') {
       window.location.assign("/admin/dashboard");
     } else {
-      window.location.assign("/resources/dashboard");
+      window.location.assign("https://curation.abodid.com/dashboard");
     }
   };
 

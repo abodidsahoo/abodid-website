@@ -6,7 +6,7 @@ export default function AdminEditButton({ resourceId, isAdmin }: { resourceId: s
 
     return (
         <a
-            href={`/resources/${resourceId}/edit`}
+            href={`/resource/${resourceId}/edit`}
             className="detail-back-btn detail-edit-btn"
         >
             <Pencil size={16} strokeWidth={2} aria-hidden="true" />

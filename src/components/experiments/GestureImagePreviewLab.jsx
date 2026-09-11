@@ -5,10 +5,10 @@ const GestureImagePreviewLab = ({ images = [] }) => {
     return (
         <ViewportGestureCardStack
             images={images}
-            backLinkHref="/research/gesture-image-preview"
-            backLinkLabel="Back to Project Details"
-            kicker="Interactive Prototype"
-            title="Gesture Photo Stack"
+            backLinkHref="/lab"
+            backLinkLabel="Back to Lab"
+            kicker="Gesture Photo Stack"
+            title="Image Flick"
             description="Photographs emerge through cursor movement, hand tracking, deliberate pinch-based resizing, and optional voice input."
         />
     );

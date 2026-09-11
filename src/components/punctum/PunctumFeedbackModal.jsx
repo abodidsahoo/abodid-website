@@ -12,7 +12,7 @@ export default function PunctumFeedbackModal({
   open,
   onClose = () => {},
   sessionId = "",
-  sharePath = "/research/punctum",
+  sharePath = "/lab/punctum",
   embedded = false,
 }) {
   const closeRef = useRef(null);
@@ -302,7 +302,7 @@ export default function PunctumFeedbackModal({
           <div className="punctum-feedback__participate">
             <h3>Want to leave a rating?</h3>
             <p>Complete the six-image experiment first.</p>
-            <a href="/research/punctum/experiment">Play Punctum</a>
+            <a href="/lab/punctum/experiment">Play Punctum</a>
           </div>
             )}
           </>

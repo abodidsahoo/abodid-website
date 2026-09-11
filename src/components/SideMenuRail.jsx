@@ -9,6 +9,7 @@ const primaryLinks = [
   { href: "/services", label: "Hire Me" },
   { href: "/work", label: "Work" },
   { href: "/research", label: "Research" },
+  { href: "/lab", label: "Lab" },
   { href: "/photography", label: "Photography" },
   { href: "/films", label: "Filmmaking" },
   { href: "/blog", label: "Writing" },
@@ -19,6 +20,7 @@ const mobilePrimaryLinks = [
   { href: "/work", label: "Work" },
   { href: "/about", label: "About" },
   { href: "/research", label: "Research" },
+  { href: "/lab", label: "Lab" },
   { href: "/blog", label: "Writing" },
   { href: "/contact", label: "Contact" },
 ];
@@ -29,11 +31,11 @@ const secondaryGroups = [
   {
     title: "Resources",
     links: [
-      { href: "/resources", label: "Curated Resources" },
+      { href: "https://curation.abodid.com", label: "Curation" },
       { href: "/notepad", label: "Notepad" },
       { href: "/bsa-schedule", label: "BSA Conference" },
       { href: "/moodboard", label: "Visual Moodboard" },
-      { href: "/research/obsidian-vault", label: "Obsidian Vault" },
+      { href: "/obsidian-vault", label: "Obsidian Vault" },
       { href: "/research/second-brain", label: "Second Brain Club" },
     ],
   },

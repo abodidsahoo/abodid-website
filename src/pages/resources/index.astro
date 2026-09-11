@@ -3,6 +3,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import ResourceFeed from "../../components/resources/ResourceFeed";
 import AuthHeader from "../../components/resources/AuthHeader";
 import { getApprovedResources } from "../../lib/resources/db";
+import { curationUrl } from "../../lib/curationRoutes.js";
 import "../../styles/resources.css";
 import "../../styles/resources-editorial.css";
 
@@ -14,21 +15,21 @@ const audience = Astro.url.searchParams.get("audience") || "";
 // Keep the complete library available when a visitor clears a linked filter.
 const resources = await getApprovedResources();
 
-const title = "Resource Hub";
+const title = "Curation by Abodid";
 const description =
-    "Curated collection of tools, articles, and inspiration for creatives.";
+    "Remarkable tools, ideas, references, and creative work—selected with intent by Abodid Sahoo.";
 ---
 
-<BaseLayout title={title} description={description} fullWidth={true} showGlobalGrid={false} bodyClass="resources-editorial-page" navigationVariant="next">
+<BaseLayout title={title} description={description} canonicalUrl={curationUrl("/")} fullWidth={true} showGlobalGrid={false} bodyClass="resources-editorial-page" navigationVariant="next">
   <div class="resources-editorial">
     <header
         class="resources-hero"
     >
         <div class="resources-hero__copy">
-            <h1>Resource Hub</h1>
+            <h1>Curation by Abodid</h1>
             <p class="section-intro">
-                A curated library of tools, inspiration, and knowledge for
-                designers, artists, and creative technologists.
+                Remarkable tools, ideas, references, and creative work—selected
+                with intent for designers, artists, and creative technologists.
             </p>
         </div>
 

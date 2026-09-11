@@ -23,7 +23,7 @@ test("does not alter file or API URLs that have no trailing slash", () => {
 
 test("builds absolute no-slash canonical URLs", () => {
   assert.equal(
-    getCanonicalPageUrl("https://abodid.com", "/research/obsidian-vault/"),
-    "https://abodid.com/research/obsidian-vault",
+    getCanonicalPageUrl("https://abodid.com", "/obsidian-vault/"),
+    "https://abodid.com/obsidian-vault",
   );
 });

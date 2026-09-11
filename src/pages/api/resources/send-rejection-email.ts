@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { Resend } from 'resend';
+import { curationPath, curationUrl } from '../../../lib/curationRoutes.js';
 
 export const prerender = false;
 
@@ -95,9 +96,8 @@ export const POST: APIRoute = async ({ request }) => {
             });
         }
 
-        const baseUrl = new URL(request.url).origin;
-        const dashboardUrl = `${baseUrl}/resources/dashboard`;
-        const hubUrl = `${baseUrl}/resources`;
+        const dashboardUrl = curationUrl(curationPath.dashboard);
+        const hubUrl = curationUrl(curationPath.home);
         const emailContent = buildLegacyRejectionEmail({
             submitterName: safeName,
             resourceTitle: safeTitle,

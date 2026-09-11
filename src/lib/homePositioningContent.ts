@@ -66,7 +66,7 @@ export const flagshipProjects: PositioningProject[] = [
     metric: "Live participatory experiment",
     coverUrl: "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/research/covers/1769636977430_msh94w5fk.jpg",
     coverAlt: "Punctum interactive experiment interface",
-    href: "/research/punctum",
+    href: "/lab/punctum",
     featured: true,
   },
   {
@@ -103,7 +103,7 @@ export const flagshipProjects: PositioningProject[] = [
     metric: "Zero-touch spatial browsing",
     coverUrl: GESTURE_CONTROL_HERO_GIF_URL,
     coverAlt: "Gesture control interface prototype",
-    href: "/research/gesture-image-preview",
+    href: "/lab/image-flick",
     video: GESTURE_CONTROL_VIDEO_URL,
   },
   {
@@ -140,9 +140,9 @@ export const studioEngagements = [
     scope: "Narrative architecture, UX/UI design, interactive development, deployment.",
     deliverable: "Responsive web experience / working experimental prototype.",
     examples: [
-      { label: "Punctum Visual Attention Lab", href: "/research/punctum" },
-      { label: "Obsidian Knowledge Vault", href: "/research/obsidian-vault" },
-      { label: "Gesture Navigation Stack", href: "/research/gesture-image-preview" },
+      { label: "Punctum Visual Attention Lab", href: "/lab/punctum" },
+      { label: "Obsidian Knowledge Vault", href: "/obsidian-vault" },
+      { label: "Gesture Navigation Stack", href: "/lab/image-flick" },
     ],
     href: "#enquiry",
   },

@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
+import { curationPath, curationUrl } from '../../../lib/curationRoutes.js';
 
 export const prerender = false;
 
@@ -244,14 +245,13 @@ export const POST: APIRoute = async ({ request }) => {
         if (curatorNote && submitterEmail && resendKey) {
             try {
                 const resend = new Resend(resendKey);
-                const baseUrl = new URL(request.url).origin;
                 const emailContent = buildApprovalEmail({
                     submitterName: resource.submitter_profile?.full_name || resource.submitter_profile?.username || 'there',
                     resourceTitle: resource.title || 'your resource',
                     curatorNote,
-                    dashboardUrl: `${baseUrl}/resources/dashboard`,
+                    dashboardUrl: curationUrl(curationPath.dashboard),
                     resourceUrl: toSafeHttpUrl(resource.url),
-                    hubUrl: `${baseUrl}/resources`
+                    hubUrl: curationUrl(curationPath.home)
                 });
 
                 await resend.emails.send({

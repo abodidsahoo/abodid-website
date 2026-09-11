@@ -1,10 +1,10 @@
 ---
 export const prerender = false;
 
-import BaseLayout from "../../../layouts/BaseLayout.astro";
-import InlineInquiryForm from "../../../components/InlineInquiryForm.astro";
-import VaultAskSection from "../../../components/VaultAskSection.astro";
-import { getAllVaultTopics, getAllPublicVaultNotes } from "../../../lib/vault-note-index.js";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import InlineInquiryForm from "../../components/InlineInquiryForm.astro";
+import VaultAskSection from "../../components/VaultAskSection.astro";
+import { getAllVaultTopics, getAllPublicVaultNotes } from "../../lib/vault-note-index.js";
 
 let error = "";
 let allNotes = [];
@@ -80,7 +80,7 @@ const pageDescription = "Ask questions across Abodid Sahoo's public Obsidian not
                         </div>
                     </div>
                     <div class="vault-directory-link-banner">
-                        <a href="/research/obsidian-vault/directory" class="vault-directory-cta">
+                        <a href="/obsidian-vault/directory" class="vault-directory-cta">
                             <span>Browse complete directory of all {allNotes.length} notes</span>
                             <span aria-hidden="true">→</span>
                         </a>

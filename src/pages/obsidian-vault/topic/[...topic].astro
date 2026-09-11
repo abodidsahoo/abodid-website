@@ -1,14 +1,14 @@
 ---
 export const prerender = false;
 
-import BaseLayout from "../../../../layouts/BaseLayout.astro";
-import { findNotesReferencing } from "../../../../lib/vault.js";
-import { findIndexedNotesByWikiLink } from "../../../../lib/vault-note-index.js";
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import { findNotesReferencing } from "../../../lib/vault.js";
+import { findIndexedNotesByWikiLink } from "../../../lib/vault-note-index.js";
 
 const { topic } = Astro.params;
 
 if (!topic) {
-    return Astro.redirect("/research/obsidian-vault");
+    return Astro.redirect("/obsidian-vault");
 }
 
 const activeTopicSlug = decodeURIComponent(topic).replace(/\.md$/i, "");
@@ -39,7 +39,7 @@ try {
             name: note.name,
             title: slug.replace(/-/g, " "),
             slug,
-            href: `/research/obsidian-vault/${encodeURIComponent(slug)}`,
+            href: `/obsidian-vault/${encodeURIComponent(slug)}`,
         };
     });
 }
@@ -75,7 +75,7 @@ const robotsDirective = isIndexable ? undefined : "noindex, follow";
                             type="button"
                             class="vault-topic-back-btn"
                             data-vault-topic-top-back
-                            onclick="if (window.history.length > 1) { window.history.back(); } else { window.location.href = '/research/obsidian-vault'; }"
+                            onclick="if (window.history.length > 1) { window.history.back(); } else { window.location.href = '/obsidian-vault'; }"
                             aria-label="Go back to previous page"
                             hidden
                         >
@@ -111,14 +111,14 @@ const robotsDirective = isIndexable ? undefined : "noindex, follow";
                     <button
                         type="button"
                         class="vault-topic-nav-btn vault-topic-nav-btn--prev"
-                        onclick="if (window.history.length > 1) { window.history.back(); } else { window.location.href = '/research/obsidian-vault'; }"
+                        onclick="if (window.history.length > 1) { window.history.back(); } else { window.location.href = '/obsidian-vault'; }"
                         aria-label="Back to previous page"
                     >
                         <span aria-hidden="true">←</span>
                         <span>Back to previous page</span>
                     </button>
 
-                    <a href="/research/obsidian-vault" class="vault-topic-nav-btn vault-topic-nav-btn--main">
+                    <a href="/obsidian-vault" class="vault-topic-nav-btn vault-topic-nav-btn--main">
                         <span>Go to Main Vault</span>
                         <span aria-hidden="true">→</span>
                     </a>

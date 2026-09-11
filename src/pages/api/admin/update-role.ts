@@ -1,45 +1,34 @@
 export const prerender = false;
 
 import type { APIRoute } from 'astro';
-import { updateUserRole } from '../../../lib/resources/admin';
+import { authorizeAdminRequest, jsonResponse } from '../../../lib/admin/serverAuth';
 
-export const POST: APIRoute = async ({ request, locals }) => {
+export const POST: APIRoute = async ({ request }) => {
     try {
-        // Check if user is authenticated and admin
-        const session = await locals.runtime.env.supabase.auth.getSession();
-        if (!session?.data?.session) {
-            return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), {
-                status: 401,
-                headers: { 'Content-Type': 'application/json' }
-            });
-        }
+        const authorization = await authorizeAdminRequest(request);
+        if (!authorization.ok) return authorization.response;
 
         const { userId, role } = await request.json();
 
         if (!userId || !role) {
-            return new Response(JSON.stringify({ success: false, error: 'Missing parameters' }), {
-                status: 400,
-                headers: { 'Content-Type': 'application/json' }
-            });
+            return jsonResponse({ success: false, error: 'Missing parameters' }, 400);
         }
 
         if (!['user', 'curator', 'admin'].includes(role)) {
-            return new Response(JSON.stringify({ success: false, error: 'Invalid role' }), {
-                status: 400,
-                headers: { 'Content-Type': 'application/json' }
-            });
+            return jsonResponse({ success: false, error: 'Invalid role' }, 400);
         }
 
-        const result = await updateUserRole(userId, role);
+        if (userId === authorization.user.id && role !== 'admin') {
+            return jsonResponse({ success: false, error: 'You cannot remove your own admin access.' }, 400);
+        }
 
-        return new Response(JSON.stringify(result), {
-            status: result.success ? 200 : 400,
-            headers: { 'Content-Type': 'application/json' }
-        });
+        const { error } = await authorization.supabase
+            .from('profiles')
+            .update({ role, updated_at: new Date().toISOString() })
+            .eq('id', userId);
+        if (error) return jsonResponse({ success: false, error: error.message }, 400);
+        return jsonResponse({ success: true });
     } catch (error) {
-        return new Response(JSON.stringify({ success: false, error: 'Server error' }), {
-            status: 500,
-            headers: { 'Content-Type': 'application/json' }
-        });
+        return jsonResponse({ success: false, error: 'Server error' }, 500);
     }
 };

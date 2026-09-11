@@ -2,7 +2,7 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import "../styles/resources-editorial.css";
 
-const title = "Login | Resource Hub";
+const title = "Login | Curation by Abodid";
 ---
 
 <BaseLayout title={title}>
@@ -10,8 +10,8 @@ const title = "Login | Resource Hub";
         <div class="resources-editorial">
             <div class="login-editorial-container">
                 <div class="login-editorial-nav">
-                    <a href="/resources" class="detail-back-btn">
-                        ← Back to Resources
+                    <a href="/" class="detail-back-btn">
+                        ← Back to Curation
                     </a>
                 </div>
 
@@ -365,6 +365,7 @@ const title = "Login | Resource Hub";
 
 <script>
     import { supabase } from "../lib/supabaseClient";
+    import { safeCurationReturnTo } from "../lib/curationRoutes.js";
 
     type AuthMode = "login" | "signup" | "forgot" | "reset";
 
@@ -850,7 +851,8 @@ const title = "Login | Resource Hub";
             }
 
             const params = new URLSearchParams(window.location.search);
-            const redirect = params.get("redirect");
+            const rawRedirect = params.get("redirect");
+            const redirect = rawRedirect ? safeCurationReturnTo(rawRedirect) : null;
             const emailRedirectTo = `${window.location.origin}/login${redirect ? `?redirect=${encodeURIComponent(redirect)}` : ""}`;
 
             if (authMode === "signup") {
@@ -932,18 +934,19 @@ const title = "Login | Resource Hub";
                 }
 
                 const params = new URLSearchParams(window.location.search);
-                const redirect = params.get("redirect");
+                const rawRedirect = params.get("redirect");
+                const redirect = rawRedirect ? safeCurationReturnTo(rawRedirect) : null;
 
                 if (redirect) {
                     window.location.assign(redirect);
                 } else if (profile?.role === "admin") {
                     // Admins logging in via main login should probably go to Admin Dashboard,
                     // or Unified Dashboard? Let's send them to Unified for now as it has a link to Admin.
-                    window.location.assign("/resources/dashboard");
+                    window.location.assign("/dashboard");
                 } else if (profile?.role === "curator") {
-                    window.location.assign("/resources/dashboard");
+                    window.location.assign("/dashboard");
                 } else {
-                    window.location.assign("/resources/dashboard");
+                    window.location.assign("/dashboard");
                 }
             }
         } catch (error: any) {
@@ -1047,7 +1050,8 @@ const title = "Login | Resource Hub";
         const params = new URLSearchParams(window.location.search);
         const mode = params.get("mode");
         const link = params.get("link");
-        const redirect = params.get("redirect");
+        const rawRedirect = params.get("redirect");
+        const redirect = rawRedirect ? safeCurationReturnTo(rawRedirect) : null;
         const hashParams = new URLSearchParams(window.location.hash.slice(1));
         const hashType = hashParams.get("type");
 
@@ -1065,7 +1069,7 @@ const title = "Login | Resource Hub";
         if (link === "true" && isAnonymous) {
             isLinking = true;
             // console.log("Upgrading anonymous account...");
-            toggleMode(true);
+            toggleMode("signup");
             if (pageTitle) pageTitle.innerText = "Save Your Progress";
             if (pageSubtitle)
                 pageSubtitle.innerText =

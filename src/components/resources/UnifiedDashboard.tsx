@@ -20,7 +20,7 @@ export default function UnifiedDashboard() {
                 const next = await getResourceViewer();
                 if (!active) return;
                 if (!next) {
-                    window.location.replace('/login?redirect=/resources/dashboard');
+                    window.location.replace('/login?redirect=%2Fdashboard');
                     return;
                 }
                 setViewer(next);
@@ -39,7 +39,7 @@ export default function UnifiedDashboard() {
             if (event === 'SIGNED_OUT') {
                 clearResourcePageData();
                 setViewer(null);
-                window.location.replace('/login?redirect=/resources/dashboard');
+                window.location.replace('/login?redirect=%2Fdashboard');
             } else if (event === 'SIGNED_IN') {
                 setViewer(current => current?.user.id === session?.user.id ? current : null);
                 // Leave the auth callback before making another Supabase call.

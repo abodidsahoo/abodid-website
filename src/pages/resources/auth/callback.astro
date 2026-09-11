@@ -10,7 +10,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     // Handle hash fragment
     supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
-        window.location.href = '/resources';
+        window.location.href = '/dashboard';
       }
     });
   </script>

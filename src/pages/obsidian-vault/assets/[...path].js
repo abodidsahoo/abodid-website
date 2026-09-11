@@ -1,5 +1,5 @@
 
-import { getFileRaw } from '../../../../lib/github';
+import { getFileRaw } from '../../../lib/github';
 
 export const prerender = false;
 

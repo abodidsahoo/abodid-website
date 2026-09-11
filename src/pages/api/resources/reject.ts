@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
+import { curationPath, curationUrl } from '../../../lib/curationRoutes.js';
 
 export const prerender = false;
 
@@ -210,9 +211,8 @@ export const POST: APIRoute = async ({ request }) => {
 
         const { data: userLookup, error: userLookupError } = await supabase.auth.admin.getUserById(resource.submitted_by);
         const submitterEmail = userLookupError ? null : userLookup.user?.email?.trim().toLowerCase();
-        const baseUrl = new URL(request.url).origin;
-        const dashboardUrl = `${baseUrl}/resources/dashboard`;
-        const hubUrl = `${baseUrl}/resources`;
+        const dashboardUrl = curationUrl(curationPath.dashboard);
+        const hubUrl = curationUrl(curationPath.home);
 
         if (rejectionReason && submitterEmail && resendKey) {
             try {

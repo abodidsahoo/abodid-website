@@ -3,6 +3,7 @@ import {
   normalizeWikiLinkTarget,
   sourceHrefForFilePath,
 } from "./vault-rag.js";
+import { vaultNoteHref, vaultTopicHref } from "./vault-paths.js";
 
 const MAX_TAG_RESULTS = 500;
 const NOTE_INDEX_CACHE_TTL_MS = 5 * 60 * 1000;
@@ -149,7 +150,14 @@ export async function getIndexedNoteBySlug(slug) {
   }
 }
 
+let publicNotesCache = null;
+let publicNotesCacheExpiresAt = 0;
+
 export async function getAllPublicVaultNotes() {
+  if (publicNotesCache && publicNotesCacheExpiresAt > Date.now()) {
+    return publicNotesCache;
+  }
+
   const supabase = getSupabaseClient();
   try {
     const { data, error } = await supabase
@@ -161,7 +169,7 @@ export async function getAllPublicVaultNotes() {
       .limit(2000);
 
     if (!error && Array.isArray(data) && data.length > 0) {
-      return data.map((note) => {
+      const notes = data.map((note) => {
         const filename = note.file_path.split("/").pop() || "";
         const rawSlug = note.slug || filename.replace(/\.md$/i, "");
         const cleanSlug = rawSlug.replace(/\?+$/, "");
@@ -169,11 +177,15 @@ export async function getAllPublicVaultNotes() {
           name: filename,
           title: note.note_title || rawSlug.replace(/-/g, " "),
           slug: cleanSlug,
-          href: `/research/obsidian-vault/${encodeURIComponent(cleanSlug)}`,
+          href: vaultNoteHref(cleanSlug),
           updated_at: note.updated_at || note.created_at || null,
           tags: Array.isArray(note.tags) ? note.tags : [],
         };
       });
+
+      publicNotesCache = notes;
+      publicNotesCacheExpiresAt = Date.now() + NOTE_INDEX_CACHE_TTL_MS;
+      return notes;
     }
   } catch (err) {
     console.warn("[vault-notes] Supabase lookup failed, falling back to GitHub:", err);
@@ -183,22 +195,104 @@ export async function getAllPublicVaultNotes() {
   try {
     const { getVaultNotes } = await import("./github.js");
     const files = await getVaultNotes();
-    return (files || []).map((file) => {
+    const notes = (files || []).map((file) => {
       const rawSlug = file.name.replace(/\.md$/i, "");
       const cleanSlug = rawSlug.replace(/\?+$/, "");
       return {
         name: file.name,
         title: rawSlug.replace(/-/g, " "),
         slug: cleanSlug,
-        href: `/research/obsidian-vault/${encodeURIComponent(cleanSlug)}`,
+        href: vaultNoteHref(cleanSlug),
         updated_at: null,
         tags: [],
       };
     });
+
+    if (notes.length > 0) {
+      publicNotesCache = notes;
+      publicNotesCacheExpiresAt = Date.now() + NOTE_INDEX_CACHE_TTL_MS;
+    }
+    return notes;
   } catch (err) {
     console.error("[vault-notes] Fallback to GitHub failed:", err);
     return [];
   }
+}
+
+export async function getRelatedVaultNote({
+  slug = "",
+  tags = [],
+  firstTag = "",
+  filePath = "",
+} = {}) {
+  const currentSlug = String(slug || "")
+    .replace(/\.md$/i, "")
+    .trim()
+    .toLowerCase();
+  const currentPath = String(filePath || "").trim().toLowerCase();
+
+  const candidateTags = Array.isArray(tags)
+    ? tags.map((t) => String(t || "").trim().toLowerCase()).filter(Boolean)
+    : [];
+  if (firstTag && !candidateTags.includes(firstTag.toLowerCase())) {
+    candidateTags.push(firstTag.toLowerCase());
+  }
+
+  const tagSet = new Set(candidateTags);
+  const allNotes = await getAllPublicVaultNotes();
+
+  const otherNotes = allNotes.filter((note) => {
+    const noteSlug = String(note.slug || "").toLowerCase();
+    const noteName = String(note.name || "").toLowerCase();
+    if (noteSlug === currentSlug) return false;
+    if (currentPath && (currentPath.includes(noteSlug) || currentPath.endsWith(noteName))) {
+      return false;
+    }
+    return true;
+  });
+
+  if (!otherNotes.length) return null;
+
+  // Score notes by matching tags
+  if (tagSet.size > 0) {
+    const scoredNotes = [];
+    for (const note of otherNotes) {
+      let overlap = 0;
+      for (const t of note.tags || []) {
+        if (tagSet.has(String(t || "").trim().toLowerCase())) {
+          overlap++;
+        }
+      }
+      if (overlap > 0) {
+        scoredNotes.push({ note, score: overlap });
+      }
+    }
+
+    if (scoredNotes.length > 0) {
+      scoredNotes.sort((a, b) => b.score - a.score);
+      const topScore = scoredNotes[0].score;
+      const topCandidates = scoredNotes
+        .filter((item) => item.score >= Math.max(1, topScore - 1))
+        .map((item) => item.note);
+
+      const chosen = topCandidates[Math.floor(Math.random() * topCandidates.length)];
+      return {
+        title: chosen.title,
+        slug: chosen.slug,
+        href: chosen.href,
+        firstTag: chosen.tags?.[0] || "",
+      };
+    }
+  }
+
+  // Fallback: pick randomly from available public notes
+  const chosen = otherNotes[Math.floor(Math.random() * otherNotes.length)];
+  return {
+    title: chosen.title,
+    slug: chosen.slug,
+    href: chosen.href,
+    firstTag: chosen.tags?.[0] || "",
+  };
 }
 
 export async function getAllVaultTopics() {
@@ -217,7 +311,7 @@ export async function getAllVaultTopics() {
       name,
       slug: name,
       count,
-      href: `/research/obsidian-vault/topic/${encodeURIComponent(name)}`,
+      href: vaultTopicHref(name),
     }))
     .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
 }

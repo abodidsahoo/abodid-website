@@ -1,15 +1,10 @@
 export const prerender = false;
 
-import { getVaultNotes, getFileContent } from "../../lib/github.js";
-import { findNotesReferencing } from "../../lib/vault.js";
+import { getRelatedVaultNote, getIndexedNoteBySlug } from "../../lib/vault-note-index.js";
 import {
-  createSupabaseServiceClient,
-  sourceHrefForFilePath,
-  extractExplicitTags,
-  normalizeWikiLinkTarget,
-} from "../../lib/vault-rag.js";
-import { getIndexedNoteBySlug } from "../../lib/vault-note-index.js";
-import { marked } from "marked";
+  VAULT_BASE_PATH,
+  stripVaultNoteHref,
+} from "../../lib/vault-paths.js";
 
 function cleanFilePath(value) {
   const filePath = String(value || "").trim().slice(0, 400);
@@ -30,102 +25,6 @@ function cleanTag(value) {
     .slice(0, 160);
 }
 
-function isDifferentFile(candidate, currentFilePath) {
-  return (
-    String(candidate || "").toLowerCase() !==
-    String(currentFilePath || "").toLowerCase()
-  );
-}
-
-function pickRandom(items) {
-  if (!items.length) return null;
-  return items[Math.floor(Math.random() * items.length)] || null;
-}
-
-function uniqueNotes(rows, currentFilePath) {
-  const seen = new Set();
-  return (rows || []).filter((row) => {
-    const filePath = row?.file_path || row?.path || "";
-    const key = filePath.toLowerCase();
-    if (!key || seen.has(key) || !isDifferentFile(filePath, currentFilePath)) {
-      return false;
-    }
-    seen.add(key);
-    return true;
-  });
-}
-
-async function findByIndexedTag(supabase, tag, currentFilePath) {
-  if (!tag) return null;
-
-  const { data, error } = await supabase
-    .from("obsidian_chunks")
-    .select("file_path,note_title")
-    .eq("is_public", true)
-    .contains("tags", [tag])
-    .limit(80);
-
-  if (error) throw error;
-  return pickRandom(uniqueNotes(data, currentFilePath));
-}
-
-async function findByVector(supabase, currentFilePath) {
-  const { data: currentRows, error: currentError } = await supabase
-    .from("obsidian_chunks")
-    .select("embedding")
-    .eq("file_path", currentFilePath)
-    .eq("is_public", true)
-    .not("embedding", "is", null)
-    .order("chunk_index", { ascending: true })
-    .limit(1);
-
-  if (currentError) throw currentError;
-  const embedding = currentRows?.[0]?.embedding;
-  if (!embedding) return null;
-
-  const { data, error } = await supabase.rpc("match_obsidian_chunks", {
-    query_embedding: embedding,
-    match_count: 24,
-    match_threshold: 0.08,
-    public_only: true,
-    tag_filter: null,
-    folder_filter: null,
-    file_path_filter: null,
-  });
-
-  if (error) throw error;
-  return uniqueNotes(data, currentFilePath)[0] || null;
-}
-
-async function findByGitHubTag(tag, currentFilePath) {
-  if (!tag) return null;
-  const notes = await findNotesReferencing(tag);
-  const candidates = notes.filter((note) =>
-    isDifferentFile(note.path, currentFilePath),
-  );
-  return pickRandom(candidates);
-}
-
-async function findRandomVaultNote(currentFilePath) {
-  const notes = await getVaultNotes();
-  const candidates = notes.filter((note) => {
-    const filePath = note.path || `${VAULT_PATH_PREFIX}${note.name}`;
-    return isDifferentFile(filePath, currentFilePath);
-  });
-  return pickRandom(candidates);
-}
-
-function hrefForNote(note) {
-  const filePath = note?.file_path || note?.path;
-  if (filePath) return sourceHrefForFilePath(filePath);
-
-  const filename = note?.name || "";
-  const slug = filename.replace(/\.md$/i, "");
-  return slug
-    ? `/research/obsidian-vault/${encodeURIComponent(slug)}`
-    : null;
-}
-
 function redirectTo(href) {
   return new Response(null, {
     status: 302,
@@ -144,70 +43,41 @@ export async function GET({ url }) {
   if (!currentFilePath) {
     return wantsJson
       ? new Response(JSON.stringify({ error: "Invalid file path" }), { status: 400 })
-      : redirectTo("/research/obsidian-vault");
+      : redirectTo(VAULT_BASE_PATH);
   }
 
-  let relatedNote = null;
-  let supabase = null;
+  const rawSlug = currentFilePath.split("/").pop().replace(/\.md$/i, "");
 
+  let tags = firstTag ? [firstTag] : [];
   try {
-    supabase = createSupabaseServiceClient();
-    relatedNote = await findByIndexedTag(supabase, firstTag, currentFilePath);
-  } catch (error) {
-    console.warn("[vault-related-note] Indexed tag lookup unavailable:", error);
-  }
-
-  if (!relatedNote && firstTag) {
-    try {
-      relatedNote = await findByGitHubTag(firstTag, currentFilePath);
-    } catch (error) {
-      console.warn("[vault-related-note] GitHub tag lookup unavailable:", error);
+    const currentNote = await getIndexedNoteBySlug(rawSlug);
+    if (currentNote?.tags?.length) {
+      tags = currentNote.tags;
     }
+  } catch (e) {
+    // Ignore error
   }
 
-  if (!relatedNote && supabase) {
-    try {
-      relatedNote = await findByVector(supabase, currentFilePath);
-    } catch (error) {
-      console.warn("[vault-related-note] Vector lookup unavailable:", error);
-    }
-  }
+  const related = await getRelatedVaultNote({
+    slug: rawSlug,
+    tags,
+    firstTag,
+    filePath: currentFilePath,
+  });
 
-  if (!relatedNote) {
-    try {
-      relatedNote = await findRandomVaultNote(currentFilePath);
-    } catch (error) {
-      console.warn("[vault-related-note] Random fallback unavailable:", error);
-    }
-  }
-
-  const targetHref = hrefForNote(relatedNote) || "/research/obsidian-vault";
+  const targetHref = related?.href || VAULT_BASE_PATH;
+  const displayTitle =
+    related?.title ||
+    (related?.slug ? related.slug.replace(/-/g, " ") : "Explore Another Note");
+  const targetSlug = related?.slug || stripVaultNoteHref(targetHref);
+  const targetFirstTag = related?.firstTag || "";
+  const targetFilePath = targetSlug ? `06-main-notes/${targetSlug}.md` : "";
 
   if (wantsJson) {
-    const slug = decodeURIComponent(
-      targetHref.replace("/research/obsidian-vault/", "").replace(/\/$/, "")
-    );
-
-    let displayTitle = slug.replace(/-/g, " ");
-    let targetFirstTag = "";
-    const targetFilePath = `06-main-notes/${slug}.md`;
-
-    try {
-      const indexedNote = await getIndexedNoteBySlug(slug).catch(() => null);
-      if (indexedNote?.note_title) {
-        displayTitle = indexedNote.note_title;
-      }
-      if (indexedNote?.first_tag) {
-        targetFirstTag = indexedNote.first_tag;
-      }
-    } catch (e) {
-      console.warn("Failed fetching related note details:", e);
-    }
-
     return new Response(
       JSON.stringify({
         href: targetHref,
-        slug,
+        slug: targetSlug,
         displayTitle,
         firstTag: targetFirstTag,
         filePath: targetFilePath,

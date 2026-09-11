@@ -388,8 +388,8 @@ function DrawNewPunctum({
   const canEdit = Boolean(accessToken);
   const sourceResultImage = getPunctumImageById(generation.sourceImageId);
   const sourceResultHref = sourceResultImage
-    ? `/research/punctum/results/${sourceResultImage.slug}`
-    : "/research/punctum/results";
+    ? `/lab/punctum/results/${sourceResultImage.slug}`
+    : "/lab/punctum/results";
 
   useEffect(() => {
     strokeRef.current = [];
@@ -1287,7 +1287,7 @@ export default function PunctumWorldModal({
                       <div className="punctum-world-result__failure-actions">
                         <a
                           className="punctum-button punctum-world-result__failure-cta"
-                          href="/research/punctum/results"
+                          href="/lab/punctum/results"
                         >
                           Explore existing worlds
                           <span className="link-destination-arrow" aria-hidden="true">↗</span>

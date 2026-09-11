@@ -54,7 +54,7 @@ export default function EditResourceForm({ resource }: Props) {
             setSuccess(true);
             // Wait a sec then redirect back to detail view
             setTimeout(() => {
-                window.location.href = `/resources/${resource.id}`;
+                window.location.href = `/resource/${resource.id}`;
             }, 1000);
         } else {
             setError(result.error || 'Update failed.');
@@ -66,7 +66,7 @@ export default function EditResourceForm({ resource }: Props) {
             <header className="resource-edit-header">
                 <div className="resource-edit-heading-row">
                     <span className="resource-edit-eyebrow">Resource hub / Editor</span>
-                    <a href={`/resources/${resource.id}`} className="resource-edit-back">
+                    <a href={`/resource/${resource.id}`} className="resource-edit-back">
                         <ArrowLeft size={16} aria-hidden="true" />
                         <span>Back to resource</span>
                     </a>
@@ -168,7 +168,7 @@ export default function EditResourceForm({ resource }: Props) {
                         <Check size={18} aria-hidden="true" />
                         <span>{loading ? 'Saving…' : 'Save changes'}</span>
                     </button>
-                    <a href={`/resources/${resource.id}`} className="resource-edit-cancel">
+                    <a href={`/resource/${resource.id}`} className="resource-edit-cancel">
                         Cancel
                     </a>
 
@@ -182,7 +182,7 @@ export default function EditResourceForm({ resource }: Props) {
                                 const res = await deleteResource(resource.id);
                                 if (res.success) {
                                     alert('Deleted.');
-                                    window.location.href = '/resources/dashboard'; // Go to dashboard after delete
+                                    window.location.href = '/dashboard'; // Go to dashboard after delete
                                 } else {
                                     alert(res.error || 'Failed to delete');
                                     setLoading(false);

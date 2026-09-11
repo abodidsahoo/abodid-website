@@ -57,7 +57,7 @@ export default function HeroVaultTagsCard({
   heading = "A glimpse into my second brain.",
   cta = "Move cursor to surface vault tags ↗",
   helperText = "",
-  href = "/research/obsidian-vault",
+  href = "/obsidian-vault",
   details = [],
   metricLabel = "",
   statusText = "",

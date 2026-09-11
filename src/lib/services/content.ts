@@ -30,7 +30,7 @@ const mockResearchProjects: Project[] = [
         title: "Polaroid Hub",
         description: "An interactive photo arrangement experiment—handle photographs like physical objects, sequence them on a digital table, and feel how their order changes meaning. A stepping stone for designing photo books.",
         slug: "polaroid-hub",
-        href: "/research/polaroid-hub",
+        href: "/lab/photo-board",
         image: "https://images.unsplash.com/photo-1606857521015-7f9fcf423740?auto=format&fit=crop&q=80&w=1000",
         tags: ["Photography", "Interaction Design", "In Progress"],
         published: true,
@@ -39,7 +39,7 @@ const mockResearchProjects: Project[] = [
         title: "Gesture Photo Stack",
         description: "A research prototype for browsing photographs like a physical stack through cursor movement, hand tracking, pinch-based resizing, and optional voice input.",
         slug: "gesture-image-preview",
-        href: "/research/gesture-image-preview",
+        href: "/lab/image-flick",
         image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=1200",
         video: GESTURE_CONTROL_VIDEO_URL,
         tags: ["Hand Tracking", "Interaction Design", "Research Prototype"],
@@ -159,7 +159,7 @@ export async function getProjects(): Promise<Project[]> {
                 tags: p.tags || [],
                 href:
                     normalizedSlug === 'obsidian-vault'
-                        ? '/research/obsidian-vault'
+                        ? '/obsidian-vault'
                         : `/research/${normalizedSlug}`,
                 link: p.link || p.repo_link,
                 slug: normalizedSlug,

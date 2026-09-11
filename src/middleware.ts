@@ -1,7 +1,14 @@
 import { defineMiddleware } from 'astro:middleware';
-import { createClient } from '@supabase/supabase-js';
 import { normalizePagePath } from './lib/urlNormalization.js';
 import { photographyDestination } from './lib/photography/routing.mjs';
+import { legacyVaultRedirectLocation } from './lib/vault-paths.js';
+import { legacyLabRedirectLocation } from './lib/labRoutes.js';
+import {
+    curationPathToInternalPath,
+    getCurationCanonicalRedirect,
+    getLegacyResourceRedirect,
+    isCurationHostname,
+} from './lib/curationRoutes.js';
 
 const privatePagePatterns = [
     /^\/admin(?:\/|$)/,
@@ -16,7 +23,7 @@ const privatePagePatterns = [
     /^\/feedback\/?$/,
     /^\/paper-renamer\/insights(?:\/|$)/,
     /^\/research\/admin(?:\/|$)/,
-    /^\/research\/obsidian-vault(?:\/|$)/,
+    /^\/obsidian-vault(?:\/|$)/,
     /^\/resources\/(?:admin|auth|curator|dashboard|saved|submit)(?:\/|$)/,
     /^\/resources\/.*\/edit\/?$/,
 ];
@@ -39,6 +46,27 @@ const canCachePublicPage = (context: PublicCacheContext, response: Response) => 
 
 export const onRequest = defineMiddleware(async (context, next) => {
     const requestUrl = new URL(context.request.url);
+    const legacyResourceRedirect = getLegacyResourceRedirect(requestUrl);
+    if (legacyResourceRedirect) {
+        return new Response(null, {
+            status: 308,
+            headers: { Location: legacyResourceRedirect },
+        });
+    }
+    const curationCanonicalRedirect = getCurationCanonicalRedirect(requestUrl);
+    if (curationCanonicalRedirect) {
+        return new Response(null, {
+            status: 308,
+            headers: { Location: curationCanonicalRedirect },
+        });
+    }
+    const labRedirect = legacyLabRedirectLocation(requestUrl);
+    if (labRedirect) {
+        return new Response(null, {
+            status: 308,
+            headers: { Location: labRedirect },
+        });
+    }
     const photographyPath = photographyDestination(requestUrl);
     if (photographyPath) {
         const target = new URL(photographyPath, requestUrl);
@@ -51,6 +79,13 @@ export const onRequest = defineMiddleware(async (context, next) => {
         }
         return response;
     }
+    const vaultRedirect = legacyVaultRedirectLocation(requestUrl);
+    if (vaultRedirect) {
+        return new Response(null, {
+            status: 308,
+            headers: { Location: vaultRedirect },
+        });
+    }
     if (requestUrl.pathname !== '/' && requestUrl.pathname.endsWith('/')) {
         const destination = `${normalizePagePath(requestUrl.pathname)}${requestUrl.search}`;
         return new Response(null, {
@@ -59,13 +94,23 @@ export const onRequest = defineMiddleware(async (context, next) => {
         });
     }
 
-    const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
-    const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+    const curationInternalPath = isCurationHostname(requestUrl.hostname)
+        ? curationPathToInternalPath(requestUrl.pathname)
+        : null;
+    const routedUrl = curationInternalPath
+        ? new URL(`${curationInternalPath}${requestUrl.search}`, requestUrl)
+        : requestUrl;
 
     const nextWithPublicCache = async () => {
-        const response = await next();
+        // Keep browser-visible curation URLs clean while reusing the existing
+        // resource implementation internally.
+        const response = curationInternalPath ? await next(routedUrl) : await next();
 
-        if (canCachePublicPage(context, response)) {
+        if (canCachePublicPage({
+            isPrerendered: context.isPrerendered,
+            request: context.request,
+            url: routedUrl,
+        }, response)) {
             response.headers.set('Cache-Control', 'public, max-age=0, must-revalidate');
             response.headers.set(
                 'Vercel-CDN-Cache-Control',
@@ -75,41 +120,6 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
         return response;
     };
-
-    if (!supabaseUrl || !supabaseAnonKey) {
-        console.error('Missing Supabase credentials in middleware');
-        return nextWithPublicCache();
-    }
-
-    // Protect /resources/curator route (curators and admins only)
-    if (context.url.pathname === '/resources/curator') {
-        const authToken = context.cookies.get('sb-access-token')?.value;
-
-        if (!authToken) {
-            return context.redirect('/login');
-        }
-
-        const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-            auth: { persistSession: false },
-            global: { headers: { Authorization: `Bearer ${authToken}` } }
-        });
-
-        const { data: { session } } = await supabase.auth.getSession();
-
-        if (!session) {
-            return context.redirect('/login');
-        }
-
-        const { data: profile } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', session.user.id)
-            .single();
-
-        if (!profile || (profile.role !== 'curator' && profile.role !== 'admin')) {
-            return context.redirect('/resources');
-        }
-    }
 
     // Only protect /admin routes (except /admin/login)
     // DISABLED: Client-side auth in AdminDashboard.jsx handles this. 

@@ -120,11 +120,18 @@ async function fetchVaultFromGitHub({ includePaths, excludePaths }) {
   const tmpDir = path.resolve(".astro/tmp-vault");
   await fs.rm(tmpDir, { recursive: true, force: true });
   await fs.mkdir(tmpDir, { recursive: true });
-  const tarFile = path.join(tmpDir, "vault.tar.gz");
-  await fs.writeFile(tarFile, buffer);
-  execSync(`tar -xzf "${tarFile}" -C "${tmpDir}" --strip-components=1`);
+  try {
+    const tarFile = path.join(tmpDir, "vault.tar.gz");
+    await fs.writeFile(tarFile, buffer);
+    execSync(`tar -xzf "${tarFile}" -C "${tmpDir}" --strip-components=1`);
 
-  return await walkLocalVault(tmpDir, includePaths, excludePaths);
+    return await walkLocalVault(tmpDir, includePaths, excludePaths);
+  } finally {
+    // The notes are fully loaded into memory above. Leaving the extracted vault
+    // inside `.astro` makes Vercel's file tracer inspect Obsidian filenames (for
+    // example names ending in `?`), which can break an otherwise valid build.
+    await fs.rm(tmpDir, { recursive: true, force: true });
+  }
 }
 
 async function walkLocalVault(rootDir, includePaths, excludePaths) {

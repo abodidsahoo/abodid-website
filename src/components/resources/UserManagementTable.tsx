@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { AdminUser } from '../../lib/resources/admin';
+import { supabase } from '../../lib/supabaseClient';
 
 interface Props {
     initialUsers: AdminUser[];
@@ -24,16 +25,25 @@ export default function UserManagementTable({ initialUsers, currentUserId }: Pro
         setTimeout(() => setMessage(null), 3000);
     };
 
+    const adminRequest = async (path: string, body: Record<string, unknown>) => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.access_token) throw new Error('Your session has expired. Please sign in again.');
+        return fetch(path, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session.access_token}`,
+            },
+            body: JSON.stringify(body),
+        });
+    };
+
     const handleConfirm = async (userId: string, email: string) => {
         if (!confirm(`Confirm ${email}'s account?`)) return;
 
         setLoading(userId);
         try {
-            const res = await fetch('/api/admin/confirm-user', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId })
-            });
+            const res = await adminRequest('/api/admin/confirm-user', { userId });
 
             const data = await res.json();
 
@@ -60,11 +70,7 @@ export default function UserManagementTable({ initialUsers, currentUserId }: Pro
 
         setLoading(userId);
         try {
-            const res = await fetch('/api/admin/update-role', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId, role: newRole })
-            });
+            const res = await adminRequest('/api/admin/update-role', { userId, role: newRole });
 
             const data = await res.json();
 
@@ -92,11 +98,7 @@ export default function UserManagementTable({ initialUsers, currentUserId }: Pro
 
         setLoading(userId);
         try {
-            const res = await fetch('/api/admin/delete-user', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId })
-            });
+            const res = await adminRequest('/api/admin/delete-user', { userId });
 
             const data = await res.json();
 

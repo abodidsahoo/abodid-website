@@ -4,9 +4,9 @@ export const prerender = false;
 const { tag } = Astro.params;
 
 if (!tag) {
-    return Astro.redirect("/research/obsidian-vault", 308);
+    return Astro.redirect("/obsidian-vault", 308);
 }
 
 const cleanTag = decodeURIComponent(tag).replace(/\.md$/i, "").trim();
-return Astro.redirect(`/research/obsidian-vault/topic/${encodeURIComponent(cleanTag)}`, 308);
+return Astro.redirect(`/obsidian-vault/topic/${encodeURIComponent(cleanTag)}`, 308);
 ---

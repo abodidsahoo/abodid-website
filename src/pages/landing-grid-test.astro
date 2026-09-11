@@ -101,7 +101,7 @@ const resources = resourcesRaw.slice(0, 24).map((resource) => ({
                 : "Curated item from resource hub."),
     ),
     image: resource.thumbnail_url || "",
-    href: resource.url || "/resources",
+    href: resource.url || "https://curation.abodid.com",
 }));
 
 const researchProjects = researchRaw
@@ -131,7 +131,7 @@ const visualExperiments = researchRaw
         image: project.image || "",
         href:
             project.href ||
-            (project.slug ? `/research/${project.slug}` : "/research/polaroid-hub"),
+            (project.slug ? `/research/${project.slug}` : "/lab/photo-board"),
     }));
 
 const notes = notesRaw.slice(0, 30).map((note) => {
@@ -139,7 +139,7 @@ const notes = notesRaw.slice(0, 30).map((note) => {
     return {
         title: cleanNoteTitle(note.name || rawName),
         summary: `Vault path: ${note.path || "6 - Main Notes"}`,
-        href: `/research/obsidian-vault/${encodeURIComponent(rawName)}`,
+        href: `/obsidian-vault/${encodeURIComponent(rawName)}`,
     };
 });
 
@@ -154,7 +154,7 @@ const obsidianTags = tagsRaw
         return {
             slug,
             label: cleanNoteTitle(slug),
-            href: `/research/obsidian-vault/${encodeURIComponent(slug)}`,
+            href: `/obsidian-vault/${encodeURIComponent(slug)}`,
         };
     })
     .filter(Boolean)

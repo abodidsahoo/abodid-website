@@ -5,6 +5,7 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
 import { supabase } from "../../../lib/supabaseClient";
 import type { HubResource } from "../../../lib/resources/types";
 import ResourceDetailView from "../../../components/resources/ResourceDetailView";
+import { curationPath, curationUrl } from "../../../lib/curationRoutes.js";
 import "../../../styles/resources.css";
 import "../../../styles/resources-editorial.css";
 
@@ -37,11 +38,12 @@ if (id) {
     }
 }
 
-const title = resource ? `${resource.title} | Resource Hub` : "Resource Hub | Abodid Sahoo";
+const title = resource ? `${resource.title} | Curation by Abodid` : "Curation by Abodid";
 const description = resource?.description || "Curated creative tools & resources.";
+const canonicalUrl = curationUrl(curationPath.resource(id || ""));
 ---
 
-<BaseLayout title={title} description={description} fullWidth={true} showGlobalGrid={false} bodyClass="resources-editorial-page" navigationVariant="next">
+<BaseLayout title={title} description={description} canonicalUrl={canonicalUrl} fullWidth={true} showGlobalGrid={false} bodyClass="resources-editorial-page" navigationVariant="next">
     <ResourceDetailView client:load initialResource={resource} resourceId={id as string} />
 </BaseLayout>
 

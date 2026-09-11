@@ -1,4 +1,5 @@
 import { getCanonicalPageUrl } from "./urlNormalization.js";
+import { VAULT_BASE_PATH } from "./vault-paths.js";
 
 const SITE_URL = "https://abodid.com";
 const PERSON_ID = `${SITE_URL}/#abodid-sahoo`;
@@ -267,7 +268,7 @@ export const vaultNoteJsonLd = ({
     isPartOf: {
         "@type": "Collection",
         name: "Obsidian Vault",
-        url: siteUrlForPath("/research/obsidian-vault"),
+        url: siteUrlForPath(VAULT_BASE_PATH),
     },
 });
 

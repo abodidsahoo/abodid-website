@@ -77,7 +77,7 @@ test("entity-graph: vaultNoteJsonLd associates notes with canonical author and v
   const note = vaultNoteJsonLd({
     title: "Second Brain Architecture",
     description: "Principles for maintaining interconnected personal knowledge.",
-    url: "https://abodid.com/research/obsidian-vault/second-brain-architecture",
+    url: "https://abodid.com/obsidian-vault/second-brain-architecture",
     dateModified: "2026-08-20T10:00:00Z",
   });
 
@@ -86,7 +86,7 @@ test("entity-graph: vaultNoteJsonLd associates notes with canonical author and v
   assert.equal(note.author["@id"], seoIdentity.personId);
   assert.equal(note.dateModified, "2026-08-20T10:00:00Z");
   assert.equal(note.isPartOf["@type"], "Collection");
-  assert.equal(note.isPartOf.url, "https://abodid.com/research/obsidian-vault");
+  assert.equal(note.isPartOf.url, "https://abodid.com/obsidian-vault");
 });
 
 test("entity-graph: creativeWorkJsonLd associates projects with canonical creator", () => {

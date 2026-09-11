@@ -95,7 +95,7 @@ export default function ResourceDetailView({ initialResource, resourceId }: Prop
                     <p className="submit-subtitle" style={{ marginBottom: '24px' }}>
                         The resource you are looking for does not exist or may have been removed.
                     </p>
-                    <a href="/resources" className="detail-back-btn">
+                    <a href="/" className="detail-back-btn">
                         &larr; Back to Resource Hub
                     </a>
                 </div>
@@ -113,10 +113,10 @@ export default function ResourceDetailView({ initialResource, resourceId }: Prop
                         This resource is currently pending curator review. If you are a curator or admin, please log in to access this resource.
                     </p>
                     <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                        <a href={`/login?redirect=/resources/${resourceId}`} className="detail-cta-primary">
+                        <a href={`/login?redirect=${encodeURIComponent(`/resource/${resourceId}`)}`} className="detail-cta-primary">
                             Log In as Curator ↗
                         </a>
-                        <a href="/resources" className="detail-cta-secondary">
+                        <a href="/" className="detail-cta-secondary">
                             &larr; Return to Hub
                         </a>
                     </div>
@@ -163,12 +163,12 @@ export default function ResourceDetailView({ initialResource, resourceId }: Prop
 
                 {/* Navigation Bar */}
                 <div className="detail-navigation">
-                    <a href={isStaff ? "/resources/dashboard" : "/resources"} className="detail-back-btn">
+                    <a href={isStaff ? "/dashboard" : "/"} className="detail-back-btn">
                         &larr; Back to {isStaff ? "Dashboard" : "Resources"}
                     </a>
 
                     {role === 'admin' && (
-                        <a href={`/resources/${resource.id}/edit`} className="detail-back-btn detail-edit-btn">
+                        <a href={`/resource/${resource.id}/edit`} className="detail-back-btn detail-edit-btn">
                             <Pencil size={16} strokeWidth={2} aria-hidden="true" />
                             <span>Edit Resource</span>
                         </a>

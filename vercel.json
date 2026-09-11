@@ -1,6 +1,78 @@
 {
   "trailingSlash": false,
+  "redirects": [
+    {
+      "source": "/punctum",
+      "destination": "/lab/punctum",
+      "permanent": true
+    },
+    {
+      "source": "/punctum/:path*",
+      "destination": "/lab/punctum/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/research/lab",
+      "destination": "/lab",
+      "permanent": true
+    },
+    {
+      "source": "/research/punctum",
+      "destination": "/lab/punctum",
+      "permanent": true
+    },
+    {
+      "source": "/research/punctum/:path*",
+      "destination": "/lab/punctum/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/research/gesture-image-preview",
+      "destination": "/lab/image-flick",
+      "permanent": true
+    },
+    {
+      "source": "/research/gesture-image-preview/:path*",
+      "destination": "/lab/image-flick",
+      "permanent": true
+    },
+    {
+      "source": "/research/polaroid-hub",
+      "destination": "/lab/photo-board",
+      "permanent": true
+    },
+    {
+      "source": "/research/polaroid-hub/:path*",
+      "destination": "/lab/photo-board",
+      "permanent": true
+    },
+    {
+      "source": "/research/obsidian-vault/tag/:path*",
+      "destination": "/obsidian-vault/topic/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/research/obsidian-vault",
+      "destination": "/obsidian-vault",
+      "permanent": true
+    },
+    {
+      "source": "/research/obsidian-vault/:path*",
+      "destination": "/obsidian-vault/:path*",
+      "permanent": true
+    }
+  ],
   "rewrites": [
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "lab.abodid.com"
+        }
+      ],
+      "destination": "/lab"
+    },
     {
       "source": "/",
       "has": [

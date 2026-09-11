@@ -624,7 +624,7 @@ export default function PunctumResultDetail({ image }) {
     >
       <header className="punctum-result__header">
         <div className="punctum-result__heading">
-          <a className="punctum-result__back" href="/research/punctum/results">
+          <a className="punctum-result__back" href="/lab/punctum/results">
             ← All results
           </a>
         </div>
@@ -836,7 +836,7 @@ export default function PunctumResultDetail({ image }) {
         <div className="punctum-result-end__actions">
           <a
             className="punctum-button punctum-button--yellow"
-            href="/research/punctum/experiment"
+            href="/lab/punctum/experiment"
           >
             Play this again
           </a>
@@ -854,7 +854,7 @@ export default function PunctumResultDetail({ image }) {
         open={feedbackOpen}
         onClose={() => setFeedbackOpen(false)}
         sessionId={feedbackSessionId}
-        sharePath={`/research/punctum/results/${image.slug}`}
+        sharePath={`/lab/punctum/results/${image.slug}`}
       />
       {worldEntry && (
         <PunctumWorldModal

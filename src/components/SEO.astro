@@ -9,6 +9,7 @@ export interface Props {
     noindex?: boolean;
     robots?: string;
     structuredData?: Record<string, unknown> | Record<string, unknown>[];
+    canonicalUrl?: string;
 }
 
 import { getCanonicalPageUrl } from "../lib/urlNormalization.js";
@@ -23,13 +24,16 @@ const {
     noindex = false,
     robots,
     structuredData,
+    canonicalUrl,
 } = Astro.props;
 
 const siteName = "Abodid Sahoo";
-const canonicalURL = getCanonicalPageUrl(
-    Astro.site?.toString() || Astro.url.origin,
-    Astro.url.pathname,
-);
+const canonicalURL = canonicalUrl
+    ? new URL(canonicalUrl, Astro.site?.toString() || Astro.url.origin).toString()
+    : getCanonicalPageUrl(
+          Astro.site?.toString() || Astro.url.origin,
+          Astro.url.pathname,
+      );
 const resolvedImage = image ? new URL(image, Astro.site).toString() : undefined;
 const formatTitle = (value?: string) => {
     const trimmedTitle = value?.trim();

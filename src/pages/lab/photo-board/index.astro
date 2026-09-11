@@ -75,9 +75,9 @@ allImages = allImages.sort((left, right) =>
     ),
 );
 
-const pageTitle = "Polaroid Hub - Polaroid Scatter";
+const pageTitle = "Photo Board — Interactive Polaroid scatter";
 const pageDescription =
-    "An immersive Polaroid Hub view for browsing Abodid Sahoo's photography archive as a draggable scatter of image cards.";
+    "Browse Abodid Sahoo's photography archive as an immersive, draggable scatter of Polaroid-style image cards.";
 ---
 
 <BaseLayout
@@ -87,8 +87,8 @@ const pageDescription =
     fullWidth={true}
 >
     <div class="hub-controls">
-        <a href="/" class="home-button">Home</a>
-        <div class="hub-instructions" aria-label="How to use Polaroid Hub">
+        <a href="/lab" class="home-button">Lab</a>
+        <div class="hub-instructions" aria-label="How to use Photo Board">
             <p>Click and drag to uncover more portraits beneath the stack.</p>
             <p>Click any photograph to enlarge it and view its color palette.</p>
         </div>
@@ -96,7 +96,7 @@ const pageDescription =
 
     <ThemeWidget client:idle />
     <main class="polaroid-hub-immersive">
-        <h1 class="sr-only">Polaroid Hub</h1>
+        <h1 class="sr-only">Photo Board</h1>
         {/* Pass ALL images */}
         <PolaroidScatter items={allImages} client:load immersive={true} deepLinkParam="photo" />
     </main>

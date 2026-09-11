@@ -99,7 +99,7 @@ test("searchVisibility: correctly excludes private and test routes", () => {
   assert.equal(isPathExcluded("/films/the-sculptor"), false);
   assert.equal(isPathExcluded("/photography"), false);
   assert.equal(isPathExcluded("/blog/obsidian-workflows"), false);
-  assert.equal(isPathExcluded("/research/obsidian-vault/my-note"), false);
+  assert.equal(isPathExcluded("/obsidian-vault/my-note"), false);
   assert.equal(isPathExcluded("/research-papers/memory-and-place"), false);
 });
 

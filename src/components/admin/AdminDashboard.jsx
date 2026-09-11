@@ -396,7 +396,7 @@ export default function AdminDashboard() {
                     </p>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', alignItems: 'center' }}>
                         <a
-                            href="/resources"
+                            href="https://curation.abodid.com"
                             style={{
                                 fontSize: '0.875rem',
                                 padding: '0.5rem 1.25rem',
@@ -475,7 +475,7 @@ export default function AdminDashboard() {
                 </nav>
 
                 <div className="sidebar-footer">
-                    <a href="/resources" target="_blank" rel="noreferrer" className="btn-curator-link" aria-label="View Resource Hub">
+                    <a href="https://curation.abodid.com" target="_blank" rel="noreferrer" className="btn-curator-link" aria-label="View Curation by Abodid">
                         <Library size={15} strokeWidth={1.7} aria-hidden="true" />
                         <span>View Resource Hub</span>
                     </a>
@@ -507,7 +507,7 @@ export default function AdminDashboard() {
                                             <strong>View live site</strong>
                                             <ArrowUpRight size={21} strokeWidth={1.7} aria-hidden="true" />
                                         </a>
-                                        <a href="/resources" target="_blank" rel="noreferrer" className="destination-card destination-card-secondary">
+                                        <a href="https://curation.abodid.com" target="_blank" rel="noreferrer" className="destination-card destination-card-secondary">
                                             <span className="destination-icon" aria-hidden="true">
                                                 <Library size={24} strokeWidth={1.7} />
                                             </span>

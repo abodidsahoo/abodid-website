@@ -30,7 +30,7 @@ export default function UserDashboard({ user: propUser }: UserDashboardProps) {
             setUser(session.user);
             fetchData(session.user.id);
         } else {
-            window.location.href = '/login';
+            window.location.href = '/login?redirect=%2Fdashboard';
         }
     };
 
@@ -91,7 +91,7 @@ export default function UserDashboard({ user: propUser }: UserDashboardProps) {
                     <p className="welcome">Welcome back, {user?.user_metadata?.full_name || user?.email}!</p>
 
                     <div style={{ marginTop: '1.5rem', marginBottom: '1rem' }}>
-                        <a href="/resources/submit" className="btn-submit-new-prominent">
+                        <a href="/submit" className="btn-submit-new-prominent">
                             + Submit New Resource
                         </a>
                     </div>
@@ -100,7 +100,7 @@ export default function UserDashboard({ user: propUser }: UserDashboardProps) {
                     <button onClick={handleRefresh} className="btn-refresh-text">
                         Refresh
                     </button>
-                    <a href="/resources" className="btn-back-logo">
+                    <a href="/" className="btn-back-logo">
                         Back to Resources
                     </a>
                     <button
@@ -112,7 +112,7 @@ export default function UserDashboard({ user: propUser }: UserDashboardProps) {
                                 console.error("Sign out error:", err);
                             } finally {
                                 localStorage.removeItem('curator_profile');
-                                window.location.href = '/resources';
+                                window.location.href = '/';
                             }
                         }}
                         className="btn-logout-prominent"
@@ -165,7 +165,7 @@ export default function UserDashboard({ user: propUser }: UserDashboardProps) {
                         {submissions.length === 0 ? (
                             <div className="empty-state">
                                 <p>You haven't submitted any resources yet.</p>
-                                <a href="/resources/submit" className="btn-secondary">Submit Your First Resource</a>
+                                <a href="/submit" className="btn-secondary">Submit Your First Resource</a>
                             </div>
                         ) : (
                             submissions.map(sub => (
@@ -192,9 +192,9 @@ export default function UserDashboard({ user: propUser }: UserDashboardProps) {
 
                                     <div className="submission-actions">
                                         {sub.status === 'approved' && (
-                                            <a href={`/resources/${sub.id}`} className="btn-view">View Resource</a>
+                                            <a href={`/resource/${sub.id}`} className="btn-view">View Resource</a>
                                         )}
-                                        <a href={`/resources/submit?edit=${sub.id}`} className="btn-edit">Edit & Resubmit</a>
+                                        <a href={`/submit?edit=${sub.id}`} className="btn-edit">Edit & Resubmit</a>
                                     </div>
                                 </div>
                             ))
@@ -207,7 +207,7 @@ export default function UserDashboard({ user: propUser }: UserDashboardProps) {
                         {bookmarks.length === 0 ? (
                             <div className="empty-state">
                                 <p>No saved resources yet.</p>
-                                <a href="/resources" className="btn-secondary">Browse Resources</a>
+                                <a href="/" className="btn-secondary">Browse Resources</a>
                             </div>
                         ) : (
                             bookmarks.map(res => (
@@ -219,7 +219,7 @@ export default function UserDashboard({ user: propUser }: UserDashboardProps) {
                                     <p className="submission-url">{res.url}</p>
                                     <p className="submission-description">{res.description}</p>
                                     <div className="submission-actions">
-                                        <a href={`/resources/${res.id}`} className="btn-view">View Details</a>
+                                        <a href={`/resource/${res.id}`} className="btn-view">View Details</a>
                                     </div>
                                 </div>
                             ))

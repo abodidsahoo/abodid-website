@@ -1,13 +1,13 @@
 ---
 export const prerender = false;
 
-import BaseLayout from "../../../layouts/BaseLayout.astro";
-import { getAllPublicVaultNotes } from "../../../lib/vault-note-index.js";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getAllPublicVaultNotes } from "../../lib/vault-note-index.js";
 import {
   breadcrumbJsonLd,
   personJsonLd,
   seoIdentity,
-} from "../../../lib/seoData";
+} from "../../lib/seoData";
 
 const notes = await getAllPublicVaultNotes().catch(() => []);
 
@@ -36,9 +36,8 @@ const structuredData = [
   personJsonLd(),
   breadcrumbJsonLd([
     { name: "Home", path: "/" },
-    { name: "Research", path: "/research" },
-    { name: "Obsidian Vault", path: "/research/obsidian-vault" },
-    { name: "Notes Directory", path: "/research/obsidian-vault/directory" },
+    { name: "Obsidian Vault", path: "/obsidian-vault" },
+    { name: "Notes Directory", path: "/obsidian-vault/directory" },
   ]),
 ];
 ---
@@ -55,7 +54,7 @@ const structuredData = [
   <main class="directory-shell">
     <div class="directory-card">
       <nav class="directory-nav" aria-label="Breadcrumb navigation">
-        <a href="/research/obsidian-vault" class="directory-back-link">
+        <a href="/obsidian-vault" class="directory-back-link">
           <span aria-hidden="true">←</span>
           <span>Back to Vault Home</span>
         </a>

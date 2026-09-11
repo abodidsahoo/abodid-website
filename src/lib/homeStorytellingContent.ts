@@ -28,7 +28,7 @@ export const storytellingProjects = [
     summary: "An interactive study of the details in photographs that move us, stay with us and shape memory.",
     role: "Research · experience design · prototyping",
     outcome: "Live visual-attention experiment",
-    href: "/research/punctum",
+    href: "/lab/punctum",
     image: "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/research/covers/1769636977430_msh94w5fk.jpg",
     alt: "A photograph used in the Punctum participatory visual study",
   },
@@ -50,7 +50,7 @@ export const storytellingProjects = [
     summary: "A touch-free interface for browsing photographs as though they were physical cards.",
     role: "Concept · interaction design · prototyping",
     outcome: "Gesture and voice-led exploration",
-    href: "/research/gesture-image-preview",
+    href: "/lab/image-flick",
     heroImage: GESTURE_CONTROL_HERO_GIF_URL,
     video: GESTURE_CONTROL_VIDEO_URL,
     image: GESTURE_CONTROL_HERO_GIF_URL,
@@ -74,7 +74,7 @@ export const storytellingProjects = [
     summary: "A public, searchable space for notes, questions, ideas and research.",
     role: "Information architecture · Interface",
     outcome: "A living research ecosystem",
-    href: "/research/obsidian-vault",
+    href: "/obsidian-vault",
     video: "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/video-clips/Obsidian_Timelapse.mp4",
     alt: "Timelapse video preview of the connected Obsidian knowledge vault",
   },
@@ -96,7 +96,7 @@ export const storytellingCapabilities = [
     summary: "Turning complex ideas into intuitive digital experiences people can explore and contribute to.",
     details: ["Interactive storytelling", "Creative technology", "Knowledge systems"],
     projects: [
-      { name: "Punctum", href: "/research/punctum" },
+      { name: "Punctum", href: "/lab/punctum" },
     ],
   },
   {
@@ -143,7 +143,7 @@ export const communityDoorways = [
   {
     title: "Inside my thinking",
     text: "Ask an AI-powered Obsidian Vault built from notes, ideas, questions and unfinished thoughts.",
-    href: "/research/obsidian-vault",
+    href: "/obsidian-vault",
     cta: "Ask the vault",
   },
 ];

@@ -386,18 +386,18 @@ export default function CuratorDashboard({ user, role }: Props) {
                     <p className="welcome">Welcome back, {user?.user_metadata?.full_name || user?.email}!</p>
 
                     <div style={{ marginTop: '1.25rem' }}>
-                        <a href="/resources/submit" className="btn-submit-new-prominent">
+                        <a href="/submit" className="btn-submit-new-prominent">
                             + Submit New Resource
                         </a>
                     </div>
                 </div>
                 <div className="dashboard-header-actions">
-                    <a href="/resources" className="btn-back-logo">
+                    <a href="/" className="btn-back-logo">
                         Back to Resources ↗
                     </a>
                     {role === 'admin' && (
                         <a
-                            href="/admin/dashboard"
+                            href="/admin"
                             className="btn-admin-panel"
                             target="_blank"
                             rel="noopener noreferrer"
@@ -414,7 +414,7 @@ export default function CuratorDashboard({ user, role }: Props) {
                                 console.error("Logout error:", err);
                             } finally {
                                 localStorage.removeItem('curator_profile');
-                                window.location.href = '/resources';
+                                window.location.href = '/';
                             }
                         }}
                         className="btn-logout-prominent"
@@ -609,7 +609,7 @@ export default function CuratorDashboard({ user, role }: Props) {
                                         </div>
                                         <p className="submission-url" style={{ color: 'rgba(21, 19, 15, 0.75)', fontSize: '0.85rem', margin: '0 0 12px 0', wordBreak: 'break-all' }}>{submission.url}</p>
                                         <div className="submission-actions" style={{ display: 'flex', gap: '8px' }}>
-                                            <a href={`/resources/${submission.id}`} className="btn-view">View Resource ↗</a>
+                                            <a href={`/resource/${submission.id}`} className="btn-view">View Resource ↗</a>
                                             {role === 'admin' && (
                                                 <button
                                                     onClick={() => handleDelete(submission.id)}
@@ -674,7 +674,7 @@ export default function CuratorDashboard({ user, role }: Props) {
                                                 </>
                                             )}
                                             {submission.status === 'rejected' && (
-                                                <a href={`/resources/${submission.id}`} className="btn-preview">View Details ↗</a>
+                                                <a href={`/resource/${submission.id}`} className="btn-preview">View Details ↗</a>
                                             )}
                                         </div>
                                     </div>
