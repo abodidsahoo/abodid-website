@@ -64,66 +64,6 @@
   ],
   "rewrites": [
     {
-      "source": "/robots.txt",
-      "has": [
-        {
-          "type": "host",
-          "value": "curation.abodid.com"
-        }
-      ],
-      "destination": "/curation-robots.txt"
-    },
-    {
-      "source": "/sitemap.xml",
-      "has": [
-        {
-          "type": "host",
-          "value": "curation.abodid.com"
-        }
-      ],
-      "destination": "/curation-sitemap.xml"
-    },
-    {
-      "source": "/resource/:id/edit",
-      "has": [
-        {
-          "type": "host",
-          "value": "curation.abodid.com"
-        }
-      ],
-      "destination": "/resources/:id/edit"
-    },
-    {
-      "source": "/resource/:id",
-      "has": [
-        {
-          "type": "host",
-          "value": "curation.abodid.com"
-        }
-      ],
-      "destination": "/resources/:id"
-    },
-    {
-      "source": "/:path*",
-      "has": [
-        {
-          "type": "host",
-          "value": "curation.abodid.com"
-        }
-      ],
-      "destination": "/resources/:path*"
-    },
-    {
-      "source": "/:path*",
-      "has": [
-        {
-          "type": "host",
-          "value": "lab.abodid.com"
-        }
-      ],
-      "destination": "/lab/:path*"
-    },
-    {
       "source": "/",
       "has": [
         {
