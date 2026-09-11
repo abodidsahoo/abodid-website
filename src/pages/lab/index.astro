@@ -30,3 +30,18 @@ const description = isLabSubdomain
 >
   {isLabSubdomain ? <LabSubdomainHome /> : <LabIndexView />}
 </BaseLayout>
+
+<style is:global>
+  html:has(body.lab-index-page),
+  html:has(body.lab-subdomain-page) {
+    background: #2444ca !important;
+  }
+
+  body.lab-index-page,
+  body.lab-subdomain-page {
+    margin: 0;
+    padding: 0 !important;
+    background: #2444ca !important;
+    background-color: #2444ca !important;
+  }
+</style>

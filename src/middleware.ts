@@ -2,7 +2,7 @@ import { defineMiddleware } from 'astro:middleware';
 import { normalizePagePath } from './lib/urlNormalization.js';
 import { photographyDestination } from './lib/photography/routing.mjs';
 import { legacyVaultRedirectLocation } from './lib/vault-paths.js';
-import { legacyLabRedirectLocation } from './lib/labRoutes.js';
+import { legacyLabRedirectLocation, labDestination } from './lib/labRoutes.js';
 import {
     curationPathToInternalPath,
     getCurationCanonicalRedirect,
@@ -66,6 +66,17 @@ export const onRequest = defineMiddleware(async (context, next) => {
             status: 308,
             headers: { Location: labRedirect },
         });
+    }
+    const labPath = labDestination(requestUrl);
+    if (labPath) {
+        const target = new URL(labPath, requestUrl);
+        target.search = requestUrl.search;
+        const response = await next(target);
+        if (response.status === 200) {
+            response.headers.set('Cache-Control', 'public, max-age=0, must-revalidate');
+            response.headers.set('Vercel-CDN-Cache-Control', 's-maxage=300, stale-while-revalidate=86400');
+        }
+        return response;
     }
     const photographyPath = photographyDestination(requestUrl);
     if (photographyPath) {

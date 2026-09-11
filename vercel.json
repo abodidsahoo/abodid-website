@@ -68,10 +68,170 @@
       "has": [
         {
           "type": "host",
+          "value": "curation.abodid.com"
+        }
+      ],
+      "destination": "/resources"
+    },
+    {
+      "source": "/robots.txt",
+      "has": [
+        {
+          "type": "host",
+          "value": "curation.abodid.com"
+        }
+      ],
+      "destination": "/curation-robots.txt"
+    },
+    {
+      "source": "/sitemap.xml",
+      "has": [
+        {
+          "type": "host",
+          "value": "curation.abodid.com"
+        }
+      ],
+      "destination": "/curation-sitemap.xml"
+    },
+    {
+      "source": "/dashboard",
+      "has": [
+        {
+          "type": "host",
+          "value": "curation.abodid.com"
+        }
+      ],
+      "destination": "/resources/dashboard"
+    },
+    {
+      "source": "/saved",
+      "has": [
+        {
+          "type": "host",
+          "value": "curation.abodid.com"
+        }
+      ],
+      "destination": "/resources/saved"
+    },
+    {
+      "source": "/submit",
+      "has": [
+        {
+          "type": "host",
+          "value": "curation.abodid.com"
+        }
+      ],
+      "destination": "/resources/submit"
+    },
+    {
+      "source": "/auth/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "curation.abodid.com"
+        }
+      ],
+      "destination": "/resources/auth/:path*"
+    },
+    {
+      "source": "/admin",
+      "has": [
+        {
+          "type": "host",
+          "value": "curation.abodid.com"
+        }
+      ],
+      "destination": "/resources/admin"
+    },
+    {
+      "source": "/admin/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "curation.abodid.com"
+        }
+      ],
+      "destination": "/resources/admin/:path*"
+    },
+    {
+      "source": "/resource/:id/edit",
+      "has": [
+        {
+          "type": "host",
+          "value": "curation.abodid.com"
+        }
+      ],
+      "destination": "/resources/:id/edit"
+    },
+    {
+      "source": "/resource/:id",
+      "has": [
+        {
+          "type": "host",
+          "value": "curation.abodid.com"
+        }
+      ],
+      "destination": "/resources/:id"
+    },
+    {
+      "source": "/u/:username",
+      "has": [
+        {
+          "type": "host",
+          "value": "curation.abodid.com"
+        }
+      ],
+      "destination": "/resources/u/:username"
+    },
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
           "value": "lab.abodid.com"
         }
       ],
       "destination": "/lab"
+    },
+    {
+      "source": "/punctum",
+      "has": [
+        {
+          "type": "host",
+          "value": "lab.abodid.com"
+        }
+      ],
+      "destination": "/lab/punctum"
+    },
+    {
+      "source": "/punctum/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "lab.abodid.com"
+        }
+      ],
+      "destination": "/lab/punctum/:path*"
+    },
+    {
+      "source": "/image-flick",
+      "has": [
+        {
+          "type": "host",
+          "value": "lab.abodid.com"
+        }
+      ],
+      "destination": "/lab/image-flick"
+    },
+    {
+      "source": "/photo-board",
+      "has": [
+        {
+          "type": "host",
+          "value": "lab.abodid.com"
+        }
+      ],
+      "destination": "/lab/photo-board"
     },
     {
       "source": "/",
