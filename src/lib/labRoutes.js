@@ -36,8 +36,10 @@ export const LAB_HOSTNAME = "lab.abodid.com";
 const normalizeHostname = (hostname = "") =>
   hostname.trim().toLowerCase().replace(/:\d+$/, "");
 
-export const isLabHostname = (hostname) =>
-  normalizeHostname(hostname) === LAB_HOSTNAME;
+export const isLabHostname = (hostname) => {
+  const norm = normalizeHostname(hostname);
+  return norm === LAB_HOSTNAME || norm === "lab.localhost";
+};
 
 export const labDestination = (url) => {
   if (!isLabHostname(url.hostname)) return null;
@@ -53,3 +55,25 @@ export const labDestination = (url) => {
   }
   return null;
 };
+
+export const isLabOnlyPath = (pathname = "") => {
+  if (labDestination({ hostname: LAB_HOSTNAME, pathname })) return true;
+  if (pathname === "/robots.txt" || pathname === "/sitemap.xml") return true;
+  if (
+    pathname.startsWith("/_astro/") ||
+    pathname.startsWith("/_image") ||
+    pathname.startsWith("/api/") ||
+    pathname === "/favicon.ico" ||
+    pathname === "/favicon.svg"
+  ) {
+    return true;
+  }
+  return false;
+};
+
+export const getLabSubdomainRedirect = (url) => {
+  if (!isLabHostname(url.hostname)) return null;
+  if (isLabOnlyPath(url.pathname)) return null;
+  return `https://abodid.com${url.pathname}${url.search}`;
+};
+

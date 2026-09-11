@@ -114,54 +114,80 @@ export default function SubmissionForm() {
         );
     }
 
-    // Not authenticated - show login prompt
+    // Not authenticated - show login prompt using Pop Editorial design tokens
     if (!isAuthenticated) {
         return (
-            <div className="submission-card-container" style={{ padding: '4rem 1rem' }}>
-                <div className="submission-card" style={{
-                    maxWidth: '420px',
-                    margin: '0 auto',
-                    padding: '3.5rem 2.5rem',
-                    textAlign: 'center',
-                    background: 'var(--bg-surface)',
-                    border: '1px solid var(--border-subtle)',
-                    borderRadius: '16px',
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.08)'
-                }}>
-                    <div style={{ fontSize: '42px', marginBottom: '20px', opacity: 0.9 }}>🔒</div>
-                    <h3 style={{
-                        fontFamily: 'var(--font-sans)',
-                        fontSize: '1.6rem',
-                        fontWeight: '700',
-                        marginBottom: '12px',
-                        color: 'var(--text-primary)',
-                        letterSpacing: '-0.02em'
+            <div className="submission-card-container" style={{ padding: '2rem 1rem 4rem' }}>
+                <div className="submission-clean-card" style={{ maxWidth: '560px', margin: '0 auto' }}>
+                    <span style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '5px 14px',
+                        border: '1px solid var(--pop-border)',
+                        borderRadius: '999px',
+                        background: 'var(--pop-yellow)',
+                        color: 'var(--pop-ink)',
+                        fontFamily: 'var(--resources-mono)',
+                        fontSize: '0.72rem',
+                        fontWeight: 800,
+                        letterSpacing: '0.08em',
+                        textTransform: 'uppercase' as const,
+                        marginBottom: '16px',
                     }}>
-                        Login Required
-                    </h3>
+                        🔐 LOGIN REQUIRED
+                    </span>
+                    <h2 style={{
+                        fontFamily: 'var(--resources-font)',
+                        fontSize: 'clamp(1.8rem, 4vw, 2.8rem)',
+                        fontWeight: 720,
+                        lineHeight: 1.05,
+                        letterSpacing: '-0.05em',
+                        color: 'var(--pop-ink)',
+                        margin: '0 0 12px',
+                    }}>
+                        Submit a resource
+                    </h2>
                     <p style={{
-                        fontFamily: 'var(--font-sans)',
+                        fontFamily: 'var(--resources-font)',
                         fontSize: '1rem',
-                        color: 'var(--text-secondary)',
-                        lineHeight: '1.6',
-                        marginBottom: '32px'
+                        fontWeight: 450,
+                        lineHeight: 1.55,
+                        color: 'rgba(21, 19, 15, 0.8)',
+                        margin: '0 0 28px',
                     }}>
-                        You need to be logged in to submit resources to the hub.
+                        You need to be logged in to submit resources to the hub. Create a free account to start sharing useful tools and articles with the community.
                     </p>
-                    <a
-                        href="/login?redirect=%2Fsubmit"
-                        className="hub-btn"
-                        style={{
-                            display: 'inline-flex',
-                            textDecoration: 'none',
-                            width: 'auto',
-                            padding: '10px 28px',
-                            fontSize: '0.95rem',
-                            borderRadius: '50px'
-                        }}
-                    >
-                        Login to Submit
-                    </a>
+                    <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
+                        <a
+                            href="/login?redirect=%2Fsubmit"
+                            className="hub-btn"
+                            style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                textDecoration: 'none',
+                                padding: '14px 28px',
+                                fontSize: '1rem',
+                            }}
+                        >
+                            Log in to submit →
+                        </a>
+                        <a
+                            href="/"
+                            style={{
+                                color: 'var(--pop-ink)',
+                                fontFamily: 'var(--resources-mono)',
+                                fontSize: '0.8rem',
+                                fontWeight: 700,
+                                letterSpacing: '0.05em',
+                                textTransform: 'uppercase' as const,
+                                textDecoration: 'underline',
+                                opacity: 0.7,
+                            }}
+                        >
+                            ← Back to Explore
+                        </a>
+                    </div>
                 </div>
             </div>
         );

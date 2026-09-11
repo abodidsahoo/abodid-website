@@ -38,7 +38,8 @@ export default function ResourceDetailActions({ resourceId, initialUpvotes }: Pr
     const ensureReadySession = async (): Promise<boolean> => {
         const session = await ensureSession();
         if (!session) {
-            alert('Unable to create session. Please try again.');
+            const currentPath = window.location.pathname;
+            window.location.href = `/login?redirect=${encodeURIComponent(currentPath)}`;
             return false;
         }
         return true;
@@ -60,9 +61,14 @@ export default function ResourceDetailActions({ resourceId, initialUpvotes }: Pr
 
         try {
             await toggleBookmark(resourceId);
-        } catch (error) {
+        } catch (error: any) {
             setIsBookmarked(!next);
-            console.error('Failed to toggle bookmark:', error);
+            if (error?.message?.includes('Must be logged in') || error?.message?.includes('JWT')) {
+                const currentPath = window.location.pathname;
+                window.location.href = `/login?redirect=${encodeURIComponent(currentPath)}`;
+            } else {
+                console.error('Failed to toggle bookmark:', error);
+            }
         } finally {
             setBusyAction(null);
         }
@@ -85,10 +91,15 @@ export default function ResourceDetailActions({ resourceId, initialUpvotes }: Pr
 
         try {
             await toggleUpvote(resourceId);
-        } catch (error) {
+        } catch (error: any) {
             setIsUpvoted(!next);
             setUpvotesCount((prev) => Math.max(0, prev + (next ? -1 : 1)));
-            console.error('Failed to toggle upvote:', error);
+            if (error?.message?.includes('Must be logged in') || error?.message?.includes('JWT')) {
+                const currentPath = window.location.pathname;
+                window.location.href = `/login?redirect=${encodeURIComponent(currentPath)}`;
+            } else {
+                console.error('Failed to toggle upvote:', error);
+            }
         } finally {
             setBusyAction(null);
         }

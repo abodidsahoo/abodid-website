@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { isLabHostname, labDestination, legacyLabRedirectLocation } from "../src/lib/labRoutes.js";
+import { getLabSubdomainRedirect, isLabHostname, labDestination, legacyLabRedirectLocation } from "../src/lib/labRoutes.js";
 
 const destinationFor = (pathname) =>
   legacyLabRedirectLocation(new URL(pathname, "https://abodid.com"));
@@ -38,4 +38,40 @@ test("routes lab subdomain to appropriate lab pages", () => {
   assert.equal(labDestination(new URL("https://lab.abodid.com/photo-board")), "/lab/photo-board");
   assert.equal(labDestination(new URL("https://abodid.com/")), null);
 });
+
+test("redirects non-lab routes on lab subdomain to primary site", () => {
+  assert.equal(
+    getLabSubdomainRedirect(new URL("https://lab.abodid.com/research")),
+    "https://abodid.com/research",
+  );
+  assert.equal(
+    getLabSubdomainRedirect(new URL("https://lab.abodid.com/about")),
+    "https://abodid.com/about",
+  );
+  assert.equal(
+    getLabSubdomainRedirect(new URL("https://lab.abodid.com/work")),
+    "https://abodid.com/work",
+  );
+  assert.equal(
+    getLabSubdomainRedirect(new URL("https://lab.abodid.com/photography")),
+    "https://abodid.com/photography",
+  );
+  assert.equal(
+    getLabSubdomainRedirect(new URL("https://lab.abodid.com/")),
+    null,
+  );
+  assert.equal(
+    getLabSubdomainRedirect(new URL("https://lab.abodid.com/punctum")),
+    null,
+  );
+  assert.equal(
+    getLabSubdomainRedirect(new URL("https://lab.abodid.com/image-flick")),
+    null,
+  );
+  assert.equal(
+    getLabSubdomainRedirect(new URL("https://lab.abodid.com/photo-board")),
+    null,
+  );
+});
+
 

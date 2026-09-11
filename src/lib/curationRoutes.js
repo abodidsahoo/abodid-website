@@ -9,8 +9,10 @@ const PRIMARY_SITE_HOSTNAMES = new Set([
 const normalizeHostname = (hostname = "") =>
   hostname.trim().toLowerCase().replace(/:\d+$/, "");
 
-export const isCurationHostname = (hostname) =>
-  normalizeHostname(hostname) === CURATION_HOSTNAME;
+export const isCurationHostname = (hostname) => {
+  const norm = normalizeHostname(hostname);
+  return norm === CURATION_HOSTNAME || norm === "curation.localhost";
+};
 
 export const isPrimarySiteHostname = (hostname) =>
   PRIMARY_SITE_HOSTNAMES.has(normalizeHostname(hostname));
@@ -130,3 +132,25 @@ export const safeCurationReturnTo = (value, fallback = curationPath.dashboard) =
     return fallback;
   }
 };
+
+export const isCurationOnlyPath = (pathname = "") => {
+  if (curationPathToInternalPath(pathname)) return true;
+  if (pathname === "/login" || pathname.startsWith("/login/")) return true;
+  if (
+    pathname.startsWith("/_astro/") ||
+    pathname.startsWith("/_image") ||
+    pathname.startsWith("/api/") ||
+    pathname === "/favicon.ico" ||
+    pathname === "/favicon.svg"
+  ) {
+    return true;
+  }
+  return false;
+};
+
+export const getCurationSubdomainRedirect = (url) => {
+  if (!isCurationHostname(url.hostname)) return null;
+  if (isCurationOnlyPath(url.pathname)) return null;
+  return `https://abodid.com${url.pathname}${url.search}`;
+};
+

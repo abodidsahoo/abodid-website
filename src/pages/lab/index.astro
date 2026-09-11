@@ -10,7 +10,7 @@ const forwardedHost = Astro.request.headers
   ?.split(",")[0]
   ?.trim();
 const requestHost = (forwardedHost || Astro.url.host).split(":")[0].toLowerCase();
-const isLabSubdomain = requestHost === "lab.abodid.com";
+const isLabSubdomain = requestHost === "lab.abodid.com" || requestHost === "lab.localhost";
 
 const title = isLabSubdomain
   ? "Abodid Lab — Experiments in images, attention, and interaction"

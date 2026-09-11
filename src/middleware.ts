@@ -1,11 +1,12 @@
 import { defineMiddleware } from 'astro:middleware';
 import { normalizePagePath } from './lib/urlNormalization.js';
-import { photographyDestination } from './lib/photography/routing.mjs';
+import { photographyDestination, getPhotosSubdomainRedirect } from './lib/photography/routing.mjs';
 import { legacyVaultRedirectLocation } from './lib/vault-paths.js';
-import { legacyLabRedirectLocation, labDestination } from './lib/labRoutes.js';
+import { legacyLabRedirectLocation, labDestination, getLabSubdomainRedirect } from './lib/labRoutes.js';
 import {
     curationPathToInternalPath,
     getCurationCanonicalRedirect,
+    getCurationSubdomainRedirect,
     getLegacyResourceRedirect,
     isCurationHostname,
 } from './lib/curationRoutes.js';
@@ -45,28 +46,80 @@ const canCachePublicPage = (context: PublicCacheContext, response: Response) => 
 };
 
 export const onRequest = defineMiddleware(async (context, next) => {
+    const rawHost = context.request.headers.get('x-forwarded-host') || context.request.headers.get('host');
     const requestUrl = new URL(context.request.url);
-    const legacyResourceRedirect = getLegacyResourceRedirect(requestUrl);
-    if (legacyResourceRedirect) {
-        return new Response(null, {
-            status: 308,
-            headers: { Location: legacyResourceRedirect },
-        });
+    if (rawHost) {
+        const primaryHost = rawHost.split(',')[0].trim();
+        requestUrl.host = primaryHost;
+        requestUrl.hostname = primaryHost.split(':')[0].toLowerCase();
     }
-    const curationCanonicalRedirect = getCurationCanonicalRedirect(requestUrl);
-    if (curationCanonicalRedirect) {
-        return new Response(null, {
-            status: 308,
-            headers: { Location: curationCanonicalRedirect },
-        });
+
+    if (!context.isPrerendered) {
+        const legacyResourceRedirect = getLegacyResourceRedirect(requestUrl);
+        if (legacyResourceRedirect) {
+            return new Response(null, {
+                status: 308,
+                headers: { Location: legacyResourceRedirect },
+            });
+        }
+        const curationCanonicalRedirect = getCurationCanonicalRedirect(requestUrl);
+        if (curationCanonicalRedirect) {
+            return new Response(null, {
+                status: 308,
+                headers: { Location: curationCanonicalRedirect },
+            });
+        }
+        const curationSubdomainRedirect = getCurationSubdomainRedirect(requestUrl);
+        if (curationSubdomainRedirect) {
+            return new Response(null, {
+                status: 308,
+                headers: { Location: curationSubdomainRedirect },
+            });
+        }
+        const labRedirect = legacyLabRedirectLocation(requestUrl);
+        if (labRedirect) {
+            return new Response(null, {
+                status: 308,
+                headers: { Location: labRedirect },
+            });
+        }
+        const labSubdomainRedirect = getLabSubdomainRedirect(requestUrl);
+        if (labSubdomainRedirect) {
+            return new Response(null, {
+                status: 308,
+                headers: { Location: labSubdomainRedirect },
+            });
+        }
+        const photosSubdomainRedirect = getPhotosSubdomainRedirect(requestUrl);
+        if (photosSubdomainRedirect) {
+            return new Response(null, {
+                status: 308,
+                headers: { Location: photosSubdomainRedirect },
+            });
+        }
+        const vaultRedirect = legacyVaultRedirectLocation(requestUrl);
+        if (vaultRedirect) {
+            return new Response(null, {
+                status: 308,
+                headers: { Location: vaultRedirect },
+            });
+        }
     }
-    const labRedirect = legacyLabRedirectLocation(requestUrl);
-    if (labRedirect) {
-        return new Response(null, {
-            status: 308,
-            headers: { Location: labRedirect },
-        });
+
+    const curationInternalPath = isCurationHostname(requestUrl.hostname)
+        ? curationPathToInternalPath(requestUrl.pathname)
+        : null;
+    if (curationInternalPath) {
+        const target = new URL(curationInternalPath, requestUrl);
+        target.search = requestUrl.search;
+        const response = await next(target);
+        if (response.status === 200) {
+            response.headers.set('Cache-Control', 'public, max-age=0, must-revalidate');
+            response.headers.set('Vercel-CDN-Cache-Control', 's-maxage=300, stale-while-revalidate=86400');
+        }
+        return response;
     }
+
     const labPath = labDestination(requestUrl);
     if (labPath) {
         const target = new URL(labPath, requestUrl);
@@ -90,13 +143,6 @@ export const onRequest = defineMiddleware(async (context, next) => {
         }
         return response;
     }
-    const vaultRedirect = legacyVaultRedirectLocation(requestUrl);
-    if (vaultRedirect) {
-        return new Response(null, {
-            status: 308,
-            headers: { Location: vaultRedirect },
-        });
-    }
     if (requestUrl.pathname !== '/' && requestUrl.pathname.endsWith('/')) {
         const destination = `${normalizePagePath(requestUrl.pathname)}${requestUrl.search}`;
         return new Response(null, {
@@ -105,22 +151,13 @@ export const onRequest = defineMiddleware(async (context, next) => {
         });
     }
 
-    const curationInternalPath = isCurationHostname(requestUrl.hostname)
-        ? curationPathToInternalPath(requestUrl.pathname)
-        : null;
-    const routedUrl = curationInternalPath
-        ? new URL(`${curationInternalPath}${requestUrl.search}`, requestUrl)
-        : requestUrl;
-
     const nextWithPublicCache = async () => {
-        // Keep browser-visible curation URLs clean while reusing the existing
-        // resource implementation internally.
-        const response = curationInternalPath ? await next(routedUrl) : await next();
+        const response = await next();
 
         if (canCachePublicPage({
             isPrerendered: context.isPrerendered,
             request: context.request,
-            url: routedUrl,
+            url: requestUrl,
         }, response)) {
             response.headers.set('Cache-Control', 'public, max-age=0, must-revalidate');
             response.headers.set(

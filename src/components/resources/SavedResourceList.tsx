@@ -9,15 +9,18 @@ export default function SavedResourceList() {
     const [tags, setTags] = useState<HubTag[]>([]);
     const [loading, setLoading] = useState(true);
     const [user, setUser] = useState<any>(null);
+    const [notLoggedIn, setNotLoggedIn] = useState(false);
 
     useEffect(() => {
         const init = async () => {
             if (!supabase) return;
             const { data: { user } } = await supabase.auth.getUser();
 
-            if (!user) {
-                // Not logged in
-                window.location.href = '/login?redirect=%2Fsaved';
+            if (!user || user.is_anonymous) {
+                // Show an inline login prompt instead of silently redirecting —
+                // a silent redirect back to /login makes clicking "Saved" feel like a dead click.
+                setNotLoggedIn(true);
+                setLoading(false);
                 return;
             }
             setUser(user);
@@ -43,27 +46,165 @@ export default function SavedResourceList() {
         );
     }
 
+    // Inline login-required state — explains why clicking "Saved" felt like nothing happened
+    if (notLoggedIn) {
+        return (
+            <div style={{
+                maxWidth: '560px',
+                margin: '0 auto',
+                padding: '0 16px 60px',
+            }}>
+                <div style={{
+                    background: 'var(--pop-cream)',
+                    border: '1px solid var(--pop-border)',
+                    borderRadius: '24px',
+                    padding: 'clamp(28px, 5vw, 48px)',
+                    textAlign: 'left',
+                }}>
+                    <span style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '5px 14px',
+                        border: '1px solid var(--pop-border)',
+                        borderRadius: '999px',
+                        background: 'var(--pop-yellow)',
+                        color: 'var(--pop-ink)',
+                        fontFamily: 'var(--resources-mono)',
+                        fontSize: '0.72rem',
+                        fontWeight: 800,
+                        letterSpacing: '0.08em',
+                        textTransform: 'uppercase' as const,
+                        marginBottom: '16px',
+                    }}>
+                        🔐 LOGIN REQUIRED
+                    </span>
+
+                    <h2 style={{
+                        fontFamily: 'var(--resources-font)',
+                        fontSize: 'clamp(1.8rem, 4vw, 2.6rem)',
+                        fontWeight: 720,
+                        lineHeight: 1.05,
+                        letterSpacing: '-0.045em',
+                        color: 'var(--pop-ink)',
+                        margin: '0 0 12px',
+                    }}>
+                        Your saved collection
+                    </h2>
+
+                    <p style={{
+                        fontFamily: 'var(--resources-font)',
+                        fontSize: '1rem',
+                        fontWeight: 450,
+                        lineHeight: 1.55,
+                        color: 'rgba(21, 19, 15, 0.8)',
+                        margin: '0 0 28px',
+                    }}>
+                        Saved resources are tied to your account — you need to be logged in to view your bookmarks. Once you log in, all your saved items will appear here.
+                    </p>
+
+                    <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
+                        <a
+                            href="/login?redirect=%2Fsaved"
+                            className="hub-btn"
+                            style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                textDecoration: 'none',
+                                padding: '14px 28px',
+                                fontSize: '1rem',
+                            }}
+                        >
+                            Log in to view saved →
+                        </a>
+                        <a
+                            href="/"
+                            style={{
+                                color: 'var(--pop-ink)',
+                                fontFamily: 'var(--resources-mono)',
+                                fontSize: '0.8rem',
+                                fontWeight: 700,
+                                letterSpacing: '0.05em',
+                                textTransform: 'uppercase' as const,
+                                textDecoration: 'underline',
+                                opacity: 0.7,
+                            }}
+                        >
+                            ← Back to Explore
+                        </a>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     if (resources.length === 0) {
         return (
-            <div style={{ padding: '4rem', textAlign: 'center' }}>
-                <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>No saved resources yet.</h2>
-                <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>
-                    Browse the hub, open any resource, then tap Save to keep it for later.
-                </p>
-                <a href="/" className="hub-btn-primary">Browse Curation</a>
-                {/* Internal style for button since we are in React and might not have global css scope for this class if valid, but assuming it exists or inline it */}
-                <style>{`
-                    .hub-btn-primary {
-                        background: var(--text-primary);
-                        color: var(--bg-color);
-                        padding: 10px 20px;
-                        border-radius: 100px;
-                        text-decoration: none;
-                        font-weight: 600;
-                        font-size: 14px;
-                        display: inline-block;
-                    }
-                 `}</style>
+            <div style={{
+                maxWidth: '560px',
+                margin: '0 auto',
+                padding: '0 16px 60px',
+            }}>
+                <div style={{
+                    background: 'var(--pop-cream)',
+                    border: '1px solid var(--pop-border)',
+                    borderRadius: '24px',
+                    padding: 'clamp(28px, 5vw, 48px)',
+                    textAlign: 'left',
+                }}>
+                    <span style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '5px 14px',
+                        border: '1px solid var(--pop-border)',
+                        borderRadius: '999px',
+                        background: 'var(--pop-pink)',
+                        color: 'var(--pop-ink)',
+                        fontFamily: 'var(--resources-mono)',
+                        fontSize: '0.72rem',
+                        fontWeight: 800,
+                        letterSpacing: '0.08em',
+                        textTransform: 'uppercase' as const,
+                        marginBottom: '16px',
+                    }}>
+                        📚 EMPTY COLLECTION
+                    </span>
+                    <h2 style={{
+                        fontFamily: 'var(--resources-font)',
+                        fontSize: 'clamp(1.8rem, 4vw, 2.6rem)',
+                        fontWeight: 720,
+                        lineHeight: 1.05,
+                        letterSpacing: '-0.045em',
+                        color: 'var(--pop-ink)',
+                        margin: '0 0 12px',
+                    }}>
+                        No saved resources yet
+                    </h2>
+                    <p style={{
+                        fontFamily: 'var(--resources-font)',
+                        fontSize: '1rem',
+                        fontWeight: 450,
+                        lineHeight: 1.55,
+                        color: 'rgba(21, 19, 15, 0.8)',
+                        margin: '0 0 28px',
+                    }}>
+                        Browse the hub, open any resource, then tap the bookmark icon to save it here for later.
+                    </p>
+                    <a
+                        href="/"
+                        className="hub-btn"
+                        style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            textDecoration: 'none',
+                            padding: '14px 28px',
+                            fontSize: '1rem',
+                        }}
+                    >
+                        Browse Curation →
+                    </a>
+                </div>
             </div>
         );
     }

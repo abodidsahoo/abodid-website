@@ -1,4 +1,6 @@
 ---
+export const prerender = false;
+
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import ResourceFeed from "../../components/resources/ResourceFeed";
 import AuthHeader from "../../components/resources/AuthHeader";
@@ -53,3 +55,19 @@ const description =
     </div>
   </div>
 </BaseLayout>
+
+<script>
+    // Supabase sometimes redirects auth callbacks (recovery, signup confirmation, magic link)
+    // to the Site URL root instead of /login when redirectTo isn't in the allowlist.
+    // This catches those tokens on any non-login page and forwards them to /login.
+    (function () {
+        const hash = window.location.hash.slice(1);
+        if (!hash) return;
+        const params = new URLSearchParams(hash);
+        const type = params.get("type");
+        const accessToken = params.get("access_token");
+        if ((type === "recovery" || type === "signup" || type === "magiclink") && accessToken) {
+            window.location.replace("/login" + window.location.hash);
+        }
+    })();
+</script>

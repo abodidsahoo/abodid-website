@@ -1,5 +1,13 @@
 /* Abodid Pop Editorial Design System for Resource Pages (Index, Submit & Dashboard) */
-.resources-editorial-page {
+html:has(body.resources-editorial-page),
+html.resources-editorial-page,
+body.resources-editorial-page {
+  background: #2444ca !important;
+  background-color: #2444ca !important;
+  min-height: 100vh;
+}
+
+body.resources-editorial-page {
   --pop-blue: #2444ca;
   --pop-pink: #ff7eb5;
   --pop-yellow: #ffe44f;
@@ -12,7 +20,28 @@
   --pop-line: rgba(21, 19, 15, 0.24);
   --resources-font: "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
   --resources-mono: "Satoshi-Variable", "Satoshi-Regular", "Space Mono", "Inconsolata", monospace;
-  background: var(--pop-blue);
+  margin: 0;
+  padding: 0 !important;
+  background: #2444ca !important;
+  background-color: #2444ca !important;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.resources-editorial-page #main-content {
+  flex: 1 0 auto;
+  min-height: calc(100svh - 72px);
+  background: #2444ca !important;
+  background-color: #2444ca !important;
+  width: 100%;
+  max-width: 100%;
+}
+
+.resources-editorial-page .story-footer {
+  background: #2444ca !important;
+  background-color: #2444ca !important;
+  border-top: 0 !important;
 }
 
 .resources-editorial {
@@ -22,21 +51,14 @@
   --btn-primary-bg: var(--pop-blue);
   --btn-primary-text: var(--pop-cream);
   --btn-primary-border: var(--pop-border);
+  min-height: calc(100svh - 88px);
+  width: 100%;
+  box-sizing: border-box;
   padding: 8px;
   background: var(--pop-blue);
   color: var(--pop-ink);
   font-family: var(--resources-font);
   color-scheme: light;
-}
-
-.resources-editorial *,
-.resources-editorial *::before,
-.resources-editorial *::after {
-  box-sizing: border-box;
-}
-
-.resources-editorial-page #main-content {
-  min-height: calc(100svh - 72px);
 }
 
 .resources-editorial .resource-loading {

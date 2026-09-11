@@ -1,57 +1,33 @@
 ---
+export const prerender = false;
+
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import SavedResourceList from "../../components/resources/SavedResourceList";
 import "../../styles/resources.css";
+import "../../styles/resources-editorial.css";
 
 const title = "My Saved Resources";
 const description =
     "Your personal collection of bookmarked tools and articles.";
 ---
 
-<BaseLayout title={title} description={description}>
-    <header
-        class="page-header"
-        style="position: relative; max-width: var(--max-width); margin: 0 auto; padding: 2rem 24px; display: flex; align-items: center; justify-content: space-between;"
-    >
-        <div>
-            <h1>My Collection</h1>
-            <p class="section-intro">Resources you've bookmarked for later.</p>
-        </div>
-        <div>
-            <a
-                href="/"
-                style="color: var(--text-secondary); text-decoration: none; font-size: 14px;"
-            >
-                &larr; Back to Hub
-            </a>
-        </div>
-    </header>
+<BaseLayout title={title} description={description} fullWidth={true} showGlobalGrid={false} bodyClass="resources-editorial-page" navigationVariant="next">
+    <div class="resources-editorial">
+        <header class="resources-hero">
+            <div class="resources-hero__copy">
+                <h1>My Collection</h1>
+                <p class="section-intro">Resources you've bookmarked for later.</p>
+            </div>
+            <div class="resources-hero__account">
+                <a href="/" class="btn-refresh-text" style="display: inline-flex; align-items: center; gap: 6px; text-decoration: none; font-weight: 700;">
+                    &larr; Back to Explore
+                </a>
+            </div>
+        </header>
 
-    <div class="hub-container">
-        <SavedResourceList client:only="react" />
+        <div class="resources-browser">
+            <SavedResourceList client:only="react" />
+        </div>
     </div>
 </BaseLayout>
 
-<style>
-    h1 {
-        font-family: var(--font-display);
-        font-size: 2.5rem;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-        letter-spacing: -0.02em;
-        color: var(--text-primary);
-    }
-
-    .section-intro {
-        font-family: var(--font-sans);
-        font-size: 1.1rem;
-        color: var(--text-secondary);
-        margin: 0;
-    }
-
-    .hub-container {
-        max-width: var(--max-width);
-        margin: 0 auto;
-        padding: 0 24px 64px 24px;
-    }
-</style>
