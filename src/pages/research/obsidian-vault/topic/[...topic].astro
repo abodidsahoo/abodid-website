@@ -52,7 +52,6 @@ Astro.response.headers.set(
 );
 
 const isIndexable = notes.length >= 3;
-const hasManyNotes = notes.length >= 5;
 const robotsDirective = isIndexable ? undefined : "noindex, follow";
 ---
 
@@ -61,27 +60,28 @@ const robotsDirective = isIndexable ? undefined : "noindex, follow";
     description={`Notes exploring ${activeTopicName} in Abodid Sahoo's public Obsidian vault.`}
     fullWidth={true}
     showGlobalGrid={false}
+    hideWhatsAppButton={true}
     bodyClass="vault-topic-minimal-page"
     noindex={!isIndexable}
     robots={robotsDirective}
 >
     <main class="vault-topic-page" aria-labelledby="topic-title">
-        <article class="vault-topic-document">
+        <article class="vault-topic-document" data-vault-topic-document>
             <div class="vault-topic-inner">
                 <header class="vault-topic-header">
                     <div class="vault-topic-header__row">
                         <h1 id="topic-title">{displayTopicNameFormatted}</h1>
-                        {hasManyNotes && (
-                            <button
-                                type="button"
-                                class="vault-topic-back-btn"
-                                onclick="if (window.history.length > 1) { window.history.back(); } else { window.location.href = '/research/obsidian-vault'; }"
-                                aria-label="Go back to previous page"
-                            >
-                                <span aria-hidden="true">←</span>
-                                <span>Back to previous page</span>
-                            </button>
-                        )}
+                        <button
+                            type="button"
+                            class="vault-topic-back-btn"
+                            data-vault-topic-top-back
+                            onclick="if (window.history.length > 1) { window.history.back(); } else { window.location.href = '/research/obsidian-vault'; }"
+                            aria-label="Go back to previous page"
+                            hidden
+                        >
+                            <span aria-hidden="true">←</span>
+                            <span>Back to previous page</span>
+                        </button>
                     </div>
                 </header>
 
@@ -127,6 +127,49 @@ const robotsDirective = isIndexable ? undefined : "noindex, follow";
         </article>
     </main>
 </BaseLayout>
+
+<script is:inline>
+    (function () {
+        function initialiseTopicBackButton() {
+            var topicDocument = document.querySelector("[data-vault-topic-document]");
+            var topBackButton = document.querySelector("[data-vault-topic-top-back]");
+            if (!topicDocument || !topBackButton || topicDocument.dataset.fitCheckReady === "true") return;
+
+            topicDocument.dataset.fitCheckReady = "true";
+            var lifecycle = new AbortController();
+            var updateFrame = 0;
+
+            function updateTopBackButton() {
+                if (updateFrame) window.cancelAnimationFrame(updateFrame);
+                topBackButton.hidden = true;
+
+                updateFrame = window.requestAnimationFrame(function () {
+                    updateFrame = 0;
+                    var documentTopAtPageStart = topicDocument.getBoundingClientRect().top + window.scrollY;
+                    var documentBottomAtPageStart = documentTopAtPageStart + topicDocument.offsetHeight;
+                    topBackButton.hidden = documentBottomAtPageStart <= window.innerHeight + 1;
+                });
+            }
+
+            window.addEventListener("resize", updateTopBackButton, { signal: lifecycle.signal });
+            window.addEventListener("orientationchange", updateTopBackButton, { signal: lifecycle.signal });
+
+            if (document.fonts?.ready) {
+                document.fonts.ready.then(updateTopBackButton);
+            }
+            updateTopBackButton();
+
+            document.addEventListener("astro:before-swap", function () {
+                if (updateFrame) window.cancelAnimationFrame(updateFrame);
+                lifecycle.abort();
+                delete topicDocument.dataset.fitCheckReady;
+            }, { once: true, signal: lifecycle.signal });
+        }
+
+        initialiseTopicBackButton();
+        document.addEventListener("astro:page-load", initialiseTopicBackButton);
+    })();
+</script>
 
 <style is:global>
     :root {
@@ -213,6 +256,10 @@ const robotsDirective = isIndexable ? undefined : "noindex, follow";
         text-decoration: none;
         cursor: pointer;
         transition: transform 180ms ease, background 180ms ease;
+    }
+
+    .vault-topic-back-btn[hidden] {
+        display: none;
     }
 
     a.vault-topic-back-btn:hover,

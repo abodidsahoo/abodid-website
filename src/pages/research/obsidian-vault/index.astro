@@ -34,6 +34,7 @@ const pageDescription = "Ask questions across Abodid Sahoo's public Obsidian not
     description={pageDescription}
     fullWidth={true}
     showGlobalGrid={false}
+    hideWhatsAppButton={true}
     bodyClass="vault-pop-page"
 >
     <div class="vault-page">
@@ -752,12 +753,6 @@ const pageDescription = "Ask questions across Abodid Sahoo's public Obsidian not
     }
 
     @media (max-width: 720px) {
-        body.vault-pop-page:has(.vault-result:not([hidden])) .whatsapp-button {
-            visibility: hidden;
-            opacity: 0;
-            pointer-events: none;
-        }
-
         .vault-workspace__grid { grid-template-columns: 1fr; }
         .vault-panel { padding: 1.25rem; }
         .vault-world-file { grid-column: 1; }
