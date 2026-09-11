@@ -64,16 +64,6 @@
   ],
   "rewrites": [
     {
-      "source": "/",
-      "has": [
-        {
-          "type": "host",
-          "value": "curation.abodid.com"
-        }
-      ],
-      "destination": "/resources"
-    },
-    {
       "source": "/robots.txt",
       "has": [
         {
@@ -92,66 +82,6 @@
         }
       ],
       "destination": "/curation-sitemap.xml"
-    },
-    {
-      "source": "/dashboard",
-      "has": [
-        {
-          "type": "host",
-          "value": "curation.abodid.com"
-        }
-      ],
-      "destination": "/resources/dashboard"
-    },
-    {
-      "source": "/saved",
-      "has": [
-        {
-          "type": "host",
-          "value": "curation.abodid.com"
-        }
-      ],
-      "destination": "/resources/saved"
-    },
-    {
-      "source": "/submit",
-      "has": [
-        {
-          "type": "host",
-          "value": "curation.abodid.com"
-        }
-      ],
-      "destination": "/resources/submit"
-    },
-    {
-      "source": "/auth/:path*",
-      "has": [
-        {
-          "type": "host",
-          "value": "curation.abodid.com"
-        }
-      ],
-      "destination": "/resources/auth/:path*"
-    },
-    {
-      "source": "/admin",
-      "has": [
-        {
-          "type": "host",
-          "value": "curation.abodid.com"
-        }
-      ],
-      "destination": "/resources/admin"
-    },
-    {
-      "source": "/admin/:path*",
-      "has": [
-        {
-          "type": "host",
-          "value": "curation.abodid.com"
-        }
-      ],
-      "destination": "/resources/admin/:path*"
     },
     {
       "source": "/resource/:id/edit",
@@ -174,64 +104,24 @@
       "destination": "/resources/:id"
     },
     {
-      "source": "/u/:username",
+      "source": "/:path*",
       "has": [
         {
           "type": "host",
           "value": "curation.abodid.com"
         }
       ],
-      "destination": "/resources/u/:username"
+      "destination": "/resources/:path*"
     },
     {
-      "source": "/",
+      "source": "/:path*",
       "has": [
         {
           "type": "host",
           "value": "lab.abodid.com"
         }
       ],
-      "destination": "/lab"
-    },
-    {
-      "source": "/punctum",
-      "has": [
-        {
-          "type": "host",
-          "value": "lab.abodid.com"
-        }
-      ],
-      "destination": "/lab/punctum"
-    },
-    {
-      "source": "/punctum/:path*",
-      "has": [
-        {
-          "type": "host",
-          "value": "lab.abodid.com"
-        }
-      ],
-      "destination": "/lab/punctum/:path*"
-    },
-    {
-      "source": "/image-flick",
-      "has": [
-        {
-          "type": "host",
-          "value": "lab.abodid.com"
-        }
-      ],
-      "destination": "/lab/image-flick"
-    },
-    {
-      "source": "/photo-board",
-      "has": [
-        {
-          "type": "host",
-          "value": "lab.abodid.com"
-        }
-      ],
-      "destination": "/lab/photo-board"
+      "destination": "/lab/:path*"
     },
     {
       "source": "/",
