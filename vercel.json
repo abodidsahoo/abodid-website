@@ -1,5 +1,8 @@
 {
   "trailingSlash": false,
+  "proxy": {
+    "entrypoint": "middleware.ts"
+  },
   "redirects": [
     {
       "source": "/punctum",
