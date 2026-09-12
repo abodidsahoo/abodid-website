@@ -3,7 +3,12 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import HeroVaultTagsCard from "../components/HeroVaultTagsCard";
 import { getResearchProjects } from "../lib/api";
 import { punctumImages } from "../data/punctumImages";
-import { GESTURE_CONTROL_VIDEO_URL, GESTURE_CONTROL_HERO_GIF_URL, OBSIDIAN_VAULT_VIDEO_URL } from "../lib/mediaAssets";
+import {
+  GESTURE_CONTROL_VIDEO_URL,
+  GESTURE_CONTROL_HERO_GIF_URL,
+  OBSIDIAN_VAULT_VIDEO_URL,
+  SEQUENCE_ROOM_VIDEO_URL,
+} from "../lib/mediaAssets";
 import { breadcrumbJsonLd, personJsonLd } from "../lib/seoData";
 
 const fetchedProjects = await getResearchProjects();
@@ -41,20 +46,29 @@ const researchSelection = [
   },
   {
     slug: "polaroid-hub",
-    title: "Polaroid Hub",
-    kind: "Photographic microsite",
-    description: "A tactile digital space for arranging, sequencing and encountering photographs outside a conventional gallery grid.",
+    title: "Sequence Room",
+    kind: "Photo archive · Spatial interaction",
+    description: "An immersive table for scattering, rearranging, and discovering new relationships between photographs outside a conventional gallery grid.",
     href: "/lab/sequence-room",
-    image: punctumImages[4]?.url,
-    tags: ["Photography", "Archives", "Interface"],
+    video: SEQUENCE_ROOM_VIDEO_URL,
+    tags: ["Photo Archive", "Spatial Interaction", "Photography"],
   },
 ].map((fallback) => {
   const project = bySlug.get(fallback.slug);
   return {
     ...fallback,
-    title: fallback.slug === "invisible-punctum" ? "Punctum" : project?.title || fallback.title,
-    image: project?.image || fallback.image,
-    video: project?.video || fallback.video,
+    title: fallback.slug === "invisible-punctum"
+      ? "Punctum"
+      : fallback.slug === "polaroid-hub"
+        ? "Sequence Room"
+        : project?.title || fallback.title,
+    description: fallback.slug === "polaroid-hub"
+      ? fallback.description
+      : project?.description || fallback.description,
+    kind: fallback.kind,
+    tags: fallback.tags,
+    image: fallback.video ? undefined : (project?.image || fallback.image),
+    video: fallback.video || project?.video,
   };
 });
 

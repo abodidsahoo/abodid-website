@@ -31,12 +31,24 @@ const experimentHref = (href: string) =>
         <article class:list={["lab-card", `lab-card--${experiment.surface}`]}>
           <a href={experimentHref(experiment.href)}>
             <figure class="lab-card__media">
-              <img
-                src={experiment.thumbnail}
-                alt={experiment.thumbnailAlt}
-                loading={experiment.index === "01" ? "eager" : "lazy"}
-                decoding="async"
-              />
+              {experiment.video || experiment.thumbnail?.endsWith(".mp4") ? (
+                <video
+                  src={experiment.video || experiment.thumbnail}
+                  autoplay
+                  muted
+                  loop
+                  playsinline
+                  preload="auto"
+                  aria-label={experiment.thumbnailAlt}
+                />
+              ) : (
+                <img
+                  src={experiment.thumbnail}
+                  alt={experiment.thumbnailAlt}
+                  loading={experiment.index === "01" ? "eager" : "lazy"}
+                  decoding="async"
+                />
+              )}
             </figure>
 
             <div class="lab-card__copy">
@@ -57,6 +69,39 @@ const experimentHref = (href: string) =>
     }
   </div>
 </section>
+
+<script>
+  const ensureVideosPlay = () => {
+    document.querySelectorAll<HTMLVideoElement>(".lab-card__media video[autoplay]").forEach((video) => {
+      const playVideo = () => {
+        if (video.paused) video.play().catch(() => {});
+      };
+
+      if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+        playVideo();
+      } else {
+        video.addEventListener("canplay", playVideo, { once: true });
+        if (video.readyState === HTMLMediaElement.HAVE_NOTHING) video.load();
+      }
+
+      if (video.dataset.viewportPlaybackReady !== "true") {
+        video.dataset.viewportPlaybackReady = "true";
+        const observer = new IntersectionObserver((entries) => {
+          if (entries.some((entry) => entry.isIntersecting)) playVideo();
+        }, { threshold: 0.1 });
+        observer.observe(video);
+      }
+    });
+  };
+
+  document.addEventListener("astro:page-load", ensureVideosPlay);
+  window.addEventListener("pageshow", ensureVideosPlay);
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", ensureVideosPlay, { once: true });
+  } else {
+    ensureVideosPlay();
+  }
+</script>
 
 <style>
   .lab-catalogue {
@@ -121,7 +166,7 @@ const experimentHref = (href: string) =>
   }
 
   .lab-card {
-    min-height: clamp(540px, 62vw, 720px);
+    min-height: clamp(520px, 58vw, 680px);
     border: 1px solid var(--pop-border);
     border-radius: clamp(18px, 2vw, 28px);
     overflow: hidden;
@@ -186,7 +231,10 @@ const experimentHref = (href: string) =>
   }
 
   .lab-card__media {
-    min-height: 280px;
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9.5;
+    min-height: 260px;
     flex: 1 1 auto;
     margin: 0;
     border: 1px solid currentColor;
@@ -195,11 +243,12 @@ const experimentHref = (href: string) =>
     background: var(--pop-ink);
   }
 
-  .lab-card__media img {
+  .lab-card__media :is(img, video) {
     width: 100%;
     height: 100%;
     display: block;
     object-fit: cover;
+    object-position: center;
     transition: transform 550ms cubic-bezier(0.2, 0.8, 0.2, 1);
   }
 
@@ -260,8 +309,8 @@ const experimentHref = (href: string) =>
     transition: transform 180ms ease;
   }
 
-  .lab-card > a:hover .lab-card__media img,
-  .lab-card > a:focus-visible .lab-card__media img {
+  .lab-card > a:hover .lab-card__media :is(img, video),
+  .lab-card > a:focus-visible .lab-card__media :is(img, video) {
     transform: scale(1.025);
   }
 
@@ -306,13 +355,13 @@ const experimentHref = (href: string) =>
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .lab-card__media img,
+    .lab-card__media :is(img, video),
     .lab-card__destination > span:last-child {
       transition-duration: 0.01ms;
     }
 
-    .lab-card > a:hover .lab-card__media img,
-    .lab-card > a:focus-visible .lab-card__media img,
+    .lab-card > a:hover .lab-card__media :is(img, video),
+    .lab-card > a:focus-visible .lab-card__media :is(img, video),
     .lab-card > a:hover .lab-card__destination > span:last-child,
     .lab-card > a:focus-visible .lab-card__destination > span:last-child {
       transform: none;

@@ -6,3 +6,6 @@ export const GESTURE_CONTROL_HERO_GIF_URL =
 
 export const OBSIDIAN_VAULT_VIDEO_URL =
   "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/video-clips/Obsidian_Timelapse.mp4";
+
+export const SEQUENCE_ROOM_VIDEO_URL =
+  "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/video-clips/sequence-room-comp.mp4";

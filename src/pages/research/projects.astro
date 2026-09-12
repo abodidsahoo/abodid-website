@@ -34,7 +34,27 @@ const isTensorFlowProject = (slug = "", title = "") =>
         {
             projects.map((project) => (
                 <a href={project.href} class="project-card">
-                    {project.image && (
+                    {project.video || project.image?.endsWith(".mp4") ? (
+                        <div class="card-image-container">
+                            <video
+                                src={project.video || project.image}
+                                autoplay
+                                muted
+                                loop
+                                playsinline
+                                preload="auto"
+                                class="card-image"
+                                aria-label={project.title}
+                            />
+                            {isTensorFlowProject(project.slug, project.title) && (
+                                <div class="wip-overlay" aria-label="Work in progress">
+                                    <span class="wip-overlay__badge">
+                                        Work in Progress
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+                    ) : project.image ? (
                         <div class="card-image-container">
                             <img
                                 src={project.image}
@@ -50,7 +70,7 @@ const isTensorFlowProject = (slug = "", title = "") =>
                                 </div>
                             )}
                         </div>
-                    )}
+                    ) : null}
                     <div class="card-content">
                         <h2>{project.title}</h2>
                         <p class="description">{project.description}</p>

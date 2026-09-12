@@ -1,4 +1,7 @@
-import { GESTURE_CONTROL_HERO_GIF_URL } from "../lib/mediaAssets";
+import {
+  GESTURE_CONTROL_HERO_GIF_URL,
+  SEQUENCE_ROOM_VIDEO_URL,
+} from "../lib/mediaAssets";
 
 export type LabExperiment = {
   id: string;
@@ -10,6 +13,7 @@ export type LabExperiment = {
   year: string;
   href: string;
   thumbnail: string;
+  video?: string;
   thumbnailAlt: string;
   surface: "pink" | "blue" | "yellow" | "cream" | "lime";
 };
@@ -45,23 +49,8 @@ export const labExperiments: LabExperiment[] = [
     surface: "yellow",
   },
   {
-    id: "sequence-room",
-    index: "03",
-    title: "Sequence Room",
-    description:
-      "An immersive table for scattering, rearranging, and discovering new relationships between photographs.",
-    discipline: "Photo archive · Spatial interaction",
-    status: "Prototype",
-    year: "2026",
-    href: "/lab/sequence-room",
-    thumbnail:
-      "https://assets.abodid.com/photos/variants/exhibition-photos/1600/breathe-variations-rca-2023-abodid-sahoo-12-d06e2bea64.webp",
-    thumbnailAlt: "Visitors moving through Abodid Sahoo's Breathe Variations exhibition",
-    surface: "cream",
-  },
-  {
     id: "glyph-loom",
-    index: "04",
+    index: "03",
     title: "Glyph Loom",
     description:
       "A generative typography instrument that reconstructs live letterforms from modular bars, dots, crosses, and woven structures.",
@@ -72,5 +61,20 @@ export const labExperiments: LabExperiment[] = [
     thumbnail: "/images/research/glyph-loom-cover.png",
     thumbnailAlt: "Generative typography outlines in the Glyph Loom instrument",
     surface: "lime",
+  },
+  {
+    id: "sequence-room",
+    index: "04",
+    title: "Sequence Room",
+    description:
+      "An immersive table for scattering, rearranging, and discovering new relationships between photographs.",
+    discipline: "Photo archive · Spatial interaction",
+    status: "Prototype",
+    year: "2026",
+    href: "/lab/sequence-room",
+    video: SEQUENCE_ROOM_VIDEO_URL,
+    thumbnail: SEQUENCE_ROOM_VIDEO_URL,
+    thumbnailAlt: "Interactive Sequence Room photo workspace preview",
+    surface: "cream",
   },
 ];

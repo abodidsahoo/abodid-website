@@ -2,7 +2,7 @@ import { supabase } from '../supabaseClient';
 import { isSupabaseConfigured } from './utils';
 import type { Project, PhotographyProject, BlogPost, Film, ResearchPaper, WorkExperience, ServiceItem } from './types';
 import { featuredPhotography as mockPhotography, recentPosts as mockPosts } from '../../utils/mockData';
-import { GESTURE_CONTROL_VIDEO_URL, OBSIDIAN_VAULT_VIDEO_URL } from '../mediaAssets';
+import { GESTURE_CONTROL_VIDEO_URL, OBSIDIAN_VAULT_VIDEO_URL, SEQUENCE_ROOM_VIDEO_URL } from '../mediaAssets';
 import photographyCloudflare from '../../data/photographyCloudflare.generated.json';
 
 const normalizeImageUrl = (value: unknown): string =>
@@ -75,7 +75,7 @@ const mockResearchProjects: Project[] = [
         description: "An interactive photo arrangement experiment—handle photographs like physical objects, sequence them on a digital table, and feel how their order changes meaning. A stepping stone for designing photo books.",
         slug: "polaroid-hub",
         href: "/lab/sequence-room",
-        image: "https://images.unsplash.com/photo-1606857521015-7f9fcf423740?auto=format&fit=crop&q=80&w=1000",
+        video: SEQUENCE_ROOM_VIDEO_URL,
         tags: ["Photography", "Interaction Design", "In Progress"],
         published: true,
     },
