@@ -1,0 +1,205 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { mediaDeliveryTestItems } from "../data/mediaDeliveryTest";
+---
+
+<BaseLayout
+  title="Media Delivery Test | Abodid Sahoo"
+  description="A side-by-side media delivery comparison for Supabase Storage and Cloudflare R2."
+  noindex={true}
+  useDynamicOgImage={false}
+  showNewsletterPopup={false}
+  hideWhatsAppButton={true}
+  hideHeader={true}
+  hideFooter={true}
+>
+  <main class="test-shell">
+    <header>
+      <p class="eyebrow">Delivery laboratory</p>
+      <h1>Supabase <span>versus</span> Cloudflare</h1>
+      <p class="lede">
+        Identical files, served from both providers. Video players use metadata
+        preloading so opening this page does not automatically download every file.
+      </p>
+    </header>
+
+    <section class="comparison" aria-label="Media delivery comparison">
+      {mediaDeliveryTestItems.map((item) => (
+        <article class="test-card">
+          <div class="card-heading">
+            <div>
+              <p class="kind">{item.kind}</p>
+              <h2>{item.label}</h2>
+            </div>
+            <p class="size">{item.sizeMiB.toFixed(2)} MiB</p>
+          </div>
+
+          <div class="providers">
+            {(["supabase", "cloudflare"] as const).map((provider) => (
+              <figure>
+                <figcaption>
+                  <span class:list={["provider-dot", provider]}></span>
+                  {provider === "supabase" ? "Supabase" : "Cloudflare R2"}
+                </figcaption>
+                {item.kind === "video" ? (
+                  <video controls playsinline preload="metadata" src={item[provider]}>
+                    Your browser does not support embedded video.
+                  </video>
+                ) : (
+                  <img
+                    src={item[provider]}
+                    alt={`${item.label}, served by ${provider}`}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                )}
+                <a href={item[provider]} target="_blank" rel="noreferrer">
+                  Open source file ↗
+                </a>
+              </figure>
+            ))}
+          </div>
+        </article>
+      ))}
+    </section>
+  </main>
+</BaseLayout>
+
+<style>
+  :global(body) {
+    margin: 0;
+    background: #f4f0ff;
+    color: #18131f;
+    font-family: "Inconsolata", monospace;
+  }
+
+  .test-shell {
+    width: min(1180px, calc(100% - 32px));
+    margin: 0 auto;
+    padding: 72px 0 120px;
+  }
+
+  header {
+    max-width: 900px;
+    margin-bottom: 48px;
+  }
+
+  .eyebrow,
+  .kind,
+  .size {
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.13em;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  h1 {
+    margin: 12px 0 20px;
+    font-family: "Montserrat", sans-serif;
+    font-size: clamp(3rem, 8vw, 7.5rem);
+    line-height: 0.88;
+    letter-spacing: -0.075em;
+  }
+
+  h1 span {
+    color: #ff2c9c;
+  }
+
+  .lede {
+    max-width: 720px;
+    margin: 0;
+    font-size: clamp(1rem, 2vw, 1.3rem);
+    line-height: 1.5;
+  }
+
+  .comparison {
+    display: grid;
+    gap: 24px;
+  }
+
+  .test-card {
+    border: 2px solid #18131f;
+    border-radius: 24px;
+    background: #fff;
+    box-shadow: 8px 8px 0 #18131f;
+    overflow: hidden;
+  }
+
+  .card-heading {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 24px;
+    border-bottom: 2px solid #18131f;
+    background: #e3ff46;
+  }
+
+  h2 {
+    margin: 7px 0 0;
+    font-family: "Montserrat", sans-serif;
+    font-size: clamp(1.3rem, 3vw, 2.2rem);
+    letter-spacing: -0.04em;
+  }
+
+  .providers {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  figure {
+    display: grid;
+    align-content: start;
+    gap: 12px;
+    margin: 0;
+    padding: 20px;
+  }
+
+  figure + figure {
+    border-left: 2px solid #18131f;
+  }
+
+  figcaption {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-weight: 700;
+  }
+
+  .provider-dot {
+    width: 12px;
+    height: 12px;
+    border: 2px solid #18131f;
+    border-radius: 50%;
+  }
+
+  .provider-dot.supabase { background: #3ecf8e; }
+  .provider-dot.cloudflare { background: #f6821f; }
+
+  video,
+  img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border: 2px solid #18131f;
+    border-radius: 14px;
+    background: #18131f;
+    object-fit: contain;
+  }
+
+  a {
+    width: fit-content;
+    color: inherit;
+    font-weight: 700;
+    text-underline-offset: 4px;
+  }
+
+  @media (max-width: 720px) {
+    .test-shell { padding-top: 40px; }
+    .providers { grid-template-columns: 1fr; }
+    figure + figure {
+      border-top: 2px solid #18131f;
+      border-left: 0;
+    }
+  }
+</style>

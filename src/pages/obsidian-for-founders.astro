@@ -1,0 +1,45 @@
+---
+import ObsidianLandingPage from "../components/obsidian/ObsidianLandingPage.astro";
+
+const accordions = [
+  {
+    title: "People & Network CRM",
+    body: "Never forget a contact, investor, collaborator, or lead again. Track meeting context, mutual intros, shared history, and exactly when to follow up.",
+  },
+  {
+    title: "Visual & Aesthetic References",
+    body: "Capture moodboards, brand identity benchmarks, competitor teardowns, and creative inspirations into lightning-fast searchable visual vaults.",
+  },
+  {
+    title: "Essential Links & Articles",
+    body: "Save high-signal articles, market trends, and technical essays with your personal synthesis attached, ending browser tab hoarding forever.",
+  },
+  {
+    title: "Product Ideation & Strategy",
+    body: "Capture spontaneous midnight epiphanies and connect raw thoughts into structured product roadmaps, pitch decks, and executive memos.",
+  },
+];
+---
+
+<ObsidianLandingPage
+  pageTitle="Obsidian for Startup Founders & CEOs"
+  description="Build a high-leverage Obsidian second brain for startup founders, CEOs, and builders. Connect contacts, visual benchmarks, articles, and product breakthroughs."
+  path="/obsidian-for-founders"
+  eyebrow="Obsidian for Founders & CEOs"
+  headingLines={["Stop dropping critical ideas.", "Build your founder second brain."]}
+  bodyBeforeStrong="I conduct bespoke Obsidian tutoring and systems architecture for startup founders, CEOs, and executive builders. We will build a unified knowledge engine connecting investor context, visual benchmarks, technical essays, and midnight product epiphanies tailored to the way "
+  bodyStrong="you"
+  bodyAfterStrong=" lead."
+  bodyEmphasis="Never lose a breakthrough idea again."
+  priceLines={[
+    { text: "£150/hour", strong: true },
+    { text: "Bespoke 1:1 founder second brain coaching", small: true },
+  ]}
+  secondHeading="One linked vault. Zero cognitive overload."
+  accordions={accordions}
+  discoveryHeading="Book your free discovery call today."
+  submitLabel="Yes, I'm Interested"
+  finalAppealText="Your notes should find their way back to you when you need them the most."
+  sourceName="obsidian-for-founders"
+  contactInterest="Obsidian for startup founders and CEOs"
+/>

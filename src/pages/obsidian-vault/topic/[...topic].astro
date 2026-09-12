@@ -184,9 +184,29 @@ const robotsDirective = isIndexable ? undefined : "noindex, follow";
         --pop-line: rgba(21, 19, 15, 0.2);
     }
 
+    html:has(body.vault-topic-minimal-page),
+    html body.vault-topic-minimal-page,
     body.vault-topic-minimal-page {
-        background: var(--pop-blue);
+        background: #2444ca !important;
+        background-color: #2444ca !important;
         color: var(--pop-ink);
+    }
+
+    body.vault-topic-minimal-page main.page-content-full {
+        background: #2444ca !important;
+        overflow: visible;
+    }
+
+    body.vault-topic-minimal-page .site-footer {
+        --footer-bg: #2444ca;
+        --footer-text-header: #fff8e8;
+        --footer-text-dim: rgba(255, 248, 232, 0.82);
+        --footer-border: rgba(255, 248, 232, 0.3);
+    }
+
+    body.vault-topic-minimal-page .brands-zone {
+        border-top: 1px solid #15130f;
+        background: #2444ca !important;
     }
 
     .vault-topic-page {

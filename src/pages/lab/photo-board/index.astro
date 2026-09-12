@@ -45,6 +45,7 @@ portfolioProjects.forEach((project) => {
             id: stableId,
             title: project.title,
             image: coverImage,
+            paletteImageUrl: `/api/image-palette-proxy?url=${encodeURIComponent(coverImage)}`,
             slug: project.slug,
             link: project.href,
             isCover: true, // Priority Flag
@@ -62,6 +63,7 @@ portfolioProjects.forEach((project) => {
                 title: project.title,
                 image: normalizedImage,
                 fallbackImage: coverImage || undefined,
+                paletteImageUrl: `/api/image-palette-proxy?url=${encodeURIComponent(normalizedImage)}`,
                 slug: project.slug,
                 link: project.href,
                 isCover: false,

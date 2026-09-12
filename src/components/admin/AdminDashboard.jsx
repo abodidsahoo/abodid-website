@@ -77,12 +77,12 @@ const SECTIONS = [
 const VALID_SECTION_IDS = new Set(SECTIONS.map((section) => section.id));
 const REQUEST_TIMEOUT_MS = 8000;
 const QUICK_ACTIONS = [
-    { label: 'Send a Newsletter', href: '/admin/dashboard?section=newsletter', icon: Mail },
-    { label: 'Add a Link to Resource Hub', href: '/admin/dashboard?section=hub_resources&action=new', icon: Library },
-    { label: 'Upload a Photo Series', href: '/admin/dashboard?section=photography&action=new', icon: Camera },
-    { label: 'Publish an Article', href: '/admin/editor?table=blog&id=new', icon: PenLine },
-    { label: 'Add an image to Moodboard', href: '/admin/dashboard?section=moodboard_items', icon: Images },
-    { label: 'Check Site Analytics', href: '/admin/dashboard?section=analytics', icon: ChartNoAxesCombined },
+    { label: 'Media Library', href: '/admin/dashboard?section=media_library', icon: FolderOpen, section: 'media_library' },
+    { label: 'Analytics', href: '/admin/dashboard?section=analytics', icon: ChartNoAxesCombined, section: 'analytics' },
+    { label: 'Add a Resource', href: '/admin/dashboard?section=hub_resources&action=new', icon: Library, section: 'hub_resources', actionParam: 'new' },
+    { label: 'Send a Newsletter', href: '/admin/dashboard?section=newsletter', icon: Mail, section: 'newsletter' },
+    { label: 'Network Intelligence', href: '/admin/dashboard?section=network_intelligence', icon: Network, section: 'network_intelligence' },
+    { label: "Reader's Digest", href: '/admin/dashboard?section=reading_digest', icon: BookOpen, section: 'reading_digest' },
 ];
 const WORLD_CLOCKS = [
     { city: 'New York', timeZone: 'America/New_York' },
@@ -361,14 +361,18 @@ export default function AdminDashboard() {
         };
     }, []);
 
-    const handleNav = (id) => {
+    const handleNav = (id, action = null) => {
         setActiveSection(id);
         if (window.matchMedia('(max-width: 1024px)').matches) {
             setSidebarOpen(false);
         }
         const url = new URL(window.location);
         url.searchParams.set('section', id);
-        url.searchParams.delete('action');
+        if (action) {
+            url.searchParams.set('action', action);
+        } else {
+            url.searchParams.delete('action');
+        }
         window.history.pushState({}, '', url);
     };
 
@@ -396,7 +400,7 @@ export default function AdminDashboard() {
                     </p>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', alignItems: 'center' }}>
                         <a
-                            href="https://curation.abodid.com"
+                            href="/resources"
                             style={{
                                 fontSize: '0.875rem',
                                 padding: '0.5rem 1.25rem',
@@ -475,7 +479,7 @@ export default function AdminDashboard() {
                 </nav>
 
                 <div className="sidebar-footer">
-                    <a href="https://curation.abodid.com" target="_blank" rel="noreferrer" className="btn-curator-link" aria-label="View Curation by Abodid">
+                    <a href="/resources" target="_blank" rel="noreferrer" className="btn-curator-link" aria-label="View Curation by Abodid">
                         <Library size={15} strokeWidth={1.7} aria-hidden="true" />
                         <span>View Resource Hub</span>
                     </a>
@@ -507,7 +511,7 @@ export default function AdminDashboard() {
                                             <strong>View live site</strong>
                                             <ArrowUpRight size={21} strokeWidth={1.7} aria-hidden="true" />
                                         </a>
-                                        <a href="https://curation.abodid.com" target="_blank" rel="noreferrer" className="destination-card destination-card-secondary">
+                                        <a href="/resources" target="_blank" rel="noreferrer" className="destination-card destination-card-secondary">
                                             <span className="destination-icon" aria-hidden="true">
                                                 <Library size={24} strokeWidth={1.7} />
                                             </span>
@@ -528,10 +532,10 @@ export default function AdminDashboard() {
                                                 key={action.href}
                                                 href={action.href}
                                                 className="quick-action-card"
-                                                onClick={action.href === '/admin/dashboard?section=newsletter'
+                                                onClick={action.section
                                                     ? (event) => {
                                                         event.preventDefault();
-                                                        handleNav('newsletter');
+                                                        handleNav(action.section, action.actionParam || null);
                                                     }
                                                     : undefined}
                                             >

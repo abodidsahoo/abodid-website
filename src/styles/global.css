@@ -20,6 +20,32 @@
 }
 
 :root {
+  /* ==========================================================================
+     ABODID POP EDITORIAL DESIGN SYSTEM CORE TOKENS
+     ========================================================================== */
+  --pop-blue: #2444ca;
+  --pop-pink: #ff7eb5;
+  --pop-yellow: #ffe44f;
+  --pop-lime: #caff48;
+  --pop-orange: #ff875c;
+  --pop-purple: #5524c7;
+  --pop-cyan: #62e6ff;
+  --pop-cream: #fff8e8;
+  --pop-white: #ffffff;
+  --pop-ink: #15130f;
+  --pop-ink-secondary: rgba(21, 19, 15, 0.78);
+  --pop-ink-tertiary: rgba(21, 19, 15, 0.58);
+  --pop-border: rgba(21, 19, 15, 0.78);
+  --pop-line: rgba(21, 19, 15, 0.22);
+  --pop-gap: 8px;
+  --pop-page-gutter: clamp(1rem, 3vw, 3.5rem);
+  --pop-radius-panel: clamp(18px, 2vw, 28px);
+  --pop-radius-card: clamp(14px, 1.5vw, 22px);
+  --pop-radius-control: 14px;
+  --pop-radius-media: clamp(10px, 1.2vw, 16px);
+  --pop-control-height: 52px;
+  --pop-motion: 180ms ease;
+
   /* 
      * MAJOR COLOR PALETTE (Added for reference)
      * Source: Step 39 Request
@@ -1093,4 +1119,138 @@ main {
     margin-left: auto;
     margin-right: auto;
   }
+}
+
+/* ==========================================================================
+   ABODID POP EDITORIAL SYSTEM: UNIVERSAL CONTRAST & LEGIBILITY ENGINE
+   Guarantees strict WCAG accessible contrast across all pop pages & surfaces
+   in both dark mode and light mode by default.
+   ========================================================================== */
+
+/* 1. Universal variables on pop pages */
+body[class*="pop-"],
+body[class*="story-"],
+[data-pop-page="true"] {
+  --text-primary: var(--pop-ink);
+  --text-secondary: var(--pop-ink-secondary);
+  --text-tertiary: var(--pop-ink-tertiary);
+  --type-h1-color: var(--pop-ink);
+  --type-h2-color: var(--pop-ink);
+  --type-h3-color: var(--pop-ink);
+  --type-h4-color: var(--pop-ink);
+  --type-h5-color: var(--pop-ink);
+  --type-h6-color: var(--pop-ink);
+  --type-paragraph-color: var(--pop-ink);
+  --link-color: var(--pop-ink);
+  color: var(--pop-ink);
+}
+
+/* 2. High-Chroma / Light Surfaces: Yellow, Lime, Pink, Cream, White, Orange, Cyan */
+/* MUST ALWAYS HAVE DEEP SOLID INK (#15130f) FOREGROUND */
+:is(
+  [class*="--yellow"],
+  [class*="--lime"],
+  [class*="--pink"],
+  [class*="--cream"],
+  [class*="--white"],
+  [class*="--orange"],
+  [class*="--cyan"],
+  [data-pop-surface="yellow"],
+  [data-pop-surface="lime"],
+  [data-pop-surface="pink"],
+  [data-pop-surface="cream"],
+  [data-pop-surface="white"],
+  [data-pop-surface="orange"],
+  [data-pop-surface="cyan"],
+  .pop-card--yellow,
+  .pop-card--lime,
+  .pop-card--pink,
+  .pop-card--cream,
+  .pop-card--white,
+  .pop-panel--yellow,
+  .pop-panel--lime,
+  .pop-panel--pink,
+  .pop-panel--cream,
+  .pop-panel--white
+) {
+  --text-primary: var(--pop-ink) !important;
+  --text-secondary: var(--pop-ink-secondary) !important;
+  --text-tertiary: var(--pop-ink-tertiary) !important;
+  --type-h1-color: var(--pop-ink) !important;
+  --type-h2-color: var(--pop-ink) !important;
+  --type-h3-color: var(--pop-ink) !important;
+  --type-h4-color: var(--pop-ink) !important;
+  --type-h5-color: var(--pop-ink) !important;
+  --type-h6-color: var(--pop-ink) !important;
+  --type-paragraph-color: var(--pop-ink) !important;
+  --link-color: var(--pop-ink) !important;
+  color: var(--pop-ink) !important;
+}
+
+:is(
+  [class*="--yellow"],
+  [class*="--lime"],
+  [class*="--pink"],
+  [class*="--cream"],
+  [class*="--white"],
+  [class*="--orange"],
+  [class*="--cyan"],
+  [data-pop-surface="yellow"],
+  [data-pop-surface="lime"],
+  [data-pop-surface="pink"],
+  [data-pop-surface="cream"],
+  [data-pop-surface="white"],
+  [data-pop-surface="orange"],
+  [data-pop-surface="cyan"],
+  .pop-card--yellow,
+  .pop-card--lime,
+  .pop-card--pink,
+  .pop-card--cream,
+  .pop-card--white,
+  .pop-panel--yellow,
+  .pop-panel--lime,
+  .pop-panel--pink,
+  .pop-panel--cream,
+  .pop-panel--white
+) :is(h1, h2, h3, h4, h5, h6, p, span, small, li, strong, em, b, a, button, label, td, th, code) {
+  color: var(--pop-ink) !important;
+}
+
+/* 3. Deep Chromatic Surfaces: Cobalt (#2444ca), Purple (#5524c7) */
+/* MUST ALWAYS HAVE WARM CREAM (#fff8e8) FOREGROUND */
+:is(
+  [class*="--blue"],
+  [class*="--purple"],
+  [data-pop-surface="blue"],
+  [data-pop-surface="purple"],
+  .pop-card--blue,
+  .pop-card--purple,
+  .pop-panel--blue,
+  .pop-panel--purple
+) {
+  --text-primary: var(--pop-cream) !important;
+  --text-secondary: rgba(255, 248, 232, 0.85) !important;
+  --text-tertiary: rgba(255, 248, 232, 0.65) !important;
+  --type-h1-color: var(--pop-cream) !important;
+  --type-h2-color: var(--pop-cream) !important;
+  --type-h3-color: var(--pop-cream) !important;
+  --type-h4-color: var(--pop-cream) !important;
+  --type-h5-color: var(--pop-cream) !important;
+  --type-h6-color: var(--pop-cream) !important;
+  --type-paragraph-color: var(--pop-cream) !important;
+  --link-color: var(--pop-cream) !important;
+  color: var(--pop-cream) !important;
+}
+
+:is(
+  [class*="--blue"],
+  [class*="--purple"],
+  [data-pop-surface="blue"],
+  [data-pop-surface="purple"],
+  .pop-card--blue,
+  .pop-card--purple,
+  .pop-panel--blue,
+  .pop-panel--purple
+) :is(h1, h2, h3, h4, h5, h6, p, span, small, li, strong, em, b, a, button, label, td, th, code) {
+  color: var(--pop-cream) !important;
 }

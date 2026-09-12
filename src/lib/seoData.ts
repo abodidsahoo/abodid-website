@@ -20,7 +20,7 @@ export const seoIdentity = {
     indiaPhone: "+919439094370",
     ukPhone: "+447522258768",
     description:
-        "Abodid Sahoo is a Royal College of Art (RCA), London alumnus, creative technologist, photographer, filmmaker, researcher, and tutor working across creative technology, AI-assisted research workflows, Obsidian systems, visual storytelling, and digital media.",
+        "Abodid Sahoo is a Royal College of Art (RCA), London alumnus (Apple Scholar), Photographer, Filmmaker, and Creative Director with deep cross-market expertise across London (UK) and India, developing research-driven visual narratives for global lifestyle, boutique hospitality, travel, and cultural brands.",
     sameAs: [
         "https://uk.linkedin.com/in/abodidsahoo",
         "https://www.instagram.com/abodid.sahoo",
@@ -44,6 +44,48 @@ export const royalCollegeOfArtJsonLd = {
     },
 };
 
+export const cambridgeUniversityJsonLd = {
+    "@type": "CollegeOrUniversity",
+    name: "University of Cambridge",
+    url: "https://www.cam.ac.uk/",
+    location: {
+        "@type": "Place",
+        name: "Cambridge, United Kingdom",
+    },
+};
+
+export const delhiUniversityJsonLd = {
+    "@type": "CollegeOrUniversity",
+    name: "University of Delhi",
+    url: "https://www.du.ac.in/",
+    location: {
+        "@type": "Place",
+        name: "New Delhi, India",
+    },
+};
+
+export const nidAhmedabadJsonLd = {
+    "@type": "CollegeOrUniversity",
+    name: "National Institute of Design",
+    alternateName: ["NID", "NID Ahmedabad", "National Institute of Design Ahmedabad"],
+    url: "https://www.nid.edu/",
+    location: {
+        "@type": "Place",
+        name: "Ahmedabad, Gujarat, India",
+    },
+};
+
+export const nitRourkelaJsonLd = {
+    "@type": "CollegeOrUniversity",
+    name: "National Institute of Technology Rourkela",
+    alternateName: ["NIT Rourkela", "NITR"],
+    url: "https://www.nitrkl.ac.in/",
+    location: {
+        "@type": "Place",
+        name: "Rourkela, Odisha, India",
+    },
+};
+
 export const personJsonLd = () => ({
     "@context": "https://schema.org",
     "@type": "Person",
@@ -54,26 +96,59 @@ export const personJsonLd = () => ({
     telephone: [seoIdentity.indiaPhone, seoIdentity.ukPhone],
     description: seoIdentity.description,
     jobTitle:
-        "Creative technologist, photographer, filmmaker, researcher, and tutor",
-    alumniOf: royalCollegeOfArtJsonLd,
+        "Photographer, Filmmaker, Creative Director, and Researcher",
+    alumniOf: [
+        royalCollegeOfArtJsonLd,
+        nidAhmedabadJsonLd,
+        nitRourkelaJsonLd,
+    ],
+    affiliation: [
+        royalCollegeOfArtJsonLd,
+        cambridgeUniversityJsonLd,
+        nidAhmedabadJsonLd,
+        nitRourkelaJsonLd,
+        delhiUniversityJsonLd,
+    ],
     award: [
         "Apple Scholarship recipient at the Royal College of Art",
         "Royal College of Art MA Digital Direction alumnus",
+        "Cultural Heritage Data School participant at Cambridge Digital Humanities (University of Cambridge)",
+        "Visiting Lecturer & Workshop Lead at Royal College of Art, University of Cambridge, National Institute of Design (NID), National Institute of Technology (NIT), and Delhi University",
     ],
     knowsAbout: [
+        "Digital Humanities",
+        "Cambridge Digital Humanities",
+        "Cultural Heritage Data",
+        "Ethnographic Filmmaking",
+        "Data-Driven Creative Direction",
+        "AI in Art & Cultural Heritage",
+        "Creative Project Management",
+        "Creative Technology & Prototyping",
+        "Boutique Hospitality & Destination Travel Photography",
+        "High-Net-Worth Travel Documentation",
+        "Cultural Institutions, Galleries & Museums",
+        "Destination Fashion & Editorial Photography",
+        "Research-Driven Visual Storytelling",
+        "Academia-Industry Convergence",
+        "London & European Creative Markets",
+        "South Asian Cultural & Luxury Brand Strategy",
+        "Cross-Market Visual Direction (UK & India)",
         "Royal College of Art",
-        "RCA",
-        "Royal College of Art London",
-        "Creative technology",
-        "AI-assisted research workflows",
-        "Obsidian",
-        "Second brain systems",
-        "Photography",
-        "Filmmaking",
-        "Video editing",
-        "Digital media strategy",
-        "Interactive media",
-        "Research communication",
+        "National Institute of Design",
+        "National Institute of Technology",
+        "Obsidian & Cognitive Knowledge Architecture",
+        "Obsidian Second Brain for Startup Founders & CEOs",
+        "Obsidian Mentorship for Film Directors & PhD Researchers",
+        "Obsidian Tutoring for High-Profile Creatives",
+        "Executive Creative Director Knowledge Systems",
+        "Personal CRM & Relationship Mapping in Obsidian",
+        "Visual & Aesthetic Reference Management",
+        "Executive Second Brain Architecture",
+        "Zotero & Pandoc Academic Research Pipelines",
+        "Screenwriting & Worldbuilding Knowledge Graphs",
+        "AI-Assisted Research Workflows",
+        "Filmmaking & Color Grading",
+        "Visual Culture & Autoethnography",
     ],
     sameAs: seoIdentity.sameAs,
 });
@@ -122,7 +197,7 @@ export const serviceJsonLd = ({
     provider: {
         "@id": seoIdentity.personId,
     },
-    areaServed: ["India", "United Kingdom", "Remote"],
+    areaServed: ["London", "United Kingdom", "India", "Global / Remote"],
     availableChannel: {
         "@type": "ServiceChannel",
         serviceUrl: siteUrlForPath("/contact"),
@@ -161,11 +236,13 @@ export const courseJsonLd = ({
         url: siteUrlForPath(path),
     },
     educationalLevel: [
-        "Masters students",
-        "PhD applicants",
-        "Researchers",
-        "Writers",
-        "Working professionals",
+        "Solo and independent founders",
+        "Startup founders and builders",
+        "Executive creative directors",
+        "Film directors and screenwriters",
+        "PhD researchers, postdocs, and academics",
+        "Creative executives and authors",
+        "Working professionals and serious learners",
     ],
     teaches: [
         "Obsidian vault setup",

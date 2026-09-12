@@ -19,7 +19,11 @@ export default defineConfig({
   // Build public pages as static HTML by default. Routes that genuinely need
   // request-time behavior opt in with `export const prerender = false`.
   output: 'static',
-  adapter: vercel(),
+  // Host-based Lab routes must be resolved before Vercel's filesystem. Without
+  // edge middleware, a public URL such as lab.abodid.com/photo-board is treated
+  // as a literal /photo-board file and 404s before Astro can map it to
+  // /lab/photo-board.
+  adapter: vercel({ edgeMiddleware: true }),
   // In development, accept the alternate form long enough for project
   // middleware to issue the same 308 redirect generated for production.
   trailingSlash: isDevelopmentServer ? 'ignore' : 'never',

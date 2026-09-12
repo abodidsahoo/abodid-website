@@ -19,8 +19,8 @@ permanently redirected to these canonical Lab URLs.
 ## Source layout
 
 ```text
-middleware.js             Host routing that runs before Vercel's filesystem
 src/
+  middleware.ts           Host routing deployed ahead of Vercel's filesystem
   components/lab/         Lab homepage and experiment catalogue
   data/labExperiments.ts  Single catalogue for experiment metadata
   pages/lab/              Internal Astro route namespace
@@ -33,10 +33,15 @@ src/
   lib/labRoutes.js         Public/internal URL mappings and redirects
 ```
 
-Vercel Routing Middleware rewrites public Lab URLs to the internal `/lab`
-pages. Astro middleware is deliberately not used for hostname rewrites because
-static files are resolved before Astro's on-demand middleware. This separation
-also prevents a main-site or vault page from being served under the Lab host.
+The Vercel adapter deploys Astro middleware at the edge so hostname routing runs
+before static-file resolution. It rewrites public Lab URLs to the internal
+`/lab` pages while leaving the browser URL untouched. The mapping is generic:
+every route added below `src/pages/lab` is automatically available at the same
+path on `lab.abodid.com`, without maintaining a project allowlist.
+
+Main-site navigation routes such as `/research`, `/work`, `/photography`, and
+`/about` still leave the Lab and redirect to `abodid.com`. Shared assets and API
+routes keep their root paths on both hosts.
 
 Punctum image generation continues to use the OpenRouter provider whenever
 `OPENROUTER_API_KEY` is available. Its provider configuration was not changed by

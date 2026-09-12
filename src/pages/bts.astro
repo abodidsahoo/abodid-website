@@ -1,7 +1,7 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import BoudoirMoodboard from "../components/BoudoirMoodboard.jsx";
 import { listR2Folder, buildR2PublicUrl } from "../lib/media/r2";
-import { getPublishedMoodboardItems } from "../lib/services/moodboard";
 
 const title = "Behind The Scenes — Abodid Sahoo";
 const description =
@@ -16,7 +16,13 @@ interface BtsPhotoItem {
 let btsPhotos: BtsPhotoItem[] = [];
 
 try {
-  const { files, config } = await listR2Folder("variants/my-life/800/");
+  let { files, config } = await listR2Folder("photos/variants/my-life/800/");
+  if (!files || files.length === 0) {
+    const orig = await listR2Folder("photos/originals/my-life/");
+    files = orig.files;
+    config = orig.config;
+  }
+
   if (files && files.length > 0) {
     files.sort((a, b) =>
       a.objectKey.localeCompare(b.objectKey, undefined, {
@@ -40,20 +46,6 @@ try {
   console.error("Failed to fetch R2 BTS images:", e);
 }
 
-// Fallback or supplement with moodboard items if R2 folder is empty
-if (btsPhotos.length === 0) {
-  try {
-    const moodboardItems = await getPublishedMoodboardItems();
-    btsPhotos = moodboardItems.map((item, idx) => ({
-      id: item.id || `bts-mb-${idx}`,
-      imageUrl: item.imageUrl,
-      title: item.title || `Behind The Scenes ${idx + 1}`,
-    }));
-  } catch (e) {
-    console.error("Failed to fetch moodboard fallback items:", e);
-  }
-}
-
 // Pre-randomize photo items server-side
 const shuffledPhotos = [...btsPhotos];
 for (let index = shuffledPhotos.length - 1; index > 0; index -= 1) {
@@ -63,6 +55,12 @@ for (let index = shuffledPhotos.length - 1; index > 0; index -= 1) {
     shuffledPhotos[index],
   ];
 }
+
+const interactivePhotos = shuffledPhotos.map((item) => ({
+  ...item,
+  thumbnailUrl: item.imageUrl,
+  paletteImageUrl: `/api/image-palette-proxy?url=${encodeURIComponent(item.imageUrl)}`,
+}));
 
 Astro.response.headers.set("Cache-Control", "public, max-age=0, must-revalidate");
 Astro.response.headers.set(
@@ -75,7 +73,6 @@ Astro.response.headers.set(
   title={title}
   description={description}
   fullWidth={true}
-  hideHeader={true}
   hideFooter={false}
   hideWhatsAppButton={true}
   showNewsletterPopup={false}
@@ -91,32 +88,7 @@ Astro.response.headers.set(
     }
   </Fragment>
 
-  <header class="story-nav">
-    <a class="story-nav__brand" href="/" aria-label="Abodid Sahoo homepage">abodid.com</a>
-    <nav class="story-nav__links" aria-label="Primary navigation">
-      <a href="/work">Work</a>
-      <a href="/research">Research</a>
-      <a href="/services">Services</a>
-      <a href="/experience">Experience</a>
-      <a href="/about">About</a>
-    </nav>
-    <a class="story-nav__contact" href="/#enquiry"
-      >Hire me <span class="link-destination-arrow" aria-hidden="true">↗</span></a
-    >
-    <details class="story-nav__mobile">
-      <summary>Menu</summary>
-      <nav aria-label="Mobile navigation">
-        <a href="/work">Work</a>
-        <a href="/research">Research</a>
-        <a href="/services">Services</a>
-        <a href="/experience">Experience</a>
-        <a href="/about">About</a>
-        <a href="/#enquiry">Hire me <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
-      </nav>
-    </details>
-  </header>
-
-  <main class="moodboard-shell">
+  <div class="moodboard-shell">
     <article class="moodboard-file">
       <header class="moodboard-heading">
         <div class="moodboard-heading__tag">
@@ -134,24 +106,13 @@ Astro.response.headers.set(
         aria-label="Behind the scenes photo archive"
       >
         {
-          shuffledPhotos.length > 0 ? (
-            <div class="moodboard-grid">
-              {shuffledPhotos.map((item, index) => (
-                <figure class="moodboard-card">
-                  <img
-                    src={item.imageUrl}
-                    alt={item.title || "Behind the scenes moment"}
-                    loading={index < 12 ? "eager" : "lazy"}
-                    fetchpriority={index < 4 ? "high" : (index < 12 ? "auto" : "low")}
-                    decoding={index < 4 ? "sync" : "async"}
-                    onerror="this.closest('.moodboard-card').style.display='none'"
-                  />
-                  <figcaption class="sr-only">
-                    {item.title}
-                  </figcaption>
-                </figure>
-              ))}
-            </div>
+          interactivePhotos.length > 0 ? (
+            <BoudoirMoodboard
+              items={interactivePhotos}
+              deepLinkParam="photo"
+              showTitles={false}
+              client:load
+            />
           ) : (
             <div class="moodboard-empty">
               <p>
@@ -213,7 +174,7 @@ Astro.response.headers.set(
         </footer>
       </section>
     </article>
-  </main>
+  </div>
 </BaseLayout>
 
 <style is:global>
@@ -250,129 +211,6 @@ Astro.response.headers.set(
   }
   body.story-moodboard-page :is(a, button, summary) {
     -webkit-tap-highlight-color: transparent;
-  }
-
-  /* ── Force header to exactly match landing page ── */
-  body.story-moodboard-page .story-nav {
-    position: sticky !important;
-    top: 0 !important;
-    z-index: 50 !important;
-    min-height: 72px !important;
-    padding: 0 var(--story-gutter) !important;
-    display: grid !important;
-    grid-template-columns: minmax(140px, 1fr) auto minmax(
-        220px,
-        1fr
-      ) !important;
-    align-items: center !important;
-    gap: 1.5rem !important;
-    border-bottom: 0 !important;
-    background: var(--pop-blue) !important;
-    color: var(--pop-ink) !important;
-  }
-  body.story-moodboard-page .story-nav a,
-  body.story-moodboard-page .story-nav summary {
-    color: inherit !important;
-    font: 700 0.72rem/1 var(--font-mono, monospace) !important;
-    letter-spacing: 0.08em !important;
-    text-decoration: none !important;
-    text-transform: uppercase !important;
-  }
-  body.story-moodboard-page .story-nav__brand {
-    width: fit-content !important;
-    min-height: 42px !important;
-    padding: 0 0.9rem !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    border: 1px solid var(--pop-ink) !important;
-    border-radius: 14px !important;
-    background: var(--pop-yellow) !important;
-    color: var(--pop-ink) !important;
-  }
-  body.story-moodboard-page .story-nav__links {
-    display: flex !important;
-    align-items: center !important;
-    justify-self: center !important;
-    gap: clamp(1.2rem, 2.5vw, 2.5rem) !important;
-  }
-  body.story-moodboard-page .story-nav__links a {
-    color: var(--pop-cream) !important;
-    opacity: 1;
-    transition: text-decoration-color 160ms ease;
-  }
-  body.story-moodboard-page .story-nav__links a:hover,
-  body.story-moodboard-page .story-nav__links a:focus-visible {
-    text-decoration: underline !important;
-    text-underline-offset: 4px !important;
-    text-decoration-thickness: 2px !important;
-  }
-  body.story-moodboard-page .story-nav__contact {
-    justify-self: end !important;
-    min-height: 44px !important;
-    padding: 0 1rem !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 0.5rem !important;
-    border: 1px solid var(--pop-ink) !important;
-    border-radius: 14px !important;
-    background: var(--pop-pink) !important;
-    color: var(--pop-ink) !important;
-    transition:
-      transform 180ms ease,
-      box-shadow 180ms ease;
-  }
-  body.story-moodboard-page .story-nav__contact:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 0 var(--pop-ink);
-  }
-  body.story-moodboard-page .story-nav__mobile {
-    display: none !important;
-  }
-
-  @media (max-width: 980px) {
-    body.story-moodboard-page .story-nav {
-      grid-template-columns: 1fr auto !important;
-    }
-    body.story-moodboard-page .story-nav__links,
-    body.story-moodboard-page .story-nav__contact {
-      display: none !important;
-    }
-    body.story-moodboard-page .story-nav__mobile {
-      position: relative !important;
-      display: block !important;
-      justify-self: end !important;
-    }
-    body.story-moodboard-page .story-nav__mobile summary {
-      min-height: 44px;
-      padding: 0 0.9rem;
-      display: flex;
-      align-items: center;
-      border: 1px solid var(--pop-ink);
-      border-radius: 14px;
-      background: var(--pop-yellow);
-      color: var(--pop-ink);
-      cursor: pointer;
-      list-style: none;
-    }
-    body.story-moodboard-page
-      .story-nav__mobile
-      summary::-webkit-details-marker {
-      display: none;
-    }
-    body.story-moodboard-page .story-nav__mobile nav {
-      position: fixed;
-      inset: 72px 0 auto;
-      padding: 1.5rem var(--story-gutter) 2rem;
-      display: grid;
-      gap: 0;
-      background: var(--pop-yellow);
-      border-bottom: 1px solid var(--pop-ink);
-    }
-    body.story-moodboard-page .story-nav__mobile nav a {
-      padding: 1rem 0;
-      border-bottom: 1px solid rgba(23, 21, 15, 0.2);
-      font-size: 0.85rem;
-    }
   }
 </style>
 

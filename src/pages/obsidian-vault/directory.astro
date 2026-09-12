@@ -120,9 +120,29 @@ const structuredData = [
     --pop-line: rgba(21, 19, 15, 0.2);
   }
 
+  html:has(body.vault-directory-page),
+  html body.vault-directory-page,
   body.vault-directory-page {
-    background: var(--pop-blue);
+    background: #2444ca !important;
+    background-color: #2444ca !important;
     color: var(--pop-ink);
+  }
+
+  body.vault-directory-page main.page-content-full {
+    background: #2444ca !important;
+    overflow: visible;
+  }
+
+  body.vault-directory-page .site-footer {
+    --footer-bg: #2444ca;
+    --footer-text-header: #fff8e8;
+    --footer-text-dim: rgba(255, 248, 232, 0.82);
+    --footer-border: rgba(255, 248, 232, 0.3);
+  }
+
+  body.vault-directory-page .brands-zone {
+    border-top: 1px solid #15130f;
+    background: #2444ca !important;
   }
 
   .directory-shell {

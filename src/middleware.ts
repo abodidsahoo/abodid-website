@@ -1,4 +1,6 @@
 import { defineMiddleware } from 'astro:middleware';
+import type { APIContext, MiddlewareNext } from 'astro';
+import { rewrite as vercelRewrite } from '@vercel/functions';
 import { normalizePagePath } from './lib/urlNormalization.js';
 
 // ---------------------------------------------------------------------------
@@ -10,10 +12,6 @@ import { normalizePagePath } from './lib/urlNormalization.js';
 // middleware so it actually executes.
 // ---------------------------------------------------------------------------
 import {
-    curationPathToInternalPath,
-    getCurationCanonicalRedirect,
-    getCurationSubdomainRedirect,
-    getLegacyResourceRedirect,
     isCurationHostname,
 } from './lib/curationRoutes.js';
 import {
@@ -66,6 +64,18 @@ const canCachePublicPage = (context: PublicCacheContext, response: Response) => 
 const permanentRedirect = (location: string) =>
     new Response(null, { status: 308, headers: { Location: location } });
 
+const rewriteInternalRoute = (context: APIContext, next: MiddlewareNext, pathname: string) => {
+    const destination = new URL(context.request.url);
+    destination.pathname = pathname;
+
+    // The Vercel adapter's edge wrapper runs before filesystem resolution, but
+    // Astro 5's edge context does not implement context.rewrite(). Emit Vercel's
+    // native rewrite response there and use next(target) locally so this
+    // middleware is not re-entered with the private /lab prefix.
+    const edgeContext = (context.locals as { vercel?: { edge?: unknown } }).vercel?.edge;
+    return edgeContext ? vercelRewrite(destination) : next(destination);
+};
+
 export const onRequest = defineMiddleware(async (context, next) => {
     const rawHost = context.request.headers.get('x-forwarded-host') || context.request.headers.get('host');
     const requestUrl = new URL(context.request.url);
@@ -79,38 +89,24 @@ export const onRequest = defineMiddleware(async (context, next) => {
     // Subdomain routing — rewrite subdomain requests to internal Astro pages
     // -----------------------------------------------------------------------
 
-    // --- Curation subdomain (curation.abodid.com) ---
+    // --- Curation subdomain (curation.abodid.com) fallback redirect to main site ---
     if (isCurationHostname(requestUrl.hostname)) {
-        // Canonical redirect: e.g. curation.abodid.com/resources/admin → curation.abodid.com/admin
-        const canonicalRedirect = getCurationCanonicalRedirect(requestUrl);
-        if (canonicalRedirect) return permanentRedirect(canonicalRedirect);
-
-        // Internal rewrite: map public curation paths to /resources/* pages
-        const internalPath = curationPathToInternalPath(requestUrl.pathname);
-        if (internalPath) {
-            return context.rewrite(`${internalPath}${requestUrl.search}`);
-        }
-
-        // External redirect: paths not part of curation go to main site
-        const externalRedirect = getCurationSubdomainRedirect(requestUrl);
-        if (externalRedirect) return permanentRedirect(externalRedirect);
+        const destPath = requestUrl.pathname === '/' ? '/resources' : (requestUrl.pathname.startsWith('/resources') ? requestUrl.pathname : `/resources${requestUrl.pathname}`);
+        return permanentRedirect(`https://abodid.com${destPath}${requestUrl.search}`);
     }
 
     // --- Lab subdomain (lab.abodid.com) ---
     if (isLabHostname(requestUrl.hostname)) {
-        // Canonical redirect: e.g. lab.abodid.com/lab → lab.abodid.com/
         const canonicalRedirect = getLabCanonicalRedirect(requestUrl);
         if (canonicalRedirect) return permanentRedirect(canonicalRedirect);
 
-        // Internal rewrite: map public lab paths to /lab/* pages
-        const internalPath = labDestination(requestUrl);
-        if (internalPath) {
-            return context.rewrite(`${internalPath}${requestUrl.search}`);
-        }
-
-        // External redirect: paths not part of lab go to main site
         const externalRedirect = getLabSubdomainRedirect(requestUrl);
         if (externalRedirect) return permanentRedirect(externalRedirect);
+
+        const internalPath = labDestination(requestUrl);
+        if (internalPath) {
+            return rewriteInternalRoute(context, next, internalPath);
+        }
     }
 
     // --- Photography subdomain (photos.abodid.com) ---
@@ -118,7 +114,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
         // Internal rewrite: map public paths to /photography-portfolio/* pages
         const internalPath = photographyDestination(requestUrl);
         if (internalPath) {
-            return context.rewrite(`${internalPath}${requestUrl.search}`);
+            return rewriteInternalRoute(context, next, internalPath);
         }
 
         // External redirect: paths not part of photography go to main site
@@ -126,14 +122,12 @@ export const onRequest = defineMiddleware(async (context, next) => {
         if (externalRedirect) return permanentRedirect(externalRedirect);
     }
 
-    // --- Legacy redirects on main site ---
-    // abodid.com/resources/* → curation.abodid.com/*
-    const resourceRedirect = getLegacyResourceRedirect(requestUrl);
-    if (resourceRedirect) return permanentRedirect(resourceRedirect);
-
-    // abodid.com/lab, abodid.com/punctum, etc. → lab.abodid.com/*
-    const labRedirect = legacyLabRedirectLocation(requestUrl);
-    if (labRedirect) return permanentRedirect(labRedirect);
+    // Keep every main-site /lab/<project> link working while the public Lab
+    // origin stays clean (lab.abodid.com/<project>).
+    if (!context.isPrerendered) {
+        const labRedirect = legacyLabRedirectLocation(requestUrl);
+        if (labRedirect) return permanentRedirect(labRedirect);
+    }
 
     // -----------------------------------------------------------------------
     // Trailing-slash normalization

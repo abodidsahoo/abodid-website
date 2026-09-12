@@ -572,7 +572,13 @@ const PolaroidScatter = ({ items, immersive = false, deepLinkParam = '' }) => {
             if (instructionAccentSourceRef.current === imageUrl) return;
             instructionAccentSourceRef.current = imageUrl;
 
-            analyzeImage(imageUrl)
+            const paletteImageUrl =
+                matchedItem?.paletteImageUrl ||
+                (imageUrl.startsWith('http') && !imageUrl.includes('/api/image-palette-proxy')
+                    ? `/api/image-palette-proxy?url=${encodeURIComponent(imageUrl)}`
+                    : imageUrl);
+
+            analyzeImage(paletteImageUrl)
                 .then((analysis) => {
                     const existing = assetCacheRef.current[imageUrl] || {};
                     assetCacheRef.current[imageUrl] = { ...existing, ...analysis };
@@ -727,10 +733,16 @@ const PolaroidScatter = ({ items, immersive = false, deepLinkParam = '' }) => {
                     const imageUrl = item.cover_image || item.image || item.url;
                     if (!imageUrl) return null;
                     const projectHref = item.link || item.projectHref || item.href || '';
+                    const paletteImageUrl =
+                        item.paletteImageUrl ||
+                        (imageUrl.startsWith('http') && !imageUrl.includes('/api/image-palette-proxy')
+                            ? `/api/image-palette-proxy?url=${encodeURIComponent(imageUrl)}`
+                            : imageUrl);
                     return {
                         id: item.id,
                         title: item.title || 'Untitled',
                         imageUrl,
+                        paletteImageUrl,
                         caption: item.caption || '',
                         projectHref,
                         href: projectHref,

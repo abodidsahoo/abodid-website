@@ -1,0 +1,451 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import BoudoirMoodboard from "../components/BoudoirMoodboard.jsx";
+import { listR2Folder, buildR2PublicUrl } from "../lib/media/r2";
+
+const title = "UK 2026";
+const description =
+  "An archive of memories from London, Manchester, and Cambridge in 2026.";
+
+interface UkPhotoItem {
+  id: string;
+  imageUrl: string;
+  title: string;
+}
+
+let ukPhotos: UkPhotoItem[] = [];
+
+try {
+  let { files, config } = await listR2Folder("photos/variants/uk-2026/800/");
+  if (!files || files.length === 0) {
+    const orig = await listR2Folder("photos/originals/uk-2026/");
+    files = orig.files;
+    config = orig.config;
+  }
+
+  if (files && files.length > 0) {
+    files.sort((a, b) =>
+      a.objectKey.localeCompare(b.objectKey, undefined, {
+        numeric: true,
+        sensitivity: "base",
+      }),
+    );
+    ukPhotos = files.map((file, index) => {
+      const filename = file.objectKey.split("/").pop() || "";
+      const photoTitle =
+        filename.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ") ||
+        `UK 2026 Photo ${index + 1}`;
+      return {
+        id: file.etag || `uk-2026-${index}`,
+        imageUrl: buildR2PublicUrl(config, file.objectKey),
+        title: photoTitle,
+      };
+    });
+  }
+} catch (e) {
+  console.error("Failed to fetch R2 UK 2026 images:", e);
+}
+
+// Pre-randomize photo items server-side
+const shuffledPhotos = [...ukPhotos];
+for (let index = shuffledPhotos.length - 1; index > 0; index -= 1) {
+  const randomIndex = Math.floor(Math.random() * (index + 1));
+  [shuffledPhotos[index], shuffledPhotos[randomIndex]] = [
+    shuffledPhotos[randomIndex],
+    shuffledPhotos[index],
+  ];
+}
+
+const interactivePhotos = shuffledPhotos.map((item) => ({
+  ...item,
+  thumbnailUrl: item.imageUrl,
+  paletteImageUrl: `/api/image-palette-proxy?url=${encodeURIComponent(item.imageUrl)}`,
+}));
+
+Astro.response.headers.set("Cache-Control", "public, max-age=60, s-maxage=3600, stale-while-revalidate=86400");
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  fullWidth={true}
+  hideFooter={false}
+  hideWhatsAppButton={true}
+  showNewsletterPopup={false}
+  showGlobalGrid={false}
+  showCursorFollower={false}
+  bodyClass="story-moodboard-page"
+>
+  <Fragment slot="head">
+    {
+      shuffledPhotos.slice(0, 4).map((item) => (
+        <link rel="preload" as="image" href={item.imageUrl} fetchpriority="high" />
+      ))
+    }
+  </Fragment>
+
+  <div class="moodboard-shell">
+    <article class="moodboard-file">
+      <header class="moodboard-heading">
+        <div class="moodboard-heading__hero">
+          <h1>UK 2026</h1>
+          <p>An archive of memories, street moments, and life across London, Manchester, and Cambridge in 2026.</p>
+        </div>
+      </header>
+
+      <section
+        class="moodboard-board"
+        aria-label="UK 2026 photo archive"
+      >
+        {
+          interactivePhotos.length > 0 ? (
+            <BoudoirMoodboard
+              items={interactivePhotos}
+              deepLinkParam="photo"
+              showTitles={false}
+              client:load
+            />
+          ) : (
+            <div class="moodboard-empty">
+              <p>
+                The photo archive is being updated. Please return shortly.
+              </p>
+            </div>
+          )
+        }
+
+        <footer class="moodboard-footer">
+          <div class="moodboard-footer__top">
+            <h2 class="moodboard-footer__headline">
+              Your vibe attracts your tribe
+            </h2>
+            <div class="moodboard-footer__ctas">
+              <a class="moodboard-cta moodboard-cta--primary" href="/#enquiry">
+                Get in touch <span class="link-destination-arrow" aria-hidden="true">↗</span>
+              </a>
+              <a class="moodboard-cta moodboard-cta--secondary" href="/work">
+                Check out my Work <span class="link-destination-arrow" aria-hidden="true">↗</span>
+              </a>
+            </div>
+          </div>
+
+          <div class="moodboard-footer__divider" aria-hidden="true"></div>
+
+          <div class="moodboard-footer__bottom">
+            <blockquote class="moodboard-footer__quote">
+              <h3 class="moodboard-footer__byline">
+                &ldquo;Taste&rdquo; by <a
+                  href="https://x.com/saranormous"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  >Sarah Guo <span class="link-destination-arrow" aria-hidden="true">↗</span></a
+                >
+              </h3>
+              <p>
+                Taste begins as loneliness and ends as leadership. It starts
+                with one person who can't unsee that the button is two pixels
+                off. Then they find another who winces at the error message.
+                Another who loses sleep over the loading animation.
+              </p>
+              <p>
+                Suddenly you're not alone. You're a conspiracy of people who
+                give a shit. The designer who fights for one more iteration. The
+                engineer who refactors the hacky solution. The PM who kills the
+                feature that would triple revenue but break the product's soul.
+                The support rep who rewrites the docs because they're tired of
+                explaining unclear things. Each person raising the bar simply by
+                refusing to lower theirs.
+              </p>
+              <p>
+                This is how taste compounds—not through manifestos or design
+                systems, but through finding your people. The ones who see what
+                you see. Who hurt where you hurt. Who can't help but care.
+              </p>
+            </blockquote>
+          </div>
+        </footer>
+      </section>
+    </article>
+  </div>
+</BaseLayout>
+
+<style is:global>
+  body.story-moodboard-page {
+    --pop-blue: #2444ca;
+    --pop-purple: #6657d8;
+    --pop-pink: #ff7eb5;
+    --pop-yellow: #ffe44f;
+    --pop-cream: #fff8e8;
+    --pop-ink: #15130f;
+    --story-gutter: clamp(1rem, 3vw, 3.5rem);
+    --pop-border: 1px solid var(--pop-ink);
+    /* Exact same resets as landing page */
+    margin: 0;
+    padding: 0 !important;
+    background: var(--pop-blue) !important;
+    color: var(--pop-ink);
+    min-height: 100vh;
+  }
+
+  html:has(body.story-moodboard-page) {
+    background: var(--pop-blue);
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Mirror landing page: zero out main, keep overflow visible for sticky header */
+  body.story-moodboard-page main.page-content-full {
+    margin: 0;
+    padding: 0 !important;
+    overflow: visible;
+  }
+
+  body.story-moodboard-page :is(h1, h2, h3, p, figure, dl, dd, ul) {
+    margin-top: 0;
+  }
+  body.story-moodboard-page :is(a, button, summary) {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* ── Moodboard Layout ───────────────────── */
+  body.story-moodboard-page .moodboard-shell {
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+    background: var(--pop-blue);
+  }
+
+  body.story-moodboard-page .moodboard-file {
+    width: 100%;
+    max-width: none;
+    margin-inline: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+    border: 1px solid var(--pop-ink);
+    border-radius: clamp(20px, 3vw, 34px);
+    background: var(--pop-cream);
+    box-shadow: 0 10px 0 rgba(21, 19, 15, 0.2);
+  }
+
+  body.story-moodboard-page .moodboard-heading {
+    padding: clamp(1.4rem, 4vw, 3.5rem);
+    border-bottom: 1px solid var(--pop-ink);
+    background: var(--pop-pink);
+  }
+
+  body.story-moodboard-page .moodboard-heading__hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(260px, 0.7fr);
+    gap: clamp(2rem, 6vw, 7rem);
+    align-items: end;
+  }
+
+  body.story-moodboard-page .moodboard-heading h1 {
+    max-width: 9ch;
+    margin: 0;
+    color: var(--pop-ink);
+    font: 720 clamp(3.7rem, 9vw, 8.5rem)/0.84 var(--font-display, sans-serif);
+    letter-spacing: -0.075em;
+  }
+
+  body.story-moodboard-page .moodboard-heading__hero p {
+    max-width: 34rem;
+    margin: 0;
+    color: var(--pop-ink);
+    font: 500 clamp(1.15rem, 2vw, 1.65rem)/1.32 var(--font-display, sans-serif);
+    letter-spacing: -0.025em;
+  }
+
+  body.story-moodboard-page .moodboard-board {
+    --grid-gap: 25px;
+    background: #f5ede0;
+    padding: var(--grid-gap);
+  }
+
+  body.story-moodboard-page .moodboard-grid {
+    columns: 4;
+    column-gap: var(--grid-gap);
+    orphans: 1;
+    widows: 1;
+  }
+
+  body.story-moodboard-page .moodboard-card {
+    break-inside: avoid;
+    margin: 0 0 var(--grid-gap) 0;
+    padding: 0;
+    display: block;
+    overflow: hidden;
+    border-radius: 14px;
+    transition: transform 200ms ease;
+  }
+
+  body.story-moodboard-page .moodboard-card:hover {
+    transform: translateY(-2px);
+  }
+
+  body.story-moodboard-page .moodboard-card img {
+    width: 100%;
+    height: auto;
+    display: block;
+    vertical-align: bottom;
+    line-height: 0;
+  }
+
+  body.story-moodboard-page .moodboard-empty {
+    padding: 6rem 2rem;
+    text-align: center;
+    color: var(--pop-ink);
+    font: 600 1.2rem/1.4 var(--font-display, sans-serif);
+  }
+
+  /* ── Moodboard Footer ────────────────────── */
+  body.story-moodboard-page .moodboard-footer {
+    margin-top: clamp(2.5rem, 6vw, 5rem);
+    padding: clamp(2rem, 4.5vw, 4rem);
+    border: 1px solid var(--pop-ink);
+    border-radius: clamp(16px, 2.5vw, 28px);
+    background: var(--pop-pink);
+    color: var(--pop-ink);
+  }
+
+  body.story-moodboard-page .moodboard-footer__top {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 1.25rem;
+  }
+
+  body.story-moodboard-page .moodboard-footer__headline {
+    margin: 0;
+    font: 700 clamp(2rem, 4.5vw, 3.8rem)/0.95 var(--font-display, sans-serif);
+    letter-spacing: -0.05em;
+    max-width: 30ch;
+  }
+
+  body.story-moodboard-page .moodboard-footer__subline {
+    margin: 0;
+    max-width: 38rem;
+    font: 700 clamp(1.25rem, 2.2vw, 1.75rem)/1.3 var(--font-display, sans-serif);
+    opacity: 0.95;
+  }
+
+  body.story-moodboard-page .moodboard-footer__ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.85rem;
+    justify-content: center;
+    margin-top: 0.5rem;
+  }
+
+  body.story-moodboard-page .moodboard-cta {
+    min-height: 48px;
+    padding: 0 1.5rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1px solid var(--pop-ink);
+    border-radius: 14px;
+    font: 700 0.76rem/1 var(--font-mono, monospace);
+    letter-spacing: 0.08em;
+    text-decoration: none;
+    text-transform: uppercase;
+    transition:
+      transform 160ms ease,
+      background 160ms ease;
+  }
+
+  body.story-moodboard-page .moodboard-cta--primary {
+    background: var(--pop-yellow);
+    color: var(--pop-ink);
+  }
+
+  body.story-moodboard-page .moodboard-cta--primary:hover {
+    transform: translateY(-2px);
+    background: #ffe96e;
+  }
+
+  body.story-moodboard-page .moodboard-cta--secondary {
+    background: var(--pop-cream);
+    color: var(--pop-ink);
+  }
+
+  body.story-moodboard-page .moodboard-cta--secondary:hover {
+    transform: translateY(-2px);
+  }
+
+  body.story-moodboard-page .moodboard-footer__divider {
+    height: 1px;
+    background: var(--pop-ink);
+    margin: clamp(2rem, 4vw, 3rem) 0;
+    opacity: 0.25;
+  }
+
+  body.story-moodboard-page .moodboard-footer__bottom {
+    max-width: 48rem;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  body.story-moodboard-page .moodboard-footer__quote {
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.4rem;
+    color: #000000 !important;
+    text-align: left;
+    background: #ffe44f !important;
+    border: 2.5px solid #000000 !important;
+    border-radius: 24px;
+    padding: clamp(2rem, 5vw, 3rem);
+    box-shadow: 0 8px 0 #000000 !important;
+  }
+
+  body.story-moodboard-page .moodboard-footer__byline {
+    margin: 0;
+    font: 850 clamp(2rem, 4.5vw, 3.2rem)/1.05 var(--font-display, sans-serif) !important;
+    letter-spacing: -0.04em;
+    color: #000000 !important;
+    padding-bottom: 1.25rem;
+    border-bottom: 3px solid #000000;
+  }
+
+  body.story-moodboard-page .moodboard-footer__byline a {
+    color: #000000 !important;
+    text-decoration: underline !important;
+    text-decoration-thickness: 3px !important;
+    text-underline-offset: 4px;
+  }
+
+  body.story-moodboard-page .moodboard-footer__quote p {
+    margin: 0;
+    font: 600 clamp(1.15rem, 2vw, 1.55rem)/1.45 var(--font-display, sans-serif) !important;
+    color: #000000 !important;
+    letter-spacing: -0.015em;
+  }
+
+  @media (max-width: 1100px) {
+    body.story-moodboard-page .moodboard-grid {
+      columns: 3;
+    }
+  }
+
+  @media (max-width: 760px) {
+    body.story-moodboard-page .moodboard-heading__hero {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+    body.story-moodboard-page .moodboard-grid {
+      columns: 2;
+    }
+    body.story-moodboard-page .moodboard-shell {
+      padding: 6px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    body.story-moodboard-page .moodboard-grid {
+      columns: 1;
+    }
+  }
+</style>

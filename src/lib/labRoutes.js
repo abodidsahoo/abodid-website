@@ -3,6 +3,36 @@ export const LAB_ORIGIN = `https://${LAB_HOSTNAME}`;
 
 const PRIMARY_SITE_HOSTNAMES = new Set(["abodid.com", "www.abodid.com"]);
 
+const PRIMARY_SITE_PATHS = [
+  "/about",
+  "/blog",
+  "/contact",
+  "/cv",
+  "/films",
+  "/life",
+  "/manifesto",
+  "/obsidian-vault",
+  "/photography",
+  "/press",
+  "/research",
+  "/services",
+  "/studio",
+  "/work",
+];
+
+const SHARED_PATHS = [
+  "/_astro",
+  "/_image",
+  "/api",
+  "/assets",
+  "/audio",
+  "/fonts",
+  "/icons",
+  "/images",
+  "/scripts",
+  "/sounds",
+];
+
 const legacyLabRoutes = [
   ["/research/lab", "/"],
   ["/research/punctum", "/punctum"],
@@ -23,12 +53,9 @@ export const legacyLabRedirectLocation = (url) => {
     return `${LAB_ORIGIN}/${url.search}`;
   }
 
-  for (const publicBase of ["/punctum", "/image-flick", "/photo-board"]) {
-    const internalBase = `/lab${publicBase}`;
-    if (pathname === internalBase || pathname.startsWith(`${internalBase}/`)) {
-      const publicPath = pathname.slice("/lab".length);
-      return `${LAB_ORIGIN}${publicPath}${url.search}`;
-    }
+  if (pathname.startsWith("/lab/")) {
+    const publicPath = pathname.slice("/lab".length);
+    return `${LAB_ORIGIN}${publicPath}${url.search}`;
   }
 
   for (const [legacyBase, publicBase] of legacyLabRoutes) {
@@ -63,16 +90,11 @@ export const labDestination = (url) => {
   if (url.pathname === "/") return "/lab";
   if (url.pathname === "/robots.txt") return "/lab-robots.txt";
   if (url.pathname === "/sitemap.xml") return "/lab-sitemap.xml";
-  if (url.pathname === "/punctum" || url.pathname.startsWith("/punctum/")) {
-    return `/lab${url.pathname}`;
-  }
-  if (url.pathname === "/image-flick" || url.pathname.startsWith("/image-flick/")) {
-    return `/lab${url.pathname}`;
-  }
-  if (url.pathname === "/photo-board" || url.pathname.startsWith("/photo-board/")) {
-    return `/lab${url.pathname}`;
-  }
-  return null;
+  if (isSharedPath(url.pathname) || isPrimarySitePath(url.pathname)) return null;
+
+  // Every route stored under src/pages/lab is automatically exposed at the
+  // same path on the Lab subdomain. New experiments do not need an allowlist.
+  return `/lab${url.pathname}`;
 };
 
 export const labPublicPath = (pathname = "/") => {
@@ -95,22 +117,25 @@ export const getLabCanonicalRedirect = (url) => {
 };
 
 export const isLabOnlyPath = (pathname = "") => {
-  if (labDestination({ hostname: LAB_HOSTNAME, pathname })) return true;
   if (pathname === "/robots.txt" || pathname === "/sitemap.xml") return true;
-  if (
-    pathname.startsWith("/_astro/") ||
-    pathname.startsWith("/_image") ||
-    pathname.startsWith("/api/") ||
-    pathname === "/favicon.ico" ||
-    pathname === "/favicon.svg"
-  ) {
-    return true;
-  }
-  return false;
+  return !isPrimarySitePath(pathname);
 };
 
 export const getLabSubdomainRedirect = (url) => {
   if (!isLabHostname(url.hostname)) return null;
-  if (isLabOnlyPath(url.pathname)) return null;
+  if (!isPrimarySitePath(url.pathname)) return null;
   return `https://abodid.com${url.pathname}${url.search}`;
 };
+
+const matchesPathBase = (pathname, base) =>
+  pathname === base || pathname.startsWith(`${base}/`);
+
+const isPrimarySitePath = (pathname = "") =>
+  PRIMARY_SITE_PATHS.some((base) => matchesPathBase(pathname, base));
+
+const isSharedPath = (pathname = "") =>
+  pathname === "/favicon.ico" ||
+  pathname === "/favicon.svg" ||
+  pathname === "/llms.txt" ||
+  SHARED_PATHS.some((base) => matchesPathBase(pathname, base)) ||
+  /\.[a-z0-9]{1,8}$/i.test(pathname);

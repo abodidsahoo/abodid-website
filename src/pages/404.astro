@@ -1,4 +1,6 @@
 ---
+export const prerender = false;
+
 import BaseLayout from "../layouts/BaseLayout.astro";
 
 Astro.response.status = 404;
@@ -7,7 +9,15 @@ const title = "Ghost Town | 404";
 const description = "Sorry, this is a ghost town.";
 ---
 
-<BaseLayout title={title} description={description} noindex={true} robots="noindex, nofollow">
+<BaseLayout
+    title={title}
+    description={description}
+    noindex={true}
+    robots="noindex, nofollow"
+    fullWidth={true}
+    initialBackgroundColor="#d52b1e"
+    bodyClass="pop-editorial-404"
+>
     <div class="error-container">
         <div class="sky-background">
             <div class="moon"></div>
@@ -113,6 +123,12 @@ const description = "Sorry, this is a ghost town.";
 
 <style>
     .error-container {
+        --error-red: #d52b1e;
+        --error-white: #ffffff;
+        --error-gray-light: #eeeeeb;
+        --error-gray-mid: #c9c9c5;
+        --error-gray-dark: #4d4d49;
+
         min-height: 70vh;
         display: flex;
         flex-direction: column;
@@ -122,6 +138,8 @@ const description = "Sorry, this is a ghost town.";
         padding: 2rem;
         overflow: hidden;
         position: relative;
+        background: var(--error-red);
+        color: var(--error-white);
     }
 
     /* --- Background Elements --- */
@@ -145,14 +163,14 @@ const description = "Sorry, this is a ghost town.";
         height: 80px;
         border-radius: 50%;
         background: transparent;
-        box-shadow: 12px 0 0 0 var(--text-primary);
+        box-shadow: 12px 0 0 0 var(--error-white);
         opacity: 0.9;
         transform: rotate(135deg);
-        filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.4));
+        filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.38));
     }
     :global(.dark) .moon {
-        box-shadow: 12px 0 0 0 #fff;
-        filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.8));
+        box-shadow: 12px 0 0 0 var(--error-white);
+        filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.38));
     }
 
     /* Meteor System */
@@ -172,20 +190,20 @@ const description = "Sorry, this is a ghost town.";
         width: 4px;
         height: 4px;
         border-radius: 50%;
-        background: var(--text-primary);
+        background: var(--error-white);
         box-shadow:
-            0 0 10px 2px var(--text-primary),
-            -10px 0 20px 1px rgba(255, 255, 255, 0.5);
+            0 0 10px 2px var(--error-white),
+            -10px 0 20px 1px rgba(238, 238, 235, 0.55);
         opacity: 0;
         animation: travelAcross 12s linear infinite;
         animation-delay: 1s;
     }
 
     :global(.dark) .meteor {
-        background: #fff;
+        background: var(--error-white);
         box-shadow:
-            0 0 10px 2px #fff,
-            -20px 0 30px 1px rgba(255, 255, 255, 0.3);
+            0 0 10px 2px var(--error-white),
+            -10px 0 20px 1px rgba(238, 238, 235, 0.55);
     }
 
     @keyframes travelAcross {
@@ -202,7 +220,7 @@ const description = "Sorry, this is a ghost town.";
             /* Peak Glow in middle */
             box-shadow:
                 0 0 25px 5px currentColor,
-                -10px 0 30px 2px rgba(255, 255, 255, 0.8);
+                -10px 0 30px 2px rgba(238, 238, 235, 0.8);
             transform: translateX(0) scale(1.2);
         }
 
@@ -222,7 +240,7 @@ const description = "Sorry, this is a ghost town.";
         position: absolute;
         width: 4px;
         height: 4px;
-        background: var(--text-primary);
+        background: var(--error-gray-light);
         border-radius: 50%;
         opacity: 0.6;
         animation: twinkle 5s ease-in-out infinite;
@@ -319,19 +337,19 @@ const description = "Sorry, this is a ghost town.";
 
     .ghost {
         position: absolute;
-        background: #f0f0f0;
+        background: var(--error-gray-light);
         border-radius: 60px 60px 10px 10px;
         z-index: 2;
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
     }
 
     :global(.dark) .ghost {
-        background: #e0e0e0;
-        box-shadow: 0 0 25px rgba(255, 255, 255, 0.15);
+        background: var(--error-gray-light);
+        box-shadow: 0 5px 15px rgba(77, 77, 73, 0.14);
     }
     :global(:root:not(.dark)) .ghost {
-        background: #f8f9fa;
-        border: 1px solid var(--border-subtle);
+        background: var(--error-gray-light);
+        border: 1px solid var(--error-gray-mid);
     }
 
     /* Main Ghost */
@@ -381,13 +399,13 @@ const description = "Sorry, this is a ghost town.";
     /* --- Speech Bubbles --- */
     .speech-bubble {
         position: absolute;
-        background: var(--bg-surface);
-        border: 2px solid var(--text-primary);
+        background: var(--error-gray-light);
+        border: 2px solid var(--error-gray-dark);
         padding: 0.8rem 1rem;
         border-radius: 12px;
         font-size: 0.85rem;
         line-height: 1.3;
-        color: var(--text-primary);
+        color: var(--error-gray-dark);
         z-index: 20;
         opacity: 0;
         box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.1);
@@ -401,9 +419,9 @@ const description = "Sorry, this is a ghost town.";
         position: absolute;
         width: 10px;
         height: 10px;
-        background: var(--bg-surface);
-        border-bottom: 2px solid var(--text-primary);
-        border-right: 2px solid var(--text-primary);
+        background: var(--error-gray-light);
+        border-bottom: 2px solid var(--error-gray-dark);
+        border-right: 2px solid var(--error-gray-dark);
         transform: rotate(45deg);
     }
 
@@ -465,7 +483,7 @@ const description = "Sorry, this is a ghost town.";
     .eye {
         width: 12px;
         height: 12px;
-        background: #333;
+        background: var(--error-gray-dark);
         border-radius: 50%;
     }
     .mouth {
@@ -473,7 +491,7 @@ const description = "Sorry, this is a ghost town.";
         bottom: -10px;
         left: 50%;
         transform: translateX(-50%);
-        background: #333;
+        background: var(--error-gray-dark);
         opacity: 0.8;
     }
     .mouth.o-shape {
@@ -496,7 +514,7 @@ const description = "Sorry, this is a ghost town.";
         top: 55px;
         width: 12px;
         height: 8px;
-        background: #ffb7b2;
+        background: var(--error-gray-mid);
         border-radius: 50%;
         opacity: 0.6;
     }
@@ -512,13 +530,13 @@ const description = "Sorry, this is a ghost town.";
         left: 10px;
         width: 100px;
         height: 20px;
-        background: rgba(0, 0, 0, 0.1);
+        background: rgba(77, 77, 73, 0.24);
         border-radius: 50%;
         animation: shadow 3.5s ease-in-out infinite;
         z-index: 1;
     }
     :global(.dark) .shadow {
-        background: rgba(0, 0, 0, 0.5);
+        background: rgba(77, 77, 73, 0.24);
     }
 
     @keyframes floatMain {
@@ -578,7 +596,7 @@ const description = "Sorry, this is a ghost town.";
         font-family: var(--font-display);
         font-size: 2.5rem;
         font-weight: 600;
-        color: var(--text-primary);
+        color: var(--error-white);
         margin-bottom: 2rem;
     }
     .home-button {

@@ -1,35 +1,45 @@
 ---
 import ObsidianLandingPage from "../components/obsidian/ObsidianLandingPage.astro";
 
-const accordions = [
-  { title: "Collect", body: "Capture articles, Chrome pages, Vimeo, YouTube, bookmarks and spontaneous thoughts directly into Obsidian." },
-  { title: "Connect", body: "Turn saved material into smaller ideas and connect them through [[links]], backlinks and tags." },
-  { title: "Write", body: "As connections accumulate, recurring themes start becoming articles, sections and chapters." },
+const pillars = [
+  {
+    title: "Effortless Web & Article Ingestion",
+    body: "Save high-signal articles, bookmarks, quotes, and research notes directly into markdown with your immediate takeaways attached.",
+  },
+  {
+    title: "Atomic Concept Interconnection",
+    body: "Break down long-form research into atomic notes, connecting analogies, conceptual frameworks, and sources across diverse themes.",
+  },
+  {
+    title: "Emergent Long-Form Writing",
+    body: "As connections compound, recurring themes organically assemble into long-form essays, books, and newsletter editions.",
+  },
+  {
+    title: "Manuscript Hubs & Living Outlines",
+    body: "Restructure chapters, maintain narrative continuity, and draft long-form projects without getting lost in large files.",
+  },
 ];
 ---
 
 <ObsidianLandingPage
-  pageTitle="Obsidian for Bloggers & Writers"
-  description="Collect bookmarks, quotes, research and unfinished thoughts in Obsidian, then connect them into articles, essays and chapters."
+  pageTitle="Obsidian for Authors & Writers"
+  description="Build an emergent Obsidian writing vault. Connect research archives, bookmarks, quotes, and spontaneous thoughts into long-form essays, books, and articles."
   path="/obsidian-for-writers"
-  eyebrow="Obsidian for Writers"
-  headingLines={["Stop forcing the structure.", "Start connecting the ideas."]}
-  body="Collect articles, bookmarks, videos, quotes and unfinished thoughts — then connect them until themes, arguments and stories begin to emerge."
+  eyebrow="Obsidian for Writers & Authors"
+  headingLines={["Stop staring at blank pages.", "Start connecting the ideas."]}
+  bodyBeforeStrong="I conduct bespoke Obsidian tutoring and systems architecture for authors, essayists, journalists, and newsletter writers. We will organize your research archives, quotes, web bookmarks, and spontaneous notes into an interconnected library tailored to the way "
+  bodyStrong="you"
+  bodyAfterStrong=" write."
+  bodyEmphasis="Draft with your entire archive behind you."
   priceLines={[
     { text: "£150/hour", strong: true },
+    { text: "Bespoke 1:1 writer second brain architecture", small: true },
   ]}
-  secondHeading="Stop writing everything in one document."
-  visualHeading="[[an-observation]]"
-  visualCta="One note can feed several future pieces ↗"
-  visualDetails={["[[memory]]", "[[design]]", "[[culture]]", "→ Chapter / Article / Essay"]}
-  accordions={accordions}
-  closingLines={["Don't force the book into existence.", "Build the ideas.", "Let the structure emerge."]}
-  endPrompt="Ready to let the structure emerge?"
-  crossLink={{
-    label: "Need help learning Obsidian first?",
-    title: "Start with general Obsidian tutoring",
-    href: "/obsidian-tutoring",
-  }}
+  secondHeading="Stop writing in blank documents. Let the structure emerge."
+  accordions={pillars}
+  discoveryHeading="Book your free discovery call today."
+  submitLabel="Yes, I'm Interested"
+  finalAppealText="Your notes should find their way back to you when you need them the most."
   sourceName="obsidian-for-writers"
   contactInterest="Obsidian for bloggers and writers"
 />

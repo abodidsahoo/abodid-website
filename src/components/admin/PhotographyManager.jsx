@@ -510,7 +510,7 @@ export default function PhotographyManager() {
 
     setUploadingMedia(true);
     setError("");
-    const storageFolder = `photography-${slugify(form.slug || form.title) || "untitled-series"}`;
+    const storageFolder = slugify(form.slug || form.title) || "untitled-series";
     const libraryCollection = { id: null, slug: storageFolder, storage_folder: storageFolder };
     const uploaded = [];
 

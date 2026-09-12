@@ -1,38 +1,45 @@
 ---
 import ObsidianLandingPage from "../components/obsidian/ObsidianLandingPage.astro";
 
-const accordions = [
-  { title: "Capture", body: "Save locations, references, images, links, people and unfinished ideas while they are fresh." },
-  { title: "Connect", body: "Use [[links]], tags and backlinks to connect projects, people and references." },
-  { title: "Recall", body: "Search one person, location or idea and rediscover everything connected to it." },
+const pillars = [
+  {
+    title: "Visual References & Locations",
+    body: "Attach location scouting photos, lighting setups, moodboards, and cinematography references directly to scene numbers and production days.",
+  },
+  {
+    title: "Character Webs & Script Development",
+    body: "Map character relationships, casting options, dialogue fragments, and scene beat graphs across screenplay revisions.",
+  },
+  {
+    title: "Director Treatments & Pitch Hubs",
+    body: "Synthesize scattered references, music tracks, and visual tone into cohesive director treatments, mood decks, and production binders.",
+  },
+  {
+    title: "Production Logistics & Shot Planning",
+    body: "Connect crew contacts, call sheets, gear checklists, and scene breakdowns directly to your creative notes without friction.",
+  },
 ];
 ---
 
 <ObsidianLandingPage
   pageTitle="Obsidian for Creative Artists & Filmmakers"
-  description="Build an Obsidian vault that connects films, locations, people, casting, music, references and production ideas."
+  description="Build an Obsidian creative vault connecting moodboards, cinematography references, location scouting, character webs, and production logistics."
   path="/obsidian-for-filmmakers"
-  eyebrow="Obsidian for Creatives"
-  headingLines={["Stop hunting for scattered ideas.", "Start connecting them."]}
-  body="Build a creative vault where films, locations, people, casting, music, visual references and production ideas naturally connect."
-  workflow={["[[Film]]", "[[Location]]", "[[Actor]]", "[[Music]]", "[[Reference]]"]}
-  workflowConnector="↔"
+  eyebrow="Obsidian for Creatives & Directors"
+  headingLines={["Stop hunting for scattered files.", "Worldbuild your creative vault."]}
+  bodyBeforeStrong="I conduct bespoke Obsidian tutoring and systems architecture for film directors, screenwriters, and executive creative directors. We will connect visual moodboards, script revisions, character arcs, location scouts, and production logistics tailored to the way "
+  bodyStrong="you"
+  bodyAfterStrong=" direct."
+  bodyEmphasis="Direct your vision with every reference at your fingertips."
   priceLines={[
     { text: "£150/hour", strong: true },
-    { text: "1 or 2-hour sessions available", small: true },
+    { text: "1 or 2-hour bespoke sessions available", small: true },
   ]}
-  secondHeading="One idea can lead everywhere."
-  visualHeading="[[Location]]"
-  visualCta="Move your cursor to surface the connected references ↗"
-  visualDetails={["[[Film]]", "[[Character]]", "[[Photographer]]", "[[Costume]]", "[[Song]]", "backlinks: 6"]}
-  accordions={accordions}
-  closingLines={["The logistics can be organised.", "Protect the ideas."]}
-  endPrompt="Want to protect the ideas and organise the logistics?"
-  crossLink={{
-    label: "Just getting started?",
-    title: "Explore general Obsidian tutoring",
-    href: "/obsidian-tutoring",
-  }}
+  secondHeading="The logistics can be organised. Protect the ideas."
+  accordions={pillars}
+  discoveryHeading="Book your free discovery call today."
+  submitLabel="Yes, I'm Interested"
+  finalAppealText="Your notes should find their way back to you when you need them the most."
   sourceName="obsidian-for-filmmakers"
   contactInterest="Obsidian for creative artists and filmmakers"
 />

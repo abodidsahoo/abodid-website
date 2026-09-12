@@ -406,7 +406,7 @@ export default function AdminResourceManager() {
                     description="Keep building your impeccable taste."
                 />
                 <div className="resource-admin__header-actions">
-                    <a href="https://curation.abodid.com" target="_blank" rel="noreferrer">
+                    <a href="/resources" target="_blank" rel="noreferrer">
                         View resources <ArrowUpRight size={16} aria-hidden="true" />
                     </a>
                     <button type="button" onClick={() => openEditor(null, 'new')}>

@@ -1,22 +1,36 @@
 ---
 import ObsidianLandingPage from "../components/obsidian/ObsidianLandingPage.astro";
 
-const accordions = [
-  { title: "Read", body: "Bring papers and references from Zotero into your vault using Better BibTeX." },
-  { title: "Synthesise", body: "Turn sources into your own notes, connections, questions and arguments." },
-  { title: "Write", body: "Build essays, papers or thesis chapters while Pandoc handles the final citation workflow." },
+const pillars = [
+  {
+    title: "Zotero & Better BibTeX Sync",
+    body: "Bring papers, monographs, and PDF annotations directly from Zotero into markdown notes with automated citation keys and metadata.",
+  },
+  {
+    title: "Atomic Literature Synthesis",
+    body: "Deconstruct dense academic sources into atomic conceptual notes, arguments, methodology comparisons, and thematic webs.",
+  },
+  {
+    title: "Pandoc & Thesis Compilation",
+    body: "Draft dissertation chapters, journal articles, and research proposals in markdown while Pandoc automatically formats citations and bibliographies.",
+  },
+  {
+    title: "Conceptual Graphs & Argument Maps",
+    body: "Trace interconnected theories, historiographies, and counterarguments across chapters without losing the bibliographic thread.",
+  },
 ];
 ---
 
 <ObsidianLandingPage
-  pageTitle="Obsidian for Academic Researchers"
-  description="Connect Zotero, citations, notes and arguments in Obsidian so you can focus on research writing and thinking."
+  pageTitle="Obsidian for Academic Researchers & PhDs"
+  description="Connect Zotero, citations, notes, and arguments in Obsidian. Focus on deep literature synthesis, thesis writing, and research thinking."
   path="/obsidian-for-researchers"
-  eyebrow="Obsidian for Researchers"
-  headingLines={["Stop managing references.", "Start developing ideas."]}
-  body="Connect your reading, citations, notes and arguments so you can stop managing references and start developing ideas."
-  workflow={["Zotero", "Obsidian", "Synthesis", "Writing", "Bibliography"]}
-  workflowConnector="→"
+  eyebrow="Obsidian for Researchers & PhDs"
+  headingLines={["Stop drowning in literature.", "Start developing your thesis."]}
+  bodyBeforeStrong="I conduct bespoke Obsidian tutoring and systems architecture for PhD researchers, academics, and research teams. We will seamlessly bridge Zotero, BibTeX, PDF annotations, and Pandoc into a unified knowledge system tailored to the way "
+  bodyStrong="you"
+  bodyAfterStrong=" research."
+  bodyEmphasis="Spend your time thinking, not formatting citations."
   priceLines={[
     { text: "£150 / specialist session", strong: true },
     { text: "or" },
@@ -24,17 +38,10 @@ const accordions = [
     { text: "Typically completed over one month.", small: true },
   ]}
   secondHeading="Write the thought. Keep the source with it."
-  visualHeading="[[grades-reduce-student-autonomy]]"
-  visualCta="An existing academic note, with its source retained ↗"
-  visualDetails={["Source: Zotero", "[[education]]", "[[autonomy]]", "[[assessment]]"]}
-  accordions={accordions}
-  closingLines={["Your vault remembers the references.", "You concentrate on the argument."]}
-  endPrompt="Ready to make the research easier to return to?"
-  crossLink={{
-    label: "New to Obsidian?",
-    title: "Start with general Obsidian tutoring",
-    href: "/obsidian-tutoring",
-  }}
+  accordions={pillars}
+  discoveryHeading="Book your free discovery call today."
+  submitLabel="Yes, I'm Interested"
+  finalAppealText="Your notes should find their way back to you when you need them the most."
   sourceName="obsidian-for-researchers"
   contactInterest="Obsidian for academic research"
 />

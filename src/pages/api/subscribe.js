@@ -75,9 +75,9 @@ const buildWelcomeEmail = ({ name, existing }) => {
 <p style="margin:0 0 12px;font-size:15px">${greeting}</p>
 <h1 style="margin:0 0 14px;font-size:28px;line-height:1.2">${heading}</h1>
 <p style="margin:0 0 24px;color:#4d4b47;font-size:15px;line-height:1.65">${copy}</p>
-<a href="https://curation.abodid.com" style="display:inline-block;background:#111;color:#fff;border-radius:8px;padding:12px 18px;font-size:14px;font-weight:650;text-decoration:none">Explore Curation by Abodid</a>
+<a href="https://abodid.com/resources" style="display:inline-block;background:#111;color:#fff;border-radius:8px;padding:12px 18px;font-size:14px;font-weight:650;text-decoration:none">Explore Curation by Abodid</a>
 </td></tr></table></td></tr></table></body></html>`,
-        text: `${name ? `Hi ${name},` : 'Hi,'}\n\n${heading}\n\n${copy}\n\nExplore Curation by Abodid: https://curation.abodid.com`,
+        text: `${name ? `Hi ${name},` : 'Hi,'}\n\n${heading}\n\n${copy}\n\nExplore Curation by Abodid: https://abodid.com/resources`,
     };
 };
 

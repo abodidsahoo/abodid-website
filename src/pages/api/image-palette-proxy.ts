@@ -1,9 +1,17 @@
 import type { APIRoute } from "astro";
 
+export const prerender = false;
+
 const ALLOWED_HOSTS = new Set([
   "assets.abodid.com",
-  "jwipqbjxpmgyevfzpjjx.supabase.co",
+  "images.unsplash.com",
 ]);
+
+function isHostAllowed(hostname: string): boolean {
+  if (ALLOWED_HOSTS.has(hostname)) return true;
+  if (hostname.endsWith(".supabase.co")) return true;
+  return false;
+}
 
 export const GET: APIRoute = async ({ request }) => {
   const requestUrl = new URL(request.url);
@@ -20,7 +28,7 @@ export const GET: APIRoute = async ({ request }) => {
     return new Response("Invalid image URL", { status: 400 });
   }
 
-  if (imageUrl.protocol !== "https:" || !ALLOWED_HOSTS.has(imageUrl.hostname)) {
+  if (imageUrl.protocol !== "https:" || !isHostAllowed(imageUrl.hostname)) {
     return new Response("Image host not allowed", { status: 403 });
   }
 

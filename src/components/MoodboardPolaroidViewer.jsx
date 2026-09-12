@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { createPortal } from 'react-dom';
 import PaletteExtractor, { analyzeImage } from './PaletteExtractor.jsx';
@@ -58,7 +58,9 @@ export default function MoodboardPolaroidViewer({
                         imageUrl,
                         paletteImageUrl:
                             (typeof item?.paletteImageUrl === 'string' && item.paletteImageUrl.trim()) ||
-                            imageUrl,
+                            (imageUrl.startsWith('http') && !imageUrl.includes('/api/image-palette-proxy')
+                                ? `/api/image-palette-proxy?url=${encodeURIComponent(imageUrl)}`
+                                : imageUrl),
                     };
                 })
                 .filter(Boolean),
@@ -125,10 +127,8 @@ export default function MoodboardPolaroidViewer({
         }
 
         const safetyTimer = window.setTimeout(() => {
-            setLoading(false);
             setIsLayoutStable(true);
-            setLayoutWidth((current) => (current === 'auto' ? '100%' : current));
-        }, 900);
+        }, 300);
 
         return () => window.clearTimeout(safetyTimer);
     }, [imageUrl]);
@@ -166,7 +166,7 @@ export default function MoodboardPolaroidViewer({
 
     useEffect(() => {
         if (isLayoutStable && shutterState === 'closed') {
-            const timerId = window.setTimeout(() => setShutterState('opening'), 50);
+            const timerId = window.setTimeout(() => setShutterState('opening'), 20);
             return () => window.clearTimeout(timerId);
         }
         return undefined;
@@ -192,26 +192,52 @@ export default function MoodboardPolaroidViewer({
     });
 
     const handleImageLoad = () => {
-        setLoading(false);
-        if (!imgRef.current) return;
-        const nextWidth = `${imgRef.current.clientWidth}px`;
-        setLayoutWidth(nextWidth);
+        if (imgRef.current) {
+            const nextWidth = `${imgRef.current.clientWidth}px`;
+            setLayoutWidth(nextWidth);
+            if (imageUrl) {
+                const existing = assetCacheRef.current[imageUrl] || {};
+                assetCacheRef.current[imageUrl] = {
+                    ...existing,
+                    dimensions: {
+                        width: imgRef.current.naturalWidth || imgRef.current.clientWidth,
+                        height: imgRef.current.naturalHeight || imgRef.current.clientHeight,
+                    },
+                };
+            }
+        }
         setIsLayoutStable(true);
     };
 
-    const handleDominantColor = (rgbString) => {
+    const handleDominantColor = useCallback((rgbString, palette) => {
         setOverlayColor(toOverlayColor(rgbString));
-    };
+        if (imageUrl) {
+            const existing = assetCacheRef.current[imageUrl] || {};
+            assetCacheRef.current[imageUrl] = {
+                ...existing,
+                bg: rgbString,
+                ...(palette ? { palette } : {}),
+            };
+        }
+    }, [imageUrl, assetCacheRef]);
 
     const handleShutterClosed = () => {
         setShutterState('closed');
         if (!normalizedItems.length || pendingOffset === 0) return;
-        setCurrentIndex(
-            (value) =>
-                (value + pendingOffset + normalizedItems.length) %
-                normalizedItems.length,
-        );
+        const nextIndex =
+            (currentIndex + pendingOffset + normalizedItems.length) %
+            normalizedItems.length;
+        setCurrentIndex(nextIndex);
         setPendingOffset(0);
+
+        const nextItem = normalizedItems[nextIndex];
+        const nextUrl = nextItem?.imageUrl;
+        const isCached = nextUrl && assetCacheRef.current[nextUrl]?.dimensions;
+        if (isCached) {
+            setIsLayoutStable(true);
+        } else {
+            setIsLayoutStable(false);
+        }
     };
 
     const handleShutterOpened = () => {
@@ -220,7 +246,7 @@ export default function MoodboardPolaroidViewer({
 
     const requestSwitch = (offset) => {
         if (!normalizedItems.length) return;
-        if (shutterState !== 'open' && shutterState !== 'opening') return;
+        if (shutterState !== 'open') return;
         setPendingOffset(offset);
         setShutterState('closing');
     };
@@ -304,30 +330,10 @@ export default function MoodboardPolaroidViewer({
                         scale: 1,
                         opacity: 1,
                         y: 0,
-                        scaleY:
-                            shutterState === 'closing' || shutterState === 'closed'
-                                ? 0.02
-                                : 1,
-                        boxShadow:
-                            shutterState === 'closing' || shutterState === 'closed'
-                                ? '0px 0px 0px rgba(0,0,0,0)'
-                                : '5px 8px 30px rgba(0,0,0,0.5)',
                     }}
                     transition={{
-                        duration: shutterState === 'closing' ? 0.12 : 0.2,
-                        ease:
-                            shutterState === 'closing'
-                                ? [0.7, 0, 0.84, 0]
-                                : [0.16, 1, 0.3, 1],
-                        delay: shutterState === 'closing' ? 0.05 : 0,
-                    }}
-                    onAnimationComplete={(definition) => {
-                        if (
-                            shutterState === 'closing' &&
-                            definition?.scaleY === 0.02
-                        ) {
-                            handleShutterClosed();
-                        }
+                        duration: 0.2,
+                        ease: [0.16, 1, 0.3, 1],
                     }}
                     exit={{ scale: 0.9, opacity: 0, y: 20 }}
                 >
@@ -342,19 +348,19 @@ export default function MoodboardPolaroidViewer({
                                         : 'inset(0% 0 0% 0)',
                             }}
                             transition={{
-                                duration: shutterState === 'closing' ? 0.1 : 0.2,
+                                duration: shutterState === 'closing' ? 0.14 : 0.2,
                                 ease:
                                     shutterState === 'closing'
                                         ? [0.7, 0, 0.84, 0]
                                         : [0.16, 1, 0.3, 1],
-                                delay:
-                                    shutterState === 'opening' ||
-                                    shutterState === 'open'
-                                        ? 0.1
-                                        : 0,
                             }}
                             onAnimationComplete={(definition) => {
                                 if (
+                                    shutterState === 'closing' &&
+                                    definition?.clipPath === 'inset(50% 0 50% 0)'
+                                ) {
+                                    handleShutterClosed();
+                                } else if (
                                     shutterState === 'opening' &&
                                     definition?.clipPath === 'inset(0% 0 0% 0)'
                                 ) {
@@ -362,37 +368,34 @@ export default function MoodboardPolaroidViewer({
                                 }
                             }}
                         >
-                            <AnimatePresence mode="wait">
-                                <motion.img
-                                    key={currentItem.id}
-                                    ref={imgRef}
-                                    src={imageUrl}
-                                    alt={currentItem.title}
-                                    onLoad={handleImageLoad}
-                                    onError={() => {
-                                        setLoading(false);
-                                        setIsLayoutStable(true);
-                                    }}
-                                    style={{ opacity: loading ? 0.01 : 1 }}
-                                    initial={{ opacity: 1 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 1 }}
-                                />
-                            </AnimatePresence>
+                            <img
+                                key={currentItem.id}
+                                ref={imgRef}
+                                src={imageUrl}
+                                alt={currentItem.title}
+                                onLoad={handleImageLoad}
+                                onError={() => {
+                                    setIsLayoutStable(true);
+                                }}
+                            />
                         </motion.div>
 
                         <div
                             className={`lightbox-caption${showTitles ? '' : ' lightbox-caption--palette-only'}`}
                             style={{
-                                width: layoutWidth,
-                                opacity: layoutWidth !== 'auto' ? 1 : 0,
-                                transition: 'opacity 0.1s',
+                                width: layoutWidth !== 'auto' ? layoutWidth : '100%',
                             }}
                         >
                             {showTitles && (
                                 <div className="caption-copy">
                                     <h3 className="lightbox-title" title={currentItem.title}>
-                                        {currentItem.title}
+                                        {currentItem.projectHref ? (
+                                            <a href={currentItem.projectHref}>
+                                                {currentItem.title}
+                                            </a>
+                                        ) : (
+                                            currentItem.title
+                                        )}
                                     </h3>
                                 </div>
                             )}
@@ -404,7 +407,7 @@ export default function MoodboardPolaroidViewer({
                             />
                         </div>
 
-                        {currentItem.projectHref && (
+                        {currentItem.projectHref && !showTitles && (
                             <a
                                 className="project-link"
                                 href={currentItem.projectHref}
@@ -506,6 +509,17 @@ export default function MoodboardPolaroidViewer({
                         white-space: nowrap;
                         overflow: hidden;
                         text-overflow: ellipsis;
+                    }
+
+                    .lightbox-title a {
+                        color: inherit;
+                        text-decoration: none;
+                        border-bottom: 1px solid rgba(42, 42, 42, 0.4);
+                    }
+
+                    .lightbox-title a:hover,
+                    .lightbox-title a:focus-visible {
+                        border-bottom-color: currentColor;
                     }
 
                     .project-link {

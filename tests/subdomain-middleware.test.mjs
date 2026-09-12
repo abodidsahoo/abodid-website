@@ -8,7 +8,10 @@ const route = (url) => middleware(new Request(url));
 const assertRewrite = (url, expected) => {
   const response = route(url);
   assert.equal(response.status, 200);
-  assert.equal(response.headers.get('x-middleware-rewrite'), expected);
+  const rewriteTarget = response.headers.get('x-middleware-rewrite');
+  assert.ok(rewriteTarget);
+  const resolvedTarget = new URL(rewriteTarget, url);
+  assert.equal(`${resolvedTarget.pathname}${resolvedTarget.search}`, expected);
 };
 
 test('uses Vercel Node routing middleware before filesystem resolution', () => {
@@ -42,6 +45,8 @@ test('lab owns experiment, robots, and sitemap routes', () => {
   assertRewrite('https://lab.abodid.com/', '/lab');
   assertRewrite('https://lab.abodid.com/punctum/about', '/lab/punctum/about');
   assertRewrite('https://lab.abodid.com/image-flick', '/lab/image-flick');
+  assertRewrite('https://lab.abodid.com/photo-board', '/lab/photo-board');
+  assertRewrite('https://lab.abodid.com/future-experiment/demo', '/lab/future-experiment/demo');
   assertRewrite('https://lab.abodid.com/robots.txt', '/lab-robots.txt');
   assertRewrite('https://lab.abodid.com/sitemap.xml', '/lab-sitemap.xml');
 

@@ -1,953 +1,906 @@
 ---
 export const prerender = true;
-import "../styles/global.css";
-import SiteFooter from "../components/SiteFooter.astro";
-import SEO from "../components/SEO.astro";
-import RouteLoadingOverlay from "../components/RouteLoadingOverlay.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { personJsonLd, breadcrumbJsonLd } from "../lib/seoData";
 
-const pageTitle = "Website Architecture";
+const pageTitle = "Website Architecture — Abodid Sahoo";
 const pageDescription =
-    "A public architecture note for abodid.com, covering the Astro, React, Supabase, animation, audio, AI, and performance systems behind the site.";
+  "A public architecture note for abodid.com, covering the Astro 5.0 SSR, React 19, Supabase, Web Audio API, AI consensus, and performance systems behind the site.";
+
+const structuredData = [
+  personJsonLd(),
+  breadcrumbJsonLd([
+    { name: "Home", path: "/" },
+    { name: "Architecture", path: "/architecture" },
+  ]),
+];
 
 const techStack = [
-    {
-        component: "Framework",
-        tech: "Astro 5.0 (SSR) + React 19",
-        purpose: "Hybrid rendering for performance & interactivity",
-    },
-    {
-        component: "Styling",
-        tech: "Tailwind CSS + Custom CSS",
-        purpose: "Utility-first with bespoke design tokens",
-    },
-    {
-        component: "Animations",
-        tech: "GSAP 3 + Framer Motion",
-        purpose: "Fluid interactions & narrative transitions",
-    },
-    {
-        component: "Database",
-        tech: "Supabase (PostgreSQL 15)",
-        purpose: "Real-time data, auth (RLS), and storage",
-    },
-    {
-        component: "Deployment",
-        tech: "Vercel (Serverless)",
-        purpose: "Edge network delivery & serverless functions",
-    },
-    {
-        component: "Email",
-        tech: "Resend",
-        purpose: "Transactional & broadcast messaging",
-    },
-    {
-        component: "Audio",
-        tech: "Web Audio API",
-        purpose: "Native browser audio processing without bloat",
-    },
-    {
-        component: "AI Apps",
-        tech: "OpenRouter (Ensemble)",
-        purpose: "Multi-model consensus for aesthetic judgment",
-    },
+  {
+    component: "Framework",
+    tech: "Astro 5.0 (SSR) + React 19",
+    purpose: "Hybrid rendering for instant loads & island interactivity",
+  },
+  {
+    component: "Design System",
+    tech: "Abodid Pop Editorial Tokens",
+    purpose: "High-chroma Swiss color-blocking, 8px rhythm & Satoshi typography",
+  },
+  {
+    component: "Animations",
+    tech: "GSAP 3 + Framer Motion",
+    purpose: "Fluid interactions, tactile hover states & physics gestures",
+  },
+  {
+    component: "Database & Auth",
+    tech: "Supabase (PostgreSQL 15)",
+    purpose: "Real-time subscriptions, storage & Row-Level Security (RLS)",
+  },
+  {
+    component: "Edge Deployment",
+    tech: "Vercel Serverless Edge",
+    purpose: "Global CDN distribution, edge functions & sub-50ms TTFB",
+  },
+  {
+    component: "Broadcast & Email",
+    tech: "Resend Batch API",
+    purpose: "Transactional alerts & audience-segmented newsletters",
+  },
+  {
+    component: "Sound Design",
+    tech: "Native Web Audio API",
+    purpose: "Real-time FFT audio visualizer & scroll-ducking without bloat",
+  },
+  {
+    component: "AI Perception",
+    tech: "OpenRouter Multi-Model Ensemble",
+    purpose: "Neuro-symbolic consensus engine measuring human memory vs vision",
+  },
 ];
 
 const consultationHref =
-    "/contact?from=%2Farchitecture&source_name=website-architecture&cta=book-consultation";
+  "/contact?from=%2Farchitecture&source_name=website-architecture&cta=book-consultation";
 ---
 
-<html lang="en">
-    <head>
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-V07Z22DSVH"></script>
-        <script is:inline>
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-V07Z22DSVH');
-        </script>
-        <meta charset="utf-8" />
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-        <meta name="viewport" content="width=device-width" />
-        <meta name="generator" content={Astro.generator} />
-        <SEO title={pageTitle} description={pageDescription} />
-        <script src="/scripts/journey-tracker.js" defer></script>
-    </head>
-    <body>
-        <RouteLoadingOverlay />
-        <div class="architecture-page">
-            <header class="arch-header">
-                <div class="system-status-bar">
-                    <div class="indicator-group user-select-none">
-                        <div class="status-indicator online"></div>
-                        <span class="mono-label">SYSTEM STATUS: ONLINE</span>
-                    </div>
-                </div>
+<BaseLayout
+  title={pageTitle}
+  description={pageDescription}
+  structuredData={structuredData}
+  fullWidth={true}
+  hideWhatsAppButton={true}
+  showNewsletterPopup={false}
+  showGlobalGrid={false}
+  showCursorFollower={false}
+  bodyClass="pop-arch-page"
+>
+  <main class="arch-shell">
+    <!-- 1. Clean Hero Header -->
+    <section class="arch-hero" aria-labelledby="arch-heading">
+      <div class="arch-hero__inner">
+        <h1 id="arch-heading" class="arch-hero__title">Website Architecture</h1>
 
-                <h1 class="arch-title">{pageTitle}</h1>
-                <p class="arch-intro">
-                    This digital space is a living, breathing extension of my
-                    mind. It is designed to be a "Dark Room" for my work, a
-                    place where
-                    ideas develop slowly and clearly.
-                </p>
-            </header>
+        <p class="arch-hero__lede">
+          This digital space is a living, breathing extension of my mind — engineered as a high-performance, accessible, and tactile Dark Room for research, cinema, and creative technology.
+        </p>
+      </div>
+    </section>
 
-            <main class="arch-grid">
-                {/* Tech Stack Section */}
-                <section class="arch-section">
-                    <h2 class="section-title">01 // The Stack</h2>
-                    <div class="table-container">
-                        <table class="tech-table">
-                            <thead>
-                                <tr>
-                                    <th>Component</th>
-                                    <th>Technology</th>
-                                    <th>Purpose</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {
-                                    techStack.map((item) => (
-                                        <tr>
-                                            <td data-label="Component">
-                                                {item.component}
-                                            </td>
-                                            <td data-label="Technology" class="highlight">
-                                                {item.tech}
-                                            </td>
-                                            <td data-label="Purpose" class="muted">
-                                                {item.purpose}
-                                            </td>
-                                        </tr>
-                                    ))
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
+    <!-- 2. The Core Tech Stack Table -->
+    <section class="arch-stack-section" aria-labelledby="stack-heading">
+      <div class="arch-stack-card">
+        <header class="arch-section-header">
+          <div class="arch-section-header__title-block">
+            <h2 id="stack-heading" class="arch-section-heading">01 // The Technology Stack</h2>
+          </div>
+          <p class="arch-section-desc">
+            A hybrid edge architecture combining static speed with dynamic real-time capabilities.
+          </p>
+        </header>
 
-                {/* Typography & Design System */}
-                <section class="arch-section two-col">
-                    <div class="col-content">
-                        <h2 class="section-title">02 // Typography System</h2>
-                        <ul class="feature-list">
-                            <li>
-                                <span class="bullet">→</span>
-                                <div>
-                                    <strong>Primary: Satoshi</strong>
-                                    <p>
-                                        The default typeface for headings, UI,
-                                        and body copy across the site.
-                                    </p>
-                                </div>
-                            </li>
-                            <li>
-                                <span class="bullet">→</span>
-                                <div>
-                                    <strong>Hierarchy by Weight</strong>
-                                    <p>
-                                        Visual hierarchy comes from spacing,
-                                        size, and weight rather than mixing
-                                        unrelated font families.
-                                    </p>
-                                </div>
-                            </li>
-                            <li>
-                                <span class="bullet">→</span>
-                                <div>
-                                    <strong>Technical Labels</strong>
-                                    <p>
-                                        Code snippets and diagnostics use the
-                                        mono stack via <code
-                                            >var(--font-mono)</code
-                                        > when needed.
-                                    </p>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-
-                    <div class="col-content">
-                        <h2 class="section-title">
-                            03 // Logic & Optimization
-                        </h2>
-                        <ul class="feature-list">
-                            <li>
-                                <span class="bullet">→</span>
-                                <div>
-                                    <strong>Obsidian Bridge</strong>
-                                    <p>
-                                        Private Edge Function parses raw
-                                        Markdown wikilinks into HTML, bridging
-                                        personal notes to public site.
-                                    </p>
-                                </div>
-                            </li>
-                            <li>
-                                <span class="bullet">→</span>
-                                <div>
-                                    <strong>Atomic Research Engine</strong>
-                                    <p>
-                                        Client-side algorithm builds weighted
-                                        frequency clouds instantly from JSON tag
-                                        arrays.
-                                    </p>
-                                </div>
-                            </li>
-                            <li>
-                                <span class="bullet">→</span>
-                                <div>
-                                    <strong>Lazy-Performance</strong>
-                                    <p>
-                                        <code>IntersectionObserver</code> keeps DOM
-                                        light, loading 3D/Video assets only when scrolled
-                                        into view.
-                                    </p>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-                </section>
-
-                {/* Experience Engines */}
-                <section class="arch-section two-col">
-                    <div class="col-content">
-                        <h2 class="section-title">04 // Audio Engine</h2>
-                        <ul class="feature-list">
-                            <li>
-                                <span class="bullet">→</span>
-                                <div>
-                                    <strong>Native Web Audio API</strong>
-                                    <p>
-                                        No heavy libraries. Pure browser-native
-                                        audio processing for maximum
-                                        performance.
-                                    </p>
-                                </div>
-                            </li>
-                            <li>
-                                <span class="bullet">→</span>
-                                <div>
-                                    <strong>Real-time Spectrum</strong>
-                                    <p>
-                                        Visualizes audio frequencies using FFT
-                                        (Fast Fourier Transform) data directly
-                                        on screen.
-                                    </p>
-                                </div>
-                            </li>
-                            <li>
-                                <span class="bullet">→</span>
-                                <div>
-                                    <strong>Scroll-based Ducking</strong>
-                                    <p>
-                                        Audio volume automatically lowers,
-                                        "ducking" out of the way as you scroll
-                                        down to read content.
-                                    </p>
-                                </div>
-                            </li>
-                            <li>
-                                <span class="bullet">→</span>
-                                <div>
-                                    <strong>Lyric Synchronization</strong>
-                                    <p>
-                                        Precise time-stamp checking ensures
-                                        lyrics appear exactly in rhythm with the
-                                        music.
-                                    </p>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-
-                    <div class="col-content">
-                        <h2 class="section-title">
-                            05 // Interactive Experiments
-                        </h2>
-                        <ul class="feature-list">
-                            <li>
-                                <span class="bullet">→</span>
-                                <div>
-                                    <strong>Invisible Punctum</strong>
-                                    <p>
-                                        Live OpenRouter API connection analyzes
-                                        image composition to generate poetic,
-                                        AI-driven emotional narratives.
-                                    </p>
-                                </div>
-                            </li>
-                            <li>
-                                <span class="bullet">→</span>
-                                <div>
-                                    <strong>Polaroid Physics</strong>
-                                    <p>
-                                        Card-stacking mechanism uses plane
-                                        curves for distribution and
-                                        physics-based drag gestures for natural
-                                        interaction.
-                                    </p>
-                                </div>
-                            </li>
-                            <li>
-                                <span class="bullet">→</span>
-                                <div>
-                                    <strong>Algorithmic Color</strong>
-                                    <p>
-                                        Adaptive palette generator clusters
-                                        pixel data to sense the "mood" of
-                                        images, creating dynamic themes.
-                                    </p>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-                </section>
-
-                {/* Control Room & Broadcast */}
-                <section class="arch-section two-col">
-                    <div class="col-content">
-                        <h2 class="section-title">06 // Custom CMS</h2>
-                        <ul class="feature-list">
-                            <li>
-                                <span class="bullet">→</span>
-                                <div>
-                                    <strong>Content Dashboard</strong>
-                                    <p>
-                                        Bespoke admin interface to manage
-                                        research papers, films, and journals
-                                        without touching code.
-                                    </p>
-                                </div>
-                            </li>
-                            <li>
-                                <span class="bullet">→</span>
-                                <div>
-                                    <strong>Drag &amp; Drop Sequencing</strong>
-                                    <p>
-                                        Intuitively re-order content and curated
-                                        lists using <code>dnd-kit</code> sortable
-                                        interfaces.
-                                    </p>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-
-                    <div class="col-content">
-                        <h2 class="section-title">07 // Broadcast System</h2>
-                        <ul class="feature-list">
-                            <li>
-                                <span class="bullet">→</span>
-                                <div>
-                                    <strong>Newsletter Engine</strong>
-                                    <p>
-                                        Integrated system using Resend's Batch
-                                        API to email thousands of subscribers
-                                        instantly.
-                                    </p>
-                                </div>
-                            </li>
-                            <li>
-                                <span class="bullet">→</span>
-                                <div>
-                                    <strong>Audience Logic</strong>
-                                    <p>
-                                        Segmented delivery ensures the right
-                                        content reaches the right curious minds.
-                                    </p>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-                </section>
-
-                {/* Awards & Ethics */}
-                <section class="arch-section two-col">
-                    <div class="col-content">
-                        <h2 class="section-title">
-                            08 // Ethics & Optimization
-                        </h2>
-                        <ul class="feature-list">
-                            <li>
-                                <span class="bullet">→</span>
-                                <div>
-                                    <strong>Inclusive Design</strong>
-                                    <p>
-                                        ARIA-labeled visualizers, semantic <code
-                                            >&lt;button&gt;</code
-                                        > controls, and keyboard-navigable interfaces
-                                        ensure access for all.
-                                    </p>
-                                </div>
-                            </li>
-                            <li>
-                                <span class="bullet">→</span>
-                                <div>
-                                    <strong>Zero-Tracking</strong>
-                                    <p>
-                                        No cookies, no analytics pixels, no
-                                        invasion. Just pure, unadulterated code.
-                                    </p>
-                                </div>
-                            </li>
-                            <li>
-                                <span class="bullet">→</span>
-                                <div>
-                                    <strong>Reduced Motion</strong>
-                                    <p>
-                                        Respects system preferences to disable
-                                        complex physics and parallax effects for
-                                        sensitive users.
-                                    </p>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-
-                    <div class="col-content">
-                        <h2 class="section-title">09 // Award Protocols</h2>
-                        <ul class="feature-list">
-                            <li>
-                                <span class="bullet">→</span>
-                                <div>
-                                    <strong>Lighthouse Score</strong>
-                                    <p>
-                                        Targeting 4x100 (Performance,
-                                        Accessibility, Best Practices, SEO) via
-                                        static generation.
-                                    </p>
-                                </div>
-                            </li>
-                            <li>
-                                <span class="bullet">→</span>
-                                <div>
-                                    <strong>Progressive Enhancement</strong>
-                                    <p>
-                                        Core content works without JavaScript.
-                                        "Magic" is layered on top, not required
-                                        for basic consumption.
-                                    </p>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-                </section>
-
-                {/* Punctum AI Architecture */}
-                <section class="arch-section two-col">
-                    <div class="col-content">
-                        <h2 class="section-title">
-                            10 // Punctum AI Architecture
-                        </h2>
-                        <ul class="feature-list">
-                            <li>
-                                <span class="bullet">→</span>
-                                <div>
-                                    <strong>Neuro-Symbolic Pipeline</strong>
-                                    <p>
-                                        A multi-stage AI reasoning engine that
-                                        mimics human aesthetic judgment.
-                                        Combines <code
-                                            >NVIDIA Vision</code
-                                        > for raw perception with <code
-                                            >Gemini Pro</code
-                                        > for poetic synthesis.
-                                    </p>
-                                </div>
-                            </li>
-                            <li>
-                                <span class="bullet">→</span>
-                                <div>
-                                    <strong>Consensus Engine</strong>
-                                    <p>
-                                        The system doesn't just "see"—it
-                                        compares. It actively calculates the
-                                        semantic distance between Machine
-                                        Interpretation (AI) and Human Feeling
-                                        (User Input) to generate a "Consensus
-                                        Score."
-                                    </p>
-                                </div>
-                            </li>
-                            <li>
-                                <span class="bullet">→</span>
-                                <div>
-                                    <strong>Deep Dive</strong>
-                                    <p>
-                                        <a
-                                            href="/architecture/punctum"
-                                        >
-                                            View the full schematic &rarr;
-                                        </a>
-                                    </p>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-                </section>
-
-                {/* CTA */}
-                <section class="arch-cta">
-                    <p class="cta-text">
-                        I can help you build such a website and content
-                        architecture in seven days.
-                    </p>
-                    <a
-                        href={consultationHref}
-                        class="cta-link">Book a consultation →</a
-                    >
-                </section>
-            </main>
+        <div class="arch-table-wrap">
+          <table class="arch-tech-table">
+            <thead>
+              <tr>
+                <th scope="col">Layer</th>
+                <th scope="col">Technology</th>
+                <th scope="col">Purpose &amp; Implementation</th>
+              </tr>
+            </thead>
+            <tbody>
+              {techStack.map((item) => (
+                <tr>
+                  <td data-label="Layer" class="arch-table-layer">
+                    <span>{item.component}</span>
+                  </td>
+                  <td data-label="Technology" class="arch-table-tech">
+                    <strong>{item.tech}</strong>
+                  </td>
+                  <td data-label="Purpose" class="arch-table-purpose">
+                    {item.purpose}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-        <aside
-            id="floating-consult-cta"
-            class="floating-consult-cta"
-            aria-hidden="true"
-        >
-            <p class="floating-consult-copy">
-                Build a site like this in 7 days!
-            </p>
-            <a href={consultationHref} class="floating-consult-button"
-                >BOOK A CONSULTATION</a
-            >
-        </aside>
-        <SiteFooter />
-        <script>
-            const floatingConsultCta =
-                document.getElementById("floating-consult-cta");
+      </div>
+    </section>
 
-            if (floatingConsultCta) {
-                let scrollEvents = 0;
-                const minScrollDistance = 96;
-                const minScrollEvents = 2;
+    <!-- 3. Engineering Deep Dives Grid (All 9 Cards Inline) -->
+    <section class="arch-deep-dives" aria-label="Architecture deep dives">
+      <div class="arch-deep-dives__grid">
+        <!-- 02: Typography & Design System -->
+        <article class="arch-card arch-card--yellow">
+          <div class="arch-card__top">
+            <span class="arch-card__num">02</span>
+          </div>
+          <h3 class="arch-card__title">Typography &amp; Visual Geometry</h3>
+          <ul class="arch-feature-list">
+            <li>
+              <strong>Primary: Satoshi Variable</strong>
+              <p>Neo-grotesk display &amp; body hierarchy with tight negative tracking (-0.03em to -0.06em) on display headlines.</p>
+            </li>
+            <li>
+              <strong>8px Structural Seams</strong>
+              <p>Precise 8px gaps between color-blocked panels create a tactile, printed publication feel.</p>
+            </li>
+            <li>
+              <strong>Accessible Color Pairings</strong>
+              <p>Strict WCAG AA/AAA contrast adherence (Ink on Cream 17.5:1, Ink on Yellow 14.5:1, Cream on Cobalt 7.2:1).</p>
+            </li>
+          </ul>
+        </article>
 
-                const syncFloatingCta = () => {
-                    const shouldShow =
-                        scrollEvents >= minScrollEvents &&
-                        window.scrollY >= minScrollDistance;
-                    floatingConsultCta.classList.toggle("is-visible", shouldShow);
-                    floatingConsultCta.setAttribute(
-                        "aria-hidden",
-                        shouldShow ? "false" : "true"
-                    );
-                };
+        <!-- 03: Logic & Edge Pipelines -->
+        <article class="arch-card arch-card--cream">
+          <div class="arch-card__top">
+            <span class="arch-card__num">03</span>
+          </div>
+          <h3 class="arch-card__title">Logic &amp; Optimization</h3>
+          <ul class="arch-feature-list">
+            <li>
+              <strong>Obsidian Bridge</strong>
+              <p>Edge functions parse raw Markdown wikilinks into HTML, bridging private second-brain notes to the public site.</p>
+            </li>
+            <li>
+              <strong>Atomic Research Engine</strong>
+              <p>Client-side algorithm builds weighted frequency clouds instantly from JSON tag arrays.</p>
+            </li>
+            <li>
+              <strong>Lazy-Performance</strong>
+              <p><code>IntersectionObserver</code> keeps the DOM light, loading 3D and video assets only when scrolled into view.</p>
+            </li>
+          </ul>
+        </article>
 
-                let framePending = false;
-                window.addEventListener(
-                    "scroll",
-                    () => {
-                        scrollEvents += 1;
-                        if (framePending) return;
-                        framePending = true;
-                        window.requestAnimationFrame(() => {
-                            syncFloatingCta();
-                            framePending = false;
-                        });
-                    },
-                    { passive: true }
-                );
+        <!-- 04: Native Audio Engine -->
+        <article class="arch-card arch-card--lime">
+          <div class="arch-card__top">
+            <span class="arch-card__num">04</span>
+          </div>
+          <h3 class="arch-card__title">Native Audio Engine</h3>
+          <ul class="arch-feature-list">
+            <li>
+              <strong>Pure Web Audio API</strong>
+              <p>Zero external runtime libraries. Pure browser-native audio processing for lightweight execution.</p>
+            </li>
+            <li>
+              <strong>Real-time FFT Spectrum</strong>
+              <p>Visualizes audio frequencies using Fast Fourier Transform data directly on interactive canvas layers.</p>
+            </li>
+            <li>
+              <strong>Scroll-Based Ducking</strong>
+              <p>Audio volume smoothly ducks down as you scroll down to read long-form research notes.</p>
+            </li>
+          </ul>
+        </article>
 
-                syncFloatingCta();
-            }
-        </script>
-    </body>
-</html>
+        <!-- 05: Interactive Experiments & Physics -->
+        <article class="arch-card arch-card--pink">
+          <div class="arch-card__top">
+            <span class="arch-card__num">05</span>
+          </div>
+          <h3 class="arch-card__title">Interactive Experiments</h3>
+          <ul class="arch-feature-list">
+            <li>
+              <strong>Invisible Punctum</strong>
+              <p>Live AI model connection analyzes visual composition to generate poetic, sensory interpretations.</p>
+            </li>
+            <li>
+              <strong>Polaroid Physics</strong>
+              <p>Card stacking uses natural plane curves and physics-based drag gestures for tactile photo exploration.</p>
+            </li>
+            <li>
+              <strong>Algorithmic Color Clustering</strong>
+              <p>Adaptive palette generator clusters pixel data to sense the emotional mood of artwork.</p>
+            </li>
+          </ul>
+        </article>
+
+        <!-- 06: Custom Studio CMS -->
+        <article class="arch-card arch-card--cream">
+          <div class="arch-card__top">
+            <span class="arch-card__num">06</span>
+          </div>
+          <h3 class="arch-card__title">Custom Studio CMS</h3>
+          <ul class="arch-feature-list">
+            <li>
+              <strong>Content Dashboard</strong>
+              <p>Bespoke administrative suite to manage research papers, films, and journals with zero code friction.</p>
+            </li>
+            <li>
+              <strong>Drag &amp; Drop Sequencing</strong>
+              <p>Intuitively re-order exhibitions and curated lists using <code>dnd-kit</code> sortable interfaces.</p>
+            </li>
+            <li>
+              <strong>Secure Supabase RLS</strong>
+              <p>Database queries secured with Postgres Row Level Security and role-based token authentication.</p>
+            </li>
+          </ul>
+        </article>
+
+        <!-- 07: Broadcast & Newsletter Engine -->
+        <article class="arch-card arch-card--yellow">
+          <div class="arch-card__top">
+            <span class="arch-card__num">07</span>
+          </div>
+          <h3 class="arch-card__title">Broadcast Engine</h3>
+          <ul class="arch-feature-list">
+            <li>
+              <strong>Resend Batch API</strong>
+              <p>Integrated broadcast delivery emailing thousands of subscribers with zero delay or throttling.</p>
+            </li>
+            <li>
+              <strong>Audience Segmentation</strong>
+              <p>Dispatches tailored across research collaborators, art patrons, and workshop students.</p>
+            </li>
+            <li>
+              <strong>1-Click Direct Unsubscribe</strong>
+              <p>RFC 8058 compliant headers for transparent, instant subscription control.</p>
+            </li>
+          </ul>
+        </article>
+
+        <!-- 08: Ethics & Performance -->
+        <article class="arch-card arch-card--lime">
+          <div class="arch-card__top">
+            <span class="arch-card__num">08</span>
+          </div>
+          <h3 class="arch-card__title">Ethics &amp; Optimization</h3>
+          <ul class="arch-feature-list">
+            <li>
+              <strong>Inclusive Design</strong>
+              <p>ARIA-labeled visualizers, semantic HTML5 elements, and keyboard-first navigation paths.</p>
+            </li>
+            <li>
+              <strong>Zero-Tracking Policy</strong>
+              <p>No advertising pixels, no behavioral profiling, and no surveillance cookies.</p>
+            </li>
+            <li>
+              <strong>Reduced Motion</strong>
+              <p>Honors <code>prefers-reduced-motion</code> by disabling complex physics and spatial transforms.</p>
+            </li>
+          </ul>
+        </article>
+
+        <!-- 09: Award Protocols & Targets -->
+        <article class="arch-card arch-card--cream">
+          <div class="arch-card__top">
+            <span class="arch-card__num">09</span>
+          </div>
+          <h3 class="arch-card__title">Award Protocols</h3>
+          <ul class="arch-feature-list">
+            <li>
+              <strong>4x100 Target Lighthouse</strong>
+              <p>Static generation + edge caching engineered for Performance, Accessibility, Best Practices &amp; SEO.</p>
+            </li>
+            <li>
+              <strong>Progressive Enhancement</strong>
+              <p>Core content renders without JavaScript. Rich client interactive layers enhance the experience.</p>
+            </li>
+            <li>
+              <strong>Automated JSON-LD</strong>
+              <p>Rich schema.org Person, CreativeWork, and Breadcrumb structured data on every route.</p>
+            </li>
+          </ul>
+        </article>
+
+        <!-- 10: Punctum AI Architecture (Inline Card 10) -->
+        <article class="arch-card arch-card--pink">
+          <div class="arch-card__top">
+            <span class="arch-card__num">10</span>
+          </div>
+          <h3 class="arch-card__title">Punctum AI Architecture</h3>
+          <ul class="arch-feature-list">
+            <li>
+              <strong>Neuro-Symbolic Pipeline</strong>
+              <p>Combines NVIDIA Vision for raw visual perception with Gemini Pro for poetic contextual synthesis.</p>
+            </li>
+            <li>
+              <strong>Consensus Engine</strong>
+              <p>Calculates the mathematical distance between Machine Interpretation and Human Memory to produce a Consensus Score.</p>
+            </li>
+            <li>
+              <a href="/architecture/punctum" class="arch-card-link">
+                <span>View full schematic</span>
+                <span class="link-destination-arrow" aria-hidden="true">↗</span>
+              </a>
+            </li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <!-- 4. Closing Consultation Card (High Contrast Dark Text on Yellow) -->
+    <section class="arch-cta-section" aria-labelledby="cta-heading">
+      <div class="arch-cta-card">
+        <div class="arch-cta-card__copy">
+          <h2 id="cta-heading" class="arch-cta-card__title">Build a website or resource system like this.</h2>
+          <p class="arch-cta-card__text">
+            I can help you design and build a bespoke content architecture, high-performance website, or interactive research platform in seven days.
+          </p>
+        </div>
+        <a href={consultationHref} class="arch-cta-btn">
+          <span>Book a Consultation</span>
+          <span class="link-destination-arrow" aria-hidden="true">↗</span>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <!-- Floating Consultation Drawer Widget -->
+  <aside id="floating-consult-cta" class="floating-consult-cta" aria-hidden="true">
+    <p class="floating-consult-copy">Build a site like this in 7 days</p>
+    <a href={consultationHref} class="floating-consult-button">
+      <span>Book Consultation</span>
+      <span class="link-destination-arrow" aria-hidden="true">↗</span>
+    </a>
+  </aside>
+
+  <script>
+    const floatingConsultCta = document.getElementById("floating-consult-cta");
+
+    if (floatingConsultCta) {
+      let scrollEvents = 0;
+      const minScrollDistance = 120;
+      const minScrollEvents = 2;
+
+      const syncFloatingCta = () => {
+        const shouldShow =
+          scrollEvents >= minScrollEvents && window.scrollY >= minScrollDistance;
+        floatingConsultCta.classList.toggle("is-visible", shouldShow);
+        floatingConsultCta.setAttribute(
+          "aria-hidden",
+          shouldShow ? "false" : "true"
+        );
+      };
+
+      let framePending = false;
+      window.addEventListener(
+        "scroll",
+        () => {
+          scrollEvents += 1;
+          if (framePending) return;
+          framePending = true;
+          window.requestAnimationFrame(() => {
+            syncFloatingCta();
+            framePending = false;
+          });
+        },
+        { passive: true }
+      );
+
+      syncFloatingCta();
+    }
+  </script>
+</BaseLayout>
+
+<style is:global>
+  body.pop-arch-page {
+    --pop-blue: #2444ca;
+    --pop-pink: #ff7eb5;
+    --pop-yellow: #ffe44f;
+    --pop-lime: #caff48;
+    --pop-orange: #ff875c;
+    --pop-purple: #5524c7;
+    --pop-cyan: #62e6ff;
+    --pop-cream: #fff8e8;
+    --pop-ink: #15130f;
+    --pop-border: rgba(21, 19, 15, 0.78);
+    --pop-line: rgba(21, 19, 15, 0.24);
+    --pop-gap: 8px;
+    --pop-radius-panel: clamp(18px, 2vw, 28px);
+    --pop-radius-card: clamp(14px, 1.5vw, 22px);
+    --pop-radius-control: 14px;
+    --pop-motion: 180ms ease;
+
+    background: var(--pop-blue);
+    color: var(--pop-ink);
+  }
+
+  html:has(body.pop-arch-page) {
+    background: var(--pop-blue);
+  }
+
+  /* Robust contrast enforcement for headings and body copy */
+  body.pop-arch-page h1,
+  body.pop-arch-page h2,
+  body.pop-arch-page h3,
+  body.pop-arch-page p,
+  body.pop-arch-page span,
+  body.pop-arch-page li,
+  body.pop-arch-page strong,
+  body.pop-arch-page th,
+  body.pop-arch-page td,
+  body.pop-arch-page a {
+    color: var(--pop-ink);
+  }
+</style>
 
 <style>
-    .architecture-page {
-        max-width: var(--max-width);
-        margin: 0 auto;
-        padding: 2rem 24px 4rem;
+  .arch-shell {
+    display: flex;
+    flex-direction: column;
+    gap: var(--pop-gap);
+    padding: var(--pop-gap);
+    max-width: 1480px;
+    margin: 0 auto;
+  }
+
+  /* Hero Section */
+  .arch-hero {
+    border: 1px solid var(--pop-border);
+    border-radius: var(--pop-radius-panel);
+    background: var(--pop-pink);
+    color: var(--pop-ink) !important;
+    padding: clamp(2.5rem, 5.5vw, 4.5rem) clamp(1.5rem, 4vw, 4rem);
+  }
+
+  .arch-hero__inner {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-width: 900px;
+  }
+
+  .arch-hero__title {
+    font: 720 clamp(2.8rem, 6.5vw, 5.5rem)/0.92 var(--font-display, sans-serif);
+    letter-spacing: -0.05em;
+    margin: 0;
+    color: var(--pop-ink) !important;
+    text-wrap: balance;
+  }
+
+  .arch-hero__lede {
+    font: 480 clamp(1.15rem, 1.8vw, 1.5rem)/1.35 var(--font-display, sans-serif);
+    letter-spacing: -0.02em;
+    color: var(--pop-ink) !important;
+    margin: 0;
+    max-width: 50rem;
+    text-wrap: pretty;
+  }
+
+  /* Tech Stack Table Card */
+  .arch-stack-section {
+    width: 100%;
+  }
+
+  .arch-stack-card {
+    border: 1px solid var(--pop-border);
+    border-radius: var(--pop-radius-panel);
+    background: var(--pop-cream);
+    color: var(--pop-ink) !important;
+    padding: clamp(2rem, 4.5vw, 3.5rem) clamp(1.5rem, 3.5vw, 3.5rem);
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .arch-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--pop-line);
+  }
+
+  .arch-section-header__title-block {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .arch-section-heading {
+    font: 650 clamp(2rem, 4vw, 3.2rem)/0.96 var(--font-display, sans-serif);
+    letter-spacing: -0.045em;
+    margin: 0;
+    color: var(--pop-ink) !important;
+  }
+
+  .arch-section-desc {
+    font: 450 clamp(0.95rem, 1.1vw, 1.05rem)/1.5 var(--font-body, sans-serif);
+    margin: 0;
+    color: rgba(21, 19, 15, 0.8) !important;
+    max-width: 480px;
+  }
+
+  .arch-table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--pop-border);
+    border-radius: var(--pop-radius-card);
+    background: #ffffff;
+  }
+
+  .arch-tech-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 0.95rem;
+  }
+
+  .arch-tech-table th {
+    background: var(--pop-yellow);
+    border-bottom: 1px solid var(--pop-border);
+    padding: 1rem 1.25rem;
+    color: var(--pop-ink) !important;
+    font: 750 0.78rem/1 var(--font-mono, monospace);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .arch-tech-table td {
+    padding: 1.15rem 1.25rem;
+    border-bottom: 1px solid var(--pop-line);
+    color: var(--pop-ink) !important;
+    vertical-align: middle;
+  }
+
+  .arch-tech-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  .arch-table-layer span {
+    font: 700 0.85rem/1.2 var(--font-mono, monospace);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--pop-ink) !important;
+  }
+
+  .arch-table-tech {
+    font: 600 1rem/1.3 var(--font-display, sans-serif);
+  }
+
+  .arch-table-tech strong {
+    color: var(--pop-ink) !important;
+  }
+
+  .arch-table-purpose {
+    font: 450 0.94rem/1.5 var(--font-body, sans-serif);
+    color: rgba(21, 19, 15, 0.85) !important;
+  }
+
+  /* Deep Dives Grid */
+  .arch-deep-dives {
+    display: flex;
+    flex-direction: column;
+    gap: var(--pop-gap);
+  }
+
+  .arch-deep-dives__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--pop-gap);
+  }
+
+  .arch-card {
+    border: 1px solid var(--pop-border);
+    border-radius: var(--pop-radius-panel);
+    padding: clamp(1.5rem, 2.5vw, 2.2rem);
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    color: var(--pop-ink) !important;
+    transition: transform var(--pop-motion), box-shadow var(--pop-motion);
+  }
+
+  .arch-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(21, 19, 15, 0.08);
+  }
+
+  .arch-card--yellow { background: var(--pop-yellow); }
+  .arch-card--cream { background: var(--pop-cream); }
+  .arch-card--lime { background: var(--pop-lime); }
+  .arch-card--pink { background: var(--pop-pink); }
+
+  .arch-card__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid var(--pop-line);
+  }
+
+  .arch-card__num {
+    font: 750 0.85rem/1 var(--font-mono, monospace);
+    letter-spacing: 0.08em;
+    color: var(--pop-ink) !important;
+  }
+
+  .arch-card__title {
+    font: 650 clamp(1.3rem, 1.8vw, 1.7rem)/1.1 var(--font-display, sans-serif);
+    letter-spacing: -0.03em;
+    margin: 0;
+    color: var(--pop-ink) !important;
+  }
+
+  .arch-feature-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .arch-feature-list li {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .arch-feature-list strong {
+    font: 650 0.95rem/1.3 var(--font-display, sans-serif);
+    color: var(--pop-ink) !important;
+  }
+
+  .arch-feature-list p {
+    font: 450 0.88rem/1.5 var(--font-body, sans-serif);
+    margin: 0;
+    color: rgba(21, 19, 15, 0.85) !important;
+  }
+
+  .arch-feature-list code {
+    font: 700 0.85em var(--font-mono, monospace);
+    background: rgba(21, 19, 15, 0.08);
+    padding: 0.15rem 0.35rem;
+    border-radius: 4px;
+    color: var(--pop-ink) !important;
+  }
+
+  .arch-card-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.5rem;
+    font: 750 0.84rem/1 var(--font-mono, monospace);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    color: var(--pop-ink) !important;
+  }
+
+  .arch-card-link:hover {
+    color: var(--pop-blue) !important;
+  }
+
+  /* Closing Consultation Card */
+  .arch-cta-section {
+    width: 100%;
+  }
+
+  .arch-cta-card {
+    border: 1px solid var(--pop-border);
+    border-radius: var(--pop-radius-panel);
+    background: var(--pop-yellow);
+    color: var(--pop-ink) !important;
+    padding: clamp(2rem, 4vw, 3.5rem) clamp(1.5rem, 3.5vw, 3.5rem);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 2rem;
+  }
+
+  .arch-cta-card__copy {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-width: 720px;
+  }
+
+  .arch-cta-card__title {
+    font: 650 clamp(1.8rem, 3.2vw, 2.6rem)/1.05 var(--font-display, sans-serif);
+    letter-spacing: -0.04em;
+    margin: 0;
+    color: var(--pop-ink) !important;
+  }
+
+  .arch-cta-card__text {
+    font: 450 clamp(0.95rem, 1.1vw, 1.08rem)/1.55 var(--font-body, sans-serif);
+    margin: 0;
+    color: var(--pop-ink) !important;
+  }
+
+  .arch-cta-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-height: 54px;
+    padding: 0 1.75rem;
+    border: 1px solid var(--pop-border);
+    border-radius: var(--pop-radius-control);
+    background: var(--pop-cream);
+    color: var(--pop-ink) !important;
+    font: 750 0.88rem/1 var(--font-mono, monospace);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: transform var(--pop-motion), box-shadow var(--pop-motion), background var(--pop-motion);
+  }
+
+  .arch-cta-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(21, 19, 15, 0.14);
+    background: #ffffff;
+  }
+
+  .link-destination-arrow {
+    display: inline-block;
+    text-decoration: none !important;
+    transition: transform var(--pop-motion);
+  }
+
+  .arch-cta-btn:hover .link-destination-arrow,
+  .floating-consult-button:hover .link-destination-arrow {
+    transform: translate(2px, -2px);
+  }
+
+  /* Floating Drawer */
+  .floating-consult-cta {
+    position: fixed;
+    right: 1.5rem;
+    bottom: clamp(2rem, 10vh, 5rem);
+    transform: translateX(calc(100% + 2rem));
+    opacity: 0;
+    pointer-events: none;
+    width: min(320px, calc(100vw - 2rem));
+    padding: 1rem;
+    border-radius: var(--pop-radius-card);
+    border: 1px solid var(--pop-border);
+    background: var(--pop-cream);
+    box-shadow: 0 12px 32px rgba(21, 19, 15, 0.2);
+    z-index: 80;
+    transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.6s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .floating-consult-cta.is-visible {
+    transform: translateX(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .floating-consult-copy {
+    margin: 0;
+    font: 700 0.76rem/1.2 var(--font-mono, monospace);
+    color: var(--pop-ink) !important;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .floating-consult-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    width: 100%;
+    min-height: 48px;
+    border-radius: var(--pop-radius-control);
+    border: 1px solid var(--pop-border);
+    background: var(--pop-yellow);
+    color: var(--pop-ink) !important;
+    font: 750 0.82rem/1 var(--font-mono, monospace);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: transform var(--pop-motion), background var(--pop-motion);
+  }
+
+  .floating-consult-button:hover {
+    transform: translateY(-2px);
+    background: var(--pop-lime);
+  }
+
+  /* Responsive Rules */
+  @media (max-width: 1100px) {
+    .arch-deep-dives__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 840px) {
+    .arch-tech-table thead {
+      display: none;
     }
 
-    .arch-header {
-        margin-bottom: 3rem;
-        border-bottom: 1px solid var(--border-subtle);
-        padding-bottom: 2rem;
+    .arch-tech-table,
+    .arch-tech-table tbody,
+    .arch-tech-table tr,
+    .arch-tech-table td {
+      display: block;
+      width: 100%;
     }
 
-    .system-status-bar {
-        margin-bottom: 1.25rem;
-        font-family: var(--font-ui);
-        font-size: 0.75rem;
-        letter-spacing: 0.08em;
-        color: var(--text-tertiary);
-        text-transform: uppercase;
+    .arch-tech-table tr {
+      border-bottom: 1px solid var(--pop-border);
+      padding: 0.85rem 1rem;
     }
 
-    .indicator-group {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
+    .arch-tech-table td {
+      padding: 0.35rem 0;
+      border: none;
     }
 
-    .status-indicator {
-        width: 0.5rem;
-        height: 0.5rem;
-        border-radius: 50%;
-        background: var(--accent-primary);
+    .arch-tech-table td::before {
+      content: attr(data-label) ": ";
+      font: 700 0.72rem/1 var(--font-mono, monospace);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: rgba(21, 19, 15, 0.6);
+      display: inline-block;
+      margin-right: 0.35rem;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .arch-shell {
+      padding: var(--pop-gap);
     }
 
-    .arch-title {
-        font-family: var(--font-display);
-        font-size: clamp(2.4rem, 5vw, 4rem);
-        font-weight: 600;
-        letter-spacing: -0.02em;
-        margin: 0 0 1rem;
-        line-height: 1.1;
-        color: var(--text-primary);
+    .arch-hero {
+      padding: 2rem 1.25rem;
     }
 
-    .arch-intro {
-        margin: 0;
-        font-family: var(--font-sans);
-        font-size: 1.1rem;
-        line-height: 1.6;
-        color: var(--text-secondary);
-        max-width: 760px;
+    .arch-stack-card {
+      padding: 1.75rem 1.25rem;
     }
 
-    .arch-grid {
-        display: flex;
-        flex-direction: column;
-        gap: 3rem;
-        margin-bottom: 3rem;
+    .arch-deep-dives__grid {
+      grid-template-columns: 1fr;
     }
 
-    .arch-section {
-        display: block;
+    .arch-cta-card {
+      padding: 1.75rem 1.25rem;
+      flex-direction: column;
+      align-items: flex-start;
     }
 
-    .section-title {
-        margin: 0 0 1.25rem;
-        font-family: var(--font-display);
-        font-size: clamp(1.35rem, 2vw, 1.9rem);
-        font-weight: 600;
-        letter-spacing: -0.01em;
-        color: var(--text-primary);
-    }
-
-    .table-container {
-        overflow-x: auto;
-        border: 1px solid var(--border-subtle);
-        border-radius: var(--radius-md);
-        background: var(--bg-surface);
-    }
-
-    .tech-table {
-        width: 100%;
-        border-collapse: collapse;
-        text-align: left;
-        font-family: var(--font-sans);
-        font-size: 0.95rem;
-        min-width: 760px;
-    }
-
-    .tech-table th {
-        border-bottom: 1px solid var(--border-subtle);
-        padding: 0.9rem 1rem;
-        color: var(--text-secondary);
-        font-family: var(--font-ui);
-        text-transform: uppercase;
-        font-weight: 600;
-        font-size: 0.78rem;
-        letter-spacing: 0.05em;
-    }
-
-    .tech-table td {
-        padding: 1rem;
-        border-bottom: 1px solid var(--border-subtle);
-        color: var(--text-primary);
-        vertical-align: top;
-    }
-
-    .tech-table tbody tr:last-child td {
-        border-bottom: none;
-    }
-
-    .tech-table .highlight {
-        font-family: var(--font-ui);
-        font-weight: 600;
-    }
-
-    .tech-table .muted {
-        color: var(--text-secondary);
-    }
-
-    .two-col {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 2rem;
-    }
-
-    .col-content {
-        min-width: 0;
-    }
-
-    .feature-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        display: flex;
-        flex-direction: column;
-        gap: 1.25rem;
-    }
-
-    .feature-list li {
-        display: grid;
-        grid-template-columns: auto 1fr;
-        gap: 0.75rem;
-        align-items: start;
-    }
-
-    .bullet {
-        color: var(--text-tertiary);
-        font-family: var(--font-ui);
-        line-height: 1.5;
-    }
-
-    .feature-list strong {
-        display: block;
-        margin: 0 0 0.35rem;
-        font-family: var(--font-display);
-        font-size: 1.05rem;
-        font-weight: 600;
-        color: var(--text-primary);
-    }
-
-    .feature-list p {
-        margin: 0;
-        font-family: var(--font-sans);
-        font-size: 1rem;
-        line-height: 1.6;
-        color: var(--text-secondary);
-    }
-
-    .feature-list code {
-        font-family: var(--font-mono);
-        font-size: 0.95em;
-        overflow-wrap: anywhere;
-        word-break: break-word;
-    }
-
-    .feature-list a {
-        color: var(--text-primary);
-        text-decoration: underline;
-        text-underline-offset: 0.16em;
-        overflow-wrap: anywhere;
-    }
-
-    .feature-list a:hover {
-        color: var(--accent-primary);
-    }
-
-    .arch-cta {
-        text-align: left;
-        padding-top: 2.25rem;
-        border-top: 1px solid var(--border-subtle);
-    }
-
-    .cta-text {
-        margin: 0 0 1rem;
-        font-family: var(--font-sans);
-        font-size: 1.05rem;
-        line-height: 1.65;
-        color: var(--text-secondary);
-        max-width: 760px;
-    }
-
-    .cta-link {
-        display: inline-block;
-        text-decoration: none;
-        font-family: var(--font-ui);
-        font-size: 0.9rem;
-        font-weight: 600;
-        color: #ffffff;
-        background: var(--color-brand-red);
-        border: 1px solid var(--color-brand-red);
-        border-radius: 999px;
-        padding: 0.7rem 1.1rem;
-        transition:
-            background-color 0.2s ease,
-            border-color 0.2s ease,
-            color 0.2s ease;
-    }
-
-    .cta-link:hover {
-        background: #c21c3e;
-        border-color: #c21c3e;
-        color: #ffffff;
+    .arch-cta-btn {
+      width: 100%;
+      justify-content: center;
     }
 
     .floating-consult-cta {
-        position: fixed;
-        right: 1.5rem;
-        bottom: clamp(3rem, 12vh, 6rem);
-        transform: translateX(calc(100% + 1.5rem));
-        opacity: 0;
-        pointer-events: none;
-        width: min(300px, calc(100vw - 2rem));
-        padding: 0.75rem;
-        border-radius: 10px;
-        border: 1px solid var(--border-subtle);
-        background: var(--bg-surface);
-        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
-        z-index: 80;
-        transition:
-            transform 0.9s cubic-bezier(0.22, 1, 0.36, 1),
-            opacity 0.9s ease;
+      right: 1rem;
+      bottom: 1rem;
+      width: calc(100vw - 2rem);
     }
+  }
 
-    .floating-consult-cta.is-visible {
-        transform: translateX(0);
-        opacity: 1;
-        pointer-events: auto;
+  @media (prefers-reduced-motion: reduce) {
+    .arch-card,
+    .arch-cta-btn,
+    .floating-consult-cta,
+    .floating-consult-button,
+    .link-destination-arrow {
+      transition: none !important;
+      transform: none !important;
     }
-
-    .floating-consult-copy {
-        margin: 0 0 0.6rem;
-        text-align: left;
-        font-family: var(--font-ui);
-        font-size: clamp(0.74rem, 0.2vw + 0.72rem, 0.84rem);
-        font-weight: 500;
-        line-height: 1.28;
-        color: var(--text-tertiary);
-        letter-spacing: 0.02em;
-        width: 100%;
-        white-space: nowrap;
-    }
-
-    .floating-consult-button {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-        height: 58px;
-        box-sizing: border-box;
-        text-align: center;
-        text-decoration: none;
-        font-family: var(--font-ui);
-        font-size: 1.2rem;
-        line-height: 1;
-        font-weight: 500;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
-        white-space: nowrap;
-        color: #ffffff;
-        background: var(--color-brand-red);
-        border: 1px solid var(--color-brand-red);
-        border-radius: 8px;
-        padding: 0;
-        transition:
-            background-color 0.2s ease,
-            border-color 0.2s ease,
-            color 0.2s ease;
-    }
-
-    .floating-consult-button:hover {
-        background: #c21c3e;
-        border-color: #c21c3e;
-        color: #ffffff;
-    }
-
-    @media (min-width: 1024px) {
-        .two-col {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            column-gap: 2.5rem;
-            row-gap: 2rem;
-        }
-    }
-
-    @media (max-width: 768px) {
-        .architecture-page {
-            padding: 1.5rem 16px 3rem;
-        }
-
-        .arch-header {
-            margin-bottom: 2.5rem;
-        }
-
-        .arch-grid {
-            gap: 2.5rem;
-        }
-
-        .tech-table {
-            min-width: 620px;
-        }
-
-        .floating-consult-cta {
-            right: 1rem;
-            bottom: clamp(2rem, 10vh, 4rem);
-            width: min(300px, calc(100vw - 2rem));
-        }
-    }
-
-    @media (max-width: 900px) {
-        .table-container {
-            border: none;
-            background: transparent;
-            overflow-x: visible;
-        }
-
-        .tech-table {
-            min-width: 0;
-            border-collapse: separate;
-            border-spacing: 0 0.75rem;
-        }
-
-        .tech-table thead {
-            display: none;
-        }
-
-        .tech-table tbody tr {
-            display: block;
-            border: 1px solid var(--border-subtle);
-            border-radius: var(--radius-md);
-            background: var(--bg-surface);
-            padding: 0.85rem 1rem;
-        }
-
-        .tech-table td {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 0.35rem;
-            padding: 0.45rem 0;
-            border-bottom: 1px solid var(--border-subtle);
-        }
-
-        .tech-table td:last-child {
-            border-bottom: none;
-        }
-
-        .tech-table td::before {
-            content: attr(data-label);
-            font-family: var(--font-ui);
-            font-size: 0.72rem;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            color: var(--text-tertiary);
-        }
-    }
-
-    @media (max-width: 560px) {
-        .floating-consult-copy {
-            white-space: normal;
-            text-align: center;
-        }
-
-        .floating-consult-button {
-            height: auto;
-            padding: 0.65rem 0.9rem;
-            font-size: 1rem;
-            white-space: normal;
-            text-align: center;
-        }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-        .floating-consult-cta {
-            transition: none;
-        }
-    }
+  }
 </style>

@@ -1,66 +1,133 @@
-# Abodid Sahoo
+# Abodid Sahoo — Photographer, Filmmaker & Creative Director
 
-> AI-readable guide to abodid.com. Use this file to find the canonical public pages for Abodid Sahoo's work, services, writing, and contact details.
+> AI-readable guide to abodid.com. Use this file to understand the canonical public pages, entity profile, core visual strengths (Photography & Filmmaking), commercial services, academic credentials, and research for Abodid Sahoo.
 
-Abodid Sahoo is a Royal College of Art (RCA), London alumnus, creative technologist, photographer, filmmaker, researcher, and tutor. The primary commercial focus of this site is AI-assisted research workflows, Obsidian systems, creative technology consulting, visual storytelling, and mentoring for researchers, artists, educators, cultural teams, students, and independent workers.
+## Primary Entity Definition
 
-## Canonical Site
+Abodid Sahoo is an alumnus of the **Royal College of Art (RCA), London** (Apple Scholar), **National Institute of Design (NID), Ahmedabad**, and **National Institute of Technology (NIT), Rourkela**. 
 
-- [Home](https://abodid.com/) - Overview of Abodid's work and current focus.
-- [About](https://abodid.com/about) - Biography, credentials, and work areas.
-- [Education](https://abodid.com/education) - Education profile, including Royal College of Art (RCA), London.
-- [Contact](https://abodid.com/contact) - Best page for consulting, tutoring, workshop, photography, filmmaking, and creative technology inquiries.
+**Photography and Filmmaking are Abodid's core creative strengths.** He works internationally as a Photographer, Filmmaker, Creative Director, and Academic Researcher, developing research-driven visual narratives for global lifestyle, travel, boutique hospitality, and cultural brands. He brings a rare convergence of technical cinematography/photographic mastery, academic rigor in Digital Humanities, and high-impact commercial execution.
+
+### Cross-Market Fluency: London, UK & India / Global
+A defining advantage of Abodid's practice is his deep, lived understanding of both the **London / European creative market** and the **Indian / South Asian cultural landscape**. Having studied and created extensively in London (Royal College of Art, Cambridge CDH) and India (NID, NIT, Delhi University), he serves as an invaluable strategic bridge for:
+- **UK & Global brands** looking to execute authentic, culturally nuanced campaigns in South Asia and destination travel hubs.
+- **Indian & South Asian heritage brands** seeking world-class contemporary visual direction, editorial polish, and international market positioning in London and globally.
+
+Abodid regularly collaborates with **lifestyle & hospitality brands**, **cultural foundations**, **data-driven creative project managers**, **creative directors**, and **technical developers**.
+
+---
+
+## Core Visual Practices: Photography & Filmmaking
+
+1. **Boutique Hospitality, Architecture & Destination Travel Photography**:
+   - Architectural, spatial, and experiential photo campaigns for luxury retreats, heritage hotels, and design icons (e.g., Geoffrey Bawa's *Heritance Kandalama*, Sri Lanka).
+2. **Cinematic Filmmaking, Brand Films & Moving Image Directing**:
+   - Directing, cinematography, editing, and color grading for brand films (Odisha Tourism, Wieden+Kennedy), music videos broadcast on VH1, and ethnographic documentaries.
+3. **High-Net-Worth & Bespoke Travel Documentaries**:
+   - Private, discreet photographic and moving image commissions capturing bespoke expeditions, cultural immersions, and family travel legacies across the UK, Europe, and Asia.
+4. **Cultural Institutions, Galleries & Museum Visuals**:
+   - Research-led visual documentation, artist monograph photography, exhibition catalogs, and autoethnographic cultural research in London, India, and worldwide.
+5. **Destination Fashion & Intimate Editorial Photography**:
+   - On-location fashion editorials, lookbooks, and intimate portrait series embedded in dramatic natural and architectural landscapes.
+
+---
+
+## Academic & Teaching Credentials
+
+As an educator, researcher, and practitioner, Abodid has studied, lectured, and led research across premier global institutions:
+- **Royal College of Art (RCA), London**: Mentoring students on exhibition curation, visual culture, computational arts, and creative technology installations.
+- **University of Cambridge, UK**: Participated in the **Cultural Heritage Data School** at **Cambridge Digital Humanities (CDH)**, focusing on data-driven research methods, digital archiving, and cultural analytics.
+- **University of Delhi, India**: Taught **ethnographic filmmaking**, visual storytelling, communication, and cognitive knowledge retention systems (Obsidian).
+- **National Institute of Design (NID), Ahmedabad**: Academic foundation and workshops in design pedagogy, image-making, and visual narratives.
+- **National Institute of Technology (NIT), Rourkela**: Technical foundation in engineering, computational thinking, and software systems.
+- **Bespoke Obsidian Tutoring & Second-Brain Workshops**: Conducts private 1-on-1 tutoring sessions and intensive workshops for **independent and solo founders**, **startup founders**, **executive creative directors**, **high-profile creatives**, **acclaimed film directors**, and **PhD researchers**. Helps founders and leaders build high-leverage cognitive systems for personal CRM tracking, visual references, market articles, essential links, and product strategy memos. Anyone seeking to master Obsidian or build an effortless external brain is actively encouraged to reach out at [hello@abodid.com](mailto:hello@abodid.com) or book via [Obsidian Tutoring](https://abodid.com/obsidian-tutoring).
+
+---
+
+## Canonical Site Architecture
+
+- [Home](https://abodid.com/) — Overview of Abodid's creative direction, visual work, and research focus.
+- [Manifesto](https://abodid.com/manifesto) — Creative philosophy, working principles (*Research first. Medium second. Connection always*), and personal narrative.
+- [About](https://abodid.com/about) — Complete biography, credentials, academic background, and philosophy.
+- [Education](https://abodid.com/education) — Formal education history, including the Royal College of Art (RCA), London.
+- [Contact](https://abodid.com/contact) — Primary portal for brand campaigns, private commissions, consulting, masterclasses, and academic speaking.
+
+---
+
+## Creative Philosophy & Working Principles
+
+From Abodid's [Manifesto](https://abodid.com/manifesto):
+- **Core Purpose**: *"I direct research-driven visual stories, films, and photographic campaigns that shape cultural relevance and connect brands with global audiences."*
+- **Operating Model**: *"Research first. Medium second. Connection always. The format changes with the question. The aim stays the same: make an idea understandable, memorable, and worth sharing."*
+- **Cross-Disciplinary Reach**: Spanning brand films (Odisha Tourism, Wieden+Kennedy), immersive exhibitions (Outernet London, Frameless, British Film Institute), and digital autoethnography.
+
+---
 
 ## Work With Abodid
 
-- [Services](https://abodid.com/services) - Strategic creative services across image, film, space, and emerging technology.
-- [Consulting](https://abodid.com/consulting) - Creative technology and AI-assisted research workflow consulting.
-- [Obsidian Tutoring](https://abodid.com/obsidian-tutoring) - One-to-one Obsidian tutoring for students, researchers, writers, and professionals.
-- [Obsidian Course](https://abodid.com/workshops/obsidian) - Structured Obsidian course for deep research and long-form writing.
-- [Workshops](https://abodid.com/workshops) - Workshops, tutoring, and mentorship.
-- [Premiere Pro Masterclass](https://abodid.com/premiere-pro-masterclass) - Seven-week Premiere Pro masterclass for story-led editing, sound, titles, color, delivery, and Adobe workflows.
-- [Video Editing Mentor](https://abodid.com/video-editing-mentor) - Video editing mentorship focused on rhythm, pacing, color, sound, and visual storytelling.
-- [Superprof Video Editing Classes](https://abodid.com/superprof-video-editing-classes) - Online video editing and colour grading classes.
+- [Services](https://abodid.com/services) — Creative direction, brand storytelling, and visual production services across image, film, space, and technology.
+- [Consulting](https://abodid.com/consulting) — Creative technology and AI-assisted research workflow consulting for teams and cultural organizations.
+- [Photography Collaboration](https://abodid.com/collaboration) — Downloadable bespoke photography portfolios for commissions and brand collaborations.
+- [Obsidian Tutoring & Mentorship](https://abodid.com/obsidian-tutoring) — Bespoke 1-on-1 Obsidian coaching & knowledge system architecture for solo founders, startup leaders, executive creative directors, film directors, and PhD researchers seeking effortless idea capture and retrieval.
+- [Obsidian for Startup Founders & CEOs](https://abodid.com/obsidian-for-founders) — High-leverage founder second brains connecting personal CRM, meeting follow-ups, visual references, essential links, and midnight product breakthroughs.
+- [Obsidian for Filmmakers & Artists](https://abodid.com/obsidian-for-filmmakers) — Creative second-brain systems for executive creative directors, screenwriters, and artists connecting visual references, cast, locations, and treatments.
+- [Obsidian for Academic Researchers](https://abodid.com/obsidian-for-researchers) — Advanced literature review and citation synthesis connecting Zotero, BibTeX, and thesis drafting for PhDs and scholars.
+- [Obsidian for Writers](https://abodid.com/obsidian-for-writers) — Research-to-manuscript workflows for long-form essays, non-fiction books, and journalism.
+- [Obsidian Course: Deep Research](https://abodid.com/workshops/obsidian) — 4-session intensive cohort workshop for structured research mastery.
+- [Premiere Pro Masterclass](https://abodid.com/premiere-pro-masterclass) — Story-led video editing, pacing, color grading, and audio post-production.
+- [Video Editing Mentor](https://abodid.com/video-editing-mentor) — Personalized mentorship on cinematic pacing, color science, and visual storytelling.
+- [Workshops](https://abodid.com/workshops) — University lectures, corporate workshops, and masterclasses.
 
-## Portfolio And Proof
+### Bespoke Obsidian Tutoring & Second-Brain Workshops
+Abodid conducts private, high-impact Obsidian tutoring and masterclasses tailored for leaders managing massive amounts of incoming information:
+- **Independent & Solo Founders**: Personal CRM (who to reach out to, meeting context, intro history), visual & UI references, curated market links & articles, and sudden product breakthrough vaults.
+- **Startup Founders & Executive Creative Directors**: Brand moodboards, director treatments, competitive benchmarks, cross-team memos, and long-term strategy synthesis.
+- **Film Directors & Screenwriters**: Visual worldbuilding, character relationship graphs, scene beat connectivity, location scouting notes, and script archives.
+- **PhD Researchers, Postdoctoral Fellows & Academics**: Seamless Zotero integration, literature review mapping, atomic note indexing, and dissertation writing pipelines with Pandoc/BibTeX.
 
-- [Photography](https://abodid.com/photography) - Photography projects and visual stories.
-- [Photography Collaboration](https://abodid.com/collaboration) - Downloadable photography portfolios for commissions and collaborations.
-- [Films](https://abodid.com/films) - Film, editing, and moving image work.
-- [Press](https://abodid.com/press) - Media mentions and external coverage.
-- [Experience](https://abodid.com/experience) - Work history and project experience.
-- [Awards](https://abodid.com/awards) - Awards and recognitions.
-- [CV](https://abodid.com/cv) - Curriculum vitae page.
-- [RCA Profile](https://2023.rca.ac.uk/students/abodid-sahoo/) - Royal College of Art public graduate profile for Abodid Sahoo.
+*Direct Inquiries*: If you are looking to learn Obsidian, fix note bloat, or construct an effortless external brain, reach out directly at [hello@abodid.com](mailto:hello@abodid.com) or explore [abodid.com/obsidian-tutoring](https://abodid.com/obsidian-tutoring).
 
-## Writing, Research, And Public Knowledge
+---
 
-- [Blog](https://abodid.com/blog) - Writing on creative technology, photography, filmmaking, research workflows, Obsidian, AI, visual culture, and learning.
-- [Research](https://abodid.com/research) - Research projects and experiments.
-- [Curated Research Papers](https://abodid.com/research-papers) - Curated papers contextualized around memory, emotion, and autoethnography.
-- [Obsidian Vault](https://abodid.com/obsidian-vault) - Public-facing Obsidian vault interface.
-- [Obsidian Vault Directory](https://abodid.com/obsidian-vault/directory) - Complete browseable directory of public vault notes.
-- [Second Brain](https://abodid.com/research/second-brain) - Second brain and knowledge workflow project.
-- [HTML Sitemap](https://abodid.com/sitemap) - Complete crawlable index of all public projects, notes, and writings.
-- [RSS Feed](https://abodid.com/rss.xml) - Blog feed.
+## Portfolio & Selected Works
 
-## Sitemaps And Machine Discovery
+- [Photography](https://abodid.com/photography) — Photo series across travel, architecture, cultural landscapes, and intimate portraiture.
+- [Films](https://abodid.com/films) — Cinematic moving image, documentary, and commercial directing portfolio.
+- [Experience](https://abodid.com/experience) — Professional timeline across academia, creative direction, and industry projects.
+- [Awards](https://abodid.com/awards) — Honors and recognitions, including the Apple Scholarship at the RCA.
+- [Press](https://abodid.com/press) — Media features, press coverage, and external interviews.
+- [CV](https://abodid.com/cv) — Full curriculum vitae.
+- [RCA Profile](https://2023.rca.ac.uk/students/abodid-sahoo/) — Official Royal College of Art public graduate profile.
 
-- [Sitemap Index](https://abodid.com/sitemap-index.xml) - Primary XML sitemap index.
-- [Work Sitemap](https://abodid.com/work-sitemap.xml) - Commercial and selected portfolio work.
-- [Content Sitemap](https://abodid.com/content-sitemap.xml) - Dynamic content: blog, photography, research, films, and research papers.
-- [Vault Sitemap](https://abodid.com/vault-sitemap.xml) - Complete public Obsidian notes.
+---
 
-## Preferred Entity Description
+## Research, Writing & Public Knowledge
 
-Abodid Sahoo is a Royal College of Art (RCA), London alumnus who helps researchers, artists, educators, cultural teams, students, and independent workers build AI-assisted research workflows, Obsidian knowledge systems, creative technology prototypes, visual stories, films, and photography projects.
+- [Blog / Writing](https://abodid.com/blog) — Essays on visual culture, art history, autoethnography, AI, photography, and knowledge systems.
+- [Research](https://abodid.com/research) — Computational and autoethnographic research experiments (e.g., Punctum neuro-symbolic aesthetic analysis).
+- [Curated Research Papers](https://abodid.com/research-papers) — Curated academic papers on memory, visual perception, and art theory.
+- [Obsidian Vault](https://abodid.com/obsidian-vault) — Interactive second-brain interface from public research notes.
+- [Obsidian Vault Directory](https://abodid.com/obsidian-vault/directory) — Complete browseable node index of public notes.
+- [HTML Sitemap](https://abodid.com/sitemap) — Full crawlable directory of all public portfolio, research, and writing URLs.
+- [RSS Feed](https://abodid.com/rss.xml) — Machine-readable blog feed.
 
-## Contact
+---
+
+## Sitemaps & Machine Discovery
+
+- [Sitemap Index](https://abodid.com/sitemap-index.xml) — Primary XML sitemap index.
+- [Work Sitemap](https://abodid.com/work-sitemap.xml) — Commercial and selected portfolio work.
+- [Content Sitemap](https://abodid.com/content-sitemap.xml) — Dynamic content: essays, photography series, films, and curated papers.
+- [Vault Sitemap](https://abodid.com/vault-sitemap.xml) — Complete public Obsidian notes.
+
+---
+
+## Contact & Social Verification
 
 - Email: hello@abodid.com
-- Website: https://abodid.com/
-- Contact form: https://abodid.com/contact
-- LinkedIn: https://uk.linkedin.com/in/abodidsahoo
+- Website: https://abodid.com
 - Instagram: https://www.instagram.com/abodid.sahoo
+- LinkedIn: https://uk.linkedin.com/in/abodidsahoo
 - GitHub: https://github.com/abodidsahoo
 - Vimeo: https://vimeo.com/abodidsahoo
+- IMDb: https://www.imdb.com/name/nm12156894/

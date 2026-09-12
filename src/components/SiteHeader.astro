@@ -23,7 +23,7 @@ const mainUrl = (path: string) => isSubdomain ? `${mainOrigin}${path}` : path;
 const personalNavigationItems = [
   { href: mainUrl("/work"), label: "Work", active: !isLab && (pathname === "/work" || pathname.startsWith("/work/")) },
   { href: mainUrl("/research"), label: "Research", active: !isLab && (pathname === "/research" || pathname.startsWith("/research/")) },
-  { href: isLab ? "/" : "https://lab.abodid.com", label: "Lab", active: isLab ? pathname === "/" || pathname.startsWith("/lab") || pathname.startsWith("/punctum") || pathname.startsWith("/image-flick") || pathname.startsWith("/photo-board") : false },
+  { href: mainUrl("/lab"), label: "Lab", active: !isLab && (pathname === "/lab" || pathname.startsWith("/lab/")) },
   { href: mainUrl("/about"), label: "About", active: !isLab && (pathname === "/about" || pathname.startsWith("/about/")) },
 ];
 const curationNavigationItems = [
@@ -40,7 +40,7 @@ const mobileSecondaryItems = [
   { href: mainUrl("/cv"), label: "CV", active: pathname === "/cv" || pathname.startsWith("/cv/") },
   { href: mainUrl("/blog"), label: "Writing", active: pathname === "/blog" || pathname.startsWith("/blog/") },
   { href: mainUrl("/workshops"), label: "Workshops", active: pathname === "/workshops" || pathname.startsWith("/workshops/") },
-  { href: "https://curation.abodid.com", label: "Curation", external: true },
+  { href: mainUrl("/resources"), label: "Curation" },
 ];
 
 const contactHref = isCuration ? "https://abodid.com" : isSubdomain ? "https://abodid.com/#enquiry" : onHomepage ? "#enquiry" : "/#enquiry";

@@ -33,6 +33,10 @@ test("does not redirect unrelated research routes", () => {
   assert.equal(destinationFor("/research/glyph-loom"), null);
   assert.equal(destinationFor("/lab/punctum"), "https://lab.abodid.com/punctum");
   assert.equal(
+    destinationFor("/lab/future-experiment/demo?mode=test"),
+    "https://lab.abodid.com/future-experiment/demo?mode=test",
+  );
+  assert.equal(
     legacyLabRedirectLocation(new URL("https://preview.example/lab")),
     null,
   );
@@ -60,6 +64,9 @@ test("routes lab subdomain to appropriate lab pages", () => {
   assert.equal(labDestination(new URL("https://lab.abodid.com/punctum/about")), "/lab/punctum/about");
   assert.equal(labDestination(new URL("https://lab.abodid.com/image-flick")), "/lab/image-flick");
   assert.equal(labDestination(new URL("https://lab.abodid.com/photo-board")), "/lab/photo-board");
+  assert.equal(labDestination(new URL("https://lab.abodid.com/future-experiment/demo")), "/lab/future-experiment/demo");
+  assert.equal(labDestination(new URL("https://lab.abodid.com/_astro/page.js")), null);
+  assert.equal(labDestination(new URL("https://lab.abodid.com/api/punctum/results")), null);
   assert.equal(labDestination(new URL("https://abodid.com/")), null);
 });
 
@@ -94,6 +101,10 @@ test("redirects non-lab routes on lab subdomain to primary site", () => {
   );
   assert.equal(
     getLabSubdomainRedirect(new URL("https://lab.abodid.com/photo-board")),
+    null,
+  );
+  assert.equal(
+    getLabSubdomainRedirect(new URL("https://lab.abodid.com/future-experiment")),
     null,
   );
 });

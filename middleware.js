@@ -83,11 +83,13 @@ export default function middleware(request) {
     const canonicalRedirect = getLabCanonicalRedirect(url);
     if (canonicalRedirect) return permanentRedirect(canonicalRedirect);
 
+    const externalRedirect = getLabSubdomainRedirect(url);
+    if (externalRedirect) return permanentRedirect(externalRedirect);
+
     const internalPath = labDestination(url);
     if (internalPath) return rewritePath(request, url, internalPath);
 
-    const externalRedirect = getLabSubdomainRedirect(url);
-    return externalRedirect ? permanentRedirect(externalRedirect) : next();
+    return next();
   }
 
   if (isPhotographyHostname(url.hostname)) {

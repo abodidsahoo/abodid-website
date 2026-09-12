@@ -137,250 +137,231 @@ const kMeansClustering = (pixels, k, iterations = 6) => {
     return centroids.map(c => ({ lab: [c[0], c[1], c[2]], count: c[3] }));
 };
 
-// --- CURATED GLITCH ANIMATION ---
-const CURATED_PALETTE = [
-    // Foundation (Grays/Blacks/Whites)
-    '#080808', '#1a1a1a', '#2d2d2d', '#f0f0f0', '#e5e5e5',
-    // Earths (Browns/Beiges)
-    '#8b4513', '#a0522d', '#cd853f', '#d2b48c', '#f5deb3', '#804000',
-    // Reds (Vivid & Deep)
-    '#8b0000', '#b22222', '#ff4500', '#dc143c',
-    // Desaturated Blues/Greens
-    '#2f4f4f', '#556b2f', '#4682b4', '#708090'
-];
-
-const getRandomColor = () => CURATED_PALETTE[Math.floor(Math.random() * CURATED_PALETTE.length)];
-
-// Component for a single glitch tower - MOVED OUTSIDE FOR STABILITY
-const GlitchTower = () => {
-    const [blocks, setBlocks] = useState([]);
-
-    useEffect(() => {
-        // Initial Fill
-        const generate = () => {
-            const count = 4 + Math.floor(Math.random() * 4); // 4 to 8 blocks
-            return Array.from({ length: count }, () => ({
-                color: getRandomColor(),
-                flex: Math.random() > 0.7 ? 2 : 1 // Random morphing (Rect vs Square)
-            }));
-        };
-
-        setBlocks(generate());
-
-        // Chaos Loop
-        const interval = setInterval(() => {
-            setBlocks(generate());
-        }, 100); // 10fps glitch
-
-        return () => clearInterval(interval);
-    }, []);
-
-    return (
-        <div style={{
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            height: '100%',
-            gap: '1px'
-        }}>
-            {blocks.map((b, i) => (
-                <div key={i} style={{
-                    backgroundColor: b.color,
-                    flexGrow: b.flex,
-                    width: '100%',
-                    transition: 'background-color 0.1s, flex-grow 0.1s'
-                }} />
-            ))}
-        </div>
-    );
-};
-
-const PixelRain = () => {
-    return (
-        <div style={{
-            display: 'flex',
-            width: '204px', // Approx 4*48 + gaps
-            height: '48px',
-            gap: '1px',
-            overflow: 'hidden',
-        }}>
-            <GlitchTower />
-            <GlitchTower />
-            <GlitchTower />
-            <GlitchTower />
-        </div>
-    );
-};
 
 
 // --- REFACTORED: Exportable Analysis Logic ---
 export const analyzeImage = (imageUrl) => {
     return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.crossOrigin = 'Anonymous';
-        img.src = imageUrl;
+        if (!imageUrl) {
+            return reject(new Error("No image URL provided"));
+        }
 
-        img.onload = () => {
-            try {
-                // Return dimensions immediately for layout pre-calc
-                const dims = { width: img.naturalWidth, height: img.naturalHeight };
+        const isRemote =
+            typeof imageUrl === 'string' &&
+            (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) &&
+            !imageUrl.includes('/api/image-palette-proxy') &&
+            typeof window !== 'undefined' &&
+            !imageUrl.startsWith(window.location.origin);
 
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d', { willReadFrequently: true });
-                const size = 120; // Low res for speed
-                canvas.width = size; canvas.height = size;
-                ctx.drawImage(img, 0, 0, size, size);
+        const targetUrl = isRemote
+            ? `/api/image-palette-proxy?url=${encodeURIComponent(imageUrl)}`
+            : imageUrl;
 
-                const data = ctx.getImageData(0, 0, size, size).data;
-                const labPixels = [];
-                for (let i = 0; i < data.length; i += 16) {
-                    labPixels.push(rgbToLab(data[i], data[i + 1], data[i + 2]));
-                }
+        const attemptLoad = (srcUrl, isFallback = false) => {
+            const img = new Image();
+            img.crossOrigin = 'Anonymous';
+            img.src = srcUrl;
 
-                if (labPixels.length === 0) throw new Error("No image data");
+            img.onload = () => {
+                try {
+                    // Return dimensions immediately for layout pre-calc
+                    const dims = { width: img.naturalWidth, height: img.naturalHeight };
 
-                // SEEDING
-                let clusters = kMeansClustering(labPixels, 12);
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+                    const size = 120; // Low res for speed
+                    canvas.width = size; canvas.height = size;
+                    ctx.drawImage(img, 0, 0, size, size);
 
-                // MERGING
-                for (let i = 0; i < clusters.length; i++) {
-                    for (let j = i + 1; j < clusters.length; j++) {
-                        if (deltaE(clusters[i].lab, clusters[j].lab) < 12) {
-                            clusters[i].count += clusters[j].count;
-                            clusters.splice(j, 1);
-                            j--;
+                    const data = ctx.getImageData(0, 0, size, size).data;
+                    const labPixels = [];
+                    for (let i = 0; i < data.length; i += 16) {
+                        labPixels.push(rgbToLab(data[i], data[i + 1], data[i + 2]));
+                    }
+
+                    if (labPixels.length === 0) throw new Error("No image data");
+
+                    // SEEDING
+                    let clusters = kMeansClustering(labPixels, 12);
+
+                    // MERGING
+                    for (let i = 0; i < clusters.length; i++) {
+                        for (let j = i + 1; j < clusters.length; j++) {
+                            if (deltaE(clusters[i].lab, clusters[j].lab) < 12) {
+                                clusters[i].count += clusters[j].count;
+                                clusters.splice(j, 1);
+                                j--;
+                            }
                         }
                     }
-                }
 
-                const enrich = clusters.map(c => {
-                    const chroma = Math.sqrt(c.lab[1] ** 2 + c.lab[2] ** 2);
-                    const percentage = c.count / labPixels.length;
-                    return { lab: c.lab, count: percentage, chroma };
-                });
+                    const enrich = clusters.map(c => {
+                        const chroma = Math.sqrt(c.lab[1] ** 2 + c.lab[2] ** 2);
+                        const percentage = c.count / labPixels.length;
+                        return { lab: c.lab, count: percentage, chroma };
+                    });
 
-                if (enrich.length === 0) throw new Error("Clustering failed");
+                    if (enrich.length === 0) throw new Error("Clustering failed");
 
-                // 4 PILLARS
-                const background = enrich.reduce((a, b) => (a.count > b.count ? a : b));
-                const candidate2 = enrich.filter(c => c !== background && deltaE(c.lab, background.lab) > 15);
-                const secondary = candidate2.length > 0 ? candidate2.reduce((a, b) => (a.count > b.count ? a : b)) : background;
-                const candidate3 = enrich.filter(c => c !== background && c !== secondary && c.count < 0.2);
-                const accent = candidate3.length > 0 ? candidate3.reduce((a, b) => (a.chroma > b.chroma ? a : b)) : enrich.reduce((a, b) => (a.chroma > b.chroma ? a : b));
-                const candidate4 = enrich.filter(c => c !== background && c !== secondary && c !== accent);
-                const textural = candidate4.length > 0 ? candidate4.reduce((a, b) => (a.count > b.count ? a : b)) : secondary;
+                    // 4 PILLARS
+                    const background = enrich.reduce((a, b) => (a.count > b.count ? a : b));
+                    const candidate2 = enrich.filter(c => c !== background && deltaE(c.lab, background.lab) > 15);
+                    const secondary = candidate2.length > 0 ? candidate2.reduce((a, b) => (a.count > b.count ? a : b)) : background;
+                    const candidate3 = enrich.filter(c => c !== background && c !== secondary && c.count < 0.2);
+                    const accent = candidate3.length > 0 ? candidate3.reduce((a, b) => (a.chroma > b.chroma ? a : b)) : enrich.reduce((a, b) => (a.chroma > b.chroma ? a : b));
+                    const candidate4 = enrich.filter(c => c !== background && c !== secondary && c !== accent);
+                    const textural = candidate4.length > 0 ? candidate4.reduce((a, b) => (a.count > b.count ? a : b)) : secondary;
 
-                // SMART BG
-                let finalAccent = accent;
-                const candidates = [background, secondary, finalAccent, textural];
-                let smartBg = candidates.reduce((prev, current) => {
-                    if (!current || !current.lab) return prev;
-                    if (!prev || !prev.lab) return current;
+                    // SMART BG
+                    let finalAccent = accent;
+                    const candidates = [background, secondary, finalAccent, textural];
+                    let smartBg = candidates.reduce((prev, current) => {
+                        if (!current || !current.lab) return prev;
+                        if (!prev || !prev.lab) return current;
 
-                    const getScore = (c) => {
-                        let angle = Math.atan2(c.lab[2], c.lab[1]) * (180 / Math.PI);
-                        if (angle < 0) angle += 360;
-                        let bonus = 1.0;
-                        if (angle > 10 && angle < 95) bonus = 1.25;
-                        return c.chroma * bonus;
+                        const getScore = (c) => {
+                            let angle = Math.atan2(c.lab[2], c.lab[1]) * (180 / Math.PI);
+                            if (angle < 0) angle += 360;
+                            let bonus = 1.0;
+                            if (angle > 10 && angle < 95) bonus = 1.25;
+                            return c.chroma * bonus;
+                        };
+                        return (getScore(current) > getScore(prev)) ? current : prev;
+                    }, background);
+
+                    if (smartBg.chroma < 10) smartBg = background;
+
+                    const bgRgb = labToRgb(...(smartBg.lab || [20, 20, 20]));
+                    const smartBgString = `rgb(${bgRgb[0]},${bgRgb[1]},${bgRgb[2]})`;
+
+                    const safeMap = (item) => {
+                        if (!item || !item.lab) return 'rgb(128,128,128)';
+                        const rgb = labToRgb(...item.lab);
+                        return `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
                     };
-                    return (getScore(current) > getScore(prev)) ? current : prev;
-                }, background);
 
-                if (smartBg.chroma < 10) smartBg = background;
+                    const palette = [
+                        safeMap(background),
+                        safeMap(secondary),
+                        safeMap(textural),
+                        safeMap(finalAccent)
+                    ];
 
-                const bgRgb = labToRgb(...(smartBg.lab || [20, 20, 20]));
-                const smartBgString = `rgb(${bgRgb[0]},${bgRgb[1]},${bgRgb[2]})`;
+                    resolve({ dimensions: dims, palette, bg: smartBgString });
 
-                const safeMap = (item) => {
-                    if (!item || !item.lab) return 'rgb(128,128,128)';
-                    const rgb = labToRgb(...item.lab);
-                    return `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
-                };
+                } catch (err) {
+                    if (!isFallback && isRemote && srcUrl !== targetUrl) {
+                        attemptLoad(targetUrl, true);
+                    } else {
+                        reject(err);
+                    }
+                }
+            };
 
-                const palette = [
-                    safeMap(background),
-                    safeMap(secondary),
-                    safeMap(textural),
-                    safeMap(finalAccent)
-                ];
-
-                resolve({ dimensions: dims, palette, bg: smartBgString });
-
-            } catch (err) {
-                reject(err);
-            }
+            img.onerror = (e) => {
+                if (!isFallback && isRemote && srcUrl !== targetUrl) {
+                    attemptLoad(targetUrl, true);
+                } else {
+                    reject(e);
+                }
+            };
         };
 
-        img.onerror = (e) => reject(e);
+        attemptLoad(targetUrl, false);
     });
 };
 
 const PaletteExtractor = ({ imageUrl, onExtract, inline = false, initialPalette = null }) => {
     const [composition, setComposition] = useState(initialPalette);
-    // Always start 'loading' briefly to show the Glitch/Rain effect (the "pop")
-    const [loading, setLoading] = useState(true);
+    const [compositionSource, setCompositionSource] = useState(
+        initialPalette ? imageUrl : '',
+    );
 
     useEffect(() => {
-        // ALWAYS start with loading = true to trigger the PixelRain/Glitch animation
-        setLoading(true);
-
         if (!imageUrl) return;
 
-        // If we have cached data, show Glitch for a "microsecond" (e.g. 600ms) then reveal
-        if (initialPalette) {
-            const t = setTimeout(() => {
-                setComposition(initialPalette);
-                setLoading(false);
-            }, 600);
-            return () => clearTimeout(t);
+        let cancelled = false;
+
+        // If we already have initialPalette for this image, show immediately without delay or loading state
+        if (initialPalette && initialPalette.length > 0) {
+            setComposition(initialPalette);
+            setCompositionSource(imageUrl);
+            return;
         }
 
-        setComposition(null);
+        // If changing to another image with no cached palette, clear stale palette
+        if (compositionSource !== imageUrl) {
+            setComposition(null);
+            setCompositionSource('');
+        }
 
-        analyzeImage(imageUrl).then(result => {
-            // Even if finished early, the user wants to see the glitch.
-            // But if it's NOT cached, we should at least wait for analysis.
-            setComposition(result.palette);
-            if (onExtract) onExtract(result.bg);
-        }).catch(err => {
-            console.error(err);
-        }).finally(() => {
-            setLoading(false);
-        });
+        analyzeImage(imageUrl)
+            .then((result) => {
+                if (cancelled) return;
+                setComposition(result.palette);
+                setCompositionSource(imageUrl);
+                if (result.bg && onExtract) onExtract(result.bg, result.palette);
+            })
+            .catch((err) => {
+                if (cancelled) return;
+                console.error('Palette analysis failed:', err);
+                const fallbackPalette = ['#1a1a1a', '#4a4a4a', '#8a8a8a', '#d0d0d0'];
+                setComposition(fallbackPalette);
+                setCompositionSource(imageUrl);
+                if (onExtract) onExtract('rgb(20,20,20)', fallbackPalette);
+            });
 
-    }, [imageUrl, initialPalette]);
+        return () => {
+            cancelled = true;
+        };
+    }, [imageUrl, initialPalette, onExtract, compositionSource]);
 
     if (!inline) return null;
 
+    const paletteIsPrepared = Boolean(
+        composition && compositionSource === imageUrl,
+    );
+
     return (
-        <AnimatePresence mode="wait">
-            {!loading && composition ? (
-                <motion.div
-                    key="palette"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    style={{ display: 'flex', gap: '4px', alignItems: 'center', flexShrink: 0, minHeight: '48px' }}
-                >
-                    {composition.map((color, i) => (
-                        <div
-                            key={i}
-                            style={{ width: '48px', height: '48px', backgroundColor: color, borderRadius: '1px', boxShadow: 'inset 0 0 4px rgba(0,0,0,0.1)' }}
-                        />
-                    ))}
-                </motion.div>
+        <div
+            className="palette-extractor-slot"
+            style={{
+                position: 'relative',
+                width: '204px',
+                height: '48px',
+                flexShrink: 0,
+                display: 'flex',
+                gap: '4px',
+                alignItems: 'center',
+            }}
+        >
+            {paletteIsPrepared ? (
+                composition.map((color, i) => (
+                    <div
+                        key={i}
+                        style={{
+                            width: '48px',
+                            height: '48px',
+                            backgroundColor: color,
+                            borderRadius: '1px',
+                            boxShadow: 'inset 0 0 4px rgba(0,0,0,0.1)',
+                        }}
+                    />
+                ))
             ) : (
-                <motion.div
-                    key="glitch"
-                    initial={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    style={{ display: 'flex', alignItems: 'center', minHeight: '48px' }}
-                >
-                    <PixelRain />
-                </motion.div>
+                [0, 1, 2, 3].map((i) => (
+                    <div
+                        key={i}
+                        style={{
+                            width: '48px',
+                            height: '48px',
+                            backgroundColor: 'rgba(128, 128, 128, 0.12)',
+                            borderRadius: '1px',
+                        }}
+                    />
+                ))
             )}
-        </AnimatePresence>
+        </div>
     );
 };
 

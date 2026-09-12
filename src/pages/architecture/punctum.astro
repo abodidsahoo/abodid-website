@@ -1,592 +1,505 @@
 ---
 export const prerender = true;
-import "../../styles/global.css";
-import SiteFooter from "../../components/SiteFooter.astro";
-import SEO from "../../components/SEO.astro";
-import RouteLoadingOverlay from "../../components/RouteLoadingOverlay.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { personJsonLd, breadcrumbJsonLd } from "../../lib/seoData";
 
-const pageTitle = "Punctum Architecture";
+const pageTitle = "Punctum Architecture — Neuro-Symbolic Logic";
 const pageDescription =
-    "Architecture notes for the Invisible Punctums analysis system, including image perception, human memory input, consensus scoring, and poetic synthesis.";
+  "Architecture notes for the Invisible Punctums analysis system, including image perception, human memory input, consensus scoring, and poetic synthesis.";
+
+const structuredData = [
+  personJsonLd(),
+  breadcrumbJsonLd([
+    { name: "Home", path: "/" },
+    { name: "Architecture", path: "/architecture" },
+    { name: "Punctum Schematic", path: "/architecture/punctum" },
+  ]),
+];
 ---
 
-<html lang="en">
-    <head>
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-V07Z22DSVH"></script>
-        <script is:inline>
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-V07Z22DSVH');
-        </script>
-        <meta charset="utf-8" />
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-        <meta name="viewport" content="width=device-width" />
-        <meta name="generator" content={Astro.generator} />
-        <SEO title={pageTitle} description={pageDescription} />
-        <script src="/scripts/journey-tracker.js" defer></script>
-    </head>
-    <body>
-        <RouteLoadingOverlay />
-        <div class="architecture-page">
-            <header class="arch-header">
-                <div class="system-status-bar">
-                    <div class="indicator-group user-select-none">
-                        <div class="status-indicator"></div>
-                        <span class="mono-label">SYSTEM STATUS: ONLINE</span>
-                    </div>
-                </div>
-
-                <div class="breadcrumbs">
-                    <a href="/architecture">← System Architecture</a>
-                </div>
-
-                <h1 class="arch-title">Punctum // Neuro-Symbolic Logic</h1>
-                <p class="arch-intro">
-                    An automated system for aesthetic judgment. How we taught a
-                    machine to "feel" images by measuring the semantic
-                    distance between human memory and computer vision.
-                </p>
-            </header>
-
-            <main class="arch-grid">
-                <!-- 01: The Core Loop -->
-                <section class="arch-section">
-                    <h2 class="section-title">01 // The Feedback Loop</h2>
-                    <div class="pipeline-viz">
-                        <div class="step">
-                            <span class="step-label">INPUT</span>
-                            <div class="step-box input">
-                                <span>Image + Audio</span>
-                                <span class="connector">↓</span>
-                                <span>Human Memory</span>
-                            </div>
-                        </div>
-                        <div class="arrow">→</div>
-                        <div class="step">
-                            <span class="step-label">PERCEPTION</span>
-                            <div class="step-box vision">
-                                <span>Vision Models</span>
-                                <small>(Nvidia/Llama)</small>
-                            </div>
-                        </div>
-                        <div class="arrow">→</div>
-                        <div class="step">
-                            <span class="step-label">SYNTHESIS</span>
-                            <div class="step-box logic">
-                                <span>Consensus Engine</span>
-                                <small>(Semantic Distance)</small>
-                            </div>
-                        </div>
-                        <div class="arrow">→</div>
-                        <div class="step">
-                            <span class="step-label">OUTPUT</span>
-                            <div class="step-box output">
-                                <span>Poetic Analysis</span>
-                                <small>(Gap Report)</small>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                {/* 02: Vision Stack */}
-                <section class="arch-section two-col">
-                    <div class="col-content">
-                        <h2 class="section-title">
-                            02 // The Eye (Vision Stack)
-                        </h2>
-                        <ul class="feature-list">
-                            <li>
-                                <span class="bullet">→</span>
-                                <div>
-                                    <strong>Primary: Nvidia Nemotron 12B</strong
-                                    >
-                                    <p>
-                                        A specialized heavily-quantized vision
-                                        model optimized for edge detection and
-                                        scene composition. It provides the "raw"
-                                        data of what is physically present in
-                                        the frame.
-                                    </p>
-                                </div>
-                            </li>
-                            <li>
-                                <span class="bullet">→</span>
-                                <div>
-                                    <strong>Fallback: Llama 3.2 11B</strong>
-                                    <p>
-                                        If the primary eye fails, the system
-                                        fails over to Meta's multimodal model
-                                        for a second opinion.
-                                    </p>
-                                </div>
-                            </li>
-                            <li>
-                                <span class="bullet">→</span>
-                                <div>
-                                    <strong>Constraint</strong>
-                                    <p>
-                                        Models are forced to output strictly
-                                        structured JSON, analyzing "Studium"
-                                        (cultural context) and "Punctum"
-                                        (emotional prick).
-                                    </p>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-
-                    <div class="col-code">
-                        <pre
-                            class="code-block"><code>// The Vision Prompt (Simplified)
-&#123;
-  "role": "system",
-  "content": "Identify the 'Punctum' 
-   — the specific detail that 
-   pricks the viewer. 
-   Ignore the general subject."
-&#125;</code></pre>
-                    </div>
-                </section>
-
-                {/* 03: Cognition Stack */}
-                <section class="arch-section two-col">
-                    <div class="col-content">
-                        <h2 class="section-title">
-                            03 // The Mind (Cognition Stack)
-                        </h2>
-                        <ul class="feature-list">
-                            <li>
-                                <span class="bullet">→</span>
-                                <div>
-                                    <strong>Primary: Gemini 2.0 Flash</strong>
-                                    <p>
-                                        Used for high-speed semantic extraction.
-                                        It reads user input (the "memory") and
-                                        extracts 3 distinct emotional keywords.
-                                    </p>
-                                </div>
-                            </li>
-                            <li>
-                                <span class="bullet">→</span>
-                                <div>
-                                    <strong>Secondary: Mistral Small 24B</strong
-                                    >
-                                    <p>
-                                        A distinct "personality" used for the
-                                        poetic synthesis, preventing the tone
-                                        from becoming too corporate or sterile.
-                                    </p>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="col-code">
-                        <pre
-                            class="code-block"><code>// The Extraction Logic
-const keywords = content
-  .split(',')
-  .map(k => k.trim())
-  .filter(k => k.length > 0)
-  .slice(0, 3);
-// Result: ["Nostalgia", "Decay", "Warmth"]</code></pre>
-                    </div>
-                </section>
-
-                {/* 04: Consensus Engine */}
-                <section class="arch-section">
-                    <h2 class="section-title">04 // The Consensus Engine</h2>
-                    <div class="consensus-explanation">
-                        <p class="arch-text">
-                            The heart of the system is the <strong
-                                >Consensus Score</strong
-                            >. We do not assume the AI is correct. Instead, we
-                            measure the <em>distance</em> between what the machine
-                            sees and what the human feels.
-                        </p>
-                        <div class="math-block">
-                            SCORE = 100 - (|Vector(Human_Emotion) -
-                            Vector(AI_Analysis)|)
-                        </div>
-                        <p class="arch-text small">
-                            *Simplified representation. Actual calculation uses
-                            LLM-based semantic analysis to determine contextual
-                            alignment on a scale of 0-100.
-                        </p>
-                    </div>
-
-                    <ul class="feature-list grid-3">
-                        <li>
-                            <span class="bullet">→</span>
-                            <div>
-                                <strong>High Score (&gt;80)</strong>
-                                <p>
-                                    Universal Alignment. The image translates
-                                    perfectly across biological and silicon
-                                    substrates.
-                                </p>
-                            </div>
-                        </li>
-                        <li>
-                            <span class="bullet">→</span>
-                            <div>
-                                <strong>Mid Score (40-79)</strong>
-                                <p>
-                                    Subjective Variance. The AI sees the object,
-                                    but the Human feels the memory.
-                                </p>
-                            </div>
-                        </li>
-                        <li>
-                            <span class="bullet">→</span>
-                            <div>
-                                <strong>Low Score (&lt;40)</strong>
-                                <p>
-                                    Human Singularity. The emotion is so
-                                    specific to the user's history that the
-                                    machine fails to compute it.
-                                </p>
-                            </div>
-                        </li>
-                    </ul>
-                </section>
-            </main>
+<BaseLayout
+  title={pageTitle}
+  description={pageDescription}
+  structuredData={structuredData}
+  fullWidth={true}
+  hideWhatsAppButton={true}
+  showNewsletterPopup={false}
+  showGlobalGrid={false}
+  showCursorFollower={false}
+  bodyClass="pop-arch-page"
+>
+  <main class="arch-shell">
+    <!-- 1. Clean Hero Header -->
+    <section class="arch-hero" aria-labelledby="punctum-arch-heading">
+      <div class="arch-hero__inner">
+        <div class="arch-hero__top-row">
+          <a href="/architecture" class="arch-back-btn">
+            <span aria-hidden="true">←</span>
+            <span>Back to Architecture</span>
+          </a>
         </div>
-        <SiteFooter />
-    </body>
-</html>
+
+        <h1 id="punctum-arch-heading" class="arch-hero__title">Punctum // Neuro-Symbolic Logic</h1>
+
+        <p class="arch-hero__lede">
+          An automated system for aesthetic judgment. How we taught a machine to "feel" images by measuring the mathematical distance between human memory and computer vision.
+        </p>
+      </div>
+    </section>
+
+    <!-- 2. The Core Pipeline Flowchart -->
+    <section class="arch-pipeline-section" aria-labelledby="loop-heading">
+      <div class="arch-pipeline-card">
+        <header class="arch-section-header">
+          <div class="arch-section-header__title-block">
+            <h2 id="loop-heading" class="arch-section-heading">01 // The Feedback Loop</h2>
+          </div>
+          <p class="arch-section-desc">
+            The multi-stage sensory pipeline translating visual perception into consensus scoring.
+          </p>
+        </header>
+
+        <div class="arch-flow-grid">
+          <div class="arch-flow-node arch-flow-node--yellow">
+            <span class="arch-flow-node__step">STEP 01 // INPUT</span>
+            <h3 class="arch-flow-node__title">Image + Audio</h3>
+            <p class="arch-flow-node__desc">High-resolution frame input combined with user-submitted memory prompts.</p>
+          </div>
+
+          <div class="arch-flow-arrow" aria-hidden="true">→</div>
+
+          <div class="arch-flow-node arch-flow-node--lime">
+            <span class="arch-flow-node__step">STEP 02 // PERCEPTION</span>
+            <h3 class="arch-flow-node__title">Vision Models</h3>
+            <p class="arch-flow-node__desc">Nvidia Nemotron 12B + Llama 3.2 edge detection and scene composition.</p>
+          </div>
+
+          <div class="arch-flow-arrow" aria-hidden="true">→</div>
+
+          <div class="arch-flow-node arch-flow-node--pink">
+            <span class="arch-flow-node__step">STEP 03 // SYNTHESIS</span>
+            <h3 class="arch-flow-node__title">Consensus Engine</h3>
+            <p class="arch-flow-node__desc">Mathematical vector calculation comparing AI analysis vs Human feeling.</p>
+          </div>
+
+          <div class="arch-flow-arrow" aria-hidden="true">→</div>
+
+          <div class="arch-flow-node arch-flow-node--cream">
+            <span class="arch-flow-node__step">STEP 04 // OUTPUT</span>
+            <h3 class="arch-flow-node__title">Poetic Analysis</h3>
+            <p class="arch-flow-node__desc">Structured JSON gap report, consensus rating (0-100), and emotional narrative.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. Technical Modules Deep Dive Grid -->
+    <section class="arch-deep-dives" aria-label="Detailed technical modules">
+      <div class="arch-deep-dives__grid">
+        <!-- 02: Vision Stack -->
+        <article class="arch-card arch-card--yellow">
+          <div class="arch-card__top">
+            <span class="arch-card__num">02</span>
+          </div>
+          <h3 class="arch-card__title">The Eye (Vision Stack)</h3>
+          <ul class="arch-feature-list">
+            <li>
+              <strong>Primary: Nvidia Nemotron 12B</strong>
+              <p>Specialized quantized vision model optimized for edge detection, framing composition, and raw physical presence.</p>
+            </li>
+            <li>
+              <strong>Fallback: Llama 3.2 11B</strong>
+              <p>Multimodal redundancy providing secondary verification if primary vision bounds fail.</p>
+            </li>
+            <li>
+              <strong>Barthesian Constraints</strong>
+              <p>Strictly structured JSON separating "Studium" (cultural context) from "Punctum" (emotional prick).</p>
+            </li>
+          </ul>
+        </article>
+
+        <!-- 03: The Voice -->
+        <article class="arch-card arch-card--cream">
+          <div class="arch-card__top">
+            <span class="arch-card__num">03</span>
+          </div>
+          <h3 class="arch-card__title">The Voice (Synthesis)</h3>
+          <ul class="arch-feature-list">
+            <li>
+              <strong>Mistral Small 24B Engine</strong>
+              <p>Distinct literary personality tuned for poetic synthesis, avoiding corporate sterility.</p>
+            </li>
+            <li>
+              <strong>Keyword Extraction</strong>
+              <p>Maps stream tokens into curated emotional triads (e.g. <code>["Nostalgia", "Decay", "Warmth"]</code>).</p>
+            </li>
+            <li>
+              <strong>Strict JSON Schemas</strong>
+              <p>Guarantees clean client serialization and deterministic UI component binding.</p>
+            </li>
+          </ul>
+        </article>
+
+        <!-- 04: The Consensus Engine -->
+        <article class="arch-card arch-card--lime">
+          <div class="arch-card__top">
+            <span class="arch-card__num">04</span>
+          </div>
+          <h3 class="arch-card__title">The Consensus Engine</h3>
+          <ul class="arch-feature-list">
+            <li>
+              <strong>Mathematical Distance</strong>
+              <p>Calculates: <code>SCORE = 100 - (|Vector(Human_Emotion) - Vector(AI_Analysis)|)</code>.</p>
+            </li>
+            <li>
+              <strong>High Score (&gt;80)</strong>
+              <p>Universal Alignment — the visual meaning translates cleanly across silicon and biological substrates.</p>
+            </li>
+            <li>
+              <strong>Low Score (&lt;40)</strong>
+              <p>Human Singularity — subjective emotional memory that the machine cannot replicate or compute.</p>
+            </li>
+          </ul>
+        </article>
+      </div>
+    </section>
+  </main>
+</BaseLayout>
+
+<style is:global>
+  body.pop-arch-page {
+    --pop-blue: #2444ca;
+    --pop-pink: #ff7eb5;
+    --pop-yellow: #ffe44f;
+    --pop-lime: #caff48;
+    --pop-orange: #ff875c;
+    --pop-purple: #5524c7;
+    --pop-cyan: #62e6ff;
+    --pop-cream: #fff8e8;
+    --pop-ink: #15130f;
+    --pop-border: rgba(21, 19, 15, 0.78);
+    --pop-line: rgba(21, 19, 15, 0.24);
+    --pop-gap: 8px;
+    --pop-radius-panel: clamp(18px, 2vw, 28px);
+    --pop-radius-card: clamp(14px, 1.5vw, 22px);
+    --pop-radius-control: 14px;
+    --pop-motion: 180ms ease;
+
+    background: var(--pop-blue);
+    color: var(--pop-ink);
+  }
+
+  html:has(body.pop-arch-page) {
+    background: var(--pop-blue);
+  }
+
+  /* Universal deep ink contrast override for all text elements */
+  body.pop-arch-page,
+  body.pop-arch-page h1,
+  body.pop-arch-page h2,
+  body.pop-arch-page h3,
+  body.pop-arch-page h4,
+  body.pop-arch-page h5,
+  body.pop-arch-page h6,
+  body.pop-arch-page p,
+  body.pop-arch-page span,
+  body.pop-arch-page small,
+  body.pop-arch-page li,
+  body.pop-arch-page strong,
+  body.pop-arch-page em,
+  body.pop-arch-page b,
+  body.pop-arch-page th,
+  body.pop-arch-page td,
+  body.pop-arch-page a,
+  body.pop-arch-page div {
+    color: var(--pop-ink);
+  }
+</style>
 
 <style>
-    .architecture-page {
-        max-width: var(--max-width);
-        margin: 0 auto;
-        padding: 2rem 24px 4rem;
+  .arch-shell {
+    display: flex;
+    flex-direction: column;
+    gap: var(--pop-gap);
+    padding: var(--pop-gap);
+    max-width: 1480px;
+    margin: 0 auto;
+  }
+
+  .arch-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.5rem 1rem;
+    border: 1.5px solid var(--pop-border);
+    border-radius: var(--pop-radius-control);
+    background: var(--pop-cream);
+    color: var(--pop-ink) !important;
+    font: 750 clamp(0.74rem, 0.9vw, 0.82rem)/1 var(--font-mono, monospace);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-decoration: none;
+    width: fit-content;
+    transition: transform var(--pop-motion), box-shadow var(--pop-motion);
+  }
+
+  .arch-back-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(21, 19, 15, 0.12);
+  }
+
+  .arch-hero {
+    border: 1px solid var(--pop-border);
+    border-radius: var(--pop-radius-panel);
+    background: var(--pop-pink);
+    color: var(--pop-ink) !important;
+    padding: clamp(2.5rem, 5.5vw, 4.5rem) clamp(1.5rem, 4vw, 4rem);
+  }
+
+  .arch-hero__inner {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    max-width: 900px;
+  }
+
+  .arch-hero__top-row {
+    margin-bottom: 0.25rem;
+  }
+
+  .arch-hero__title {
+    font: 720 clamp(2.6rem, 6vw, 5rem)/0.92 var(--font-display, sans-serif);
+    letter-spacing: -0.05em;
+    margin: 0;
+    color: var(--pop-ink) !important;
+    text-wrap: balance;
+  }
+
+  .arch-hero__lede {
+    font: 480 clamp(1.15rem, 1.8vw, 1.5rem)/1.35 var(--font-display, sans-serif);
+    letter-spacing: -0.02em;
+    color: var(--pop-ink) !important;
+    margin: 0;
+    max-width: 50rem;
+    text-wrap: pretty;
+  }
+
+  /* Pipeline Section */
+  .arch-pipeline-section {
+    width: 100%;
+  }
+
+  .arch-pipeline-card {
+    border: 1px solid var(--pop-border);
+    border-radius: var(--pop-radius-panel);
+    background: var(--pop-cream);
+    color: var(--pop-ink) !important;
+    padding: clamp(2rem, 4.5vw, 3.5rem) clamp(1.5rem, 3.5vw, 3.5rem);
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .arch-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--pop-line);
+  }
+
+  .arch-section-header__title-block {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .arch-section-heading {
+    font: 650 clamp(2rem, 4vw, 3.2rem)/0.96 var(--font-display, sans-serif);
+    letter-spacing: -0.045em;
+    margin: 0;
+    color: var(--pop-ink) !important;
+  }
+
+  .arch-section-desc {
+    font: 550 clamp(0.98rem, 1.15vw, 1.1rem)/1.55 var(--font-body, sans-serif);
+    margin: 0;
+    color: var(--pop-ink) !important;
+    max-width: 520px;
+  }
+
+  .arch-flow-grid {
+    display: flex;
+    align-items: stretch;
+    gap: 0.85rem;
+    flex-wrap: wrap;
+  }
+
+  .arch-flow-node {
+    flex: 1 1 220px;
+    border: 1.5px solid var(--pop-border);
+    border-radius: var(--pop-radius-card);
+    padding: 1.6rem 1.4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    box-shadow: 0 4px 12px rgba(21, 19, 15, 0.06);
+    color: var(--pop-ink) !important;
+  }
+
+  .arch-flow-node--yellow { background: var(--pop-yellow); }
+  .arch-flow-node--lime { background: var(--pop-lime); }
+  .arch-flow-node--pink { background: var(--pop-pink); }
+  .arch-flow-node--cream { background: var(--pop-cream); }
+
+  .arch-flow-node__step {
+    font: 800 0.78rem/1 var(--font-mono, monospace);
+    letter-spacing: 0.08em;
+    color: var(--pop-ink) !important;
+    text-transform: uppercase;
+  }
+
+  .arch-flow-node__title {
+    font: 750 clamp(1.25rem, 1.7vw, 1.5rem)/1.15 var(--font-display, sans-serif);
+    letter-spacing: -0.025em;
+    margin: 0;
+    color: var(--pop-ink) !important;
+  }
+
+  .arch-flow-node__desc {
+    font: 550 0.98rem/1.55 var(--font-body, sans-serif);
+    margin: 0;
+    color: var(--pop-ink) !important;
+  }
+
+  .arch-flow-arrow {
+    font: 800 1.6rem/1 var(--font-mono, monospace);
+    color: var(--pop-ink) !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.65;
+  }
+
+  /* Deep Dives Grid */
+  .arch-deep-dives {
+    display: flex;
+    flex-direction: column;
+    gap: var(--pop-gap);
+  }
+
+  .arch-deep-dives__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--pop-gap);
+  }
+
+  .arch-card {
+    border: 1.5px solid var(--pop-border);
+    border-radius: var(--pop-radius-panel);
+    padding: clamp(1.6rem, 2.6vw, 2.4rem);
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    color: var(--pop-ink) !important;
+    transition: transform var(--pop-motion), box-shadow var(--pop-motion);
+  }
+
+  .arch-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(21, 19, 15, 0.08);
+  }
+
+  .arch-card--yellow { background: var(--pop-yellow); }
+  .arch-card--cream { background: var(--pop-cream); }
+  .arch-card--lime { background: var(--pop-lime); }
+
+  .arch-card__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid var(--pop-line);
+  }
+
+  .arch-card__num {
+    font: 800 0.85rem/1 var(--font-mono, monospace);
+    letter-spacing: 0.08em;
+    color: var(--pop-ink) !important;
+  }
+
+  .arch-card__title {
+    font: 750 clamp(1.4rem, 2vw, 1.85rem)/1.1 var(--font-display, sans-serif);
+    letter-spacing: -0.03em;
+    margin: 0;
+    color: var(--pop-ink) !important;
+  }
+
+  .arch-feature-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .arch-feature-list li {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .arch-feature-list strong {
+    font: 750 1.05rem/1.3 var(--font-display, sans-serif);
+    color: var(--pop-ink) !important;
+  }
+
+  .arch-feature-list p {
+    font: 550 0.96rem/1.55 var(--font-body, sans-serif);
+    margin: 0;
+    color: var(--pop-ink) !important;
+  }
+
+  .arch-feature-list code {
+    font: 750 0.9em var(--font-mono, monospace);
+    background: rgba(21, 19, 15, 0.12);
+    padding: 0.2rem 0.45rem;
+    border-radius: 4px;
+    color: var(--pop-ink) !important;
+  }
+
+  @media (max-width: 980px) {
+    .arch-deep-dives__grid {
+      grid-template-columns: 1fr;
     }
 
-    .arch-header {
-        margin-bottom: 3rem;
-        border-bottom: 1px solid var(--border-subtle);
-        padding-bottom: 2rem;
+    .arch-flow-arrow {
+      display: none;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .arch-shell {
+      padding: var(--pop-gap);
     }
 
-    .system-status-bar {
-        margin-bottom: 1rem;
-        font-family: var(--font-ui);
-        font-size: 0.75rem;
-        letter-spacing: 0.08em;
-        color: var(--text-tertiary);
-        text-transform: uppercase;
+    .arch-hero {
+      padding: 2rem 1.25rem;
     }
 
-    .indicator-group {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
+    .arch-pipeline-card {
+      padding: 1.75rem 1.25rem;
     }
+  }
 
-    .status-indicator {
-        width: 0.5rem;
-        height: 0.5rem;
-        border-radius: 50%;
-        background: var(--accent-primary);
+  @media (prefers-reduced-motion: reduce) {
+    .arch-card,
+    .arch-back-btn {
+      transition: none !important;
+      transform: none !important;
     }
-
-    .breadcrumbs {
-        margin-bottom: 0.9rem;
-    }
-
-    .breadcrumbs a {
-        color: var(--text-tertiary);
-        font-family: var(--font-ui);
-        font-size: 0.8rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        text-decoration: none;
-        letter-spacing: 0.05em;
-        transition: color 0.2s ease;
-    }
-
-    .breadcrumbs a:hover {
-        color: var(--accent-primary);
-    }
-
-    .arch-title {
-        font-family: var(--font-display);
-        font-size: clamp(2.4rem, 5vw, 4rem);
-        font-weight: 600;
-        letter-spacing: -0.02em;
-        margin: 0 0 1rem;
-        line-height: 1.1;
-        color: var(--text-primary);
-    }
-
-    .arch-intro {
-        margin: 0;
-        font-family: var(--font-sans);
-        font-size: 1.1rem;
-        line-height: 1.6;
-        color: var(--text-secondary);
-        max-width: 760px;
-    }
-
-    .arch-grid {
-        display: flex;
-        flex-direction: column;
-        gap: 3rem;
-        margin-bottom: 3rem;
-    }
-
-    .arch-section {
-        display: block;
-    }
-
-    .section-title {
-        margin: 0 0 1.25rem;
-        font-family: var(--font-display);
-        font-size: clamp(1.35rem, 2vw, 1.9rem);
-        font-weight: 600;
-        letter-spacing: -0.01em;
-        color: var(--text-primary);
-    }
-
-    .arch-text {
-        margin: 0 0 1rem;
-        font-family: var(--font-sans);
-        font-size: 1rem;
-        line-height: 1.6;
-        color: var(--text-secondary);
-        max-width: 760px;
-    }
-
-    .arch-text strong {
-        color: var(--text-primary);
-        font-weight: 600;
-    }
-
-    .arch-text em {
-        font-style: italic;
-    }
-
-    .arch-text.small {
-        font-size: 0.9rem;
-        color: var(--text-tertiary);
-    }
-
-    .pipeline-viz {
-        display: flex;
-        align-items: stretch;
-        gap: 0.75rem;
-        flex-wrap: wrap;
-        padding: 1rem;
-        border: 1px solid var(--border-subtle);
-        border-radius: var(--radius-md);
-        background: var(--bg-surface);
-    }
-
-    .step {
-        display: flex;
-        flex-direction: column;
-        gap: 0.45rem;
-        min-width: 160px;
-        flex: 1 1 200px;
-    }
-
-    .step-label {
-        font-family: var(--font-ui);
-        font-size: 0.72rem;
-        color: var(--text-tertiary);
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-    }
-
-    .step-box {
-        padding: 0.9rem 1rem;
-        background: var(--bg-color);
-        border: 1px solid var(--border-subtle);
-        border-radius: var(--radius-sm);
-        font-family: var(--font-sans);
-        font-size: 0.95rem;
-        color: var(--text-primary);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-        min-height: 100%;
-    }
-
-    .step-box small {
-        font-size: 0.72rem;
-        color: var(--text-tertiary);
-        margin-top: 0.4rem;
-    }
-
-    .step-box.vision {
-        border-color: var(--accent-primary);
-    }
-
-    .step-box.logic {
-        border-color: var(--border-strong);
-    }
-
-    .step-box.output {
-        border-color: var(--border-strong);
-    }
-
-    .connector {
-        color: var(--text-tertiary);
-        font-size: 0.8rem;
-        margin: 0.2rem 0;
-    }
-
-    .arrow {
-        display: flex;
-        align-items: center;
-        color: var(--text-tertiary);
-        font-family: var(--font-ui);
-        font-size: 0.95rem;
-        line-height: 1;
-    }
-
-    .consensus-explanation {
-        margin-bottom: 1.25rem;
-    }
-
-    .two-col {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 2rem;
-    }
-
-    .col-content {
-        min-width: 0;
-    }
-
-    .col-code {
-        border: 1px solid var(--border-subtle);
-        border-radius: var(--radius-md);
-        background: var(--bg-surface);
-        padding: 1rem;
-        overflow-x: auto;
-    }
-
-    .code-block {
-        margin: 0;
-        font-family: var(--font-mono);
-        font-size: 0.87rem;
-        line-height: 1.55;
-        color: var(--text-secondary);
-    }
-
-    .feature-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        display: flex;
-        flex-direction: column;
-        gap: 1.25rem;
-    }
-
-    .feature-list li {
-        display: grid;
-        grid-template-columns: auto 1fr;
-        gap: 0.75rem;
-        align-items: start;
-    }
-
-    .bullet {
-        color: var(--text-tertiary);
-        font-family: var(--font-ui);
-        line-height: 1.5;
-    }
-
-    .feature-list strong {
-        display: block;
-        margin: 0 0 0.35rem;
-        font-family: var(--font-display);
-        font-size: 1.05rem;
-        font-weight: 600;
-        color: var(--text-primary);
-    }
-
-    .feature-list p {
-        margin: 0;
-        font-family: var(--font-sans);
-        font-size: 1rem;
-        line-height: 1.6;
-        color: var(--text-secondary);
-    }
-
-    .feature-list code {
-        font-family: var(--font-mono);
-        font-size: 0.95em;
-        overflow-wrap: anywhere;
-        word-break: break-word;
-    }
-
-    .grid-3 {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 1rem;
-    }
-
-    .grid-3 li {
-        background: var(--bg-surface);
-        border: 1px solid var(--border-subtle);
-        border-radius: var(--radius-md);
-        padding: 1rem;
-    }
-
-    .math-block {
-        font-family: var(--font-mono);
-        font-size: 0.9rem;
-        line-height: 1.6;
-        background: var(--bg-surface);
-        border: 1px solid var(--border-subtle);
-        border-left: 3px solid var(--accent-primary);
-        border-radius: var(--radius-sm);
-        padding: 1rem;
-        margin: 1rem 0;
-        color: var(--text-primary);
-        overflow-x: auto;
-    }
-
-    @media (min-width: 1024px) {
-        .two-col {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            column-gap: 2.5rem;
-            row-gap: 2rem;
-        }
-
-        .grid-3 {
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-        }
-    }
-
-    @media (max-width: 768px) {
-        .architecture-page {
-            padding: 1.5rem 16px 3rem;
-        }
-
-        .pipeline-viz {
-            flex-direction: column;
-            align-items: stretch;
-            gap: 1rem;
-        }
-
-        .arrow {
-            display: none;
-        }
-
-        .arch-header {
-            margin-bottom: 2.5rem;
-        }
-
-        .arch-grid {
-            gap: 2.5rem;
-        }
-
-        .step {
-            min-width: 0;
-        }
-    }
+  }
 </style>

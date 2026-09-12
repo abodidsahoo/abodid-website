@@ -16,6 +16,7 @@ const EXCLUDED_MEANINGFUL_PATHS = [
 const TITLE_OVERRIDES = new Map([
     ['/premiere-pro-masterclass', 'Premiere Pro Masterclass'],
     ['/obsidian-tutoring', 'Obsidian Tutoring'],
+    ['/obsidian-for-founders', 'Obsidian for Startup Founders & CEOs'],
     ['/obsidian-for-researchers', 'Obsidian for Academic Researchers'],
     ['/obsidian-for-filmmakers', 'Obsidian for Creative Artists & Filmmakers'],
     ['/obsidian-for-writers', 'Obsidian for Bloggers & Writers'],

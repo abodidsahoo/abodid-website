@@ -31,7 +31,7 @@ const secondaryGroups = [
   {
     title: "Resources",
     links: [
-      { href: "https://curation.abodid.com", label: "Curation" },
+      { href: "/resources", label: "Curation" },
       { href: "/notepad", label: "Notepad" },
       { href: "/bsa-schedule", label: "BSA Conference" },
       { href: "/moodboard", label: "Visual Moodboard" },

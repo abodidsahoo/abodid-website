@@ -26,9 +26,15 @@ type PhotographyPageProject = {
   description?: string;
   cover_image?: string;
   image?: string;
-  date?: string;
   images: string[];
 };
+
+if (slug === "my-life") {
+  return Astro.redirect("/bts", 301);
+}
+if (slug === "uk-2026") {
+  return Astro.redirect("/uk-2026", 301);
+}
 
 const project = (await getPhotographyBySlug(
   slug ?? "",

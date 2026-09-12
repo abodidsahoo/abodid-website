@@ -1,64 +1,604 @@
 ---
 export const prerender = true;
 import BaseLayout from "../layouts/BaseLayout.astro";
+import { personJsonLd, breadcrumbJsonLd } from "../lib/seoData";
 
-const title = "Privacy Policy";
+const pageTitle = "Privacy Policy — Abodid Sahoo";
+const pageDescription =
+  "Privacy policy and data ethics commitment for abodid.com. A transparent breakdown of data practices, zero-tracking ethos, and user rights.";
+
+const structuredData = [
+  personJsonLd(),
+  breadcrumbJsonLd([
+    { name: "Home", path: "/" },
+    { name: "Privacy Policy", path: "/privacy" },
+  ]),
+];
+
+const lastUpdatedDate = "September 2026";
 ---
 
-<BaseLayout title={title}>
-    <article class="legal-content">
-        <h1>Privacy Policy</h1>
-        <p class="last-updated">
-            Last Updated: {new Date().toLocaleDateString()}
+<BaseLayout
+  title={pageTitle}
+  description={pageDescription}
+  structuredData={structuredData}
+  fullWidth={true}
+  hideWhatsAppButton={true}
+  showNewsletterPopup={false}
+  showGlobalGrid={false}
+  showCursorFollower={false}
+  bodyClass="pop-privacy-page"
+>
+  <main class="privacy-shell">
+    <!-- 1. Hero Block -->
+    <section class="privacy-hero" aria-labelledby="privacy-title">
+      <div class="privacy-hero__inner">
+        <div class="privacy-hero__badge-row">
+          <span class="privacy-meta-tag">Last Updated: {lastUpdatedDate}</span>
+        </div>
+
+        <h1 id="privacy-title" class="privacy-hero__title">Privacy Policy</h1>
+
+        <p class="privacy-hero__lede">
+          This digital space is a showcase of art, cinema, research, and ideas — not a surveillance or data-harvesting machine.
         </p>
 
-        <section>
-            <h2>1. Overview</h2>
-            <p>
-                I respect your privacy. This website is a showcase of art and
-                thought, not a data collection machine. I do not sell your
-                personal data.
-            </p>
-        </section>
+        <div class="privacy-principles-strip">
+          <span class="privacy-pill">✓ Zero Ad Trackers</span>
+          <span class="privacy-pill">✓ No Data Selling</span>
+          <span class="privacy-pill">✓ Direct Consent Only</span>
+          <span class="privacy-pill">✓ 1-Click Unsubscribe</span>
+        </div>
+      </div>
+    </section>
 
-        <section>
-            <h2>2. What We Collect</h2>
-            <p>
-                <strong>Newsletter:</strong> If you sign up, I collect your email
-                address solely to send you updates. You can unsubscribe at any time.
-            </p>
-            <p>
-                <strong>Analytics:</strong> I may use privacy-preserving analytics
-                (like Plausible or basic Vercel Analytics) to understand site traffic.
-                These do not track individual behavior across the web.
-            </p>
-        </section>
+    <!-- 2. Core Ethical Commitments (3-Card Grid) -->
+    <section class="privacy-commitments" aria-labelledby="commitments-heading">
+      <div class="privacy-commitments__grid">
+        <article class="privacy-card privacy-card--yellow">
+          <div class="privacy-card__header">
+            <span class="privacy-card__num">01</span>
+            <h2 class="privacy-card__title">Zero Data Brokering</h2>
+          </div>
+          <p class="privacy-card__desc">
+            I do not sell, rent, monetize, or trade your personal data with third-party brokers, advertisers, or data warehouses. Your interactions here remain between you and my studio.
+          </p>
+        </article>
 
-        <section>
-            <h2>3. Contact</h2>
-            <p>For privacy concerns, please email hello@abodid.com.</p>
-        </section>
-    </article>
+        <article class="privacy-card privacy-card--cream">
+          <div class="privacy-card__header">
+            <span class="privacy-card__num">02</span>
+            <h2 class="privacy-card__title">Direct Communications</h2>
+          </div>
+          <p class="privacy-card__desc">
+            If you subscribe to dispatches or submit an inquiry, your contact details are used exclusively for direct correspondence. You retain total control to unsubscribe or request deletion anytime.
+          </p>
+        </article>
+
+        <article class="privacy-card privacy-card--lime">
+          <div class="privacy-card__header">
+            <span class="privacy-card__num">03</span>
+            <h2 class="privacy-card__title">Privacy-Preserving Telemetry</h2>
+          </div>
+          <p class="privacy-card__desc">
+            Any site analytics used are strictly aggregated and cookie-free (e.g. Vercel Web Analytics or Plausible) to understand overall traffic trends without tracking your personal identity across the web.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <!-- 3. Detailed Operational Sections -->
+    <section class="privacy-details" aria-labelledby="details-heading">
+      <div class="privacy-details__card">
+        <header class="privacy-details__header">
+          <h2 id="details-heading" class="privacy-details__title">Detailed Policy &amp; Terms</h2>
+        </header>
+
+        <div class="privacy-sections-stack">
+          <!-- Section 1 -->
+          <article class="privacy-item">
+            <div class="privacy-item__index">1.0</div>
+            <div class="privacy-item__content">
+              <h3>Information Collected &amp; How It Is Used</h3>
+              <p>We only collect information that you knowingly and voluntarily provide:</p>
+              <ul class="privacy-list">
+                <li>
+                  <strong>Newsletter &amp; Reading Digest:</strong> When you subscribe, we collect your email address solely to deliver new essays, research notes, and studio dispatches. Powered via Resend with secure tokenized storage.
+                </li>
+                <li>
+                  <strong>Project Inquiries &amp; Consultations:</strong> When you contact me regarding creative direction, photography licensing, or workshop bookings, your name, email, and message are processed to respond to your request.
+                </li>
+                <li>
+                  <strong>Interactive Experiments (e.g., Punctum / Vault):</strong> Exploratory interactions run locally in your browser or through stateless API endpoints. Text or image prompts submitted to AI experiments are not used to train proprietary surveillance models.
+                </li>
+              </ul>
+            </div>
+          </article>
+
+          <!-- Section 2 -->
+          <article class="privacy-item">
+            <div class="privacy-item__index">2.0</div>
+            <div class="privacy-item__content">
+              <h3>Cookies, Tracking &amp; Storage</h3>
+              <p>
+                This site does not use third-party marketing cookies, intrusive tracking pixels (such as Meta Pixel or Google Ads tracking), or fingerprinting techniques.
+              </p>
+              <p>
+                Local storage is used strictly for essential user preferences — such as preserving your dark/light theme preference across page navigations.
+              </p>
+            </div>
+          </article>
+
+          <!-- Section 3 -->
+          <article class="privacy-item">
+            <div class="privacy-item__index">3.0</div>
+            <div class="privacy-item__content">
+              <h3>Infrastructure &amp; Security</h3>
+              <p>
+                All data in transit is encrypted using industry-standard TLS / HTTPS encryption. Data records (such as newsletter subscribers and form submissions) are stored in secure Supabase databases with Row Level Security (RLS) policies enforced.
+              </p>
+            </div>
+          </article>
+
+          <!-- Section 4 -->
+          <article class="privacy-item">
+            <div class="privacy-item__index">4.0</div>
+            <div class="privacy-item__content">
+              <h3>Your Rights &amp; Data Control</h3>
+              <p>Under UK GDPR, European GDPR, and international privacy standards, you hold full rights over your data:</p>
+              <ul class="privacy-list">
+                <li><strong>Right to Access:</strong> You may request a summary of any personal information held about you.</li>
+                <li><strong>Right to Erasure:</strong> You can request complete and permanent deletion of your email address and communication history at any time.</li>
+                <li><strong>Right to Unsubscribe:</strong> Every automated email sent includes a direct, one-click unsubscribe link.</li>
+              </ul>
+            </div>
+          </article>
+
+          <!-- Section 5 -->
+          <article class="privacy-item">
+            <div class="privacy-item__index">5.0</div>
+            <div class="privacy-item__content">
+              <h3>Third-Party Media &amp; External Links</h3>
+              <p>
+                This site contains embeds and links to external services (including Vimeo, YouTube, GitHub, and academic databases). When accessing third-party websites, their respective privacy policies apply.
+              </p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Data Controller Contact Banner -->
+    <section class="privacy-contact" aria-labelledby="contact-heading">
+      <div class="privacy-contact__inner">
+        <div class="privacy-contact__copy">
+          <h2 id="contact-heading" class="privacy-contact__title">Questions or Data Requests?</h2>
+          <p class="privacy-contact__text">
+            For any questions regarding privacy, data erasure requests, or transparency inquiries, contact me directly:
+          </p>
+        </div>
+        <div class="privacy-contact__action">
+          <a class="privacy-btn" href="mailto:hello@abodid.com?subject=Privacy%20Inquiry">
+            <span>hello@abodid.com</span>
+            <span class="link-destination-arrow" aria-hidden="true">↗</span>
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
 </BaseLayout>
 
+<style is:global>
+  body.pop-privacy-page {
+    --pop-blue: #2444ca;
+    --pop-pink: #ff7eb5;
+    --pop-yellow: #ffe44f;
+    --pop-lime: #caff48;
+    --pop-orange: #ff875c;
+    --pop-purple: #5524c7;
+    --pop-cyan: #62e6ff;
+    --pop-cream: #fff8e8;
+    --pop-ink: #15130f;
+    --pop-border: rgba(21, 19, 15, 0.78);
+    --pop-line: rgba(21, 19, 15, 0.24);
+    --pop-gap: 8px;
+    --pop-radius-panel: clamp(18px, 2vw, 28px);
+    --pop-radius-card: clamp(14px, 1.5vw, 22px);
+    --pop-radius-control: 14px;
+    --pop-motion: 180ms ease;
+
+    background: var(--pop-blue);
+    color: var(--pop-ink);
+  }
+
+  html:has(body.pop-privacy-page) {
+    background: var(--pop-blue);
+  }
+
+  /* Force robust pop-editorial ink contrast across all elements on light/chroma surfaces */
+  body.pop-privacy-page h1,
+  body.pop-privacy-page h2,
+  body.pop-privacy-page h3,
+  body.pop-privacy-page p,
+  body.pop-privacy-page span,
+  body.pop-privacy-page li,
+  body.pop-privacy-page strong,
+  body.pop-privacy-page a {
+    color: var(--pop-ink);
+  }
+</style>
+
 <style>
-    .legal-content {
-        max-width: 680px;
-        margin: 0 auto;
+  .privacy-shell {
+    display: flex;
+    flex-direction: column;
+    gap: var(--pop-gap);
+    padding: var(--pop-gap);
+    max-width: 1480px;
+    margin: 0 auto;
+  }
+
+  .privacy-meta-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.45rem 0.95rem;
+    border: 1px solid var(--pop-border);
+    border-radius: var(--pop-radius-control);
+    background: var(--pop-cream);
+    color: var(--pop-ink) !important;
+    font: 750 0.76rem/1 var(--font-mono, monospace);
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+
+  /* Hero Section */
+  .privacy-hero {
+    border: 1px solid var(--pop-border);
+    border-radius: var(--pop-radius-panel);
+    background: var(--pop-pink);
+    color: var(--pop-ink) !important;
+    padding: clamp(2.5rem, 5.5vw, 5rem) clamp(1.5rem, 4vw, 4rem);
+  }
+
+  .privacy-hero__inner {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    max-width: 900px;
+  }
+
+  .privacy-hero__badge-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .privacy-hero__title {
+    font: 720 clamp(2.8rem, 6.5vw, 5.5rem)/0.92 var(--font-display, sans-serif);
+    letter-spacing: -0.05em;
+    margin: 0;
+    color: var(--pop-ink) !important;
+    text-wrap: balance;
+  }
+
+  .privacy-hero__lede {
+    font: 480 clamp(1.15rem, 1.8vw, 1.6rem)/1.35 var(--font-display, sans-serif);
+    letter-spacing: -0.02em;
+    color: var(--pop-ink) !important;
+    margin: 0;
+    max-width: 48rem;
+    text-wrap: pretty;
+  }
+
+  .privacy-principles-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    padding-top: 0.5rem;
+  }
+
+  .privacy-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.45rem 0.9rem;
+    border: 1px solid var(--pop-border);
+    border-radius: var(--pop-radius-control);
+    background: var(--pop-cream);
+    color: var(--pop-ink) !important;
+    font: 700 0.78rem/1 var(--font-mono, monospace);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  /* Commitments 3-Card Grid */
+  .privacy-commitments__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--pop-gap);
+  }
+
+  .privacy-card {
+    border: 1px solid var(--pop-border);
+    border-radius: var(--pop-radius-panel);
+    padding: clamp(1.5rem, 2.8vw, 2.5rem);
+    display: flex;
+    flex-direction: column;
+    gap: 1.15rem;
+    color: var(--pop-ink) !important;
+    transition: transform var(--pop-motion), box-shadow var(--pop-motion);
+  }
+
+  .privacy-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(21, 19, 15, 0.08);
+  }
+
+  .privacy-card--yellow {
+    background: var(--pop-yellow);
+  }
+
+  .privacy-card--cream {
+    background: var(--pop-cream);
+  }
+
+  .privacy-card--lime {
+    background: var(--pop-lime);
+  }
+
+  .privacy-card__header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--pop-line);
+  }
+
+  .privacy-card__num {
+    font: 750 0.85rem/1 var(--font-mono, monospace);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--pop-ink) !important;
+    opacity: 0.85;
+  }
+
+  .privacy-card__title {
+    font: 650 clamp(1.35rem, 2vw, 1.85rem)/1.08 var(--font-display, sans-serif);
+    letter-spacing: -0.035em;
+    margin: 0;
+    color: var(--pop-ink) !important;
+  }
+
+  .privacy-card__desc {
+    font: 450 clamp(0.95rem, 1.1vw, 1.05rem)/1.55 var(--font-body, sans-serif);
+    margin: 0;
+    color: var(--pop-ink) !important;
+  }
+
+  /* Details Panel */
+  .privacy-details {
+    width: 100%;
+  }
+
+  .privacy-details__card {
+    border: 1px solid var(--pop-border);
+    border-radius: var(--pop-radius-panel);
+    background: var(--pop-cream);
+    color: var(--pop-ink) !important;
+    padding: clamp(2rem, 4.5vw, 4rem) clamp(1.5rem, 3.5vw, 3.5rem);
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+  }
+
+  .privacy-details__header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--pop-line);
+  }
+
+  .privacy-details__title {
+    font: 650 clamp(2rem, 4vw, 3.2rem)/0.96 var(--font-display, sans-serif);
+    letter-spacing: -0.045em;
+    margin: 0;
+    color: var(--pop-ink) !important;
+  }
+
+  .privacy-sections-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .privacy-item {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 1.5rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--pop-line);
+  }
+
+  .privacy-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .privacy-item__index {
+    font: 750 clamp(1.1rem, 1.5vw, 1.4rem)/1 var(--font-mono, monospace);
+    letter-spacing: 0.05em;
+    color: var(--pop-blue) !important;
+    padding-top: 0.35rem;
+  }
+
+  .privacy-item__content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+
+  .privacy-item__content h3 {
+    font: 650 clamp(1.2rem, 1.8vw, 1.55rem)/1.15 var(--font-display, sans-serif);
+    letter-spacing: -0.025em;
+    margin: 0;
+    color: var(--pop-ink) !important;
+  }
+
+  .privacy-item__content p {
+    font: 450 clamp(0.95rem, 1.1vw, 1.05rem)/1.6 var(--font-body, sans-serif);
+    margin: 0;
+    color: var(--pop-ink) !important;
+    max-width: 54rem;
+  }
+
+  .privacy-list {
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .privacy-list li {
+    font: 450 clamp(0.92rem, 1.05vw, 1rem)/1.55 var(--font-body, sans-serif);
+    color: var(--pop-ink) !important;
+    padding-left: 1.25rem;
+    position: relative;
+    max-width: 52rem;
+  }
+
+  .privacy-list li::before {
+    content: "→";
+    position: absolute;
+    left: 0;
+    color: var(--pop-blue) !important;
+    font-weight: 700;
+  }
+
+  .privacy-list strong {
+    font-weight: 650;
+    color: var(--pop-ink) !important;
+  }
+
+  /* Contact / Data Controller Section */
+  .privacy-contact {
+    border: 1px solid var(--pop-border);
+    border-radius: var(--pop-radius-panel);
+    background: var(--pop-yellow);
+    color: var(--pop-ink) !important;
+    padding: clamp(2rem, 4vw, 3.5rem) clamp(1.5rem, 3.5vw, 3.5rem);
+  }
+
+  .privacy-contact__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 2rem;
+  }
+
+  .privacy-contact__copy {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-width: 680px;
+  }
+
+  .privacy-contact__title {
+    font: 650 clamp(1.8rem, 3.2vw, 2.6rem)/1.02 var(--font-display, sans-serif);
+    letter-spacing: -0.04em;
+    margin: 0;
+    color: var(--pop-ink) !important;
+  }
+
+  .privacy-contact__text {
+    font: 450 clamp(0.95rem, 1.1vw, 1.08rem)/1.5 var(--font-body, sans-serif);
+    margin: 0;
+    color: var(--pop-ink) !important;
+  }
+
+  .privacy-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-height: 52px;
+    padding: 0 1.6rem;
+    border: 1px solid var(--pop-border);
+    border-radius: var(--pop-radius-control);
+    background: var(--pop-cream);
+    color: var(--pop-ink) !important;
+    font: 750 0.88rem/1 var(--font-mono, monospace);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: transform var(--pop-motion), box-shadow var(--pop-motion), background var(--pop-motion);
+  }
+
+  .privacy-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(21, 19, 15, 0.12);
+    background: #ffffff;
+  }
+
+  .privacy-btn:hover .link-destination-arrow {
+    transform: translate(2px, -2px);
+  }
+
+  .link-destination-arrow {
+    display: inline-block;
+    text-decoration: none !important;
+    transition: transform var(--pop-motion);
+  }
+
+  /* Responsive Rules */
+  @media (max-width: 980px) {
+    .privacy-commitments__grid {
+      grid-template-columns: 1fr;
     }
 
-    .last-updated {
-        color: var(--text-secondary);
-        font-size: 0.9rem;
-        margin-bottom: 3rem;
+    .privacy-item {
+      grid-template-columns: 50px 1fr;
+      gap: 1rem;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .privacy-shell {
+      padding: var(--pop-gap);
     }
 
-    section {
-        margin-bottom: 2rem;
+    .privacy-hero {
+      padding: 2rem 1.25rem;
     }
 
-    h2 {
-        font-size: 1.25rem;
-        margin-bottom: 1rem;
+    .privacy-details__card {
+      padding: 1.75rem 1.25rem;
     }
+
+    .privacy-item {
+      grid-template-columns: 1fr;
+      gap: 0.5rem;
+    }
+
+    .privacy-contact__inner {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .privacy-btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .privacy-card,
+    .privacy-btn,
+    .link-destination-arrow {
+      transition: none !important;
+      transform: none !important;
+    }
+  }
 </style>

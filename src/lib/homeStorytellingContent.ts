@@ -18,7 +18,7 @@ export const storytellingProjects = [
     role: "Creative direction · spatial planning · production · documentation",
     outcome: "10,000+ visitors",
     href: "/blog/from-an-abandoned-garage-into-the-hottest-exhibition-spot-in-london-in-just-two-days",
-    image: "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/photography/stories/d2ed4c3d-2f1a-4bde-83e2-088105243a54/1768230727606-into-the-flux-iba-london103.webp",
+    image: "https://assets.abodid.com/photos/variants/exhibition-photos/1600/into-the-flux-iba-london103-baac9bdf57.webp",
     alt: "Visitors inside the Into the Flux exhibition in London",
   },
   {
@@ -40,7 +40,7 @@ export const storytellingProjects = [
     role: "Photography · visual storytelling",
     outcome: "20,000+ visitors across four days",
     href: "/photography/british-film-institute-london",
-    image: "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/photography/covers/1769335964323_qjq8j2g9q.webp",
+    image: "https://assets.abodid.com/photos/variants/british-film-institute-london/1600/1769335964323_qjq8j2g9q-da588df8ed.webp",
     alt: "Audience members experiencing an immersive programme at the British Film Institute",
   },
   {

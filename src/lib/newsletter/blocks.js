@@ -68,7 +68,7 @@ export const DEFAULT_NEWSLETTER_SETTINGS = Object.freeze({
     fontFamily: "'Satoshi', 'Helvetica Neue', Arial, sans-serif",
 });
 
-export const DEFAULT_NEWSLETTER_BODY_TEXT = `I help people use stories to communicate, educate and bring communities together.
+export const DEFAULT_NEWSLETTER_BODY_TEXT = `I direct research-driven visual stories, films, and photographic campaigns that shape cultural relevance and connect brands with global audiences.
 
 As a creative director, artist, and researcher, I enjoy pushing the boundaries of storytelling, turning it into memorable, participatory "experiences" that spark conversations and help build deeper connections.
 

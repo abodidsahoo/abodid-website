@@ -3,6 +3,7 @@ import { isSupabaseConfigured } from './utils';
 import type { Project, PhotographyProject, BlogPost, Film, ResearchPaper, WorkExperience, ServiceItem } from './types';
 import { featuredPhotography as mockPhotography, recentPosts as mockPosts } from '../../utils/mockData';
 import { GESTURE_CONTROL_VIDEO_URL, OBSIDIAN_VAULT_VIDEO_URL } from '../mediaAssets';
+import photographyCloudflare from '../../data/photographyCloudflare.generated.json';
 
 const normalizeImageUrl = (value: unknown): string =>
     typeof value === 'string' ? value.trim() : '';
@@ -17,6 +18,41 @@ const normalizeGalleryImages = (value: unknown): string[] =>
               )
               .filter(Boolean)
         : [];
+
+type CloudflarePhotographyMedia = {
+    cover?: { original?: string; small?: string; large?: string };
+    images?: Array<{ original?: string; small?: string; large?: string }>;
+};
+
+const photographyMedia = photographyCloudflare as Record<string, CloudflarePhotographyMedia>;
+const isCloudflarePhotographyUrl = (value: unknown): value is string => {
+    if (typeof value !== 'string' || !value.trim()) return false;
+    try {
+        const url = new URL(value);
+        return url.protocol === 'https:' && url.hostname === 'assets.abodid.com';
+    } catch {
+        return false;
+    }
+};
+
+const getCloudflarePhotographyMedia = (project: any) => {
+    const generated = photographyMedia[String(project?.slug || '')];
+    const storedCover = normalizeImageUrl(project?.cover_image);
+    const storedImages = normalizeGalleryImages(project?.gallery_images)
+        .filter(isCloudflarePhotographyUrl);
+    const generatedCover = generated?.cover?.large
+        || generated?.cover?.original
+        || generated?.cover?.small
+        || '';
+    const generatedImages = (generated?.images || [])
+        .map((image) => image.large || image.original || image.small || '')
+        .filter(isCloudflarePhotographyUrl);
+
+    return {
+        cover: isCloudflarePhotographyUrl(storedCover) ? storedCover : generatedCover,
+        images: storedImages.length > 0 ? storedImages : generatedImages,
+    };
+};
 
 const isRemovedResearchProject = (project: Partial<Project> & { slug?: string; title?: string }) => {
     const slug = (project.slug || '').toLowerCase();
@@ -223,14 +259,17 @@ export async function getFeaturedPhotography(): Promise<PhotographyProject[]> {
         return mockPhotography as unknown as PhotographyProject[];
     }
 
-    return data.map((project: any) => ({
-        title: project.title,
-        category: project.category,
-        image: normalizeImageUrl(project.cover_image),
-        href: `/photography/${project.slug}`,
-        slug: project.slug,
-        published: project.published
-    } as PhotographyProject));
+    return data.map((project: any) => {
+        const media = getCloudflarePhotographyMedia(project);
+        return {
+            title: project.title,
+            category: project.category,
+            image: media.cover,
+            href: `/photography/${project.slug}`,
+            slug: project.slug,
+            published: project.published
+        } as PhotographyProject;
+    });
 }
 
 export async function getAllPhotography(): Promise<PhotographyProject[]> {
@@ -248,16 +287,19 @@ export async function getAllPhotography(): Promise<PhotographyProject[]> {
         return [];
     }
 
-    return data.map((project: any) => ({
-        title: project.title,
-        category: project.category,
-        image: normalizeImageUrl(project.cover_image),
-        tags: project.tags || [],
-        images: normalizeGalleryImages(project.gallery_images),
-        href: `/photography/${project.slug}`,
-        slug: project.slug,
-        published: project.published
-    } as PhotographyProject));
+    return data.map((project: any) => {
+        const media = getCloudflarePhotographyMedia(project);
+        return {
+            title: project.title,
+            category: project.category,
+            image: media.cover,
+            tags: project.tags || [],
+            images: media.images,
+            href: `/photography/${project.slug}`,
+            slug: project.slug,
+            published: project.published
+        } as PhotographyProject;
+    });
 }
 
 export async function getPhotographyBySlug(slug: string): Promise<PhotographyProject | null> {
@@ -271,12 +313,14 @@ export async function getPhotographyBySlug(slug: string): Promise<PhotographyPro
 
     if (projectError || !project) return null;
 
-    let photos = project.gallery_images || [];
+    const media = getCloudflarePhotographyMedia(project);
 
     return {
         ...project,
-        image: normalizeImageUrl(project.cover_image),
-        images: normalizeGalleryImages(photos)
+        cover_image: media.cover,
+        gallery_images: media.images.map((url, index) => ({ url, sort_order: index })),
+        image: media.cover,
+        images: media.images
     } as PhotographyProject;
 }
 
