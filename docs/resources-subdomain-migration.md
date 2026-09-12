@@ -23,13 +23,22 @@ Curation or the Obsidian vault.
 
 ## How routing works
 
-`middleware.js` is Vercel Routing Middleware. It runs before the filesystem and
-maps Curation's public paths to the existing internal `/resources` pages. It
-also permanently redirects old `abodid.com/resources/*` links to their public
-Curation equivalents.
+`src/middleware.ts` is Astro's request middleware, compiled into the Vercel build
+by `@astrojs/vercel`. It runs before every request and handles:
 
-`src/middleware.ts` remains Astro response middleware. It handles trailing-slash
-normalization and cache policy, but it does not perform hostname routing.
+1. **Subdomain routing** — detects the hostname from `x-forwarded-host` and maps
+   curation, lab, and photography subdomain requests to their internal Astro
+   pages using `context.rewrite()`. It also permanently redirects old
+   `abodid.com/resources/*` links to their public Curation equivalents.
+2. **Trailing-slash normalization** — strips trailing slashes with a 308 redirect.
+3. **Cache policy** — sets appropriate `Cache-Control` and `Vercel-CDN-Cache-Control`
+   headers for public vs. private pages.
+
+> **Note:** The root `middleware.js` file is a legacy Vercel Routing Middleware
+> file that is **not executed** in production. Vercel ignores it for Astro
+> projects because `@astrojs/vercel` builds its own routing config. The file is
+> kept as reference only.
+
 `vercel.json` contains only platform-wide settings and the stable legacy
 Obsidian-vault redirects. There must not be a second set of Curation or Lab host
 rewrites there.

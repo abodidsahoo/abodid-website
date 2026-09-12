@@ -1,3 +1,17 @@
+// ---------------------------------------------------------------------------
+// ⚠️  DEPRECATED — This file is NOT executed in production.
+// ---------------------------------------------------------------------------
+// Vercel ignores the root middleware.js file convention for Astro projects
+// because @astrojs/vercel builds its own routing config. All subdomain
+// routing logic has been moved to src/middleware.ts (Astro's middleware),
+// which IS compiled into the Vercel build and runs for every request.
+//
+// This file is kept as reference only. Do not add new routing logic here.
+// See: https://vercel.com/docs/functions/edge-middleware
+//      "You can't use proxy with frameworks that build their own routing
+//       middleware, such as Next.js and Astro."
+// ---------------------------------------------------------------------------
+
 import { next, rewrite } from '@vercel/functions';
 
 import {
@@ -40,7 +54,16 @@ const requestUrlWithForwardedHost = (request) => {
   return url;
 };
 
-const rewritePath = (url, pathname) => rewrite(`${pathname}${url.search}`);
+const rewritePath = (request, publicUrl, pathname) => {
+  // Rewrite against the URL Vercel gave the middleware, rather than emitting a
+  // relative target. Relative rewrites can resolve static files, but they do
+  // not reliably re-enter Astro's server renderer for on-demand routes such as
+  // /lab, /resources, and /resources/admin.
+  const destination = new URL(request.url);
+  destination.pathname = pathname;
+  destination.search = publicUrl.search;
+  return rewrite(destination);
+};
 
 export default function middleware(request) {
   const url = requestUrlWithForwardedHost(request);
@@ -50,7 +73,7 @@ export default function middleware(request) {
     if (canonicalRedirect) return permanentRedirect(canonicalRedirect);
 
     const internalPath = curationPathToInternalPath(url.pathname);
-    if (internalPath) return rewritePath(url, internalPath);
+    if (internalPath) return rewritePath(request, url, internalPath);
 
     const externalRedirect = getCurationSubdomainRedirect(url);
     return externalRedirect ? permanentRedirect(externalRedirect) : next();
@@ -61,7 +84,7 @@ export default function middleware(request) {
     if (canonicalRedirect) return permanentRedirect(canonicalRedirect);
 
     const internalPath = labDestination(url);
-    if (internalPath) return rewritePath(url, internalPath);
+    if (internalPath) return rewritePath(request, url, internalPath);
 
     const externalRedirect = getLabSubdomainRedirect(url);
     return externalRedirect ? permanentRedirect(externalRedirect) : next();
@@ -69,7 +92,7 @@ export default function middleware(request) {
 
   if (isPhotographyHostname(url.hostname)) {
     const internalPath = photographyDestination(url);
-    if (internalPath) return rewritePath(url, internalPath);
+    if (internalPath) return rewritePath(request, url, internalPath);
 
     const externalRedirect = getPhotosSubdomainRedirect(url);
     return externalRedirect ? permanentRedirect(externalRedirect) : next();

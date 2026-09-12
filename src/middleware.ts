@@ -1,6 +1,34 @@
 import { defineMiddleware } from 'astro:middleware';
 import { normalizePagePath } from './lib/urlNormalization.js';
 
+// ---------------------------------------------------------------------------
+// Subdomain routing helpers
+// ---------------------------------------------------------------------------
+// These were previously in the root middleware.js (Vercel Routing Middleware),
+// but Vercel ignores that file for Astro projects because @astrojs/vercel
+// builds its own routing config. The logic now lives here in Astro's own
+// middleware so it actually executes.
+// ---------------------------------------------------------------------------
+import {
+    curationPathToInternalPath,
+    getCurationCanonicalRedirect,
+    getCurationSubdomainRedirect,
+    getLegacyResourceRedirect,
+    isCurationHostname,
+} from './lib/curationRoutes.js';
+import {
+    getLabCanonicalRedirect,
+    getLabSubdomainRedirect,
+    isLabHostname,
+    labDestination,
+    legacyLabRedirectLocation,
+} from './lib/labRoutes.js';
+import {
+    getPhotosSubdomainRedirect,
+    isPhotographyHostname,
+    photographyDestination,
+} from './lib/photography/routing.mjs';
+
 const privatePagePatterns = [
     /^\/admin(?:\/|$)/,
     /^\/api(?:\/|$)/,
@@ -35,6 +63,9 @@ const canCachePublicPage = (context: PublicCacheContext, response: Response) => 
     return response.headers.get('content-type')?.includes('text/html') ?? false;
 };
 
+const permanentRedirect = (location: string) =>
+    new Response(null, { status: 308, headers: { Location: location } });
+
 export const onRequest = defineMiddleware(async (context, next) => {
     const rawHost = context.request.headers.get('x-forwarded-host') || context.request.headers.get('host');
     const requestUrl = new URL(context.request.url);
@@ -43,6 +74,70 @@ export const onRequest = defineMiddleware(async (context, next) => {
         requestUrl.host = primaryHost;
         requestUrl.hostname = primaryHost.split(':')[0].toLowerCase();
     }
+
+    // -----------------------------------------------------------------------
+    // Subdomain routing — rewrite subdomain requests to internal Astro pages
+    // -----------------------------------------------------------------------
+
+    // --- Curation subdomain (curation.abodid.com) ---
+    if (isCurationHostname(requestUrl.hostname)) {
+        // Canonical redirect: e.g. curation.abodid.com/resources/admin → curation.abodid.com/admin
+        const canonicalRedirect = getCurationCanonicalRedirect(requestUrl);
+        if (canonicalRedirect) return permanentRedirect(canonicalRedirect);
+
+        // Internal rewrite: map public curation paths to /resources/* pages
+        const internalPath = curationPathToInternalPath(requestUrl.pathname);
+        if (internalPath) {
+            return context.rewrite(`${internalPath}${requestUrl.search}`);
+        }
+
+        // External redirect: paths not part of curation go to main site
+        const externalRedirect = getCurationSubdomainRedirect(requestUrl);
+        if (externalRedirect) return permanentRedirect(externalRedirect);
+    }
+
+    // --- Lab subdomain (lab.abodid.com) ---
+    if (isLabHostname(requestUrl.hostname)) {
+        // Canonical redirect: e.g. lab.abodid.com/lab → lab.abodid.com/
+        const canonicalRedirect = getLabCanonicalRedirect(requestUrl);
+        if (canonicalRedirect) return permanentRedirect(canonicalRedirect);
+
+        // Internal rewrite: map public lab paths to /lab/* pages
+        const internalPath = labDestination(requestUrl);
+        if (internalPath) {
+            return context.rewrite(`${internalPath}${requestUrl.search}`);
+        }
+
+        // External redirect: paths not part of lab go to main site
+        const externalRedirect = getLabSubdomainRedirect(requestUrl);
+        if (externalRedirect) return permanentRedirect(externalRedirect);
+    }
+
+    // --- Photography subdomain (photos.abodid.com) ---
+    if (isPhotographyHostname(requestUrl.hostname)) {
+        // Internal rewrite: map public paths to /photography-portfolio/* pages
+        const internalPath = photographyDestination(requestUrl);
+        if (internalPath) {
+            return context.rewrite(`${internalPath}${requestUrl.search}`);
+        }
+
+        // External redirect: paths not part of photography go to main site
+        const externalRedirect = getPhotosSubdomainRedirect(requestUrl);
+        if (externalRedirect) return permanentRedirect(externalRedirect);
+    }
+
+    // --- Legacy redirects on main site ---
+    // abodid.com/resources/* → curation.abodid.com/*
+    const resourceRedirect = getLegacyResourceRedirect(requestUrl);
+    if (resourceRedirect) return permanentRedirect(resourceRedirect);
+
+    // abodid.com/lab, abodid.com/punctum, etc. → lab.abodid.com/*
+    const labRedirect = legacyLabRedirectLocation(requestUrl);
+    if (labRedirect) return permanentRedirect(labRedirect);
+
+    // -----------------------------------------------------------------------
+    // Trailing-slash normalization
+    // -----------------------------------------------------------------------
 
     if (requestUrl.pathname !== '/' && requestUrl.pathname.endsWith('/')) {
         const destination = `${normalizePagePath(requestUrl.pathname)}${requestUrl.search}`;
