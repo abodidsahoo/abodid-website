@@ -21,6 +21,12 @@ import {
   NAVIGATION_LAYOUTS,
   POINTER_VARIANTS,
 } from "../config/siteVariants.js";
+import {
+  curationUrl,
+  isCurationHostname,
+  legacyResourcePathToCurationPath,
+} from "../lib/curationRoutes.js";
+import { isLabHostname, labUrl } from "../lib/labRoutes.js";
 
 const {
   title,
@@ -73,6 +79,12 @@ const renderedPointerVariant = cursorFollowerEnabled
 // Resolve one authoritative SEO object. A published admin override wins,
 // followed by the page's own defaults.
 const pagePath = Astro.url.pathname;
+const hostnameCanonicalUrl = isCurationHostname(Astro.url.hostname)
+  ? curationUrl(legacyResourcePathToCurationPath(pagePath) || pagePath)
+  : isLabHostname(Astro.url.hostname)
+    ? labUrl(pagePath)
+    : undefined;
+const finalCanonicalUrl = canonicalUrl || hostnameCanonicalUrl;
 const dbMetadata = await getPageMetadata(pagePath);
 const resolvedSeo = resolvePageSeo({
   metadata: dbMetadata,
@@ -138,7 +150,7 @@ const googleFontsUrl =
       image={resolvedSeo.image}
       imageAlt={resolvedSeo.imageAlt}
       type={finalOgType}
-      canonicalUrl={canonicalUrl}
+      canonicalUrl={finalCanonicalUrl}
       useDynamicOgImage={finalUseDynamicOgImage}
       noindex={finalNoindex}
       robots={robots}

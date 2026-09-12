@@ -1,15 +1,5 @@
 import { defineMiddleware } from 'astro:middleware';
 import { normalizePagePath } from './lib/urlNormalization.js';
-import { photographyDestination, getPhotosSubdomainRedirect } from './lib/photography/routing.mjs';
-import { legacyVaultRedirectLocation } from './lib/vault-paths.js';
-import { legacyLabRedirectLocation, labDestination, getLabSubdomainRedirect } from './lib/labRoutes.js';
-import {
-    curationPathToInternalPath,
-    getCurationCanonicalRedirect,
-    getCurationSubdomainRedirect,
-    getLegacyResourceRedirect,
-    isCurationHostname,
-} from './lib/curationRoutes.js';
 
 const privatePagePatterns = [
     /^\/admin(?:\/|$)/,
@@ -54,95 +44,6 @@ export const onRequest = defineMiddleware(async (context, next) => {
         requestUrl.hostname = primaryHost.split(':')[0].toLowerCase();
     }
 
-    if (!context.isPrerendered) {
-        const legacyResourceRedirect = getLegacyResourceRedirect(requestUrl);
-        if (legacyResourceRedirect) {
-            return new Response(null, {
-                status: 308,
-                headers: { Location: legacyResourceRedirect },
-            });
-        }
-        const curationCanonicalRedirect = getCurationCanonicalRedirect(requestUrl);
-        if (curationCanonicalRedirect) {
-            return new Response(null, {
-                status: 308,
-                headers: { Location: curationCanonicalRedirect },
-            });
-        }
-        const curationSubdomainRedirect = getCurationSubdomainRedirect(requestUrl);
-        if (curationSubdomainRedirect) {
-            return new Response(null, {
-                status: 308,
-                headers: { Location: curationSubdomainRedirect },
-            });
-        }
-        const labRedirect = legacyLabRedirectLocation(requestUrl);
-        if (labRedirect) {
-            return new Response(null, {
-                status: 308,
-                headers: { Location: labRedirect },
-            });
-        }
-        const labSubdomainRedirect = getLabSubdomainRedirect(requestUrl);
-        if (labSubdomainRedirect) {
-            return new Response(null, {
-                status: 308,
-                headers: { Location: labSubdomainRedirect },
-            });
-        }
-        const photosSubdomainRedirect = getPhotosSubdomainRedirect(requestUrl);
-        if (photosSubdomainRedirect) {
-            return new Response(null, {
-                status: 308,
-                headers: { Location: photosSubdomainRedirect },
-            });
-        }
-        const vaultRedirect = legacyVaultRedirectLocation(requestUrl);
-        if (vaultRedirect) {
-            return new Response(null, {
-                status: 308,
-                headers: { Location: vaultRedirect },
-            });
-        }
-    }
-
-    const curationInternalPath = isCurationHostname(requestUrl.hostname)
-        ? curationPathToInternalPath(requestUrl.pathname)
-        : null;
-    if (curationInternalPath) {
-        const target = new URL(curationInternalPath, requestUrl);
-        target.search = requestUrl.search;
-        const response = await next(target);
-        if (response.status === 200) {
-            response.headers.set('Cache-Control', 'public, max-age=0, must-revalidate');
-            response.headers.set('Vercel-CDN-Cache-Control', 's-maxage=300, stale-while-revalidate=86400');
-        }
-        return response;
-    }
-
-    const labPath = labDestination(requestUrl);
-    if (labPath) {
-        const target = new URL(labPath, requestUrl);
-        target.search = requestUrl.search;
-        const response = await next(target);
-        if (response.status === 200) {
-            response.headers.set('Cache-Control', 'public, max-age=0, must-revalidate');
-            response.headers.set('Vercel-CDN-Cache-Control', 's-maxage=300, stale-while-revalidate=86400');
-        }
-        return response;
-    }
-    const photographyPath = photographyDestination(requestUrl);
-    if (photographyPath) {
-        const target = new URL(photographyPath, requestUrl);
-        target.search = requestUrl.search;
-        // next(url) rewrites once without re-entering domain middleware.
-        const response = await next(target);
-        if (response.status === 200) {
-            response.headers.set('Cache-Control', 'public, max-age=0, must-revalidate');
-            response.headers.set('Vercel-CDN-Cache-Control', 's-maxage=300, stale-while-revalidate=86400');
-        }
-        return response;
-    }
     if (requestUrl.pathname !== '/' && requestUrl.pathname.endsWith('/')) {
         const destination = `${normalizePagePath(requestUrl.pathname)}${requestUrl.search}`;
         return new Response(null, {
@@ -153,6 +54,12 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
     const nextWithPublicCache = async () => {
         const response = await next();
+
+        if (privatePagePatterns.some((pattern) => pattern.test(requestUrl.pathname))) {
+            response.headers.set('Cache-Control', 'private, no-store');
+            response.headers.set('Vercel-CDN-Cache-Control', 'no-store');
+            return response;
+        }
 
         if (canCachePublicPage({
             isPrerendered: context.isPrerendered,

@@ -5,6 +5,7 @@ import PolaroidScatter from "../../../components/PolaroidScatter.jsx";
 import ThemeWidget from "../../../components/ThemeWidget.jsx";
 import { getAllPhotography } from "../../../lib/api";
 import { featuredPhotography as mockPhotography } from "../../../utils/mockData";
+import { labUrl } from "../../../lib/labRoutes.js";
 
 // Safe Fetch Helper
 const safeFetch = async (fn, fallback) => {
@@ -81,6 +82,7 @@ const pageDescription =
 ---
 
 <BaseLayout
+    canonicalUrl={labUrl("/photo-board")}
     title={pageTitle}
     description={pageDescription}
     hideHeader={true}

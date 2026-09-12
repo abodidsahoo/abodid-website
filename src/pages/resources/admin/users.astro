@@ -2,10 +2,11 @@
 export const prerender = false;
 import BaseLayout from "../../../layouts/BaseLayout.astro";
 import ResourceAdminPanel from "../../../components/resources/ResourceAdminPanel";
+import { curationPath, curationUrl } from "../../../lib/curationRoutes.js";
 import "../../../styles/resources.css";
 import "../../../styles/resources-editorial.css";
 ---
 
-<BaseLayout title="People & Roles | Curation Admin" description="Manage Curation by Abodid people and roles." noindex={true} fullWidth={true} showGlobalGrid={false} bodyClass="resources-editorial-page" navigationVariant="next">
+<BaseLayout title="People & Roles | Curation Admin" description="Manage Curation by Abodid people and roles." canonicalUrl={curationUrl(curationPath.adminUsers)} noindex={true} fullWidth={true} showGlobalGrid={false} bodyClass="resources-editorial-page" navigationVariant="next">
   <ResourceAdminPanel client:only="react" view="users" />
 </BaseLayout>

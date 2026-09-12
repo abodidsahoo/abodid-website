@@ -1,52 +1,47 @@
-# Future Extraction: Migration to Subdomain
+# Curation subdomain architecture
 
-This guide outlines the steps to extract the Resources Hub (`/resources`) from the main personal site into a standalone application (e.g., `resources.abodid.com`).
+The Resources product is published as **Curation by Abodid** at
+`https://curation.abodid.com`. Its old `/resources` namespace remains in the
+Astro source only as an internal implementation path.
 
-## Why Extract?
-- **Isolation**: Separate dependencies and deploy cycles.
-- **Performance**: Distinct build pipeline; edge optimization.
-- **Scaling**: Easier to move to a dedicated database or backend if needed.
+## Public application routes
 
-## Migration Steps
+- `/` — resource catalogue
+- `/resource/:id` — resource detail
+- `/resource/:id/edit` — resource editor
+- `/submit`, `/saved`, and `/dashboard` — signed-in curator workflows
+- `/admin`, `/admin/review`, `/admin/analytics`, and `/admin/users` — Curation
+  administration
+- `/u/:username` — public curator profile
+- `/login` and `/auth/callback` — shared authentication routes
+- `/robots.txt` and `/sitemap.xml` — Curation-only discovery files
 
-### 1. Monorepo Restructuring
-If not already in a monorepo, move the current site to `apps/web` and create `apps/hub`.
-- Move `src/pages/resources` content to `apps/hub/src/pages/index.astro` (and children).
-- Move `src/lib/resources` to a shared package `packages/db` or copy to `apps/hub/src/lib`.
-- Move `src/components/resources` to `apps/hub/src/components`.
+The personal Site Workspace is separate: it remains at
+`https://abodid.com/admin/dashboard`. Curation's `/admin` must never be rewritten
+to the personal workspace, and the personal workspace must never be routed into
+Curation or the Obsidian vault.
 
-### 2. Vercel Configuration
-1. Create a new Project in Vercel.
-2. Link it to the same Git repository.
-3. **Important**: Set the **Root Directory** to `apps/hub` (or wherever you moved the code).
-4. Add the `resources.abodid.com` domain to this new project.
+## How routing works
 
-### 3. Database & Auth
-Since both apps share the same Supabase project:
-1. Go to **Supabase Dashboard > Authentication > URL Configuration**.
-2. Add `https://resources.abodid.com/**` to the **Redirect URLs**.
-3. Ensure Cookies work across subdomains if you want shared login (set cookie domain to `.abodid.com` in Supabase client config).
+`middleware.js` is Vercel Routing Middleware. It runs before the filesystem and
+maps Curation's public paths to the existing internal `/resources` pages. It
+also permanently redirects old `abodid.com/resources/*` links to their public
+Curation equivalents.
 
-### 4. Redirects (Main Site)
-Update the main site's `vercel.json` or `astro.config.mjs` to redirect traffic:
+`src/middleware.ts` remains Astro response middleware. It handles trailing-slash
+normalization and cache policy, but it does not perform hostname routing.
+`vercel.json` contains only platform-wide settings and the stable legacy
+Obsidian-vault redirects. There must not be a second set of Curation or Lab host
+rewrites there.
 
-```json
-{
-  "redirects": [
-    {
-      "source": "/resources",
-      "destination": "https://resources.abodid.com",
-      "permanent": true
-    },
-    {
-      "source": "/resources/:path*",
-      "destination": "https://resources.abodid.com/:path*",
-      "permanent": true
-    }
-  ]
-}
-```
+## Deployment requirements
 
-### 5. Cleanup
-- Remove `src/pages/resources` from the main site.
-- Keep `src/lib/resources` only if used by other parts (e.g., generic components), otherwise move to the new app.
+- `abodid.com`, `www.abodid.com`, `curation.abodid.com`, and `lab.abodid.com`
+  must point to the same Vercel project while these products share one build.
+- Supabase's allowed redirect URLs must include the exact Curation auth callback
+  and reset-password destinations used by the application.
+- Production environment variables must contain real values. Redacted values
+  pulled into `.vercel/.env.production.local` are suitable for inspection but
+  cannot be used for a local production build.
+- After a production deployment, verify all canonical and legacy URLs before
+  changing DNS or deleting internal source routes.

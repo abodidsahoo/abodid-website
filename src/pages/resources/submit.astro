@@ -3,6 +3,7 @@ export const prerender = false;
 
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import SubmissionForm from "../../components/resources/SubmissionForm";
+import { curationPath, curationUrl } from "../../lib/curationRoutes.js";
 import "../../styles/resources.css";
 import "../../styles/resources-editorial.css";
 
@@ -10,7 +11,7 @@ const title = "Submit a Resource";
 const description = "Share a useful tool or article with the community.";
 ---
 
-<BaseLayout title={title} description={description} fullWidth={true} showGlobalGrid={false} bodyClass="resources-editorial-page" navigationVariant="next">
+<BaseLayout title={title} description={description} canonicalUrl={curationUrl(curationPath.submit)} fullWidth={true} showGlobalGrid={false} bodyClass="resources-editorial-page" navigationVariant="next">
     <div class="resources-editorial" style="padding-block: 40px;">
         <div style="max-width: 760px; margin: 0 auto; padding: 0 16px;">
             <h1 class="sr-only">{title}</h1>

@@ -23,7 +23,7 @@ const mainUrl = (path: string) => isSubdomain ? `${mainOrigin}${path}` : path;
 const personalNavigationItems = [
   { href: mainUrl("/work"), label: "Work", active: !isLab && (pathname === "/work" || pathname.startsWith("/work/")) },
   { href: mainUrl("/research"), label: "Research", active: !isLab && (pathname === "/research" || pathname.startsWith("/research/")) },
-  { href: isLab ? "/" : "/lab", label: "Lab", active: isLab ? pathname === "/" || pathname.startsWith("/lab") || pathname.startsWith("/punctum") || pathname.startsWith("/image-flick") || pathname.startsWith("/photo-board") : (pathname === "/lab" || pathname.startsWith("/lab/")) },
+  { href: isLab ? "/" : "https://lab.abodid.com", label: "Lab", active: isLab ? pathname === "/" || pathname.startsWith("/lab") || pathname.startsWith("/punctum") || pathname.startsWith("/image-flick") || pathname.startsWith("/photo-board") : false },
   { href: mainUrl("/about"), label: "About", active: !isLab && (pathname === "/about" || pathname.startsWith("/about/")) },
 ];
 const curationNavigationItems = [

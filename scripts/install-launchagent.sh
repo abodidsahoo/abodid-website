@@ -35,23 +35,23 @@ PROJECT_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd -P)"
 NVM_DIR="${NVM_DIR:-${HOME}/.nvm}"
 NVM_SCRIPT="${NVM_DIR}/nvm.sh"
 
-[[ -s "${NVM_SCRIPT}" ]] || fail "nvm was not found at ${NVM_SCRIPT}. Install it from https://github.com/nvm-sh/nvm#installing-and-updating, then install Node 20."
+[[ -s "${NVM_SCRIPT}" ]] || fail "nvm was not found at ${NVM_SCRIPT}. Install it from https://github.com/nvm-sh/nvm#installing-and-updating, then install Node 24."
 
 # nvm uses optional shell variables internally, so nounset is disabled only while loading it.
 set +u
 # shellcheck source=/dev/null
 source "${NVM_SCRIPT}"
-NODE_PATH="$(nvm which 20 2>/dev/null || true)"
+NODE_PATH="$(nvm which 24 2>/dev/null || true)"
 set -u
-[[ -n "${NODE_PATH}" && -x "${NODE_PATH}" ]] || fail "Node 20 is not installed in nvm. Run: nvm install 20"
+[[ -n "${NODE_PATH}" && -x "${NODE_PATH}" ]] || fail "Node 24 is not installed in nvm. Run: nvm install 24"
 
 NODE_MAJOR="$("${NODE_PATH}" -p 'process.versions.node.split(".")[0]')"
-[[ "${NODE_MAJOR}" == "20" ]] || fail "Expected Node 20, but ${NODE_PATH} reports a different version."
+[[ "${NODE_MAJOR}" == "24" ]] || fail "Expected Node 24, but ${NODE_PATH} reports a different version."
 
 ASTRO_BIN="${PROJECT_ROOT}/node_modules/.bin/astro"
 [[ -f "${ASTRO_BIN}" ]] || fail "Astro is missing. Run npm install in ${PROJECT_ROOT} first."
 
-printf '✓ Node 20 found at %s\n' "${NODE_PATH}"
+printf '✓ Node 24 found at %s\n' "${NODE_PATH}"
 printf '✓ Astro found at %s\n' "${ASTRO_BIN}"
 printf '✓ Project found at %s\n' "${PROJECT_ROOT}"
 

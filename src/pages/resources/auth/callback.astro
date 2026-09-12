@@ -2,8 +2,9 @@
 export const prerender = false;
 
 import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { curationPath, curationUrl } from '../../../lib/curationRoutes.js';
 ---
-<BaseLayout title='Verifying User...'>
+<BaseLayout title='Verifying User...' canonicalUrl={curationUrl(curationPath.authCallback)} noindex={true}>
   <div style='display:flex; justify-content:center; align-items:center; height:60vh; color:white;'>
     Completing login...
   </div>

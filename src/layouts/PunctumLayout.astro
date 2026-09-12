@@ -1,10 +1,12 @@
 ---
 import ExperimentLayout from "./ExperimentLayout.astro";
+import { labUrl } from "../lib/labRoutes.js";
 
 const {
   title = "Punctum — A photographic research experiment",
   description = "Draw the one part of the photograph that stays with you.",
   lockViewport = false,
+  canonicalUrl,
 } = Astro.props;
 
 const punctumPath = Astro.url.pathname.replace(/\/+$/, "");
@@ -13,11 +15,13 @@ const initialProgress = punctumPath.startsWith("/lab/punctum/results")
   : punctumPath === "/lab/punctum/experiment"
     ? 0.05
     : 0.025;
+const resolvedCanonicalUrl = canonicalUrl || labUrl(punctumPath);
 ---
 
 <ExperimentLayout
   title={title}
   description={description}
+  canonicalUrl={resolvedCanonicalUrl}
   bodyClass="punctum-page"
   hideHeader={true}
   hideFooter={true}

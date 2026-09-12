@@ -1,18 +1,37 @@
+export const LAB_HOSTNAME = "lab.abodid.com";
+export const LAB_ORIGIN = `https://${LAB_HOSTNAME}`;
+
+const PRIMARY_SITE_HOSTNAMES = new Set(["abodid.com", "www.abodid.com"]);
+
 const legacyLabRoutes = [
-  ["/research/lab", "/lab"],
-  ["/research/punctum", "/lab/punctum"],
-  ["/punctum", "/lab/punctum"],
-  ["/research/gesture-image-preview", "/lab/image-flick"],
-  ["/research/polaroid-hub", "/lab/photo-board"],
+  ["/research/lab", "/"],
+  ["/research/punctum", "/punctum"],
+  ["/punctum", "/punctum"],
+  ["/research/gesture-image-preview", "/image-flick"],
+  ["/research/polaroid-hub", "/photo-board"],
 ];
 
 const withoutTrailingSlash = (pathname) =>
   pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
 
 export const legacyLabRedirectLocation = (url) => {
+  if (!PRIMARY_SITE_HOSTNAMES.has(normalizeHostname(url.hostname))) return null;
+
   const pathname = withoutTrailingSlash(url.pathname);
 
-  for (const [legacyBase, labBase] of legacyLabRoutes) {
+  if (pathname === "/lab") {
+    return `${LAB_ORIGIN}/${url.search}`;
+  }
+
+  for (const publicBase of ["/punctum", "/image-flick", "/photo-board"]) {
+    const internalBase = `/lab${publicBase}`;
+    if (pathname === internalBase || pathname.startsWith(`${internalBase}/`)) {
+      const publicPath = pathname.slice("/lab".length);
+      return `${LAB_ORIGIN}${publicPath}${url.search}`;
+    }
+  }
+
+  for (const [legacyBase, publicBase] of legacyLabRoutes) {
     if (pathname !== legacyBase && !pathname.startsWith(`${legacyBase}/`)) continue;
 
     let suffix = pathname.slice(legacyBase.length);
@@ -25,13 +44,11 @@ export const legacyLabRedirectLocation = (url) => {
       suffix = "";
     }
 
-    return `${labBase}${suffix}${url.search}`;
+    return `${LAB_ORIGIN}${publicBase}${suffix}${url.search}`;
   }
 
   return null;
 };
-
-export const LAB_HOSTNAME = "lab.abodid.com";
 
 const normalizeHostname = (hostname = "") =>
   hostname.trim().toLowerCase().replace(/:\d+$/, "");
@@ -44,6 +61,8 @@ export const isLabHostname = (hostname) => {
 export const labDestination = (url) => {
   if (!isLabHostname(url.hostname)) return null;
   if (url.pathname === "/") return "/lab";
+  if (url.pathname === "/robots.txt") return "/lab-robots.txt";
+  if (url.pathname === "/sitemap.xml") return "/lab-sitemap.xml";
   if (url.pathname === "/punctum" || url.pathname.startsWith("/punctum/")) {
     return `/lab${url.pathname}`;
   }
@@ -54,6 +73,25 @@ export const labDestination = (url) => {
     return `/lab${url.pathname}`;
   }
   return null;
+};
+
+export const labPublicPath = (pathname = "/") => {
+  const normalized = withoutTrailingSlash(pathname) || "/";
+  if (normalized === "/lab") return "/";
+  if (normalized.startsWith("/lab/")) return normalized.slice("/lab".length);
+  return normalized;
+};
+
+export const labUrl = (pathname = "/") =>
+  new URL(labPublicPath(pathname), `${LAB_ORIGIN}/`).toString();
+
+export const getLabCanonicalRedirect = (url) => {
+  if (!isLabHostname(url.hostname)) return null;
+  if (url.pathname !== "/lab" && !url.pathname.startsWith("/lab/")) return null;
+
+  const destination = new URL(labPublicPath(url.pathname), `${LAB_ORIGIN}/`);
+  destination.search = url.search;
+  return destination.toString();
 };
 
 export const isLabOnlyPath = (pathname = "") => {
@@ -76,4 +114,3 @@ export const getLabSubdomainRedirect = (url) => {
   if (isLabOnlyPath(url.pathname)) return null;
   return `https://abodid.com${url.pathname}${url.search}`;
 };
-

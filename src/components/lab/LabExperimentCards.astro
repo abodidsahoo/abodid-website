@@ -1,5 +1,6 @@
 ---
 import { labExperiments } from "../../data/labExperiments";
+import { labUrl } from "../../lib/labRoutes.js";
 
 interface Props {
   title?: string;
@@ -14,7 +15,7 @@ const {
 } = Astro.props;
 
 const experimentHref = (href: string) =>
-  absoluteLinks ? new URL(href, "https://abodid.com").toString() : href;
+  absoluteLinks ? labUrl(href) : href;
 ---
 
 <section class="lab-catalogue" aria-labelledby="lab-catalogue-title">

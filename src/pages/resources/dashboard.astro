@@ -2,6 +2,7 @@
 export const prerender = false;
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import UnifiedDashboard from "../../components/resources/UnifiedDashboard";
+import { curationPath, curationUrl } from "../../lib/curationRoutes.js";
 import "../../styles/resources.css";
 import "../../styles/resources-editorial.css";
 
@@ -9,7 +10,7 @@ const title = "Resource Dashboard";
 const description = "Manage your resources, submissions, and bookmarks.";
 ---
 
-<BaseLayout title={title} description={description} fullWidth={true} showGlobalGrid={false} bodyClass="resources-editorial-page" navigationVariant="next">
+<BaseLayout title={title} description={description} canonicalUrl={curationUrl(curationPath.dashboard)} noindex={true} fullWidth={true} showGlobalGrid={false} bodyClass="resources-editorial-page" navigationVariant="next">
     <div class="resources-editorial">
         <UnifiedDashboard client:load />
     </div>

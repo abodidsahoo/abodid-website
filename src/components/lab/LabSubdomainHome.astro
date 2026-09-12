@@ -16,7 +16,7 @@ import LabExperimentCards from "./LabExperimentCards.astro";
 
     <aside class="lab-home__cta">
       <p>Everything here is made to be entered, moved, tested, and reconsidered.</p>
-      <a href="https://abodid.com/lab">
+      <a href="#experiments">
         <span>Open the experiments</span>
         <span aria-hidden="true">→</span>
       </a>
@@ -48,17 +48,19 @@ import LabExperimentCards from "./LabExperimentCards.astro";
     </div>
   </section>
 
-  <LabExperimentCards
-    title="Selected experiments"
-    introduction="A changing set of public prototypes. Each card takes you to the canonical live experiment on abodid.com."
-    absoluteLinks={true}
-  />
+  <div id="experiments">
+    <LabExperimentCards
+      title="Selected experiments"
+      introduction="A changing set of public prototypes. Every experiment now lives here in the Lab."
+      absoluteLinks={true}
+    />
+  </div>
 
   <section class="lab-home__closing">
     <p class="lab-home__label">The collection will keep changing</p>
     <h2>Follow the questions,<br />then touch the work.</h2>
-    <a href="https://abodid.com/lab">
-      <span>Visit abodid.com/lab</span>
+    <a href="#experiments">
+      <span>Open the experiments</span>
       <span aria-hidden="true">↗</span>
     </a>
   </section>

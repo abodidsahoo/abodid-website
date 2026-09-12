@@ -4,6 +4,7 @@ import ExperimentLayout from "../../../layouts/ExperimentLayout.astro";
 import GestureImagePreviewLab from "../../../components/experiments/GestureImagePreviewLab.jsx";
 import ForceDarkMode from "../../../components/ForceDarkMode.astro";
 import { getAllPhotography } from "../../../lib/api";
+import { labUrl } from "../../../lib/labRoutes.js";
 
 const pageTitle = "Image Flick — Gesture-controlled photography experiment";
 const pageDescription =
@@ -63,6 +64,7 @@ if (images.length === 0) {
 <ExperimentLayout
     title={pageTitle}
     description={pageDescription}
+    canonicalUrl={labUrl("/image-flick")}
     lockViewport={true}
     bodyClass="gesture-image-preview-page"
 >

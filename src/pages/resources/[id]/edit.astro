@@ -6,6 +6,7 @@ import { supabase } from "../../../lib/supabaseClient";
 import { getCurrentProfile } from "../../../lib/resources/db";
 import EditResourceForm from "../../../components/resources/EditResourceForm";
 import type { HubResource } from "../../../lib/resources/types";
+import { curationPath, curationUrl } from "../../../lib/curationRoutes.js";
 import "../../../styles/resources.css";
 import "../../../styles/resources-editorial.css";
 
@@ -51,7 +52,7 @@ if (!resource) {
 const title = `Edit ${resource.title}`;
 ---
 
-<BaseLayout title={title} fullWidth={true} showGlobalGrid={false} bodyClass="resources-editorial-page" navigationVariant="next">
+<BaseLayout title={title} canonicalUrl={curationUrl(curationPath.editResource(id || ""))} noindex={true} fullWidth={true} showGlobalGrid={false} bodyClass="resources-editorial-page" navigationVariant="next">
     <div class="resources-editorial resource-edit-page">
         <EditResourceForm client:load resource={resource} />
     </div>

@@ -6,6 +6,7 @@ const {
     description,
     image,
     type = "website",
+    canonicalUrl,
     bodyClass = "",
     gridVariant = "default",
     showGlobalGrid = false,
@@ -22,6 +23,7 @@ const mergedBodyClass = ["experiment-page", bodyClass].filter(Boolean).join(" ")
     description={description}
     image={image}
     type={type}
+    canonicalUrl={canonicalUrl}
     fullWidth={true}
     hideHeader={hideHeader}
     hideFooter={hideFooter}

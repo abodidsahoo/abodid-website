@@ -1,44 +1,26 @@
 ---
-// Redeploy: clears stale CDN asset at /lab (was serving a PNG instead of this page)
 export const prerender = false;
 
-import LabIndexView from "../../components/lab/LabIndexView.astro";
 import LabSubdomainHome from "../../components/lab/LabSubdomainHome.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
-
-const forwardedHost = Astro.request.headers
-  .get("x-forwarded-host")
-  ?.split(",")[0]
-  ?.trim();
-const requestHost = (forwardedHost || Astro.url.host).split(":")[0].toLowerCase();
-const isLabSubdomain = requestHost === "lab.abodid.com" || requestHost === "lab.localhost";
-
-const title = isLabSubdomain
-  ? "Abodid Lab — Experiments in images, attention, and interaction"
-  : "Lab — Interactive experiments by Abodid Sahoo";
-const description = isLabSubdomain
-  ? "Abodid Sahoo's experimental practice across photography, visual attention, gesture-led interfaces, and participatory technology."
-  : "Explore Punctum, Image Flick, and Photo Board: interactive experiments in photography, visual attention, and gesture-led interfaces by Abodid Sahoo.";
 ---
 
 <BaseLayout
-  title={title}
-  description={description}
-  canonicalUrl={isLabSubdomain ? "https://lab.abodid.com/" : "https://abodid.com/lab"}
+  title="Abodid Lab — Experiments in images, attention, and interaction"
+  description="Abodid Sahoo's experimental practice across photography, visual attention, gesture-led interfaces, and participatory technology."
+  canonicalUrl="https://lab.abodid.com/"
   fullWidth={true}
   showGlobalGrid={false}
-  bodyClass={isLabSubdomain ? "lab-subdomain-page" : "lab-index-page"}
+  bodyClass="lab-subdomain-page"
 >
-  {isLabSubdomain ? <LabSubdomainHome /> : <LabIndexView />}
+  <LabSubdomainHome />
 </BaseLayout>
 
 <style is:global>
-  html:has(body.lab-index-page),
   html:has(body.lab-subdomain-page) {
     background: #2444ca !important;
   }
 
-  body.lab-index-page,
   body.lab-subdomain-page {
     margin: 0;
     padding: 0 !important;

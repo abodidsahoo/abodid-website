@@ -2,10 +2,11 @@
 export const prerender = false;
 import BaseLayout from "../../../layouts/BaseLayout.astro";
 import ResourceAdminPanel from "../../../components/resources/ResourceAdminPanel";
+import { curationPath, curationUrl } from "../../../lib/curationRoutes.js";
 import "../../../styles/resources.css";
 import "../../../styles/resources-editorial.css";
 ---
 
-<BaseLayout title="Curation Admin" description="Manage the Curation by Abodid library." noindex={true} fullWidth={true} showGlobalGrid={false} bodyClass="resources-editorial-page" navigationVariant="next">
+<BaseLayout title="Curation Admin" description="Manage the Curation by Abodid library." canonicalUrl={curationUrl(curationPath.admin)} noindex={true} fullWidth={true} showGlobalGrid={false} bodyClass="resources-editorial-page" navigationVariant="next">
   <ResourceAdminPanel client:only="react" view="dashboard" />
 </BaseLayout>
