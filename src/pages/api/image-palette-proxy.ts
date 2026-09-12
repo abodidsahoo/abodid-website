@@ -51,6 +51,7 @@ export const GET: APIRoute = async ({ request }) => {
         "Content-Type": contentType,
         "Cache-Control": "public, max-age=86400, s-maxage=604800, stale-while-revalidate=2592000",
         "X-Content-Type-Options": "nosniff",
+        "Access-Control-Allow-Origin": "*",
       },
     });
   } catch {

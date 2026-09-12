@@ -1,27 +1,134 @@
 ---
 export const prerender = false;
 
-import LabSubdomainHome from "../../components/lab/LabSubdomainHome.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
+import LabExperimentCards from "../../components/lab/LabExperimentCards.astro";
 ---
 
 <BaseLayout
-  title="Abodid Lab — Experiments in images, attention, and interaction"
-  description="Abodid Sahoo's experimental practice across photography, visual attention, gesture-led interfaces, and participatory technology."
+  title="Media Lab — Abodid Sahoo"
+  description="Inspired by the MIT Media Lab and Google Creative Lab, this is my playground for all the things I build at the crossover of technology and art."
   canonicalUrl="https://abodid.com/lab"
   fullWidth={true}
   showGlobalGrid={false}
-  bodyClass="lab-subdomain-page"
+  bodyClass="lab-page"
 >
-  <LabSubdomainHome />
+  <div class="media-lab">
+    <section class="media-lab__hero" aria-labelledby="media-lab-title">
+      <div class="media-lab__grid">
+        <div class="media-lab__card media-lab__card--title">
+          <h1 id="media-lab-title">Media<br />Lab</h1>
+        </div>
+
+        <div class="media-lab__card media-lab__card--intro">
+          <p class="media-lab__lede">
+            Inspired by the MIT Media Lab and Google Creative Lab, this is my playground for all the things I build at the crossover of technology and art.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <div id="experiments">
+      <LabExperimentCards
+        title="Selected Experiments"
+        introduction="This is where I play with images, code, and culture to build interactive storytelling experiences."
+        absoluteLinks={false}
+      />
+    </div>
+  </div>
 </BaseLayout>
 
+<style>
+  .media-lab {
+    --pop-blue: #2444ca;
+    --pop-pink: #ff7eb5;
+    --pop-yellow: #ffe44f;
+    --pop-purple: #5524c7;
+    --pop-cream: #fff8e8;
+    --pop-ink: #15130f;
+    background: var(--pop-blue);
+    color: var(--pop-ink);
+  }
+
+  .media-lab__hero {
+    padding: clamp(3.5rem, 6vw, 5.5rem) clamp(1rem, 6vw, 6rem) 0;
+    background: var(--pop-blue);
+  }
+
+  .media-lab__grid {
+    width: min(100%, 1480px);
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(360px, 1.35fr);
+    gap: 8px;
+  }
+
+  .media-lab__card {
+    border: 1px solid rgba(21, 19, 15, 0.78);
+    border-radius: clamp(18px, 2vw, 28px);
+    padding: clamp(2.5rem, 4.5vw, 4.8rem);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: clamp(320px, 40vh, 480px);
+  }
+
+  .media-lab__card--title {
+    background: var(--pop-pink);
+    color: var(--pop-ink);
+  }
+
+  .media-lab__card--intro {
+    background: var(--pop-yellow);
+    color: var(--pop-ink);
+  }
+
+  .media-lab__card :is(h1, p) {
+    color: inherit;
+  }
+
+  .media-lab h1 {
+    margin: 0;
+    font: 620 clamp(3.2rem, 6.5vw, 6.2rem)/0.88 var(--font-display);
+    letter-spacing: -0.065em;
+    text-wrap: balance;
+  }
+
+  .media-lab__lede {
+    max-width: 52rem;
+    margin: 0;
+    font: 450 clamp(1.25rem, 1.8vw, 1.85rem)/1.32 var(--font-display);
+    letter-spacing: -0.015em;
+    text-wrap: pretty;
+  }
+
+  @media (max-width: 980px) {
+    .media-lab__grid {
+      grid-template-columns: 1fr;
+    }
+
+    .media-lab__card {
+      min-height: auto;
+      padding: 2rem 1.6rem;
+    }
+
+    .media-lab h1 {
+      font-size: clamp(2.8rem, 12vw, 4.5rem);
+    }
+
+    .media-lab__lede {
+      font-size: 1.15rem;
+      line-height: 1.4;
+    }
+  }
+</style>
+
 <style is:global>
-  html:has(body.lab-subdomain-page) {
+  html:has(body.lab-page) {
     background: #2444ca !important;
   }
 
-  body.lab-subdomain-page {
+  body.lab-page {
     margin: 0;
     padding: 0 !important;
     background: #2444ca !important;

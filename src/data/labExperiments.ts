@@ -11,7 +11,7 @@ export type LabExperiment = {
   href: string;
   thumbnail: string;
   thumbnailAlt: string;
-  surface: "pink" | "blue" | "yellow";
+  surface: "pink" | "blue" | "yellow" | "cream" | "lime";
 };
 
 export const labExperiments: LabExperiment[] = [
@@ -26,8 +26,8 @@ export const labExperiments: LabExperiment[] = [
     year: "2026",
     href: "/lab/punctum",
     thumbnail:
-      "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/research/covers/1769636977430_msh94w5fk.jpg",
-    thumbnailAlt: "A photograph from the Punctum visual-attention experiment",
+      "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/gif/punctum-walkthrough-abodid-shorter-duration.gif",
+    thumbnailAlt: "Interactive walkthrough animation of the Punctum visual-attention experiment",
     surface: "pink",
   },
   {
@@ -42,7 +42,7 @@ export const labExperiments: LabExperiment[] = [
     href: "/lab/image-flick",
     thumbnail: GESTURE_CONTROL_HERO_GIF_URL,
     thumbnailAlt: "A hand gesture controlling a stack of digital photographs",
-    surface: "blue",
+    surface: "yellow",
   },
   {
     id: "photo-board",
@@ -57,6 +57,20 @@ export const labExperiments: LabExperiment[] = [
     thumbnail:
       "https://assets.abodid.com/photos/variants/exhibition-photos/1600/breathe-variations-rca-2023-abodid-sahoo-12-d06e2bea64.webp",
     thumbnailAlt: "Visitors moving through Abodid Sahoo's Breathe Variations exhibition",
-    surface: "yellow",
+    surface: "cream",
+  },
+  {
+    id: "glyph-loom",
+    index: "04",
+    title: "Glyph Loom",
+    description:
+      "A generative typography instrument that reconstructs live letterforms from modular bars, dots, crosses, and woven structures.",
+    discipline: "Generative typography · Creative coding",
+    status: "Live",
+    year: "2026",
+    href: "/lab/glyph-loom",
+    thumbnail: "/images/research/glyph-loom-cover.png",
+    thumbnailAlt: "Generative typography outlines in the Glyph Loom instrument",
+    surface: "lime",
   },
 ];

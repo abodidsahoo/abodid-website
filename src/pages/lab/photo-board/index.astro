@@ -3,6 +3,7 @@ export const prerender = false;
 import BaseLayout from "../../../layouts/BaseLayout.astro";
 import PolaroidScatter from "../../../components/PolaroidScatter.jsx";
 import ThemeWidget from "../../../components/ThemeWidget.jsx";
+import PhotoBoardNav from "../../../components/PhotoBoardNav.jsx";
 import { getAllPhotography } from "../../../lib/api";
 import { featuredPhotography as mockPhotography } from "../../../utils/mockData";
 import { labUrl } from "../../../lib/labRoutes.js";
@@ -17,7 +18,8 @@ const safeFetch = async (fn, fallback) => {
     }
 };
 
-const portfolioProjects = await safeFetch(getAllPhotography, mockPhotography);
+const rawProjects = await safeFetch(getAllPhotography, mockPhotography);
+const portfolioProjects = (Array.isArray(rawProjects) && rawProjects.length > 0) ? rawProjects : mockPhotography;
 
 function hashString(value) {
     let hash = 2166136261;
@@ -78,6 +80,8 @@ allImages = allImages.sort((left, right) =>
     ),
 );
 
+console.log(">>> Photo Board SSR images count:", allImages.length);
+
 const pageTitle = "Photo Board — Interactive Polaroid scatter";
 const pageDescription =
     "Browse Abodid Sahoo's photography archive as an immersive, draggable scatter of Polaroid-style image cards.";
@@ -89,20 +93,15 @@ const pageDescription =
     description={pageDescription}
     hideHeader={true}
     fullWidth={true}
+    hideWhatsAppButton={true}
 >
-    <div class="hub-controls">
-        <a href="/lab" class="home-button">Lab</a>
-        <div class="hub-instructions" aria-label="How to use Photo Board">
-            <p>Click and drag to uncover more portraits beneath the stack.</p>
-            <p>Click any photograph to enlarge it and view its color palette.</p>
-        </div>
-    </div>
+    <PhotoBoardNav client:only="react" />
+    <ThemeWidget client:only="react" />
 
-    <ThemeWidget client:idle />
     <main class="polaroid-hub-immersive">
         <h1 class="sr-only">Photo Board</h1>
         {/* Pass ALL images */}
-        <PolaroidScatter items={allImages} client:load immersive={true} deepLinkParam="photo" />
+        <PolaroidScatter items={allImages} client:only="react" immersive={true} deepLinkParam="photo" />
     </main>
 </BaseLayout>
 
@@ -122,49 +121,48 @@ const pageDescription =
 
         /* BACKGROUND STYLES (Migrated from React for instant load) */
 
-        /* --- OPTION B: DARK TEXTURED STUDIO (ACTIVE - INFINITE SCROLL) --- */
-        background-color: var(--polaroid-hub-bg, #080808);
+        /* --- OPTION B: POP EDITORIAL STUDIO BACKDROP (INFINITE SCROLL) --- */
+        background-color: var(--polaroid-hub-bg, #fff8e8);
+        transition: background-color 0.3s ease;
 
-        /* PERF NOTE: This many layered gradients + noise can be GPU/paint heavy,
-           especially with hundreds of moving/shadowed elements on top. */
+        /* PERF NOTE: Layered subtle grid + texture for editorial pop vibe */
         background-image: 
-            /* LAYER 1: THE GRID (Moved to Top! White, Higher Opacity, Thicker) */
+            /* LAYER 1: THE GRID */
             linear-gradient(
                 to right,
-                rgba(255, 255, 255, 0.09) 2.5px,
-                transparent 2.5px
+                var(--polaroid-hub-grid-line, rgba(21, 19, 15, 0.09)) 2px,
+                transparent 2px
             ),
             linear-gradient(
                 to bottom,
-                rgba(255, 255, 255, 0.09) 2.5px,
-                transparent 2.5px
+                var(--polaroid-hub-grid-line, rgba(21, 19, 15, 0.09)) 2px,
+                transparent 2px
             ),
-            /* LAYER 2: VIGNETTE & SEAM BLENDING (Topmost blend layer for seams) */
-            /* SOLID BLACK at edges to guarantee perfect tile blending */
+            /* LAYER 2: VIGNETTE & SEAM BLENDING */
             linear-gradient(
                     to bottom,
-                    var(--polaroid-hub-bg, #080808) 0%,
-                    var(--polaroid-hub-bg, #080808) 15%,
+                    var(--polaroid-hub-bg, #fff8e8) 0%,
+                    var(--polaroid-hub-bg, #fff8e8) 15%,
                     transparent 30%,
                     transparent 70%,
-                    var(--polaroid-hub-bg, #080808) 85%,
-                    var(--polaroid-hub-bg, #080808) 100%
+                    var(--polaroid-hub-bg, #fff8e8) 85%,
+                    var(--polaroid-hub-bg, #fff8e8) 100%
                 ),
             /* LAYER 3: NOISE TEXTURE */
-            url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.07'/%3E%3C/svg%3E"),
-            /* LAYER 4: CONICAL WINDOW LIGHT (Left - Bright Beige) - Centered vertically in tile */
+            url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.06'/%3E%3C/svg%3E"),
+            /* LAYER 4: CONICAL WINDOW LIGHT (Left - Bright Beige) */
             radial-gradient(
                     ellipse at -10% 40%,
                     rgba(245, 240, 220, 0.08) 0%,
                     transparent 60%
                 ),
-            /* LAYER 5: SIDE FILL LIGHT (Right - Warm Beige) - Centered vertically in tile */
+            /* LAYER 5: SIDE FILL LIGHT (Right - Warm Beige) */
             radial-gradient(
                     ellipse at 110% 60%,
                     rgba(245, 235, 210, 0.05) 0%,
                     transparent 50%
                 ),
-            /* LAYER 6: TEXTURE CLOUDS - Centered */
+            /* LAYER 6: TEXTURE CLOUDS */
             radial-gradient(
                     circle at 40% 50%,
                     rgba(255, 255, 255, 0.015) 0%,
@@ -201,101 +199,7 @@ const pageDescription =
             repeat-y;
     }
 
-    /* REMOVED ::before - Grid is now in main stack */
     .polaroid-hub-immersive::before {
         display: none;
-    }
-
-    .home-button {
-        display: inline-block;
-        background: var(--polaroid-hub-control-bg, rgba(10, 10, 10, 0.18));
-        color: var(--polaroid-hub-control-text, rgba(255, 255, 255, 0.92));
-        padding: 0.8rem 1.2rem;
-        font-family: var(--font-mono);
-        text-decoration: none;
-        font-weight: 400;
-        font-size: 0.95rem;
-        line-height: 1.1;
-        border-radius: 6px;
-        border: 1px solid
-            var(--polaroid-hub-control-border, rgba(255, 255, 255, 0.34));
-        box-shadow: var(--polaroid-hub-control-shadow, 0 4px 16px rgba(0, 0, 0, 0.16));
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        transition:
-            transform 0.2s ease,
-            border-color 0.2s ease;
-    }
-
-    .home-button:hover {
-        transform: translateY(-2px);
-        border-color: var(--polaroid-hub-control-text, rgba(255, 255, 255, 0.92));
-    }
-
-    .hub-controls {
-        position: fixed;
-        top: 2rem;
-        left: 2rem;
-        z-index: 1000;
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.65rem;
-        max-width: min(20rem, calc(100vw - 4rem));
-    }
-
-    .hub-instructions {
-        margin-left: 0;
-        padding: 0.72rem 0.85rem 0.78rem;
-        position: relative;
-        overflow: hidden;
-        isolation: isolate;
-        background: transparent;
-        color: rgba(255, 255, 255, 0.92);
-        font-family: var(--font-mono);
-        font-size: 0.52rem;
-        line-height: 1.42;
-        letter-spacing: 0.03em;
-        opacity: 0.94;
-        text-wrap: balance;
-        pointer-events: none;
-        max-width: 18rem;
-        border-radius: 8px;
-        border: none;
-        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.14);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-    }
-
-    .hub-instructions::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        border-radius: inherit;
-        z-index: 0;
-        pointer-events: none;
-        background: linear-gradient(
-            135deg,
-            var(
-                --polaroid-hub-instruction-current-from,
-                color-mix(in srgb, var(--color-brand-red) 78%, #ffffff 22%)
-            )
-                0%,
-            var(
-                --polaroid-hub-instruction-current-to,
-                color-mix(in srgb, var(--color-brand-red) 52%, #ffffff 48%)
-            )
-                100%
-        );
-    }
-
-    .hub-instructions p {
-        margin: 0;
-        position: relative;
-        z-index: 1;
-    }
-
-    .hub-instructions p + p {
-        margin-top: 1rem;
     }
 </style>

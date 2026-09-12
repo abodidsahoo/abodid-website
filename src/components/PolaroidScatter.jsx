@@ -70,7 +70,8 @@ const buildInstructionTheme = (accentColor) => {
     };
 };
 
-const PolaroidScatter = ({ items, immersive = false, deepLinkParam = '' }) => {
+const PolaroidScatter = ({ items = [], immersive = false, deepLinkParam = '' }) => {
+    const [isMounted, setIsMounted] = useState(false);
     const [selectedId, setSelectedId] = useState(null);
     const containerRef = useRef(null);
     const [scatteredItems, setScatteredItems] = useState([]);
@@ -91,6 +92,10 @@ const PolaroidScatter = ({ items, immersive = false, deepLinkParam = '' }) => {
     const activeInstructionImageRef = useRef('');
     const selectedIdRef = useRef(null);
     const scatteredItemsRef = useRef([]);
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
 
     // Track Background Brightness for UI Adaptivity
     useEffect(() => {
@@ -180,13 +185,30 @@ const PolaroidScatter = ({ items, immersive = false, deepLinkParam = '' }) => {
         );
     }, [deepLinkKey]);
 
+    const [fetchedItems, setFetchedItems] = useState([]);
+
+    useEffect(() => {
+        if (!items || items.length === 0) {
+            fetch('/api/all-photos.json')
+                .then(res => res.json())
+                .then(data => {
+                    if (Array.isArray(data) && data.length > 0) {
+                        setFetchedItems(data);
+                    }
+                })
+                .catch(err => console.error('Failed to fetch fallback photos:', err));
+        }
+    }, [items]);
+
+    const activeSourceItems = (items && items.length > 0) ? items : fetchedItems;
+
     // Initial random scatter (Pre-Chunked Units + Spiral Wave)
     useEffect(() => {
-        if (items.length > 0 && scatteredItems.length === 0) {
+        if (activeSourceItems.length > 0 && scatteredItems.length === 0) {
 
             // 1. Group items by Story (slug)
             const storyGroups = {};
-            items.forEach(item => {
+            activeSourceItems.forEach(item => {
                 const s = item.slug || 'misc';
                 if (!storyGroups[s]) storyGroups[s] = [];
                 storyGroups[s].push(item);
@@ -328,11 +350,40 @@ const PolaroidScatter = ({ items, immersive = false, deepLinkParam = '' }) => {
                 t += 1.2 + rand(-0.2, 0.2);
             });
 
-            setScatteredItems(generatedItems);
-            const currentMax = Math.max(...generatedItems.map(i => i.zIndex || 0), 10);
+            let finalItems = generatedItems;
+            try {
+                if (typeof window !== 'undefined') {
+                    const savedRaw = localStorage.getItem('photoboard_saved_layout_v2');
+                    if (savedRaw) {
+                        const saved = JSON.parse(savedRaw);
+                        if (saved && Array.isArray(saved.items)) {
+                            const savedMap = new Map(saved.items.map((s) => [s.id, s]));
+                            finalItems = generatedItems.map((item) => {
+                                const s = savedMap.get(item.id);
+                                if (s) {
+                                    return {
+                                        ...item,
+                                        x: typeof s.x === 'number' ? s.x : item.x,
+                                        y: typeof s.y === 'number' ? s.y : item.y,
+                                        rotation: typeof s.rotation === 'number' ? s.rotation : item.rotation,
+                                        scale: typeof s.scale === 'number' ? s.scale : item.scale,
+                                        zIndex: typeof s.zIndex === 'number' ? s.zIndex : item.zIndex,
+                                    };
+                                }
+                                return item;
+                            });
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to load saved photoboard layout:', e);
+            }
+
+            setScatteredItems(finalItems);
+            const currentMax = Math.max(...finalItems.map(i => i.zIndex || 0), 10);
             setMaxZIndex(currentMax);
         }
-    }, [items, scatteredItems.length, immersive]);
+    }, [activeSourceItems, scatteredItems.length, immersive]);
 
     useEffect(() => {
         if (!deepLinkKey || typeof window === 'undefined') return;
@@ -362,6 +413,113 @@ const PolaroidScatter = ({ items, immersive = false, deepLinkParam = '' }) => {
     useEffect(() => {
         scatteredItemsRef.current = scatteredItems;
     }, [scatteredItems]);
+
+    // Save & Reset State Event Handlers
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+
+        const handleSaveState = () => {
+            const currentList = scatteredItemsRef.current || [];
+            if (!currentList.length) return;
+
+            const payload = {
+                items: currentList.map((i) => ({
+                    id: i.id,
+                    x: i.x,
+                    y: i.y,
+                    rotation: i.rotation,
+                    scale: i.scale,
+                    zIndex: i.zIndex,
+                })),
+                timestamp: Date.now(),
+            };
+
+            try {
+                localStorage.setItem('photoboard_saved_layout_v2', JSON.stringify(payload));
+                window.dispatchEvent(
+                    new CustomEvent('photoboard:toast', {
+                        detail: { message: '✓ Board arrangement saved!', type: 'success' },
+                    }),
+                );
+            } catch (err) {
+                console.error('Failed to save layout:', err);
+            }
+        };
+
+        const handleResetState = () => {
+            try {
+                localStorage.removeItem('photoboard_saved_layout_v2');
+                window.location.reload();
+            } catch (err) {
+                console.error('Failed to reset layout:', err);
+            }
+        };
+
+        const handleLoadCustomPhotos = (e) => {
+            const newItems = e.detail?.items;
+            if (!Array.isArray(newItems) || !newItems.length) return;
+
+            const viewportW = typeof window !== 'undefined' ? window.innerWidth : 1200;
+            const scrollY = typeof window !== 'undefined' ? (window.scrollY || 0) : 0;
+            const rand = (min, max) => Math.random() * (max - min) + min;
+
+            let currentY = scrollY + 120;
+            let wavePhase = 0;
+
+            const newScatter = newItems.map((item, idx) => {
+                const waveX = Math.sin(wavePhase) * (viewportW * 0.22);
+                wavePhase += 1.3;
+                const card = {
+                    ...item,
+                    type: 'photo',
+                    x: waveX + rand(-25, 25),
+                    y: currentY,
+                    rotation: rand(-12, 12),
+                    scale: 1,
+                    zIndex: (idx * 5) + 100,
+                    priority: 0,
+                };
+                currentY += rand(220, 290);
+                return card;
+            });
+
+            setScatteredItems(newScatter);
+            const maxZ = Math.max(...newScatter.map((i) => i.zIndex || 0), 100);
+            setMaxZIndex(maxZ);
+        };
+
+        const handleLoadBoard = (e) => {
+            const board = e.detail?.board;
+            if (!board || !Array.isArray(board.items)) return;
+
+            if (board.backdrop_color) {
+                document.documentElement.style.setProperty('--polaroid-hub-bg', board.backdrop_color);
+            }
+
+            setScatteredItems(board.items);
+            const maxZ = Math.max(...board.items.map((i) => i.zIndex || 0), 10);
+            setMaxZIndex(maxZ);
+        };
+
+        const handleNewBlankBoard = () => {
+            setScatteredItems([]);
+            setMaxZIndex(10);
+        };
+
+        window.addEventListener('photoboard:save-state', handleSaveState);
+        window.addEventListener('photoboard:reset-state', handleResetState);
+        window.addEventListener('photoboard:load-custom-photos', handleLoadCustomPhotos);
+        window.addEventListener('photoboard:load-board', handleLoadBoard);
+        window.addEventListener('photoboard:new-blank-board', handleNewBlankBoard);
+
+        return () => {
+            window.removeEventListener('photoboard:save-state', handleSaveState);
+            window.removeEventListener('photoboard:reset-state', handleResetState);
+            window.removeEventListener('photoboard:load-custom-photos', handleLoadCustomPhotos);
+            window.removeEventListener('photoboard:load-board', handleLoadBoard);
+            window.removeEventListener('photoboard:new-blank-board', handleNewBlankBoard);
+        };
+    }, []);
 
     useEffect(() => {
         if (!immersive || typeof window === 'undefined') return () => {};
@@ -765,6 +923,12 @@ const PolaroidScatter = ({ items, immersive = false, deepLinkParam = '' }) => {
         syncDeepLink(id);
     }, [syncDeepLink]);
 
+    if (!isMounted) {
+        return (
+            <div className={`polaroid-scatter-container ${immersive ? 'immersive' : ''}`} ref={containerRef} style={{ minHeight: '100vh' }} />
+        );
+    }
+
     return (
         // REMOVED 'cutting-mat' class - background is now in parent Astro page for instant load
         <div className={`polaroid-scatter-container ${immersive ? 'immersive' : ''}`} ref={containerRef} style={dynamicStyle} onClick={handleViewerClose}>
@@ -830,9 +994,6 @@ const PolaroidScatter = ({ items, immersive = false, deepLinkParam = '' }) => {
                         4px 7px 20px rgba(0,0,0,0.32);
                     will-change: transform;
                     touch-action: none;
-                    content-visibility: auto;
-                    contain: layout paint style;
-                    contain-intrinsic-size: 300px 403px;
                     backface-visibility: hidden;
                 }
                 .polaroid-card:hover {
@@ -862,33 +1023,50 @@ const PolaroidScatter = ({ items, immersive = false, deepLinkParam = '' }) => {
                 }
                 .rotation-handle {
                     position: absolute;
-                    width: 38px;
-                    height: 38px;
-                    z-index: 100;
+                    width: 48px;
+                    height: 48px;
+                    z-index: 120;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    cursor: crosshair;
+                    cursor: grab;
+                    touch-action: none;
+                }
+                .rotation-handle.active {
+                    cursor: grabbing;
                 }
                 .rotation-handle .arrow-container {
                     position: absolute;
                     opacity: 0;
-                    transition: opacity 0.2s, transform 0.2s;
+                    transform: scale(0.85);
+                    transition: opacity 0.08s ease, transform 0.08s ease;
                     pointer-events: none;
                     transform-origin: center;
                 }
                 .rotation-handle:hover .arrow-container,
                 .rotation-handle.active .arrow-container {
                     opacity: 1;
+                    transform: scale(1);
                 }
-                .h-top-left { top: -15px; left: -15px; }
-                .h-top-left .arrow-container { top: -25px; left: -25px; transform: rotate(0deg); }
-                .h-top-right { top: -15px; right: -15px; }
-                .h-top-right .arrow-container { top: -25px; right: -25px; transform: rotate(90deg); }
-                .h-bottom-left { bottom: -15px; left: -15px; }
-                .h-bottom-left .arrow-container { bottom: -25px; left: -25px; transform: rotate(270deg); }
-                .h-bottom-right { bottom: -15px; right: -15px; }
-                .h-bottom-right .arrow-container { bottom: -25px; right: -25px; transform: rotate(180deg); }
+                .h-top-left { top: -10px; left: -10px; }
+                .h-top-left .arrow-container { top: 2px; left: 2px; transform: scale(0.85) rotate(0deg); }
+                .h-top-left:hover .arrow-container,
+                .h-top-left.active .arrow-container { transform: scale(1) rotate(0deg); }
+
+                .h-top-right { top: -10px; right: -10px; }
+                .h-top-right .arrow-container { top: 2px; right: 2px; transform: scale(0.85) rotate(90deg); }
+                .h-top-right:hover .arrow-container,
+                .h-top-right.active .arrow-container { transform: scale(1) rotate(90deg); }
+
+                .h-bottom-right { bottom: -10px; right: -10px; }
+                .h-bottom-right .arrow-container { bottom: 2px; right: 2px; transform: scale(0.85) rotate(180deg); }
+                .h-bottom-right:hover .arrow-container,
+                .h-bottom-right.active .arrow-container { transform: scale(1) rotate(180deg); }
+
+                .h-bottom-left { bottom: -10px; left: -10px; }
+                .h-bottom-left .arrow-container { bottom: 2px; left: 2px; transform: scale(0.85) rotate(270deg); }
+                .h-bottom-left:hover .arrow-container,
+                .h-bottom-left.active .arrow-container { transform: scale(1) rotate(270deg); }
             `}</style>
         </div>
     );
@@ -949,9 +1127,10 @@ const PolaroidCard = memo(function PolaroidCard({
             data-polaroid-id={itemId}
             drag
             dragMomentum={false}
+            style={{ zIndex: typeof item.zIndex === 'number' ? item.zIndex : 1 }}
             whileDrag={{ scale: 1.03, zIndex: 9999, cursor: 'grabbing' }}
             initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ x: item.x, y: item.y, rotate: item.rotation, scale: item.scale, zIndex: item.zIndex, opacity: 1 }}
+            animate={{ x: item.x, y: item.y, rotate: item.rotation, scale: item.scale, opacity: 1 }}
             transition={{ type: 'spring', stiffness: 260, damping: 26, mass: 0.55 }}
 
             // Handlers
@@ -990,26 +1169,54 @@ const PolaroidCard = memo(function PolaroidCard({
                         </div>
                     )}
                 </div>
-
-                {/* ROTATION HANDLES - Positioned strictly on white border corners */}
-                <RotationHandle position="top-left" onRotate={handleRotateDelta} isDarkBg={isDarkBg} />
-                <RotationHandle position="top-right" onRotate={handleRotateDelta} isDarkBg={isDarkBg} />
-                <RotationHandle position="bottom-left" onRotate={handleRotateDelta} isDarkBg={isDarkBg} />
-                <RotationHandle position="bottom-right" onRotate={handleRotateDelta} isDarkBg={isDarkBg} />
             </div>
+
+            {/* ROTATION HANDLES - Positioned on the 4 outer corners of the entire Polaroid frame */}
+            <RotationHandle position="top-left" onRotate={handleRotateDelta} isDarkBg={isDarkBg} />
+            <RotationHandle position="top-right" onRotate={handleRotateDelta} isDarkBg={isDarkBg} />
+            <RotationHandle position="bottom-left" onRotate={handleRotateDelta} isDarkBg={isDarkBg} />
+            <RotationHandle position="bottom-right" onRotate={handleRotateDelta} isDarkBg={isDarkBg} />
         </motion.div>
     );
 });
 
-// SVG for the double-headed curved arrow (Photoshop style)
-const CurvedArrow = ({ isDarkBg }) => (
-    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' }}>
-        {/* The Curve */}
-        <path d="M10 25C10 16.7157 16.7157 10 25 10" stroke={isDarkBg ? 'white' : '#222'} strokeWidth="2" strokeLinecap="round" />
-        {/* Top Arrow Head */}
-        <path d="M21 7L25 10L21 13" stroke={isDarkBg ? 'white' : '#222'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        {/* Bottom Arrow Head */}
-        <path d="M7 21L10 25L13 21" stroke={isDarkBg ? 'white' : '#222'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+// SVG for the clean obtuse angular L-bracket with outward-pointing arrows at both ends
+const AngularRotationIcon = () => (
+    <svg
+        width="32"
+        height="32"
+        viewBox="0 0 32 32"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+        style={{
+            filter: 'drop-shadow(0 0 2px rgba(255,255,255,0.95)) drop-shadow(0 2px 5px rgba(0,0,0,0.45))',
+        }}
+    >
+        {/* Main angular corner path with rounded elbow */}
+        <path
+            d="M25 6 L12 6 Q6 6 6 12 L6 25"
+            stroke="#15130f"
+            strokeWidth="2.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        />
+        {/* Outward pointing arrowhead at top-right end (pointing rightwards) */}
+        <path
+            d="M20 2 L26 6 L20 10"
+            stroke="#15130f"
+            strokeWidth="2.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        />
+        {/* Outward pointing arrowhead at bottom-left end (pointing downwards) */}
+        <path
+            d="M2 20 L6 26 L10 20"
+            stroke="#15130f"
+            strokeWidth="2.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        />
     </svg>
 );
 
@@ -1020,9 +1227,11 @@ const RotationHandle = ({ position, onRotate, isDarkBg }) => {
 
     const handlePointerDown = (e) => {
         e.stopPropagation();
+        e.preventDefault();
         setIsActive(true);
 
         const card = e.currentTarget.closest('.polaroid-card');
+        if (!card) return;
         const rect = card.getBoundingClientRect();
 
         // Exact center of the card
@@ -1033,10 +1242,14 @@ const RotationHandle = ({ position, onRotate, isDarkBg }) => {
 
         const handlePointerMove = (moveEvent) => {
             const currentAngle = Math.atan2(moveEvent.clientY - centerY, moveEvent.clientX - centerX);
-            const delta = currentAngle - lastAngle.current;
+            let delta = currentAngle - lastAngle.current;
 
-            // Smoother movement logic: use a lower sensitivity for precision gesture
-            const rotationSensitivity = 0.5; // Adjusted for "smoother" feeling
+            // Handle radian wrap-around
+            while (delta > Math.PI) delta -= 2 * Math.PI;
+            while (delta < -Math.PI) delta += 2 * Math.PI;
+
+            // Smooth rotational sensitivity
+            const rotationSensitivity = 0.85;
             onRotate(delta * (180 / Math.PI) * rotationSensitivity);
 
             lastAngle.current = currentAngle;
@@ -1056,8 +1269,11 @@ const RotationHandle = ({ position, onRotate, isDarkBg }) => {
         <div
             className={`rotation-handle h-${position} ${isActive ? 'active' : ''}`}
             onPointerDown={handlePointerDown}
+            title="Drag corner to rotate polaroid"
         >
-            <div className="arrow-container"><CurvedArrow isDarkBg={isDarkBg} /></div>
+            <div className="arrow-container">
+                <AngularRotationIcon />
+            </div>
         </div>
     );
 };

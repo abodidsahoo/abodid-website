@@ -37,9 +37,9 @@ const isCloudflarePhotographyUrl = (value: unknown): value is string => {
 
 const getCloudflarePhotographyMedia = (project: any) => {
     const generated = photographyMedia[String(project?.slug || '')];
-    const storedCover = normalizeImageUrl(project?.cover_image);
-    const storedImages = normalizeGalleryImages(project?.gallery_images)
-        .filter(isCloudflarePhotographyUrl);
+    const storedCover = normalizeImageUrl(project?.cover_image) || normalizeImageUrl(project?.image);
+    const storedImages = normalizeGalleryImages(project?.gallery_images || project?.images);
+    const cfStoredImages = storedImages.filter(isCloudflarePhotographyUrl);
     const generatedCover = generated?.cover?.large
         || generated?.cover?.original
         || generated?.cover?.small
@@ -48,9 +48,17 @@ const getCloudflarePhotographyMedia = (project: any) => {
         .map((image) => image.large || image.original || image.small || '')
         .filter(isCloudflarePhotographyUrl);
 
+    const cover = isCloudflarePhotographyUrl(storedCover)
+        ? storedCover
+        : (generatedCover || storedCover || '');
+
+    const images = cfStoredImages.length > 0
+        ? cfStoredImages
+        : (generatedImages.length > 0 ? generatedImages : storedImages);
+
     return {
-        cover: isCloudflarePhotographyUrl(storedCover) ? storedCover : generatedCover,
-        images: storedImages.length > 0 ? storedImages : generatedImages,
+        cover,
+        images,
     };
 };
 
@@ -282,9 +290,9 @@ export async function getAllPhotography(): Promise<PhotographyProject[]> {
         .order('sort_order', { ascending: true })
         .order('created_at', { ascending: false });
 
-    if (error) {
-        console.error('Error fetching all photography:', error);
-        return [];
+    if (error || !data || data.length === 0) {
+        if (error) console.error('Error fetching all photography:', error);
+        return mockPhotography as unknown as PhotographyProject[];
     }
 
     return data.map((project: any) => {
