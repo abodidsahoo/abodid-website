@@ -463,9 +463,9 @@ const PolaroidScatter = ({
             };
 
             try {
-                localStorage.setItem('photoboard_saved_layout_v2', JSON.stringify(payload));
+                localStorage.setItem('sequence-room_saved_layout_v2', JSON.stringify(payload));
                 window.dispatchEvent(
-                    new CustomEvent('photoboard:toast', {
+                    new CustomEvent('sequence-room:toast', {
                         detail: { message: '✓ Board arrangement saved!', type: 'success' },
                     }),
                 );
@@ -476,7 +476,7 @@ const PolaroidScatter = ({
 
         const handleResetState = () => {
             try {
-                localStorage.removeItem('photoboard_saved_layout_v2');
+                localStorage.removeItem('sequence-room_saved_layout_v2');
                 window.location.reload();
             } catch (err) {
                 console.error('Failed to reset layout:', err);
@@ -534,18 +534,18 @@ const PolaroidScatter = ({
             setMaxZIndex(10);
         };
 
-        window.addEventListener('photoboard:save-state', handleSaveState);
-        window.addEventListener('photoboard:reset-state', handleResetState);
-        window.addEventListener('photoboard:load-custom-photos', handleLoadCustomPhotos);
-        window.addEventListener('photoboard:load-board', handleLoadBoard);
-        window.addEventListener('photoboard:new-blank-board', handleNewBlankBoard);
+        window.addEventListener('sequence-room:save-state', handleSaveState);
+        window.addEventListener('sequence-room:reset-state', handleResetState);
+        window.addEventListener('sequence-room:load-custom-photos', handleLoadCustomPhotos);
+        window.addEventListener('sequence-room:load-board', handleLoadBoard);
+        window.addEventListener('sequence-room:new-blank-board', handleNewBlankBoard);
 
         return () => {
-            window.removeEventListener('photoboard:save-state', handleSaveState);
-            window.removeEventListener('photoboard:reset-state', handleResetState);
-            window.removeEventListener('photoboard:load-custom-photos', handleLoadCustomPhotos);
-            window.removeEventListener('photoboard:load-board', handleLoadBoard);
-            window.removeEventListener('photoboard:new-blank-board', handleNewBlankBoard);
+            window.removeEventListener('sequence-room:save-state', handleSaveState);
+            window.removeEventListener('sequence-room:reset-state', handleResetState);
+            window.removeEventListener('sequence-room:load-custom-photos', handleLoadCustomPhotos);
+            window.removeEventListener('sequence-room:load-board', handleLoadBoard);
+            window.removeEventListener('sequence-room:new-blank-board', handleNewBlankBoard);
         };
     }, []);
 
@@ -1002,7 +1002,7 @@ const PolaroidScatter = ({
 
     return (
         // REMOVED 'cutting-mat' class - background is now in parent Astro page for instant load
-        <div className={`polaroid-scatter-container ${immersive ? 'immersive' : ''}`} data-photo-board-canvas ref={containerRef} style={dynamicStyle} onClick={selectionMode ? undefined : handleViewerClose}>
+        <div className={`polaroid-scatter-container ${immersive ? 'immersive' : ''}`} data-sequence-room-canvas ref={containerRef} style={dynamicStyle} onClick={selectionMode ? undefined : handleViewerClose}>
             {/* REMOVED grid-overlay - moved to parent CSS */}
 
             {visibleItems.map((item) => {

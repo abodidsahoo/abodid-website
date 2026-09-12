@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { downloadScreenshot, downloadVisiblePDF, downloadFullBoardPDF } from '../utils/photoBoardExport';
-import PhotoBoardManager from './photoboard/PhotoBoardManager';
+import { downloadScreenshot, downloadVisiblePDF, downloadFullBoardPDF } from '../utils/sequenceRoomExport';
+import SequenceRoomManager from './sequence-room/SequenceRoomManager';
 
 const COLORS = [
     { name: 'Dark Blue', value: '#14225d', label: 'Dark Blue' },
@@ -42,8 +42,8 @@ const ThemeWidget = ({ currentItems = [], onSelectBoard, onNewBlankBoard }) => {
                 showToast(e.detail.message);
             }
         };
-        window.addEventListener('photoboard:toast', handleToastEvent);
-        return () => window.removeEventListener('photoboard:toast', handleToastEvent);
+        window.addEventListener('sequence-room:toast', handleToastEvent);
+        return () => window.removeEventListener('sequence-room:toast', handleToastEvent);
     }, []);
 
     const applyTheme = (color) => {
@@ -132,7 +132,7 @@ const ThemeWidget = ({ currentItems = [], onSelectBoard, onNewBlankBoard }) => {
     };
 
     const handleSaveState = () => {
-        window.dispatchEvent(new CustomEvent('photoboard:save-state'));
+        window.dispatchEvent(new CustomEvent('sequence-room:save-state'));
     };
 
     const handleScreenshot = async () => {
@@ -201,7 +201,7 @@ const ThemeWidget = ({ currentItems = [], onSelectBoard, onNewBlankBoard }) => {
     };
 
     return (
-        <div className="photoboard-corner-controls-root">
+        <div className="sequence-room-corner-controls-root">
             {/* ========================================================================= */}
             {/* 1. TOP-RIGHT CORNER: Backdrop + Instructions (Side by Side) */}
             {/* ========================================================================= */}
@@ -396,7 +396,7 @@ const ThemeWidget = ({ currentItems = [], onSelectBoard, onNewBlankBoard }) => {
                                         className="pop-reset-layout-btn"
                                         onClick={() => {
                                             if (window.confirm('Reset polaroid scatter layout back to initial defaults?')) {
-                                                window.dispatchEvent(new CustomEvent('photoboard:reset-state'));
+                                                window.dispatchEvent(new CustomEvent('sequence-room:reset-state'));
                                             }
                                         }}
                                     >
@@ -413,7 +413,7 @@ const ThemeWidget = ({ currentItems = [], onSelectBoard, onNewBlankBoard }) => {
             {/* 2. BOTTOM-LEFT CORNER: Sign In / My Boards + Save Button */}
             {/* ========================================================================= */}
             <div className="pop-corner-bottomleft">
-                <PhotoBoardManager
+                <SequenceRoomManager
                     currentItems={currentItems}
                     activeBackdrop={activeColor}
                     onLoadBoard={onSelectBoard}
@@ -581,7 +581,7 @@ const ThemeWidget = ({ currentItems = [], onSelectBoard, onNewBlankBoard }) => {
             <AnimatePresence>
                 {toastMessage && (
                     <motion.div
-                        className="photoboard-toast"
+                        className="sequence-room-toast"
                         initial={{ opacity: 0, y: -16, scale: 0.94 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: -16, scale: 0.94 }}
@@ -593,7 +593,7 @@ const ThemeWidget = ({ currentItems = [], onSelectBoard, onNewBlankBoard }) => {
             </AnimatePresence>
 
             <style>{`
-                .photoboard-corner-controls-root {
+                .sequence-room-corner-controls-root {
                     font-family: var(--font-mono, "Satoshi-Variable", monospace);
                     user-select: none;
                 }
@@ -1039,7 +1039,7 @@ const ThemeWidget = ({ currentItems = [], onSelectBoard, onNewBlankBoard }) => {
                 }
 
                 /* Notification Toast */
-                .photoboard-toast {
+                .sequence-room-toast {
                     position: fixed;
                     top: 1.5rem;
                     left: 50%;

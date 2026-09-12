@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../../lib/supabaseClient';
 
-export default function PhotoBoardAuthModal({ isOpen, onClose, onAuthSuccess }) {
+export default function SequenceRoomAuthModal({ isOpen, onClose, onAuthSuccess }) {
     const [mode, setMode] = useState('signin'); // 'signin' | 'signup'
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -41,7 +41,7 @@ export default function PhotoBoardAuthModal({ isOpen, onClose, onAuthSuccess }) 
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
-                    redirectTo: new URL('/lab/photo-board', window.location.origin).toString(),
+                    redirectTo: new URL('/lab/sequence-room', window.location.origin).toString(),
                 },
             });
             if (error) throw error;
@@ -72,16 +72,16 @@ export default function PhotoBoardAuthModal({ isOpen, onClose, onAuthSuccess }) 
                     email,
                     password,
                     options: {
-                        emailRedirectTo: new URL('/lab/photo-board', window.location.origin).toString(),
+                        emailRedirectTo: new URL('/lab/sequence-room', window.location.origin).toString(),
                         data: {
-                            full_name: name || 'Photo Board Creator',
+                            full_name: name || 'Sequence Room Creator',
                         },
                     },
                 });
                 if (error) throw error;
                 if (data.session?.user) {
                     window.dispatchEvent(
-                        new CustomEvent('photoboard:toast', {
+                        new CustomEvent('sequence-room:toast', {
                             detail: { message: '✓ Account created successfully!', type: 'success' },
                         })
                     );
@@ -98,7 +98,7 @@ export default function PhotoBoardAuthModal({ isOpen, onClose, onAuthSuccess }) 
                 if (error) throw error;
                 if (data.user) {
                     window.dispatchEvent(
-                        new CustomEvent('photoboard:toast', {
+                        new CustomEvent('sequence-room:toast', {
                             detail: { message: `✓ Welcome back!`, type: 'success' },
                         })
                     );
@@ -151,7 +151,7 @@ export default function PhotoBoardAuthModal({ isOpen, onClose, onAuthSuccess }) 
                             <span className="pop-auth-confirmation-mark" aria-hidden="true">✓</span>
                             <h2 id="pb-auth-title" className="pop-auth-title">Check your inbox</h2>
                             <p className="pop-auth-subtitle">Confirm your email, then return here. Your Supabase session will reconnect automatically and load boards saved to your user ID.</p>
-                            <button type="button" className="pop-auth-submit-btn" onClick={onClose}>Back to Photo Board</button>
+                            <button type="button" className="pop-auth-submit-btn" onClick={onClose}>Back to Sequence Room</button>
                         </div>
                     ) : <>
                     {/* Mode Segmented Tab Switcher */}

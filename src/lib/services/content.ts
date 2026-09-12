@@ -74,7 +74,7 @@ const mockResearchProjects: Project[] = [
         title: "Polaroid Hub",
         description: "An interactive photo arrangement experiment—handle photographs like physical objects, sequence them on a digital table, and feel how their order changes meaning. A stepping stone for designing photo books.",
         slug: "polaroid-hub",
-        href: "/lab/photo-board",
+        href: "/lab/sequence-room",
         image: "https://images.unsplash.com/photo-1606857521015-7f9fcf423740?auto=format&fit=crop&q=80&w=1000",
         tags: ["Photography", "Interaction Design", "In Progress"],
         published: true,

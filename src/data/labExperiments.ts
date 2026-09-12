@@ -45,15 +45,15 @@ export const labExperiments: LabExperiment[] = [
     surface: "yellow",
   },
   {
-    id: "photo-board",
+    id: "sequence-room",
     index: "03",
-    title: "Photo Board",
+    title: "Sequence Room",
     description:
       "An immersive table for scattering, rearranging, and discovering new relationships between photographs.",
     discipline: "Photo archive · Spatial interaction",
     status: "Prototype",
     year: "2026",
-    href: "/lab/photo-board",
+    href: "/lab/sequence-room",
     thumbnail:
       "https://assets.abodid.com/photos/variants/exhibition-photos/1600/breathe-variations-rca-2023-abodid-sahoo-12-d06e2bea64.webp",
     thumbnailAlt: "Visitors moving through Abodid Sahoo's Breathe Variations exhibition",

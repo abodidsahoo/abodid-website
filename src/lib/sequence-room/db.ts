@@ -1,6 +1,6 @@
 import { supabase } from '../supabaseClient';
 
-export type PhotoBoardItem = {
+export type SequenceRoomItem = {
     id: string;
     assetId?: string;
     title?: string;
@@ -12,7 +12,7 @@ export type PhotoBoardItem = {
     zIndex: number;
 };
 
-export type PhotoBoardRecord = {
+export type SequenceRoomRecord = {
     id: string;
     userId: string;
     name: string;
@@ -22,15 +22,15 @@ export type PhotoBoardRecord = {
     shareToken?: string | null;
     createdAt?: string;
     updatedAt?: string;
-    items: PhotoBoardItem[];
+    items: SequenceRoomItem[];
 };
 
 const requireClient = () => {
-    if (!supabase) throw new Error('Photo Board is not configured.');
+    if (!supabase) throw new Error('Sequence Room is not configured.');
     return supabase;
 };
 
-const mapItem = (row: Record<string, any>): PhotoBoardItem | null => {
+const mapItem = (row: Record<string, any>): SequenceRoomItem | null => {
     const relation = Array.isArray(row.user_photo_assets)
         ? row.user_photo_assets[0]
         : row.user_photo_assets;
@@ -49,7 +49,7 @@ const mapItem = (row: Record<string, any>): PhotoBoardItem | null => {
     };
 };
 
-const mapBoard = (row: Record<string, any>): PhotoBoardRecord => ({
+const mapBoard = (row: Record<string, any>): SequenceRoomRecord => ({
     id: row.id,
     userId: row.user_id,
     name: row.name || 'Untitled Board',
@@ -59,30 +59,30 @@ const mapBoard = (row: Record<string, any>): PhotoBoardRecord => ({
     shareToken: row.share_token,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
-    items: (row.photo_board_items || []).map(mapItem).filter(Boolean),
+    items: (row.sequence_room_items || []).map(mapItem).filter(Boolean),
 });
 
-export async function fetchUserBoards(): Promise<PhotoBoardRecord[]> {
+export async function fetchUserBoards(): Promise<SequenceRoomRecord[]> {
     const client = requireClient();
     const { data: { user }, error: userError } = await client.auth.getUser();
     if (userError || !user) return [];
 
     const { data, error } = await client
-        .from('photo_boards')
-        .select('id,user_id,name,logical_width,logical_height,sharing_enabled,share_token,created_at,updated_at,photo_board_items(id,asset_id,x,y,rotation,scale,z_index,user_photo_assets(id,working_url))')
+        .from('sequence_room_boards')
+        .select('id,user_id,name,logical_width,logical_height,sharing_enabled,share_token,created_at,updated_at,sequence_room_items(id,asset_id,x,y,rotation,scale,z_index,user_photo_assets(id,working_url))')
         .eq('user_id', user.id)
         .order('updated_at', { ascending: false });
     if (error) throw error;
     return (data || []).map(mapBoard);
 }
 
-export async function createBoard(name = 'Untitled Board'): Promise<PhotoBoardRecord> {
+export async function createBoard(name = 'Untitled Board'): Promise<SequenceRoomRecord> {
     const client = requireClient();
     const { data: { user }, error: userError } = await client.auth.getUser();
     if (userError || !user) throw new Error('Sign in required.');
 
     const { data, error } = await client
-        .from('photo_boards')
+        .from('sequence_room_boards')
         .insert({ user_id: user.id, name: name.trim().slice(0, 80) || 'Untitled Board' })
         .select('*')
         .single();
@@ -90,9 +90,9 @@ export async function createBoard(name = 'Untitled Board'): Promise<PhotoBoardRe
     return mapBoard(data);
 }
 
-export async function duplicateBoard(boardId: string): Promise<PhotoBoardRecord> {
+export async function duplicateBoard(boardId: string): Promise<SequenceRoomRecord> {
     const client = requireClient();
-    const { data, error } = await client.rpc('duplicate_photo_board', { source_board_id: boardId });
+    const { data, error } = await client.rpc('duplicate_sequence_room', { source_board_id: boardId });
     if (error) throw error;
     const row = Array.isArray(data) ? data[0] : data;
     if (!row?.id) throw new Error('Board could not be duplicated.');
@@ -103,7 +103,7 @@ export async function duplicateBoard(boardId: string): Promise<PhotoBoardRecord>
 }
 
 export async function deleteBoard(boardId: string): Promise<void> {
-    await apiRequest('/api/photo-board/delete-board', {
+    await apiRequest('/api/sequence-room/delete-board', {
         method: 'POST',
         body: JSON.stringify({ boardId }),
     });
@@ -111,7 +111,7 @@ export async function deleteBoard(boardId: string): Promise<void> {
 
 export async function saveBoardLayout(
     boardId: string,
-    items: PhotoBoardItem[],
+    items: SequenceRoomItem[],
     details: { name?: string; logicalHeight?: number } = {},
 ): Promise<void> {
     const client = requireClient();
@@ -120,13 +120,13 @@ export async function saveBoardLayout(
     if (details.logicalHeight !== undefined) boardUpdates.logical_height = Math.round(details.logicalHeight);
 
     if (Object.keys(boardUpdates).length) {
-        const { error } = await client.from('photo_boards').update(boardUpdates).eq('id', boardId);
+        const { error } = await client.from('sequence_room_boards').update(boardUpdates).eq('id', boardId);
         if (error) throw error;
     }
 
     const persistentItems = items.filter((item) => item.assetId);
     if (!persistentItems.length) return;
-    const { error } = await client.from('photo_board_items').upsert(
+    const { error } = await client.from('sequence_room_items').upsert(
         persistentItems.map((item) => ({
             id: item.id,
             board_id: boardId,
@@ -161,7 +161,7 @@ const apiRequest = async (path: string, init: RequestInit = {}) => {
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) {
-        const error = new Error(data.error || 'Photo Board request failed.');
+        const error = new Error(data.error || 'Sequence Room request failed.');
         Object.assign(error, { code: data.code, status: response.status });
         throw error;
     }
@@ -172,19 +172,19 @@ export async function uploadWorkingPhoto(
     boardId: string,
     file: Blob,
     metadata: { filename: string; width: number; height: number; x: number; y: number; rotation: number; zIndex: number },
-): Promise<PhotoBoardItem> {
+): Promise<SequenceRoomItem> {
     const form = new FormData();
     form.append('boardId', boardId);
     form.append('file', file, metadata.filename);
     Object.entries(metadata).forEach(([key, value]) => {
         if (key !== 'filename') form.append(key, String(value));
     });
-    const data = await apiRequest('/api/photo-board/upload', { method: 'POST', body: form });
+    const data = await apiRequest('/api/sequence-room/upload', { method: 'POST', body: form });
     return data.item;
 }
 
 export async function deleteBoardItems(boardId: string, itemIds: string[]): Promise<string[]> {
-    const data = await apiRequest('/api/photo-board/delete-items', {
+    const data = await apiRequest('/api/sequence-room/delete-items', {
         method: 'POST',
         body: JSON.stringify({ boardId, itemIds }),
     });
@@ -192,14 +192,14 @@ export async function deleteBoardItems(boardId: string, itemIds: string[]): Prom
 }
 
 export async function setBoardSharing(boardId: string, enabled: boolean) {
-    return apiRequest('/api/photo-board/share', {
+    return apiRequest('/api/sequence-room/share', {
         method: 'POST',
         body: JSON.stringify({ boardId, enabled }),
     });
 }
 
 // Temporary compatibility for the retired corner-control prototype. The live
-// Photo Board route uses the V1 functions above, but Vite scans every component
+// Sequence Room route uses the V1 functions above, but Vite scans every component
 // during development and the old prototype still imports these names.
 export async function saveBoardToCloud(board: Record<string, any>) {
     const record = board.id ? board : await createBoard(board.title || 'Untitled Board');

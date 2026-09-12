@@ -27,7 +27,7 @@ export default function PhotoDropzone({ onPhotosAdded }) {
 
         if (skippedSizeCount > 0) {
             window.dispatchEvent(
-                new CustomEvent('photoboard:toast', {
+                new CustomEvent('sequence-room:toast', {
                     detail: {
                         message: `⚠️ Skipped ${skippedSizeCount} file(s) exceeding 10MB limit.`,
                         type: 'warning',
@@ -42,7 +42,7 @@ export default function PhotoDropzone({ onPhotosAdded }) {
         const acceptedFiles = validFiles.slice(0, MAX_IMAGES);
         if (validFiles.length > MAX_IMAGES) {
             window.dispatchEvent(
-                new CustomEvent('photoboard:toast', {
+                new CustomEvent('sequence-room:toast', {
                     detail: {
                         message: `ℹ️ Capped upload to ${MAX_IMAGES} photos maximum.`,
                         type: 'info',
@@ -68,13 +68,13 @@ export default function PhotoDropzone({ onPhotosAdded }) {
         }
 
         window.dispatchEvent(
-            new CustomEvent('photoboard:load-custom-photos', {
+            new CustomEvent('sequence-room:load-custom-photos', {
                 detail: { items: newItems },
             })
         );
 
         window.dispatchEvent(
-            new CustomEvent('photoboard:toast', {
+            new CustomEvent('sequence-room:toast', {
                 detail: {
                     message: `✓ Added ${newItems.length} custom photograph(s)!`,
                     type: 'success',

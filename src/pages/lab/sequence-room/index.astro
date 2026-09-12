@@ -1,7 +1,7 @@
 ---
 export const prerender = false;
 import BaseLayout from "../../../layouts/BaseLayout.astro";
-import PhotoBoardWorkspace from "../../../components/photoboard/PhotoBoardWorkspace.jsx";
+import SequenceRoomWorkspace from "../../../components/sequence-room/SequenceRoomWorkspace.jsx";
 import { getAllPhotography } from "../../../lib/api";
 import { featuredPhotography as mockPhotography } from "../../../utils/mockData";
 import { labUrl } from "../../../lib/labRoutes.js";
@@ -78,25 +78,25 @@ allImages = allImages.sort((left, right) =>
     ),
 );
 
-console.log(">>> Photo Board SSR images count:", allImages.length);
+console.log(">>> Sequence Room SSR images count:", allImages.length);
 
-const pageTitle = "Photo Board — Interactive Polaroid scatter";
+const pageTitle = "Sequence Room — Interactive Polaroid scatter";
 const pageDescription =
     "Browse Abodid Sahoo's photography archive as an immersive, draggable scatter of Polaroid-style image cards.";
 ---
 
 <BaseLayout
-    canonicalUrl={labUrl("/photo-board")}
+    canonicalUrl={labUrl("/sequence-room")}
     title={pageTitle}
     description={pageDescription}
     hideHeader={true}
     fullWidth={true}
 >
     <main class="polaroid-hub-immersive">
-        <h1 class="sr-only">Photo Board</h1>
+        <h1 class="sr-only">Sequence Room</h1>
         {/* A representative, cross-project portfolio sample. PolaroidScatter keeps
             the original seeded story clusters and sine-wave placement. */}
-        <PhotoBoardWorkspace demoItems={allImages.slice(0, 30)} client:only="react" />
+        <SequenceRoomWorkspace demoItems={allImages.slice(0, 30)} client:only="react" />
     </main>
 </BaseLayout>
 

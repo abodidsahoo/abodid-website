@@ -41,7 +41,7 @@ const serviceFallbacks = [
     examples: [
       { label: "Punctum", href: "/lab/punctum" },
       { label: "Obsidian Vault", href: "/obsidian-vault" },
-      { label: "Photo Board", href: "/lab/photo-board" },
+      { label: "Sequence Room", href: "/lab/sequence-room" },
     ],
   },
   {
@@ -153,7 +153,7 @@ const researchDestinations = [
   {
     kind: "Photographic microsite",
     title: "Polaroid Hub",
-    href: "/lab/photo-board",
+    href: "/lab/sequence-room",
     status: "A tactile experiment for arranging and sequencing photographs",
   },
 ];

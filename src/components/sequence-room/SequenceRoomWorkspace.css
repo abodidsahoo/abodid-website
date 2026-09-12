@@ -281,6 +281,38 @@
 .pb-background-options button.is-selected small { color: var(--pb-ink) !important; text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: 3px; }
 .pb-control-panel .pb-background-options small { color: #494238 !important; font: 700 9px/1 var(--font-body, "Satoshi-Variable", sans-serif); text-transform: capitalize; }
 
+.pb-inline-color-picker {
+    position: relative;
+    width: 100%;
+}
+
+.pb-inline-color-picker canvas {
+    display: block;
+    width: 100%;
+    height: 116px;
+    border: 1.5px solid var(--pb-ink);
+    border-radius: 12px;
+    cursor: crosshair;
+    touch-action: none;
+    box-sizing: border-box;
+}
+
+.pb-inline-color-picker canvas:focus-visible {
+    outline: 3px solid var(--pb-blue);
+    outline-offset: 3px;
+}
+
+.pb-color-picker-point {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 0 1.5px var(--pb-ink);
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+}
+
 .pb-show-controls {
     position: fixed;
     z-index: 1650;
@@ -564,8 +596,6 @@
     overflow-x: auto;
     overflow-y: visible;
 }
-
-.pb-board-scroll .polaroid-scatter-container { border-left: 1px solid rgba(23,21,18,.08); border-right: 1px solid rgba(23,21,18,.08); }
 
 .pb-extend-board {
     position: absolute;

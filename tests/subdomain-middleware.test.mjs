@@ -40,9 +40,9 @@ test('lab subdomain redirects to main site /lab routes', () => {
   assert.equal(flick.status, 308);
   assert.equal(flick.headers.get('location'), 'https://abodid.com/lab/image-flick');
 
-  const board = route('https://lab.abodid.com/photo-board');
+  const board = route('https://lab.abodid.com/sequence-room');
   assert.equal(board.status, 308);
-  assert.equal(board.headers.get('location'), 'https://abodid.com/lab/photo-board');
+  assert.equal(board.headers.get('location'), 'https://abodid.com/lab/sequence-room');
 });
 
 test('primary site resources, lab, and admin pass through unchanged', () => {

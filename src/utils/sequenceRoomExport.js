@@ -1,6 +1,22 @@
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 
+const ULTRA_EXPORT_SCALE = 4;
+const MAX_CANVAS_SIDE = 32760;
+const MAX_CANVAS_PIXELS = 64_000_000;
+
+function getUltraExportScale(width, height, maxPixels = MAX_CANVAS_PIXELS) {
+    const safeWidth = Math.max(1, width);
+    const safeHeight = Math.max(1, height);
+    const scale = Math.min(
+        ULTRA_EXPORT_SCALE,
+        MAX_CANVAS_SIDE / safeWidth,
+        MAX_CANVAS_SIDE / safeHeight,
+        Math.sqrt(maxPixels / (safeWidth * safeHeight)),
+    );
+    return Math.max(1, Math.floor(scale * 100) / 100);
+}
+
 /**
  * Generates formatted timestamp: "YYYY-MM-DD at HH.mm.ss"
  */
@@ -102,7 +118,7 @@ function createOpticallyFramedCanvas(rawCanvas, activeBgColor) {
     ctx.fill();
     ctx.restore();
 
-    // 3. Clip inside rounded rectangle and draw captured photo board
+    // 3. Clip inside rounded rectangle and draw captured sequence room
     ctx.save();
     roundRect(ctx, padX, padY, w, h, cornerRadius);
     ctx.clip();
@@ -127,7 +143,7 @@ function createOpticallyFramedCanvas(rawCanvas, activeBgColor) {
 export async function captureVisibleCanvas({ framed = true } = {}) {
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
-    const dpr = Math.min(2, window.devicePixelRatio || 2);
+    const dpr = getUltraExportScale(viewportWidth, viewportHeight);
 
     const activeBgColor =
         getComputedStyle(document.documentElement)
@@ -294,7 +310,7 @@ export async function captureVisibleCanvas({ framed = true } = {}) {
  */
 export async function downloadScreenshot() {
     const canvas = await captureVisibleCanvas();
-    const filename = `photo board ${getExportTimestamp()}.png`;
+    const filename = `sequence room ${getExportTimestamp()}.png`;
     const dataUrl = canvas.toDataURL('image/png');
 
     const link = document.createElement('a');
@@ -311,8 +327,8 @@ export async function downloadScreenshot() {
  */
 export async function downloadVisiblePDF() {
     const canvas = await captureVisibleCanvas();
-    const filename = `photo board visible ${getExportTimestamp()}.pdf`;
-    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+    const filename = `sequence room visible ${getExportTimestamp()}.pdf`;
+    const imgData = canvas.toDataURL('image/jpeg', 1);
 
     const orientation = canvas.width >= canvas.height ? 'landscape' : 'portrait';
     const pdf = new jsPDF({
@@ -322,29 +338,30 @@ export async function downloadVisiblePDF() {
         hotfixes: ['px_scaling'],
     });
 
-    pdf.addImage(imgData, 'JPEG', 0, 0, canvas.width, canvas.height);
+    pdf.addImage(imgData, 'JPEG', 0, 0, canvas.width, canvas.height, undefined, 'NONE');
     pdf.save(filename);
     return filename;
 }
 
 export async function downloadFullBoardPNG() {
-    const board = document.querySelector('[data-photo-board-canvas]');
-    if (!board) throw new Error('Photo Board canvas was not found.');
+    const board = document.querySelector('[data-sequence-room-canvas]');
+    if (!board) throw new Error('Sequence Room canvas was not found.');
     const backgroundColor = getComputedStyle(document.documentElement)
         .getPropertyValue('--polaroid-hub-bg')
         .trim() || '#fff8e8';
+    const exportScale = getUltraExportScale(board.scrollWidth, board.scrollHeight);
     const canvas = await html2canvas(board, {
         backgroundColor,
         useCORS: true,
         allowTaint: false,
         logging: false,
-        scale: 1,
+        scale: exportScale,
         width: board.scrollWidth,
         height: board.scrollHeight,
         windowWidth: board.scrollWidth,
         windowHeight: board.scrollHeight,
     });
-    const filename = `photo board full ${getExportTimestamp()}.png`;
+    const filename = `sequence room full ${getExportTimestamp()}.png`;
     const link = document.createElement('a');
     link.download = filename;
     link.href = canvas.toDataURL('image/png');
@@ -372,7 +389,7 @@ export async function downloadSelectedArea(rect, format = 'png') {
         canvas.width,
         canvas.height,
     );
-    const filename = `photo board selection ${getExportTimestamp()}.${format === 'pdf' ? 'pdf' : 'png'}`;
+    const filename = `sequence room selection ${getExportTimestamp()}.${format === 'pdf' ? 'pdf' : 'png'}`;
     if (format === 'pdf') {
         const pdf = new jsPDF({
             orientation: canvas.width >= canvas.height ? 'landscape' : 'portrait',
@@ -380,7 +397,7 @@ export async function downloadSelectedArea(rect, format = 'png') {
             format: [canvas.width, canvas.height],
             hotfixes: ['px_scaling'],
         });
-        pdf.addImage(canvas.toDataURL('image/jpeg', .95), 'JPEG', 0, 0, canvas.width, canvas.height);
+        pdf.addImage(canvas.toDataURL('image/jpeg', 1), 'JPEG', 0, 0, canvas.width, canvas.height, undefined, 'NONE');
         pdf.save(filename);
     } else {
         const link = document.createElement('a');
@@ -472,10 +489,15 @@ export async function downloadFullBoardPDF(onProgress) {
         hotfixes: ['px_scaling'],
     });
 
-    // 2. Chunk rendering into sequential slices (max 6000px height per slice for GPU memory safety)
-    const chunkSize = 6000;
+    // 2. Render at 4x density in memory-safe slices. The slice height adapts
+    // so long boards retain maximum detail without exceeding browser canvas limits.
+    const printDpr = Math.max(1, Math.min(ULTRA_EXPORT_SCALE, MAX_CANVAS_SIDE / viewportWidth));
+    const chunkSize = Math.max(700, Math.floor(Math.min(
+        3000,
+        MAX_CANVAS_SIDE / printDpr,
+        48_000_000 / (viewportWidth * printDpr * printDpr),
+    )));
     const numSlices = Math.ceil(totalBoardHeight / chunkSize);
-    const printDpr = 1.5; // Crisp print scale
 
     for (let sliceIdx = 0; sliceIdx < numSlices; sliceIdx++) {
         const sliceStartY = sliceIdx * chunkSize;
@@ -589,11 +611,11 @@ export async function downloadFullBoardPDF(onProgress) {
         });
 
         // Add slice into PDF at exact vertical position
-        const sliceDataUrl = sliceCanvas.toDataURL('image/jpeg', 0.90);
-        pdf.addImage(sliceDataUrl, 'JPEG', 0, sliceStartY, viewportWidth, sliceHeight);
+        const sliceDataUrl = sliceCanvas.toDataURL('image/jpeg', 0.98);
+        pdf.addImage(sliceDataUrl, 'JPEG', 0, sliceStartY, viewportWidth, sliceHeight, undefined, 'NONE');
     }
 
-    const filename = `photo board full archive ${getExportTimestamp()}.pdf`;
+    const filename = `sequence room full archive ${getExportTimestamp()}.pdf`;
     pdf.save(filename);
     return filename;
 }

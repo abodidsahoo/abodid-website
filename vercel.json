@@ -165,12 +165,12 @@
     },
     {
       "source": "/research/polaroid-hub/:route*",
-      "destination": "/lab/photo-board",
+      "destination": "/lab/sequence-room",
       "permanent": true
     },
     {
       "source": "/research/polaroid-hub",
-      "destination": "/lab/photo-board",
+      "destination": "/lab/sequence-room",
       "permanent": true
     },
     {

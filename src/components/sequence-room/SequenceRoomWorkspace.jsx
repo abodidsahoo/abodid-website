@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import './PhotoBoardWorkspace.css';
+import './SequenceRoomWorkspace.css';
 import PolaroidScatter from '../PolaroidScatter.jsx';
-import PhotoBoardAuthModal from './PhotoBoardAuthModal.jsx';
+import SequenceRoomAuthModal from './SequenceRoomAuthModal.jsx';
 import { supabase } from '../../lib/supabaseClient';
 import {
     createBoard,
@@ -13,43 +13,148 @@ import {
     saveBoardLayout,
     setBoardSharing,
     uploadWorkingPhoto,
-} from '../../lib/photoboard/db';
-import { createWorkingPhoto } from '../../lib/photoboard/imageProcessing';
+} from '../../lib/sequence-room/db';
+import { createWorkingPhoto } from '../../lib/sequence-room/imageProcessing';
 import {
     downloadFullBoardPNG,
     downloadFullBoardPDF,
     downloadSelectedArea,
     downloadScreenshot,
     downloadVisiblePDF,
-} from '../../utils/photoBoardExport';
+} from '../../utils/sequenceRoomExport';
 
 const MAX_BOARDS = 3;
 const MAX_PHOTOS = 30;
 const DESKTOP_MIN = 900;
 const DEFAULT_BACKGROUND = '#fff8e8';
+const DEFAULT_CUSTOM_BACKGROUND = '#ff7eb5';
 const BOARD_BACKGROUNDS = [
-    { id: 'cream', label: 'Warm cream', color: '#fff8e8', grid: 'rgba(21, 19, 15, 0.09)' },
-    { id: 'ink', label: 'Editorial dark', color: '#15130f', grid: 'rgba(255, 248, 232, 0.14)' },
-    { id: 'pink', label: 'Editorial pink', color: '#ff7eb5', grid: 'rgba(21, 19, 15, 0.12)' },
+    { id: 'light', label: 'Light', color: '#fff8e8' },
+    { id: 'dark', label: 'Dark', color: '#15130f' },
 ];
 
-const backgroundStorageKey = (boardId) => `photo-board-background:${boardId || 'portfolio-demo'}`;
+const backgroundStorageKey = (boardId) => `sequence-room-background:${boardId || 'portfolio-demo'}`;
+const customBackgroundStorageKey = (boardId) => `sequence-room-custom-background:${boardId || 'portfolio-demo'}`;
+const isHexColor = (value) => /^#[0-9a-f]{6}$/i.test(value || '');
+const isDarkColor = (color) => {
+    if (!isHexColor(color)) return false;
+    const red = parseInt(color.slice(1, 3), 16);
+    const green = parseInt(color.slice(3, 5), 16);
+    const blue = parseInt(color.slice(5, 7), 16);
+    return ((red * 299 + green * 587 + blue * 114) / 1000) < 128;
+};
 
 const readStoredBackground = (boardId) => {
     if (typeof window === 'undefined') return DEFAULT_BACKGROUND;
     const saved = window.localStorage.getItem(backgroundStorageKey(boardId));
-    return BOARD_BACKGROUNDS.some((choice) => choice.color === saved) ? saved : DEFAULT_BACKGROUND;
+    return isHexColor(saved) ? saved : DEFAULT_BACKGROUND;
 };
+
+const readStoredCustomBackground = (boardId) => {
+    if (typeof window === 'undefined') return DEFAULT_CUSTOM_BACKGROUND;
+    const saved = window.localStorage.getItem(customBackgroundStorageKey(boardId));
+    if (isHexColor(saved)) return saved;
+    const active = window.localStorage.getItem(backgroundStorageKey(boardId));
+    return isHexColor(active) && !BOARD_BACKGROUNDS.some((choice) => choice.color === active) ? active : DEFAULT_CUSTOM_BACKGROUND;
+};
+
+const colorPointFromHex = (hex) => {
+    if (!isHexColor(hex)) return { x: .94, y: .5 };
+    const red = parseInt(hex.slice(1, 3), 16) / 255;
+    const green = parseInt(hex.slice(3, 5), 16) / 255;
+    const blue = parseInt(hex.slice(5, 7), 16) / 255;
+    const max = Math.max(red, green, blue);
+    const min = Math.min(red, green, blue);
+    const delta = max - min;
+    let hue = 0;
+    if (delta) {
+        if (max === red) hue = ((green - blue) / delta) % 6;
+        else if (max === green) hue = (blue - red) / delta + 2;
+        else hue = (red - green) / delta + 4;
+        hue *= 60;
+        if (hue < 0) hue += 360;
+    }
+    return { x: hue / 360, y: 1 - ((max + min) / 2) };
+};
+
+function InlineBackgroundPicker({ color, onChange }) {
+    const canvasRef = useRef(null);
+    const [point, setPoint] = useState(() => colorPointFromHex(color));
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const context = canvas.getContext('2d', { willReadFrequently: true });
+        const hue = context.createLinearGradient(0, 0, canvas.width, 0);
+        ['#ff0000', '#ffff00', '#00ff00', '#00ffff', '#0000ff', '#ff00ff', '#ff0000'].forEach((stop, index, colors) => hue.addColorStop(index / (colors.length - 1), stop));
+        context.fillStyle = hue;
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        const luminance = context.createLinearGradient(0, 0, 0, canvas.height);
+        luminance.addColorStop(0, 'rgba(255,255,255,1)');
+        luminance.addColorStop(.5, 'rgba(255,255,255,0)');
+        luminance.addColorStop(1, 'rgba(0,0,0,1)');
+        context.fillStyle = luminance;
+        context.fillRect(0, 0, canvas.width, canvas.height);
+    }, []);
+
+    const choosePoint = useCallback((x, y) => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const next = { x: Math.max(0, Math.min(1, x)), y: Math.max(0, Math.min(1, y)) };
+        const pixel = canvas.getContext('2d', { willReadFrequently: true }).getImageData(
+            Math.min(canvas.width - 1, Math.round(next.x * canvas.width)),
+            Math.min(canvas.height - 1, Math.round(next.y * canvas.height)),
+            1,
+            1,
+        ).data;
+        const nextColor = `#${[pixel[0], pixel[1], pixel[2]].map((channel) => channel.toString(16).padStart(2, '0')).join('')}`;
+        setPoint(next);
+        onChange(nextColor);
+    }, [onChange]);
+
+    const chooseFromPointer = (event) => {
+        const rect = event.currentTarget.getBoundingClientRect();
+        choosePoint((event.clientX - rect.left) / rect.width, (event.clientY - rect.top) / rect.height);
+    };
+
+    return (
+        <div className="pb-inline-color-picker">
+            <canvas
+                ref={canvasRef}
+                width="520"
+                height="220"
+                role="slider"
+                tabIndex="0"
+                aria-label="Choose a custom board background color"
+                aria-valuetext={color}
+                onPointerDown={(event) => { event.currentTarget.setPointerCapture(event.pointerId); chooseFromPointer(event); }}
+                onPointerMove={(event) => { if (event.currentTarget.hasPointerCapture(event.pointerId)) chooseFromPointer(event); }}
+                onPointerUp={(event) => { if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId); }}
+                onPointerCancel={(event) => { if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId); }}
+                onKeyDown={(event) => {
+                    const step = event.shiftKey ? .08 : .02;
+                    if (event.key === 'ArrowLeft') choosePoint(point.x - step, point.y);
+                    else if (event.key === 'ArrowRight') choosePoint(point.x + step, point.y);
+                    else if (event.key === 'ArrowUp') choosePoint(point.x, point.y - step);
+                    else if (event.key === 'ArrowDown') choosePoint(point.x, point.y + step);
+                    else return;
+                    event.preventDefault();
+                }}
+            />
+            <span className="pb-color-picker-point" style={{ left: `${point.x * 100}%`, top: `${point.y * 100}%` }} aria-hidden="true" />
+        </div>
+    );
+}
 
 const errorMessage = (error, fallback) => {
     const message = error?.message || '';
     if (message.includes('FREE_BOARD_LIMIT')) return 'The free plan includes 3 boards. Delete one before creating another.';
     if (message.includes('FREE_PHOTO_LIMIT')) return 'This board already has the free-plan maximum of 30 photos.';
-    if (message.includes('relation') && message.includes('does not exist')) return 'Photo Board storage has not been migrated yet.';
+    if (message.includes('relation') && message.includes('does not exist')) return 'Sequence Room storage has not been migrated yet.';
     return message || fallback;
 };
 
-export default function PhotoBoardWorkspace({ demoItems = [], shareToken = '' }) {
+export default function SequenceRoomWorkspace({ demoItems = [], shareToken = '' }) {
     const [sessionResolved, setSessionResolved] = useState(Boolean(shareToken));
     const [user, setUser] = useState(null);
     const [boards, setBoards] = useState([]);
@@ -83,11 +188,15 @@ export default function PhotoBoardWorkspace({ demoItems = [], shareToken = '' })
     const [captureScope, setCaptureScope] = useState('current');
     const [captureFormat, setCaptureFormat] = useState('png');
     const [activeBackground, setActiveBackground] = useState(() => readStoredBackground('portfolio-demo'));
+    const [customBackground, setCustomBackground] = useState(() => readStoredCustomBackground('portfolio-demo'));
+    const [customPickerOpen, setCustomPickerOpen] = useState(false);
     const fileInputRef = useRef(null);
+    const backgroundControlRef = useRef(null);
     const panelDragRef = useRef(null);
     const saveTimerRef = useRef(0);
     const toastTimerRef = useRef(0);
     const activeBoardIdRef = useRef(null);
+    const customBackgroundRef = useRef(customBackground);
 
     const isShared = Boolean(shareToken);
     const hasPersonalBoard = Boolean(user && activeBoard && !isShared);
@@ -108,9 +217,8 @@ export default function PhotoBoardWorkspace({ demoItems = [], shareToken = '' })
         const root = document.documentElement;
         const previousBackground = root.style.getPropertyValue('--polaroid-hub-bg');
         const previousGrid = root.style.getPropertyValue('--polaroid-hub-grid-line');
-        const choice = BOARD_BACKGROUNDS.find((item) => item.color === activeBackground) || BOARD_BACKGROUNDS[0];
-        root.style.setProperty('--polaroid-hub-bg', choice.color);
-        root.style.setProperty('--polaroid-hub-grid-line', choice.grid);
+        root.style.setProperty('--polaroid-hub-bg', activeBackground);
+        root.style.setProperty('--polaroid-hub-grid-line', isDarkColor(activeBackground) ? 'rgba(255, 248, 232, 0.14)' : 'rgba(21, 19, 15, 0.09)');
         return () => {
             if (previousBackground) root.style.setProperty('--polaroid-hub-bg', previousBackground);
             else root.style.removeProperty('--polaroid-hub-bg');
@@ -127,8 +235,12 @@ export default function PhotoBoardWorkspace({ demoItems = [], shareToken = '' })
     }, []);
 
     const openBoard = useCallback((board) => {
+        const savedCustomBackground = readStoredCustomBackground(board.id);
         setShowingDemo(false);
         setActiveBackground(readStoredBackground(board.id));
+        setCustomBackground(savedCustomBackground);
+        customBackgroundRef.current = savedCustomBackground;
+        setCustomPickerOpen(false);
         setActiveBoard(board);
         setCanvasItems(board.items || []);
         canvasItemsRef.current = board.items || [];
@@ -141,8 +253,12 @@ export default function PhotoBoardWorkspace({ demoItems = [], shareToken = '' })
     }, []);
 
     const openDemo = useCallback(({ reset = false } = {}) => {
+        const savedCustomBackground = readStoredCustomBackground('portfolio-demo');
         if (reset) setDemoLayoutOverride(null);
         setActiveBackground(readStoredBackground('portfolio-demo'));
+        setCustomBackground(savedCustomBackground);
+        customBackgroundRef.current = savedCustomBackground;
+        setCustomPickerOpen(false);
         setShowingDemo(true);
         setBoardsOpen(false);
         setShareOpen(false);
@@ -162,6 +278,21 @@ export default function PhotoBoardWorkspace({ demoItems = [], shareToken = '' })
         window.addEventListener('pointerdown', handleOutsideClick);
         return () => window.removeEventListener('pointerdown', handleOutsideClick);
     }, [boardsOpen, shareOpen]);
+
+    useEffect(() => {
+        if (!customPickerOpen) return undefined;
+        const boardKey = isPersonal ? activeBoard?.id : 'portfolio-demo';
+        const saveOnOutsideClick = (event) => {
+            if (backgroundControlRef.current?.contains(event.target)) return;
+            const color = customBackgroundRef.current;
+            window.localStorage.setItem(backgroundStorageKey(boardKey), color);
+            window.localStorage.setItem(customBackgroundStorageKey(boardKey), color);
+            setCustomPickerOpen(false);
+            notify('Custom background saved.');
+        };
+        window.addEventListener('pointerdown', saveOnOutsideClick);
+        return () => window.removeEventListener('pointerdown', saveOnOutsideClick);
+    }, [customPickerOpen, isPersonal, activeBoard?.id, notify]);
 
     const loadPersonalBoards = useCallback(async () => {
         setBusy('Loading your boards');
@@ -187,7 +318,7 @@ export default function PhotoBoardWorkspace({ demoItems = [], shareToken = '' })
 
     useEffect(() => {
         if (isShared) {
-            fetch(`/api/photo-board/share?token=${encodeURIComponent(shareToken)}`)
+            fetch(`/api/sequence-room/share?token=${encodeURIComponent(shareToken)}`)
                 .then(async (response) => {
                     const data = await response.json();
                     if (!response.ok) throw new Error(data.error || 'Shared board not found.');
@@ -212,11 +343,15 @@ export default function PhotoBoardWorkspace({ demoItems = [], shareToken = '' })
             if (!alive) return;
             setUser(session?.user || null);
             if (!session?.user) {
+                const savedCustomBackground = readStoredCustomBackground('portfolio-demo');
                 setBoards([]);
                 setActiveBoard(null);
                 setShowingDemo(true);
                 setDemoLayoutOverride(null);
                 setActiveBackground(readStoredBackground('portfolio-demo'));
+                setCustomBackground(savedCustomBackground);
+                customBackgroundRef.current = savedCustomBackground;
+                setCustomPickerOpen(false);
                 setCanvasItems([]);
                 setLayoutRevision((value) => value + 1);
                 setSessionResolved(true);
@@ -257,7 +392,7 @@ export default function PhotoBoardWorkspace({ demoItems = [], shareToken = '' })
                     : board));
                 setSaveState('saved');
             } catch (error) {
-                console.error(`Photo Board ${reason} save failed:`, error);
+                console.error(`Sequence Room ${reason} save failed:`, error);
                 setSaveState('error');
                 window.setTimeout(async () => {
                     if (!activeBoard?.id) return;
@@ -269,7 +404,7 @@ export default function PhotoBoardWorkspace({ demoItems = [], shareToken = '' })
                         });
                         setSaveState('saved');
                     } catch (retryError) {
-                        console.error('Photo Board autosave retry failed:', retryError);
+                        console.error('Sequence Room autosave retry failed:', retryError);
                         setSaveState('error');
                     }
                 }, 1800);
@@ -495,7 +630,7 @@ export default function PhotoBoardWorkspace({ demoItems = [], shareToken = '' })
             if (captureScope === 'full' && captureFormat === 'pdf') await downloadFullBoardPDF();
             notify('Capture downloaded.');
         } catch (error) {
-            console.error('Photo Board capture failed:', error);
+            console.error('Sequence Room capture failed:', error);
             notify('Capture failed. Check that every image host allows export.');
         } finally {
             setBusy('');
@@ -504,9 +639,21 @@ export default function PhotoBoardWorkspace({ demoItems = [], shareToken = '' })
 
     const changeBackground = (color) => {
         const boardKey = isPersonal ? activeBoard?.id : 'portfolio-demo';
+        setCustomPickerOpen(false);
         setActiveBackground(color);
         window.localStorage.setItem(backgroundStorageKey(boardKey), color);
         notify('Board background updated. Exports will use this exact colour.');
+    };
+
+    const previewCustomBackground = useCallback((color) => {
+        customBackgroundRef.current = color;
+        setCustomBackground(color);
+        setActiveBackground(color);
+    }, []);
+
+    const openCustomBackgroundPicker = () => {
+        setActiveBackground(customBackgroundRef.current);
+        setCustomPickerOpen(true);
     };
 
     const startPanelDrag = (event) => {
@@ -552,19 +699,19 @@ export default function PhotoBoardWorkspace({ demoItems = [], shareToken = '' })
     };
 
     if (!sessionResolved || (isShared && !sharedBoard && !sharedError)) {
-        return <div className="pb-loading"><span>PHOTO BOARD</span><p>Restoring the board…</p></div>;
+        return <div className="pb-loading"><span>SEQUENCE ROOM</span><p>Restoring the board…</p></div>;
     }
 
     if (isShared && sharedError) {
-        return <div className="pb-loading"><span>LINK UNAVAILABLE</span><p>{sharedError}</p><a href="/lab/photo-board">Open the demo board</a></div>;
+        return <div className="pb-loading"><span>LINK UNAVAILABLE</span><p>{sharedError}</p><a href="/lab/sequence-room">Open the demo board</a></div>;
     }
 
     if (isNarrow && !isShared) {
         return (
             <div className="pb-mobile-gate">
-                <span>PHOTO BOARD / DESKTOP</span>
+                <span>SEQUENCE ROOM / DESKTOP</span>
                 <h1>Give your photographs room.</h1>
-                <p>Please open Photo Board on a desktop to arrange and sequence photographs.</p>
+                <p>Please open Sequence Room on a desktop to arrange and sequence photographs.</p>
                 <a href="/lab">Back to the lab</a>
             </div>
         );
@@ -584,9 +731,9 @@ export default function PhotoBoardWorkspace({ demoItems = [], shareToken = '' })
     const userName = user?.user_metadata?.full_name
         || user?.user_metadata?.name
         || user?.email?.split('@')[0]
-        || 'Photo Board user';
+        || 'Sequence Room user';
     return (
-        <div className={`pb-workspace ${isShared ? 'is-shared' : ''} ${activeBackground === '#15130f' ? 'is-dark-background' : ''}`}>
+        <div className={`pb-workspace ${isShared ? 'is-shared' : ''} ${isDarkColor(activeBackground) ? 'is-dark-background' : ''}`}>
             <header className="pb-header">
                 <div className="pb-brand-group">
                     <a className="pb-back-button" href="/lab"><span aria-hidden="true">←</span> BACK TO LAB</a>
@@ -603,7 +750,7 @@ export default function PhotoBoardWorkspace({ demoItems = [], shareToken = '' })
                     </div>
                 </div>
                 <div className="pb-center-brand">
-                    <h1 className="pb-brand-title">PHOTO BOARD</h1>
+                    <h1 className="pb-brand-title">SEQUENCE ROOM</h1>
                     <p className="pb-brand-subtitle">your analog photo sequencing workspace</p>
                 </div>
             </header>
@@ -611,7 +758,7 @@ export default function PhotoBoardWorkspace({ demoItems = [], shareToken = '' })
             {controlsVisible ? (
                 <aside
                     className="pb-control-panel"
-                    aria-label="Photo Board controls"
+                    aria-label="Sequence Room controls"
                     style={panelPosition ? { left: panelPosition.left, top: panelPosition.top, right: 'auto' } : undefined}
                 >
                     <div className="pb-panel-handle" onPointerDown={startPanelDrag} onPointerMove={movePanel} onPointerUp={endPanelDrag} onPointerCancel={endPanelDrag}>
@@ -674,16 +821,24 @@ export default function PhotoBoardWorkspace({ demoItems = [], shareToken = '' })
                             </button>
                             <AnimatePresence>{moreToolsOpen && (
                                 <motion.div className="pb-panel-secondary" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}>
-                                    <div className="pb-background-control">
+                                    <div className="pb-background-control" ref={backgroundControlRef}>
                                         <span className="pb-menu-label">BACKGROUND</span>
-                                        <div className="pb-background-options" role="group" aria-label="Board background colour">
-                                            {BOARD_BACKGROUNDS.map((choice) => (
-                                                <button key={choice.id} className={activeBackground === choice.color ? 'is-selected' : ''} aria-label={choice.label} aria-pressed={activeBackground === choice.color} title={choice.label} onClick={() => changeBackground(choice.color)}>
-                                                    <span className="pb-palette-swatch" style={{ background: choice.color }} aria-hidden="true" />
-                                                    <small>{choice.label.replace('Editorial ', '')}</small>
+                                        {customPickerOpen ? (
+                                            <InlineBackgroundPicker color={customBackground} onChange={previewCustomBackground} />
+                                        ) : (
+                                            <div className="pb-background-options" role="group" aria-label="Board background colour">
+                                                {BOARD_BACKGROUNDS.map((choice) => (
+                                                    <button key={choice.id} className={activeBackground === choice.color ? 'is-selected' : ''} aria-label={choice.label} aria-pressed={activeBackground === choice.color} title={choice.label} onClick={() => changeBackground(choice.color)}>
+                                                        <span className="pb-palette-swatch" style={{ background: choice.color }} aria-hidden="true" />
+                                                        <small>{choice.label}</small>
+                                                    </button>
+                                                ))}
+                                                <button className={activeBackground === customBackground ? 'is-selected' : ''} aria-label="Custom background" aria-pressed={activeBackground === customBackground} aria-expanded={customPickerOpen} title="Custom" onClick={openCustomBackgroundPicker}>
+                                                    <span className="pb-palette-swatch" style={{ background: customBackground }} aria-hidden="true" />
+                                                    <small>Custom</small>
                                                 </button>
-                                            ))}
-                                        </div>
+                                            </div>
+                                        )}
                                     </div>
 
                                     <button className={`pb-button ${deleteMode ? 'pb-button-active' : ''}`} onClick={() => { setDeleteMode((value) => !value); setDeleteSelection([]); setBoardsOpen(false); setShareOpen(false); }}>Delete Photos</button>
@@ -742,7 +897,7 @@ export default function PhotoBoardWorkspace({ demoItems = [], shareToken = '' })
             )}
 
             {!isShared && !user && (
-                <div className="pb-gesture-hints" aria-label="How to use Photo Board">
+                <div className="pb-gesture-hints" aria-label="How to use Sequence Room">
                     {!learned.drag && <span><b>01</b> Drag to move</span>}
                     {!learned.rotate && <span><b>02</b> Corner: rotate · diagonal: resize</span>}
                     {!learned.open && <span><b>03</b> Click to open</span>}
@@ -785,7 +940,7 @@ export default function PhotoBoardWorkspace({ demoItems = [], shareToken = '' })
                             onClick={(event) => event.stopPropagation()}
                             onKeyDown={(event) => { if (event.key === 'Escape') setDeleteConfirmOpen(false); }}
                         >
-                            <span className="pb-confirm-label">PHOTO BOARD / CONFIRM</span>
+                            <span className="pb-confirm-label">SEQUENCE ROOM / CONFIRM</span>
                             <h2 id="pb-delete-confirm-title">Delete {deleteSelection.length} photo{deleteSelection.length === 1 ? '' : 's'} from this board?</h2>
                             <p>This removes the selected {deleteSelection.length === 1 ? 'photograph' : 'photographs'} from the current board.</p>
                             <div className="pb-confirm-actions">
@@ -824,11 +979,11 @@ export default function PhotoBoardWorkspace({ demoItems = [], shareToken = '' })
             </main>
 
             {selectingArea && <AreaSelector format={selectedAreaFormat} onCancel={() => setSelectingArea(false)} onDone={() => { setSelectingArea(false); notify('Selected area downloaded.'); }} />}
-            <PhotoBoardAuthModal isOpen={authOpen} onClose={() => setAuthOpen(false)} onAuthSuccess={handleAuthSuccess} />
+            <SequenceRoomAuthModal isOpen={authOpen} onClose={() => setAuthOpen(false)} onAuthSuccess={handleAuthSuccess} />
             <AnimatePresence>{uploadProgress && (
                 <motion.div className="pb-upload-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                     <motion.section className="pb-upload-card" role="status" aria-live="polite" initial={{ y: 24, scale: .97 }} animate={{ y: 0, scale: 1 }} exit={{ y: 24, scale: .97 }}>
-                        <span className="pb-upload-label">PHOTO BOARD / UPLOAD</span>
+                        <span className="pb-upload-label">SEQUENCE ROOM / UPLOAD</span>
                         <h2>Get ready to sequence your photos!</h2>
                         <p>{uploadProgress.stage}</p>
                         <div className="pb-progress-track" aria-label={`${uploadPercent}% uploaded`}>

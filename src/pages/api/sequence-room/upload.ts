@@ -5,9 +5,9 @@ import { randomUUID } from 'node:crypto';
 import { deleteR2Objects, putR2Object } from '../../../lib/media/r2';
 import {
     assertOwnedBoard,
-    authorizePhotoBoardUser,
-    photoBoardJson,
-} from '../../../lib/photoboard/server';
+    authorizeSequenceRoomUser,
+    sequenceRoomJson,
+} from '../../../lib/sequence-room/server';
 
 const MAX_WORKING_BYTES = 1024 * 1024;
 const ALLOWED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
@@ -18,7 +18,7 @@ const safeDimension = (value: FormDataEntryValue | null) => {
 };
 
 export const POST: APIRoute = async ({ request }) => {
-    const authorization = await authorizePhotoBoardUser(request);
+    const authorization = await authorizeSequenceRoomUser(request);
     if (!authorization.ok) return authorization.response;
 
     let objectKey = '';
@@ -35,26 +35,26 @@ export const POST: APIRoute = async ({ request }) => {
         const zIndex = Number(form.get('zIndex') || 1);
 
         if (!(file instanceof File) || !ALLOWED_TYPES.has(file.type) || file.size <= 0 || file.size > MAX_WORKING_BYTES) {
-            return photoBoardJson({ error: 'Upload a JPEG, PNG or WebP working copy no larger than 1 MB.' }, 400);
+            return sequenceRoomJson({ error: 'Upload a JPEG, PNG or WebP working copy no larger than 1 MB.' }, 400);
         }
         if (!width || !height || !Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(rotation)) {
-            return photoBoardJson({ error: 'Invalid photo metadata.' }, 400);
+            return sequenceRoomJson({ error: 'Invalid photo metadata.' }, 400);
         }
 
         const board = await assertOwnedBoard(authorization.supabase, authorization.user.id, boardId);
-        if (!board) return photoBoardJson({ error: 'Board not found.' }, 404);
+        if (!board) return sequenceRoomJson({ error: 'Board not found.' }, 404);
 
         const { count, error: countError } = await authorization.supabase
-            .from('photo_board_items')
+            .from('sequence_room_items')
             .select('id', { count: 'exact', head: true })
             .eq('board_id', boardId);
         if (countError) throw countError;
         if ((count || 0) >= 30) {
-            return photoBoardJson({ error: 'The free plan allows 30 photos per board.', code: 'FREE_PHOTO_LIMIT' }, 409);
+            return sequenceRoomJson({ error: 'The free plan allows 30 photos per board.', code: 'FREE_PHOTO_LIMIT' }, 409);
         }
 
         const extension = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg';
-        objectKey = `photo-board/${authorization.user.id}/${randomUUID()}.${extension}`;
+        objectKey = `sequence-room/${authorization.user.id}/${randomUUID()}.${extension}`;
         const bytes = new Uint8Array(await file.arrayBuffer());
         const uploaded = await putR2Object({ objectKey, body: bytes, contentType: file.type });
 
@@ -76,7 +76,7 @@ export const POST: APIRoute = async ({ request }) => {
 
         const itemId = randomUUID();
         const { data: item, error: itemError } = await authorization.supabase
-            .from('photo_board_items')
+            .from('sequence_room_items')
             .insert({
                 id: itemId,
                 board_id: boardId,
@@ -91,7 +91,7 @@ export const POST: APIRoute = async ({ request }) => {
             .single();
         if (itemError) throw itemError;
 
-        return photoBoardJson({
+        return sequenceRoomJson({
             item: {
                 id: item.id,
                 assetId: asset.id,
@@ -110,9 +110,9 @@ export const POST: APIRoute = async ({ request }) => {
         if (assetId) {
             await authorization.supabase.from('user_photo_assets').delete().eq('id', assetId).catch(() => undefined);
         }
-        console.error('Photo Board upload failed:', error);
+        console.error('Sequence Room upload failed:', error);
         const message = error instanceof Error ? error.message : 'Upload failed.';
         const quota = message.includes('FREE_PHOTO_LIMIT');
-        return photoBoardJson({ error: quota ? 'The free plan allows 30 photos per board.' : 'The photo could not be uploaded.', code: quota ? 'FREE_PHOTO_LIMIT' : 'UPLOAD_FAILED' }, quota ? 409 : 500);
+        return sequenceRoomJson({ error: quota ? 'The free plan allows 30 photos per board.' : 'The photo could not be uploaded.', code: quota ? 'FREE_PHOTO_LIMIT' : 'UPLOAD_FAILED' }, quota ? 409 : 500);
     }
 };

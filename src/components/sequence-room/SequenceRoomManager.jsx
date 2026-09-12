@@ -5,10 +5,10 @@ import {
     fetchUserBoards,
     saveBoardToCloud,
     deleteBoardFromCloud,
-} from '../../lib/photoboard/db';
-import PhotoBoardAuthModal from './PhotoBoardAuthModal';
+} from '../../lib/sequence-room/db';
+import SequenceRoomAuthModal from './SequenceRoomAuthModal';
 
-export default function PhotoBoardManager({
+export default function SequenceRoomManager({
     currentItems = [],
     activeBackdrop = '#14225d',
     onLoadBoard,
@@ -94,7 +94,7 @@ export default function PhotoBoardManager({
                     const updatedList = await fetchUserBoards();
                     setBoards(updatedList);
                     window.dispatchEvent(
-                        new CustomEvent('photoboard:toast', {
+                        new CustomEvent('sequence-room:toast', {
                             detail: {
                                 message: `✓ Board "${saved.title}" saved to your cloud account!`,
                                 type: 'success',
@@ -105,7 +105,7 @@ export default function PhotoBoardManager({
             } catch (err) {
                 console.error('Failed saving board to cloud:', err);
                 window.dispatchEvent(
-                    new CustomEvent('photoboard:toast', {
+                    new CustomEvent('sequence-room:toast', {
                         detail: { message: '⚠️ Failed to save board. Please try again.', type: 'error' },
                     })
                 );
@@ -114,8 +114,8 @@ export default function PhotoBoardManager({
             }
         };
 
-        window.addEventListener('photoboard:save-state', handleSaveTrigger);
-        return () => window.removeEventListener('photoboard:save-state', handleSaveTrigger);
+        window.addEventListener('sequence-room:save-state', handleSaveTrigger);
+        return () => window.removeEventListener('sequence-room:save-state', handleSaveTrigger);
     }, [user, activeBoardId, activeBoardTitle, activeBackdrop, currentItems]);
 
     const handleSelectBoard = (board) => {
@@ -128,7 +128,7 @@ export default function PhotoBoardManager({
         }
 
         window.dispatchEvent(
-            new CustomEvent('photoboard:toast', {
+            new CustomEvent('sequence-room:toast', {
                 detail: { message: `✓ Loaded board "${board.title}"`, type: 'info' },
             })
         );
@@ -145,7 +145,7 @@ export default function PhotoBoardManager({
         }
 
         window.dispatchEvent(
-            new CustomEvent('photoboard:toast', {
+            new CustomEvent('sequence-room:toast', {
                 detail: { message: `✓ Started new blank board: "${defaultName}"`, type: 'info' },
             })
         );
@@ -162,7 +162,7 @@ export default function PhotoBoardManager({
                 handleCreateBlank();
             }
             window.dispatchEvent(
-                new CustomEvent('photoboard:toast', {
+                new CustomEvent('sequence-room:toast', {
                     detail: { message: `✓ Deleted board "${title}"`, type: 'info' },
                 })
             );
@@ -205,14 +205,14 @@ export default function PhotoBoardManager({
         setBoards([]);
         setIsMenuOpen(false);
         window.dispatchEvent(
-            new CustomEvent('photoboard:toast', {
+            new CustomEvent('sequence-room:toast', {
                 detail: { message: '✓ Signed out. Switched to Guest Mode.', type: 'info' },
             })
         );
     };
 
     return (
-        <div className="photoboard-manager-container" ref={menuRef}>
+        <div className="sequence-room-manager-container" ref={menuRef}>
             {user ? (
                 // Logged In: Multi-Board Dropdown
                 <div className="pop-boards-dropdown-wrapper">
@@ -370,7 +370,7 @@ export default function PhotoBoardManager({
             )}
 
             {/* Auth Modal */}
-            <PhotoBoardAuthModal
+            <SequenceRoomAuthModal
                 isOpen={isAuthOpen}
                 onClose={() => setIsAuthOpen(false)}
                 onAuthSuccess={(u) => {
@@ -380,7 +380,7 @@ export default function PhotoBoardManager({
             />
 
             <style>{`
-                .photoboard-manager-container {
+                .sequence-room-manager-container {
                     display: inline-flex;
                     align-items: center;
                 }

@@ -19,7 +19,7 @@ test("moves the former experiment routes into the lab on main site", () => {
   assert.equal(destinationFor("/punctum"), "https://abodid.com/lab/punctum");
   assert.equal(destinationFor("/research/punctum/experiment"), "https://abodid.com/lab/punctum/experiment");
   assert.equal(destinationFor("/research/gesture-image-preview/launch"), "https://abodid.com/lab/image-flick");
-  assert.equal(destinationFor("/research/polaroid-hub/the-hub"), "https://abodid.com/lab/photo-board");
+  assert.equal(destinationFor("/research/polaroid-hub/the-hub"), "https://abodid.com/lab/sequence-room");
 });
 
 test("preserves nested Punctum paths and query parameters", () => {
@@ -33,7 +33,7 @@ test("does not redirect main-site /lab routes", () => {
   assert.equal(destinationFor("/lab"), null);
   assert.equal(destinationFor("/lab/punctum"), null);
   assert.equal(destinationFor("/lab/image-flick"), null);
-  assert.equal(destinationFor("/lab/photo-board"), null);
+  assert.equal(destinationFor("/lab/sequence-room"), null);
   assert.equal(destinationFor("/research/glyph-loom"), null);
   assert.equal(
     legacyLabRedirectLocation(new URL("https://preview.example/lab")),
@@ -70,8 +70,8 @@ test("redirects lab subdomain to primary site /lab routes", () => {
     "https://abodid.com/lab/image-flick",
   );
   assert.equal(
-    getLabSubdomainRedirect(new URL("https://lab.abodid.com/photo-board")),
-    "https://abodid.com/lab/photo-board",
+    getLabSubdomainRedirect(new URL("https://lab.abodid.com/sequence-room")),
+    "https://abodid.com/lab/sequence-room",
   );
   assert.equal(
     getLabSubdomainRedirect(new URL("https://lab.abodid.com/research")),

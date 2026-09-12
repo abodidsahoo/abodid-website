@@ -4,12 +4,12 @@ import type { APIRoute } from 'astro';
 import { deleteR2Objects } from '../../../lib/media/r2';
 import {
     assertOwnedBoard,
-    authorizePhotoBoardUser,
-    photoBoardJson,
-} from '../../../lib/photoboard/server';
+    authorizeSequenceRoomUser,
+    sequenceRoomJson,
+} from '../../../lib/sequence-room/server';
 
 export const POST: APIRoute = async ({ request }) => {
-    const authorization = await authorizePhotoBoardUser(request);
+    const authorization = await authorizeSequenceRoomUser(request);
     if (!authorization.ok) return authorization.response;
 
     try {
@@ -18,20 +18,20 @@ export const POST: APIRoute = async ({ request }) => {
         const itemIds = Array.isArray(body?.itemIds)
             ? [...new Set(body.itemIds.filter((id: unknown) => typeof id === 'string'))].slice(0, 30)
             : [];
-        if (!boardId || !itemIds.length) return photoBoardJson({ error: 'Choose photos to delete.' }, 400);
+        if (!boardId || !itemIds.length) return sequenceRoomJson({ error: 'Choose photos to delete.' }, 400);
         if (!await assertOwnedBoard(authorization.supabase, authorization.user.id, boardId)) {
-            return photoBoardJson({ error: 'Board not found.' }, 404);
+            return sequenceRoomJson({ error: 'Board not found.' }, 404);
         }
 
         const { data: items, error: itemError } = await authorization.supabase
-            .from('photo_board_items')
+            .from('sequence_room_items')
             .select('id,asset_id,user_photo_assets(id,cloudflare_key)')
             .eq('board_id', boardId)
             .in('id', itemIds);
         if (itemError) throw itemError;
 
         const { error: deleteError } = await authorization.supabase
-            .from('photo_board_items')
+            .from('sequence_room_items')
             .delete()
             .eq('board_id', boardId)
             .in('id', itemIds);
@@ -40,7 +40,7 @@ export const POST: APIRoute = async ({ request }) => {
         for (const item of items || []) {
             const assetId = item.asset_id;
             const { count } = await authorization.supabase
-                .from('photo_board_items')
+                .from('sequence_room_items')
                 .select('id', { count: 'exact', head: true })
                 .eq('asset_id', assetId);
             if ((count || 0) > 0) continue;
@@ -67,9 +67,9 @@ export const POST: APIRoute = async ({ request }) => {
             }
         }
 
-        return photoBoardJson({ deleted: (items || []).map((item) => item.id) });
+        return sequenceRoomJson({ deleted: (items || []).map((item) => item.id) });
     } catch (error) {
-        console.error('Photo Board delete failed:', error);
-        return photoBoardJson({ error: 'The selected photos could not be deleted.' }, 500);
+        console.error('Sequence Room delete failed:', error);
+        return sequenceRoomJson({ error: 'The selected photos could not be deleted.' }, 500);
     }
 };

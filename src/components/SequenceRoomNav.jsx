@@ -1,9 +1,9 @@
 import React from 'react';
-import PhotoDropzone from './photoboard/PhotoDropzone';
+import PhotoDropzone from './sequence-room/PhotoDropzone';
 
-export default function PhotoBoardNav() {
+export default function SequenceRoomNav() {
     return (
-        <div className="photoboard-nav-topleft">
+        <div className="sequence-room-nav-topleft">
             <a
                 href="/lab"
                 className="pop-topleft-btn pop-back-btn"
@@ -31,7 +31,7 @@ export default function PhotoBoardNav() {
             </div>
 
             <style>{`
-                .photoboard-nav-topleft {
+                .sequence-room-nav-topleft {
                     position: fixed;
                     top: 1.5rem;
                     left: 1.5rem;
@@ -79,7 +79,7 @@ export default function PhotoBoardNav() {
                 }
 
                 @media (max-width: 640px) {
-                    .photoboard-nav-topleft {
+                    .sequence-room-nav-topleft {
                         top: 1rem;
                         left: 1rem;
                         gap: 0.5rem;

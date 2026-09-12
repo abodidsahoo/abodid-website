@@ -1,0 +1,16 @@
+---
+export const prerender = false;
+import BaseLayout from '../../../../layouts/BaseLayout.astro';
+import SequenceRoomWorkspace from '../../../../components/sequence-room/SequenceRoomWorkspace.jsx';
+
+const { token = '' } = Astro.params;
+---
+
+<BaseLayout
+    title="Shared Sequence Room"
+    description="An unlisted, read-only Sequence Room arrangement."
+    hideHeader={true}
+    fullWidth={true}
+>
+    <SequenceRoomWorkspace shareToken={token} client:only="react" />
+</BaseLayout>

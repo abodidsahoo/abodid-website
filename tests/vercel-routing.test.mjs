@@ -51,9 +51,9 @@ test("redirects Lab host paths before Astro rendering", () => {
     status: 308,
     location: "https://abodid.com/lab",
   });
-  assert.deepEqual(resolveRedirect("https://lab.abodid.com/photo-board?board=demo"), {
+  assert.deepEqual(resolveRedirect("https://lab.abodid.com/sequence-room?board=demo"), {
     status: 308,
-    location: "https://abodid.com/lab/photo-board?board=demo",
+    location: "https://abodid.com/lab/sequence-room?board=demo",
   });
   assert.deepEqual(resolveRedirect("https://lab.abodid.com/research/papers"), {
     status: 308,
@@ -81,15 +81,15 @@ test("redirects Curation and Photography hosts before Astro rendering", () => {
 });
 
 test("does not redirect canonical main-site dynamic routes", () => {
-  assert.equal(resolveRedirect("https://abodid.com/lab/photo-board"), null);
-  assert.equal(resolveRedirect("https://abodid.com/api/photo-board/share"), null);
+  assert.equal(resolveRedirect("https://abodid.com/lab/sequence-room"), null);
+  assert.equal(resolveRedirect("https://abodid.com/api/sequence-room/share"), null);
   assert.equal(resolveRedirect("https://abodid.com/obsidian-vault/topic/grope"), null);
 });
 
 test("keeps legacy Lab redirects at the platform routing layer", () => {
   assert.deepEqual(resolveRedirect("https://abodid.com/research/polaroid-hub/the-hub"), {
     status: 308,
-    location: "https://abodid.com/lab/photo-board",
+    location: "https://abodid.com/lab/sequence-room",
   });
   assert.deepEqual(resolveRedirect("https://abodid.com/research/punctum/results/photo-one?session=abc"), {
     status: 308,

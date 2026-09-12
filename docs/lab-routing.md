@@ -9,7 +9,7 @@ the Astro source is an implementation detail; it is not part of the public URL.
 - `https://lab.abodid.com/punctum` — Punctum and its `experiment`, `results`,
   and `about` routes.
 - `https://lab.abodid.com/image-flick` — gesture-controlled image stack.
-- `https://lab.abodid.com/photo-board` — interactive Polaroid-style photo board.
+- `https://lab.abodid.com/sequence-room` — interactive Polaroid-style sequence room.
 - `https://lab.abodid.com/robots.txt` and `/sitemap.xml` — Lab-only discovery
   files.
 
@@ -26,7 +26,7 @@ src/
   pages/lab/              Internal Astro route namespace
     punctum/
     image-flick/
-    photo-board/
+    sequence-room/
   pages/lab-robots.txt.ts
   pages/lab-sitemap.xml.ts
   pages/api/punctum/       Shared server endpoints used by Punctum

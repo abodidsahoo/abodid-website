@@ -26,7 +26,7 @@ const legacyLabRoutes = [
   ["/research/punctum", "/punctum"],
   ["/punctum", "/punctum"],
   ["/research/gesture-image-preview", "/image-flick"],
-  ["/research/polaroid-hub", "/photo-board"],
+  ["/research/polaroid-hub", "/sequence-room"],
 ];
 
 const withoutTrailingSlash = (pathname) =>
