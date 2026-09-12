@@ -41,32 +41,40 @@ test('curation canonicalizes old resource paths and rejects main-site routes', (
   assert.equal(unrelated.headers.get('location'), 'https://abodid.com/obsidian-vault/example');
 });
 
-test('lab owns experiment, robots, and sitemap routes', () => {
-  assertRewrite('https://lab.abodid.com/', '/lab');
-  assertRewrite('https://lab.abodid.com/punctum/about', '/lab/punctum/about');
-  assertRewrite('https://lab.abodid.com/image-flick', '/lab/image-flick');
-  assertRewrite('https://lab.abodid.com/photo-board', '/lab/photo-board');
-  assertRewrite('https://lab.abodid.com/future-experiment/demo', '/lab/future-experiment/demo');
-  assertRewrite('https://lab.abodid.com/robots.txt', '/lab-robots.txt');
-  assertRewrite('https://lab.abodid.com/sitemap.xml', '/lab-sitemap.xml');
+test('lab subdomain redirects to main site /lab routes', () => {
+  const root = route('https://lab.abodid.com/');
+  assert.equal(root.status, 308);
+  assert.equal(root.headers.get('location'), 'https://abodid.com/lab');
 
-  const exposedInternalPath = route('https://lab.abodid.com/lab/punctum');
-  assert.equal(exposedInternalPath.status, 308);
-  assert.equal(exposedInternalPath.headers.get('location'), 'https://lab.abodid.com/punctum');
+  const punctum = route('https://lab.abodid.com/punctum/about');
+  assert.equal(punctum.status, 308);
+  assert.equal(punctum.headers.get('location'), 'https://abodid.com/lab/punctum/about');
+
+  const flick = route('https://lab.abodid.com/image-flick');
+  assert.equal(flick.status, 308);
+  assert.equal(flick.headers.get('location'), 'https://abodid.com/lab/image-flick');
+
+  const board = route('https://lab.abodid.com/photo-board');
+  assert.equal(board.status, 308);
+  assert.equal(board.headers.get('location'), 'https://abodid.com/lab/photo-board');
 
   const unrelated = route('https://lab.abodid.com/about');
   assert.equal(unrelated.status, 308);
   assert.equal(unrelated.headers.get('location'), 'https://abodid.com/about');
 });
 
-test('primary legacy product paths redirect while admin passes through unchanged', () => {
+test('primary legacy product paths redirect while lab and admin pass through unchanged', () => {
   const resources = route('https://abodid.com/resources/example?from=old');
   assert.equal(resources.status, 308);
   assert.equal(resources.headers.get('location'), 'https://curation.abodid.com/resource/example?from=old');
 
+  const legacyLab = route('https://abodid.com/research/punctum/results');
+  assert.equal(legacyLab.status, 308);
+  assert.equal(legacyLab.headers.get('location'), 'https://abodid.com/lab/punctum/results');
+
   const lab = route('https://abodid.com/lab/punctum/results');
-  assert.equal(lab.status, 308);
-  assert.equal(lab.headers.get('location'), 'https://lab.abodid.com/punctum/results');
+  assert.equal(lab.status, 200);
+  assert.equal(lab.headers.get('x-middleware-next'), '1');
 
   const response = route('https://abodid.com/admin/dashboard');
   assert.equal(response.status, 200);

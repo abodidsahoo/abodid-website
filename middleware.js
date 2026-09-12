@@ -80,16 +80,10 @@ export default function middleware(request) {
   }
 
   if (isLabHostname(url.hostname)) {
-    const canonicalRedirect = getLabCanonicalRedirect(url);
-    if (canonicalRedirect) return permanentRedirect(canonicalRedirect);
-
-    const externalRedirect = getLabSubdomainRedirect(url);
-    if (externalRedirect) return permanentRedirect(externalRedirect);
-
-    const internalPath = labDestination(url);
-    if (internalPath) return rewritePath(request, url, internalPath);
-
-    return next();
+    const dest = getLabSubdomainRedirect(url);
+    if (dest) return permanentRedirect(dest);
+    const destPath = url.pathname === '/' ? '/lab' : (url.pathname.startsWith('/lab') ? url.pathname : `/lab${url.pathname}`);
+    return permanentRedirect(`https://abodid.com${destPath}${url.search}`);
   }
 
   if (isPhotographyHostname(url.hostname)) {

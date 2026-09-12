@@ -95,18 +95,12 @@ export const onRequest = defineMiddleware(async (context, next) => {
         return permanentRedirect(`https://abodid.com${destPath}${requestUrl.search}`);
     }
 
-    // --- Lab subdomain (lab.abodid.com) ---
+    // --- Lab subdomain (lab.abodid.com) fallback redirect to main site ---
     if (isLabHostname(requestUrl.hostname)) {
-        const canonicalRedirect = getLabCanonicalRedirect(requestUrl);
-        if (canonicalRedirect) return permanentRedirect(canonicalRedirect);
-
-        const externalRedirect = getLabSubdomainRedirect(requestUrl);
-        if (externalRedirect) return permanentRedirect(externalRedirect);
-
-        const internalPath = labDestination(requestUrl);
-        if (internalPath) {
-            return rewriteInternalRoute(context, next, internalPath);
-        }
+        const dest = getLabSubdomainRedirect(requestUrl);
+        if (dest) return permanentRedirect(dest);
+        const destPath = requestUrl.pathname === '/' ? '/lab' : (requestUrl.pathname.startsWith('/lab') ? requestUrl.pathname : `/lab${requestUrl.pathname}`);
+        return permanentRedirect(`https://abodid.com${destPath}${requestUrl.search}`);
     }
 
     // --- Photography subdomain (photos.abodid.com) ---
@@ -122,8 +116,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
         if (externalRedirect) return permanentRedirect(externalRedirect);
     }
 
-    // Keep every main-site /lab/<project> link working while the public Lab
-    // origin stays clean (lab.abodid.com/<project>).
+    // Redirect legacy experiment routes (/research/punctum, /punctum, etc.) to /lab/...
     if (!context.isPrerendered) {
         const labRedirect = legacyLabRedirectLocation(requestUrl);
         if (labRedirect) return permanentRedirect(labRedirect);
