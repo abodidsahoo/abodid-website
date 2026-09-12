@@ -1,6 +1,4 @@
 ---
-export const prerender = false;
-
 import BaseLayout from "../layouts/BaseLayout.astro";
 import BoudoirMoodboard from "../components/BoudoirMoodboard.jsx";
 import { getPublishedMoodboardItems } from "../lib/services/moodboard";
@@ -25,8 +23,6 @@ const interactiveItems = shuffledItems.map((item) => ({
   thumbnailUrl: item.imageUrl,
   paletteImageUrl: `/api/image-palette-proxy?url=${encodeURIComponent(item.imageUrl)}`,
 }));
-
-Astro.response.headers.set("Cache-Control", "no-store");
 ---
 
 <BaseLayout
