@@ -7,7 +7,6 @@ import SEO from "../components/SEO.astro";
 import NewsletterPopup from "../components/NewsletterPopup.jsx";
 import MagneticCursorFollower from "../components/MagneticCursorFollower.jsx";
 import RouteLoadingOverlay from "../components/RouteLoadingOverlay.astro";
-import WhatsAppButton from "../components/WhatsAppButton.astro";
 import { ClientRouter } from "astro:transitions";
 import { getPageMetadata } from "../lib/api";
 import {
@@ -43,7 +42,6 @@ const {
   hideSideMenuRail = false,
   hideFooter = false,
   showFooterNavigation = true,
-  hideWhatsAppButton = false,
   fullWidth = false,
   hideThemeToggle = false,
   altTextLogo = null,
@@ -207,7 +205,6 @@ const googleFontsUrl =
     </main>
     {showNewsletterPopup && <NewsletterPopup client:idle />}
     {cursorFollowerEnabled && <MagneticCursorFollower client:idle />}
-    {!finalNoindex && !hideWhatsAppButton && <WhatsAppButton />}
 
     <script src="/scripts/journey-tracker.js" defer></script>
     {!hideFooter && <SiteFooter showNavigation={showFooterNavigation} />}

@@ -28,23 +28,12 @@ const resolvedCanonicalUrl = canonicalUrl || labUrl(punctumPath);
   lockViewport={lockViewport}
 >
   <Fragment slot="head">
-    <meta name="theme-color" content="#f8fbff" data-punctum-theme-color />
+    <meta name="theme-color" content="#f8fbff" />
     <link rel="preconnect" href="https://assets.abodid.com" />
     <script is:inline>
       (() => {
-        const storageKey = "punctum-theme";
-        const savedTheme = localStorage.getItem(storageKey);
-        const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
-          ? "dark"
-          : "light";
-        const theme =
-          savedTheme === "light" || savedTheme === "dark" ? savedTheme : systemTheme;
-
-        document.documentElement.dataset.punctumTheme = theme;
-        document.documentElement.style.colorScheme = theme;
-        document
-          .querySelector("[data-punctum-theme-color]")
-          ?.setAttribute("content", theme === "dark" ? "#111317" : "#f8fbff");
+        document.documentElement.dataset.punctumTheme = "light";
+        document.documentElement.style.colorScheme = "light";
       })();
     </script>
   </Fragment>
@@ -59,17 +48,6 @@ const resolvedCanonicalUrl = canonicalUrl || labUrl(punctumPath);
         <a href="/lab/punctum/experiment">Participate</a>
         <a href="/lab/punctum/results">Results</a>
         <a href="/lab/punctum/about">About</a>
-        <button
-          class="punctum-theme-toggle"
-          type="button"
-          aria-label="Switch to dark mode"
-          aria-pressed="false"
-          title="Switch to dark mode"
-          data-punctum-theme-toggle
-        >
-          <span class="punctum-theme-toggle__icon" aria-hidden="true"></span>
-          <span class="punctum-theme-toggle__label">Dark</span>
-        </button>
       </nav>
       <div
         class="punctum-progress"
@@ -93,41 +71,9 @@ const resolvedCanonicalUrl = canonicalUrl || labUrl(punctumPath);
 
 <script is:inline>
   (() => {
-    const storageKey = "punctum-theme";
     const root = document.documentElement;
-    const button = document.querySelector("[data-punctum-theme-toggle]");
-    const systemPreference = window.matchMedia("(prefers-color-scheme: dark)");
-
-    const applyTheme = (theme, persist = false) => {
-      root.dataset.punctumTheme = theme;
-      root.style.colorScheme = theme;
-
-      const nextTheme = theme === "dark" ? "light" : "dark";
-      button?.setAttribute("aria-label", `Switch to ${nextTheme} mode`);
-      button?.setAttribute("title", `Switch to ${nextTheme} mode`);
-      button?.setAttribute("aria-pressed", String(theme === "dark"));
-
-      const label = button?.querySelector(".punctum-theme-toggle__label");
-      if (label) label.textContent = nextTheme === "dark" ? "Dark" : "Light";
-
-      document
-        .querySelector("[data-punctum-theme-color]")
-        ?.setAttribute("content", theme === "dark" ? "#111317" : "#f8fbff");
-
-      if (persist) localStorage.setItem(storageKey, theme);
-    };
-
-    applyTheme(root.dataset.punctumTheme === "dark" ? "dark" : "light");
-
-    button?.addEventListener("click", () => {
-      applyTheme(root.dataset.punctumTheme === "dark" ? "light" : "dark", true);
-    });
-
-    systemPreference.addEventListener("change", (event) => {
-      if (!localStorage.getItem(storageKey)) {
-        applyTheme(event.matches ? "dark" : "light");
-      }
-    });
+    root.dataset.punctumTheme = "light";
+    root.style.colorScheme = "light";
 
     const site = document.querySelector(".punctum-site");
     const progressTrack = document.querySelector("[data-punctum-progress]");

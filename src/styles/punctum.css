@@ -50,43 +50,6 @@ html:has(body.punctum-page) {
   scroll-behavior: smooth;
 }
 
-/* Punctum dark theme — a complete palette, not a translucent light-mode wash. */
-html[data-punctum-theme="dark"]:has(body.punctum-page) {
-  --punctum-bg: #111317;
-  --punctum-surface: #1b1f24;
-  --punctum-surface-elevated: #232a32;
-  --punctum-ink: #f8f9fa;
-  --punctum-muted: #bdc1c6;
-  --punctum-subtle: #a9afb7;
-  --punctum-accent: #8ab4f8;
-  --punctum-yellow: #8ab4f8;
-  --punctum-button-ink: #202124;
-  --punctum-on-ink: #202124;
-  --punctum-border: #8a9099;
-  --punctum-border-strong: #bdc1c6;
-  --punctum-focus: #aecbfa;
-  --punctum-disabled-bg: #3c4043;
-  --punctum-disabled-text: #dadce0;
-  --punctum-notice-bg: #24324a;
-  --punctum-notice-text: #aecbfa;
-  --punctum-success-bg: #173b26;
-  --punctum-success-text: #81c995;
-  --punctum-error-bg: #4a2020;
-  --punctum-error-text: #f28b82;
-  --punctum-inverse-surface: #0d0f12;
-  --punctum-on-inverse: #f8f9fa;
-  --punctum-on-inverse-muted: #bdc1c6;
-  --punctum-photo-border: #232a32;
-  --punctum-practice-bg: #202a38;
-  --punctum-practice-text: #e8f0fe;
-  --punctum-glow: rgba(138, 180, 248, 0.12);
-  --punctum-overlay: rgba(27, 31, 36, 0.94);
-  --punctum-coral: #f28b82;
-  --punctum-mint: #81c995;
-  --punctum-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
-  color-scheme: dark;
-}
-
 body.punctum-page {
   margin: 0;
   overflow-x: hidden;
@@ -246,38 +209,6 @@ body.punctum-page * {
 .punctum-nav nav a:hover::after,
 .punctum-nav nav a:focus-visible::after {
   right: 0;
-}
-
-.punctum-theme-toggle {
-  min-width: 76px;
-  min-height: 36px;
-  padding: 0 12px;
-  border: 1px solid var(--punctum-border);
-  border-radius: 999px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  background: var(--punctum-surface);
-  color: var(--punctum-ink);
-  font: inherit;
-  font-size: 12px;
-  font-weight: 680;
-  cursor: pointer;
-}
-
-.punctum-theme-toggle__icon {
-  width: 12px;
-  height: 12px;
-  border: 2px solid currentColor;
-  border-radius: 50%;
-  box-shadow: 4px -4px 0 -2px var(--punctum-surface);
-}
-
-html[data-punctum-theme="dark"] .punctum-theme-toggle__icon {
-  border-color: var(--punctum-yellow);
-  background: var(--punctum-yellow);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--punctum-yellow) 22%, transparent);
 }
 
 .punctum-button {
@@ -4276,10 +4207,6 @@ html[data-punctum-theme="dark"] .punctum-theme-toggle__icon {
   border-radius: clamp(24px, 3vw, 36px);
   box-shadow: 0 2px 10px rgba(32, 33, 36, 0.04);
   animation: punctum-screen-in 240ms ease-out;
-}
-
-html[data-punctum-theme="dark"] .punctum-onboarding__card {
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
 }
 
 .punctum-onboarding__card--centered {

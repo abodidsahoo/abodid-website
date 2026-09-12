@@ -49,7 +49,6 @@ function contrastRatio(foreground, background) {
 
 const themes = {
   light: themeBlock("html:has(body.punctum-page)"),
-  dark: themeBlock('html[data-punctum-theme="dark"]:has(body.punctum-page)'),
 };
 
 const checks = [
