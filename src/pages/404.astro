@@ -122,14 +122,22 @@ const description = "Sorry, this is a ghost town.";
 </script>
 
 <style>
+    :global(html:has(body.pop-editorial-404)),
+    :global(body.pop-editorial-404) {
+        margin: 0;
+        padding: 0 !important;
+        background-color: #db062f !important;
+        background: #db062f !important;
+    }
+
     .error-container {
-        --error-red: #d52b1e;
+        --error-red: #db062f;
         --error-white: #ffffff;
         --error-gray-light: #eeeeeb;
         --error-gray-mid: #c9c9c5;
         --error-gray-dark: #4d4d49;
 
-        min-height: 70vh;
+        min-height: calc(100vh - 120px);
         display: flex;
         flex-direction: column;
         align-items: center;
