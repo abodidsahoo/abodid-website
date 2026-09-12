@@ -8,7 +8,7 @@ export const GET: APIRoute = () =>
       'User-agent: *',
       'Allow: /',
       'Disallow: /api/',
-      'Sitemap: https://lab.abodid.com/sitemap.xml',
+      'Sitemap: https://abodid.com/lab-sitemap.xml',
       '',
     ].join('\n'),
     { headers: { 'Content-Type': 'text/plain; charset=utf-8' } },

@@ -456,6 +456,32 @@ export const createPresignedR2Upload = async ({
     };
 };
 
+export const putR2Object = async ({
+    objectKey,
+    body,
+    contentType,
+}: {
+    objectKey: string;
+    body: Uint8Array;
+    contentType: string;
+}) => {
+    const key = assertSafeR2ObjectKey(objectKey);
+    const config = getR2Config();
+    const client = createR2Client(config);
+    await client.send(new PutObjectCommand({
+        Bucket: config.bucket,
+        Key: key,
+        Body: body,
+        ContentType: contentType,
+        CacheControl: R2_CACHE_CONTROL,
+    }));
+
+    return {
+        objectKey: key,
+        publicUrl: buildR2PublicUrl(config, key),
+    };
+};
+
 export const headR2Object = async (objectKey: string) => {
     const config = getR2Config();
     const client = createR2Client(config);

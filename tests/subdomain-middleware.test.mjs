@@ -5,40 +5,26 @@ import middleware, { config } from '../middleware.js';
 
 const route = (url) => middleware(new Request(url));
 
-const assertRewrite = (url, expected) => {
-  const response = route(url);
-  assert.equal(response.status, 200);
-  const rewriteTarget = response.headers.get('x-middleware-rewrite');
-  assert.ok(rewriteTarget);
-  const resolvedTarget = new URL(rewriteTarget, url);
-  assert.equal(`${resolvedTarget.pathname}${resolvedTarget.search}`, expected);
-};
-
 test('uses Vercel Node routing middleware before filesystem resolution', () => {
   assert.deepEqual(config, { runtime: 'nodejs' });
 });
 
-test('curation owns its public application routes', () => {
-  assertRewrite('https://curation.abodid.com/', '/resources');
-  assertRewrite(
-    'https://curation.abodid.com/dashboard?view=saved',
-    '/resources/dashboard?view=saved',
-  );
-  assertRewrite('https://curation.abodid.com/admin', '/resources/admin');
-  assertRewrite(
-    'https://curation.abodid.com/resource/example/edit',
-    '/resources/example/edit',
-  );
-});
+test('curation subdomain redirects to main site /resources routes', () => {
+  const root = route('https://curation.abodid.com/');
+  assert.equal(root.status, 308);
+  assert.equal(root.headers.get('location'), 'https://abodid.com/resources');
 
-test('curation canonicalizes old resource paths and rejects main-site routes', () => {
-  const legacy = route('https://curation.abodid.com/resources/example?from=old');
-  assert.equal(legacy.status, 308);
-  assert.equal(legacy.headers.get('location'), 'https://curation.abodid.com/resource/example?from=old');
+  const dashboard = route('https://curation.abodid.com/dashboard?view=saved');
+  assert.equal(dashboard.status, 308);
+  assert.equal(dashboard.headers.get('location'), 'https://abodid.com/resources/dashboard?view=saved');
 
-  const unrelated = route('https://curation.abodid.com/obsidian-vault/example');
-  assert.equal(unrelated.status, 308);
-  assert.equal(unrelated.headers.get('location'), 'https://abodid.com/obsidian-vault/example');
+  const admin = route('https://curation.abodid.com/admin');
+  assert.equal(admin.status, 308);
+  assert.equal(admin.headers.get('location'), 'https://abodid.com/resources/admin');
+
+  const resource = route('https://curation.abodid.com/resource/example/edit');
+  assert.equal(resource.status, 308);
+  assert.equal(resource.headers.get('location'), 'https://abodid.com/resources/example/edit');
 });
 
 test('lab subdomain redirects to main site /lab routes', () => {
@@ -57,16 +43,12 @@ test('lab subdomain redirects to main site /lab routes', () => {
   const board = route('https://lab.abodid.com/photo-board');
   assert.equal(board.status, 308);
   assert.equal(board.headers.get('location'), 'https://abodid.com/lab/photo-board');
-
-  const unrelated = route('https://lab.abodid.com/about');
-  assert.equal(unrelated.status, 308);
-  assert.equal(unrelated.headers.get('location'), 'https://abodid.com/about');
 });
 
-test('primary legacy product paths redirect while lab and admin pass through unchanged', () => {
+test('primary site resources, lab, and admin pass through unchanged', () => {
   const resources = route('https://abodid.com/resources/example?from=old');
-  assert.equal(resources.status, 308);
-  assert.equal(resources.headers.get('location'), 'https://curation.abodid.com/resource/example?from=old');
+  assert.equal(resources.status, 200);
+  assert.equal(resources.headers.get('x-middleware-next'), '1');
 
   const legacyLab = route('https://abodid.com/research/punctum/results');
   assert.equal(legacyLab.status, 308);
@@ -82,10 +64,9 @@ test('primary legacy product paths redirect while lab and admin pass through unc
   assert.equal(response.headers.get('x-middleware-rewrite'), null);
 });
 
-test('photography keeps its existing isolated routing', () => {
-  assertRewrite('https://photos.abodid.com/', '/photography-portfolio');
-
-  const unrelated = route('https://photos.abodid.com/about');
-  assert.equal(unrelated.status, 308);
-  assert.equal(unrelated.headers.get('location'), 'https://abodid.com/about');
+test('photography subdomain redirects to main site photography portfolio', () => {
+  const root = route('https://photos.abodid.com/');
+  assert.equal(root.status, 308);
+  assert.equal(root.headers.get('location'), 'https://abodid.com/photography-portfolio');
 });
+

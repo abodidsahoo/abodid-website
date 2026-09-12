@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  curationPath,
   curationPathToInternalPath,
   getCurationCanonicalRedirect,
   getCurationSubdomainRedirect,
@@ -10,89 +11,55 @@ import {
   safeCurationReturnTo,
 } from "../src/lib/curationRoutes.js";
 
-test("maps every public legacy route to the curation namespace", () => {
-  assert.equal(legacyResourcePathToCurationPath("/resources"), "/");
-  assert.equal(legacyResourcePathToCurationPath("/resources/dashboard"), "/dashboard");
-  assert.equal(legacyResourcePathToCurationPath("/resources/curator"), "/admin");
-  assert.equal(legacyResourcePathToCurationPath("/resources/admin/users"), "/admin/users");
-  assert.equal(legacyResourcePathToCurationPath("/resources/u/abodid"), "/u/abodid");
-  assert.equal(legacyResourcePathToCurationPath("/resources/abc-123"), "/resource/abc-123");
-  assert.equal(legacyResourcePathToCurationPath("/resources/abc-123/edit"), "/resource/abc-123/edit");
+test("maps paths to the unified /resources namespace", () => {
+  assert.equal(legacyResourcePathToCurationPath("/resources"), "/resources");
+  assert.equal(legacyResourcePathToCurationPath("/resources/dashboard"), "/resources/dashboard");
+  assert.equal(legacyResourcePathToCurationPath("/resources/curator"), "/resources/admin");
+  assert.equal(legacyResourcePathToCurationPath("/resources/admin/users"), "/resources/admin/users");
+  assert.equal(legacyResourcePathToCurationPath("/resources/u/abodid"), "/resources/u/abodid");
+  assert.equal(legacyResourcePathToCurationPath("/resources/abc-123"), "/resources/abc-123");
+  assert.equal(legacyResourcePathToCurationPath("/resources/abc-123/edit"), "/resources/abc-123/edit");
+  assert.equal(legacyResourcePathToCurationPath("/dashboard"), "/resources/dashboard");
+  assert.equal(legacyResourcePathToCurationPath("/submit"), "/resources/submit");
+  assert.equal(legacyResourcePathToCurationPath("/saved"), "/resources/saved");
 });
 
-test("rewrites curation routes to the existing Astro implementation", () => {
-  assert.equal(curationPathToInternalPath("/"), "/resources");
-  assert.equal(curationPathToInternalPath("/admin"), "/resources/admin");
-  assert.equal(curationPathToInternalPath("/resource/abc-123"), "/resources/abc-123");
-  assert.equal(curationPathToInternalPath("/resource/abc-123/edit"), "/resources/abc-123/edit");
-  assert.equal(curationPathToInternalPath("/not-a-route"), null);
+test("resolves internal Astro implementation routes", () => {
+  assert.equal(curationPathToInternalPath("/resources"), "/resources");
+  assert.equal(curationPathToInternalPath("/resources/admin"), "/resources/admin");
+  assert.equal(curationPathToInternalPath("/resources/abc-123"), "/resources/abc-123");
+  assert.equal(curationPathToInternalPath("/resources/abc-123/edit"), "/resources/abc-123/edit");
+  assert.equal(curationPathToInternalPath("/resources/dashboard"), "/resources/dashboard");
 });
 
-test("redirects only the primary host and preserves query strings", () => {
+test("never redirects away from primary host resources routes", () => {
+  assert.equal(getLegacyResourceRedirect(), null);
+});
+
+test("redirects curation subdomain requests to primary site /resources routes", () => {
   assert.equal(
-    getLegacyResourceRedirect(new URL("https://abodid.com/resources?audience=Designer")),
-    "https://curation.abodid.com/?audience=Designer",
+    getCurationCanonicalRedirect(new URL("https://curation.abodid.com/")),
+    "https://abodid.com/resources",
   );
-  assert.equal(
-    getLegacyResourceRedirect(new URL("https://preview.example/resources")),
-    null,
-  );
-});
-
-test("canonicalizes accidental legacy paths on the curation host", () => {
   assert.equal(
     getCurationCanonicalRedirect(new URL("https://curation.abodid.com/resources/example")),
-    "https://curation.abodid.com/resource/example",
+    "https://abodid.com/resources/example",
+  );
+  assert.equal(
+    getCurationCanonicalRedirect(new URL("https://curation.abodid.com/dashboard")),
+    "https://abodid.com/resources/dashboard",
+  );
+  assert.equal(
+    getCurationCanonicalRedirect(new URL("https://curation.abodid.com/resource/123")),
+    "https://abodid.com/resources/123",
   );
 });
 
-test("keeps authentication return paths same-origin", () => {
-  assert.equal(safeCurationReturnTo("/resources/admin/users"), "/admin/users");
-  assert.equal(safeCurationReturnTo("/resource/abc?from=email"), "/resource/abc?from=email");
-  assert.equal(safeCurationReturnTo("https://evil.example/steal"), "/dashboard");
-  assert.equal(safeCurationReturnTo("//evil.example/steal"), "/dashboard");
+test("keeps authentication return paths safe and internal", () => {
+  assert.equal(safeCurationReturnTo("/resources/admin/users"), "/resources/admin/users");
+  assert.equal(safeCurationReturnTo("/resources/123?from=email"), "/resources/123?from=email");
+  assert.equal(safeCurationReturnTo("https://evil.example/steal"), "/resources/dashboard");
+  assert.equal(safeCurationReturnTo("//evil.example/steal"), "/resources/dashboard");
 });
 
-test("redirects non-curation routes on curation subdomain to primary site", () => {
-  assert.equal(
-    getCurationSubdomainRedirect(new URL("https://curation.abodid.com/research")),
-    "https://abodid.com/research",
-  );
-  assert.equal(
-    getCurationSubdomainRedirect(new URL("https://curation.abodid.com/lab")),
-    "https://abodid.com/lab",
-  );
-  assert.equal(
-    getCurationSubdomainRedirect(new URL("https://curation.abodid.com/about")),
-    "https://abodid.com/about",
-  );
-  assert.equal(
-    getCurationSubdomainRedirect(new URL("https://curation.abodid.com/portraiture")),
-    "https://abodid.com/portraiture",
-  );
-  assert.equal(
-    getCurationSubdomainRedirect(new URL("https://curation.abodid.com/")),
-    null,
-  );
-  assert.equal(
-    getCurationSubdomainRedirect(new URL("https://curation.abodid.com/submit")),
-    null,
-  );
-  assert.equal(
-    getCurationSubdomainRedirect(new URL("https://curation.abodid.com/saved")),
-    null,
-  );
-  assert.equal(
-    getCurationSubdomainRedirect(new URL("https://curation.abodid.com/dashboard")),
-    null,
-  );
-  assert.equal(
-    getCurationSubdomainRedirect(new URL("https://curation.abodid.com/resource/123")),
-    null,
-  );
-  assert.equal(
-    getCurationSubdomainRedirect(new URL("https://curation.abodid.com/login")),
-    null,
-  );
-});
 

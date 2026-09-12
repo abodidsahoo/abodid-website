@@ -1,57 +1,33 @@
 ---
-import {
-  isCurationHostname,
-  legacyResourcePathToCurationPath,
-} from "../lib/curationRoutes.js";
-
-const hostname = Astro.url.hostname;
-const isCuration = isCurationHostname(hostname);
-const isLab = hostname === "lab.abodid.com";
-const isPhotos = hostname === "photos.abodid.com";
-const isSubdomain = isCuration || isLab || isPhotos;
-
-const internalPathname = Astro.url.pathname.replace(/\/$/, "") || "/";
-const pathname = isCuration
-  ? legacyResourcePathToCurationPath(internalPathname) || internalPathname
-  : internalPathname;
+const pathname = Astro.url.pathname.replace(/\/$/, "") || "/";
 const onHomepage = pathname === "/";
 
-const mainOrigin = "https://abodid.com";
-const mainUrl = (path: string) => isSubdomain ? `${mainOrigin}${path}` : path;
-
 // Primary Desktop & Mobile Navigation
-const personalNavigationItems = [
-  { href: mainUrl("/work"), label: "Work", active: !isLab && (pathname === "/work" || pathname.startsWith("/work/")) },
-  { href: mainUrl("/research"), label: "Research", active: !isLab && (pathname === "/research" || pathname.startsWith("/research/")) },
-  { href: mainUrl("/lab"), label: "Lab", active: !isLab && (pathname === "/lab" || pathname.startsWith("/lab/")) },
-  { href: mainUrl("/about"), label: "About", active: !isLab && (pathname === "/about" || pathname.startsWith("/about/")) },
+const navigationItems = [
+  { href: "/work", label: "Work", active: pathname === "/work" || pathname.startsWith("/work/") },
+  { href: "/research", label: "Research", active: pathname === "/research" || pathname.startsWith("/research/") },
+  { href: "/lab", label: "Lab", active: pathname === "/lab" || pathname.startsWith("/lab/") },
+  { href: "/about", label: "About", active: pathname === "/about" || pathname.startsWith("/about/") },
 ];
-const curationNavigationItems = [
-  { href: "/", label: "Explore", active: pathname === "/" },
-  { href: "/submit", label: "Submit", active: pathname === "/submit" },
-  { href: "/saved", label: "Saved", active: pathname === "/saved" },
-  { href: "/dashboard", label: "Dashboard", active: pathname === "/dashboard" || pathname.startsWith("/admin") },
-];
-const navigationItems = isCuration ? curationNavigationItems : personalNavigationItems;
 
 // Mobile Secondary Navigation Group (Lower emphasis: Experience, CV, Writing, Workshops, Curation ↗)
 const mobileSecondaryItems = [
-  { href: mainUrl("/experience"), label: "Experience", active: pathname === "/experience" || pathname.startsWith("/experience/") },
-  { href: mainUrl("/cv"), label: "CV", active: pathname === "/cv" || pathname.startsWith("/cv/") },
-  { href: mainUrl("/blog"), label: "Writing", active: pathname === "/blog" || pathname.startsWith("/blog/") },
-  { href: mainUrl("/workshops"), label: "Workshops", active: pathname === "/workshops" || pathname.startsWith("/workshops/") },
-  { href: mainUrl("/resources"), label: "Curation" },
+  { href: "/experience", label: "Experience", active: pathname === "/experience" || pathname.startsWith("/experience/") },
+  { href: "/cv", label: "CV", active: pathname === "/cv" || pathname.startsWith("/cv/") },
+  { href: "/blog", label: "Writing", active: pathname === "/blog" || pathname.startsWith("/blog/") },
+  { href: "/workshops", label: "Workshops", active: pathname === "/workshops" || pathname.startsWith("/workshops/") },
+  { href: "/resources", label: "Curation", active: pathname === "/resources" || pathname.startsWith("/resources/") },
 ];
 
-const contactHref = isCuration ? "https://abodid.com" : isSubdomain ? "https://abodid.com/#enquiry" : onHomepage ? "#enquiry" : "/#enquiry";
-const brandHref = isCuration ? "/" : isLab ? "/" : isSubdomain ? "https://abodid.com" : "/";
-const brandLabel = isCuration ? "curation.abodid.com" : isLab ? "lab.abodid.com" : "abodid.com";
-const contactLabel = isCuration ? "About Abodid" : "Hire me";
+const contactHref = onHomepage ? "#enquiry" : "/#enquiry";
+const brandHref = "/";
+const brandLabel = "abodid.com";
+const contactLabel = "Hire me";
 ---
 
 <header class="site-header">
   <div class="site-header__card">
-    <a class="site-header__brand" href={brandHref} aria-label={isCuration ? "Curation by Abodid homepage" : "Abodid Sahoo homepage"}>{brandLabel}</a>
+    <a class="site-header__brand" href={brandHref} aria-label="Abodid Sahoo homepage">{brandLabel}</a>
 
     <nav class="site-header__links" aria-label="Primary navigation">
       {navigationItems.map((item) => (
@@ -79,23 +55,21 @@ const contactLabel = isCuration ? "About Abodid" : "Hire me";
           </a>
         </div>
 
-        {!isCuration && (
-          <div class="site-header__mobile-secondary">
-            <span class="site-header__mobile-heading">More</span>
-            <div class="site-header__mobile-sublinks">
-              {mobileSecondaryItems.map((item) => (
-                <a
-                  href={item.href}
-                  class:list={{ "is-active": item.active }}
-                  target={item.external ? "_blank" : undefined}
-                  rel={item.external ? "noopener noreferrer" : undefined}
-                >
-                  {item.label} {item.external && <span class="link-destination-arrow" aria-hidden="true">↗</span>}
-                </a>
-              ))}
-            </div>
+        <div class="site-header__mobile-secondary">
+          <span class="site-header__mobile-heading">More</span>
+          <div class="site-header__mobile-sublinks">
+            {mobileSecondaryItems.map((item) => (
+              <a
+                href={item.href}
+                class:list={{ "is-active": item.active }}
+                target={item.external ? "_blank" : undefined}
+                rel={item.external ? "noopener noreferrer" : undefined}
+              >
+                {item.label} {item.external && <span class="link-destination-arrow" aria-hidden="true">↗</span>}
+              </a>
+            ))}
           </div>
-        )}
+        </div>
       </nav>
     </details>
   </div>

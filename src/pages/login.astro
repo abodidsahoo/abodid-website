@@ -22,8 +22,8 @@ const description = "Log in or create an account to curate, submit, and bookmark
     <div class="resources-editorial" style="padding-block: 40px 60px;">
         <div class="login-editorial-container">
             <div class="login-editorial-nav">
-                <a href="/" class="detail-back-btn">
-                    &larr; Back to Explore
+                <a href="/resources" class="detail-back-btn">
+                    &larr; Back to Resources
                 </a>
             </div>
 
@@ -875,16 +875,7 @@ const description = "Log in or create an account to curate, submit, and bookmark
                     : undefined;
 
             if (authMode === "forgot") {
-                // Always redirect to the canonical curation domain so Supabase can
-                // match it against its allowlist. Using window.location.origin on
-                // localhost produces a URL Supabase rejects, causing it to silently
-                // fall back to the old Site URL in the dashboard settings.
-                const isCurationHost =
-                    window.location.hostname === "curation.abodid.com" ||
-                    window.location.hostname === "curation.localhost";
-                const resetBase = isCurationHost
-                    ? `${window.location.origin}/login?mode=reset`
-                    : "https://curation.abodid.com/login?mode=reset";
+                const resetBase = `${window.location.origin}/login?mode=reset`;
 
                 const { error } = await supabase.auth.resetPasswordForEmail(
                     email,
@@ -918,16 +909,7 @@ const description = "Log in or create an account to curate, submit, and bookmark
             const params = new URLSearchParams(window.location.search);
             const rawRedirect = params.get("redirect");
             const redirect = rawRedirect ? safeCurationReturnTo(rawRedirect) : null;
-            // Use the canonical curation domain so Supabase's redirect allowlist matches.
-            // window.location.origin on localhost would be rejected, falling back to the
-            // Supabase project's Site URL (the old Vercel preview URL).
-            const isCurationHost =
-                window.location.hostname === "curation.abodid.com" ||
-                window.location.hostname === "curation.localhost";
-            const authBase = isCurationHost
-                ? window.location.origin
-                : "https://curation.abodid.com";
-            const emailRedirectTo = `${authBase}/login${redirect ? `?redirect=${encodeURIComponent(redirect)}` : ""}`;
+            const emailRedirectTo = `${window.location.origin}/login${redirect ? `?redirect=${encodeURIComponent(redirect)}` : ""}`;
 
             if (authMode === "signup") {
                 if (isLinking) {

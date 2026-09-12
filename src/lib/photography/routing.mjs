@@ -6,26 +6,14 @@ export const isPhotographyHostname = (hostname) => {
   return norm === 'photos.abodid.com' || norm === 'photos.localhost';
 };
 
-export function photographyDestination(url) {
-  if (!isPhotographyHostname(url.hostname)) return null;
-  if (url.pathname === '/') return '/photography-portfolio';
-  if (url.pathname === '/robots.txt') return '/photography-portfolio/robots.txt';
-  if (url.pathname === '/sitemap.xml') return '/photography-portfolio/sitemap.xml';
+export function photographyDestination(_url) {
   return null;
 }
 
 export function getPhotosSubdomainRedirect(url) {
   if (!isPhotographyHostname(url.hostname)) return null;
-  if (photographyDestination(url)) return null;
-  if (
-    url.pathname.startsWith('/_astro/') ||
-    url.pathname.startsWith('/_image') ||
-    url.pathname.startsWith('/api/') ||
-    url.pathname === '/favicon.ico' ||
-    url.pathname === '/favicon.svg'
-  ) {
-    return null;
-  }
-  return `https://abodid.com${url.pathname}${url.search}`;
+  const pathname = url.pathname === '/' ? '/photography-portfolio' : (url.pathname.startsWith('/photography-portfolio') ? url.pathname : `/photography-portfolio${url.pathname}`);
+  return `https://abodid.com${pathname}${url.search}`;
 }
+
 

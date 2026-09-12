@@ -1,9 +1,7 @@
 ---
 export const prerender = false;
 import BaseLayout from "../../../layouts/BaseLayout.astro";
-import PolaroidScatter from "../../../components/PolaroidScatter.jsx";
-import ThemeWidget from "../../../components/ThemeWidget.jsx";
-import PhotoBoardNav from "../../../components/PhotoBoardNav.jsx";
+import PhotoBoardWorkspace from "../../../components/photoboard/PhotoBoardWorkspace.jsx";
 import { getAllPhotography } from "../../../lib/api";
 import { featuredPhotography as mockPhotography } from "../../../utils/mockData";
 import { labUrl } from "../../../lib/labRoutes.js";
@@ -95,13 +93,11 @@ const pageDescription =
     fullWidth={true}
     hideWhatsAppButton={true}
 >
-    <PhotoBoardNav client:only="react" />
-    <ThemeWidget client:only="react" />
-
     <main class="polaroid-hub-immersive">
         <h1 class="sr-only">Photo Board</h1>
-        {/* Pass ALL images */}
-        <PolaroidScatter items={allImages} client:only="react" immersive={true} deepLinkParam="photo" />
+        {/* A representative, cross-project portfolio sample. PolaroidScatter keeps
+            the original seeded story clusters and sine-wave placement. */}
+        <PhotoBoardWorkspace demoItems={allImages.slice(0, 30)} client:only="react" />
     </main>
 </BaseLayout>
 

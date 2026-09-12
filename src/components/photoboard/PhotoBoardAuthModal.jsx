@@ -9,11 +9,13 @@ export default function PhotoBoardAuthModal({ isOpen, onClose, onAuthSuccess }) 
     const [name, setName] = useState('');
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
+    const [confirmationSent, setConfirmationSent] = useState(false);
 
     useEffect(() => {
         if (!isOpen) {
             setErrorMsg('');
             setLoading(false);
+            setConfirmationSent(false);
         }
     }, [isOpen]);
 
@@ -39,7 +41,7 @@ export default function PhotoBoardAuthModal({ isOpen, onClose, onAuthSuccess }) 
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
-                    redirectTo: window.location.href,
+                    redirectTo: new URL('/lab/photo-board', window.location.origin).toString(),
                 },
             });
             if (error) throw error;
@@ -70,20 +72,23 @@ export default function PhotoBoardAuthModal({ isOpen, onClose, onAuthSuccess }) 
                     email,
                     password,
                     options: {
+                        emailRedirectTo: new URL('/lab/photo-board', window.location.origin).toString(),
                         data: {
                             full_name: name || 'Photo Board Creator',
                         },
                     },
                 });
                 if (error) throw error;
-                if (data.user) {
+                if (data.session?.user) {
                     window.dispatchEvent(
                         new CustomEvent('photoboard:toast', {
                             detail: { message: '✓ Account created successfully!', type: 'success' },
                         })
                     );
-                    if (typeof onAuthSuccess === 'function') onAuthSuccess(data.user);
+                    if (typeof onAuthSuccess === 'function') onAuthSuccess(data.session.user);
                     onClose();
+                } else if (data.user) {
+                    setConfirmationSent(true);
                 }
             } else {
                 const { data, error } = await supabase.auth.signInWithPassword({
@@ -116,6 +121,9 @@ export default function PhotoBoardAuthModal({ isOpen, onClose, onAuthSuccess }) 
             <div className="pop-auth-backdrop" onClick={onClose}>
                 <motion.div
                     className="pop-auth-modal"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="pb-auth-title"
                     onClick={(e) => e.stopPropagation()}
                     initial={{ opacity: 0, scale: 0.92, y: 20 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -138,6 +146,14 @@ export default function PhotoBoardAuthModal({ isOpen, onClose, onAuthSuccess }) 
                         </button>
                     </div>
 
+                    {confirmationSent ? (
+                        <div className="pop-auth-confirmation" role="status">
+                            <span className="pop-auth-confirmation-mark" aria-hidden="true">✓</span>
+                            <h2 id="pb-auth-title" className="pop-auth-title">Check your inbox</h2>
+                            <p className="pop-auth-subtitle">Confirm your email, then return here. Your Supabase session will reconnect automatically and load boards saved to your user ID.</p>
+                            <button type="button" className="pop-auth-submit-btn" onClick={onClose}>Back to Photo Board</button>
+                        </div>
+                    ) : <>
                     {/* Mode Segmented Tab Switcher */}
                     <div className="pop-auth-tabs">
                         <button
@@ -162,7 +178,7 @@ export default function PhotoBoardAuthModal({ isOpen, onClose, onAuthSuccess }) 
                         </button>
                     </div>
 
-                    <h2 className="pop-auth-title">
+                    <h2 id="pb-auth-title" className="pop-auth-title">
                         {mode === 'signin' ? 'Sign in to your boards' : 'Start your permanent collection'}
                     </h2>
                     <p className="pop-auth-subtitle">
@@ -299,6 +315,7 @@ export default function PhotoBoardAuthModal({ isOpen, onClose, onAuthSuccess }) 
                             </p>
                         )}
                     </div>
+                    </>}
                 </motion.div>
 
                 {/* Pop Editorial Self-Contained Styles */}
@@ -335,7 +352,7 @@ export default function PhotoBoardAuthModal({ isOpen, onClose, onAuthSuccess }) 
                             0 28px 50px rgba(0, 0, 0, 0.45);
                         box-sizing: border-box;
                         color: #15130f;
-                        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                        font-family: var(--font-body, "Satoshi-Variable", "Poppins", sans-serif);
                     }
 
                     .pop-auth-header {
@@ -408,6 +425,7 @@ export default function PhotoBoardAuthModal({ isOpen, onClose, onAuthSuccess }) 
                     }
 
                     .pop-auth-tab {
+                        min-height: 44px;
                         padding: 8px 12px;
                         font-size: 12.5px;
                         font-weight: 800;
@@ -449,7 +467,8 @@ export default function PhotoBoardAuthModal({ isOpen, onClose, onAuthSuccess }) 
                         gap: 10px;
                         background: #ffffff;
                         border: 2px solid #15130f;
-                        border-radius: 9999px;
+                        min-height: 52px;
+                        border-radius: 14px;
                         padding: 11px 18px;
                         font-size: 13.5px;
                         font-weight: 800;
@@ -516,6 +535,7 @@ export default function PhotoBoardAuthModal({ isOpen, onClose, onAuthSuccess }) 
                         background: #ffffff;
                         border: 2px solid #15130f;
                         border-radius: 10px;
+                        min-height: 52px;
                         padding: 10px 14px;
                         font-size: 13.5px;
                         font-weight: 600;
@@ -548,7 +568,8 @@ export default function PhotoBoardAuthModal({ isOpen, onClose, onAuthSuccess }) 
                         width: 100%;
                         background: #ff7eb5;
                         border: 2px solid #15130f;
-                        border-radius: 9999px;
+                        min-height: 52px;
+                        border-radius: 14px;
                         padding: 12px 18px;
                         font-size: 13.5px;
                         font-weight: 900;
@@ -582,6 +603,24 @@ export default function PhotoBoardAuthModal({ isOpen, onClose, onAuthSuccess }) 
                     }
                     .pop-auth-footer p {
                         margin: 0;
+                    }
+
+                    .pop-auth-confirmation {
+                        padding: 20px 0 4px;
+                    }
+
+                    .pop-auth-confirmation-mark {
+                        display: grid;
+                        place-items: center;
+                        width: 64px;
+                        height: 64px;
+                        margin-bottom: 22px;
+                        border: 2px solid #15130f;
+                        border-radius: 18px;
+                        background: #caff48;
+                        color: #15130f;
+                        font-size: 28px;
+                        font-weight: 900;
                     }
 
                     .pop-mode-link {

@@ -105,7 +105,7 @@ export default function SavedResourceList() {
 
                     <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
                         <a
-                            href="/login?redirect=%2Fsaved"
+                            href="/login?redirect=%2Fresources%2Fsaved"
                             className="hub-btn"
                             style={{
                                 display: 'inline-flex',
@@ -118,7 +118,7 @@ export default function SavedResourceList() {
                             Log in to view saved →
                         </a>
                         <a
-                            href="/"
+                            href="/resources"
                             style={{
                                 color: 'var(--pop-ink)',
                                 fontFamily: 'var(--resources-mono)',
@@ -192,7 +192,7 @@ export default function SavedResourceList() {
                         Browse the hub, open any resource, then tap the bookmark icon to save it here for later.
                     </p>
                     <a
-                        href="/"
+                        href="/resources"
                         className="hub-btn"
                         style={{
                             display: 'inline-flex',

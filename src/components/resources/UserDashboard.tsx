@@ -90,18 +90,15 @@ export default function UserDashboard({ user: propUser }: UserDashboardProps) {
                     <h1>My Dashboard</h1>
                     <p className="welcome">Welcome back, {user?.user_metadata?.full_name || user?.email}!</p>
 
-                    <div style={{ marginTop: '1.5rem', marginBottom: '1rem' }}>
-                        <a href="/submit" className="btn-submit-new-prominent">
+                    <div style={{ marginTop: '1.25rem' }}>
+                        <a href="/resources/submit" className="btn-submit-new-prominent">
                             + Submit New Resource
                         </a>
                     </div>
                 </div>
                 <div className="dashboard-header-actions">
-                    <button onClick={handleRefresh} className="btn-refresh-text">
-                        Refresh
-                    </button>
-                    <a href="/" className="btn-back-logo">
-                        Back to Resources
+                    <a href="/resources" className="btn-back-logo">
+                        Back to Resources ↗
                     </a>
                     <button
                         onClick={async (e) => {
@@ -165,7 +162,7 @@ export default function UserDashboard({ user: propUser }: UserDashboardProps) {
                         {submissions.length === 0 ? (
                             <div className="empty-state">
                                 <p>You haven't submitted any resources yet.</p>
-                                <a href="/submit" className="btn-secondary">Submit Your First Resource</a>
+                                <a href="/resources/submit" className="btn-secondary">Submit Your First Resource</a>
                             </div>
                         ) : (
                             submissions.map(sub => (
@@ -191,10 +188,8 @@ export default function UserDashboard({ user: propUser }: UserDashboardProps) {
                                     )}
 
                                     <div className="submission-actions">
-                                        {sub.status === 'approved' && (
-                                            <a href={`/resource/${sub.id}`} className="btn-view">View Resource</a>
-                                        )}
-                                        <a href={`/submit?edit=${sub.id}`} className="btn-edit">Edit & Resubmit</a>
+                                        <a href={`/resources/${sub.id}`} className="btn-view">View Resource</a>
+                                        <a href={`/resources/submit?edit=${sub.id}`} className="btn-edit">Edit & Resubmit</a>
                                     </div>
                                 </div>
                             ))
@@ -207,19 +202,28 @@ export default function UserDashboard({ user: propUser }: UserDashboardProps) {
                         {bookmarks.length === 0 ? (
                             <div className="empty-state">
                                 <p>No saved resources yet.</p>
-                                <a href="/" className="btn-secondary">Browse Resources</a>
+                                <a href="/resources" className="btn-secondary">Browse Resources</a>
                             </div>
                         ) : (
                             bookmarks.map(res => (
                                 <div key={res.id} className="submission-card">
                                     <div className="submission-header">
                                         <h3>{res.title}</h3>
-                                        <a href={res.url} target="_blank" rel="noopener noreferrer" className="btn-preview">Visit →</a>
+                                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                            <button 
+                                                onClick={() => handleRemoveBookmark(res.id)}
+                                                className="btn-remove"
+                                                style={{ background: 'transparent', border: '1px solid var(--border-subtle)', color: 'var(--text-secondary)', padding: '0.25rem 0.5rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem' }}
+                                            >
+                                                Remove
+                                            </button>
+                                            <a href={res.url} target="_blank" rel="noopener noreferrer" className="btn-preview">Visit →</a>
+                                        </div>
                                     </div>
                                     <p className="submission-url">{res.url}</p>
                                     <p className="submission-description">{res.description}</p>
                                     <div className="submission-actions">
-                                        <a href={`/resource/${res.id}`} className="btn-view">View Details</a>
+                                        <a href={`/resources/${res.id}`} className="btn-view">View Details</a>
                                     </div>
                                 </div>
                             ))

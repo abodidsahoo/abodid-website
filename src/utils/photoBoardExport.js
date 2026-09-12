@@ -1,4 +1,5 @@
 import { jsPDF } from 'jspdf';
+import html2canvas from 'html2canvas';
 
 /**
  * Generates formatted timestamp: "YYYY-MM-DD at HH.mm.ss"
@@ -71,19 +72,11 @@ async function getImageDrawable(img) {
 function createOpticallyFramedCanvas(rawCanvas, activeBgColor) {
     const w = rawCanvas.width;
     const h = rawCanvas.height;
-    const aspect = w / h;
-
-    // Optical padding calculation based on aspect ratio
-    let padX, padY;
-    if (aspect >= 1.2) {
-        // Landscape viewport: slightly taller vertical padding for optical balance
-        padX = Math.round(w * 0.038);
-        padY = Math.round(h * 0.052);
-    } else {
-        // Portrait / square viewport
-        padX = Math.round(w * 0.048);
-        padY = Math.round(h * 0.042);
-    }
+    // Keep the outer mat visually even on every edge. Basing the inset on the
+    // shorter side avoids the wide side gutters produced by percentage-per-axis padding.
+    const uniformPadding = Math.round(Math.min(w, h) * 0.048);
+    const padX = uniformPadding;
+    const padY = uniformPadding;
 
     const outerWidth = w + padX * 2;
     const outerHeight = h + padY * 2;
@@ -131,7 +124,7 @@ function createOpticallyFramedCanvas(rawCanvas, activeBgColor) {
  * Ultra-fast, instantaneous direct viewport compositor (< 15ms execution).
  * Directly composites the background grid and visible polaroid cards with hardware-accelerated 2D canvas.
  */
-export async function captureVisibleCanvas() {
+export async function captureVisibleCanvas({ framed = true } = {}) {
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
     const dpr = Math.min(2, window.devicePixelRatio || 2);
@@ -139,7 +132,7 @@ export async function captureVisibleCanvas() {
     const activeBgColor =
         getComputedStyle(document.documentElement)
             .getPropertyValue('--polaroid-hub-bg')
-            .trim() || '#14225d';
+            .trim() || getComputedStyle(document.querySelector('.polaroid-hub-immersive') || document.body).backgroundColor || '#fff8e8';
 
     const gridLineColor =
         getComputedStyle(document.documentElement)
@@ -162,7 +155,7 @@ export async function captureVisibleCanvas() {
     // 2. Draw Blueprint Grid Pattern
     const scrollX = window.scrollX || window.pageXOffset || 0;
     const scrollY = window.scrollY || window.pageYOffset || 0;
-    const gridSize = 24;
+    const gridSize = 50;
 
     ctx.save();
     ctx.strokeStyle = gridLineColor;
@@ -183,19 +176,7 @@ export async function captureVisibleCanvas() {
     ctx.stroke();
     ctx.restore();
 
-    // 3. Draw subtle vignette fade
-    ctx.save();
-    const vignette = ctx.createLinearGradient(0, 0, 0, viewportHeight);
-    vignette.addColorStop(0, 'rgba(0, 0, 0, 0.18)');
-    vignette.addColorStop(0.15, 'rgba(0, 0, 0, 0.05)');
-    vignette.addColorStop(0.5, 'rgba(0, 0, 0, 0)');
-    vignette.addColorStop(0.85, 'rgba(0, 0, 0, 0.05)');
-    vignette.addColorStop(1, 'rgba(0, 0, 0, 0.22)');
-    ctx.fillStyle = vignette;
-    ctx.fillRect(0, 0, viewportWidth, viewportHeight);
-    ctx.restore();
-
-    // 4. Query and sort visible Polaroid cards by z-index
+    // 3. Query and sort visible Polaroid cards by z-index
     const allCards = Array.from(document.querySelectorAll('.polaroid-card'));
     const visibleCards = allCards.filter((card) => {
         const r = card.getBoundingClientRect();
@@ -208,12 +189,12 @@ export async function captureVisibleCanvas() {
         return zA - zB;
     });
 
-    // 5. Pre-fetch / prepare drawable images in parallel
+    // 4. Pre-fetch / prepare drawable images in parallel
     const drawableImages = await Promise.all(
         visibleCards.map((card) => getImageDrawable(card.querySelector('img')))
     );
 
-    // 6. Draw each visible polaroid card
+    // 5. Draw each visible polaroid card
     visibleCards.forEach((card, index) => {
         const rect = card.getBoundingClientRect();
         const cx = rect.left + rect.width / 2;
@@ -304,8 +285,8 @@ export async function captureVisibleCanvas() {
         ctx.restore();
     });
 
-    // 7. Return optically framed canvas with rounded margins
-    return createOpticallyFramedCanvas(rawCanvas, activeBgColor);
+    // 6. Return optically framed canvas with rounded margins
+    return framed ? createOpticallyFramedCanvas(rawCanvas, activeBgColor) : rawCanvas;
 }
 
 /**
@@ -343,6 +324,70 @@ export async function downloadVisiblePDF() {
 
     pdf.addImage(imgData, 'JPEG', 0, 0, canvas.width, canvas.height);
     pdf.save(filename);
+    return filename;
+}
+
+export async function downloadFullBoardPNG() {
+    const board = document.querySelector('[data-photo-board-canvas]');
+    if (!board) throw new Error('Photo Board canvas was not found.');
+    const backgroundColor = getComputedStyle(document.documentElement)
+        .getPropertyValue('--polaroid-hub-bg')
+        .trim() || '#fff8e8';
+    const canvas = await html2canvas(board, {
+        backgroundColor,
+        useCORS: true,
+        allowTaint: false,
+        logging: false,
+        scale: 1,
+        width: board.scrollWidth,
+        height: board.scrollHeight,
+        windowWidth: board.scrollWidth,
+        windowHeight: board.scrollHeight,
+    });
+    const filename = `photo board full ${getExportTimestamp()}.png`;
+    const link = document.createElement('a');
+    link.download = filename;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    return filename;
+}
+
+export async function downloadSelectedArea(rect, format = 'png') {
+    const full = await captureVisibleCanvas({ framed: false });
+    const scaleX = full.width / window.innerWidth;
+    const scaleY = full.height / window.innerHeight;
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(rect.width * scaleX));
+    canvas.height = Math.max(1, Math.round(rect.height * scaleY));
+    const context = canvas.getContext('2d');
+    if (!context) throw new Error('Could not create the selected capture.');
+    context.drawImage(
+        full,
+        rect.x * scaleX,
+        rect.y * scaleY,
+        rect.width * scaleX,
+        rect.height * scaleY,
+        0,
+        0,
+        canvas.width,
+        canvas.height,
+    );
+    const filename = `photo board selection ${getExportTimestamp()}.${format === 'pdf' ? 'pdf' : 'png'}`;
+    if (format === 'pdf') {
+        const pdf = new jsPDF({
+            orientation: canvas.width >= canvas.height ? 'landscape' : 'portrait',
+            unit: 'px',
+            format: [canvas.width, canvas.height],
+            hotfixes: ['px_scaling'],
+        });
+        pdf.addImage(canvas.toDataURL('image/jpeg', .95), 'JPEG', 0, 0, canvas.width, canvas.height);
+        pdf.save(filename);
+    } else {
+        const link = document.createElement('a');
+        link.download = filename;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+    }
     return filename;
 }
 
@@ -406,7 +451,7 @@ export async function downloadFullBoardPDF(onProgress) {
     const activeBgColor =
         getComputedStyle(document.documentElement)
             .getPropertyValue('--polaroid-hub-bg')
-            .trim() || '#14225d';
+            .trim() || getComputedStyle(document.querySelector('.polaroid-hub-immersive') || document.body).backgroundColor || '#fff8e8';
 
     const gridLineColor =
         getComputedStyle(document.documentElement)
@@ -453,7 +498,7 @@ export async function downloadFullBoardPDF(onProgress) {
         ctx.fillRect(0, 0, viewportWidth, sliceHeight);
 
         // B. Blueprint Grid
-        const gridSize = 24;
+        const gridSize = 50;
         ctx.save();
         ctx.strokeStyle = gridLineColor;
         ctx.lineWidth = 1;

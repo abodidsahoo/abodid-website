@@ -96,7 +96,7 @@ export default function ResourceAdminPanel({ view = "dashboard" }: { view?: Admi
         <div className="curation-admin-state" role="alert">
           <h1>Admin access interrupted</h1>
           <p>{error}</p>
-          <a href="/login?redirect=%2Fadmin">Sign in again</a>
+          <a href="/login?redirect=%2Fresources%2Fadmin">Sign in again</a>
         </div>
       );
     }
@@ -107,15 +107,15 @@ export default function ResourceAdminPanel({ view = "dashboard" }: { view?: Admi
     <div className="curation-admin-shell">
       <header className="curation-admin-nav">
         <div>
-          <a className="curation-admin-brand" href="/">Curation by Abodid</a>
+          <a className="curation-admin-brand" href="/resources">Curation by Abodid</a>
           <p>{viewTitle[view]}</p>
         </div>
         <nav aria-label="Curation administration">
-          <a href="/admin" aria-current={view === "dashboard" ? "page" : undefined}>Desk</a>
-          <a href="/admin/review" aria-current={view === "review" ? "page" : undefined}>Queue</a>
+          <a href="/resources/admin" aria-current={view === "dashboard" ? "page" : undefined}>Desk</a>
+          <a href="/resources/admin/review" aria-current={view === "review" ? "page" : undefined}>Queue</a>
           {viewer.role === "admin" && <>
-            <a href="/admin/analytics" aria-current={view === "analytics" ? "page" : undefined}>Analytics</a>
-            <a href="/admin/users" aria-current={view === "users" ? "page" : undefined}>People</a>
+            <a href="/resources/admin/analytics" aria-current={view === "analytics" ? "page" : undefined}>Analytics</a>
+            <a href="/resources/admin/users" aria-current={view === "users" ? "page" : undefined}>People</a>
           </>}
         </nav>
       </header>

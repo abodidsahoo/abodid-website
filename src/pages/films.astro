@@ -1,11 +1,13 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import FilmsIsland from "../components/FilmsIsland.astro";
-import ProgressiveContentSkeleton from "../components/ProgressiveContentSkeleton.astro";
+import FilmsFilter from "../components/FilmsFilter.jsx";
+import { getFilms } from "../lib/api";
 
 const pageTitle = "Films";
 const pageDescription =
   "Films by Abodid Sahoo spanning visual storytelling, brand films, documentary work, and experimental cinematography.";
+
+const films = await getFilms();
 ---
 
 <BaseLayout
@@ -32,14 +34,7 @@ const pageDescription =
       </header>
 
       <section class="films-board">
-        <FilmsIsland server:defer>
-          <ProgressiveContentSkeleton
-            slot="fallback"
-            variant="films"
-            count={4}
-            label="Loading films"
-          />
-        </FilmsIsland>
+        <FilmsFilter items={films} client:load />
       </section>
     </article>
   </main>
@@ -72,7 +67,7 @@ const pageDescription =
   <script is:inline>
     let player = null;
 
-    function openVideo(url, provider) {
+    window.openVideo = function openVideo(url, provider) {
       if (!url) return;
 
       const modal = document.getElementById("video-modal");
@@ -142,7 +137,7 @@ const pageDescription =
       player.on("ready", () => {
         player.play();
       });
-    }
+    };
 
     window.closeVideo = function () {
       const modal = document.getElementById("video-modal");

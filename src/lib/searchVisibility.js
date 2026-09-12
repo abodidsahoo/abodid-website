@@ -65,9 +65,7 @@ export function isPathExcluded(pathname) {
  */
 export function shouldIncludeInSitemap(pageOrPath) {
   const pathname = extractPathname(pageOrPath);
-  // The resource product now has its own curation.abodid.com sitemap. Keep
-  // internal implementation routes out of the personal site's sitemap.
-  return !pathname.startsWith("/resources") && !isPathExcluded(pathname);
+  return !isPathExcluded(pathname);
 }
 
 /**

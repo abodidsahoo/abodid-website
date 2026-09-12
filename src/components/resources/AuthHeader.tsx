@@ -197,7 +197,7 @@ export default function AuthHeader({ theme = 'default' }: Props) {
                 gap: '8px'
             }}>
                 <a
-                    href={activeData.role === 'admin' || activeData.role === 'curator' ? '/admin' : '/dashboard'}
+                    href={activeData.role === 'admin' || activeData.role === 'curator' ? '/resources/admin' : '/resources/dashboard'}
                     className={`auth-dashboard-btn-box ${theme === 'scifi' ? 'theme-scifi' : 'theme-default'}`}
                     style={{
                         background: theme === 'scifi' ? '#334155' : 'var(--btn-primary-bg)',

@@ -13,7 +13,7 @@ import { curationPath, curationUrl } from '../../../lib/curationRoutes.js';
     // Handle hash fragment
     supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
-        window.location.href = '/dashboard';
+        window.location.href = '/resources/dashboard';
       }
     });
   </script>

@@ -79,12 +79,7 @@ const renderedPointerVariant = cursorFollowerEnabled
 // Resolve one authoritative SEO object. A published admin override wins,
 // followed by the page's own defaults.
 const pagePath = Astro.url.pathname;
-const hostnameCanonicalUrl = isCurationHostname(Astro.url.hostname)
-  ? curationUrl(legacyResourcePathToCurationPath(pagePath) || pagePath)
-  : isLabHostname(Astro.url.hostname)
-    ? labUrl(pagePath)
-    : undefined;
-const finalCanonicalUrl = canonicalUrl || hostnameCanonicalUrl;
+const finalCanonicalUrl = canonicalUrl;
 const dbMetadata = await getPageMetadata(pagePath);
 const resolvedSeo = resolvePageSeo({
   metadata: dbMetadata,

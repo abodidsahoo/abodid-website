@@ -160,7 +160,7 @@ export default function SubmissionForm() {
                     </p>
                     <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
                         <a
-                            href="/login?redirect=%2Fsubmit"
+                            href="/login?redirect=%2Fresources%2Fsubmit"
                             className="hub-btn"
                             style={{
                                 display: 'inline-flex',
@@ -173,7 +173,7 @@ export default function SubmissionForm() {
                             Log in to submit →
                         </a>
                         <a
-                            href="/"
+                            href="/resources"
                             style={{
                                 color: 'var(--pop-ink)',
                                 fontFamily: 'var(--resources-mono)',

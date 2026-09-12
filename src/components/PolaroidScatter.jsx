@@ -1,5 +1,5 @@
 import React, { memo, useCallback, useState, useRef, useEffect, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import { createPortal } from 'react-dom';
 import PaletteExtractor, { analyzeImage } from "./PaletteExtractor.jsx";
 import MoodboardPolaroidViewer from "./MoodboardPolaroidViewer.jsx";
@@ -38,6 +38,12 @@ const formatRgba = (channels, alpha = 1) =>
 const INSTRUCTION_THEME_COMMIT_DELAY_MS = 650;
 const INSTRUCTION_THEME_BLEND_MS = 2800;
 
+const canvasSafeImageUrl = (value) => {
+    if (typeof value !== 'string' || !value) return '';
+    if (!value.startsWith('http')) return value;
+    return `/api/image-palette-proxy?url=${encodeURIComponent(value)}`;
+};
+
 const buildInstructionTheme = (accentColor) => {
     const rgb = parseColorString(accentColor);
     if (!rgb) return null;
@@ -70,7 +76,22 @@ const buildInstructionTheme = (accentColor) => {
     };
 };
 
-const PolaroidScatter = ({ items = [], immersive = false, deepLinkParam = '' }) => {
+const PolaroidScatter = ({
+    items = [],
+    immersive = false,
+    deepLinkParam = '',
+    layoutItems = null,
+    layoutKey = 'demo',
+    logicalWidth = 1440,
+    logicalHeight = 1600,
+    readOnly = false,
+    selectionMode = false,
+    selectedItemIds = [],
+    onSelectionChange,
+    onItemsChange,
+    onCommit,
+    onGesture,
+}) => {
     const [isMounted, setIsMounted] = useState(false);
     const [selectedId, setSelectedId] = useState(null);
     const containerRef = useRef(null);
@@ -92,6 +113,7 @@ const PolaroidScatter = ({ items = [], immersive = false, deepLinkParam = '' }) 
     const activeInstructionImageRef = useRef('');
     const selectedIdRef = useRef(null);
     const scatteredItemsRef = useRef([]);
+    const pendingCommitRef = useRef('');
 
     useEffect(() => {
         setIsMounted(true);
@@ -202,9 +224,38 @@ const PolaroidScatter = ({ items = [], immersive = false, deepLinkParam = '' }) 
 
     const activeSourceItems = (items && items.length > 0) ? items : fetchedItems;
 
+    useEffect(() => {
+        if (!Array.isArray(layoutItems)) return;
+        const exactItems = layoutItems.map((item, index) => ({
+            ...item,
+            type: 'photo',
+            scale: typeof item.scale === 'number' ? item.scale : 1,
+            zIndex: typeof item.zIndex === 'number' ? item.zIndex : index + 1,
+            priority: 0,
+        }));
+        setScatteredItems(exactItems);
+        setMaxZIndex(Math.max(...exactItems.map((item) => item.zIndex || 0), 10));
+        setSelectedId(null);
+    }, [layoutKey]);
+
     // Initial random scatter (Pre-Chunked Units + Spiral Wave)
     useEffect(() => {
-        if (activeSourceItems.length > 0 && scatteredItems.length === 0) {
+        if (!Array.isArray(layoutItems) && activeSourceItems.length > 0 && scatteredItems.length === 0) {
+
+            let seed = activeSourceItems.reduce((value, item) => {
+                const source = String(item.id || item.image || 'photo');
+                for (let index = 0; index < source.length; index += 1) {
+                    value = Math.imul(value ^ source.charCodeAt(index), 16777619);
+                }
+                return value >>> 0;
+            }, 2166136261);
+            const random = () => {
+                seed += 0x6D2B79F5;
+                let value = seed;
+                value = Math.imul(value ^ (value >>> 15), value | 1);
+                value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
+                return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+            };
 
             // 1. Group items by Story (slug)
             const storyGroups = {};
@@ -222,7 +273,7 @@ const PolaroidScatter = ({ items = [], immersive = false, deepLinkParam = '' }) 
                 const group = [...storyGroups[slug]]; // Copy to consume
 
                 while (group.length > 0) {
-                    const r = Math.random();
+                    const r = random();
                     let type = 'single';
 
                     // Determine Unit Type preferences
@@ -234,7 +285,7 @@ const PolaroidScatter = ({ items = [], immersive = false, deepLinkParam = '' }) 
                     if (type === 'cluster') {
                         // Larger clusters: 3-5 items
                         const maxTake = Math.min(5, group.length);
-                        const clusterSize = Math.floor(Math.random() * (maxTake - 2)) + 3; // 3 to maxTake
+                        const clusterSize = Math.floor(random() * (maxTake - 2)) + 3; // 3 to maxTake
                         const count = Math.min(clusterSize, group.length);
                         visualUnits.push({ type: 'cluster', items: group.splice(0, count) });
                     } else if (type === 'pair') {
@@ -248,14 +299,14 @@ const PolaroidScatter = ({ items = [], immersive = false, deepLinkParam = '' }) 
             // 3. Shuffle the Visual Units to mix stories globally
             // This gives the "Story A Cluster -> Story B Single -> Story C Cluster" rhythm
             for (let i = visualUnits.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
+                const j = Math.floor(random() * (i + 1));
                 [visualUnits[i], visualUnits[j]] = [visualUnits[j], visualUnits[i]];
             }
 
             // 4. Place Units along the Spiral Path
             const generatedItems = [];
             let currentY = immersive ? 150 : -50;
-            const rand = (min, max) => Math.random() * (max - min) + min;
+            const rand = (min, max) => random() * (max - min) + min;
             let t = 0; // Wave phase
 
             visualUnits.forEach((unit, uIndex) => {
@@ -292,7 +343,7 @@ const PolaroidScatter = ({ items = [], immersive = false, deepLinkParam = '' }) 
                             scale: rand(0.95, 1.05),
                             zIndex: (uIndex * 10) + i + 1,
                             isLarge: false,
-                            id: item.id || `generated-${uIndex}-${i}-${Math.random().toString(36).substr(2, 9)}`,
+                            id: item.id || `generated-${uIndex}-${i}`,
                             priority: priority // NEW: For smart loading
                         });
                     });
@@ -311,7 +362,7 @@ const PolaroidScatter = ({ items = [], immersive = false, deepLinkParam = '' }) 
                         x: waveX - 140, y: currentY + rand(-20, 20),
                         rotation: rand(-10, 5), scale: 1,
                         zIndex: (uIndex * 10) + 1, isLarge: false,
-                        id: item1.id || `generated-${uIndex}-p1-${Math.random().toString(36).substr(2, 9)}`,
+                        id: item1.id || `generated-${uIndex}-p1`,
                         priority: pBuried
                     });
 
@@ -320,7 +371,7 @@ const PolaroidScatter = ({ items = [], immersive = false, deepLinkParam = '' }) 
                         x: waveX + 140, y: currentY + rand(-20, 20),
                         rotation: rand(-5, 10), scale: 1,
                         zIndex: (uIndex * 10) + 2, isLarge: false,
-                        id: item2.id || `generated-${uIndex}-p2-${Math.random().toString(36).substr(2, 9)}`,
+                        id: item2.id || `generated-${uIndex}-p2`,
                         priority: pTop
                     });
 
@@ -340,7 +391,7 @@ const PolaroidScatter = ({ items = [], immersive = false, deepLinkParam = '' }) 
                         scale: 1,
                         zIndex: (uIndex * 10) + 1,
                         isLarge: false,
-                        id: item.id || `generated-${uIndex}-s-${Math.random().toString(36).substr(2, 9)}`,
+                        id: item.id || `generated-${uIndex}-s`,
                         priority: pTop
                     });
                     currentY += rand(220, 280);
@@ -350,40 +401,11 @@ const PolaroidScatter = ({ items = [], immersive = false, deepLinkParam = '' }) 
                 t += 1.2 + rand(-0.2, 0.2);
             });
 
-            let finalItems = generatedItems;
-            try {
-                if (typeof window !== 'undefined') {
-                    const savedRaw = localStorage.getItem('photoboard_saved_layout_v2');
-                    if (savedRaw) {
-                        const saved = JSON.parse(savedRaw);
-                        if (saved && Array.isArray(saved.items)) {
-                            const savedMap = new Map(saved.items.map((s) => [s.id, s]));
-                            finalItems = generatedItems.map((item) => {
-                                const s = savedMap.get(item.id);
-                                if (s) {
-                                    return {
-                                        ...item,
-                                        x: typeof s.x === 'number' ? s.x : item.x,
-                                        y: typeof s.y === 'number' ? s.y : item.y,
-                                        rotation: typeof s.rotation === 'number' ? s.rotation : item.rotation,
-                                        scale: typeof s.scale === 'number' ? s.scale : item.scale,
-                                        zIndex: typeof s.zIndex === 'number' ? s.zIndex : item.zIndex,
-                                    };
-                                }
-                                return item;
-                            });
-                        }
-                    }
-                }
-            } catch (e) {
-                console.error('Failed to load saved photoboard layout:', e);
-            }
-
-            setScatteredItems(finalItems);
-            const currentMax = Math.max(...finalItems.map(i => i.zIndex || 0), 10);
+            setScatteredItems(generatedItems);
+            const currentMax = Math.max(...generatedItems.map(i => i.zIndex || 0), 10);
             setMaxZIndex(currentMax);
         }
-    }, [activeSourceItems, scatteredItems.length, immersive]);
+    }, [activeSourceItems, scatteredItems.length, immersive, layoutItems]);
 
     useEffect(() => {
         if (!deepLinkKey || typeof window === 'undefined') return;
@@ -412,6 +434,12 @@ const PolaroidScatter = ({ items = [], immersive = false, deepLinkParam = '' }) 
 
     useEffect(() => {
         scatteredItemsRef.current = scatteredItems;
+        if (typeof onItemsChange === 'function') onItemsChange(scatteredItems);
+        if (pendingCommitRef.current && typeof onCommit === 'function') {
+            const reason = pendingCommitRef.current;
+            pendingCommitRef.current = '';
+            onCommit(scatteredItems, reason);
+        }
     }, [scatteredItems]);
 
     // Save & Reset State Event Handlers
@@ -815,6 +843,16 @@ const PolaroidScatter = ({ items = [], immersive = false, deepLinkParam = '' }) 
     const handleSelect = useCallback((id) => {
         if (!id) return;
 
+        if (selectionMode) {
+            if (typeof onSelectionChange === 'function') {
+                const current = new Set(selectedItemIds);
+                if (current.has(id)) current.delete(id);
+                else current.add(id);
+                onSelectionChange([...current]);
+            }
+            return;
+        }
+
         // If something is already selected (lightbox open), 
         // ANY click on a card should just close the lightbox, not switch.
         if (selectedIdRef.current) {
@@ -838,24 +876,16 @@ const PolaroidScatter = ({ items = [], immersive = false, deepLinkParam = '' }) 
         // Otherwise open the clicked one
         setSelectedId(id);
         syncDeepLink(id);
-    }, [syncDeepLink]);
+        if (typeof onGesture === 'function') onGesture('open');
+    }, [syncDeepLink, selectionMode, selectedItemIds, onSelectionChange, onGesture]);
 
     const handleDragStart = useCallback((id) => {
-        let newMax = 0;
-        setMaxZIndex((prev) => {
-            newMax = prev + 1;
-            return newMax;
-        });
-        setScatteredItems((prev) => {
-            const next = [...prev];
-            const idx = next.findIndex((item) => item.id === id);
-            if (idx === -1) return prev;
-            next[idx] = { ...next[idx], zIndex: newMax };
-            return next;
-        });
-    }, []);
+        if (readOnly || selectionMode) return;
+        if (typeof onGesture === 'function') onGesture('drag');
+    }, [readOnly, selectionMode, onGesture]);
 
     const handleRotate = useCallback((id, deltaRotation) => {
+        if (readOnly || selectionMode) return;
         setScatteredItems((prev) => {
             const next = [...prev];
             const idx = next.findIndex((item) => item.id === id);
@@ -863,26 +893,67 @@ const PolaroidScatter = ({ items = [], immersive = false, deepLinkParam = '' }) 
             next[idx] = { ...next[idx], rotation: next[idx].rotation + deltaRotation };
             return next;
         });
-    }, []);
+    }, [readOnly, selectionMode]);
 
-    const handleDragEnd = useCallback((id, _event, info) => {
+    const handleScale = useCallback((id, scaleFactor) => {
+        if (readOnly || selectionMode || !Number.isFinite(scaleFactor)) return;
         setScatteredItems((prev) => {
             const next = [...prev];
             const idx = next.findIndex((item) => item.id === id);
             if (idx === -1) return prev;
             next[idx] = {
                 ...next[idx],
-                x: next[idx].x + info.offset.x,
-                y: next[idx].y + info.offset.y
+                scale: Math.max(0.45, Math.min(2.25, (next[idx].scale || 1) * scaleFactor)),
             };
             return next;
         });
-    }, []);
+    }, [readOnly, selectionMode]);
+
+    const handleTransformEnd = useCallback((mode = 'rotate') => {
+        pendingCommitRef.current = mode === 'scale' ? 'scale' : 'rotation';
+        if (typeof onGesture === 'function') onGesture(mode === 'scale' ? 'scale' : 'rotate');
+        setScatteredItems((current) => [...current]);
+    }, [onGesture]);
+
+    const handleDragEnd = useCallback((id, _event, info) => {
+        if (readOnly || selectionMode) return;
+        pendingCommitRef.current = 'drag';
+        setScatteredItems((prev) => {
+            const next = [...prev];
+            const idx = next.findIndex((item) => item.id === id);
+            if (idx === -1) return prev;
+            const moved = {
+                ...next[idx],
+                x: next[idx].x + info.offset.x,
+                y: next[idx].y + info.offset.y
+            };
+            const movedScale = moved.scale || 1;
+            const movedHalfWidth = 150 * movedScale;
+            const movedHalfHeight = 184 * movedScale;
+            const overlapsAnotherPhoto = next.some((other, otherIndex) => {
+                if (otherIndex === idx) return false;
+                const otherScale = other.scale || 1;
+                return Math.abs(moved.x - other.x) < movedHalfWidth + (150 * otherScale)
+                    && Math.abs(moved.y - other.y) < movedHalfHeight + (184 * otherScale);
+            });
+            if (overlapsAnotherPhoto) {
+                const nextZ = Math.max(...next.map((item) => item.zIndex || 0), maxZIndex) + 1;
+                moved.zIndex = nextZ;
+                setMaxZIndex(nextZ);
+            }
+            next[idx] = moved;
+            return next;
+        });
+    }, [readOnly, selectionMode, maxZIndex]);
 
     // STRICT ID MATCHING ONLY. No slug fallback.
     const maxY = scatteredItems.length > 0 ? Math.max(...scatteredItems.map(i => i.y)) : 2000;
     // Note: We don't need padding-top 0 anymore if we aren't managing background here, but keeping basic layout is fine
-    const dynamicStyle = immersive ? { minHeight: `${maxY + 600}px`, alignItems: 'flex-start' } : {};
+    const dynamicStyle = immersive ? {
+        width: `${logicalWidth}px`,
+        minHeight: `${Math.max(logicalHeight, maxY + 600)}px`,
+        alignItems: 'flex-start',
+    } : {};
 
     const viewerItems = useMemo(
         () =>
@@ -931,7 +1002,7 @@ const PolaroidScatter = ({ items = [], immersive = false, deepLinkParam = '' }) 
 
     return (
         // REMOVED 'cutting-mat' class - background is now in parent Astro page for instant load
-        <div className={`polaroid-scatter-container ${immersive ? 'immersive' : ''}`} ref={containerRef} style={dynamicStyle} onClick={handleViewerClose}>
+        <div className={`polaroid-scatter-container ${immersive ? 'immersive' : ''}`} data-photo-board-canvas ref={containerRef} style={dynamicStyle} onClick={selectionMode ? undefined : handleViewerClose}>
             {/* REMOVED grid-overlay - moved to parent CSS */}
 
             {visibleItems.map((item) => {
@@ -947,10 +1018,15 @@ const PolaroidScatter = ({ items = [], immersive = false, deepLinkParam = '' }) 
                         onDragStart={handleDragStart}
                         onDragEnd={handleDragEnd}
                         onRotate={handleRotate}
+                        onScale={handleScale}
+                        onTransformEnd={handleTransformEnd}
                         isDarkBg={isDarkBg}
                         maxPriorityAllowed={maxPriorityAllowed}
                         smartLoadingEnabled={smartLoadingEnabled}
                         immersive={immersive}
+                        readOnly={readOnly}
+                        selectionMode={selectionMode}
+                        isDeleteSelected={selectedItemIds.includes(item.id)}
                     />
                 );
             })}
@@ -979,6 +1055,7 @@ const PolaroidScatter = ({ items = [], immersive = false, deepLinkParam = '' }) 
                     user-select: none;
                 }
                 .polaroid-scatter-container.immersive { overflow: visible; margin-bottom: 0; }
+                .polaroid-scatter-container.immersive { margin-left: auto; margin-right: auto; transform: none; }
                 .polaroid-card {
                     position: absolute;
                     width: 300px;
@@ -1002,6 +1079,27 @@ const PolaroidScatter = ({ items = [], immersive = false, deepLinkParam = '' }) 
                 .polaroid-card:active {
                     cursor: grabbing;
                 }
+                .polaroid-card.delete-selected {
+                    outline: 5px solid #ff3d7f;
+                    outline-offset: 6px;
+                }
+                .delete-check {
+                    position: absolute;
+                    top: -17px;
+                    right: -17px;
+                    width: 32px;
+                    height: 32px;
+                    border-radius: 999px;
+                    border: 2px solid #15130f;
+                    background: #fff8e8;
+                    color: #15130f;
+                    display: grid;
+                    place-items: center;
+                    font: 900 17px/1 system-ui, sans-serif;
+                    z-index: 130;
+                    box-shadow: 0 3px 0 #15130f;
+                }
+                .delete-selected .delete-check { background: #ff3d7f; color: white; }
                 .polaroid-inner {
                     position: relative;
                     width: 100%;
@@ -1080,16 +1178,22 @@ const PolaroidCard = memo(function PolaroidCard({
     onDragStart,
     onDragEnd,
     onRotate,
+    onScale,
+    onTransformEnd,
     isDarkBg,
     maxPriorityAllowed,
     smartLoadingEnabled,
     immersive = false,
+    readOnly = false,
+    selectionMode = false,
+    isDeleteSelected = false,
 }) {
     // Track drag state to prevent triggering click (select) after a drag
     const isDraggingRef = useRef(false);
+    const dragControls = useDragControls();
     const isPriorityImage = item?.isCover || item?.priority === 0;
-    const primaryImageSrc = item?.cover_image || item?.image || item?.url || '';
-    const fallbackImageSrc = item?.fallbackImage || '';
+    const primaryImageSrc = canvasSafeImageUrl(item?.cover_image || item?.image || item?.url || '');
+    const fallbackImageSrc = canvasSafeImageUrl(item?.fallbackImage || '');
     const [imageSrc, setImageSrc] = useState(primaryImageSrc);
     const [usedFallback, setUsedFallback] = useState(false);
     const [isBroken, setIsBroken] = useState(!primaryImageSrc && !fallbackImageSrc);
@@ -1103,8 +1207,8 @@ const PolaroidCard = memo(function PolaroidCard({
     const shouldLoad = !smartLoadingEnabled || (item.priority === undefined) || (item.priority <= maxPriorityAllowed);
 
     useEffect(() => {
-        const nextPrimary = item?.cover_image || item?.image || item?.url || '';
-        const nextFallback = item?.fallbackImage || '';
+        const nextPrimary = canvasSafeImageUrl(item?.cover_image || item?.image || item?.url || '');
+        const nextFallback = canvasSafeImageUrl(item?.fallbackImage || '');
         setImageSrc(nextPrimary || nextFallback);
         setUsedFallback(false);
         setIsBroken(!nextPrimary && !nextFallback);
@@ -1123,17 +1227,23 @@ const PolaroidCard = memo(function PolaroidCard({
 
     return (
         <motion.div
-            className='polaroid-card'
+            className={`polaroid-card ${isDeleteSelected ? 'delete-selected' : ''}`}
             data-polaroid-id={itemId}
-            drag
+            drag={!readOnly && !selectionMode}
+            dragControls={dragControls}
+            dragListener={false}
             dragMomentum={false}
             style={{ zIndex: typeof item.zIndex === 'number' ? item.zIndex : 1 }}
-            whileDrag={{ scale: 1.03, zIndex: 9999, cursor: 'grabbing' }}
+            whileDrag={{ zIndex: 9999, cursor: 'grabbing' }}
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ x: item.x, y: item.y, rotate: item.rotation, scale: item.scale, opacity: 1 }}
             transition={{ type: 'spring', stiffness: 260, damping: 26, mass: 0.55 }}
 
             // Handlers
+            onPointerDown={(event) => {
+                if (readOnly || selectionMode || event.target.closest('.rotation-handle')) return;
+                dragControls.start(event);
+            }}
             onDragStart={(e, info) => {
                 isDraggingRef.current = true;
                 onDragStart && onDragStart(itemId, e, info);
@@ -1157,6 +1267,7 @@ const PolaroidCard = memo(function PolaroidCard({
                         <img
                             src={imageSrc}
                             alt={item.title}
+                            crossOrigin="anonymous"
                             loading={immersive || isPriorityImage ? 'eager' : 'lazy'}
                             decoding={immersive ? 'async' : isPriorityImage ? 'sync' : 'async'}
                             onError={handleImageError}
@@ -1171,11 +1282,21 @@ const PolaroidCard = memo(function PolaroidCard({
                 </div>
             </div>
 
+            {selectionMode && (
+                <span className="delete-check" aria-hidden="true">
+                    {isDeleteSelected ? '✓' : ''}
+                </span>
+            )}
+
             {/* ROTATION HANDLES - Positioned on the 4 outer corners of the entire Polaroid frame */}
-            <RotationHandle position="top-left" onRotate={handleRotateDelta} isDarkBg={isDarkBg} />
-            <RotationHandle position="top-right" onRotate={handleRotateDelta} isDarkBg={isDarkBg} />
-            <RotationHandle position="bottom-left" onRotate={handleRotateDelta} isDarkBg={isDarkBg} />
-            <RotationHandle position="bottom-right" onRotate={handleRotateDelta} isDarkBg={isDarkBg} />
+            {!readOnly && !selectionMode && (
+                <>
+                    <RotationHandle position="top-left" onRotate={handleRotateDelta} onScale={(factor) => onScale(itemId, factor)} onTransformEnd={onTransformEnd} />
+                    <RotationHandle position="top-right" onRotate={handleRotateDelta} onScale={(factor) => onScale(itemId, factor)} onTransformEnd={onTransformEnd} />
+                    <RotationHandle position="bottom-left" onRotate={handleRotateDelta} onScale={(factor) => onScale(itemId, factor)} onTransformEnd={onTransformEnd} />
+                    <RotationHandle position="bottom-right" onRotate={handleRotateDelta} onScale={(factor) => onScale(itemId, factor)} onTransformEnd={onTransformEnd} />
+                </>
+            )}
         </motion.div>
     );
 });
@@ -1221,9 +1342,14 @@ const AngularRotationIcon = () => (
 );
 
 // HELPER: Rotation Handle Component
-const RotationHandle = ({ position, onRotate, isDarkBg }) => {
+const RotationHandle = ({ position, onRotate, onScale, onTransformEnd }) => {
     const [isActive, setIsActive] = useState(false);
+    const [gestureMode, setGestureMode] = useState('');
     const lastAngle = useRef(0);
+    const lastRadius = useRef(0);
+    const startAngle = useRef(0);
+    const startRadius = useRef(0);
+    const modeRef = useRef('');
 
     const handlePointerDown = (e) => {
         e.stopPropagation();
@@ -1239,24 +1365,50 @@ const RotationHandle = ({ position, onRotate, isDarkBg }) => {
         const centerY = rect.top + rect.height / 2;
 
         lastAngle.current = Math.atan2(e.clientY - centerY, e.clientX - centerX);
+        lastRadius.current = Math.hypot(e.clientX - centerX, e.clientY - centerY);
+        startAngle.current = lastAngle.current;
+        startRadius.current = lastRadius.current;
+        modeRef.current = '';
+        setGestureMode('');
 
         const handlePointerMove = (moveEvent) => {
             const currentAngle = Math.atan2(moveEvent.clientY - centerY, moveEvent.clientX - centerX);
+            const currentRadius = Math.max(1, Math.hypot(moveEvent.clientX - centerX, moveEvent.clientY - centerY));
             let delta = currentAngle - lastAngle.current;
 
             // Handle radian wrap-around
             while (delta > Math.PI) delta -= 2 * Math.PI;
             while (delta < -Math.PI) delta += 2 * Math.PI;
 
-            // Smooth rotational sensitivity
-            const rotationSensitivity = 0.85;
-            onRotate(delta * (180 / Math.PI) * rotationSensitivity);
+            let totalAngle = currentAngle - startAngle.current;
+            while (totalAngle > Math.PI) totalAngle -= 2 * Math.PI;
+            while (totalAngle < -Math.PI) totalAngle += 2 * Math.PI;
+
+            if (!modeRef.current) {
+                const radialTravel = Math.abs(currentRadius - startRadius.current);
+                const tangentialTravel = Math.abs(totalAngle * startRadius.current);
+                if (Math.max(radialTravel, tangentialTravel) > 7) {
+                    modeRef.current = radialTravel > tangentialTravel * 1.08 ? 'scale' : 'rotate';
+                    setGestureMode(modeRef.current);
+                }
+            }
+
+            if (modeRef.current === 'scale') {
+                onScale(currentRadius / Math.max(1, lastRadius.current));
+            } else if (modeRef.current === 'rotate') {
+                const rotationSensitivity = 0.85;
+                onRotate(delta * (180 / Math.PI) * rotationSensitivity);
+            }
 
             lastAngle.current = currentAngle;
+            lastRadius.current = currentRadius;
         };
 
         const handlePointerUp = () => {
             setIsActive(false);
+            if (modeRef.current && typeof onTransformEnd === 'function') onTransformEnd(modeRef.current);
+            modeRef.current = '';
+            setGestureMode('');
             document.removeEventListener('pointermove', handlePointerMove);
             document.removeEventListener('pointerup', handlePointerUp);
         };
@@ -1267,9 +1419,10 @@ const RotationHandle = ({ position, onRotate, isDarkBg }) => {
 
     return (
         <div
-            className={`rotation-handle h-${position} ${isActive ? 'active' : ''}`}
+            className={`rotation-handle h-${position} ${isActive ? 'active' : ''} ${gestureMode ? `mode-${gestureMode}` : ''}`}
             onPointerDown={handlePointerDown}
-            title="Drag corner to rotate polaroid"
+            title="Drag around to rotate · drag diagonally to resize"
+            aria-label="Rotate or resize photograph"
         >
             <div className="arrow-container">
                 <AngularRotationIcon />

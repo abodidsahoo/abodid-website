@@ -1,0 +1,17 @@
+---
+export const prerender = false;
+import BaseLayout from '../../../../layouts/BaseLayout.astro';
+import PhotoBoardWorkspace from '../../../../components/photoboard/PhotoBoardWorkspace.jsx';
+
+const { token = '' } = Astro.params;
+---
+
+<BaseLayout
+    title="Shared Photo Board"
+    description="An unlisted, read-only Photo Board arrangement."
+    hideHeader={true}
+    fullWidth={true}
+    hideWhatsAppButton={true}
+>
+    <PhotoBoardWorkspace shareToken={token} client:only="react" />
+</BaseLayout>

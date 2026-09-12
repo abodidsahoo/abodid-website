@@ -8,7 +8,7 @@ const groupsWithPalette = groups.map(group => ({...group, palette: getSavedPalet
 const shuffledGroups = [...groupsWithPalette];
 const INITIAL_SSR_COUNT = 6;
 const initialGroups = shuffledGroups.slice(0, INITIAL_SSR_COUNT);
-const canonical = 'https://photos.abodid.com/';
+const canonical = 'https://abodid.com/photography-portfolio';
 const description = 'Photography by Abodid Sahoo. Exhibitions, people and places, observed with feeling. Available worldwide for editorial, commercial, fine art and documentary commissions and image licensing.';
 const person = { '@type': 'Person', '@id': `${canonical}#photographer`, name: 'Abodid Sahoo', jobTitle: 'Photographer', url: canonical, email: 'hello@abodid.com', sameAs: ['https://abodid.com', 'https://www.instagram.com/abodid.sahoo'], knowsAbout: ['Exhibition photography', 'Editorial photography', 'Commercial photography', 'Fine art photography', 'Documentary photography'], alumniOf: { '@type': 'CollegeOrUniversity', name: 'Royal College of Art', url: 'https://www.rca.ac.uk/' } };
 const structuredData = { '@context': 'https://schema.org', '@graph': [person, { '@type': 'ImageGallery', '@id': `${canonical}#gallery`, name: 'Abodid Sahoo — Selected Photography', description, url: canonical, author: { '@id': person['@id'] }, mainEntity: groups.map(group => group.cover).map(photo => ({ '@type': 'ImageObject', '@id': `${canonical}#${photo.id}`, name: photo.title, caption: photo.alt, description: photo.story || photo.alt, contentUrl: photo.large, thumbnailUrl: photo.small, creator: { '@id': person['@id'] }, creditText: 'Abodid Sahoo', copyrightNotice: '© Abodid Sahoo. All rights reserved.', acquireLicensePage: `${canonical}#inquiry`, ...(photo.location ? { contentLocation: { '@type': 'Place', name: photo.location } } : {}) })) }, { '@type': 'Service', name: 'Worldwide photography commissions and image licensing', provider: { '@id': person['@id'] }, areaServed: 'Worldwide', serviceType: ['Editorial photography', 'Commercial photography', 'Fine art photography', 'Documentary photography', 'Image licensing'], url: `${canonical}#inquiry` }] };
@@ -39,7 +39,7 @@ const structuredData = { '@context': 'https://schema.org', '@graph': [person, { 
     <a class="skip-link" href="#gallery">Skip to photographs</a>
     <header class="site-header">
       <a href="#about" class="nav-link" data-open-about>About</a>
-      <a class="wordmark" href={Astro.url.hostname === 'photos.abodid.com' ? '/' : '/photography-portfolio'} aria-label="Abodid Sahoo, photography home"><span>ABODID SAHOO</span></a>
+      <a class="wordmark" href="/" aria-label="Abodid Sahoo homepage"><span>ABODID SAHOO</span></a>
       <nav aria-label="Main navigation"><button class="nav-link" id="view-toggle" aria-controls="gallery" aria-pressed="false">Index</button><span aria-hidden="true">/</span><a class="nav-link" href="#inquiry" data-open-inquiry>Inquire</a></nav>
     </header>
     <main>

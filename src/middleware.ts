@@ -86,16 +86,18 @@ export const onRequest = defineMiddleware(async (context, next) => {
     }
 
     // -----------------------------------------------------------------------
-    // Subdomain routing — rewrite subdomain requests to internal Astro pages
+    // Subdomain routing — redirect all legacy subdomain requests to abodid.com
     // -----------------------------------------------------------------------
 
-    // --- Curation subdomain (curation.abodid.com) fallback redirect to main site ---
+    // --- Curation subdomain (curation.abodid.com) redirect to main site ---
     if (isCurationHostname(requestUrl.hostname)) {
+        const redirectUrl = getCurationCanonicalRedirect(requestUrl);
+        if (redirectUrl) return permanentRedirect(redirectUrl);
         const destPath = requestUrl.pathname === '/' ? '/resources' : (requestUrl.pathname.startsWith('/resources') ? requestUrl.pathname : `/resources${requestUrl.pathname}`);
         return permanentRedirect(`https://abodid.com${destPath}${requestUrl.search}`);
     }
 
-    // --- Lab subdomain (lab.abodid.com) fallback redirect to main site ---
+    // --- Lab subdomain (lab.abodid.com) redirect to main site ---
     if (isLabHostname(requestUrl.hostname)) {
         const dest = getLabSubdomainRedirect(requestUrl);
         if (dest) return permanentRedirect(dest);
@@ -103,17 +105,11 @@ export const onRequest = defineMiddleware(async (context, next) => {
         return permanentRedirect(`https://abodid.com${destPath}${requestUrl.search}`);
     }
 
-    // --- Photography subdomain (photos.abodid.com) ---
+    // --- Photography subdomain (photos.abodid.com) redirect to main site ---
     if (isPhotographyHostname(requestUrl.hostname)) {
-        // Internal rewrite: map public paths to /photography-portfolio/* pages
-        const internalPath = photographyDestination(requestUrl);
-        if (internalPath) {
-            return rewriteInternalRoute(context, next, internalPath);
-        }
-
-        // External redirect: paths not part of photography go to main site
         const externalRedirect = getPhotosSubdomainRedirect(requestUrl);
         if (externalRedirect) return permanentRedirect(externalRedirect);
+        return permanentRedirect(`https://abodid.com/photography-portfolio${requestUrl.search}`);
     }
 
     // Redirect legacy experiment routes (/research/punctum, /punctum, etc.) to /lab/...

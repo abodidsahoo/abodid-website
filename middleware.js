@@ -71,12 +71,8 @@ export default function middleware(request) {
   if (isCurationHostname(url.hostname)) {
     const canonicalRedirect = getCurationCanonicalRedirect(url);
     if (canonicalRedirect) return permanentRedirect(canonicalRedirect);
-
-    const internalPath = curationPathToInternalPath(url.pathname);
-    if (internalPath) return rewritePath(request, url, internalPath);
-
-    const externalRedirect = getCurationSubdomainRedirect(url);
-    return externalRedirect ? permanentRedirect(externalRedirect) : next();
+    const destPath = url.pathname === '/' ? '/resources' : (url.pathname.startsWith('/resources') ? url.pathname : `/resources${url.pathname}`);
+    return permanentRedirect(`https://abodid.com${destPath}${url.search}`);
   }
 
   if (isLabHostname(url.hostname)) {
@@ -87,15 +83,10 @@ export default function middleware(request) {
   }
 
   if (isPhotographyHostname(url.hostname)) {
-    const internalPath = photographyDestination(url);
-    if (internalPath) return rewritePath(request, url, internalPath);
-
     const externalRedirect = getPhotosSubdomainRedirect(url);
-    return externalRedirect ? permanentRedirect(externalRedirect) : next();
+    if (externalRedirect) return permanentRedirect(externalRedirect);
+    return permanentRedirect(`https://abodid.com/photography-portfolio${url.search}`);
   }
-
-  const resourceRedirect = getLegacyResourceRedirect(url);
-  if (resourceRedirect) return permanentRedirect(resourceRedirect);
 
   const labRedirect = legacyLabRedirectLocation(url);
   if (labRedirect) return permanentRedirect(labRedirect);
