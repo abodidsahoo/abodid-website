@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { buildCatalog, isPortfolioKey } from '../../src/lib/photography/catalog.mjs';
-import { photographyDestination } from '../../src/lib/photography/routing.mjs';
+import { getPhotosSubdomainRedirect, photographyDestination } from '../../src/lib/photography/routing.mjs';
 const inventory = JSON.parse(fs.readFileSync(new URL('../../src/data/photographyR2.generated.json', import.meta.url)));
 test('verified exhibition catalog publishes 56 images with both variants', () => {
   const photos = buildCatalog(inventory).filter(p => p.key.startsWith('photos/originals/exhibition-photos/'));
@@ -35,12 +35,12 @@ test('fingerprint selection uses current original rather than stale variants', (
   ];
   assert.match(buildCatalog(objects)[0].large, /frame-1234567890.webp$/);
 });
-test('domain rewrite preserves other domains and is non-recursive', () => {
-  assert.equal(photographyDestination(new URL('https://photos.abodid.com/')), '/photography-portfolio');
-  assert.equal(photographyDestination(new URL('https://photos.abodid.com/sitemap.xml')), '/photography-portfolio/sitemap.xml');
+test('domain redirect preserves paths and ignores unrelated hosts', () => {
+  assert.equal(getPhotosSubdomainRedirect(new URL('https://photos.abodid.com/')), 'https://abodid.com/photography-portfolio');
+  assert.equal(getPhotosSubdomainRedirect(new URL('https://photos.abodid.com/sitemap.xml')), 'https://abodid.com/photography-portfolio/sitemap.xml');
   assert.equal(photographyDestination(new URL('https://photos.abodid.com/photography-portfolio')), null);
-  assert.equal(photographyDestination(new URL('https://abodid.com/')), null);
-  assert.equal(photographyDestination(new URL('https://photos.abodid.com.evil.test/')), null);
+  assert.equal(getPhotosSubdomainRedirect(new URL('https://abodid.com/')), null);
+  assert.equal(getPhotosSubdomainRedirect(new URL('https://photos.abodid.com.evil.test/')), null);
 });
 test('renamed originals reuse variants only on an identical full ETag', () => {
  const originals=[{key:'photos/originals/editorial/new.jpg',etag:'1234567890abcdef'},{key:'photos/originals/exhibitions/old.jpg',etag:'1234567890abcdef'}];

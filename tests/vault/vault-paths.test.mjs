@@ -54,7 +54,10 @@ test("Vercel permanently redirects the legacy root and every legacy child path",
   const config = JSON.parse(
     fs.readFileSync(new URL("../../vercel.json", import.meta.url), "utf8"),
   );
-  assert.deepEqual(config.redirects?.slice(0, 3), [
+  const vaultRedirects = config.redirects?.filter((redirect) =>
+    redirect.source.startsWith("/research/obsidian-vault"),
+  );
+  assert.deepEqual(vaultRedirects, [
     {
       source: "/research/obsidian-vault/tag/:path*",
       destination: "/obsidian-vault/topic/:path*",

@@ -71,6 +71,7 @@ export default function PhotoBoardWorkspace({ demoItems = [], shareToken = '' })
     const [panelPosition, setPanelPosition] = useState(null);
     const [deleteMode, setDeleteMode] = useState(false);
     const [deleteSelection, setDeleteSelection] = useState([]);
+    const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
     const [busy, setBusy] = useState('');
     const [uploadProgress, setUploadProgress] = useState(null);
     const [toast, setToast] = useState('');
@@ -86,11 +87,16 @@ export default function PhotoBoardWorkspace({ demoItems = [], shareToken = '' })
     const panelDragRef = useRef(null);
     const saveTimerRef = useRef(0);
     const toastTimerRef = useRef(0);
+    const activeBoardIdRef = useRef(null);
 
     const isShared = Boolean(shareToken);
     const hasPersonalBoard = Boolean(user && activeBoard && !isShared);
     const isPersonal = Boolean(hasPersonalBoard && !showingDemo);
     const displayedBoard = isShared ? sharedBoard : showingDemo ? null : activeBoard;
+
+    useEffect(() => {
+        activeBoardIdRef.current = activeBoard?.id || null;
+    }, [activeBoard?.id]);
 
     const notify = useCallback((message) => {
         window.clearTimeout(toastTimerRef.current);
@@ -408,7 +414,7 @@ export default function PhotoBoardWorkspace({ demoItems = [], shareToken = '' })
 
     const confirmDeleteItems = async () => {
         if (!deleteSelection.length) return;
-        if (!window.confirm(`Delete ${deleteSelection.length} photo${deleteSelection.length === 1 ? '' : 's'} from this board?`)) return;
+        setDeleteConfirmOpen(false);
 
         if (showingDemo && !isShared) {
             const next = canvasItemsRef.current.filter((item) => !deleteSelection.includes(item.id));
@@ -423,19 +429,31 @@ export default function PhotoBoardWorkspace({ demoItems = [], shareToken = '' })
         }
 
         if (!activeBoard) return;
-        setBusy('Deleting photos');
+        const boardId = activeBoard.id;
+        const selectedIds = [...deleteSelection];
+        const previousItems = canvasItemsRef.current;
+        const next = previousItems.filter((item) => !selectedIds.includes(item.id));
+
+        canvasItemsRef.current = next;
+        setCanvasItems(next);
+        setActiveBoard((board) => board?.id === boardId ? { ...board, items: next } : board);
+        setBoards((current) => current.map((board) => board.id === boardId ? { ...board, items: next } : board));
+        setDeleteSelection([]);
+        setDeleteMode(false);
+        setLayoutRevision((value) => value + 1);
+        setBusy('Finishing deletion…');
+
         try {
-            await deleteBoardItems(activeBoard.id, deleteSelection);
-            const next = canvasItemsRef.current.filter((item) => !deleteSelection.includes(item.id));
-            canvasItemsRef.current = next;
-            setCanvasItems(next);
-            setActiveBoard((board) => ({ ...board, items: next }));
-            setBoards((current) => current.map((board) => board.id === activeBoard.id ? { ...board, items: next } : board));
-            setDeleteSelection([]);
-            setDeleteMode(false);
-            setLayoutRevision((value) => value + 1);
+            await deleteBoardItems(boardId, selectedIds);
             notify('Photos removed from this board.');
         } catch (error) {
+            if (activeBoardIdRef.current === boardId) {
+                canvasItemsRef.current = previousItems;
+                setCanvasItems(previousItems);
+                setLayoutRevision((value) => value + 1);
+            }
+            setActiveBoard((board) => board?.id === boardId ? { ...board, items: previousItems } : board);
+            setBoards((current) => current.map((board) => board.id === boardId ? { ...board, items: previousItems } : board));
             notify(errorMessage(error, 'The selected photos could not be deleted.'));
         } finally {
             setBusy('');
@@ -554,6 +572,11 @@ export default function PhotoBoardWorkspace({ demoItems = [], shareToken = '' })
 
     const layoutItems = showingDemo ? demoLayoutOverride : displayedBoard ? displayedBoard.items : null;
     const boardName = isShared ? sharedBoard?.name : showingDemo ? 'Portfolio demo board' : activeBoard?.name;
+    const boardSaveState = isPersonal ? saveState : 'saved';
+    const boardSaveLabel = isPersonal
+        ? saveState === 'saving' ? 'Autosaving…' : saveState === 'error' ? 'Autosave needs attention' : 'Autosaved'
+        : isShared ? 'Saved shared board' : 'Demo changes stay local';
+    const boardSaveGlyph = boardSaveState === 'saved' ? '✓' : boardSaveState === 'saving' ? '…' : boardSaveState === 'error' ? '!' : '↺';
     const logicalHeight = showingDemo ? 2200 : displayedBoard?.logicalHeight || 2200;
     const uploadPercent = uploadProgress
         ? Math.max(4, Math.min(100, Math.round((uploadProgress.current / uploadProgress.total) * 100)))
@@ -568,15 +591,15 @@ export default function PhotoBoardWorkspace({ demoItems = [], shareToken = '' })
                 <div className="pb-brand-group">
                     <a className="pb-back-button" href="/lab"><span aria-hidden="true">←</span> BACK TO LAB</a>
                     <div className="pb-title-wrap">
-                        <span className="pb-menu-label">ACTIVE BOARD</span>
-                        {isPersonal ? (
-                        <input value={activeBoard.name} onChange={(event) => handleTitleChange(event.target.value)} aria-label="Board title" maxLength={80} />
-                        ) : <strong>{boardName}</strong>}
-                        <span className={`pb-save-state is-${isPersonal ? saveState : 'saved'}`}>
-                            {isPersonal
-                                ? saveState === 'saving' ? 'Autosaving…' : saveState === 'error' ? 'Autosave needs attention' : 'Autosaved'
-                                : isShared ? 'Shared view' : 'Demo changes stay local'}
-                        </span>
+                        <span className="pb-menu-label">BOARD NAME</span>
+                        <div className="pb-board-name-control">
+                            {isPersonal ? (
+                            <input value={activeBoard.name} onChange={(event) => handleTitleChange(event.target.value)} aria-label="Board name" maxLength={80} />
+                            ) : <strong>{boardName}</strong>}
+                            <span className={`pb-save-state is-${boardSaveState}`} role="status" aria-live="polite" aria-label={boardSaveLabel} title={boardSaveLabel}>
+                                <span className="pb-save-state-icon" aria-hidden="true">{boardSaveGlyph}</span>
+                            </span>
+                        </div>
                     </div>
                 </div>
                 <div className="pb-center-brand">
@@ -597,7 +620,7 @@ export default function PhotoBoardWorkspace({ demoItems = [], shareToken = '' })
                     </div>
 
                     <div className="pb-panel-primary">
-                        <button className="pb-button pb-button-yellow" onClick={() => { setCaptureOpen((open) => !open); setMoreToolsOpen(false); setBoardsOpen(false); setShareOpen(false); }} aria-expanded={captureOpen}>Capture Media</button>
+                        <button className="pb-button pb-button-yellow" onClick={() => { setCaptureOpen((open) => !open); setMoreToolsOpen(false); setBoardsOpen(false); setShareOpen(false); }} aria-expanded={captureOpen}>Take a Screengrab</button>
                         <AnimatePresence>{captureOpen && (
                             <motion.div className="pb-capture-menu" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}>
                                 <div className="pb-capture-scope" role="group" aria-label="Export view">
@@ -736,8 +759,40 @@ export default function PhotoBoardWorkspace({ demoItems = [], shareToken = '' })
                         transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
                     >
                         <span><strong>Select photographs</strong><small>{deleteSelection.length ? `${deleteSelection.length} selected` : 'Click a photo to mark it'}</small></span>
-                        <button onClick={() => { setDeleteMode(false); setDeleteSelection([]); }}>Cancel</button>
-                        <button className="pb-delete-confirm" disabled={!deleteSelection.length} onClick={confirmDeleteItems}>Delete {deleteSelection.length || ''} photos</button>
+                        <button onClick={() => { setDeleteConfirmOpen(false); setDeleteMode(false); setDeleteSelection([]); }}>Cancel</button>
+                        <button className="pb-delete-confirm" disabled={!deleteSelection.length} onClick={() => setDeleteConfirmOpen(true)}>Delete {deleteSelection.length || ''} photos</button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+                {deleteConfirmOpen && (
+                    <motion.div
+                        className="pb-confirm-backdrop"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setDeleteConfirmOpen(false)}
+                    >
+                        <motion.section
+                            className="pb-confirm-dialog"
+                            role="dialog"
+                            aria-modal="true"
+                            aria-labelledby="pb-delete-confirm-title"
+                            initial={{ y: 20, scale: .97 }}
+                            animate={{ y: 0, scale: 1 }}
+                            exit={{ y: 20, scale: .97 }}
+                            onClick={(event) => event.stopPropagation()}
+                            onKeyDown={(event) => { if (event.key === 'Escape') setDeleteConfirmOpen(false); }}
+                        >
+                            <span className="pb-confirm-label">PHOTO BOARD / CONFIRM</span>
+                            <h2 id="pb-delete-confirm-title">Delete {deleteSelection.length} photo{deleteSelection.length === 1 ? '' : 's'} from this board?</h2>
+                            <p>This removes the selected {deleteSelection.length === 1 ? 'photograph' : 'photographs'} from the current board.</p>
+                            <div className="pb-confirm-actions">
+                                <button type="button" autoFocus onClick={() => setDeleteConfirmOpen(false)}>Keep photos</button>
+                                <button type="button" className="pb-confirm-delete" onClick={confirmDeleteItems}>Delete {deleteSelection.length}</button>
+                            </div>
+                        </motion.section>
                     </motion.div>
                 )}
             </AnimatePresence>

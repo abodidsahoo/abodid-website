@@ -1,30 +1,25 @@
 import { defineMiddleware } from 'astro:middleware';
-import type { APIContext, MiddlewareNext } from 'astro';
-import { rewrite as vercelRewrite } from '@vercel/functions';
 import { normalizePagePath } from './lib/urlNormalization.js';
 
 // ---------------------------------------------------------------------------
 // Subdomain routing helpers
 // ---------------------------------------------------------------------------
-// These were previously in the root middleware.js (Vercel Routing Middleware),
-// but Vercel ignores that file for Astro projects because @astrojs/vercel
-// builds its own routing config. The logic now lives here in Astro's own
-// middleware so it actually executes.
+// Vercel handles hostname redirects before filesystem resolution using
+// vercel.json. These checks remain as a server-renderer fallback for local
+// development and any request that reaches Astro directly.
 // ---------------------------------------------------------------------------
 import {
+    getCurationCanonicalRedirect,
     isCurationHostname,
 } from './lib/curationRoutes.js';
 import {
-    getLabCanonicalRedirect,
     getLabSubdomainRedirect,
     isLabHostname,
-    labDestination,
     legacyLabRedirectLocation,
 } from './lib/labRoutes.js';
 import {
     getPhotosSubdomainRedirect,
     isPhotographyHostname,
-    photographyDestination,
 } from './lib/photography/routing.mjs';
 
 const privatePagePatterns = [
@@ -63,18 +58,6 @@ const canCachePublicPage = (context: PublicCacheContext, response: Response) => 
 
 const permanentRedirect = (location: string) =>
     new Response(null, { status: 308, headers: { Location: location } });
-
-const rewriteInternalRoute = (context: APIContext, next: MiddlewareNext, pathname: string) => {
-    const destination = new URL(context.request.url);
-    destination.pathname = pathname;
-
-    // The Vercel adapter's edge wrapper runs before filesystem resolution, but
-    // Astro 5's edge context does not implement context.rewrite(). Emit Vercel's
-    // native rewrite response there and use next(target) locally so this
-    // middleware is not re-entered with the private /lab prefix.
-    const edgeContext = (context.locals as { vercel?: { edge?: unknown } }).vercel?.edge;
-    return edgeContext ? vercelRewrite(destination) : next(destination);
-};
 
 export const onRequest = defineMiddleware(async (context, next) => {
     const rawHost = context.request.headers.get('x-forwarded-host') || context.request.headers.get('host');

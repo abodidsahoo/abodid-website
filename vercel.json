@@ -1,6 +1,178 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "trailingSlash": false,
   "redirects": [
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "lab.abodid.com" }],
+      "destination": "https://abodid.com/lab",
+      "permanent": true
+    },
+    {
+      "source": "/lab",
+      "has": [{ "type": "host", "value": "lab.abodid.com" }],
+      "destination": "https://abodid.com/lab",
+      "permanent": true
+    },
+    {
+      "source": "/lab/:route*",
+      "has": [{ "type": "host", "value": "lab.abodid.com" }],
+      "destination": "https://abodid.com/lab/:route*",
+      "permanent": true
+    },
+    {
+      "source": "/:section(about|blog|contact|cv|films|life|manifesto|obsidian-vault|photography|press|research|services|studio|work)",
+      "has": [{ "type": "host", "value": "lab.abodid.com" }],
+      "destination": "https://abodid.com/:section",
+      "permanent": true
+    },
+    {
+      "source": "/:section(about|blog|contact|cv|films|life|manifesto|obsidian-vault|photography|press|research|services|studio|work)/:route*",
+      "has": [{ "type": "host", "value": "lab.abodid.com" }],
+      "destination": "https://abodid.com/:section/:route*",
+      "permanent": true
+    },
+    {
+      "source": "/:shared(_astro|api|assets|audio|downloads|fonts|icons|images|invisible-punctums|scripts|sounds|videos|webfonts)",
+      "has": [{ "type": "host", "value": "lab.abodid.com" }],
+      "destination": "https://abodid.com/:shared",
+      "permanent": true
+    },
+    {
+      "source": "/:shared(_astro|api|assets|audio|downloads|fonts|icons|images|invisible-punctums|scripts|sounds|videos|webfonts)/:route*",
+      "has": [{ "type": "host", "value": "lab.abodid.com" }],
+      "destination": "https://abodid.com/:shared/:route*",
+      "permanent": true
+    },
+    {
+      "source": "/:file(favicon\\.ico|favicon\\.svg|site\\.webmanifest|robots\\.txt|sitemap\\.xml|llms\\.txt)",
+      "has": [{ "type": "host", "value": "lab.abodid.com" }],
+      "destination": "https://abodid.com/:file",
+      "permanent": true
+    },
+    {
+      "source": "/:route*",
+      "has": [{ "type": "host", "value": "lab.abodid.com" }],
+      "destination": "https://abodid.com/lab/:route*",
+      "permanent": true
+    },
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "curation.abodid.com" }],
+      "destination": "https://abodid.com/resources",
+      "permanent": true
+    },
+    {
+      "source": "/resources/curator",
+      "has": [{ "type": "host", "value": "curation.abodid.com" }],
+      "destination": "https://abodid.com/resources/admin",
+      "permanent": true
+    },
+    {
+      "source": "/curator",
+      "has": [{ "type": "host", "value": "curation.abodid.com" }],
+      "destination": "https://abodid.com/resources/admin",
+      "permanent": true
+    },
+    {
+      "source": "/resources",
+      "has": [{ "type": "host", "value": "curation.abodid.com" }],
+      "destination": "https://abodid.com/resources",
+      "permanent": true
+    },
+    {
+      "source": "/resources/:route*",
+      "has": [{ "type": "host", "value": "curation.abodid.com" }],
+      "destination": "https://abodid.com/resources/:route*",
+      "permanent": true
+    },
+    {
+      "source": "/resource/:resourceId/edit",
+      "has": [{ "type": "host", "value": "curation.abodid.com" }],
+      "destination": "https://abodid.com/resources/:resourceId/edit",
+      "permanent": true
+    },
+    {
+      "source": "/resource/:resourceId",
+      "has": [{ "type": "host", "value": "curation.abodid.com" }],
+      "destination": "https://abodid.com/resources/:resourceId",
+      "permanent": true
+    },
+    {
+      "source": "/:route*",
+      "has": [{ "type": "host", "value": "curation.abodid.com" }],
+      "destination": "https://abodid.com/resources/:route*",
+      "permanent": true
+    },
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "photos.abodid.com" }],
+      "destination": "https://abodid.com/photography-portfolio",
+      "permanent": true
+    },
+    {
+      "source": "/photography-portfolio",
+      "has": [{ "type": "host", "value": "photos.abodid.com" }],
+      "destination": "https://abodid.com/photography-portfolio",
+      "permanent": true
+    },
+    {
+      "source": "/photography-portfolio/:route*",
+      "has": [{ "type": "host", "value": "photos.abodid.com" }],
+      "destination": "https://abodid.com/photography-portfolio/:route*",
+      "permanent": true
+    },
+    {
+      "source": "/:route*",
+      "has": [{ "type": "host", "value": "photos.abodid.com" }],
+      "destination": "https://abodid.com/photography-portfolio/:route*",
+      "permanent": true
+    },
+    {
+      "source": "/research/lab",
+      "destination": "/lab",
+      "permanent": true
+    },
+    {
+      "source": "/research/punctum/:route*",
+      "destination": "/lab/punctum/:route*",
+      "permanent": true
+    },
+    {
+      "source": "/research/punctum",
+      "destination": "/lab/punctum",
+      "permanent": true
+    },
+    {
+      "source": "/punctum/:route*",
+      "destination": "/lab/punctum/:route*",
+      "permanent": true
+    },
+    {
+      "source": "/punctum",
+      "destination": "/lab/punctum",
+      "permanent": true
+    },
+    {
+      "source": "/research/gesture-image-preview/:route*",
+      "destination": "/lab/image-flick",
+      "permanent": true
+    },
+    {
+      "source": "/research/gesture-image-preview",
+      "destination": "/lab/image-flick",
+      "permanent": true
+    },
+    {
+      "source": "/research/polaroid-hub/:route*",
+      "destination": "/lab/photo-board",
+      "permanent": true
+    },
+    {
+      "source": "/research/polaroid-hub",
+      "destination": "/lab/photo-board",
+      "permanent": true
+    },
     {
       "source": "/research/obsidian-vault/tag/:path*",
       "destination": "/obsidian-vault/topic/:path*",

@@ -1190,6 +1190,7 @@ const PolaroidCard = memo(function PolaroidCard({
 }) {
     // Track drag state to prevent triggering click (select) after a drag
     const isDraggingRef = useRef(false);
+    const suppressOpenUntilRef = useRef(0);
     const dragControls = useDragControls();
     const isPriorityImage = item?.isCover || item?.priority === 0;
     const primaryImageSrc = canvasSafeImageUrl(item?.cover_image || item?.image || item?.url || '');
@@ -1200,6 +1201,12 @@ const PolaroidCard = memo(function PolaroidCard({
     const handleRotateDelta = useCallback((delta) => {
         onRotate(itemId, delta);
     }, [itemId, onRotate]);
+    const handleTransformStart = useCallback(() => {
+        suppressOpenUntilRef.current = Number.POSITIVE_INFINITY;
+    }, []);
+    const handleTransformFinish = useCallback(() => {
+        suppressOpenUntilRef.current = Date.now() + 300;
+    }, []);
 
     // --- SMART LOADING CHECK ---
     // If item.priority is undefined, load by default (legacy/fallback).
@@ -1254,7 +1261,8 @@ const PolaroidCard = memo(function PolaroidCard({
                 onDragEnd && onDragEnd(itemId, e, info);
             }}
             onClick={(event) => {
-                if (isDraggingRef.current) return; // Ignore if it was a drag
+                const startedOnTransformHandle = event.target instanceof Element && event.target.closest('.rotation-handle');
+                if (isDraggingRef.current || startedOnTransformHandle || Date.now() < suppressOpenUntilRef.current) return;
 
                 if (event && event.stopPropagation) event.stopPropagation();
                 onSelect(itemId);
@@ -1291,10 +1299,10 @@ const PolaroidCard = memo(function PolaroidCard({
             {/* ROTATION HANDLES - Positioned on the 4 outer corners of the entire Polaroid frame */}
             {!readOnly && !selectionMode && (
                 <>
-                    <RotationHandle position="top-left" onRotate={handleRotateDelta} onScale={(factor) => onScale(itemId, factor)} onTransformEnd={onTransformEnd} />
-                    <RotationHandle position="top-right" onRotate={handleRotateDelta} onScale={(factor) => onScale(itemId, factor)} onTransformEnd={onTransformEnd} />
-                    <RotationHandle position="bottom-left" onRotate={handleRotateDelta} onScale={(factor) => onScale(itemId, factor)} onTransformEnd={onTransformEnd} />
-                    <RotationHandle position="bottom-right" onRotate={handleRotateDelta} onScale={(factor) => onScale(itemId, factor)} onTransformEnd={onTransformEnd} />
+                    <RotationHandle position="top-left" onRotate={handleRotateDelta} onScale={(factor) => onScale(itemId, factor)} onTransformStart={handleTransformStart} onTransformEnd={onTransformEnd} onTransformFinish={handleTransformFinish} />
+                    <RotationHandle position="top-right" onRotate={handleRotateDelta} onScale={(factor) => onScale(itemId, factor)} onTransformStart={handleTransformStart} onTransformEnd={onTransformEnd} onTransformFinish={handleTransformFinish} />
+                    <RotationHandle position="bottom-left" onRotate={handleRotateDelta} onScale={(factor) => onScale(itemId, factor)} onTransformStart={handleTransformStart} onTransformEnd={onTransformEnd} onTransformFinish={handleTransformFinish} />
+                    <RotationHandle position="bottom-right" onRotate={handleRotateDelta} onScale={(factor) => onScale(itemId, factor)} onTransformStart={handleTransformStart} onTransformEnd={onTransformEnd} onTransformFinish={handleTransformFinish} />
                 </>
             )}
         </motion.div>
@@ -1342,7 +1350,7 @@ const AngularRotationIcon = () => (
 );
 
 // HELPER: Rotation Handle Component
-const RotationHandle = ({ position, onRotate, onScale, onTransformEnd }) => {
+const RotationHandle = ({ position, onRotate, onScale, onTransformStart, onTransformEnd, onTransformFinish }) => {
     const [isActive, setIsActive] = useState(false);
     const [gestureMode, setGestureMode] = useState('');
     const lastAngle = useRef(0);
@@ -1354,10 +1362,11 @@ const RotationHandle = ({ position, onRotate, onScale, onTransformEnd }) => {
     const handlePointerDown = (e) => {
         e.stopPropagation();
         e.preventDefault();
-        setIsActive(true);
 
         const card = e.currentTarget.closest('.polaroid-card');
         if (!card) return;
+        if (typeof onTransformStart === 'function') onTransformStart();
+        setIsActive(true);
         const rect = card.getBoundingClientRect();
 
         // Exact center of the card
@@ -1404,17 +1413,20 @@ const RotationHandle = ({ position, onRotate, onScale, onTransformEnd }) => {
             lastRadius.current = currentRadius;
         };
 
-        const handlePointerUp = () => {
+        const finishInteraction = () => {
             setIsActive(false);
             if (modeRef.current && typeof onTransformEnd === 'function') onTransformEnd(modeRef.current);
+            if (typeof onTransformFinish === 'function') onTransformFinish();
             modeRef.current = '';
             setGestureMode('');
             document.removeEventListener('pointermove', handlePointerMove);
-            document.removeEventListener('pointerup', handlePointerUp);
+            document.removeEventListener('pointerup', finishInteraction);
+            document.removeEventListener('pointercancel', finishInteraction);
         };
 
         document.addEventListener('pointermove', handlePointerMove, { passive: true });
-        document.addEventListener('pointerup', handlePointerUp);
+        document.addEventListener('pointerup', finishInteraction);
+        document.addEventListener('pointercancel', finishInteraction);
     };
 
     return (

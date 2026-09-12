@@ -26,7 +26,7 @@ The lightbox includes previous/next buttons, arrow keys, mobile swipes, metadata
 
 ## Search and routing
 
-`src/middleware.ts` rewrites the photography hostname without looping. `vercel.json` also defines host-specific rewrites, including robots.txt, which would otherwise be served from the main site's static public file before middleware. Astro development serves that static robots.txt directly; verify the portfolio robots endpoint at `/photography-portfolio/robots.txt` locally.
+`vercel.json` redirects the photography hostname to the canonical `/photography-portfolio` namespace before filesystem resolution. `src/middleware.ts` keeps equivalent fallback behavior for local development and direct Astro requests. This avoids routing all dynamic pages through a shared edge-renderer cache key.
 
 Structured data uses valid `Person` + `jobTitle: Photographer`, `ImageGallery`, `ImageObject`, and worldwide `Service` nodes. Schema.org does not define a `Photographer` type. Each image includes creator, credit, copyright and licensing inquiry URL. The subdomain sitemap includes all 56 images. Search ranking or inclusion is not guaranteed.
 
