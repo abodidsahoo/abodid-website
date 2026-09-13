@@ -130,17 +130,22 @@ export default function PortfolioMediaPicker({ open, multiple = false, gifOnly =
             ))}
             {visibleAssets.map((asset) => {
               const preview = asset.variants?.["800"]?.url || asset.originalUrl;
+              const isVideo = asset.mimeType?.startsWith("video/") || /\.(mp4|webm|mov)(?:[?#]|$)/i.test(asset.originalFilename || asset.objectKey || asset.publicUrl || "");
               const selectedIndex = selectionIndex(asset);
               return (
                 <button type="button" disabled={!asset.catalogued} className={selectedIndex >= 0 ? "is-selected" : ""} key={asset.objectKey} onClick={() => toggleAsset(asset)} onDoubleClick={() => { if (!multiple) { onSelect(asset); onClose(); } }} aria-pressed={selectedIndex >= 0}>
                   <span className="portfolio-media-picker-thumb">
                     <ImageIcon size={22} />
-                    <img src={preview} alt="" loading="lazy" />
+                    {isVideo ? (
+                      <video src={preview} muted playsInline autoPlay loop preload="metadata" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    ) : (
+                      <img src={preview} alt="" loading="lazy" />
+                    )}
                     {selectedIndex >= 0 && <i>{multiple ? selectedIndex + 1 : <Check size={15} />}</i>}
                   </span>
                   <strong title={asset.originalFilename}>{asset.originalFilename}</strong>
                   <small title={asset.objectKey}>{asset.objectKey.replace(`${currentFolder}/`, "")}</small>
-                  <em className={`media-state-${asset.processingStatus}`}>{asset.processingStatus === "ready" ? "Optimized" : asset.catalogued ? "Processing" : "Indexing"}</em>
+                  <em className={`media-state-${asset.processingStatus}`}>{isVideo ? "Video" : asset.processingStatus === "ready" ? "Optimized" : asset.catalogued ? "Processing" : "Indexing"}</em>
                 </button>
               );
             })}

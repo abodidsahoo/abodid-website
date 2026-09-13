@@ -1,7 +1,7 @@
 import { supabase } from './supabaseClient';
 
 // ─── Convert Legacy Markdown Content to Individual Block JSON ──────────────────
-function convertMarkdownToBlocks(markdown) {
+export function convertMarkdownToBlocks(markdown) {
     if (!markdown || !markdown.trim()) return [];
 
     const blocks = [];
@@ -84,7 +84,7 @@ function convertMarkdownToBlocks(markdown) {
 }
 
 // ─── Compile Blocks back to Markdown for search & fallback sync ──────────────
-function compileBlocksToMarkdown(blocks) {
+export function compileBlocksToMarkdown(blocks) {
     if (!Array.isArray(blocks)) return '';
     return blocks.map(block => {
         const c = block.content || {};

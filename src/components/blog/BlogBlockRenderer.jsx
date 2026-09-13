@@ -16,30 +16,40 @@ export default function BlogBlockRenderer({ blocks }) {
                 switch (type) {
                     case 'body_text':
                     case 'text':
-                        if (!content.text) return null;
+                    case 'paragraph': {
+                        const textVal = (content && typeof content === 'object' ? content.text : null)
+                            || (typeof content === 'string' ? content : null)
+                            || block.text
+                            || (typeof block.content === 'string' ? block.content : null);
+                        if (!textVal) return null;
                         return (
                             <div 
                                 key={key} 
-                                dangerouslySetInnerHTML={{ __html: marked.parse(content.text) }} 
+                                dangerouslySetInnerHTML={{ __html: marked.parse(textVal) }}
                             />
                         );
+                    }
 
                     case 'heading': {
-                        const level = content.level || 2;
+                        const level = content.level || block.level || 2;
                         const HeadingTag = level === 3 ? 'h3' : 'h2';
-                        return <HeadingTag key={key}>{content.text}</HeadingTag>;
+                        const headingText = content.text || block.text || (typeof content === 'string' ? content : '');
+                        return <HeadingTag key={key}>{headingText}</HeadingTag>;
                     }
 
                     case 'quotation':
-                    case 'quote':
+                    case 'quote': {
+                        const quoteText = content.quote || content.text || block.quote || block.text || (typeof content === 'string' ? content : '');
+                        const author = content.attribution || content.citation || content.author || block.author;
                         return (
                             <blockquote key={key}>
-                                <p>{content.quote || content.text}</p>
-                                {(content.attribution || content.citation) && (
-                                    <cite>— {content.attribution || content.citation}</cite>
+                                <p>{quoteText}</p>
+                                {author && (
+                                    <cite>— {author}</cite>
                                 )}
                             </blockquote>
                         );
+                    }
 
                     case 'highlight':
                         return (

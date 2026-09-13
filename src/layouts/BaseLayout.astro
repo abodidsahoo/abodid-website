@@ -394,11 +394,80 @@ const googleFontsUrl =
     updateIntensity(); // Initial call
   }
 
+  // Universal Video Playback & Autoplay Keeper across View Transitions and Back/Forward Cache
+  function initGlobalVideoAutoplay() {
+    const playVideo = (video: HTMLVideoElement) => {
+      if (!video) return;
+      video.muted = true;
+      video.defaultMuted = true;
+      video.playsInline = true;
+      video.setAttribute("muted", "");
+      video.setAttribute("playsinline", "");
+      video.setAttribute("webkit-playsinline", "");
+
+      if (video.paused) {
+        const p = video.play();
+        if (p !== undefined) {
+          p.catch(() => {
+            const onReady = () => {
+              if (video.paused) video.play().catch(() => {});
+            };
+            video.addEventListener("canplay", onReady, { once: true });
+            video.addEventListener("loadedmetadata", onReady, { once: true });
+            if (video.readyState === 0) {
+              video.load();
+            }
+          });
+        }
+      }
+    };
+
+    const triggerAllVideos = () => {
+      document.querySelectorAll("video").forEach((el) => {
+        const v = el as HTMLVideoElement;
+        if (v.hasAttribute("autoplay") || v.autoplay || v.loop || v.muted) {
+          playVideo(v);
+        }
+      });
+    };
+
+    triggerAllVideos();
+
+    if (typeof IntersectionObserver !== "undefined") {
+      const videoObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && entry.target instanceof HTMLVideoElement) {
+            playVideo(entry.target);
+          }
+        });
+      }, { threshold: 0.05, rootMargin: "250px 0px" });
+
+      document.querySelectorAll("video").forEach((v) => {
+        videoObserver.observe(v);
+      });
+    }
+  }
+
   // Init
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", initGlobalEffects);
+    document.addEventListener("DOMContentLoaded", () => {
+      initGlobalEffects();
+      initGlobalVideoAutoplay();
+    });
   } else {
     initGlobalEffects();
+    initGlobalVideoAutoplay();
   }
+
+  document.addEventListener("astro:page-load", () => {
+    initGlobalEffects();
+    initGlobalVideoAutoplay();
+  });
+  document.addEventListener("astro:after-swap", initGlobalVideoAutoplay);
+  window.addEventListener("pageshow", initGlobalVideoAutoplay);
+  window.addEventListener("popstate", () => setTimeout(initGlobalVideoAutoplay, 50));
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) initGlobalVideoAutoplay();
+  });
 
 </script>

@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 
-import { labExperiments } from '../data/labExperiments';
+import { getLabExperiments } from '../data/labExperiments';
 import { labUrl } from '../lib/labRoutes.js';
 
 export const prerender = false;
@@ -13,7 +13,8 @@ const escapeXml = (value: string) =>
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&apos;');
 
-export const GET: APIRoute = () => {
+export const GET: APIRoute = async () => {
+  const labExperiments = await getLabExperiments();
   const paths = ['/', ...labExperiments.map((experiment) => experiment.href)];
   const urls = [...new Set(paths)]
     .map((pathname) => `  <url><loc>${escapeXml(labUrl(pathname))}</loc></url>`)

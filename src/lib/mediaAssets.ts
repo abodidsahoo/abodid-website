@@ -9,3 +9,6 @@ export const OBSIDIAN_VAULT_VIDEO_URL =
 
 export const SEQUENCE_ROOM_VIDEO_URL =
   "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/video-clips/sequence-room-comp.mp4";
+
+export const PUNCTUM_WALKTHROUGH_GIF_URL =
+  "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/gif/punctum-walkthrough-abodid-shorter-duration.gif";

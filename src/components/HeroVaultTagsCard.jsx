@@ -3,13 +3,15 @@ import { vaultTags as fallbackVaultTags } from '../utils/tags';
 
 // Vivid palette popping against the blue background (pink, yellow, cream, lime)
 const TAG_COLOR_THEMES = [
-  { bg: 'var(--pop-pink, #f78bb1)', color: 'var(--pop-ink, #17150f)', border: 'rgba(23, 21, 15, 0.35)' },
-  { bg: 'var(--pop-pink, #f78bb1)', color: 'var(--pop-ink, #17150f)', border: 'rgba(23, 21, 15, 0.35)' },
-  { bg: 'var(--pop-yellow, #f6e05e)', color: 'var(--pop-ink, #17150f)', border: 'rgba(23, 21, 15, 0.35)' },
-  { bg: 'var(--pop-cream, #fdfbf7)', color: 'var(--pop-ink, #17150f)', border: 'rgba(23, 21, 15, 0.3)' },
-  { bg: 'var(--pop-lime, #d4f738)', color: 'var(--pop-ink, #17150f)', border: 'rgba(23, 21, 15, 0.35)' },
-  { bg: 'var(--pop-pink, #f78bb1)', color: 'var(--pop-ink, #17150f)', border: 'rgba(23, 21, 15, 0.35)' },
+  { bg: 'var(--pop-pink, #f78bb1)', color: 'var(--pop-ink, #15130f)', border: 'rgba(23, 21, 15, 0.35)' },
+  { bg: 'var(--pop-pink, #f78bb1)', color: 'var(--pop-ink, #15130f)', border: 'rgba(23, 21, 15, 0.35)' },
+  { bg: 'var(--pop-yellow, #ffe44f)', color: 'var(--pop-ink, #15130f)', border: 'rgba(23, 21, 15, 0.35)' },
+  { bg: 'var(--pop-cream, #fff8e8)', color: 'var(--pop-ink, #15130f)', border: 'rgba(23, 21, 15, 0.3)' },
+  { bg: 'var(--pop-lime, #caff48)', color: 'var(--pop-ink, #15130f)', border: 'rgba(23, 21, 15, 0.35)' },
+  { bg: 'var(--pop-pink, #f78bb1)', color: 'var(--pop-ink, #15130f)', border: 'rgba(23, 21, 15, 0.35)' },
 ];
+
+const EMPTY_TAG_POOL = [];
 
 function OdometerNumber({ value }) {
   const digits = String(value).split('');
@@ -51,6 +53,7 @@ function OdometerNumber({ value }) {
  *   variant?: "vault" | "papers",
  *   interactive?: boolean,
  *   ariaLabel?: string,
+ *   embedded?: boolean,
  * }} props
  */
 export default function HeroVaultTagsCard({
@@ -62,10 +65,11 @@ export default function HeroVaultTagsCard({
   metricLabel = "",
   statusText = "",
   showFooter = true,
-  tagPool = [],
+  tagPool = EMPTY_TAG_POOL,
   variant = "vault",
   interactive = variant !== "papers",
   ariaLabel = "Obsidian Vault Interactive Explorer",
+  embedded = false,
 }) {
   const hasCustomTagPool = Array.isArray(tagPool) && tagPool.length > 0;
   const initialTagPool = hasCustomTagPool ? tagPool : fallbackVaultTags;
@@ -82,7 +86,7 @@ export default function HeroVaultTagsCard({
 
   // Exact lightweight physics matching visual-tag-cloud
   const CHECK_INTERVAL = 15;
-  const MIN_SPACING = 65;
+  const MIN_SPACING = 75;
   const MAX_TAGS = 16;
   const FADE_DURATION = 1500;
   const EDGE_PADDING_X = 48;
@@ -233,7 +237,7 @@ export default function HeroVaultTagsCard({
     };
   }, [interactive]);
 
-  const isCardLink = variant !== "papers";
+  const isCardLink = variant !== "papers" && !embedded;
   const CardTag = isCardLink ? "a" : "div";
 
   return (
@@ -277,7 +281,7 @@ export default function HeroVaultTagsCard({
           {helperText ? (
             <span className="hero-vault-tags-card__helper">{helperText}</span>
           ) : null}
-          {isCardLink ? (
+          {isCardLink || embedded ? (
             <span className="hero-vault-tags-card__cta">
               {cta.split("↗").map((text, index) => (
                 <Fragment key={index}>
@@ -368,15 +372,25 @@ export default function HeroVaultTagsCard({
 
         .hero-tag-content {
           display: inline-block;
-          padding: 4px 10px;
+          padding: 12px 32px;
           border: 1px solid rgba(23, 21, 15, 0.3);
           border-radius: 999px;
+          color: var(--pop-ink, #15130f) !important;
+          -webkit-text-fill-color: var(--pop-ink, #15130f) !important;
           font-family: var(--font-display, sans-serif);
-          font-size: 0.8rem;
-          font-weight: 500;
+          font-size: 1.12rem;
+          font-weight: 460;
           letter-spacing: -0.01em;
           white-space: nowrap;
           box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .hero-vault-tags-card:hover .hero-tag-content,
+        .hero-vault-tags-card:focus-visible .hero-tag-content,
+        .hero-vault-tags-card .hero-floating-tag .hero-tag-content,
+        .hero-vault-tags-card[data-auto-contrast] .hero-tag-content {
+          color: var(--pop-ink, #15130f) !important;
+          -webkit-text-fill-color: var(--pop-ink, #15130f) !important;
         }
 
         @keyframes trailFade {

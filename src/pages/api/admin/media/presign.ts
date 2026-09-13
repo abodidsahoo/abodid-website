@@ -27,13 +27,15 @@ export const POST: APIRoute = async ({ request }) => {
         const folder = normalizeR2FolderPath(body?.folder);
 
         if (!filename || filename.length > 255) {
-            return jsonResponse({ error: "Choose an image with a valid filename." }, 400);
+            return jsonResponse({ error: "Choose a media file with a valid filename." }, 400);
         }
         if (!isAllowedImageMimeType(contentType)) {
-            return jsonResponse({ error: "Use a JPEG, PNG, WebP or GIF image." }, 400);
+            return jsonResponse({ error: "Use a JPEG, PNG, WebP, GIF, MP4, WebM or MOV file." }, 400);
         }
-        if (!Number.isSafeInteger(size) || size <= 0 || size > MAX_IMAGE_SIZE_BYTES) {
-            return jsonResponse({ error: "Images must be 20 MB or smaller." }, 400);
+        const isVideo = contentType.startsWith("video/");
+        const maxSize = isVideo ? 100 * 1024 * 1024 : MAX_IMAGE_SIZE_BYTES;
+        if (!Number.isSafeInteger(size) || size <= 0 || size > maxSize) {
+            return jsonResponse({ error: `File must be ${isVideo ? "100 MB" : "20 MB"} or smaller.` }, 400);
         }
         if (!isR2OriginalFolder(folder)) {
             return jsonResponse(

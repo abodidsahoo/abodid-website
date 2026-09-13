@@ -1,0 +1,104 @@
+---
+import { marked } from "marked";
+import BlogBlockRenderer from "../blog/BlogBlockRenderer.jsx";
+import ShareButtons from "../ShareButtons.jsx";
+import "../../styles/research-case-study.css";
+
+const { project } = Astro.props;
+const coverImage = project.cover_image || project.image;
+const experimentUrl = project.experiment_url || project.link;
+const tags = Array.isArray(project.tags) ? project.tags.filter(Boolean) : [];
+const galleryImages = Array.isArray(project.gallery_images)
+  ? project.gallery_images.filter((image) => image?.url)
+  : [];
+const sourceBlocks = Array.isArray(project.blocks) ? project.blocks : [];
+const normalizedCover = String(coverImage || "").split("?")[0];
+let skippedMatchingCover = false;
+const blocks = sourceBlocks.filter((block) => {
+  const type = block.blockType || block.type;
+  const media = block.content?.media || block.content || block;
+  const blockImage = media?.url || media?.imageUrl;
+  if (!skippedMatchingCover && type === "single_image" && blockImage && String(blockImage).split("?")[0] === normalizedCover) {
+    skippedMatchingCover = true;
+    return false;
+  }
+  return block.visible !== false;
+});
+const contentHtml = marked.parse(project.content || "");
+const accent = ["pink", "yellow", "lime", "orange", "purple", "cyan"].includes(project.accent)
+  ? project.accent
+  : "pink";
+const role = project.role || "Creative technologist and researcher";
+---
+
+<article class="rcs" data-accent={accent}>
+  <header class="rcs-hero">
+    <div class="rcs-hero__copy">
+      <p class="rcs-kicker">Research file · Creative technology</p>
+      <h1>{project.title}</h1>
+      {project.description && <p class="rcs-deck">{project.description}</p>}
+      <div class="rcs-actions">
+        {experimentUrl && <a class="rcs-button" href={experimentUrl} target="_blank" rel="noopener noreferrer">Launch experiment <span aria-hidden="true">↗</span></a>}
+        <a class="rcs-text-link" href="/research">All research <span aria-hidden="true">→</span></a>
+      </div>
+    </div>
+
+    <aside class="rcs-facts" aria-label="Research project facts">
+      <p class="rcs-kicker">Project index</p>
+      <dl>
+        {role && <div><dt>Role</dt><dd>{role}</dd></div>}
+        {tags.length > 0 && <div><dt>Fields</dt><dd>{tags.join(" · ")}</dd></div>}
+        <div><dt>Format</dt><dd>Living research project</dd></div>
+      </dl>
+    </aside>
+  </header>
+
+  {coverImage && <figure class="rcs-cover">
+    <img src={coverImage} alt={`${project.title} project cover`} loading="eager" />
+    <figcaption>Research artifact · {project.title}</figcaption>
+  </figure>}
+
+  {(blocks.length > 0 || project.content) && <section class="rcs-narrative" aria-label="Project story">
+    <aside class="rcs-narrative__rail">
+      <p class="rcs-kicker">Field notes</p>
+      <strong>01—{String(Math.max(blocks.length, 1)).padStart(2, "0")}</strong>
+      {tags.length > 0 && <ul>{tags.map((tag) => <li>{tag}</li>)}</ul>}
+    </aside>
+    <div class="rcs-blocks">
+      {blocks.length > 0
+        ? blocks.map((block, index) => {
+            const type = block.blockType || block.type || "unknown";
+            return <section class={`rcs-block rcs-block--${type}`} data-index={String(index + 1).padStart(2, "0")}>
+              <BlogBlockRenderer blocks={[block]} />
+            </section>;
+          })
+        : <div class="rcs-legacy-copy" set:html={contentHtml} />}
+    </div>
+  </section>}
+
+  {blocks.length === 0 && galleryImages.length > 0 && <section class="rcs-gallery" aria-labelledby="rcs-gallery-title">
+    <header>
+      <p class="rcs-kicker">Visual record</p>
+      <h2 id="rcs-gallery-title">Inside the project</h2>
+    </header>
+    <div class="rcs-gallery__grid">
+      {galleryImages.map((image, index) => <figure class:list={[index % 5 === 0 && "is-wide"]}>
+        <img src={image.url} alt={image.caption || `${project.title} project image ${index + 1}`} loading="lazy" />
+        {image.caption && <figcaption>{image.caption}</figcaption>}
+      </figure>)}
+    </div>
+  </section>}
+
+  {experimentUrl && <section class="rcs-launch">
+    <div>
+      <p class="rcs-kicker">Continue the experiment</p>
+      <h2>The research is alive beyond this page.</h2>
+    </div>
+    <a href={experimentUrl} target="_blank" rel="noopener noreferrer">Open project <span aria-hidden="true">↗</span></a>
+  </section>}
+
+  <footer class="rcs-footer">
+    <ShareButtons client:only="react" title={project.title} url={Astro.url.href} />
+    <a href="/research">← Back to Research</a>
+  </footer>
+</article>

@@ -571,13 +571,15 @@ body::-webkit-scrollbar {
 }
 
 ::selection {
-  background: var(--selection-bg, #2444ca);
-  color: #ffffff;
+  background: var(--selection-bg, #ffe44f);
+  color: #15130f;
+  -webkit-text-fill-color: #15130f;
 }
 
 ::-moz-selection {
-  background: var(--selection-bg, #2444ca);
-  color: #ffffff;
+  background: var(--selection-bg, #ffe44f);
+  color: #15130f;
+  -webkit-text-fill-color: #15130f;
 }
 
 [data-theme="light"] body {
@@ -1254,3 +1256,183 @@ body[class*="story-"],
 ) :is(h1, h2, h3, h4, h5, h6, p, span, small, li, strong, em, b, a, button, label, td, th, code) {
   color: var(--pop-cream) !important;
 }
+
+/* ==========================================================================
+   ABODID POP EDITORIAL STRICT CONTRAST SYSTEM (Design System Law)
+   1. ANY YELLOW SURFACE / PILL / BUTTON / BADGE / CARD -> STRICT BLACK INK (#15130f)
+   2. ANY BLUE SURFACE / PILL / BUTTON / BADGE / CARD -> STRICT PURE WHITE (#ffffff)
+   3. NESTED YELLOW BUTTONS/PILLS INSIDE BLUE SURFACES -> STRICT BLACK INK (#15130f)
+   ========================================================================== */
+
+/* 1. STRICT BLACK TEXT ON ALL YELLOW SURFACES */
+:is(
+  .rp-case__caption-badge,
+  .rp-case__experiment-btn,
+  .rp-case__trio-card--yellow,
+  .rp-case__next-arrow,
+  .rp-case__next-button,
+  .rp-case__reading-card,
+  .rp-case__reading-badge,
+  .rp-case__contrib-card,
+  .pop-card--yellow,
+  .pop-panel--yellow,
+  .btn-yellow,
+  .badge-yellow,
+  .pill-yellow,
+  [class*="--yellow"],
+  [class*="yellow"],
+  [data-pop-surface="yellow"],
+  [style*="#ffe44f"],
+  [style*="--pe-yellow"],
+  [style*="--pop-yellow"],
+  [style*="--rp-yellow"]
+),
+:is(
+  .rp-case__caption-badge,
+  .rp-case__experiment-btn,
+  .rp-case__trio-card--yellow,
+  .rp-case__next-arrow,
+  .rp-case__next-button,
+  .rp-case__reading-card,
+  .rp-case__reading-badge,
+  .rp-case__contrib-card,
+  .pop-card--yellow,
+  .pop-panel--yellow,
+  .btn-yellow,
+  .badge-yellow,
+  .pill-yellow,
+  [class*="--yellow"],
+  [class*="yellow"],
+  [data-pop-surface="yellow"],
+  [style*="#ffe44f"],
+  [style*="--pe-yellow"],
+  [style*="--pop-yellow"],
+  [style*="--rp-yellow"]
+) :is(h1, h2, h3, h4, h5, h6, p, span, small, li, strong, em, b, a, button, label, td, th, code, svg, dt, dd, figcaption) {
+  color: #15130f !important;
+  -webkit-text-fill-color: #15130f !important;
+}
+
+/* 2. STRICT WHITE TEXT ON ALL BLUE AND PURPLE SURFACES */
+:is(
+  .rp-case__meta-pill,
+  .rp-case__trio-card--blue,
+  .rp-case__trio-card--purple,
+  .rp-case[data-accent="purple"] .rp-case__hero,
+  .pop-card--blue,
+  .pop-panel--blue,
+  .pop-card--purple,
+  .pop-panel--purple,
+  .btn-blue,
+  .badge-blue,
+  .pill-blue,
+  .btn-purple,
+  .badge-purple,
+  .pill-purple,
+  [class*="--blue"],
+  [class*="--purple"],
+  [data-pop-surface="blue"],
+  [data-pop-surface="purple"],
+  [data-accent="purple"],
+  [data-accent="blue"],
+  [style*="#5524c7"],
+  [style*="--pop-purple"],
+  [style*="--pe-purple"],
+  [style*="--rp-purple"]
+),
+:is(
+  .rp-case__meta-pill,
+  .rp-case__trio-card--blue,
+  .rp-case__trio-card--purple,
+  .rp-case[data-accent="purple"] .rp-case__hero,
+  .pop-card--blue,
+  .pop-panel--blue,
+  .pop-card--purple,
+  .pop-panel--purple,
+  .btn-blue,
+  .badge-blue,
+  .pill-blue,
+  .btn-purple,
+  .badge-purple,
+  .pill-purple,
+  [class*="--blue"],
+  [class*="--purple"],
+  [data-pop-surface="blue"],
+  [data-pop-surface="purple"],
+  [data-accent="purple"],
+  [data-accent="blue"],
+  [style*="#5524c7"],
+  [style*="--pop-purple"],
+  [style*="--pe-purple"],
+  [style*="--rp-purple"]
+) :is(h1, h2, h3, h4, h5, h6, p, span, small, li, strong, em, b, a, dt, dd, svg) {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+/* 3. NESTED YELLOW ELEMENTS INSIDE BLUE SURFACES REMAIN STRICT BLACK */
+:is([class*="--blue"], [data-pop-surface="blue"], .bg-blue, .rp-case__trio-card--blue, .pop-card--blue, .hero-vault-tags-card) :is(
+  .rp-case__experiment-btn,
+  .rp-case__caption-badge,
+  .hero-tag-content,
+  .hero-floating-tag,
+  .badge-yellow,
+  .pill-yellow,
+  .btn-yellow,
+  [class*="--yellow"],
+  [class*="yellow"],
+  [data-pop-surface="yellow"],
+  [style*="#ffe44f"],
+  [style*="#f6e05e"],
+  [style*="--pe-yellow"],
+  [style*="--pop-yellow"],
+  [style*="--rp-yellow"]
+),
+:is([class*="--blue"], [data-pop-surface="blue"], .bg-blue, .rp-case__trio-card--blue, .pop-card--blue, .hero-vault-tags-card) :is(
+  .rp-case__experiment-btn,
+  .rp-case__caption-badge,
+  .hero-tag-content,
+  .hero-floating-tag,
+  .badge-yellow,
+  .pill-yellow,
+  .btn-yellow,
+  [class*="--yellow"],
+  [class*="yellow"],
+  [data-pop-surface="yellow"],
+  [style*="#ffe44f"],
+  [style*="#f6e05e"],
+  [style*="--pe-yellow"],
+  [style*="--pop-yellow"],
+  [style*="--rp-yellow"]
+) :is(span, strong, b, em, p, a, button, label, svg, dt, dd) {
+  color: #15130f !important;
+  -webkit-text-fill-color: #15130f !important;
+}
+
+/* 4. NESTED BLUE ELEMENTS INSIDE YELLOW SURFACES REMAIN STRICT WHITE */
+:is([class*="--yellow"], [data-pop-surface="yellow"], .bg-yellow, .rp-case__trio-card--yellow, .pop-card--yellow, .rp-case__hero) :is(
+  .rp-case__meta-pill,
+  .badge-blue,
+  .pill-blue,
+  .btn-blue,
+  [class*="--blue"],
+  [data-pop-surface="blue"],
+  [style*="--pe-blue"],
+  [style*="--pop-blue"],
+  [style*="#2444ca"]
+),
+:is([class*="--yellow"], [data-pop-surface="yellow"], .bg-yellow, .rp-case__trio-card--yellow, .pop-card--yellow, .rp-case__hero) :is(
+  .rp-case__meta-pill,
+  .badge-blue,
+  .pill-blue,
+  .btn-blue,
+  [class*="--blue"],
+  [data-pop-surface="blue"],
+  [style*="--pe-blue"],
+  [style*="--pop-blue"],
+  [style*="#2444ca"]
+) :is(span, strong, b, em, p, a, button, label, svg, dt, dd) {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+

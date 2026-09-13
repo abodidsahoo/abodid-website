@@ -3,6 +3,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import InlineInquiryForm from "../components/InlineInquiryForm.astro";
 import Newsletter from "../components/Newsletter.astro";
 import HeroVaultTagsCard from "../components/HeroVaultTagsCard";
+import LandingInteractiveHero from "../components/LandingInteractiveHero.jsx";
 import {
   cloudflareExhibitionFallbacks,
   getHomeStorytellingContent,
@@ -144,77 +145,18 @@ const structuredData = [
   <link slot="head" rel="preload" as="image" href={heroProject.heroImage || heroProject.image} />
 
   <main class="story-home">
-    <section class="story-hero" aria-labelledby="story-hero-heading">
-      <div class="story-hero__copy" data-auto-contrast>
-        <div class="story-hero__masthead">
-          <p class="story-hero__name">{content.hero.name}</p>
-          <p class="story-hero__availability">
-            <img src="/images/map-pin.png" alt="" aria-hidden="true" />
-            <span>{content.hero.location}</span>
-          </p>
-        </div>
-        <h1 id="story-hero-heading" aria-label={`Abodid Sahoo — ${content.hero.heading}`}>
-          <span class="sr-only">Abodid Sahoo — </span>{content.hero.heading}
-        </h1>
-        <p class="story-hero__statement">{content.hero.statement}</p>
-        <p class="story-hero__lede">{content.hero.lede}</p>
-        <div class="story-actions">
-          <a class="story-button story-button--secondary" href="#enquiry">Let’s build together <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
-        </div>
-      </div>
-
-      <aside class="story-hero__rail" aria-label="Featured work and future content">
-        <div class="story-hero__visual" aria-label="Selected projects showcase" data-auto-contrast data-hero-slider>
-          <div class="story-hero__slider-track" role="region" aria-label="Featured projects carousel" aria-live="polite">
-            {heroSlides.map((project, index) => (
-              <a
-                class={`story-hero__slide ${letterboxedHeroSlideIds.has(project.id) ? "story-hero__slide--letterboxed" : ""} ${index === 0 ? "is-active" : ""}`}
-                href={project.href}
-                data-hero-slide={index}
-                aria-hidden={index === 0 ? "false" : "true"}
-                tabindex={index === 0 ? "0" : "-1"}
-                data-auto-contrast
-              >
-                {project.heroImage ? (
-                  <img
-                    src={project.heroImage}
-                    alt={project.alt}
-                    loading={index === 0 ? "eager" : "lazy"}
-                    fetchpriority={index === 0 ? "high" : "auto"}
-                    decoding={index === 0 ? "sync" : "async"}
-                  />
-                ) : project.video ? (
-                  <video
-                    src={project.video}
-                    autoplay
-                    muted
-                    loop
-                    playsinline
-                    preload="auto"
-                    aria-label={project.alt}
-                  />
-                ) : (
-                  <img
-                    src={project.image}
-                    alt={project.alt}
-                    loading={index === 0 ? "eager" : "lazy"}
-                    fetchpriority={index === 0 ? "high" : "auto"}
-                    decoding={index === 0 ? "sync" : "async"}
-                    data-cloudflare-fallback
-                  />
-                )}
-                <span data-auto-contrast>
-                  <b>{project.title}</b>
-                  <small>{project.category} · {project.outcome}</small>
-                </span>
-              </a>
-            ))}
-          </div>
-        </div>
-
-        <HeroVaultTagsCard client:load />
-      </aside>
-    </section>
+    <LandingInteractiveHero
+      client:load
+      name={content.hero.name}
+      location={content.hero.location}
+      heading={content.hero.heading}
+      statement={content.hero.statement}
+      lede={content.hero.lede}
+      ctaText="Enter the Site"
+      ctaHref="#selected-work"
+      secondaryCtaText="Let’s build together"
+      secondaryCtaHref="#enquiry"
+    />
 
     <section class="story-work" id="selected-work" aria-label="Selected work">
       <div class="story-work__grid">
@@ -228,7 +170,7 @@ const structuredData = [
                   loading="lazy"
                   decoding="async"
                 />
-              ) : project.video ? (
+              ) : project.video && !project.video.endsWith(".gif") ? (
                 <video
                   src={project.video}
                   autoplay
@@ -239,7 +181,7 @@ const structuredData = [
                   aria-label={project.alt}
                 />
               ) : (
-                <img src={project.image} alt={project.alt} loading="lazy" decoding="async" data-cloudflare-fallback />
+                <img src={project.video || project.image} alt={project.alt} loading="lazy" decoding="async" data-cloudflare-fallback />
               )}
             </figure>
             <div class="story-project__copy">

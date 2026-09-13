@@ -97,21 +97,22 @@ function mediaDisplayName(item, index) {
 
 function MediaField({ item, index, update, remove, dragHandle = null, sequenceLabel = "" }) {
   const displayName = mediaDisplayName(item, index);
+  const isVideo = item.url && (item.url.endsWith(".mp4") || item.url.endsWith(".webm") || item.url.endsWith(".mov") || item.mimeType?.startsWith("video/"));
   return <div className="media-field">
     <div className="media-visual-column">
       <div className="media-field-preview-shell">
         {item.url
-          ? <img className="media-field-preview" src={item.url} alt="" />
-          : <div className="media-field-preview is-empty">Image preview appears here</div>}
+          ? (isVideo ? <video className="media-field-preview" src={item.url} controls muted playsInline /> : <img className="media-field-preview" src={item.url} alt="" />)
+          : <div className="media-field-preview is-empty">Media preview appears here</div>}
         {dragHandle}
         {sequenceLabel && <span className="media-sequence-number">{sequenceLabel}</span>}
       </div>
       <div className="media-source-details">
-        <div className="media-source-name"><span>Image name</span><strong title={displayName}>{displayName}</strong></div>
+        <div className="media-source-name"><span>Media name</span><strong title={displayName}>{displayName}</strong></div>
         <div className="media-source-url">
           {item.storagePath
-            ? <><span>Image URL</span><a href={item.url} target="_blank" rel="noopener noreferrer" title={item.url}>{item.url}</a></>
-            : <Text label="Image URL" value={item.url} placeholder="Paste an https:// image link" onChange={(url) => update(index, { sourceType: "external", url })} />}
+            ? <><span>Media URL</span><a href={item.url} target="_blank" rel="noopener noreferrer" title={item.url}>{item.url}</a></>
+            : <Text label="Media URL" value={item.url} placeholder="Paste an https:// image or video link" onChange={(url) => update(index, { sourceType: "external", url })} />}
         </div>
       </div>
     </div>
@@ -119,7 +120,7 @@ function MediaField({ item, index, update, remove, dragHandle = null, sequenceLa
       <Text label="Alt text (optional)" value={item.alt} onChange={(alt) => update(index, { alt })} />
       <Text label="Caption" value={item.caption} onChange={(caption) => update(index, { caption })} />
       <Text label="Credit" value={item.credit} onChange={(credit) => update(index, { credit })} />
-      <button type="button" className="media-remove-button" onClick={() => remove(index)}><span aria-hidden="true">×</span> Remove image</button>
+      <button type="button" className="media-remove-button" onClick={() => remove(index)}><span aria-hidden="true">×</span> Remove media</button>
     </div>
   </div>;
 }
@@ -132,8 +133,8 @@ function SortableMediaField({ item, index, sortId, update, remove }) {
       index={index}
       update={update}
       remove={remove}
-      sequenceLabel={`Image ${index + 1}`}
-      dragHandle={<button type="button" className="media-sequence-handle" {...attributes} {...listeners} aria-label={`Drag image ${index + 1} to change its display order`}><span className="portfolio-block-palette-grip" aria-hidden="true" /></button>}
+      sequenceLabel={`Media ${index + 1}`}
+      dragHandle={<button type="button" className="media-sequence-handle" {...attributes} {...listeners} aria-label={`Drag item ${index + 1} to change its display order`}><span className="portfolio-block-palette-grip" aria-hidden="true" /></button>}
     />
   </div>;
 }
@@ -163,7 +164,7 @@ export function PortfolioImageUploader({
     try {
       await onUpload(multiple ? files : files[0], 0, { inline: true });
     } catch (error) {
-      setUploadError(error?.message || `${multiple ? "Images" : "Image"} upload failed. Please try again.`);
+      setUploadError(error?.message || `${multiple ? "Media" : "Media"} upload failed. Please try again.`);
     } finally {
       setIsUploading(false);
       setUploadCount(0);
@@ -183,10 +184,10 @@ export function PortfolioImageUploader({
     else setIsDragOver(false);
   };
 
-  const uploadingLabel = multiple && uploadCount > 1 ? `Uploading ${uploadCount} images…` : "Uploading image…";
+  const uploadingLabel = multiple && uploadCount > 1 ? `Uploading ${uploadCount} files…` : "Uploading media…";
   const idleLabel = hasImages
-    ? (filledLabel || (multiple ? "Add more images" : "Replace this image"))
-    : (emptyLabel || (multiple ? "Drop images here" : "Drop an image here"));
+    ? (filledLabel || (multiple ? "Add more media" : "Replace this media"))
+    : (emptyLabel || (multiple ? "Drop media files here" : "Drop an image or video here"));
 
   return <div
     className={`portfolio-image-uploader ${hasImages ? "is-compact" : ""} ${isDragOver ? "is-drag-over" : ""} ${isUploading ? "is-uploading" : ""}`}
@@ -198,7 +199,7 @@ export function PortfolioImageUploader({
     <input
       ref={inputRef}
       type="file"
-      accept="image/jpeg,image/png,image/webp,image/gif"
+      accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime"
       multiple={multiple}
       disabled={disabled || isUploading}
       onClick={(event) => { event.currentTarget.value = ""; }}
@@ -212,12 +213,10 @@ export function PortfolioImageUploader({
     <span className="portfolio-image-upload-icon" aria-hidden="true">↑</span>
     <div className="portfolio-image-upload-copy">
       <strong>{isUploading ? uploadingLabel : idleLabel}</strong>
-      <span>{isUploading ? "The editor stays available while the originals are sent to Cloudflare." : `JPEG, PNG, WebP or GIF · maximum 20 MB${multiple ? " each" : ""}`}</span>
+      <span>{isUploading ? "The editor stays available while files are uploaded." : "Images (JPEG, PNG, WebP, GIF) or Videos (MP4, WebM, MOV · max 100 MB)"}</span>
     </div>
-    <button type="button" className="portfolio-image-upload-button" onClick={openPicker} disabled={disabled || isUploading}>
-      {isUploading ? "Uploading…" : multiple ? "Choose images" : "Choose file"}
-    </button>
-    {uploadError && <p className="portfolio-image-upload-error" role="alert">{uploadError}</p>}
+    <button type="button" className="quiet-button" onClick={openPicker} disabled={disabled || isUploading}>Browse files</button>
+    {uploadError && <p className="uploader-error-text" role="alert">{uploadError}</p>}
   </div>;
 }
 

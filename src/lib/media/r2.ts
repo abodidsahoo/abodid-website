@@ -33,11 +33,16 @@ const MIME_TYPES_BY_EXTENSION: Record<string, string> = {
     docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 };
 
+export const MAX_MEDIA_SIZE_BYTES = 100 * 1024 * 1024;
+
 const ALLOWED_IMAGE_MIME_TYPES = new Set([
     "image/jpeg",
     "image/png",
     "image/webp",
     "image/gif",
+    "video/mp4",
+    "video/webm",
+    "video/quicktime",
 ]);
 
 export type R2Config = {

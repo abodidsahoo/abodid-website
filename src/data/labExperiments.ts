@@ -1,7 +1,4 @@
-import {
-  GESTURE_CONTROL_HERO_GIF_URL,
-  SEQUENCE_ROOM_VIDEO_URL,
-} from "../lib/mediaAssets";
+import { getPublishedLabProjects } from "../lib/portfolio/services.js";
 
 export type LabExperiment = {
   id: string;
@@ -12,69 +9,81 @@ export type LabExperiment = {
   status: string;
   year: string;
   href: string;
+  destinationLabel: string;
   thumbnail: string;
   video?: string;
   thumbnailAlt: string;
   surface: "pink" | "blue" | "yellow" | "cream" | "lime";
+  cardVariant: "media" | "vault-tags";
+  previewHeading?: string;
+  previewCta?: string;
 };
 
-export const labExperiments: LabExperiment[] = [
-  {
-    id: "punctum",
-    index: "01",
-    title: "Punctum",
-    description:
-      "A participatory study of the detail in a photograph that catches, moves, or stays with each viewer.",
-    discipline: "Visual attention · Participatory AI",
-    status: "Live",
-    year: "2026",
-    href: "/lab/punctum",
-    thumbnail:
-      "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/gif/punctum-walkthrough-abodid-shorter-duration.gif",
-    thumbnailAlt: "Interactive walkthrough animation of the Punctum visual-attention experiment",
-    surface: "pink",
-  },
-  {
-    id: "image-flick",
-    index: "02",
-    title: "Image Flick",
-    description:
-      "A physics-led photo stack controlled by cursor movement, hand gestures, and an optional voice trigger.",
-    discipline: "Gesture interface · Photography",
-    status: "Prototype",
-    year: "2026",
-    href: "/lab/image-flick",
-    thumbnail: GESTURE_CONTROL_HERO_GIF_URL,
-    thumbnailAlt: "A hand gesture controlling a stack of digital photographs",
-    surface: "yellow",
-  },
-  {
-    id: "glyph-loom",
-    index: "03",
-    title: "Glyph Loom",
-    description:
-      "A generative typography instrument that reconstructs live letterforms from modular bars, dots, crosses, and woven structures.",
-    discipline: "Generative typography · Creative coding",
-    status: "Live",
-    year: "2026",
-    href: "/lab/glyph-loom",
-    thumbnail: "/images/research/glyph-loom-cover.png",
-    thumbnailAlt: "Generative typography outlines in the Glyph Loom instrument",
-    surface: "lime",
-  },
-  {
-    id: "sequence-room",
-    index: "04",
-    title: "Sequence Room",
-    description:
-      "An immersive table for scattering, rearranging, and discovering new relationships between photographs.",
-    discipline: "Photo archive · Spatial interaction",
-    status: "Prototype",
-    year: "2026",
-    href: "/lab/sequence-room",
-    video: SEQUENCE_ROOM_VIDEO_URL,
-    thumbnail: SEQUENCE_ROOM_VIDEO_URL,
-    thumbnailAlt: "Interactive Sequence Room photo workspace preview",
-    surface: "cream",
-  },
-];
+const projectDestination = (project: any) => {
+  const destinationBlock = (project.blocks || []).find((block: any) =>
+    ["external_link", "link"].includes(block.blockType)
+    && (block.content?.url || block.content?.href)
+  );
+  return {
+    href: destinationBlock?.content?.url
+      || destinationBlock?.content?.href
+      || `/work/${project.slug}`,
+    label: destinationBlock?.content?.label
+      || destinationBlock?.content?.text
+      || "Open experiment",
+  };
+};
+
+const projectDiscipline = (project: any) => {
+  const labels = (project.taxonomies || [])
+    .filter((term: any) => String(term.label || term.slug || "").toLowerCase() !== "lab")
+    .map((term: any) => term.label)
+    .filter(Boolean);
+  return labels.slice(0, 2).join(" · ") || "Creative technology";
+};
+
+const catalogueSettings = (project: any) =>
+  (project.blocks || []).find((block: any) => block.settings?.catalogueSurface)?.settings || {};
+
+const catalogueText = (project: any, role: string) => {
+  const block = (project.blocks || []).find((item: any) => item.settings?.catalogueRole === role);
+  return block?.content?.text || "";
+};
+
+export async function getLabExperiments(): Promise<LabExperiment[]> {
+  try {
+    const projects = await getPublishedLabProjects();
+
+    return projects.map((project: any, position: number) => {
+      const destination = projectDestination(project);
+      const settings = catalogueSettings(project);
+      const surface = ["pink", "blue", "yellow", "cream", "lime"].includes(settings.catalogueSurface)
+        ? settings.catalogueSurface
+        : "cream";
+      const cardVariant = settings.catalogueVariant === "vault-tags" ? "vault-tags" : "media";
+      const isVideo = /\.(mp4|webm|ogg)(?:\?|$)/i.test(project.coverUrl || "");
+
+      return {
+        id: project.slug,
+        index: String(position + 1).padStart(2, "0"),
+        title: project.title,
+        description: project.oneLineDescription,
+        discipline: projectDiscipline(project),
+        status: project.outcomeText || (project.workInProgress ? "Prototype" : "Live"),
+        year: String(project.yearStart || ""),
+        href: destination.href,
+        destinationLabel: destination.label,
+        thumbnail: project.coverUrl,
+        video: isVideo ? project.coverUrl : undefined,
+        thumbnailAlt: project.coverAlt || `${project.title} experiment preview`,
+        surface,
+        cardVariant,
+        previewHeading: catalogueText(project, "previewHeading"),
+        previewCta: catalogueText(project, "previewCta"),
+      };
+    });
+  } catch (error) {
+    console.error("Lab experiments could not be loaded from Supabase:", error);
+    return [];
+  }
+}

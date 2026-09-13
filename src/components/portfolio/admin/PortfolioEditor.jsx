@@ -23,13 +23,6 @@ import {
 import "../../../styles/portfolio-admin.css";
 
 const Field = ({ label, value, onChange, rows = 1, type = "text", placeholder = "", required = false }) => <label className="editor-field"><span>{label}{required && <b aria-hidden="true"> *</b>}</span>{rows > 1 ? <textarea value={value || ""} rows={rows} placeholder={placeholder} onChange={(event) => onChange(event.target.value)} /> : <input type={type} value={value ?? ""} placeholder={placeholder} onChange={(event) => onChange(type === "number" ? (event.target.value ? Number(event.target.value) : null) : event.target.value)} />}</label>;
-const LAYOUT_STYLE_OPTIONS = [
-  { value: 1, label: "1: Typographic Grid" },
-  { value: 2, label: "2: Columnar Narrative" },
-  { value: 3, label: "3: Manifesto Block" },
-  { value: 4, label: "4: Centered Statement" },
-  { value: 5, label: "5: Swiss Hairline Grid" },
-];
 const DESIGN_SECTIONS = ["basics", "content", "media"];
 const CONTENT_BLOCK_TYPES = ["body_text", "heading", "divider", "spacer", "quotation"];
 const CONTENT_MORE_BLOCK_TYPES = ["two_columns", "external_link", "highlight", "testimonial", "outcome", "collaborator", "organisation"];
@@ -641,10 +634,16 @@ function PortfolioEditorContent({ projectId }) {
                   hasImages={Boolean(draft.coverUrl)}
                   onUpload={(file) => upload(file)}
                   disabled={uploading}
-                  emptyLabel="Drop a project cover here"
-                  filledLabel="Replace the project cover"
+                  emptyLabel="Drop a project cover (image or video) here"
+                  filledLabel="Replace the project cover (image or video)"
                 />
-                {draft.coverUrl ? <img className="editor-cover-preview" src={draft.coverUrl} alt={draft.coverAlt || ""} style={{ objectPosition: `${draft.coverFocalX ?? 50}% ${draft.coverFocalY ?? 50}%` }} /> : <div className="cover-placeholder editor-cover-preview">4:3 cover preview</div>}
+                {draft.coverUrl ? (
+                  (typeof draft.coverUrl === "string" && (draft.coverUrl.endsWith(".mp4") || draft.coverUrl.endsWith(".webm") || draft.coverUrl.endsWith(".mov") || draft.coverUrl.includes("/video-clips/"))) ? (
+                    <video className="editor-cover-preview" src={draft.coverUrl} controls autoPlay muted loop playsInline />
+                  ) : (
+                    <img className="editor-cover-preview" src={draft.coverUrl} alt={draft.coverAlt || ""} style={{ objectPosition: `${draft.coverFocalX ?? 50}% ${draft.coverFocalY ?? 50}%` }} />
+                  )
+                ) : <div className="cover-placeholder editor-cover-preview">4:3 cover preview</div>}
               </aside>
             </div>
           </section>}
@@ -684,7 +683,7 @@ function PortfolioEditorContent({ projectId }) {
       </div>}
 
       <section className={`portfolio-inline-preview ${workspaceTab === "preview" ? "is-active" : "is-preloading"}`} aria-label="Live project preview" aria-hidden={workspaceTab !== "preview"}>
-        <header className="portfolio-preview-toolbar"><label className="preview-layout-control"><span>Layout style</span><select value={draft.layoutStyle || 1} onChange={(event) => updateDraft({ layoutStyle: Number(event.target.value) })}>{LAYOUT_STYLE_OPTIONS.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select></label><div className="portfolio-preview-display-controls"><button type="button" className="preview-fullscreen-button" onClick={openPreview}>Full screen</button><div className="preview-mode-switch"><button type="button" className={`preview-mode-pill ${previewDevice === "laptop" ? "active" : ""}`} onClick={() => setPreviewDevice("laptop")}>Laptop</button><button type="button" className={`preview-mode-pill ${previewDevice === "tablet" ? "active" : ""}`} onClick={() => setPreviewDevice("tablet")}>Tablet</button><button type="button" className={`preview-mode-pill ${previewDevice === "phone" ? "active" : ""}`} onClick={() => setPreviewDevice("phone")}>Phone</button></div></div></header>
+        <header className="portfolio-preview-toolbar"><div className="preview-layout-control"><span>Abodid Pop Editorial</span></div><div className="portfolio-preview-display-controls"><button type="button" className="preview-fullscreen-button" onClick={openPreview}>Full screen</button><div className="preview-mode-switch"><button type="button" className={`preview-mode-pill ${previewDevice === "laptop" ? "active" : ""}`} onClick={() => setPreviewDevice("laptop")}>Laptop</button><button type="button" className={`preview-mode-pill ${previewDevice === "tablet" ? "active" : ""}`} onClick={() => setPreviewDevice("tablet")}>Tablet</button><button type="button" className={`preview-mode-pill ${previewDevice === "phone" ? "active" : ""}`} onClick={() => setPreviewDevice("phone")}>Phone</button></div></div></header>
         <div className={`portfolio-inline-preview-device is-${previewDevice}`}><iframe ref={inlinePreviewRef} src={`/admin/projects/preview?project=${project.id}`} onLoad={writePreviewData} title={`${draft.title} live project preview`} /></div>
       </section>
 

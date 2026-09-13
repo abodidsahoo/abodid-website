@@ -103,7 +103,7 @@ const letterboxedHeroSlideIds = new Set(["gesture-control"]);
                     fetchpriority={index === 0 ? "high" : "auto"}
                     decoding={index === 0 ? "sync" : "async"}
                   />
-                ) : project.video ? (
+                ) : project.video && !project.video.endsWith(".gif") ? (
                   <video
                     src={project.video}
                     autoplay
@@ -115,7 +115,7 @@ const letterboxedHeroSlideIds = new Set(["gesture-control"]);
                   />
                 ) : (
                   <img
-                    src={project.image}
+                    src={project.video || project.image}
                     alt={project.alt}
                     loading={index === 0 ? "eager" : "lazy"}
                     fetchpriority={index === 0 ? "high" : "auto"}
@@ -148,7 +148,7 @@ const letterboxedHeroSlideIds = new Set(["gesture-control"]);
                   loading="lazy"
                   decoding="async"
                 />
-              ) : project.video ? (
+              ) : project.video && !project.video.endsWith(".gif") ? (
                 <video
                   src={project.video}
                   autoplay
@@ -159,7 +159,7 @@ const letterboxedHeroSlideIds = new Set(["gesture-control"]);
                   aria-label={project.alt}
                 />
               ) : (
-                <img src={project.image} alt={project.alt} loading="lazy" decoding="async" data-cloudflare-fallback />
+                <img src={project.video || project.image} alt={project.alt} loading="lazy" decoding="async" data-cloudflare-fallback />
               )}
             </figure>
             <div class="story-project__copy">
@@ -350,25 +350,42 @@ const letterboxedHeroSlideIds = new Set(["gesture-control"]);
       };
 
       const ensureVideosPlay = () => {
-        document.querySelectorAll("video[autoplay]").forEach((element) => {
+        document.querySelectorAll("video").forEach((element) => {
           if (!(element instanceof HTMLVideoElement)) return;
           const video = element;
+          video.muted = true;
+          video.defaultMuted = true;
+          video.playsInline = true;
+          video.setAttribute("muted", "");
+          video.setAttribute("playsinline", "");
+          video.setAttribute("webkit-playsinline", "");
+
           const playVideo = () => {
-            if (video.paused) video.play().catch(() => {});
+            if (video.paused) {
+              const p = video.play();
+              if (p !== undefined) {
+                p.catch(() => {
+                  const retry = () => { if (video.paused) video.play().catch(() => {}); };
+                  video.addEventListener("canplay", retry, { once: true });
+                  video.addEventListener("loadedmetadata", retry, { once: true });
+                  if (video.readyState === 0) video.load();
+                });
+              }
+            }
           };
 
           if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
             playVideo();
           } else {
             video.addEventListener("canplay", playVideo, { once: true });
+            video.addEventListener("loadedmetadata", playVideo, { once: true });
             if (video.readyState === HTMLMediaElement.HAVE_NOTHING) video.load();
           }
 
-          if (video.dataset.viewportPlaybackReady !== "true") {
-            video.dataset.viewportPlaybackReady = "true";
+          if (typeof IntersectionObserver !== "undefined") {
             const observer = new IntersectionObserver((entries) => {
               if (entries.some((entry) => entry.isIntersecting)) playVideo();
-            }, { threshold: 0.1 });
+            }, { threshold: 0.05, rootMargin: "200px 0px" });
             observer.observe(video);
           }
         });
@@ -386,7 +403,9 @@ const letterboxedHeroSlideIds = new Set(["gesture-control"]);
         requestAnimationFrame(initialisePage);
       }
       document.addEventListener("astro:page-load", initialisePage);
-      window.addEventListener("pageshow", ensureVideosPlay);
+      document.addEventListener("astro:after-swap", initialisePage);
+      window.addEventListener("pageshow", initialisePage);
+      window.addEventListener("popstate", () => setTimeout(initialisePage, 50));
     })();
   </script>
 </BaseLayout>
@@ -829,6 +848,7 @@ const letterboxedHeroSlideIds = new Set(["gesture-control"]);
   }
 
   .story-enquiry {
+    --type-h2-color: #fff;
     padding-block: clamp(4rem, 6.5vw, 7rem);
     padding-inline: clamp(1rem, 6vw, 6rem);
     background: var(--pop-purple);

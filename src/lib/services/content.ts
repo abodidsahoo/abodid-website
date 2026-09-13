@@ -2,7 +2,6 @@ import { supabase } from '../supabaseClient';
 import { isSupabaseConfigured } from './utils';
 import type { Project, PhotographyProject, BlogPost, Film, ResearchPaper, WorkExperience, ServiceItem } from './types';
 import { featuredPhotography as mockPhotography, recentPosts as mockPosts } from '../../utils/mockData';
-import { GESTURE_CONTROL_VIDEO_URL, OBSIDIAN_VAULT_VIDEO_URL, SEQUENCE_ROOM_VIDEO_URL } from '../mediaAssets';
 import photographyCloudflare from '../../data/photographyCloudflare.generated.json';
 
 const normalizeImageUrl = (value: unknown): string =>
@@ -62,84 +61,10 @@ const getCloudflarePhotographyMedia = (project: any) => {
     };
 };
 
-const isRemovedResearchProject = (project: Partial<Project> & { slug?: string; title?: string }) => {
-    const slug = (project.slug || '').toLowerCase();
-    const title = (project.title || '').toLowerCase();
-    return slug === 'llm-chatbot' || title === 'llm-based chatbot';
-};
-
-// Mock Data for Research (from api.js)
-const mockResearchProjects: Project[] = [
-    {
-        title: "Polaroid Hub",
-        description: "An interactive photo arrangement experiment—handle photographs like physical objects, sequence them on a digital table, and feel how their order changes meaning. A stepping stone for designing photo books.",
-        slug: "polaroid-hub",
-        href: "/lab/sequence-room",
-        video: SEQUENCE_ROOM_VIDEO_URL,
-        tags: ["Photography", "Interaction Design", "In Progress"],
-        published: true,
-    },
-    {
-        title: "Gesture Photo Stack",
-        description: "A research prototype for browsing photographs like a physical stack through cursor movement, hand tracking, pinch-based resizing, and optional voice input.",
-        slug: "gesture-image-preview",
-        href: "/lab/image-flick",
-        image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=1200",
-        video: GESTURE_CONTROL_VIDEO_URL,
-        tags: ["Hand Tracking", "Interaction Design", "Research Prototype"],
-        published: true,
-    },
-    {
-        title: "TensorFlow Gesture Controls",
-        description: "A TensorFlow.js version of the gesture photo-stack experiment for testing custom gesture logic, tuning, and future model control.",
-        slug: "tensorflow-gesture-controls",
-        href: "/research/tensorflow-gesture-controls",
-        image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=1200",
-        tags: ["TensorFlow.js", "Hand Tracking", "Research Prototype"],
-        published: true,
-    },
-    {
-        title: "TensorFlow Hidden Composition",
-        description: "A TensorFlow.js research project where photographs begin as abstract structures and move toward reveal through bodily alignment and live visual scoring.",
-        slug: "tensorflow-hidden-composition",
-        href: "/research/tensorflow-hidden-composition",
-        image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=1200",
-        tags: ["TensorFlow.js", "Embodied Interaction", "Research Prototype"],
-        published: true,
-    },
-    {
-        title: "The Second Brain",
-        description: "My personal Obsidian vault, a digital garden of interconnected thoughts, notes, and research.",
-        slug: "second-brain",
-        href: "/research/second-brain",
-        image: "https://images.unsplash.com/photo-1456324504439-367cee10123c?auto=format&fit=crop&q=80&w=1000",
-        tags: ["Knowledge Graph", "Obsidian", "Second Brain"],
-        published: true,
-    },
-    {
-        title: "Invisible Punctums",
-        description: "An AI-driven exploration of human memory, data, and the gaps in our digital archives.",
-        slug: "invisible-punctum",
-        href: "/research/invisible-punctum",
-        image: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=1000",
-        tags: ["AI", "Memory", "Data Vis"],
-        published: true,
-    },
-    {
-        title: "Do ghosts feel jealous if you miss the living ones more than them?",
-        description: "Blurring the lines between the living and the dead, this project was a way to decode my minute emotional gestures around the dissonance between absence and presence.",
-        slug: "do-ghosts-feel-jealous",
-        href: "/research/do-ghosts-feel-jealous",
-        image: "https://images.unsplash.com/photo-1516575334481-f85287c2c81d?auto=format&fit=crop&q=80&w=1000",
-        tags: ["Photography", "Writing", "Performance", "Film"],
-        published: true,
-    }
-];
-
 // --- Research ---
 export async function getResearchProjects(): Promise<Project[]> {
     if (!isSupabaseConfigured() || !supabase) {
-        return mockResearchProjects.filter((project) => !isRemovedResearchProject(project));
+        return [];
     }
 
     const { data, error } = await supabase
@@ -149,75 +74,29 @@ export async function getResearchProjects(): Promise<Project[]> {
         .eq('visible', true)
         .order('sort_order', { ascending: true });
 
-    if (error || !data || data.length === 0) {
-        console.warn("Using mock research data due to DB error or empty table:", error);
-        return mockResearchProjects.filter((project) => !isRemovedResearchProject(project));
-    }
-
-    return data
-        .map((p: any) => {
-            const normalizedSlug =
-                p.slug === 'invisible-punctum-explanation'
-                    ? 'invisible-punctum'
-                    : p.slug;
-            return {
-                ...p,
-                slug: normalizedSlug,
-                href: `/research/${normalizedSlug}`,
-                tags: Array.isArray(p.tags) ? p.tags : (p.tags ? p.tags.split(',') : []),
-                image: p.cover_image,
-                video:
-                    normalizedSlug === 'gesture-image-preview'
-                        ? GESTURE_CONTROL_VIDEO_URL
-                        : normalizedSlug === 'obsidian-vault'
-                        ? OBSIDIAN_VAULT_VIDEO_URL
-                        : undefined
-            };
-        })
-        .filter((project) => !isRemovedResearchProject(project));
-}
-
-export async function getProjects(): Promise<Project[]> {
-    if (!isSupabaseConfigured() || !supabase) return [];
-
-    const { data, error } = await supabase
-        .from('research')
-        .select('*')
-        .eq('published', true)
-        .order('sort_order', { ascending: true });
-
-    if (error) {
-        console.error('Error fetching research:', error);
+    if (error || !data) {
+        console.error("Research projects could not be loaded from Supabase:", error);
         return [];
     }
 
     return data
         .map((p: any) => {
-            const normalizedSlug =
-                p.slug === 'invisible-punctum-explanation'
-                    ? 'invisible-punctum'
-                    : p.slug;
             return {
-                title: p.title,
-                description: p.description,
-                tags: p.tags || [],
-                href:
-                    normalizedSlug === 'obsidian-vault'
-                        ? '/obsidian-vault'
-                        : `/research/${normalizedSlug}`,
-                link: p.link || p.repo_link,
-                slug: normalizedSlug,
+                ...p,
+                slug: p.slug,
+                href: `/research/${p.slug}`,
+                tags: Array.isArray(p.tags) ? p.tags : (p.tags ? p.tags.split(',') : []),
                 image: p.cover_image,
-                video:
-                    normalizedSlug === 'gesture-image-preview'
-                        ? GESTURE_CONTROL_VIDEO_URL
-                        : normalizedSlug === 'obsidian-vault'
-                        ? OBSIDIAN_VAULT_VIDEO_URL
-                        : undefined,
-                published: p.published
-            } as Project;
+                blocks: Array.isArray(p.blocks) ? p.blocks : [],
+                role: p.role || 'Research project',
+                accent: p.accent || 'lime'
+            };
         })
-        .filter((project) => !isRemovedResearchProject(project));
+        .filter(Boolean);
+}
+
+export async function getProjects(): Promise<Project[]> {
+    return getResearchProjects();
 }
 
 export async function getProjectBySlug(slug: string): Promise<Project | null> {
@@ -237,13 +116,10 @@ export async function getProjectBySlug(slug: string): Promise<Project | null> {
         ...data,
         href: `/research/${data.slug}`,
         image: data.cover_image,
-        video:
-            data.slug === 'gesture-image-preview'
-                ? GESTURE_CONTROL_VIDEO_URL
-                : data.slug === 'obsidian-vault'
-                ? OBSIDIAN_VAULT_VIDEO_URL
-                : undefined,
         tags: Array.isArray(data.tags) ? data.tags : [],
+        blocks: Array.isArray(data.blocks) ? data.blocks : [],
+        role: data.role || 'Research project',
+        accent: data.accent || 'lime',
         published: Boolean(data.published),
         experiment_url: data.experiment_url || data.link || null,
         gallery_images: Array.isArray(data.gallery_images) ? data.gallery_images : []

@@ -10,14 +10,68 @@ import {
   seoIdentity,
 } from "../../lib/seoData";
 
+import { storytellingProjects } from "../../lib/homeStorytellingContent";
+import { researchProjectBySlug } from "../../data/researchPortfolio";
+
 const { slug } = Astro.params;
-const project = await getPublishedPortfolioProject(slug);
-if (!project) {
+let project = slug ? await getPublishedPortfolioProject(slug) : null;
+
+if (!project && slug) {
   const redirectSlug = await getPortfolioSlugRedirect(slug);
   if (redirectSlug) return Astro.redirect(`/work/${redirectSlug}`, 301);
-  Astro.response.status = 404;
-  return Astro.rewrite("/404");
+
+  // Fallback to storytellingProjects or researchProjects
+  const fallbackStory = storytellingProjects.find((p) => p.id === slug || p.href === `/work/${slug}`);
+  const fallbackResearch = researchProjectBySlug[slug];
+  if (fallbackStory) {
+    project = {
+      id: fallbackStory.id,
+      slug: fallbackStory.id,
+      title: fallbackStory.title,
+      oneLineDescription: fallbackStory.summary,
+      context: fallbackStory.summary,
+      role: fallbackStory.role,
+      outcomeHeading: fallbackStory.category,
+      outcomeText: fallbackStory.outcome,
+      coverUrl: fallbackStory.image,
+      video: fallbackStory.video,
+      coverAlt: fallbackStory.alt,
+      taxonomies: [
+        { groupType: "role", label: fallbackStory.role },
+        { groupType: "genre", label: fallbackStory.category },
+      ],
+      blocks: [],
+      searchVisible: true,
+    };
+  } else if (fallbackResearch) {
+    project = {
+      id: fallbackResearch.slug,
+      slug: fallbackResearch.slug,
+      title: fallbackResearch.title,
+      oneLineDescription: fallbackResearch.premise || fallbackResearch.intro,
+      context: fallbackResearch.deeper,
+      role: fallbackResearch.role,
+      outcomeHeading: fallbackResearch.metaValue,
+      outcomeText: fallbackResearch.outcome,
+      coverUrl: fallbackResearch.images[0]?.src,
+      coverAlt: fallbackResearch.images[0]?.alt,
+      taxonomies: (fallbackResearch.themes || []).map((t) => ({ groupType: "theme", label: t })),
+      blocks: [],
+      searchVisible: true,
+    };
+  } else {
+    Astro.response.status = 404;
+    return Astro.rewrite("/404");
+  }
 }
+
+// Compute next project for footer navigation
+const currentIndex = storytellingProjects.findIndex((p) => p.id === slug || p.href === `/work/${slug}`);
+const nextProject = currentIndex >= 0
+  ? storytellingProjects[(currentIndex + 1) % storytellingProjects.length]
+  : storytellingProjects.length > 0
+  ? storytellingProjects[0]
+  : null;
 
 const title = project.seoTitle || project.title;
 const description = project.metaDescription || project.oneLineDescription;
@@ -60,22 +114,5 @@ const structuredData = [
   bodyClass="work-project-page"
   analyticsProjectId={project.id}
 >
-  <a class="work-back-link" href="/work"><span aria-hidden="true">←</span> All work</a>
-  <PortfolioProjectRenderer project={project} client:load />
+  <PortfolioProjectRenderer project={project} nextProject={nextProject} client:load />
 </BaseLayout>
-
-<style>
-  .work-back-link {
-    position: absolute;
-    z-index: 20;
-    top: 1.5rem;
-    left: max(1rem, 3vw);
-    display: inline-flex;
-    align-items: center;
-    gap: .55rem;
-    color: var(--text-secondary);
-    font-size: .82rem;
-    text-decoration: none;
-  }
-  .work-back-link:hover { color: var(--text-primary); }
-</style>

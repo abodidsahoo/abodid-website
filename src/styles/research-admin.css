@@ -4,6 +4,75 @@
   min-height: 0;
 }
 
+.research-portfolio-editor {
+  --work-accent: #7c3aed;
+}
+
+.research-portfolio-editor .portfolio-editor-topbar button,
+.research-portfolio-editor .preview-fullscreen-button,
+.research-portfolio-editor .research-maintenance-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.42rem;
+}
+
+.research-portfolio-editor .portfolio-workspace-heading h1 {
+  max-width: min(24ch, 62vw);
+}
+
+.research-portfolio-editor .editor-spine-card {
+  min-height: min(680px, calc(100vh - 210px));
+}
+
+.research-portfolio-editor .research-tag-field {
+  margin: 1rem 0;
+}
+
+.research-portfolio-editor .research-tag-editor {
+  background: var(--bg-color);
+}
+
+.research-portfolio-editor .research-cover-preview {
+  margin-top: 0.8rem;
+}
+
+.research-workspace-notice {
+  width: min(1280px, 100%);
+  margin: 0 auto 1rem;
+}
+
+.research-preview-empty {
+  display: grid;
+  height: 100%;
+  place-items: center;
+  color: var(--text-tertiary);
+  font-size: 0.78rem;
+}
+
+.research-publish-toggles {
+  display: grid;
+  gap: 0.55rem;
+  margin: 1rem 0;
+}
+
+.research-status-live {
+  color: #22c55e;
+}
+
+.research-maintenance-button {
+  width: 100%;
+  min-height: 42px;
+  margin-top: 0.65rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: 7px;
+}
+
+.research-maintenance-button.danger {
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+}
+
 .research-admin-page .portfolio-admin-toolbar {
   grid-template-columns: minmax(280px, 1fr) auto;
 }

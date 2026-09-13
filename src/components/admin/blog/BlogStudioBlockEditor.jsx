@@ -88,9 +88,11 @@ function BlogImageUploader({ media, onChange, onUpload, onChooseMedia, uploading
             </div>
 
             <div className="media-add-row is-secondary">
-                <button type="button" className="media-choice-button" onClick={onChooseMedia}>
-                    {url ? "Replace from library" : "Choose from library"}
-                </button>
+                {onChooseMedia && (
+                    <button type="button" className="media-choice-button" onClick={onChooseMedia}>
+                        {url ? "Replace from library" : "Choose from library"}
+                    </button>
+                )}
                 <button type="button" className="media-choice-button" onClick={addLink}>
                     {url ? "Replace with image link" : "Add image link"}
                 </button>
@@ -115,7 +117,7 @@ function BlogBlockFields({ block, onChange, onUpload, onChooseMedia, uploading }
     </>;
     if (type === "highlight") return <Field label="Callout text" value={c.text} rows={3} placeholder="A key insight or statement…" onChange={text => updateContent({ text })} />;
     if (type === "divider") return <div className="portfolio-divider-editor-preview" aria-label="Divider preview"><span /></div>;
-    if (type === "single_image") return <BlogImageUploader media={c.media} onChange={media => updateContent({ media })} onUpload={onUpload} onChooseMedia={() => onChooseMedia({ blockId: block.id })} uploading={uploading} />;
+    if (type === "single_image") return <BlogImageUploader media={c.media} onChange={media => updateContent({ media })} onUpload={onUpload} onChooseMedia={onChooseMedia ? () => onChooseMedia({ blockId: block.id }) : undefined} uploading={uploading} />;
     if (type === "video_embed") return <>
         <Field label="YouTube or Vimeo URL" value={c.url} placeholder="https://youtube.com/watch?v=…" onChange={url => updateContent({ url })} />
         <Field label="Caption (optional)" value={c.caption} onChange={caption => updateContent({ caption })} />
@@ -266,7 +268,7 @@ export default function BlogStudioBlockEditor({ blocks = [], onBlocksChange, onU
 
     return (
         <>
-            {designSection === "content" && (
+            {(designSection === "content" || designSection === "all") && (
                 <BlogBlockInsertToolbar
                     id="blog-design-content"
                     title="Content elements"
@@ -276,7 +278,7 @@ export default function BlogStudioBlockEditor({ blocks = [], onBlocksChange, onU
                 />
             )}
 
-            {designSection === "media" && (
+            {(designSection === "media" || designSection === "all") && (
                 <BlogBlockInsertToolbar
                     id="blog-design-media"
                     title="Media elements"

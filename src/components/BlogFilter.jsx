@@ -152,7 +152,6 @@ const BlogFilter = ({ posts = [], initialTag = 'All' }) => {
                                                 <span>{String(index + 1).padStart(2, '0')}</span>
                                             </div>
                                         )}
-                                        <span className="blog-card-badge">{postCategories[0] || 'Writing'}</span>
                                     </div>
                                     <div className="blog-card-copy">
                                         <div className="blog-card-title-row">

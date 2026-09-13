@@ -3,7 +3,7 @@ import { isExternalPortfolioHref, normalizePortfolioHref, serializeFilters } fro
 import { getOptimizedImageSrcSet, getOptimizedImageUrl } from "../../lib/imageOptimization.js";
 import { computeFloatingLayout, getFloatingImageSizePreset, getFloatingStageSize, hashString } from "../../lib/moodboardLayout.js";
 import "../../styles/portfolio.css";
-import "../../styles/layout-preview.css";
+import "../../styles/portfolio-pop-editorial.css";
 
 function safeHref(value) {
   return normalizePortfolioHref(value);
@@ -136,14 +136,23 @@ function PortfolioLightboxCover({ mediaList, onOpen, triggerRef }) {
   const cover = mediaList[0];
   if (!cover?.url) return null;
   return <figure className="portfolio-lightbox-cover">
-    <button type="button" ref={triggerRef} onClick={() => onOpen(0)} aria-label={`Open lightbox with ${mediaList.length} image${mediaList.length === 1 ? "" : "s"}`}>
-      <ResponsiveMediaImage media={cover} src={cover.url} widths={[480, 800, 1200, 1600]} quality={76} sizes="(max-width: 760px) 100vw, 1200px" alt={cover.decorative ? "" : cover.alt || ""} loading="lazy" decoding="async" />
-      <span className="portfolio-lightbox-count">{mediaList.length} image{mediaList.length === 1 ? "" : "s"}</span>
-      <span className="portfolio-lightbox-open">Open lightbox <b aria-hidden="true">+</b></span>
-    </button>
-    {(cover.caption || cover.credit) && <figcaption>{cover.caption}{cover.caption && cover.credit ? " " : ""}{cover.credit && <span>Credit: {cover.credit}</span>}</figcaption>}
+    <div className="rp-case__media">
+      <button type="button" ref={triggerRef} onClick={() => onOpen(0)} aria-label={`Open lightbox with ${mediaList.length} image${mediaList.length === 1 ? "" : "s"}`}>
+        <ResponsiveMediaImage media={cover} src={cover.url} widths={[480, 800, 1200, 1600]} quality={76} sizes="(max-width: 760px) 100vw, 1200px" alt={cover.decorative ? "" : cover.alt || ""} loading="lazy" decoding="async" />
+        <span className="portfolio-lightbox-count">{mediaList.length} image{mediaList.length === 1 ? "" : "s"}</span>
+        <span className="portfolio-lightbox-open">Open lightbox <b aria-hidden="true">+</b></span>
+      </button>
+    </div>
+    {(cover.caption || cover.credit) && (
+      <figcaption className="rp-case__showcase-caption">
+        <span className="rp-case__caption-text">
+          {cover.caption}{cover.caption && cover.credit ? " " : ""}{cover.credit && <span>Credit: {cover.credit}</span>}
+        </span>
+      </figcaption>
+    )}
   </figure>;
 }
+
 
 function ProjectCoverImage({ project }) {
   return (
@@ -161,6 +170,32 @@ function ProjectCoverImage({ project }) {
       style={{ objectPosition: `${project.coverFocalX ?? 50}% ${project.coverFocalY ?? 50}%` }}
     />
   );
+}
+
+function ProjectCoverMedia({ project }) {
+  const source = project.coverMedia?.url || project.coverUrl;
+  if (!source) return null;
+  if (/\.(?:mp4|webm|ogg)(?:\?.*)?$/i.test(source)) {
+    return <video
+      key={source}
+      ref={(el) => {
+        if (el) {
+          el.muted = true;
+          el.play().catch(() => {});
+        }
+      }}
+      src={source}
+      aria-label={project.coverAlt || `${project.title} project cover`}
+      autoPlay
+      muted
+      defaultMuted
+      loop
+      playsInline
+      preload="auto"
+      style={{ objectPosition: `${project.coverFocalX ?? 50}% ${project.coverFocalY ?? 50}%` }}
+    />;
+  }
+  return <ProjectCoverImage project={project} />;
 }
 
 function inlineMarkup(text = "") {
@@ -322,25 +357,32 @@ function VideoEmbed({ content }) {
   return (
     <>
       <figure className="pf-video-figure">
-        <button type="button" className="pf-video-thumb" onClick={() => setOpen(true)} aria-label={`Play video${content.caption ? `: ${content.caption}` : ""}`}>
-          {poster && <OptimizedImage
-            src={poster}
-            widths={[480, 800, 1200]}
-            quality={74}
-            sizes="(max-width: 760px) 100vw, 960px"
-            alt=""
-            className="pf-video-poster"
-            loading="lazy"
-            decoding="async"
-            width="1280"
-            height="720"
-          />}
-          {!poster && <div className="pf-video-poster pf-video-poster--empty" />}
-          <span className="pf-play-btn" aria-hidden="true">
-            <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="30" cy="30" r="29" stroke="white" strokeOpacity="0.5" strokeWidth="1"/><path d="M24 20.5L42 30L24 39.5V20.5Z" fill="white"/></svg>
-          </span>
-        </button>
-        {content.caption && <figcaption className="pf-video-caption">{content.caption}</figcaption>}
+        <div className="rp-case__media">
+          <button type="button" className="pf-video-thumb" onClick={() => setOpen(true)} aria-label={`Play video${content.caption ? `: ${content.caption}` : ""}`}>
+            {poster && <OptimizedImage
+              src={poster}
+              widths={[480, 800, 1200]}
+              quality={74}
+              sizes="(max-width: 760px) 100vw, 960px"
+              alt=""
+              className="pf-video-poster"
+              loading="lazy"
+              decoding="async"
+              width="1280"
+              height="720"
+            />}
+            {!poster && <div className="pf-video-poster pf-video-poster--empty" />}
+            <span className="pf-play-btn" aria-hidden="true">
+              <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="30" cy="30" r="29" stroke="white" strokeOpacity="0.5" strokeWidth="1"/><path d="M24 20.5L42 30L24 39.5V20.5Z" fill="white"/></svg>
+            </span>
+          </button>
+        </div>
+        {content.caption && (
+          <figcaption className="rp-case__showcase-caption">
+            <span className="rp-case__caption-badge">Video</span>
+            <span className="rp-case__caption-text">{content.caption}</span>
+          </figcaption>
+        )}
       </figure>
       {open && <VideoModal video={video} onClose={() => setOpen(false)} />}
     </>
@@ -368,14 +410,18 @@ function ImageFigure({ media, fit = "cover", onOpen, index, onImageLoad }) {
   );
   return (
     <figure className="portfolio-media-figure">
-      {onOpen ? (
-        <button type="button" className="portfolio-media-button" onClick={() => onOpen(index)} aria-label={`Open ${media.alt || "image"} in gallery`}>
-          {image}
-        </button>
-      ) : image}
+      <div className="rp-case__media">
+        {onOpen ? (
+          <button type="button" className="portfolio-media-button" onClick={() => onOpen(index)} aria-label={`Open ${media.alt || "image"} in gallery`}>
+            {image}
+          </button>
+        ) : image}
+      </div>
       {(media.caption || media.credit) && (
-        <figcaption>
-          {media.caption}{media.caption && media.credit ? " " : ""}{media.credit && <span>Credit: {media.credit}</span>}
+        <figcaption className="rp-case__showcase-caption">
+          <span className="rp-case__caption-text">
+            {media.caption}{media.caption && media.credit ? " " : ""}{media.credit && <span>Credit: {media.credit}</span>}
+          </span>
         </figcaption>
       )}
     </figure>
@@ -581,13 +627,27 @@ function Block({ block }) {
   );
 }
 
-export default function PortfolioProjectRenderer({ project }) {
-  const layoutStyleId = project.layoutStyle || 1;
-  const layout = LAYOUTS.find(l => l.id === layoutStyleId) || LAYOUTS[0];
-  const Component = layout.Component;
-  return <Component p={project} />;
+function getExperimentUrl(p) {
+  if (p.experimentUrl) return p.experimentUrl;
+  if (p.experiment_url) return p.experiment_url;
+  const slug = String(p.slug || p.id || "").toLowerCase();
+  if (slug.includes("punctum")) return "/lab/punctum";
+  if (slug.includes("sequence-room") || slug.includes("polaroid-hub")) return "/lab/sequence-room";
+  if (slug.includes("gesture-control") || slug.includes("image-flick") || slug.includes("gesture-image-preview")) return "/lab/image-flick";
+  if (slug.includes("glyph-loom")) return "/lab/glyph-loom";
+  if (slug.includes("obsidian")) return "/obsidian-vault";
+
+  const linkBlock = (p.blocks || []).find((b) =>
+    (b.content?.url && String(b.content.url).includes("/lab/")) ||
+    (b.content?.href && String(b.content.href).includes("/lab/"))
+  );
+  if (linkBlock) return linkBlock.content?.url || linkBlock.content?.href;
+  return null;
 }
 
+export default function PortfolioProjectRenderer({ project, nextProject }) {
+  return <PopEditorialProject p={project} nextProject={nextProject} />;
+}
 
 export function ProjectBlocks({ project }) {
   return (
@@ -609,6 +669,7 @@ function yr(p) {
 const p_roles  = p => (p.taxonomies || []).filter(t => (t.groupType || t.group_type) === "role");
 const p_genres = p => (p.taxonomies || []).filter(t => (t.groupType || t.group_type) === "genre");
 const p_types  = p => (p.taxonomies || []).filter(t => (t.groupType || t.group_type) === "project_type");
+const p_themes = p => (p.taxonomies || []).filter(t => (t.groupType || t.group_type) === "theme");
 
 function TaxonomyTags({ terms, groupType }) {
   return <span className="lp-taxonomy-tags">{terms.map((term) => {
@@ -616,6 +677,376 @@ function TaxonomyTags({ terms, groupType }) {
     const href = `/work?${serializeFilters({ [groupType]: [slug] })}`;
     return <a className="lp-taxonomy-tag" href={href} key={`${groupType}-${slug}`}>{term.label}</a>;
   })}</span>;
+}
+
+function projectYear(p) {
+  if (!p.yearStart) return "";
+  if (p.yearEnd && String(p.yearEnd) !== String(p.yearStart)) return `${p.yearStart}—${p.yearEnd}`;
+  return String(p.yearStart);
+}
+
+function toTitleCase(str = "") {
+  return String(str).replace(/\b\w+/g, (word) => {
+    if (/^(ai|bsa|bfi|ui|ux|api|llm|xr|ar|vr|id)$/i.test(word)) return word.toUpperCase();
+    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+  });
+}
+
+function PopEditorialProject({ p, nextProject }) {
+  const roles = p_roles(p);
+  const genres = p_genres(p);
+  const types = p_types(p);
+  const themes = p_themes(p);
+  const isResearch = Boolean(
+    p.isResearch ||
+    p.backHref?.includes("/research") ||
+    p.backLabel?.toLowerCase().includes("research")
+  );
+
+  const experimentUrl = getExperimentUrl(p);
+  const accent = p.accent || "yellow";
+
+  const roleText = roles.length
+    ? roles.map((r) => r.label).join(" · ")
+    : p.role || "Creative Technologist";
+
+  const themeText = themes.length
+    ? themes.map((t) => t.label).join(" · ")
+    : genres.length
+    ? genres.map((g) => g.label).join(" · ")
+    : types.length
+    ? types.map((t) => t.label).join(" · ")
+    : p.category || "Visual Attention · Participatory AI";
+
+  const coverMediaUrl = p.video || p.coverMedia?.url || p.coverUrl || (Array.isArray(p.images) ? p.images[0]?.src : "") || "";
+  const isVideoMedia = typeof coverMediaUrl === "string" && (
+    coverMediaUrl.endsWith(".mp4") ||
+    coverMediaUrl.endsWith(".webm") ||
+    coverMediaUrl.endsWith(".mov") ||
+    coverMediaUrl.includes("/video-clips/") ||
+    coverMediaUrl.includes(".mp4?") ||
+    coverMediaUrl.includes(".webm?") ||
+    coverMediaUrl.includes(".mov?")
+  );
+
+  const galleryImages = useMemo(() => {
+    const list = [];
+    (p.blocks || []).forEach((b) => {
+      if (["image_grid", "image_gallery", "single_image"].includes(b.blockType)) {
+        const media = b.content?.media;
+        if (Array.isArray(media)) {
+          media.forEach(m => {
+            const url = m?.url || m?.src;
+            if (url && url !== coverMediaUrl) list.push({ url, alt: m.alt || "", caption: m.caption || "" });
+          });
+        } else if (media?.url || media?.src) {
+          const url = media.url || media.src;
+          if (url && url !== coverMediaUrl) list.push({ url, alt: media.alt || "", caption: media.caption || "" });
+        }
+      }
+    });
+    if (Array.isArray(p.images)) {
+      p.images.forEach(img => {
+        const url = img?.src || img?.url;
+        if (url && url !== coverMediaUrl) list.push({ url, alt: img.alt || "", caption: img.caption || "" });
+      });
+    }
+    return list;
+  }, [p, coverMediaUrl]);
+
+  const nonImageBlocks = useMemo(() => {
+    return (p.blocks || []).filter((b) => {
+      if (["image_grid", "image_gallery", "single_image", "outcome", "external_link"].includes(b.blockType)) {
+        return false;
+      }
+      const text = (b.content?.text || b.content?.quote || "").trim();
+      if (text && (
+        text === (p.context || "").trim() ||
+        text === (p.oneLineDescription || "").trim() ||
+        text === (p.specificContribution || "").trim() ||
+        text === (p.premise || "").trim() ||
+        text === (p.intro || "").trim() ||
+        text === (p.deeper || "").trim()
+      )) {
+        return false;
+      }
+      return true;
+    });
+  }, [p.blocks, p.context, p.oneLineDescription, p.specificContribution, p.premise, p.intro, p.deeper]);
+
+  const outcomeBlock = (p.blocks || []).find((b) => b.blockType === "outcome");
+  const briefText = p.context || p.premise || p.oneLineDescription || "An interactive study of the details in photographs that move us, stay with us and shape memory.";
+  const contributionText = p.specificContribution || (p.slug === "punctum"
+    ? "I designed and developed the entire participatory visual experiment, the real-time canvas interaction model, and the computer vision and AI analysis pipeline."
+    : "I designed and developed the interactive system, core user interactions, technical architecture, and visual narrative interface.");
+
+  const outcomeNarrative = p.outcomeText || p.outcome || outcomeBlock?.content?.text || (isResearch
+    ? "Published research and participatory design inquiry exploring cognitive attention and human perception."
+    : "Live interactive system and experimental storytelling canvas.");
+
+  // Determine a short distinct status badge — NEVER repeat the whole outcome paragraph!
+  const rawStatus = (
+    p.outcomeBadge ||
+    p.outcomeStatus ||
+    p.status ||
+    (p.metaValue && p.metaValue !== "Outcome" && !/^\d{4}$/.test(p.metaValue) ? p.metaValue : null) ||
+    (outcomeBlock?.content?.text && outcomeBlock.content.text.trim() !== outcomeNarrative.trim() ? outcomeBlock.content.text : null)
+  );
+
+  const displayStatus = (
+    rawStatus &&
+    typeof rawStatus === "string" &&
+    rawStatus.trim().length <= 60 &&
+    rawStatus.trim().toLowerCase() !== outcomeNarrative.trim().toLowerCase() &&
+    !outcomeNarrative.toLowerCase().includes(rawStatus.trim().toLowerCase())
+  ) ? rawStatus.trim() : null;
+
+  return (
+    <main className="pe-shell">
+      <article className="rp-case" data-accent={accent}>
+        {/* Hero Section */}
+        <header className="rp-case__hero">
+          <div className="rp-case__topline">
+            <a className="rp-case__back" href={p.backHref || "/work"}>{p.backLabel || "← All Work"}</a>
+          </div>
+          <div>
+            <h1>{p.title}</h1>
+            {(p.oneLineDescription || p.premise || p.intro) && (
+              <p className="rp-case__intro">{p.oneLineDescription || p.premise || p.intro}</p>
+            )}
+
+            {/* In-hero metadata (clean text pills without "Role:" or "Themes:" prefixes) */}
+            <div className="rp-case__hero-meta" aria-label="Project details">
+              <div className="rp-case__meta-pill" style={{ backgroundColor: "#2444ca", color: "#ffffff" }}>
+                <span className="rp-case__meta-value" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>{toTitleCase(roleText)}</span>
+              </div>
+              {themeText && (
+                <div className="rp-case__meta-pill" style={{ backgroundColor: "#2444ca", color: "#ffffff" }}>
+                  <span className="rp-case__meta-value" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>{toTitleCase(themeText)}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </header>
+
+        {/* Case Body: Editorial Blocks (2-Block for Research: Inquiry + Outcome; 3-Block for Work) */}
+        <section className="rp-case__body">
+          {isResearch ? (
+            <div className="rp-case__trio-grid rp-case__trio-grid--duo" aria-label="Research Inquiry and Outcome">
+              {/* Block 1: The Inquiry (Blue) */}
+              <div className="rp-case__trio-card rp-case__trio-card--blue">
+                <div className="rp-case__card-top">
+                  <h2 className="rp-case__card-heading">The Inquiry</h2>
+                  <p className="rp-case__card-text">{briefText}</p>
+                </div>
+              </div>
+
+              {/* Block 2: Outcome (Blue) */}
+              <div className="rp-case__trio-card rp-case__trio-card--blue">
+                <div className="rp-case__card-top">
+                  <h2 className="rp-case__card-heading">Outcome</h2>
+                  <p className="rp-case__outcome-narrative-text">{outcomeNarrative}</p>
+                </div>
+                {(displayStatus || experimentUrl || p.related) && (
+                  <div className="rp-case__outcome-bottom">
+                    {displayStatus && (
+                      <div className="rp-case__outcome-status">
+                        <span className="status-dot" aria-hidden="true" />
+                        <span>
+                          {displayStatus.toLowerCase().startsWith("status")
+                            ? displayStatus
+                            : displayStatus.toLowerCase().includes("roundtable") ||
+                              displayStatus.toLowerCase().includes("poster") ||
+                              displayStatus.toLowerCase().includes("conference") ||
+                              displayStatus.toLowerCase().includes("broadcast") ||
+                              displayStatus.toLowerCase().includes("visitors")
+                            ? displayStatus
+                            : `Status: ${toTitleCase(displayStatus)}`}
+                        </span>
+                      </div>
+                    )}
+                    {experimentUrl && (
+                      <a href={experimentUrl} className="rp-case__experiment-btn">
+                        <span>Go to the experiment</span>
+                        <span aria-hidden="true">↗</span>
+                      </a>
+                    )}
+                    {p.related && (
+                      <a className="rp-case__related" href={p.related.href}>
+                        {p.related.label} →
+                      </a>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="rp-case__trio-grid" aria-label="Project Brief, Contribution and Outcome">
+              {/* Block 1: The Brief (Blue) */}
+              <div className="rp-case__trio-card rp-case__trio-card--blue">
+                <div className="rp-case__card-top">
+                  <h2 className="rp-case__card-heading">The Brief</h2>
+                  <p className="rp-case__card-text">{briefText}</p>
+                </div>
+              </div>
+
+              {/* Block 2: My Contribution (Yellow with dark ink text) */}
+              <div className="rp-case__trio-card rp-case__trio-card--yellow">
+                <div className="rp-case__card-top">
+                  <h2 className="rp-case__card-heading rp-case__card-heading--dark">My Contribution</h2>
+                  <p className="rp-case__card-text rp-case__card-text--dark">{contributionText}</p>
+                </div>
+              </div>
+
+              {/* Block 3: Outcome (Blue) */}
+              <div className="rp-case__trio-card rp-case__trio-card--blue">
+                <div className="rp-case__card-top">
+                  <h2 className="rp-case__card-heading">Outcome</h2>
+                  <p className="rp-case__outcome-narrative-text">{outcomeNarrative}</p>
+                </div>
+                {(displayStatus || experimentUrl || p.related) && (
+                  <div className="rp-case__outcome-bottom">
+                    {displayStatus && (
+                      <div className="rp-case__outcome-status">
+                        <span className="status-dot" aria-hidden="true" />
+                        <span>
+                          {displayStatus.toLowerCase().startsWith("status")
+                            ? displayStatus
+                            : displayStatus.toLowerCase().includes("broadcast") || displayStatus.toLowerCase().includes("visitors")
+                            ? displayStatus
+                            : `Status: ${toTitleCase(displayStatus)}`}
+                        </span>
+                      </div>
+                    )}
+                    {experimentUrl && (
+                      <a href={experimentUrl} className="rp-case__experiment-btn">
+                        <span>Go to the experiment</span>
+                        <span aria-hidden="true">↗</span>
+                      </a>
+                    )}
+                    {p.related && (
+                      <a className="rp-case__related" href={p.related.href}>
+                        {p.related.label} →
+                      </a>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </section>
+          {coverMediaUrl && (
+            <figure className="rp-case__showcase-media-full" aria-label="Visual walkthrough preview">
+              <div className="rp-case__media">
+                {isVideoMedia ? (
+                  <video
+                    key={coverMediaUrl}
+                    ref={(el) => {
+                      if (el) {
+                        el.muted = true;
+                        el.play().catch(() => {});
+                      }
+                    }}
+                    src={coverMediaUrl}
+                    autoPlay
+                    muted
+                    defaultMuted
+                    loop
+                    playsInline
+                    preload="auto"
+                  />
+                ) : (
+                  <img src={coverMediaUrl} alt={p.coverAlt || p.title || ""} loading="eager" decoding="async" />
+                )}
+              </div>
+              <figcaption className="rp-case__showcase-caption">
+                {isVideoMedia && <span className="rp-case__caption-badge">Walkthrough</span>}
+                <span className="rp-case__caption-text">{p.coverAlt || `${p.title} — Interactive System & Visual Attention Experiment`}</span>
+              </figcaption>
+            </figure>
+          )}
+
+          {/* Additional Gallery Images (if any) */}
+          {galleryImages.length > 0 && (() => {
+            const galleryLayoutClass = p.galleryLayout === "single" || galleryImages.length === 1
+              ? "rp-case__gallery--single"
+              : galleryImages.length === 2 || (galleryImages.length % 2 === 0)
+              ? "rp-case__gallery--duo"
+              : "rp-case__gallery--hero-2";
+
+            return (
+              <div className={`rp-case__gallery ${galleryLayoutClass}`} style={{ marginTop: "3rem" }}>
+                {galleryImages.map((img, idx) => (
+                  <figure key={idx}>
+                    <div className="rp-case__media">
+                      <img src={img.url} alt={img.alt || ""} loading="lazy" decoding="async" />
+                    </div>
+                    {(img.caption || img.alt) && (
+                      <figcaption className="rp-case__showcase-caption">
+                        <span className="rp-case__caption-text">{img.caption || img.alt}</span>
+                      </figcaption>
+                    )}
+                  </figure>
+                ))}
+              </div>
+            );
+          })()}
+
+          {/* Research Reading Card (if present) */}
+          {p.reading && (
+            <aside className="rp-case__reading-card" style={{ marginTop: "3.5rem" }}>
+              {p.reading.thumbnail && (
+                <div className="rp-case__reading-media">
+                  <img src={p.reading.thumbnail} alt={p.reading.title || ""} loading="lazy" />
+                </div>
+              )}
+              <div className="rp-case__reading-copy">
+                <span className="rp-case__reading-badge">{p.reading.badge || "Work in Progress"}</span>
+                <h3 style={{ margin: "0.5rem 0", font: "700 clamp(1.4rem, 2vw, 1.8rem)/1.2 var(--font-display, sans-serif)", letterSpacing: "-0.03em" }}>{p.reading.title}</h3>
+                <p style={{ margin: "0 0 1.25rem", color: "var(--pe-ink)", opacity: 0.9 }}>{p.reading.description}</p>
+                <div className="rp-case__reading-action">
+                  <a href={p.reading.href} className="rp-case__experiment-btn">
+                    <span>{p.reading.buttonText || "Read the Prelude"}</span>
+                    <span aria-hidden="true">→</span>
+                  </a>
+                </div>
+              </div>
+            </aside>
+          )}
+
+          {/* Clean Content Blocks (if any) */}
+          {nonImageBlocks.length > 0 && (
+            <div className="rp-case__blocks" style={{ marginTop: "3.5rem" }}>
+              <ProjectBlocks project={{ ...p, blocks: nonImageBlocks }} />
+            </div>
+          )}
+        </article>
+
+        {/* Dedicated Next Project Button Block (Standalone Card outside the project article) */}
+        {nextProject && (
+          <section className="rp-case__next-section" aria-label={isResearch ? "Next research project" : "Next project"}>
+            <a
+              className="rp-case__next-card"
+              href={nextProject.href || (isResearch ? `/research/${nextProject.slug || nextProject.id}` : `/work/${nextProject.slug || nextProject.id}`)}
+            >
+              <div className="rp-case__next-copy">
+                <span className="rp-case__next-eyebrow">
+                  {isResearch ? "Next Research Project" : "Next Project"}
+                </span>
+                <strong className="rp-case__next-title">{nextProject.title}</strong>
+                {nextProject.category && <span className="rp-case__next-cat">{nextProject.category}</span>}
+              </div>
+              <div className="rp-case__next-action">
+                <span className="rp-case__next-button">
+                  <span>{isResearch ? "Next Research" : "Next Project"}</span>
+                  <span className="rp-case__next-arrow" aria-hidden="true">→</span>
+                </span>
+              </div>
+            </a>
+          </section>
+        )}
+      </main>
+  );
 }
 
 /* Shared prose + blocks wrapper used by every layout */
@@ -774,9 +1205,5 @@ function L7({ p }) {
 }
 
 export const LAYOUTS = [
-  { id: 1,  label: "Typographic", Component: L1  },
-  { id: 2,  label: "Columnar",    Component: L3  },
-  { id: 3,  label: "Manifesto",   Component: L4  },
-  { id: 4,  label: "Centered",    Component: L6  },
-  { id: 5,  label: "Swiss Grid",  Component: L7  },
+  { id: 1, label: "Abodid Pop Editorial", Component: PopEditorialProject },
 ];

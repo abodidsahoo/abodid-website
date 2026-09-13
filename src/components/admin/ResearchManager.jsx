@@ -4,7 +4,6 @@ import {
   ArchiveRestore,
   ArrowLeft,
   ArrowUpRight,
-  GripVertical,
   ImagePlus,
   LoaderCircle,
   Plus,
@@ -13,11 +12,13 @@ import {
   X,
 } from "lucide-react";
 import { DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
-import { SortableContext, arrayMove, rectSortingStrategy, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { SortableContext, arrayMove, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { supabase } from "../../lib/supabaseClient";
 import AdminPageHeader from "./AdminPageHeader";
 import ImageUploader from "./ImageUploader";
+import BlogStudioBlockEditor from "./blog/BlogStudioBlockEditor";
+import { compileBlocksToMarkdown, convertMarkdownToBlocks } from "../../lib/blogAdmin";
 import "../../styles/portfolio-admin.css";
 import "../../styles/research-admin.css";
 
@@ -27,6 +28,9 @@ const EMPTY_PROJECT = {
   slug: "",
   description: "",
   content: "",
+  blocks: [],
+  role: "Research project",
+  accent: "lime",
   cover_image: "",
   gallery_images: [],
   experiment_url: "",
@@ -38,6 +42,8 @@ const EMPTY_PROJECT = {
   created_at: null,
   updated_at: null,
 };
+
+const DESIGN_SECTIONS = ["basics", "content", "media"];
 
 const slugify = (value) => String(value || "")
   .normalize("NFKD")
@@ -85,6 +91,11 @@ const normalizeProject = (row) => ({
   slug: String(row?.slug || ""),
   description: String(row?.description || ""),
   content: String(row?.content || ""),
+  blocks: Array.isArray(row?.blocks) && row.blocks.length > 0
+    ? row.blocks
+    : convertMarkdownToBlocks(String(row?.content || "")),
+  role: String(row?.role || "Research project"),
+  accent: String(row?.accent || "lime"),
   cover_image: String(row?.cover_image || ""),
   gallery_images: normalizeGallery(row?.gallery_images),
   experiment_url: String(row?.experiment_url || ""),
@@ -181,34 +192,19 @@ function ResearchRow({ project, disabled, onEdit, onArchive }) {
   );
 }
 
-function GalleryImage({ image, index, onCaption, onRemove }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: image.id });
-  return (
-    <article ref={setNodeRef} className={`research-gallery-card ${isDragging ? "is-dragging" : ""}`} style={{ transform: CSS.Transform.toString(transform), transition }}>
-      <div className="research-gallery-image">
-        <img src={image.url} alt={image.caption || `Project image ${index + 1}`} />
-        <span>{String(index + 1).padStart(2, "0")}</span>
-        <button type="button" className="research-gallery-grip" {...attributes} {...listeners} aria-label={`Move project image ${index + 1}`}>
-          <GripVertical size={16} aria-hidden="true" />
-        </button>
-        <button type="button" className="research-gallery-remove" onClick={() => onRemove(image.id)} aria-label={`Remove project image ${index + 1}`}>
-          <X size={15} aria-hidden="true" />
-        </button>
-      </div>
-      <input value={image.caption} placeholder="Optional caption" onChange={(event) => onCaption(image.id, event.target.value)} />
-    </article>
-  );
-}
-
 export default function ResearchManager() {
   const [projects, setProjects] = useState([]);
   const [form, setForm] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [savingOrder, setSavingOrder] = useState(false);
+  const [uploadingBlock, setUploadingBlock] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
+  const [workspaceTab, setWorkspaceTab] = useState("design");
+  const [designSection, setDesignSection] = useState("basics");
+  const [previewDevice, setPreviewDevice] = useState("laptop");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
 
@@ -281,6 +277,8 @@ export default function ResearchManager() {
     setDirty(false);
     setError("");
     setNotice("");
+    setWorkspaceTab("design");
+    setDesignSection("basics");
     updateUrl({ projectId: project.id });
   };
 
@@ -289,6 +287,8 @@ export default function ResearchManager() {
     setDirty(false);
     setError("");
     setNotice("");
+    setWorkspaceTab("design");
+    setDesignSection("basics");
     updateUrl({ action: "new" });
   };
 
@@ -305,7 +305,10 @@ export default function ResearchManager() {
     title: form.title.trim(),
     slug: (form.slug.trim() || slugify(form.title)),
     description: form.description.trim() || null,
-    content: form.content || "",
+    content: compileBlocksToMarkdown(form.blocks),
+    blocks: Array.isArray(form.blocks) ? form.blocks : [],
+    role: form.role.trim() || "Research project",
+    accent: form.accent || "lime",
     cover_image: form.cover_image.trim() || null,
     gallery_images: normalizeGallery(form.gallery_images),
     experiment_url: form.experiment_url.trim() || null,
@@ -320,11 +323,11 @@ export default function ResearchManager() {
     const payload = buildPayload({ publish, visible });
     if (!payload.title) {
       setError("Add a project title before saving.");
-      return;
+      return null;
     }
     if (!payload.slug) {
       setError("Add a URL slug before saving.");
-      return;
+      return null;
     }
 
     setSaving(true);
@@ -338,7 +341,7 @@ export default function ResearchManager() {
     if (saveError) {
       setError(saveError.message);
       setSaving(false);
-      return;
+      return null;
     }
 
     const saved = normalizeProject(data);
@@ -348,6 +351,15 @@ export default function ResearchManager() {
     updateUrl({ projectId: saved.id });
     await loadProjects({ selectId: saved.id });
     setSaving(false);
+    return saved;
+  };
+
+  const openWorkspaceTab = async (nextTab) => {
+    if (nextTab === "preview" && dirty) {
+      const saved = await saveProject({ message: "Draft saved for preview." });
+      if (!saved) return;
+    }
+    setWorkspaceTab(nextTab);
   };
 
   const archiveFromList = async (project) => {
@@ -401,112 +413,160 @@ export default function ResearchManager() {
     setSavingOrder(false);
   };
 
-  const handleGalleryDragEnd = ({ active, over }) => {
-    if (!over || active.id === over.id) return;
-    const oldIndex = form.gallery_images.findIndex((image) => image.id === active.id);
-    const newIndex = form.gallery_images.findIndex((image) => image.id === over.id);
-    if (oldIndex < 0 || newIndex < 0) return;
-    setField("gallery_images", arrayMove(form.gallery_images, oldIndex, newIndex).map((image, index) => ({ ...image, sort_order: index })));
+  const uploadBlockImage = async (file) => {
+    setUploadingBlock(true);
+    try {
+      const cleanName = String(file.name || "research-image")
+        .toLowerCase()
+        .replace(/[^a-z0-9.]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+      const path = `blocks/${crypto.randomUUID()}-${cleanName}`;
+      const { error: uploadError } = await supabase.storage.from("research").upload(path, file, {
+        cacheControl: "31536000",
+        upsert: false,
+      });
+      if (uploadError) throw uploadError;
+      const { data } = supabase.storage.from("research").getPublicUrl(path);
+      return { url: data.publicUrl };
+    } finally {
+      setUploadingBlock(false);
+    }
   };
-
-  const addGalleryImages = (files) => {
-    const additions = (files || []).map((file, index) => ({
-      id: crypto.randomUUID(),
-      url: file.url,
-      caption: file.name || "",
-      sort_order: form.gallery_images.length + index,
-    }));
-    setField("gallery_images", [...form.gallery_images, ...additions]);
-  };
-
-  const updateGalleryCaption = (id, caption) => setField("gallery_images", form.gallery_images.map((image) => image.id === id ? { ...image, caption } : image));
-  const removeGalleryImage = (id) => setField("gallery_images", form.gallery_images.filter((image) => image.id !== id).map((image, index) => ({ ...image, sort_order: index })));
 
   if (form) {
     return (
-      <section className="research-editor" aria-labelledby="research-editor-title">
-        <header className="research-editor-topbar">
-          <button type="button" className="research-back-button" onClick={closeEditor}><ArrowLeft size={16} aria-hidden="true" /> Research projects</button>
-          <span className={`research-save-state ${dirty ? "is-dirty" : ""}`}>{saving ? "Saving…" : dirty ? "Unsaved changes" : "All changes saved"}</span>
-          <div className="research-editor-actions">
-            {form.id && <button type="button" className="research-archive-button" onClick={toggleArchive} disabled={saving}>{form.visible ? <Archive size={15} /> : <ArchiveRestore size={15} />}{form.visible ? "Archive" : "Restore"}</button>}
-            <button type="button" onClick={() => saveProject()} disabled={saving}><Save size={15} /> Save draft</button>
-            <button type="button" className="research-publish-button" onClick={() => saveProject({ publish: true, visible: true, message: "Research project published." })} disabled={saving}>{form.published && form.visible ? "Update live" : "Publish"}</button>
+      <div className="portfolio-editor-shell research-portfolio-editor" aria-labelledby="research-editor-title">
+        <header className="portfolio-editor-topbar">
+          <div className="topbar-main-actions">
+            <button type="button" className="admin-back-button" onClick={closeEditor}><ArrowLeft size={15} aria-hidden="true" /> Back to research</button>
+            <span className={`save-state ${dirty ? "unsaved-changes" : ""}`}>{saving ? "Saving…" : dirty ? "Unsaved changes" : form.published && form.visible ? "Published · Live" : "Draft saved"}</span>
+            <div className="topbar-publish-combo">
+              <button type="button" className="save-draft-button" onClick={() => saveProject()} disabled={saving}><Save size={14} /> Save draft</button>
+              <button type="button" className="publish-button" onClick={() => saveProject({ publish: true, visible: true, message: "Research project published." })} disabled={saving}>{form.published && form.visible ? "Update live →" : "Publish →"}</button>
+            </div>
           </div>
         </header>
 
-        <div className="research-editor-scroll">
-          <div className="research-editor-heading">
+        <main className="portfolio-editor-canvas">
+          <section className="portfolio-workspace-heading">
             <div>
-              <span>Creative technology project</span>
+              <span className="editor-eyebrow">Research Studio · {form.published && form.visible ? "Published" : form.visible ? "Draft" : "Archived"}</span>
               <h1 id="research-editor-title">{form.title || "Untitled research project"}</h1>
             </div>
-            {form.id && <a href={`/research/${form.slug}`} target="_blank" rel="noreferrer">View project <ArrowUpRight size={15} /></a>}
-          </div>
+            <div className="portfolio-workspace-tabs" role="tablist" aria-label="Research workspace" data-active={workspaceTab}>
+              <button type="button" role="tab" aria-selected={workspaceTab === "design"} onClick={() => openWorkspaceTab("design")}>Design</button>
+              <button type="button" role="tab" aria-selected={workspaceTab === "preview"} onClick={() => openWorkspaceTab("preview")}>Preview</button>
+              <button type="button" role="tab" aria-selected={workspaceTab === "publish"} onClick={() => openWorkspaceTab("publish")}>Publish</button>
+              <span aria-hidden="true" />
+            </div>
+          </section>
 
-          {notice && <div className="research-notice is-success" role="status">{notice}</div>}
-          {error && <div className="research-notice is-error" role="alert">{error}</div>}
+          <div className={`portfolio-editor-scroll-region ${workspaceTab === "design" && designSection === "basics" ? "is-design-basics-mode" : ""} ${workspaceTab === "design" && designSection !== "basics" ? "is-design-elements-mode" : ""}`}>
+            {notice && <div className="research-notice is-success research-workspace-notice" role="status">{notice}</div>}
+            {error && <div className="research-notice is-error research-workspace-notice" role="alert">{error}</div>}
+            {workspaceTab === "design" && (
+              <div className={`portfolio-design-workspace ${designSection !== "basics" ? "is-elements-mode" : ""}`}>
+                <aside className="portfolio-design-sidebar">
+                  <div className="portfolio-design-section-tabs" role="tablist" aria-orientation="vertical" aria-label="Research design sections">
+                    {DESIGN_SECTIONS.map((section) => (
+                      <button type="button" role="tab" aria-selected={designSection === section} key={section} onClick={() => setDesignSection(section)}>{section}</button>
+                    ))}
+                  </div>
+                </aside>
 
-          <form className="research-editor-form" onSubmit={(event) => { event.preventDefault(); saveProject(); }}>
-            <section className="research-editor-card research-project-basics">
-              <div className="research-card-heading"><span>01</span><div><h2>Project basics</h2><p>The public title, proposition, and route.</p></div></div>
-              <div className="research-fields-grid">
-                <label className="wide research-title-field"><span>Project title</span><input value={form.title} placeholder="Untitled research project" onChange={(event) => setField("title", event.target.value)} /></label>
-                <label><span>URL slug</span><input value={form.slug} placeholder={slugify(form.title) || "project-url"} onChange={(event) => setField("slug", slugify(event.target.value))} onFocus={() => !form.slug && form.title && setField("slug", slugify(form.title))} /></label>
-                <label className="research-featured-field"><span>Research index</span><span className="research-checkbox"><input type="checkbox" checked={form.featured} onChange={(event) => setField("featured", event.target.checked)} /> Feature this project</span></label>
-                <label className="wide"><span>Short proposition</span><textarea rows={3} value={form.description} placeholder="What is the idea, and why should someone care?" onChange={(event) => setField("description", event.target.value)} /></label>
-                <TagEditor values={form.tags} onChange={(tags) => setField("tags", tags)} />
-              </div>
-            </section>
+                <div className="portfolio-design-main">
+                  {designSection === "basics" && (
+                    <section className="editor-spine-card" role="tabpanel">
+                      <span className="editor-eyebrow">Research spine</span>
+                      <div className="editor-spine-grid">
+                        <div className="editor-spine-fields">
+                          <label className="editor-field"><span>Project title <b>*</b></span><input value={form.title} placeholder="Untitled research project" onChange={(event) => setField("title", event.target.value)} style={{ fontSize: "1.1rem", fontWeight: 600 }} /></label>
+                          <label className="editor-field"><span>Short proposition</span><textarea rows={4} value={form.description} placeholder="What is the question, and why should someone care?" onChange={(event) => setField("description", event.target.value)} /></label>
+                          <div className="field-row">
+                            <label className="editor-field"><span>Your role</span><input value={form.role} placeholder="Researcher / Artist" onChange={(event) => setField("role", event.target.value)} /></label>
+                            <label className="editor-field"><span>Card colour</span><select value={form.accent} onChange={(event) => setField("accent", event.target.value)}><option value="lime">Lime</option><option value="pink">Pink</option><option value="yellow">Yellow</option><option value="cyan">Cyan</option><option value="orange">Orange</option><option value="purple">Purple</option></select></label>
+                          </div>
+                          <label className="editor-field"><span>Experiment URL</span><input type="text" inputMode="url" value={form.experiment_url} placeholder="https://… or /research/your-experiment" onChange={(event) => setField("experiment_url", event.target.value)} /></label>
+                          <TagEditor values={form.tags} onChange={(tags) => setField("tags", tags)} />
+                          <label className="editor-field"><span>Research index</span><span className="research-checkbox"><input type="checkbox" checked={form.featured} onChange={(event) => setField("featured", event.target.checked)} /> Feature this project</span></label>
+                        </div>
 
-            <section className="research-editor-card research-experiment-card">
-              <div className="research-card-heading"><span>02</span><div><h2>Launch the experiment</h2><p>Send visitors from the story into the working experience.</p></div></div>
-              <div className="research-experiment-control">
-                <label><span>Experiment URL</span><input type="text" inputMode="url" value={form.experiment_url} placeholder="https://… or /research/your-experiment" onChange={(event) => setField("experiment_url", event.target.value)} /></label>
-                {form.experiment_url ? <a href={form.experiment_url} target="_blank" rel="noreferrer">Launch experiment <ArrowUpRight size={17} /></a> : <span className="research-experiment-placeholder">The launch button appears when a link is added.</span>}
-              </div>
-            </section>
+                        <aside className="editor-spine-media" aria-label="Research cover">
+                          <header><div><span className="editor-eyebrow">Cover media</span><h2>Featured cover</h2></div></header>
+                          <div className="research-cover-preview">{form.cover_image ? <img src={form.cover_image} alt="Project cover preview" /> : <span><ImagePlus size={25} /> 16:10 cover preview</span>}</div>
+                          <label className="editor-field"><span>Cover image URL</span><input type="url" value={form.cover_image} placeholder="https://…" onChange={(event) => setField("cover_image", event.target.value)} /></label>
+                          <ImageUploader bucket="research" path="covers" buttonOnly className="research-upload-button" label={<><ImagePlus size={15} /> {form.cover_image ? "Replace cover" : "Upload cover"}</>} onUpload={(files) => setField("cover_image", files[0]?.url || "")} />
+                          {form.cover_image && <button type="button" className="quiet-button danger" onClick={() => setField("cover_image", "")}>Remove cover</button>}
+                        </aside>
+                      </div>
+                    </section>
+                  )}
 
-            <section className="research-editor-card">
-              <div className="research-card-heading"><span>03</span><div><h2>Cover image</h2><p>The visual invitation on the Research index and project page.</p></div></div>
-              <div className="research-cover-grid">
-                <div className="research-cover-preview">{form.cover_image ? <img src={form.cover_image} alt="Project cover preview" /> : <span><ImagePlus size={25} /> No cover image yet</span>}</div>
-                <div className="research-cover-controls">
-                  <label><span>Cover image URL</span><input type="url" value={form.cover_image} placeholder="https://…" onChange={(event) => setField("cover_image", event.target.value)} /></label>
-                  <ImageUploader bucket="research" path="covers" buttonOnly className="research-upload-button" label={<><ImagePlus size={15} /> {form.cover_image ? "Replace cover" : "Upload cover"}</>} onUpload={(files) => setField("cover_image", files[0]?.url || "")} />
-                  {form.cover_image && <button type="button" className="research-remove-media" onClick={() => setField("cover_image", "")}>Remove cover</button>}
+                  {designSection !== "basics" && (
+                    <BlogStudioBlockEditor blocks={form.blocks} onBlocksChange={(blocks) => setField("blocks", blocks)} onUpload={uploadBlockImage} uploading={uploadingBlock} designSection={designSection} />
+                  )}
                 </div>
               </div>
-            </section>
+            )}
 
-            <section className="research-editor-card">
-              <div className="research-card-heading"><span>04</span><div><h2>Project story</h2><p>Simple text, headings, lists, and links using Markdown.</p></div></div>
-              <label className="research-story-field"><span>Project content</span><textarea rows={15} value={form.content} placeholder={"## Start with the question\n\nDescribe the idea, the process, what changed, and what someone should notice…"} onChange={(event) => setField("content", event.target.value)} /></label>
-            </section>
-
-            <section className="research-editor-card">
-              <div className="research-card-heading"><span>05</span><div><h2>Project images</h2><p>Upload, caption, drag, and sequence the visual story.</p></div></div>
-              <ImageUploader bucket="research" path="gallery" multiple label="Drop project images here" onUpload={addGalleryImages} />
-              {form.gallery_images.length > 0 && (
-                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleGalleryDragEnd}>
-                  <SortableContext items={form.gallery_images.map((image) => image.id)} strategy={rectSortingStrategy}>
-                    <div className="research-gallery-grid">
-                      {form.gallery_images.map((image, index) => <GalleryImage key={image.id} image={image} index={index} onCaption={updateGalleryCaption} onRemove={removeGalleryImage} />)}
+            {workspaceTab === "preview" && (
+              <section className="portfolio-inline-preview is-active">
+                <header className="portfolio-preview-toolbar">
+                  <div><span className="editor-eyebrow">Preview</span><h3>Research project live preview</h3></div>
+                  <div className="portfolio-preview-display-controls">
+                    {form.slug && <a href={`/research/${form.slug}`} target="_blank" rel="noreferrer" className="preview-fullscreen-button">Full screen <ArrowUpRight size={13} /></a>}
+                    <div className="preview-mode-switch">
+                      {['laptop', 'tablet', 'phone'].map((device) => <button type="button" key={device} className={`preview-mode-pill ${previewDevice === device ? "active" : ""}`} onClick={() => setPreviewDevice(device)}>{device}</button>)}
                     </div>
-                  </SortableContext>
-                </DndContext>
-              )}
-            </section>
-
-            {form.id && (
-              <section className="research-danger-zone">
-                <span><strong>Permanent deletion</strong><small>Archive is the reversible way to remove a research project from the public page.</small></span>
-                <button type="button" onClick={deleteProject} disabled={saving}><Trash2 size={15} /> Delete project</button>
+                  </div>
+                </header>
+                <div className={`portfolio-inline-preview-device is-${previewDevice}`}>
+                  {form.slug ? <iframe src={`/research/${form.slug}`} title={`${form.title} preview`} /> : <div className="research-preview-empty">Add a title and slug to enable preview.</div>}
+                </div>
               </section>
             )}
-          </form>
-        </div>
-      </section>
+
+            {workspaceTab === "publish" && (
+              <section className="portfolio-publish-workspace">
+                <span className="editor-eyebrow">Publish</span>
+                <h2>Choose how this research project goes live</h2>
+                <section className="publish-slug-section">
+                  <header><div><span className="editor-eyebrow">Public URL</span><h3>Research slug</h3></div><code>/research/{form.slug || "your-project"}</code></header>
+                  <div className="publish-slug-control">
+                    <label className="editor-field"><span>Slug</span><input value={form.slug} placeholder={slugify(form.title) || "project-url"} onChange={(event) => setField("slug", slugify(event.target.value))} /></label>
+                    <button type="button" className="primary-button publish-slug-button" onClick={() => saveProject()} disabled={saving}>Save URL</button>
+                  </div>
+                </section>
+
+                <div className="publish-settings-grid">
+                  <section className="publish-classification-section">
+                    <header><span className="editor-eyebrow">Discoverability</span><h3>Classification and access</h3></header>
+                    <TagEditor values={form.tags} onChange={(tags) => setField("tags", tags)} />
+                    <div className="research-publish-toggles">
+                      <label className="research-checkbox"><input type="checkbox" checked={form.featured} onChange={(event) => setField("featured", event.target.checked)} /> Feature on the Research index</label>
+                      <label className="research-checkbox"><input type="checkbox" checked={form.visible} onChange={(event) => setField("visible", event.target.checked)} /> Publicly visible</label>
+                    </div>
+                    {form.experiment_url && <a className="manage-seo-link" href={form.experiment_url} target="_blank" rel="noreferrer"><span>Open linked experiment</span><ArrowUpRight size={14} /></a>}
+                  </section>
+
+                  <section className="publish-properties">
+                    <header className="publish-properties-header"><span className="editor-eyebrow">Status</span><h3>Publishing</h3></header>
+                    <div className="publish-properties-body">
+                      <div className="publish-seo-handoff">
+                        <div><span className="editor-eyebrow">Live status</span><strong className={form.published && form.visible ? "research-status-live" : ""}>{form.published && form.visible ? "● Published · Live" : form.visible ? "○ Draft" : "○ Archived"}</strong></div>
+                        <div><span className="editor-eyebrow">Story</span><strong>{form.blocks.length} {form.blocks.length === 1 ? "block" : "blocks"}</strong></div>
+                      </div>
+                      <button type="button" className="primary-button publish-button full" onClick={() => saveProject({ publish: true, visible: true, message: "Research project published." })} disabled={saving}>{saving ? "Publishing…" : form.published && form.visible ? "Update live project →" : "Publish now →"}</button>
+                      {form.id && <button type="button" className="quiet-button full research-maintenance-button" onClick={toggleArchive} disabled={saving}>{form.visible ? <Archive size={15} /> : <ArchiveRestore size={15} />}{form.visible ? "Archive project" : "Restore project"}</button>}
+                      {form.id && <button type="button" className="quiet-button danger full research-maintenance-button" onClick={deleteProject} disabled={saving}><Trash2 size={15} /> Permanently delete</button>}
+                    </div>
+                  </section>
+                </div>
+              </section>
+            )}
+          </div>
+        </main>
+      </div>
     );
   }
 

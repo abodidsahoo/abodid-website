@@ -19,6 +19,9 @@ export interface Project extends BaseEntity {
     repo_link?: string;
     experiment_url?: string;
     content?: string;
+    blocks?: any[];
+    role?: string;
+    accent?: 'lime' | 'pink' | 'yellow' | 'cyan' | 'orange' | 'purple';
     cover_image?: string;
     gallery_images?: { id?: string; url: string; caption?: string; sort_order?: number }[];
 }

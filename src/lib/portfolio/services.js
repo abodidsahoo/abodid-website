@@ -239,6 +239,26 @@ export async function getPublishedPortfolioIndex() {
   return (data || []).map(mapPublicProject);
 }
 
+export async function getPublishedLabProjects() {
+  const { data, error } = await supabase
+    .from("portfolio_public_projects")
+    .select("*")
+    .order("featured_order", { ascending: true });
+
+  if (error) {
+    console.error("Lab project index failed:", error.message);
+    return [];
+  }
+
+  return (data || [])
+    .map(mapPublicProject)
+    .filter((project) => cleanArray(project.taxonomies).some((term) => {
+      const label = String(term.label || "").trim().toLowerCase();
+      const slug = String(term.slug || "").trim().toLowerCase();
+      return label === "lab" || slug === "lab";
+    }));
+}
+
 export async function getPublishedPortfolioProject(slug) {
   const { data, error } = await supabase
     .from("portfolio_public_projects")
@@ -427,11 +447,29 @@ export async function archivePortfolioProject(projectId) {
   return updatePortfolioProjectIdentity(projectId, { status: "archived" });
 }
 
-const imageDimensions = (file) => new Promise((resolve) => {
+const mediaDimensions = (file) => new Promise((resolve) => {
   const objectUrl = URL.createObjectURL(file);
+  const isVideo = file.type?.startsWith("video/");
+  if (isVideo) {
+    const video = document.createElement("video");
+    const fallback = setTimeout(() => {
+      URL.revokeObjectURL(objectUrl);
+      resolve({ width: null, height: null });
+    }, 5000);
+    video.onloadedmetadata = () => {
+      clearTimeout(fallback);
+      resolve({ width: video.videoWidth || null, height: video.videoHeight || null });
+      URL.revokeObjectURL(objectUrl);
+    };
+    video.onerror = () => {
+      clearTimeout(fallback);
+      resolve({ width: null, height: null });
+      URL.revokeObjectURL(objectUrl);
+    };
+    video.src = objectUrl;
+    return;
+  }
   const image = new Image();
-  // Safety timeout: resolve with null dimensions if the browser never fires
-  // onload or onerror (e.g. a locked file, weird MIME, or browser quirk).
   const fallback = setTimeout(() => {
     URL.revokeObjectURL(objectUrl);
     resolve({ width: null, height: null });
@@ -451,12 +489,14 @@ const imageDimensions = (file) => new Promise((resolve) => {
 
 export async function uploadPortfolioImage(project, file, metadata = {}) {
   const session = await requirePortfolioAdmin();
-  const allowed = ["image/jpeg", "image/png", "image/webp", "image/gif"];
-  if (!allowed.includes(file.type)) throw new Error("Use a JPEG, PNG, WebP or GIF image.");
-  if (file.size > 20 * 1024 * 1024) throw new Error("Images must be 20 MB or smaller.");
+  const allowed = ["image/jpeg", "image/png", "image/webp", "image/gif", "video/mp4", "video/webm", "video/quicktime"];
+  if (!allowed.includes(file.type)) throw new Error("Use a JPEG, PNG, WebP, GIF, MP4, WebM or MOV file.");
+  const isVideo = file.type?.startsWith("video/");
+  const maxLimit = isVideo ? 100 * 1024 * 1024 : 20 * 1024 * 1024;
+  if (file.size > maxLimit) throw new Error(`Files must be ${isVideo ? "100 MB" : "20 MB"} or smaller.`);
   const storageFolder = slugify(project.storage_folder || project.slug) || "project";
   const folder = `originals/${storageFolder}`;
-  const dimensionsPromise = imageDimensions(file);
+  const dimensionsPromise = mediaDimensions(file);
   const headers = {
     "Content-Type": "application/json",
     Authorization: `Bearer ${session.access_token}`,
