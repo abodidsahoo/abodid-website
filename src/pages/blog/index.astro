@@ -5,6 +5,11 @@ import { getAllPosts } from "../../lib/api";
 import { breadcrumbJsonLd, personJsonLd } from "../../lib/seoData";
 import "../../styles/blog-editorial.css";
 
+export const prerender = false;
+
+Astro.response.headers.set("Cache-Control", "no-store");
+Astro.response.headers.set("Vercel-CDN-Cache-Control", "no-store");
+
 const recentPosts = await getAllPosts();
 const initialTag = Astro.url.searchParams.get("tag") || Astro.url.searchParams.get("category") || "All";
 const pageTitle = "Blog";

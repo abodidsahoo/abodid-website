@@ -52,6 +52,7 @@ const canCachePublicPage = (context: PublicCacheContext, response: Response) => 
     if (privatePagePatterns.some((pattern) => pattern.test(context.url.pathname))) return false;
     if (context.request.headers.has('authorization')) return false;
     if (response.status !== 200 || response.headers.has('set-cookie')) return false;
+    if (response.headers.get('cache-control')?.toLowerCase().includes('no-store')) return false;
 
     return response.headers.get('content-type')?.includes('text/html') ?? false;
 };
