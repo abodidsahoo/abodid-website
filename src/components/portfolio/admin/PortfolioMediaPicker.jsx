@@ -139,7 +139,17 @@ export default function PortfolioMediaPicker({ open, multiple = false, gifOnly =
                     {isVideo ? (
                       <video src={preview} muted playsInline autoPlay loop preload="metadata" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                     ) : (
-                      <img src={preview} alt="" loading="lazy" />
+                      <img
+                        src={preview}
+                        alt=""
+                        loading="lazy"
+                        onError={(event) => {
+                          const image = event.currentTarget;
+                          if (!asset.originalUrl || image.dataset.fallbackAttempted === "true") return;
+                          image.dataset.fallbackAttempted = "true";
+                          image.src = asset.originalUrl;
+                        }}
+                      />
                     )}
                     {selectedIndex >= 0 && <i>{multiple ? selectedIndex + 1 : <Check size={15} />}</i>}
                   </span>

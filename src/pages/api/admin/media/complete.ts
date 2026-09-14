@@ -23,12 +23,17 @@ const cleanEtag = (value: string | undefined) =>
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-const mapVariants = (rows: Array<Record<string, unknown>> | null | undefined) =>
+const mapVariants = (
+    rows: Array<Record<string, unknown>> | null | undefined,
+    config: Parameters<typeof buildR2PublicUrl>[0],
+) =>
     Object.fromEntries((rows || []).map((variant) => [
         String(variant.variant_key),
         {
             key: variant.variant_key,
-            url: variant.public_url,
+            url: variant.object_key
+                ? buildR2PublicUrl(config, String(variant.object_key))
+                : variant.public_url,
             width: variant.actual_width,
             height: variant.actual_height,
             targetWidth: variant.target_width,
@@ -117,7 +122,7 @@ export const POST: APIRoute = async ({ request }) => {
             .upsert(record, {
                 onConflict: "storage_provider,storage_bucket,object_key",
             })
-            .select("*,media_variants(variant_key,target_width,actual_width,actual_height,public_url,file_size,mime_type)")
+            .select("*,media_variants(variant_key,target_width,actual_width,actual_height,object_key,public_url,file_size,mime_type)")
             .single();
 
         if (error) {
@@ -152,7 +157,7 @@ export const POST: APIRoute = async ({ request }) => {
                 etag: data.etag,
                 processingStatus: data.processing_status,
                 processingError: data.processing_error,
-                variants: mapVariants(data.media_variants),
+                variants: mapVariants(data.media_variants, config),
                 createdAt: data.created_at,
             },
         });

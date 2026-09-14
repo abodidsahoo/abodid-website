@@ -27,15 +27,20 @@ const MEDIA_COLUMNS = [
     "updated_at",
     "processing_status",
     "processing_error",
-    "media_variants(variant_key,target_width,actual_width,actual_height,public_url,file_size,mime_type)",
+    "media_variants(variant_key,target_width,actual_width,actual_height,object_key,public_url,file_size,mime_type)",
 ].join(",");
 
-const mapVariants = (rows: Array<Record<string, unknown>> | null | undefined) =>
+const mapVariants = (
+    rows: Array<Record<string, unknown>> | null | undefined,
+    config: Parameters<typeof buildR2PublicUrl>[0],
+) =>
     Object.fromEntries((rows || []).map((variant) => [
         String(variant.variant_key),
         {
             key: variant.variant_key,
-            url: variant.public_url,
+            url: variant.object_key
+                ? buildR2PublicUrl(config, String(variant.object_key))
+                : variant.public_url,
             width: variant.actual_width,
             height: variant.actual_height,
             targetWidth: variant.target_width,
@@ -98,7 +103,7 @@ export const GET: APIRoute = async ({ request }) => {
                 catalogued: Boolean(asset),
                 processingStatus: asset?.processing_status || (asset ? "uploaded" : "uncatalogued"),
                 processingError: asset?.processing_error || null,
-                variants: mapVariants(asset?.media_variants),
+                variants: mapVariants(asset?.media_variants, browser.config),
             };
         });
         const folders = browser.folders.map((path) => ({
