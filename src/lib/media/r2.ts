@@ -243,11 +243,30 @@ export const assertSafeR2ObjectKey = (value: unknown) => {
 };
 
 export const buildR2PublicUrl = (config: R2Config, objectKey: string) => {
-    const encodedKey = objectKey
+    const publicKey = /^(?:originals|variants)\//.test(objectKey)
+        ? `photos/${objectKey}`
+        : objectKey;
+    const encodedKey = publicKey
         .split("/")
         .map((segment) => encodeURIComponent(segment))
         .join("/");
-    return `${config.publicBaseUrl}/${encodedKey}`;
+
+    // photos.abodid.com now serves the portfolio site and redirects asset paths
+    // to HTML pages. All R2 media is delivered through the assets worker instead.
+    let publicBaseUrl = config.publicBaseUrl;
+    try {
+        const configuredUrl = new URL(publicBaseUrl);
+        if (
+            configuredUrl.hostname === "photos.abodid.com" ||
+            configuredUrl.hostname === "assets.abodid.com"
+        ) {
+            publicBaseUrl = "https://assets.abodid.com";
+        }
+    } catch {
+        // getR2Config already validates configured URLs; keep custom test configs usable.
+    }
+
+    return `${publicBaseUrl.replace(/\/+$/, "")}/${encodedKey}`;
 };
 
 export const getR2Basename = (value: string) =>
