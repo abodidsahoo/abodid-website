@@ -1,45 +1,41 @@
 import { supabase } from "./supabase";
 import { punctumImages } from "../data/punctumImages";
+import { researchProjects } from "../data/researchPortfolio";
 import {
   GESTURE_CONTROL_HERO_GIF_URL,
   GESTURE_CONTROL_VIDEO_URL,
-  PUNCTUM_WALKTHROUGH_GIF_URL,
+  PUNCTUM_WALKTHROUGH_VIDEO_URL,
 } from "./mediaAssets";
 
 export const cloudflareExhibitionFallbacks = punctumImages
   .map((image) => image.url)
   .filter(Boolean);
 
-export const storytellingProjects = [
-  {
-    id: "into-the-flux",
-    title: "Into the Flux",
-    category: "Exhibition experience",
-    summary: "An abandoned London garage transformed into a public exhibition in two days.",
-    role: "Creative direction · spatial planning · production · documentation",
-    outcome: "10,000+ visitors",
-    href: "/work/into-the-flux",
-    image: "https://assets.abodid.com/photos/variants/exhibition-photos/1600/into-the-flux-iba-london103-baac9bdf57.webp",
-    alt: "Visitors inside the Into the Flux exhibition in London",
-  },
-  {
-    id: "punctum",
-    title: "Punctum",
-    category: "Participatory research",
-    summary: "An interactive study of the details in photographs that move us, stay with us and shape memory.",
-    role: "Research · experience design · prototyping",
-    outcome: "Live interactive app",
-    href: "/work/punctum",
-    heroImage: PUNCTUM_WALKTHROUGH_GIF_URL,
-    image: PUNCTUM_WALKTHROUGH_GIF_URL,
-    alt: "Interactive walkthrough animation of the Punctum visual-attention experiment",
-  },
+export type StorytellingProject = {
+  id: string;
+  title: string;
+  category: string;
+  summary: string;
+  role: string;
+  outcome: string;
+  href: string;
+  image?: string;
+  heroImage?: string;
+  video?: string;
+  alt: string;
+  themes?: string[];
+  accent?: "lime" | "pink" | "yellow" | "cyan" | "orange" | "purple";
+};
+
+export const storytellingProjects: StorytellingProject[] = [
   {
     id: "sequence-room",
+    accent: "lime",
+    themes: ["Visual Narratives", "Interaction Design", "Digital Curation"],
     title: "Sequence Room",
-    category: "Spatial Narrative Tool",
+    category: "Spatial Narrative Interactive Tool",
     summary: "An interactive workspace for sequencing, curating, and editing visual narratives in space.",
-    role: "Concept · interaction design · full-stack development",
+    role: "Concept · Interaction Design · Full-stack Development",
     outcome: "Live interactive app",
     href: "/work/sequence-room",
     video: "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/video-clips/sequence-room-comp.mp4",
@@ -47,51 +43,114 @@ export const storytellingProjects = [
     alt: "Animated preview of the Sequence Room visual storytelling canvas",
   },
   {
-    id: "bfi",
-    title: "British Film Institute",
-    category: "Cultural documentation",
-    summary: "Human-centred photography for a four-day programme of immersive and expanded cinema.",
-    role: "Photography · visual storytelling",
-    outcome: "20,000+ visitors across four days",
-    href: "/work/bfi",
-    image: "https://assets.abodid.com/photos/variants/british-film-institute-london/1600/1769335964323_qjq8j2g9q-da588df8ed.webp",
-    alt: "Audience members experiencing an immersive programme at the British Film Institute",
+    id: "into-the-flux",
+    accent: "yellow",
+    themes: ["Exhibitions", "Creative Direction", "Spatial Planning"],
+    title: "Into the Flux",
+    category: "Exhibition experience",
+    summary: "An abandoned London garage transformed into a public exhibition in two days.",
+    role: "Exhibition Production · Photographic Documentation",
+    outcome: "2,000+ visitors",
+    href: "/work/into-the-flux",
+    image: "https://assets.abodid.com/photos/variants/exhibition-photos/1600/into-the-flux-iba-london103-baac9bdf57.webp",
+    alt: "Visitors inside the Into the Flux exhibition in London",
+  },
+  {
+    id: "obsidian-vault",
+    accent: "cyan",
+    themes: ["Knowledge Systems", "Notes and Research", "Information Architecture"],
+    title: "Obsidian Vault",
+    category: "AI Knowledge Ecosystem",
+    summary: "A public, searchable space for notes, questions, ideas and research.",
+    role: "Information Architecture · Interface",
+    outcome: "A living research ecosystem",
+    href: "/obsidian-vault",
+    video: "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/video-clips/Obsidian_Timelapse.mp4",
+    alt: "Timelapse video preview of the connected Obsidian knowledge vault",
   },
   {
     id: "gesture-control",
+    accent: "orange",
+    themes: ["Gesture Interaction", "Photography", "Prototyping"],
     title: "Hand Gesture Control",
-    category: "Interaction prototype",
+    category: "Interaction Prototype",
     summary: "A touch-free interface for browsing photographs as though they were physical cards.",
-    role: "Concept · interaction design · prototyping",
-    outcome: "Live interactive app",
+    role: "Concept · Interaction Design · Prototyping",
+    outcome: "Live Interactive App",
     href: "/work/gesture-control",
     video: GESTURE_CONTROL_VIDEO_URL,
     image: GESTURE_CONTROL_HERO_GIF_URL,
     alt: "Animated preview of hand interacting with a gesture-controlled digital interface",
   },
   {
+    id: "punctum",
+    accent: "pink",
+    themes: ["Photography", "Human Attention", "Memory"],
+    title: "Punctum",
+    category: "Participatory Research",
+    summary: "An interactive study of the details in photographs that move us, stay with us and shape memory.",
+    role: "Research · Experience Design · AI Prototyping",
+    outcome: "Live interactive app",
+    href: "/work/punctum",
+    video: PUNCTUM_WALKTHROUGH_VIDEO_URL,
+    image: PUNCTUM_WALKTHROUGH_VIDEO_URL,
+    alt: "Interactive walkthrough animation of the Punctum visual-attention experiment",
+  },
+  {
+    id: "bfi",
+    accent: "yellow",
+    themes: ["Cultural Documentation", "Photography", "Expanded Cinema"],
+    title: "British Film Institute",
+    category: "Cultural Documentation",
+    summary: "Human-centred photography for a four-day programme of immersive and expanded cinema.",
+    role: "Photography · Visual Storytelling",
+    outcome: "20,000+ visitors across four days",
+    href: "/work/bfi",
+    image: "https://assets.abodid.com/photos/variants/british-film-institute-london/1600/1769335964323_qjq8j2g9q-da588df8ed.webp",
+    alt: "Audience members experiencing an immersive programme at the British Film Institute",
+  },
+  {
     id: "show-me-the-way",
+    accent: "pink",
+    themes: ["Music video", "Cinematography", "Visual effects"],
     title: "Show Me the Way",
     category: "Film and visual storytelling",
     summary: "A music video shaped through cinematography, visual effects and a tactile narrative language.",
     role: "Director · DOP · Editor · VFX",
     outcome: "Television broadcast in South Asia on VH1",
     href: "/work/show-me-the-way",
+    video: "https://www.youtube.com/watch?v=fooE0W_mFSY",
     image: "https://img.youtube.com/vi/fooE0W_mFSY/maxresdefault.jpg",
     alt: "Show Me the Way music video still broadcast on VH1",
   },
-  {
-    id: "obsidian-vault",
-    title: "Obsidian Vault",
-    category: "AI Knowledge Ecosystem",
-    summary: "A public, searchable space for notes, questions, ideas and research.",
-    role: "Information architecture · Interface",
-    outcome: "A living research ecosystem",
-    href: "/obsidian-vault",
-    video: "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/video-clips/Obsidian_Timelapse.mp4",
-    alt: "Timelapse video preview of the connected Obsidian knowledge vault",
-  },
 ];
+
+// Reuse the research page's approved copy, covers and destinations.
+const featuredResearchOrder = [
+  "rejection-reactivates-unresolved-grief",
+  "cambridge-cultural-heritage-data-school",
+  "do-ghosts-feel-jealous",
+];
+
+for (const slug of featuredResearchOrder) {
+  const project = researchProjects.find((project) => project.slug === slug);
+  if (!project) continue;
+  storytellingProjects.push({
+    id: project.slug,
+    accent: project.accent,
+    themes: project.themes,
+    title: project.title,
+    category: "Artistic and sociological research",
+    summary: project.premise,
+    role: project.role,
+    outcome: project.slug === "cambridge-cultural-heritage-data-school"
+      ? "Full bursary · 2026 cohort"
+      : project.outcomeBadge || project.metaValue,
+    href: `/research/${project.slug}`,
+    image: project.images[0].src,
+    alt: project.images[0].alt,
+  });
+}
 
 export const storytellingCapabilities = [
   {
@@ -255,9 +314,10 @@ const fallbackTestimonials = [
 ].map(attachTestimonialHighlight);
 
 export async function getHomeStorytellingContent() {
-  const [brandResult, testimonialResult] = await Promise.allSettled([
+  const [brandResult, testimonialResult, cardsResult] = await Promise.allSettled([
     supabase.from("brands").select("id,name,logo_url,role,category,display_order").order("display_order", { ascending: true }).limit(100),
     supabase.from("testimonials").select("id,name,role,company,content,created_at").eq("is_approved", true).order("created_at", { ascending: false }),
+    supabase.from("home_storytelling_cards").select("*").eq("visible", true).order("sort_order", { ascending: true }),
   ]);
 
   const brands = brandResult.status === "fulfilled" && !brandResult.value.error && brandResult.value.data?.length
@@ -273,15 +333,39 @@ export async function getHomeStorytellingContent() {
     ? fetchedTestimonials.map(attachTestimonialHighlight)
     : fallbackTestimonials;
 
+  // Hydrate storytelling cards from Supabase; fall back to static array if the
+  // table is empty or unreachable (e.g. during local dev without a DB connection).
+  const dbCards =
+    cardsResult.status === "fulfilled" &&
+    !cardsResult.value.error &&
+    cardsResult.value.data?.length
+      ? (cardsResult.value.data as any[]).map((row) => ({
+          id: row.card_id as string,
+          title: row.title as string,
+          category: row.category as string,
+          summary: row.summary as string,
+          role: row.role as string,
+          outcome: row.outcome as string,
+          href: row.href as string,
+          alt: row.alt as string,
+          image: row.image_url as string | undefined ?? undefined,
+          video: row.video_url as string | undefined ?? undefined,
+          accent: row.accent as StorytellingProject["accent"],
+          themes: (row.themes ?? []) as string[],
+        } satisfies StorytellingProject))
+      : null;
+
+  const projects: StorytellingProject[] = dbCards ?? storytellingProjects;
+
   return {
     hero: {
       name: "Abodid Sahoo",
-      location: "London, Bengaluru",
+      location: "London · Bhubaneswar",
       heading: "Creative Director, Artist and Researcher.",
-      statement: "I turn stories into participatory experiences that help people connect.",
-      lede: "Across exhibitions, installations, films and digital experiences, I create research-driven work that is intuitive, accessible and designed to spark conversation.",
+      statement: "I turn ambitious ideas and stories into intuitive and accessible participatory experiences.",
+      lede: "Having worked on over 300+ exhibitions, installations, films, photo-stories, and digital experiences in the last 8 years, I have created research-driven works designed to spark conversations and help people connect.",
     },
-    projects: storytellingProjects,
+    projects,
     capabilities: storytellingCapabilities,
     process: storytellingProcess,
     community: communityDoorways,

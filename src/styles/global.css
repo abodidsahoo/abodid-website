@@ -549,13 +549,28 @@ html::-webkit-scrollbar {
   display: none;
 }
 
+/*
+ * --page-bg  (Design Token)
+ * ─────────────────────────────────────────────────────────────────
+ * Set this custom property on a page-specific body class to theme
+ * the entire page: body background, header outer gap, and html
+ * overscroll area all respond automatically.
+ *
+ * Usage on any new page:
+ *   body.your-page-class {
+ *     --page-bg: #yourcolor;
+ *   }
+ *
+ * No other files need to be touched.
+ * ─────────────────────────────────────────────────────────────────
+ */
 body {
   font-family: var(--font-sans);
   margin: 0;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background-color: var(--bg-canvas) !important;
+  background-color: var(--page-bg, var(--bg-canvas));
   transition: var(--theme-transition);
   overflow-x: hidden;
   /* Global guardrail */

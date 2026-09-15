@@ -65,6 +65,13 @@ if (!project && slug) {
   }
 }
 
+if (project && !project.video && slug) {
+  const fallbackStory = storytellingProjects.find((p) => p.id === slug || p.href === `/work/${slug}`);
+  if (fallbackStory?.video) {
+    project.video = fallbackStory.video;
+  }
+}
+
 // Compute next project for footer navigation
 const currentIndex = storytellingProjects.findIndex((p) => p.id === slug || p.href === `/work/${slug}`);
 const nextProject = currentIndex >= 0

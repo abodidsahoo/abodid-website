@@ -232,12 +232,12 @@ function parseVideo(value) {
     const url = new URL(href);
     if (url.hostname.includes("youtu.be")) {
       const id = url.pathname.slice(1).split("?")[0];
-      return { provider: "youtube", id, embedSrc: `https://www.youtube-nocookie.com/embed/${id}?origin=${typeof location !== "undefined" ? location.origin : ""}&iv_load_policy=3&modestbranding=1&playsinline=1&showinfo=0&rel=0&enablejsapi=1`, poster: `https://i.ytimg.com/vi/${id}/maxresdefault.jpg` };
+      return { provider: "youtube", id, embedSrc: `https://www.youtube-nocookie.com/embed/${id}?iv_load_policy=3&modestbranding=1&playsinline=1&rel=0&enablejsapi=1`, poster: `https://img.youtube.com/vi/${id}/maxresdefault.jpg` };
     }
     if (url.hostname.includes("youtube.com")) {
       const id = url.searchParams.get("v") || url.pathname.split("/").pop();
       if (!id) return null;
-      return { provider: "youtube", id, embedSrc: `https://www.youtube-nocookie.com/embed/${id}?origin=${typeof location !== "undefined" ? location.origin : ""}&iv_load_policy=3&modestbranding=1&playsinline=1&showinfo=0&rel=0&enablejsapi=1`, poster: `https://i.ytimg.com/vi/${id}/maxresdefault.jpg` };
+      return { provider: "youtube", id, embedSrc: `https://www.youtube-nocookie.com/embed/${id}?iv_load_policy=3&modestbranding=1&playsinline=1&rel=0&enablejsapi=1`, poster: `https://img.youtube.com/vi/${id}/maxresdefault.jpg` };
     }
     if (url.hostname.includes("vimeo.com")) {
       const id = url.pathname.split("/").filter(Boolean).pop();
@@ -249,6 +249,7 @@ function parseVideo(value) {
   }
   return null;
 }
+
 
 function VideoModal({ video, onClose }) {
   const playerRef = useRef(null);
@@ -718,16 +719,35 @@ function PopEditorialProject({ p, nextProject }) {
     ? types.map((t) => t.label).join(" · ")
     : p.category || "Visual Attention · Participatory AI";
 
-  const coverMediaUrl = p.video || p.coverMedia?.url || p.coverUrl || (Array.isArray(p.images) ? p.images[0]?.src : "") || "";
-  const isVideoMedia = typeof coverMediaUrl === "string" && (
-    coverMediaUrl.endsWith(".mp4") ||
-    coverMediaUrl.endsWith(".webm") ||
-    coverMediaUrl.endsWith(".mov") ||
-    coverMediaUrl.includes("/video-clips/") ||
-    coverMediaUrl.includes(".mp4?") ||
-    coverMediaUrl.includes(".webm?") ||
-    coverMediaUrl.includes(".mov?")
+  const [isPlayingVideo, setIsPlayingVideo] = useState(false);
+
+  const videoCandidate = p.video || p.videoUrl || (typeof p.coverUrl === "string" && (p.coverUrl.includes("youtu") || p.coverUrl.includes("vimeo")) ? p.coverUrl : null);
+  const parsedVideo = useMemo(() => parseVideo(videoCandidate), [videoCandidate]);
+
+  const rawCoverUrl = p.coverMedia?.url || p.coverUrl || (Array.isArray(p.images) ? p.images[0]?.src : "") || "";
+  const directVideoUrl = p.video || (typeof rawCoverUrl === "string" && (
+    rawCoverUrl.endsWith(".mp4") ||
+    rawCoverUrl.endsWith(".webm") ||
+    rawCoverUrl.endsWith(".mov") ||
+    rawCoverUrl.includes("/video-clips/") ||
+    rawCoverUrl.includes(".mp4?") ||
+    rawCoverUrl.includes(".webm?") ||
+    rawCoverUrl.includes(".mov?")
+  ) ? rawCoverUrl : null);
+
+  const isDirectVideoMedia = typeof directVideoUrl === "string" && !parsedVideo && (
+    directVideoUrl.endsWith(".mp4") ||
+    directVideoUrl.endsWith(".webm") ||
+    directVideoUrl.endsWith(".mov") ||
+    directVideoUrl.includes("/video-clips/") ||
+    directVideoUrl.includes(".mp4?") ||
+    directVideoUrl.includes(".webm?") ||
+    directVideoUrl.includes(".mov?")
   );
+
+  const coverMediaUrl = parsedVideo
+    ? (rawCoverUrl && !rawCoverUrl.includes("youtube.com/watch") && !rawCoverUrl.includes("youtu.be/") ? rawCoverUrl : parsedVideo.poster)
+    : (rawCoverUrl || p.video || "");
 
   const galleryImages = useMemo(() => {
     const list = [];
@@ -737,22 +757,22 @@ function PopEditorialProject({ p, nextProject }) {
         if (Array.isArray(media)) {
           media.forEach(m => {
             const url = m?.url || m?.src;
-            if (url && url !== coverMediaUrl) list.push({ url, alt: m.alt || "", caption: m.caption || "" });
+            if (url && url !== coverMediaUrl && (!parsedVideo || url !== parsedVideo.poster)) list.push({ url, alt: m.alt || "", caption: m.caption || "" });
           });
         } else if (media?.url || media?.src) {
           const url = media.url || media.src;
-          if (url && url !== coverMediaUrl) list.push({ url, alt: media.alt || "", caption: media.caption || "" });
+          if (url && url !== coverMediaUrl && (!parsedVideo || url !== parsedVideo.poster)) list.push({ url, alt: media.alt || "", caption: media.caption || "" });
         }
       }
     });
     if (Array.isArray(p.images)) {
       p.images.forEach(img => {
         const url = img?.src || img?.url;
-        if (url && url !== coverMediaUrl) list.push({ url, alt: img.alt || "", caption: img.caption || "" });
+        if (url && url !== coverMediaUrl && (!parsedVideo || url !== parsedVideo.poster)) list.push({ url, alt: img.alt || "", caption: img.caption || "" });
       });
     }
     return list;
-  }, [p, coverMediaUrl]);
+  }, [p, coverMediaUrl, parsedVideo]);
 
   const nonImageBlocks = useMemo(() => {
     return (p.blocks || []).filter((b) => {
@@ -935,10 +955,39 @@ function PopEditorialProject({ p, nextProject }) {
             </div>
           )}
         </section>
-          {coverMediaUrl && (
-            <figure className="rp-case__showcase-media-full" aria-label="Visual walkthrough preview">
+          {(parsedVideo || coverMediaUrl) && (
+            <figure className={`rp-case__showcase-media-full ${isPlayingVideo ? "rp-case__showcase-media-full--playing" : ""}`} aria-label="Visual showcase video">
               <div className="rp-case__media">
-                {isVideoMedia ? (
+                {parsedVideo ? (
+                  isPlayingVideo ? (
+                    <iframe
+                      src={`${parsedVideo.embedSrc}${parsedVideo.embedSrc.includes("?") ? "&" : "?"}autoplay=1`}
+                      title={p.title || "Project Video"}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowFullScreen
+                      loading="lazy"
+                    />
+                  ) : (
+                    <button
+                      type="button"
+                      className="rp-case__video-trigger"
+                      onClick={() => setIsPlayingVideo(true)}
+                      aria-label={`Play video: ${p.title}`}
+                    >
+                      <img
+                        src={coverMediaUrl || parsedVideo.poster}
+                        alt={p.coverAlt || p.title || ""}
+                        loading="eager"
+                        decoding="async"
+                      />
+                      <span className="rp-case__play-btn" aria-hidden="true">
+                        <svg className="rp-case__play-icon" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M8 5v14l11-7z" />
+                        </svg>
+                      </span>
+                    </button>
+                  )
+                ) : isDirectVideoMedia ? (
                   <video
                     key={coverMediaUrl}
                     ref={(el) => {
@@ -960,8 +1009,14 @@ function PopEditorialProject({ p, nextProject }) {
                 )}
               </div>
               <figcaption className="rp-case__showcase-caption">
-                {isVideoMedia && <span className="rp-case__caption-badge">Walkthrough</span>}
-                <span className="rp-case__caption-text">{p.coverAlt || `${p.title} — Interactive System & Visual Attention Experiment`}</span>
+                {parsedVideo ? (
+                  <span className="rp-case__caption-badge">
+                    {p.category?.toLowerCase().includes("music") || p.title?.toLowerCase().includes("show me the way") ? "Music Video" : "Video"}
+                  </span>
+                ) : isDirectVideoMedia ? (
+                  <span className="rp-case__caption-badge">Walkthrough</span>
+                ) : null}
+                <span className="rp-case__caption-text">{p.coverAlt || `${p.title} — ${p.category || "Interactive System & Visual Attention Experiment"}`}</span>
               </figcaption>
             </figure>
           )}

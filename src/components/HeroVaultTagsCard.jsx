@@ -245,7 +245,6 @@ export default function HeroVaultTagsCard({
       ref={containerRef}
       {...(isCardLink ? { href, "aria-label": ariaLabel } : { role: "region", "aria-label": ariaLabel })}
       className={`hero-vault-tags-card hero-vault-tags-card--${variant} ${interactive ? 'hero-vault-tags-card--interactive' : 'hero-vault-tags-card--non-interactive'} story-hero__future-card`}
-      data-auto-contrast
     >
       {interactive ? (
         <div className="hero-vault-tags-card__backdrop" aria-hidden="true">
@@ -264,7 +263,8 @@ export default function HeroVaultTagsCard({
                 className="hero-tag-content"
                 style={{
                   backgroundColor: tag.theme.bg,
-                  color: tag.theme.color,
+                  color: 'var(--pop-ink, #15130f)',
+                  WebkitTextFillColor: 'var(--pop-ink, #15130f)',
                   borderColor: tag.theme.border,
                 }}
               >
@@ -372,17 +372,17 @@ export default function HeroVaultTagsCard({
 
         .hero-tag-content {
           display: inline-block;
-          padding: 12px 32px;
+          padding: 8px 18px;
           border: 1px solid rgba(23, 21, 15, 0.3);
           border-radius: 999px;
           color: var(--pop-ink, #15130f) !important;
           -webkit-text-fill-color: var(--pop-ink, #15130f) !important;
           font-family: var(--font-display, sans-serif);
-          font-size: 1.12rem;
-          font-weight: 460;
+          font-size: 1.05rem;
+          font-weight: 480;
           letter-spacing: -0.01em;
           white-space: nowrap;
-          box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.16), 0 1px 4px rgba(0, 0, 0, 0.1);
         }
 
         .hero-vault-tags-card:hover .hero-tag-content,

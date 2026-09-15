@@ -183,8 +183,16 @@ export default function LandingInteractiveHero({
         <div className="landing-hero__masthead">
           <p className="landing-hero__name">{name}</p>
           <p className="landing-hero__availability">
-            <img src="/images/map-pin.png" alt="" aria-hidden="true" />
-            <span>{location}</span>
+            {(() => {
+              const parts = location.split('·').map(s => s.trim());
+              return parts.length === 2 ? (
+                <>
+                  <span>{parts[0]}</span>
+                  <span className="landing-hero__availability-dot" aria-hidden="true">•</span>
+                  <span>{parts[1]}</span>
+                </>
+              ) : <span>{location}</span>;
+            })()}
           </p>
         </div>
 
@@ -308,9 +316,17 @@ export default function LandingInteractiveHero({
           display: inline-block;
         }
 
+        .landing-hero__availability-dot {
+          font-size: 1.35em;
+          line-height: 1;
+          opacity: 0.7;
+          margin: 0 0.15rem;
+          vertical-align: middle;
+        }
+
         .landing-hero__heading {
           margin: 0;
-          font: 640 clamp(2.8rem, 6.5vw, 6.2rem)/0.92 var(--font-display, sans-serif);
+          font: 700 clamp(2.8rem, 6.5vw, 6.2rem)/0.88 var(--font-display, sans-serif);
           letter-spacing: -0.055em;
           color: var(--pop-cream, #fff8e8);
           text-wrap: balance;
@@ -319,7 +335,7 @@ export default function LandingInteractiveHero({
         .landing-hero__statement {
           max-width: 46rem;
           margin: 0;
-          font: 520 clamp(1.2rem, 2vw, 1.85rem)/1.3 var(--font-display, sans-serif);
+          font: 520 clamp(1.2rem, 2vw, 1.85rem)/1.45 var(--font-display, sans-serif);
           letter-spacing: -0.02em;
           color: var(--pop-cream, #fff8e8);
           text-wrap: pretty;

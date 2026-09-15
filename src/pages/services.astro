@@ -35,8 +35,8 @@ const punctumWalkthroughSlide = punctumProject
       id: "punctum-walkthrough",
       category: "Human attention analysis",
       outcome: "Interactive web application",
-      heroImage: "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/gif/punctum-walkthrough-abodid-shorter-duration.gif",
-      image: "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/gif/punctum-walkthrough-abodid-shorter-duration.gif",
+      video: "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/video-clips/punctum_thumbnail_video.mp4",
+      image: "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/video-clips/punctum_thumbnail_video.mp4",
       alt: "Animated walkthrough of the Punctum human-attention research prototype",
     }
   : undefined;
@@ -1372,10 +1372,15 @@ const structuredData = [
     .story-footer__social a { transition-duration: .01ms !important; }
   }
   .story-enquiry {
+    --type-h2-color: #ffffff;
     padding-block: clamp(4rem, 6.5vw, 7rem);
     padding-inline: clamp(1rem, 6vw, 6rem);
     background: var(--services-purple, #5524c7);
     color: var(--services-cream, #fff8e8);
+  }
+  .story-enquiry h2,
+  .story-enquiry :global(h2) {
+    color: #ffffff !important;
   }
   .story-enquiry .inline-enquiry__intro > p:not(.inline-enquiry__eyebrow),
   .story-enquiry .inline-enquiry__intro > a,

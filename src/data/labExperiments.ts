@@ -1,4 +1,8 @@
 import { getPublishedLabProjects } from "../lib/portfolio/services.js";
+import {
+  PUNCTUM_WALKTHROUGH_VIDEO_URL,
+  OBSIDIAN_VAULT_THUMBNAIL_VIDEO_URL,
+} from "../lib/mediaAssets";
 
 export type LabExperiment = {
   id: string;
@@ -57,25 +61,44 @@ export async function getLabExperiments(): Promise<LabExperiment[]> {
     return projects.map((project: any, position: number) => {
       const destination = projectDestination(project);
       const settings = catalogueSettings(project);
-      const surface = ["pink", "blue", "yellow", "cream", "lime"].includes(settings.catalogueSurface)
-        ? settings.catalogueSurface
-        : "cream";
-      const cardVariant = settings.catalogueVariant === "vault-tags" ? "vault-tags" : "media";
+      const isSecondBrain = project.slug === "second-brain";
+      const surface = isSecondBrain
+        ? "yellow"
+        : ["pink", "blue", "yellow", "cream", "lime"].includes(settings.catalogueSurface)
+          ? settings.catalogueSurface
+          : "cream";
+      const cardVariant = isSecondBrain
+        ? "media"
+        : settings.catalogueVariant === "vault-tags"
+          ? "vault-tags"
+          : "media";
       const isVideo = /\.(mp4|webm|ogg)(?:\?|$)/i.test(project.coverUrl || "");
+
+      const video = isSecondBrain
+        ? OBSIDIAN_VAULT_THUMBNAIL_VIDEO_URL
+        : project.slug === "punctum"
+          ? PUNCTUM_WALKTHROUGH_VIDEO_URL
+          : isVideo
+            ? project.coverUrl
+            : undefined;
 
       return {
         id: project.slug,
         index: String(position + 1).padStart(2, "0"),
-        title: project.title,
-        description: project.oneLineDescription,
+        title: isSecondBrain ? "Obsidian Vault" : project.title,
+        description: isSecondBrain
+          ? "A public, interactive interface for my local Obsidian vault, synced through GitHub with tag filtering, SEO-friendly shareable notes, and an AI-powered RAG pipeline for semantic search across my knowledge base."
+          : project.oneLineDescription,
         discipline: projectDiscipline(project),
         status: project.outcomeText || (project.workInProgress ? "Prototype" : "Live"),
         year: String(project.yearStart || ""),
         href: destination.href,
         destinationLabel: destination.label,
         thumbnail: project.coverUrl,
-        video: isVideo ? project.coverUrl : undefined,
-        thumbnailAlt: project.coverAlt || `${project.title} experiment preview`,
+        video,
+        thumbnailAlt: isSecondBrain
+          ? "Obsidian Vault notes and knowledge system preview"
+          : project.coverAlt || `${project.title} experiment preview`,
         surface,
         cardVariant,
         previewHeading: catalogueText(project, "previewHeading"),
@@ -87,3 +110,4 @@ export async function getLabExperiments(): Promise<LabExperiment[]> {
     return [];
   }
 }
+

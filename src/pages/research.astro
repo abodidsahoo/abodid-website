@@ -61,12 +61,6 @@ const structuredData = [
       </aside>
     </section>
 
-    <dl class="rp-panel rp-metadata" aria-label="Research practice overview">
-      <div><dt>Focus</dt><dd>Memory · Grief · Archives</dd></div>
-      <div><dt>Method</dt><dd>Autoethnography</dd></div>
-      <div><dt>Medium</dt><dd>Image · Text · Video</dd></div>
-    </dl>
-
     <section class="rp-panel rp-projects" id="projects" aria-labelledby="projects-heading">
       <h2 class="rp-section-heading" id="projects-heading">Research Projects</h2>
       <div class="rp-grid">
@@ -74,7 +68,6 @@ const structuredData = [
           <a class="rp-card" data-accent={project.accent} href={`/research/${project.slug}`}>
             <div class="rp-card__media">
               <img src={project.images[0].src} alt={project.images[0].alt} loading={index < 2 ? "eager" : "lazy"} decoding="async" />
-              <span class="rp-card__index">{String(index + 1).padStart(2, "0")}</span>
             </div>
             <div class="rp-card__copy">
               <span class="rp-card__role">{project.role}</span>

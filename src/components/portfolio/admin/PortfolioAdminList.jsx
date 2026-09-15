@@ -36,7 +36,6 @@ function ProjectRow({ project, disabled }) {
           <p>{project.draft?.one_line_description || "No proposition yet"}</p>
         </div>
         <span className={`project-status status-${project.status}`}>{project.status === "wip" ? "Published · WIP" : project.status}</span>
-        <div className="admin-project-dates"><span>Saved {formatDate(project.draft?.updated_at)}</span><span>Published {formatDate(project.published?.published_at)}</span></div>
         <span className="admin-project-edit-cue" aria-hidden="true">View / Edit <span>→</span></span>
       </a>
       {project.status !== "archived" && <button type="button" className="admin-project-archive" data-archive={project.id}>Archive</button>}
