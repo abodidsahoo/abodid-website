@@ -6,15 +6,15 @@ import { isRequestAuthenticated } from '../lib/opportunities/auth';
 import '../styles/portfolio-pop-editorial.css';
 import '../styles/opportunities-editorial.css';
 
-const title = 'Opportunity Desk · Field Radar';
-const description = 'Personal field radar, grant tracker, and deadline chronicles.';
+const title = 'Curated Opportunities · Abodid Sahoo';
+const description = 'Curated artist residencies, grants, fellowships, and creative tech open calls.';
 const isAuth = isRequestAuthenticated(Astro.request, Astro.cookies);
 ---
 
 <BaseLayout
     title={title}
     description={description}
-    noindex={true}
+    noindex={false}
     fullWidth={true}
     showGlobalGrid={false}
     bodyClass="opportunities-editorial-page"

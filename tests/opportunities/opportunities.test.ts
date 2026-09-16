@@ -203,4 +203,109 @@ describe('Opportunity Assistant Core Functionality', () => {
             expect(formatted).toContain('5 days');
         });
     });
+
+    describe('Eligibility Extraction & Validation', () => {
+        it('rejects junk time/pagination numbers like 00-10 or opening hours', async () => {
+            const { extractEligibility } = await import('../../src/lib/opportunities/ui-helpers');
+            const oppWithJunk: Opportunity = {
+                id: 'test',
+                title: 'SAM Residencies Open Call',
+                organisation: 'Singapore Art Museum',
+                category: 'residency',
+                source_url: 'https://singaporeartmuseum.org',
+                canonical_url: 'https://singaporeartmuseum.org',
+                deadline_at: null,
+                deadline_raw: null,
+                deadline_timezone: null,
+                deadline_confidence: 'none',
+                event_date: null,
+                location: 'Singapore',
+                requirements: ['Hours: 10:00 - 19:00', 'Doc ref: 00-10', 'Portfolio of 10 works'],
+                next_action: null,
+                application_url: null,
+                meeting_url: null,
+                fee_or_funding: null,
+                summary: 'Residency cycle 00-10 at SAM studios.',
+                status: 'inbox',
+                outcome: null,
+                created_at: '',
+                updated_at: '',
+                extracted_at: '',
+                source_hash: null,
+                llm_model: null,
+                llm_extraction_count: 0,
+                notes: null,
+            };
+
+            const tags = extractEligibility(oppWithJunk);
+            expect(tags).not.toContain('00-10');
+            expect(tags).not.toContain('Age 00-10');
+            expect(tags).toContain('Singapore only');
+        });
+
+        it('correctly extracts valid age ranges and career stages', async () => {
+            const { extractEligibility } = await import('../../src/lib/opportunities/ui-helpers');
+            const opp: Opportunity = {
+                id: 'test2',
+                title: 'Emerging Filmmaker Grant',
+                organisation: 'Film Foundation',
+                category: 'grant',
+                source_url: 'https://filmfoundation.org',
+                canonical_url: 'https://filmfoundation.org',
+                deadline_at: null,
+                deadline_raw: null,
+                deadline_timezone: null,
+                deadline_confidence: 'none',
+                event_date: null,
+                location: 'UK',
+                requirements: ['Applicants must be aged 18 to 35', 'Early-career artists only'],
+                next_action: null,
+                application_url: null,
+                meeting_url: null,
+                fee_or_funding: null,
+                summary: 'Grant for early career filmmakers.',
+                status: 'inbox',
+                outcome: null,
+                created_at: '',
+                updated_at: '',
+                extracted_at: '',
+                source_hash: null,
+                llm_model: null,
+                llm_extraction_count: 0,
+                notes: null,
+            };
+
+            const tags = extractEligibility(opp);
+            expect(tags).toContain('Age 18–35');
+            expect(tags).toContain('Early Career');
+            expect(tags).toContain('UK residents');
+        });
+    });
+
+    describe('Smart Title Normalization & Formatting', () => {
+        it('normalizes shouting ALL-CAPS titles into clean Title Case while preserving hyphens and years', async () => {
+            const { formatOpportunityTitle } = await import('../../src/lib/opportunities/ui-helpers');
+            
+            const raw1 = 'RESEARCH-CREATION RESIDENCY PROGRAM IN ARTS & TECHNOLOGIES – 2027-28';
+            expect(formatOpportunityTitle(raw1)).toBe('Research-Creation Residency Program in Arts & Technologies – 2027-28');
+
+            const raw2 = 'SAM RESIDENCIES OPEN CALL 2026';
+            expect(formatOpportunityTitle(raw2)).toBe('SAM Residencies Open Call 2026');
+
+            const raw3 = 'CALL FOR AI AND VR ARTISTS - LONDON';
+            expect(formatOpportunityTitle(raw3)).toBe('Call for AI and VR Artists - London');
+
+            const raw4 = 'INTERNATIONAL FELLOWSHIP IN ART & TECHNOLOGY (MIT)';
+            expect(formatOpportunityTitle(raw4)).toBe('International Fellowship in Art & Technology (MIT)');
+        });
+
+        it('preserves already natural casing without modification', async () => {
+            const { formatOpportunityTitle } = await import('../../src/lib/opportunities/ui-helpers');
+            
+            const normal = 'Mozilla Technology Fund: Open Call for AI Builders';
+            expect(formatOpportunityTitle(normal)).toBe('Mozilla Technology Fund: Open Call for AI Builders');
+        });
+    });
 });
+
+

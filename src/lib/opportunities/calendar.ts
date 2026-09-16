@@ -1,4 +1,5 @@
 import type { Opportunity } from './types';
+import { formatOpportunityTitle } from './ui-helpers';
 
 /**
  * Formats a Date object to iCalendar UTC string format: YYYYMMDDTHHmmssZ
@@ -33,10 +34,11 @@ export function generateIcsFile(opp: Opportunity, mode: 'deadline' | 'event' = '
     const endStr = formatIcsDate(endDate);
 
     const titlePrefix = isDeadline ? '[DEADLINE]' : '[EVENT]';
-    const summary = `${titlePrefix} ${opp.title} (${opp.organisation})`;
+    const cleanTitle = formatOpportunityTitle(opp.title);
+    const summary = `${titlePrefix} ${cleanTitle} (${opp.organisation})`;
 
     const descriptionLines = [
-        `Opportunity: ${opp.title}`,
+        `Opportunity: ${cleanTitle}`,
         `Organisation: ${opp.organisation}`,
         `Category: ${opp.category}`,
         opp.next_action ? `Next Action: ${opp.next_action}` : '',
@@ -94,7 +96,8 @@ export function generateGoogleCalendarUrl(opp: Opportunity, mode: 'deadline' | '
     const endStr = formatIcsDate(endDate);
 
     const titlePrefix = isDeadline ? '[DEADLINE]' : '[EVENT]';
-    const title = `${titlePrefix} ${opp.title} (${opp.organisation})`;
+    const cleanTitle = formatOpportunityTitle(opp.title);
+    const title = `${titlePrefix} ${cleanTitle} (${opp.organisation})`;
 
     const details = [
         opp.next_action ? `Next Action: ${opp.next_action}` : '',

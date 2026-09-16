@@ -76,6 +76,7 @@ export interface Opportunity {
     llm_model: string | null;
     llm_extraction_count: number;
     notes: string | null;
+    priority?: number; // 1 = low, 2 = medium, 3 = high
 }
 
 export const LLMExtractionOutputSchema = z.object({

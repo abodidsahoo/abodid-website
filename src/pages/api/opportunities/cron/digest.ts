@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { isCronAuthenticated } from '../../../../lib/opportunities/auth';
-import { sendDailyMorningDigest } from '../../../../lib/opportunities/reminders';
+import { sendNightlyClosestDeadlineDigest } from '../../../../lib/opportunities/reminders';
 
 export const prerender = false;
 
@@ -13,10 +13,12 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     try {
-        const result = await sendDailyMorningDigest();
+        const result = await sendNightlyClosestDeadlineDigest();
         return new Response(JSON.stringify({
             success: result.success,
-            items_summarized: result.count,
+            opportunity_title: result.oppTitle,
+            deadline: result.deadlineFormatted,
+            recipient: result.recipient,
             error: result.error,
             timestamp: new Date().toISOString(),
         }), {

@@ -3,24 +3,52 @@ import { LLMExtractionOutputSchema, type LLMExtractionOutput, type DeadlineConfi
 const DEFAULT_MODEL = import.meta.env.OPENROUTER_OPPORTUNITIES_MODEL || process.env.OPENROUTER_OPPORTUNITIES_MODEL || 'google/gemini-2.5-flash';
 const FALLBACK_MODEL = 'openai/gpt-4o-mini';
 
-const EXTRACTION_SYSTEM_PROMPT = `You are a precise opportunity parser for creative technologists, researchers, designers, and developers.
+const EXTRACTION_SYSTEM_PROMPT = `You are a precise, intelligent opportunity parser for creative technologists, artists, researchers, designers, and engineers.
 
-Extract this opportunity into JSON.
+Your task is to analyze the provided webpage text and logically segregate the information into accurate, structured JSON fields for database storage.
 
-Return only:
-title, organisation, category, deadline, timezone, event_date, location, requirements, next_action, application_url, meeting_url, fee_or_funding, summary.
+FIELD EXTRACTION GUIDELINES:
+1. title (string, required):
+   - The clean, proper name of the opportunity (e.g. "SAM Residencies Open Call 2026", "Creative Fellowship", "AI Art Grant").
+   - Strip out website navigation junk, breadcrumbs, social counters, or raw URLs.
 
-category must be one of:
-job, open_call, residency, conference, event, grant, fellowship, other.
+2. organisation (string, required):
+   - The host foundation, institution, museum, or company offering the opportunity (e.g. "Singapore Art Museum", "Sundance Institute", "Mozilla").
 
-requirements must be a short array containing only actual submission or attendance requirements.
+3. category (string, required):
+   - Must be strictly one of: "grant", "residency", "fellowship", "open_call", "job", "conference", "event", "other".
 
-next_action must be one short concrete action describing what I should do first.
+4. deadline (string | null):
+   - The application / submission deadline timestamp or date (e.g. "2026-10-15T23:59:00Z" or "October 15, 2026").
+   - Set to "rolling" if it is open year-round without a fixed cutoff.
+   - Do NOT confuse application deadlines with residency operating dates, exhibition dates, or office hours.
 
-summary must be maximum 25 words.
+5. timezone (string | null):
+   - Timezone for the deadline (e.g. "SGT", "EST", "CET", "UTC", "Asia/Singapore"). Null if not stated.
 
-Never guess dates, URLs, requirements, timezone or eligibility. Use null when unclear.
-Format output as strict JSON.`;
+6. event_date (string | null):
+   - The dates when the residency, fellowship, conference, or job actually takes place (e.g. "March 2027 – August 2027").
+
+7. location (string | null):
+   - Host city and country (e.g. "Singapore", "Berlin, Germany", "Online / Remote").
+
+8. requirements (array of strings):
+   - Clean, actionable submission prerequisites (e.g. ["Portfolio (max 10 images/video links)", "Project proposal (500 words)", "CV / Artist Bio", "Artist statement"]).
+   - Filter out random numbers, time ranges, website navigation indices, or contact phone numbers.
+
+9. next_action (string | null):
+   - One short, concrete next step for the applicant (e.g. "Prepare 500-word proposal draft", "Review guidelines & download application PDF").
+
+10. application_url (string | null):
+    - Direct URL to the submission portal (Google Form, Submittable, Typeform, or portal link) if distinct from the main page.
+
+11. fee_or_funding (string | null):
+    - Clean financial summary (e.g. "SGD 5,000/month stipend + studio + housing provided", "USD 10,000 production grant", "Free application").
+
+12. summary (string, required):
+    - Concise 1-2 sentence overview (max 30 words) summarizing who this is for and what benefits are provided.
+
+Never guess dates or requirements. If a field is not present or unclear, use null. Output strict JSON only.`;
 
 export interface ParsedDeadline {
     deadline_at: string | null;

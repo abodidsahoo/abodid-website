@@ -8,6 +8,7 @@ import {
 } from '../../../lib/opportunities/auth';
 import { canonicalizeUrl, computeContentHash, fetchWebpageContent, cleanHtmlToText } from '../../../lib/opportunities/scraper';
 import { extractOpportunityWithLLM, parseDeadline, parseEventDate } from '../../../lib/opportunities/extractor';
+import { formatOpportunityTitle } from '../../../lib/opportunities/ui-helpers';
 import { createSupabaseServiceClient } from '../../../lib/supabaseServer';
 import type { Opportunity } from '../../../lib/opportunities/types';
 
@@ -152,8 +153,9 @@ export const POST: APIRoute = async ({ request, cookies, clientAddress }) => {
         const parsedEventDate = parseEventDate(llmData.event_date);
 
         // 8. Insert record into Supabase
+        const rawExtractedTitle = llmData.title || pageTitle || 'Untitled Opportunity';
         const newRecord = {
-            title: llmData.title || pageTitle || 'Untitled Opportunity',
+            title: formatOpportunityTitle(rawExtractedTitle),
             organisation: llmData.organisation || 'Unknown Organisation',
             category: llmData.category || 'other',
             source_url: url.trim(),
@@ -171,6 +173,7 @@ export const POST: APIRoute = async ({ request, cookies, clientAddress }) => {
             fee_or_funding: llmData.fee_or_funding || null,
             summary: llmData.summary || null,
             status: 'inbox',
+            priority: 1,
             outcome: null,
             source_hash: sourceHash,
             llm_model: usedModel,

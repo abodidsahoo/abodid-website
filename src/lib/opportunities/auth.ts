@@ -4,22 +4,44 @@ import crypto from 'node:crypto';
 export const COOKIE_NAME = 'opp_session';
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 30; // 30 days
 
+function cleanEnvVar(val: any): string | null {
+    if (!val || typeof val !== 'string') return null;
+    const cleaned = val.trim().replace(/^["']|["']$/g, '');
+    return cleaned.length > 0 ? cleaned : null;
+}
+
 function getSecretKey(): string {
-    return (
-        import.meta.env.OPPORTUNITIES_SESSION_SECRET ||
-        process.env.OPPORTUNITIES_SESSION_SECRET ||
-        import.meta.env.OPPORTUNITIES_PASSWORD ||
-        process.env.OPPORTUNITIES_PASSWORD ||
-        'fallback-opportunities-secret-key-2026'
-    );
+    const secret =
+        cleanEnvVar(import.meta.env?.OPPORTUNITIES_SESSION_SECRET) ||
+        cleanEnvVar(process.env?.OPPORTUNITIES_SESSION_SECRET) ||
+        cleanEnvVar(import.meta.env?.OPPORTUNITY_SESSION_SECRET) ||
+        cleanEnvVar(process.env?.OPPORTUNITY_SESSION_SECRET) ||
+        cleanEnvVar(import.meta.env?.OPPORTUNITIES_PASSWORD) ||
+        cleanEnvVar(process.env?.OPPORTUNITIES_PASSWORD) ||
+        cleanEnvVar(import.meta.env?.OPPORTUNITY_PASSWORD) ||
+        cleanEnvVar(process.env?.OPPORTUNITY_PASSWORD) ||
+        cleanEnvVar(import.meta.env?.opportunity_password) ||
+        cleanEnvVar(process.env?.opportunity_password) ||
+        cleanEnvVar(import.meta.env?.opportunities_password) ||
+        cleanEnvVar(process.env?.opportunities_password);
+
+    return secret || 'fallback-opportunities-secret-key-2026';
 }
 
 export function getExpectedPassword(): string | null {
-    return (
-        import.meta.env.OPPORTUNITIES_PASSWORD ||
-        process.env.OPPORTUNITIES_PASSWORD ||
-        (import.meta.env.DEV ? 'admin' : null)
-    );
+    const pass =
+        cleanEnvVar(import.meta.env?.OPPORTUNITIES_PASSWORD) ||
+        cleanEnvVar(process.env?.OPPORTUNITIES_PASSWORD) ||
+        cleanEnvVar(import.meta.env?.OPPORTUNITY_PASSWORD) ||
+        cleanEnvVar(process.env?.OPPORTUNITY_PASSWORD) ||
+        cleanEnvVar(import.meta.env?.opportunity_password) ||
+        cleanEnvVar(process.env?.opportunity_password) ||
+        cleanEnvVar(import.meta.env?.opportunities_password) ||
+        cleanEnvVar(process.env?.opportunities_password) ||
+        cleanEnvVar(import.meta.env?.CURATOR_PASSWORD) ||
+        cleanEnvVar(process.env?.CURATOR_PASSWORD);
+
+    return pass;
 }
 
 export function getCronSecret(): string | null {

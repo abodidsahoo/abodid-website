@@ -5,8 +5,8 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
  * Never import this helper into browser components: the service-role key bypasses RLS.
  */
 export const createSupabaseServiceClient = (): SupabaseClient | null => {
-    const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL || process.env.PUBLIC_SUPABASE_URL;
-    const serviceRoleKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabaseUrl = (typeof import.meta !== 'undefined' && import.meta.env?.PUBLIC_SUPABASE_URL) || process.env.PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+    const serviceRoleKey = (typeof import.meta !== 'undefined' && import.meta.env?.SUPABASE_SERVICE_ROLE_KEY) || process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
 
     if (!supabaseUrl || !serviceRoleKey) return null;
 

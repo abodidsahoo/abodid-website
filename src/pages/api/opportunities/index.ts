@@ -3,18 +3,13 @@ import { isRequestAuthenticated } from '../../../lib/opportunities/auth';
 import { createSupabaseServiceClient } from '../../../lib/supabaseServer';
 import { canonicalizeUrl } from '../../../lib/opportunities/scraper';
 import { parseDeadline, parseEventDate } from '../../../lib/opportunities/extractor';
+import { formatOpportunityTitle } from '../../../lib/opportunities/ui-helpers';
 import type { Opportunity } from '../../../lib/opportunities/types';
 
 export const prerender = false;
 
 export const GET: APIRoute = async ({ request, cookies }) => {
-    if (!isRequestAuthenticated(request, cookies)) {
-        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-            status: 401,
-            headers: { 'Content-Type': 'application/json' },
-        });
-    }
-
+    const isAuth = isRequestAuthenticated(request, cookies);
     const supabase = createSupabaseServiceClient();
     if (!supabase) {
         return new Response(JSON.stringify({ error: 'Database service unavailable' }), {
@@ -23,9 +18,13 @@ export const GET: APIRoute = async ({ request, cookies }) => {
         });
     }
 
-    const { data: opportunities, error } = await supabase
-        .from('opportunities')
-        .select('*');
+    let query = supabase.from('opportunities').select('*');
+    if (!isAuth) {
+        // Public visitors see all active curated opportunities (excluding dismissed)
+        query = query.neq('status', 'dismissed');
+    }
+
+    const { data: opportunities, error } = await query;
 
     if (error) {
         return new Response(JSON.stringify({ error: error.message }), {
@@ -140,7 +139,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         }
 
         const newRecord = {
-            title: title.trim(),
+            title: formatOpportunityTitle(title.trim()),
             organisation: (organisation || 'Independent / Direct').trim(),
             category,
             source_url: source_url.trim(),
@@ -158,6 +157,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
             fee_or_funding: fee_or_funding || null,
             summary: summary || null,
             status,
+            priority: Math.min(3, Math.max(1, Number(body.priority) || 1)),
             outcome: null,
             source_hash: null,
             llm_model: 'manual',

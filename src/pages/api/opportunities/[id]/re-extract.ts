@@ -3,6 +3,7 @@ import { isRequestAuthenticated } from '../../../../lib/opportunities/auth';
 import { createSupabaseServiceClient } from '../../../../lib/supabaseServer';
 import { fetchWebpageContent, computeContentHash } from '../../../../lib/opportunities/scraper';
 import { extractOpportunityWithLLM, parseDeadline, parseEventDate } from '../../../../lib/opportunities/extractor';
+import { formatOpportunityTitle } from '../../../../lib/opportunities/ui-helpers';
 import type { Opportunity } from '../../../../lib/opportunities/types';
 
 export const prerender = false;
@@ -66,7 +67,7 @@ export const POST: APIRoute = async ({ params, request, cookies }) => {
         const currentCount = existing.llm_extraction_count || 1;
 
         const updates = {
-            title: llmData.title || existing.title,
+            title: formatOpportunityTitle(llmData.title || existing.title),
             organisation: llmData.organisation || existing.organisation,
             category: llmData.category || existing.category,
             deadline_at: parsedDeadline.deadline_at,

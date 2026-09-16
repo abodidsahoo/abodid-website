@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { isRequestAuthenticated } from '../../../lib/opportunities/auth';
 import { createSupabaseServiceClient } from '../../../lib/supabaseServer';
 import { parseDeadline, parseEventDate } from '../../../lib/opportunities/extractor';
+import { formatOpportunityTitle } from '../../../lib/opportunities/ui-helpers';
 
 export const prerender = false;
 
@@ -33,7 +34,7 @@ export const PATCH: APIRoute = async ({ params, request, cookies }) => {
 
         const updates: Record<string, any> = {};
 
-        if (body.title !== undefined) updates.title = body.title;
+        if (body.title !== undefined) updates.title = formatOpportunityTitle(body.title);
         if (body.organisation !== undefined) updates.organisation = body.organisation;
         if (body.category !== undefined) updates.category = body.category;
         if (body.status !== undefined) updates.status = body.status;
@@ -45,6 +46,7 @@ export const PATCH: APIRoute = async ({ params, request, cookies }) => {
         if (body.summary !== undefined) updates.summary = body.summary;
         if (body.location !== undefined) updates.location = body.location;
         if (body.notes !== undefined) updates.notes = body.notes;
+        if (body.priority !== undefined) updates.priority = Math.min(3, Math.max(1, Number(body.priority) || 1));
 
         if (body.requirements !== undefined) {
             updates.requirements = Array.isArray(body.requirements)

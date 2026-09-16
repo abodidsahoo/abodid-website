@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS public.opportunities (
     source_hash TEXT,
     llm_model TEXT,
     llm_extraction_count INTEGER NOT NULL DEFAULT 1,
+    priority INTEGER NOT NULL DEFAULT 1 CHECK (priority IN (1, 2, 3)),
     notes TEXT
 );
 

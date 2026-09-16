@@ -188,5 +188,15 @@
       "destination": "/obsidian-vault/:path*",
       "permanent": true
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/opportunities/cron/digest",
+      "schedule": "0 21 * * *"
+    },
+    {
+      "path": "/api/opportunities/cron/reminders",
+      "schedule": "0 */4 * * *"
+    }
   ]
 }
