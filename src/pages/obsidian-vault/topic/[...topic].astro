@@ -48,7 +48,7 @@ Astro.response.headers.set(
     "Cache-Control",
     import.meta.env.DEV
         ? "no-cache, no-store, must-revalidate"
-        : "public, max-age=60, s-maxage=300, stale-while-revalidate=86400",
+        : "public, max-age=60, s-maxage=31536000, stale-while-revalidate=31536000",
 );
 
 const isIndexable = notes.length >= 3;

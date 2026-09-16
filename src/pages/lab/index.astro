@@ -3,6 +3,14 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import LabExperimentCards from "../../components/lab/LabExperimentCards.astro";
 
 export const prerender = false;
+
+// Vercel purges CDN caches on every deployment, so s-maxage can be very high.
+// Lab experiments only change when you update your portfolio and redeploy.
+// max-age=60 is kept short because browser caches are NOT purged on deploy.
+Astro.response.headers.set(
+  "Cache-Control",
+  "public, max-age=60, s-maxage=31536000, stale-while-revalidate=31536000"
+);
 ---
 
 <BaseLayout

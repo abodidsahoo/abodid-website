@@ -245,7 +245,7 @@ Astro.response.headers.set(
         ? "no-cache, no-store, must-revalidate"
         : fromVaultSearchId
             ? "private, no-store"
-            : "public, max-age=60, s-maxage=300, stale-while-revalidate=86400",
+            : "public, max-age=60, s-maxage=31536000, stale-while-revalidate=31536000",
 );
 
 const routeSlug = slug.replace(/\.md$/i, "");

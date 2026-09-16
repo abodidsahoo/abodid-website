@@ -4,7 +4,7 @@ import { findNotesReferencing } from "../../lib/vault";
 import { findIndexedNotesByWikiLink } from "../../lib/vault-note-index.js";
 import { vaultNoteHref } from "../../lib/vault-paths.js";
 
-const CACHE_CONTROL = "public, max-age=60, s-maxage=300, stale-while-revalidate=86400";
+const CACHE_CONTROL = "public, max-age=60, s-maxage=31536000, stale-while-revalidate=31536000";
 
 function serializeLegacyNotes(notes) {
     return notes.map((note) => {

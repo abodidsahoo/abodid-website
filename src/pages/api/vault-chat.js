@@ -249,12 +249,9 @@ export async function POST({ request }) {
   try {
     const supabase = createSupabaseServiceClient();
 
-    const { error: readinessError } = await supabase
-      .from("obsidian_chunks")
-      .select("id")
-      .limit(1);
-
-    if (readinessError) throw readinessError;
+    // NOTE: No readiness ping here. The vector RPC call below throws if the DB
+    // is unreachable, and the outer catch handles it. A separate ping was an
+    // extra Supabase round-trip on every question with no additional signal.
 
     const rewriteResult = rewriteEnabled
       ? await rewriteVaultSearchQuery({

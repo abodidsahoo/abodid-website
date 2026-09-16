@@ -34,7 +34,8 @@ export const GET = async () => {
     return new Response(JSON.stringify(allPhotos), {
         status: 200,
         headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "Cache-Control": "public, max-age=60, s-maxage=31536000, stale-while-revalidate=31536000",
         }
     });
 };

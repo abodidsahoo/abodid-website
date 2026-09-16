@@ -1,5 +1,11 @@
 ---
 export const prerender = false;
+
+Astro.response.headers.set(
+    "Cache-Control",
+    "public, max-age=60, s-maxage=31536000, stale-while-revalidate=31536000"
+);
+
 import ExperimentLayout from "../../../layouts/ExperimentLayout.astro";
 import GestureImagePreviewLab from "../../../components/experiments/GestureImagePreviewLab.jsx";
 import ForceDarkMode from "../../../components/ForceDarkMode.astro";

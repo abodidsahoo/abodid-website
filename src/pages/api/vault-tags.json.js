@@ -55,11 +55,16 @@ export async function GET({ request }) {
             });
         }
 
-        // No Cache-Control header for real-time gamification
+        // Cache aggressively: Vercel purges CDN on every deploy, so s-maxage can
+        // be very high. The browser cache (max-age) is kept at 1 hour because
+        // browser caches are NOT purged on deploy. The floating-tag animation works
+        // identically with a slightly stale pool, and the static fallback covers
+        // any gap.
         return new Response(JSON.stringify(tags), {
             status: 200,
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "Cache-Control": "public, max-age=3600, s-maxage=31536000, stale-while-revalidate=31536000",
             }
         });
 
