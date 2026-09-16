@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const resultBox = document.getElementById('result-box');
     const resultCat = document.getElementById('result-category');
     const resultDeadline = document.getElementById('result-deadline');
+    const viewDashboardLink = document.getElementById('view-dashboard-link');
     const settingsToggle = document.getElementById('settings-toggle');
     const settingsPane = document.getElementById('settings-pane');
     const mainPane = document.getElementById('main-pane');
@@ -21,11 +22,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     apiUrlInput.value = apiUrl;
     apiKeyInput.value = apiKey;
 
+    if (viewDashboardLink) {
+        viewDashboardLink.href = `${apiUrl.replace(/\/$/, '')}/opportunities`;
+    }
+
     // 2. Query active tab
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!tab || !tab.url) {
         pageTitleEl.textContent = 'Cannot capture this tab';
-        pageUrlEl.textContent = 'Restricted page or chrome:// URL';
+        pageUrlEl.textContent = 'Restricted page or browser URL';
         saveBtn.disabled = true;
         return;
     }
@@ -43,8 +48,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         const newUrl = apiUrlInput.value.trim().replace(/\/$/, '');
         const newKey = apiKeyInput.value.trim();
         await chrome.storage.local.set({ apiUrl: newUrl, apiKey: newKey });
+        if (viewDashboardLink) {
+            viewDashboardLink.href = `${newUrl}/opportunities`;
+        }
         settingsMsg.textContent = 'Settings saved ✓';
-        settingsMsg.style.color = '#15130f';
+        settingsMsg.style.color = '#047857';
         setTimeout(() => {
             settingsMsg.textContent = '';
             settingsPane.classList.add('hidden');
@@ -65,7 +73,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const [execResult] = await chrome.scripting.executeScript({
                     target: { tabId: tab.id },
                     func: () => {
-                        // Extract visible text without scripts or hidden elements
                         const clone = document.body.cloneNode(true);
                         const badElements = clone.querySelectorAll('script, style, noscript, svg, nav, footer, header, .cookie-banner');
                         badElements.forEach(el => el.remove());
@@ -107,23 +114,35 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (!response.ok) {
                 if (response.status === 401) {
-                    throw new Error('Unauthorized: Click ⚙️ to set your API passphrase');
+                    throw new Error('Unauthorized: Click ⚙️ to set your Curator passcode');
                 }
                 throw new Error(data.error || `Server error (HTTP ${response.status})`);
             }
 
-            // Success: Display strictly Saved ✓, Category, Deadline
+            // Success: Populate clean result view
             const opp = data.opportunity;
             resultCat.textContent = opp.category ? opp.category.replace('_', ' ') : 'Other';
 
-            let deadlineDisplay = 'Deadline Unknown';
+            let deadlineDisplay = 'Unspecified';
             if (opp.deadline_confidence === 'rolling') {
-                deadlineDisplay = 'Rolling';
+                deadlineDisplay = '🔄 Rolling Deadline';
             } else if (opp.deadline_at) {
-                const diffDays = Math.ceil((new Date(opp.deadline_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-                if (diffDays <= 0) deadlineDisplay = 'Today / Expired';
-                else if (diffDays === 1) deadlineDisplay = 'Tomorrow';
-                else deadlineDisplay = `Closes in ${diffDays} days (${new Date(opp.deadline_at).toLocaleDateString()})`;
+                const deadlineDate = new Date(opp.deadline_at);
+                const diffMs = deadlineDate.getTime() - Date.now();
+                const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+                const formattedDate = deadlineDate.toLocaleDateString('en-GB', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric',
+                });
+
+                if (diffDays <= 0) {
+                    deadlineDisplay = `⚠️ Deadline Passed (${formattedDate})`;
+                } else if (diffDays === 1) {
+                    deadlineDisplay = `⚡ Tomorrow · 1 day left (${formattedDate})`;
+                } else {
+                    deadlineDisplay = `⏱️ ${diffDays} days left · ${formattedDate}`;
+                }
             } else if (opp.deadline_raw) {
                 deadlineDisplay = opp.deadline_raw;
             }
@@ -131,7 +150,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             resultDeadline.textContent = deadlineDisplay;
             resultBox.classList.remove('hidden');
 
-            saveBtn.textContent = 'Saved ✓';
+            saveBtn.textContent = '✓ Saved to Radar';
             saveBtn.disabled = true;
 
         } catch (err) {

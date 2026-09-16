@@ -7,18 +7,22 @@
 </head>
 <body>
   <div class="pop-shell">
-    <div class="pop-header">
-      <span class="pop-brand">OPPORTUNITY CAPTURE</span>
-      <button id="settings-toggle" class="icon-btn" title="Settings">⚙️</button>
-    </div>
+    <header class="pop-header">
+      <div class="pop-brand-wrap">
+        <span class="pop-brand-dot"></span>
+        <span class="pop-brand">OPPORTUNITY RADAR</span>
+      </div>
+      <button id="settings-toggle" class="icon-btn" title="Settings" aria-label="Settings">⚙️</button>
+    </header>
 
     <!-- Settings Pane (hidden by default) -->
     <div id="settings-pane" class="pane hidden">
-      <label class="pop-label">Backend API URL</label>
+      <div class="pane-header">Connection Settings</div>
+      <label class="pop-label" for="api-url">Backend URL</label>
       <input type="url" id="api-url" class="pop-input" placeholder="https://abodid.com" value="https://abodid.com">
       
-      <label class="pop-label">Passphrase / Key</label>
-      <input type="password" id="api-key" class="pop-input" placeholder="Enter password...">
+      <label class="pop-label" for="api-key">Curator Passcode</label>
+      <input type="password" id="api-key" class="pop-input" placeholder="Enter passcode...">
 
       <button id="save-settings" class="pop-btn btn-sm">Save Config</button>
       <div id="settings-msg" class="msg-note"></div>
@@ -32,20 +36,30 @@
       </div>
 
       <button id="save-btn" class="pop-btn btn-primary">
-        ⚡ Save Opportunity
+        ⚡ Capture & Save
       </button>
 
-      <!-- Results Display: Shows only Saved ✓, Category, Deadline -->
+      <!-- Results Display -->
       <div id="result-box" class="result-box hidden">
-        <div class="result-badge">Saved ✓</div>
-        <div class="result-row">
-          <span class="result-label">Category:</span>
-          <span id="result-category" class="result-val">-</span>
+        <div class="result-header">
+          <span class="result-success-badge">✓ Captured & Saved</span>
         </div>
-        <div class="result-row">
-          <span class="result-label">Deadline:</span>
-          <span id="result-deadline" class="result-val">-</span>
+        
+        <div class="result-details">
+          <div class="result-item">
+            <span class="result-item-label">Category</span>
+            <span id="result-category" class="result-category-tag">-</span>
+          </div>
+
+          <div class="result-item">
+            <span class="result-item-label">Deadline</span>
+            <div id="result-deadline" class="result-deadline-val">-</div>
+          </div>
         </div>
+
+        <a id="view-dashboard-link" href="https://abodid.com/opportunities" target="_blank" class="result-view-link">
+          Open Dashboard ↗
+        </a>
       </div>
 
       <div id="status-msg" class="status-msg hidden"></div>
