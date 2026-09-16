@@ -17,11 +17,8 @@
   --opp-shadow: 4px 4px 0px var(--opp-border);
   --opp-shadow-sm: 2px 2px 0px var(--opp-border);
   --opp-shadow-lg: 6px 6px 0px var(--opp-border);
-  --opp-radius: 16px;
-  --opp-radius-sm: 8px;
-  --opp-radius-pill: 9999px;
-  --opp-font: "Satoshi-Variable", "Satoshi-Regular", "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --opp-mono: "Space Mono", "Inconsolata", monospace;
+  --opp-font: "Satoshi-Variable", "Satoshi-Medium", "Satoshi-Regular", "Satoshi", "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --opp-mono: "Satoshi-Variable", "Satoshi-Bold", "Satoshi-Medium", "Satoshi", sans-serif;
 }
 
 html:has(body.opportunities-editorial-page),
@@ -71,10 +68,10 @@ body.opportunities-editorial-page {
 }
 
 .opp-eyebrow {
-  font-family: var(--opp-mono);
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
+  font-family: var(--opp-font);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--opp-purple);
 }
@@ -229,10 +226,11 @@ body.opportunities-editorial-page {
 }
 
 .opp-filter-label {
-  font-family: var(--opp-mono);
-  font-size: 0.72rem;
+  font-family: var(--opp-font);
+  font-size: 0.78rem;
   font-weight: 800;
   text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--opp-muted);
   flex-shrink: 0;
   min-width: 65px;
@@ -318,11 +316,11 @@ body.opportunities-editorial-page {
 }
 
 .opp-category-badge {
-  font-family: var(--opp-mono);
-  font-size: 0.72rem;
+  font-family: var(--opp-font);
+  font-size: 0.74rem;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   padding: 3px 8px;
   border-radius: 6px;
   border: 1.5px solid var(--opp-border);
@@ -339,8 +337,8 @@ body.opportunities-editorial-page {
 .opp-category-badge.other { background: #e5e7eb; }
 
 .opp-deadline-pill {
-  font-family: var(--opp-mono);
-  font-size: 0.78rem;
+  font-family: var(--opp-font);
+  font-size: 0.8rem;
   font-weight: 800;
   padding: 4px 10px;
   border-radius: var(--opp-radius-pill);
@@ -395,10 +393,11 @@ body.opportunities-editorial-page {
 }
 
 .opp-next-action-label {
-  font-family: var(--opp-mono);
-  font-size: 0.68rem;
-  font-weight: 800;
+  font-family: var(--opp-font);
+  font-size: 0.72rem;
+  font-weight: 900;
   text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--opp-ink);
   margin-bottom: 2px;
 }
@@ -421,10 +420,11 @@ body.opportunities-editorial-page {
 }
 
 .opp-needs-label {
-  font-family: var(--opp-mono);
+  font-family: var(--opp-font);
   font-weight: 800;
-  font-size: 0.72rem;
+  font-size: 0.76rem;
   text-transform: uppercase;
+  letter-spacing: 0.03em;
   color: var(--opp-muted);
   margin-right: 4px;
 }
@@ -498,10 +498,11 @@ body.opportunities-editorial-page {
 }
 
 .opp-meta-label {
-  font-family: var(--opp-mono);
-  font-size: 0.68rem;
+  font-family: var(--opp-font);
+  font-size: 0.72rem;
   font-weight: 800;
   text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--opp-muted);
 }
 
@@ -593,10 +594,11 @@ body.opportunities-editorial-page {
 }
 
 .opp-form-label {
-  font-family: var(--opp-mono);
-  font-size: 0.72rem;
+  font-family: var(--opp-font);
+  font-size: 0.78rem;
   font-weight: 800;
   text-transform: uppercase;
+  letter-spacing: 0.03em;
   color: var(--opp-ink);
 }
 
