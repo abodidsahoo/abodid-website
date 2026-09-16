@@ -18,7 +18,7 @@ export function getExpectedPassword(): string | null {
     return (
         import.meta.env.OPPORTUNITIES_PASSWORD ||
         process.env.OPPORTUNITIES_PASSWORD ||
-        null
+        (import.meta.env.DEV ? 'admin' : null)
     );
 }
 
