@@ -31,13 +31,13 @@
       "permanent": true
     },
     {
-      "source": "/:section(about|blog|contact|cv|films|life|manifesto|obsidian-vault|photography|press|research|services|studio|work)",
+      "source": "/:section(about|blog|contact|cv|films|life|manifesto|obsidian-vault|opportunities|photography|press|research|services|studio|work)",
       "has": [{ "type": "host", "value": "lab.abodid.com" }],
       "destination": "https://abodid.com/:section",
       "permanent": true
     },
     {
-      "source": "/:section(about|blog|contact|cv|films|life|manifesto|obsidian-vault|photography|press|research|services|studio|work)/:route*",
+      "source": "/:section(about|blog|contact|cv|films|life|manifesto|obsidian-vault|opportunities|photography|press|research|services|studio|work)/:route*",
       "has": [{ "type": "host", "value": "lab.abodid.com" }],
       "destination": "https://abodid.com/:section/:route*",
       "permanent": true

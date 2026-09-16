@@ -36,6 +36,7 @@ const privatePagePatterns = [
     /^\/paper-renamer\/insights(?:\/|$)/,
     /^\/research\/admin(?:\/|$)/,
     /^\/obsidian-vault(?:\/|$)/,
+    /^\/opportunities(?:\/|$)/,
     /^\/resources\/(?:admin|auth|curator|dashboard|saved|submit)(?:\/|$)/,
     /^\/resources\/.*\/edit\/?$/,
 ];
