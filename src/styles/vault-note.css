@@ -72,7 +72,7 @@ body.vault-note-pop-page .brands-zone {
 
 /* ---------------- Header Region & Metadata (Style 3) ---------------- */
 .vault-note-header {
-    padding-bottom: clamp(1.25rem, 3vw, 1.75rem);
+    padding-bottom: clamp(1.4rem, 3.5vw, 2rem);
     border-bottom: 1px solid var(--pop-line);
 }
 
@@ -116,14 +116,59 @@ body.vault-note-pop-page .brands-zone {
     overflow-wrap: break-word;
 }
 
-.vault-note-meta {
+.vault-note-meta,
+.vault-note-meta-primary {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 0.45rem 0.65rem;
     margin-top: clamp(0.75rem, 2vw, 1.1rem);
-    min-height: 30px;
+    min-height: 24px;
     line-height: 1.4;
+}
+
+.vault-note-topics-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem 0.45rem;
+    margin-top: 0.45rem;
+    line-height: 1.4;
+}
+
+.vault-note-tags-label {
+    font-size: 0.84rem;
+    color: rgba(21, 19, 15, 0.65);
+    font-weight: 520;
+    line-height: 1.3;
+    user-select: none;
+    margin-right: 0.1rem;
+}
+
+.vault-note-author {
+    font-size: 0.84rem;
+    color: rgba(21, 19, 15, 0.65);
+    font-weight: 520;
+    line-height: 1.3;
+}
+
+.vault-note-author-link {
+    color: var(--pop-ink) !important;
+    font-weight: 600;
+    text-decoration: underline;
+    text-decoration-color: var(--pop-line);
+    text-underline-offset: 3px;
+    transition: text-decoration-color 150ms ease, background 150ms ease;
+}
+
+.vault-note-author-link:hover {
+    background: var(--pop-yellow);
+    text-decoration-color: var(--pop-ink);
+}
+
+.vault-note-author-link:focus-visible {
+    outline: 2px solid var(--pop-purple);
+    outline-offset: 2px;
 }
 
 .vault-note-date {
@@ -632,7 +677,98 @@ body.vault-note-pop-page .brands-zone {
     .vault-note-end-action,
     .vault-note-end-action--related,
     .vault-note-end-action__arrow-circle,
-    .vault-note-content .share-btn {
+    .vault-note-content .share-btn,
+    .vault-note-tutoring-trigger__cta {
         transition: none;
     }
+}
+
+/* ---------------- Soft Trigger: 1:1 Obsidian Tutoring ---------------- */
+.vault-note-tutoring-trigger {
+    margin-top: clamp(1.75rem, 3.5vw, 2.5rem);
+    margin-bottom: clamp(1.5rem, 3vw, 2.25rem);
+    padding: clamp(1.25rem, 3vw, 1.65rem);
+    background: #ffffff;
+    border: 1.5px solid var(--pop-border);
+    border-radius: clamp(12px, 1.5vw, 16px);
+    box-shadow: 0 4px 16px rgba(21, 19, 15, 0.04);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.vault-note-tutoring-trigger::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 5px;
+    height: 100%;
+    background: var(--pop-blue);
+}
+
+.vault-note-tutoring-trigger__badge {
+    display: inline-flex;
+}
+
+.vault-note-tutoring-trigger__badge span {
+    display: inline-block;
+    padding: 0.2rem 0.55rem;
+    background: var(--pop-yellow);
+    border: 1px solid rgba(21, 19, 15, 0.45);
+    border-radius: 4px;
+    font-size: 0.72rem;
+    font-weight: 750;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--pop-ink);
+}
+
+.vault-note-tutoring-trigger__heading {
+    font-size: clamp(1.1rem, 2.2vw, 1.3rem);
+    font-weight: 700;
+    color: var(--pop-ink);
+    line-height: 1.3;
+    margin: 0 0 0.35rem 0;
+}
+
+.vault-note-tutoring-trigger__text {
+    font-size: 0.92rem;
+    color: rgba(21, 19, 15, 0.8);
+    line-height: 1.5;
+    margin: 0;
+}
+
+.vault-note-tutoring-trigger__cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.65rem;
+    margin-top: 0.25rem;
+    padding: 0.6rem 1.15rem;
+    background: var(--pop-blue);
+    color: #ffffff !important;
+    font-size: 0.9rem;
+    font-weight: 650;
+    border-radius: 8px;
+    text-decoration: none !important;
+    align-self: flex-start;
+    transition: background 150ms ease, transform 150ms ease;
+}
+
+.vault-note-tutoring-trigger__cta:hover {
+    background: var(--pop-purple);
+    transform: translateX(3px);
+}
+
+.vault-note-tutoring-trigger__arrow {
+    font-size: 1.05rem;
+    line-height: 1;
+    transition: transform 150ms ease;
+}
+
+.vault-note-tutoring-trigger__cta:hover .vault-note-tutoring-trigger__arrow {
+    transform: translateX(3px);
 }

@@ -21,15 +21,19 @@ const siteOrigin = 'https://abodid.com';
 test('classifies the required acquisition sources', () => {
     const cases = [
         ['https://www.google.com/search?q=abodid', 'Google Search'],
+        ['android-app://com.google.android.googlequicksearchbox', 'Google Search'],
         ['https://www.bing.com/search?q=abodid', 'Bing Search'],
         ['https://chatgpt.com/c/example', 'ChatGPT'],
         ['https://www.perplexity.ai/search/example', 'Perplexity'],
         ['https://claude.ai/chat/example', 'Claude'],
         ['https://gemini.google.com/app/example', 'Gemini'],
         ['https://www.linkedin.com/feed/', 'LinkedIn'],
+        ['android-app://com.linkedin.android', 'LinkedIn'],
         ['https://t.co/example', 'X / Twitter'],
         ['https://l.instagram.com/', 'Instagram'],
-        ['https://example.org/post', 'External Website'],
+        ['https://forum.obsidian.md/t/example', 'Obsidian Community'],
+        ['https://news.ycombinator.com/', 'Hacker News'],
+        ['https://example.org/post', 'Referral (example.org)'],
     ];
 
     for (const [referrer, expected] of cases) {

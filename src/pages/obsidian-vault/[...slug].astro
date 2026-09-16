@@ -45,9 +45,10 @@ function formatMetadataDate(value: unknown): string {
     if (!value) return "";
     const stringValue = String(value);
     const dateOnly = stringValue.match(/^(\d{4}-\d{2}-\d{2})/i)?.[1];
-    const raw = value instanceof Date
-        ? value
-        : new Date(dateOnly ? `${dateOnly}T00:00:00Z` : stringValue);
+    const raw =
+        value instanceof Date
+            ? value
+            : new Date(dateOnly ? `${dateOnly}T00:00:00Z` : stringValue);
     if (Number.isNaN(raw.getTime())) return String(value);
     return new Intl.DateTimeFormat("en-GB", {
         day: "numeric",
@@ -58,7 +59,9 @@ function formatMetadataDate(value: unknown): string {
 }
 
 function preventOrphans(text: string): string {
-    const words = String(text || "").trim().split(/\s+/);
+    const words = String(text || "")
+        .trim()
+        .split(/\s+/);
     if (words.length <= 3) return text;
     const lastWord = words.pop();
     const secondLast = words.pop();
@@ -114,7 +117,10 @@ function extractFirstUsefulParagraph(markdown: string): string {
     if (cleaned.length > 160) {
         const truncated = cleaned.slice(0, 157);
         const lastSpace = truncated.lastIndexOf(" ");
-        return (lastSpace > 100 ? truncated.slice(0, lastSpace) : truncated) + "...";
+        return (
+            (lastSpace > 100 ? truncated.slice(0, lastSpace) : truncated) +
+            "..."
+        );
     }
     return cleaned;
 }
@@ -140,10 +146,14 @@ try {
             noteUpdatedAt = indexedNote.updated_at;
         }
     } catch (indexError) {
-        console.warn("[vault-note] Supabase content lookup failed; using GitHub fallback:", indexError);
+        console.warn(
+            "[vault-note] Supabase content lookup failed; using GitHub fallback:",
+            indexError,
+        );
     }
 
-    let rawContent = indexedNote?.markdown_content || await getFileContent(filePathNotes);
+    let rawContent =
+        indexedNote?.markdown_content || (await getFileContent(filePathNotes));
     if (rawContent === null && !cleanSlug.includes("?")) {
         rawContent = await getFileContent(`06-main-notes/${noteSlug}?.md`);
     }
@@ -155,7 +165,10 @@ try {
                 return Astro.redirect(metadataHref(noteSlug), 308);
             }
         } catch (tagLookupError) {
-            console.warn("[vault-note] Legacy tag redirect lookup failed:", tagLookupError);
+            console.warn(
+                "[vault-note] Legacy tag redirect lookup failed:",
+                tagLookupError,
+            );
         }
         return Astro.redirect("/404");
     }
@@ -179,12 +192,17 @@ try {
     content = content.replace(/==([^=\r\n]+)==/g, "<mark>$1</mark>");
 
     const tagSet = new Set(
-        [...noteTypes, ...topicTags].map(normalizeWikiLinkTarget).filter(Boolean),
+        [...noteTypes, ...topicTags]
+            .map(normalizeWikiLinkTarget)
+            .filter(Boolean),
     );
     firstTag = indexedNote?.first_tag || topicTags[0] || noteTypes[0] || "";
 
     // Clean stray unclosed brackets before image tags (e.g. [![alt](url) without closing ])
-    content = content.replace(/^\[(!\[[^\]]+\]\([^)]+\))(?!\s*\]\([^)]+\))/gm, "$1");
+    content = content.replace(
+        /^\[(!\[[^\]]+\]\([^)]+\))(?!\s*\]\([^)]+\))/gm,
+        "$1",
+    );
 
     content = content.replace(/!\[\[(.*?)\]\]/g, (match, filename) => {
         const cleanFilename = filename.split("|")[0];
@@ -210,13 +228,18 @@ try {
     renderer.link = ({ href, title, text }) => {
         const titleAttr = title ? ` title="${title}"` : "";
         const isExternal = /^https?:\/\//i.test(href || "");
-        const targetAttrs = isExternal ? ' target="_blank" rel="noopener noreferrer"' : "";
+        const targetAttrs = isExternal
+            ? ' target="_blank" rel="noopener noreferrer"'
+            : "";
         return `<a href="${href}"${titleAttr}${targetAttrs}>${text}</a>`;
     };
     renderer.image = ({ href, title, text }) => {
         if (
             href &&
-            (href.includes("07-assets") || href.includes("07%20-%20assets") || href.includes("7 - Assets") || href.includes("7%20-%20Assets"))
+            (href.includes("07-assets") ||
+                href.includes("07%20-%20assets") ||
+                href.includes("7 - Assets") ||
+                href.includes("7%20-%20Assets"))
         ) {
             const parts = href.split("/");
             const filename = parts[parts.length - 1];
@@ -228,11 +251,15 @@ try {
     htmlContent = await marked.parse(content, { renderer });
     // Remove any leading empty paragraphs, break tags, or whitespace from the rendered HTML
     htmlContent = htmlContent
-        .replace(/^(?:\s*<p>(?:\s*<br\s*\/?>|\s*&nbsp;|\s*)*<\/p>|\s*<br\s*\/?>)+/gi, "")
+        .replace(
+            /^(?:\s*<p>(?:\s*<br\s*\/?>|\s*&nbsp;|\s*)*<\/p>|\s*<br\s*\/?>)+/gi,
+            "",
+        )
         .trim();
 
     title =
-        (typeof metadata.frontmatter.title === "string" && metadata.frontmatter.title.trim()) ||
+        (typeof metadata.frontmatter.title === "string" &&
+            metadata.frontmatter.title.trim()) ||
         cleanSlug.replace(/\.md$/i, "");
 } catch (error) {
     console.error(error);
@@ -244,8 +271,8 @@ Astro.response.headers.set(
     import.meta.env.DEV
         ? "no-cache, no-store, must-revalidate"
         : fromVaultSearchId
-            ? "private, no-store"
-            : "public, max-age=60, s-maxage=31536000, stale-while-revalidate=31536000",
+          ? "private, no-store"
+          : "public, max-age=60, s-maxage=31536000, stale-while-revalidate=31536000",
 );
 
 const routeSlug = slug.replace(/\.md$/i, "");
@@ -262,12 +289,17 @@ try {
         filePath: currentFilePath,
     });
 } catch (relatedErr) {
-    console.warn("[vault-note] Server-side related note lookup failed:", relatedErr);
+    console.warn(
+        "[vault-note] Server-side related note lookup failed:",
+        relatedErr,
+    );
 }
 
 const relatedNoteTitle =
     relatedNote?.title ||
-    (relatedNote?.slug ? relatedNote.slug.replace(/-/g, " ") : "Explore Another Related Note");
+    (relatedNote?.slug
+        ? relatedNote.slug.replace(/-/g, " ")
+        : "Explore Another Related Note");
 const relatedNoteHref =
     relatedNote?.href ||
     `/api/vault-related-note?file=${encodeURIComponent(currentFilePath)}${
@@ -284,7 +316,10 @@ const structuredData = [
     breadcrumbJsonLd([
         { name: "Home", path: "/" },
         { name: "Obsidian Vault", path: "/obsidian-vault" },
-        { name: displayTitle, path: `/obsidian-vault/${encodeURIComponent(routeSlug)}` },
+        {
+            name: displayTitle,
+            path: `/obsidian-vault/${encodeURIComponent(routeSlug)}`,
+        },
     ]),
     vaultNoteJsonLd({
         title: displayTitle,
@@ -308,40 +343,81 @@ const structuredData = [
             <div class="vault-note-inner">
                 <header class="vault-note-header">
                     <!-- Eyebrow Note Type (Classification kicker above title) -->
-                    {noteTypes.length > 0 && (
-                        <div class="vault-note-eyebrow">
-                            {noteTypes.map((noteType) => (
-                                <a href={metadataHref(noteType)} class="vault-note-type-tag">{noteType.replace(/-/g, " ")}</a>
-                            ))}
-                        </div>
-                    )}
+                    {
+                        noteTypes.length > 0 && (
+                            <div class="vault-note-eyebrow">
+                                {noteTypes.map((noteType) => (
+                                    <a
+                                        href={metadataHref(noteType)}
+                                        class="vault-note-type-tag"
+                                    >
+                                        {noteType.replace(/-/g, " ")}
+                                    </a>
+                                ))}
+                            </div>
+                        )
+                    }
 
                     <h1 id="note-title">{displayTitleFormatted}</h1>
 
-                    <!-- Supplementary Metadata Below Title (Date + Topics) -->
-                    {(noteDate || topicTags.length > 0) && (
-                        <div class="vault-note-meta" aria-label="Note metadata">
-                            {noteDate && (
-                                <time class="vault-note-date" datetime={noteDate}>{noteDate}</time>
-                            )}
-                            {topicTags.length > 0 && (
-                                <>
-                                    {noteDate && <span class="vault-note-meta-sep" aria-hidden="true">·</span>}
-                                    <div class="vault-note-topics">
-                                        {topicTags.map((tag, idx) => (
-                                            <span class="vault-note-topic-item">
-                                                {idx > 0 && <span class="vault-note-meta-sep-slash" aria-hidden="true">/</span>}
-                                                <a href={metadataHref(tag)} class="vault-note-topic-link">{tag.replace(/-/g, " ")}</a>
+                    <!-- Line 1: Date and Author Attribution -->
+                    <div class="vault-note-meta-primary">
+                        {noteDate && (
+                            <>
+                                <time
+                                    class="vault-note-date"
+                                    datetime={noteDate}
+                                >
+                                    {noteDate}
+                                </time>
+                                <span
+                                    class="vault-note-meta-sep"
+                                    aria-hidden="true"
+                                >
+                                    ·
+                                </span>
+                            </>
+                        )}
+                        <span class="vault-note-author">
+                            Written by <a href="/" class="vault-note-author-link">Abodid Sahoo</a>
+                        </span>
+                    </div>
+
+                    <!-- Line 2: Dedicated Topic Tags Row -->
+                    {topicTags.length > 0 && (
+                        <div
+                            class="vault-note-topics-row"
+                            aria-label="Note topics"
+                        >
+                            <span class="vault-note-tags-label">Tags:</span>
+                            <div class="vault-note-topics">
+                                {topicTags.map((tag, idx) => (
+                                    <span class="vault-note-topic-item">
+                                        {idx > 0 && (
+                                            <span
+                                                class="vault-note-meta-sep-slash"
+                                                aria-hidden="true"
+                                            >
+                                                /
                                             </span>
-                                        ))}
-                                    </div>
-                                </>
-                            )}
+                                        )}
+                                        <a
+                                            href={metadataHref(tag)}
+                                            class="vault-note-topic-link"
+                                        >
+                                            {tag.replace(/-/g, " ")}
+                                        </a>
+                                    </span>
+                                ))}
+                            </div>
                         </div>
                     )}
                 </header>
 
-                <section class="vault-note-content" aria-label={`Note: ${displayTitle}`}>
+                <section
+                    class="vault-note-content"
+                    aria-label={`Note: ${displayTitle}`}
+                >
                     <div class="markdown-body" set:html={htmlContent} />
 
                     <!-- Tier 1: Share bar directly below content -->
@@ -354,14 +430,59 @@ const structuredData = [
                         />
                     </div>
 
+                    <!-- Soft Trigger: 1-on-1 Obsidian Tutoring -->
+                    <aside
+                        class="vault-note-tutoring-trigger"
+                        aria-label="1:1 Obsidian Tutoring"
+                    >
+                        <div class="vault-note-tutoring-trigger__badge">
+                            <span>1:1 Obsidian Mentorship</span>
+                        </div>
+                        <div class="vault-note-tutoring-trigger__body">
+                            <h2 class="vault-note-tutoring-trigger__heading">
+                                Want to organise your notes and ideas
+                                effectively?
+                            </h2>
+                            <p class="vault-note-tutoring-trigger__text">
+                                I help founders, researchers, and creators build
+                                note-taking systems that helps them retain and
+                                recall important information and ideas
+                                effectively.
+                            </p>
+                        </div>
+                        <a
+                            href="/obsidian-tutoring"
+                            class="vault-note-tutoring-trigger__cta"
+                        >
+                            <span>Explore 1:1 Obsidian Tutoring</span>
+                            <span
+                                class="vault-note-tutoring-trigger__arrow"
+                                aria-hidden="true">→</span
+                            >
+                        </a>
+                    </aside>
+
                     <!-- Tier 2: Read related note -->
-                    <nav class="vault-note-end-nav" aria-label="Continue reading">
-                        <a href={relatedNoteHref} class="vault-note-end-action vault-note-end-action--related">
+                    <nav
+                        class="vault-note-end-nav"
+                        aria-label="Continue reading"
+                    >
+                        <a
+                            href={relatedNoteHref}
+                            class="vault-note-end-action vault-note-end-action--related"
+                        >
                             <div class="vault-note-end-action__content">
-                                <span class="vault-note-end-action__kicker">Read Related Note</span>
-                                <span class="vault-note-end-action__title">{relatedNoteTitle}</span>
+                                <span class="vault-note-end-action__kicker"
+                                    >Read Related Note</span
+                                >
+                                <span class="vault-note-end-action__title"
+                                    >{relatedNoteTitle}</span
+                                >
                             </div>
-                            <div class="vault-note-end-action__arrow-circle" aria-hidden="true">
+                            <div
+                                class="vault-note-end-action__arrow-circle"
+                                aria-hidden="true"
+                            >
                                 <span>→</span>
                             </div>
                         </a>
@@ -379,7 +500,10 @@ const structuredData = [
                             <span>Back to previous page</span>
                         </button>
 
-                        <a href="/obsidian-vault" class="vault-note-nav-btn vault-note-nav-btn--main">
+                        <a
+                            href="/obsidian-vault"
+                            class="vault-note-nav-btn vault-note-nav-btn--main"
+                        >
                             <span>Go to Main Vault</span>
                             <span aria-hidden="true">→</span>
                         </a>
@@ -391,56 +515,75 @@ const structuredData = [
 </BaseLayout>
 
 <script is:inline>
-  (function () {
-    function setupVaultRelatedNotePreload() {
-      var btn = document.querySelector(".vault-note-end-action--related");
-      if (!btn) return;
+    (function () {
+        function setupVaultRelatedNotePreload() {
+            var btn = document.querySelector(".vault-note-end-action--related");
+            if (!btn) return;
 
-      var rawHref = btn.getAttribute("href");
-      if (!rawHref) return;
+            var rawHref = btn.getAttribute("href");
+            if (!rawHref) return;
 
-      // If it's already a direct note link, prefetch it directly
-      if (!rawHref.includes("/api/vault-related-note")) {
-        if (!document.querySelector('link[rel="prefetch"][href="' + rawHref + '"]')) {
-          var link = document.createElement("link");
-          link.rel = "prefetch";
-          link.href = rawHref;
-          document.head.appendChild(link);
+            // If it's already a direct note link, prefetch it directly
+            if (!rawHref.includes("/api/vault-related-note")) {
+                if (
+                    !document.querySelector(
+                        'link[rel="prefetch"][href="' + rawHref + '"]',
+                    )
+                ) {
+                    var link = document.createElement("link");
+                    link.rel = "prefetch";
+                    link.href = rawHref;
+                    document.head.appendChild(link);
+                }
+                return;
+            }
+
+            var fetchUrl = rawHref.includes("json=true")
+                ? rawHref
+                : rawHref +
+                  (rawHref.includes("?") ? "&json=true" : "?json=true");
+
+            fetch(fetchUrl, { priority: "low" })
+                .then(function (res) {
+                    return res.json();
+                })
+                .then(function (data) {
+                    if (data && data.href) {
+                        btn.setAttribute("href", data.href);
+                        var titleEl = btn.querySelector(
+                            ".vault-note-end-action__title",
+                        );
+                        if (titleEl && data.displayTitle) {
+                            titleEl.textContent = data.displayTitle;
+                        }
+                        if (
+                            !document.querySelector(
+                                'link[rel="prefetch"][href="' +
+                                    data.href +
+                                    '"]',
+                            )
+                        ) {
+                            var link = document.createElement("link");
+                            link.rel = "prefetch";
+                            link.href = data.href;
+                            document.head.appendChild(link);
+                        }
+                    }
+                })
+                .catch(function () {});
         }
-        return;
-      }
 
-      var fetchUrl = rawHref.includes("json=true")
-        ? rawHref
-        : rawHref + (rawHref.includes("?") ? "&json=true" : "?json=true");
-
-      fetch(fetchUrl, { priority: "low" })
-        .then(function (res) {
-          return res.json();
-        })
-        .then(function (data) {
-          if (data && data.href) {
-            btn.setAttribute("href", data.href);
-            var titleEl = btn.querySelector(".vault-note-end-action__title");
-            if (titleEl && data.displayTitle) {
-              titleEl.textContent = data.displayTitle;
-            }
-            if (!document.querySelector('link[rel="prefetch"][href="' + data.href + '"]')) {
-              var link = document.createElement("link");
-              link.rel = "prefetch";
-              link.href = data.href;
-              document.head.appendChild(link);
-            }
-          }
-        })
-        .catch(function () {});
-    }
-
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", setupVaultRelatedNotePreload);
-    } else {
-      setupVaultRelatedNotePreload();
-    }
-    document.addEventListener("astro:page-load", setupVaultRelatedNotePreload);
-  })();
+        if (document.readyState === "loading") {
+            document.addEventListener(
+                "DOMContentLoaded",
+                setupVaultRelatedNotePreload,
+            );
+        } else {
+            setupVaultRelatedNotePreload();
+        }
+        document.addEventListener(
+            "astro:page-load",
+            setupVaultRelatedNotePreload,
+        );
+    })();
 </script>

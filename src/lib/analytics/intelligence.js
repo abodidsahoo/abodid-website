@@ -868,11 +868,16 @@ export function buildLiveIntelligenceReport(sessions = [], range = '7d') {
     activeSessions.forEach((s) => {
         const src = s.source || 'Direct Visit';
         if (!sourceMap[src]) {
-            sourceMap[src] = { count: 0, converted: 0, totalEngaged: 0 };
+            sourceMap[src] = { count: 0, converted: 0, totalEngaged: 0, domains: {} };
         }
         sourceMap[src].count++;
         if (s.converted) sourceMap[src].converted++;
         sourceMap[src].totalEngaged += (s.total_engaged_seconds || s.totalEngagedSeconds || 0);
+
+        const refDom = s.referrer_domain || s.referrerDomain;
+        if (refDom) {
+            sourceMap[src].domains[refDom] = (sourceMap[src].domains[refDom] || 0) + 1;
+        }
 
         const kw = s.utm_term || s.utm_campaign || s.utm_content || extractSearchKeyword({
             utmTerm: s.utm_term,
@@ -895,6 +900,10 @@ export function buildLiveIntelligenceReport(sessions = [], range = '7d') {
             enquiries: stats.converted,
             conversionRate: stats.count > 0 ? `${((stats.converted / stats.count) * 100).toFixed(1)}%` : '0.0%',
             avgEngagedSeconds: stats.count > 0 ? Math.round(stats.totalEngaged / stats.count) : 0,
+            topDomains: Object.entries(stats.domains || {})
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 3)
+                .map(([domain, dCount]) => ({ domain, count: dCount })),
         }))
         .sort((a, b) => b.count - a.count);
 
@@ -980,8 +989,8 @@ export function buildLiveIntelligenceReport(sessions = [], range = '7d') {
             },
             {
                 id: 'obsidian',
-                label: 'Obsidian & PKM Mentorship',
-                subtitle: '1-on-1 private workflows, system architecture, and knowledge consulting',
+                label: 'Obsidian Tutoring & Systems',
+                subtitle: 'Second-brain systems for founders, directors, and researchers',
                 visitors: activeSessions.filter((s) => s.intentCategory === 'obsidian' || s.intent_category === 'obsidian').length,
                 highIntent: activeSessions.filter((s) => (s.intentCategory === 'obsidian' || s.intent_category === 'obsidian') && ((s.intentScore || s.intent_score || 0) >= 40 || s.intentStrength === 'High')).length,
                 enquiries: activeSessions.filter((s) => (s.intentCategory === 'obsidian' || s.intent_category === 'obsidian') && s.converted).length,
@@ -991,17 +1000,17 @@ export function buildLiveIntelligenceReport(sessions = [], range = '7d') {
             {
                 id: 'creative_tech',
                 label: 'Creative Tech & Prototyping',
-                subtitle: 'Spatial computing, shaders, custom web systems, and interactive tools',
+                subtitle: 'VisionOS, interactive web experiments, and spatial software',
                 visitors: activeSessions.filter((s) => s.intentCategory === 'creative_tech' || s.intent_category === 'creative_tech').length,
                 highIntent: activeSessions.filter((s) => (s.intentCategory === 'creative_tech' || s.intent_category === 'creative_tech') && ((s.intentScore || s.intent_score || 0) >= 40 || s.intentStrength === 'High')).length,
                 enquiries: activeSessions.filter((s) => (s.intentCategory === 'creative_tech' || s.intent_category === 'creative_tech') && s.converted).length,
                 conversionRate: funnels.creative_tech ? `${funnels.creative_tech.conversionRate}%` : '0.0%',
-                color: '#34d399',
+                color: '#a78bfa',
             },
             {
                 id: 'film_brand',
                 label: 'Film & Brand Strategy',
-                subtitle: 'Storyboarding, creative direction, cinematic production, and brand identity',
+                subtitle: 'Commercial direction, documentary storytelling, and video masterclasses',
                 visitors: activeSessions.filter((s) => s.intentCategory === 'film_brand' || s.intent_category === 'film_brand').length,
                 highIntent: activeSessions.filter((s) => (s.intentCategory === 'film_brand' || s.intent_category === 'film_brand') && ((s.intentScore || s.intent_score || 0) >= 40 || s.intentStrength === 'High')).length,
                 enquiries: activeSessions.filter((s) => (s.intentCategory === 'film_brand' || s.intent_category === 'film_brand') && s.converted).length,
@@ -1011,42 +1020,33 @@ export function buildLiveIntelligenceReport(sessions = [], range = '7d') {
         ],
     };
 
-    // 7. Human Qualified Visitors CRM Feed & Replays
+    // 7. Human Lead Feed (Full Enriched Sessions with Dossier Data)
     const feed = activeSessions.map((sess) => {
         const pages = Array.isArray(sess.pages) ? sess.pages : [];
         const events = Array.isArray(sess.events) ? sess.events : [];
         const hasReplay = (Array.isArray(sess.replay_data) && sess.replay_data.length > 0) || pages.length > 0;
 
-        let dType = sess.device_type || sess.deviceType;
-        let dLabel = sess.device_label || sess.deviceLabel;
-        if (!dType && events.length > 0) {
-            const devEv = events.find((e) => e.type === 'device_meta');
-            if (devEv) {
-                dType = devEv.deviceType;
-                dLabel = devEv.deviceLabel;
-            }
-        }
-        dType = dType || 'desktop';
-        dLabel = dLabel || (dType === 'mobile' ? 'Mobile Phone' : dType === 'tablet' ? 'Tablet' : 'Laptop / Desktop');
+        const landingStr = sess.landing_page || sess.landingPage || pages[0]?.path || '/';
+        const exitStr = sess.exit_page || sess.exitPage || pages.at(-1)?.path || landingStr;
 
-        let conversionLabel = 'Browsing';
+        let dType = sess.device_type || 'desktop';
+        let dLabel = sess.device_label || 'Laptop / Desktop';
+        if (sess.device && typeof sess.device === 'object') {
+            dType = sess.device.type || dType;
+            dLabel = sess.device.label || dLabel;
+        }
+
+        let conversionLabel = null;
         if (sess.converted) {
-            conversionLabel = sess.conversion_type || sess.conversionType || 'Enquiry Submitted';
-        } else if (sess.frictionFlags?.includes('pricing_abandoned')) {
-            conversionLabel = 'Pricing Abandoned';
-        } else if (sess.frictionFlags?.includes('form_abandoned')) {
-            conversionLabel = 'Form Abandoned';
+            conversionLabel = sess.conversion_type === 'inquiry' ? 'Contact Form Submission' :
+                sess.conversion_type === 'newsletter' ? 'Subscribed to Dispatch' :
+                    sess.conversion_type === 'booking' ? 'Booked Tutoring Discovery Call' : 'Lead Converted';
         }
-
-        const landingPath = sess.landing_page || sess.landingPage || pages[0]?.path || '/';
-        const exitPath = sess.exit_page || sess.exitPage || pages.at(-1)?.path || landingPath;
-        const landingStr = typeof landingPath === 'string' ? landingPath : (landingPath?.path || '/');
-        const exitStr = typeof exitPath === 'string' ? exitPath : (exitPath?.path || landingStr);
 
         let mostEngaged = {
             path: landingStr,
             title: pages[0]?.title || landingStr,
-            engagedSeconds: sess.total_engaged_seconds || sess.totalEngagedSeconds || 0,
+            engagedSeconds: 0,
         };
 
         if (pages.length > 0) {
@@ -1103,6 +1103,13 @@ export function buildLiveIntelligenceReport(sessions = [], range = '7d') {
             country: sess.country || 'Unknown',
             location: locationStr,
             source: sess.source || 'Direct Visit',
+            referrerDomain: sess.referrer_domain || sess.referrerDomain || '',
+            referrer: sess.referrer || '',
+            utmSource: sess.utm_source || sess.utmSource || '',
+            utmMedium: sess.utm_medium || sess.utmMedium || '',
+            utmCampaign: sess.utm_campaign || sess.utmCampaign || '',
+            utmTerm: sess.utm_term || sess.utmTerm || '',
+            utmContent: sess.utm_content || sess.utmContent || '',
             searchKeyword: typeof searchKeyword === 'string' ? searchKeyword : '',
             nextDestination,
             isLabVisitor,

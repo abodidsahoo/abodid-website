@@ -4,18 +4,29 @@ const SOURCE_MATCHERS = [
     { label: 'Claude', hosts: ['claude.ai'], sources: ['claude', 'anthropic'] },
     { label: 'Gemini', hosts: ['gemini.google.com', 'bard.google.com'], sources: ['gemini', 'bard'] },
     { label: 'Microsoft Copilot', hosts: ['copilot.microsoft.com'], sources: ['copilot', 'microsoft copilot'] },
-    { label: 'Google Search', hosts: ['google.', 'google.com', 'google.co.in', 'google.co.uk', 'google.ca', 'google.de'], sources: ['google', 'google-search', 'google_search'] },
+    { label: 'Google Search', hosts: ['google.', 'google.com', 'google.co.in', 'google.co.uk', 'google.ca', 'google.de', 'com.google.android.googlequicksearchbox', 'googlequicksearchbox'], sources: ['google', 'google-search', 'google_search', 'organic-google'] },
     { label: 'Bing Search', hosts: ['bing.com', 'bing.co.uk'], sources: ['bing', 'bing-search'] },
-    { label: 'DuckDuckGo', hosts: ['duckduckgo.com'], sources: ['duckduckgo', 'ddg'] },
-    { label: 'LinkedIn', hosts: ['linkedin.com', 'lnkd.in', 'l.linkedin.com'], sources: ['linkedin', 'linkedin-post', 'linkedin-feed'] },
-    { label: 'X / Twitter', hosts: ['x.com', 'twitter.com', 't.co'], sources: ['x', 'twitter', 't.co'] },
-    { label: 'Instagram', hosts: ['instagram.com', 'l.instagram.com', 'ig.me'], sources: ['instagram', 'ig', 'insta'] },
-    { label: 'Facebook', hosts: ['facebook.com', 'fb.com', 'fb.me', 'l.facebook.com', 'm.facebook.com'], sources: ['facebook', 'fb'] },
-    { label: 'YouTube', hosts: ['youtube.com', 'youtu.be', 'm.youtube.com'], sources: ['youtube', 'yt'] },
+    { label: 'DuckDuckGo', hosts: ['duckduckgo.com', 'ddg.gg'], sources: ['duckduckgo', 'ddg'] },
+    { label: 'Yahoo Search', hosts: ['yahoo.com', 'search.yahoo.com'], sources: ['yahoo'] },
+    { label: 'Ecosia', hosts: ['ecosia.org'], sources: ['ecosia'] },
+    { label: 'Baidu', hosts: ['baidu.com'], sources: ['baidu'] },
+    { label: 'LinkedIn', hosts: ['linkedin.com', 'lnkd.in', 'l.linkedin.com', 'com.linkedin.android'], sources: ['linkedin', 'linkedin-post', 'linkedin-feed'] },
+    { label: 'X / Twitter', hosts: ['x.com', 'twitter.com', 't.co', 'com.twitter.android'], sources: ['x', 'twitter', 't.co'] },
+    { label: 'Instagram', hosts: ['instagram.com', 'l.instagram.com', 'ig.me', 'com.instagram.android'], sources: ['instagram', 'ig', 'insta'] },
+    { label: 'Facebook', hosts: ['facebook.com', 'fb.com', 'fb.me', 'l.facebook.com', 'm.facebook.com', 'com.facebook.katana'], sources: ['facebook', 'fb'] },
+    { label: 'YouTube', hosts: ['youtube.com', 'youtu.be', 'm.youtube.com', 'com.google.android.youtube'], sources: ['youtube', 'yt'] },
     { label: 'GitHub', hosts: ['github.com'], sources: ['github'] },
-    { label: 'Reddit', hosts: ['reddit.com', 'redd.it'], sources: ['reddit'] },
+    { label: 'Reddit', hosts: ['reddit.com', 'redd.it', 'com.reddit.frontpage'], sources: ['reddit'] },
+    { label: 'Obsidian Community', hosts: ['obsidian.md', 'forum.obsidian.md', 'publish.obsidian.md'], sources: ['obsidian', 'obsidian-forum', 'obsidian-hub'] },
+    { label: 'Hacker News', hosts: ['news.ycombinator.com', 'ycombinator.com'], sources: ['hn', 'hackernews', 'ycombinator'] },
+    { label: 'Telegram', hosts: ['t.me', 'telegram.org', 'org.telegram.messenger'], sources: ['telegram', 'tg'] },
+    { label: 'Discord', hosts: ['discord.com', 'discord.gg'], sources: ['discord'] },
+    { label: 'Threads', hosts: ['threads.net'], sources: ['threads'] },
+    { label: 'Bluesky', hosts: ['bsky.app', 'bluesky.social'], sources: ['bluesky', 'bsky'] },
+    { label: 'Medium', hosts: ['medium.com'], sources: ['medium'] },
     { label: 'Pinterest', hosts: ['pinterest.com', 'pin.it'], sources: ['pinterest'] },
     { label: 'Substack', hosts: ['substack.com'], sources: ['substack'] },
+    { label: 'Quora', hosts: ['quora.com'], sources: ['quora'] },
 ];
 
 const INTERNAL_PATH_PATTERNS = [
@@ -58,7 +69,7 @@ const normalizeHost = (value) => cleanAnalyticsString(value, 255)
 
 const hostMatches = (host, candidate) => {
     if (candidate.endsWith('.')) return host.includes(candidate);
-    return host === candidate || host.endsWith(`.${candidate}`);
+    return host === candidate || host.endsWith(`.${candidate}`) || host.includes(candidate);
 };
 
 const recognizedSourceFromToken = (value) => {
@@ -89,7 +100,10 @@ export const getReferrerDomain = (referrer) => {
     if (!value) return '';
 
     try {
-        return normalizeHost(new URL(value).hostname);
+        if (value.startsWith('http://') || value.startsWith('https://') || value.startsWith('android-app://')) {
+            return normalizeHost(new URL(value).hostname);
+        }
+        return normalizeHost(new URL(`https://${value}`).hostname);
     } catch (_error) {
         return '';
     }
@@ -115,7 +129,9 @@ export const classifyAcquisitionSource = ({ utmSource, utmMedium, referrer, site
     if (siteDomain && hostMatches(referrerDomain, siteDomain)) return 'Direct Visit';
 
     const match = SOURCE_MATCHERS.find(({ hosts }) => hosts.some((host) => hostMatches(referrerDomain, host)));
-    return match?.label || 'External Website';
+    if (match) return match.label;
+
+    return `Referral (${referrerDomain})`;
 };
 
 export const extractSearchKeyword = ({ utmTerm, utmContent, utmCampaign, referrer } = {}) => {
