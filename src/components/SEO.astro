@@ -49,6 +49,7 @@ const formattedTitle = formatTitle(title);
 const ogImageUrl = new URL(`/api/og`, Astro.url);
 ogImageUrl.searchParams.set("title", formattedTitle);
 ogImageUrl.searchParams.set("description", description);
+ogImageUrl.searchParams.set("v", "20260916");
 if (image) {
     ogImageUrl.searchParams.set("image", image);
 }
