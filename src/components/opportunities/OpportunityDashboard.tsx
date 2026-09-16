@@ -319,6 +319,62 @@ export const OpportunityDashboard: React.FC = () => {
         });
     }, [opportunities, deadlineFilter, categoryFilter, statusFilter, searchQuery, now]);
 
+    // If unauthenticated and no cached opportunities, render zero-scroll split auth hero
+    if (isAuthenticated === false && opportunities.length === 0) {
+        return (
+            <div className="opportunities-shell">
+                <div className="opp-auth-hero-wrap">
+                    <div className="opp-auth-hero-split">
+                        {/* Left Side: Brand & Mission */}
+                        <div className="opp-auth-side-brand">
+                            <div className="opp-auth-badge">🔒 Private Field Desk</div>
+                            <h1 className="opp-auth-title">OPPORTUNITY RADAR</h1>
+                            <p className="opp-auth-subtitle">
+                                Track grants, residencies, fellowships, and critical submission deadlines with automated reminders.
+                            </p>
+                            <div className="opp-tag-cloud" style={{ borderTop: '2px dashed rgba(21, 19, 15, 0.25)', marginTop: '8px' }}>
+                                <span className="opp-tag-pill">#Grants</span>
+                                <span className="opp-tag-pill">#Residencies</span>
+                                <span className="opp-tag-pill">#Fellowships</span>
+                                <span className="opp-tag-pill">#OpenCalls</span>
+                            </div>
+                        </div>
+
+                        {/* Right Side: Passcode Unlock Form */}
+                        <div className="opp-auth-side-form">
+                            <div>
+                                <h2 style={{ fontSize: '1.4rem', fontWeight: 900, margin: '0 0 6px', color: 'var(--opp-ink)' }}>
+                                    Unlock Workspace
+                                </h2>
+                                <p style={{ fontSize: '0.9rem', color: 'var(--opp-muted)', margin: 0 }}>
+                                    Enter your private passcode to continue.
+                                </p>
+                            </div>
+
+                            <form onSubmit={handleLogin} className="opp-auth-form">
+                                <input
+                                    type="password"
+                                    className="opp-auth-input"
+                                    placeholder="Enter secret passcode..."
+                                    value={authPassword}
+                                    onChange={(e) => setAuthPassword(e.target.value)}
+                                    autoFocus
+                                    required
+                                />
+                                <button type="submit" className="opp-btn opp-btn-purple" style={{ width: '100%', padding: '13px' }}>
+                                    Unlock Workspace →
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Toast Notification */}
+                {toastMessage && <div className="opp-toast">{toastMessage}</div>}
+            </div>
+        );
+    }
+
     return (
         <div className="opportunities-shell">
             {/* Top Attention Header & Capture Bar */}
@@ -359,17 +415,6 @@ export const OpportunityDashboard: React.FC = () => {
                         required
                     />
 
-                    {isAuthenticated === false && (
-                        <input
-                            type="password"
-                            className="opp-capture-input opp-capture-password"
-                            placeholder="Passcode"
-                            value={authPassword}
-                            onChange={(e) => setAuthPassword(e.target.value)}
-                            required
-                        />
-                    )}
-
                     <button
                         type="submit"
                         className="opp-btn opp-btn-primary"
@@ -380,150 +425,152 @@ export const OpportunityDashboard: React.FC = () => {
                 </form>
             </div>
 
-            {/* If unauthenticated and not loading, show prominent Pop Editorial Auth Vault Card */}
-            {isAuthenticated === false && opportunities.length === 0 && (
-                <div className="opp-auth-card">
-                    <div className="opp-auth-badge">🔒 Private Field Radar</div>
-                    <h2 className="opp-auth-title">Unlock Workspace</h2>
-                    <p className="opp-auth-subtitle">
-                        Enter your secret passcode to access active opportunities, reminders, and deadline countdowns.
-                    </p>
-                    <form onSubmit={handleLogin} className="opp-auth-form">
-                        <div className="opp-auth-input-group">
-                            <input
-                                type="password"
-                                className="opp-auth-input"
-                                placeholder="Enter secret passphrase..."
-                                value={authPassword}
-                                onChange={(e) => setAuthPassword(e.target.value)}
-                                autoFocus
-                                required
-                            />
-                        </div>
-                        <button type="submit" className="opp-btn opp-btn-purple" style={{ width: '100%', padding: '14px' }}>
-                            Unlock Opportunity Desk →
-                        </button>
-                    </form>
-                </div>
-            )}
-
             {/* Filter Controls Bar */}
-            {isAuthenticated !== false && (
-                <div className="opp-filters-bar">
-                    {/* Row 1: Deadlines */}
-                    <div className="opp-filter-row">
-                        <span className="opp-filter-label">Deadline</span>
+            <div className="opp-filters-bar">
+                {/* Row 1: Deadlines */}
+                <div className="opp-filter-row">
+                    <span className="opp-filter-label">Deadline</span>
+                    <div className="opp-filter-pills">
+                        {(['all', 'today', '48hrs', '7days', '14days', '30days', 'rolling', 'unknown', 'expired'] as DeadlineFilter[]).map((d) => (
+                            <button
+                                key={d}
+                                type="button"
+                                className={`opp-filter-pill ${deadlineFilter === d ? 'active' : ''}`}
+                                onClick={() => setDeadlineFilter(d)}
+                            >
+                                {d === 'all' ? 'All Deadlines' : d === '48hrs' ? '48 hrs' : d === '7days' ? '7 days' : d === '14days' ? '14 days' : d === '30days' ? '30 days' : d.charAt(0).toUpperCase() + d.slice(1)}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Row 2: Category */}
+                <div className="opp-filter-row">
+                    <span className="opp-filter-label">Category</span>
+                    <div className="opp-filter-pills">
+                        {['all', 'job', 'open_call', 'residency', 'grant', 'fellowship', 'conference', 'event', 'other'].map((cat) => (
+                            <button
+                                key={cat}
+                                type="button"
+                                className={`opp-filter-pill ${categoryFilter === cat ? 'active' : ''}`}
+                                onClick={() => setCategoryFilter(cat)}
+                            >
+                                {cat === 'all' ? 'All Categories' : cat.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Row 3: Workflow Status & Search */}
+                <div className="opp-filter-row" style={{ justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span className="opp-filter-label">Workflow</span>
                         <div className="opp-filter-pills">
-                            {(['all', 'today', '48hrs', '7days', '14days', '30days', 'rolling', 'unknown', 'expired'] as DeadlineFilter[]).map((d) => (
+                            {['all', 'inbox', 'interested', 'preparing', 'submitted', 'registered', 'attending', 'done', 'dismissed'].map((st) => (
                                 <button
-                                    key={d}
+                                    key={st}
                                     type="button"
-                                    className={`opp-filter-pill ${deadlineFilter === d ? 'active' : ''}`}
-                                    onClick={() => setDeadlineFilter(d)}
+                                    className={`opp-filter-pill ${statusFilter === st ? 'active' : ''}`}
+                                    onClick={() => setStatusFilter(st)}
                                 >
-                                    {d === 'all' ? 'All Deadlines' : d === '48hrs' ? '48 hrs' : d === '7days' ? '7 days' : d === '14days' ? '14 days' : d === '30days' ? '30 days' : d.charAt(0).toUpperCase() + d.slice(1)}
+                                    {st === 'all' ? 'All Statuses' : st.charAt(0).toUpperCase() + st.slice(1)}
                                 </button>
                             ))}
                         </div>
                     </div>
 
-                    {/* Row 2: Category */}
-                    <div className="opp-filter-row">
-                        <span className="opp-filter-label">Category</span>
-                        <div className="opp-filter-pills">
-                            {['all', 'job', 'open_call', 'residency', 'grant', 'fellowship', 'conference', 'event', 'other'].map((cat) => (
-                                <button
-                                    key={cat}
-                                    type="button"
-                                    className={`opp-filter-pill ${categoryFilter === cat ? 'active' : ''}`}
-                                    onClick={() => setCategoryFilter(cat)}
-                                >
-                                    {cat === 'all' ? 'All Categories' : cat.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
+                    <input
+                        type="text"
+                        className="opp-search-input"
+                        placeholder="🔍 Search title, org, needs..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                </div>
+            </div>
 
-                    {/* Row 3: Workflow Status & Search */}
-                    <div className="opp-filter-row" style={{ justifyContent: 'space-between' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <span className="opp-filter-label">Workflow</span>
-                            <div className="opp-filter-pills">
-                                {['all', 'inbox', 'interested', 'preparing', 'submitted', 'registered', 'attending', 'done', 'dismissed'].map((st) => (
-                                    <button
-                                        key={st}
-                                        type="button"
-                                        className={`opp-filter-pill ${statusFilter === st ? 'active' : ''}`}
-                                        onClick={() => setStatusFilter(st)}
-                                    >
-                                        {st === 'all' ? 'All Statuses' : st.charAt(0).toUpperCase() + st.slice(1)}
-                                    </button>
-                                ))}
+            {/* Opportunities Grid / Left & Right Split Empty State */}
+            {isLoading ? (
+                <div style={{ textAlign: 'center', padding: '60px', color: 'var(--opp-cream)', fontSize: '1.2rem', fontWeight: 800 }}>
+                    ⚡ Loading field radar...
+                </div>
+            ) : opportunities.length === 0 ? (
+                /* 2-Column Split Empty State when 0 opportunities exist */
+                <div className="opp-empty-split-grid">
+                    {/* Left Block: Quick Actions */}
+                    <div className="opp-empty-block">
+                        <div className="opp-empty-block-header">
+                            <div className="opp-empty-icon-sm">⚡</div>
+                            <div>
+                                <h3 className="opp-empty-heading">Start Tracking</h3>
+                                <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--opp-muted)' }}>Quick capture workflow</p>
                             </div>
                         </div>
-
-                        <input
-                            type="text"
-                            className="opp-search-input"
-                            placeholder="🔍 Search title, org, needs..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                    </div>
-                </div>
-            )}
-
-            {/* Opportunities Grid */}
-            {isLoading ? (
-                <div style={{ textAlign: 'center', padding: '60px', color: 'var(--opp-cream)', fontSize: '1.2rem', fontWeight: 700 }}>
-                    Loading opportunities...
-                </div>
-            ) : filteredOpportunities.length === 0 ? (
-                <div className="opp-empty-card">
-                    <div className="opp-empty-icon-wrap">📡</div>
-                    <h3 className="opp-empty-title">
-                        {opportunities.length === 0 ? 'Your Radar is Clear' : 'No Matches for this Filter'}
-                    </h3>
-                    <p className="opp-empty-desc">
-                        {opportunities.length === 0
-                            ? 'Drop any link into the capture bar above, use your Chrome extension, or enter details by hand.'
-                            : 'Try selecting a different deadline horizon or workflow state above.'}
-                    </p>
-                    <div className="opp-empty-actions">
-                        <button
-                            type="button"
-                            className="opp-btn opp-btn-primary"
-                            onClick={() => {
-                                setManualInitialUrl('');
-                                setIsManualModalOpen(true);
-                            }}
-                        >
-                            + Manual Entry
-                        </button>
-                        {statusFilter !== 'all' || categoryFilter !== 'all' || deadlineFilter !== 'all' ? (
+                        <p className="opp-empty-text">
+                            Paste any URL into the top bar to extract deadline metadata automatically, or log a private opportunity manually.
+                        </p>
+                        <div className="opp-empty-block-actions">
                             <button
                                 type="button"
-                                className="opp-btn opp-btn-secondary"
+                                className="opp-btn opp-btn-primary"
                                 onClick={() => {
-                                    setDeadlineFilter('all');
-                                    setCategoryFilter('all');
-                                    setStatusFilter('all');
-                                    setSearchQuery('');
+                                    setManualInitialUrl('');
+                                    setIsManualModalOpen(true);
                                 }}
                             >
-                                Reset Filters ↺
+                                + Manual Entry
                             </button>
-                        ) : null}
+                        </div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--opp-muted)', background: 'rgba(21, 19, 15, 0.04)', padding: '8px 12px', borderRadius: '6px' }}>
+                            💡 <strong>Tip:</strong> Click your pinned Chrome extension icon on any page to capture instantly.
+                        </div>
                     </div>
-                    <div className="opp-tag-cloud">
-                        <span className="opp-tag-pill">#Grants</span>
-                        <span className="opp-tag-pill">#Residencies</span>
-                        <span className="opp-tag-pill">#Fellowships</span>
-                        <span className="opp-tag-pill">#FilmFestivals</span>
-                        <span className="opp-tag-pill">#OpenCalls</span>
+
+                    {/* Right Block: Radar Status */}
+                    <div className="opp-empty-block accent">
+                        <div className="opp-empty-block-header">
+                            <div className="opp-empty-icon-sm">📡</div>
+                            <div>
+                                <h3 className="opp-empty-heading">Radar is Clear</h3>
+                                <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--opp-muted)' }}>No pending deadlines</p>
+                            </div>
+                        </div>
+                        <p className="opp-empty-text">
+                            Captured opportunities appear as interactive editorial cards with real-time countdowns and reminder triggers.
+                        </p>
+                        <div className="opp-tag-cloud">
+                            <span className="opp-tag-pill">#Grants</span>
+                            <span className="opp-tag-pill">#Residencies</span>
+                            <span className="opp-tag-pill">#Fellowships</span>
+                            <span className="opp-tag-pill">#OpenCalls</span>
+                            <span className="opp-tag-pill">#JobCalls</span>
+                        </div>
                     </div>
                 </div>
+            ) : filteredOpportunities.length === 0 ? (
+                /* Compact alert when a filter produces 0 results */
+                <div className="opp-no-filter-alert">
+                    <div>
+                        <strong>No opportunities match this filter.</strong>
+                        <span style={{ color: 'var(--opp-muted)', marginLeft: '8px' }}>
+                            Try adjusting your deadline horizon or category filter.
+                        </span>
+                    </div>
+                    <button
+                        type="button"
+                        className="opp-btn opp-btn-secondary opp-btn-sm"
+                        onClick={() => {
+                            setDeadlineFilter('all');
+                            setCategoryFilter('all');
+                            setStatusFilter('all');
+                            setSearchQuery('');
+                        }}
+                    >
+                        Reset Filters ↺
+                    </button>
+                </div>
             ) : (
+                /* Opportunities Grid when cards exist */
                 <div className="opp-grid">
                     {filteredOpportunities.map((opp) => (
                         <OpportunityCard
