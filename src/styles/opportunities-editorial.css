@@ -1637,6 +1637,46 @@ body.opportunities-editorial-page {
   line-height: 1.45;
 }
 
+.opp-detail-curator-inline-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed rgba(21, 19, 15, 0.2);
+}
+
+.opp-curator-inline-btn {
+  font-family: var(--opp-font);
+  font-size: 0.78rem;
+  font-weight: 750;
+  color: #4a443b;
+  background: #ffffff;
+  border: 1.5px solid var(--opp-border);
+  border-radius: var(--opp-radius-sm);
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  box-shadow: 1.5px 1.5px 0px rgba(0, 0, 0, 0.08);
+}
+
+.opp-curator-inline-btn:hover:not(:disabled) {
+  background: var(--opp-cream);
+  color: var(--opp-ink);
+  transform: translateY(-1px);
+  box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.12);
+}
+
+.opp-curator-inline-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.opp-source-link-btn {
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
 .opp-detail-footer {
   display: flex;
   flex-direction: column;

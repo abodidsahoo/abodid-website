@@ -328,6 +328,31 @@ export const OpportunityDetailModal: React.FC<OpportunityDetailModalProps> = ({
                         </div>
                     )}
 
+                    {/* Inline Curator Management Strip: Edit Details & Re-extract below summary */}
+                    {isAuthenticated && (
+                        <div className="opp-detail-curator-inline-bar">
+                            <button
+                                type="button"
+                                className="opp-curator-inline-btn"
+                                onClick={() => {
+                                    onClose();
+                                    onEdit(opp);
+                                }}
+                            >
+                                ✏️ Edit Details
+                            </button>
+
+                            <button
+                                type="button"
+                                className="opp-curator-inline-btn"
+                                onClick={handleReExtractClick}
+                                disabled={isReExtracting}
+                            >
+                                {isReExtracting ? '⏳ Re-extracting...' : '🔄 Re-extract (AI)'}
+                            </button>
+                        </div>
+                    )}
+
                     {/* Notes */}
                     {opp.notes && (
                         <div className="opp-meta-block">
@@ -339,86 +364,64 @@ export const OpportunityDetailModal: React.FC<OpportunityDetailModalProps> = ({
                     )}
                 </div>
 
-                {/* Modal Footer Actions: Authenticated Toolbar vs Public Action Bar */}
+                {/* Modal Footer Actions: Source Link + Add to Calendar on left, Delete Opportunity on right */}
                 <div className="opp-detail-footer">
                     <div className="opp-detail-tools-row">
-                        {isAuthenticated ? (
-                            <>
-                                <div className="opp-detail-tools-left">
-                                    <button
-                                        type="button"
-                                        className="opp-btn opp-btn-secondary opp-btn-sm"
-                                        onClick={() => {
-                                            onClose();
-                                            onEdit(opp);
-                                        }}
-                                    >
-                                        ✏️ Edit Details
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        className="opp-btn opp-btn-secondary opp-btn-sm"
-                                        onClick={handleReExtractClick}
-                                        disabled={isReExtracting}
-                                    >
-                                        {isReExtracting ? '⏳ Extracting...' : '🔄 Re-extract'}
-                                    </button>
-
-                                    {currentDeadline && (
-                                        <a
-                                            href={generateGoogleCalendarUrl({ ...opp, deadline_at: currentDeadline }, 'deadline')}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="opp-btn opp-btn-secondary opp-btn-sm opp-add-calendar-btn"
-                                            title="Add deadline directly to Google Calendar"
-                                        >
-                                            📅 Add to Calendar
-                                        </a>
-                                    )}
-                                </div>
-
-                                <button
-                                    type="button"
-                                    className="opp-delete-btn"
-                                    onClick={handleDeleteClick}
+                        <div className="opp-detail-tools-left">
+                            {(opp.source_url || opp.application_url) && (
+                                <a
+                                    href={opp.source_url || opp.application_url || '#'}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="opp-btn opp-btn-primary opp-btn-sm opp-source-link-btn"
+                                    title="Open original opportunity page"
                                 >
-                                    🗑️ Delete Opportunity
-                                </button>
-                            </>
-                        ) : (
-                            <div className="opp-detail-tools-left" style={{ width: '100%', justifyContent: 'space-between' }}>
-                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                    {opp.application_url && (
-                                        <a
-                                            href={opp.application_url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="opp-btn opp-btn-primary opp-btn-sm"
-                                        >
-                                            Apply Now ↗
-                                        </a>
-                                    )}
-                                    {currentDeadline && (
-                                        <a
-                                            href={generateGoogleCalendarUrl({ ...opp, deadline_at: currentDeadline }, 'deadline')}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="opp-btn opp-btn-secondary opp-btn-sm opp-add-calendar-btn"
-                                            title="Add deadline directly to Google Calendar"
-                                        >
-                                            📅 Add to Calendar
-                                        </a>
-                                    )}
-                                </div>
-                                <button
-                                    type="button"
+                                    🔗 Source Link ↗
+                                </a>
+                            )}
+
+                            {opp.application_url && opp.application_url !== opp.source_url && (
+                                <a
+                                    href={opp.application_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
                                     className="opp-btn opp-btn-secondary opp-btn-sm"
-                                    onClick={onClose}
+                                    title="Open direct application page"
                                 >
-                                    Close
-                                </button>
-                            </div>
+                                    Apply ↗
+                                </a>
+                            )}
+
+                            {currentDeadline && (
+                                <a
+                                    href={generateGoogleCalendarUrl({ ...opp, deadline_at: currentDeadline }, 'deadline')}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="opp-btn opp-btn-secondary opp-btn-sm opp-add-calendar-btn"
+                                    title="Add deadline directly to Google Calendar"
+                                >
+                                    📅 Add to Calendar
+                                </a>
+                            )}
+                        </div>
+
+                        {isAuthenticated ? (
+                            <button
+                                type="button"
+                                className="opp-delete-btn"
+                                onClick={handleDeleteClick}
+                                title="Delete this opportunity"
+                            >
+                                🗑️ Delete Opportunity
+                            </button>
+                        ) : (
+                            <button
+                                type="button"
+                                className="opp-btn opp-btn-secondary opp-btn-sm"
+                                onClick={onClose}
+                            >
+                                Close
+                            </button>
                         )}
                     </div>
                 </div>
