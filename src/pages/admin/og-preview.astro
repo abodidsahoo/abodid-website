@@ -4,187 +4,136 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
 <BaseLayout title="OG Image Preview & Testing">
     <div class="og-preview-container">
-        <h1>Open Graph Image Preview & Testing</h1>
-        <p class="subtitle">
-            Test what your pages look like when shared on WhatsApp, Facebook,
-            Twitter, and LinkedIn
-        </p>
+        <header class="og-preview-header">
+            <span class="pop-brand-tag">⚡ ABODID POP ENGINE</span>
+            <h1>Open Graph Social Share Studio</h1>
+            <p class="subtitle">
+                Real-time preview and debug studio for social share cards (WhatsApp, Twitter/X, iMessage, LinkedIn, Facebook).
+            </p>
+        </header>
 
         <!-- Dynamic OG Image Preview -->
         <section class="preview-section">
-            <h2>🎨 Dynamic OG Image Preview</h2>
-            <p>
-                Enter a page title to see what the auto-generated OG image looks
-                like:
-            </p>
+            <h2>🎨 Dynamic Card Controls</h2>
+            
+            <div class="controls-grid">
+                <div class="input-group">
+                    <label for="titleInput">Card Title</label>
+                    <input
+                        type="text"
+                        id="titleInput"
+                        placeholder="Enter page title (e.g. Curated Opportunities)"
+                        value="Curated Opportunities"
+                    />
+                </div>
 
-            <div class="input-group">
-                <input
-                    type="text"
-                    id="titleInput"
-                    placeholder="Enter page title (e.g., About, Photography, Research)"
-                    value="Abodid Sahoo"
-                />
-                <button id="previewBtn">Generate Preview</button>
+                <div class="input-group">
+                    <label for="descInput">Subtitle / Description</label>
+                    <input
+                        type="text"
+                        id="descInput"
+                        placeholder="Enter short description"
+                        value="Curated artist residencies, grants, fellowships, and creative tech open calls."
+                    />
+                </div>
+
+                <div class="controls-row">
+                    <div class="input-group">
+                        <label for="themeSelect">Color Theme</label>
+                        <select id="themeSelect">
+                            <option value="">Auto (Category / Cycling)</option>
+                            <option value="yellow">Pop Yellow (#ffe44f)</option>
+                            <option value="blue">Cobalt Blue (#2444ca)</option>
+                            <option value="purple">Vibrant Purple (#5524c7)</option>
+                            <option value="lime">Pop Lime (#caff48)</option>
+                            <option value="pink">Electric Pink (#ff7eb5)</option>
+                            <option value="cyan">Neon Cyan (#62e6ff)</option>
+                            <option value="orange">Bright Orange (#ff875c)</option>
+                            <option value="cream">Swiss Cream (#fff8e8)</option>
+                            <option value="dark">Dark Ink (#15130f)</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="categoryInput">Category Tag</label>
+                        <input
+                            type="text"
+                            id="categoryInput"
+                            placeholder="e.g. OPPORTUNITIES, PHOTOGRAPHY"
+                            value="OPPORTUNITIES"
+                        />
+                    </div>
+                </div>
+
+                <div class="btn-actions">
+                    <button id="previewBtn" class="primary-btn">⚡ Render Social Card</button>
+                    <button id="copyUrlBtn" class="secondary-btn">📋 Copy Image URL</button>
+                </div>
             </div>
 
-            <div class="image-preview">
-                <img
-                    id="ogImage"
-                    src="/api/og?title=Abodid%20Sahoo"
-                    alt="OG Image Preview"
-                />
-                <p class="image-info">
-                    1200 × 630 pixels (Optimal for social sharing)
-                </p>
+            <div class="image-preview-wrapper">
+                <div class="image-preview">
+                    <img
+                        id="ogImage"
+                        src="/api/og?title=Curated%20Opportunities&description=Curated%20artist%20residencies%2C%20grants%2C%20fellowships%2C%20and%20creative%20tech%20open%20calls.&category=OPPORTUNITIES"
+                        alt="OG Image Preview"
+                    />
+                </div>
+                <div class="preview-meta">
+                    <span class="badge">1200 × 630 px</span>
+                    <span class="badge">Satoshi Typography</span>
+                    <span class="badge">Safe WhatsApp Margins</span>
+                </div>
             </div>
         </section>
 
         <!-- Major Pages Quick Links -->
         <section class="quick-links-section">
-            <h2>📄 Preview Major Pages</h2>
+            <h2>📄 Preset Page Archetypes</h2>
             <div class="page-grid">
-                <button class="page-btn" data-title="Abodid Sahoo"
-                    >Homepage</button
-                >
-                <button class="page-btn" data-title="About">About</button>
-                <button class="page-btn" data-title="Photography"
-                    >Photography</button
-                >
-                <button class="page-btn" data-title="Research">Research</button>
-                <button class="page-btn" data-title="Blog">Blog</button>
-                <button class="page-btn" data-title="Press">Press</button>
-            </div>
-        </section>
-
-        <!-- Social Media Testing Tools -->
-        <section class="testing-tools-section">
-            <h2>🔍 Social Media Debuggers</h2>
-            <p>
-                Use these tools to test how your pages appear on different
-                platforms:
-            </p>
-
-            <div class="tools-grid">
-                <a
-                    href="https://developers.facebook.com/tools/debug/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="tool-card"
-                >
-                    <h3>Facebook Debugger</h3>
-                    <p>Test how your page appears on Facebook and LinkedIn</p>
-                </a>
-
-                <a
-                    href="https://cards-dev.twitter.com/validator"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="tool-card"
-                >
-                    <h3>Twitter Card Validator</h3>
-                    <p>Preview Twitter/X card appearance</p>
-                </a>
-
-                <a
-                    href="https://www.opengraph.xyz/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="tool-card"
-                >
-                    <h3>OpenGraph.xyz</h3>
-                    <p>Universal OG tag preview tool</p>
-                </a>
-
-                <a
-                    href="https://metatags.io/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="tool-card"
-                >
-                    <h3>Meta Tags</h3>
-                    <p>Generate and preview meta tags</p>
-                </a>
+                <button class="page-btn" data-title="Curated Opportunities" data-desc="Curated artist residencies, grants, fellowships, and creative tech open calls." data-cat="OPPORTUNITIES" data-theme="yellow">
+                    ⚡ Opportunities Radar
+                </button>
+                <button class="page-btn" data-title="Photography Studio" data-desc="Selected visual works, fine art, and human portraiture." data-cat="PHOTOGRAPHY" data-theme="yellow">
+                    📷 Photography Studio
+                </button>
+                <button class="page-btn" data-title="Cinematography & Films" data-desc="Narrative shorts, documentaries, and audiovisual storytelling." data-cat="CINEMA & FILM" data-theme="purple">
+                    🎬 Cinema & Films
+                </button>
+                <button class="page-btn" data-title="Punctum AI Perception" data-desc="Neuro-symbolic consensus engine measuring memory vs machine vision." data-cat="LAB & RESEARCH" data-theme="lime">
+                    🔬 Punctum AI Lab
+                </button>
+                <button class="page-btn" data-title="Website Architecture" data-desc="A public architecture note covering Astro SSR, React 19, Supabase & Web Audio." data-cat="ARCHITECTURE" data-theme="blue">
+                    📐 Architecture
+                </button>
+                <button class="page-btn" data-title="Obsidian Vault" data-desc="Connected atomic notes, research syntheses, and technical explorations." data-cat="OBSIDIAN VAULT" data-theme="cream">
+                    📚 Obsidian Vault
+                </button>
+                <button class="page-btn" data-title="Creative Tech Toolkit" data-desc="Open-source instruments, audio synthesis, and interactive shader toys." data-cat="LAB & TECH" data-theme="cyan">
+                    🛠️ Creative Tech
+                </button>
+                <button class="page-btn" data-title="Visual Storytelling Workshop" data-desc="Hands-on masterclass in non-linear editing, pacing, and color grading." data-cat="WORKSHOPS" data-theme="orange">
+                    🎓 Workshops
+                </button>
             </div>
         </section>
 
         <!-- WhatsApp Testing Instructions -->
         <section class="whatsapp-section">
-            <h2>💬 Testing on WhatsApp</h2>
+            <h2>💬 Testing on WhatsApp & Social Media</h2>
             <div class="instructions">
                 <ol>
                     <li>
-                        <strong>Deploy your site</strong> to production or staging
-                        (WhatsApp needs a public URL)
+                        <strong>Deploy your site</strong> to production or staging (WhatsApp requires public HTTPS access).
                     </li>
                     <li>
-                        <strong>Copy the page URL</strong> you want to test (e.g.,
-                        https://abodid.com/about)
+                        <strong>Copy any URL</strong> you want to test (e.g. <code>https://abodid.com/opportunities</code>).
                     </li>
-                    <li><strong>Open WhatsApp</strong> on your phone</li>
-                    <li><strong>Paste the link</strong> in any chat</li>
+                    <li><strong>Open WhatsApp</strong> and paste the URL in any chat.</li>
                     <li>
-                        <strong>Wait a moment</strong> - WhatsApp will fetch the OG
-                        image and show a preview
+                        <strong>Inspect the preview</strong> — WhatsApp automatically pulls the high-contrast Satoshi Pop card with safe padding.
                     </li>
                 </ol>
-
-                <div class="note">
-                    <strong>Note:</strong> WhatsApp caches OG images aggressively.
-                    If you update your OG image and don't see changes:
-                    <ul>
-                        <li>
-                            Add a query parameter to the URL (e.g., <code
-                                >?v=2</code
-                            >)
-                        </li>
-                        <li>Wait 24-48 hours for cache to expire</li>
-                        <li>
-                            Use Facebook Debugger to force a refresh, then try
-                            WhatsApp again
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </section>
-
-        <!-- Current Page URLs -->
-        <section class="urls-section">
-            <h2>🔗 Your Page URLs</h2>
-            <p>Copy these URLs to test in social media debuggers:</p>
-            <div class="url-list">
-                <div class="url-item">
-                    <code>https://abodid.com/</code>
-                    <button class="copy-btn" data-url="https://abodid.com/"
-                        >Copy</button
-                    >
-                </div>
-                <div class="url-item">
-                    <code>https://abodid.com/about</code>
-                    <button class="copy-btn" data-url="https://abodid.com/about"
-                        >Copy</button
-                    >
-                </div>
-                <div class="url-item">
-                    <code>https://abodid.com/photography</code>
-                    <button
-                        class="copy-btn"
-                        data-url="https://abodid.com/photography">Copy</button
-                    >
-                </div>
-                <div class="url-item">
-                    <code>https://abodid.com/research</code>
-                    <button
-                        class="copy-btn"
-                        data-url="https://abodid.com/research">Copy</button
-                    >
-                </div>
-                <div class="url-item">
-                    <code>https://abodid.com/blog</code>
-                    <button class="copy-btn" data-url="https://abodid.com/blog"
-                        >Copy</button
-                    >
-                </div>
             </div>
         </section>
     </div>
@@ -192,283 +141,277 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
 <style>
     .og-preview-container {
-        max-width: 1000px;
+        max-width: 1100px;
         margin: 0 auto;
-        padding: 2rem;
+        padding: 48px 24px 80px;
+        font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+    }
+
+    .og-preview-header {
+        margin-bottom: 40px;
+    }
+
+    .pop-brand-tag {
+        display: inline-block;
+        padding: 6px 14px;
+        border-radius: 999px;
+        background: #ffe44f;
+        color: #15130f;
+        font-weight: 900;
+        font-size: 0.75rem;
+        letter-spacing: 0.08em;
+        margin-bottom: 12px;
+        border: 2px solid #15130f;
     }
 
     h1 {
-        font-size: 2.5rem;
-        margin-bottom: 0.5rem;
+        font-size: 2.4rem;
+        font-weight: 850;
+        letter-spacing: -0.03em;
+        margin: 0 0 10px 0;
+        color: var(--text-primary, #111827);
     }
 
     .subtitle {
-        color: var(--text-secondary);
         font-size: 1.1rem;
-        margin-bottom: 3rem;
+        color: var(--text-secondary, #6b7280);
+        margin: 0;
+        max-width: 680px;
+        line-height: 1.5;
     }
 
     .preview-section,
     .quick-links-section,
-    .testing-tools-section,
-    .whatsapp-section,
-    .urls-section {
-        margin-bottom: 3rem;
-        padding: 2rem;
-        background: var(--bg-secondary);
-        border-radius: 12px;
-        border: 1px solid var(--border-subtle);
+    .whatsapp-section {
+        background: var(--bg-card, #ffffff);
+        border: 2px solid #15130f;
+        border-radius: 16px;
+        padding: 28px;
+        margin-bottom: 32px;
+        box-shadow: 4px 4px 0px #15130f;
     }
 
     h2 {
-        font-size: 1.5rem;
-        margin-bottom: 1rem;
+        font-size: 1.35rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        margin: 0 0 18px 0;
+        color: var(--text-primary, #111827);
+    }
+
+    .controls-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .controls-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
     }
 
     .input-group {
         display: flex;
-        gap: 1rem;
-        margin: 1.5rem 0;
+        flex-direction: column;
+        gap: 6px;
     }
 
-    #titleInput {
-        flex: 1;
-        padding: 0.75rem 1rem;
-        font-size: 1rem;
-        border: 1px solid var(--border-subtle);
-        border-radius: 8px;
-        background: var(--bg-primary);
-        color: var(--text-primary);
+    .input-group label {
+        font-size: 0.8rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #374151;
     }
 
-    #previewBtn {
-        padding: 0.75rem 2rem;
-        background: #3b82f6;
-        color: white;
-        border: none;
-        border-radius: 8px;
+    .input-group input,
+    .input-group select {
+        padding: 12px 14px;
+        font-size: 0.95rem;
         font-weight: 600;
-        cursor: pointer;
-        transition: background 0.2s;
+        border: 2px solid #15130f;
+        border-radius: 8px;
+        outline: none;
+        background: #fafafa;
     }
 
-    #previewBtn:hover {
-        background: #2563eb;
+    .input-group input:focus,
+    .input-group select:focus {
+        border-color: #5524c7;
+        background: #ffffff;
+    }
+
+    .btn-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 6px;
+    }
+
+    .primary-btn {
+        padding: 12px 22px;
+        background: #ffe44f;
+        color: #15130f;
+        border: 2px solid #15130f;
+        border-radius: 8px;
+        font-weight: 850;
+        font-size: 0.92rem;
+        cursor: pointer;
+        box-shadow: 2px 2px 0px #15130f;
+        transition: transform 0.1s ease;
+    }
+
+    .primary-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 3px 3px 0px #15130f;
+    }
+
+    .secondary-btn {
+        padding: 12px 20px;
+        background: #ffffff;
+        color: #15130f;
+        border: 2px solid #15130f;
+        border-radius: 8px;
+        font-weight: 750;
+        font-size: 0.92rem;
+        cursor: pointer;
+        box-shadow: 2px 2px 0px #15130f;
+    }
+
+    .image-preview-wrapper {
+        margin-top: 24px;
     }
 
     .image-preview {
-        margin-top: 2rem;
-        text-align: center;
+        border: 2px solid #15130f;
+        border-radius: 12px;
+        overflow: hidden;
+        background: #15130f;
+        aspect-ratio: 1200 / 630;
     }
 
-    #ogImage {
-        max-width: 100%;
-        border-radius: 8px;
-        border: 2px solid var(--border-subtle);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    .image-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
     }
 
-    .image-info {
-        margin-top: 0.5rem;
-        font-size: 0.875rem;
-        color: var(--text-tertiary);
+    .preview-meta {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+    }
+
+    .badge {
+        font-size: 0.75rem;
+        font-weight: 750;
+        padding: 4px 10px;
+        background: #f3f4f6;
+        border: 1.5px solid #d1d5db;
+        border-radius: 6px;
+        color: #374151;
     }
 
     .page-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 1rem;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 12px;
     }
 
     .page-btn {
-        padding: 1rem;
-        background: var(--bg-primary);
-        color: var(--text-primary);
-        border: 1px solid var(--border-subtle);
+        padding: 12px 14px;
+        background: #ffffff;
+        border: 2px solid #15130f;
         border-radius: 8px;
+        font-size: 0.88rem;
+        font-weight: 750;
+        text-align: left;
         cursor: pointer;
-        transition: all 0.2s;
-        font-weight: 500;
+        box-shadow: 2px 2px 0px #15130f;
+        transition: all 0.12s ease;
     }
 
     .page-btn:hover {
-        background: #3b82f6;
-        color: white;
-        border-color: #3b82f6;
-        transform: translateY(-2px);
-    }
-
-    .tools-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 1.5rem;
-        margin-top: 1.5rem;
-    }
-
-    .tool-card {
-        padding: 1.5rem;
-        background: var(--bg-primary);
-        border: 1px solid var(--border-subtle);
-        border-radius: 8px;
-        text-decoration: none;
-        color: inherit;
-        transition: all 0.2s;
-    }
-
-    .tool-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        border-color: var(--text-primary);
-    }
-
-    .tool-card h3 {
-        margin: 0 0 0.5rem 0;
-        font-size: 1.1rem;
-    }
-
-    .tool-card p {
-        margin: 0;
-        font-size: 0.9rem;
-        color: var(--text-secondary);
+        background: #ffe44f;
+        transform: translateY(-1px);
+        box-shadow: 3px 3px 0px #15130f;
     }
 
     .instructions ol {
+        margin: 0;
+        padding-left: 20px;
         line-height: 1.8;
-        padding-left: 1.5rem;
-    }
-
-    .instructions li {
-        margin-bottom: 0.5rem;
-    }
-
-    .note {
-        margin-top: 1.5rem;
-        padding: 1rem;
-        background: var(--bg-primary);
-        border-left: 4px solid var(--text-primary);
-        border-radius: 4px;
-    }
-
-    .note ul {
-        margin-top: 0.5rem;
-        padding-left: 1.5rem;
-    }
-
-    .note code {
-        background: var(--bg-secondary);
-        padding: 0.2rem 0.4rem;
-        border-radius: 4px;
-        font-size: 0.9em;
-    }
-
-    .url-list {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-    }
-
-    .url-item {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0.75rem 1rem;
-        background: var(--bg-primary);
-        border: 1px solid var(--border-subtle);
-        border-radius: 8px;
-    }
-
-    .url-item code {
-        font-size: 0.9rem;
-        color: var(--text-primary);
-    }
-
-    .copy-btn {
-        padding: 0.5rem 1rem;
-        background: #3b82f6;
-        color: white;
-        border: none;
-        border-radius: 6px;
-        font-size: 0.875rem;
-        cursor: pointer;
-        transition: background 0.2s;
-    }
-
-    .copy-btn:hover {
-        background: #2563eb;
-    }
-
-    .copy-btn.copied {
-        background: #10b981;
-    }
-
-    @media (max-width: 768px) {
-        .og-preview-container {
-            padding: 1rem;
-        }
-
-        h1 {
-            font-size: 2rem;
-        }
-
-        .input-group {
-            flex-direction: column;
-        }
-
-        .tools-grid {
-            grid-template-columns: 1fr;
-        }
+        color: #374151;
     }
 </style>
 
 <script>
-    // Preview button functionality
-    const titleInput = document.getElementById(
-        "titleInput",
-    ) as HTMLInputElement;
-    const previewBtn = document.getElementById(
-        "previewBtn",
-    ) as HTMLButtonElement;
+    const titleInput = document.getElementById("titleInput") as HTMLInputElement;
+    const descInput = document.getElementById("descInput") as HTMLInputElement;
+    const themeSelect = document.getElementById("themeSelect") as HTMLSelectElement;
+    const categoryInput = document.getElementById("categoryInput") as HTMLInputElement;
+    const previewBtn = document.getElementById("previewBtn") as HTMLButtonElement;
+    const copyUrlBtn = document.getElementById("copyUrlBtn") as HTMLButtonElement;
     const ogImage = document.getElementById("ogImage") as HTMLImageElement;
 
-    function updatePreview() {
-        const title = titleInput.value || "Abodid Sahoo";
-        const encodedTitle = encodeURIComponent(title);
-        ogImage.src = `/api/og?title=${encodedTitle}`;
+    function buildOgUrl() {
+        const title = titleInput?.value || "Abodid Sahoo";
+        const desc = descInput?.value || "";
+        const theme = themeSelect?.value || "";
+        const cat = categoryInput?.value || "";
+
+        const params = new URLSearchParams();
+        params.set("title", title);
+        if (desc) params.set("description", desc);
+        if (theme) params.set("theme", theme);
+        if (cat) params.set("category", cat);
+
+        return `/api/og?${params.toString()}`;
     }
 
-    previewBtn.addEventListener("click", updatePreview);
-    titleInput.addEventListener("keypress", (e) => {
-        if (e.key === "Enter") {
-            updatePreview();
-        }
-    });
+    function updatePreview() {
+        ogImage.src = buildOgUrl();
+    }
 
-    // Page quick links
+    previewBtn?.addEventListener("click", updatePreview);
+    [titleInput, descInput, categoryInput].forEach((el) => {
+        el?.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") updatePreview();
+        });
+    });
+    themeSelect?.addEventListener("change", updatePreview);
+
+    // Presets
     const pageButtons = document.querySelectorAll(".page-btn");
     pageButtons.forEach((btn) => {
         btn.addEventListener("click", () => {
             const title = btn.getAttribute("data-title") || "";
-            titleInput.value = title;
+            const desc = btn.getAttribute("data-desc") || "";
+            const cat = btn.getAttribute("data-cat") || "";
+            const theme = btn.getAttribute("data-theme") || "";
+
+            if (titleInput) titleInput.value = title;
+            if (descInput) descInput.value = desc;
+            if (categoryInput) categoryInput.value = cat;
+            if (themeSelect) themeSelect.value = theme;
+
             updatePreview();
         });
     });
 
-    // Copy URL functionality
-    const copyButtons = document.querySelectorAll(".copy-btn");
-    copyButtons.forEach((btn) => {
-        btn.addEventListener("click", async () => {
-            const url = btn.getAttribute("data-url") || "";
-            try {
-                await navigator.clipboard.writeText(url);
-                btn.textContent = "Copied!";
-                btn.classList.add("copied");
-                setTimeout(() => {
-                    btn.textContent = "Copy";
-                    btn.classList.remove("copied");
-                }, 2000);
-            } catch (err) {
-                console.error("Failed to copy:", err);
-            }
-        });
+    // Copy URL
+    copyUrlBtn?.addEventListener("click", async () => {
+        const fullUrl = new URL(buildOgUrl(), window.location.origin).toString();
+        try {
+            await navigator.clipboard.writeText(fullUrl);
+            copyUrlBtn.textContent = "✓ Copied Link!";
+            setTimeout(() => {
+                copyUrlBtn.textContent = "📋 Copy Image URL";
+            }, 2000);
+        } catch (err) {
+            console.error("Copy failed:", err);
+        }
     });
 </script>

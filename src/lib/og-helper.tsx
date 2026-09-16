@@ -1,207 +1,261 @@
 import { ImageResponse } from '@vercel/og';
+import {
+    POP_THEMES,
+    loadSatoshiFonts,
+    cleanTitleText,
+    detectCategory,
+    resolveTheme,
+    cleanSubtitleText,
+    getTitleFontSize,
+} from './og-theme.js';
 
-// Pastel & Bright Gradient combinations (Beige, Lilac, Soft Gradients)
-const gradients = [
-    'linear-gradient(135deg, #FDFBFB 0%, #EBEDEE 100%)', // Soft White/Gray
-    'linear-gradient(to bottom right, #E0C3FC 0%, #8EC5FC 100%)', // Lilac -> Blue
-    'linear-gradient(120deg, #fdfbfb 0%, #ebedee 100%)', // Clean
-    'linear-gradient(to top, #fff1eb 0%, #ace0f9 100%)', // Pale Red -> Pale Blue
-    'linear-gradient(120deg, #fccb90 0%, #d57eeb 100%)', // Peach -> Lilac
-    'linear-gradient(to top, #e6b980 0%, #eacda3 100%)', // Beige / Gold
-    'linear-gradient(to top, #d299c2 0%, #fef9d7 100%)', // Lilac -> Cream
-];
+export {
+    POP_THEMES,
+    loadSatoshiFonts,
+    cleanTitleText,
+    detectCategory,
+    resolveTheme,
+    cleanSubtitleText,
+    getTitleFontSize,
+};
 
-function getGradient(title: string) {
-    const index = title.length % gradients.length;
-    return gradients[index];
-}
-
-export function generateOgImage(title: string, image?: string, description?: string) {
-    const safeTitle = typeof title === 'string' && title.trim().length > 0 ? title.trim() : 'Abodid Sahoo';
-    const safeImage = typeof image === 'string' && image.trim().length > 0 ? image.trim() : undefined;
-    const safeDescription = typeof description === 'string' && description.trim().length > 0
-        ? description.trim()
-        : 'Research, photography, films, and creative technology.';
-    const background = getGradient(safeTitle);
-    const isCustomImage = Boolean(safeImage);
-
-    // Theme Colors based on mode
-    const textColor = isCustomImage ? '#ffffff' : '#1a1a1a';
-    const subTextColor = isCustomImage ? '#dddddd' : '#4a4a4a';
-    const descriptionBoxBackground = isCustomImage ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.78)';
-    const descriptionBoxBorder = isCustomImage ? '1px solid rgba(255,255,255,0.3)' : '1px solid rgba(26,26,26,0.08)';
-    const descriptionTextColor = '#1f2937';
-
-    const rootStyle: Record<string, string | number> = {
-        height: '100%',
-        width: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: isCustomImage ? '#1a1a1a' : '#fff',
-        color: textColor,
-        fontFamily: 'sans-serif',
-        position: 'relative',
-    };
-
-    if (!isCustomImage) {
-        rootStyle.backgroundImage = background;
-    }
+export function generateOgImage(
+    title: string,
+    image?: string,
+    description?: string,
+    options?: { theme?: string; category?: string }
+) {
+    const cleanTitle = cleanTitleText(title);
+    const category = detectCategory(cleanTitle, options?.category);
+    const theme = resolveTheme(cleanTitle, category, options?.theme);
+    const cleanSub = cleanSubtitleText(description, cleanTitle);
+    const isCustomImage = Boolean(image && image.trim().length > 0);
+    const fonts = loadSatoshiFonts();
+    const { fontSize, lineHeight } = getTitleFontSize(cleanTitle.length);
 
     return new ImageResponse(
         (
             <div
-                style={rootStyle}
-            >
-                {/* Background Image if provided */}
-                {isCustomImage && (
-                    <img
-                        src={safeImage}
-                        style={{
-                            position: 'absolute',
-                            top: 0, left: 0,
-                            width: '100%', height: '100%',
-                            objectFit: 'cover',
-                        }}
-                    />
-                )}
-
-                {/* Overlay for text readability if image exists */}
-                {isCustomImage && (
-                    <div
-                        style={{
-                            position: 'absolute',
-                            top: 0, left: 0, right: 0, bottom: 0,
-                            background: 'rgba(0,0,0,0.4)',
-                        }}
-                    />
-                )}
-
-                {!isCustomImage && (
-                    <>
-                        <div
-                            style={{
-                                position: 'absolute',
-                                inset: '40px',
-                                borderRadius: '36px',
-                                border: '1px solid rgba(26,26,26,0.08)',
-                                background: 'rgba(255,255,255,0.52)',
-                            }}
-                        />
-                        <div
-                            style={{
-                                position: 'absolute',
-                                top: '-120px',
-                                right: '-40px',
-                                width: '520px',
-                                height: '520px',
-                                borderRadius: '9999px',
-                                background: 'radial-gradient(circle, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0) 72%)',
-                            }}
-                        />
-                        <div
-                            style={{
-                                position: 'absolute',
-                                bottom: '-160px',
-                                left: '-100px',
-                                width: '520px',
-                                height: '520px',
-                                borderRadius: '9999px',
-                                background: 'radial-gradient(circle, rgba(255,255,255,0.72) 0%, rgba(255,255,255,0) 72%)',
-                            }}
-                        />
-                    </>
-                )}
-
-                <div style={{
+                style={{
+                    height: '100%',
+                    width: '100%',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    padding: '56px 110px 48px',
-                    textAlign: 'center',
-                    zIndex: 10,
-                    width: '100%',
-                    maxWidth: '1000px'
-                }}>
+                    backgroundColor: isCustomImage ? '#15130f' : theme.bg,
+                    padding: '32px',
+                    fontFamily: 'Satoshi, -apple-system, sans-serif',
+                    position: 'relative',
+                }}
+            >
+                {/* Custom Image Background with Pop Contrast Overlay */}
+                {isCustomImage && (
+                    <img
+                        src={image}
+                        style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                        }}
+                    />
+                )}
+                {isCustomImage && (
                     <div
                         style={{
-                            fontSize: 88,
-                            fontWeight: 850,
-                            letterSpacing: '-0.04em',
-                            fontFamily: 'sans-serif',
-                            lineHeight: 0.95,
-                            textWrap: 'balance',
-                            color: textColor,
-                            textShadow: isCustomImage ? '0 4px 30px rgba(0,0,0,0.5)' : 'none',
-                            maxWidth: '900px',
-                            textAlign: 'center',
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            background: 'rgba(21, 19, 15, 0.72)',
+                        }}
+                    />
+                )}
+
+                {/* Tactile Pop Shell */}
+                <div
+                    style={{
+                        position: 'relative',
+                        width: '100%',
+                        height: '100%',
+                        borderRadius: '26px',
+                        border: isCustomImage ? '2.5px solid #ffffff' : `2.5px solid ${theme.border}`,
+                        backgroundColor: isCustomImage ? 'transparent' : theme.bg,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: '40px 52px 34px 52px',
+                        boxShadow: isCustomImage
+                            ? '6px 6px 0px rgba(0, 0, 0, 0.6)'
+                            : `8px 8px 0px ${theme.border}`,
+                    }}
+                >
+                    {/* Top Header: Brand Name + Category Chip */}
+                    <div
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            width: '100%',
                         }}
                     >
-                        {safeTitle}
+                        {/* Brand Pill */}
+                        <div
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                padding: '8px 18px',
+                                borderRadius: '9999px',
+                                background: theme.badgeBg,
+                                border: `2px solid ${theme.badgeBorder}`,
+                                color: theme.badgeText,
+                                boxShadow: '2.5px 2.5px 0px rgba(21, 19, 15, 0.9)',
+                            }}
+                        >
+                            <div
+                                style={{
+                                    width: '10px',
+                                    height: '10px',
+                                    borderRadius: '9999px',
+                                    background: theme.badgeDot,
+                                    border: '1.5px solid #15130f',
+                                }}
+                            />
+                            <span
+                                style={{
+                                    fontSize: '15px',
+                                    fontWeight: 900,
+                                    letterSpacing: '0.08em',
+                                    textTransform: 'uppercase',
+                                    color: theme.badgeText,
+                                }}
+                            >
+                                ABODID SAHOO
+                            </span>
+                        </div>
+
+                        {/* Category Chip */}
+                        <div
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                padding: '8px 16px',
+                                borderRadius: '9999px',
+                                background: theme.badgeBg,
+                                border: `2px solid ${theme.badgeBorder}`,
+                                color: theme.badgeText,
+                                fontSize: '13px',
+                                fontWeight: 800,
+                                letterSpacing: '0.06em',
+                                textTransform: 'uppercase',
+                                boxShadow: '2.5px 2.5px 0px rgba(21, 19, 15, 0.9)',
+                            }}
+                        >
+                            {category}
+                        </div>
                     </div>
+
+                    {/* Center Area: Main Headline & Crisp Subtitle */}
                     <div
                         style={{
-                            marginTop: '34px',
-                            maxWidth: '760px',
                             display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
                             justifyContent: 'center',
-                            padding: '18px 24px',
-                            borderRadius: '22px',
-                            background: descriptionBoxBackground,
-                            border: descriptionBoxBorder,
-                            boxShadow: isCustomImage ? '0 12px 32px rgba(0,0,0,0.18)' : '0 10px 26px rgba(255,255,255,0.24)',
+                            textAlign: 'center',
+                            width: '100%',
+                            maxWidth: '980px',
+                            margin: 'auto 0',
                         }}
                     >
                         <div
                             style={{
-                                fontSize: '27px',
-                                fontWeight: 560,
-                                lineHeight: 1.34,
-                                color: descriptionTextColor,
-                                textWrap: 'balance',
+                                fontSize: `${fontSize}px`,
+                                fontWeight: 900,
+                                letterSpacing: '-0.035em',
+                                lineHeight: lineHeight,
+                                color: isCustomImage ? '#ffffff' : theme.text,
                                 textAlign: 'center',
+                                textWrap: 'balance',
+                                maxWidth: '940px',
                             }}
                         >
-                            {safeDescription}
+                            {cleanTitle}
                         </div>
-                    </div>
-                </div>
 
-                <div style={{
-                    position: 'absolute',
-                    bottom: '48px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '16px',
-                    padding: '14px 20px',
-                    borderRadius: '9999px',
-                    background: isCustomImage ? 'rgba(17,17,17,0.34)' : 'rgba(255,255,255,0.7)',
-                    border: isCustomImage ? '1px solid rgba(255,255,255,0.14)' : '1px solid rgba(26,26,26,0.08)',
-                    fontSize: '18px',
-                    fontWeight: 600,
-                    opacity: 0.92,
-                    fontFamily: 'sans-serif',
-                    letterSpacing: '0.04em',
-                    color: subTextColor,
-                    zIndex: 10
-                }}>
+                        {cleanSub && (
+                            <div
+                                style={{
+                                    marginTop: '22px',
+                                    maxWidth: '820px',
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    padding: '12px 24px',
+                                    borderRadius: '16px',
+                                    background: isCustomImage ? 'rgba(21, 19, 15, 0.85)' : theme.subtitleBg,
+                                    border: isCustomImage ? '1.5px solid rgba(255, 255, 255, 0.3)' : `2px solid ${theme.subtitleBorder}`,
+                                    boxShadow: isCustomImage
+                                        ? '3px 3px 0px rgba(0, 0, 0, 0.4)'
+                                        : '3px 3px 0px rgba(21, 19, 15, 0.15)',
+                                }}
+                            >
+                                <div
+                                    style={{
+                                        fontSize: '24px',
+                                        fontWeight: 500,
+                                        lineHeight: 1.34,
+                                        color: isCustomImage ? '#ffffff' : theme.subtitleText,
+                                        textAlign: 'center',
+                                        textWrap: 'balance',
+                                    }}
+                                >
+                                    {cleanSub}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Bottom Footer: www.abodid.com in lower bottom central area */}
                     <div
                         style={{
-                            width: '10px',
-                            height: '10px',
-                            borderRadius: '9999px',
-                            background: isCustomImage ? '#ffffff' : '#1a1a1a',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: '100%',
                         }}
-                    />
-                    abodid.com
+                    >
+                        <div
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                padding: '8px 22px',
+                                borderRadius: '9999px',
+                                background: theme.footerBg,
+                                border: `2px solid ${theme.footerBorder}`,
+                                fontSize: '16px',
+                                fontWeight: 800,
+                                letterSpacing: '0.04em',
+                                color: theme.footerText,
+                                boxShadow: '2.5px 2.5px 0px rgba(21, 19, 15, 0.9)',
+                            }}
+                        >
+                            www.abodid.com
+                        </div>
+                    </div>
                 </div>
             </div>
         ),
         {
             width: 1200,
             height: 630,
-        },
+            fonts: fonts,
+        }
     );
 }
