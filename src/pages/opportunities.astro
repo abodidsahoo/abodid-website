@@ -2,11 +2,13 @@
 export const prerender = false;
 import BaseLayout from '../layouts/BaseLayout.astro';
 import OpportunityDashboard from '../components/opportunities/OpportunityDashboard';
+import { isRequestAuthenticated } from '../lib/opportunities/auth';
 import '../styles/portfolio-pop-editorial.css';
 import '../styles/opportunities-editorial.css';
 
 const title = 'Opportunity Desk · Field Radar';
 const description = 'Personal field radar, grant tracker, and deadline chronicles.';
+const isAuth = isRequestAuthenticated(Astro.request, Astro.cookies);
 ---
 
 <BaseLayout
@@ -19,6 +21,6 @@ const description = 'Personal field radar, grant tracker, and deadline chronicle
     navigationVariant="next"
 >
     <div id="main-content" style="background: var(--opp-blue); min-height: calc(100svh - 72px);">
-        <OpportunityDashboard client:load />
+        <OpportunityDashboard client:load initialIsAuthenticated={isAuth} />
     </div>
 </BaseLayout>

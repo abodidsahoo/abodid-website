@@ -6,10 +6,14 @@ import { ManualCreateModal } from './ManualCreateModal';
 
 type DeadlineFilter = 'all' | 'today' | '48hrs' | '7days' | '14days' | '30days' | 'rolling' | 'unknown' | 'expired';
 
-export const OpportunityDashboard: React.FC = () => {
+interface OpportunityDashboardProps {
+    initialIsAuthenticated?: boolean;
+}
+
+export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({ initialIsAuthenticated = false }) => {
     const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+    const [isAuthenticated, setIsAuthenticated] = useState<boolean>(initialIsAuthenticated);
+    const [isLoading, setIsLoading] = useState<boolean>(initialIsAuthenticated);
 
     // Capture bar state
     const [captureUrl, setCaptureUrl] = useState('');
@@ -42,8 +46,9 @@ export const OpportunityDashboard: React.FC = () => {
         setTimeout(() => setToastMessage(null), 4000);
     };
 
-    // 1. Initial Load & Auth Check
+    // 1. Fetch Opportunities
     const fetchOpportunities = async () => {
+        setIsLoading(true);
         try {
             const res = await fetch('/api/opportunities');
             if (res.status === 401) {
@@ -64,8 +69,10 @@ export const OpportunityDashboard: React.FC = () => {
     };
 
     useEffect(() => {
-        fetchOpportunities();
-    }, []);
+        if (isAuthenticated) {
+            fetchOpportunities();
+        }
+    }, [isAuthenticated]);
 
     // 2. Auth Login Handler
     const handleLogin = async (e: React.FormEvent) => {
