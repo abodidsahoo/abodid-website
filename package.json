@@ -94,6 +94,7 @@
     "simplex-noise": "^4.0.3",
     "tailwind-merge": "^3.4.0",
     "typescript": "^5.9.3",
+    "unpdf": "^1.7.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {

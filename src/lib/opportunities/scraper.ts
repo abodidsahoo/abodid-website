@@ -160,8 +160,10 @@ function truncateSmartly(text: string): string {
     return `${topChunk}\n\n[...CONTENT CONTINUES...]\n\n${bottomChunk}`;
 }
 
+import { extractText } from 'unpdf';
+
 /**
- * Fetches the webpage content server-side with timeout and realistic User-Agent.
+ * Fetches the webpage or PDF content server-side with timeout and realistic User-Agent.
  */
 export async function fetchWebpageContent(url: string): Promise<{ html: string; text: string; status: number }> {
     const canonical = canonicalizeUrl(url);
@@ -174,7 +176,7 @@ export async function fetchWebpageContent(url: string): Promise<{ html: string; 
             method: 'GET',
             headers: {
                 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,application/pdf;q=0.9,*/*;q=0.8',
                 'Accept-Language': 'en-US,en;q=0.9',
             },
             signal: controller.signal,
@@ -187,13 +189,64 @@ export async function fetchWebpageContent(url: string): Promise<{ html: string; 
             throw new Error(`Failed to fetch page: HTTP ${response.status} ${response.statusText}`);
         }
 
-        const contentType = response.headers.get('content-type') || '';
+        const contentType = (response.headers.get('content-type') || '').toLowerCase();
+        const urlWithoutQuery = canonical.split('?')[0].toLowerCase();
+        const isPdf = contentType.includes('application/pdf') || urlWithoutQuery.endsWith('.pdf');
+
+        // Handle direct PDF documents
+        if (isPdf) {
+            const arrayBuffer = await response.arrayBuffer();
+            const { text: pdfPagesText } = await extractText(new Uint8Array(arrayBuffer));
+            const fullPdfText = Array.isArray(pdfPagesText) ? pdfPagesText.join('\n\n') : (pdfPagesText || '');
+            const cleanText = truncateSmartly(
+                fullPdfText.replace(/\r\n/g, '\n').replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim()
+            );
+
+            return {
+                html: '',
+                text: cleanText,
+                status: response.status,
+            };
+        }
+
+        // Handle HTML / text pages
         if (!contentType.includes('text/html') && !contentType.includes('application/xhtml+xml') && !contentType.includes('text/plain')) {
             throw new Error(`Unsupported content type: ${contentType}`);
         }
 
         const html = await response.text();
-        const text = cleanHtmlToText(html);
+        let text = cleanHtmlToText(html);
+
+        // If the HTML page is just an empty wrapper around an embedded PDF, extract the embedded PDF
+        if (text.length < 150) {
+            const $ = cheerio.load(html);
+            const embeddedPdfSrc = $('iframe[src*=".pdf"], embed[src*=".pdf"], object[data*=".pdf"], a[href*=".pdf"]').first().attr('src') ||
+                                   $('embed[src*=".pdf"]').first().attr('src') ||
+                                   $('object[data*=".pdf"]').first().attr('data') ||
+                                   $('a[href*=".pdf"]').first().attr('href');
+
+            if (embeddedPdfSrc) {
+                try {
+                    const resolvedPdfUrl = new URL(embeddedPdfSrc, canonical).toString();
+                    const pdfRes = await fetch(resolvedPdfUrl, {
+                        headers: {
+                            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+                            'Accept': 'application/pdf',
+                        },
+                    });
+                    if (pdfRes.ok) {
+                        const pdfBuf = await pdfRes.arrayBuffer();
+                        const { text: embeddedPdfText } = await extractText(new Uint8Array(pdfBuf));
+                        const fullText = Array.isArray(embeddedPdfText) ? embeddedPdfText.join('\n\n') : (embeddedPdfText || '');
+                        if (fullText.trim().length > 100) {
+                            text = truncateSmartly(fullText.trim());
+                        }
+                    }
+                } catch {
+                    // Fallback to original HTML text
+                }
+            }
+        }
 
         return {
             html,
