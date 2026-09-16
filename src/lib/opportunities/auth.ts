@@ -66,23 +66,35 @@ export function verifySessionToken(token: string | null | undefined): boolean {
     return ageSeconds >= 0 && ageSeconds <= SESSION_TTL_SECONDS;
 }
 
-/**
- * Validates a plain password against the server environment variable in constant time.
- */
-export function verifyPassword(inputPassword: string | null | undefined): boolean {
-    const expected = getExpectedPassword();
-    if (!expected || !inputPassword || typeof inputPassword !== 'string') {
-        return false;
-    }
-
-    const inputBuf = Buffer.from(inputPassword.trim());
+function safeCompare(input: string, expected: string): boolean {
+    const inputBuf = Buffer.from(input.trim());
     const expectedBuf = Buffer.from(expected.trim());
-
     if (inputBuf.length !== expectedBuf.length) {
         return false;
     }
-
     return crypto.timingSafeEqual(inputBuf, expectedBuf);
+}
+
+/**
+ * Validates a plain password against the server environment variable in constant time.
+ * In local dev mode, both the configured env password and 'admin' are accepted.
+ */
+export function verifyPassword(inputPassword: string | null | undefined): boolean {
+    if (!inputPassword || typeof inputPassword !== 'string') {
+        return false;
+    }
+
+    const expected = getExpectedPassword();
+    if (expected && safeCompare(inputPassword, expected)) {
+        return true;
+    }
+
+    // In local development, also allow 'admin' mode
+    if (import.meta.env.DEV && safeCompare(inputPassword, 'admin')) {
+        return true;
+    }
+
+    return false;
 }
 
 /**
