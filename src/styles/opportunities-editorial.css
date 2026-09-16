@@ -658,3 +658,156 @@ body.opportunities-editorial-page {
     flex-direction: column;
   }
 }
+
+/* ==========================================================================
+   POP EDITORIAL AUTH VAULT CARD
+   ========================================================================== */
+.opp-auth-card {
+  max-width: 480px;
+  margin: 40px auto;
+  background: var(--opp-cream);
+  border: 3px solid var(--opp-border);
+  border-radius: var(--opp-radius-md);
+  box-shadow: var(--opp-shadow-lg);
+  padding: 36px 32px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.opp-auth-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--opp-yellow);
+  color: var(--opp-ink);
+  font-size: 0.8rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 5px 14px;
+  border-radius: var(--opp-radius-pill);
+  border: 2px solid var(--opp-border);
+  box-shadow: var(--opp-shadow-sm);
+  margin-bottom: 16px;
+}
+
+.opp-auth-title {
+  font-size: 1.85rem;
+  font-weight: 900;
+  color: var(--opp-ink);
+  letter-spacing: -0.03em;
+  margin: 0 0 10px;
+}
+
+.opp-auth-subtitle {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--opp-muted);
+  margin: 0 auto 24px;
+  max-width: 360px;
+}
+
+.opp-auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.opp-auth-input-group {
+  position: relative;
+  display: flex;
+}
+
+.opp-auth-input {
+  width: 100%;
+  background: #ffffff;
+  border: 2.5px solid var(--opp-border);
+  border-radius: var(--opp-radius-sm);
+  padding: 13px 18px;
+  font-size: 1.05rem;
+  font-family: var(--opp-font);
+  font-weight: 600;
+  color: var(--opp-ink);
+  outline: none;
+  transition: all 0.15s ease;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.opp-auth-input:focus {
+  border-color: var(--opp-purple);
+  box-shadow: 0 0 0 3px rgba(85, 36, 199, 0.25);
+  transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   POP EDITORIAL EMPTY STATE CARD
+   ========================================================================== */
+.opp-empty-card {
+  max-width: 620px;
+  margin: 40px auto;
+  background: var(--opp-cream);
+  border: 3px solid var(--opp-border);
+  border-radius: var(--opp-radius-md);
+  box-shadow: var(--opp-shadow-lg);
+  padding: 44px 32px;
+  text-align: center;
+}
+
+.opp-empty-icon-wrap {
+  width: 68px;
+  height: 68px;
+  margin: 0 auto 16px;
+  background: var(--opp-yellow);
+  border: 2.5px solid var(--opp-border);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  box-shadow: var(--opp-shadow-sm);
+}
+
+.opp-empty-title {
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: var(--opp-ink);
+  letter-spacing: -0.02em;
+  margin: 0 0 8px;
+}
+
+.opp-empty-desc {
+  font-size: 0.98rem;
+  line-height: 1.55;
+  color: var(--opp-muted);
+  max-width: 440px;
+  margin: 0 auto 24px;
+}
+
+.opp-empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.opp-tag-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  padding-top: 16px;
+  border-top: 2px dashed rgba(26, 26, 26, 0.15);
+}
+
+.opp-tag-pill {
+  background: #ffffff;
+  border: 1.5px solid var(--opp-border);
+  border-radius: var(--opp-radius-pill);
+  padding: 4px 12px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--opp-muted);
+}
+

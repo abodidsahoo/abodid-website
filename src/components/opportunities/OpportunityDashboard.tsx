@@ -353,7 +353,7 @@ export const OpportunityDashboard: React.FC = () => {
                     <input
                         type="url"
                         className="opp-capture-input"
-                        placeholder="Paste opportunity URL (e.g. job, grant, residency, open call)..."
+                        placeholder="Paste opportunity link (grant, residency, fellowship, job call)..."
                         value={captureUrl}
                         onChange={(e) => setCaptureUrl(e.target.value)}
                         required
@@ -363,7 +363,7 @@ export const OpportunityDashboard: React.FC = () => {
                         <input
                             type="password"
                             className="opp-capture-input opp-capture-password"
-                            placeholder="Password"
+                            placeholder="Passcode"
                             value={authPassword}
                             onChange={(e) => setAuthPassword(e.target.value)}
                             required
@@ -375,29 +375,33 @@ export const OpportunityDashboard: React.FC = () => {
                         className="opp-btn opp-btn-primary"
                         disabled={isCapturing}
                     >
-                        {isCapturing ? '⚡ Ingesting & Extracting (1 AI Call)...' : 'Save Opportunity →'}
+                        {isCapturing ? '⚡ Scouting & Reading Page...' : 'Capture Link →'}
                     </button>
                 </form>
             </div>
 
-            {/* If unauthenticated and not loading, show prominent login challenge */}
+            {/* If unauthenticated and not loading, show prominent Pop Editorial Auth Vault Card */}
             {isAuthenticated === false && opportunities.length === 0 && (
-                <div className="opp-header" style={{ textAlign: 'center', padding: '40px 20px' }}>
-                    <h2 style={{ fontSize: '1.8rem', fontWeight: 900, margin: '0 0 12px' }}>🔒 Private Access</h2>
-                    <p style={{ color: 'var(--opp-muted)', maxWidth: '400px', margin: '0 auto 20px' }}>
-                        Enter your secret passphrase to unlock the Opportunity Desk.
+                <div className="opp-auth-card">
+                    <div className="opp-auth-badge">🔒 Private Field Radar</div>
+                    <h2 className="opp-auth-title">Unlock Workspace</h2>
+                    <p className="opp-auth-subtitle">
+                        Enter your secret passcode to access active opportunities, reminders, and deadline countdowns.
                     </p>
-                    <form onSubmit={handleLogin} style={{ display: 'inline-flex', gap: '10px' }}>
-                        <input
-                            type="password"
-                            className="opp-capture-input"
-                            placeholder="Password..."
-                            value={authPassword}
-                            onChange={(e) => setAuthPassword(e.target.value)}
-                            required
-                        />
-                        <button type="submit" className="opp-btn opp-btn-purple">
-                            Unlock Workspace →
+                    <form onSubmit={handleLogin} className="opp-auth-form">
+                        <div className="opp-auth-input-group">
+                            <input
+                                type="password"
+                                className="opp-auth-input"
+                                placeholder="Enter secret passphrase..."
+                                value={authPassword}
+                                onChange={(e) => setAuthPassword(e.target.value)}
+                                autoFocus
+                                required
+                            />
+                        </div>
+                        <button type="submit" className="opp-btn opp-btn-purple" style={{ width: '100%', padding: '14px' }}>
+                            Unlock Opportunity Desk →
                         </button>
                     </form>
                 </div>
@@ -475,16 +479,49 @@ export const OpportunityDashboard: React.FC = () => {
                     Loading opportunities...
                 </div>
             ) : filteredOpportunities.length === 0 ? (
-                <div className="opp-header" style={{ textAlign: 'center', padding: '50px 20px' }}>
-                    <div style={{ fontSize: '2.5rem', marginBottom: '10px' }}>📋</div>
-                    <h3 style={{ fontSize: '1.4rem', fontWeight: 800, margin: '0 0 8px' }}>
-                        No opportunities matching filter
+                <div className="opp-empty-card">
+                    <div className="opp-empty-icon-wrap">📡</div>
+                    <h3 className="opp-empty-title">
+                        {opportunities.length === 0 ? 'Your Radar is Clear' : 'No Matches for this Filter'}
                     </h3>
-                    <p style={{ color: 'var(--opp-muted)', margin: 0 }}>
+                    <p className="opp-empty-desc">
                         {opportunities.length === 0
-                            ? 'Paste a URL above to capture your first opportunity with 1 AI call.'
-                            : 'Try adjusting your deadline, category, or workflow filters.'}
+                            ? 'Drop any link into the capture bar above, use your Chrome extension, or enter details by hand.'
+                            : 'Try selecting a different deadline horizon or workflow state above.'}
                     </p>
+                    <div className="opp-empty-actions">
+                        <button
+                            type="button"
+                            className="opp-btn opp-btn-primary"
+                            onClick={() => {
+                                setManualInitialUrl('');
+                                setIsManualModalOpen(true);
+                            }}
+                        >
+                            + Manual Entry
+                        </button>
+                        {statusFilter !== 'all' || categoryFilter !== 'all' || deadlineFilter !== 'all' ? (
+                            <button
+                                type="button"
+                                className="opp-btn opp-btn-secondary"
+                                onClick={() => {
+                                    setDeadlineFilter('all');
+                                    setCategoryFilter('all');
+                                    setStatusFilter('all');
+                                    setSearchQuery('');
+                                }}
+                            >
+                                Reset Filters ↺
+                            </button>
+                        ) : null}
+                    </div>
+                    <div className="opp-tag-cloud">
+                        <span className="opp-tag-pill">#Grants</span>
+                        <span className="opp-tag-pill">#Residencies</span>
+                        <span className="opp-tag-pill">#Fellowships</span>
+                        <span className="opp-tag-pill">#FilmFestivals</span>
+                        <span className="opp-tag-pill">#OpenCalls</span>
+                    </div>
                 </div>
             ) : (
                 <div className="opp-grid">
