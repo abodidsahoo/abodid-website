@@ -49,7 +49,6 @@ const formattedTitle = formatTitle(title);
 const ogImageUrl = new URL(`/api/og`, Astro.url);
 ogImageUrl.searchParams.set("title", formattedTitle);
 ogImageUrl.searchParams.set("description", description);
-ogImageUrl.searchParams.set("v", "20260916");
 if (image) {
     ogImageUrl.searchParams.set("image", image);
 }
@@ -77,7 +76,8 @@ const serializeJsonLd = (item: Record<string, unknown>) =>
     <meta name="robots" content="noindex, nofollow" />
 ) : null}
 
-<!-- Open Graph / Facebook -->
+<!-- Open Graph / Facebook / Discord -->
+<meta property="og:site_name" content={siteName} />
 <meta property="og:type" content={type} />
 <meta property="og:url" content={canonicalURL} />
 <meta property="og:title" content={formattedTitle} />
