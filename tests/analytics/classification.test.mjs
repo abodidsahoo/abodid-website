@@ -2,12 +2,16 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
     classifyAcquisitionSource,
+    extractClientIp,
     getReferrerDomain,
     isAnalyticsBot,
+    isExcludedDeveloperLocation,
+    isExcludedIpAddress,
     isLocalAnalyticsUrl,
     isSameOriginAnalyticsRequest,
     resolveAnalyticsCountry,
     resolveAnalyticsCity,
+    resolveAnalyticsRegion,
     shouldTrackAnalyticsPath,
 } from '../../src/lib/analytics/classification.js';
 
@@ -78,14 +82,55 @@ test('reads a country code without retaining an IP address', () => {
     assert.equal(resolveAnalyticsCountry(new Headers({ 'x-vercel-ip-country': 'invalid' })), 'Unknown');
 });
 
-test('reads an optional readable city from trusted hosting headers', () => {
+test('reads an optional readable city and region from trusted hosting headers', () => {
     assert.equal(resolveAnalyticsCity(new Headers({ 'x-vercel-ip-city': 'Bhubaneswar' })), 'Bhubaneswar');
     assert.equal(resolveAnalyticsCity(new Headers({ 'x-vercel-ip-city': 'New%20York' })), 'New York');
     assert.equal(resolveAnalyticsCity(new Headers()), '');
+    assert.equal(resolveAnalyticsRegion(new Headers({ 'x-vercel-ip-country-region': 'OR' })), 'OR');
 });
 
-test('excludes local collection endpoints server-side', () => {
+test('excludes local collection endpoints and dev ports server-side', () => {
     assert.equal(isLocalAnalyticsUrl('http://localhost:4321/api/analytics/collect'), true);
     assert.equal(isLocalAnalyticsUrl('http://127.0.0.1:4321/api/analytics/collect'), true);
+    assert.equal(isLocalAnalyticsUrl('http://192.168.1.50:3000/api/analytics/collect'), true);
+    assert.equal(isLocalAnalyticsUrl('http://10.0.0.5:5173/api/analytics/collect'), true);
     assert.equal(isLocalAnalyticsUrl('https://abodid.com/api/analytics/collect'), false);
 });
+
+test('extracts client IP from proxy headers', () => {
+    assert.equal(extractClientIp(new Headers({ 'x-forwarded-for': '203.0.113.195, 70.41.3.18' })), '203.0.113.195');
+    assert.equal(extractClientIp(new Headers({ 'cf-connecting-ip': '198.51.100.1' })), '198.51.100.1');
+    assert.equal(extractClientIp(new Headers()), '');
+});
+
+test('identifies loopback and private LAN IP addresses for exclusion', () => {
+    assert.equal(isExcludedIpAddress('127.0.0.1'), true);
+    assert.equal(isExcludedIpAddress('127.0.0.5'), true);
+    assert.equal(isExcludedIpAddress('::1'), true);
+    assert.equal(isExcludedIpAddress('192.168.1.10'), true);
+    assert.equal(isExcludedIpAddress('10.0.4.20'), true);
+    assert.equal(isExcludedIpAddress('172.16.0.1'), true);
+    assert.equal(isExcludedIpAddress('172.31.255.255'), true);
+    assert.equal(isExcludedIpAddress('8.8.8.8'), false);
+});
+
+test('identifies owner configured excluded IPs and wildcard ranges', () => {
+    const customEnv = { OWNER_EXCLUDED_IPS: '203.0.113.50, 198.51.100.*' };
+    assert.equal(isExcludedIpAddress('203.0.113.50', customEnv), true);
+    assert.equal(isExcludedIpAddress('198.51.100.44', customEnv), true);
+    assert.equal(isExcludedIpAddress('198.51.101.44', customEnv), false);
+    assert.equal(isExcludedIpAddress('203.0.113.51', customEnv), false);
+});
+
+test('identifies developer locality exclusions', () => {
+    const customEnv = {
+        OWNER_EXCLUDED_CITIES: 'Bhubaneswar, Cuttack',
+        OWNER_EXCLUDED_REGIONS: 'OR',
+    };
+    assert.equal(isExcludedDeveloperLocation({ city: 'Bhubaneswar' }, customEnv), true);
+    assert.equal(isExcludedDeveloperLocation({ city: 'Cuttack' }, customEnv), true);
+    assert.equal(isExcludedDeveloperLocation({ city: 'Mumbai' }, customEnv), false);
+    assert.equal(isExcludedDeveloperLocation({ region: 'OR' }, customEnv), true);
+    assert.equal(isExcludedDeveloperLocation({ region: 'MH' }, customEnv), false);
+});
+

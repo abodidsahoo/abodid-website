@@ -48,6 +48,31 @@ export const emptyAnalyticsReport = () => ({
         pageViews: 0,
         averageEngagedSeconds: 0,
     },
+    overview: {
+        meaningfulVisitors: 0,
+        highIntentVisitors: 0,
+        returningVisitors: 0,
+        enquiriesAndBookings: 0,
+        conversionRate: '0.0%',
+        revenueBreakdown: [],
+    },
+    revenueJourneys: {},
+    dropoffs: {
+        summary: {
+            totalFrictionEvents: 0,
+            primaryLeakageDiscipline: 'None',
+            topActionPriority: 'None',
+        },
+        diagnostics: [],
+    },
+    visitors: {
+        totalHighIntent: 0,
+        feed: [],
+    },
+    replays: {
+        totalTargeted: 0,
+        sessions: [],
+    },
     sources: [],
     countries: [],
     timeline: [],
@@ -68,3 +93,4 @@ export const emptyAnalyticsReport = () => ({
         countries: [],
     },
 });
+

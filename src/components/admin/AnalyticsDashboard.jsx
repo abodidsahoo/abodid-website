@@ -1,85 +1,59 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-    ArcElement,
-    BarElement,
-    CategoryScale,
-    Chart as ChartJS,
-    Filler,
-    Legend,
-    LineElement,
-    LinearScale,
-    PointElement,
-    Tooltip,
-} from 'chart.js';
-import { Bar, Line, Pie } from 'react-chartjs-2';
-import {
+    Activity,
+    AlertCircle,
+    ArrowDownRight,
+    ArrowRight,
+    CheckCircle2,
     ChevronRight,
+    Compass,
+    Eye,
+    FastForward,
+    Filter,
+    Flame,
+    Globe2,
+    HelpCircle,
+    Info,
+    Laptop,
+    Layers,
+    MapPin,
+    Maximize2,
+    MousePointer,
+    MousePointerClick,
+    Pause,
+    Play,
     RefreshCw,
+    RotateCcw,
     Route,
+    ShieldCheck,
+    Smartphone,
+    Sparkles,
+    Target,
+    TrendingDown,
+    TrendingUp,
+    UserCheck,
+    Users,
+    Video,
+    X,
+    Zap,
 } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
 import AdminPageHeader from './AdminPageHeader';
 import './analytics-dashboard.css';
 
-ChartJS.register(
-    ArcElement,
-    BarElement,
-    CategoryScale,
-    Filler,
-    Legend,
-    LineElement,
-    LinearScale,
-    PointElement,
-    Tooltip,
-);
+const TABS = [
+    { id: 'overview', label: 'Overview', icon: Target },
+    { id: 'journeys', label: 'Revenue Journeys', icon: Route },
+    { id: 'dropoffs', label: 'Drop-offs', icon: TrendingDown },
+    { id: 'visitors', label: 'Visitors', icon: Users },
+    { id: 'replays', label: 'Replays', icon: Video },
+];
 
 const RANGE_OPTIONS = [
     { id: 'today', label: 'Today' },
     { id: '7d', label: '7D' },
     { id: '30d', label: '30D' },
     { id: '90d', label: '90D' },
-];
-
-const RANGE_CONTEXT = {
-    today: 'Data from today.',
-    '7d': 'Data from the past 7 days.',
-    '30d': 'Data from the past month.',
-    '90d': 'Data from the past 3 months.',
-};
-
-const EMPTY_REPORT = {
-    summary: { visitors: 0, sessions: 0, pageViews: 0, averageEngagedSeconds: 0 },
-    monthlySummary: { visitors: 0, sessions: 0, pageViews: 0, averageEngagedSeconds: 0 },
-    sources: [],
-    countries: [],
-    timeline: [],
-    pages: [],
-    journeys: [],
-    topRecentVisitors: [],
-    commonJourneys: [],
-    navigation: {
-        summary: {
-            opens: 0,
-            selections: 0,
-            dismissals: 0,
-            socialClicks: 0,
-            ctaClicks: 0,
-            selectionRate: 0,
-        },
-        links: [],
-        countries: [],
-    },
-};
-
-const CHART_COLOURS = [
-    '#d61f45',
-    '#5b8def',
-    '#36a37c',
-    '#d4933c',
-    '#8b6fd6',
-    '#4aa5b5',
-    '#c95c9a',
-    '#7b8b99',
 ];
 
 const numberFormatter = new Intl.NumberFormat('en-GB');
@@ -101,7 +75,7 @@ const formatDuration = (value) => {
 };
 
 const formatCountry = (value) => {
-    if (!value || value === 'Unknown') return 'Unknown';
+    if (!value || value === 'Unknown') return 'Global / Unknown';
     try {
         return countryNames?.of(value) || value;
     } catch (_error) {
@@ -109,213 +83,51 @@ const formatCountry = (value) => {
     }
 };
 
-const formatJourneyTime = (value) => {
-    if (!value) return '';
-    return new Intl.DateTimeFormat('en-GB', {
-        day: 'numeric',
-        month: 'short',
-        hour: '2-digit',
-        minute: '2-digit',
-    }).format(new Date(value));
+const formatTimeAgo = (dateStr) => {
+    if (!dateStr) return '';
+    const diffMs = Date.now() - new Date(dateStr).getTime();
+    const diffSec = Math.floor(diffMs / 1000);
+    if (diffSec < 60) return 'Just now';
+    const diffMin = Math.floor(diffSec / 60);
+    if (diffMin < 60) return `${diffMin}m ago`;
+    const diffHr = Math.floor(diffMin / 60);
+    if (diffHr < 24) return `${diffHr}h ago`;
+    const diffDays = Math.floor(diffHr / 24);
+    return `${diffDays}d ago`;
 };
-
-const formatExactJourneyTime = (value) => {
-    if (!value) return '';
-    return new Intl.DateTimeFormat('en-GB', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        timeZoneName: 'short',
-    }).format(new Date(value));
-};
-
-const formatTimelineLabel = (value, range) => {
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return '';
-
-    return new Intl.DateTimeFormat('en-GB', range === 'today'
-        ? { hour: '2-digit', minute: '2-digit' }
-        : { day: 'numeric', month: 'short' }).format(date);
-};
-
-const readChartTheme = () => {
-    if (typeof window === 'undefined') {
-        return { text: '#f8fafc', muted: '#9ba9bb', grid: '#2a2a2a', surface: '#0a0a0a' };
-    }
-
-    const probe = document.createElement('span');
-    probe.style.position = 'fixed';
-    probe.style.opacity = '0';
-    probe.style.pointerEvents = 'none';
-    document.body.appendChild(probe);
-
-    const read = (name, fallback) => {
-        probe.style.color = `var(${name})`;
-        return window.getComputedStyle(probe).color || fallback;
-    };
-
-    const theme = {
-        text: read('--text-primary', '#f8fafc'),
-        muted: read('--text-tertiary', '#9ba9bb'),
-        grid: read('--border-subtle', '#2a2a2a'),
-        surface: read('--bg-surface', '#0a0a0a'),
-    };
-    probe.remove();
-    return theme;
-};
-
-const useChartTheme = () => {
-    const [theme, setTheme] = useState(readChartTheme);
-
-    useEffect(() => {
-        const updateTheme = () => setTheme(readChartTheme());
-        const observer = new MutationObserver(updateTheme);
-        observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
-        return () => observer.disconnect();
-    }, []);
-
-    return theme;
-};
-
-function JourneyCard({ journey }) {
-    const pages = Array.isArray(journey.pages) ? journey.pages : [];
-
-    return (
-        <article className="analytics-journey-card">
-            <header>
-                <div>
-                    <strong>{journey.source || 'Direct / Unknown'}</strong>
-                    <span>{formatCountry(journey.country)}</span>
-                </div>
-                <div className="analytics-journey-meta">
-                    <span>{formatJourneyTime(journey.startedAt)}</span>
-                    <strong>{formatDuration(journey.totalEngagedSeconds)}</strong>
-                </div>
-            </header>
-            <ol className="analytics-route-list">
-                {pages.map((page, index) => (
-                    <li key={`${journey.id}-${page.sequenceNumber}-${page.path}-${index}`}>
-                        <span className="analytics-route-dot" aria-hidden="true" />
-                        <span className="analytics-route-path" title={page.title || page.path}>{page.path}</span>
-                        <span className="analytics-route-time">{formatDuration(page.engagedSeconds)}</span>
-                    </li>
-                ))}
-                <li className="analytics-route-exit">
-                    <span className="analytics-route-dot" aria-hidden="true" />
-                    <span className="analytics-route-path">Exit{journey.exitPage ? ` from ${journey.exitPage}` : ''}</span>
-                </li>
-            </ol>
-        </article>
-    );
-}
-
-function TopRecentVisitorCard({ journey, currentIndex, totalVisitors, onNext }) {
-    const pages = Array.isArray(journey.pages) ? journey.pages : [];
-    const navigation = pages.slice(1);
-
-    return (
-        <article className="analytics-top-visitor-card">
-            <header>
-                <div className="analytics-top-visitor-identity">
-                    <span>Traffic source</span>
-                    <h4>{journey.source || 'Direct / Unknown'}</h4>
-                    <p>From {formatCountry(journey.country)}</p>
-                </div>
-                <div
-                    className="analytics-top-visitor-duration"
-                    aria-label={`${formatDuration(journey.totalEngagedSeconds)} engaged`}
-                >
-                    <span>Time engaged</span>
-                    <strong>{formatDuration(journey.totalEngagedSeconds)}</strong>
-                </div>
-            </header>
-
-            <time dateTime={journey.startedAt}>{formatExactJourneyTime(journey.startedAt)}</time>
-
-            <dl className="analytics-top-visitor-details">
-                <div>
-                    <dt>Entered</dt>
-                    <dd title={journey.landingPage}>{journey.landingPage || pages[0]?.path || 'Unknown page'}</dd>
-                </div>
-                <div>
-                    <dt>Navigation</dt>
-                    <dd>
-                        {navigation.length ? (
-                            <ol
-                                className={`analytics-top-visitor-route ${navigation.length > 4 ? 'is-scrollable' : ''}`}
-                                tabIndex={navigation.length > 4 ? 0 : undefined}
-                                aria-label={navigation.length > 4
-                                    ? `Navigation history, ${navigation.length} pages. Scroll for more.`
-                                    : 'Navigation history'}
-                            >
-                                {navigation.map((page, index) => (
-                                    <li key={`${journey.id}-${page.sequenceNumber}-${page.path}-${index}`}>
-                                        <span title={page.title || page.path}>{page.path}</span>
-                                        <small>{formatDuration(page.engagedSeconds)}</small>
-                                    </li>
-                                ))}
-                            </ol>
-                        ) : (
-                            <span className="analytics-top-visitor-no-route">No further navigation recorded</span>
-                        )}
-                    </dd>
-                </div>
-                <div>
-                    <dt>Exit</dt>
-                    <dd title={journey.exitPage}>{journey.exitPage || pages.at(-1)?.path || 'Not recorded'}</dd>
-                </div>
-            </dl>
-
-            <div className="analytics-visitor-pager">
-                <span>{currentIndex + 1} of {totalVisitors}</span>
-                <button
-                    type="button"
-                    onClick={onNext}
-                    disabled={totalVisitors < 2}
-                >
-                    Next visitor
-                    <ChevronRight size={14} strokeWidth={1.8} aria-hidden="true" />
-                </button>
-            </div>
-        </article>
-    );
-}
 
 export default function AnalyticsDashboard({ accessToken }) {
+    const [activeTab, setActiveTab] = useState('overview');
     const [range, setRange] = useState('7d');
-    const [report, setReport] = useState(EMPTY_REPORT);
+    const [report, setReport] = useState(null);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
-    const [hasLoaded, setHasLoaded] = useState(false);
     const [error, setError] = useState('');
     const [refreshKey, setRefreshKey] = useState(0);
-    const [focusedJourney, setFocusedJourney] = useState(null);
-    const [topVisitorIndex, setTopVisitorIndex] = useState(0);
-    const [showAllPages, setShowAllPages] = useState(false);
-    const hasLoadedRef = useRef(false);
-    const chartTheme = useChartTheme();
+
+    // Filter & Drilldown States
+    const [funnelFilter, setFunnelFilter] = useState('all');
+    const [dropoffFilter, setDropoffFilter] = useState('all');
+    const [selectedVisitor, setSelectedVisitor] = useState(null);
+    const [visitorTimeline, setVisitorTimeline] = useState(null);
+    const [loadingTimeline, setLoadingTimeline] = useState(false);
+
+    // Replay Player State
+    const [activeReplay, setActiveReplay] = useState(null);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [replayProgress, setReplayProgress] = useState(0);
+    const [playbackSpeed, setPlaybackSpeed] = useState(1);
+    const replayTimerRef = useRef(null);
 
     const loadReport = useCallback(async (signal) => {
         if (!accessToken) return;
-        const firstLoad = !hasLoadedRef.current;
-        if (firstLoad) setLoading(true);
+        if (!report) setLoading(true);
         else setRefreshing(true);
         setError('');
 
         try {
             const timezoneOffset = new Date().getTimezoneOffset();
-            const params = new URLSearchParams(window.location.search);
-            const submission = params.get('submission');
-            const newsletterSubmission = params.get('newsletterSubmission');
-            const submissionQuery = submission
-                ? `&submission=${encodeURIComponent(submission)}`
-                : newsletterSubmission
-                    ? `&newsletterSubmission=${encodeURIComponent(newsletterSubmission)}`
-                    : '';
-            const requestUrl = `/api/admin/analytics?range=${encodeURIComponent(range)}&traffic=human&timezoneOffset=${timezoneOffset}${submissionQuery}`;
+            const requestUrl = `/api/admin/analytics?range=${encodeURIComponent(range)}&traffic=human&timezoneOffset=${timezoneOffset}`;
             const requestReport = (token) => fetch(requestUrl, {
                 headers: { Authorization: `Bearer ${token}` },
                 signal,
@@ -330,12 +142,9 @@ export default function AnalyticsDashboard({ accessToken }) {
                 }
             }
             const payload = await response.json();
-            if (!response.ok) throw new Error(payload?.error || 'Could not load analytics.');
+            if (!response.ok) throw new Error(payload?.error || 'Could not load revenue intelligence.');
 
-            setReport({ ...EMPTY_REPORT, ...(payload.report || {}) });
-            setFocusedJourney(payload.focusedJourney || null);
-            hasLoadedRef.current = true;
-            setHasLoaded(true);
+            setReport(payload.report || {});
         } catch (requestError) {
             if (requestError.name !== 'AbortError') {
                 setError(requestError.message || 'Could not load analytics.');
@@ -354,517 +163,823 @@ export default function AnalyticsDashboard({ accessToken }) {
         return () => controller.abort();
     }, [loadReport, refreshKey]);
 
+    // Load visitor's multi-session history when inspecting
+    const handleInspectVisitor = async (visitor) => {
+        setSelectedVisitor(visitor);
+        if (!visitor?.visitorId) return;
+
+        setLoadingTimeline(true);
+        try {
+            const res = await fetch(`/api/admin/analytics?visitorId=${encodeURIComponent(visitor.visitorId)}`, {
+                headers: { Authorization: `Bearer ${accessToken}` },
+            });
+            const data = await res.json();
+            if (data.multiSessionJourney) {
+                setVisitorTimeline(data.multiSessionJourney);
+            } else {
+                setVisitorTimeline(null);
+            }
+        } catch (_e) {
+            setVisitorTimeline(null);
+        } finally {
+            setLoadingTimeline(false);
+        }
+    };
+
+    // Replay Player Animation Loop
     useEffect(() => {
-        if (!accessToken) return undefined;
+        if (isPlaying && activeReplay) {
+            const totalDuration = activeReplay.durationSeconds || 120;
+            const intervalMs = 100 / playbackSpeed;
+            const stepPercent = (100 / (totalDuration * 10)) * playbackSpeed;
 
-        let cancelled = false;
-        let channel;
-        let refreshTimer;
+            replayTimerRef.current = setInterval(() => {
+                setReplayProgress((prev) => {
+                    if (prev >= 100) {
+                        setIsPlaying(false);
+                        return 100;
+                    }
+                    return Math.min(100, prev + stepPercent);
+                });
+            }, intervalMs);
+        } else {
+            clearInterval(replayTimerRef.current);
+        }
+        return () => clearInterval(replayTimerRef.current);
+    }, [isPlaying, activeReplay, playbackSpeed]);
 
-        // Realtime uses the signed-in user's JWT, so the database RLS policies
-        // continue to enforce the administrator-only visibility boundary.
-        supabase.realtime.setAuth(accessToken).then(() => {
-            if (cancelled) return;
+    const handleLaunchReplay = (replay) => {
+        setActiveReplay(replay);
+        setReplayProgress(0);
+        setIsPlaying(true);
+        setActiveTab('replays');
+    };
 
-            const queueRefresh = () => {
-                window.clearTimeout(refreshTimer);
-                refreshTimer = window.setTimeout(() => {
-                    setRefreshKey((value) => value + 1);
-                }, 700);
-            };
+    const overview = report?.overview || {};
+    const revenueJourneys = report?.revenueJourneys || {};
+    const dropoffs = report?.dropoffs || { diagnostics: [], summary: {} };
+    const visitorsFeed = report?.visitors?.feed || [];
+    const replaysList = report?.replays?.sessions || [];
 
-            channel = supabase
-                .channel('admin-analytics-realtime')
-                .on('postgres_changes', {
-                    event: '*',
-                    schema: 'public',
-                    table: 'analytics_sessions',
-                }, queueRefresh)
-                .on('postgres_changes', {
-                    event: '*',
-                    schema: 'public',
-                    table: 'analytics_page_views',
-                }, queueRefresh)
-                .on('postgres_changes', {
-                    event: '*',
-                    schema: 'public',
-                    table: 'analytics_events',
-                }, queueRefresh)
-                .subscribe();
-        }).catch(() => {});
+    const filteredFunnels = useMemo(() => {
+        if (funnelFilter === 'all') return Object.values(revenueJourneys);
+        return Object.values(revenueJourneys).filter((f) => f.id === funnelFilter);
+    }, [revenueJourneys, funnelFilter]);
 
-        return () => {
-            cancelled = true;
-            window.clearTimeout(refreshTimer);
-            if (channel) void supabase.removeChannel(channel);
-        };
-    }, [accessToken]);
+    const filteredDropoffs = useMemo(() => {
+        if (dropoffFilter === 'all') return dropoffs.diagnostics || [];
+        return (dropoffs.diagnostics || []).filter((d) => d.id === dropoffFilter);
+    }, [dropoffs.diagnostics, dropoffFilter]);
 
-    const timelineChart = useMemo(() => ({
-        labels: (report.timeline || []).map((item) => formatTimelineLabel(item.bucket, range)),
-        datasets: [
-            {
-                label: 'Page views',
-                data: (report.timeline || []).map((item) => Number(item.pageViews) || 0),
-                borderColor: CHART_COLOURS[1],
-                backgroundColor: 'rgba(91, 141, 239, 0.12)',
-                pointBackgroundColor: CHART_COLOURS[1],
-                pointRadius: 2,
-                pointHoverRadius: 4,
-                borderWidth: 2,
-                tension: 0.32,
-                fill: true,
-            },
-            {
-                label: 'Sessions',
-                data: (report.timeline || []).map((item) => Number(item.sessions) || 0),
-                borderColor: CHART_COLOURS[0],
-                backgroundColor: CHART_COLOURS[0],
-                pointBackgroundColor: CHART_COLOURS[0],
-                pointRadius: 2,
-                pointHoverRadius: 4,
-                borderWidth: 2,
-                tension: 0.32,
-            },
-        ],
-    }), [range, report.timeline]);
-
-    const sourceChart = useMemo(() => {
-        const sources = (report.sources || []).slice(0, 8);
-        return {
-            labels: sources.map((item) => item.source),
-            datasets: [{
-                data: sources.map((item) => Number(item.sessions) || 0),
-                backgroundColor: CHART_COLOURS,
-                borderColor: chartTheme.surface,
-                borderWidth: 2,
-            }],
-        };
-    }, [chartTheme.surface, report.sources]);
-
-    const countryChart = useMemo(() => {
-        const countries = (report.countries || []).slice(0, 8);
-        return {
-            labels: countries.map((item) => formatCountry(item.country)),
-            datasets: [{
-                label: 'Sessions',
-                data: countries.map((item) => Number(item.sessions) || 0),
-                backgroundColor: CHART_COLOURS[2],
-                borderRadius: 4,
-                borderSkipped: false,
-                barThickness: 12,
-            }],
-        };
-    }, [report.countries]);
-
-    const cartesianOptions = useMemo(() => ({
-        responsive: true,
-        maintainAspectRatio: false,
-        interaction: { mode: 'index', intersect: false },
-        plugins: {
-            legend: {
-                align: 'end',
-                labels: {
-                    color: chartTheme.muted,
-                    boxWidth: 8,
-                    boxHeight: 8,
-                    usePointStyle: true,
-                    padding: 16,
-                    font: { size: 10 },
-                },
-            },
-            tooltip: {
-                callbacks: {
-                    label: (context) => `${context.dataset.label}: ${formatNumber(context.raw)}`,
-                },
-            },
-        },
-        scales: {
-            x: {
-                grid: { display: false },
-                border: { color: chartTheme.grid },
-                ticks: { color: chartTheme.muted, maxTicksLimit: 8, font: { size: 10 } },
-            },
-            y: {
-                beginAtZero: true,
-                grid: { color: chartTheme.grid },
-                border: { display: false },
-                ticks: { color: chartTheme.muted, precision: 0, font: { size: 10 } },
-            },
-        },
-    }), [chartTheme]);
-
-    const barOptions = useMemo(() => ({
-        ...cartesianOptions,
-        indexAxis: 'y',
-        plugins: {
-            ...cartesianOptions.plugins,
-            legend: { display: false },
-        },
-        scales: {
-            x: {
-                beginAtZero: true,
-                grid: { color: chartTheme.grid },
-                border: { display: false },
-                ticks: { color: chartTheme.muted, precision: 0, font: { size: 10 } },
-            },
-            y: {
-                grid: { display: false },
-                border: { color: chartTheme.grid },
-                ticks: { color: chartTheme.muted, font: { size: 10 } },
-            },
-        },
-    }), [cartesianOptions, chartTheme]);
-
-    const pieOptions = useMemo(() => ({
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                position: 'right',
-                align: 'center',
-                labels: {
-                    color: chartTheme.muted,
-                    boxWidth: 8,
-                    boxHeight: 8,
-                    usePointStyle: true,
-                    padding: 10,
-                    font: { size: 9 },
-                },
-            },
-            tooltip: {
-                callbacks: {
-                    label: (context) => `${context.label}: ${formatNumber(context.raw)} sessions`,
-                },
-            },
-        },
-    }), [chartTheme.muted]);
-
-    const hasData = Number(report.summary?.sessions) > 0;
-    const monthlySummary = report.monthlySummary || EMPTY_REPORT.monthlySummary;
-    const topRecentVisitors = report.topRecentVisitors || [];
-    const visibleTopVisitorIndex = topRecentVisitors.length
-        ? topVisitorIndex % topRecentVisitors.length
-        : 0;
-    const activeTopVisitor = topRecentVisitors[visibleTopVisitorIndex];
-    const pages = report.pages || [];
-    const visiblePages = showAllPages ? pages : pages.slice(0, 5);
-    const hasMorePages = pages.length > 5;
     return (
-        <section className="analytics-dashboard" aria-labelledby="analytics-title">
-            <div className="analytics-page-intro admin-page-intro">
-                <AdminPageHeader
-                    className="analytics-page-header"
-                    headingId="analytics-title"
-                    title="Analytics"
-                    description="Data is God. Numbers don't lie."
-                />
-                <div className="analytics-toolbar">
-                    <div className="analytics-controls">
-                        <div className="analytics-range-filter" aria-label="Analytics period">
-                            {RANGE_OPTIONS.map((option) => (
-                                <button
-                                    key={option.id}
-                                    type="button"
-                                    className={range === option.id ? 'active' : ''}
-                                    aria-pressed={range === option.id}
-                                    onClick={() => setRange(option.id)}
-                                >
-                                    {option.label}
-                                </button>
+        <section className="analytics-intelligence-root" aria-labelledby="analytics-title">
+            {/* Top Bar Navigation */}
+            <div className="analytics-header-section admin-page-intro">
+                <div className="analytics-title-group">
+                    <AdminPageHeader
+                        className="analytics-page-header"
+                        headingId="analytics-title"
+                        title="Revenue & Intelligence"
+                        description="Data is God. How curious attention becomes commercial engagements."
+                    />
+                </div>
+
+                <div className="analytics-action-toolbar">
+                    <div className="analytics-range-picker" role="radiogroup" aria-label="Time period">
+                        {RANGE_OPTIONS.map((opt) => (
+                            <button
+                                key={opt.id}
+                                type="button"
+                                className={range === opt.id ? 'active' : ''}
+                                onClick={() => setRange(opt.id)}
+                            >
+                                {opt.label}
+                            </button>
+                        ))}
+                    </div>
+
+                    <button
+                        type="button"
+                        className="analytics-refresh-btn"
+                        onClick={() => setRefreshKey((k) => k + 1)}
+                        disabled={loading || refreshing}
+                        title="Refresh analytics data"
+                    >
+                        <RefreshCw size={15} className={loading || refreshing ? 'is-spinning' : ''} />
+                    </button>
+                </div>
+            </div>
+
+            {/* Section-Level Tab Navigation */}
+            <nav className="analytics-section-nav" aria-label="Analytics Sections">
+                {TABS.map((tab) => {
+                    const Icon = tab.icon;
+                    const isActive = activeTab === tab.id;
+                    return (
+                        <button
+                            key={tab.id}
+                            type="button"
+                            className={`analytics-section-tab ${isActive ? 'is-active' : ''}`}
+                            onClick={() => setActiveTab(tab.id)}
+                        >
+                            <Icon size={16} strokeWidth={isActive ? 2.2 : 1.7} />
+                            <span>{tab.label}</span>
+                            {tab.id === 'dropoffs' && dropoffs.diagnostics?.length > 0 && (
+                                <span className="tab-pill-badge tab-pill-alert">{dropoffs.diagnostics.length}</span>
+                            )}
+                            {tab.id === 'replays' && replaysList.length > 0 && (
+                                <span className="tab-pill-badge">{replaysList.length}</span>
+                            )}
+                        </button>
+                    );
+                })}
+            </nav>
+
+            {error && (
+                <div className="analytics-alert-banner" role="alert">
+                    <AlertCircle size={16} />
+                    <span>{error}</span>
+                    <button type="button" onClick={() => setRefreshKey((k) => k + 1)}>Retry</button>
+                </div>
+            )}
+
+            {/* PROGRESSIVE SECTIONS */}
+
+            {/* 1. OVERVIEW TAB */}
+            {activeTab === 'overview' && (
+                <div className="analytics-tab-pane overview-pane">
+                    {/* 5 Core Commercial Metrics */}
+                    <div className="commercial-kpi-grid">
+                        <div className="kpi-card">
+                            <div className="kpi-header">
+                                <span className="kpi-label">Meaningful Visitors</span>
+                                <UserCheck size={16} className="kpi-icon" />
+                            </div>
+                            <strong className="kpi-value">{formatNumber(overview.meaningfulVisitors)}</strong>
+                            <span className="kpi-subtext">Engaged human visits (&gt;10s)</span>
+                        </div>
+
+                        <div className="kpi-card kpi-highlight">
+                            <div className="kpi-header">
+                                <span className="kpi-label">High-Intent Leads</span>
+                                <Flame size={16} className="kpi-icon text-accent" />
+                            </div>
+                            <strong className="kpi-value">{formatNumber(overview.highIntentVisitors)}</strong>
+                            <span className="kpi-subtext">Inspected pricing, work & contact</span>
+                        </div>
+
+                        <div className="kpi-card">
+                            <div className="kpi-header">
+                                <span className="kpi-label">Returning Visitors</span>
+                                <RotateCcw size={16} className="kpi-icon" />
+                            </div>
+                            <strong className="kpi-value">{formatNumber(overview.returningVisitors)}</strong>
+                            <span className="kpi-subtext">Multi-session evolving leads</span>
+                        </div>
+
+                        <div className="kpi-card kpi-success">
+                            <div className="kpi-header">
+                                <span className="kpi-label">Enquiries & Bookings</span>
+                                <Sparkles size={16} className="kpi-icon text-success" />
+                            </div>
+                            <strong className="kpi-value">{formatNumber(overview.enquiriesAndBookings)}</strong>
+                            <span className="kpi-subtext">Confirmed client touches</span>
+                        </div>
+
+                        <div className="kpi-card">
+                            <div className="kpi-header">
+                                <span className="kpi-label">Conversion Rate</span>
+                                <TrendingUp size={16} className="kpi-icon" />
+                            </div>
+                            <strong className="kpi-value">{overview.conversionRate || '0.0%'}</strong>
+                            <span className="kpi-subtext">Enquiries / Meaningful traffic</span>
+                        </div>
+                    </div>
+
+                    {/* 4 Commercial Revenue Paths Breakdown */}
+                    <div className="analytics-block">
+                        <div className="block-header">
+                            <div>
+                                <h3>Commercial Revenue Paths</h3>
+                                <p>Live performance and enquiry velocity across the 4 primary business verticals.</p>
+                            </div>
+                        </div>
+
+                        <div className="revenue-disciplines-grid">
+                            {(overview.revenueBreakdown || []).map((path) => (
+                                <article key={path.id} className="discipline-card" style={{ '--accent-color': path.color }}>
+                                    <div className="discipline-card-header">
+                                        <div className="discipline-badge-dot" />
+                                        <div>
+                                            <h4>{path.label}</h4>
+                                            <p className="discipline-subtitle">{path.subtitle}</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="discipline-stats-row">
+                                        <div>
+                                            <span className="stat-label">Visitors</span>
+                                            <strong className="stat-val">{formatNumber(path.visitors)}</strong>
+                                        </div>
+                                        <div>
+                                            <span className="stat-label">High Intent</span>
+                                            <strong className="stat-val text-accent">{formatNumber(path.highIntent)}</strong>
+                                        </div>
+                                        <div>
+                                            <span className="stat-label">Enquiries</span>
+                                            <strong className="stat-val text-success">{formatNumber(path.enquiries)}</strong>
+                                        </div>
+                                        <div>
+                                            <span className="stat-label">Conv. Rate</span>
+                                            <strong className="stat-val">{path.conversionRate}</strong>
+                                        </div>
+                                    </div>
+
+                                    <div className="discipline-footer">
+                                        <span className="trend-pill">{path.trend}</span>
+                                        <button
+                                            type="button"
+                                            className="drill-btn"
+                                            onClick={() => {
+                                                setFunnelFilter(path.id);
+                                                setActiveTab('journeys');
+                                            }}
+                                        >
+                                            Inspect Funnel
+                                            <ChevronRight size={14} />
+                                        </button>
+                                    </div>
+                                </article>
                             ))}
                         </div>
-                        <button
-                            type="button"
-                            className="analytics-refresh"
-                            onClick={() => setRefreshKey((value) => value + 1)}
-                            disabled={loading || refreshing}
-                            aria-label="Refresh analytics"
-                            title="Refresh analytics"
-                        >
-                            <RefreshCw size={16} className={loading || refreshing ? 'is-spinning' : ''} aria-hidden="true" />
-                        </button>
                     </div>
-                </div>
-            </div>
-
-            <div className="admin-page-spacer" aria-hidden="true" />
-
-            {error && hasLoaded && (
-                <div className="analytics-error-banner" role="alert">
-                    <span>{error}</span>
-                    <button type="button" onClick={() => setRefreshKey((value) => value + 1)}>Retry</button>
                 </div>
             )}
 
-            <div className="analytics-top-overview">
-                <section className="analytics-top-visitors" aria-labelledby="top-recent-visitors-title">
-                    <div className="analytics-feature-heading">
-                        <div>
-                            <h3 id="top-recent-visitors-title">Top Visitors</h3>
-                            <p>Recent human visits with more than 15 seconds of active engagement.</p>
+            {/* 2. REVENUE JOURNEYS TAB */}
+            {activeTab === 'journeys' && (
+                <div className="analytics-tab-pane journeys-pane">
+                    {/* Funnel Filter Bar */}
+                    <div className="funnel-filter-bar">
+                        <div className="filter-chips">
+                            <button
+                                type="button"
+                                className={`filter-chip ${funnelFilter === 'all' ? 'active' : ''}`}
+                                onClick={() => setFunnelFilter('all')}
+                            >
+                                All 4 Revenue Paths
+                            </button>
+                            <button
+                                type="button"
+                                className={`filter-chip ${funnelFilter === 'photography' ? 'active' : ''}`}
+                                onClick={() => setFunnelFilter('photography')}
+                            >
+                                Photography
+                            </button>
+                            <button
+                                type="button"
+                                className={`filter-chip ${funnelFilter === 'obsidian' ? 'active' : ''}`}
+                                onClick={() => setFunnelFilter('obsidian')}
+                            >
+                                Obsidian Tutoring
+                            </button>
+                            <button
+                                type="button"
+                                className={`filter-chip ${funnelFilter === 'creative_tech' ? 'active' : ''}`}
+                                onClick={() => setFunnelFilter('creative_tech')}
+                            >
+                                Creative Tech
+                            </button>
+                            <button
+                                type="button"
+                                className={`filter-chip ${funnelFilter === 'film_brand' ? 'active' : ''}`}
+                                onClick={() => setFunnelFilter('film_brand')}
+                            >
+                                Film & Brand
+                            </button>
                         </div>
                     </div>
-                    {activeTopVisitor ? (
-                        <div className="analytics-top-visitor-stage" aria-live="polite">
-                            <TopRecentVisitorCard
-                                key={activeTopVisitor.id}
-                                journey={activeTopVisitor}
-                                currentIndex={visibleTopVisitorIndex}
-                                totalVisitors={topRecentVisitors.length}
-                                onNext={() => setTopVisitorIndex((index) => (index + 1) % topRecentVisitors.length)}
-                            />
-                        </div>
-                    ) : (
-                        <p className="analytics-top-visitors-empty">
-                            {loading ? 'Finding recent human visitors…' : 'No visits over 15 seconds have been recorded yet.'}
-                        </p>
-                    )}
-                </section>
 
-                <section className="analytics-top-sources" aria-labelledby="top-traffic-sources-title">
-                    <div className="analytics-feature-heading">
-                        <div>
-                            <h3 id="top-traffic-sources-title">Traffic Sources</h3>
-                            <p>{RANGE_CONTEXT[range]}</p>
-                        </div>
-                    </div>
-                    <div className="analytics-chart analytics-top-source-chart">
-                        {(report.sources || []).length ? (
-                            <Pie
-                                data={sourceChart}
-                                options={pieOptions}
-                                role="img"
-                                aria-label="Pie chart showing sessions by traffic source"
-                            />
-                        ) : (
-                            <p className="analytics-empty-inline">
-                                {loading ? 'Loading traffic sources…' : 'No traffic-source data in this period.'}
-                            </p>
-                        )}
-                    </div>
-                </section>
-
-                <section
-                    className={`analytics-monthly-summary ${loading ? 'is-loading' : ''}`}
-                    aria-labelledby="monthly-overview-title"
-                    aria-busy={loading}
-                >
-                    <div className="analytics-feature-heading">
-                        <div>
-                            <h3 id="monthly-overview-title">Monthly Overview</h3>
-                            <p>
-                                {`${formatNumber(monthlySummary.visitors)} human ${monthlySummary.visitors === 1 ? 'visitor' : 'visitors'} this calendar month.`}
-                            </p>
-                        </div>
-                    </div>
-                    <div className="analytics-monthly-primary">
-                        <strong>{formatNumber(monthlySummary.pageViews)}</strong>
-                        <span>Page views this month</span>
-                    </div>
-                    <div className="analytics-monthly-secondary">
-                        <div>
-                            <strong>{formatNumber(monthlySummary.visitors)}</strong>
-                            <span>Human visitors</span>
-                        </div>
-                        <div>
-                            <strong>{formatDuration(monthlySummary.averageEngagedSeconds)}</strong>
-                            <span>Average engagement</span>
-                        </div>
-                    </div>
-                </section>
-            </div>
-
-            <section
-                className={`analytics-panel analytics-trend-panel analytics-top-trend ${loading ? 'is-loading' : ''}`}
-                aria-labelledby="traffic-over-time-title"
-                aria-busy={loading}
-            >
-                <div className="analytics-panel-heading">
-                    <div>
-                        <h3 id="traffic-over-time-title">Traffic Over Time</h3>
-                        <p>Sessions and page views for the selected period.</p>
-                    </div>
-                </div>
-                <div className="analytics-chart analytics-line-chart">
-                    {(report.timeline || []).length ? (
-                        <Line
-                            data={timelineChart}
-                            options={cartesianOptions}
-                            role="img"
-                            aria-label="Line chart showing sessions and page views over time"
-                        />
-                    ) : (
-                        <p className="analytics-empty-inline">
-                            {loading ? 'Loading traffic over time…' : 'No time-series data in this period.'}
-                        </p>
-                    )}
-                </div>
-            </section>
-
-            {focusedJourney && (
-                <section className="analytics-panel analytics-focused-journey" aria-labelledby="focused-journey-title">
-                    <div className="analytics-panel-heading">
-                        <div>
-                            <h3 id="focused-journey-title">Visit connected to this notification</h3>
-                            <p>Activity is limited to the saved visit and stops at the submission time.</p>
-                        </div>
-                        <a href="/admin/dashboard?section=analytics">Show all analytics</a>
-                    </div>
-                    <JourneyCard journey={focusedJourney} />
-                </section>
-            )}
-
-            {error && !hasLoaded ? (
-                <div className="analytics-message analytics-message-error" role="alert">
-                    <strong>Analytics are temporarily unavailable.</strong>
-                    <span>{error}</span>
-                    <button type="button" onClick={() => setRefreshKey((value) => value + 1)}>Try again</button>
-                </div>
-            ) : (
-                <>
-                    {!loading && !hasData && (
-                        <div className="analytics-message">
-                            <Route size={20} strokeWidth={1.6} aria-hidden="true" />
-                            <strong>No human visits in this period.</strong>
-                            <span>A session appears here after 2 seconds of active, visible engagement.</span>
-                        </div>
-                    )}
-
-                    {(loading || hasData) && (
-                        <div className={`analytics-content ${loading ? 'is-loading' : ''}`} aria-busy={loading}>
-                            <div className="analytics-two-column analytics-country-row">
-                                <section className="analytics-panel">
-                                    <div className="analytics-panel-heading">
-                                        <div>
-                                            <h3>Visitor Countries</h3>
-                                            <p>Sessions from the leading visitor locations.</p>
+                    {/* Funnel Visualizers */}
+                    <div className="funnels-list">
+                        {filteredFunnels.map((funnel) => {
+                            const leakage = funnel.largestLeakage;
+                            return (
+                                <section key={funnel.id} className="funnel-block" style={{ '--accent-color': funnel.color }}>
+                                    <div className="funnel-block-header">
+                                        <div className="funnel-title-area">
+                                            <div className="funnel-color-pill" />
+                                            <div>
+                                                <h3>{funnel.label}</h3>
+                                                <p>{funnel.subtitle} · <em>Target: {funnel.targetRole}</em></p>
+                                            </div>
+                                        </div>
+                                        <div className="funnel-conversion-summary">
+                                            <span>Overall Conversion</span>
+                                            <strong>{funnel.conversionRate}%</strong>
+                                            <small>{funnel.totalConverted} of {funnel.totalDiscovery} entries</small>
                                         </div>
                                     </div>
-                                    <div className="analytics-chart analytics-bar-chart">
-                                        <Bar
-                                            data={countryChart}
-                                            options={barOptions}
-                                            role="img"
-                                            aria-label="Bar chart showing sessions by visitor country"
-                                        />
-                                    </div>
-                                </section>
 
-                                <section className="analytics-panel analytics-common-panel">
-                                    <div className="analytics-panel-heading">
-                                        <div>
-                                            <h3>Common Page Sequences</h3>
-                                            <p>Routes repeated during this period.</p>
-                                        </div>
+                                    {/* 5 Funnel Stages */}
+                                    <div className="funnel-stages-row">
+                                        {funnel.stages.map((stage, idx) => {
+                                            const isLast = idx === funnel.stages.length - 1;
+                                            const isLeakageStage = leakage && leakage.stageId === stage.id;
+                                            return (
+                                                <React.Fragment key={stage.id}>
+                                                    <div
+                                                        className={`funnel-stage-card ${isLeakageStage ? 'has-leakage' : ''}`}
+                                                        onClick={() => {
+                                                            setDropoffFilter(stage.id === 'intent' ? 'pricing_abandoned' : 'all');
+                                                            setActiveTab('dropoffs');
+                                                        }}
+                                                        role="button"
+                                                        tabIndex={0}
+                                                        title="Click to inspect drop-offs for this stage"
+                                                    >
+                                                        <span className="stage-step-num">0{idx + 1}</span>
+                                                        <strong className="stage-name">{stage.label}</strong>
+                                                        <span className="stage-count">{formatNumber(stage.count)}</span>
+                                                        <small className="stage-meta">visitors reached</small>
+                                                    </div>
+
+                                                    {!isLast && (
+                                                        <div className="funnel-stage-connector">
+                                                            <div className="connector-arrow">
+                                                                <ArrowRight size={14} />
+                                                            </div>
+                                                            <div className={`dropoff-pill ${isLeakageStage ? 'dropoff-severe' : ''}`}>
+                                                                <ArrowDownRight size={12} />
+                                                                <span>-{stage.dropOffRate}%</span>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </React.Fragment>
+                                            );
+                                        })}
                                     </div>
-                                    <ol className="analytics-common-list">
-                                        {(report.commonJourneys || []).map((item, index) => (
-                                            <li key={`${item.sequence}-${index}`}>
-                                                <span className="analytics-common-rank">{String(index + 1).padStart(2, '0')}</span>
+
+                                    {/* Automated Leakage Callout */}
+                                    {leakage && (
+                                        <div className="funnel-leakage-banner">
+                                            <div className="leakage-info">
+                                                <AlertCircle size={16} className="text-accent" />
                                                 <div>
-                                                    <strong>{item.sequence.split(' > ').join(' → ')}</strong>
-                                                    <span>{formatNumber(item.count)} session{Number(item.count) === 1 ? '' : 's'} · {formatDuration(item.averageEngagedSeconds)} avg.</span>
+                                                    <strong>Largest Leakage: {leakage.dropOffRate}% drop-off between {leakage.fromStage} → {leakage.toStage}</strong>
+                                                    <p>{leakage.lostVisitors} potential clients dropped out at this step during the selected period.</p>
+                                                </div>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                className="leakage-action-btn"
+                                                onClick={() => {
+                                                    setDropoffFilter(funnel.id === 'obsidian' ? 'pricing_abandoned' : 'form_abandoned');
+                                                    setActiveTab('dropoffs');
+                                                }}
+                                            >
+                                                Diagnose Drop-offs
+                                                <ChevronRight size={14} />
+                                            </button>
+                                        </div>
+                                    )}
+                                </section>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+
+            {/* 3. DROP-OFFS TAB */}
+            {activeTab === 'dropoffs' && (
+                <div className="analytics-tab-pane dropoffs-pane">
+                    <div className="dropoff-intro-box">
+                        <div>
+                            <h3>Drop-off & Failure Point Diagnostics</h3>
+                            <p>Answering: <strong>Where are potential clients dropping out? What exactly did they do? What should I change on the website?</strong></p>
+                        </div>
+                        <div className="friction-summary-pills">
+                            <span className="summary-chip">
+                                <strong>{dropoffs.summary?.totalFrictionEvents || 0}</strong> Friction Instances
+                            </span>
+                            <span className="summary-chip chip-priority">
+                                Top Priority: <strong>{dropoffs.summary?.topActionPriority}</strong>
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* Diagnostics Cards */}
+                    <div className="diagnostics-grid">
+                        {filteredDropoffs.map((item) => (
+                            <article key={item.id} className={`diagnostic-card severity-${item.severity}`}>
+                                <div className="diagnostic-header">
+                                    <div className="diagnostic-title-line">
+                                        <span className={`severity-tag severity-${item.severity}`}>{item.severity.toUpperCase()}</span>
+                                        <span className="diagnostic-category">{item.category}</span>
+                                    </div>
+                                    <h4>{item.label}</h4>
+                                </div>
+
+                                <div className="diagnostic-metrics">
+                                    <div>
+                                        <span className="dm-label">Affected Visits</span>
+                                        <strong className="dm-value">{formatNumber(item.affectedSessions)}</strong>
+                                    </div>
+                                    <div>
+                                        <span className="dm-label">Friction Share</span>
+                                        <strong className="dm-value">{item.affectedShare}</strong>
+                                    </div>
+                                    <div>
+                                        <span className="dm-label">Primary Path</span>
+                                        <strong className="dm-value">{item.primaryDisciplines?.join(', ')}</strong>
+                                    </div>
+                                </div>
+
+                                <div className="diagnostic-body">
+                                    <div className="diagnostic-section">
+                                        <span className="section-title"><Activity size={13} /> Observed User Behavior</span>
+                                        <p>{item.summary}</p>
+                                    </div>
+
+                                    <div className="diagnostic-section section-actionable">
+                                        <span className="section-title text-success"><Zap size={13} /> Actionable Website Fix</span>
+                                        <p>{item.recommendation}</p>
+                                    </div>
+                                </div>
+
+                                <div className="diagnostic-footer">
+                                    <button
+                                        type="button"
+                                        className="btn-secondary-sm"
+                                        onClick={() => {
+                                            setActiveTab('visitors');
+                                        }}
+                                    >
+                                        <Users size={13} />
+                                        Inspect Affected Visitors
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="btn-primary-sm"
+                                        onClick={() => {
+                                            const matchReplay = replaysList.find((r) => r.id === item.sampleSessionId) || replaysList[0];
+                                            if (matchReplay) handleLaunchReplay(matchReplay);
+                                            else setActiveTab('replays');
+                                        }}
+                                    >
+                                        <Play size={13} />
+                                        Watch Session Replay
+                                    </button>
+                                </div>
+                            </article>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* 4. VISITORS TAB (High-Intent Visitor Feed) */}
+            {activeTab === 'visitors' && (
+                <div className="analytics-tab-pane visitors-pane">
+                    <div className="visitors-table-header">
+                        <div>
+                            <h3>High-Intent Visitor Feed</h3>
+                            <p>Detailed chronological intelligence on high-intent prospective clients, connected across visits by persistent visitor ID.</p>
+                        </div>
+                    </div>
+
+                    <div className="visitors-table-wrap">
+                        <table className="visitors-feed-table">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp & Source</th>
+                                    <th>Location</th>
+                                    <th>Visitor Status</th>
+                                    <th>Inferred Intent</th>
+                                    <th>Intent Score</th>
+                                    <th>Engaged Time</th>
+                                    <th>Pages</th>
+                                    <th>Outcome</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {visitorsFeed.map((visitor) => (
+                                    <tr
+                                        key={visitor.sessionId || visitor.visitorId}
+                                        className="visitor-feed-row"
+                                        onClick={() => handleInspectVisitor(visitor)}
+                                    >
+                                        <td>
+                                            <div className="visitor-source-cell">
+                                                <strong>{visitor.source || 'Direct Visit'}</strong>
+                                                <time>{formatTimeAgo(visitor.timestamp)}</time>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div className="visitor-location-cell">
+                                                <MapPin size={13} className="text-muted" />
+                                                <span>{visitor.city ? `${visitor.city}, ${visitor.country}` : formatCountry(visitor.country)}</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span className={`status-badge ${visitor.isReturning ? 'status-returning' : 'status-new'}`}>
+                                                {visitor.isReturning ? `Returning (${visitor.visitCount} visits)` : 'New Lead'}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span className={`intent-tag intent-${visitor.intentCategory}`}>
+                                                {visitor.intentCategory === 'obsidian' ? 'Obsidian Tutoring' :
+                                                    visitor.intentCategory === 'creative_tech' ? 'Creative Tech' :
+                                                        visitor.intentCategory === 'film_brand' ? 'Film & Brand' : 'Photography'}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div className="intent-score-cell">
+                                                <div className="score-bar">
+                                                    <div className="score-fill" style={{ width: `${visitor.intentScore}%` }} />
+                                                </div>
+                                                <span>{visitor.intentScore}/100 ({visitor.intentStrength})</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <strong>{formatDuration(visitor.totalEngagedSeconds)}</strong>
+                                        </td>
+                                        <td>
+                                            <span className="page-count-badge">{visitor.pageCount} pages</span>
+                                        </td>
+                                        <td>
+                                            {visitor.converted ? (
+                                                <span className="outcome-badge outcome-converted">
+                                                    <CheckCircle2 size={12} /> {visitor.conversionLabel || 'Enquiry Submitted'}
+                                                </span>
+                                            ) : (
+                                                <span className="outcome-badge outcome-dropoff">
+                                                    {visitor.conversionLabel || 'Browsed Portfolio'}
+                                                </span>
+                                            )}
+                                        </td>
+                                        <td>
+                                            <button
+                                                type="button"
+                                                className="btn-inspect-row"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleInspectVisitor(visitor);
+                                                }}
+                                            >
+                                                Inspect
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
+
+            {/* 5. REPLAYS TAB */}
+            {activeTab === 'replays' && (
+                <div className="analytics-tab-pane replays-pane">
+                    <div className="replays-layout">
+                        {/* Replay Catalog List */}
+                        <div className="replays-sidebar">
+                            <div className="sidebar-header">
+                                <h4>Targeted Session Recordings</h4>
+                                <span className="text-muted">{replaysList.length} recorded</span>
+                            </div>
+
+                            <div className="replays-list">
+                                {replaysList.map((rep) => {
+                                    const isCurrent = activeReplay?.id === rep.id;
+                                    return (
+                                        <div
+                                            key={rep.id}
+                                            className={`replay-card-item ${isCurrent ? 'is-selected' : ''}`}
+                                            onClick={() => {
+                                                setActiveReplay(rep);
+                                                setReplayProgress(0);
+                                                setIsPlaying(true);
+                                            }}
+                                        >
+                                            <div className="rep-header">
+                                                <strong>{rep.location}</strong>
+                                                <time>{formatTimeAgo(rep.startedAt)}</time>
+                                            </div>
+                                            <div className="rep-meta-row">
+                                                <span className="rep-source">{rep.source}</span>
+                                                <span className="rep-duration">{formatDuration(rep.durationSeconds)}</span>
+                                            </div>
+                                            <p className="rep-label">{rep.conversionLabel}</p>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Replay Player Main Stage */}
+                        <div className="replays-player-stage">
+                            {activeReplay ? (
+                                <div className="replay-player-container">
+                                    {/* Virtual Browser Chrome */}
+                                    <div className="virtual-browser-header">
+                                        <div className="browser-dots">
+                                            <span /><span /><span />
+                                        </div>
+                                        <div className="browser-url-bar">
+                                            <ShieldCheck size={13} className="text-success" />
+                                            <span>https://abodid.com{activeReplay.pageJourney?.[0]?.path || '/'}</span>
+                                        </div>
+                                        <div className="browser-privacy-badge">
+                                            <ShieldCheck size={12} />
+                                            <span>Inputs & Text Masked</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Visual Playback Simulation Viewport */}
+                                    <div className="replay-viewport-screen">
+                                        <div className="replay-page-mockup">
+                                            <div className="mockup-hero">
+                                                <h2>{activeReplay.pageJourney?.[0]?.title || 'Portfolio Work'}</h2>
+                                                <p>Viewing Session: {activeReplay.id} · From {activeReplay.location}</p>
+                                            </div>
+
+                                            {/* Simulated Animated Pointer Trail */}
+                                            <div
+                                                className="simulated-pointer"
+                                                style={{
+                                                    left: `${Math.min(90, Math.max(10, 20 + Math.sin(replayProgress / 6) * 35))}%`,
+                                                    top: `${Math.min(85, Math.max(15, 30 + Math.cos(replayProgress / 8) * 25))}%`,
+                                                }}
+                                            >
+                                                <MousePointer size={18} />
+                                                <span className="pointer-tag">{activeReplay.source}</span>
+                                            </div>
+
+                                            {/* Click ripple animation on certain progress intervals */}
+                                            {replayProgress > 30 && replayProgress < 45 && (
+                                                <div className="click-ripple" style={{ left: '45%', top: '50%' }} />
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Player Controls Bar */}
+                                    <div className="replay-controls-bar">
+                                        <div className="controls-left">
+                                            <button
+                                                type="button"
+                                                className="btn-play-pause"
+                                                onClick={() => setIsPlaying(!isPlaying)}
+                                            >
+                                                {isPlaying ? <Pause size={16} /> : <Play size={16} />}
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                className="btn-speed-toggle"
+                                                onClick={() => setPlaybackSpeed((s) => (s === 1 ? 2 : s === 2 ? 4 : 1))}
+                                            >
+                                                {playbackSpeed}x Speed
+                                            </button>
+
+                                            <span className="playback-timer">
+                                                {formatDuration(Math.round((activeReplay.durationSeconds || 120) * (replayProgress / 100)))} / {formatDuration(activeReplay.durationSeconds)}
+                                            </span>
+                                        </div>
+
+                                        {/* Scrubbable Timeline */}
+                                        <div className="timeline-scrubber-track">
+                                            <input
+                                                type="range"
+                                                min="0"
+                                                max="100"
+                                                value={replayProgress}
+                                                onChange={(e) => setReplayProgress(Number(e.target.value))}
+                                                className="timeline-slider"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Live Event Stream Timeline */}
+                                    <div className="replay-events-drawer">
+                                        <h5>Session Behavioral Stream</h5>
+                                        <div className="events-stream-list">
+                                            {(activeReplay.events || []).map((ev, idx) => (
+                                                <div key={idx} className="event-stream-item">
+                                                    <span className="event-time">{formatDuration(ev.timeOffset)}</span>
+                                                    <span className="event-type-badge">{ev.type}</span>
+                                                    <span className="event-text">{ev.label}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="replay-empty-stage">
+                                    <Video size={36} className="text-muted" />
+                                    <h4>Select a recording to watch session replay</h4>
+                                    <p>Only high-intent or friction-laden visits are recorded to conserve bandwidth.</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* VISITOR JOURNEY INSPECTION DRAWER / MODAL */}
+            {selectedVisitor && (
+                <div className="visitor-modal-backdrop" onClick={() => setSelectedVisitor(null)}>
+                    <div className="visitor-modal-dialog" onClick={(e) => e.stopPropagation()}>
+                        <div className="visitor-modal-header">
+                            <div>
+                                <span className="modal-lead-tag">Prospective Client Intelligence</span>
+                                <h3>{selectedVisitor.city ? `${selectedVisitor.city}, ${selectedVisitor.country}` : 'Visitor Profile'}</h3>
+                                <p>Persistent Visitor ID: <code>{selectedVisitor.visitorId}</code></p>
+                            </div>
+                            <button type="button" className="btn-close-modal" onClick={() => setSelectedVisitor(null)}>
+                                <X size={18} />
+                            </button>
+                        </div>
+
+                        <div className="visitor-modal-body">
+                            {/* Summary Metadata */}
+                            <div className="visitor-quick-meta">
+                                <div>
+                                    <span>First Touch</span>
+                                    <strong>{selectedVisitor.source}</strong>
+                                </div>
+                                <div>
+                                    <span>Commercial Intent</span>
+                                    <strong>{selectedVisitor.intentCategory} ({selectedVisitor.intentScore}/100)</strong>
+                                </div>
+                                <div>
+                                    <span>Total Engaged</span>
+                                    <strong>{formatDuration(selectedVisitor.totalEngagedSeconds)}</strong>
+                                </div>
+                                <div>
+                                    <span>Status</span>
+                                    <strong>{selectedVisitor.isReturning ? 'Returning Lead' : 'New Visitor'}</strong>
+                                </div>
+                            </div>
+
+                            {/* Multi-Session Chronological Journey */}
+                            <div className="visitor-timeline-section">
+                                <h4>Multi-Session Evolution</h4>
+                                {loadingTimeline ? (
+                                    <p className="text-muted">Loading full visitor journey across visits…</p>
+                                ) : (
+                                    <ol className="journey-chronological-list">
+                                        {(selectedVisitor.journey || []).map((page, pIdx) => (
+                                            <li key={pIdx} className="journey-node">
+                                                <div className="node-dot" />
+                                                <div className="node-content">
+                                                    <div className="node-header">
+                                                        <strong className="node-path">{page.path}</strong>
+                                                        <span className="node-duration">{formatDuration(page.engagedSeconds)}</span>
+                                                    </div>
+                                                    <span className="node-title">{page.title}</span>
                                                 </div>
                                             </li>
                                         ))}
                                     </ol>
-                                </section>
+                                )}
                             </div>
 
-                            <section className="analytics-panel analytics-pages-panel">
-                                <div className="analytics-panel-heading">
-                                    <div>
-                                        <h3>Most Engaged Pages</h3>
-                                        <p>Ranked by total active, visible time.</p>
-                                    </div>
+                            {/* Key Interactions Log */}
+                            {selectedVisitor.keyInteractions?.length > 0 && (
+                                <div className="visitor-interactions-section">
+                                    <h4>Key Behavioral Touchpoints</h4>
+                                    <ul className="interactions-list">
+                                        {selectedVisitor.keyInteractions.map((act, aIdx) => (
+                                            <li key={aIdx} className="interaction-item">
+                                                <Zap size={13} className="text-accent" />
+                                                <span>{act.label}</span>
+                                                <time>+{act.timeOffset}s</time>
+                                            </li>
+                                        ))}
+                                    </ul>
                                 </div>
-                                <div className="analytics-table-wrap">
-                                    <table aria-label="Most engaged pages">
-                                        <thead>
-                                            <tr>
-                                                <th scope="col">Page</th>
-                                                <th scope="col">Views</th>
-                                                <th scope="col">Visitors</th>
-                                                <th scope="col">Avg. active</th>
-                                                <th scope="col">Total active</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="most-engaged-pages-list">
-                                            {visiblePages.map((page) => (
-                                                <tr key={page.pagePath}>
-                                                    <th scope="row">
-                                                        <span>{page.pageTitle || page.pagePath}</span>
-                                                        <small>{page.pagePath}</small>
-                                                    </th>
-                                                    <td>{formatNumber(page.views)}</td>
-                                                    <td>{formatNumber(page.visitors)}</td>
-                                                    <td>{formatDuration(page.averageEngagedSeconds)}</td>
-                                                    <td>{formatDuration(page.totalEngagedSeconds)}</td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                                {hasMorePages && (
-                                    <div className="analytics-pages-expander">
-                                        <button
-                                            type="button"
-                                            aria-controls="most-engaged-pages-list"
-                                            aria-expanded={showAllPages}
-                                            onClick={() => setShowAllPages((isExpanded) => !isExpanded)}
-                                        >
-                                            {showAllPages ? 'Show fewer' : 'Show more'}
-                                        </button>
-                                    </div>
-                                )}
-                            </section>
-
-                            <section className="analytics-panel analytics-navigation-panel">
-                                <div className="analytics-panel-heading">
-                                    <div>
-                                        <h3>Mobile Menu Performance</h3>
-                                        <p>How often mobile visitors choose a destination, and where they go.</p>
-                                    </div>
-                                </div>
-
-                                <div className="analytics-navigation-compact">
-                                    <div className="analytics-navigation-conversion">
-                                        <span>Menu selection rate</span>
-                                        <strong>{Number(report.navigation?.summary?.selectionRate || 0).toFixed(1)}%</strong>
-                                        <p>
-                                            {formatNumber(report.navigation?.summary?.selections)} of{' '}
-                                            {formatNumber(report.navigation?.summary?.opens)} menu opens led to a destination.
-                                        </p>
-                                    </div>
-
-                                    <div className="analytics-navigation-destinations">
-                                        <h4>Most selected destinations</h4>
-                                        {(report.navigation?.links || []).length ? (
-                                            <ol>
-                                                {report.navigation.links.slice(0, 5).map((link, index) => (
-                                                    <li key={`${link.type}-${link.label}-${link.url}`}>
-                                                        <span>
-                                                            <small>{String(index + 1).padStart(2, '0')}</small>
-                                                            {link.label}
-                                                        </span>
-                                                        <strong>
-                                                            {formatNumber(link.clicks)} {Number(link.clicks) === 1 ? 'click' : 'clicks'}
-                                                            <small>{Number(link.share || 0).toFixed(1)}%</small>
-                                                        </strong>
-                                                    </li>
-                                                ))}
-                                            </ol>
-                                        ) : (
-                                            <p className="analytics-navigation-empty">No menu destinations selected in this period.</p>
-                                        )}
-                                    </div>
-                                </div>
-                            </section>
-
+                            )}
                         </div>
-                    )}
-                </>
+
+                        <div className="visitor-modal-footer">
+                            <button
+                                type="button"
+                                className="btn-primary-modal"
+                                onClick={() => {
+                                    const matchReplay = replaysList.find((r) => r.visitorId === selectedVisitor.visitorId) || replaysList[0];
+                                    if (matchReplay) {
+                                        setSelectedVisitor(null);
+                                        handleLaunchReplay(matchReplay);
+                                    }
+                                }}
+                            >
+                                <Play size={14} />
+                                Watch Session Replay
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </section>
     );

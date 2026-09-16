@@ -4,13 +4,17 @@ import type { APIRoute } from 'astro';
 import {
     classifyAcquisitionSource,
     cleanAnalyticsString,
+    extractClientIp,
     getReferrerDomain,
     isAnalyticsBot,
+    isExcludedDeveloperLocation,
+    isExcludedIpAddress,
     isLocalAnalyticsUrl,
     isPreviewAnalyticsEnvironment,
     isSameOriginAnalyticsRequest,
     resolveAnalyticsCountry,
     resolveAnalyticsCity,
+    resolveAnalyticsRegion,
     shouldTrackAnalyticsPath,
 } from '../../../lib/analytics/classification.js';
 import { createSupabaseServiceClient } from '../../../lib/supabaseServer';
@@ -26,10 +30,14 @@ const silentResponse = () => new Response(null, {
     headers: { 'Cache-Control': 'no-store' },
 });
 
-const hasOwnerExclusionCookie = (request: Request) => request.headers
-    .get('cookie')
-    ?.split(';')
-    .some((part) => part.trim() === 'abodid_analytics_exclude=1') ?? false;
+const hasOwnerExclusionCookie = (request: Request) => {
+    const cookieHeader = request.headers.get('cookie') || '';
+    return cookieHeader.split(';').some((part) => {
+        const trimmed = part.trim();
+        return trimmed === 'abodid_analytics_exclude=1' ||
+               trimmed.startsWith('sb-') && trimmed.includes('-auth-token=');
+    });
+};
 
 const validUuid = (value: unknown) => typeof value === 'string' && UUID_PATTERN.test(value) ? value : '';
 
@@ -49,22 +57,79 @@ export const POST: APIRoute = async ({ request }) => {
         if (isAnalyticsBot(request.headers.get('user-agent'))) return silentResponse();
         if (!isSameOriginAnalyticsRequest(request)) return silentResponse();
 
+        const clientIp = extractClientIp(request.headers);
+        if (isExcludedIpAddress(clientIp)) return silentResponse();
+
+        const country = resolveAnalyticsCountry(request.headers);
+        const city = resolveAnalyticsCity(request.headers);
+        const region = resolveAnalyticsRegion(request.headers);
+        if (isExcludedDeveloperLocation({ country, city, region })) return silentResponse();
+
         const body = await request.json();
         const action = body?.action;
         const sessionId = validUuid(body?.sessionId);
         const pageViewId = validUuid(body?.pageViewId);
         const pagePath = cleanAnalyticsString(body?.pagePath, 240);
 
-        if (!sessionId || !pageViewId || !shouldTrackAnalyticsPath(pagePath)) {
+        if (!sessionId || !shouldTrackAnalyticsPath(pagePath)) {
             return silentResponse();
         }
 
         const supabase = createSupabaseServiceClient();
         if (!supabase) return silentResponse();
 
-        if (action === 'page_open') {
+        // 1. Unified Batched Session Snapshot (Minimal Vercel Compute: Single Direct UPSERT)
+        if (action === 'session_snapshot') {
             const visitorId = validUuid(body?.visitorId);
             if (!visitorId) return silentResponse();
+
+            const referrer = cleanAnalyticsString(body?.referrer, 500);
+            const utmSource = cleanAnalyticsString(body?.utm?.source, 100);
+            const siteOrigin = new URL(request.url).origin;
+            const source = classifyAcquisitionSource({
+                utmSource,
+                utmMedium: cleanAnalyticsString(body?.utm?.medium, 100),
+                referrer,
+                siteOrigin,
+            });
+            const country = resolveAnalyticsCountry(request.headers);
+            const city = resolveAnalyticsCity(request.headers);
+            const engagedSeconds = Math.max(0, Math.min(86_400, Math.floor(Number(body?.engagedSeconds) || 0)));
+
+            await supabase.from('analytics_sessions').upsert({
+                id: sessionId,
+                visitor_id: visitorId,
+                source: source || 'Direct Visit',
+                referrer_domain: getReferrerDomain(referrer) || null,
+                utm_source: utmSource || null,
+                utm_medium: cleanAnalyticsString(body?.utm?.medium, 100) || null,
+                utm_campaign: cleanAnalyticsString(body?.utm?.campaign, 150) || null,
+                utm_term: cleanAnalyticsString(body?.utm?.term, 150) || null,
+                utm_content: cleanAnalyticsString(body?.utm?.content, 150) || null,
+                country: country || 'Unknown',
+                city: city || null,
+                landing_page: cleanAnalyticsString(body?.landingPage, 240) || pagePath,
+                exit_page: cleanAnalyticsString(body?.exitPage || pagePath, 240),
+                started_at: body?.startedAt || new Date().toISOString(),
+                ended_at: new Date().toISOString(),
+                total_engaged_seconds: engagedSeconds,
+                intent_category: cleanAnalyticsString(body?.intentCategory, 40) || null,
+                intent_score: Math.max(0, Math.min(100, Math.round(Number(body?.intentScore) || 0))),
+                is_returning: Boolean(body?.isReturning),
+                converted: Boolean(body?.converted),
+                conversion_type: cleanAnalyticsString(body?.conversionType, 60) || null,
+                friction_flags: Array.isArray(body?.frictionFlags) ? body.frictionFlags : [],
+                events: Array.isArray(body?.events) ? body.events.slice(-40) : [],
+                replay_data: Array.isArray(body?.replayData) ? body.replayData.slice(-100) : [],
+            }, { onConflict: 'id' });
+
+            return silentResponse();
+        }
+
+        // 2. Legacy page_open / engagement handlers for backward compatibility
+        if (action === 'page_open') {
+            const visitorId = validUuid(body?.visitorId);
+            if (!visitorId || !pageViewId) return silentResponse();
 
             const referrer = cleanAnalyticsString(body?.referrer, 500);
             const utmSource = cleanAnalyticsString(body?.utm?.source, 100);
@@ -72,7 +137,7 @@ export const POST: APIRoute = async ({ request }) => {
             const sequenceNumber = Math.max(1, Math.min(1000, Math.round(Number(body?.sequenceNumber) || 1)));
             const projectId = validUuid(body?.projectId) || null;
 
-            const { error } = await supabase.rpc('analytics_record_page_open', {
+            await supabase.rpc('analytics_record_page_open', {
                 p_session_id: sessionId,
                 p_visitor_id: visitorId,
                 p_page_view_id: pageViewId,
@@ -97,48 +162,20 @@ export const POST: APIRoute = async ({ request }) => {
                 p_project_id: projectId,
             });
 
-            if (error) console.warn('[analytics] Page open was not recorded:', error.message);
             return silentResponse();
         }
 
         if (action === 'engagement') {
+            if (!pageViewId) return silentResponse();
             const engagedSeconds = Math.max(0, Math.min(86_400, Math.floor(Number(body?.engagedSeconds) || 0)));
-            const { error } = await supabase.rpc('analytics_record_engagement', {
+            await supabase.rpc('analytics_record_engagement', {
                 p_session_id: sessionId,
                 p_page_view_id: pageViewId,
                 p_engaged_seconds: engagedSeconds,
                 p_exit_page: pagePath,
             });
 
-            if (error) console.warn('[analytics] Engagement was not recorded:', error.message);
             return silentResponse();
-        }
-
-        if (action === 'menu_event') {
-            const eventId = validUuid(body?.eventId);
-            const eventName = cleanAnalyticsString(body?.eventName, 40);
-            const menuContext = cleanAnalyticsString(body?.menuContext, 20);
-            if (!eventId || !MENU_EVENT_NAMES.has(eventName) || !MENU_CONTEXTS.has(menuContext)) {
-                return silentResponse();
-            }
-
-            const rawTargetType = cleanAnalyticsString(body?.targetType, 30);
-            const targetType = MENU_TARGET_TYPES.has(rawTargetType) ? rawTargetType : '';
-            const position = Math.max(0, Math.min(100, Math.round(Number(body?.position) || 0)));
-            const { error } = await supabase.rpc('analytics_record_navigation_event', {
-                p_event_id: eventId,
-                p_session_id: sessionId,
-                p_page_view_id: pageViewId,
-                p_event_name: eventName,
-                p_page_path: pagePath,
-                p_menu_context: menuContext,
-                p_target_label: cleanAnalyticsString(body?.targetLabel, 120),
-                p_target_url: cleanAnalyticsString(body?.targetUrl, 500),
-                p_target_type: targetType,
-                p_position: position || null,
-            });
-
-            if (error) console.warn('[analytics] Menu event was not recorded:', error.message);
         }
     } catch (error) {
         console.warn('[analytics] Collector failed silently:', error instanceof Error ? error.message : error);
@@ -146,3 +183,5 @@ export const POST: APIRoute = async ({ request }) => {
 
     return silentResponse();
 };
+
+
