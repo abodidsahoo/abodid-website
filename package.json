@@ -18,6 +18,7 @@
     "test:reading-digest": "vitest run tests/reading-digest",
     "test:punctum": "vitest run tests/punctum",
     "test:glyph-loom": "vitest run src/components/glyph-loom/tests",
+    "test:opportunities": "vitest run tests/opportunities",
     "test:portfolio:integration": "node scripts/test-portfolio-integration.mjs",
     "test:e2e:portfolio": "playwright test tests/portfolio/work.spec.ts",
     "workspace:install": "bash scripts/install-launchagent.sh",

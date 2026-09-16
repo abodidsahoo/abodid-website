@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Save Opportunity</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="pop-shell">
+    <div class="pop-header">
+      <span class="pop-brand">OPPORTUNITY CAPTURE</span>
+      <button id="settings-toggle" class="icon-btn" title="Settings">⚙️</button>
+    </div>
+
+    <!-- Settings Pane (hidden by default) -->
+    <div id="settings-pane" class="pane hidden">
+      <label class="pop-label">Backend API URL</label>
+      <input type="url" id="api-url" class="pop-input" placeholder="https://abodid.com" value="https://abodid.com">
+      
+      <label class="pop-label">Passphrase / Key</label>
+      <input type="password" id="api-key" class="pop-input" placeholder="Enter password...">
+
+      <button id="save-settings" class="pop-btn btn-sm">Save Config</button>
+      <div id="settings-msg" class="msg-note"></div>
+    </div>
+
+    <!-- Main Capture Pane -->
+    <div id="main-pane" class="pane">
+      <div id="target-info" class="target-card">
+        <div id="page-title" class="target-title">Loading tab...</div>
+        <div id="page-url" class="target-url">...</div>
+      </div>
+
+      <button id="save-btn" class="pop-btn btn-primary">
+        ⚡ Save Opportunity
+      </button>
+
+      <!-- Results Display: Shows only Saved ✓, Category, Deadline -->
+      <div id="result-box" class="result-box hidden">
+        <div class="result-badge">Saved ✓</div>
+        <div class="result-row">
+          <span class="result-label">Category:</span>
+          <span id="result-category" class="result-val">-</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">Deadline:</span>
+          <span id="result-deadline" class="result-val">-</span>
+        </div>
+      </div>
+
+      <div id="status-msg" class="status-msg hidden"></div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -2,9 +2,9 @@ export const prerender = false;
 
 import type { APIRoute } from 'astro';
 import {
+    buildLiveIntelligenceReport,
     calculateRevenueFunnels,
     detectSessionFriction,
-    generateSyntheticIntelligenceReport,
     inferSessionIntent,
     REVENUE_PATHS,
 } from '../../../lib/analytics/intelligence.js';
@@ -214,45 +214,8 @@ export const GET: APIRoute = async ({ request, url }) => {
             };
         });
 
-        const syntheticIntelligence = generateSyntheticIntelligenceReport(range);
-
-        // If we have live data, calculate funnels; otherwise use synthetic
-        let revenueJourneys = syntheticIntelligence.revenueJourneys;
-        let overviewMetrics = syntheticIntelligence.overview;
-        let dropoffIntelligence = syntheticIntelligence.dropoffs;
-        let highIntentFeed = syntheticIntelligence.visitors.feed;
-        let targetedReplays = syntheticIntelligence.replays;
-
-        if (enrichedSessions.length >= 8) {
-            revenueJourneys = calculateRevenueFunnels(enrichedSessions);
-            const meaningful = enrichedSessions.filter((s) => (s.total_engaged_seconds || 0) >= 8);
-            const highIntent = enrichedSessions.filter((s) => s.intentScore >= 40 || s.intentStrength === 'High');
-            const returning = enrichedSessions.filter((s) => s.is_returning || s.isReturning);
-            const converted = enrichedSessions.filter((s) => s.converted);
-
-            overviewMetrics = {
-                meaningfulVisitors: meaningful.length,
-                highIntentVisitors: highIntent.length,
-                returningVisitors: returning.length,
-                enquiriesAndBookings: converted.length,
-                conversionRate: meaningful.length > 0 ? `${((converted.length / meaningful.length) * 100).toFixed(1)}%` : '0.0%',
-                revenueBreakdown: Object.entries(REVENUE_PATHS).map(([key, config]) => {
-                    const pathSessions = enrichedSessions.filter((s) => s.intentCategory === key);
-                    const pathConverted = pathSessions.filter((s) => s.converted).length;
-                    return {
-                        id: key,
-                        label: config.label,
-                        subtitle: config.subtitle,
-                        visitors: pathSessions.length,
-                        highIntent: pathSessions.filter((s) => s.intentStrength === 'High').length,
-                        enquiries: pathConverted,
-                        conversionRate: pathSessions.length > 0 ? `${((pathConverted / pathSessions.length) * 100).toFixed(1)}%` : '0.0%',
-                        trend: '+15%',
-                        color: config.color,
-                    };
-                }),
-            };
-        }
+        // Compute strictly live intelligence metrics from real Supabase sessions
+        const liveIntelligence = buildLiveIntelligenceReport(enrichedSessions, range);
 
         const emptyReport = emptyAnalyticsReport();
         const report = {
@@ -260,14 +223,11 @@ export const GET: APIRoute = async ({ request, url }) => {
             ...(trafficResult.data || {}),
             monthlySummary: monthlyTrafficResult.data?.summary || emptyReport.monthlySummary,
             navigation: navigationResult.data || emptyReport.navigation,
-            overview: overviewMetrics,
-            revenueJourneys,
-            dropoffs: dropoffIntelligence,
-            visitors: {
-                totalHighIntent: overviewMetrics.highIntentVisitors,
-                feed: highIntentFeed,
-            },
-            replays: targetedReplays,
+            overview: liveIntelligence.overview,
+            revenueJourneys: liveIntelligence.revenueJourneys,
+            dropoffs: liveIntelligence.dropoffs,
+            visitors: liveIntelligence.visitors,
+            replays: liveIntelligence.replays,
         };
 
         return json({

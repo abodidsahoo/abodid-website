@@ -4,6 +4,8 @@
  * leakage detection, drop-off friction classification, and visitor lead scoring.
  */
 
+import { extractSearchKeyword } from './classification.js';
+
 export const REVENUE_PATHS = {
     photography: {
         id: 'photography',
@@ -144,6 +146,72 @@ export const REVENUE_PATHS = {
         conversionKeywords: ['film', 'commercial', 'brand', 'editing', 'direction', 'video', 'production', 'licensing'],
     },
 };
+
+export const LAB_EXPERIMENTS = [
+    {
+        id: 'punctum',
+        title: 'Punctum',
+        path: '/lab/punctum',
+        discipline: 'Visual Perception & AI',
+        description: 'Interactive experiment discovering emotional focal points and personal punctum in imagery.',
+        patterns: [/^\/lab\/punctum(?:\/|$)/, /^\/punctum(?:\/|$)/, /^\/research\/invisible-punctum(?:\/|$)/],
+        color: '#ff7eb5',
+    },
+    {
+        id: 'glyph_loom',
+        title: 'Glyph Loom',
+        path: '/lab/glyph-loom',
+        discipline: 'Generative Typography & Code Art',
+        description: 'Algorithmic letterform generator weaving kinetic code into typography.',
+        patterns: [/^\/lab\/glyph-loom(?:\/|$)/, /^\/research\/glyph-loom(?:\/|$)/],
+        color: '#ffe44f',
+    },
+    {
+        id: 'image_flick',
+        title: 'Image Flick',
+        path: '/lab/image-flick',
+        discipline: 'Computer Vision & Gesture Control',
+        description: 'Touchless hand gesture photo navigation powered by real-time TensorFlow models.',
+        patterns: [/^\/lab\/image-flick(?:\/|$)/, /^\/research\/gesture-image-preview(?:\/|$)/, /^\/research\/tensorflow-gesture-controls(?:\/|$)/],
+        color: '#caff48',
+    },
+    {
+        id: 'sequence_room',
+        title: 'Sequence Room',
+        path: '/lab/sequence-room',
+        discipline: 'Interactive Sequence Curation',
+        description: 'Spatial visual sequencing canvas and collaborative shareable curation boards.',
+        patterns: [/^\/lab\/sequence-room(?:\/|$)/, /^\/sequence-room(?:\/|$)/, /^\/research\/polaroid-hub(?:\/|$)/],
+        color: '#818cf8',
+    },
+    {
+        id: 'second_brain',
+        title: 'Obsidian Vault Graph',
+        path: '/obsidian-vault',
+        discipline: 'PKM Knowledge Graph & Semantic RAG',
+        description: 'Public interactive Obsidian graph connected to GitHub sync and semantic embeddings.',
+        patterns: [/^\/obsidian-vault(?:\/|$)/, /^\/research\/second-brain(?:\/|$)/],
+        color: '#5b8def',
+    },
+    {
+        id: 'xr_showcase',
+        title: 'XR & Spatial Showcase',
+        path: '/xr-showcase',
+        discipline: 'Spatial Computing & WebGL Prototyping',
+        description: 'Spatial UI prototypes, WebGL shaders, and interactive visionOS explorations.',
+        patterns: [/^\/xr-showcase(?:\/|$)/, /^\/creative-tech-toolkit(?:\/|$)/, /^\/visual-experiments(?:\/|$)/],
+        color: '#36a37c',
+    },
+    {
+        id: 'lab_hub',
+        title: 'Media Lab Hub',
+        path: '/lab',
+        discipline: 'Experimental Playground',
+        description: 'Crossover playground inspired by MIT Media Lab & Google Creative Lab.',
+        patterns: [/^\/lab(?:\/|$)/],
+        color: '#2444ca',
+    },
+];
 
 export const FUNNEL_STAGES = [
     { id: 'discovery', label: 'Discovery', description: 'Landing or exploring entry pages for this discipline' },
@@ -413,7 +481,702 @@ export function calculateRevenueFunnels(sessions = []) {
 }
 
 /**
- * Generate synthetic demo data if real sessions are sparse
+ * Build live drop-off diagnostics from actual recorded sessions
+ */
+export function buildLiveDropoffDiagnostics(sessions = [], funnels = {}) {
+    const matchingSessionsByFriction = {
+        pricing_abandoned: [],
+        form_abandoned: [],
+        contact_unstarted: [],
+        quick_exit: [],
+        dead_clicks: [],
+    };
+
+    sessions.forEach((s) => {
+        const flags = Array.isArray(s.frictionFlags) ? s.frictionFlags : (s.friction_flags || []);
+        if (flags.includes('pricing_abandoned')) matchingSessionsByFriction.pricing_abandoned.push(s);
+        if (flags.includes('form_abandoned')) matchingSessionsByFriction.form_abandoned.push(s);
+        if (flags.includes('contact_unstarted')) matchingSessionsByFriction.contact_unstarted.push(s);
+        if (flags.includes('quick_exit')) matchingSessionsByFriction.quick_exit.push(s);
+        if (flags.includes('dead_clicks')) matchingSessionsByFriction.dead_clicks.push(s);
+    });
+
+    const summarizeEvidence = (matchedList, defaultStage) => {
+        if (matchedList.length === 0) {
+            return {
+                impactedCount: 0,
+                sources: 'None recorded',
+                devices: 'None recorded',
+                locations: 'None recorded',
+                funnelStage: defaultStage,
+                sampleSessions: [],
+            };
+        }
+
+        const sourceCounts = {};
+        const deviceCounts = {};
+        const locCounts = {};
+
+        matchedList.forEach((s) => {
+            const src = s.source || 'Direct';
+            sourceCounts[src] = (sourceCounts[src] || 0) + 1;
+            const dev = s.device_type || s.deviceType || 'desktop';
+            const devLabel = dev === 'mobile' ? 'Mobile' : dev === 'tablet' ? 'Tablet' : 'Desktop';
+            deviceCounts[devLabel] = (deviceCounts[devLabel] || 0) + 1;
+            const loc = (s.city && s.country) ? `${s.city}, ${s.country}` : s.country || s.location || 'Direct Visit';
+            locCounts[loc] = (locCounts[loc] || 0) + 1;
+        });
+
+        const topSources = Object.entries(sourceCounts)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 2)
+            .map(([k, v]) => `${Math.round((v / matchedList.length) * 100)}% ${k}`)
+            .join(' · ');
+
+        const topDevices = Object.entries(deviceCounts)
+            .sort((a, b) => b[1] - a[1])
+            .map(([k, v]) => `${Math.round((v / matchedList.length) * 100)}% ${k}`)
+            .join(' · ');
+
+        const topLocations = Object.entries(locCounts)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 3)
+            .map(([k]) => k)
+            .join(' · ');
+
+        const sampleSessions = matchedList.slice(0, 5).map((s) => {
+            const pages = Array.isArray(s.pages) ? s.pages : [];
+            const landing = s.landing_page || s.landingPage || pages[0]?.path || '/';
+            const exit = s.exit_page || s.exitPage || pages.at(-1)?.path || landing;
+            return {
+                id: s.id || s.sessionId || s.visitorId,
+                visitorId: s.visitor_id || s.visitorId || s.id,
+                location: (s.city && s.country) ? `${s.city}, ${s.country}` : s.country || s.location || 'Direct Visit',
+                source: s.source || 'Direct',
+                device: s.device_type || s.deviceType || 'desktop',
+                deviceLabel: s.device_label || s.deviceLabel || (s.device_type === 'mobile' ? 'Mobile' : 'Desktop'),
+                engagedSeconds: s.total_engaged_seconds || s.totalEngagedSeconds || 0,
+                pathway: pages.length > 0 ? pages.map((p) => p.path || p.title).join(' → ') : `${landing} → ${exit}`,
+                hasReplay: (Array.isArray(s.replay_data) && s.replay_data.length > 0) || pages.length > 0,
+            };
+        });
+
+        return {
+            impactedCount: matchedList.length,
+            sources: topSources,
+            devices: topDevices,
+            locations: topLocations,
+            funnelStage: defaultStage,
+            sampleSessions,
+        };
+    };
+
+    const definitions = [
+        {
+            id: 'pricing_abandoned',
+            title: "People reach pricing but don't book",
+            whatHappened: "Visitors browsed through your work and reached pricing or payment tiers, but exited without booking or initiating contact.",
+            whyItMatters: "High-intent prospects are dropping off right at the final commercial evaluation step.",
+            funnelStage: "Pricing & Scope Review",
+            recommendation: "Add upfront scope deliverables, transparent tier comparisons, and a 15-min discovery call link on pricing pages.",
+            severity: "High Impact",
+            orderWeight: 100,
+        },
+        {
+            id: 'form_abandoned',
+            title: "People start the form but leave before sending",
+            whatHappened: "Visitors began typing an enquiry message or project details into your contact form, but left before clicking send.",
+            whyItMatters: "You are losing warm leads who already invested effort into writing to you.",
+            funnelStage: "Form Completion",
+            recommendation: "Streamline form to 2 essentials (Email + Note), auto-save draft in browser memory, and display direct email fallback hello@abodid.com.",
+            severity: "Critical",
+            orderWeight: 120,
+        },
+        {
+            id: 'contact_unstarted',
+            title: "People open Contact but don't start the form",
+            whatHappened: "Visitors arrived on your contact/enquiry page with clear commercial intent, but never typed into any input field.",
+            whyItMatters: "Prospects wanted to reach out but encountered cognitive friction or hesitated on what to write.",
+            funnelStage: "Contact Page Entry",
+            recommendation: "Pre-select their referring discipline and provide a direct 1-click email link hello@abodid.com as a lightweight alternative.",
+            severity: "Medium Impact",
+            orderWeight: 80,
+        },
+        {
+            id: 'quick_exit',
+            title: "Visitors leave within 6 seconds",
+            whatHappened: "Visitors landed on a single page and bounced in under 6 seconds without scrolling or clicking any links.",
+            whyItMatters: "Traffic is leaving before understanding your creative capabilities or why your work is relevant to them.",
+            funnelStage: "Initial Landing Hook",
+            recommendation: "Ensure headline message match with inbound links and keep above-the-fold hero messaging fast and clear.",
+            severity: "High Volume",
+            orderWeight: 60,
+        },
+        {
+            id: 'dead_clicks',
+            title: "Visitors click on non-interactive elements",
+            whatHappened: "Visitors repeatedly clicked on static visual images, tags, or layout cards expecting interactivity or a lightbox view.",
+            whyItMatters: "Broken interactive expectations create subtle frustration and reduce browsing depth.",
+            funnelStage: "Portfolio Exploration",
+            recommendation: "Add interactive zoom preview and subtle cursor indicators on key visual gallery cards.",
+            severity: "UX Friction",
+            orderWeight: 40,
+        },
+    ];
+
+    const rawDiagnostics = definitions.map((def) => {
+        const matched = matchingSessionsByFriction[def.id] || [];
+        const evidence = summarizeEvidence(matched, def.funnelStage);
+        const supportingFacts = [
+            evidence.funnelStage ? `Funnel Stage: ${evidence.funnelStage}` : null,
+            evidence.sources && evidence.sources !== 'None recorded' ? `Top acquisition sources: ${evidence.sources}` : null,
+            evidence.devices && evidence.devices !== 'None recorded' ? `Devices used: ${evidence.devices}` : null,
+            evidence.locations && evidence.locations !== 'None recorded' ? `Locations: ${evidence.locations}` : null,
+        ].filter(Boolean);
+
+        return {
+            id: def.id,
+            title: def.title,
+            whatHappened: def.whatHappened,
+            whyItMatters: def.whyItMatters,
+            plainEnglishDiagnosis: def.whatHappened,
+            affectedVisitors: evidence.impactedCount,
+            stage: def.funnelStage,
+            impactedSessions: evidence.impactedCount,
+            severity: def.severity,
+            supportingFacts,
+            evidenceBasedRecommendation: evidence.impactedCount > 0 ? def.recommendation : 'Not enough data yet',
+            evidence: {
+                impactedSessions: evidence.impactedCount,
+                sources: evidence.sources,
+                devices: evidence.devices,
+                locations: evidence.locations,
+                stage: def.funnelStage,
+            },
+            sampleSessions: evidence.sampleSessions,
+            recommendation: evidence.impactedCount > 0 ? def.recommendation : 'Not enough data yet',
+            orderWeight: (evidence.impactedCount > 0 ? def.orderWeight : 0) + evidence.impactedCount,
+        };
+    });
+
+    // Only include problems with > 0 affected visitors, ranked by business impact
+    const activeDiagnostics = rawDiagnostics
+        .filter((d) => d.impactedSessions > 0)
+        .sort((a, b) => b.orderWeight - a.orderWeight);
+
+    const totalImpacted = new Set(
+        Object.values(matchingSessionsByFriction)
+            .flat()
+            .map((s) => s.id || s.sessionId || s.visitorId)
+    ).size;
+
+    const biggestIssue = activeDiagnostics[0]?.title || 'None detected';
+
+    const summaryText = activeDiagnostics.length > 0
+        ? `${activeDiagnostics.length} conversion problems detected · ${totalImpacted} sessions affected · Biggest issue: ${biggestIssue.toLowerCase()}`
+        : 'No conversion problems detected with current traffic.';
+
+    return {
+        summary: {
+            activeProblemsCount: activeDiagnostics.length,
+            totalImpactedSessions: totalImpacted,
+            biggestIssue,
+            summaryText,
+            totalFrictionEvents: Object.values(matchingSessionsByFriction).flat().length,
+        },
+        diagnostics: activeDiagnostics,
+        allDiagnostics: rawDiagnostics,
+    };
+}
+
+/**
+ * Calculate Media Lab & interactive experiment intelligence
+ */
+export function calculateLabIntelligence(sessions = []) {
+    const labSessions = sessions.filter((s) => {
+        const pages = Array.isArray(s.pages) ? s.pages : [];
+        return pages.some((p) => {
+            const pPath = p.page_path || p.path || '';
+            return LAB_EXPERIMENTS.some((exp) => exp.patterns.some((ptrn) => ptrn.test(pPath)));
+        });
+    });
+
+    const labConverted = labSessions.filter((s) => Boolean(s.converted)).length;
+    const labTotalEngaged = labSessions.reduce((acc, s) => acc + (s.total_engaged_seconds || s.totalEngagedSeconds || 0), 0);
+
+    const experimentBreakdown = LAB_EXPERIMENTS.map((exp) => {
+        const matchingSessions = sessions.filter((s) => {
+            const pages = Array.isArray(s.pages) ? s.pages : [];
+            return pages.some((p) => {
+                const pPath = p.page_path || p.path || '';
+                return exp.patterns.some((ptrn) => ptrn.test(pPath));
+            });
+        });
+
+        const expDwell = matchingSessions.reduce((acc, s) => {
+            const pages = Array.isArray(s.pages) ? s.pages : [];
+            const expPages = pages.filter((p) => exp.patterns.some((ptrn) => ptrn.test(p.page_path || p.path || '')));
+            return acc + expPages.reduce((sum, p) => sum + (p.engaged_seconds || p.engagedSeconds || 0), 0);
+        }, 0);
+
+        const expConverted = matchingSessions.filter((s) => Boolean(s.converted)).length;
+        const deepEngaged = matchingSessions.filter((s) => (s.total_engaged_seconds || s.totalEngagedSeconds || 0) >= 15).length;
+
+        return {
+            id: exp.id,
+            title: exp.title,
+            path: exp.path,
+            discipline: exp.discipline,
+            description: exp.description,
+            color: exp.color,
+            visitors: matchingSessions.length,
+            totalEngagedSeconds: expDwell,
+            avgEngagedSeconds: matchingSessions.length > 0 ? Math.round(expDwell / matchingSessions.length) : 0,
+            deepEngaged,
+            enquiries: expConverted,
+            conversionRate: matchingSessions.length > 0 ? `${((expConverted / matchingSessions.length) * 100).toFixed(1)}%` : '0.0%',
+            share: labSessions.length > 0 ? `${Math.round((matchingSessions.length / labSessions.length) * 100)}%` : '0%',
+        };
+    }).sort((a, b) => b.visitors - a.visitors);
+
+    return {
+        totalVisitors: labSessions.length,
+        totalEngagedSeconds: labTotalEngaged,
+        avgEngagedSeconds: labSessions.length > 0 ? Math.round(labTotalEngaged / labSessions.length) : 0,
+        enquiries: labConverted,
+        conversionRate: labSessions.length > 0 ? `${((labConverted / labSessions.length) * 100).toFixed(1)}%` : '0.0%',
+        experiments: experimentBreakdown,
+    };
+}
+
+/**
+ * Generate daily trend buckets for the given range
+ */
+export function generateDailyTrendSeries(sessions = [], range = '7d') {
+    const dayBuckets = {};
+    const daysCount = range === 'today' ? 1 : range === '30d' ? 30 : range === '90d' ? 90 : 7;
+    const now = new Date();
+
+    for (let i = daysCount - 1; i >= 0; i--) {
+        const d = new Date(now.getTime() - i * 86400000);
+        const dateKey = d.toISOString().split('T')[0];
+        const dayLabel = d.toLocaleDateString('en-GB', { weekday: 'short', month: 'short', day: 'numeric' });
+        dayBuckets[dateKey] = {
+            date: dateKey,
+            label: range === 'today' ? 'Today' : d.toLocaleDateString('en-GB', { weekday: 'short' }),
+            fullLabel: dayLabel,
+            total: 0,
+            meaningful: 0,
+            highIntent: 0,
+            converted: 0,
+        };
+    }
+
+    sessions.forEach((s) => {
+        const ts = s.started_at || s.startedAt || s.created_at;
+        if (ts) {
+            const dateKey = new Date(ts).toISOString().split('T')[0];
+            if (dayBuckets[dateKey]) {
+                dayBuckets[dateKey].total++;
+                const isMeaningful = (s.total_engaged_seconds || s.totalEngagedSeconds || 0) >= 8;
+                if (isMeaningful) dayBuckets[dateKey].meaningful++;
+                const isHigh = (s.intentScore || s.intent_score || 0) >= 40 || s.intentStrength === 'High';
+                if (isHigh) dayBuckets[dateKey].highIntent++;
+                if (s.converted) dayBuckets[dateKey].converted++;
+            }
+        }
+    });
+
+    return Object.values(dayBuckets);
+}
+
+/**
+ * Build complete live intelligence report using strictly real recorded sessions
+ */
+export function buildLiveIntelligenceReport(sessions = [], range = '7d') {
+    // Filter out rapid bounces (<3s) with single page and no interaction events or conversions (likely automated scrapers/bots)
+    const activeSessions = sessions.filter((s) => {
+        const dwell = Number(s.total_engaged_seconds || s.totalEngagedSeconds || 0);
+        const hasConverted = Boolean(s.converted);
+        const pageCount = Array.isArray(s.pages) ? s.pages.length : (s.page_count || 1);
+        const hasEvents = Array.isArray(s.events) && s.events.length > 0;
+        if (dwell < 3 && !hasConverted && pageCount <= 1 && !hasEvents) {
+            return false;
+        }
+        return true;
+    });
+
+    const meaningful = activeSessions.filter((s) => (s.total_engaged_seconds || s.totalEngagedSeconds || 0) >= 8);
+    const highIntent = activeSessions.filter((s) => (s.intentScore || s.intent_score || 0) >= 40 || s.intentStrength === 'High');
+    const returning = activeSessions.filter((s) => Boolean(s.is_returning || s.isReturning));
+    const converted = activeSessions.filter((s) => Boolean(s.converted));
+
+    const funnels = calculateRevenueFunnels(activeSessions);
+    const dropoffs = buildLiveDropoffDiagnostics(activeSessions, funnels);
+
+    // 1. Device Aggregation & Analytics
+    let mobileCount = 0;
+    let desktopCount = 0;
+    let tabletCount = 0;
+    const modelCounts = {};
+
+    activeSessions.forEach((s) => {
+        let dType = s.device_type || s.deviceType;
+        let dLabel = s.device_label || s.deviceLabel;
+        if (!dType && Array.isArray(s.events)) {
+            const devEv = s.events.find((e) => e.type === 'device_meta');
+            if (devEv) {
+                dType = devEv.deviceType;
+                dLabel = devEv.deviceLabel;
+            }
+        }
+        dType = dType || 'desktop';
+        dLabel = dLabel || (dType === 'mobile' ? 'Mobile Phone' : dType === 'tablet' ? 'Tablet' : 'Laptop / Desktop');
+
+        if (dType === 'mobile') mobileCount++;
+        else if (dType === 'tablet') tabletCount++;
+        else desktopCount++;
+
+        modelCounts[dLabel] = (modelCounts[dLabel] || 0) + 1;
+    });
+
+    const totalSessions = activeSessions.length;
+    const mobilePct = totalSessions > 0 ? Math.round((mobileCount / totalSessions) * 100) : 0;
+    const desktopPct = totalSessions > 0 ? Math.round((desktopCount / totalSessions) * 100) : 0;
+    const tabletPct = totalSessions > 0 ? Math.round((tabletCount / totalSessions) * 100) : 0;
+
+    const deviceBreakdown = Object.entries(modelCounts)
+        .map(([name, count]) => ({
+            name,
+            count,
+            share: totalSessions > 0 ? `${Math.round((count / totalSessions) * 100)}%` : '0%',
+        }))
+        .sort((a, b) => b.count - a.count);
+
+    const devicesOverview = {
+        total: totalSessions,
+        mobile: { count: mobileCount, percentage: mobilePct },
+        desktop: { count: desktopCount, percentage: desktopPct },
+        tablet: { count: tabletCount, percentage: tabletPct },
+        breakdown: deviceBreakdown,
+    };
+
+    // 2. Acquisition Channels & Search Keyword Intelligence
+    const sourceMap = {};
+    const keywordMap = {};
+
+    activeSessions.forEach((s) => {
+        const src = s.source || 'Direct Visit';
+        if (!sourceMap[src]) {
+            sourceMap[src] = { count: 0, converted: 0, totalEngaged: 0 };
+        }
+        sourceMap[src].count++;
+        if (s.converted) sourceMap[src].converted++;
+        sourceMap[src].totalEngaged += (s.total_engaged_seconds || s.totalEngagedSeconds || 0);
+
+        const kw = s.utm_term || s.utm_campaign || s.utm_content || extractSearchKeyword({
+            utmTerm: s.utm_term,
+            utmCampaign: s.utm_campaign,
+            utmContent: s.utm_content,
+            referrer: s.referrer,
+        });
+        if (kw) {
+            keywordMap[kw] = (keywordMap[kw] || 0) + 1;
+        }
+    });
+
+    const discoverySources = Object.entries(sourceMap)
+        .map(([label, stats]) => ({
+            id: label.toLowerCase().replace(/[^a-z0-9]+/g, '_'),
+            name: label,
+            label,
+            count: stats.count,
+            share: totalSessions > 0 ? `${Math.round((stats.count / totalSessions) * 100)}%` : '0%',
+            enquiries: stats.converted,
+            conversionRate: stats.count > 0 ? `${((stats.converted / stats.count) * 100).toFixed(1)}%` : '0.0%',
+            avgEngagedSeconds: stats.count > 0 ? Math.round(stats.totalEngaged / stats.count) : 0,
+        }))
+        .sort((a, b) => b.count - a.count);
+
+    const searchKeywords = Object.entries(keywordMap)
+        .map(([query, count]) => ({ query, term: query, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 10);
+
+    // 3. Landing Pages & Subsequent Flows
+    const landingMap = {};
+    activeSessions.forEach((s) => {
+        const pages = Array.isArray(s.pages) ? s.pages : [];
+        const landing = s.landing_page || s.landingPage || pages[0]?.path || '/';
+        if (!landingMap[landing]) {
+            landingMap[landing] = { count: 0, totalEngaged: 0, destinations: {} };
+        }
+        landingMap[landing].count++;
+        landingMap[landing].totalEngaged += (s.total_engaged_seconds || s.totalEngagedSeconds || 0);
+
+        if (pages.length > 1) {
+            const nextP = pages[1]?.path || pages[1]?.page_path;
+            if (nextP && nextP !== landing) {
+                landingMap[landing].destinations[nextP] = (landingMap[landing].destinations[nextP] || 0) + 1;
+            }
+        }
+    });
+
+    const landingTransitions = Object.entries(landingMap)
+        .map(([path, data]) => {
+            const topDest = Object.entries(data.destinations)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 3)
+                .map(([destPath, dCount]) => ({
+                    destination: destPath,
+                    count: dCount,
+                    share: data.count > 0 ? `${Math.round((dCount / data.count) * 100)}%` : '0%',
+                }));
+
+            return {
+                path,
+                count: data.count,
+                share: totalSessions > 0 ? `${Math.round((data.count / totalSessions) * 100)}%` : '0%',
+                avgEngagedSeconds: data.count > 0 ? Math.round(data.totalEngaged / data.count) : 0,
+                topDestinations: topDest,
+            };
+        })
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 6);
+
+    // 4. Lab Experiments Live Intelligence
+    const labStats = calculateLabIntelligence(activeSessions);
+
+    // 5. Daily Trend Velocity Series
+    const trendSeries = generateDailyTrendSeries(activeSessions, range);
+
+    // 6. Complete Overview Object
+    const totalVisCount = activeSessions.length;
+    const convRate = totalVisCount > 0 ? `${((converted.length / totalVisCount) * 100).toFixed(1)}%` : '0.0%';
+
+    const overview = {
+        meaningfulVisitors: meaningful.length,
+        highIntentVisitors: highIntent.length,
+        returningVisitors: returning.length,
+        enquiriesAndBookings: converted.length,
+        conversionRate: convRate,
+        trendSeries,
+        devices: devicesOverview,
+        discoverySources,
+        discoveredKeywords: searchKeywords,
+        searchKeywords,
+        landingTransitions,
+        labExperiments: labStats,
+        revenueBreakdown: [
+            {
+                id: 'photography',
+                label: 'Photography Commissions',
+                subtitle: 'Editorial, architectural, and commercial documentary commissions',
+                visitors: activeSessions.filter((s) => s.intentCategory === 'photography' || s.intent_category === 'photography').length,
+                highIntent: activeSessions.filter((s) => (s.intentCategory === 'photography' || s.intent_category === 'photography') && ((s.intentScore || s.intent_score || 0) >= 40 || s.intentStrength === 'High')).length,
+                enquiries: activeSessions.filter((s) => (s.intentCategory === 'photography' || s.intent_category === 'photography') && s.converted).length,
+                conversionRate: funnels.photography ? `${funnels.photography.conversionRate}%` : '0.0%',
+                color: '#f87171',
+            },
+            {
+                id: 'obsidian',
+                label: 'Obsidian & PKM Mentorship',
+                subtitle: '1-on-1 private workflows, system architecture, and knowledge consulting',
+                visitors: activeSessions.filter((s) => s.intentCategory === 'obsidian' || s.intent_category === 'obsidian').length,
+                highIntent: activeSessions.filter((s) => (s.intentCategory === 'obsidian' || s.intent_category === 'obsidian') && ((s.intentScore || s.intent_score || 0) >= 40 || s.intentStrength === 'High')).length,
+                enquiries: activeSessions.filter((s) => (s.intentCategory === 'obsidian' || s.intent_category === 'obsidian') && s.converted).length,
+                conversionRate: funnels.obsidian ? `${funnels.obsidian.conversionRate}%` : '0.0%',
+                color: '#60a5fa',
+            },
+            {
+                id: 'creative_tech',
+                label: 'Creative Tech & Prototyping',
+                subtitle: 'Spatial computing, shaders, custom web systems, and interactive tools',
+                visitors: activeSessions.filter((s) => s.intentCategory === 'creative_tech' || s.intent_category === 'creative_tech').length,
+                highIntent: activeSessions.filter((s) => (s.intentCategory === 'creative_tech' || s.intent_category === 'creative_tech') && ((s.intentScore || s.intent_score || 0) >= 40 || s.intentStrength === 'High')).length,
+                enquiries: activeSessions.filter((s) => (s.intentCategory === 'creative_tech' || s.intent_category === 'creative_tech') && s.converted).length,
+                conversionRate: funnels.creative_tech ? `${funnels.creative_tech.conversionRate}%` : '0.0%',
+                color: '#34d399',
+            },
+            {
+                id: 'film_brand',
+                label: 'Film & Brand Strategy',
+                subtitle: 'Storyboarding, creative direction, cinematic production, and brand identity',
+                visitors: activeSessions.filter((s) => s.intentCategory === 'film_brand' || s.intent_category === 'film_brand').length,
+                highIntent: activeSessions.filter((s) => (s.intentCategory === 'film_brand' || s.intent_category === 'film_brand') && ((s.intentScore || s.intent_score || 0) >= 40 || s.intentStrength === 'High')).length,
+                enquiries: activeSessions.filter((s) => (s.intentCategory === 'film_brand' || s.intent_category === 'film_brand') && s.converted).length,
+                conversionRate: funnels.film_brand ? `${funnels.film_brand.conversionRate}%` : '0.0%',
+                color: '#fbbf24',
+            },
+        ],
+    };
+
+    // 7. Human Qualified Visitors CRM Feed & Replays
+    const feed = activeSessions.map((sess) => {
+        const pages = Array.isArray(sess.pages) ? sess.pages : [];
+        const events = Array.isArray(sess.events) ? sess.events : [];
+        const hasReplay = (Array.isArray(sess.replay_data) && sess.replay_data.length > 0) || pages.length > 0;
+
+        let dType = sess.device_type || sess.deviceType;
+        let dLabel = sess.device_label || sess.deviceLabel;
+        if (!dType && events.length > 0) {
+            const devEv = events.find((e) => e.type === 'device_meta');
+            if (devEv) {
+                dType = devEv.deviceType;
+                dLabel = devEv.deviceLabel;
+            }
+        }
+        dType = dType || 'desktop';
+        dLabel = dLabel || (dType === 'mobile' ? 'Mobile Phone' : dType === 'tablet' ? 'Tablet' : 'Laptop / Desktop');
+
+        let conversionLabel = 'Browsing';
+        if (sess.converted) {
+            conversionLabel = sess.conversion_type || sess.conversionType || 'Enquiry Submitted';
+        } else if (sess.frictionFlags?.includes('pricing_abandoned')) {
+            conversionLabel = 'Pricing Abandoned';
+        } else if (sess.frictionFlags?.includes('form_abandoned')) {
+            conversionLabel = 'Form Abandoned';
+        }
+
+        const landingPath = sess.landing_page || sess.landingPage || pages[0]?.path || '/';
+        const exitPath = sess.exit_page || sess.exitPage || pages.at(-1)?.path || landingPath;
+        const landingStr = typeof landingPath === 'string' ? landingPath : (landingPath?.path || '/');
+        const exitStr = typeof exitPath === 'string' ? exitPath : (exitPath?.path || landingStr);
+
+        let mostEngaged = {
+            path: landingStr,
+            title: pages[0]?.title || landingStr,
+            engagedSeconds: sess.total_engaged_seconds || sess.totalEngagedSeconds || 0,
+        };
+
+        if (pages.length > 0) {
+            let maxSec = -1;
+            for (const p of pages) {
+                const s = Number(p.engagedSeconds || p.engaged_seconds || 0);
+                if (s > maxSec) {
+                    maxSec = s;
+                    mostEngaged = {
+                        path: p.path || p.page_path || '/',
+                        title: p.title || p.page_title || p.path || '/',
+                        engagedSeconds: s,
+                    };
+                }
+            }
+        }
+
+        const searchKeyword = sess.utm_term || sess.utm_campaign || sess.utm_content || extractSearchKeyword({
+            utmTerm: sess.utm_term,
+            utmCampaign: sess.utm_campaign,
+            utmContent: sess.utm_content,
+            referrer: sess.referrer,
+        }) || '';
+
+        const nextDestination = pages.length > 1 ? (pages[1]?.path || 'Navigated internally') : (exitStr !== landingStr ? exitStr : 'Direct Exit');
+
+        // Check if session visited lab experiments
+        const matchingLabExps = LAB_EXPERIMENTS.filter((exp) =>
+            pages.some((p) => exp.patterns.some((ptrn) => ptrn.test(p.path || p.page_path || '')))
+        );
+        const isLabVisitor = matchingLabExps.length > 0;
+        const labExperimentNames = matchingLabExps.map((e) => e.title);
+
+        const locationStr = (sess.city && sess.country) ? `${sess.city}, ${sess.country}` : sess.country || 'Direct Visit';
+        const mappedPages = pages.map((p) => ({
+            path: p.path || p.page_path || '',
+            title: p.title || p.page_title || p.path || '',
+            engagedSeconds: Number(p.engagedSeconds || p.engaged_seconds || 0),
+            timestamp: p.viewedAt || p.viewed_at || sess.started_at,
+        }));
+        const journeySummaryStr = mappedPages.length > 0
+            ? mappedPages.map((p) => p.title || p.path).join(' → ')
+            : (landingStr === exitStr ? landingStr : `${landingStr} → ${exitStr}`);
+
+        return {
+            id: sess.id || sess.sessionId,
+            visitorId: sess.visitor_id || sess.visitorId || 'Anonymous',
+            sessionId: sess.id || sess.sessionId,
+            startedAt: sess.started_at || sess.startedAt || new Date().toISOString(),
+            endedAt: sess.ended_at || sess.endedAt,
+            timestamp: sess.started_at || sess.startedAt || new Date().toISOString(),
+            city: sess.city || 'Unknown City',
+            region: sess.region || '',
+            country: sess.country || 'Unknown',
+            location: locationStr,
+            source: sess.source || 'Direct Visit',
+            searchKeyword: typeof searchKeyword === 'string' ? searchKeyword : '',
+            nextDestination,
+            isLabVisitor,
+            labExperimentNames,
+            device: {
+                type: dType,
+                label: dLabel,
+            },
+            landingPage: landingStr,
+            entryPage: {
+                path: landingStr,
+                title: pages[0]?.title || landingStr,
+            },
+            mostEngagedPage: mostEngaged,
+            exitPage: {
+                path: exitStr,
+                title: pages.at(-1)?.title || exitStr,
+            },
+            isReturning: Boolean(sess.is_returning || sess.isReturning),
+            visitCount: (sess.is_returning || sess.isReturning) ? 2 : 1,
+            intentCategory: sess.intentCategory || sess.intent_category || 'general',
+            intentScore: sess.intentScore || sess.intent_score || 0,
+            intentStrength: sess.intentStrength || 'Low',
+            totalEngagedSeconds: sess.total_engaged_seconds || sess.totalEngagedSeconds || 0,
+            durationSeconds: sess.total_engaged_seconds || sess.totalEngagedSeconds || 0,
+            pageCount: pages.length || 1,
+            pages: mappedPages,
+            journey: mappedPages,
+            journeySummary: journeySummaryStr,
+            converted: Boolean(sess.converted),
+            conversionType: sess.conversion_type || sess.conversionType || null,
+            conversionLabel,
+            hasReplay,
+            frictionFlags: sess.frictionFlags || sess.friction_flags || [],
+            keyInteractions: events.map((e) => ({
+                type: e.type || 'interaction',
+                label: e.label || e.type,
+                timeOffset: e.timeOffset || 0,
+            })),
+        };
+    });
+
+    const replays = {
+        totalTargeted: feed.filter((v) => v.hasReplay).length,
+        sessions: feed.filter((v) => v.hasReplay).map((v) => ({
+            id: v.sessionId,
+            visitorId: v.visitorId,
+            startedAt: v.timestamp,
+            durationSeconds: v.totalEngagedSeconds,
+            location: `${v.city}, ${v.country}`,
+            source: v.source,
+            device: v.device,
+            intentCategory: v.intentCategory,
+            conversionLabel: v.conversionLabel,
+            frictionFlags: v.frictionFlags,
+            pageJourney: v.journey,
+            events: v.keyInteractions,
+        })),
+    };
+
+    return {
+        overview,
+        revenueJourneys: funnels,
+        dropoffs,
+        visitors: {
+            totalHighIntent: overview.highIntentVisitors,
+            feed,
+        },
+        replays,
+    };
+}
+
+/**
+ * Generate synthetic demo data if real sessions are sparse (kept for testing reference)
  */
 export function generateSyntheticIntelligenceReport(range = '7d') {
     const multiplier = range === 'today' ? 1 : range === '30d' ? 4 : range === '90d' ? 11 : 2;
@@ -811,7 +1574,15 @@ export function generateSyntheticIntelligenceReport(range = '7d') {
         },
         visitors: {
             totalHighIntent: highIntentCount,
-            feed: sampleVisitors,
+            feed: sampleVisitors.map((v) => ({
+                ...v,
+                location: `${v.city}, ${v.country}`,
+                landingPage: typeof v.journey?.[0]?.path === 'string' ? v.journey[0].path : '/',
+                exitPage: typeof v.journey?.at(-1)?.path === 'string' ? v.journey.at(-1).path : '/',
+                pages: v.journey || [],
+                journeySummary: (v.journey || []).map((p) => p.title || p.path).filter(Boolean).join(' → ') || '/',
+                searchKeyword: v.source && v.source.includes('Search') ? 'obsidian setup' : null,
+            })),
         },
         replays: {
             totalTargeted: sampleVisitors.filter((v) => v.hasReplay).length,

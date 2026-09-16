@@ -1,16 +1,21 @@
 const SOURCE_MATCHERS = [
-    { label: 'ChatGPT', hosts: ['chatgpt.com', 'chat.openai.com'], sources: ['chatgpt', 'openai'] },
+    { label: 'ChatGPT', hosts: ['chatgpt.com', 'chat.openai.com', 'oaistatic.com'], sources: ['chatgpt', 'openai'] },
     { label: 'Perplexity', hosts: ['perplexity.ai'], sources: ['perplexity'] },
     { label: 'Claude', hosts: ['claude.ai'], sources: ['claude', 'anthropic'] },
     { label: 'Gemini', hosts: ['gemini.google.com', 'bard.google.com'], sources: ['gemini', 'bard'] },
     { label: 'Microsoft Copilot', hosts: ['copilot.microsoft.com'], sources: ['copilot', 'microsoft copilot'] },
-    { label: 'Google Search', hosts: ['google.'], sources: ['google'] },
-    { label: 'Bing Search', hosts: ['bing.com'], sources: ['bing'] },
-    { label: 'LinkedIn', hosts: ['linkedin.com', 'lnkd.in'], sources: ['linkedin'] },
-    { label: 'X / Twitter', hosts: ['x.com', 'twitter.com', 't.co'], sources: ['x', 'twitter'] },
-    { label: 'Instagram', hosts: ['instagram.com'], sources: ['instagram'] },
-    { label: 'Facebook', hosts: ['facebook.com', 'fb.com', 'fb.me'], sources: ['facebook', 'fb'] },
-    { label: 'YouTube', hosts: ['youtube.com', 'youtu.be'], sources: ['youtube'] },
+    { label: 'Google Search', hosts: ['google.', 'google.com', 'google.co.in', 'google.co.uk', 'google.ca', 'google.de'], sources: ['google', 'google-search', 'google_search'] },
+    { label: 'Bing Search', hosts: ['bing.com', 'bing.co.uk'], sources: ['bing', 'bing-search'] },
+    { label: 'DuckDuckGo', hosts: ['duckduckgo.com'], sources: ['duckduckgo', 'ddg'] },
+    { label: 'LinkedIn', hosts: ['linkedin.com', 'lnkd.in', 'l.linkedin.com'], sources: ['linkedin', 'linkedin-post', 'linkedin-feed'] },
+    { label: 'X / Twitter', hosts: ['x.com', 'twitter.com', 't.co'], sources: ['x', 'twitter', 't.co'] },
+    { label: 'Instagram', hosts: ['instagram.com', 'l.instagram.com', 'ig.me'], sources: ['instagram', 'ig', 'insta'] },
+    { label: 'Facebook', hosts: ['facebook.com', 'fb.com', 'fb.me', 'l.facebook.com', 'm.facebook.com'], sources: ['facebook', 'fb'] },
+    { label: 'YouTube', hosts: ['youtube.com', 'youtu.be', 'm.youtube.com'], sources: ['youtube', 'yt'] },
+    { label: 'GitHub', hosts: ['github.com'], sources: ['github'] },
+    { label: 'Reddit', hosts: ['reddit.com', 'redd.it'], sources: ['reddit'] },
+    { label: 'Pinterest', hosts: ['pinterest.com', 'pin.it'], sources: ['pinterest'] },
+    { label: 'Substack', hosts: ['substack.com'], sources: ['substack'] },
 ];
 
 const INTERNAL_PATH_PATTERNS = [
@@ -111,6 +116,34 @@ export const classifyAcquisitionSource = ({ utmSource, utmMedium, referrer, site
 
     const match = SOURCE_MATCHERS.find(({ hosts }) => hosts.some((host) => hostMatches(referrerDomain, host)));
     return match?.label || 'External Website';
+};
+
+export const extractSearchKeyword = ({ utmTerm, utmContent, utmCampaign, referrer } = {}) => {
+    const term = cleanAnalyticsString(utmTerm, 120);
+    if (term) return term;
+
+    const campaign = cleanAnalyticsString(utmCampaign, 120);
+    if (campaign && campaign !== 'none' && campaign !== 'direct') return campaign;
+
+    const content = cleanAnalyticsString(utmContent, 120);
+    if (content) return content;
+
+    const refString = cleanAnalyticsString(referrer, 500);
+    if (!refString) return '';
+
+    try {
+        const url = new URL(refString);
+        const q = url.searchParams.get('q') ||
+                  url.searchParams.get('query') ||
+                  url.searchParams.get('k') ||
+                  url.searchParams.get('p') ||
+                  url.searchParams.get('search');
+        if (q) return cleanAnalyticsString(decodeURIComponent(q), 120);
+    } catch (_e) {
+        // no-op
+    }
+
+    return '';
 };
 
 export const shouldTrackAnalyticsPath = (value) => {
@@ -261,5 +294,45 @@ export const isLocalAnalyticsUrl = (value) => {
     } catch (_error) {
         return true;
     }
+};
+
+export const resolveAnalyticsDevice = (userAgent) => {
+    const ua = cleanAnalyticsString(userAgent, 500);
+    if (!ua) {
+        return { type: 'desktop', label: 'Laptop / Desktop' };
+    }
+
+    const isTablet = /iPad|Tablet|PlayBook|Silk/i.test(ua);
+    const isMobile = !isTablet && /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(ua);
+
+    if (isTablet) {
+        const isIpad = /iPad/i.test(ua);
+        return {
+            type: 'tablet',
+            label: isIpad ? 'iPad' : 'Tablet',
+        };
+    }
+
+    if (isMobile) {
+        if (/iPhone/i.test(ua)) {
+            return { type: 'mobile', label: 'iPhone' };
+        }
+        if (/Android/i.test(ua)) {
+            return { type: 'mobile', label: 'Android Phone' };
+        }
+        return { type: 'mobile', label: 'Mobile Phone' };
+    }
+
+    if (/Macintosh|Mac OS X/i.test(ua)) {
+        return { type: 'desktop', label: 'MacBook / macOS' };
+    }
+    if (/Windows/i.test(ua)) {
+        return { type: 'desktop', label: 'Windows PC' };
+    }
+    if (/Linux/i.test(ua)) {
+        return { type: 'desktop', label: 'Linux Desktop' };
+    }
+
+    return { type: 'desktop', label: 'Laptop / Desktop' };
 };
 

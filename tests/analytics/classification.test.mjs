@@ -3,6 +3,7 @@ import test from 'node:test';
 import {
     classifyAcquisitionSource,
     extractClientIp,
+    extractSearchKeyword,
     getReferrerDomain,
     isAnalyticsBot,
     isExcludedDeveloperLocation,
@@ -132,5 +133,13 @@ test('identifies developer locality exclusions', () => {
     assert.equal(isExcludedDeveloperLocation({ city: 'Mumbai' }, customEnv), false);
     assert.equal(isExcludedDeveloperLocation({ region: 'OR' }, customEnv), true);
     assert.equal(isExcludedDeveloperLocation({ region: 'MH' }, customEnv), false);
+});
+
+test('extracts search keywords from utm terms and referrer query params', () => {
+    assert.equal(extractSearchKeyword({ utmTerm: 'odisha photo tour' }), 'odisha photo tour');
+    assert.equal(extractSearchKeyword({ utmCampaign: 'obsidian-vault-launch' }), 'obsidian-vault-launch');
+    assert.equal(extractSearchKeyword({ referrer: 'https://www.google.com/search?q=video+editing+mentor' }), 'video editing mentor');
+    assert.equal(extractSearchKeyword({ referrer: 'https://www.bing.com/search?q=creative+technologist' }), 'creative technologist');
+    assert.equal(extractSearchKeyword({ referrer: 'https://linkedin.com/feed' }), '');
 });
 

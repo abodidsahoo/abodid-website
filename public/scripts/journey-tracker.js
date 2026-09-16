@@ -583,12 +583,36 @@
     return flags;
   }
 
+  function getDeviceContext() {
+    var ua = navigator.userAgent || "";
+    var isTablet = /iPad|Tablet|PlayBook|Silk/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    var isMobile = !isTablet && /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(ua);
+
+    if (isTablet) {
+      var isIpad = /iPad/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      return {
+        type: "tablet",
+        label: isIpad ? "iPad" : "Tablet",
+      };
+    }
+    if (isMobile) {
+      if (/iPhone/i.test(ua)) return { type: "mobile", label: "iPhone" };
+      if (/Android/i.test(ua)) return { type: "mobile", label: "Android Phone" };
+      return { type: "mobile", label: "Mobile Phone" };
+    }
+    if (/Macintosh|Mac OS X/i.test(ua)) return { type: "desktop", label: "MacBook / macOS" };
+    if (/Windows/i.test(ua)) return { type: "desktop", label: "Windows PC" };
+    if (/Linux/i.test(ua)) return { type: "desktop", label: "Linux Desktop" };
+    return { type: "desktop", label: "Laptop / Desktop" };
+  }
+
   // Send Single Unified Batched Session Snapshot (Only 2-4 calls total per entire visit)
   function flushSessionSnapshot(preferBeacon) {
     pauseEngagement();
     var intent = calculateClientIntent();
     var friction = calculateClientFriction();
     var totalSec = currentEngagedSeconds();
+    var device = getDeviceContext();
 
     nextState.lastActivityAt = Date.now();
     saveAnalyticsState(nextState);
@@ -602,6 +626,7 @@
       exitPage: pathname,
       referrer: initialReferrer,
       utm: utm,
+      device: device,
       startedAt: sessionStartedAt,
       engagedSeconds: totalSec,
       intentCategory: intent.category,

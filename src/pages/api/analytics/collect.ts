@@ -14,6 +14,7 @@ import {
     isSameOriginAnalyticsRequest,
     resolveAnalyticsCountry,
     resolveAnalyticsCity,
+    resolveAnalyticsDevice,
     resolveAnalyticsRegion,
     shouldTrackAnalyticsPath,
 } from '../../../lib/analytics/classification.js';
@@ -96,6 +97,21 @@ export const POST: APIRoute = async ({ request }) => {
             const city = resolveAnalyticsCity(request.headers);
             const engagedSeconds = Math.max(0, Math.min(86_400, Math.floor(Number(body?.engagedSeconds) || 0)));
 
+            const headerDevice = resolveAnalyticsDevice(request.headers.get('user-agent'));
+            const clientDeviceType = cleanAnalyticsString(body?.device?.type, 20);
+            const clientDeviceLabel = cleanAnalyticsString(body?.device?.label, 60);
+            const deviceType = clientDeviceType || headerDevice.type || 'desktop';
+            const deviceLabel = clientDeviceLabel || headerDevice.label || 'Laptop / Desktop';
+
+            const events = Array.isArray(body?.events) ? body.events.slice(-40) : [];
+            // Ensure device info is captured in events list as well for fallback
+            events.unshift({
+                type: 'device_meta',
+                deviceType,
+                deviceLabel,
+                timeOffset: 0,
+            });
+
             await supabase.from('analytics_sessions').upsert({
                 id: sessionId,
                 visitor_id: visitorId,
@@ -108,6 +124,8 @@ export const POST: APIRoute = async ({ request }) => {
                 utm_content: cleanAnalyticsString(body?.utm?.content, 150) || null,
                 country: country || 'Unknown',
                 city: city || null,
+                device_type: deviceType,
+                device_label: deviceLabel,
                 landing_page: cleanAnalyticsString(body?.landingPage, 240) || pagePath,
                 exit_page: cleanAnalyticsString(body?.exitPage || pagePath, 240),
                 started_at: body?.startedAt || new Date().toISOString(),
@@ -119,7 +137,7 @@ export const POST: APIRoute = async ({ request }) => {
                 converted: Boolean(body?.converted),
                 conversion_type: cleanAnalyticsString(body?.conversionType, 60) || null,
                 friction_flags: Array.isArray(body?.frictionFlags) ? body.frictionFlags : [],
-                events: Array.isArray(body?.events) ? body.events.slice(-40) : [],
+                events,
                 replay_data: Array.isArray(body?.replayData) ? body.replayData.slice(-100) : [],
             }, { onConflict: 'id' });
 
