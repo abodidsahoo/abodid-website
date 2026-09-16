@@ -2,7 +2,7 @@ import { Resend } from 'resend';
 import { createSupabaseServiceClient } from '../supabaseServer';
 import type { Opportunity } from './types';
 
-const SENDER_EMAIL = import.meta.env.CONTACT_NOTIFICATION_FROM_EMAIL || process.env.CONTACT_NOTIFICATION_FROM_EMAIL || 'Abodid Opportunity Assistant <contact@abodid.com>';
+const SENDER_EMAIL = import.meta.env.CONTACT_NOTIFICATION_FROM_EMAIL || process.env.CONTACT_NOTIFICATION_FROM_EMAIL || 'Abodid Opportunity Desk <contact@abodid.com>';
 const RECIPIENT_EMAIL = import.meta.env.OWNER_NOTIFICATION_EMAIL || process.env.OWNER_NOTIFICATION_EMAIL || import.meta.env.CONTACT_FORM_TO_EMAIL || process.env.CONTACT_FORM_TO_EMAIL;
 
 export interface ReminderRule {

@@ -325,8 +325,8 @@ export const OpportunityDashboard: React.FC = () => {
             <div className="opp-header">
                 <div className="opp-header-top">
                     <div className="opp-title-area">
-                        <div className="opp-eyebrow">Abodid Pop Editorial · Personal Assistant</div>
-                        <h1 className="opp-main-title">OPPORTUNITIES</h1>
+                        <div className="opp-eyebrow">⚡ FIELD RADAR · DON'T SLEEP ON THESE</div>
+                        <h1 className="opp-main-title">OPPORTUNITY DESK</h1>
                     </div>
 
                     <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
@@ -385,7 +385,7 @@ export const OpportunityDashboard: React.FC = () => {
                 <div className="opp-header" style={{ textAlign: 'center', padding: '40px 20px' }}>
                     <h2 style={{ fontSize: '1.8rem', fontWeight: 900, margin: '0 0 12px' }}>🔒 Private Access</h2>
                     <p style={{ color: 'var(--opp-muted)', maxWidth: '400px', margin: '0 auto 20px' }}>
-                        Enter your private passphrase to unlock the Opportunity Assistant.
+                        Enter your secret passphrase to unlock the Opportunity Desk.
                     </p>
                     <form onSubmit={handleLogin} style={{ display: 'inline-flex', gap: '10px' }}>
                         <input

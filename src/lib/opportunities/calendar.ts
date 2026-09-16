@@ -52,7 +52,7 @@ export function generateIcsFile(opp: Opportunity, mode: 'deadline' | 'event' = '
     return [
         'BEGIN:VCALENDAR',
         'VERSION:2.0',
-        'PRODID:-//Abodid Personal Site//Opportunity Assistant//EN',
+        'PRODID:-//Abodid Personal Site//Opportunity Desk//EN',
         'CALSCALE:GREGORIAN',
         'METHOD:PUBLISH',
         'BEGIN:VEVENT',
