@@ -161,29 +161,29 @@ export function generateOgImage(
                         </div>
                     </div>
 
-                    {/* Center Area: Main Headline & Crisp Subtitle */}
+                    {/* Center Area: Main Headline & Crisp Subtitle (Strict Flex 100% Centering) */}
                     <div
                         style={{
                             display: 'flex',
                             flexDirection: 'column',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            textAlign: 'center',
                             width: '100%',
-                            maxWidth: '980px',
                             margin: 'auto 0',
                         }}
                     >
                         <div
                             style={{
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                textAlign: 'center',
+                                width: '100%',
                                 fontSize: `${fontSize}px`,
                                 fontWeight: 900,
                                 letterSpacing: '-0.035em',
                                 lineHeight: lineHeight,
                                 color: isCustomImage ? '#ffffff' : theme.text,
-                                textAlign: 'center',
-                                textWrap: 'balance',
-                                maxWidth: '940px',
                             }}
                         >
                             {cleanTitle}
@@ -192,11 +192,12 @@ export function generateOgImage(
                         {cleanSub && (
                             <div
                                 style={{
-                                    marginTop: '22px',
-                                    maxWidth: '820px',
                                     display: 'flex',
                                     justifyContent: 'center',
-                                    padding: '12px 24px',
+                                    alignItems: 'center',
+                                    marginTop: '22px',
+                                    maxWidth: '860px',
+                                    padding: '12px 28px',
                                     borderRadius: '16px',
                                     background: isCustomImage ? 'rgba(21, 19, 15, 0.85)' : theme.subtitleBg,
                                     border: isCustomImage ? '1.5px solid rgba(255, 255, 255, 0.3)' : `2px solid ${theme.subtitleBorder}`,
@@ -207,12 +208,13 @@ export function generateOgImage(
                             >
                                 <div
                                     style={{
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                        textAlign: 'center',
                                         fontSize: '24px',
                                         fontWeight: 500,
                                         lineHeight: 1.34,
                                         color: isCustomImage ? '#ffffff' : theme.subtitleText,
-                                        textAlign: 'center',
-                                        textWrap: 'balance',
                                     }}
                                 >
                                     {cleanSub}
