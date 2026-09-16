@@ -417,11 +417,13 @@ export const renderDigestHtml = ({
   items,
   recipientName,
   digestDate,
+  previewText,
   isTest = false,
 }: {
   items: VerifiedDigestCandidate[];
   recipientName: string;
   digestDate: string;
+  previewText?: string;
   isTest?: boolean;
 }): string => {
   if (items.length < 1) {
@@ -432,6 +434,11 @@ export const renderDigestHtml = ({
   // "Abodid's Tuesday Readings"
   const emailTitle = `${escapeHtml(recipientName)}'s ${weekdayName(digestDate)} Reading`;
   const dateLabel = humanDateLong(digestDate);
+
+  const snippet = previewText
+    ? escapeHtml(previewText)
+    : `READER'S DIGEST &middot; ${dateLabel} &mdash; ${emailTitle}`;
+  const preheaderPadding = "&#847;&zwnj;&nbsp;".repeat(90);
 
   const rows = items
     .map(
@@ -483,8 +490,8 @@ export const renderDigestHtml = ({
 
   <!--[if !gte mso 9]><!-->
   <!-- Preview text (hidden in most clients, visible as inbox snippet) -->
-  <div aria-hidden="true" style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:#f5f4f1">
-    I have curated these amazing articles for you to read today.&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;
+  <div aria-hidden="true" style="display:none!important;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:#f5f4f1">
+    ${snippet}${preheaderPadding}
   </div>
   <!--<![endif]-->
 

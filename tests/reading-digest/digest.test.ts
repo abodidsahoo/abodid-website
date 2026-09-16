@@ -107,6 +107,9 @@ describe("reading digest editorial rules", () => {
     });
     expect(html.match(/Read Article →/g) ?? []).toHaveLength(5);
     expect(html).toContain("Read first today");
+    expect(html).toContain("READER'S DIGEST &middot; 4th August, 2026 &mdash; Abodid's Tuesday Reading");
+    expect(html).toContain("&#847;&zwnj;&nbsp;");
+    expect(html).not.toContain("I have curated these amazing articles");
     expect(html.lastIndexOf(selected[0].title)).toBeGreaterThan(
       html.lastIndexOf("Read first today"),
     );
