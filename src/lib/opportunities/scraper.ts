@@ -162,6 +162,9 @@ function truncateSmartly(text: string): string {
 
 import { extractText } from 'unpdf';
 
+const MAX_PDF_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB limit
+const MAX_PDF_PAGES = 30; // 30 pages limit
+
 /**
  * Fetches the webpage or PDF content server-side with timeout and realistic User-Agent.
  */
@@ -190,14 +193,30 @@ export async function fetchWebpageContent(url: string): Promise<{ html: string; 
         }
 
         const contentType = (response.headers.get('content-type') || '').toLowerCase();
+        const contentLength = Number(response.headers.get('content-length') || 0);
         const urlWithoutQuery = canonical.split('?')[0].toLowerCase();
         const isPdf = contentType.includes('application/pdf') || urlWithoutQuery.endsWith('.pdf');
 
         // Handle direct PDF documents
         if (isPdf) {
+            if (contentLength > MAX_PDF_SIZE_BYTES) {
+                const sizeMb = (contentLength / (1024 * 1024)).toFixed(1);
+                throw new Error(`PDF exceeds the 10 MB limit (${sizeMb} MB). Please add this opportunity manually to conserve AI tokens.`);
+            }
+
             const arrayBuffer = await response.arrayBuffer();
-            const { text: pdfPagesText } = await extractText(new Uint8Array(arrayBuffer));
-            const fullPdfText = Array.isArray(pdfPagesText) ? pdfPagesText.join('\n\n') : (pdfPagesText || '');
+            if (arrayBuffer.byteLength > MAX_PDF_SIZE_BYTES) {
+                const sizeMb = (arrayBuffer.byteLength / (1024 * 1024)).toFixed(1);
+                throw new Error(`PDF exceeds the 10 MB limit (${sizeMb} MB). Please add this opportunity manually to conserve AI tokens.`);
+            }
+
+            const { text: pdfPagesText, totalPages } = await extractText(new Uint8Array(arrayBuffer), { mergePages: true });
+
+            if (totalPages > MAX_PDF_PAGES) {
+                throw new Error(`PDF exceeds the 30-page limit (${totalPages} pages). Please add this opportunity manually to conserve AI tokens.`);
+            }
+
+            const fullPdfText = typeof pdfPagesText === 'string' ? pdfPagesText : (Array.isArray(pdfPagesText) ? (pdfPagesText as string[]).join('\n\n') : '');
             const cleanText = truncateSmartly(
                 fullPdfText.replace(/\r\n/g, '\n').replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim()
             );
@@ -235,11 +254,18 @@ export async function fetchWebpageContent(url: string): Promise<{ html: string; 
                         },
                     });
                     if (pdfRes.ok) {
-                        const pdfBuf = await pdfRes.arrayBuffer();
-                        const { text: embeddedPdfText } = await extractText(new Uint8Array(pdfBuf));
-                        const fullText = Array.isArray(embeddedPdfText) ? embeddedPdfText.join('\n\n') : (embeddedPdfText || '');
-                        if (fullText.trim().length > 100) {
-                            text = truncateSmartly(fullText.trim());
+                        const pdfLength = Number(pdfRes.headers.get('content-length') || 0);
+                        if (pdfLength <= MAX_PDF_SIZE_BYTES) {
+                            const pdfBuf = await pdfRes.arrayBuffer();
+                            if (pdfBuf.byteLength <= MAX_PDF_SIZE_BYTES) {
+                                const { text: embeddedPdfText, totalPages } = await extractText(new Uint8Array(pdfBuf), { mergePages: true });
+                                if (totalPages <= MAX_PDF_PAGES) {
+                                    const fullText = typeof embeddedPdfText === 'string' ? embeddedPdfText : (Array.isArray(embeddedPdfText) ? (embeddedPdfText as string[]).join('\n\n') : '');
+                                    if (fullText.trim().length > 100) {
+                                        text = truncateSmartly(fullText.trim());
+                                    }
+                                }
+                            }
                         }
                     }
                 } catch {
