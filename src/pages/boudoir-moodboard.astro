@@ -3,46 +3,14 @@ export const prerender = false;
 
 import BaseLayout from "../layouts/BaseLayout.astro";
 import BoudoirMoodboard from "../components/BoudoirMoodboard.jsx";
-import { listR2Folder, buildR2PublicUrl } from "../lib/media/r2.ts";
+import { getMoodboardPhotos } from "../lib/photography/moodboardLoader";
 
 const pageTitle = "Boudoir Board — Abodid Sahoo";
 const pageDescription =
   "A visual mood board and photographic study of boudoir portraiture, lighting, shadow, and intimate human form.";
 
-const { files: files1600, config } = await listR2Folder("photos/variants/boudoir/1600/", "assets");
-const { files: files800 } = await listR2Folder("photos/variants/boudoir/800/", "assets");
-const publicAssetConfig = { ...config, publicBaseUrl: "https://assets.abodid.com" };
-const fileMap = new Map<string, { key1600?: string; key800?: string; etag?: string }>();
-
-(files1600 || []).forEach((file) => {
-  const filename = file.objectKey.split("/").pop() || "";
-  fileMap.set(filename, { key1600: file.objectKey, etag: file.etag || undefined });
-});
-
-(files800 || []).forEach((file) => {
-  const filename = file.objectKey.split("/").pop() || "";
-  const existing = fileMap.get(filename) || { etag: file.etag || undefined };
-  existing.key800 = file.objectKey;
-  fileMap.set(filename, existing);
-});
-
-const sortedFilenames = Array.from(fileMap.keys()).sort((a, b) =>
-  a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" })
-);
-
-const photos = sortedFilenames.map((filename, index) => {
-  const data = fileMap.get(filename)!;
-  const gridKey = data.key800 || data.key1600 || "";
-  const highResKey = data.key1600 || data.key800 || "";
-  return {
-    id: `boudoir-${index + 1}`,
-    title: `Boudoir photograph ${index + 1}`,
-    imageUrl: buildR2PublicUrl(publicAssetConfig, highResKey),
-    thumbnailUrl: buildR2PublicUrl(publicAssetConfig, gridKey),
-    paletteImageUrl: `/api/image-palette-proxy?url=${encodeURIComponent(
-      buildR2PublicUrl(publicAssetConfig, gridKey)
-    )}`,
-  };
+const photos = await getMoodboardPhotos("boudoir", {
+  defaultTitlePrefix: "Boudoir photograph",
 });
 
 Astro.response.headers.set("Cache-Control", "public, max-age=0, must-revalidate");

@@ -1,66 +1,18 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import BoudoirMoodboard from "../components/BoudoirMoodboard.jsx";
-import { listR2Folder, buildR2PublicUrl } from "../lib/media/r2";
+import { getMoodboardPhotos } from "../lib/photography/moodboardLoader";
 
 const title = "UK 2026";
 const description =
   "An archive of memories from London, Manchester, and Cambridge in 2026.";
 
-interface UkPhotoItem {
-  id: string;
-  imageUrl: string;
-  title: string;
-}
+const interactivePhotos = await getMoodboardPhotos("uk-2026", {
+  shuffle: true,
+  defaultTitlePrefix: "UK Trip 2026",
+});
 
-let ukPhotos: UkPhotoItem[] = [];
-
-try {
-  let { files, config } = await listR2Folder("photos/variants/uk-2026/800/");
-  if (!files || files.length === 0) {
-    const orig = await listR2Folder("photos/originals/uk-2026/");
-    files = orig.files;
-    config = orig.config;
-  }
-
-  if (files && files.length > 0) {
-    files.sort((a, b) =>
-      a.objectKey.localeCompare(b.objectKey, undefined, {
-        numeric: true,
-        sensitivity: "base",
-      }),
-    );
-    ukPhotos = files.map((file, index) => {
-      const filename = file.objectKey.split("/").pop() || "";
-      const photoTitle =
-        filename.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ") ||
-        `UK 2026 Photo ${index + 1}`;
-      return {
-        id: file.etag || `uk-2026-${index}`,
-        imageUrl: buildR2PublicUrl(config, file.objectKey),
-        title: photoTitle,
-      };
-    });
-  }
-} catch (e) {
-  console.error("Failed to fetch R2 UK 2026 images:", e);
-}
-
-// Pre-randomize photo items server-side
-const shuffledPhotos = [...ukPhotos];
-for (let index = shuffledPhotos.length - 1; index > 0; index -= 1) {
-  const randomIndex = Math.floor(Math.random() * (index + 1));
-  [shuffledPhotos[index], shuffledPhotos[randomIndex]] = [
-    shuffledPhotos[randomIndex],
-    shuffledPhotos[index],
-  ];
-}
-
-const interactivePhotos = shuffledPhotos.map((item) => ({
-  ...item,
-  thumbnailUrl: item.imageUrl,
-  paletteImageUrl: `/api/image-palette-proxy?url=${encodeURIComponent(item.imageUrl)}`,
-}));
+const shuffledPhotos = interactivePhotos;
 
 Astro.response.headers.set("Cache-Control", "public, max-age=60, s-maxage=3600, stale-while-revalidate=86400");
 ---
@@ -78,7 +30,7 @@ Astro.response.headers.set("Cache-Control", "public, max-age=60, s-maxage=3600, 
   <Fragment slot="head">
     {
       shuffledPhotos.slice(0, 4).map((item) => (
-        <link rel="preload" as="image" href={item.imageUrl} fetchpriority="high" />
+        <link rel="preload" as="image" href={item.thumbnailUrl} fetchpriority="high" />
       ))
     }
   </Fragment>
