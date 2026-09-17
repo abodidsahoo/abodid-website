@@ -58,6 +58,7 @@ export async function GET({ url }) {
                 headers: {
                     "Content-Type": "application/json",
                     "Cache-Control": CACHE_CONTROL,
+                    "Vercel-CDN-Cache-Control": "s-maxage=31536000, stale-while-revalidate=31536000",
                 },
             },
         );

@@ -24,7 +24,12 @@ import {
 
 const privatePagePatterns = [
     /^\/admin(?:\/|$)/,
-    /^\/api(?:\/|$)/,
+    /^\/api\/admin(?:\/|$)/,
+    /^\/api\/analytics(?:\/|$)/,
+    /^\/api\/tracking(?:\/|$)/,
+    /^\/api\/punctum(?:\/|$)/,
+    /^\/api\/resources\/(?:approve|send-rejection)(?:\/|$)/,
+    /^\/api\/one-photo\/submit\/?$/,
     /^\/login\/?$/,
     /^\/unauthorized\/?$/,
     /^\/unsubscribe\/?$/,
@@ -35,7 +40,6 @@ const privatePagePatterns = [
     /^\/feedback\/?$/,
     /^\/paper-renamer\/insights(?:\/|$)/,
     /^\/research\/admin(?:\/|$)/,
-    /^\/obsidian-vault(?:\/|$)/,
     /^\/opportunities(?:\/|$)/,
     /^\/resources\/(?:admin|auth|curator|dashboard|saved|submit)(?:\/|$)/,
     /^\/resources\/.*\/edit\/?$/,
@@ -55,7 +59,13 @@ const canCachePublicPage = (context: PublicCacheContext, response: Response) => 
     if (response.status !== 200 || response.headers.has('set-cookie')) return false;
     if (response.headers.get('cache-control')?.toLowerCase().includes('no-store')) return false;
 
-    return response.headers.get('content-type')?.includes('text/html') ?? false;
+    const contentType = response.headers.get('content-type') || '';
+    return (
+        contentType.includes('text/html') ||
+        contentType.includes('application/json') ||
+        contentType.includes('image/') ||
+        contentType.includes('text/plain')
+    );
 };
 
 const permanentRedirect = (location: string) =>
@@ -129,11 +139,15 @@ export const onRequest = defineMiddleware(async (context, next) => {
             request: context.request,
             url: requestUrl,
         }, response)) {
-            response.headers.set('Cache-Control', 'public, max-age=0, must-revalidate');
-            response.headers.set(
-                'Vercel-CDN-Cache-Control',
-                's-maxage=300, stale-while-revalidate=86400'
-            );
+            if (!response.headers.has('Cache-Control')) {
+                response.headers.set('Cache-Control', 'public, max-age=0, must-revalidate');
+            }
+            if (!response.headers.has('Vercel-CDN-Cache-Control')) {
+                response.headers.set(
+                    'Vercel-CDN-Cache-Control',
+                    's-maxage=31536000, stale-while-revalidate=86400'
+                );
+            }
         }
 
         return response;

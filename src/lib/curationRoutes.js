@@ -69,8 +69,8 @@ export const legacyResourcePathToCurationPath = (pathname) => {
 /** Map a public curation URL to the existing internal Astro route. */
 export const curationPathToInternalPath = (pathname) => {
   if (pathname === "/" || pathname === "/resources") return "/resources";
-  if (pathname === "/robots.txt") return "/curation-robots.txt";
-  if (pathname === "/sitemap.xml") return "/curation-sitemap.xml";
+  if (pathname === "/robots.txt") return "/robots.txt";
+  if (pathname === "/sitemap.xml") return "/sitemap-index.xml";
   if (pathname === "/dashboard" || pathname === "/resources/dashboard") return "/resources/dashboard";
   if (pathname === "/saved" || pathname === "/resources/saved") return "/resources/saved";
   if (pathname === "/submit" || pathname === "/resources/submit") return "/resources/submit";

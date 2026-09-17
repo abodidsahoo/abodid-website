@@ -258,6 +258,10 @@ export function generateOgImage(
             width: 1200,
             height: 630,
             fonts: fonts,
+            headers: {
+                'Cache-Control': 'public, max-age=86400, s-maxage=31536000, stale-while-revalidate=31536000',
+                'Vercel-CDN-Cache-Control': 's-maxage=31536000, stale-while-revalidate=31536000',
+            },
         }
     );
 }

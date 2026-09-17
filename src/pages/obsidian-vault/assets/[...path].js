@@ -63,7 +63,8 @@ export async function GET({ params }) {
     return new Response(fileBuffer, {
         headers: {
             'Content-Type': contentType,
-            'Cache-Control': 'public, max-age=86400, s-maxage=604800, stale-while-revalidate=86400'
+            'Cache-Control': 'public, max-age=86400, s-maxage=31536000, stale-while-revalidate=86400',
+            'Vercel-CDN-Cache-Control': 's-maxage=31536000, stale-while-revalidate=86400',
         }
     });
 }

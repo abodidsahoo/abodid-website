@@ -97,7 +97,8 @@ function popSvgFallback(
         status: 200,
         headers: {
             'Content-Type': 'image/svg+xml; charset=utf-8',
-            'Cache-Control': 'public, max-age=300',
+            'Cache-Control': 'public, max-age=86400, s-maxage=31536000, stale-while-revalidate=31536000',
+            'Vercel-CDN-Cache-Control': 's-maxage=31536000, stale-while-revalidate=31536000',
         },
     });
 }

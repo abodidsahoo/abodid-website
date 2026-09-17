@@ -33,6 +33,10 @@ Astro.response.headers.set(
     "Cache-Control",
     "public, max-age=60, s-maxage=31536000, stale-while-revalidate=31536000"
 );
+Astro.response.headers.set(
+    "Vercel-CDN-Cache-Control",
+    "s-maxage=31536000, stale-while-revalidate=31536000"
+);
 
 const pageTitle = "Obsidian Vault";
 const pageDescription = "Ask questions across Abodid Sahoo's public Obsidian notes, or browse the live note and tag archive.";

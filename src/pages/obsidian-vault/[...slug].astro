@@ -274,6 +274,12 @@ Astro.response.headers.set(
           ? "private, no-store"
           : "public, max-age=60, s-maxage=31536000, stale-while-revalidate=31536000",
 );
+if (!import.meta.env.DEV && !fromVaultSearchId) {
+    Astro.response.headers.set(
+        "Vercel-CDN-Cache-Control",
+        "s-maxage=31536000, stale-while-revalidate=31536000",
+    );
+}
 
 const routeSlug = slug.replace(/\.md$/i, "");
 const displayTitle = title === routeSlug ? title.replace(/-/g, " ") : title;

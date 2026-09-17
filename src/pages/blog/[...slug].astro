@@ -34,6 +34,10 @@ Astro.response.headers.set(
   "Cache-Control",
   "public, max-age=60, s-maxage=31536000, stale-while-revalidate=31536000"
 );
+Astro.response.headers.set(
+  "Vercel-CDN-Cache-Control",
+  "s-maxage=31536000, stale-while-revalidate=31536000"
+);
 
 // Convert Markdown to HTML if using legacy content field
 const hasBlocks = Array.isArray(post.blocks) && post.blocks.length > 0;
