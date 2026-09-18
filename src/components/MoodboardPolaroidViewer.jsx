@@ -85,6 +85,7 @@ export default function MoodboardPolaroidViewer({
     const [shutterState, setShutterState] = useState('open');
     const [pendingOffset, setPendingOffset] = useState(0);
     const [overlayColor, setOverlayColor] = useState('rgba(10,10,10,0.95)');
+    const [hoveredSwatch, setHoveredSwatch] = useState(null); // { color, name }
     const imgRef = useRef(null);
     const localAssetCacheRef = useRef({});
     const assetCacheRef = sharedAssetCacheRef || localAssetCacheRef;
@@ -120,8 +121,9 @@ export default function MoodboardPolaroidViewer({
         if (cached?.dimensions && typeof window !== 'undefined') {
             const maxHeight = window.innerHeight * 0.65;
             const maxWidth = window.innerWidth * 0.8;
+            const MIN_LAYOUT_WIDTH = Math.min(340, maxWidth);
             const aspect = cached.dimensions.width / cached.dimensions.height;
-            let width = maxHeight * aspect;
+            let width = Math.max(MIN_LAYOUT_WIDTH, maxHeight * aspect);
             if (width > maxWidth) width = maxWidth;
             setLayoutWidth(`${Math.round(width)}px`);
             setIsLayoutStable(true);
@@ -197,14 +199,16 @@ export default function MoodboardPolaroidViewer({
 
     const handleImageLoad = () => {
         if (imgRef.current) {
-            const nextWidth = `${imgRef.current.clientWidth}px`;
+            const MIN_LAYOUT_WIDTH = 340;
+            const measuredWidth = imgRef.current.clientWidth;
+            const nextWidth = `${Math.max(MIN_LAYOUT_WIDTH, measuredWidth)}px`;
             setLayoutWidth(nextWidth);
             if (imageUrl) {
                 const existing = assetCacheRef.current[imageUrl] || {};
                 assetCacheRef.current[imageUrl] = {
                     ...existing,
                     dimensions: {
-                        width: imgRef.current.naturalWidth || imgRef.current.clientWidth,
+                        width: Math.max(MIN_LAYOUT_WIDTH, imgRef.current.naturalWidth || imgRef.current.clientWidth),
                         height: imgRef.current.naturalHeight || imgRef.current.clientHeight,
                     },
                 };
@@ -227,6 +231,7 @@ export default function MoodboardPolaroidViewer({
 
     const handleShutterClosed = () => {
         setShutterState('closed');
+        setHoveredSwatch(null);
         if (!normalizedItems.length || pendingOffset === 0) return;
         const nextIndex =
             (currentIndex + pendingOffset + normalizedItems.length) %
@@ -255,19 +260,12 @@ export default function MoodboardPolaroidViewer({
         setShutterState('closing');
     };
 
-    const nextImage = (event) => {
-        if (event) event.stopPropagation();
-        requestSwitch(1);
-    };
+    const itemAspect =
+        cachedData?.dimensions?.width && cachedData?.dimensions?.height
+            ? `${cachedData.dimensions.width} / ${cachedData.dimensions.height}`
+            : undefined;
 
-    const prevImage = (event) => {
-        if (event) event.stopPropagation();
-        requestSwitch(-1);
-    };
-
-    if (!mounted || !activeId || !currentItem) {
-        return null;
-    }
+    if (!mounted) return null;
 
     return createPortal(
         <AnimatePresence>
@@ -276,77 +274,57 @@ export default function MoodboardPolaroidViewer({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1, backgroundColor: overlayColor }}
                 exit={{ opacity: 0 }}
-                onClick={onClose}
+                transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+                onClick={(e) => {
+                    if (e.target === e.currentTarget && typeof onClose === 'function') {
+                        onClose();
+                    }
+                }}
             >
                 <button
                     type="button"
-                    className="global-nav-btn prev"
-                    onClick={prevImage}
-                    title="Previous (Left Arrow)"
-                >
-                    <svg
-                        viewBox="0 0 24 24"
-                        width="24"
-                        height="24"
-                        stroke="white"
-                        strokeWidth="2"
-                        fill="none"
-                    >
-                        <path d="M15 18l-6-6 6-6" />
-                    </svg>
-                </button>
-
-                <button
-                    type="button"
-                    className="global-nav-btn next"
-                    onClick={nextImage}
-                    title="Next (Right Arrow)"
-                >
-                    <svg
-                        viewBox="0 0 24 24"
-                        width="24"
-                        height="24"
-                        stroke="white"
-                        strokeWidth="2"
-                        fill="none"
-                    >
-                        <path d="M9 18l6-6-6-6" />
-                    </svg>
-                </button>
-
-                <button
-                    type="button"
                     className="close-viewer-btn"
-                    onClick={(event) => {
-                        event.stopPropagation();
-                        if (typeof onClose === 'function') onClose();
-                    }}
-                    aria-label="Close photo viewer"
+                    onClick={onClose}
+                    aria-label="Close photo"
                 >
-                    x
+                    ✕
                 </button>
+
+                {normalizedItems.length > 1 && (
+                    <>
+                        <button
+                            type="button"
+                            className="global-nav-btn prev"
+                            onClick={() => requestSwitch(-1)}
+                            aria-label="Previous photo"
+                        >
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6"/></svg>
+                        </button>
+                        <button
+                            type="button"
+                            className="global-nav-btn next"
+                            onClick={() => requestSwitch(1)}
+                            aria-label="Next photo"
+                        >
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6"/></svg>
+                        </button>
+                    </>
+                )}
 
                 <motion.div
                     className="lightbox-polaroid"
-                    onClick={(event) => event.stopPropagation()}
-                    initial={{ scale: 0.9, opacity: 0, y: 20 }}
-                    animate={{
-                        scale: 1,
-                        opacity: 1,
-                        y: 0,
-                    }}
-                    transition={{
-                        duration: 0.2,
-                        ease: [0.16, 1, 0.3, 1],
-                    }}
-                    exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                    initial={{ scale: 0.94, opacity: 0, y: 16 }}
+                    animate={{ scale: 1, opacity: 1, y: 0 }}
+                    exit={{ scale: 0.94, opacity: 0, y: 16 }}
+                    transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+                    onClick={(e) => e.stopPropagation()}
                 >
                     <div className="lightbox-inner">
                         <motion.div
                             className="lightbox-image-area"
+                            style={itemAspect ? { aspectRatio: itemAspect } : undefined}
                             animate={{
                                 clipPath:
-                                    shutterState === 'closing' ||
                                     shutterState === 'closed'
                                         ? 'inset(50% 0 50% 0)'
                                         : 'inset(0% 0 0% 0)',
@@ -385,13 +363,17 @@ export default function MoodboardPolaroidViewer({
                         </motion.div>
 
                         <div
-                            className={`lightbox-caption${showTitles ? '' : ' lightbox-caption--palette-only'}`}
+                            className="lightbox-caption"
                             style={{
                                 width: layoutWidth !== 'auto' ? layoutWidth : '100%',
                             }}
                         >
-                            {showTitles && (
-                                <div className="caption-copy">
+                            <div className="caption-copy">
+                                {hoveredSwatch ? (
+                                    <div className="lightbox-hovered-swatch">
+                                        <span className="hovered-swatch-name">{hoveredSwatch.name}</span>
+                                    </div>
+                                ) : showTitles ? (
                                     <h3 className="lightbox-title" title={currentItem.title}>
                                         {currentItem.projectHref ? (
                                             <a href={currentItem.projectHref}>
@@ -401,20 +383,28 @@ export default function MoodboardPolaroidViewer({
                                             currentItem.title
                                         )}
                                     </h3>
+                                ) : null}
+                            </div>
+
+                            <div className="lightbox-palette-container">
+                                <PaletteExtractor
+                                    imageUrl={currentItem.paletteImageUrl || imageUrl}
+                                    onExtract={handleDominantColor}
+                                    inline={true}
+                                    initialPalette={cachedData?.palette || currentItem?.palette?.paletteHex}
+                                    onSwatchHover={(color, name) => setHoveredSwatch({ color, name })}
+                                    onSwatchLeave={() => setHoveredSwatch(null)}
+                                    onSwatchClick={(color, name) => {
+                                        if (onSelectColorFilter) {
+                                            onSelectColorFilter(color, name);
+                                            if (onClose) onClose();
+                                        }
+                                    }}
+                                />
+                                <div className={`swatch-instruction-hint ${hoveredSwatch ? 'is-visible' : ''}`}>
+                                    <span>Click to filter by color</span>
                                 </div>
-                            )}
-                            <PaletteExtractor
-                                imageUrl={currentItem.paletteImageUrl || imageUrl}
-                                onExtract={handleDominantColor}
-                                inline={true}
-                                initialPalette={cachedData?.palette || currentItem?.palette?.paletteHex}
-                                onSwatchClick={(color, name) => {
-                                    if (onSelectColorFilter) {
-                                        onSelectColorFilter(color, name);
-                                        if (onClose) onClose();
-                                    }
-                                }}
-                            />
+                            </div>
 
                         </div>
 
@@ -454,6 +444,7 @@ export default function MoodboardPolaroidViewer({
                         padding: 24px;
                         padding-bottom: 64px;
                         width: fit-content;
+                        min-width: min(90vw, 360px);
                         max-width: 90vw;
                         max-height: 90vh;
                         display: flex;
@@ -461,27 +452,35 @@ export default function MoodboardPolaroidViewer({
                         border-radius: 2px;
                         box-shadow: 0 50px 100px rgba(0, 0, 0, 0.5);
                         margin: auto;
+                        box-sizing: border-box;
                     }
 
                     .lightbox-inner {
                         display: flex;
                         flex-direction: column;
-                        align-items: flex-start;
+                        align-items: center;
                         width: fit-content;
+                        min-width: min(100%, 320px);
                         max-width: 100%;
                     }
 
                     .lightbox-image-area {
                         background: #eee;
                         max-height: 65vh;
+                        min-height: 220px;
+                        min-width: min(100%, 320px);
+                        width: 100%;
                         overflow: hidden;
                         display: flex;
+                        align-items: center;
                         justify-content: center;
                     }
 
                     .lightbox-image-area img {
                         max-height: 65vh;
                         max-width: 80vw;
+                        min-width: min(100%, 300px);
+                        min-height: 200px;
                         height: auto;
                         width: auto;
                         display: block;
@@ -490,13 +489,15 @@ export default function MoodboardPolaroidViewer({
 
                     .lightbox-caption {
                         width: 100%;
+                        min-width: 100%;
                         color: #222;
                         margin-top: 1.5rem;
                         display: flex;
                         justify-content: space-between;
-                        align-items: center;
-                        gap: 2rem;
-                        overflow: hidden;
+                        align-items: flex-start;
+                        gap: 1.5rem;
+                        overflow: visible;
+                        box-sizing: border-box;
                     }
 
                     .lightbox-caption--palette-only {
@@ -506,6 +507,84 @@ export default function MoodboardPolaroidViewer({
                     .caption-copy {
                         min-width: 0;
                         flex: 1;
+                        height: 56px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: flex-start;
+                        text-align: left;
+                    }
+
+                    .lightbox-hovered-swatch {
+                        display: flex;
+                        align-items: center;
+                        justify-content: flex-start;
+                        padding: 0;
+                        margin: 0;
+                        background: transparent;
+                        border: none;
+                        animation: fadeInHoveredText 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+                        max-width: 100%;
+                    }
+
+                    @keyframes fadeInHoveredText {
+                        from {
+                            opacity: 0;
+                            transform: translateY(2px);
+                        }
+                        to {
+                            opacity: 1;
+                            transform: translateY(0);
+                        }
+                    }
+
+                    .hovered-swatch-name {
+                        font-family: var(--font-ui, "Satoshi", sans-serif);
+                        font-size: clamp(0.85rem, 1.2vw, 1.02rem);
+                        font-weight: 750;
+                        color: #15130f;
+                        letter-spacing: 0.06em;
+                        text-transform: uppercase;
+                        line-height: 1;
+                        margin: 0;
+                        padding: 0;
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                    }
+
+                    .lightbox-palette-container {
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        flex-shrink: 0;
+                        position: relative;
+                    }
+
+                    .swatch-instruction-hint {
+                        margin-top: 6px;
+                        padding: 0;
+                        width: 100%;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        text-align: center;
+                        font-family: var(--font-mono, "Space Mono", monospace);
+                        font-size: 0.62rem;
+                        font-weight: 600;
+                        color: #7a756b;
+                        letter-spacing: 0.04em;
+                        text-transform: uppercase;
+                        line-height: 1;
+                        white-space: nowrap;
+                        opacity: 0;
+                        transform: translateY(-2px);
+                        transition: opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1), transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+                        pointer-events: none;
+                    }
+
+                    .swatch-instruction-hint.is-visible {
+                        opacity: 1;
+                        transform: translateY(0);
                     }
 
                     .lightbox-title {
@@ -514,7 +593,7 @@ export default function MoodboardPolaroidViewer({
                         font-weight: 700;
                         margin: 0;
                         color: #2a2a2a;
-                        line-height: 1.35;
+                        line-height: 1;
                         letter-spacing: 0.08em;
                         text-transform: uppercase;
                         white-space: nowrap;
@@ -637,9 +716,14 @@ export default function MoodboardPolaroidViewer({
                         }
 
                         .lightbox-caption {
-                            flex-direction: column;
-                            align-items: flex-start;
-                            gap: 0.9rem;
+                            flex-direction: row;
+                            justify-content: space-between;
+                            align-items: center;
+                            gap: 0.75rem;
+                        }
+
+                        .hovered-swatch-name {
+                            font-size: 0.82rem;
                         }
 
                         .lightbox-title {

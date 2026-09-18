@@ -272,11 +272,17 @@ export const analyzeImage = (imageUrl) => {
     });
 };
 
-const PaletteExtractor = ({ imageUrl, onExtract, inline = false, initialPalette = null, onSwatchClick = null }) => {
+const PaletteExtractor = ({
+    imageUrl,
+    onExtract,
+    inline = false,
+    initialPalette = null,
+    onSwatchClick = null,
+    onSwatchHover = null,
+    onSwatchLeave = null,
+}) => {
     const [composition, setComposition] = useState(initialPalette);
-    const [compositionSource, setCompositionSource] = useState(
-        initialPalette ? imageUrl : '',
-    );
+    const [compositionSource, setCompositionSource] = useState(imageUrl || '');
 
     useEffect(() => {
         if (!imageUrl) return;
@@ -324,18 +330,7 @@ const PaletteExtractor = ({ imageUrl, onExtract, inline = false, initialPalette 
     );
 
     return (
-        <div
-            className="palette-extractor-slot"
-            style={{
-                position: 'relative',
-                width: '204px',
-                height: '48px',
-                flexShrink: 0,
-                display: 'flex',
-                gap: '4px',
-                alignItems: 'center',
-            }}
-        >
+        <div className="palette-extractor-slot">
             {paletteIsPrepared ? (
                 composition.map((color, i) => {
                     const colorName = getClosestNamedColor(color);
@@ -343,52 +338,81 @@ const PaletteExtractor = ({ imageUrl, onExtract, inline = false, initialPalette 
                         <button
                             key={i}
                             type="button"
+                            className="palette-extractor-swatch"
                             onClick={(e) => {
                                 e.stopPropagation();
                                 if (onSwatchClick) onSwatchClick(color, colorName);
                             }}
-                            title={onSwatchClick ? `Filter collection by ${colorName} (${color})` : `${colorName} (${color})`}
+                            onMouseEnter={() => {
+                                if (onSwatchHover) onSwatchHover(color, colorName);
+                            }}
+                            onMouseLeave={() => {
+                                if (onSwatchLeave) onSwatchLeave();
+                            }}
+                            onFocus={() => {
+                                if (onSwatchHover) onSwatchHover(color, colorName);
+                            }}
+                            onBlur={() => {
+                                if (onSwatchLeave) onSwatchLeave();
+                            }}
+                            aria-label={`Filter by ${colorName}`}
                             style={{
-                                width: '48px',
-                                height: '48px',
                                 backgroundColor: color,
-                                borderRadius: '2px',
-                                border: '1px solid rgba(255,255,255,0.15)',
-                                boxShadow: 'inset 0 0 4px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.2)',
-                                cursor: onSwatchClick ? 'pointer' : 'default',
-                                padding: 0,
-                                margin: 0,
-                                outline: 'none',
-                                transition: 'transform 0.15s ease, box-shadow 0.15s ease',
                             }}
-                            onMouseEnter={(e) => {
-                                if (onSwatchClick) {
-                                    e.currentTarget.style.transform = 'scale(1.08) translateY(-2px)';
-                                    e.currentTarget.style.zIndex = '2';
-                                }
-                            }}
-                            onMouseLeave={(e) => {
-                                if (onSwatchClick) {
-                                    e.currentTarget.style.transform = 'none';
-                                    e.currentTarget.style.zIndex = '1';
-                                }
-                            }}
-                        />
+                        >
+                            <span className="sr-only">{colorName}</span>
+                        </button>
                     );
                 })
             ) : (
                 [0, 1, 2, 3].map((i) => (
                     <div
                         key={i}
-                        style={{
-                            width: '48px',
-                            height: '48px',
-                            backgroundColor: 'rgba(128, 128, 128, 0.12)',
-                            borderRadius: '2px',
-                        }}
+                        className="palette-extractor-swatch-skeleton"
                     />
                 ))
             )}
+
+            <style>{`
+                .palette-extractor-slot {
+                    position: relative;
+                    height: 48px;
+                    flex-shrink: 0;
+                    display: flex;
+                    gap: 6px;
+                    align-items: center;
+                    padding: 4px;
+                    box-sizing: content-box;
+                    overflow: visible;
+                }
+
+                .palette-extractor-swatch {
+                    width: 44px;
+                    height: 44px;
+                    border-radius: 0px;
+                    border: 1.5px solid #15130f;
+                    cursor: pointer;
+                    padding: 0;
+                    margin: 0;
+                    outline: none;
+                    box-sizing: border-box;
+                    transition: border-radius 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), outline-offset 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+                }
+
+                .palette-extractor-swatch:hover {
+                    border-radius: 50%;
+                    box-shadow: 2px 2px 0px #15130f;
+                    z-index: 2;
+                }
+
+                .palette-extractor-swatch-skeleton {
+                    width: 44px;
+                    height: 44px;
+                    background-color: rgba(128, 128, 128, 0.12);
+                    border-radius: 0px;
+                    border: 1px dashed rgba(21, 19, 15, 0.2);
+                }
+            `}</style>
         </div>
     );
 };
