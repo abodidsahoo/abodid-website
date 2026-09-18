@@ -1,6 +1,6 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import BoudoirMoodboard from "../components/BoudoirMoodboard.jsx";
+import MoodboardGallery from "../components/MoodboardGallery.jsx";
 import { getPublishedMoodboardItems } from "../lib/services/moodboard";
 
 const title = "Mood Board — Abodid Sahoo";
@@ -50,7 +50,7 @@ const interactiveItems = shuffledItems.map((item) => ({
       >
         {
           interactiveItems.length > 0 ? (
-            <BoudoirMoodboard
+            <MoodboardGallery
               items={interactiveItems}
               deepLinkParam="photo"
               showTitles={false}

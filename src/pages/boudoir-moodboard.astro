@@ -2,7 +2,7 @@
 export const prerender = false;
 
 import BaseLayout from "../layouts/BaseLayout.astro";
-import BoudoirMoodboard from "../components/BoudoirMoodboard.jsx";
+import MoodboardGallery from "../components/MoodboardGallery.jsx";
 import { getMoodboardPhotos } from "../lib/photography/moodboardLoader";
 
 const pageTitle = "Boudoir Board — Abodid Sahoo";
@@ -38,7 +38,7 @@ Astro.response.headers.set("Vercel-CDN-Cache-Control", "s-maxage=300, stale-whil
       </header>
 
       <section class="moodboard-board" aria-label="Boudoir photographic studies">
-        <BoudoirMoodboard items={photos} deepLinkParam="photo" showTitles={false} client:load />
+        <MoodboardGallery items={photos} deepLinkParam="photo" showTitles={false} client:load />
 
         <footer class="moodboard-footer">
           <h2>Every photograph carries its own atmosphere.</h2>

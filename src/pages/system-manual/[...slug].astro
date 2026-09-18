@@ -1,0 +1,183 @@
+---
+export const prerender = false;
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getManualDocBySlug } from "../../lib/systemManual";
+import { renderManualMarkdown } from "../../lib/systemManualRenderer";
+import ManualSidebar from "../../components/system-manual/ManualSidebar.jsx";
+import ManualTopNav from "../../components/system-manual/ManualTopNav.jsx";
+import "../../styles/system-manual.css";
+
+const { slug } = Astro.params;
+
+if (!slug) {
+  return Astro.redirect("/system-manual");
+}
+
+const { doc, prevDoc, nextDoc, nav } = await getManualDocBySlug(slug);
+
+if (!doc) {
+  return Astro.redirect("/404");
+}
+
+const renderedContent = renderManualMarkdown(doc.cleanedMarkdown);
+const pageTitle = `${doc.fullTitle || doc.title} — Abodid System Manual`;
+const pageDescription = `Technical specification: ${doc.title} within the Abodid digital ecosystem.`;
+---
+
+<BaseLayout
+  title={pageTitle}
+  description={pageDescription}
+  bodyClass="manual-page"
+  fullWidth={true}
+  hideHeader={true}
+  hideFooter={true}
+>
+  <div class="manual-page-shell">
+    <!-- Top Bar Navigation for Laptop / Desktop / Tablet -->
+    <div class="manual-topnav-sticky-wrapper" transition:persist="manual-topnav-wrapper">
+      <ManualTopNav
+        client:load
+        chapters={nav.chapters}
+        rootDocs={nav.rootDocs}
+        activeSlug={doc.slug}
+        currentDoc={doc}
+      />
+    </div>
+
+    <div class="manual-workspace">
+      <!-- Left Navigation Accordion Sidebar (Permanently Sticky & Persisted) -->
+      <div class="manual-sidebar-sticky-wrapper" transition:persist="manual-sidebar-wrapper">
+        <ManualSidebar
+          client:load
+          chapters={nav.chapters}
+          rootDocs={nav.rootDocs}
+          activeSlug={doc.slug}
+        />
+      </div>
+
+      <!-- Right-Shifted Asymmetric Content Column -->
+      <main class="manual-content-column">
+        <article class="manual-article-card">
+          <header class="manual-article-header">
+            <div class="manual-article-eyebrow-row">
+              <span class="manual-chapter-pill">
+                {doc.chapterNumber === "root" ? "CORE SPECIFICATION" : `CHAPTER ${doc.chapterNumber}`}
+              </span>
+              <div class="manual-meta-tags">
+                <span>Updated {doc.lastUpdated}</span>
+              </div>
+            </div>
+
+            <!-- Chapter Main Title -->
+            <h1 class="manual-article-main-title">
+              {doc.chapterNumber === "root" ? "Abodid System Manual" : `Chapter ${doc.chapterNumber}: ${doc.chapterTitle}`}
+            </h1>
+
+            <!-- Subtitle Line: Section Number & Topic Name on One Single Line -->
+            <div class="manual-article-subtitle-bar">
+              {doc.sectionNumber && doc.sectionNumber !== "root" && doc.sectionNumber !== "00" && (
+                <span class="manual-subtitle-badge">{doc.sectionNumber}</span>
+              )}
+              <h2 class="manual-article-subtitle-text">{doc.title}</h2>
+            </div>
+
+            <!-- Key Concepts & Topics Scope Strip Below the Subtitle -->
+            {doc.keyTopics && doc.keyTopics.length > 0 && (
+              <div class="manual-article-topics-strip">
+                <span class="manual-topics-prefix">Architecture Scope:</span>
+                <div class="manual-topics-list">
+                  {doc.keyTopics.slice(0, 4).map((topic) => (
+                    <span class="manual-topic-pill">{topic}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </header>
+
+          <div class="manual-markdown-body" set:html={renderedContent} />
+
+          <!-- Bottom Linear Navigation -->
+          <nav class="manual-pagination-row">
+            {prevDoc ? (
+              <a href={`/system-manual/${prevDoc.slug}`} class="manual-pagination-card prev">
+                <span class="pagination-label">◀ Previous Topic</span>
+                <span class="pagination-title">{prevDoc.fullTitle || prevDoc.title}</span>
+              </a>
+            ) : <div />}
+
+            {nextDoc ? (
+              <a href={`/system-manual/${nextDoc.slug}`} class="manual-pagination-card next">
+                <span class="pagination-label">Next Topic ▶</span>
+                <span class="pagination-title">{nextDoc.fullTitle || nextDoc.title}</span>
+              </a>
+            ) : <div />}
+          </nav>
+        </article>
+      </main>
+    </div>
+  </div>
+
+  <!-- Client Mermaid Rendering Engine -->
+  <script is:inline type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+
+    async function initMermaid() {
+      const elements = document.querySelectorAll('.mermaid');
+      if (!elements.length) return;
+
+      try {
+        mermaid.initialize({
+          startOnLoad: false,
+          securityLevel: 'loose',
+          theme: 'base',
+          fontFamily: 'Satoshi-Variable, "Space Mono", sans-serif',
+          fontSize: 15,
+          flowchart: {
+            curve: 'linear',
+            nodeSpacing: 60,
+            rankSpacing: 60,
+            padding: 24,
+            htmlLabels: true,
+            useMaxWidth: false,
+            defaultRenderer: 'dagre',
+          },
+          themeVariables: {
+            darkMode: false,
+            background: '#ffffff',
+            primaryColor: '#fff8e8',
+            primaryTextColor: '#15130f',
+            primaryBorderColor: '#15130f',
+            lineColor: '#15130f',
+            secondaryColor: '#ff7eb5',
+            secondaryTextColor: '#15130f',
+            secondaryBorderColor: '#15130f',
+            tertiaryColor: '#ffe44f',
+            tertiaryTextColor: '#15130f',
+            tertiaryBorderColor: '#15130f',
+            mainBkg: '#fff8e8',
+            nodeBorder: '#15130f',
+            clusterBkg: '#f8f4eb',
+            clusterBorder: '#15130f',
+            edgeLabelBackground: '#ffffff',
+            fontFamily: 'Satoshi-Variable, "Space Mono", sans-serif',
+            fontSize: '15px',
+          }
+        });
+
+        await mermaid.run({
+          nodes: elements,
+        });
+      } catch (err) {
+        console.warn('Mermaid rendering notice:', err);
+      }
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initMermaid);
+    } else {
+      initMermaid();
+    }
+
+    document.addEventListener('astro:page-load', initMermaid);
+  </script>
+</BaseLayout>

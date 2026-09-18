@@ -1,7 +1,7 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import BoudoirMoodboard from "../components/BoudoirMoodboard.jsx";
-import { getAllPhotography } from "../lib/api";
+import MoodboardGallery from "../components/MoodboardGallery.jsx";
+import { getPublishedPhotoGalleryPhotos } from "../lib/services/moodboard";
 
 const title = "Photo Gallery — Abodid Sahoo";
 const description =
@@ -124,7 +124,7 @@ Astro.response.headers.set("Cache-Control", "public, max-age=60, s-maxage=3600, 
       >
         {
           interactivePhotos.length > 0 ? (
-            <BoudoirMoodboard
+            <MoodboardGallery
               items={interactivePhotos}
               deepLinkParam="photo"
               showTitles={true}

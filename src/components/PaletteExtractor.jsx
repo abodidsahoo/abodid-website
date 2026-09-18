@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getClosestNamedColor } from '../lib/colorNaming.js';
 
 // --- EXPERT PHOTOGRAPHIC PALETTE ENGINE ---
 
@@ -271,7 +272,7 @@ export const analyzeImage = (imageUrl) => {
     });
 };
 
-const PaletteExtractor = ({ imageUrl, onExtract, inline = false, initialPalette = null }) => {
+const PaletteExtractor = ({ imageUrl, onExtract, inline = false, initialPalette = null, onSwatchClick = null }) => {
     const [composition, setComposition] = useState(initialPalette);
     const [compositionSource, setCompositionSource] = useState(
         initialPalette ? imageUrl : '',
@@ -336,18 +337,45 @@ const PaletteExtractor = ({ imageUrl, onExtract, inline = false, initialPalette 
             }}
         >
             {paletteIsPrepared ? (
-                composition.map((color, i) => (
-                    <div
-                        key={i}
-                        style={{
-                            width: '48px',
-                            height: '48px',
-                            backgroundColor: color,
-                            borderRadius: '1px',
-                            boxShadow: 'inset 0 0 4px rgba(0,0,0,0.1)',
-                        }}
-                    />
-                ))
+                composition.map((color, i) => {
+                    const colorName = getClosestNamedColor(color);
+                    return (
+                        <button
+                            key={i}
+                            type="button"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                if (onSwatchClick) onSwatchClick(color, colorName);
+                            }}
+                            title={onSwatchClick ? `Filter collection by ${colorName} (${color})` : `${colorName} (${color})`}
+                            style={{
+                                width: '48px',
+                                height: '48px',
+                                backgroundColor: color,
+                                borderRadius: '2px',
+                                border: '1px solid rgba(255,255,255,0.15)',
+                                boxShadow: 'inset 0 0 4px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.2)',
+                                cursor: onSwatchClick ? 'pointer' : 'default',
+                                padding: 0,
+                                margin: 0,
+                                outline: 'none',
+                                transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+                            }}
+                            onMouseEnter={(e) => {
+                                if (onSwatchClick) {
+                                    e.currentTarget.style.transform = 'scale(1.08) translateY(-2px)';
+                                    e.currentTarget.style.zIndex = '2';
+                                }
+                            }}
+                            onMouseLeave={(e) => {
+                                if (onSwatchClick) {
+                                    e.currentTarget.style.transform = 'none';
+                                    e.currentTarget.style.zIndex = '1';
+                                }
+                            }}
+                        />
+                    );
+                })
             ) : (
                 [0, 1, 2, 3].map((i) => (
                     <div
@@ -356,7 +384,7 @@ const PaletteExtractor = ({ imageUrl, onExtract, inline = false, initialPalette 
                             width: '48px',
                             height: '48px',
                             backgroundColor: 'rgba(128, 128, 128, 0.12)',
-                            borderRadius: '1px',
+                            borderRadius: '2px',
                         }}
                     />
                 ))
@@ -366,3 +394,4 @@ const PaletteExtractor = ({ imageUrl, onExtract, inline = false, initialPalette 
 };
 
 export default PaletteExtractor;
+

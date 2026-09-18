@@ -33,10 +33,12 @@ export default function MoodboardPolaroidViewer({
     activeId = null,
     onClose,
     onChange,
+    onSelectColorFilter = null,
     sharedAssetCacheRef = null,
     preloadRadius = 5,
     showTitles = true,
 }) {
+
     const normalizedItems = useMemo(
         () =>
             (Array.isArray(items) ? items : [])
@@ -56,6 +58,7 @@ export default function MoodboardPolaroidViewer({
                             (typeof item?.href === 'string' && item.href.trim()) ||
                             '',
                         imageUrl,
+                        palette: item?.palette || null,
                         paletteImageUrl:
                             (typeof item?.paletteImageUrl === 'string' && item.paletteImageUrl.trim()) ||
                             (imageUrl.startsWith('http') && !imageUrl.includes('/api/image-palette-proxy')
@@ -66,6 +69,7 @@ export default function MoodboardPolaroidViewer({
                 .filter(Boolean),
         [items],
     );
+
 
     const initialIndex = useMemo(() => {
         if (!activeId || !normalizedItems.length) return 0;
@@ -403,8 +407,15 @@ export default function MoodboardPolaroidViewer({
                                 imageUrl={currentItem.paletteImageUrl || imageUrl}
                                 onExtract={handleDominantColor}
                                 inline={true}
-                                initialPalette={cachedData?.palette}
+                                initialPalette={cachedData?.palette || currentItem?.palette?.paletteHex}
+                                onSwatchClick={(color, name) => {
+                                    if (onSelectColorFilter) {
+                                        onSelectColorFilter(color, name);
+                                        if (onClose) onClose();
+                                    }
+                                }}
                             />
+
                         </div>
 
                         {currentItem.projectHref && !showTitles && (

@@ -1,5 +1,8 @@
 import snapshot from "../../data/photographyR2.generated.json";
 import { listR2Folder, buildR2PublicUrl, type R2Config } from "../media/r2";
+import type { PaletteData } from "../services/moodboard";
+import fs from "node:fs";
+import path from "node:path";
 
 export interface MoodboardPhotoItem {
     id: string;
@@ -7,9 +10,24 @@ export interface MoodboardPhotoItem {
     imageUrl: string;
     thumbnailUrl: string;
     paletteImageUrl: string;
+    palette?: PaletteData | null;
     objectKey?: string;
     etag?: string;
 }
+
+function loadGeneratedPalettes(): Record<string, PaletteData> {
+    try {
+        const palettePath = path.resolve(process.cwd(), 'src/data/moodboardPalettes.generated.json');
+        if (fs.existsSync(palettePath)) {
+            const raw = fs.readFileSync(palettePath, 'utf8');
+            return JSON.parse(raw);
+        }
+    } catch {
+        // Fallback gracefully
+    }
+    return {};
+}
+
 
 export interface MoodboardLoaderOptions {
     defaultTitlePrefix?: string;
@@ -147,6 +165,8 @@ export async function getMoodboardPhotos(
         a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" }),
     );
 
+    const palettes = loadGeneratedPalettes();
+
     const photos: MoodboardPhotoItem[] = sortedStems.map((stem, index) => {
         const data = fileMap.get(stem)!;
         const gridKey = data.key800 || data.key1600 || data.keyOrig || "";
@@ -157,6 +177,7 @@ export async function getMoodboardPhotos(
 
         const title = formatPhotoTitle(stem, `${defaultPrefix} ${index + 1}`);
         const id = data.etag || `${folderSlug}-${index + 1}`;
+        const palette = palettes[thumbnailUrl] || palettes[imageUrl] || palettes[id] || null;
 
         return {
             id,
@@ -164,10 +185,12 @@ export async function getMoodboardPhotos(
             imageUrl,
             thumbnailUrl,
             paletteImageUrl: `/api/image-palette-proxy?url=${encodeURIComponent(thumbnailUrl)}`,
+            palette,
             objectKey: highResKey,
             etag: data.etag,
         };
     });
+
 
     if (options.shuffle) {
         for (let i = photos.length - 1; i > 0; i -= 1) {

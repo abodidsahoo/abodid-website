@@ -1,6 +1,6 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import BoudoirMoodboard from "../components/BoudoirMoodboard.jsx";
+import MoodboardGallery from "../components/MoodboardGallery.jsx";
 import { getMoodboardPhotos } from "../lib/photography/moodboardLoader";
 
 const title = "Behind The Scenes — Abodid Sahoo";
@@ -58,7 +58,7 @@ Astro.response.headers.set(
       >
         {
           interactivePhotos.length > 0 ? (
-            <BoudoirMoodboard
+            <MoodboardGallery
               items={interactivePhotos}
               deepLinkParam="photo"
               showTitles={false}

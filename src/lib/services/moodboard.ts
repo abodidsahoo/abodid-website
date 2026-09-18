@@ -1,4 +1,16 @@
 import { supabase } from '../supabase';
+import fs from 'node:fs';
+import path from 'node:path';
+
+export type PaletteData = {
+    dominantHex: string;
+    dominantLab: [number, number, number];
+    dominantHsl: [number, number, number];
+    paletteHex: string[];
+    paletteLab: [number, number, number][];
+    paletteHsl: [number, number, number][];
+    isDark: boolean;
+};
 
 type MoodboardRow = {
     id: string;
@@ -24,12 +36,26 @@ export type MoodboardItem = {
     imageWidth: number | null;
     imageHeight: number | null;
     aspectRatio: number | null;
+    palette?: PaletteData | null;
     createdAt: string | null;
     updatedAt: string | null;
 };
 
 const SELECT_FIELDS = 'id, image_url, storage_path, title, tags, published, image_width, image_height, aspect_ratio, created_at, updated_at';
 const MOODBOARD_PAGE_SIZE = 1000;
+
+function loadGeneratedPalettes(): Record<string, PaletteData> {
+    try {
+        const palettePath = path.resolve(process.cwd(), 'src/data/moodboardPalettes.generated.json');
+        if (fs.existsSync(palettePath)) {
+            const raw = fs.readFileSync(palettePath, 'utf8');
+            return JSON.parse(raw);
+        }
+    } catch {
+        // Fallback gracefully
+    }
+    return {};
+}
 
 function normalizeTags(raw: unknown): string[] {
     if (!Array.isArray(raw)) return [];
@@ -39,7 +65,8 @@ function normalizeTags(raw: unknown): string[] {
         .filter(Boolean);
 }
 
-function mapMoodboardRow(row: MoodboardRow): MoodboardItem {
+function mapMoodboardRow(row: MoodboardRow, palettes: Record<string, PaletteData>): MoodboardItem {
+    const palette = palettes[row.id] || palettes[row.image_url] || null;
     return {
         id: row.id,
         imageUrl: row.image_url,
@@ -50,6 +77,7 @@ function mapMoodboardRow(row: MoodboardRow): MoodboardItem {
         imageWidth: row.image_width,
         imageHeight: row.image_height,
         aspectRatio: row.aspect_ratio,
+        palette,
         createdAt: row.created_at,
         updatedAt: row.updated_at,
     };
@@ -57,6 +85,7 @@ function mapMoodboardRow(row: MoodboardRow): MoodboardItem {
 
 export async function getPublishedMoodboardItems(): Promise<MoodboardItem[]> {
     try {
+        const palettes = loadGeneratedPalettes();
         const rows: MoodboardRow[] = [];
         let from = 0;
 
@@ -78,9 +107,10 @@ export async function getPublishedMoodboardItems(): Promise<MoodboardItem[]> {
             from += MOODBOARD_PAGE_SIZE;
         }
 
-        return rows.map(mapMoodboardRow);
+        return rows.map((row) => mapMoodboardRow(row, palettes));
     } catch (error) {
         console.error('Failed to load moodboard items:', error);
         return [];
     }
 }
+
