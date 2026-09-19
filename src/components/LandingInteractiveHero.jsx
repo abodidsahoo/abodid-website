@@ -286,10 +286,11 @@ export default function LandingInteractiveHero({
 
         .landing-hero__masthead {
           display: flex;
+          flex-direction: column;
           align-items: center;
           justify-content: center;
-          gap: 1.25rem;
-          font: 750 clamp(0.72rem, 0.95vw, 0.85rem)/1.35 var(--font-mono, monospace);
+          gap: 0.35rem;
+          font: 750 clamp(0.75rem, 0.95vw, 0.88rem)/1.35 var(--font-mono, monospace);
           letter-spacing: 0.08em;
           text-transform: uppercase;
           color: var(--pop-yellow, #ffe44f);
@@ -298,15 +299,18 @@ export default function LandingInteractiveHero({
         .landing-hero__name {
           margin: 0;
           color: inherit;
+          white-space: nowrap;
         }
 
         .landing-hero__availability {
           margin: 0;
           display: inline-flex;
           align-items: center;
+          justify-content: center;
           gap: 0.4rem;
           color: var(--pop-cream, #fff8e8);
           opacity: 0.9;
+          white-space: nowrap;
         }
 
         .landing-hero__availability img {
