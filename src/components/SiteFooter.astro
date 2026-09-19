@@ -1,4 +1,6 @@
 ---
+import PwaInstallPrompt from "./PwaInstallPrompt.astro";
+
 interface Props {
   showNavigation?: boolean;
 }
@@ -89,6 +91,8 @@ const architectureHref = "/architecture";
     </div>
 
     <div class="story-footer__legal">
+      <PwaInstallPrompt />
+      <span aria-hidden="true">·</span>
       <a href={privacyHref}>Privacy Policy</a>
       <span aria-hidden="true">·</span>
       <a href={sitemapHref}>Sitemap</a>
@@ -111,7 +115,7 @@ const architectureHref = "/architecture";
     --home-next-radius-panel: clamp(18px, 2vw, 28px);
     --home-next-radius-control: 14px;
     --home-next-motion: 180ms ease;
-    padding: clamp(2.5rem, 5vw, 4.5rem) var(--home-next-gap) var(--home-next-gap);
+    padding: clamp(2.5rem, 5vw, 4.5rem) max(var(--home-next-gap), env(safe-area-inset-right, 0px)) max(var(--home-next-gap), calc(var(--home-next-gap) + env(safe-area-inset-bottom, 0px))) max(var(--home-next-gap), env(safe-area-inset-left, 0px));
     border-top: 0;
     background: var(--pop-pink);
     color: var(--pop-ink);
@@ -123,7 +127,7 @@ const architectureHref = "/architecture";
   }
 
   .story-footer.story-footer--bottom-only {
-    padding: var(--home-next-gap);
+    padding: var(--home-next-gap) max(var(--home-next-gap), env(safe-area-inset-right, 0px)) max(var(--home-next-gap), calc(var(--home-next-gap) + env(safe-area-inset-bottom, 0px))) max(var(--home-next-gap), env(safe-area-inset-left, 0px));
   }
 
   .story-footer--bottom-only .story-footer__bottom-card {

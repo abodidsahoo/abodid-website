@@ -1451,3 +1451,46 @@ body[class*="story-"],
   -webkit-text-fill-color: #ffffff !important;
 }
 
+/* ==========================================================================
+   PWA & iOS MOBILE STANDALONE SUPPORT
+   ========================================================================== */
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+/* Prevent auto-zooming on focus in iOS Safari for form fields */
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+select,
+textarea {
+  font-size: max(16px, 1rem);
+}
+
+/* Smooth touch behavior for tap interactions */
+button, a, input, select, textarea {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* iOS Standalone Mode Tweaks */
+@media (display-mode: standalone) {
+  /* Prevent accidental text selection on UI cards in app mode */
+  .site-header,
+  .story-footer__bottom-card,
+  .pwa-install-btn {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+}
+

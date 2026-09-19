@@ -115,7 +115,16 @@ const googleFontsUrl =
     </script>
     <meta charset="utf-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#040404" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Abodid" />
+    <meta name="application-name" content="Abodid Sahoo" />
     <meta name="generator" content={Astro.generator} />
     <ClientRouter fallback="swap" />
     <link
@@ -207,6 +216,15 @@ const googleFontsUrl =
     {cursorFollowerEnabled && <MagneticCursorFollower client:idle />}
 
     <script src="/scripts/journey-tracker.js" defer></script>
+    <script is:inline>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function () {
+          navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(function (err) {
+            console.warn('[PWA] ServiceWorker registration failed:', err);
+          });
+        });
+      }
+    </script>
     {!hideFooter && <SiteFooter showNavigation={showFooterNavigation} />}
   </body>
 </html>

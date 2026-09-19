@@ -6,6 +6,7 @@
     "dev": "astro dev",
     "dev:force": "astro dev --force",
     "clean": "rm -rf node_modules/.vite node_modules/.astro",
+    "generate:pwa-icons": "node scripts/generate-pwa-icons.mjs",
     "generate:measurements-pdf": "node scripts/generate-tailor-measurements-pdf.mjs",
     "generate:photography-portfolios": "node scripts/generate-photography-portfolios.mjs",
     "generate:xr-previews": "node scripts/generate-xr-showcase-metadata.mjs",
