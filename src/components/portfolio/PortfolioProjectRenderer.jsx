@@ -188,7 +188,6 @@ function ProjectCoverMedia({ project }) {
       aria-label={project.coverAlt || `${project.title} project cover`}
       autoPlay
       muted
-      defaultMuted
       loop
       playsInline
       preload="auto"
@@ -954,7 +953,7 @@ function PopEditorialProject({ p, nextProject }) {
               </div>
             </div>
           )}
-        </section>
+
           {(parsedVideo || coverMediaUrl) && (
             <figure className={`rp-case__showcase-media-full ${isPlayingVideo ? "rp-case__showcase-media-full--playing" : ""}`} aria-label="Visual showcase video">
               <div className="rp-case__media">
@@ -999,7 +998,6 @@ function PopEditorialProject({ p, nextProject }) {
                     src={coverMediaUrl}
                     autoPlay
                     muted
-                    defaultMuted
                     loop
                     playsInline
                     preload="auto"
@@ -1030,7 +1028,7 @@ function PopEditorialProject({ p, nextProject }) {
               : "rp-case__gallery--hero-2";
 
             return (
-              <div className={`rp-case__gallery ${galleryLayoutClass}`} style={{ marginTop: "3rem" }}>
+              <div className={`rp-case__gallery ${galleryLayoutClass}`}>
                 {galleryImages.map((img, idx) => (
                   <figure key={idx}>
                     <div className="rp-case__media">
@@ -1075,7 +1073,8 @@ function PopEditorialProject({ p, nextProject }) {
               <ProjectBlocks project={{ ...p, blocks: nonImageBlocks }} />
             </div>
           )}
-        </article>
+        </section>
+      </article>
 
         {/* Dedicated Next Project Button Block (Standalone Card outside the project article) */}
         {nextProject && (

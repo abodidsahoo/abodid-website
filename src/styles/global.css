@@ -1348,12 +1348,12 @@ body[class*="story-"],
   [class*="--purple"],
   [data-pop-surface="blue"],
   [data-pop-surface="purple"],
-  [data-accent="purple"],
-  [data-accent="blue"],
-  [style*="#5524c7"],
-  [style*="--pop-purple"],
-  [style*="--pe-purple"],
-  [style*="--rp-purple"]
+  [data-accent="purple"]:not(.rp-case),
+  [data-accent="blue"]:not(.rp-case),
+  [style*="#5524c7"]:not(.rp-case),
+  [style*="--pop-purple"]:not(.rp-case),
+  [style*="--pe-purple"]:not(.rp-case),
+  [style*="--rp-purple"]:not(.rp-case)
 ),
 :is(
   .rp-case__meta-pill,
@@ -1374,12 +1374,12 @@ body[class*="story-"],
   [class*="--purple"],
   [data-pop-surface="blue"],
   [data-pop-surface="purple"],
-  [data-accent="purple"],
-  [data-accent="blue"],
-  [style*="#5524c7"],
-  [style*="--pop-purple"],
-  [style*="--pe-purple"],
-  [style*="--rp-purple"]
+  [data-accent="purple"]:not(.rp-case),
+  [data-accent="blue"]:not(.rp-case),
+  [style*="#5524c7"]:not(.rp-case),
+  [style*="--pop-purple"]:not(.rp-case),
+  [style*="--pe-purple"]:not(.rp-case),
+  [style*="--rp-purple"]:not(.rp-case)
 ) :is(h1, h2, h3, h4, h5, h6, p, span, small, li, strong, em, b, a, dt, dd, svg) {
   color: #ffffff !important;
   -webkit-text-fill-color: #ffffff !important;

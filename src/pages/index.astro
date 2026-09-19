@@ -2,7 +2,6 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import InlineInquiryForm from "../components/InlineInquiryForm.astro";
 import Newsletter from "../components/Newsletter.astro";
-import HeroVaultTagsCard from "../components/HeroVaultTagsCard";
 import LandingInteractiveHero from "../components/LandingInteractiveHero.jsx";
 import {
   cloudflareExhibitionFallbacks,
@@ -21,70 +20,6 @@ const selectedWorkProjects = content.projects.slice(
   0,
   content.projects.length - (content.projects.length % 2),
 );
-const heroSlideCopy: Record<string, { category: string; outcome: string }> = {
-  "into-the-flux": {
-    category: "Exhibition experience design",
-    outcome: "10,000+ visitors",
-  },
-  punctum: {
-    category: "Sociological research",
-    outcome: "180,000+ images",
-  },
-  "gesture-control": {
-    category: "Interaction prototype",
-    outcome: "Interactive playful app",
-  },
-  "obsidian-vault": {
-    category: "Knowledge ecosystem",
-    outcome: "1,000+ interconnected notes",
-  },
-  "show-me-the-way": {
-    category: "Music video",
-    outcome: "Broadcast on VH1 & Rolling Stone",
-  },
-};
-const punctumProject = content.projects.find(
-  (project) => project.id === "punctum",
-);
-const punctumWalkthroughSlide = punctumProject
-  ? {
-      ...punctumProject,
-      id: "punctum-walkthrough",
-      category: "Human attention analysis",
-      outcome: "Interactive web application",
-      video:
-        "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/video-clips/punctum_thumbnail_video.mp4",
-      image:
-        "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/video-clips/punctum_thumbnail_video.mp4",
-      alt: "Animated walkthrough of the Punctum human-attention research prototype",
-    }
-  : undefined;
-const availableHeroSlides = [
-  ...(punctumWalkthroughSlide ? [punctumWalkthroughSlide] : []),
-  ...content.projects.map((project) => ({
-    ...project,
-    ...heroSlideCopy[project.id],
-  })),
-];
-const heroSlideOrder = [
-  "into-the-flux",
-  "punctum",
-  "punctum-walkthrough",
-  "gesture-control",
-  "obsidian-vault",
-  "show-me-the-way",
-];
-const heroSlides = heroSlideOrder
-  .map((id) => availableHeroSlides.find((slide) => slide.id === id))
-  .filter((slide): slide is (typeof availableHeroSlides)[number] =>
-    Boolean(slide),
-  );
-const heroProject = heroSlides[0] || content.projects[0];
-const letterboxedHeroSlideIds = new Set([
-  "gesture-control",
-  "punctum-walkthrough",
-]);
-
 const curatedBrandOrder = [
   { match: "apple", name: "Apple", role: "Creative Technology" },
   { match: "outernet", name: "Outernet", role: "Immersive Venue" },
@@ -182,25 +117,6 @@ const structuredData = [
   showCursorFollower={false}
   bodyClass="story-home-page"
 >
-  {
-    heroProject.video ? (
-      <link
-        slot="head"
-        rel="preload"
-        as="video"
-        href={heroProject.video}
-        type="video/mp4"
-      />
-    ) : (
-      <link
-        slot="head"
-        rel="preload"
-        as="image"
-        href={heroProject.heroImage || heroProject.image}
-      />
-    )
-  }
-
   <main class="story-home">
     <LandingInteractiveHero
       client:load
@@ -709,99 +625,6 @@ const structuredData = [
           });
       };
 
-      const initialiseHeroSlider = () => {
-        const slider = document.querySelector("[data-hero-slider]");
-        if (!slider) return;
-
-        const slides = Array.from(slider.querySelectorAll("[data-hero-slide]"));
-        if (slides.length <= 1) return;
-
-        let currentIndex = 0;
-        let timer = null;
-        const INTERVAL_MS = 3800;
-
-        const goToSlide = (nextIndex) => {
-          const targetIndex = (nextIndex + slides.length) % slides.length;
-          if (targetIndex === currentIndex) return;
-
-          slides[currentIndex]?.classList.remove("is-active");
-          slides[currentIndex]?.setAttribute("aria-hidden", "true");
-          slides[currentIndex]?.setAttribute("tabindex", "-1");
-
-          currentIndex = targetIndex;
-
-          slides[currentIndex]?.classList.add("is-active");
-          slides[currentIndex]?.setAttribute("aria-hidden", "false");
-          slides[currentIndex]?.setAttribute("tabindex", "0");
-
-          if (typeof applySurfaceContrast === "function") {
-            applySurfaceContrast();
-          }
-        };
-
-        const startTimer = () => {
-          stopTimer();
-          timer = setInterval(() => {
-            goToSlide(currentIndex + 1);
-          }, INTERVAL_MS);
-        };
-
-        const stopTimer = () => {
-          if (timer) {
-            clearInterval(timer);
-            timer = null;
-          }
-        };
-
-        // Touch swipe gestures
-        let touchStartX = 0;
-        let touchEndX = 0;
-
-        slider.addEventListener(
-          "touchstart",
-          (e) => {
-            touchStartX =
-              e.changedTouches && e.changedTouches[0]
-                ? e.changedTouches[0].screenX
-                : 0;
-          },
-          { passive: true },
-        );
-
-        slider.addEventListener(
-          "touchend",
-          (e) => {
-            touchEndX =
-              e.changedTouches && e.changedTouches[0]
-                ? e.changedTouches[0].screenX
-                : 0;
-            const diff = touchStartX - touchEndX;
-            if (Math.abs(diff) > 40) {
-              if (diff > 0) {
-                goToSlide(currentIndex + 1);
-              } else {
-                goToSlide(currentIndex - 1);
-              }
-              startTimer();
-            }
-          },
-          { passive: true },
-        );
-
-        // Keyboard navigation when focused
-        slider.addEventListener("keydown", (e) => {
-          if (e.key === "ArrowLeft") {
-            goToSlide(currentIndex - 1);
-            startTimer();
-          } else if (e.key === "ArrowRight") {
-            goToSlide(currentIndex + 1);
-            startTimer();
-          }
-        });
-
-        startTimer();
-      };
-
       const ensureVideosPlay = () => {
         document.querySelectorAll("video[autoplay]").forEach((element) => {
           if (!(element instanceof HTMLVideoElement)) return;
@@ -836,7 +659,6 @@ const structuredData = [
       const initialisePage = () => {
         applySurfaceContrast();
         initialiseTestimonials();
-        initialiseHeroSlider();
         ensureVideosPlay();
       };
 
@@ -1042,155 +864,6 @@ const structuredData = [
     transform: translateY(-2px);
   }
 
-  .story-hero__rail {
-    min-width: 0;
-    display: grid;
-    grid-template-rows: auto minmax(0, 1fr);
-    gap: var(--home-next-gap);
-  }
-  .story-hero__visual {
-    position: relative;
-    min-height: 0;
-    aspect-ratio: 3 / 2;
-    padding: var(--home-next-card-inset);
-    border: var(--home-next-border);
-    border-radius: var(--home-next-radius-panel);
-    background: var(--pop-blue);
-    overflow: hidden;
-    display: flex;
-  }
-  .story-hero__visual a {
-    color: inherit;
-    text-decoration: none;
-  }
-  .story-hero__slider-track {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    min-height: 0;
-    display: block;
-    overflow: hidden;
-    border: 1px solid var(--pop-ink);
-    border-radius: var(--home-next-radius-media);
-    background: var(--pop-pink);
-    box-shadow: none;
-  }
-  .story-hero__slide {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    display: block;
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-    transition:
-      opacity 550ms cubic-bezier(0.2, 0.8, 0.2, 1),
-      transform 550ms cubic-bezier(0.2, 0.8, 0.2, 1);
-    transform: scale(1.02);
-    overflow: hidden;
-  }
-  .story-hero__slide.is-active {
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
-    transform: scale(1);
-    z-index: 2;
-  }
-  .story-hero__slide img,
-  .story-hero__slide video {
-    width: 100%;
-    height: 100%;
-    display: block;
-    object-fit: cover;
-    transition: transform 600ms ease;
-    pointer-events: none;
-  }
-  .story-hero__slide:hover img,
-  .story-hero__slide:hover video {
-    transform: scale(1.025);
-  }
-  .story-hero__slide > span {
-    position: absolute;
-    inset: auto 0 0;
-    padding: 1rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 1rem;
-    background: var(--pop-pink);
-    border-top: 1px solid var(--pop-ink);
-    z-index: 3;
-  }
-  .story-hero__slide:nth-child(6n + 1) > span {
-    background: var(--pop-pink);
-    color: var(--pop-ink);
-  }
-  .story-hero__slide:nth-child(6n + 2) > span {
-    background: var(--pop-cream);
-    color: var(--pop-ink);
-  }
-  .story-hero__slide:nth-child(6n + 3) > span {
-    background: var(--pop-yellow);
-    color: var(--pop-ink);
-  }
-  .story-hero__slide:nth-child(6n + 4) > span {
-    background: var(--pop-lime);
-    color: var(--pop-ink);
-  }
-  .story-hero__slide:nth-child(6n + 5) > span {
-    background: var(--pop-pink);
-    color: var(--pop-ink);
-  }
-  .story-hero__slide:nth-child(6n + 6) > span {
-    background: var(--pop-yellow);
-    color: var(--pop-ink);
-  }
-  .story-hero__slide b {
-    font: 700 1rem/1.1 var(--font-display, sans-serif);
-  }
-  .story-hero__slide small {
-    font: 700 0.65rem/1.3 var(--font-mono, monospace);
-    text-align: right;
-    text-transform: uppercase;
-  }
-  .story-hero__slide--letterboxed {
-    display: grid;
-    grid-template-rows: minmax(0, 1fr) auto;
-    background: var(--pop-pink);
-  }
-  .story-hero__slide--letterboxed img,
-  .story-hero__slide--letterboxed video {
-    max-width: calc(100% - 24px);
-    max-height: calc(100% - 24px);
-    width: auto;
-    height: auto;
-    min-height: 0;
-    place-self: center;
-    object-fit: contain;
-    border-radius: clamp(10px, 1.2vw, 14px);
-    border: 1px solid var(--pop-ink);
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
-  }
-  .story-hero__slide--letterboxed > span {
-    position: static;
-  }
-  .story-hero__slide--letterboxed:hover img,
-  .story-hero__slide--letterboxed:hover video {
-    transform: scale(1.015);
-  }
-  .story-hero__future-card {
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    overflow: hidden;
-    border: var(--home-next-border);
-    border-radius: var(--home-next-radius-panel);
-    background: var(--pop-blue);
-    color: var(--pop-cream);
-  }
-
   body.story-home-page a:hover,
   body.story-home-page a:focus-visible {
     color: inherit;
@@ -1280,12 +953,6 @@ const structuredData = [
   .story-project:focus-visible .story-project__link b {
     text-decoration: none;
     transform: translate(2px, -2px);
-  }
-  .story-hero__slide:hover b,
-  .story-hero__slide:focus-visible b {
-    text-decoration: underline;
-    text-underline-offset: 3px;
-    text-decoration-thickness: 1.5px;
   }
   .story-project:hover,
   .story-project:focus-visible {
@@ -2280,16 +1947,6 @@ const structuredData = [
       grid-template-columns: 1fr;
       padding: 8px;
     }
-    .story-hero__rail {
-      grid-template-rows: auto auto;
-    }
-    .story-hero__visual {
-      min-height: 0;
-      aspect-ratio: 3 / 2;
-    }
-    .story-hero__future-card {
-      min-height: 280px;
-    }
     .story-process {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -2351,26 +2008,6 @@ const structuredData = [
     }
     .story-button {
       justify-content: space-between;
-    }
-    .story-hero__visual {
-      min-height: 0;
-      aspect-ratio: 4 / 3;
-    }
-    .story-hero__slider-track {
-      inset: auto;
-      min-height: 0;
-      box-shadow: none;
-    }
-    .story-hero__future-card {
-      min-height: 240px;
-    }
-    .story-hero__slide > span {
-      align-items: flex-start;
-      flex-direction: column;
-      gap: 0.3rem;
-    }
-    .story-hero__slide small {
-      text-align: left;
     }
     .story-section-heading {
       grid-template-columns: 1fr;

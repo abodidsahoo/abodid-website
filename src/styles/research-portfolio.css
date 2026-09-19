@@ -275,7 +275,6 @@ body.research-portfolio-page .page-content-full { padding: 0; }
 }
 
 .rp-practice--method { background: var(--rp-yellow); }
-.rp-practice--ethics { color: var(--rp-cream); background: var(--rp-blue); }
 
 .rp-practice h2 {
   max-width: 10ch;
@@ -350,9 +349,9 @@ body.research-portfolio-page .page-content-full { padding: 0; }
 .rp-case__process li::before { content: counter(process, decimal-leading-zero); font: 750 0.72rem/1.5 var(--font-mono); }
 
 .rp-case__gallery {
-  margin-top: clamp(4rem, 10vw, 9rem);
+  margin-top: var(--pe-image-gap, clamp(1rem, 1.8vw, 1.5rem));
   display: grid;
-  gap: var(--rp-gap);
+  gap: var(--pe-image-gap, clamp(1rem, 1.8vw, 1.5rem));
 }
 .rp-case__gallery figure {
   min-width: 0;
@@ -363,7 +362,7 @@ body.research-portfolio-page .page-content-full { padding: 0; }
   background: white;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 4px 0 var(--rp-ink);
+  box-shadow: 4px 4px 0 var(--rp-ink);
   box-sizing: border-box;
 }
 .rp-case__gallery .rp-case__media {
@@ -397,6 +396,7 @@ body.research-portfolio-page .page-content-full { padding: 0; }
 .rp-case__gallery--split-3 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   grid-template-rows: 1fr 1fr;
+  gap: var(--pe-image-gap, clamp(1rem, 1.8vw, 1.5rem));
 }
 .rp-case__gallery--split-3 figure:nth-child(1) {
   grid-column: 1;
@@ -424,6 +424,7 @@ body.research-portfolio-page .page-content-full { padding: 0; }
 .rp-case__gallery--split-3-right {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   grid-template-rows: 1fr 1fr;
+  gap: var(--pe-image-gap, clamp(1rem, 1.8vw, 1.5rem));
 }
 .rp-case__gallery--split-3-right figure:nth-child(1) {
   grid-column: 1;
@@ -450,6 +451,7 @@ body.research-portfolio-page .page-content-full { padding: 0; }
 /* Layout: Hero-2 (1 full-width hero on top + 2 columns below) */
 .rp-case__gallery--hero-2 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--pe-image-gap, clamp(1rem, 1.8vw, 1.5rem));
 }
 .rp-case__gallery--hero-2 figure:nth-child(1) {
   grid-column: 1 / -1;
@@ -466,6 +468,7 @@ body.research-portfolio-page .page-content-full { padding: 0; }
 /* Layout: Duo (2 equal cards side-by-side) */
 .rp-case__gallery--duo {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--pe-image-gap, clamp(1rem, 1.8vw, 1.5rem));
 }
 .rp-case__gallery--duo figure .rp-case__media {
   aspect-ratio: 16 / 10;
@@ -594,10 +597,10 @@ body.research-portfolio-page .page-content-full { padding: 0; }
   color: var(--rp-ink, #15130f) !important;
 }
 
-:is(.rp-case__meta-pill, .rp-case__trio-card--blue, .rp-case__trio-card--purple, [class*="--blue"], [class*="--purple"], [data-accent="purple"]:not(.rp-card)) {
+:is(.rp-case__meta-pill, .rp-case__trio-card--blue, .rp-case__trio-card--purple, [class*="--blue"], [class*="--purple"], [data-accent="purple"]:not(.rp-card):not(.rp-case)) {
   color: #ffffff !important;
 }
-:is(.rp-case__meta-pill, .rp-case__trio-card--blue, .rp-case__trio-card--purple, [class*="--blue"], [class*="--purple"], [data-accent="purple"]:not(.rp-card)) :is(span, strong, b, em, p, a:not(.rp-case__experiment-btn), h1, h2, h3, h4, dt, dd) {
+:is(.rp-case__meta-pill, .rp-case__trio-card--blue, .rp-case__trio-card--purple, [class*="--blue"], [class*="--purple"], [data-accent="purple"]:not(.rp-card):not(.rp-case)) :is(span, strong, b, em, p, a:not(.rp-case__experiment-btn), h1, h2, h3, h4, dt, dd) {
   color: #ffffff !important;
 }
 

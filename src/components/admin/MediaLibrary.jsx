@@ -24,9 +24,23 @@ import {
 import AdminPageHeader from './AdminPageHeader';
 
 const MAX_IMAGE_SIZE_BYTES = 20 * 1024 * 1024;
-const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-const isOriginalCollectionFolder = (folder) => folder.startsWith('originals/') || folder.startsWith('photos/originals/');
-const canCreateOriginalFolder = (folder) => folder === 'originals' || folder.startsWith('originals/') || folder === 'photos/originals' || folder.startsWith('photos/originals/');
+const MAX_MEDIA_SIZE_BYTES = 100 * 1024 * 1024;
+const ACCEPTED_TYPES = [
+    'image/jpeg',
+    'image/png',
+    'image/webp',
+    'image/gif',
+    'image/avif',
+    'image/svg+xml',
+    'video/mp4',
+    'video/webm',
+    'video/quicktime',
+    'audio/mpeg',
+    'audio/wav',
+    'audio/mp3',
+    'application/pdf',
+    'text/plain',
+];
 
 const formatBytes = (value) => {
     const bytes = Number(value || 0);
@@ -54,11 +68,16 @@ const fileKind = (file) => {
     if (file.mimeType?.startsWith('image/')) return 'Image';
     if (file.mimeType?.startsWith('video/')) return 'Video';
     if (file.mimeType?.startsWith('audio/')) return 'Audio';
+    if (file.mimeType === 'application/pdf') return 'PDF';
     const extension = file.name?.split('.').pop();
     return extension ? extension.toUpperCase() : 'File';
 };
 
 const readImageDimensions = (file) => new Promise((resolve) => {
+    if (!file.type?.startsWith('image/')) {
+        resolve({ width: null, height: null });
+        return;
+    }
     const objectUrl = URL.createObjectURL(file);
     const image = new Image();
     const finish = (dimensions) => {
@@ -92,11 +111,8 @@ const makeBreadcrumbs = (folderPath) => {
 export default function MediaLibrary({ accessToken }) {
     const [files, setFiles] = useState([]);
     const [folders, setFolders] = useState([]);
-    const [rootFolders, setRootFolders] = useState([
-        { name: 'originals', path: 'photos/originals' },
-        { name: 'variants', path: 'photos/variants' },
-    ]);
-    const [currentFolder, setCurrentFolder] = useState('photos/originals');
+    const [rootFolders, setRootFolders] = useState([]);
+    const [currentFolder, setCurrentFolder] = useState('');
     const [selectedKey, setSelectedKey] = useState('');
     const [query, setQuery] = useState('');
     const [searchFiles, setSearchFiles] = useState([]);
@@ -128,14 +144,17 @@ export default function MediaLibrary({ accessToken }) {
         window.localStorage.setItem('admin-media-view', mode);
     };
 
-    const authorizedFetch = useCallback((url, options = {}) => fetch(url, {
-        ...options,
-        headers: {
-            ...(options.body ? { 'Content-Type': 'application/json' } : {}),
-            ...(options.headers || {}),
-            Authorization: `Bearer ${accessToken}`,
-        },
-    }), [accessToken]);
+    const authorizedFetch = useCallback((url, options = {}) => {
+        const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
+        return fetch(url, {
+            ...options,
+            headers: {
+                ...(options.body && !isFormData ? { 'Content-Type': 'application/json' } : {}),
+                ...(options.headers || {}),
+                Authorization: `Bearer ${accessToken}`,
+            },
+        });
+    }, [accessToken]);
 
     const loadFolder = useCallback(async (folderPath, { silent = false } = {}) => {
         if (!accessToken) return;
@@ -251,20 +270,19 @@ export default function MediaLibrary({ accessToken }) {
     const uploadFiles = async (fileList) => {
         const selected = Array.from(fileList || []);
         if (!selected.length || uploading || !catalogueReady) return;
-        if (!isOriginalCollectionFolder(currentFolder)) {
-            setError('Open or create a collection folder inside Originals before uploading.');
-            setDragging(false);
-            return;
-        }
 
-        const invalidType = selected.find((file) => !ACCEPTED_TYPES.includes(file.type));
-        const oversized = selected.find((file) => file.size > MAX_IMAGE_SIZE_BYTES);
+        const invalidType = selected.find((file) => file.type && !ACCEPTED_TYPES.includes(file.type));
+        const oversized = selected.find((file) => {
+            const isLarge = file.type?.startsWith('video/') || file.type === 'application/pdf';
+            return file.size > (isLarge ? MAX_MEDIA_SIZE_BYTES : MAX_IMAGE_SIZE_BYTES);
+        });
         if (invalidType) {
-            setError(`${invalidType.name} is not a supported image. Use JPEG, PNG, WebP or GIF.`);
+            setError(`${invalidType.name} has an unsupported file format.`);
             return;
         }
         if (oversized) {
-            setError(`${oversized.name} is larger than 20 MB.`);
+            const isLarge = oversized.type?.startsWith('video/') || oversized.type === 'application/pdf';
+            setError(`${oversized.name} exceeds the maximum size limit (${isLarge ? '100 MB' : '20 MB'}).`);
             return;
         }
 
@@ -277,42 +295,22 @@ export default function MediaLibrary({ accessToken }) {
             for (let index = 0; index < selected.length; index += 1) {
                 const file = selected[index];
                 setUploadProgress({ current: index + 1, total: selected.length, filename: file.name });
-                const dimensionsPromise = readImageDimensions(file);
-                const presignResponse = await authorizedFetch('/api/admin/media/presign', {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        filename: file.name,
-                        contentType: file.type,
-                        size: file.size,
-                        folder: currentFolder,
-                    }),
-                });
-                const signed = await readJsonResponse(presignResponse);
+                const dimensions = await readImageDimensions(file);
 
-                const uploadResponse = await fetch(signed.uploadUrl, {
-                    method: 'PUT',
-                    headers: signed.requiredHeaders,
-                    body: file,
-                });
-                if (!uploadResponse.ok) {
-                    throw new Error(`R2 rejected ${file.name} with status ${uploadResponse.status}.`);
-                }
+                const formData = new FormData();
+                formData.append('file', file);
+                if (currentFolder) formData.append('folder', currentFolder);
+                if (dimensions.width) formData.append('width', String(dimensions.width));
+                if (dimensions.height) formData.append('height', String(dimensions.height));
 
-                const dimensions = await dimensionsPromise;
-                const completeResponse = await authorizedFetch('/api/admin/media/complete', {
+                const uploadResponse = await authorizedFetch('/api/admin/media/upload', {
                     method: 'POST',
-                    body: JSON.stringify({
-                        objectKey: signed.objectKey,
-                        originalFilename: file.name,
-                        expectedSize: file.size,
-                        width: dimensions.width,
-                        height: dimensions.height,
-                    }),
+                    body: formData,
                 });
-                await readJsonResponse(completeResponse);
+                await readJsonResponse(uploadResponse);
             }
 
-            setNotice(`${selected.length} ${selected.length === 1 ? 'image' : 'images'} uploaded. WebP variants are being prepared in the background.`);
+            setNotice(`${selected.length} ${selected.length === 1 ? 'file' : 'files'} uploaded successfully.`);
             await loadFolder(currentFolder, { silent: true });
         } catch (uploadError) {
             setError(uploadError.message);
@@ -354,16 +352,16 @@ export default function MediaLibrary({ accessToken }) {
         if (!selectedFile) return;
         try {
             await navigator.clipboard.writeText(selectedFile.publicUrl);
-            setNotice('Public image link copied.');
+            setNotice('Public link copied.');
         } catch {
-            setError('Could not copy the link. Open the image and copy it from the browser.');
+            setError('Could not copy the link. Open the file and copy it from the browser.');
         }
     };
 
     const breadcrumbs = useMemo(() => makeBreadcrumbs(currentFolder), [currentFolder]);
     const topLevelFolder = currentFolder.split('/')[0];
-    const canUpload = isOriginalCollectionFolder(currentFolder);
-    const canCreateFolder = canCreateOriginalFolder(currentFolder);
+    const canUpload = !uploading && catalogueReady;
+    const canCreateFolder = !uploading;
 
     return (
         <section className="media-library" aria-labelledby="media-library-title">
@@ -372,7 +370,7 @@ export default function MediaLibrary({ accessToken }) {
                     className="media-library-page-header"
                     headingId="media-library-title"
                     title="Media Library"
-                    description="Browse, organize and upload website images from one place."
+                    description="Browse, organize and upload website assets and images from one place."
                 />
                 <div className="header-actions">
                     <span className={`connection-pill ${catalogueReady ? 'is-ready' : ''}`}>
@@ -438,7 +436,7 @@ export default function MediaLibrary({ accessToken }) {
                     <div className="storage-note">
                         <span>R2 bucket</span>
                         <strong>assets</strong>
-                        <small>Images are served from assets.abodid.com</small>
+                        <small>Files are served from assets.abodid.com</small>
                     </div>
                 </aside>
 
@@ -466,7 +464,7 @@ export default function MediaLibrary({ accessToken }) {
                             <ArrowLeft size={17} />
                         </button>
                         <nav className="breadcrumbs" aria-label="Current folder">
-                            <button type="button" onClick={() => navigateTo('')}>photos</button>
+                            <button type="button" onClick={() => navigateTo('')}>assets</button>
                             {breadcrumbs.map((crumb) => (
                                 <React.Fragment key={crumb.path}>
                                     <ChevronRight size={14} />
@@ -486,7 +484,7 @@ export default function MediaLibrary({ accessToken }) {
                                 type="search"
                                 value={query}
                                 onChange={(event) => setQuery(event.target.value)}
-                                placeholder={`Search ${currentFolder || 'all media'}`}
+                                placeholder={`Search ${currentFolder || 'all assets'}`}
                             />
                             {query && <button type="button" aria-label="Clear search" onClick={() => setQuery('')}><X size={14} /></button>}
                         </label>
@@ -503,7 +501,7 @@ export default function MediaLibrary({ accessToken }) {
                                 <button type="button" className={viewMode === 'grid' ? 'is-active' : ''} aria-label="Grid view" onClick={() => changeView('grid')}><Grid2X2 size={16} /></button>
                                 <button type="button" className={viewMode === 'list' ? 'is-active' : ''} aria-label="List view" onClick={() => changeView('list')}><LayoutList size={17} /></button>
                             </div>
-                            <button type="button" className="secondary-button" onClick={() => setNewFolderOpen(true)} disabled={uploading || !canCreateFolder} title={canCreateFolder ? 'Create a folder here' : 'Folders can only be created inside Originals'}>
+                            <button type="button" className="secondary-button" onClick={() => setNewFolderOpen(true)} disabled={uploading || !canCreateFolder} title="Create a folder here">
                                 <Plus size={15} /> New folder
                             </button>
                             <input
@@ -515,7 +513,7 @@ export default function MediaLibrary({ accessToken }) {
                                 onChange={(event) => uploadFiles(event.target.files)}
                                 tabIndex={-1}
                             />
-                            <button type="button" className="primary-button" onClick={() => fileInputRef.current?.click()} disabled={uploading || !catalogueReady || !canUpload} title={canUpload ? 'Upload originals here' : 'Choose a collection inside Originals'}>
+                            <button type="button" className="primary-button" onClick={() => fileInputRef.current?.click()} disabled={uploading || !catalogueReady || !canUpload} title="Upload files here">
                                 {uploading ? <LoaderCircle size={16} className="is-spinning" /> : <UploadCloud size={16} />}
                                 {uploading ? `${uploadProgress?.current || 0}/${uploadProgress?.total || 0}` : 'Upload'}
                             </button>
@@ -525,7 +523,7 @@ export default function MediaLibrary({ accessToken }) {
                     {uploading && (
                         <div className="upload-strip">
                             <LoaderCircle size={15} className="is-spinning" />
-                            <span>Uploading {uploadProgress?.filename || 'image'} to {currentFolder || 'photos'}…</span>
+                            <span>Uploading {uploadProgress?.filename || 'file'} to {currentFolder || 'assets'}…</span>
                             <strong>{uploadProgress?.current}/{uploadProgress?.total}</strong>
                         </div>
                     )}
@@ -535,8 +533,8 @@ export default function MediaLibrary({ accessToken }) {
                             {searching ? <LoaderCircle size={15} className="is-spinning" /> : <Search size={15} />}
                             <span>
                                 {searching
-                                    ? `Searching ${currentFolder || 'all media'} and every subfolder…`
-                                    : `${visibleFiles.length} matching ${visibleFiles.length === 1 ? 'file' : 'files'} across ${currentFolder || 'all media'} and its subfolders`}
+                                    ? `Searching ${currentFolder || 'all assets'} and every subfolder…`
+                                    : `${visibleFiles.length} matching ${visibleFiles.length === 1 ? 'file' : 'files'} across ${currentFolder || 'all assets'} and its subfolders`}
                             </span>
                         </div>
                     )}
@@ -592,7 +590,7 @@ export default function MediaLibrary({ accessToken }) {
                                         <span className="item-copy" title={file.name}>
                                             <span className="item-name">{file.name}</span>
                                             {isSearching && (
-                                                <small>{file.objectKey.split('/').slice(0, -1).join('/') || 'photos'}</small>
+                                                <small>{file.objectKey.split('/').slice(0, -1).join('/') || 'assets'}</small>
                                             )}
                                         </span>
                                         {viewMode === 'list' && <><span>{formatBytes(file.fileSize)}</span><span>{fileKind(file)}</span><span>{formatDate(file.createdAt)}</span></>}
@@ -603,7 +601,7 @@ export default function MediaLibrary({ accessToken }) {
                             <div className="browser-state is-empty">
                                 <ImagePlus size={27} />
                                 <strong>{query ? 'Nothing matches your search' : 'This folder is empty'}</strong>
-                                <span>{query ? 'No matching filename was found in this folder or any of its subfolders.' : 'Drop images here or use the Upload button.'}</span>
+                                <span>{query ? 'No matching filename was found in this folder or any of its subfolders.' : 'Drop files here or use the Upload button.'}</span>
                             </div>
                         )}
                     </div>
@@ -611,8 +609,8 @@ export default function MediaLibrary({ accessToken }) {
                     {dragging && (
                         <div className="drop-overlay">
                             <UploadCloud size={34} />
-                            <strong>Drop images into {currentFolder || 'photos'}</strong>
-                            <span>JPEG, PNG, WebP or GIF · up to 20 MB each</span>
+                            <strong>Drop files into {currentFolder || 'assets'}</strong>
+                            <span>Images, videos, audio or documents</span>
                         </div>
                     )}
                 </main>
@@ -670,7 +668,7 @@ export default function MediaLibrary({ accessToken }) {
                         <div className="dialog-icon"><Folder size={22} /></div>
                         <div>
                             <h3>New folder</h3>
-                            <p>Create it inside <strong>{currentFolder || 'photos'}</strong>.</p>
+                            <p>Create it inside <strong>{currentFolder || 'assets'}</strong>.</p>
                         </div>
                         <label htmlFor="new-media-folder">Folder name</label>
                         <input

@@ -216,7 +216,7 @@ const structuredData = [
                     fetchpriority={index === 0 ? "high" : "auto"}
                     decoding={index === 0 ? "sync" : "async"}
                   />
-                ) : project.video ? (
+                ) : project.video && /\.(mp4|webm|mov|ogg)(?:[?#]|$)/i.test(project.video) ? (
                   <video
                     src={project.video}
                     poster={project.image}

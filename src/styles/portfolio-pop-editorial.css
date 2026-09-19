@@ -12,6 +12,7 @@
   --pe-seam: 8px;
   --pe-radius: clamp(18px, 2vw, 28px);
   --pe-pad: clamp(1.35rem, 4vw, 4.5rem);
+  --pe-image-gap: clamp(1rem, 1.8vw, 1.5rem);
 }
 
 html:has(body.work-project-page),
@@ -89,11 +90,11 @@ body.work-project-page .page-content-full { padding: 0; }
   .pill-blue,
   .badge-blue,
   .btn-blue,
-  [data-accent="blue"],
+  [data-accent="blue"]:not(.rp-case),
   .pill-purple,
   .badge-purple,
   .btn-purple,
-  [data-accent="purple"],
+  [data-accent="purple"]:not(.rp-case),
   .rp-case[data-accent="purple"] .rp-case__hero
 ),
 :is(
@@ -101,11 +102,11 @@ body.work-project-page .page-content-full { padding: 0; }
   .pill-blue,
   .badge-blue,
   .btn-blue,
-  [data-accent="blue"],
+  [data-accent="blue"]:not(.rp-case),
   .pill-purple,
   .badge-purple,
   .btn-purple,
-  [data-accent="purple"],
+  [data-accent="purple"]:not(.rp-case),
   .rp-case[data-accent="purple"] .rp-case__hero
 ) :is(span, strong, b, em, p, a, h1, h2, h3, h4, dt, dd, svg) {
   color: #ffffff !important;
@@ -409,11 +410,11 @@ body.work-project-page .page-content-full { padding: 0; }
 /* Full-Width Featured Walkthrough Media */
 .rp-case__showcase-media-full {
   margin: 0;
-  padding: clamp(10px, 1.4vw, 16px);
+  padding: 12px;
   border: 1.5px solid var(--pe-ink);
-  border-radius: 22px;
+  border-radius: 20px;
   background: white;
-  box-shadow: 0 5px 0 var(--pe-ink);
+  box-shadow: 4px 4px 0 var(--pe-ink);
   box-sizing: border-box;
 }
 
@@ -513,18 +514,18 @@ body.work-project-page .page-content-full { padding: 0; }
 .portfolio-media-figure figcaption,
 .pf-video-figure figcaption,
 .portfolio-lightbox-cover figcaption {
-  margin-top: clamp(10px, 1.2vw, 14px) !important;
-  padding: clamp(0.75rem, 1.4vw, 1.05rem) clamp(1rem, 2vw, 1.5rem) !important;
+  margin-top: clamp(6px, 0.9vw, 10px) !important;
+  padding: clamp(0.45rem, 0.8vw, 0.65rem) clamp(0.75rem, 1.2vw, 1rem) !important;
   background: var(--pe-cream) !important;
   border: 1.5px solid var(--pe-ink) !important;
-  border-radius: 14px !important;
+  border-radius: 12px !important;
   display: flex !important;
   align-items: center !important;
-  gap: clamp(0.75rem, 1.5vw, 1.2rem) !important;
+  gap: clamp(0.5rem, 1vw, 0.85rem) !important;
   box-sizing: border-box !important;
-  font: 600 clamp(1.04rem, 1.45vw, 1.22rem)/1.45 var(--font-display, "Space Grotesk", sans-serif) !important;
+  font: 600 clamp(0.72rem, 0.88vw, 0.82rem)/1.35 var(--font-display, "Space Grotesk", sans-serif) !important;
   text-transform: uppercase !important;
-  letter-spacing: 0.02em !important;
+  letter-spacing: 0.03em !important;
   color: var(--pe-ink, #15130f) !important;
   -webkit-text-fill-color: var(--pe-ink, #15130f) !important;
   opacity: 1 !important;
@@ -532,10 +533,10 @@ body.work-project-page .page-content-full { padding: 0; }
 }
 
 .rp-case__caption-badge {
-  font: 750 0.76rem/1 var(--font-mono, monospace) !important;
+  font: 750 0.62rem/1 var(--font-mono, monospace) !important;
   text-transform: uppercase !important;
   letter-spacing: 0.08em !important;
-  padding: 0.4rem 0.8rem !important;
+  padding: 0.28rem 0.55rem !important;
   background: var(--pe-yellow) !important;
   color: var(--pe-ink, #15130f) !important;
   -webkit-text-fill-color: var(--pe-ink, #15130f) !important;
@@ -552,24 +553,36 @@ body.work-project-page .page-content-full { padding: 0; }
 
 .rp-case__caption-text,
 .rp-case__showcase-caption > span:not(.rp-case__caption-badge),
-.rp-case__gallery figcaption :is(p, span, strong, em, b),
-.rp-case__gallery-caption :is(p, span, strong, em, b),
-.portfolio-media-figure figcaption :is(p, span, strong, em, b),
-.pf-video-figure figcaption :is(p, span, strong, em, b):not(.rp-case__caption-badge),
-.portfolio-lightbox-cover figcaption :is(p, span, strong, em, b) {
+.rp-case__gallery figcaption :is(p, span:not(.rp-case__caption-badge), strong, em, b),
+.rp-case__gallery-caption :is(p, span:not(.rp-case__caption-badge), strong, em, b),
+.portfolio-media-figure figcaption :is(p, span:not(.rp-case__caption-badge), strong, em, b),
+.pf-video-figure figcaption :is(p, span:not(.rp-case__caption-badge), strong, em, b),
+.portfolio-lightbox-cover figcaption :is(p, span:not(.rp-case__caption-badge), strong, em, b) {
   margin: 0 !important;
-  font: 600 clamp(1.04rem, 1.45vw, 1.22rem)/1.45 var(--font-display, "Space Grotesk", sans-serif) !important;
+  font: 600 clamp(0.72rem, 0.88vw, 0.82rem)/1.35 var(--font-display, "Space Grotesk", sans-serif) !important;
   text-transform: uppercase !important;
-  letter-spacing: 0.02em !important;
+  letter-spacing: 0.03em !important;
+  color: var(--pe-ink, #15130f) !important;
+  -webkit-text-fill-color: var(--pe-ink, #15130f) !important;
+}
+
+:is(
+  .rp-case__showcase-caption,
+  .rp-case__gallery figcaption,
+  .rp-case__gallery-caption,
+  .portfolio-media-figure figcaption,
+  .pf-video-figure figcaption,
+  .portfolio-lightbox-cover figcaption
+) :is(span:not(.rp-case__caption-badge), p, strong, em, b, a, small, code) {
   color: var(--pe-ink, #15130f) !important;
   -webkit-text-fill-color: var(--pe-ink, #15130f) !important;
 }
 
 /* Gallery layout */
 .rp-case__gallery {
-  margin-top: clamp(3.5rem, 8vw, 7.5rem);
+  margin-top: var(--pe-image-gap);
   display: grid;
-  gap: var(--pe-seam);
+  gap: var(--pe-image-gap);
 }
 
 .rp-case__gallery figure,
@@ -581,7 +594,7 @@ body.work-project-page .page-content-full { padding: 0; }
   padding: 12px;
   border: 1.5px solid var(--pe-ink);
   border-radius: 20px;
-  background: var(--pe-paper);
+  background: #ffffff;
   box-shadow: 4px 4px 0 var(--pe-ink);
   display: flex;
   flex-direction: column;
@@ -620,6 +633,7 @@ body.work-project-page .page-content-full { padding: 0; }
 
 .rp-case__gallery--duo {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--pe-image-gap);
 }
 
 .rp-case__gallery--duo figure {
@@ -632,6 +646,7 @@ body.work-project-page .page-content-full { padding: 0; }
 
 .rp-case__gallery--hero-2 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--pe-image-gap);
 }
 
 .rp-case__gallery--hero-2 figure:first-child {
@@ -641,6 +656,18 @@ body.work-project-page .page-content-full { padding: 0; }
 .rp-case__gallery--hero-2 figure:first-child .rp-case__media {
   aspect-ratio: 21 / 10;
   max-height: 58vh;
+}
+
+.pe-shell .portfolio-image-grid,
+.rp-case .portfolio-image-grid {
+  display: grid;
+  gap: var(--pe-image-gap);
+  margin-top: var(--pe-image-gap);
+}
+
+.pe-shell .portfolio-image-grid.columns-2,
+.rp-case .portfolio-image-grid.columns-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 @media (max-width: 768px) {

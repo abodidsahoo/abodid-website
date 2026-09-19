@@ -18,7 +18,7 @@
       ],
       "imageCount": 22,
       "downloadName": "abodid-art-portfolio.pdf",
-      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/collections/abodid-art-portfolio.pdf?download=abodid-art-portfolio.pdf"
+      "downloadUrl": "https://assets.abodid.com/documents/curated-photography-archives/abodid-art-portfolio.pdf"
     },
     {
       "id": "commercial",
@@ -31,7 +31,7 @@
       ],
       "imageCount": 25,
       "downloadName": "abodid-commercial-portfolio.pdf",
-      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/collections/abodid-commercial-portfolio.pdf?download=abodid-commercial-portfolio.pdf"
+      "downloadUrl": "https://assets.abodid.com/documents/curated-photography-archives/abodid-commercial-portfolio.pdf"
     },
     {
       "id": "complete",
@@ -56,7 +56,7 @@
       "coverImage": "https://assets.abodid.com/photos/variants/cries-of-an-unmarried-widow/1600/1769334000552_lxy8xf4yz-dd03e060a3.webp",
       "imageCount": 21,
       "downloadName": "abodid-cries-of-an-unmarried-widow.pdf",
-      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/stories/abodid-cries-of-an-unmarried-widow.pdf?download=abodid-cries-of-an-unmarried-widow.pdf",
+      "downloadUrl": "https://assets.abodid.com/documents/photography-series-pdfs/abodid-cries-of-an-unmarried-widow.pdf",
       "labels": [
         "Art",
         "Fashion",
@@ -73,7 +73,7 @@
       "coverImage": "https://assets.abodid.com/photos/variants/into-the-flux/1600/1768216682836-into-the-flux-iba-london88-4599574102.webp",
       "imageCount": 21,
       "downloadName": "abodid-into-the-flux.pdf",
-      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/stories/abodid-into-the-flux.pdf?download=abodid-into-the-flux.pdf",
+      "downloadUrl": "https://assets.abodid.com/documents/photography-series-pdfs/abodid-into-the-flux.pdf",
       "labels": [
         "Art",
         "Commercial",
@@ -92,7 +92,7 @@
       "coverImage": "https://assets.abodid.com/photos/variants/british-film-institute-london/1600/1769335964323_qjq8j2g9q-da588df8ed.webp",
       "imageCount": 24,
       "downloadName": "abodid-british-film-institute-london.pdf",
-      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/stories/abodid-british-film-institute-london.pdf?download=abodid-british-film-institute-london.pdf",
+      "downloadUrl": "https://assets.abodid.com/documents/photography-series-pdfs/abodid-british-film-institute-london.pdf",
       "labels": [
         "Commercial",
         "Experimental",
@@ -110,7 +110,7 @@
       "coverImage": "https://assets.abodid.com/photos/variants/outernet-london-2025/1600/1769335283887_0d9he7ekd-d7703e0dc7.webp",
       "imageCount": 27,
       "downloadName": "abodid-outernet-london-2025.pdf",
-      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/stories/abodid-outernet-london-2025.pdf?download=abodid-outernet-london-2025.pdf",
+      "downloadUrl": "https://assets.abodid.com/documents/photography-series-pdfs/abodid-outernet-london-2025.pdf",
       "labels": [
         "Art",
         "Commercial",
@@ -128,7 +128,7 @@
       "coverImage": "https://assets.abodid.com/photos/variants/uncanny-comforts-with-emma/1600/1769334469551_eirffhdfg-245c5c3765.webp",
       "imageCount": 19,
       "downloadName": "abodid-uncanny-comforts-with-emma.pdf",
-      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/stories/abodid-uncanny-comforts-with-emma.pdf?download=abodid-uncanny-comforts-with-emma.pdf",
+      "downloadUrl": "https://assets.abodid.com/documents/photography-series-pdfs/abodid-uncanny-comforts-with-emma.pdf",
       "labels": [
         "Fashion",
         "Experimental"
@@ -143,7 +143,7 @@
       "coverImage": "https://assets.abodid.com/photos/variants/rca-gradshow-in-london/1600/rca-grad-show-truman-brewery-abodid-118-54f011e9c1.webp",
       "imageCount": 19,
       "downloadName": "abodid-rca-gradshow-in-london.pdf",
-      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/stories/abodid-rca-gradshow-in-london.pdf?download=abodid-rca-gradshow-in-london.pdf",
+      "downloadUrl": "https://assets.abodid.com/documents/photography-series-pdfs/abodid-rca-gradshow-in-london.pdf",
       "labels": [
         "Art",
         "Exhibition",
@@ -162,7 +162,7 @@
       "coverImage": "https://assets.abodid.com/photos/variants/england-women-football-team-wins/1600/1769337200583_hlj8143r8-92e89c0b2f.webp",
       "imageCount": 18,
       "downloadName": "abodid-england-women-football-team-wins.pdf",
-      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/stories/abodid-england-women-football-team-wins.pdf?download=abodid-england-women-football-team-wins.pdf",
+      "downloadUrl": "https://assets.abodid.com/documents/photography-series-pdfs/abodid-england-women-football-team-wins.pdf",
       "labels": [
         "Commercial",
         "Travel",
@@ -180,7 +180,7 @@
       "coverImage": "https://assets.abodid.com/photos/variants/rca-gradshow-in-white-city-london/1600/1769336344719_zx30xag3d-f0bbd7d312.webp",
       "imageCount": 15,
       "downloadName": "abodid-rca-gradshow-in-white-city-london.pdf",
-      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/stories/abodid-rca-gradshow-in-white-city-london.pdf?download=abodid-rca-gradshow-in-white-city-london.pdf",
+      "downloadUrl": "https://assets.abodid.com/documents/photography-series-pdfs/abodid-rca-gradshow-in-white-city-london.pdf",
       "labels": [
         "Travel",
         "Gradshow",
@@ -197,7 +197,7 @@
       "coverImage": "https://assets.abodid.com/photos/variants/navratti-sharma-in-london/1600/1769338431988_1k8a0ahpa-d38466f012.webp",
       "imageCount": 15,
       "downloadName": "abodid-navratti-sharma-in-london.pdf",
-      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/stories/abodid-navratti-sharma-in-london.pdf?download=abodid-navratti-sharma-in-london.pdf",
+      "downloadUrl": "https://assets.abodid.com/documents/photography-series-pdfs/abodid-navratti-sharma-in-london.pdf",
       "labels": [
         "Art",
         "Experimental",
@@ -213,7 +213,7 @@
       "coverImage": "https://assets.abodid.com/photos/variants/digital-direction-rca-gradshow-in-white-city/1600/1769336672550_zvjw1wyos-b8505fed13.webp",
       "imageCount": 17,
       "downloadName": "abodid-digital-direction-rca-gradshow-in-white-city.pdf",
-      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/stories/abodid-digital-direction-rca-gradshow-in-white-city.pdf?download=abodid-digital-direction-rca-gradshow-in-white-city.pdf",
+      "downloadUrl": "https://assets.abodid.com/documents/photography-series-pdfs/abodid-digital-direction-rca-gradshow-in-white-city.pdf",
       "labels": [
         "Art",
         "Commercial",
@@ -232,7 +232,7 @@
       "coverImage": "https://assets.abodid.com/photos/variants/yu-ting-blinded-in-london-overground/1600/1769342406110_82o2dyerw-bca80d7776.webp",
       "imageCount": 7,
       "downloadName": "abodid-yu-ting-blinded-in-london-overground.pdf",
-      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/stories/abodid-yu-ting-blinded-in-london-overground.pdf?download=abodid-yu-ting-blinded-in-london-overground.pdf",
+      "downloadUrl": "https://assets.abodid.com/documents/photography-series-pdfs/abodid-yu-ting-blinded-in-london-overground.pdf",
       "labels": [
         "Street",
         "London",
@@ -248,7 +248,7 @@
       "coverImage": "https://assets.abodid.com/photos/variants/portobello-market-london/1600/1769343390576_surk7j2vw-ab3524bfbd.webp",
       "imageCount": 15,
       "downloadName": "abodid-portobello-market-london.pdf",
-      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/stories/abodid-portobello-market-london.pdf?download=abodid-portobello-market-london.pdf",
+      "downloadUrl": "https://assets.abodid.com/documents/photography-series-pdfs/abodid-portobello-market-london.pdf",
       "labels": [
         "Art",
         "Street",
@@ -266,7 +266,7 @@
       "coverImage": "https://assets.abodid.com/photos/variants/frameless-london-rca-exhibition/1600/1769337032383_i3aprdkwj-4018abf7d2.webp",
       "imageCount": 17,
       "downloadName": "abodid-frameless-london-rca-exhibition.pdf",
-      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/stories/abodid-frameless-london-rca-exhibition.pdf?download=abodid-frameless-london-rca-exhibition.pdf",
+      "downloadUrl": "https://assets.abodid.com/documents/photography-series-pdfs/abodid-frameless-london-rca-exhibition.pdf",
       "labels": [
         "Exhibition",
         "Exhibitions",
@@ -282,7 +282,7 @@
       "coverImage": "https://assets.abodid.com/photos/variants/navratti-in-london-underground/1600/1769338616509_8tonfg5kc-077863e0ae.webp",
       "imageCount": 17,
       "downloadName": "abodid-navratti-in-london-underground.pdf",
-      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/stories/abodid-navratti-in-london-underground.pdf?download=abodid-navratti-in-london-underground.pdf",
+      "downloadUrl": "https://assets.abodid.com/documents/photography-series-pdfs/abodid-navratti-in-london-underground.pdf",
       "labels": [
         "Art",
         "Commercial",
@@ -299,7 +299,7 @@
       "coverImage": "https://assets.abodid.com/photos/variants/prakruti-mishra-in-london/1600/1769334962085_2u7h3o4ya-c22146bd70.webp",
       "imageCount": 12,
       "downloadName": "abodid-prakruti-mishra-in-london.pdf",
-      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/stories/abodid-prakruti-mishra-in-london.pdf?download=abodid-prakruti-mishra-in-london.pdf",
+      "downloadUrl": "https://assets.abodid.com/documents/photography-series-pdfs/abodid-prakruti-mishra-in-london.pdf",
       "labels": [
         "Art",
         "Commercial",
@@ -316,7 +316,7 @@
       "coverImage": "https://assets.abodid.com/photos/variants/suheda-in-primrose-hill-london/1600/1769340645812_55ffuwlkt-a1bcf3ff49.webp",
       "imageCount": 25,
       "downloadName": "abodid-suheda-in-primrose-hill-london.pdf",
-      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/stories/abodid-suheda-in-primrose-hill-london.pdf?download=abodid-suheda-in-primrose-hill-london.pdf",
+      "downloadUrl": "https://assets.abodid.com/documents/photography-series-pdfs/abodid-suheda-in-primrose-hill-london.pdf",
       "labels": [
         "Art",
         "Commercial",
@@ -333,7 +333,7 @@
       "coverImage": "https://assets.abodid.com/photos/variants/rca-battersea-exhibiton-arts-and-humanities/1600/1769337848429_hfxl06q5o-cc53a332df.webp",
       "imageCount": 22,
       "downloadName": "abodid-rca-battersea-exhibiton-arts-and-humanities.pdf",
-      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/stories/abodid-rca-battersea-exhibiton-arts-and-humanities.pdf?download=abodid-rca-battersea-exhibiton-arts-and-humanities.pdf",
+      "downloadUrl": "https://assets.abodid.com/documents/photography-series-pdfs/abodid-rca-battersea-exhibiton-arts-and-humanities.pdf",
       "labels": [
         "Art",
         "Exhibition",
@@ -350,7 +350,7 @@
       "coverImage": "https://assets.abodid.com/photos/variants/outernet-london-2024/1600/1769340174794_75msx21ap-24dad3c094.webp",
       "imageCount": 13,
       "downloadName": "abodid-outernet-london-2024.pdf",
-      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/stories/abodid-outernet-london-2024.pdf?download=abodid-outernet-london-2024.pdf",
+      "downloadUrl": "https://assets.abodid.com/documents/photography-series-pdfs/abodid-outernet-london-2024.pdf",
       "labels": [
         "Art",
         "Commercial",
@@ -368,7 +368,7 @@
       "coverImage": "https://assets.abodid.com/photos/variants/portobello-art-fair-london/1600/1769340045141_gx2ddwpnx-5281fbf15c.webp",
       "imageCount": 15,
       "downloadName": "abodid-portobello-art-fair-london.pdf",
-      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/stories/abodid-portobello-art-fair-london.pdf?download=abodid-portobello-art-fair-london.pdf",
+      "downloadUrl": "https://assets.abodid.com/documents/photography-series-pdfs/abodid-portobello-art-fair-london.pdf",
       "labels": [
         "Art",
         "Commercial",
@@ -386,7 +386,7 @@
       "coverImage": "https://assets.abodid.com/photos/variants/outernet-london-rca-2023/1600/1769342668087_aox524mid-1a9a172c14.webp",
       "imageCount": 12,
       "downloadName": "abodid-outernet-london-rca-2023.pdf",
-      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/stories/abodid-outernet-london-rca-2023.pdf?download=abodid-outernet-london-rca-2023.pdf",
+      "downloadUrl": "https://assets.abodid.com/documents/photography-series-pdfs/abodid-outernet-london-rca-2023.pdf",
       "labels": [
         "Commercial",
         "Exhibition",
@@ -403,7 +403,7 @@
       "coverImage": "https://assets.abodid.com/photos/variants/breathe-variations-london-exhibition/1600/1769343069955_agd0nns2m-6f526c2964.webp",
       "imageCount": 11,
       "downloadName": "abodid-breathe-variations-london-exhibition.pdf",
-      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/stories/abodid-breathe-variations-london-exhibition.pdf?download=abodid-breathe-variations-london-exhibition.pdf",
+      "downloadUrl": "https://assets.abodid.com/documents/photography-series-pdfs/abodid-breathe-variations-london-exhibition.pdf",
       "labels": [
         "Exhibition",
         "London",
@@ -419,7 +419,7 @@
       "coverImage": "https://assets.abodid.com/photos/variants/bus-ride-in-london/1600/1769341505016_naqb3bdx3-6f8cd2a933.webp",
       "imageCount": 16,
       "downloadName": "abodid-bus-ride-in-london.pdf",
-      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/stories/abodid-bus-ride-in-london.pdf?download=abodid-bus-ride-in-london.pdf",
+      "downloadUrl": "https://assets.abodid.com/documents/photography-series-pdfs/abodid-bus-ride-in-london.pdf",
       "labels": [
         "Art",
         "Street",
@@ -436,7 +436,7 @@
       "coverImage": "https://assets.abodid.com/photos/variants/mary-and-her-daughter-in-london-exhibitions/1600/1769341682288_yze3hx1pk-8bdd238205.webp",
       "imageCount": 14,
       "downloadName": "abodid-mary-and-her-daughter-in-london-exhibitions.pdf",
-      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/stories/abodid-mary-and-her-daughter-in-london-exhibitions.pdf?download=abodid-mary-and-her-daughter-in-london-exhibitions.pdf",
+      "downloadUrl": "https://assets.abodid.com/documents/photography-series-pdfs/abodid-mary-and-her-daughter-in-london-exhibitions.pdf",
       "labels": [
         "Art",
         "Commercial",
@@ -455,7 +455,7 @@
       "coverImage": "https://assets.abodid.com/photos/variants/vaneesha-birthday-in-kent/1600/1769341088685_pv1i08koe-22f69dcaa9.webp",
       "imageCount": 12,
       "downloadName": "abodid-vaneesha-birthday-in-kent.pdf",
-      "downloadUrl": "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/photography-portfolios/stories/abodid-vaneesha-birthday-in-kent.pdf?download=abodid-vaneesha-birthday-in-kent.pdf",
+      "downloadUrl": "https://assets.abodid.com/documents/photography-series-pdfs/abodid-vaneesha-birthday-in-kent.pdf",
       "labels": [
         "Art",
         "Commercial",

@@ -54,6 +54,7 @@ function OdometerNumber({ value }) {
  *   interactive?: boolean,
  *   ariaLabel?: string,
  *   embedded?: boolean,
+ *   standalone?: boolean,
  * }} props
  */
 export default function HeroVaultTagsCard({
@@ -70,6 +71,7 @@ export default function HeroVaultTagsCard({
   interactive = variant !== "papers",
   ariaLabel = "Obsidian Vault Interactive Explorer",
   embedded = false,
+  standalone = false,
 }) {
   const hasCustomTagPool = Array.isArray(tagPool) && tagPool.length > 0;
   const initialTagPool = hasCustomTagPool ? tagPool : fallbackVaultTags;
@@ -231,20 +233,22 @@ export default function HeroVaultTagsCard({
       }, FADE_DURATION + 50);
     };
 
-    container.addEventListener('mousemove', handleMouseMove, { passive: true });
+    container.addEventListener('pointermove', handleMouseMove, { passive: true });
+    container.addEventListener('pointerdown', handleMouseMove, { passive: true });
     return () => {
-      container.removeEventListener('mousemove', handleMouseMove);
+      container.removeEventListener('pointermove', handleMouseMove);
+      container.removeEventListener('pointerdown', handleMouseMove);
     };
   }, [interactive]);
 
-  const isCardLink = variant !== "papers" && !embedded;
+  const isCardLink = variant !== "papers" && !embedded && !standalone;
   const CardTag = isCardLink ? "a" : "div";
 
   return (
     <CardTag
       ref={containerRef}
       {...(isCardLink ? { href, "aria-label": ariaLabel } : { role: "region", "aria-label": ariaLabel })}
-      className={`hero-vault-tags-card hero-vault-tags-card--${variant} ${interactive ? 'hero-vault-tags-card--interactive' : 'hero-vault-tags-card--non-interactive'} story-hero__future-card`}
+      className={`hero-vault-tags-card hero-vault-tags-card--${variant} ${interactive ? 'hero-vault-tags-card--interactive' : 'hero-vault-tags-card--non-interactive'} ${standalone ? 'hero-vault-tags-card--standalone' : ''} story-hero__future-card`}
     >
       {interactive ? (
         <div className="hero-vault-tags-card__backdrop" aria-hidden="true">
@@ -461,6 +465,52 @@ export default function HeroVaultTagsCard({
         .hero-vault-tags-card--non-interactive,
         .hero-vault-tags-card--papers {
           cursor: default;
+        }
+
+        .hero-vault-tags-card--standalone {
+          width: 100%;
+          min-height: 100svh;
+          border: 0;
+          border-radius: 0;
+          touch-action: none;
+        }
+
+        .hero-vault-tags-card--standalone .hero-vault-tags-card__heading {
+          max-width: 11ch;
+          font-size: clamp(3rem, 8vw, 8.75rem);
+          line-height: 0.88;
+        }
+
+        .hero-vault-tags-card--standalone .hero-vault-tags-card__helper {
+          max-width: 38ch;
+          font-size: clamp(1rem, 1.4vw, 1.35rem);
+        }
+
+        .hero-vault-tags-card--standalone .hero-vault-tags-card__content {
+          pointer-events: none;
+        }
+
+        .hero-vault-tags-card--standalone .hero-vault-tags-card__cta {
+          width: fit-content;
+          min-height: 44px;
+          margin-top: 0.4rem;
+          padding: 0 0.9rem;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.3rem;
+          border: 1px solid var(--pop-ink, #17150f);
+          border-radius: 999px;
+          background: var(--pop-cream, #fdfbf7);
+          color: var(--pop-ink, #17150f) !important;
+          opacity: 1;
+          pointer-events: auto;
+          text-decoration: none;
+        }
+
+        .hero-vault-tags-card--standalone .hero-vault-tags-card__cta:hover,
+        .hero-vault-tags-card--standalone .hero-vault-tags-card__cta:focus-visible {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 0 var(--pop-ink, #17150f);
         }
 
         .hero-vault-tags-card--papers .hero-vault-tags-card__heading {

@@ -7,7 +7,6 @@ import {
 } from "../../../../lib/admin/serverAuth";
 import {
     createR2Folder,
-    isR2OriginalFolder,
     normalizeR2FolderPath,
 } from "../../../../lib/media/r2";
 
@@ -25,9 +24,6 @@ export const POST: APIRoute = async ({ request }) => {
         }
 
         const requestedPath = parentPath ? `${parentPath}/${rawName}` : rawName;
-        if (!isR2OriginalFolder(requestedPath)) {
-            return jsonResponse({ error: "Create collection folders inside Originals." }, 400);
-        }
         const folder = await createR2Folder(requestedPath);
         const name = folder.folderPath.split("/").pop() || folder.folderPath;
 

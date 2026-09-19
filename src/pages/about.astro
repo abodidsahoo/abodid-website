@@ -1,7 +1,11 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { CV_DOWNLOAD_URL, CV_FILE_NAME } from "../lib/cv";
-import { personJsonLd, profilePageJsonLd, breadcrumbJsonLd } from "../lib/seoData";
+import {
+  personJsonLd,
+  profilePageJsonLd,
+  breadcrumbJsonLd,
+} from "../lib/seoData";
 
 const pageTitle = "About Abodid Sahoo — Creative Director, Artist & Researcher";
 const pageDescription =
@@ -22,14 +26,16 @@ const offerings = [
     title: "Spatial & Exhibition Design",
     description:
       "Transforming raw architectural spaces and archives into participatory public exhibitions and sensory environments.",
-    highlight: "Into the Flux (10k+ visitors in 48h) · RCA Outernet · Frameless London",
+    highlight:
+      "Into the Flux (10k+ visitors in 48h) · RCA Outernet · Frameless London",
   },
   {
     number: "02",
     title: "Creative Direction & Film",
     description:
       "Human-centred documentary cinema, brand films, and visual storytelling grounded in deep contextual research.",
-    highlight: "VH1 & Rolling Stone Broadcast · Wieden+Kennedy · Hermosa Studio",
+    highlight:
+      "VH1 & Rolling Stone Broadcast · Wieden+Kennedy · Hermosa Studio",
   },
   {
     number: "03",
@@ -47,42 +53,120 @@ const offerings = [
   },
 ];
 
-const credentials = [
+const education = [
   {
     institution: "Royal College of Art (RCA), London",
-    highlight: "MA Digital Direction · Apple Scholar",
-    detail: "Awarded a full tuition scholarship by Apple to pursue an MA. Thesis, photobook, and exhibition showcased at the RCA Graduate Show 2023 in London.",
+    highlight: "MA Digital Direction · London",
+    detail:
+      "Awarded a full tuition scholarship by Apple to pursue an MA. Thesis, photobook, and exhibition showcased at the RCA Graduate Show 2023 in London.",
+    accentClass: "about-credential-card--1",
   },
   {
     institution: "National Institute of Design (NID), Ahmedabad",
     highlight: "M.Des · Film & Video Communication",
-    detail: "Crafted short films and audio stories on anxiety, healing, and mental health. Left NID after a year and moved to London for a fully funded master's at the Royal College of Art.",
+    detail:
+      "Crafted short films and audio stories on anxiety, healing, and mental health. Left NID after a year and moved to London for a fully funded master's at the Royal College of Art.",
+    accentClass: "about-credential-card--2",
   },
   {
     institution: "National Institute of Technology (NIT), Rourkela",
     highlight: "B.Tech + M.Tech · Mechanical Engineering",
-    detail: "Specialised in Mechatronics and Automation, aerial drone photography, and photogrammetry. President of the filmmaking club and Festival Director for Roots creative conference.",
+    detail:
+      "Specialised in Mechatronics and Automation, aerial drone photography, and photogrammetry. President of the filmmaking club and Festival Director for Roots creative conference.",
+    accentClass: "about-credential-card--4",
+  },
+];
+
+const recognitions = [
+  {
+    institution: "The Apple Scholarship",
+    highlight: "Full Tuition Scholarship",
+    detail:
+      "Awarded a competitive, fully funded scholarship by Apple Inc. to pursue postgraduate studies in Digital Direction at the Royal College of Art, London.",
+    accentClass: "about-credential-card--4",
   },
   {
     institution: "University of Cambridge (CDH)",
     highlight: "Full Bursary Award",
-    detail: "Cambridge Digital Humanities — Cultural Heritage Data School research in computational archives and cultural datasets.",
+    detail:
+      "Cambridge Digital Humanities — Cultural Heritage Data School research in computational archives, spatial media, and cultural datasets.",
+    accentClass: "about-credential-card--5",
   },
   {
     institution: "British Sociological Association (BSA)",
-    highlight: "Session Chair · Poster Presentation · Research Roundtable",
-    detail: "Chaired sessions attended by more than 200 participants, and presented a poster and research project in a roundtable to 50+ international delegates.",
+    highlight: "Session Chair · Research Roundtable",
+    detail:
+      "Chaired sessions attended by 200+ delegates; presented research posters and roundtable sessions on digital culture and media sociology.",
+    accentClass: "about-credential-card--6",
   },
   {
-    institution: "Selected Clients & Venues",
-    highlight: "Creative Direction · Spatial Design",
-    detail: "British Film Institute (BFI), Outernet London, Frameless, Wieden+Kennedy, Pursuit of Portraits, Odisha Tourism.",
+    institution: "Broadcast & Press Mentions",
+    highlight: "VH1 · Rolling Stone · Homegrown",
+    detail:
+      "Music video broadcast on VH1. Work and creative practice featured across Homegrown, The Indian Express, Rolling Stone India, and RCA Official.",
+    accentClass: "about-credential-card--1",
+  },
+];
+
+const selectedClients = [
+  {
+    name: "Outernet London & Frameless",
+    role: "Immersive Venues · London",
+    detail:
+      "Immersive media, digital direction, and spatial installations for high-throughput London venues reaching global public audiences.",
+    accentClass: "about-credential-card--2",
   },
   {
-    institution: "Broadcast & Press Recognition",
-    highlight: "VH1 · Rolling Stone India",
-    detail: "Music video broadcast on VH1. Featured across Homegrown, The Indian Express, Rolling Stone India, and RCA Official.",
+    name: "British Film Institute (BFI)",
+    role: "Cultural Institution · London",
+    detail:
+      "Campaign photography, visual direction, and spatial media documentation for the BFI London Film Festival Expanded programme.",
+    accentClass: "about-credential-card--3",
   },
+  {
+    name: "Wieden+Kennedy",
+    role: "Creative Direction & Film",
+    detail:
+      "Visual direction, brand storytelling, and campaign productions in collaboration with global agency teams.",
+    accentClass: "about-credential-card--4",
+  },
+  {
+    name: "Pursuit of Portraits (NYC)",
+    role: "Visual Storytelling · New York",
+    detail:
+      "Commissioned editorial video projects, brand films, and visual narrative direction across New York and London.",
+    accentClass: "about-credential-card--5",
+  },
+  {
+    name: "Odisha Tourism & Heritage Archives",
+    role: "Public Heritage & Documentary",
+    detail:
+      "Documentary storytelling and cultural photography capturing architectural heritage, artisans, and monumental landmarks.",
+    accentClass: "about-credential-card--6",
+  },
+  {
+    name: "Hermosa Studio & Furnmill",
+    role: "Brand Films & Direction",
+    detail:
+      "Commercial brand films, design documentary storytelling, and architectural spatial showcases.",
+    accentClass: "about-credential-card--1",
+  },
+];
+
+const additionalClients = [
+  "Uniqlo",
+  "Budweiser",
+  "Unilever",
+  "Grand Hyatt",
+  "Pursuit of Portraits",
+  "Rolling Stone India",
+  "VH1",
+  "British Film Institute",
+  "Outernet London",
+  "Frameless London",
+  "Odisha Tourism",
+  "Hermosa Studio",
+  "Furnmill",
 ];
 ---
 
@@ -109,14 +193,23 @@ const credentials = [
 
         <h1 id="about-name" class="about-hero-title">Abodid Sahoo</h1>
         <hr class="about-hero-divider" aria-hidden="true" />
-        <p class="about-hero-subtitle">Creative Director, Artist and Researcher.</p>
+        <p class="about-hero-subtitle">
+          Creative Director, Artist and Researcher.
+        </p>
 
         <p class="about-hero-statement">
-          I turn research, archives, and emerging technology into participatory experiences that help people connect.
+          I turn research, archives, and emerging technology into participatory
+          experiences that help people connect.
         </p>
 
         <div class="about-actions-row">
-          <a class="about-btn about-btn--primary" href={CV_DOWNLOAD_URL} download={CV_FILE_NAME} target="_blank" rel="noopener noreferrer">
+          <a
+            class="about-btn about-btn--primary"
+            href={CV_DOWNLOAD_URL}
+            download={CV_FILE_NAME}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             <span>Download 2026 CV (PDF)</span>
             <b aria-hidden="true">↓</b>
           </a>
@@ -136,16 +229,19 @@ const credentials = [
     </section>
 
     <!-- 2. Manifesto Core Banner -->
-    <section class="about-manifesto-banner" aria-labelledby="manifesto-core-heading">
+    <section
+      class="about-manifesto-banner"
+      aria-labelledby="manifesto-core-heading"
+    >
       <div class="about-manifesto-banner__inner">
-        <p class="about-badge">
-          The Ethos · Manifesto Core
-        </p>
+        <p class="about-badge">The Ethos · Manifesto Core</p>
         <h2 id="manifesto-core-heading" class="about-manifesto-quote">
           Why Before What.
         </h2>
         <p class="about-manifesto-text">
-          With a medium-agnostic approach, I start with the reason for why the project needs to exist and then figure out the medium which works best for the most effective creative expression.
+          With a medium-agnostic approach, I start with the reason for why the
+          project needs to exist and then figure out the medium which works best
+          for the most effective creative expression.
         </p>
         <div class="about-actions-row about-manifesto-actions">
           <a class="about-btn about-btn--primary" href="/manifesto">
@@ -157,72 +253,158 @@ const credentials = [
     </section>
 
     <!-- 3. Core Offerings Grid -->
-    <section class="about-panel about-panel--cream" aria-labelledby="offerings-heading">
+    <section
+      class="about-panel about-panel--cream"
+      aria-labelledby="offerings-heading"
+    >
       <header class="about-panel__header">
         <div>
-          <p class="about-badge">
-            Disciplines & Capabilities
-          </p>
-          <h2 id="offerings-heading" class="about-panel__title">What I build & direct</h2>
+          <p class="about-badge">Disciplines & Capabilities</p>
+          <h2 id="offerings-heading" class="about-panel__title">
+            What I build & direct
+          </h2>
         </div>
-        <a class="about-panel__link" href="/services"><span class="link-label">View services detail</span> <span class="link-destination-arrow" aria-hidden="true">↗</span></a>
+        <a class="about-panel__link" href="/services"
+          ><span class="link-label">View services detail</span>
+          <span class="link-destination-arrow" aria-hidden="true">↗</span></a
+        >
       </header>
 
       <div class="about-offerings-grid">
-        {offerings.map((item, idx) => (
-          <article class={`about-offering-card about-offering-card--${idx + 1}`}>
-            <div class="about-offering-card__top">
-              <span class="about-offering-card__num">{item.number}</span>
-              <h3>{item.title}</h3>
-            </div>
-            <p class="about-offering-card__desc">{item.description}</p>
-            <div class="about-offering-card__footer">
-              <span class="about-offering-card__tag">Reference / Proof:</span>
-              <p>{item.highlight}</p>
-            </div>
-          </article>
-        ))}
+        {
+          offerings.map((item, idx) => (
+            <article
+              class={`about-offering-card about-offering-card--${idx + 1}`}
+            >
+              <div class="about-offering-card__top">
+                <span class="about-offering-card__num">{item.number}</span>
+                <h3>{item.title}</h3>
+              </div>
+              <p class="about-offering-card__desc">{item.description}</p>
+              <div class="about-offering-card__footer">
+                <span class="about-offering-card__tag">Reference / Proof:</span>
+                <p>{item.highlight}</p>
+              </div>
+            </article>
+          ))
+        }
       </div>
     </section>
 
-    <!-- 4. Credentials & Recognition -->
-    <section class="about-credentials" aria-labelledby="credentials-heading">
+    <!-- 4. Education & Academic Background -->
+    <section class="about-credentials" aria-labelledby="education-heading">
       <header class="about-credentials__header">
         <p class="about-badge" style="color: var(--pop-cream);">
-          Education & Academic Recognition
+          Academic Background · Alma Maters
         </p>
-        <h2 id="credentials-heading" class="about-credentials__title">Credentials & Honors</h2>
+        <h2 id="education-heading" class="about-credentials__title">
+          Education
+        </h2>
       </header>
 
       <div class="about-credentials-grid">
-        {credentials.map((cred, idx) => (
-          <article class={`about-credential-card about-credential-card--${(idx % 6) + 1}`}>
-            <div class="about-credential-card__top">
-              <span class="about-credential-card__tag">{cred.highlight}</span>
-              <h3 class="about-credential-card__title">{cred.institution}</h3>
-            </div>
-            <p class="about-credential-card__detail">{cred.detail}</p>
-          </article>
-        ))}
+        {
+          education.map((cred) => (
+            <article class={`about-credential-card ${cred.accentClass}`}>
+              <div class="about-credential-card__top">
+                <span class="about-credential-card__tag">{cred.highlight}</span>
+                <h3 class="about-credential-card__title">{cred.institution}</h3>
+              </div>
+              <p class="about-credential-card__detail">{cred.detail}</p>
+            </article>
+          ))
+        }
       </div>
     </section>
 
-    <!-- 5. Collaborate / Action Panel -->
+    <!-- 5. Recognition & Awards -->
+    <section class="about-credentials" aria-labelledby="recognition-heading">
+      <header class="about-credentials__header">
+        <p class="about-badge" style="color: var(--pop-cream);">
+          Honors, Fellowships & Press
+        </p>
+        <h2 id="recognition-heading" class="about-credentials__title">
+          Recognition & Awards
+        </h2>
+      </header>
+
+      <div class="about-credentials-grid">
+        {
+          recognitions.map((item) => (
+            <article class={`about-credential-card ${item.accentClass}`}>
+              <div class="about-credential-card__top">
+                <span class="about-credential-card__tag">{item.highlight}</span>
+                <h3 class="about-credential-card__title">{item.institution}</h3>
+              </div>
+              <p class="about-credential-card__detail">{item.detail}</p>
+            </article>
+          ))
+        }
+      </div>
+    </section>
+
+    <!-- 6. Selected Clients & Venues -->
+    <section class="about-credentials" aria-labelledby="clients-heading">
+      <header class="about-credentials__header">
+        <p class="about-badge" style="color: var(--pop-cream);">
+          Commissions, Venues & Brands
+        </p>
+        <h2 id="clients-heading" class="about-credentials__title">
+          Selected Clients
+        </h2>
+      </header>
+
+      <div class="about-credentials-grid">
+        {
+          selectedClients.map((client) => (
+            <article class={`about-credential-card ${client.accentClass}`}>
+              <div class="about-credential-card__top">
+                <span class="about-credential-card__tag">{client.role}</span>
+                <h3 class="about-credential-card__title">{client.name}</h3>
+              </div>
+              <p class="about-credential-card__detail">{client.detail}</p>
+            </article>
+          ))
+        }
+      </div>
+
+      <div class="about-client-pills-bar">
+        <span class="about-client-pills-label"
+          >Additional Collaborations & Features</span
+        >
+        <div class="about-client-pills-list">
+          {
+            additionalClients.map((brand) => (
+              <span class="about-client-pill">{brand}</span>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. Collaborate / Action Panel -->
     <section class="about-cta-panel" aria-labelledby="cta-heading">
       <div class="about-cta-panel__copy">
-        <p class="about-badge">
-          Reviewer & Collaborator Direct Line
-        </p>
-        <h2 id="cta-heading" class="about-cta-panel__title">Let’s build something unforgettable.</h2>
+        <p class="about-badge">Reviewer & Collaborator Direct Line</p>
+        <h2 id="cta-heading" class="about-cta-panel__title">
+          Let’s build something unforgettable.
+        </h2>
         <p class="about-cta-panel__text">
-          Open for creative direction, exhibition and spatial design, AI research prototypes, and brand films worldwide.
+          Open for creative direction, exhibition and spatial design, AI
+          research prototypes, and brand films worldwide.
         </p>
         <div class="about-actions-row">
           <a class="about-btn about-btn--primary" href="/#enquiry">
             <span>Start a project</span>
             <b class="link-destination-arrow" aria-hidden="true">↗</b>
           </a>
-          <a class="about-btn about-btn--secondary" href={CV_DOWNLOAD_URL} download={CV_FILE_NAME} target="_blank" rel="noopener noreferrer">
+          <a
+            class="about-btn about-btn--secondary"
+            href={CV_DOWNLOAD_URL}
+            download={CV_FILE_NAME}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             <span>Download Complete CV (2026)</span>
             <b aria-hidden="true">↓</b>
           </a>
@@ -231,595 +413,649 @@ const credentials = [
     </section>
   </main>
 
-
   <style is:global>
-  :root {
-    --pop-blue: #2444ca;
-    --pop-pink: #ff7eb5;
-    --pop-yellow: #ffe44f;
-    --pop-lime: #caff48;
-    --pop-orange: #ff875c;
-    --pop-purple: #5524c7;
-    --pop-cyan: #62e6ff;
-    --pop-cream: #fff8e8;
-    --pop-ink: #15130f;
-    --pop-border: rgba(21, 19, 15, 0.78);
-    --story-ink: var(--pop-ink);
-    --story-cream: var(--pop-cream);
-    --story-gutter: clamp(1rem, 3vw, 3.5rem);
-    --home-next-gap: 8px;
-    --home-next-border: 1px solid var(--pop-border);
-    --home-next-radius-panel: clamp(18px, 2vw, 28px);
-    --home-next-radius-card: clamp(14px, 1.5vw, 22px);
-    --home-next-radius-control: 14px;
-    --home-next-radius-media: clamp(10px, 1.2vw, 16px);
-    --home-next-card-inset: 10px;
-    --home-next-motion: 180ms ease;
-  }
-
-  html:has(body.story-about-page) {
-    background: var(--pop-blue) !important;
-  }
-
-  body.story-about-page {
-    margin: 0;
-    padding: 0 !important;
-    background: var(--pop-blue) !important;
-    color: var(--pop-ink);
-  }
-
-  body.story-about-page main.page-content-full {
-    overflow: visible;
-    padding: 0 !important;
-    max-width: 100% !important;
-  }
-
-  body.story-about-page :is(h1, h2, h3, h4, p, figure, dl, dd, ul, ol) {
-    margin-top: 0;
-  }
-
-  body.story-about-page :is(a, button, summary) {
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  /* Main Shell Container */
-  .story-about-main {
-    padding: var(--home-next-gap);
-    display: flex;
-    flex-direction: column;
-    gap: var(--home-next-gap);
-    background: var(--pop-blue);
-  }
-
-  /* Badges & Dots */
-  .about-badge {
-    margin: 0 0 1rem;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.55rem;
-    color: inherit;
-    font: 750 clamp(0.68rem, 0.9vw, 0.78rem)/1.35 var(--font-mono, monospace);
-    letter-spacing: 0.11em;
-    text-transform: uppercase;
-  }
-
-  /* 1. Hero Grid */
-  .about-hero-grid {
-    display: grid;
-    grid-template-columns: minmax(320px, 0.95fr) minmax(0, 1.45fr);
-    gap: var(--home-next-gap);
-    align-items: stretch;
-  }
-
-  .about-hero-card {
-    grid-column: 2;
-    grid-row: 1;
-    padding: clamp(1.75rem, 3.5vw, 4rem);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    border: var(--home-next-border);
-    border-radius: var(--home-next-radius-panel);
-    background: var(--pop-pink);
-    color: var(--pop-ink);
-  }
-
-  .about-masthead {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    margin-bottom: clamp(1rem, 1.8vw, 1.6rem);
-    padding-bottom: clamp(0.75rem, 1.2vw, 1rem);
-    border-bottom: 0;
-  }
-
-  .about-pill-tag {
-    margin: 0;
-    padding: 0.5rem 0.72rem;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    border: 1px solid var(--pop-ink);
-    border-radius: var(--home-next-radius-control);
-    background: var(--pop-yellow);
-    color: var(--pop-ink);
-    font: 750 0.62rem/1.2 var(--font-mono, monospace);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-
-  .about-pill-tag img {
-    width: 15px;
-    height: 15px;
-    object-fit: contain;
-  }
-
-  .about-hero-title {
-    margin: 0;
-    color: var(--pop-ink) !important;
-    font: 720 clamp(2.8rem, 5vw, 5.4rem)/0.86 var(--font-display, sans-serif) !important;
-    letter-spacing: -0.07em !important;
-  }
-
-  .about-hero-divider {
-    width: 100%;
-    height: 0;
-    margin: clamp(0.75rem, 1.4vw, 1.2rem) 0 clamp(0.7rem, 1.2vw, 1rem);
-    border: 0;
-    border-top: 1px solid var(--pop-ink);
-    opacity: 0.72;
-  }
-
-  .about-hero-subtitle {
-    margin: 0 0 clamp(1rem, 1.6vw, 1.5rem);
-    color: var(--pop-ink) !important;
-    font: 500 clamp(1.15rem, 1.8vw, 1.65rem)/1.15 var(--font-display, sans-serif) !important;
-    letter-spacing: -0.025em !important;
-  }
-
-  .about-hero-statement {
-    margin: 0 0 clamp(1rem, 1.6vw, 1.4rem);
-    color: var(--pop-ink) !important;
-    font: 320 clamp(1.75rem, 2.7vw, 2.85rem)/1.05 var(--font-display, sans-serif) !important;
-    letter-spacing: -0.035em !important;
-    text-wrap: balance;
-  }
-
-  .about-hero-lede {
-    max-width: 720px;
-    margin: 0 0 clamp(1.5rem, 2.5vw, 2.2rem);
-    color: rgba(21, 19, 15, 0.85) !important;
-    font: 450 clamp(0.95rem, 1.2vw, 1.08rem)/1.55 var(--font-body, sans-serif) !important;
-  }
-
-  .about-actions-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-  }
-
-  .about-btn {
-    min-height: 48px;
-    padding: 0 1.15rem;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.65rem;
-    border: 1px solid var(--pop-ink);
-    border-radius: var(--home-next-radius-control);
-    color: var(--pop-ink) !important;
-    font: 750 0.72rem/1 var(--font-mono, monospace) !important;
-    letter-spacing: 0.08em;
-    text-decoration: none !important;
-    text-transform: uppercase;
-    transition: transform var(--home-next-motion), box-shadow var(--home-next-motion);
-  }
-
-  .about-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 0 var(--pop-ink);
-  }
-
-  .about-btn--primary {
-    background: var(--pop-cream);
-  }
-
-  .about-btn--secondary {
-    background: var(--pop-yellow);
-  }
-
-  .about-btn--ghost {
-    background: transparent;
-    border: 1px solid currentColor;
-  }
-
-  /* Portrait Card */
-  .about-portrait-wrapper {
-    grid-column: 1;
-    grid-row: 1;
-    display: flex;
-  }
-
-  .about-portrait-card {
-    width: 100%;
-    margin: 0;
-    padding: var(--home-next-card-inset);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    overflow: hidden;
-    border: var(--home-next-border);
-    border-radius: var(--home-next-radius-panel);
-    background: var(--pop-cream);
-    color: var(--pop-ink);
-  }
-
-  .about-portrait-card img {
-    width: 100%;
-    height: 100%;
-    min-height: 380px;
-    max-height: 560px;
-    display: block;
-    object-fit: cover;
-    border: 1px solid var(--pop-ink);
-    border-radius: var(--home-next-radius-media);
-  }
-
-  .about-portrait-card figcaption {
-    padding: 1rem 0.5rem 0.4rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    color: var(--pop-ink);
-  }
-
-  .about-portrait-card figcaption strong {
-    font: 700 1.05rem/1 var(--font-display, sans-serif);
-    letter-spacing: -0.02em;
-    color: inherit;
-  }
-
-  .about-portrait-card figcaption small {
-    font: 700 0.65rem/1.2 var(--font-mono, monospace);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: inherit;
-    opacity: 0.85;
-  }
-
-  /* 2. Manifesto Banner */
-  .about-manifesto-banner {
-    border: var(--home-next-border);
-    border-radius: var(--home-next-radius-panel);
-    background: var(--pop-yellow);
-    color: var(--pop-ink);
-  }
-
-  .about-manifesto-banner__inner {
-    padding: clamp(2rem, 4vw, 4.5rem);
-    max-width: 1100px;
-  }
-
-  .about-manifesto-quote {
-    margin: 0 0 clamp(1rem, 2vw, 1.5rem);
-    color: var(--pop-ink) !important;
-    font: 640 clamp(2rem, 4.5vw, 3.8rem)/0.96 var(--font-display, sans-serif) !important;
-    letter-spacing: -0.045em !important;
-    text-wrap: balance;
-  }
-
-  .about-manifesto-text {
-    margin: 0;
-    color: rgba(21, 19, 15, 0.9) !important;
-    font: 450 clamp(1rem, 1.4vw, 1.22rem)/1.6 var(--font-body, sans-serif) !important;
-    max-width: 960px;
-  }
-
-  .about-manifesto-actions {
-    margin-top: clamp(1.5rem, 2.5vw, 2rem);
-  }
-
-  /* 3. Panel Sections */
-  .about-panel {
-    padding: clamp(1.75rem, 3.5vw, 4rem);
-    border: var(--home-next-border);
-    border-radius: var(--home-next-radius-panel);
-    color: var(--pop-ink);
-  }
-
-  .about-panel--cream {
-    background: var(--pop-cream);
-  }
-
-  .about-panel__header {
-    margin-bottom: clamp(2rem, 4vw, 3.5rem);
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 1rem 2rem;
-    align-items: end;
-  }
-
-  .about-panel__title {
-    margin: 0;
-    color: var(--pop-ink) !important;
-    font: 620 clamp(2.2rem, 4.8vw, 4.5rem)/0.92 var(--font-display, sans-serif) !important;
-    letter-spacing: -0.055em !important;
-  }
-
-  .about-panel__link {
-    padding-bottom: 0.3rem;
-    color: var(--pop-ink) !important;
-    font: 750 0.72rem/1 var(--font-mono, monospace) !important;
-    letter-spacing: 0.08em;
-    text-decoration: none !important;
-    text-transform: uppercase;
-  }
-
-  .about-panel__link > .link-label {
-    text-decoration: underline;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 0.3rem;
-  }
-
-  .about-panel__link:hover {
-    opacity: 0.7;
-  }
-
-  /* Offerings Grid */
-  .about-offerings-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: var(--home-next-gap);
-  }
-
-  .about-offering-card {
-    padding: clamp(1.4rem, 2.4vw, 2.2rem);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    min-height: 320px;
-    border: 1px solid var(--pop-ink);
-    border-radius: var(--home-next-radius-card);
-    transition: transform var(--home-next-motion);
-  }
-
-  .about-offering-card:hover {
-    transform: translateY(-2px);
-  }
-
-  .about-offering-card--1 {
-    background: var(--pop-pink);
-    color: var(--pop-ink);
-  }
-
-  .about-offering-card--2 {
-    background: var(--pop-blue);
-    color: var(--pop-cream);
-    border-color: var(--pop-ink);
-  }
-
-  .about-offering-card--3 {
-    background: var(--pop-yellow);
-    color: var(--pop-ink);
-  }
-
-  .about-offering-card--4 {
-    background: var(--pop-lime);
-    color: var(--pop-ink);
-  }
-
-  .about-offering-card__top {
-    margin-bottom: 1rem;
-  }
-
-  .about-offering-card__num {
-    display: block;
-    margin-bottom: 0.35rem;
-    font: 750 0.75rem/1 var(--font-mono, monospace);
-    letter-spacing: 0.1em;
-    opacity: 0.85;
-    color: inherit;
-  }
-
-  .about-offering-card h3 {
-    margin: 0;
-    color: inherit !important;
-    font: 640 clamp(1.4rem, 2vw, 1.85rem)/1.05 var(--font-display, sans-serif) !important;
-    letter-spacing: -0.035em !important;
-  }
-
-  .about-offering-card__desc {
-    margin: 0 0 1.5rem;
-    color: inherit !important;
-    font: 450 0.95rem/1.5 var(--font-body, sans-serif) !important;
-  }
-
-  .about-offering-card__footer {
-    padding-top: 0.85rem;
-    border-top: 1px solid currentColor;
-  }
-
-  .about-offering-card__tag {
-    display: block;
-    margin-bottom: 0.25rem;
-    font: 750 0.62rem/1.2 var(--font-mono, monospace);
-    letter-spacing: 0.09em;
-    text-transform: uppercase;
-    opacity: 0.8;
-    color: inherit;
-  }
-
-  .about-offering-card__footer p {
-    margin: 0;
-    color: inherit !important;
-    font: 600 0.85rem/1.4 var(--font-body, sans-serif) !important;
-    letter-spacing: -0.01em;
-  }
-
-  /* 4. Credentials / Pop Editorial Cards Grid */
-  .about-credentials {
-    padding: clamp(1.75rem, 3.5vw, 4rem);
-    border: var(--home-next-border);
-    border-radius: var(--home-next-radius-panel);
-    background: var(--pop-blue);
-    color: var(--pop-cream);
-  }
-
-  .about-credentials__header {
-    margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
-  }
-
-  .about-credentials__title {
-    margin: 0;
-    color: var(--pop-cream) !important;
-    font: 620 clamp(2.4rem, 5vw, 4.8rem)/0.94 var(--font-display, sans-serif) !important;
-    letter-spacing: -0.04em !important;
-  }
-
-  .about-credentials-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: var(--home-next-gap);
-  }
-
-  .about-credential-card {
-    padding: clamp(1.4rem, 2.2vw, 2.1rem);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    gap: 1.25rem;
-    min-height: 240px;
-    border: 1px solid var(--pop-ink);
-    border-radius: var(--home-next-radius-card);
-    transition: transform var(--home-next-motion), box-shadow var(--home-next-motion);
-  }
-
-  .about-credential-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 4px 0 var(--pop-ink);
-  }
-
-  /* Pop Editorial Palette Rotation */
-  .about-credential-card--1 {
-    background: var(--pop-pink);
-    color: var(--pop-ink);
-  }
-
-  .about-credential-card--2 {
-    background: var(--pop-yellow);
-    color: var(--pop-ink);
-  }
-
-  .about-credential-card--3 {
-    background: var(--pop-cream);
-    color: var(--pop-ink);
-  }
-
-  .about-credential-card--4 {
-    background: var(--pop-lime);
-    color: var(--pop-ink);
-  }
-
-  .about-credential-card--5 {
-    background: var(--pop-cyan);
-    color: var(--pop-ink);
-  }
-
-  .about-credential-card--6 {
-    background: var(--pop-orange);
-    color: var(--pop-ink);
-  }
-
-  .about-credential-card__top {
-    display: flex;
-    flex-direction: column;
-    gap: 0.65rem;
-  }
-
-  .about-credential-card__tag {
-    display: inline-block;
-    align-self: flex-start;
-    padding: 0.32rem 0.6rem;
-    border: 1px solid var(--pop-ink);
-    border-radius: 8px;
-    background: rgba(21, 19, 15, 0.08);
-    color: var(--pop-ink);
-    font: 750 0.65rem/1.2 var(--font-mono, monospace);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-
-  .about-credential-card__title {
-    margin: 0;
-    color: var(--pop-ink) !important;
-    font: 640 clamp(1.35rem, 1.8vw, 1.75rem)/1.08 var(--font-display, sans-serif) !important;
-    letter-spacing: -0.035em !important;
-  }
-
-  .about-credential-card__detail {
-    margin: 0;
-    color: rgba(21, 19, 15, 0.88) !important;
-    font: 450 clamp(0.88rem, 1.05vw, 0.98rem)/1.5 var(--font-body, sans-serif) !important;
-  }
-
-  /* CTA Panel */
-  .about-cta-panel {
-    padding: clamp(2rem, 4vw, 4.5rem);
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 2.5rem;
-    align-items: center;
-    border: var(--home-next-border);
-    border-radius: var(--home-next-radius-panel);
-    background: var(--pop-pink);
-    color: var(--pop-ink);
-  }
-
-  .about-cta-panel__title {
-    margin: 0 0 0.85rem;
-    color: var(--pop-ink) !important;
-    font: 620 clamp(2.2rem, 4.5vw, 4.2rem)/0.95 var(--font-display, sans-serif) !important;
-    letter-spacing: -0.05em !important;
-  }
-
-  .about-cta-panel__text {
-    max-width: 520px;
-    margin: 0 0 2rem;
-    color: rgba(21, 19, 15, 0.88) !important;
-    font: 450 clamp(0.98rem, 1.3vw, 1.15rem)/1.55 var(--font-body, sans-serif) !important;
-  }
-
-  /* Responsive Rules */
-  @media (max-width: 900px) {
+    :root {
+      --pop-blue: #2444ca;
+      --pop-pink: #ff7eb5;
+      --pop-yellow: #ffe44f;
+      --pop-lime: #caff48;
+      --pop-orange: #ff875c;
+      --pop-purple: #5524c7;
+      --pop-cyan: #62e6ff;
+      --pop-cream: #fff8e8;
+      --pop-ink: #15130f;
+      --pop-border: rgba(21, 19, 15, 0.78);
+      --story-ink: var(--pop-ink);
+      --story-cream: var(--pop-cream);
+      --story-gutter: clamp(1rem, 3vw, 3.5rem);
+      --home-next-gap: 8px;
+      --home-next-border: 1px solid var(--pop-border);
+      --home-next-radius-panel: clamp(18px, 2vw, 28px);
+      --home-next-radius-card: clamp(14px, 1.5vw, 22px);
+      --home-next-radius-control: 14px;
+      --home-next-radius-media: clamp(10px, 1.2vw, 16px);
+      --home-next-card-inset: 10px;
+      --home-next-motion: 180ms ease;
+    }
+
+    html:has(body.story-about-page) {
+      background: var(--pop-blue) !important;
+    }
+
+    body.story-about-page {
+      margin: 0;
+      padding: 0 !important;
+      background: var(--pop-blue) !important;
+      color: var(--pop-ink);
+    }
+
+    body.story-about-page main.page-content-full {
+      overflow: visible;
+      padding: 0 !important;
+      max-width: 100% !important;
+    }
+
+    body.story-about-page :is(h1, h2, h3, h4, p, figure, dl, dd, ul, ol) {
+      margin-top: 0;
+    }
+
+    body.story-about-page :is(a, button, summary) {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Main Shell Container */
+    .story-about-main {
+      padding: var(--home-next-gap);
+      display: flex;
+      flex-direction: column;
+      gap: var(--home-next-gap);
+      background: var(--pop-blue);
+    }
+
+    /* Badges & Dots */
+    .about-badge {
+      margin: 0 0 1rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      color: inherit;
+      font: 750 clamp(0.68rem, 0.9vw, 0.78rem)/1.35 var(--font-mono, monospace);
+      letter-spacing: 0.11em;
+      text-transform: uppercase;
+    }
+
+    /* 1. Hero Grid */
     .about-hero-grid {
-      grid-template-columns: 1fr;
+      display: grid;
+      grid-template-columns: minmax(320px, 0.95fr) minmax(0, 1.45fr);
+      gap: var(--home-next-gap);
+      align-items: stretch;
     }
 
-    .about-hero-card,
+    .about-hero-card {
+      grid-column: 2;
+      grid-row: 1;
+      padding: clamp(1.75rem, 3.5vw, 4rem);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      border: var(--home-next-border);
+      border-radius: var(--home-next-radius-panel);
+      background: var(--pop-pink);
+      color: var(--pop-ink);
+    }
+
+    .about-masthead {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: clamp(1rem, 1.8vw, 1.6rem);
+      padding-bottom: clamp(0.75rem, 1.2vw, 1rem);
+      border-bottom: 0;
+    }
+
+    .about-pill-tag {
+      margin: 0;
+      padding: 0.5rem 0.72rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      border: 1px solid var(--pop-ink);
+      border-radius: var(--home-next-radius-control);
+      background: var(--pop-yellow);
+      color: var(--pop-ink);
+      font: 750 0.62rem/1.2 var(--font-mono, monospace);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .about-pill-tag img {
+      width: 15px;
+      height: 15px;
+      object-fit: contain;
+    }
+
+    .about-hero-title {
+      margin: 0;
+      color: var(--pop-ink) !important;
+      font: 720 clamp(2.8rem, 5vw, 5.4rem)/0.86 var(--font-display, sans-serif) !important;
+      letter-spacing: -0.07em !important;
+    }
+
+    .about-hero-divider {
+      width: 100%;
+      height: 0;
+      margin: clamp(0.75rem, 1.4vw, 1.2rem) 0 clamp(0.7rem, 1.2vw, 1rem);
+      border: 0;
+      border-top: 1px solid var(--pop-ink);
+      opacity: 0.72;
+    }
+
+    .about-hero-subtitle {
+      margin: 0 0 clamp(1rem, 1.6vw, 1.5rem);
+      color: var(--pop-ink) !important;
+      font: 500 clamp(1.15rem, 1.8vw, 1.65rem)/1.15
+        var(--font-display, sans-serif) !important;
+      letter-spacing: -0.025em !important;
+    }
+
+    .about-hero-statement {
+      margin: 0 0 clamp(1rem, 1.6vw, 1.4rem);
+      color: var(--pop-ink) !important;
+      font: 320 clamp(1.75rem, 2.7vw, 2.85rem)/1.05
+        var(--font-display, sans-serif) !important;
+      letter-spacing: -0.035em !important;
+      text-wrap: balance;
+    }
+
+    .about-hero-lede {
+      max-width: 720px;
+      margin: 0 0 clamp(1.5rem, 2.5vw, 2.2rem);
+      color: rgba(21, 19, 15, 0.85) !important;
+      font: 450 clamp(0.95rem, 1.2vw, 1.08rem)/1.55 var(--font-body, sans-serif) !important;
+    }
+
+    .about-actions-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .about-btn {
+      min-height: 48px;
+      padding: 0 1.15rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.65rem;
+      border: 1px solid var(--pop-ink);
+      border-radius: var(--home-next-radius-control);
+      color: var(--pop-ink) !important;
+      font: 750 0.72rem/1 var(--font-mono, monospace) !important;
+      letter-spacing: 0.08em;
+      text-decoration: none !important;
+      text-transform: uppercase;
+      transition:
+        transform var(--home-next-motion),
+        box-shadow var(--home-next-motion);
+    }
+
+    .about-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 0 var(--pop-ink);
+    }
+
+    .about-btn--primary {
+      background: var(--pop-cream);
+    }
+
+    .about-btn--secondary {
+      background: var(--pop-yellow);
+    }
+
+    .about-btn--ghost {
+      background: transparent;
+      border: 1px solid currentColor;
+    }
+
+    /* Portrait Card */
     .about-portrait-wrapper {
-      grid-column: auto;
-      grid-row: auto;
+      grid-column: 1;
+      grid-row: 1;
+      display: flex;
     }
 
-    .about-cta-panel {
-      grid-template-columns: 1fr;
+    .about-portrait-card {
+      width: 100%;
+      margin: 0;
+      padding: var(--home-next-card-inset);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      border: var(--home-next-border);
+      border-radius: var(--home-next-radius-panel);
+      background: var(--pop-cream);
+      color: var(--pop-ink);
     }
 
-  }
+    .about-portrait-card img {
+      width: 100%;
+      height: 100%;
+      min-height: 380px;
+      max-height: 560px;
+      display: block;
+      object-fit: cover;
+      border: 1px solid var(--pop-ink);
+      border-radius: var(--home-next-radius-media);
+    }
 
-  @media (max-width: 720px) {
+    .about-portrait-card figcaption {
+      padding: 1rem 0.5rem 0.4rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      color: var(--pop-ink);
+    }
+
+    .about-portrait-card figcaption strong {
+      font: 700 1.05rem/1 var(--font-display, sans-serif);
+      letter-spacing: -0.02em;
+      color: inherit;
+    }
+
+    .about-portrait-card figcaption small {
+      font: 700 0.65rem/1.2 var(--font-mono, monospace);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: inherit;
+      opacity: 0.85;
+    }
+
+    /* 2. Manifesto Banner */
+    .about-manifesto-banner {
+      border: var(--home-next-border);
+      border-radius: var(--home-next-radius-panel);
+      background: var(--pop-yellow);
+      color: var(--pop-ink);
+    }
+
+    .about-manifesto-banner__inner {
+      padding: clamp(2rem, 4vw, 4.5rem);
+      max-width: 1100px;
+    }
+
+    .about-manifesto-quote {
+      margin: 0 0 clamp(1rem, 2vw, 1.5rem);
+      color: var(--pop-ink) !important;
+      font: 640 clamp(2rem, 4.5vw, 3.8rem)/0.96 var(--font-display, sans-serif) !important;
+      letter-spacing: -0.045em !important;
+      text-wrap: balance;
+    }
+
+    .about-manifesto-text {
+      margin: 0;
+      color: rgba(21, 19, 15, 0.9) !important;
+      font: 450 clamp(1rem, 1.4vw, 1.22rem)/1.6 var(--font-body, sans-serif) !important;
+      max-width: 960px;
+    }
+
+    .about-manifesto-actions {
+      margin-top: clamp(1.5rem, 2.5vw, 2rem);
+    }
+
+    /* 3. Panel Sections */
+    .about-panel {
+      padding: clamp(1.75rem, 3.5vw, 4rem);
+      border: var(--home-next-border);
+      border-radius: var(--home-next-radius-panel);
+      color: var(--pop-ink);
+    }
+
+    .about-panel--cream {
+      background: var(--pop-cream);
+    }
+
+    .about-panel__header {
+      margin-bottom: clamp(2rem, 4vw, 3.5rem);
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 1rem 2rem;
+      align-items: end;
+    }
+
+    .about-panel__title {
+      margin: 0;
+      color: var(--pop-ink) !important;
+      font: 620 clamp(2.2rem, 4.8vw, 4.5rem)/0.92
+        var(--font-display, sans-serif) !important;
+      letter-spacing: -0.055em !important;
+    }
+
+    .about-panel__link {
+      padding-bottom: 0.3rem;
+      color: var(--pop-ink) !important;
+      font: 750 0.72rem/1 var(--font-mono, monospace) !important;
+      letter-spacing: 0.08em;
+      text-decoration: none !important;
+      text-transform: uppercase;
+    }
+
+    .about-panel__link > .link-label {
+      text-decoration: underline;
+      text-decoration-thickness: 1px;
+      text-underline-offset: 0.3rem;
+    }
+
+    .about-panel__link:hover {
+      opacity: 0.7;
+    }
+
+    /* Offerings Grid */
+    .about-offerings-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: var(--home-next-gap);
+    }
+
+    .about-offering-card {
+      padding: clamp(1.4rem, 2.4vw, 2.2rem);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 320px;
+      border: 1px solid var(--pop-ink);
+      border-radius: var(--home-next-radius-card);
+      transition: transform var(--home-next-motion);
+    }
+
+    .about-offering-card:hover {
+      transform: translateY(-2px);
+    }
+
+    .about-offering-card--1 {
+      background: var(--pop-pink);
+      color: var(--pop-ink);
+    }
+
+    .about-offering-card--2 {
+      background: var(--pop-blue);
+      color: var(--pop-cream);
+      border-color: var(--pop-ink);
+    }
+
+    .about-offering-card--3 {
+      background: var(--pop-yellow);
+      color: var(--pop-ink);
+    }
+
+    .about-offering-card--4 {
+      background: var(--pop-lime);
+      color: var(--pop-ink);
+    }
+
+    .about-offering-card__top {
+      margin-bottom: 1rem;
+    }
+
+    .about-offering-card__num {
+      display: block;
+      margin-bottom: 0.35rem;
+      font: 750 0.75rem/1 var(--font-mono, monospace);
+      letter-spacing: 0.1em;
+      opacity: 0.85;
+      color: inherit;
+    }
+
+    .about-offering-card h3 {
+      margin: 0;
+      color: inherit !important;
+      font: 640 clamp(1.4rem, 2vw, 1.85rem)/1.05 var(--font-display, sans-serif) !important;
+      letter-spacing: -0.035em !important;
+    }
+
+    .about-offering-card__desc {
+      margin: 0 0 1.5rem;
+      color: inherit !important;
+      font: 450 0.95rem/1.5 var(--font-body, sans-serif) !important;
+    }
+
+    .about-offering-card__footer {
+      padding-top: 0.85rem;
+      border-top: 1px solid currentColor;
+    }
+
+    .about-offering-card__tag {
+      display: block;
+      margin-bottom: 0.25rem;
+      font: 750 0.62rem/1.2 var(--font-mono, monospace);
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      opacity: 0.8;
+      color: inherit;
+    }
+
+    .about-offering-card__footer p {
+      margin: 0;
+      color: inherit !important;
+      font: 600 0.85rem/1.4 var(--font-body, sans-serif) !important;
+      letter-spacing: -0.01em;
+    }
+
+    /* 4. Credentials / Pop Editorial Cards Grid */
     .about-credentials {
-      padding: 1.25rem 1rem;
+      padding: clamp(1.75rem, 3.5vw, 4rem);
+      border: var(--home-next-border);
+      border-radius: var(--home-next-radius-panel);
+      background: var(--pop-blue);
+      color: var(--pop-cream);
     }
 
     .about-credentials__header {
-      margin-bottom: 1.5rem;
+      margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
+    }
+
+    .about-credentials__title {
+      margin: 0;
+      color: var(--pop-cream) !important;
+      font: 620 clamp(2.4rem, 5vw, 4.8rem)/0.94 var(--font-display, sans-serif) !important;
+      letter-spacing: -0.04em !important;
     }
 
     .about-credentials-grid {
-      grid-template-columns: 1fr;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+      gap: var(--home-next-gap);
     }
-  }
+
+    .about-credential-card {
+      padding: clamp(1.4rem, 2.2vw, 2.1rem);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1.25rem;
+      min-height: 220px;
+      border: 1px solid var(--pop-ink);
+      border-radius: var(--home-next-radius-card);
+      transition:
+        transform var(--home-next-motion),
+        box-shadow var(--home-next-motion);
+    }
+
+    .about-credential-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 4px 0 var(--pop-ink);
+    }
+
+    /* Pop Editorial Palette Rotation */
+    .about-credential-card--1 {
+      background: var(--pop-pink);
+      color: var(--pop-ink);
+    }
+
+    .about-credential-card--2 {
+      background: var(--pop-yellow);
+      color: var(--pop-ink);
+    }
+
+    .about-credential-card--3 {
+      background: var(--pop-cream);
+      color: var(--pop-ink);
+    }
+
+    .about-credential-card--4 {
+      background: var(--pop-lime);
+      color: var(--pop-ink);
+    }
+
+    .about-credential-card--5 {
+      background: var(--pop-cyan);
+      color: var(--pop-ink);
+    }
+
+    .about-credential-card--6 {
+      background: var(--pop-orange);
+      color: var(--pop-ink);
+    }
+
+    .about-credential-card__top {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+
+    .about-credential-card__tag {
+      display: inline-block;
+      align-self: flex-start;
+      padding: 0.32rem 0.6rem;
+      border: 1px solid var(--pop-ink);
+      border-radius: 8px;
+      background: rgba(21, 19, 15, 0.08);
+      color: var(--pop-ink);
+      font: 750 0.65rem/1.2 var(--font-mono, monospace);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .about-credential-card__title {
+      margin: 0;
+      color: var(--pop-ink) !important;
+      font: 640 clamp(1.22rem, 1.55vw, 1.55rem)/1.15
+        var(--font-display, sans-serif) !important;
+      letter-spacing: -0.03em !important;
+      text-wrap: balance;
+      word-break: normal;
+    }
+
+    .about-credential-card__detail {
+      margin: 0;
+      color: rgba(21, 19, 15, 0.88) !important;
+      font: 450 clamp(0.88rem, 1.05vw, 0.98rem)/1.5 var(--font-body, sans-serif) !important;
+    }
+
+    /* Client Pills Bar */
+    .about-client-pills-bar {
+      margin-top: clamp(1.5rem, 2.5vw, 2.25rem);
+      padding: clamp(1.25rem, 2vw, 1.75rem);
+      border: 1px solid var(--pop-ink);
+      border-radius: var(--home-next-radius-card);
+      background: var(--pop-cream);
+      color: var(--pop-ink);
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+
+    .about-client-pills-label {
+      font: 750 0.68rem/1.2 var(--font-mono, monospace);
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--pop-ink);
+      opacity: 0.85;
+    }
+
+    .about-client-pills-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+    }
+
+    .about-client-pill {
+      padding: 0.45rem 0.85rem;
+      border: 1px solid var(--pop-ink);
+      border-radius: var(--home-next-radius-control);
+      background: var(--pop-yellow);
+      color: var(--pop-ink);
+      font: 700 0.76rem/1.2 var(--font-mono, monospace);
+      letter-spacing: 0.04em;
+      transition:
+        transform var(--home-next-motion),
+        box-shadow var(--home-next-motion);
+    }
+
+    .about-client-pill:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 2px 0 var(--pop-ink);
+    }
+
+    /* CTA Panel */
+    .about-cta-panel {
+      padding: clamp(2rem, 4vw, 4.5rem);
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 2.5rem;
+      align-items: center;
+      border: var(--home-next-border);
+      border-radius: var(--home-next-radius-panel);
+      background: var(--pop-pink);
+      color: var(--pop-ink);
+    }
+
+    .about-cta-panel__title {
+      margin: 0 0 0.85rem;
+      color: var(--pop-ink) !important;
+      font: 620 clamp(2.2rem, 4.5vw, 4.2rem)/0.95
+        var(--font-display, sans-serif) !important;
+      letter-spacing: -0.05em !important;
+    }
+
+    .about-cta-panel__text {
+      max-width: 520px;
+      margin: 0 0 2rem;
+      color: rgba(21, 19, 15, 0.88) !important;
+      font: 450 clamp(0.98rem, 1.3vw, 1.15rem)/1.55 var(--font-body, sans-serif) !important;
+    }
+
+    /* Responsive Rules */
+    @media (max-width: 900px) {
+      .about-hero-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .about-hero-card,
+      .about-portrait-wrapper {
+        grid-column: auto;
+        grid-row: auto;
+      }
+
+      .about-cta-panel {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .about-credentials {
+        padding: 1.25rem 1rem;
+      }
+
+      .about-credentials__header {
+        margin-bottom: 1.5rem;
+      }
+
+      .about-credentials-grid {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
 </BaseLayout>

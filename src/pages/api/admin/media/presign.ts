@@ -7,10 +7,10 @@ import {
 } from "../../../../lib/admin/serverAuth";
 import {
     createPresignedR2Upload,
-    isR2OriginalFolder,
     isAllowedImageMimeType,
     makeAvailableR2ObjectKey,
     MAX_IMAGE_SIZE_BYTES,
+    MAX_MEDIA_SIZE_BYTES,
     normalizeR2FolderPath,
 } from "../../../../lib/media/r2";
 
@@ -30,18 +30,12 @@ export const POST: APIRoute = async ({ request }) => {
             return jsonResponse({ error: "Choose a media file with a valid filename." }, 400);
         }
         if (!isAllowedImageMimeType(contentType)) {
-            return jsonResponse({ error: "Use a JPEG, PNG, WebP, GIF, MP4, WebM or MOV file." }, 400);
+            return jsonResponse({ error: "Unsupported file type. Use images, videos, audio or documents." }, 400);
         }
-        const isVideo = contentType.startsWith("video/");
-        const maxSize = isVideo ? 100 * 1024 * 1024 : MAX_IMAGE_SIZE_BYTES;
+        const isLargeMediaOrDoc = contentType.startsWith("video/") || contentType === "application/pdf";
+        const maxSize = isLargeMediaOrDoc ? MAX_MEDIA_SIZE_BYTES : MAX_IMAGE_SIZE_BYTES;
         if (!Number.isSafeInteger(size) || size <= 0 || size > maxSize) {
-            return jsonResponse({ error: `File must be ${isVideo ? "100 MB" : "20 MB"} or smaller.` }, 400);
-        }
-        if (!isR2OriginalFolder(folder)) {
-            return jsonResponse(
-                { error: "Choose a project or collection folder inside Originals before uploading." },
-                400,
-            );
+            return jsonResponse({ error: `File must be ${isLargeMediaOrDoc ? "100 MB" : "20 MB"} or smaller.` }, 400);
         }
 
         const objectKey = await makeAvailableR2ObjectKey(folder, filename);

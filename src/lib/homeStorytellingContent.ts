@@ -120,7 +120,7 @@ export const storytellingProjects: StorytellingProject[] = [
     outcome: "Television broadcast in South Asia on VH1",
     href: "/work/show-me-the-way",
     video: "https://www.youtube.com/watch?v=fooE0W_mFSY",
-    image: "https://img.youtube.com/vi/fooE0W_mFSY/maxresdefault.jpg",
+    image: "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/video-thumbnails/show-me-the-way-vh1-india.webp",
     alt: "Show Me the Way music video still broadcast on VH1",
   },
 ];

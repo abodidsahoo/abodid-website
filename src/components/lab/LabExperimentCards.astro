@@ -24,7 +24,7 @@ const labExperiments = await getLabExperiments();
 <section class="lab-catalogue" aria-labelledby="lab-catalogue-title">
   <header class="lab-catalogue__header">
     <p class="lab-label">Current collection · 2026</p>
-    <h2 id="lab-catalogue-title">{title}</h2>
+    <h1 id="lab-catalogue-title">{title}</h1>
     <p>{introduction}</p>
   </header>
 
@@ -32,12 +32,11 @@ const labExperiments = await getLabExperiments();
     {
       labExperiments.map((experiment) => {
         const isInteractiveCard = experiment.cardVariant === "vault-tags";
-        const CardShell = isInteractiveCard ? "div" : "a";
         const href = experimentHref(experiment.href);
 
         return (
           <article class:list={["lab-card", `lab-card--${experiment.surface}`]}>
-            <CardShell class="lab-card__shell" {...(!isInteractiveCard ? { href } : {})}>
+            <a class="lab-card__shell" href={href}>
               <figure class:list={["lab-card__media", { "lab-card__media--interactive": isInteractiveCard }]}>
                 {isInteractiveCard ? (
                   <HeroVaultTagsCard
@@ -75,19 +74,12 @@ const labExperiments = await getLabExperiments();
                 </div>
                 <h3>{experiment.title}</h3>
                 <p>{experiment.description}</p>
-                {isInteractiveCard ? (
-                  <a class="lab-card__destination" href={href}>
-                    <span>{experiment.destinationLabel}</span>
-                    <span aria-hidden="true">↗</span>
-                  </a>
-                ) : (
-                  <span class="lab-card__destination">
-                    <span>{experiment.destinationLabel}</span>
-                    <span aria-hidden="true">↗</span>
-                  </span>
-                )}
+                <span class="lab-card__destination">
+                  <span>{experiment.destinationLabel}</span>
+                  <span aria-hidden="true">↗</span>
+                </span>
               </div>
-            </CardShell>
+            </a>
           </article>
         );
       })
@@ -140,7 +132,7 @@ const labExperiments = await getLabExperiments();
     --pop-cream: #fff8e8;
     --pop-ink: #15130f;
     --pop-border: rgba(21, 19, 15, 0.78);
-    padding: clamp(5.5rem, 9vw, 9.5rem) clamp(1rem, 6vw, 6rem) clamp(5rem, 8vw, 8rem);
+    padding: clamp(3.5rem, 6vw, 5.5rem) clamp(1rem, 6vw, 6rem) 8px;
     background: var(--pop-blue);
     color: var(--pop-cream);
   }
@@ -155,7 +147,7 @@ const labExperiments = await getLabExperiments();
     color: var(--pop-cream);
   }
 
-  .lab-catalogue__header :is(h2, p) {
+  .lab-catalogue__header :is(h1, h2, p) {
     color: inherit;
   }
 
@@ -168,7 +160,7 @@ const labExperiments = await getLabExperiments();
     color: var(--pop-yellow);
   }
 
-  .lab-catalogue__header h2 {
+  .lab-catalogue__header :is(h1, h2) {
     margin: 0;
     font: 620 clamp(3.2rem, 6.5vw, 6.5rem)/0.9 var(--font-display);
     letter-spacing: -0.055em;

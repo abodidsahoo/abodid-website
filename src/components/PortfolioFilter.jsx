@@ -1,8 +1,10 @@
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
     getOptimizedImageSrcSet,
     getOptimizedImageUrl,
 } from '../lib/imageOptimization.js';
+
+const CORE_CATEGORIES = ['All', 'Art', 'Commercial', 'Exhibition', 'Fashion', 'Street'];
 
 const slugify = (str) =>
     String(str || '')
@@ -10,351 +12,208 @@ const slugify = (str) =>
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-+|-+$/g, '');
 
-const PortfolioFilter = ({ items }) => {
-    const [activeTag, setActiveTag] = useState(() => {
-        if (typeof window === 'undefined') return 'All';
-        const params = new URLSearchParams(window.location.search);
-        const tagParam = params.get('tag') || params.get('category');
-        return tagParam || 'All';
+const getItemCategories = (item) => {
+    const rawLabels = [
+        ...(Array.isArray(item.labels) ? item.labels : (item.labels ? [item.labels] : [])),
+        ...(Array.isArray(item.category) ? item.category : (item.category ? [item.category] : [])),
+        ...(Array.isArray(item.tags) ? item.tags : (item.tags ? String(item.tags).split(',').map((t) => t.trim()) : [])),
+    ].map((l) => String(l || '').toLowerCase());
+
+    const matched = CORE_CATEGORIES.filter((cat) => {
+        if (cat === 'All') return false;
+        const target = cat.toLowerCase();
+        return rawLabels.some((label) => {
+            if (target === 'exhibition') return label.includes('exhibit');
+            if (target === 'street') return label.includes('street');
+            return label.includes(target);
+        });
     });
 
+    return matched.length > 0 ? matched : ['Art'];
+};
+
+const PortfolioFilter = ({ items = [] }) => {
+    // Initial state is deterministic across SSR and Client initial render
+    const [activeCategory, setActiveCategory] = useState('All');
+
     useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const paramVal = params.get('category') || params.get('tag');
+        if (paramVal) {
+            const matched = CORE_CATEGORIES.find(
+                (c) => c.toLowerCase() === paramVal.toLowerCase() || slugify(c) === slugify(paramVal)
+            );
+            if (matched) {
+                setActiveCategory(matched);
+            }
+        }
+
         const handlePopState = () => {
-            const params = new URLSearchParams(window.location.search);
-            const tagParam = params.get('tag') || params.get('category');
-            setActiveTag(tagParam || 'All');
+            const currentParams = new URLSearchParams(window.location.search);
+            const currentVal = currentParams.get('category') || currentParams.get('tag');
+            const matched = CORE_CATEGORIES.find(
+                (c) => c.toLowerCase() === (currentVal || '').toLowerCase() || slugify(c) === slugify(currentVal || '')
+            );
+            setActiveCategory(matched || 'All');
         };
         window.addEventListener('popstate', handlePopState);
         return () => window.removeEventListener('popstate', handlePopState);
     }, []);
 
-    // 1. Extract, count and sort unique categories
-    const sortedCategories = useMemo(() => {
-        const counts = {};
+    // 1. Calculate counts for the 5-6 core categories
+    const { categoriesWithCounts, itemCategoryMap } = useMemo(() => {
+        const itemMap = new Map();
+        const counts = { All: items.length };
+        CORE_CATEGORIES.forEach((c) => {
+            if (c !== 'All') counts[c] = 0;
+        });
 
-        items.forEach(item => {
-            const cats = Array.isArray(item.category) ? item.category : (item.category ? [item.category] : []);
-            cats.forEach(c => {
-                counts[c] = (counts[c] || 0) + 1;
+        items.forEach((item, idx) => {
+            const cats = getItemCategories(item);
+            itemMap.set(item.slug || item.title || idx, cats);
+            cats.forEach((c) => {
+                if (counts[c] !== undefined) {
+                    counts[c] += 1;
+                }
             });
         });
 
-        // Filter out categories with 0 count (safety) and sort by count desc
-        let cats = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
-
-        return ['All', ...cats];
+        return {
+            categoriesWithCounts: CORE_CATEGORIES.map((cat) => ({
+                name: cat,
+                count: counts[cat] || 0,
+            })),
+            itemCategoryMap: itemMap,
+        };
     }, [items]);
 
-    const normalizedActiveTag = useMemo(() => {
-        if (activeTag === 'All') return 'All';
-        const match = sortedCategories.find(
-            (cat) => cat.toLowerCase() === activeTag.toLowerCase() || slugify(cat) === slugify(activeTag)
-        );
-        return match || activeTag;
-    }, [sortedCategories, activeTag]);
-
-    const handleTagClick = (category) => {
-        const nextTag = normalizedActiveTag === category ? 'All' : category;
-        setActiveTag(nextTag);
-        const params = new URLSearchParams();
-        if (nextTag !== 'All') {
-            params.set('tag', slugify(nextTag));
+    const handleCategoryClick = (catName) => {
+        const nextCategory = activeCategory.toLowerCase() === catName.toLowerCase() ? 'All' : catName;
+        setActiveCategory(nextCategory);
+        const params = new URLSearchParams(window.location.search);
+        if (nextCategory === 'All') {
+            params.delete('category');
+            params.delete('tag');
+        } else {
+            params.set('category', slugify(nextCategory));
+            params.delete('tag');
         }
         const query = params.toString();
-        window.history.pushState({}, '', `${window.location.pathname}${query ? `?${query}` : ''}`);
+        const newUrl = `${window.location.pathname}${query ? `?${query}` : ''}`;
+        window.history.pushState({}, '', newUrl);
     };
 
-    // 3. Filter items based on active category
+    // 2. Filter items based on active core category
     const filteredItems = useMemo(() => {
-        if (normalizedActiveTag === 'All') return items;
-        const targetSlug = slugify(normalizedActiveTag);
-        return items.filter(item => {
-            const cats = Array.isArray(item.category) ? item.category : (item.category ? [item.category] : []);
-            return cats.some(c => c === normalizedActiveTag || slugify(c) === targetSlug);
+        if (activeCategory === 'All') return items;
+        return items.filter((item, idx) => {
+            const cats = itemCategoryMap.get(item.slug || item.title || idx) || [];
+            return cats.some((c) => c.toLowerCase() === activeCategory.toLowerCase());
         });
-    }, [items, normalizedActiveTag]);
-
-    const renderButton = (category) => (
-        <button
-            key={category}
-            onClick={() => handleTagClick(category)}
-            className={`filter-btn ${normalizedActiveTag === category ? 'contrast-active' : ''}`}
-        >
-            {category}
-        </button>
-    );
-
-    // Global Cursor Logic
-    const cursorRef = useRef(null);
-
-    useEffect(() => {
-        const moveCursor = (e) => {
-            if (cursorRef.current) {
-                const x = e.clientX;
-                const y = e.clientY;
-                cursorRef.current.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%)`;
-            }
-        };
-
-        window.addEventListener('mousemove', moveCursor);
-        return () => window.removeEventListener('mousemove', moveCursor);
-    }, []);
-
-    const handleMouseEnter = () => {
-        if (!cursorRef.current) return;
-        cursorRef.current.style.opacity = '1';
-        cursorRef.current.style.scale = '1';
-    };
-
-    const handleMouseLeave = () => {
-        if (!cursorRef.current) return;
-        cursorRef.current.style.opacity = '0';
-        cursorRef.current.style.scale = '0.5';
-    };
+    }, [items, activeCategory, itemCategoryMap]);
 
     return (
-        <div className="portfolio-filter-container">
-            {/* Filter Bar */}
-            <div className="filter-bar">
-                <div className="filter-scroll">
-                    {sortedCategories.map(renderButton)}
+        <div className="pe-photography-archive" id="archive-grid">
+            {/* Pop Editorial Category Filter Toolbar */}
+            <div className="pe-filter-bar">
+                <div className="pe-filter-bar__top">
+                    <p className="pe-filter-eyebrow">
+                        <span>Filter by Category</span>
+                    </p>
+                </div>
+                <div className="pe-filter-scroll" role="toolbar" aria-label="Filter photography by category">
+                    {categoriesWithCounts.map(({ name, count }) => {
+                        const isActive = activeCategory.toLowerCase() === name.toLowerCase();
+
+                        return (
+                            <button
+                                key={name}
+                                type="button"
+                                onClick={() => handleCategoryClick(name)}
+                                className={`pe-filter-pill ${isActive ? 'is-active' : ''}`}
+                                aria-pressed={isActive}
+                            >
+                                <span className="pe-filter-pill__label">{name}</span>
+                                <span className="pe-filter-pill__count">{String(count).padStart(2, '0')}</span>
+                            </button>
+                        );
+                    })}
                 </div>
             </div>
 
-            {/* Global Fixed Cursor */}
-            <div className="glass-cursor" ref={cursorRef}>
-                <div className="cursor-dot"></div>
-            </div>
+            {/* Asymmetric Pop Editorial Photography Grid */}
+            {filteredItems.length === 0 ? (
+                <div className="pe-empty-state">
+                    <p className="pe-empty-state__title">No photo essays found</p>
+                    <p className="pe-empty-state__desc">
+                        There are no series tagged under &ldquo;{activeCategory}&rdquo;.
+                    </p>
+                    <button
+                        type="button"
+                        onClick={() => handleCategoryClick('All')}
+                        className="pe-reset-btn"
+                    >
+                        <span>View all series</span>
+                        <b aria-hidden="true">→</b>
+                    </button>
+                </div>
+            ) : (
+                <div className="pe-photo-grid">
+                    {filteredItems.map((item, index) => {
+                        const paletteIndex = index % 7;
+                        const itemCategories = itemCategoryMap.get(item.slug || item.title || index) || ['Art'];
 
-            {/* Grid */}
-            <div className="photography-grid">
-                {filteredItems.map((item, index) => (
-                    <a href={item.href} className="photography-card" key={item.title}>
-                        <div
-                            className="image-wrapper"
-                            onMouseEnter={handleMouseEnter}
-                            onMouseLeave={handleMouseLeave}
-                        >
-                            <img
-                                src={getOptimizedImageUrl(item.image, { width: 1600, quality: 82 })}
-                                srcSet={getOptimizedImageSrcSet(item.image, {
-                                    widths: [800, 1200, 1600, 2000],
-                                    quality: 82,
-                                })}
-                                sizes="(max-width: 599px) calc(100vw - 36px), (max-width: 1024px) 50vw, 1052px"
-                                alt={item.title}
-                                loading={index === 0 ? 'eager' : 'lazy'}
-                                fetchpriority={index === 0 ? 'high' : 'auto'}
-                                decoding="async"
-                                width="1600"
-                                height="900"
-                            />
-                        </div>
-                        <div className="content">
-                            <div className="categories">
-                                {Array.isArray(item.category)
-                                    ? item.category.map(cat => <span key={cat} className="category-tag">{cat}</span>)
-                                    : <span className="category-tag">{item.category || 'Photography'}</span>
-                                }
-                            </div>
-                            <h3 className="photo-title">{item.title}</h3>
-                        </div>
-                    </a>
-                ))}
-            </div>
+                        return (
+                            <a
+                                key={item.slug || item.title || index}
+                                href={item.href || `/photography/${item.slug}`}
+                                className={`pe-photo-card pe-photo-card--${(index % 8) + 1}`}
+                                data-palette={paletteIndex}
+                            >
+                                <figure className="pe-photo-card__media">
+                                    <img
+                                        src={getOptimizedImageUrl(item.image, { width: 1400, quality: 84 })}
+                                        srcSet={getOptimizedImageSrcSet(item.image, {
+                                            widths: [600, 960, 1400, 1800],
+                                            quality: 84,
+                                        })}
+                                        sizes="(max-width: 680px) calc(100vw - 32px), (max-width: 1080px) 50vw, 840px"
+                                        alt={item.title}
+                                        loading={index < 2 ? 'eager' : 'lazy'}
+                                        decoding={index < 2 ? 'sync' : 'async'}
+                                        width="1400"
+                                        height="900"
+                                    />
+                                </figure>
 
-            <style>{`
-        .portfolio-filter-container {
-            width: 100%;
-        }
-        
-        /* Filter Container */
-        .filter-bar {
-            margin-bottom: 3rem;
-            width: 100%;
-        }
-        
-        .filter-scroll {
-            display: flex;
-            flex-wrap: wrap; /* Default desktop: wrap */
-            gap: 0.6rem;
-            max-width: 900px;
-        }
+                                <div className="pe-photo-card__body">
+                                    <div className="pe-photo-card__meta">
+                                        <div className="pe-photo-card__tags">
+                                            {itemCategories.slice(0, 2).map((cat) => (
+                                                <span key={cat} className="pe-meta-tag">
+                                                    {cat}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
 
-        .filter-btn {
-            background: transparent;
-            border: 1px solid var(--border-subtle);
-            font-size: 0.8rem;
-            font-weight: 500;
-            color: var(--text-secondary);
-            cursor: pointer;
-            padding: 8px 16px;
-            border-radius: 100px;
-            white-space: nowrap;
-            transition: all 0.2s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
+                                    <h3 className="pe-photo-card__title">{item.title}</h3>
 
-        .filter-btn:hover {
-            border-color: var(--text-primary);
-            color: var(--text-primary);
-        }
-
-
-
-        /* Photography Grid */
-        .photography-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 5rem 0;
-        }
-        
-        /* Tablet: 2 Columns */
-        @media (min-width: 600px) and (max-width: 1024px) {
-            .photography-grid {
-                grid-template-columns: 1fr 1fr;
-                gap: 2rem;
-            }
-        }
-
-        /* Desktop: Maybe ensure it's not too wide if 1 col? 
-           User said "Desktop = current grid as desired", which was 1 col.
-           Keeping 1 col default.
-        */
-
-        .photography-card {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-            text-decoration: none;
-            color: inherit;
-            --portfolio-image-scale-hover: 1.018;
-            --portfolio-image-zoom-in-duration: 1100ms;
-            --portfolio-image-zoom-out-duration: 2400ms;
-            --portfolio-image-zoom-in-ease: cubic-bezier(0.22, 1, 0.36, 1);
-            --portfolio-image-zoom-out-ease: cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .image-wrapper {
-            width: 100%;
-            aspect-ratio: 16/9;
-            overflow: hidden;
-            border-radius: var(--radius-sm);
-            position: relative;
-            background: var(--bg-secondary);
-            transition: box-shadow 0.45s ease;
-            /* cursor: none; Removed for default cursor */
-        }
-
-        .image-wrapper:hover {
-             box-shadow: 0 10px 24px rgba(0,0,0,0.12);
-        }
-
-        .image-wrapper img {
-            display: block;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transform: scale(1);
-            transform-origin: center center;
-            transition-property: transform;
-            transition-duration: var(--portfolio-image-zoom-out-duration);
-            transition-timing-function: var(--portfolio-image-zoom-out-ease);
-            will-change: transform;
-            backface-visibility: hidden;
-        }
-
-        .photography-card:hover .image-wrapper img {
-            transform: scale(var(--portfolio-image-scale-hover));
-            transition-duration: var(--portfolio-image-zoom-in-duration);
-            transition-timing-function: var(--portfolio-image-zoom-in-ease);
-        }
-
-        .content {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .categories {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-
-        .category-tag {
-            font-family: var(--font-mono);
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--text-tertiary);
-            border: 1px solid var(--border-subtle);
-            padding: 0.2rem 0.6rem;
-            border-radius: 100px;
-        }
-
-        h3.photo-title {
-            font-family: var(--font-serif);
-            font-size: 1.75rem;
-            font-weight: 500;
-            color: var(--text-primary);
-            margin: 0;
-            line-height: 1.2;
-            position: relative;
-            display: inline-block;
-            width: fit-content;
-        }
-
-        h3.photo-title::after {
-            content: '';
-            position: absolute;
-            left: 0;
-            bottom: -6px;
-            height: 6px;
-            width: 0;
-            background-color: #e63946;
-            transition: width 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-        }
-
-        .photography-card:hover h3.photo-title::after {
-            width: 100%;
-        }
-
-        @media (max-width: 768px) {
-             .photography-grid {
-                gap: 3rem 0;
-             }
-        }
-
-        /* Mobile Filters: Horizontal Scroll */
-        @media (max-width: 600px) {
-            .filter-scroll {
-                flex-wrap: nowrap;
-                overflow-x: auto;
-                padding-bottom: 0.5rem;
-                -webkit-overflow-scrolling: touch;
-                scrollbar-width: none;
-            }
-            .filter-scroll::-webkit-scrollbar {
-                display: none;
-            }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            .image-wrapper,
-            .image-wrapper img,
-            h3.photo-title::after {
-                transition-duration: 0.01ms !important;
-            }
-
-            .photography-card:hover .image-wrapper img {
-                transform: scale(1);
-            }
-        }
-      `}</style>
+                                    <div className="pe-photo-card__cta">
+                                        <span className="pe-photo-card__cta-label">Explore series</span>
+                                        <b className="link-destination-arrow" aria-hidden="true">
+                                            ↗
+                                        </b>
+                                    </div>
+                                </div>
+                            </a>
+                        );
+                    })}
+                </div>
+            )}
         </div>
     );
 };
 
 export default PortfolioFilter;
+

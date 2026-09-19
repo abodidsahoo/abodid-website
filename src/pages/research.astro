@@ -31,8 +31,14 @@ const structuredData = [
     <section class="rp-hero" aria-labelledby="research-heading">
       <div class="rp-panel rp-hero__copy">
         <div>
-          <h1 id="research-heading">Personal archives, grief, and cultural memory.</h1>
-          <p class="rp-hero__lede">I use autoethnography, photography, writing and participatory methods to turn intimate experiences into questions about how we remember, relate, mourn and make meaning.</p>
+          <h1 id="research-heading">
+            Personal archives, grief, and cultural memory.
+          </h1>
+          <p class="rp-hero__lede">
+            I use autoethnography, photography, writing and participatory
+            methods to turn intimate experiences into questions about how we
+            remember, relate, mourn and make meaning.
+          </p>
           <div class="rp-hero__actions">
             <a class="rp-button" href="#projects">Explore the research ↓</a>
             <a class="rp-button" href="#method">Read the method ↓</a>
@@ -40,7 +46,10 @@ const structuredData = [
         </div>
       </div>
 
-      <aside class="rp-hero__rail" aria-label="Research proof and featured image">
+      <aside
+        class="rp-hero__rail"
+        aria-label="Research proof and featured image"
+      >
         <figure class="rp-panel rp-hero__image">
           <img
             src="/images/research-portfolio/cries-cover.jpg"
@@ -52,7 +61,10 @@ const structuredData = [
         <section class="rp-panel rp-proof">
           <p class="rp-eyebrow">Institutional proof · 2026</p>
           <h2>Presented two research projects at BSA 2026</h2>
-          <p>One poster and one roundtable at the British Sociological Association Annual Conference, University of Manchester.</p>
+          <p>
+            One poster and one roundtable at the British Sociological
+            Association Annual Conference, University of Manchester.
+          </p>
           <nav class="rp-proof__links" aria-label="BSA 2026 journey links">
             <a href="/uk2026">Read more about the journey →</a>
             <a href="/uk-2026">Check out the photo dump! →</a>
@@ -61,25 +73,47 @@ const structuredData = [
       </aside>
     </section>
 
-    <section class="rp-panel rp-projects" id="projects" aria-labelledby="projects-heading">
-      <h2 class="rp-section-heading" id="projects-heading">Research Projects</h2>
+    <section
+      class="rp-panel rp-projects"
+      id="projects"
+      aria-labelledby="projects-heading"
+    >
+      <h2 class="rp-section-heading" id="projects-heading">
+        Research Projects
+      </h2>
       <div class="rp-grid">
-        {researchProjects.map((project, index) => (
-          <a class="rp-card" data-accent={project.accent} href={`/research/${project.slug}`}>
-            <div class="rp-card__media">
-              <img src={project.images[0].src} alt={project.images[0].alt} loading={index < 2 ? "eager" : "lazy"} decoding="async" />
-            </div>
-            <div class="rp-card__copy">
-              <span class="rp-card__role">{project.role}</span>
-              <h3>{project.title}</h3>
-              <p class="rp-card__premise">{project.premise}</p>
-              <ul class="rp-card__themes" aria-label={`${project.title} themes`}>
-                {project.themes.map((theme) => <li>{theme}</li>)}
-              </ul>
-              <strong class="rp-card__arrow">Open case study →</strong>
-            </div>
-          </a>
-        ))}
+        {
+          researchProjects.map((project, index) => (
+            <a
+              class="rp-card"
+              data-accent={project.accent}
+              href={`/research/${project.slug}`}
+            >
+              <div class="rp-card__media">
+                <img
+                  src={project.images[0].src}
+                  alt={project.images[0].alt}
+                  loading={index < 2 ? "eager" : "lazy"}
+                  decoding="async"
+                />
+              </div>
+              <div class="rp-card__copy">
+                <span class="rp-card__role">{project.role}</span>
+                <h3>{project.title}</h3>
+                <p class="rp-card__premise">{project.premise}</p>
+                <ul
+                  class="rp-card__themes"
+                  aria-label={`${project.title} themes`}
+                >
+                  {project.themes.map((theme) => (
+                    <li>{theme}</li>
+                  ))}
+                </ul>
+                <strong class="rp-card__arrow">Open case study →</strong>
+              </div>
+            </a>
+          ))
+        }
       </div>
     </section>
 
@@ -90,67 +124,80 @@ const structuredData = [
       <div class="rp-proof-strip__items">
         <article>
           <h3>British Sociological Association</h3>
-          <p>Two accepted research projects at the 2026 Annual Conference: a poster in Science, Technology & Digital Studies and a roundtable in Families & Relationships.</p>
+          <p>
+            Two accepted research projects at the 2026 Annual Conference: a
+            poster in Science, Technology & Digital Studies and a roundtable in
+            Families & Relationships.
+          </p>
         </article>
         <article>
           <h3>Cambridge Digital Humanities</h3>
-          <p>Full bursary for the 2026 Cultural Heritage Data School, working across co-design, photogrammetry, critical visualisation and participatory preservation.</p>
+          <p>
+            Full bursary for the 2026 Cultural Heritage Data School, working
+            across co-design, photogrammetry, critical visualisation and
+            participatory preservation.
+          </p>
         </article>
         <article>
           <h3>Royal College of Art</h3>
-          <p>I received a full scholarship from Apple to pursue my postgraduate studies in London, where I completed an MA in Digital Direction, working across photography, performance, writing, archival material and technology-driven participatory projects.</p>
+          <p>
+            I received a full scholarship from Apple to pursue my postgraduate
+            studies in London, where I completed an MA in Digital Direction,
+            working across photography, performance, writing, archival material
+            and technology-driven participatory projects.
+          </p>
         </article>
       </div>
     </section>
 
-    <section class="rp-panel rp-practice rp-practice--method" id="method" aria-labelledby="method-heading">
+    <section
+      class="rp-panel rp-practice rp-practice--method"
+      id="method"
+      aria-labelledby="method-heading"
+    >
       <div>
         <h2 id="method-heading">My Research Method</h2>
       </div>
       <div class="rp-practice__items">
         <article>
           <h3>Autoethnography</h3>
-          <p class="rp-practice__lead">Autoethnography is the throughline of my research: I work with my own personal archives and lived experience as both evidence and material.</p>
+          <p class="rp-practice__lead">
+            Autoethnography is the throughline of my research: I work with my
+            own personal archives and lived experience as both evidence and
+            material.
+          </p>
         </article>
         <article>
           <h3>Archives as Method</h3>
-          <p>Photographs, handwritten texts, voice notes, screenshots, conversations and everyday performances become ways of studying memory, relationships, grief, migration and technology from inside the experience itself.</p>
+          <p>
+            Photographs, handwritten texts, voice notes, screenshots,
+            conversations and everyday performances become ways of studying
+            memory, relationships, grief, migration and technology from inside
+            the experience itself.
+          </p>
         </article>
         <article>
           <h3>From Personal to Sociological</h3>
-          <p>The research becomes sociological when those private experiences are examined in relation to collective structures: family rituals, cultural expectations, platforms, consent, ideas of widowhood, the social recognition of grief, and the technologies that decide what is remembered or resurfaced. The aim is not confession for its own sake. The aim is to move from a specific life toward questions other people can recognise, debate and respond to.</p>
-        </article>
-      </div>
-    </section>
-
-    <section class="rp-panel rp-practice rp-practice--ethics" aria-labelledby="ethics-heading">
-      <div>
-        <h2 id="ethics-heading">My Research Ethics</h2>
-      </div>
-      <div class="rp-practice__items">
-        <article>
-          <h3>Consent and Withdrawal</h3>
-          <p>Consent remains active when other people's images, words or responses enter the work, and participants retain the right to withdraw.</p>
-        </article>
-        <article>
-          <h3>Anonymisation</h3>
-          <p>Identity is protected whenever it is not necessary to the research claim.</p>
-        </article>
-        <article>
-          <h3>Care for Audiences</h3>
-          <p>Trigger warnings are used where death, grief or intimate material may be difficult for audiences.</p>
-        </article>
-        <article>
-          <h3>Clear Evidence Boundaries</h3>
-          <p>I distinguish clearly between personal archive, participant material, platform metadata and artistic interpretation.</p>
+          <p>
+            The research becomes sociological when those private experiences are
+            examined in relation to collective structures: family rituals,
+            cultural expectations, platforms, consent, ideas of widowhood, the
+            social recognition of grief, and the technologies that decide what
+            is remembered or resurfaced.
+          </p>
         </article>
       </div>
     </section>
 
     <section class="rp-panel rp-closing">
-      <p class="rp-eyebrow">Research collaboration · London · India · Worldwide</p>
+      <p class="rp-eyebrow">
+        Research collaboration · London · India · Worldwide
+      </p>
       <h2>Questions worth staying with.</h2>
-      <p>I am open to research collaborations, talks and roles connecting culture, visual practice and technology.</p>
+      <p>
+        I am open to research collaborations, talks and roles connecting
+        culture, visual practice and technology.
+      </p>
       <div class="rp-hero__actions">
         <a class="rp-button" href="/#enquiry">Start a conversation ↗</a>
         <a class="rp-button" href="/lab">Visit the Lab →</a>

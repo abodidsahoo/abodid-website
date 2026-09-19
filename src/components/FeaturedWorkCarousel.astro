@@ -1,0 +1,351 @@
+---
+/**
+ * Reusable name: FeaturedWorkCarousel
+ * Quick call:
+ *   import FeaturedWorkCarousel from "../components/FeaturedWorkCarousel.astro";
+ *   <FeaturedWorkCarousel projects={content.projects} />
+ *
+ * This component is intentionally not imported by the landing page. Astro only
+ * ships its markup, styles, script, and media requests on pages that render it.
+ */
+
+type WorkProject = {
+  id: string;
+  title: string;
+  href: string;
+  alt?: string;
+  image?: string;
+  heroImage?: string;
+  video?: string;
+  category?: string;
+  outcome?: string;
+};
+
+interface Props {
+  projects: WorkProject[];
+  ariaLabel?: string;
+  priority?: boolean;
+}
+
+const {
+  projects,
+  ariaLabel = "Featured projects carousel",
+  priority = false,
+} = Astro.props;
+
+const slideCopy: Record<string, { category: string; outcome: string }> = {
+  "into-the-flux": {
+    category: "Exhibition experience design",
+    outcome: "10,000+ visitors",
+  },
+  punctum: {
+    category: "Sociological research",
+    outcome: "180,000+ images",
+  },
+  "gesture-control": {
+    category: "Interaction prototype",
+    outcome: "Interactive playful app",
+  },
+  "obsidian-vault": {
+    category: "Knowledge ecosystem",
+    outcome: "1,000+ interconnected notes",
+  },
+  "show-me-the-way": {
+    category: "Music video",
+    outcome: "Broadcast on VH1 & Rolling Stone",
+  },
+};
+
+const punctumProject = projects.find((project) => project.id === "punctum");
+const punctumWalkthroughSlide = punctumProject
+  ? {
+      ...punctumProject,
+      id: "punctum-walkthrough",
+      category: "Human attention analysis",
+      outcome: "Interactive web application",
+      video:
+        "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/video-clips/punctum_thumbnail_video.mp4",
+      image:
+        "https://jwipqbjxpmgyevfzpjjx.supabase.co/storage/v1/object/public/misc/video-clips/punctum_thumbnail_video.mp4",
+      alt: "Animated walkthrough of the Punctum human-attention research prototype",
+    }
+  : undefined;
+
+const availableSlides = [
+  ...(punctumWalkthroughSlide ? [punctumWalkthroughSlide] : []),
+  ...projects.map((project) => ({
+    ...project,
+    ...slideCopy[project.id],
+  })),
+];
+const slideOrder = [
+  "into-the-flux",
+  "punctum",
+  "punctum-walkthrough",
+  "gesture-control",
+  "obsidian-vault",
+  "show-me-the-way",
+];
+const slides = slideOrder
+  .map((id) => availableSlides.find((slide) => slide.id === id))
+  .filter((slide): slide is (typeof availableSlides)[number] => Boolean(slide));
+const letterboxedSlideIds = new Set(["gesture-control", "punctum-walkthrough"]);
+---
+
+{
+  slides.length > 0 && (
+    <section class="featured-work-carousel" aria-label="Featured work">
+      <div class="featured-work-carousel__frame" data-featured-work-carousel>
+        <div
+          class="featured-work-carousel__track"
+          role="region"
+          aria-label={ariaLabel}
+          aria-live="polite"
+        >
+          {slides.map((project, index) => {
+            const mediaUrl = project.heroImage || project.image || project.video;
+            const isVideo = Boolean(
+              project.video && /\.(mp4|webm|mov|ogg)(?:[?#]|$)/i.test(project.video),
+            );
+
+            return (
+              <a
+                class:list={[
+                  "featured-work-carousel__slide",
+                  {
+                    "is-active": index === 0,
+                    "is-letterboxed": letterboxedSlideIds.has(project.id),
+                  },
+                ]}
+                href={project.href}
+                data-featured-work-slide={index}
+                aria-hidden={index === 0 ? "false" : "true"}
+                tabindex={index === 0 ? "0" : "-1"}
+              >
+                {isVideo ? (
+                  <video
+                    src={project.video}
+                    autoplay={index === 0}
+                    muted
+                    loop
+                    playsinline
+                    preload={index === 0 ? "metadata" : "none"}
+                    aria-label={project.alt || project.title}
+                  />
+                ) : (
+                  <img
+                    src={mediaUrl}
+                    alt={project.alt || project.title}
+                    loading={priority && index === 0 ? "eager" : "lazy"}
+                    fetchpriority={priority && index === 0 ? "high" : "auto"}
+                    decoding="async"
+                  />
+                )}
+                <span>
+                  <b>{project.title}</b>
+                  <small>{project.category} · {project.outcome}</small>
+                </span>
+              </a>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+<script>
+  const initialiseFeaturedWorkCarousels = () => {
+    document.querySelectorAll("[data-featured-work-carousel]").forEach((carousel) => {
+      if (!(carousel instanceof HTMLElement) || carousel.dataset.ready === "true") return;
+
+      const slides = Array.from(carousel.querySelectorAll("[data-featured-work-slide]"));
+      if (slides.length <= 1) return;
+      carousel.dataset.ready = "true";
+
+      let currentIndex = 0;
+      let timer: number | undefined;
+      let touchStartX = 0;
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      const setVideoPlayback = () => {
+        slides.forEach((slide, index) => {
+          const video = slide.querySelector("video");
+          if (!(video instanceof HTMLVideoElement)) return;
+          if (index === currentIndex) video.play().catch(() => {});
+          else video.pause();
+        });
+      };
+
+      const goToSlide = (nextIndex: number) => {
+        const targetIndex = (nextIndex + slides.length) % slides.length;
+        if (targetIndex === currentIndex) return;
+
+        slides[currentIndex]?.classList.remove("is-active");
+        slides[currentIndex]?.setAttribute("aria-hidden", "true");
+        slides[currentIndex]?.setAttribute("tabindex", "-1");
+        currentIndex = targetIndex;
+        slides[currentIndex]?.classList.add("is-active");
+        slides[currentIndex]?.setAttribute("aria-hidden", "false");
+        slides[currentIndex]?.setAttribute("tabindex", "0");
+        setVideoPlayback();
+      };
+
+      const stopTimer = () => {
+        if (timer) window.clearInterval(timer);
+        timer = undefined;
+      };
+      const startTimer = () => {
+        stopTimer();
+        if (!reduceMotion) timer = window.setInterval(() => goToSlide(currentIndex + 1), 3800);
+      };
+
+      carousel.addEventListener("touchstart", (event) => {
+        if (event instanceof TouchEvent) touchStartX = event.changedTouches[0]?.screenX || 0;
+      }, { passive: true });
+      carousel.addEventListener("touchend", (event) => {
+        if (!(event instanceof TouchEvent)) return;
+        const difference = touchStartX - (event.changedTouches[0]?.screenX || 0);
+        if (Math.abs(difference) > 40) {
+          goToSlide(currentIndex + (difference > 0 ? 1 : -1));
+          startTimer();
+        }
+      }, { passive: true });
+      carousel.addEventListener("keydown", (event) => {
+        if (!(event instanceof KeyboardEvent)) return;
+        if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+          goToSlide(currentIndex + (event.key === "ArrowRight" ? 1 : -1));
+          startTimer();
+        }
+      });
+
+      setVideoPlayback();
+      startTimer();
+    });
+  };
+
+  document.addEventListener("astro:page-load", initialiseFeaturedWorkCarousels);
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initialiseFeaturedWorkCarousels, { once: true });
+  } else {
+    initialiseFeaturedWorkCarousels();
+  }
+</script>
+
+<style>
+  .featured-work-carousel {
+    --carousel-ink: var(--pop-ink, #15130f);
+    --carousel-blue: var(--pop-blue, #2444ca);
+    --carousel-pink: var(--pop-pink, #ff7eb5);
+    --carousel-yellow: var(--pop-yellow, #ffe44f);
+    --carousel-lime: var(--pop-lime, #caff48);
+    --carousel-cream: var(--pop-cream, #fff8e8);
+    padding: 0 var(--home-next-gap, 8px) var(--home-next-gap, 8px);
+    background: var(--carousel-blue);
+  }
+  .featured-work-carousel__frame {
+    position: relative;
+    width: 100%;
+    min-height: clamp(440px, 58vw, 820px);
+    padding: var(--home-next-card-inset, 8px);
+    display: flex;
+    overflow: hidden;
+    border: 1px solid var(--carousel-ink);
+    border-radius: var(--home-next-radius-panel, 22px);
+    background: var(--carousel-blue);
+  }
+  .featured-work-carousel__track {
+    position: relative;
+    width: 100%;
+    flex: 1 1 auto;
+    overflow: hidden;
+    border: 1px solid var(--carousel-ink);
+    border-radius: var(--home-next-radius-media, 14px);
+    background: var(--carousel-pink);
+  }
+  .featured-work-carousel__slide {
+    position: absolute;
+    inset: 0;
+    display: block;
+    overflow: hidden;
+    color: inherit;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    text-decoration: none;
+    transform: scale(1.02);
+    transition: opacity 550ms cubic-bezier(.2,.8,.2,1), transform 550ms cubic-bezier(.2,.8,.2,1);
+  }
+  .featured-work-carousel__slide.is-active {
+    z-index: 2;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: scale(1);
+  }
+  .featured-work-carousel__slide :is(img, video) {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    pointer-events: none;
+    transition: transform 600ms ease;
+  }
+  .featured-work-carousel__slide:hover :is(img, video) { transform: scale(1.025); }
+  .featured-work-carousel__slide > span {
+    position: absolute;
+    inset: auto 0 0;
+    z-index: 3;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border-top: 1px solid var(--carousel-ink);
+    background: var(--carousel-pink);
+    color: var(--carousel-ink);
+  }
+  .featured-work-carousel__slide:nth-child(6n + 2) > span { background: var(--carousel-cream); }
+  .featured-work-carousel__slide:nth-child(6n + 3) > span { background: var(--carousel-yellow); }
+  .featured-work-carousel__slide:nth-child(6n + 4) > span { background: var(--carousel-lime); }
+  .featured-work-carousel__slide:nth-child(6n + 6) > span { background: var(--carousel-yellow); }
+  .featured-work-carousel__slide b { font: 700 1rem/1.1 var(--font-display, sans-serif); }
+  .featured-work-carousel__slide small {
+    font: 700 .65rem/1.3 var(--font-mono, monospace);
+    text-align: right;
+    text-transform: uppercase;
+  }
+  .featured-work-carousel__slide:is(:hover, :focus-visible) b {
+    text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 3px;
+  }
+  .featured-work-carousel__slide.is-letterboxed {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    background: var(--carousel-pink);
+  }
+  .featured-work-carousel__slide.is-letterboxed :is(img, video) {
+    width: auto;
+    height: auto;
+    min-height: 0;
+    max-width: calc(100% - 24px);
+    max-height: calc(100% - 24px);
+    place-self: center;
+    object-fit: contain;
+    border: 1px solid var(--carousel-ink);
+    border-radius: clamp(10px, 1.2vw, 14px);
+    box-shadow: 0 4px 14px rgba(0,0,0,.08);
+  }
+  .featured-work-carousel__slide.is-letterboxed > span { position: static; }
+  .featured-work-carousel__slide.is-letterboxed:hover :is(img, video) { transform: scale(1.015); }
+
+  @media (max-width: 720px) {
+    .featured-work-carousel__frame { min-height: 0; aspect-ratio: 4 / 3; }
+    .featured-work-carousel__slide > span { align-items: flex-start; flex-direction: column; gap: .3rem; }
+    .featured-work-carousel__slide small { text-align: left; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .featured-work-carousel__slide { transition: none; }
+  }
+</style>

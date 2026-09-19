@@ -1,11 +1,14 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import PortfolioFilter from "../../components/PortfolioFilter.jsx";
+import InlineInquiryForm from "../../components/InlineInquiryForm.astro";
 import { getAllPhotography } from "../../lib/api";
 import { featuredPhotography as mockPhotography } from "../../utils/mockData";
+import photographyPortfolios from "../../data/photographyPortfolios.generated.json";
+import { breadcrumbJsonLd, personJsonLd } from "../../lib/seoData";
 
 // Safe Fetch Helper
-const safeFetch = async (fn, fallback) => {
+const safeFetch = async (fn: () => Promise<any>, fallback: any) => {
   try {
     return await fn();
   } catch (e) {
@@ -14,51 +17,1097 @@ const safeFetch = async (fn, fallback) => {
   }
 };
 
-const portfolioItems = await safeFetch(getAllPhotography, mockPhotography);
-const pageTitle = "Photography";
+const rawPortfolioItems = await safeFetch(getAllPhotography, mockPhotography);
+
+// Enrich items with metadata from photographyPortfolios generated data if matching
+const storyMetadataBySlug = new Map(
+  (photographyPortfolios.stories || []).map((s) => [s.slug, s])
+);
+
+const portfolioItems = rawPortfolioItems.map((item: any, index: number) => {
+  const storyMeta = item.slug ? storyMetadataBySlug.get(item.slug) : undefined;
+  return {
+    ...item,
+    imageCount: storyMeta?.imageCount || item.images?.length || 0,
+    downloadUrl: storyMeta?.downloadUrl || null,
+    labels: storyMeta?.labels || (Array.isArray(item.category) ? item.category : [item.category]),
+    sortIndex: index,
+  };
+});
+
+const collections = photographyPortfolios.collections || [
+  {
+    id: "art",
+    title: "Art Portfolio",
+    description: "Art-tagged photographs drawn from the wider portfolio, centered on experimentation, exhibitions, and image-making.",
+    imageCount: 22,
+    downloadUrl: "https://assets.abodid.com/documents/curated-photography-archives/abodid-art-portfolio.pdf",
+  },
+  {
+    id: "commercial",
+    title: "Commercial Portfolio",
+    description: "Commercial-tagged photographs spanning fashion, events, commissioned portraiture, and cultural documentation.",
+    imageCount: 25,
+    downloadUrl: "https://assets.abodid.com/documents/curated-photography-archives/abodid-commercial-portfolio.pdf",
+  },
+  {
+    id: "complete",
+    title: "Complete Portfolio",
+    description: "The full 404-image photography archive across experimental work, fashion-led frames, exhibitions, portraits, and street observation.",
+    imageCount: 404,
+    downloadUrl: "https://drive.google.com/file/d/1bU6WqxZvVAakmhWrQwXGhVNtiUdm9DMO/view?usp=sharing",
+  },
+];
+
+// Curated Hero Featured Slides
+const heroSlideSlugs = [
+  "into-the-flux",
+  "cries-of-an-unmarried-widow",
+  "british-film-institute-london",
+  "outernet-london-2025",
+  "uncanny-comforts-with-emma",
+  "rca-gradshow-in-london",
+];
+
+const heroSlides = heroSlideSlugs
+  .map((slug) => portfolioItems.find((item: any) => item.slug === slug))
+  .filter(Boolean)
+  .concat(portfolioItems.slice(0, 4))
+  .slice(0, 6);
+
+const pageTitle = "Photography & Visual Essays — Abodid Sahoo";
+const pageDescription =
+  "Documentary, exhibition, and experimental photography archive by Abodid Sahoo in London. Capturing moments of silence, chaos, and human depth across 24 photo series.";
+
+const structuredData = [
+  personJsonLd(),
+  breadcrumbJsonLd([
+    { name: "Home", path: "/" },
+    { name: "Photography", path: "/photography" },
+  ]),
+];
 ---
 
-<BaseLayout title={pageTitle}>
-  <header class="page-header">
-    <h1>Photography</h1>
-    <p class="section-intro">
-      A collection of photo essays, capturing moments of silence, chaos, and
-      everything in between.
-    </p>
-  </header>
+<BaseLayout
+  title={pageTitle}
+  description={pageDescription}
+  structuredData={structuredData}
+  fullWidth={true}
+  showNewsletterPopup={false}
+  showGlobalGrid={false}
+  showCursorFollower={false}
+  bodyClass="story-photography-page"
+>
+  <main class="pe-photography-main">
+    {/* 1. Hero Section */}
+    <section class="pe-photo-hero" aria-labelledby="photo-hero-heading">
+      <div class="pe-photo-hero__copy" data-auto-contrast>
+        <div class="pe-photo-hero__masthead">
+          <p class="pe-photo-hero__name">Abodid Sahoo</p>
+        </div>
 
-  <div class="portfolio-container">
-    <PortfolioFilter items={portfolioItems} client:load />
-  </div>
+        <h1 id="photo-hero-heading">
+          Photography & Visual Essays
+        </h1>
+
+        <p class="pe-photo-hero__statement">
+          A documentary, exhibition, and experimental archive capturing moments of silence, chaos, and human depth.
+        </p>
+
+        <p class="pe-photo-hero__lede">
+          From large-scale spatial installations at Outernet &amp; RCA to intimate portraits, fashion editorials, and sociological observations across London and India.
+        </p>
+
+        <div class="pe-photo-actions">
+          <a class="pe-button pe-button--primary" href="#portfolio-archive">
+            <span>Explore photo essays</span>
+            <b aria-hidden="true">↓</b>
+          </a>
+          <a class="pe-button pe-button--secondary" href="#curated-portfolios">
+            <span>Curated Portfolios (PDF)</span>
+            <b aria-hidden="true">↓</b>
+          </a>
+          <a class="pe-button pe-button--ghost" href="#enquiry">
+            <span>Commission work</span>
+            <span class="link-destination-arrow" aria-hidden="true">↗</span>
+          </a>
+        </div>
+      </div>
+
+      <aside class="pe-photo-hero__rail" aria-label="Featured photography preview">
+        {/* Featured Visual Slide Carousel */}
+        <div class="pe-hero-visual" aria-label="Featured photo series showcase" data-hero-slider>
+          <div class="pe-hero-visual__track" role="region" aria-label="Featured photo series carousel" aria-live="polite">
+            {heroSlides.map((item: any, index: number) => (
+              <a
+                class={`pe-hero-visual__slide ${index === 0 ? "is-active" : ""}`}
+                href={item.href || `/photography/${item.slug}`}
+                data-hero-slide={index}
+                aria-hidden={index === 0 ? "false" : "true"}
+                tabindex={index === 0 ? "0" : "-1"}
+              >
+                <img
+                  src={item.image}
+                  alt={item.title}
+                  loading={index === 0 ? "eager" : "lazy"}
+                  decoding={index === 0 ? "sync" : "async"}
+                />
+                <span class="pe-hero-visual__caption">
+                  <b>{item.title}</b>
+                  <small>
+                    {Array.isArray(item.category) ? item.category[0] : item.category || "Series"} · {item.imageCount || "20+"} frames
+                  </small>
+                </span>
+              </a>
+            ))}
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    {/* 2. Curated Portfolios Feature Band */}
+    <section class="pe-curated-section" id="curated-portfolios" aria-labelledby="curated-portfolios-heading">
+      <header class="pe-section-heading">
+        <p class="pe-eyebrow">Curated Portfolios &amp; PDF Archives</p>
+        <h2 id="curated-portfolios-heading">Curated Selections</h2>
+      </header>
+
+      <div class="pe-curated-grid">
+        {/* Card 1: Art Portfolio */}
+        <article class="pe-curated-card pe-curated-card--art">
+          <div class="pe-curated-card__top">
+            <span class="pe-curated-card__num">01 / ART</span>
+            <h3>Art Portfolio</h3>
+            <p class="pe-curated-card__count">22 Selected Works · Exhibitions &amp; Experimental</p>
+          </div>
+          <p class="pe-curated-card__desc">
+            Art-tagged photographs drawn from the wider portfolio, centered on experimentation, spatial exhibitions, and image-making as a sensory visual language.
+          </p>
+          <div class="pe-curated-card__actions">
+            <a href="https://assets.abodid.com/documents/curated-photography-archives/abodid-art-portfolio.pdf" download="abodid-art-portfolio.pdf" target="_blank" rel="noopener noreferrer" class="pe-curated-btn">
+              <span>Download PDF (22 Images)</span>
+              <b aria-hidden="true">↓</b>
+            </a>
+          </div>
+        </article>
+
+        {/* Card 2: Commercial Portfolio */}
+        <article class="pe-curated-card pe-curated-card--commercial">
+          <div class="pe-curated-card__top">
+            <span class="pe-curated-card__num">02 / COMMERCIAL</span>
+            <h3>Commercial Portfolio</h3>
+            <p class="pe-curated-card__count">25 Selected Works · Fashion, Events &amp; Commissioned</p>
+          </div>
+          <p class="pe-curated-card__desc">
+            Commercial-tagged photographs spanning fashion editorials, cultural events, commissioned portraiture, and work shaped for collaborators and institutional clients.
+          </p>
+          <div class="pe-curated-card__actions">
+            <a href="https://assets.abodid.com/documents/curated-photography-archives/abodid-commercial-portfolio.pdf" download="abodid-commercial-portfolio.pdf" target="_blank" rel="noopener noreferrer" class="pe-curated-btn">
+              <span>Download PDF (25 Images)</span>
+              <b aria-hidden="true">↓</b>
+            </a>
+          </div>
+        </article>
+
+        {/* Card 3: Complete Portfolio Archive */}
+        <article class="pe-curated-card pe-curated-card--complete">
+          <div class="pe-curated-card__top">
+            <span class="pe-curated-card__num">03 / ARCHIVE</span>
+            <h3>Complete Archive</h3>
+            <p class="pe-curated-card__count">404 Images · Full Comprehensive Portfolio</p>
+          </div>
+          <p class="pe-curated-card__desc">
+            The full 404-image photography archive across experimental work, fashion-led frames, exhibitions at RCA and Outernet, portraits, and street observation.
+          </p>
+          <div class="pe-curated-card__actions">
+            <a href="https://drive.google.com/file/d/1bU6WqxZvVAakmhWrQwXGhVNtiUdm9DMO/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="pe-curated-btn">
+              <span>View Full Archive (PDF)</span>
+              <span class="link-destination-arrow" aria-hidden="true">↗</span>
+            </a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    {/* 3. Complete Photography Archive Grid with Category Filter */}
+    <section class="pe-archive-section" id="portfolio-archive" aria-labelledby="archive-heading">
+      <header class="pe-section-heading">
+        <p class="pe-eyebrow">Documentary &amp; Experimental Series</p>
+        <h2 id="archive-heading">All Photo Series</h2>
+      </header>
+
+      <PortfolioFilter items={portfolioItems} client:load />
+    </section>
+
+    {/* 4. Project Enquiry & Commission Section */}
+    <section class="story-enquiry" aria-label="Project enquiry">
+      <InlineInquiryForm
+        id="enquiry"
+        heading="Commission or license photography."
+        intro="Open for commissioned editorial assignments, exhibition documentation, creative direction, and fine art print licensing."
+        sourceName="photography-page"
+        variant="pop"
+        interestOptions={[
+          "Exhibition & spatial documentation",
+          "Editorial & fashion photography",
+          "Cultural documentation & film stills",
+          "Fine art print licensing",
+          "Creative direction & photo essay",
+          "Something else",
+        ]}
+      />
+    </section>
+  </main>
+
+  {/* Client-Side Hero Slider and Surface Interactions */}
+  <script is:inline>
+    (() => {
+      const initialiseHeroSlider = () => {
+        const slider = document.querySelector("[data-hero-slider]");
+        if (!slider) return;
+
+        const slides = Array.from(slider.querySelectorAll("[data-hero-slide]"));
+        if (slides.length <= 1) return;
+
+        let currentIndex = 0;
+        let timer = null;
+        const INTERVAL_MS = 3800;
+
+        const goToSlide = (nextIndex) => {
+          const targetIndex = (nextIndex + slides.length) % slides.length;
+          if (targetIndex === currentIndex) return;
+
+          slides[currentIndex]?.classList.remove("is-active");
+          slides[currentIndex]?.setAttribute("aria-hidden", "true");
+          slides[currentIndex]?.setAttribute("tabindex", "-1");
+
+          currentIndex = targetIndex;
+
+          slides[currentIndex]?.classList.add("is-active");
+          slides[currentIndex]?.setAttribute("aria-hidden", "false");
+          slides[currentIndex]?.setAttribute("tabindex", "0");
+        };
+
+        const startTimer = () => {
+          stopTimer();
+          timer = setInterval(() => {
+            goToSlide(currentIndex + 1);
+          }, INTERVAL_MS);
+        };
+
+        const stopTimer = () => {
+          if (timer) {
+            clearInterval(timer);
+            timer = null;
+          }
+        };
+
+        // Touch gestures
+        let touchStartX = 0;
+        slider.addEventListener(
+          "touchstart",
+          (e) => {
+            touchStartX = e.changedTouches && e.changedTouches[0] ? e.changedTouches[0].screenX : 0;
+          },
+          { passive: true }
+        );
+
+        slider.addEventListener(
+          "touchend",
+          (e) => {
+            const touchEndX = e.changedTouches && e.changedTouches[0] ? e.changedTouches[0].screenX : 0;
+            const diff = touchStartX - touchEndX;
+            if (Math.abs(diff) > 40) {
+              if (diff > 0) {
+                goToSlide(currentIndex + 1);
+              } else {
+                goToSlide(currentIndex - 1);
+              }
+              startTimer();
+            }
+          },
+          { passive: true }
+        );
+
+        slider.addEventListener("mouseenter", stopTimer);
+        slider.addEventListener("mouseleave", startTimer);
+
+        slider.addEventListener("keydown", (e) => {
+          if (e.key === "ArrowLeft") {
+            goToSlide(currentIndex - 1);
+            startTimer();
+          } else if (e.key === "ArrowRight") {
+            goToSlide(currentIndex + 1);
+            startTimer();
+          }
+        });
+
+        startTimer();
+      };
+
+      const initialisePage = () => {
+        initialiseHeroSlider();
+      };
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initialisePage);
+      } else {
+        requestAnimationFrame(initialisePage);
+      }
+      document.addEventListener("astro:page-load", initialisePage);
+      document.addEventListener("astro:after-swap", initialisePage);
+    })();
+  </script>
 </BaseLayout>
 
-<style>
-  .portfolio-container {
-    margin-bottom: var(--space-3xl);
+<style is:global>
+  :root {
+    --pop-blue: #2444ca;
+    --pop-pink: #ff7eb5;
+    --pop-yellow: #ffe44f;
+    --pop-lime: #caff48;
+    --pop-orange: #ff875c;
+    --pop-purple: #5524c7;
+    --pop-cyan: #62e6ff;
+    --pop-cream: #fff8e8;
+    --pop-ink: #15130f;
+    --pop-border: rgba(21, 19, 15, 0.78);
+    --pop-gap: 8px;
+    --pop-radius-panel: clamp(18px, 2vw, 28px);
+    --pop-radius-card: clamp(14px, 1.5vw, 22px);
+    --pop-radius-control: 14px;
+    --pop-radius-media: clamp(10px, 1.2vw, 16px);
+    --pop-card-inset: 10px;
+    --pop-motion: 180ms ease;
   }
 
-  .page-header {
-    margin-bottom: 4rem;
-    padding-top: 2rem;
-    text-align: left;
+  html:has(body.story-photography-page) {
+    background: var(--pop-blue) !important;
   }
 
-  h1 {
-    font-family: var(--font-display);
-    font-size: clamp(4rem, 6vw, 4.75rem);
-    font-weight: 700;
-    line-height: 1.08;
-    margin-bottom: 1.25rem;
-    letter-spacing: -0.035em;
-    color: var(--text-primary);
-  }
-
-  .section-intro {
-    font-family: var(--font-sans);
-    font-size: 1.1rem;
-    color: var(--text-secondary);
-    max-width: 600px;
+  body.story-photography-page {
     margin: 0;
-    line-height: 1.6;
+    padding: 0 !important;
+    background: var(--pop-blue) !important;
+    color: var(--pop-ink);
+  }
+
+  body.story-photography-page main.page-content-full {
+    overflow: visible;
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+
+  body.story-photography-page :is(h1, h2, h3, h4, p, figure, dl, dd, ul, ol) {
+    margin-top: 0;
+  }
+
+  body.story-photography-page :is(a, button, summary) {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Main Shell Container */
+  .pe-photography-main {
+    padding: var(--pop-gap);
+    display: flex;
+    flex-direction: column;
+    gap: var(--pop-gap);
+    background: var(--pop-blue);
+  }
+
+  /* Eyebrow / Meta Labels */
+  .pe-eyebrow {
+    margin: 0 0 0.85rem;
+    font: 750 clamp(0.68rem, 0.9vw, 0.78rem)/1.35 var(--font-mono, monospace);
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: inherit;
+  }
+
+  /* Section Headings */
+  .pe-section-heading {
+    margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
+    color: var(--pop-cream, #fff8e8);
+  }
+
+  .pe-section-heading h2 {
+    margin: 0;
+    font: 620 clamp(2.4rem, 5.2vw, 4.8rem)/0.92 var(--font-display, sans-serif);
+    letter-spacing: -0.055em;
+    color: var(--pop-cream, #fff8e8) !important;
+  }
+
+  /* 1. Hero Section */
+  .pe-photo-hero {
+    min-height: auto;
+    display: grid;
+    grid-template-columns: minmax(0, 1.45fr) minmax(360px, 1fr);
+    gap: var(--pop-gap);
+    align-items: stretch;
+  }
+
+  .pe-photo-hero__copy {
+    padding: clamp(1.75rem, 3.5vw, 3.8rem);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    border: 1px solid var(--pop-border);
+    border-radius: var(--pop-radius-panel);
+    background: var(--pop-pink);
+    color: var(--pop-ink);
+  }
+
+  .pe-photo-hero__masthead {
+    margin-bottom: clamp(1.15rem, 2vw, 1.8rem);
+    padding-bottom: clamp(0.85rem, 1.4vw, 1.2rem);
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    border-bottom: 1px solid var(--pop-ink);
+  }
+
+  .pe-photo-hero__name {
+    margin: 0;
+    color: inherit;
+    font: 720 clamp(2.2rem, 3.8vw, 4.2rem)/0.85 var(--font-display, sans-serif);
+    letter-spacing: -0.06em;
+  }
+
+
+
+  .pe-photo-hero h1 {
+    max-width: 36ch;
+    margin: 0 0 clamp(0.85rem, 1.4vw, 1.25rem);
+    color: inherit;
+    font: 620 clamp(2.6rem, 4.8vw, 4.6rem)/0.92 var(--font-display, sans-serif);
+    letter-spacing: -0.06em;
+    text-wrap: balance;
+  }
+
+  .pe-photo-hero__statement {
+    max-width: 32ch;
+    margin: 0 0 clamp(1.1rem, 1.8vw, 1.5rem);
+    color: inherit;
+    font: 300 clamp(1.75rem, 2.7vw, 2.9rem)/1.02 var(--font-display, sans-serif);
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+  }
+
+  .pe-photo-hero__lede {
+    max-width: 820px;
+    margin-bottom: clamp(1.5rem, 2.5vw, 2.2rem);
+    color: rgba(21, 19, 15, 0.82);
+    font: 450 clamp(0.95rem, 1.15vw, 1.12rem)/1.5 var(--font-body, sans-serif);
+  }
+
+  .pe-photo-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: auto;
+    padding-top: 1rem;
+  }
+
+  .pe-button {
+    min-height: 50px;
+    padding: 0 1.2rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    border: 1px solid var(--pop-ink);
+    border-radius: var(--pop-radius-control);
+    color: var(--pop-ink);
+    font: 750 0.72rem/1 var(--font-mono, monospace);
+    letter-spacing: 0.08em;
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: transform var(--pop-motion), box-shadow var(--pop-motion);
+    box-sizing: border-box;
+  }
+
+  .pe-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 0 var(--pop-ink);
+  }
+
+  .pe-button--primary {
+    background: var(--pop-cream);
+  }
+
+  .pe-button--secondary {
+    background: var(--pop-yellow);
+  }
+
+  .pe-button--ghost {
+    background: transparent;
+    border: 1px solid currentColor;
+  }
+
+  /* Right Rail Showcase */
+  .pe-photo-hero__rail {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  /* Hero Visual Slider */
+  .pe-hero-visual {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: clamp(340px, 35vw, 540px);
+    padding: var(--pop-card-inset);
+    border: 1px solid var(--pop-border);
+    border-radius: var(--pop-radius-panel);
+    background: var(--pop-blue);
+    overflow: hidden;
+    display: flex;
+    box-sizing: border-box;
+  }
+
+  .pe-hero-visual__track {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border: 1px solid var(--pop-ink);
+    border-radius: var(--pop-radius-media);
+    background: var(--pop-pink);
+  }
+
+  .pe-hero-visual__slide {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 550ms cubic-bezier(0.2, 0.8, 0.2, 1), transform 550ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    transform: scale(1.02);
+    overflow: hidden;
+    text-decoration: none;
+  }
+
+  .pe-hero-visual__slide.is-active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: scale(1);
+    z-index: 2;
+  }
+
+  .pe-hero-visual__slide img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    transition: transform 600ms ease;
+  }
+
+  .pe-hero-visual__slide:hover img {
+    transform: scale(1.025);
+  }
+
+  .pe-hero-visual__caption {
+    position: absolute;
+    inset: auto 0 0;
+    padding: 0.85rem 1.1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    background: var(--pop-yellow);
+    color: var(--pop-ink);
+    border-top: 1px solid var(--pop-ink);
+    z-index: 3;
+  }
+
+  .pe-hero-visual__caption b {
+    font: 700 0.95rem/1.1 var(--font-display, sans-serif);
+  }
+
+  .pe-hero-visual__caption small {
+    font: 750 0.62rem/1.3 var(--font-mono, monospace);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* 2. Curated Portfolios Section */
+  .pe-curated-section {
+    padding: clamp(1.75rem, 3.5vw, 3.5rem);
+    border: 1px solid var(--pop-border);
+    border-radius: var(--pop-radius-panel);
+    background: var(--pop-blue);
+    color: var(--pop-cream);
+  }
+
+  .pe-curated-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--pop-gap);
+  }
+
+  .pe-curated-card {
+    padding: clamp(1.4rem, 2.5vw, 2.2rem);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 1.5rem;
+    min-height: 340px;
+    border: 1px solid var(--pop-ink);
+    border-radius: var(--pop-radius-card);
+    transition: transform var(--pop-motion), box-shadow var(--pop-motion);
+    box-sizing: border-box;
+  }
+
+  .pe-curated-card:hover,
+  .pe-curated-card:focus-visible {
+    color: var(--pop-ink) !important;
+    text-decoration: none;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 0 var(--pop-ink);
+  }
+
+  .pe-curated-card--art {
+    background: var(--pop-yellow);
+    color: var(--pop-ink);
+  }
+
+  .pe-curated-card--commercial {
+    background: var(--pop-pink);
+    color: var(--pop-ink);
+  }
+
+  .pe-curated-card--complete {
+    background: var(--pop-lime);
+    color: var(--pop-ink);
+  }
+
+  .pe-curated-card__top {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+
+  .pe-curated-card__num {
+    font: 750 0.72rem/1 var(--font-mono, monospace);
+    letter-spacing: 0.1em;
+    opacity: 0.85;
+    text-transform: uppercase;
+  }
+
+  .pe-curated-card h3 {
+    margin: 0;
+    color: inherit !important;
+    font: 640 clamp(1.6rem, 2.4vw, 2.2rem)/1.02 var(--font-display, sans-serif) !important;
+    letter-spacing: -0.04em !important;
+  }
+
+  .pe-curated-card__count {
+    margin: 0;
+    font: 750 0.72rem/1.3 var(--font-mono, monospace);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    opacity: 0.9;
+  }
+
+  .pe-curated-card__desc {
+    margin: 0;
+    color: inherit !important;
+    font: 450 clamp(0.92rem, 1.1vw, 1.02rem)/1.5 var(--font-body, sans-serif) !important;
+    opacity: 0.92;
+  }
+
+  .pe-curated-card__actions {
+    padding-top: 1rem;
+    border-top: 1px solid currentColor;
+  }
+
+  .pe-curated-btn {
+    min-height: 46px;
+    padding: 0 1.15rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    border: 1px solid var(--pop-ink);
+    border-radius: var(--pop-radius-control);
+    background: var(--pop-cream);
+    color: var(--pop-ink) !important;
+    font: 750 0.72rem/1 var(--font-mono, monospace);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: transform 160ms ease, box-shadow 160ms ease;
+  }
+
+  .pe-curated-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 3px 0 var(--pop-ink);
+  }
+
+  /* 3. Main Archive Section */
+  .pe-archive-section {
+    padding: clamp(1.75rem, 3.5vw, 3.5rem);
+    border: 1px solid var(--pop-border);
+    border-radius: var(--pop-radius-panel);
+    background: var(--pop-blue);
+    color: var(--pop-cream);
+  }
+
+  .pe-photography-archive {
+    width: 100%;
+    color: inherit;
+  }
+
+  /* Filter Toolbar */
+  .pe-filter-bar {
+    margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+
+  .pe-filter-bar__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .pe-filter-eyebrow {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    font: 750 clamp(0.68rem, 0.9vw, 0.78rem)/1.35 var(--font-mono, monospace);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--pop-cream, #fff8e8);
+  }
+
+
+
+  .pe-filter-scroll {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding-bottom: 0.25rem;
+  }
+
+  /* Filter Pills */
+  .pe-filter-pill {
+    min-height: 42px;
+    padding: 0.45rem 0.95rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    border: 1px solid var(--pop-border, rgba(21, 19, 15, 0.78));
+    border-radius: var(--pop-radius-control, 14px);
+    background: var(--pop-cream, #fff8e8);
+    color: var(--pop-ink, #15130f);
+    font: 750 clamp(0.72rem, 0.85vw, 0.8rem)/1 var(--font-mono, monospace);
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    text-decoration: none;
+    cursor: pointer;
+    transition: transform 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    box-sizing: border-box;
+  }
+
+  .pe-filter-pill:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 0 var(--pop-ink, #15130f);
+    background: #ffffff;
+  }
+
+  .pe-filter-pill.is-active {
+    background: var(--pop-yellow, #ffe44f) !important;
+    color: var(--pop-ink, #15130f) !important;
+    border-color: var(--pop-ink, #15130f);
+    box-shadow: 0 3px 0 var(--pop-ink, #15130f);
+    font-weight: 800;
+  }
+
+  .pe-filter-pill__count {
+    padding: 0.2rem 0.45rem;
+    background: rgba(21, 19, 15, 0.1);
+    border-radius: 999px;
+    font-size: 0.64rem;
+    font-weight: 750;
+    letter-spacing: 0.04em;
+  }
+
+  .pe-filter-pill.is-active .pe-filter-pill__count {
+    background: var(--pop-ink, #15130f);
+    color: var(--pop-yellow, #ffe44f);
+  }
+
+  /* Photography Grid: 12-column asymmetric layout */
+  .pe-photo-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: var(--pop-gap, 8px);
+    align-items: stretch;
+  }
+
+  /* Rhythmic alternating spans */
+  .pe-photo-card {
+    grid-column: span 6;
+    min-height: clamp(480px, 48vw, 680px);
+    min-width: 0;
+    padding: var(--pop-card-inset, 10px) var(--pop-card-inset, 10px) clamp(1.1rem, 2vw, 1.6rem);
+    display: flex;
+    flex-direction: column;
+    gap: var(--pop-gap, 8px);
+    overflow: hidden;
+    border: 1px solid var(--pop-border, rgba(21, 19, 15, 0.78));
+    border-radius: var(--pop-radius-panel, clamp(18px, 2vw, 28px));
+    background: var(--card-bg, var(--pop-pink, #ff7eb5));
+    color: var(--card-fg, var(--pop-ink, #15130f));
+    text-decoration: none;
+    box-sizing: border-box;
+    transition: transform 180ms ease, box-shadow 180ms ease;
+  }
+
+  /* Robust theme palette mapping (SSR/hydration safe) */
+  .pe-photo-card[data-palette="0"] { --card-bg: var(--pop-pink, #ff7eb5); --card-fg: var(--pop-ink, #15130f); }
+  .pe-photo-card[data-palette="1"] { --card-bg: var(--pop-blue, #2444ca); --card-fg: var(--pop-cream, #fff8e8); }
+  .pe-photo-card[data-palette="2"] { --card-bg: var(--pop-cream, #fff8e8); --card-fg: var(--pop-ink, #15130f); }
+  .pe-photo-card[data-palette="3"] { --card-bg: var(--pop-yellow, #ffe44f); --card-fg: var(--pop-ink, #15130f); }
+  .pe-photo-card[data-palette="4"] { --card-bg: var(--pop-lime, #caff48); --card-fg: var(--pop-ink, #15130f); }
+  .pe-photo-card[data-palette="5"] { --card-bg: var(--pop-cyan, #62e6ff); --card-fg: var(--pop-ink, #15130f); }
+  .pe-photo-card[data-palette="6"] { --card-bg: var(--pop-orange, #ff875c); --card-fg: var(--pop-ink, #15130f); }
+
+  .pe-photo-card:hover,
+  .pe-photo-card:focus-visible {
+    color: var(--card-fg, var(--pop-ink, #15130f)) !important;
+    text-decoration: none;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+  }
+
+  /* 12-col spans: 7/5, 5/7, 7/5, 5/7 pattern */
+  .pe-photo-card--1 { grid-column: span 7; }
+  .pe-photo-card--2 { grid-column: span 5; }
+  .pe-photo-card--3 { grid-column: span 5; }
+  .pe-photo-card--4 { grid-column: span 7; }
+  .pe-photo-card--5 { grid-column: span 7; }
+  .pe-photo-card--6 { grid-column: span 5; }
+  .pe-photo-card--7 { grid-column: span 6; }
+  .pe-photo-card--8 { grid-column: span 6; }
+
+  /* Card Inset Media Container */
+  .pe-photo-card__media {
+    min-height: 260px;
+    margin: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+    border: 1px solid var(--pop-ink, #15130f);
+    border-radius: var(--pop-radius-media, clamp(10px, 1.2vw, 16px));
+    background: var(--pop-ink, #15130f);
+    position: relative;
+  }
+
+  .pe-photo-card__media img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    transform: scale(1);
+    transform-origin: center center;
+    transition: transform 500ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    pointer-events: none;
+  }
+
+  .pe-photo-card:hover .pe-photo-card__media img {
+    transform: scale(1.025);
+  }
+
+  /* Card Body & Typography */
+  .pe-photo-card__body {
+    padding: 0.85rem clamp(0.35rem, 0.8vw, 0.7rem) 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+
+  .pe-photo-card__meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+
+
+  .pe-photo-card__tags {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+  }
+
+  .pe-meta-tag {
+    padding: 0.2rem 0.5rem;
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    font: 750 0.62rem/1.2 var(--font-mono, monospace);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: inherit;
+    opacity: 0.9;
+  }
+
+
+
+  .pe-photo-card__title {
+    margin: 0;
+    color: inherit !important;
+    font: 620 clamp(1.65rem, 2.5vw, 2.8rem)/0.96 var(--font-display, sans-serif) !important;
+    letter-spacing: -0.045em !important;
+    text-wrap: balance;
+    overflow-wrap: break-word;
+  }
+
+  .pe-photo-card__cta {
+    margin-top: 0.35rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font: 750 clamp(0.72rem, 0.88vw, 0.8rem)/1 var(--font-mono, monospace);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: inherit;
+  }
+
+  .pe-photo-card__cta-label {
+    color: inherit;
+  }
+
+  .pe-photo-card:hover .pe-photo-card__cta-label,
+  .pe-photo-card:focus-visible .pe-photo-card__cta-label {
+    text-decoration: underline;
+    text-underline-offset: 3.5px;
+    text-decoration-thickness: 1.5px;
+  }
+
+  .pe-photo-card .link-destination-arrow {
+    display: inline-block;
+    text-decoration: none !important;
+    transition: transform 180ms ease;
+  }
+
+  .pe-photo-card:hover .link-destination-arrow,
+  .pe-photo-card:focus-visible .link-destination-arrow {
+    transform: translate(2px, -2px);
+    text-decoration: none !important;
+  }
+
+  /* Empty State */
+  .pe-empty-state {
+    padding: clamp(2.5rem, 5vw, 4.5rem);
+    border: 1px solid var(--pop-border, rgba(21, 19, 15, 0.78));
+    border-radius: var(--pop-radius-panel, clamp(18px, 2vw, 28px));
+    background: var(--pop-cream, #fff8e8);
+    color: var(--pop-ink, #15130f);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .pe-empty-state__title {
+    margin: 0;
+    font: 700 clamp(1.8rem, 3vw, 2.5rem)/1.1 var(--font-display, sans-serif);
+    letter-spacing: -0.04em;
+  }
+
+  .pe-empty-state__desc {
+    margin: 0;
+    color: rgba(21, 19, 15, 0.8);
+    font: 450 1.05rem/1.5 var(--font-body, sans-serif);
+  }
+
+  .pe-reset-btn {
+    margin-top: 0.5rem;
+    min-height: 48px;
+    padding: 0 1.25rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    border: 1px solid var(--pop-ink, #15130f);
+    border-radius: var(--pop-radius-control, 14px);
+    background: var(--pop-yellow, #ffe44f);
+    color: var(--pop-ink, #15130f);
+    font: 750 0.75rem/1 var(--font-mono, monospace);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: transform 160ms ease, box-shadow 160ms ease;
+  }
+
+  .pe-reset-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 0 var(--pop-ink, #15130f);
+  }
+
+  /* 4. Inquiry Section Wrapper */
+  .pe-photography-main .story-enquiry {
+    padding: clamp(2rem, 4vw, 4rem);
+    border: 1px solid var(--pop-border);
+    border-radius: var(--pop-radius-panel);
+    background: var(--pop-purple);
+    color: var(--pop-cream);
+  }
+
+  /* Responsive Rules */
+  @media (max-width: 980px) {
+    .pe-photo-hero {
+      grid-template-columns: 1fr;
+    }
+
+    .pe-curated-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .pe-photography-main {
+      padding: var(--pop-gap);
+    }
+
+    .pe-photo-hero__copy {
+      padding: 1.5rem;
+    }
+
+    .pe-photo-hero__masthead {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+
+    .pe-curated-section,
+    .pe-archive-section {
+      padding: 1.25rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pe-hero-visual__slide,
+    .pe-button,
+    .pe-download-pill,
+    .pe-curated-card,
+    .pe-curated-btn {
+      transition-duration: 0.01ms !important;
+      transform: none !important;
+    }
   }
 </style>

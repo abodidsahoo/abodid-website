@@ -40,9 +40,18 @@ const ALLOWED_IMAGE_MIME_TYPES = new Set([
     "image/png",
     "image/webp",
     "image/gif",
+    "image/avif",
+    "image/svg+xml",
     "video/mp4",
     "video/webm",
     "video/quicktime",
+    "audio/mpeg",
+    "audio/wav",
+    "audio/mp3",
+    "application/pdf",
+    "text/plain",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 ]);
 
 export type R2Config = {
@@ -80,28 +89,28 @@ const normalizeEndpoint = (rawEndpoint: string, accountId: string) => {
 
 export const getR2Config = (): R2Config => {
     const accountId = (
-        process.env.R2_ACCOUNT_ID || import.meta.env.R2_ACCOUNT_ID || ""
+        process.env.R2_ACCOUNT_ID || (typeof import.meta !== "undefined" && import.meta.env?.R2_ACCOUNT_ID) || ""
     ).trim();
     const endpoint = normalizeEndpoint(
-        (process.env.R2_ENDPOINT || import.meta.env.R2_ENDPOINT || "").trim(),
+        (process.env.R2_ENDPOINT || (typeof import.meta !== "undefined" && import.meta.env?.R2_ENDPOINT) || "").trim(),
         accountId,
     );
 
     return {
         endpoint,
         accessKeyId: cleanRequiredValue(
-            process.env.R2_ACCESS_KEY_ID || import.meta.env.R2_ACCESS_KEY_ID,
+            process.env.R2_ACCESS_KEY_ID || (typeof import.meta !== "undefined" && import.meta.env?.R2_ACCESS_KEY_ID),
             "R2_ACCESS_KEY_ID",
         ),
         secretAccessKey: cleanRequiredValue(
-            process.env.R2_SECRET_ACCESS_KEY || import.meta.env.R2_SECRET_ACCESS_KEY,
+            process.env.R2_SECRET_ACCESS_KEY || (typeof import.meta !== "undefined" && import.meta.env?.R2_SECRET_ACCESS_KEY),
             "R2_SECRET_ACCESS_KEY",
         ),
         bucket: (
-            process.env.R2_BUCKET_NAME || import.meta.env.R2_BUCKET_NAME || "assets"
+            process.env.R2_BUCKET_NAME || (typeof import.meta !== "undefined" && import.meta.env?.R2_BUCKET_NAME) || "assets"
         ).trim(),
         publicBaseUrl: (
-            process.env.R2_PUBLIC_BASE_URL || import.meta.env.R2_PUBLIC_BASE_URL || "https://assets.abodid.com"
+            process.env.R2_PUBLIC_BASE_URL || (typeof import.meta !== "undefined" && import.meta.env?.R2_PUBLIC_BASE_URL) || "https://assets.abodid.com"
         ).trim().replace(/\/+$/, ""),
     };
 };

@@ -1,0 +1,8 @@
+---
+import FeaturedWorkCarousel from "../components/FeaturedWorkCarousel.astro";
+import { getHomeStorytellingContent } from "../lib/homeStorytellingContent";
+
+const content = await getHomeStorytellingContent();
+---
+
+<FeaturedWorkCarousel projects={content.projects} />

@@ -6,21 +6,20 @@ import {
     jsonResponse,
 } from "../../../../lib/admin/serverAuth";
 import {
-    assertSafeR2ObjectKey,
     buildR2PublicUrl,
-    headR2Object,
+    getR2Config,
     isAllowedImageMimeType,
+    makeAvailableR2ObjectKey,
     MAX_IMAGE_SIZE_BYTES,
     MAX_MEDIA_SIZE_BYTES,
+    normalizeR2FolderPath,
+    putR2Object,
 } from "../../../../lib/media/r2";
 
 const optionalDimension = (value: unknown) => {
     const parsed = Number(value);
     return Number.isSafeInteger(parsed) && parsed > 0 && parsed <= 100_000 ? parsed : null;
 };
-
-const cleanEtag = (value: string | undefined) =>
-    value?.replace(/^"|"$/g, "") || null;
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -48,42 +47,47 @@ export const POST: APIRoute = async ({ request }) => {
     if (!authorization.ok) return authorization.response;
 
     try {
-        const body = await request.json();
-        const objectKey = assertSafeR2ObjectKey(body?.objectKey);
-        const originalFilename =
-            typeof body?.originalFilename === "string"
-                ? body.originalFilename.trim().slice(0, 255)
-                : "";
-        const expectedSize = Number(body?.expectedSize);
-        const width = optionalDimension(body?.width);
-        const height = optionalDimension(body?.height);
-        const projectId = typeof body?.projectId === "string" && UUID_PATTERN.test(body.projectId)
-            ? body.projectId
-            : null;
-
-        if (!originalFilename) {
-            return jsonResponse({ error: "The original filename is required." }, 400);
+        const formData = await request.formData();
+        const file = formData.get("file");
+        if (!(file instanceof File)) {
+            return jsonResponse({ error: "Choose a valid file to upload." }, 400);
         }
 
-        const { config, object } = await headR2Object(objectKey);
-        const contentType = (object.ContentType || "").toLowerCase();
-        const fileSize = Number(object.ContentLength || 0);
+        const rawFolder = String(formData.get("folder") || "");
+        const folder = normalizeR2FolderPath(rawFolder);
+        const filename = file.name.trim().slice(0, 255);
+        const contentType = file.type?.trim().toLowerCase() || "application/octet-stream";
+        const fileSize = file.size;
+        const width = optionalDimension(formData.get("width"));
+        const height = optionalDimension(formData.get("height"));
+        const rawProjectId = formData.get("projectId");
+        const projectId = typeof rawProjectId === "string" && UUID_PATTERN.test(rawProjectId)
+            ? rawProjectId
+            : null;
 
+        if (!filename) {
+            return jsonResponse({ error: "The file must have a valid filename." }, 400);
+        }
         if (!isAllowedImageMimeType(contentType)) {
-            return jsonResponse({ error: "R2 returned an unsupported file type." }, 400);
+            return jsonResponse({ error: "Unsupported file type. Use images, videos, audio or documents." }, 400);
         }
         const isLargeMediaOrDoc = contentType.startsWith("video/") || contentType === "application/pdf";
         const maxAllowedSize = isLargeMediaOrDoc ? MAX_MEDIA_SIZE_BYTES : MAX_IMAGE_SIZE_BYTES;
         if (fileSize <= 0 || fileSize > maxAllowedSize) {
-            return jsonResponse({ error: "The uploaded file has an invalid size." }, 400);
+            return jsonResponse({ error: `File must be ${isLargeMediaOrDoc ? "100 MB" : "20 MB"} or smaller.` }, 400);
         }
-        if (Number.isSafeInteger(expectedSize) && expectedSize > 0 && expectedSize !== fileSize) {
-            return jsonResponse({ error: "The uploaded file size did not match the selected file." }, 409);
-        }
+
+        const config = getR2Config();
+        const objectKey = await makeAvailableR2ObjectKey(folder, filename);
+        const bytes = new Uint8Array(await file.arrayBuffer());
+        const uploaded = await putR2Object({
+            objectKey,
+            body: bytes,
+            contentType,
+        });
 
         const slashIndex = objectKey.lastIndexOf("/");
         const folderPath = slashIndex > -1 ? objectKey.slice(0, slashIndex) : "";
-        const publicUrl = buildR2PublicUrl(config, objectKey);
         let originProjectId: string | null = null;
         if (projectId) {
             const { data: project, error: projectError } = await authorization.supabase
@@ -94,29 +98,25 @@ export const POST: APIRoute = async ({ request }) => {
             if (projectError || !project) {
                 return jsonResponse({ error: "The target portfolio project no longer exists." }, 409);
             }
-            const expectedPrefix = `originals/${project.storage_folder}/`;
-            if (!objectKey.startsWith(expectedPrefix)) {
-                return jsonResponse({ error: "The upload folder does not match this project's permanent storage folder." }, 409);
-            }
             originProjectId = project.id;
         }
+
         const record = {
             storage_provider: "cloudflare_r2",
             storage_bucket: config.bucket,
             object_key: objectKey,
             folder_path: folderPath,
-            public_url: publicUrl,
-            original_filename: originalFilename,
+            public_url: uploaded.publicUrl,
+            original_filename: filename,
             mime_type: contentType,
             file_size: fileSize,
             width,
             height,
-            etag: cleanEtag(object.ETag),
+            etag: null,
             created_by: authorization.user.id,
             ...(originProjectId ? { origin_project_id: originProjectId } : {}),
             metadata: {
-                cacheControl: object.CacheControl || null,
-                lastModified: object.LastModified?.toISOString() || null,
+                lastModified: new Date().toISOString(),
             },
         };
 
@@ -129,19 +129,28 @@ export const POST: APIRoute = async ({ request }) => {
             .single();
 
         if (error) {
-            console.error("Could not catalogue the R2 upload:", error);
-            const missingTable = ["42P01", "PGRST205"].includes(error.code || "");
-            return jsonResponse(
-                {
-                    error: missingTable
-                        ? "The image reached R2, but the media catalogue migration has not been applied yet."
-                        : "The image reached R2, but its Supabase record could not be saved.",
-                    code: missingTable ? "MEDIA_CATALOGUE_MISSING" : "MEDIA_CATALOGUE_ERROR",
-                    publicUrl,
+            console.error("Could not catalogue the uploaded asset:", error);
+            // Even if Supabase catalogue insert fails, return successful upload info
+            return jsonResponse({
+                asset: {
+                    id: objectKey,
+                    storageProvider: "cloudflare_r2",
+                    storageBucket: config.bucket,
                     objectKey,
+                    folderPath,
+                    publicUrl: uploaded.publicUrl,
+                    originalFilename: filename,
+                    mimeType: contentType,
+                    fileSize,
+                    width,
+                    height,
+                    catalogued: false,
+                    processingStatus: "uploaded",
+                    processingError: null,
+                    variants: {},
+                    createdAt: new Date().toISOString(),
                 },
-                500,
-            );
+            });
         }
 
         return jsonResponse({
@@ -158,6 +167,7 @@ export const POST: APIRoute = async ({ request }) => {
                 width: data.width,
                 height: data.height,
                 etag: data.etag,
+                catalogued: true,
                 processingStatus: data.processing_status,
                 processingError: data.processing_error,
                 variants: mapVariants(data.media_variants, config),
@@ -165,8 +175,8 @@ export const POST: APIRoute = async ({ request }) => {
             },
         });
     } catch (error) {
-        console.error("Could not verify the completed R2 upload:", error);
-        const message = error instanceof Error ? error.message : "Could not verify the upload.";
+        console.error("Could not complete the R2 upload:", error);
+        const message = error instanceof Error ? error.message : "Could not upload the file.";
         return jsonResponse({ error: message }, 500);
     }
 };
