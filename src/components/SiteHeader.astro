@@ -12,13 +12,14 @@ const navigationItems = [
   { href: "/about", label: "About", active: pathname === "/about" || pathname.startsWith("/about/") },
 ];
 
-// Mobile Secondary Navigation Group (Lower emphasis: Experience, CV, Writing, Workshops, Curation ↗)
+// Mobile Secondary Navigation Group (Lower emphasis: Photography, Films, Writing, Workshops, Curation, CV)
 const mobileSecondaryItems = [
-  { href: "/experience", label: "Experience", active: pathname === "/experience" || pathname.startsWith("/experience/") },
-  { href: "/cv", label: "CV", active: pathname === "/cv" || pathname.startsWith("/cv/") },
+  { href: "/photography", label: "Photography", active: pathname === "/photography" || pathname.startsWith("/photography/") },
+  { href: "/films", label: "Films", active: pathname === "/films" || pathname.startsWith("/films/") },
   { href: "/blog", label: "Writing", active: pathname === "/blog" || pathname.startsWith("/blog/") },
   { href: "/workshops", label: "Workshops", active: pathname === "/workshops" || pathname.startsWith("/workshops/") },
   { href: "/resources", label: "Curation", active: pathname === "/resources" || pathname.startsWith("/resources/") },
+  { href: "/cv", label: "CV", active: pathname === "/cv" || pathname.startsWith("/cv/") },
 ];
 
 const contactHref = onHomepage ? "#enquiry" : "/#enquiry";
