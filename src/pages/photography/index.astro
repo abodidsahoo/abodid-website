@@ -801,7 +801,7 @@ const structuredData = [
 
   /* Filter Pills */
   .pe-filter-pill {
-    min-height: 42px;
+    min-height: 44px;
     padding: 0.45rem 0.95rem;
     display: inline-flex;
     align-items: center;
@@ -1077,6 +1077,24 @@ const structuredData = [
     .pe-curated-grid {
       grid-template-columns: 1fr;
     }
+
+    /* Remove desktop asymmetry before cards become too narrow to read. */
+    .pe-photo-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .pe-photo-card,
+    .pe-photo-card--1,
+    .pe-photo-card--2,
+    .pe-photo-card--3,
+    .pe-photo-card--4,
+    .pe-photo-card--5,
+    .pe-photo-card--6,
+    .pe-photo-card--7,
+    .pe-photo-card--8 {
+      grid-column: span 1;
+      min-height: clamp(460px, 66vw, 620px);
+    }
   }
 
   @media (max-width: 720px) {
@@ -1097,6 +1115,108 @@ const structuredData = [
     .pe-curated-section,
     .pe-archive-section {
       padding: 1.25rem;
+    }
+
+    .pe-section-heading h2 {
+      font-size: clamp(2.4rem, 12vw, 3.6rem);
+      line-height: 0.96;
+      letter-spacing: -0.05em;
+    }
+
+    .pe-photo-actions {
+      display: grid;
+      grid-template-columns: 1fr;
+    }
+
+    .pe-button,
+    .pe-curated-btn {
+      width: 100%;
+      justify-content: space-between;
+    }
+
+    .pe-hero-visual {
+      min-height: clamp(340px, 112vw, 500px);
+    }
+
+    .pe-hero-visual__caption {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    .pe-filter-scroll {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.5rem;
+      padding-bottom: 0.25rem;
+    }
+
+    .pe-filter-pill {
+      width: 100%;
+      min-width: 0;
+      min-height: 48px;
+      justify-content: space-between;
+      padding-inline: 0.8rem;
+    }
+
+    .pe-filter-pill__label {
+      min-width: 0;
+      overflow-wrap: anywhere;
+      text-align: left;
+    }
+
+    /* Phone cards are a new composition, not squeezed desktop cards. */
+    .pe-photo-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .pe-photo-card,
+    .pe-photo-card--1,
+    .pe-photo-card--2,
+    .pe-photo-card--3,
+    .pe-photo-card--4,
+    .pe-photo-card--5,
+    .pe-photo-card--6,
+    .pe-photo-card--7,
+    .pe-photo-card--8 {
+      grid-column: 1 / -1;
+      min-height: 0;
+      padding-bottom: 1.2rem;
+    }
+
+    .pe-photo-card__media {
+      min-height: 0;
+      aspect-ratio: 4 / 3;
+      flex: 0 0 auto;
+    }
+
+    .pe-photo-card__title {
+      font-size: clamp(2rem, 9.5vw, 2.85rem) !important;
+      line-height: 0.98 !important;
+      overflow-wrap: normal;
+      word-break: normal;
+    }
+
+    .pe-photo-card__cta {
+      min-height: 44px;
+      margin-top: 0.15rem;
+    }
+
+    .pe-photography-main .story-enquiry {
+      padding: 1.25rem;
+    }
+  }
+
+  @media (max-width: 380px) {
+    .pe-photo-hero__copy,
+    .pe-curated-section,
+    .pe-archive-section,
+    .pe-photography-main .story-enquiry {
+      padding: 1rem;
+    }
+
+    .pe-filter-scroll {
+      grid-template-columns: 1fr;
     }
   }
 

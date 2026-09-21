@@ -211,13 +211,41 @@ For an unqualified “add a footer”, add only the footer strip. A request for 
 
 ## 9. Responsive behaviour
 
-- Break at approximately 980px: hero becomes one column, 12-column feature grids simplify, navigation cards become two columns, and expanded accordion content becomes one column.
-- Break at approximately 720px: project grid becomes one column, navigation cards become one column, header switches to a compact menu, section padding becomes 1rem, and buttons become full-width when useful.
+- Responsiveness is a required design phase and release gate, not final polish. Every Pop Editorial page must complete the responsive cycle below before it is considered finished.
+- Treat desktop, tablet, and phone as distinct compositions that preserve the same hierarchy. Fluid values may bridge them, but a desktop grid must never survive by merely becoming narrower.
+- Break at approximately 980px: hero becomes one column, 12-column feature grids simplify to equal columns or another deliberate tablet composition, navigation cards become two columns, and expanded accordion content becomes one column. Remove desktop-only 7/5 and 5/7 spans here unless every resulting card still has enough measure for its longest title.
+- Break at approximately 720px: project grids become one column, navigation cards become one column, the header switches to a compact menu, section padding becomes 1rem, and buttons become full-width when useful. Explicitly reset child `grid-column` spans; changing only the parent grid is not sufficient when children carry desktop spans.
+- At phone widths, let copy determine card height. Remove desktop `min-height` values from cards and give media its own intentional `aspect-ratio`; otherwise short cards become empty and long cards become clipped or tower-like.
+- Prefer component-driven breakpoints when a reusable card is placed in variable-width containers. A card intended for two-column use should normally retain at least 280–320px of usable inline space after padding; below that, recompose or stack it.
+- Never use reduced type, clipped content, or sub-44px controls to keep a desktop composition alive. Reflow the composition instead.
 - Mobile hero typography uses gentler line-height and less aggressive tracking:
   - name: `720 clamp(2.5rem, 11vw, 3.6rem)/0.85`
   - descriptor: `480 clamp(1.05rem, 4vw, 1.35rem)/1.15`
   - statement: `300 clamp(1.45rem, 5.4vw, 1.95rem)/1.14`
 - Maintain the 8px seam rhythm on mobile. Do not collapse all section space into an undifferentiated card stack.
+
+### Mandatory responsive cycle
+
+Run this cycle for every new page and every redesign, including conversions of existing pages:
+
+1. **Compose at three modes:** define the intended desktop, tablet, and phone hierarchy before polishing. State which grids stack, which asymmetric spans reset, how navigation changes, and how media crops.
+2. **Implement intrinsic resilience:** use `minmax(0, 1fr)`, flexible wrapping, `max-width`, content-driven height, and explicit media aspect ratios. Apply `min-width: 0` to grid/flex children and use `clamp()` only where both endpoints remain usable.
+3. **Render the required viewport set:** inspect at 1440×900, 1024×768, 768×1024, 390×844, and 320×568 CSS pixels. Also inspect one width immediately above and below each layout breakpoint to catch abrupt failures.
+4. **Run content-pressure checks:** test the longest real heading, the maximum tag/count set, an absent image fallback, and 200% browser zoom. A component passes only when content wraps by words, remains legible, and does not overlap or escape.
+5. **Run interaction checks:** keyboard through all controls; verify focus visibility, 44px minimum touch targets, menu/filter usability, reduced motion, and that hover-only information remains available to touch users.
+6. **Run the overflow gate:** confirm `document.documentElement.scrollWidth <= document.documentElement.clientWidth` at every required viewport. Check both page-level overflow and clipped content inside cards, rails, filters, and forms.
+7. **Compare hierarchy, not pixels:** phone and tablet should preserve the reading order, primary action, labels, and colour logic of desktop while being allowed to change column count, order, crop, spacing, and control layout.
+8. **Fix and repeat:** any failure restarts the viewport set. Do not hand off with a note that responsiveness should be checked later.
+
+### Required responsive acceptance criteria
+
+- No horizontal page scroll at any required viewport.
+- No card narrower than its content contract; no title forced into repeated one-word lines when a stacked layout is available.
+- No fixed or minimum height creates large dead zones, clipping, or tower-like mobile cards.
+- Images keep the intended subject visible and do not distort; media and copy may change proportion independently by mode.
+- Controls remain at least 44px in both dimensions, reachable by keyboard, and comfortably spaced for touch.
+- Type remains within its intended hierarchy without falling below readable body or label sizes.
+- Section seams, colour roles, borders, and editorial rhythm still read as Pop Editorial on every mode.
 
 ## 10. Accessibility and implementation invariants
 

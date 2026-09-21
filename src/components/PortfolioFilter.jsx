@@ -177,7 +177,7 @@ const PortfolioFilter = ({ items = [] }) => {
                                             widths: [600, 960, 1400, 1800],
                                             quality: 84,
                                         })}
-                                        sizes="(max-width: 680px) calc(100vw - 32px), (max-width: 1080px) 50vw, 840px"
+                                        sizes="(max-width: 720px) calc(100vw - 72px), (max-width: 980px) 50vw, 840px"
                                         alt={item.title}
                                         loading={index < 2 ? 'eager' : 'lazy'}
                                         decoding={index < 2 ? 'sync' : 'async'}
@@ -216,4 +216,3 @@ const PortfolioFilter = ({ items = [] }) => {
 };
 
 export default PortfolioFilter;
-

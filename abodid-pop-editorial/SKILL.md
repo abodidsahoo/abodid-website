@@ -16,9 +16,9 @@ Before designing or implementing, read [references/design-system.md](references/
 3. Recompose the page using the system primitives: colour-blocked editorial sections, an 8px structural rhythm, fine dark keylines, asymmetric grids, Satoshi typography, compact uppercase mono labels, inset media, and restrained motion.
 4. Use the canonical tokens from the reference instead of sampling approximate colours or inventing a second visual language. Add page-local semantic aliases when useful, but map them to the canonical tokens.
 5. Choose foreground colour by contrast: ink on light/high-chroma surfaces; cream on cobalt and purple. Do not place cream text on pink, yellow, lime, orange, or cyan.
-6. Make the result responsive from the start. Desktop compositions may be asymmetric; collapse them deliberately at 980px and 720px without shrinking touch targets or editorial hierarchy.
+6. Make the result responsive and adaptive from the start. Treat desktop, tablet, and phone as three intentional compositions, not one desktop layout at smaller percentages. Desktop asymmetry must be neutralised or recomposed before its cards become too narrow; follow the mandatory responsive cycle in the reference.
 7. Implement the redesign in the page's existing framework and component conventions. Reuse working shared header, footer, form, and media components when they already express the system.
-8. Verify the rendered page at desktop and mobile widths. Check overflow, text wrapping, card rhythm, media crops, focus states, reduced-motion behaviour, and contrast. Run the project's relevant checks before handing off.
+8. Run the mandatory responsive cycle before handing off. Verify the rendered page at the reference widths, resolve every failed gate, and repeat until it passes. Check overflow, text wrapping, card rhythm, media crops, focus states, reduced-motion behaviour, and contrast, then run the project's relevant checks. A redesign is incomplete if phone or tablet verification has not been performed.
 
 ## Footer requests
 
