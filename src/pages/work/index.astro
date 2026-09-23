@@ -131,6 +131,8 @@ const description = "A curated portfolio of multidisciplinary projects spanning 
       });
 
       const parseRgb = (value) => {
+        const hex = String(value).trim().match(/^#([0-9a-f]{6})$/i)?.[1];
+        if (hex) return [0, 2, 4].map((offset) => parseInt(hex.slice(offset, offset + 2), 16));
         const channels = String(value).match(/[\d.]+/g)?.map(Number) || [];
         if (channels.length < 3 || (channels.length > 3 && channels[3] === 0)) return null;
         return channels.slice(0, 3);
@@ -147,10 +149,18 @@ const description = "A curated portfolio of multidisciplinary projects spanning 
         return (lighter + 0.05) / (darker + 0.05);
       };
 
-      const ink = { colour: "#15130f", luminance: luminance([21, 19, 15]) };
-      const cream = { colour: "#fff8e8", luminance: luminance([255, 248, 232]) };
+      const resolveForegrounds = () => {
+        const rootStyles = getComputedStyle(document.documentElement);
+        const inkColour = rootStyles.getPropertyValue("--pop-ink").trim() || "#15130f";
+        const creamColour = rootStyles.getPropertyValue("--pop-cream").trim() || "#fff8e8";
+        return {
+          ink: { colour: inkColour, luminance: luminance(parseRgb(inkColour) || [21, 19, 15]) },
+          cream: { colour: creamColour, luminance: luminance(parseRgb(creamColour) || [255, 248, 232]) },
+        };
+      };
 
       const applySurfaceContrast = () => {
+        const { ink, cream } = resolveForegrounds();
         document.querySelectorAll("[data-auto-contrast]").forEach((surface) => {
           const background = parseRgb(getComputedStyle(surface).backgroundColor);
           if (!background) return;
@@ -207,7 +217,8 @@ const description = "A curated portfolio of multidisciplinary projects spanning 
       };
 
       const initialisePage = () => {
-        applySurfaceContrast();
+      applySurfaceContrast();
+      window.addEventListener("design-tokens:loaded", applySurfaceContrast, { once: true });
         ensureVideosPlay();
       };
 
@@ -226,15 +237,6 @@ const description = "A curated portfolio of multidisciplinary projects spanning 
 
 <style is:global>
   :root {
-    --pop-blue: #2444ca;
-    --pop-pink: #ff7eb5;
-    --pop-yellow: #ffe44f;
-    --pop-lime: #caff48;
-    --pop-orange: #ff875c;
-    --pop-purple: #5524c7;
-    --pop-cyan: #62e6ff;
-    --pop-cream: #fff8e8;
-    --pop-ink: #15130f;
     --pop-border: rgba(21, 19, 15, 0.78);
     --story-ink: var(--pop-ink);
     --story-cream: var(--pop-cream);

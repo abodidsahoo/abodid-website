@@ -226,14 +226,6 @@ const structuredData = [
 
 <style is:global>
   :root {
-    --pop-blue: #2444ca;
-    --pop-pink: #ff7eb5;
-    --pop-yellow: #ffe44f;
-    --pop-lime: #caff48;
-    --pop-purple: #5524c7;
-    --pop-cyan: #62e6ff;
-    --pop-cream: #fff8e8;
-    --pop-ink: #15130f;
     --pop-border: rgba(21, 19, 15, 0.78);
     --pop-line: rgba(21, 19, 15, 0.24);
   }
@@ -243,9 +235,9 @@ const structuredData = [
   html[data-theme="light"] body.blog-post-pop-page,
   html[data-theme="dark"] body.blog-post-pop-page,
   html[data-reader-mode="true"] body.blog-post-pop-page {
-    background: #2444ca !important;
-    background-color: #2444ca !important;
-    color: #15130f !important;
+    background: var(--pop-blue) !important;
+    background-color: var(--pop-blue) !important;
+    color: var(--pop-ink) !important;
     min-height: 100vh !important;
   }
 
@@ -452,15 +444,15 @@ const structuredData = [
   .prose strong,
   .block-based-prose strong {
     font-weight: 750 !important;
-    color: #15130f !important;
+    color: var(--pop-ink) !important;
   }
 
   .prose a,
   .block-based-prose a {
-    color: #2444ca !important;
+    color: var(--pop-blue) !important;
     font-weight: 600 !important;
     text-decoration-line: underline !important;
-    text-decoration-color: #2444ca !important;
+    text-decoration-color: var(--pop-blue) !important;
     text-decoration-thickness: 0.12em !important;
     text-underline-offset: 0.2em !important;
     transition: background 160ms ease, color 160ms ease;
@@ -468,24 +460,24 @@ const structuredData = [
 
   .prose a:hover,
   .block-based-prose a:hover {
-    color: #15130f !important;
-    background: #ffe44f !important;
+    color: var(--pop-ink) !important;
+    background: var(--pop-yellow) !important;
   }
 
   .prose blockquote,
   .block-based-prose blockquote {
     margin: 2rem 0;
     padding: 1.25rem 1.6rem;
-    border-left: 4px solid #2444ca !important;
+    border-left: 4px solid var(--pop-blue) !important;
     background: #fdebb8 !important;
     border-radius: 0 12px 12px 0;
-    color: #15130f !important;
+    color: var(--pop-ink) !important;
     font-style: italic;
   }
 
   .prose blockquote p,
   .block-based-prose blockquote p {
-    color: #15130f !important;
+    color: var(--pop-ink) !important;
     font-weight: 520 !important;
     opacity: 1 !important;
     margin: 0;

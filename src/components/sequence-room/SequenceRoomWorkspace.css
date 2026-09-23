@@ -1,11 +1,11 @@
 .pb-workspace {
     --pb-ink: #171512;
-    --pb-paper: #fff8e8;
-    --pb-pink: #ff7eb5;
-    --pb-yellow: #ffe44f;
-    --pb-lime: #caff48;
-    --pb-blue: #2444ca;
-    --pb-purple: #5524c7;
+    --pb-paper: var(--pop-cream);
+    --pb-pink: var(--pop-pink);
+    --pb-yellow: var(--pop-yellow);
+    --pb-lime: var(--pop-lime);
+    --pb-blue: var(--pop-blue);
+    --pb-purple: var(--pop-purple);
     min-height: 100vh;
     color: var(--pb-ink);
     font-family: var(--font-body, "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif);

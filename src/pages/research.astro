@@ -29,7 +29,7 @@ const structuredData = [
 >
   <main class="rp-shell">
     <section class="rp-hero" aria-labelledby="research-heading">
-      <div class="rp-panel rp-hero__copy">
+      <div class="rp-panel rp-hero__copy" data-pop-surface="cream">
         <div>
           <h1 id="research-heading">
             Personal archives, grief, and cultural memory.
@@ -40,8 +40,8 @@ const structuredData = [
             remember, relate, mourn and make meaning.
           </p>
           <div class="rp-hero__actions">
-            <a class="rp-button" href="#projects">Explore the research ↓</a>
-            <a class="rp-button" href="#method">Read the method ↓</a>
+            <a class="rp-button" data-pop-surface="white" href="#projects">Explore the research ↓</a>
+            <a class="rp-button" data-pop-surface="white" href="#method">Read the method ↓</a>
           </div>
         </div>
       </div>
@@ -58,7 +58,7 @@ const structuredData = [
             fetchpriority="high"
           />
         </figure>
-        <section class="rp-panel rp-proof">
+        <section class="rp-panel rp-proof" data-pop-surface="lime">
           <p class="rp-eyebrow">Institutional proof · 2026</p>
           <h2>Presented two research projects at BSA 2026</h2>
           <p>
@@ -75,6 +75,7 @@ const structuredData = [
 
     <section
       class="rp-panel rp-projects"
+      data-pop-surface="cream"
       id="projects"
       aria-labelledby="projects-heading"
     >
@@ -87,6 +88,7 @@ const structuredData = [
             <a
               class="rp-card"
               data-accent={project.accent}
+              data-pop-surface={project.accent}
               href={`/research/${project.slug}`}
             >
               <div class="rp-card__media">
@@ -117,7 +119,7 @@ const structuredData = [
       </div>
     </section>
 
-    <section class="rp-panel rp-proof-strip" aria-labelledby="proof-heading">
+    <section class="rp-panel rp-proof-strip" data-pop-surface="pink" aria-labelledby="proof-heading">
       <div>
         <h2 id="proof-heading">Recognition</h2>
       </div>
@@ -152,6 +154,7 @@ const structuredData = [
 
     <section
       class="rp-panel rp-practice rp-practice--method"
+      data-pop-surface="yellow"
       id="method"
       aria-labelledby="method-heading"
     >
@@ -189,7 +192,7 @@ const structuredData = [
       </div>
     </section>
 
-    <section class="rp-panel rp-closing">
+    <section class="rp-panel rp-closing" data-pop-surface="purple">
       <p class="rp-eyebrow">
         Research collaboration · London · India · Worldwide
       </p>
@@ -199,8 +202,8 @@ const structuredData = [
         culture, visual practice and technology.
       </p>
       <div class="rp-hero__actions">
-        <a class="rp-button" href="/#enquiry">Start a conversation ↗</a>
-        <a class="rp-button" href="/lab">Visit the Lab →</a>
+        <a class="rp-button" data-pop-surface="lime" href="/#enquiry">Start a conversation ↗</a>
+        <a class="rp-button" data-pop-surface="lime" href="/lab">Visit the Lab →</a>
       </div>
     </section>
   </main>

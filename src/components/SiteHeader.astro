@@ -87,12 +87,6 @@ const contactLabel = "Hire me";
      ACTIVE HEADER: Matching the small footer bar aesthetic (Pill & panel styling)
      ========================================================================== */
   .site-header {
-    --pop-blue: #2444ca;
-    --pop-pink: #ff7eb5;
-    --pop-yellow: #ffe44f;
-    --pop-lime: #caff48;
-    --pop-cream: #fff8e8;
-    --pop-ink: #15130f;
     --home-next-gap: 8px;
     --home-next-border: 1px solid rgba(21, 19, 15, 0.78);
     --home-next-radius-panel: clamp(18px, 2vw, 28px);
@@ -378,11 +372,11 @@ const contactLabel = "Hire me";
      PREVIOUS FULL-BLEED BLUE HEADER STYLES (Preserved for easy rollback)
      ==========================================================================
      .site-header--legacy-blue {
-       --site-blue: #2444ca;
-       --site-pink: #ff7eb5;
-       --site-yellow: #ffe44f;
-       --site-cream: #fff8e8;
-       --site-ink: #15130f;
+       --site-blue: var(--pop-blue);
+       --site-pink: var(--pop-pink);
+       --site-yellow: var(--pop-yellow);
+       --site-cream: var(--pop-cream);
+       --site-ink: var(--pop-ink);
        --site-gutter: clamp(1rem, 3vw, 3.5rem);
        --site-control-radius: 14px;
        position: sticky;

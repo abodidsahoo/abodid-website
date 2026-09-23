@@ -541,7 +541,7 @@ export default function MoodboardPolaroidViewer({
                         font-family: var(--font-ui, "Satoshi", sans-serif);
                         font-size: clamp(0.85rem, 1.2vw, 1.02rem);
                         font-weight: 750;
-                        color: #15130f;
+                        color: var(--pop-ink);
                         letter-spacing: 0.06em;
                         text-transform: uppercase;
                         line-height: 1;

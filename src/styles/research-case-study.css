@@ -1,13 +1,13 @@
 :root {
-  --rcs-blue: #2444ca;
-  --rcs-pink: #ff7eb5;
-  --rcs-yellow: #ffe44f;
-  --rcs-lime: #caff48;
-  --rcs-orange: #ff875c;
-  --rcs-purple: #5524c7;
-  --rcs-cyan: #62e6ff;
-  --rcs-cream: #fff8e8;
-  --rcs-ink: #15130f;
+  --rcs-blue: var(--pop-blue);
+  --rcs-pink: var(--pop-pink);
+  --rcs-yellow: var(--pop-yellow);
+  --rcs-lime: var(--pop-lime);
+  --rcs-orange: var(--pop-orange);
+  --rcs-purple: var(--pop-purple);
+  --rcs-cyan: var(--pop-cyan);
+  --rcs-cream: var(--pop-cream);
+  --rcs-ink: var(--pop-ink);
   --rcs-line: rgba(21, 19, 15, .78);
   --rcs-seam: 8px;
   --rcs-radius: clamp(18px, 2vw, 28px);

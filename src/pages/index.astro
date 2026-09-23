@@ -498,6 +498,10 @@ const structuredData = [
         });
 
       const parseRgb = (value) => {
+        const hex = String(value).trim().match(/^#([0-9a-f]{6})$/i)?.[1];
+        if (hex) {
+          return [0, 2, 4].map((offset) => parseInt(hex.slice(offset, offset + 2), 16));
+        }
         const channels =
           String(value)
             .match(/[\d.]+/g)
@@ -527,13 +531,18 @@ const structuredData = [
         return (lighter + 0.05) / (darker + 0.05);
       };
 
-      const ink = { colour: "#15130f", luminance: luminance([21, 19, 15]) };
-      const cream = {
-        colour: "#fff8e8",
-        luminance: luminance([255, 248, 232]),
+      const resolveForegrounds = () => {
+        const rootStyles = getComputedStyle(document.documentElement);
+        const inkColour = rootStyles.getPropertyValue("--pop-ink").trim() || "#15130f";
+        const creamColour = rootStyles.getPropertyValue("--pop-cream").trim() || "#fff8e8";
+        return {
+          ink: { colour: inkColour, luminance: luminance(parseRgb(inkColour) || [21, 19, 15]) },
+          cream: { colour: creamColour, luminance: luminance(parseRgb(creamColour) || [255, 248, 232]) },
+        };
       };
 
       const applySurfaceContrast = () => {
+        const { ink, cream } = resolveForegrounds();
         document.querySelectorAll("[data-auto-contrast]").forEach((surface) => {
           const background = parseRgb(
             getComputedStyle(surface).backgroundColor,
@@ -657,7 +666,8 @@ const structuredData = [
       };
 
       const initialisePage = () => {
-        applySurfaceContrast();
+      applySurfaceContrast();
+      window.addEventListener("design-tokens:loaded", applySurfaceContrast, { once: true });
         initialiseTestimonials();
         ensureVideosPlay();
       };
@@ -675,15 +685,6 @@ const structuredData = [
 
 <style is:global>
   :root {
-    --pop-blue: #2444ca;
-    --pop-pink: #ff7eb5;
-    --pop-yellow: #ffe44f;
-    --pop-lime: #caff48;
-    --pop-orange: #ff875c;
-    --pop-purple: #5524c7;
-    --pop-cyan: #62e6ff;
-    --pop-cream: #fff8e8;
-    --pop-ink: #15130f;
     --pop-border: rgba(21, 19, 15, 0.78);
     --story-ink: var(--pop-ink);
     --story-cream: var(--pop-cream);
@@ -1888,9 +1889,9 @@ const structuredData = [
       0 4px 12px rgba(21, 19, 15, 0.12);
   }
   .story-writing .newsletter-form input {
-    color: #15130f !important;
-    -webkit-text-fill-color: #15130f !important;
-    caret-color: #15130f !important;
+    color: var(--pop-ink) !important;
+    -webkit-text-fill-color: var(--pop-ink) !important;
+    caret-color: var(--pop-ink) !important;
     font: 600 0.98rem/1.4 var(--font-body, sans-serif);
     padding: 0.9rem 1.15rem;
     background: #ffffff !important;
@@ -1905,9 +1906,9 @@ const structuredData = [
   .story-writing .newsletter-form input:-webkit-autofill:active {
     -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
     box-shadow: 0 0 0 1000px #ffffff inset !important;
-    -webkit-text-fill-color: #15130f !important;
-    caret-color: #15130f !important;
-    color: #15130f !important;
+    -webkit-text-fill-color: var(--pop-ink) !important;
+    caret-color: var(--pop-ink) !important;
+    color: var(--pop-ink) !important;
   }
   .story-writing .newsletter-form button {
     background: var(--pop-yellow);
@@ -1920,8 +1921,8 @@ const structuredData = [
       transform 160ms ease;
   }
   .story-writing .newsletter-form button svg {
-    stroke: #15130f !important;
-    color: #15130f !important;
+    stroke: var(--pop-ink) !important;
+    color: var(--pop-ink) !important;
   }
   .story-writing .newsletter-form button:hover {
     background: var(--pop-lime);

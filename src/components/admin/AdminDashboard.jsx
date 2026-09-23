@@ -26,6 +26,7 @@ import ReadingDigestManager from './ReadingDigestManager';
 import BlogAdminList from './BlogAdminList';
 import HomeCardsManager from './HomeCardsManager';
 import LabExperimentsManager from './LabExperimentsManager';
+import DesignStudio from './DesignStudio';
 import {
     ArrowUpRight,
     BookOpen,
@@ -44,6 +45,7 @@ import {
     Mail,
     Menu,
     PenLine,
+    Palette,
     ScanSearch,
     Globe2,
     Glasses,
@@ -65,6 +67,7 @@ const SECTIONS = [
     { id: 'portfolio_projects', label: 'Portfolio Projects', icon: FolderKanban },
     { id: 'lab_experiments', label: 'Lab Experiments', icon: FlaskConical },
     { id: 'home_cards', label: 'Home Cards', icon: LayoutTemplate },
+    { id: 'design_system', label: 'Design Studio', icon: Palette },
     { id: 'xr_showcase', label: 'XR Showcase', icon: Glasses },
     { id: 'hub_resources', label: 'Curator Dashboard', icon: Library },
     { id: 'media_library', label: 'Media Library', icon: FolderOpen },
@@ -82,6 +85,7 @@ const SECTIONS = [
 const VALID_SECTION_IDS = new Set(SECTIONS.map((section) => section.id));
 const REQUEST_TIMEOUT_MS = 8000;
 const QUICK_ACTIONS = [
+    { label: 'Design Studio', href: '/admin/dashboard?section=design_system', icon: Palette, section: 'design_system' },
     { label: 'Media Library', href: '/admin/dashboard?section=media_library', icon: FolderOpen, section: 'media_library' },
     { label: 'Analytics', href: '/admin/dashboard?section=analytics', icon: ChartNoAxesCombined, section: 'analytics' },
     { label: 'Add a Resource', href: '/admin/dashboard?section=hub_resources&action=new', icon: Library, section: 'hub_resources', actionParam: 'new' },
@@ -496,7 +500,7 @@ export default function AdminDashboard() {
             </aside>
 
             {/* Main Content Area */}
-            <main className={`main-content ${activeSection === 'dashboard' ? 'dashboard-main' : ''} ${activeSection === 'analytics' || activeSection === 'reading_digest' || activeSection === 'network_intelligence' || activeSection === 'portfolio_projects' || activeSection === 'lab_experiments' || activeSection === 'home_cards' || activeSection === 'xr_showcase' || activeSection === 'hub_resources' || activeSection === 'media_library' || activeSection === 'users' || activeSection === 'brands' || activeSection === 'photography' || activeSection === 'photo_stories' || activeSection === 'moodboard_items' || activeSection === 'films' || activeSection === 'blog' || activeSection === 'research' || activeSection === 'newsletter' || activeSection === 'page_metadata' ? 'admin-page-main' : ''}`}>
+            <main className={`main-content ${activeSection === 'dashboard' ? 'dashboard-main' : ''} ${activeSection === 'analytics' || activeSection === 'reading_digest' || activeSection === 'network_intelligence' || activeSection === 'portfolio_projects' || activeSection === 'lab_experiments' || activeSection === 'home_cards' || activeSection === 'design_system' || activeSection === 'xr_showcase' || activeSection === 'hub_resources' || activeSection === 'media_library' || activeSection === 'users' || activeSection === 'brands' || activeSection === 'photography' || activeSection === 'photo_stories' || activeSection === 'moodboard_items' || activeSection === 'films' || activeSection === 'blog' || activeSection === 'research' || activeSection === 'newsletter' || activeSection === 'page_metadata' ? 'admin-page-main' : ''}`}>
                 <div className="content-body">
                     {activeSection === 'dashboard' && (
                         <>
@@ -603,6 +607,12 @@ export default function AdminDashboard() {
                         </SectionErrorBoundary>
                     )}
 
+                    {activeSection === 'design_system' && (
+                        <SectionErrorBoundary>
+                            <DesignStudio />
+                        </SectionErrorBoundary>
+                    )}
+
                     {activeSection === 'xr_showcase' && (
                         <SectionErrorBoundary>
                             <XRShowcaseManager accessToken={session?.access_token} />
@@ -679,7 +689,7 @@ export default function AdminDashboard() {
                         </SectionErrorBoundary>
                     )}
 
-                    {activeSection !== 'dashboard' && activeSection !== 'analytics' && activeSection !== 'reading_digest' && activeSection !== 'network_intelligence' && activeSection !== 'portfolio_projects' && activeSection !== 'lab_experiments' && activeSection !== 'home_cards' && activeSection !== 'xr_showcase' && activeSection !== 'hub_resources' && activeSection !== 'photography' && activeSection !== 'media_library' && activeSection !== 'users' && activeSection !== 'brands' && activeSection !== 'newsletter' && activeSection !== 'photo_stories' && activeSection !== 'moodboard_items' && activeSection !== 'films' && activeSection !== 'research' && activeSection !== 'page_metadata' && activeSection !== 'blog' && (
+                    {activeSection !== 'dashboard' && activeSection !== 'analytics' && activeSection !== 'reading_digest' && activeSection !== 'network_intelligence' && activeSection !== 'portfolio_projects' && activeSection !== 'lab_experiments' && activeSection !== 'home_cards' && activeSection !== 'design_system' && activeSection !== 'xr_showcase' && activeSection !== 'hub_resources' && activeSection !== 'photography' && activeSection !== 'media_library' && activeSection !== 'users' && activeSection !== 'brands' && activeSection !== 'newsletter' && activeSection !== 'photo_stories' && activeSection !== 'moodboard_items' && activeSection !== 'films' && activeSection !== 'research' && activeSection !== 'page_metadata' && activeSection !== 'blog' && (
                         <SectionErrorBoundary key={activeSection}>
                             <ListView
                                 table={activeSection}

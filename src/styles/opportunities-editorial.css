@@ -3,17 +3,17 @@
    ========================================================================== */
 
 :root {
-  --opp-blue: #2444ca;
-  --opp-pink: #ff7eb5;
-  --opp-yellow: #ffe44f;
-  --opp-lime: #caff48;
-  --opp-orange: #ff875c;
-  --opp-purple: #5524c7;
-  --opp-cyan: #62e6ff;
+  --opp-blue: var(--pop-blue);
+  --opp-pink: var(--pop-pink);
+  --opp-yellow: var(--pop-yellow);
+  --opp-lime: var(--pop-lime);
+  --opp-orange: var(--pop-orange);
+  --opp-purple: var(--pop-purple);
+  --opp-cyan: var(--pop-cyan);
   --opp-cream: #fff9ed;
   --opp-card-bg: #ffffff;
-  --opp-ink: #15130f;
-  --opp-border: #15130f;
+  --opp-ink: var(--pop-ink);
+  --opp-border: var(--pop-ink);
   --opp-muted: rgba(21, 19, 15, 0.65);
   --opp-line: rgba(21, 19, 15, 0.12);
   --opp-shadow: 3px 3px 0px var(--opp-border);
@@ -649,7 +649,7 @@ body.opportunities-editorial-page {
 .opp-priority-circles:hover,
 .opp-priority-stars:hover {
   transform: translateY(-1px);
-  border-color: #15130f;
+  border-color: var(--pop-ink);
   background: #fffdf5;
 }
 
@@ -923,7 +923,7 @@ body.opportunities-editorial-page {
   position: absolute;
   left: 0;
   width: 250px;
-  background: #fff8e8;
+  background: var(--pop-cream);
   border: 2px solid var(--opp-border);
   border-radius: 10px;
   box-shadow: 5px 5px 0px var(--opp-border);

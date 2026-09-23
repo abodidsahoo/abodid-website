@@ -1348,7 +1348,7 @@ export default function CuratorDashboard({ user, role }: Props) {
                 }
 
                 .moderation-note-input:focus {
-                    outline: 3px solid var(--pop-purple, #5524c7);
+                    outline: 3px solid var(--pop-purple, var(--pop-purple));
                     outline-offset: 2px;
                 }
 

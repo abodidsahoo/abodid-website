@@ -48,9 +48,9 @@ export default function SequenceRoomNav() {
                     display: inline-flex;
                     align-items: center;
                     gap: 0.45rem;
-                    background: #fff8e8;
-                    color: #15130f;
-                    border: 1.5px solid #15130f;
+                    background: var(--pop-cream);
+                    color: var(--pop-ink);
+                    border: 1.5px solid var(--pop-ink);
                     border-radius: 999px;
                     padding: 0.45rem 0.95rem;
                     font-size: 0.82rem;

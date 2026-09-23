@@ -170,14 +170,14 @@ export default function ResourceDetailActions({ resourceId, initialUpvotes }: Pr
                 .detail-action-btn.btn-upvote.active {
                     background: var(--pop-yellow, #ffe44f) !important;
                     color: var(--pop-ink, #15130f) !important;
-                    border-color: var(--pop-ink, #15130f) !important;
+                    border-color: var(--pop-ink, var(--pop-ink)) !important;
                     font-weight: 800 !important;
                 }
 
                 .detail-action-btn.btn-save.active {
                     background: var(--pop-pink, #ff7eb5) !important;
                     color: var(--pop-ink, #15130f) !important;
-                    border-color: var(--pop-ink, #15130f) !important;
+                    border-color: var(--pop-ink, var(--pop-ink)) !important;
                     font-weight: 800 !important;
                 }
 

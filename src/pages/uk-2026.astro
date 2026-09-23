@@ -122,12 +122,6 @@ Astro.response.headers.set("Cache-Control", "public, max-age=60, s-maxage=3600, 
 
 <style is:global>
   body.story-moodboard-page {
-    --pop-blue: #2444ca;
-    --pop-purple: #6657d8;
-    --pop-pink: #ff7eb5;
-    --pop-yellow: #ffe44f;
-    --pop-cream: #fff8e8;
-    --pop-ink: #15130f;
     --story-gutter: clamp(1rem, 3vw, 3.5rem);
     --pop-border: 1px solid var(--pop-ink);
     /* Exact same resets as landing page */
@@ -345,7 +339,7 @@ Astro.response.headers.set("Cache-Control", "public, max-age=60, s-maxage=3600, 
     gap: 1.4rem;
     color: #000000 !important;
     text-align: left;
-    background: #ffe44f !important;
+    background: var(--pop-yellow) !important;
     border: 2.5px solid #000000 !important;
     border-radius: 24px;
     padding: clamp(2rem, 5vw, 3rem);

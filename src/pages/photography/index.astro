@@ -362,21 +362,12 @@ const structuredData = [
 
 <style is:global>
   :root {
-    --pop-blue: #2444ca;
-    --pop-pink: #ff7eb5;
-    --pop-yellow: #ffe44f;
-    --pop-lime: #caff48;
-    --pop-orange: #ff875c;
-    --pop-purple: #5524c7;
-    --pop-cyan: #62e6ff;
-    --pop-cream: #fff8e8;
-    --pop-ink: #15130f;
     --pop-border: rgba(21, 19, 15, 0.78);
-    --pop-gap: 8px;
-    --pop-radius-panel: clamp(18px, 2vw, 28px);
-    --pop-radius-card: clamp(14px, 1.5vw, 22px);
-    --pop-radius-control: 14px;
-    --pop-radius-media: clamp(10px, 1.2vw, 16px);
+    --pop-gap: var(--design-grid-gap);
+    --pop-radius-panel: var(--design-radius-panel);
+    --pop-radius-card: var(--design-radius-card);
+    --pop-radius-control: var(--design-radius-control);
+    --pop-radius-media: var(--design-radius-media);
     --pop-card-inset: 10px;
     --pop-motion: 180ms ease;
   }
@@ -823,15 +814,15 @@ const structuredData = [
 
   .pe-filter-pill:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 0 var(--pop-ink, #15130f);
+    box-shadow: 0 4px 0 var(--pop-ink, var(--pop-ink));
     background: #ffffff;
   }
 
   .pe-filter-pill.is-active {
     background: var(--pop-yellow, #ffe44f) !important;
     color: var(--pop-ink, #15130f) !important;
-    border-color: var(--pop-ink, #15130f);
-    box-shadow: 0 3px 0 var(--pop-ink, #15130f);
+    border-color: var(--pop-ink, var(--pop-ink));
+    box-shadow: 0 3px 0 var(--pop-ink, var(--pop-ink));
     font-weight: 800;
   }
 
@@ -909,7 +900,7 @@ const structuredData = [
     margin: 0;
     flex: 1 1 auto;
     overflow: hidden;
-    border: 1px solid var(--pop-ink, #15130f);
+    border: 1px solid var(--pop-ink, var(--pop-ink));
     border-radius: var(--pop-radius-media, clamp(10px, 1.2vw, 16px));
     background: var(--pop-ink, #15130f);
     position: relative;
@@ -1043,7 +1034,7 @@ const structuredData = [
     display: inline-flex;
     align-items: center;
     gap: 0.65rem;
-    border: 1px solid var(--pop-ink, #15130f);
+    border: 1px solid var(--pop-ink, var(--pop-ink));
     border-radius: var(--pop-radius-control, 14px);
     background: var(--pop-yellow, #ffe44f);
     color: var(--pop-ink, #15130f);
@@ -1056,7 +1047,7 @@ const structuredData = [
 
   .pe-reset-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 0 var(--pop-ink, #15130f);
+    box-shadow: 0 4px 0 var(--pop-ink, var(--pop-ink));
   }
 
   /* 4. Inquiry Section Wrapper */

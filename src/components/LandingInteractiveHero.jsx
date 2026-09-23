@@ -368,27 +368,27 @@ export default function LandingInteractiveHero({
           display: inline-flex;
           align-items: center;
           gap: 0.75rem;
-          border: 1.5px solid var(--pop-ink, #15130f);
+          border: 1.5px solid var(--pop-ink, var(--pop-ink));
           border-radius: 999px;
           background: var(--pop-yellow, #ffe44f);
           color: var(--pop-ink, #15130f) !important;
           font: 720 0.95rem/1 var(--font-display, sans-serif);
           letter-spacing: -0.01em;
           text-decoration: none;
-          box-shadow: 0 4px 0 var(--pop-ink, #15130f);
+          box-shadow: 0 4px 0 var(--pop-ink, var(--pop-ink));
           transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
           cursor: pointer;
         }
 
         .landing-hero__enter-btn:hover {
           transform: translateY(-3px);
-          box-shadow: 0 7px 0 var(--pop-ink, #15130f);
+          box-shadow: 0 7px 0 var(--pop-ink, var(--pop-ink));
           background: #ffec6e;
         }
 
         .landing-hero__enter-btn:active {
           transform: translateY(0);
-          box-shadow: 0 2px 0 var(--pop-ink, #15130f);
+          box-shadow: 0 2px 0 var(--pop-ink, var(--pop-ink));
         }
 
         .landing-hero__enter-arrow {

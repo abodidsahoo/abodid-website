@@ -615,7 +615,7 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
     border: 0;
     border-radius: 0;
     background: transparent;
-    color: #fff8e8;
+    color: var(--pop-cream);
     box-shadow: none;
     padding: 0;
     width: 100%;
@@ -625,7 +625,7 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
   }
 
   .inline-enquiry--pop .inline-enquiry__eyebrow {
-    color: #ffe44f !important;
+    color: var(--pop-yellow) !important;
   }
 
   .inline-enquiry--pop h2 {
@@ -636,16 +636,16 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
   .inline-enquiry--pop label > span,
   .inline-enquiry--pop .custom-select__label-wrap > span,
   .inline-enquiry--pop .inline-enquiry__submit-row p {
-    color: #fff8e8;
+    color: var(--pop-cream);
   }
 
   .inline-enquiry--pop input,
   .inline-enquiry--pop select,
   .inline-enquiry--pop textarea {
-    border-color: #15130f;
+    border-color: var(--pop-ink);
     border-radius: 15px;
-    background: #fff8e8;
-    color: #15130f;
+    background: var(--pop-cream);
+    color: var(--pop-ink);
   }
 
   .inline-enquiry--pop textarea::placeholder {
@@ -656,15 +656,15 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
   .inline-enquiry--pop input:focus,
   .inline-enquiry--pop select:focus,
   .inline-enquiry--pop textarea:focus {
-    border-color: #ffe44f;
-    outline-color: #fff8e8;
+    border-color: var(--pop-yellow);
+    outline-color: var(--pop-cream);
   }
 
   .inline-enquiry--pop .custom-select__trigger {
-    border: 1.5px solid #15130f;
+    border: 1.5px solid var(--pop-ink);
     border-radius: 15px;
-    background: #fff8e8;
-    color: #15130f;
+    background: var(--pop-cream);
+    color: var(--pop-ink);
     font-size: 1.05rem;
     font-weight: 520;
     box-shadow: 0 2px 0 rgba(21, 19, 15, 0.12);
@@ -672,14 +672,14 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
 
   .inline-enquiry--pop .custom-select__trigger:focus-visible,
   .inline-enquiry--pop .custom-select.is-open .custom-select__trigger {
-    border-color: #15130f;
+    border-color: var(--pop-ink);
     outline: none;
     box-shadow: 0 0 0 3px rgba(255, 228, 79, 0.8), 0 2px 0 rgba(21, 19, 15, 0.12);
   }
 
   .inline-enquiry--pop .custom-select__selected-text {
     opacity: 0.65;
-    color: #15130f;
+    color: var(--pop-ink);
   }
 
   .inline-enquiry--pop .custom-select__selected-text.has-value {
@@ -687,8 +687,8 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
   }
 
   .inline-enquiry--pop .custom-select__options {
-    background: #fff8e8;
-    border: 2px solid #15130f;
+    background: var(--pop-cream);
+    border: 2px solid var(--pop-ink);
     border-radius: 18px;
     box-shadow: 0 16px 40px rgba(21, 19, 15, 0.22);
     scrollbar-color: rgba(21, 19, 15, 0.3) transparent;
@@ -699,7 +699,7 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
   }
 
   .inline-enquiry--pop .custom-select__option {
-    color: #15130f;
+    color: var(--pop-ink);
     font-size: 1rem;
     font-weight: 520;
     border-radius: 12px;
@@ -707,26 +707,26 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
 
   .inline-enquiry--pop .custom-select__option:hover,
   .inline-enquiry--pop .custom-select__option.is-focused {
-    background: #ffe44f;
-    color: #15130f;
+    background: var(--pop-yellow);
+    color: var(--pop-ink);
     transform: translateX(3px);
   }
 
   .inline-enquiry--pop .custom-select__option.is-selected {
-    background: #15130f;
-    color: #fff8e8;
+    background: var(--pop-ink);
+    color: var(--pop-cream);
     font-weight: 650;
     transform: none;
   }
 
   .inline-enquiry--pop .custom-select__option.is-selected .custom-select__option-icon {
-    color: #ffe44f;
+    color: var(--pop-yellow);
   }
 
   .inline-enquiry--pop .inline-enquiry__submit-row button {
-    border: 1px solid #15130f;
-    background: #ffe44f;
-    color: #15130f;
+    border: 1px solid var(--pop-ink);
+    background: var(--pop-yellow);
+    color: var(--pop-ink);
   }
 
   .inline-enquiry--obsidian {
@@ -813,10 +813,10 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
     grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
     gap: clamp(1.5rem, 3.2vw, 3.5rem);
     padding: clamp(1.5rem, 3.5vw, 2.75rem);
-    border: 1px solid #15130f;
+    border: 1px solid var(--pop-ink);
     border-radius: clamp(18px, 2vw, 26px);
-    background: #ff7eb5;
-    color: #15130f;
+    background: var(--pop-pink);
+    color: var(--pop-ink);
   }
 
   .inline-enquiry--obsidian .inline-enquiry__intro {
@@ -828,15 +828,15 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
     width: fit-content;
     margin-bottom: 0.75rem !important;
     padding: 0.45rem 0.65rem;
-    border: 1px solid #15130f;
+    border: 1px solid var(--pop-ink);
     border-radius: 999px;
-    background: #ffe44f;
-    color: #15130f !important;
+    background: var(--pop-yellow);
+    color: var(--pop-ink) !important;
   }
 
   .inline-enquiry--obsidian h2 {
     max-width: none;
-    color: #15130f;
+    color: var(--pop-ink);
     font-family: var(--font-display);
     font-size: clamp(1.85rem, 3.2vw, 3.8rem);
     font-weight: 640;
@@ -881,20 +881,20 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
   .inline-enquiry--obsidian label > span {
     display: block;
     margin-bottom: 0.1rem;
-    color: #15130f;
+    color: var(--pop-ink);
     font-weight: 700;
   }
 
   .inline-enquiry--obsidian .inline-enquiry__submit-row p {
-    color: #15130f;
+    color: var(--pop-ink);
   }
 
   .inline-enquiry--obsidian input,
   .inline-enquiry--obsidian textarea {
-    border: 1px solid #15130f;
+    border: 1px solid var(--pop-ink);
     border-radius: 13px;
-    background: #fff8e8;
-    color: #15130f;
+    background: var(--pop-cream);
+    color: var(--pop-ink);
   }
 
   .inline-enquiry--obsidian textarea {
@@ -908,8 +908,8 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
 
   .inline-enquiry--obsidian input:focus,
   .inline-enquiry--obsidian textarea:focus {
-    border-color: #15130f;
-    outline: 3px solid #ffe44f;
+    border-color: var(--pop-ink);
+    outline: 3px solid var(--pop-yellow);
     outline-offset: 2px;
   }
 
@@ -922,17 +922,17 @@ const interests = Array.isArray(interestOptions) && interestOptions.length
 
   .inline-enquiry--obsidian .inline-enquiry__submit-row button {
     min-height: 50px;
-    border: 1px solid #15130f;
+    border: 1px solid var(--pop-ink);
     border-radius: 13px;
-    background: #ffe44f;
-    color: #15130f;
+    background: var(--pop-yellow);
+    color: var(--pop-ink);
     transition: transform 160ms ease, box-shadow 160ms ease;
   }
 
   .inline-enquiry--obsidian .inline-enquiry__submit-row button:hover,
   .inline-enquiry--obsidian .inline-enquiry__submit-row button:focus-visible {
     transform: translateY(-2px);
-    box-shadow: 0 3px 0 #15130f;
+    box-shadow: 0 3px 0 var(--pop-ink);
   }
 
   .inline-enquiry--obsidian .inline-enquiry__submit-row p[data-state="success"] { color: #075b37; }

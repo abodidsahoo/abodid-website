@@ -987,14 +987,8 @@ const headingParts = headingLines.map((line) => {
   }
   :global(html:has(body.obsidian-landing-page)),
   :global(body.obsidian-landing-page) {
-    --pop-blue: #2444ca;
-    --pop-pink: #ff7eb5;
-    --pop-yellow: #ffe44f;
-    --pop-purple: #5524c7;
-    --pop-cream: #fff8e8;
-    --pop-ink: #15130f;
     --story-gutter: clamp(1rem, 3vw, 3.5rem);
-    background: #2444ca !important;
+    background: var(--pop-blue) !important;
   }
 
   :global(body.obsidian-landing-page main.page-content-full) {
@@ -1002,27 +996,18 @@ const headingParts = headingLines.map((line) => {
   }
 
   :global(body.obsidian-landing-page .site-footer) {
-    --footer-bg: #2444ca;
-    --footer-text-header: #fff8e8;
+    --footer-bg: var(--pop-blue);
+    --footer-text-header: var(--pop-cream);
     --footer-text-dim: rgba(255, 248, 232, 0.82);
     --footer-border: rgba(255, 248, 232, 0.3);
   }
 
   :global(body.obsidian-landing-page .brands-zone) {
-    border-top: 1px solid #15130f;
-    background: #2444ca !important;
+    border-top: 1px solid var(--pop-ink);
+    background: var(--pop-blue) !important;
   }
 
   .obsidian-site {
-    --pop-blue: #2444ca;
-    --pop-pink: #ff7eb5;
-    --pop-yellow: #ffe44f;
-    --pop-lime: #caff48;
-    --pop-orange: #ff875c;
-    --pop-purple: #5524c7;
-    --pop-cyan: #62e6ff;
-    --pop-cream: #fff8e8;
-    --pop-ink: #15130f;
     --home-next-border: 1.5px solid var(--pop-ink);
     --home-next-radius-panel: clamp(18px, 2vw, 26px);
     width: 100%;
@@ -1514,12 +1499,12 @@ const headingParts = headingLines.map((line) => {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    border: 1.5px solid #15130f;
+    border: 1.5px solid var(--pop-ink);
     border-radius: clamp(18px, 2vw, 28px);
-    background: #ffe44f;
-    color: #15130f;
+    background: var(--pop-yellow);
+    color: var(--pop-ink);
     text-align: center;
-    box-shadow: 6px 6px 0 #15130f;
+    box-shadow: 6px 6px 0 var(--pop-ink);
     box-sizing: border-box;
   }
 
@@ -1537,7 +1522,7 @@ const headingParts = headingLines.map((line) => {
     width: 100%;
     max-width: 100%;
     margin: 0 0 1.5rem;
-    color: #15130f;
+    color: var(--pop-ink);
     font-family: var(--font-display);
     font-size: clamp(0.75rem, 3.25cqi, 3.2rem);
     font-weight: 750;

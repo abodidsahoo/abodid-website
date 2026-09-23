@@ -175,13 +175,6 @@ const pageDescription = "Ask questions across Abodid Sahoo's public Obsidian not
 
 <style is:global>
     :root {
-        --pop-blue: #2444ca;
-        --pop-pink: #ff7eb5;
-        --pop-yellow: #ffe44f;
-        --pop-lime: #caff48;
-        --pop-purple: #5524c7;
-        --pop-cream: #fff8e8;
-        --pop-ink: #15130f;
         --pop-border: rgba(21, 19, 15, 0.78);
         --pop-line: rgba(21, 19, 15, 0.24);
         --vault-gap: 8px;
@@ -193,26 +186,26 @@ const pageDescription = "Ask questions across Abodid Sahoo's public Obsidian not
 
     html:has(body.vault-pop-page),
     body.vault-pop-page {
-        background: #2444ca !important;
-        background-color: #2444ca !important;
+        background: var(--pop-blue) !important;
+        background-color: var(--pop-blue) !important;
         color: var(--pop-ink);
     }
 
     body.vault-pop-page main.page-content-full {
-        background: #2444ca !important;
+        background: var(--pop-blue) !important;
         overflow: visible;
     }
 
     body.vault-pop-page .site-footer {
-        --footer-bg: #2444ca;
-        --footer-text-header: #fff8e8;
+        --footer-bg: var(--pop-blue);
+        --footer-text-header: var(--pop-cream);
         --footer-text-dim: rgba(255, 248, 232, 0.82);
         --footer-border: rgba(255, 248, 232, 0.3);
     }
 
     body.vault-pop-page .brands-zone {
-        border-top: 1px solid #15130f;
-        background: #2444ca !important;
+        border-top: 1px solid var(--pop-ink);
+        background: var(--pop-blue) !important;
     }
 
     .vault-pop-page .vault-page {
@@ -265,7 +258,8 @@ const pageDescription = "Ask questions across Abodid Sahoo's public Obsidian not
         max-width: 9ch;
         margin: 0;
         color: var(--pop-ink);
-        font: 720 clamp(3.7rem, 9vw, 8.5rem)/0.84 "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
+        font: var(--type-role-display-weight) var(--type-role-display-size)/var(--type-role-display-line) "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
+        letter-spacing: var(--type-role-display-track);
         letter-spacing: -0.075em;
         text-wrap: balance;
     }
@@ -274,7 +268,7 @@ const pageDescription = "Ask questions across Abodid Sahoo's public Obsidian not
         max-width: 34rem;
         margin: 0 0 0.5rem;
         color: var(--pop-ink);
-        font: 500 clamp(1.15rem, 2vw, 1.65rem)/1.32 "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
+        font: var(--type-role-body-weight) var(--type-role-body-size)/var(--type-role-body-line) "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
         letter-spacing: -0.025em;
         text-wrap: pretty;
     }
@@ -339,7 +333,7 @@ const pageDescription = "Ask questions across Abodid Sahoo's public Obsidian not
     .vault-eyebrow,
     .vault-count {
         margin: 0;
-        font: 750 clamp(0.68rem, 0.9vw, 0.78rem)/1.35 "Satoshi-Variable", "Satoshi-Regular", "Space Mono", "Inconsolata", monospace;
+        font: var(--type-role-label-weight) var(--type-role-label-size)/var(--type-role-label-line) "Satoshi-Variable", "Satoshi-Regular", "Space Mono", "Inconsolata", monospace;
         letter-spacing: 0.09em;
         text-transform: uppercase;
     }
@@ -350,7 +344,8 @@ const pageDescription = "Ask questions across Abodid Sahoo's public Obsidian not
         max-width: 16ch;
         margin: 0;
         color: var(--pop-ink);
-        font: 620 clamp(2.65rem, 4.6vw, 4.8rem)/0.92 "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
+        font: var(--type-role-page-title-weight) var(--type-role-page-title-size)/var(--type-role-page-title-line) "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
+        letter-spacing: var(--type-role-page-title-track);
         letter-spacing: -0.06em;
         text-wrap: balance;
     }
@@ -429,7 +424,7 @@ const pageDescription = "Ask questions across Abodid Sahoo's public Obsidian not
 
     .vault-question-panel h2 {
         max-width: 12ch;
-        font-size: clamp(2.75rem, 5vw, 5.8rem);
+        font-size: var(--type-role-section-title-size);
         line-height: 0.88;
     }
 
@@ -542,8 +537,10 @@ const pageDescription = "Ask questions across Abodid Sahoo's public Obsidian not
     .note-card h3 {
         margin: 0;
         color: var(--pop-ink);
-        font-size: clamp(0.98rem, 1.25vw, 1.16rem);
-        font-weight: 560;
+        font-size: var(--type-role-card-title-size);
+        font-weight: var(--type-role-card-title-weight);
+        line-height: var(--type-role-card-title-line);
+        letter-spacing: var(--type-role-card-title-track);
         line-height: 1.25;
         letter-spacing: -0.015em;
         text-transform: capitalize;

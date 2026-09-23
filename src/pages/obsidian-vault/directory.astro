@@ -121,13 +121,6 @@ Astro.response.headers.set(
 
 <style is:global>
   :root {
-    --pop-blue: #2444ca;
-    --pop-pink: #ff7eb5;
-    --pop-yellow: #ffe44f;
-    --pop-lime: #caff48;
-    --pop-purple: #5524c7;
-    --pop-cream: #fff8e8;
-    --pop-ink: #15130f;
     --pop-border: rgba(21, 19, 15, 0.78);
     --pop-line: rgba(21, 19, 15, 0.2);
   }
@@ -135,26 +128,26 @@ Astro.response.headers.set(
   html:has(body.vault-directory-page),
   html body.vault-directory-page,
   body.vault-directory-page {
-    background: #2444ca !important;
-    background-color: #2444ca !important;
+    background: var(--pop-blue) !important;
+    background-color: var(--pop-blue) !important;
     color: var(--pop-ink);
   }
 
   body.vault-directory-page main.page-content-full {
-    background: #2444ca !important;
+    background: var(--pop-blue) !important;
     overflow: visible;
   }
 
   body.vault-directory-page .site-footer {
-    --footer-bg: #2444ca;
-    --footer-text-header: #fff8e8;
+    --footer-bg: var(--pop-blue);
+    --footer-text-header: var(--pop-cream);
     --footer-text-dim: rgba(255, 248, 232, 0.82);
     --footer-border: rgba(255, 248, 232, 0.3);
   }
 
   body.vault-directory-page .brands-zone {
-    border-top: 1px solid #15130f;
-    background: #2444ca !important;
+    border-top: 1px solid var(--pop-ink);
+    background: var(--pop-blue) !important;
   }
 
   .directory-shell {
@@ -203,8 +196,10 @@ Astro.response.headers.set(
   }
 
   .directory-header h1 {
-    font-size: clamp(2.2rem, 5vw, 3.8rem);
-    font-weight: 750;
+    font-size: var(--type-role-page-title-size);
+    font-weight: var(--type-role-page-title-weight);
+    line-height: var(--type-role-page-title-line);
+    letter-spacing: var(--type-role-page-title-track);
     letter-spacing: -0.04em;
     line-height: 1.05;
     margin: 0 0 1rem;
@@ -262,8 +257,9 @@ Astro.response.headers.set(
   }
 
   .letter-badge {
-    font-size: 1.8rem;
-    font-weight: 750;
+    font-size: var(--type-role-card-title-size);
+    font-weight: var(--type-role-card-title-weight);
+    line-height: var(--type-role-card-title-line);
     margin: 0;
     color: var(--pop-ink);
   }

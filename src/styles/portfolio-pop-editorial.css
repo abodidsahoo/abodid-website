@@ -1,13 +1,13 @@
 :root {
-  --pe-blue: #2444ca;
-  --pe-pink: #ff7eb5;
-  --pe-yellow: #ffe44f;
-  --pe-lime: #caff48;
-  --pe-orange: #ff875c;
-  --pe-purple: #5524c7;
-  --pe-cyan: #62e6ff;
-  --pe-cream: #fff8e8;
-  --pe-ink: #15130f;
+  --pe-blue: var(--pop-blue);
+  --pe-pink: var(--pop-pink);
+  --pe-yellow: var(--pop-yellow);
+  --pe-lime: var(--pop-lime);
+  --pe-orange: var(--pop-orange);
+  --pe-purple: var(--pop-purple);
+  --pe-cyan: var(--pop-cyan);
+  --pe-cream: var(--pop-cream);
+  --pe-ink: var(--pop-ink);
   --pe-line: rgba(21, 19, 15, 0.78);
   --pe-seam: 8px;
   --pe-radius: clamp(18px, 2vw, 28px);
@@ -35,84 +35,6 @@ body.work-project-page .page-content-full { padding: 0; }
   color: var(--pe-ink);
 }
 
-/* Universal token rule: Black text over any yellow element and all descendants */
-:is(
-  [style*="--pe-yellow"],
-  [style*="--rp-yellow"],
-  [style*="--pop-yellow"],
-  [style*="#ffe44f"],
-  [style*="#f6e05e"],
-  .bg-yellow,
-  .pill-yellow,
-  .badge-yellow,
-  .btn-yellow,
-  [data-accent="yellow"]:not(.rp-case),
-  .rp-case__trio-card--yellow,
-  .rp-case__experiment-btn,
-  .rp-case__caption-badge,
-  .rp-case__contrib-card,
-  .rp-case__reading-badge,
-  .rp-case__next-arrow,
-  .rp-case__next-button,
-  .rp-case__play-btn
-) {
-  color: var(--pe-ink, #15130f) !important;
-  -webkit-text-fill-color: var(--pe-ink, #15130f) !important;
-}
-
-:is(
-  [style*="--pe-yellow"],
-  [style*="--rp-yellow"],
-  [style*="--pop-yellow"],
-  [style*="#ffe44f"],
-  [style*="#f6e05e"],
-  .bg-yellow,
-  .pill-yellow,
-  .badge-yellow,
-  .btn-yellow,
-  [data-accent="yellow"]:not(.rp-case),
-  .rp-case__trio-card--yellow,
-  .rp-case__experiment-btn,
-  .rp-case__caption-badge,
-  .rp-case__contrib-card,
-  .rp-case__reading-badge,
-  .rp-case__next-arrow,
-  .rp-case__next-button,
-  .rp-case__play-btn
-) :is(span, strong, b, em, p, a, h1, h2, h3, h4, dt, dd, svg, label) {
-  color: var(--pe-ink, #15130f) !important;
-  -webkit-text-fill-color: var(--pe-ink, #15130f) !important;
-}
-
-/* Strict White Text on All Blue and Purple Pills, Badges, and Accent Surfaces */
-:is(
-  .rp-case__meta-pill,
-  .pill-blue,
-  .badge-blue,
-  .btn-blue,
-  [data-accent="blue"]:not(.rp-case),
-  .pill-purple,
-  .badge-purple,
-  .btn-purple,
-  [data-accent="purple"]:not(.rp-case),
-  .rp-case[data-accent="purple"] .rp-case__hero
-),
-:is(
-  .rp-case__meta-pill,
-  .pill-blue,
-  .badge-blue,
-  .btn-blue,
-  [data-accent="blue"]:not(.rp-case),
-  .pill-purple,
-  .badge-purple,
-  .btn-purple,
-  [data-accent="purple"]:not(.rp-case),
-  .rp-case[data-accent="purple"] .rp-case__hero
-) :is(span, strong, b, em, p, a, h1, h2, h3, h4, dt, dd, svg) {
-  color: #ffffff !important;
-  -webkit-text-fill-color: #ffffff !important;
-}
-
 /* Case study main card and selectable text */
 .rp-case,
 .rp-case * {
@@ -125,36 +47,6 @@ body.work-project-page .page-content-full { padding: 0; }
   border: 1px solid rgba(21, 19, 15, 0.34);
   border-radius: var(--pe-radius);
   overflow: hidden;
-}
-
-/* High-contrast text selection throughout Pop Editorial */
-.rp-case ::selection,
-.rp-case *::selection {
-  background: var(--pe-blue, #2444ca) !important;
-  color: #ffffff !important;
-  -webkit-text-fill-color: #ffffff !important;
-}
-
-/* Blue cards have vibrant yellow selection highlight for clear visibility */
-.rp-case__trio-card--blue ::selection,
-.rp-case__trio-card--blue *::selection,
-.rp-case__meta-pill ::selection,
-.rp-case__meta-pill *::selection {
-  background: var(--pe-yellow, #ffe44f) !important;
-  color: #15130f !important;
-  -webkit-text-fill-color: #15130f !important;
-}
-
-/* Yellow cards have vibrant blue selection highlight */
-.rp-case__trio-card--yellow ::selection,
-.rp-case__trio-card--yellow *::selection,
-.rp-case__experiment-btn ::selection,
-.rp-case__experiment-btn *::selection,
-.rp-case__caption-badge ::selection,
-.rp-case__caption-badge *::selection {
-  background: var(--pe-blue, #2444ca) !important;
-  color: #ffffff !important;
-  -webkit-text-fill-color: #ffffff !important;
 }
 
 .rp-case__hero {
@@ -216,8 +108,8 @@ body.work-project-page .page-content-full { padding: 0; }
   align-items: center;
   gap: 0.65rem;
   padding: 0.55rem 1.25rem;
-  background: var(--pe-blue);
-  color: #ffffff !important;
+  background: var(--surface-bg, var(--pe-blue));
+  color: var(--surface-fg, var(--pe-cream));
   border: 1.5px solid var(--pe-ink);
   border-radius: 999px;
   box-shadow: 0 3px 0 var(--pe-ink);
@@ -228,34 +120,20 @@ body.work-project-page .page-content-full { padding: 0; }
   font: 750 0.78rem/1 var(--font-mono, monospace);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #ffffff !important;
+  color: inherit;
   opacity: 0.85;
 }
 
 .rp-case__meta-value {
   font: 650 clamp(1rem, 1.45vw, 1.2rem)/1.2 var(--font-display, sans-serif);
-  color: #ffffff !important;
-  -webkit-text-fill-color: #ffffff !important;
-}
-
-.pe-shell .rp-case .rp-case__meta-pill,
-.pe-shell .rp-case .rp-case__meta-pill *,
-.pe-shell .rp-case .rp-case__meta-value,
-.rp-case__hero .rp-case__meta-pill,
-.rp-case__hero .rp-case__meta-pill *,
-.rp-case__hero .rp-case__meta-value,
-.rp-case__meta-pill,
-.rp-case__meta-pill *,
-.rp-case__meta-value {
-  color: #ffffff !important;
-  -webkit-text-fill-color: #ffffff !important;
+  color: inherit;
 }
 
 /* Case Body */
 .rp-case__body {
   padding: clamp(3rem, 6vw, 6rem) var(--pe-pad);
   background: var(--pe-cream);
-  color: var(--pe-ink, #15130f) !important;
+  color: var(--pe-ink, #15130f);
 }
 
 .rp-case__body :is(h2, h3, h4, p, li, dt, dd, span, strong, em, b, figcaption) {
@@ -298,11 +176,11 @@ body.work-project-page .page-content-full { padding: 0; }
   margin: 0;
   font: 800 clamp(2.2rem, 3.8vw, 3.6rem)/0.96 var(--font-display, sans-serif);
   letter-spacing: -0.05em;
-  color: #ffffff !important;
+  color: inherit;
 }
 
 .rp-case__card-heading--dark {
-  color: var(--pe-ink, #15130f) !important;
+  color: inherit;
 }
 
 .rp-case__card-text {
@@ -324,7 +202,7 @@ body.work-project-page .page-content-full { padding: 0; }
   font: 750 0.68rem/1.2 var(--font-mono, monospace);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #ffffff !important;
+  color: inherit;
   opacity: 0.85;
 }
 
@@ -332,32 +210,28 @@ body.work-project-page .page-content-full { padding: 0; }
   margin: 0;
   font-size: clamp(1.02rem, 1.35vw, 1.2rem);
   line-height: 1.5;
-  color: rgba(255, 255, 255, 0.95) !important;
+  color: var(--surface-fg-secondary, currentColor);
   font-style: italic;
 }
 
 /* Trio Card 1 & 3: Blue Variant */
 .rp-case__trio-card--blue {
-  background: var(--pe-blue);
-  color: #ffffff !important;
-}
-
-.rp-case__trio-card--blue :is(.rp-case__card-heading, .rp-case__card-text, .rp-case__outcome-title, .rp-case__outcome-narrative-text, .rp-case__question-label, .rp-case__question-text) {
-  color: #ffffff !important;
+  background: var(--surface-bg, var(--pe-blue));
+  color: var(--surface-fg, var(--pe-cream));
 }
 
 .rp-case__outcome-title {
   margin: 0;
   font: 700 clamp(1.5rem, 2.2vw, 2.2rem)/1.1 var(--font-display, sans-serif);
   letter-spacing: -0.035em;
-  color: #ffffff !important;
+  color: inherit;
 }
 
 .rp-case__outcome-narrative-text {
   margin: 0;
   font: 600 clamp(1.2rem, 1.8vw, 1.55rem)/1.4 var(--font-display, sans-serif);
   letter-spacing: -0.02em;
-  color: #ffffff !important;
+  color: inherit;
 }
 
 .rp-case__outcome-bottom {
@@ -372,11 +246,11 @@ body.work-project-page .page-content-full { padding: 0; }
   align-items: center;
   gap: 0.6rem;
   font: 700 0.92rem/1.2 var(--font-mono, monospace);
-  color: #ffffff !important;
+  color: inherit;
 }
 
 .rp-case__outcome-status span {
-  color: #ffffff !important;
+  color: inherit;
 }
 
 .rp-case__outcome-status .status-dot {
@@ -384,7 +258,7 @@ body.work-project-page .page-content-full { padding: 0; }
   height: 8px;
   border-radius: 50%;
   background: var(--pe-lime, #caff48);
-  box-shadow: 0 0 8px var(--pe-lime, #caff48);
+  box-shadow: 0 0 8px var(--pe-lime, var(--pop-lime));
   flex-shrink: 0;
 }
 
@@ -395,16 +269,12 @@ body.work-project-page .page-content-full { padding: 0; }
 
 /* Trio Card 2: Yellow Variant */
 .rp-case__trio-card--yellow {
-  background: var(--pe-yellow) !important;
-  color: var(--pe-ink, #15130f) !important;
-}
-
-.rp-case__trio-card--yellow :is(p, span, strong, b, em, h3, h4) {
-  color: var(--pe-ink, #15130f) !important;
+  background: var(--surface-bg, var(--pe-yellow));
+  color: var(--surface-fg, var(--pe-ink));
 }
 
 .rp-case__card-text--dark {
-  color: var(--pe-ink, #15130f) !important;
+  color: inherit;
 }
 
 /* Full-Width Featured Walkthrough Media */
@@ -476,10 +346,10 @@ body.work-project-page .page-content-full { padding: 0; }
   width: clamp(64px, 8vw, 86px);
   height: clamp(64px, 8vw, 86px);
   border-radius: 50%;
-  background: var(--pe-yellow, #ffe44f) !important;
-  border: 2px solid var(--pe-ink, #15130f) !important;
-  color: var(--pe-ink, #15130f) !important;
-  box-shadow: 0 4px 0 var(--pe-ink, #15130f);
+  background: var(--surface-bg, var(--pe-yellow, #ffe44f));
+  border: 2px solid var(--pe-ink, var(--pop-ink)) !important;
+  color: var(--surface-fg, var(--pe-ink, #15130f));
+  box-shadow: 0 4px 0 var(--pe-ink, var(--pop-ink));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -491,13 +361,13 @@ body.work-project-page .page-content-full { padding: 0; }
 
 .rp-case__video-trigger:hover .rp-case__play-btn {
   transform: translate(-50%, -50%) scale(1.1);
-  background: var(--pe-yellow, #ffe44f) !important;
-  box-shadow: 0 6px 0 var(--pe-ink, #15130f);
+  background: var(--surface-bg, var(--pe-yellow, #ffe44f));
+  box-shadow: 0 6px 0 var(--pe-ink, var(--pop-ink));
 }
 
 .rp-case__video-trigger:active .rp-case__play-btn {
   transform: translate(-50%, -50%) scale(0.96);
-  box-shadow: 0 2px 0 var(--pe-ink, #15130f);
+  box-shadow: 0 2px 0 var(--pe-ink, var(--pop-ink));
 }
 
 .rp-case__play-icon {
@@ -526,8 +396,7 @@ body.work-project-page .page-content-full { padding: 0; }
   font: 600 clamp(0.72rem, 0.88vw, 0.82rem)/1.35 var(--font-display, "Space Grotesk", sans-serif) !important;
   text-transform: uppercase !important;
   letter-spacing: 0.03em !important;
-  color: var(--pe-ink, #15130f) !important;
-  -webkit-text-fill-color: var(--pe-ink, #15130f) !important;
+  color: var(--pe-ink, #15130f);
   opacity: 1 !important;
   width: 100% !important;
 }
@@ -537,9 +406,8 @@ body.work-project-page .page-content-full { padding: 0; }
   text-transform: uppercase !important;
   letter-spacing: 0.08em !important;
   padding: 0.28rem 0.55rem !important;
-  background: var(--pe-yellow) !important;
-  color: var(--pe-ink, #15130f) !important;
-  -webkit-text-fill-color: var(--pe-ink, #15130f) !important;
+  background: var(--surface-bg, var(--pe-yellow));
+  color: var(--surface-fg, var(--pe-ink));
   border: 1.5px solid var(--pe-ink) !important;
   border-radius: 999px !important;
   box-shadow: 0 2px 0 var(--pe-ink) !important;
@@ -547,8 +415,7 @@ body.work-project-page .page-content-full { padding: 0; }
 }
 
 .rp-case__caption-badge :is(span, strong, b) {
-  color: var(--pe-ink, #15130f) !important;
-  -webkit-text-fill-color: var(--pe-ink, #15130f) !important;
+  color: inherit;
 }
 
 .rp-case__caption-text,
@@ -562,8 +429,7 @@ body.work-project-page .page-content-full { padding: 0; }
   font: 600 clamp(0.72rem, 0.88vw, 0.82rem)/1.35 var(--font-display, "Space Grotesk", sans-serif) !important;
   text-transform: uppercase !important;
   letter-spacing: 0.03em !important;
-  color: var(--pe-ink, #15130f) !important;
-  -webkit-text-fill-color: var(--pe-ink, #15130f) !important;
+  color: var(--pe-ink, #15130f);
 }
 
 :is(
@@ -574,8 +440,7 @@ body.work-project-page .page-content-full { padding: 0; }
   .pf-video-figure figcaption,
   .portfolio-lightbox-cover figcaption
 ) :is(span:not(.rp-case__caption-badge), p, strong, em, b, a, small, code) {
-  color: var(--pe-ink, #15130f) !important;
-  -webkit-text-fill-color: var(--pe-ink, #15130f) !important;
+  color: var(--pe-ink, #15130f);
 }
 
 /* Gallery layout */
@@ -688,8 +553,8 @@ body.work-project-page .page-content-full { padding: 0; }
   gap: 0.7rem;
   padding: 0.85rem 1.8rem;
   min-height: 52px;
-  background: var(--pe-yellow);
-  color: var(--pe-ink) !important;
+  background: var(--surface-bg, var(--pe-yellow));
+  color: var(--surface-fg, var(--pe-ink));
   border: 1.5px solid var(--pe-ink);
   border-radius: 999px;
   font: 750 0.86rem/1 var(--font-mono, monospace);
@@ -703,7 +568,7 @@ body.work-project-page .page-content-full { padding: 0; }
 }
 
 .rp-case__experiment-btn :is(span, strong, b, a, svg) {
-  color: var(--pe-ink) !important;
+  color: inherit;
 }
 
 .rp-case__experiment-btn:hover {
@@ -741,11 +606,11 @@ body.work-project-page .page-content-full { padding: 0; }
   align-items: center;
   gap: 2rem;
   padding: clamp(1.6rem, 3.5vw, 2.5rem) clamp(1.8rem, 4vw, 3rem);
-  background: var(--pe-cream);
+  background: var(--surface-bg, var(--pe-cream));
   border: 1px solid rgba(21, 19, 15, 0.34);
   border-radius: var(--pe-radius, clamp(18px, 2vw, 28px));
   text-decoration: none;
-  color: var(--pe-ink) !important;
+  color: var(--surface-fg, var(--pe-ink));
   box-shadow: 0 4px 0 rgba(21, 19, 15, 0.08);
   transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
 }
@@ -793,8 +658,8 @@ body.work-project-page .page-content-full { padding: 0; }
   align-items: center;
   gap: 0.75rem;
   padding: 0.85rem 1.6rem;
-  background: var(--pe-yellow);
-  color: #15130f !important;
+  background: var(--surface-bg, var(--pe-yellow));
+  color: var(--surface-fg, var(--pop-ink));
   font-weight: 800;
   font-size: 0.95rem;
   font-family: var(--font-display, sans-serif);
@@ -847,12 +712,6 @@ body.work-project-page .page-content-full { padding: 0; }
 .rp-case[data-accent="cyan"] { --case-accent: var(--pe-cyan); }
 .rp-case[data-accent="orange"] { --case-accent: var(--pe-orange); }
 .rp-case[data-accent="purple"] { --case-accent: var(--pe-purple); }
-.rp-case[data-accent="purple"] .rp-case__hero,
-.rp-case[data-accent="purple"] .rp-case__hero :is(h1, .rp-case__intro, .rp-case__back, .rp-case__topline, p, span, a, strong, em) {
-  color: #ffffff !important;
-  -webkit-text-fill-color: #ffffff !important;
-}
-
 /* Responsive adjustments */
 @media (max-width: 960px) {
   .rp-case__trio-grid {
@@ -891,92 +750,4 @@ body.work-project-page .page-content-full { padding: 0; }
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
-}
-
-/* ==========================================================================
-   POP EDITORIAL STRICT CONTRAST SYSTEM (Design System Law)
-   1. ANY YELLOW SURFACE / PILL / BUTTON / BADGE / CARD -> STRICT BLACK INK (#15130f)
-   2. ANY BLUE SURFACE / PILL / BUTTON / BADGE / CARD -> STRICT PURE WHITE (#ffffff)
-   3. NESTED YELLOW BUTTONS/PILLS INSIDE BLUE SURFACES -> STRICT BLACK INK (#15130f)
-   ========================================================================== */
-
-/* 1. STRICT BLACK TEXT ON ALL YELLOW SURFACES */
-:is(
-  .rp-case__caption-badge,
-  .rp-case__experiment-btn,
-  .rp-case__trio-card--yellow,
-  .rp-case__next-arrow,
-  .rp-case__reading-card,
-  .rp-case__reading-badge,
-  .rp-case__contrib-card,
-  .pop-card--yellow,
-  .pop-panel--yellow,
-  .btn-yellow,
-  .badge-yellow,
-  .pill-yellow,
-  [class*="--yellow"],
-  [class*="yellow"],
-  [data-pop-surface="yellow"],
-  [style*="#ffe44f"],
-  [style*="--pe-yellow"],
-  [style*="--pop-yellow"],
-  [style*="--rp-yellow"]
-),
-:is(
-  .rp-case__caption-badge,
-  .rp-case__experiment-btn,
-  .rp-case__trio-card--yellow,
-  .rp-case__next-arrow,
-  .rp-case__reading-card,
-  .rp-case__reading-badge,
-  .rp-case__contrib-card,
-  .pop-card--yellow,
-  .pop-panel--yellow,
-  .btn-yellow,
-  .badge-yellow,
-  .pill-yellow,
-  [class*="--yellow"],
-  [class*="yellow"],
-  [data-pop-surface="yellow"],
-  [style*="#ffe44f"],
-  [style*="--pe-yellow"],
-  [style*="--pop-yellow"],
-  [style*="--rp-yellow"]
-) :is(h1, h2, h3, h4, h5, h6, p, span, small, li, strong, em, b, a, button, label, td, th, code, svg, dt, dd, figcaption) {
-  color: #15130f !important;
-  -webkit-text-fill-color: #15130f !important;
-}
-
-/* 2. STRICT WHITE TEXT ON ALL BLUE SURFACES */
-:is(
-  .rp-case__meta-pill,
-  .rp-case__trio-card--blue,
-  .pop-card--blue,
-  .pop-panel--blue,
-  .btn-blue,
-  .badge-blue,
-  .pill-blue,
-  [class*="--blue"],
-  [data-pop-surface="blue"]
-),
-:is(
-  .rp-case__meta-pill,
-  .rp-case__trio-card--blue,
-  .pop-card--blue,
-  .pop-panel--blue,
-  .btn-blue,
-  .badge-blue,
-  .pill-blue,
-  [class*="--blue"],
-  [data-pop-surface="blue"]
-) :is(h1, h2, h3, h4, h5, h6, p, span, small, li, strong, em, b, a, dt, dd, svg) {
-  color: #ffffff !important;
-  -webkit-text-fill-color: #ffffff !important;
-}
-
-/* 3. NESTED YELLOW ELEMENTS INSIDE BLUE SURFACES REMAIN STRICT BLACK */
-:is(.rp-case__trio-card--blue, [class*="--blue"], .pop-card--blue) :is(.rp-case__experiment-btn, .rp-case__caption-badge, [class*="--yellow"], [style*="#ffe44f"]),
-:is(.rp-case__trio-card--blue, [class*="--blue"], .pop-card--blue) :is(.rp-case__experiment-btn, .rp-case__caption-badge, [class*="--yellow"], [style*="#ffe44f"]) :is(span, strong, b, em, p, a, svg) {
-  color: #15130f !important;
-  -webkit-text-fill-color: #15130f !important;
 }

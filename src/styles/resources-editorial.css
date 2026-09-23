@@ -2,28 +2,20 @@
 html:has(body.resources-editorial-page),
 html.resources-editorial-page,
 body.resources-editorial-page {
-  background: #2444ca !important;
-  background-color: #2444ca !important;
+  background: var(--pop-blue) !important;
+  background-color: var(--pop-blue) !important;
   min-height: 100vh;
 }
 
 body.resources-editorial-page {
-  --pop-blue: #2444ca;
-  --pop-pink: #ff7eb5;
-  --pop-yellow: #ffe44f;
-  --pop-purple: #5524c7;
-  --pop-lime: #caff48;
-  --pop-orange: #ff875c;
-  --pop-cream: #fff8e8;
-  --pop-ink: #15130f;
   --pop-border: rgba(21, 19, 15, 0.78);
   --pop-line: rgba(21, 19, 15, 0.24);
   --resources-font: "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
   --resources-mono: "Satoshi-Variable", "Satoshi-Regular", "Space Mono", "Inconsolata", monospace;
   margin: 0;
   padding: 0 !important;
-  background: #2444ca !important;
-  background-color: #2444ca !important;
+  background: var(--pop-blue) !important;
+  background-color: var(--pop-blue) !important;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -32,15 +24,15 @@ body.resources-editorial-page {
 .resources-editorial-page #main-content {
   flex: 1 0 auto;
   min-height: calc(100svh - 72px);
-  background: #2444ca !important;
-  background-color: #2444ca !important;
+  background: var(--pop-blue) !important;
+  background-color: var(--pop-blue) !important;
   width: 100%;
   max-width: 100%;
 }
 
 .resources-editorial-page .story-footer {
-  background: #2444ca !important;
-  background-color: #2444ca !important;
+  background: var(--pop-blue) !important;
+  background-color: var(--pop-blue) !important;
   border-top: 0 !important;
 }
 
@@ -77,7 +69,8 @@ body.resources-editorial-page {
 
 .resources-editorial .resource-loading h1 {
   margin: 20px 0 0;
-  font: 620 clamp(1.8rem, 4vw, 3.2rem)/1.1 var(--resources-font);
+  font: var(--type-role-section-title-weight) var(--type-role-section-title-size)/var(--type-role-section-title-line) var(--resources-font);
+  letter-spacing: var(--type-role-section-title-track);
   letter-spacing: -0.045em;
   color: var(--pop-ink);
 }
@@ -85,7 +78,7 @@ body.resources-editorial-page {
 .resources-editorial .resource-loading p {
   margin: 12px 0 0;
   color: var(--text-secondary);
-  font: 450 0.95rem/1.5 var(--resources-font);
+  font: var(--type-role-body-weight) var(--type-role-body-size)/var(--type-role-body-line) var(--resources-font);
 }
 
 .resources-editorial .resource-loading-indicator {
@@ -139,7 +132,8 @@ body.resources-editorial-page {
   max-width: 13ch;
   margin: 0 0 24px;
   color: var(--pop-ink);
-  font: 750 clamp(3.25rem, 6.2vw, 6.5rem)/0.94 var(--resources-font);
+  font: var(--type-role-display-weight) var(--type-role-display-size)/var(--type-role-display-line) var(--resources-font);
+  letter-spacing: var(--type-role-display-track);
   letter-spacing: -0.07em;
   text-wrap: balance;
 }
@@ -148,7 +142,7 @@ body.resources-editorial-page {
   max-width: 52ch;
   margin: 0;
   color: var(--text-secondary);
-  font: 500 clamp(1.05rem, 1.55vw, 1.3rem)/1.45 var(--resources-font);
+  font: var(--type-role-body-weight) var(--type-role-body-size)/var(--type-role-body-line) var(--resources-font);
   text-wrap: pretty;
 }
 
@@ -266,7 +260,7 @@ body.resources-editorial-page {
 .resources-editorial .resource-results-heading h2 {
   margin: 0;
   color: var(--pop-ink);
-  font: 620 clamp(1.5rem, 2.3vw, 2rem)/1.1 var(--resources-font);
+  font: var(--type-role-section-title-weight) var(--type-role-section-title-size)/var(--type-role-section-title-line) var(--resources-font);
   letter-spacing: -0.04em;
 }
 .resources-editorial .resource-results-meta {
@@ -333,7 +327,8 @@ body.resources-editorial-page {
   display: block;
   overflow: visible;
   color: var(--pop-ink);
-  font: 650 clamp(1.2rem, 1.7vw, 1.65rem)/1.14 var(--resources-font);
+  font: var(--type-role-card-title-weight) var(--type-role-card-title-size)/var(--type-role-card-title-line) var(--resources-font);
+  letter-spacing: var(--type-role-card-title-track);
   letter-spacing: -0.035em;
   overflow-wrap: anywhere;
   text-wrap: pretty;
@@ -347,7 +342,7 @@ body.resources-editorial-page {
 .resources-editorial .description {
   margin: 0 0 20px;
   color: var(--text-secondary);
-  font: 450 0.9rem/1.5 var(--resources-font);
+  font: var(--type-role-body-weight) var(--type-role-body-size)/var(--type-role-body-line) var(--resources-font);
   -webkit-line-clamp: 3;
 }
 .resources-editorial .meta {
@@ -523,7 +518,8 @@ body.resources-editorial-page {
 .resources-editorial .resource-edit-header h1 {
   margin: 0 0 12px;
   color: var(--pop-ink);
-  font: 720 clamp(2.5rem, 5vw, 4rem)/0.96 var(--resources-font);
+  font: var(--type-role-page-title-weight) var(--type-role-page-title-size)/var(--type-role-page-title-line) var(--resources-font);
+  letter-spacing: var(--type-role-page-title-track);
   letter-spacing: -0.06em;
 }
 
@@ -644,7 +640,8 @@ body.resources-editorial-page {
 }
 
 .resources-editorial .curator-header h1 {
-  font: 720 clamp(2.2rem, 4.2vw, 4rem)/0.96 var(--resources-font) !important;
+  font: var(--type-role-page-title-weight) var(--type-role-page-title-size)/var(--type-role-page-title-line) var(--resources-font) !important;
+  letter-spacing: var(--type-role-page-title-track) !important;
   letter-spacing: -0.06em !important;
   color: var(--pop-ink) !important;
   margin: 0 0 8px !important;

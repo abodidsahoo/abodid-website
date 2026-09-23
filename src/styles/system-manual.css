@@ -1,13 +1,4 @@
 :root {
-  --pop-blue: #2444ca;
-  --pop-pink: #ff7eb5;
-  --pop-yellow: #ffe44f;
-  --pop-lime: #caff48;
-  --pop-orange: #ff875c;
-  --pop-purple: #5524c7;
-  --pop-cyan: #62e6ff;
-  --pop-cream: #fff8e8;
-  --pop-ink: #15130f;
   --pop-border: rgba(21, 19, 15, 0.88);
   --pop-line: rgba(21, 19, 15, 0.2);
 }
@@ -797,20 +788,20 @@ body.manual-page .container {
 }
 
 .manual-article-card {
-  --text-primary: #15130f !important;
-  --text-secondary: #15130f !important;
-  --type-paragraph-color: #15130f !important;
-  --type-h1-color: #15130f !important;
-  --type-h2-color: #15130f !important;
-  --type-h3-color: #15130f !important;
-  --type-h4-color: #15130f !important;
+  --text-primary: var(--pop-ink) !important;
+  --text-secondary: var(--pop-ink) !important;
+  --type-paragraph-color: var(--pop-ink) !important;
+  --type-h1-color: var(--pop-ink) !important;
+  --type-h2-color: var(--pop-ink) !important;
+  --type-h3-color: var(--pop-ink) !important;
+  --type-h4-color: var(--pop-ink) !important;
   background: var(--pop-cream) !important;
   border: 2px solid var(--pop-ink);
   border-radius: 22px;
   padding: clamp(2rem, 5vw, 4.25rem) clamp(1.5rem, 5vw, 4rem);
   box-shadow: 0 8px 32px rgba(21, 19, 15, 0.16);
   position: relative;
-  color: #15130f !important;
+  color: var(--pop-ink) !important;
   box-sizing: border-box;
   height: 100%;
   max-height: 100%;
@@ -998,7 +989,7 @@ body.manual-page .container {
 .manual-markdown-body {
   font-size: clamp(1.04rem, 1.15vw, 1.15rem);
   line-height: 1.76;
-  color: #15130f !important;
+  color: var(--pop-ink) !important;
 }
 
 .manual-markdown-body p,
@@ -1008,14 +999,14 @@ body.manual-page .container {
 .manual-markdown-body blockquote,
 .manual-markdown-body dt,
 .manual-markdown-body dd {
-  color: #15130f !important;
+  color: var(--pop-ink) !important;
   opacity: 1 !important;
 }
 
 .manual-markdown-body p {
   margin-top: 0;
   margin-bottom: 1.6rem;
-  color: #15130f !important;
+  color: var(--pop-ink) !important;
   font-weight: 450;
 }
 
@@ -1026,7 +1017,7 @@ body.manual-page .container {
 .manual-markdown-body h5,
 .manual-markdown-body h6 {
   font-family: "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
-  color: #15130f !important;
+  color: var(--pop-ink) !important;
   line-height: 1.15;
   letter-spacing: -0.035em;
   font-weight: 800;
@@ -1057,7 +1048,7 @@ body.manual-page .container {
 
 .manual-markdown-body strong {
   font-weight: 800;
-  color: #15130f !important;
+  color: var(--pop-ink) !important;
 }
 
 .manual-markdown-body ul,
@@ -1070,7 +1061,7 @@ body.manual-page .container {
 .manual-markdown-body li {
   margin-bottom: 0.65rem;
   line-height: 1.68;
-  color: #15130f !important;
+  color: var(--pop-ink) !important;
 }
 
 /* ---------------- Inline Code: Clean, Subtle, No Weird Square Box ---------------- */
@@ -1090,7 +1081,7 @@ body.manual-page .container {
   padding: 0;
   border: none !important;
   font-size: inherit;
-  color: #fff8e8 !important;
+  color: var(--pop-cream) !important;
 }
 
 /* ---------------- Callouts ---------------- */
@@ -1134,7 +1125,7 @@ body.manual-page .container {
   display: flex;
   align-items: center;
   gap: 0.45rem;
-  color: #15130f !important;
+  color: var(--pop-ink) !important;
 }
 
 /* ---------------- High-Quality Responsive Tables (Proportional & Clean) ---------------- */
@@ -1173,7 +1164,7 @@ body.manual-page .container {
   padding: 0.9rem 1.15rem;
   border-bottom: 1px solid rgba(21, 19, 15, 0.12);
   border-right: 1px solid rgba(21, 19, 15, 0.12);
-  color: #15130f !important;
+  color: var(--pop-ink) !important;
   line-height: 1.55;
   vertical-align: top;
 }
@@ -1224,11 +1215,11 @@ body.manual-page .container {
   font-family: "Space Mono", "Inconsolata", monospace;
   font-size: 0.76rem;
   font-weight: 750;
-  color: #fff8e8 !important;
+  color: var(--pop-cream) !important;
 }
 
 .manual-code-lang {
-  color: #ffe44f !important;
+  color: var(--pop-yellow) !important;
   font-family: "Space Mono", "Inconsolata", monospace;
   font-size: 0.74rem;
   font-weight: 800;
@@ -1259,7 +1250,7 @@ body.manual-page .container {
   margin: 0;
   padding: 1.35rem;
   overflow-x: auto;
-  color: #fff8e8 !important;
+  color: var(--pop-cream) !important;
   font-family: "Space Mono", "Inconsolata", monospace;
   font-size: 0.92rem;
   line-height: 1.58;
@@ -1293,8 +1284,8 @@ body.manual-page .container {
 
 .manual-mermaid-block .nodeLabel,
 .manual-mermaid-block text {
-  color: #15130f !important;
-  fill: #15130f !important;
+  color: var(--pop-ink) !important;
+  fill: var(--pop-ink) !important;
   font-weight: 750 !important;
   font-size: 14px !important;
   line-height: 1.4 !important;

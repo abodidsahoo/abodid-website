@@ -15,6 +15,7 @@ import {
   limitWords,
   normalizeCandidates,
   normalizeTitle,
+  prioritizeReserveCandidates,
   renderDigestHtml,
   scoreCandidate,
   selectExactlyFive,
@@ -45,6 +46,13 @@ type SourceRule = {
 };
 
 type RunRow = { id: string; run_key: string; status: string };
+
+type RunProgressSnapshot = {
+  discoveredCount: number;
+  verifiedCount: number;
+  responseIds: string[];
+  metadata: Record<string, unknown>;
+};
 
 type AiProvider = {
   name: "openai" | "openrouter";
@@ -765,12 +773,13 @@ const markRunFailed = async (
   database: SupabaseClient,
   runId: string,
   error: unknown,
+  progress?: RunProgressSnapshot,
 ) => {
   const message = error instanceof Error ? error.message : String(error);
   const parseFailure = error instanceof AiResponseParseError
     ? {
-      openai_response_ids: error.responseId ? [error.responseId] : [],
       metadata: {
+        ...(progress?.metadata ?? {}),
         failure_type: "ai_response_parse",
         ai_provider: error.provider,
         ai_model: error.model,
@@ -788,6 +797,17 @@ const markRunFailed = async (
       status: "failed",
       finished_at: new Date().toISOString(),
       error_message: message.slice(0, 2_000),
+      ...(progress
+        ? {
+          discovered_count: progress.discoveredCount,
+          verified_count: progress.verifiedCount,
+          openai_response_ids: error instanceof AiResponseParseError &&
+              error.responseId
+            ? [...progress.responseIds, error.responseId]
+            : progress.responseIds,
+          metadata: progress.metadata,
+        }
+        : {}),
       ...parseFailure,
     })
     .eq("id", runId);
@@ -1120,6 +1140,28 @@ Deno.serve(async (request) => {
     }, 500);
   }
 
+  const responseIds: string[] = [];
+  const usedModels = new Set<string>();
+  const discoveryMetadata: unknown[] = [];
+  let aiProviderName: AiProvider["name"] | null = null;
+  let discoveredCount = 0;
+  let verifiedCount = 0;
+  let reserveAvailableCount = 0;
+  let reserveCheckedCount = 0;
+  let reserveAcceptedCount = 0;
+  let reserveRejectedCount = 0;
+  const runMetadata = (): Record<string, unknown> => ({
+    ...(aiProviderName ? { ai_provider: aiProviderName } : {}),
+    ai_models: [...usedModels],
+    discovery: discoveryMetadata,
+    reserve: {
+      available_count: reserveAvailableCount,
+      checked_count: reserveCheckedCount,
+      accepted_count: reserveAcceptedCount,
+      rejected_count: reserveRejectedCount,
+    },
+  });
+
   try {
     if (!settings.recipient_email) {
       throw new Error(
@@ -1202,6 +1244,7 @@ Deno.serve(async (request) => {
     }
 
     const aiProvider = resolveAiProvider(settings.openai_model);
+    aiProviderName = aiProvider.name;
     const resendApiKey = requiredEnv("RESEND_API_KEY");
 
     const [
@@ -1302,12 +1345,6 @@ Deno.serve(async (request) => {
       string,
       VerifiedDigestCandidate & { reading_id: string }
     >();
-    const responseIds: string[] = [];
-    const usedModels = new Set<string>();
-    const discoveryMetadata: unknown[] = [];
-    let discoveredCount = 0;
-    let verifiedCount = 0;
-
     for (let round = 1; round <= 2 && eligibleByUrl.size < 5; round += 1) {
       const discovery = await discoverCandidates({
         provider: aiProvider,
@@ -1559,6 +1596,155 @@ Deno.serve(async (request) => {
       }
     }
 
+    if (eligibleByUrl.size < 5) {
+      const { data: reserveRows, error: reserveError, count: reserveCount } =
+        await database
+          .from("reading_digest_readings")
+          .select(
+            "id, url, canonical_url, title, normalized_title, source_name, source_domain, publication_date, estimated_reading_minutes, why_it_matters, topic_names, relevance_score, credibility_score, rank_score, is_foundational, verification_status, http_status, content_type, last_discovered_at",
+            { count: "exact" },
+          )
+          .eq("verification_status", "verified")
+          .eq("status", "discovered")
+          .lte("publication_date", local.date)
+          .order("last_discovered_at", { ascending: false })
+          .limit(100);
+      if (reserveError) {
+        throw new Error(
+          `Could not load the verified reading reserve: ${reserveError.message}`,
+        );
+      }
+
+      reserveAvailableCount = reserveCount ?? reserveRows?.length ?? 0;
+      const activeTopicNames = topics.map((topic) => topic.name);
+      const reserveCandidates = prioritizeReserveCandidates(
+        (reserveRows ?? []).map((row) => ({
+          title: String(row.title ?? ""),
+          source_name: String(row.source_name ?? row.source_domain ?? ""),
+          publication_date: String(row.publication_date ?? ""),
+          estimated_reading_minutes: Number(
+            row.estimated_reading_minutes ?? 5,
+          ),
+          url: String(row.url ?? row.canonical_url ?? ""),
+          why_it_matters: String(row.why_it_matters ?? ""),
+          topic_names: Array.isArray(row.topic_names)
+            ? row.topic_names.map(String)
+            : [],
+          relevance_score: Number(row.relevance_score ?? 0),
+          credibility_score: Number(row.credibility_score ?? 0),
+          is_foundational: Boolean(row.is_foundational),
+          canonical_url: String(row.canonical_url ?? ""),
+          source_domain: String(row.source_domain ?? ""),
+          normalized_title: String(
+            row.normalized_title ?? normalizeTitle(String(row.title ?? "")),
+          ),
+          rank_score: Number(row.rank_score ?? 0),
+          verification_status: "verified" as const,
+          http_status: Number(row.http_status ?? 200),
+          content_type: String(row.content_type ?? ""),
+          reading_id: String(row.id),
+        })).filter((candidate) => {
+          const canonical = canonicalizeUrl(candidate.canonical_url);
+          if (!canonical || !isArticleContent(candidate)) return false;
+          if (excludedUrls.has(canonical)) return false;
+          if (
+            blockedDomains.some((blocked) =>
+              domainMatches(candidate.source_domain, blocked)
+            )
+          ) return false;
+          if (
+            sentTitles.some((title) =>
+              titleSimilarity(candidate.title, title) >= 0.82
+            )
+          ) return false;
+          return ![...eligibleByUrl.values()].some((existingCandidate) =>
+            titleSimilarity(candidate.title, existingCandidate.title) >= 0.82
+          );
+        }),
+        activeTopicNames,
+      );
+
+      const needed = 5 - eligibleByUrl.size;
+      const verificationLimit = Math.min(
+        reserveCandidates.length,
+        Math.max(12, needed * 4),
+      );
+
+      for (
+        let index = 0;
+        index < verificationLimit && eligibleByUrl.size < 5;
+        index += 4
+      ) {
+        const batch = reserveCandidates.slice(
+          index,
+          Math.min(index + 4, verificationLimit),
+        );
+        const checkedReserve = await Promise.all(
+          batch.map(async (candidate) => ({
+            candidate,
+            verification: await verifyUrl(candidate.canonical_url),
+          })),
+        );
+
+        for (const { candidate, verification } of checkedReserve) {
+          if (eligibleByUrl.size >= 5) break;
+          reserveCheckedCount += 1;
+          if (!verification.ok) {
+            reserveRejectedCount += 1;
+            continue;
+          }
+
+          const finalCanonical = verification.finalUrl;
+          const finalDomain = domainFromUrl(finalCanonical);
+          const isRejected =
+            blockedDomains.some((blocked) =>
+              domainMatches(finalDomain, blocked)
+            ) ||
+            excludedUrls.has(finalCanonical) ||
+            Boolean(
+              verification.pageTitle &&
+                titleSimilarity(candidate.title, verification.pageTitle) <
+                  0.22,
+            ) ||
+            [...eligibleByUrl.values()].some((existingCandidate) =>
+              titleSimilarity(candidate.title, existingCandidate.title) >=
+                0.82
+            );
+          if (isRejected) {
+            reserveRejectedCount += 1;
+            continue;
+          }
+
+          const trusted = trustedDomains.some((trustedDomain) =>
+            domainMatches(finalDomain, trustedDomain)
+          );
+          const rankScore = scoreCandidate({
+            candidate,
+            trusted,
+            sourcePreference: Math.max(
+              -15,
+              Math.min(10, sourcePreferences.get(finalDomain) ?? 0),
+            ),
+            now,
+          });
+          const refreshedCandidate = {
+            ...candidate,
+            url: verification.finalUrl,
+            canonical_url: finalCanonical,
+            source_domain: finalDomain,
+            rank_score: rankScore,
+            http_status: verification.httpStatus,
+            content_type: verification.contentType,
+          };
+
+          excludedUrls.add(finalCanonical);
+          eligibleByUrl.set(finalCanonical, refreshedCandidate);
+          verifiedCount += 1;
+          reserveAcceptedCount += 1;
+        }
+      }
+    }
+
     const selected = selectExactlyFive(
       [...eligibleByUrl.values()],
       now,
@@ -1624,11 +1810,7 @@ Deno.serve(async (request) => {
           verified_count: verifiedCount,
           selected_count: 5,
           openai_response_ids: responseIds,
-          metadata: {
-            ai_provider: aiProvider.name,
-            ai_models: [...usedModels],
-            discovery: discoveryMetadata,
-          },
+          metadata: runMetadata(),
         })
         .eq("id", run.id),
     ]);
@@ -1668,7 +1850,12 @@ Deno.serve(async (request) => {
       selected_count: 5,
     });
   } catch (error) {
-    await markRunFailed(database, run.id, error);
+    await markRunFailed(database, run.id, error, {
+      discoveredCount,
+      verifiedCount,
+      responseIds,
+      metadata: runMetadata(),
+    });
     const message = error instanceof Error ? error.message : String(error);
     const { data: failedDelivery } = await database
       .from("reading_digest_deliveries")

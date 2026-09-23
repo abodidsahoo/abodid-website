@@ -182,8 +182,8 @@ const ShareButtons = ({ title, url }) => {
                     padding: 6px 9px;
                     border: 1px solid rgba(255, 248, 232, 0.35);
                     border-radius: 6px;
-                    background: #15130f;
-                    color: #fff8e8;
+                    background: var(--pop-ink);
+                    color: var(--pop-cream);
                     box-shadow: 0 5px 14px rgba(21, 19, 15, 0.2);
                     font-family: "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
                     font-size: 0.76rem;
@@ -197,7 +197,7 @@ const ShareButtons = ({ title, url }) => {
 
                 .tooltip.is-error {
                     background: #8f224c;
-                    color: #fff8e8;
+                    color: var(--pop-cream);
                 }
 
                 @keyframes fadeIn {

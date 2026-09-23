@@ -640,7 +640,7 @@ const ThemeWidget = ({ currentItems = [], onSelectBoard, onNewBlankBoard }) => {
                     align-items: center;
                     gap: 0.45rem;
                     padding: 0.45rem 0.95rem;
-                    border: 1.5px solid #15130f;
+                    border: 1.5px solid var(--pop-ink);
                     border-radius: 999px;
                     font-family: var(--font-mono, "Satoshi-Variable", monospace);
                     font-size: 0.82rem;
@@ -671,15 +671,15 @@ const ThemeWidget = ({ currentItems = [], onSelectBoard, onNewBlankBoard }) => {
 
                 /* Distinct Category Pop Color Palette */
                 .pop-backdrop-btn {
-                    background: #fff8e8;
-                    color: #15130f;
+                    background: var(--pop-cream);
+                    color: var(--pop-ink);
                 }
                 .pop-backdrop-btn:hover, .pop-backdrop-btn.is-active {
                     background: #ffffff;
                 }
 
                 .pop-instructions-btn {
-                    background: #2444ca;
+                    background: var(--pop-blue);
                     color: #ffffff;
                 }
                 .pop-instructions-btn:hover, .pop-instructions-btn.is-active {
@@ -687,24 +687,24 @@ const ThemeWidget = ({ currentItems = [], onSelectBoard, onNewBlankBoard }) => {
                 }
 
                 .pop-save-btn {
-                    background: #caff48;
-                    color: #15130f;
+                    background: var(--pop-lime);
+                    color: var(--pop-ink);
                 }
                 .pop-save-btn:hover {
                     background: #b8f331;
                 }
 
                 .pop-snap-btn {
-                    background: #ff7eb5;
-                    color: #15130f;
+                    background: var(--pop-pink);
+                    color: var(--pop-ink);
                 }
                 .pop-snap-btn:hover {
                     background: #ff64a5;
                 }
 
                 .pop-pdf-btn {
-                    background: #caff48;
-                    color: #15130f;
+                    background: var(--pop-lime);
+                    color: var(--pop-ink);
                 }
                 .pop-pdf-btn:hover, .pop-pdf-btn.is-active {
                     background: #b8f331;
@@ -715,7 +715,7 @@ const ThemeWidget = ({ currentItems = [], onSelectBoard, onNewBlankBoard }) => {
                     width: 10px;
                     height: 10px;
                     border-radius: 50%;
-                    border: 1.5px solid #15130f;
+                    border: 1.5px solid var(--pop-ink);
                     display: inline-block;
                     flex-shrink: 0;
                     box-sizing: border-box;
@@ -745,9 +745,9 @@ const ThemeWidget = ({ currentItems = [], onSelectBoard, onNewBlankBoard }) => {
                 /* Floating Dropdown Panels */
                 .pop-floating-panel {
                     position: absolute;
-                    background: #fff8e8;
-                    color: #15130f;
-                    border: 1.5px solid #15130f;
+                    background: var(--pop-cream);
+                    color: var(--pop-ink);
+                    border: 1.5px solid var(--pop-ink);
                     border-radius: 18px;
                     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18), 0 3px 0 rgba(21, 19, 15, 0.3);
                     box-sizing: border-box;
@@ -783,20 +783,20 @@ const ThemeWidget = ({ currentItems = [], onSelectBoard, onNewBlankBoard }) => {
                     font-weight: 850;
                     letter-spacing: 0.08em;
                     text-transform: uppercase;
-                    color: #15130f;
+                    color: var(--pop-ink);
                     padding: 0.22rem 0.55rem;
                     border-radius: 6px;
-                    border: 1px solid #15130f;
+                    border: 1px solid var(--pop-ink);
                 }
 
-                .pop-badge-lime { background: #caff48; }
-                .pop-badge-pink { background: #ff7eb5; }
-                .pop-badge-yellow { background: #ffe44f; }
+                .pop-badge-lime { background: var(--pop-lime); }
+                .pop-badge-pink { background: var(--pop-pink); }
+                .pop-badge-yellow { background: var(--pop-yellow); }
 
                 .pop-close-icon-btn {
                     background: transparent;
                     border: none;
-                    color: #15130f;
+                    color: var(--pop-ink);
                     font-size: 0.9rem;
                     font-weight: 800;
                     cursor: pointer;
@@ -869,7 +869,7 @@ const ThemeWidget = ({ currentItems = [], onSelectBoard, onNewBlankBoard }) => {
                 .pop-swatch-compact-label {
                     font-size: 0.74rem;
                     font-weight: 700;
-                    color: #15130f;
+                    color: var(--pop-ink);
                     letter-spacing: 0.01em;
                 }
 
@@ -897,15 +897,15 @@ const ThemeWidget = ({ currentItems = [], onSelectBoard, onNewBlankBoard }) => {
                     font-weight: 850;
                     padding: 0.25rem 0.45rem;
                     border-radius: 6px;
-                    border: 1px solid #15130f;
+                    border: 1px solid var(--pop-ink);
                     line-height: 1;
                     flex-shrink: 0;
-                    color: #15130f;
+                    color: var(--pop-ink);
                 }
 
-                .pop-step-pink { background: #ff7eb5; }
-                .pop-step-yellow { background: #ffe44f; }
-                .pop-step-lime { background: #caff48; }
+                .pop-step-pink { background: var(--pop-pink); }
+                .pop-step-yellow { background: var(--pop-yellow); }
+                .pop-step-lime { background: var(--pop-lime); }
                 .pop-step-blue { background: #85a2ff; }
 
                 .pop-step-content {
@@ -915,7 +915,7 @@ const ThemeWidget = ({ currentItems = [], onSelectBoard, onNewBlankBoard }) => {
                 .pop-step-title {
                     font-size: 0.82rem;
                     font-weight: 800;
-                    color: #15130f;
+                    color: var(--pop-ink);
                     margin-bottom: 0.15rem;
                 }
 
@@ -941,14 +941,14 @@ const ThemeWidget = ({ currentItems = [], onSelectBoard, onNewBlankBoard }) => {
                     font-family: inherit;
                     font-size: 0.7rem;
                     font-weight: 750;
-                    color: #15130f;
+                    color: var(--pop-ink);
                     cursor: pointer;
                     transition: background 120ms ease, border-color 120ms ease;
                 }
 
                 .pop-reset-layout-btn:hover {
-                    background: #ffe44f;
-                    border-color: #15130f;
+                    background: var(--pop-yellow);
+                    border-color: var(--pop-ink);
                 }
 
                 /* PDF Layout Options Panel */
@@ -968,7 +968,7 @@ const ThemeWidget = ({ currentItems = [], onSelectBoard, onNewBlankBoard }) => {
                     align-items: flex-start;
                     gap: 0.75rem;
                     background: #ffffff;
-                    border: 1.5px solid #15130f;
+                    border: 1.5px solid var(--pop-ink);
                     border-radius: 14px;
                     padding: 0.75rem 0.85rem;
                     cursor: pointer;
@@ -1006,7 +1006,7 @@ const ThemeWidget = ({ currentItems = [], onSelectBoard, onNewBlankBoard }) => {
                 .pop-pdf-option-title {
                     font-size: 0.82rem;
                     font-weight: 850;
-                    color: #15130f;
+                    color: var(--pop-ink);
                     text-transform: uppercase;
                     letter-spacing: 0.02em;
                 }
@@ -1018,17 +1018,17 @@ const ThemeWidget = ({ currentItems = [], onSelectBoard, onNewBlankBoard }) => {
                     text-transform: uppercase;
                     padding: 0.15rem 0.4rem;
                     border-radius: 999px;
-                    border: 1px solid #15130f;
+                    border: 1px solid var(--pop-ink);
                 }
 
                 .pop-badge-fast {
-                    background: #ff7eb5;
-                    color: #15130f;
+                    background: var(--pop-pink);
+                    color: var(--pop-ink);
                 }
 
                 .pop-badge-crisp {
-                    background: #caff48;
-                    color: #15130f;
+                    background: var(--pop-lime);
+                    color: var(--pop-ink);
                 }
 
                 .pop-pdf-option-desc {
@@ -1045,9 +1045,9 @@ const ThemeWidget = ({ currentItems = [], onSelectBoard, onNewBlankBoard }) => {
                     left: 50%;
                     transform: translateX(-50%);
                     z-index: 10050;
-                    background: #fff8e8;
-                    color: #15130f;
-                    border: 1.5px solid #15130f;
+                    background: var(--pop-cream);
+                    color: var(--pop-ink);
+                    border: 1.5px solid var(--pop-ink);
                     border-radius: 999px;
                     padding: 0.55rem 1.25rem;
                     font-family: var(--font-mono, "Satoshi-Variable", monospace);

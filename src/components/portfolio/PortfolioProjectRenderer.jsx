@@ -379,7 +379,7 @@ function VideoEmbed({ content }) {
         </div>
         {content.caption && (
           <figcaption className="rp-case__showcase-caption">
-            <span className="rp-case__caption-badge">Video</span>
+            <span className="rp-case__caption-badge" data-pop-surface="yellow">Video</span>
             <span className="rp-case__caption-text">{content.caption}</span>
           </figcaption>
         )}
@@ -824,7 +824,7 @@ function PopEditorialProject({ p, nextProject }) {
     <main className="pe-shell">
       <article className="rp-case" data-accent={accent}>
         {/* Hero Section */}
-        <header className="rp-case__hero">
+        <header className="rp-case__hero" data-pop-surface={accent}>
           <div className="rp-case__topline">
             <a className="rp-case__back" href={p.backHref || "/work"}>{p.backLabel || "← All Work"}</a>
           </div>
@@ -836,12 +836,12 @@ function PopEditorialProject({ p, nextProject }) {
 
             {/* In-hero metadata (clean text pills without "Role:" or "Themes:" prefixes) */}
             <div className="rp-case__hero-meta" aria-label="Project details">
-              <div className="rp-case__meta-pill" style={{ backgroundColor: "#2444ca", color: "#ffffff" }}>
-                <span className="rp-case__meta-value" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>{toTitleCase(roleText)}</span>
+              <div className="rp-case__meta-pill" data-pop-surface="blue">
+                <span className="rp-case__meta-value">{toTitleCase(roleText)}</span>
               </div>
               {themeText && (
-                <div className="rp-case__meta-pill" style={{ backgroundColor: "#2444ca", color: "#ffffff" }}>
-                  <span className="rp-case__meta-value" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>{toTitleCase(themeText)}</span>
+                <div className="rp-case__meta-pill" data-pop-surface="blue">
+                  <span className="rp-case__meta-value">{toTitleCase(themeText)}</span>
                 </div>
               )}
             </div>
@@ -853,7 +853,7 @@ function PopEditorialProject({ p, nextProject }) {
           {isResearch ? (
             <div className="rp-case__trio-grid rp-case__trio-grid--duo" aria-label="Research Inquiry and Outcome">
               {/* Block 1: The Inquiry (Blue) */}
-              <div className="rp-case__trio-card rp-case__trio-card--blue">
+              <div className="rp-case__trio-card rp-case__trio-card--blue" data-pop-surface="blue">
                 <div className="rp-case__card-top">
                   <h2 className="rp-case__card-heading">The Inquiry</h2>
                   <p className="rp-case__card-text">{briefText}</p>
@@ -861,7 +861,7 @@ function PopEditorialProject({ p, nextProject }) {
               </div>
 
               {/* Block 2: Outcome (Blue) */}
-              <div className="rp-case__trio-card rp-case__trio-card--blue">
+              <div className="rp-case__trio-card rp-case__trio-card--blue" data-pop-surface="blue">
                 <div className="rp-case__card-top">
                   <h2 className="rp-case__card-heading">Outcome</h2>
                   <p className="rp-case__outcome-narrative-text">{outcomeNarrative}</p>
@@ -885,7 +885,7 @@ function PopEditorialProject({ p, nextProject }) {
                       </div>
                     )}
                     {experimentUrl && (
-                      <a href={experimentUrl} className="rp-case__experiment-btn">
+                      <a href={experimentUrl} className="rp-case__experiment-btn" data-pop-surface="yellow">
                         <span>Go to the experiment</span>
                         <span aria-hidden="true">↗</span>
                       </a>
@@ -902,7 +902,7 @@ function PopEditorialProject({ p, nextProject }) {
           ) : (
             <div className="rp-case__trio-grid" aria-label="Project Brief, Contribution and Outcome">
               {/* Block 1: The Brief (Blue) */}
-              <div className="rp-case__trio-card rp-case__trio-card--blue">
+              <div className="rp-case__trio-card rp-case__trio-card--blue" data-pop-surface="blue">
                 <div className="rp-case__card-top">
                   <h2 className="rp-case__card-heading">The Brief</h2>
                   <p className="rp-case__card-text">{briefText}</p>
@@ -910,7 +910,7 @@ function PopEditorialProject({ p, nextProject }) {
               </div>
 
               {/* Block 2: My Contribution (Yellow with dark ink text) */}
-              <div className="rp-case__trio-card rp-case__trio-card--yellow">
+              <div className="rp-case__trio-card rp-case__trio-card--yellow" data-pop-surface="yellow">
                 <div className="rp-case__card-top">
                   <h2 className="rp-case__card-heading rp-case__card-heading--dark">My Contribution</h2>
                   <p className="rp-case__card-text rp-case__card-text--dark">{contributionText}</p>
@@ -918,7 +918,7 @@ function PopEditorialProject({ p, nextProject }) {
               </div>
 
               {/* Block 3: Outcome (Blue) */}
-              <div className="rp-case__trio-card rp-case__trio-card--blue">
+              <div className="rp-case__trio-card rp-case__trio-card--blue" data-pop-surface="blue">
                 <div className="rp-case__card-top">
                   <h2 className="rp-case__card-heading">Outcome</h2>
                   <p className="rp-case__outcome-narrative-text">{outcomeNarrative}</p>
@@ -938,7 +938,7 @@ function PopEditorialProject({ p, nextProject }) {
                       </div>
                     )}
                     {experimentUrl && (
-                      <a href={experimentUrl} className="rp-case__experiment-btn">
+                      <a href={experimentUrl} className="rp-case__experiment-btn" data-pop-surface="yellow">
                         <span>Go to the experiment</span>
                         <span aria-hidden="true">↗</span>
                       </a>
@@ -979,7 +979,7 @@ function PopEditorialProject({ p, nextProject }) {
                         loading="eager"
                         decoding="async"
                       />
-                      <span className="rp-case__play-btn" aria-hidden="true">
+                      <span className="rp-case__play-btn" data-pop-surface="yellow" aria-hidden="true">
                         <svg className="rp-case__play-icon" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                           <path d="M8 5v14l11-7z" />
                         </svg>
@@ -1008,11 +1008,11 @@ function PopEditorialProject({ p, nextProject }) {
               </div>
               <figcaption className="rp-case__showcase-caption">
                 {parsedVideo ? (
-                  <span className="rp-case__caption-badge">
+                  <span className="rp-case__caption-badge" data-pop-surface="yellow">
                     {p.category?.toLowerCase().includes("music") || p.title?.toLowerCase().includes("show me the way") ? "Music Video" : "Video"}
                   </span>
                 ) : isDirectVideoMedia ? (
-                  <span className="rp-case__caption-badge">Walkthrough</span>
+                  <span className="rp-case__caption-badge" data-pop-surface="yellow">Walkthrough</span>
                 ) : null}
                 <span className="rp-case__caption-text">{p.coverAlt || `${p.title} — ${p.category || "Interactive System & Visual Attention Experiment"}`}</span>
               </figcaption>
@@ -1047,18 +1047,18 @@ function PopEditorialProject({ p, nextProject }) {
 
           {/* Research Reading Card (if present) */}
           {p.reading && (
-            <aside className="rp-case__reading-card" style={{ marginTop: "3.5rem" }}>
+            <aside className="rp-case__reading-card" data-pop-surface="yellow" style={{ marginTop: "3.5rem" }}>
               {p.reading.thumbnail && (
                 <div className="rp-case__reading-media">
                   <img src={p.reading.thumbnail} alt={p.reading.title || ""} loading="lazy" />
                 </div>
               )}
               <div className="rp-case__reading-copy">
-                <span className="rp-case__reading-badge">{p.reading.badge || "Work in Progress"}</span>
+                <span className="rp-case__reading-badge" data-pop-surface="white">{p.reading.badge || "Work in Progress"}</span>
                 <h3 style={{ margin: "0.5rem 0", font: "700 clamp(1.4rem, 2vw, 1.8rem)/1.2 var(--font-display, sans-serif)", letterSpacing: "-0.03em" }}>{p.reading.title}</h3>
                 <p style={{ margin: "0 0 1.25rem", color: "var(--pe-ink)", opacity: 0.9 }}>{p.reading.description}</p>
                 <div className="rp-case__reading-action">
-                  <a href={p.reading.href} className="rp-case__experiment-btn">
+                  <a href={p.reading.href} className="rp-case__experiment-btn" data-pop-surface="yellow">
                     <span>{p.reading.buttonText || "Read the Prelude"}</span>
                     <span aria-hidden="true">→</span>
                   </a>
@@ -1081,6 +1081,7 @@ function PopEditorialProject({ p, nextProject }) {
           <section className="rp-case__next-section" aria-label={isResearch ? "Next research project" : "Next project"}>
             <a
               className="rp-case__next-card"
+              data-pop-surface="cream"
               href={nextProject.href || (isResearch ? `/research/${nextProject.slug || nextProject.id}` : `/work/${nextProject.slug || nextProject.id}`)}
             >
               <div className="rp-case__next-copy">
@@ -1091,7 +1092,7 @@ function PopEditorialProject({ p, nextProject }) {
                 {nextProject.category && <span className="rp-case__next-cat">{nextProject.category}</span>}
               </div>
               <div className="rp-case__next-action">
-                <span className="rp-case__next-button">
+                <span className="rp-case__next-button" data-pop-surface="yellow">
                   <span>{isResearch ? "Next Research" : "Next Project"}</span>
                   <span className="rp-case__next-arrow" aria-hidden="true">→</span>
                 </span>

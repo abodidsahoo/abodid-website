@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import '../styles/admin-global.css';
 import '../styles/admin-design-tokens.css';
+import DesignTokenRuntime from '../components/DesignTokenRuntime.astro';
 const { title, fullWidth = false } = Astro.props;
 const pagePath = Astro.url.pathname;
 ---
@@ -28,6 +29,7 @@ const pagePath = Astro.url.pathname;
     <meta name="apple-mobile-web-app-title" content="Abodid" />
     <meta name="application-name" content="Abodid Sahoo" />
     <meta name="generator" content={Astro.generator} />
+    <DesignTokenRuntime />
     <meta name="robots" content="noindex, nofollow" />
     <title>{title} | Admin</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -76,7 +78,8 @@ const pagePath = Astro.url.pathname;
   }
   body {
     color: var(--text-primary);
-    overflow: var(--overflow-y, auto);
+    overflow-x: clip;
+    overflow-y: var(--overflow-y, visible);
   }
   .admin-wrapper {
     width: 100%;

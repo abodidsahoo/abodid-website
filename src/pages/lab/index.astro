@@ -251,12 +251,6 @@ Astro.response.headers.set(
 
 <style>
   .media-lab {
-    --pop-blue: #2444ca;
-    --pop-pink: #ff7eb5;
-    --pop-yellow: #ffe44f;
-    --pop-lime: #caff48;
-    --pop-cream: #fff8e8;
-    --pop-ink: #15130f;
     --pop-border: rgba(21, 19, 15, 0.78);
     background: var(--pop-blue);
     color: var(--pop-ink);
@@ -467,9 +461,9 @@ Astro.response.headers.set(
     display: inline-flex;
     align-items: center;
     gap: 0.55rem;
-    background: #15130f !important;
-    color: #fff8e8 !important;
-    border: 1px solid #15130f;
+    background: var(--pop-ink) !important;
+    color: var(--pop-cream) !important;
+    border: 1px solid var(--pop-ink);
     border-radius: 999px;
     padding: 0.85rem 1.9rem;
     font: 750 0.8rem/1 var(--font-mono);
@@ -483,7 +477,7 @@ Astro.response.headers.set(
   }
 
   .media-lab__submit-btn * {
-    color: #fff8e8 !important;
+    color: var(--pop-cream) !important;
   }
 
   .media-lab__submit-btn:hover:not(:disabled) {
@@ -494,7 +488,7 @@ Astro.response.headers.set(
 
   .media-lab__btn-arrow {
     display: inline-block;
-    color: #fff8e8 !important;
+    color: var(--pop-cream) !important;
     transition: transform 0.18s ease;
   }
 
@@ -544,13 +538,13 @@ Astro.response.headers.set(
 
 <style is:global>
   html:has(body.lab-page) {
-    background: #2444ca !important;
+    background: var(--pop-blue) !important;
   }
 
   body.lab-page {
     margin: 0;
     padding: 0 !important;
-    background: #2444ca !important;
-    background-color: #2444ca !important;
+    background: var(--pop-blue) !important;
+    background-color: var(--pop-blue) !important;
   }
 </style>

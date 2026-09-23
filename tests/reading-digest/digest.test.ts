@@ -7,6 +7,7 @@ import {
   filterTopicsForDay,
   limitWords,
   normalizeCandidates,
+  prioritizeReserveCandidates,
   renderDigestHtml,
   selectExactlyFive,
   shouldDeliverToday,
@@ -94,6 +95,37 @@ describe("reading digest editorial rules", () => {
       Array.from({ length: 8 }, (_, index) => candidate(index + 1)),
     );
     expect(selected).toHaveLength(5);
+  });
+
+  it("prioritizes reserve readings that match today's topics", () => {
+    const reserve = [
+      candidate(1, {
+        topic_names: ["Photography"],
+        rank_score: 99,
+        publication_date: "2026-09-22",
+      }),
+      candidate(2, {
+        topic_names: ["Digital humanities"],
+        rank_score: 80,
+        publication_date: "2026-09-20",
+      }),
+      candidate(3, {
+        topic_names: ["Spatial storytelling", "Digital humanities"],
+        rank_score: 70,
+        publication_date: "2026-09-18",
+      }),
+    ];
+
+    const prioritized = prioritizeReserveCandidates(reserve, [
+      "Spatial storytelling",
+      "Digital humanities",
+    ]);
+
+    expect(prioritized.map((item) => item.title)).toEqual([
+      "Reading number 3",
+      "Reading number 2",
+      "Reading number 1",
+    ]);
   });
 
   it("renders five items and ends with the read-first recommendation", () => {

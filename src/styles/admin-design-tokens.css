@@ -14,21 +14,21 @@
   --admin-page-spacer: 1rem;
 
   /* Page title: mirrors “Hi Abodid,” on the overview */
-  --admin-page-title-size: clamp(2.75rem, 4.2vw, 4.8rem);
-  --admin-page-title-line-size: clamp(2.695rem, 4.116vw, 4.704rem);
-  --admin-page-title-weight: 520;
-  --admin-page-title-line-height: 0.98;
-  --admin-page-title-tracking: -0.055em;
+  --admin-page-title-size: var(--type-role-page-title-size);
+  --admin-page-title-line-size: var(--type-role-page-title-size);
+  --admin-page-title-weight: var(--type-role-page-title-weight);
+  --admin-page-title-line-height: var(--type-role-page-title-line);
+  --admin-page-title-tracking: var(--type-role-page-title-track);
 
   /* Page subtext: mirrors “Welcome to the admin workspace.” */
-  --admin-page-subtitle-size: clamp(1.5rem, 1.725vw, 1.725rem);
-  --admin-page-subtitle-weight: 300;
-  --admin-page-subtitle-line-height: 1.35;
+  --admin-page-subtitle-size: var(--type-role-body-size);
+  --admin-page-subtitle-weight: var(--type-role-body-weight);
+  --admin-page-subtitle-line-height: var(--type-role-body-line);
   --admin-page-subtitle-gap: 0.8rem;
 
   /* Shared surfaces for future admin-page migrations */
-  --admin-panel-radius: 14px;
-  --admin-control-radius: 9px;
+  --admin-panel-radius: var(--design-radius-card);
+  --admin-control-radius: var(--design-radius-control);
   --admin-panel-border: 1px solid var(--border-subtle);
 }
 

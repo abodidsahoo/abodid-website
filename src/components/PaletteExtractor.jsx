@@ -390,7 +390,7 @@ const PaletteExtractor = ({
                     width: 44px;
                     height: 44px;
                     border-radius: 0px;
-                    border: 1.5px solid #15130f;
+                    border: 1.5px solid var(--pop-ink);
                     cursor: pointer;
                     padding: 0;
                     margin: 0;
@@ -401,7 +401,7 @@ const PaletteExtractor = ({
 
                 .palette-extractor-swatch:hover {
                     border-radius: 50%;
-                    box-shadow: 2px 2px 0px #15130f;
+                    box-shadow: 2px 2px 0px var(--pop-ink);
                     z-index: 2;
                 }
 

@@ -2699,7 +2699,7 @@
 }
 
 .dot-high-intent {
-    background: #caff48;
+    background: var(--pop-lime);
     box-shadow: 0 0 8px rgba(202, 255, 72, 0.7);
 }
 
@@ -2741,7 +2741,7 @@
 }
 
 .text-meaningful { color: #38bdf8; }
-.text-high-intent { color: #caff48; }
+.text-high-intent { color: var(--pop-lime); }
 .text-converted { color: #4ade80; }
 
 /* SVG Chart Rendering */
@@ -2796,7 +2796,7 @@
 }
 
 .line-high-intent {
-    stroke: #caff48;
+    stroke: var(--pop-lime);
     filter: drop-shadow(0 0 6px rgba(202, 255, 72, 0.35));
 }
 
@@ -2823,7 +2823,7 @@
 }
 
 .node-circle.dot-meaningful { fill: #38bdf8; }
-.node-circle.dot-high-intent { fill: #caff48; }
+.node-circle.dot-high-intent { fill: var(--pop-lime); }
 .node-circle.dot-converted { fill: #4ade80; }
 
 /* 2. Device Visualizer Card */
@@ -3059,7 +3059,7 @@
     padding: 3px 9px;
     background: rgba(202, 255, 72, 0.12);
     border: 1px solid rgba(202, 255, 72, 0.3);
-    color: #caff48;
+    color: var(--pop-lime);
     border-radius: 999px;
     font-size: 0.72rem;
     font-weight: 650;
@@ -3275,7 +3275,7 @@
     font-size: 0.7rem;
     font-weight: 600;
     background: rgba(202, 255, 72, 0.12);
-    color: #caff48;
+    color: var(--pop-lime);
     border: 1px solid rgba(202, 255, 72, 0.25);
     margin-left: 0.4rem;
 }
@@ -3662,11 +3662,11 @@
 }
 
 .metric-highlight-intent .metric-symbol-icon {
-    color: #caff48;
+    color: var(--pop-lime);
 }
 
 .metric-highlight-intent .metric-large-number {
-    color: #caff48;
+    color: var(--pop-lime);
 }
 
 .text-dropoff {
@@ -3798,7 +3798,7 @@
 }
 
 .visitor-intent-glyph {
-    color: #caff48;
+    color: var(--pop-lime);
     font-size: 0.95rem;
     line-height: 1;
 }

@@ -337,13 +337,6 @@ const pdfDownloadUrl = pdfFilename
 
 <style is:global>
   body.story-moodboard-page {
-    --pop-blue: #2444ca;
-    --pop-pink: #ff7eb5;
-    --pop-yellow: #ffe44f;
-    --pop-lime: #caff48;
-    --pop-orange: #ff875c;
-    --pop-cream: #fff8e8;
-    --pop-ink: #15130f;
     --pop-border: 1px solid var(--pop-ink);
     margin: 0;
     padding: 0 !important;
@@ -394,9 +387,9 @@ const pdfDownloadUrl = pdfFilename
 
   /* Shared Pop Editorial Pill styling */
   .pop-editorial-control {
-    border: 1.5px solid var(--pop-ink, #15130f);
+    border: 1.5px solid var(--pop-ink, var(--pop-ink));
     border-radius: 999px;
-    box-shadow: 3px 3px 0 var(--pop-ink, #15130f);
+    box-shadow: 3px 3px 0 var(--pop-ink, var(--pop-ink));
     transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease, border-color 160ms ease;
   }
 
@@ -421,12 +414,12 @@ const pdfDownloadUrl = pdfFilename
   .floating-pdf-btn:hover {
     background: #ffffff;
     transform: translate(-2px, -2px);
-    box-shadow: 5px 5px 0 var(--pop-ink, #15130f);
+    box-shadow: 5px 5px 0 var(--pop-ink, var(--pop-ink));
   }
 
   .floating-pdf-btn:active {
     transform: translate(1px, 1px);
-    box-shadow: 2px 2px 0 var(--pop-ink, #15130f);
+    box-shadow: 2px 2px 0 var(--pop-ink, var(--pop-ink));
   }
 
   .floating-pdf-icon {
@@ -462,7 +455,7 @@ const pdfDownloadUrl = pdfFilename
 
   .view-mode-floating-control:hover {
     transform: translate(-1px, -1px);
-    box-shadow: 4px 4px 0 var(--pop-ink, #15130f);
+    box-shadow: 4px 4px 0 var(--pop-ink, var(--pop-ink));
   }
 
   .view-mode-btn {
@@ -494,8 +487,8 @@ const pdfDownloadUrl = pdfFilename
   .view-mode-btn.is-active {
     background: var(--pop-blue, #2444ca);
     color: #ffffff;
-    border-color: var(--pop-ink, #15130f);
-    box-shadow: 1.5px 1.5px 0 var(--pop-ink, #15130f);
+    border-color: var(--pop-ink, var(--pop-ink));
+    box-shadow: 1.5px 1.5px 0 var(--pop-ink, var(--pop-ink));
   }
 
   .view-mode-btn.is-active:hover {
@@ -516,7 +509,7 @@ const pdfDownloadUrl = pdfFilename
     margin-inline: 0;
     box-sizing: border-box;
     overflow: hidden;
-    border: 1px solid var(--pop-ink, #15130f);
+    border: 1px solid var(--pop-ink, var(--pop-ink));
     border-radius: clamp(20px, 3vw, 34px);
     background: var(--pop-cream, #fff8e8);
     box-shadow: 0 10px 0 rgba(21, 19, 15, 0.2);
@@ -525,7 +518,7 @@ const pdfDownloadUrl = pdfFilename
   /* ── 2. MOODBOARD HEADING (HOT-PINK PANEL) ────────────── */
   .moodboard-heading {
     padding: clamp(1.4rem, 4vw, 3.5rem);
-    border-bottom: 1px solid var(--pop-ink, #15130f);
+    border-bottom: 1px solid var(--pop-ink, var(--pop-ink));
     background: var(--pop-pink, #ff7eb5);
     color: var(--pop-ink, #15130f);
   }
@@ -548,7 +541,7 @@ const pdfDownloadUrl = pdfFilename
     text-transform: uppercase;
     text-decoration: none;
     padding: 0.4rem 0.85rem;
-    border: 1px solid var(--pop-ink, #15130f);
+    border: 1px solid var(--pop-ink, var(--pop-ink));
     border-radius: 999px;
     background: var(--pop-cream, #fff8e8);
     transition: transform 160ms ease, background-color 160ms ease;
@@ -677,7 +670,7 @@ const pdfDownloadUrl = pdfFilename
   .moodboard-footer {
     margin-top: clamp(2.5rem, 6vw, 5rem);
     padding: clamp(2rem, 4.5vw, 4rem);
-    border: 1px solid var(--pop-ink, #15130f);
+    border: 1px solid var(--pop-ink, var(--pop-ink));
     border-radius: clamp(16px, 2.5vw, 28px);
     background: var(--pop-pink, #ff7eb5);
     color: var(--pop-ink, #15130f);
@@ -712,7 +705,7 @@ const pdfDownloadUrl = pdfFilename
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    border: 1px solid var(--pop-ink, #15130f);
+    border: 1px solid var(--pop-ink, var(--pop-ink));
     border-radius: 14px;
     font: 750 0.76rem/1 var(--font-mono, monospace);
     letter-spacing: 0.08em;
@@ -728,7 +721,7 @@ const pdfDownloadUrl = pdfFilename
 
   .moodboard-cta--primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 0 var(--pop-ink, #15130f);
+    box-shadow: 0 4px 0 var(--pop-ink, var(--pop-ink));
     background: #ffe96e;
   }
 
@@ -739,7 +732,7 @@ const pdfDownloadUrl = pdfFilename
 
   .moodboard-cta--secondary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 0 var(--pop-ink, #15130f);
+    box-shadow: 0 4px 0 var(--pop-ink, var(--pop-ink));
   }
 
   .moodboard-footer__share {

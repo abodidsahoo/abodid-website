@@ -149,11 +149,11 @@
     width: min(520px, calc(100vw - 2rem));
     margin: auto;
     padding: 0;
-    border: 1.5px solid #15130f;
+    border: 1.5px solid var(--pop-ink);
     border-radius: clamp(20px, 2.5vw, 28px);
-    background: #fff8e8;
-    color: #15130f;
-    box-shadow: 10px 10px 0 #15130f;
+    background: var(--pop-cream);
+    color: var(--pop-ink);
+    box-shadow: 10px 10px 0 var(--pop-ink);
   }
 
   .obsidian-payment-dialog::backdrop {
@@ -172,10 +172,10 @@
     right: 1.25rem;
     width: 40px;
     height: 40px;
-    border: 1.5px solid #15130f;
+    border: 1.5px solid var(--pop-ink);
     border-radius: 12px;
-    background: #ffe44f;
-    color: #15130f;
+    background: var(--pop-yellow);
+    color: var(--pop-ink);
     font-size: 1.5rem;
     font-weight: 800;
     line-height: 1;
@@ -183,12 +183,12 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 2px 2px 0 #15130f;
+    box-shadow: 2px 2px 0 var(--pop-ink);
     transition: transform 120ms ease, background 120ms ease;
   }
 
   .obsidian-payment-dialog__close:hover {
-    background: #caff48;
+    background: var(--pop-lime);
     transform: translateY(-1px);
   }
 
@@ -196,21 +196,21 @@
     width: fit-content;
     margin: 0 0 1rem;
     padding: 6px 14px;
-    border: 1.5px solid #15130f;
+    border: 1.5px solid var(--pop-ink);
     border-radius: 999px;
-    background: #ff7eb5;
-    color: #15130f;
+    background: var(--pop-pink);
+    color: var(--pop-ink);
     font-family: var(--font-sans);
     font-size: 0.72rem;
     font-weight: 750;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    box-shadow: 0 2px 0 #15130f;
+    box-shadow: 0 2px 0 var(--pop-ink);
   }
 
   .obsidian-payment-dialog h2 {
     margin: 0 0 0.8rem;
-    color: #15130f;
+    color: var(--pop-ink);
     font-family: var(--font-display);
     font-size: clamp(2rem, 4.5vw, 2.6rem);
     font-weight: 720;
@@ -224,7 +224,7 @@
     flex-direction: column;
     gap: 0.25rem;
     margin: 1.25rem 0 1.75rem;
-    color: #15130f;
+    color: var(--pop-ink);
     font-family: var(--font-sans);
   }
 
@@ -235,7 +235,7 @@
   }
 
   .obsidian-payment-dialog__price strong {
-    color: #15130f;
+    color: var(--pop-ink);
     font-size: 1.15rem;
     font-weight: 750;
     letter-spacing: -0.01em;
@@ -260,7 +260,7 @@
     font-weight: 750;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: #15130f;
+    color: var(--pop-ink);
   }
 
   .obsidian-booking-field input {
@@ -268,10 +268,10 @@
     min-height: 54px;
     padding: 0 1.1rem;
     box-sizing: border-box;
-    border: 1.5px solid #15130f;
+    border: 1.5px solid var(--pop-ink);
     border-radius: 14px;
     background: #ffffff !important;
-    color: #15130f !important;
+    color: var(--pop-ink) !important;
     font-family: var(--font-sans);
     font-size: 1.05rem;
     font-weight: 700 !important;
@@ -283,10 +283,10 @@
   .obsidian-booking-field input:-webkit-autofill:focus,
   .obsidian-booking-field input:-webkit-autofill:active {
     -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
-    -webkit-text-fill-color: #15130f !important;
-    caret-color: #15130f !important;
+    -webkit-text-fill-color: var(--pop-ink) !important;
+    caret-color: var(--pop-ink) !important;
     font-weight: 700 !important;
-    border-color: #15130f !important;
+    border-color: var(--pop-ink) !important;
     transition: background-color 5000s ease-in-out 0s;
   }
 
@@ -299,7 +299,7 @@
 
   .obsidian-booking-field input:focus {
     outline: none;
-    border-color: #2444ca;
+    border-color: var(--pop-blue);
     background: #ffffff;
     box-shadow: 0 0 0 3px rgba(36, 68, 202, 0.25);
   }
@@ -309,53 +309,53 @@
     width: 100%;
     margin-top: 0.25rem;
     padding: 0 1.6rem;
-    border: 1.5px solid #15130f;
+    border: 1.5px solid var(--pop-ink);
     border-radius: 14px;
-    background: #ffe44f;
-    color: #15130f;
+    background: var(--pop-yellow);
+    color: var(--pop-ink);
     font-family: var(--font-sans);
     font-size: 0.85rem;
     font-weight: 750;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    box-shadow: 0 4px 0 #15130f;
+    box-shadow: 0 4px 0 var(--pop-ink);
     cursor: pointer;
     transition: background 160ms ease, transform 160ms ease, box-shadow 160ms ease;
   }
 
   .obsidian-booking-submit-btn:hover {
-    background: #caff48;
+    background: var(--pop-lime);
     transform: translateY(-2px);
-    box-shadow: 0 6px 0 #15130f;
+    box-shadow: 0 6px 0 var(--pop-ink);
   }
 
   .obsidian-booking-submit-btn:active {
     transform: translateY(0);
-    box-shadow: 0 2px 0 #15130f;
+    box-shadow: 0 2px 0 var(--pop-ink);
   }
 
   .obsidian-booking-success-message {
     padding: 1.4rem;
-    border: 1.5px solid #15130f;
+    border: 1.5px solid var(--pop-ink);
     border-radius: 16px;
-    background: #caff48;
-    color: #15130f;
-    box-shadow: 4px 4px 0 #15130f;
+    background: var(--pop-lime);
+    color: var(--pop-ink);
+    box-shadow: 4px 4px 0 var(--pop-ink);
     margin-top: 0.75rem;
   }
 
   .obsidian-booking-error-message {
     padding: 1rem 1.2rem;
-    border: 1.5px solid #15130f;
+    border: 1.5px solid var(--pop-ink);
     border-radius: 14px;
     background: #ff7e7e;
-    color: #15130f;
+    color: var(--pop-ink);
     font-family: var(--font-sans);
     font-size: 0.95rem;
     font-weight: 650;
     line-height: 1.4;
     margin-top: 0.75rem;
-    box-shadow: 3px 3px 0 #15130f;
+    box-shadow: 3px 3px 0 var(--pop-ink);
   }
 
   .success-badge {

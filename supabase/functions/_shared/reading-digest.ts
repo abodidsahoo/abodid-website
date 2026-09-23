@@ -371,6 +371,29 @@ export const selectExactlyFive = (
   return selected;
 };
 
+export const prioritizeReserveCandidates = <
+  T extends Pick<
+    VerifiedDigestCandidate,
+    "topic_names" | "rank_score" | "publication_date"
+  >,
+>(candidates: T[], activeTopicNames: string[]): T[] => {
+  const activeTopics = new Set(
+    activeTopicNames.map((topic) => topic.trim().toLowerCase()).filter(Boolean),
+  );
+  const affinity = (candidate: T) =>
+    candidate.topic_names.reduce(
+      (total, topic) =>
+        total + (activeTopics.has(topic.trim().toLowerCase()) ? 1 : 0),
+      0,
+    );
+
+  return [...candidates].sort((left, right) =>
+    affinity(right) - affinity(left) ||
+    right.rank_score - left.rank_score ||
+    right.publication_date.localeCompare(left.publication_date)
+  );
+};
+
 const escapeHtml = (value: string): string =>
   value
     .replace(/&/g, "&amp;")

@@ -1,10 +1,4 @@
 .research-papers-page {
-  --pop-blue: #2444ca;
-  --pop-pink: #ff7eb5;
-  --pop-yellow: #ffe44f;
-  --pop-purple: #5524c7;
-  --pop-cream: #fff8e8;
-  --pop-ink: #15130f;
   --pop-border: rgba(21, 19, 15, 0.78);
   --pop-line: rgba(21, 19, 15, 0.24);
   --papers-font: "Satoshi-Variable", "Satoshi-Regular", "Poppins", sans-serif;
@@ -57,14 +51,15 @@
 .paper-browser__eyebrow,
 .paper-browser__count {
   margin: 0;
-  font: 750 0.72rem/1.4 var(--papers-mono);
+  font: var(--type-role-label-weight) var(--type-role-label-size)/var(--type-role-label-line) var(--papers-mono);
   letter-spacing: 0.09em;
   text-transform: uppercase;
 }
 .research-papers-hero h1 {
   margin: 16px 0 0;
   color: var(--pop-ink);
-  font: 720 clamp(2.8rem, 5.4vw, 5.4rem)/0.94 var(--papers-font);
+  font: var(--type-role-display-weight) var(--type-role-display-size)/var(--type-role-display-line) var(--papers-font);
+  letter-spacing: var(--type-role-display-track);
   letter-spacing: -0.065em;
   text-wrap: balance;
 }
@@ -79,7 +74,9 @@
 .research-papers-hero__intro {
   max-width: 40ch;
   margin: 0;
-  font-size: clamp(0.94rem, 1.2vw, 1.08rem);
+  font-size: var(--type-role-body-size);
+  font-weight: var(--type-role-body-weight);
+  line-height: var(--type-role-body-line);
   line-height: 1.5;
   text-wrap: pretty;
 }
@@ -121,7 +118,8 @@
 .paper-browser__topline h2 {
   margin: 8px 0 0;
   color: inherit;
-  font: 620 clamp(1.75rem, 2.6vw, 2.7rem)/1 var(--papers-font);
+  font: var(--type-role-section-title-weight) var(--type-role-section-title-size)/var(--type-role-section-title-line) var(--papers-font);
+  letter-spacing: var(--type-role-section-title-track);
   letter-spacing: -0.045em;
   overflow-wrap: anywhere;
 }
@@ -205,12 +203,13 @@
   display: flex;
   align-items: center;
   min-height: 44px;
-  font: 750 0.72rem/1.4 var(--papers-mono);
+  font: var(--type-role-label-weight) var(--type-role-label-size)/var(--type-role-label-line) var(--papers-mono);
 }
 .paper-entry__title {
   margin: 0;
   /* Match the Obsidian Vault note-title scale and weight. */
-  font: 560 clamp(0.98rem, 1.25vw, 1.16rem)/1.25 var(--papers-font);
+  font: var(--type-role-card-title-weight) var(--type-role-card-title-size)/var(--type-role-card-title-line) var(--papers-font);
+  letter-spacing: var(--type-role-card-title-track);
   letter-spacing: -0.015em;
   color: var(--pop-ink);
   overflow-wrap: anywhere;

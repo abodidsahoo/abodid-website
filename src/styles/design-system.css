@@ -1,0 +1,132 @@
+:root {
+  /* Editable source values. Design Studio publishes only these primitives. */
+  --ds-display-min: 3;
+  --ds-display-fluid: 6.7;
+  --ds-display-max: 7;
+  --ds-display-weight: 620;
+  --ds-display-line: 0.9;
+  --ds-display-track: -0.065;
+
+  --ds-page-title-min: 2.5;
+  --ds-page-title-fluid: 4.8;
+  --ds-page-title-max: 5;
+  --ds-page-title-weight: 620;
+  --ds-page-title-line: 0.98;
+  --ds-page-title-track: -0.05;
+
+  --ds-section-title-min: 2.4;
+  --ds-section-title-fluid: 4;
+  --ds-section-title-max: 4;
+  --ds-section-title-weight: 620;
+  --ds-section-title-line: 0.98;
+  --ds-section-title-track: -0.05;
+
+  --ds-card-title-min: 1.4;
+  --ds-card-title-fluid: 2.2;
+  --ds-card-title-max: 1.9;
+  --ds-card-title-weight: 720;
+  --ds-card-title-line: 1.15;
+  --ds-card-title-track: -0.04;
+
+  --ds-body-min: 0.94;
+  --ds-body-fluid: 1.12;
+  --ds-body-max: 1.1;
+  --ds-body-weight: 450;
+  --ds-body-line: 1.5;
+  --ds-body-track: 0;
+
+  --ds-reading-min: 1.05;
+  --ds-reading-fluid: 1.45;
+  --ds-reading-max: 1.35;
+  --ds-reading-weight: 450;
+  --ds-reading-line: 1.6;
+  --ds-reading-track: 0;
+
+  --ds-label-size: 0.72;
+  --ds-label-weight: 750;
+  --ds-label-line: 1.35;
+  --ds-label-track: 0.08;
+
+  --ds-grid-gap: 8;
+  --ds-gutter-min: 16;
+  --ds-gutter-fluid: 3;
+  --ds-gutter-max: 56;
+  --ds-section-block-min: 64;
+  --ds-section-block-fluid: 6.5;
+  --ds-section-block-max: 112;
+  --ds-radius-panel: 24;
+  --ds-radius-card: 18;
+  --ds-radius-control: 14;
+  --ds-radius-media: 14;
+  --ds-card-inset: 10;
+
+  /*
+   * Semantic colour contracts. Components consume these roles instead of
+   * choosing a foreground independently from their surface.
+   */
+  --pop-foreground-on-light: var(--pop-ink);
+  --pop-foreground-on-deep: var(--pop-cream);
+  --pop-secondary-on-light: color-mix(in srgb, var(--pop-ink) 82%, transparent);
+  --pop-tertiary-on-light: color-mix(in srgb, var(--pop-ink) 78%, transparent);
+  --pop-secondary-on-deep: color-mix(in srgb, var(--pop-cream) 90%, transparent);
+  --pop-tertiary-on-deep: color-mix(in srgb, var(--pop-cream) 84%, transparent);
+
+  /* Selection reverses the local surface family so the highlight stays clear. */
+  --pop-selection-on-light-bg: var(--pop-blue);
+  --pop-selection-on-light-fg: var(--pop-cream);
+  --pop-selection-on-deep-bg: var(--pop-yellow);
+  --pop-selection-on-deep-fg: var(--pop-ink);
+
+  /* Default semantic surface context. Named surfaces override these values. */
+  --surface-bg: var(--pop-cream);
+  --surface-fg: var(--pop-foreground-on-light);
+  --surface-fg-secondary: var(--pop-secondary-on-light);
+  --surface-fg-tertiary: var(--pop-tertiary-on-light);
+  --surface-selection-bg: var(--pop-selection-on-light-bg);
+  --surface-selection-fg: var(--pop-selection-on-light-fg);
+
+  /* Semantic values consumed by pages and components. */
+  --type-role-display-size: clamp(calc(var(--ds-display-min) * 1rem), calc(var(--ds-display-fluid) * 1vw), calc(var(--ds-display-max) * 1rem));
+  --type-role-display-weight: var(--ds-display-weight);
+  --type-role-display-line: var(--ds-display-line);
+  --type-role-display-track: calc(var(--ds-display-track) * 1em);
+
+  --type-role-page-title-size: clamp(calc(var(--ds-page-title-min) * 1rem), calc(var(--ds-page-title-fluid) * 1vw), calc(var(--ds-page-title-max) * 1rem));
+  --type-role-page-title-weight: var(--ds-page-title-weight);
+  --type-role-page-title-line: var(--ds-page-title-line);
+  --type-role-page-title-track: calc(var(--ds-page-title-track) * 1em);
+
+  --type-role-section-title-size: clamp(calc(var(--ds-section-title-min) * 1rem), calc(var(--ds-section-title-fluid) * 1vw), calc(var(--ds-section-title-max) * 1rem));
+  --type-role-section-title-weight: var(--ds-section-title-weight);
+  --type-role-section-title-line: var(--ds-section-title-line);
+  --type-role-section-title-track: calc(var(--ds-section-title-track) * 1em);
+
+  --type-role-card-title-size: clamp(calc(var(--ds-card-title-min) * 1rem), calc(var(--ds-card-title-fluid) * 1vw), calc(var(--ds-card-title-max) * 1rem));
+  --type-role-card-title-weight: var(--ds-card-title-weight);
+  --type-role-card-title-line: var(--ds-card-title-line);
+  --type-role-card-title-track: calc(var(--ds-card-title-track) * 1em);
+
+  --type-role-body-size: clamp(calc(var(--ds-body-min) * 1rem), calc(var(--ds-body-fluid) * 1vw), calc(var(--ds-body-max) * 1rem));
+  --type-role-body-weight: var(--ds-body-weight);
+  --type-role-body-line: var(--ds-body-line);
+  --type-role-body-track: calc(var(--ds-body-track) * 1em);
+
+  --type-role-reading-size: clamp(calc(var(--ds-reading-min) * 1rem), calc(var(--ds-reading-fluid) * 1vw), calc(var(--ds-reading-max) * 1rem));
+  --type-role-reading-weight: var(--ds-reading-weight);
+  --type-role-reading-line: var(--ds-reading-line);
+  --type-role-reading-track: calc(var(--ds-reading-track) * 1em);
+
+  --type-role-label-size: calc(var(--ds-label-size) * 1rem);
+  --type-role-label-weight: var(--ds-label-weight);
+  --type-role-label-line: var(--ds-label-line);
+  --type-role-label-track: calc(var(--ds-label-track) * 1em);
+
+  --design-grid-gap: calc(var(--ds-grid-gap) * 1px);
+  --design-page-gutter: clamp(calc(var(--ds-gutter-min) * 1px), calc(var(--ds-gutter-fluid) * 1vw), calc(var(--ds-gutter-max) * 1px));
+  --design-section-block: clamp(calc(var(--ds-section-block-min) * 1px), calc(var(--ds-section-block-fluid) * 1vw), calc(var(--ds-section-block-max) * 1px));
+  --design-radius-panel: calc(var(--ds-radius-panel) * 1px);
+  --design-radius-card: calc(var(--ds-radius-card) * 1px);
+  --design-radius-control: calc(var(--ds-radius-control) * 1px);
+  --design-radius-media: calc(var(--ds-radius-media) * 1px);
+  --design-card-inset: calc(var(--ds-card-inset) * 1px);
+}

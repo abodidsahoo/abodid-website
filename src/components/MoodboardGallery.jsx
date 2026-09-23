@@ -774,11 +774,11 @@ export default function MoodboardGallery({
                     position: sticky;
                     top: 72px;
                     z-index: 50;
-                    background: #fff8e8;
-                    border: 2px solid #15130f;
+                    background: var(--pop-cream);
+                    border: 2px solid var(--pop-ink);
                     border-radius: 12px;
                     padding: 0.65rem 1rem;
-                    box-shadow: 3px 3px 0px #15130f;
+                    box-shadow: 3px 3px 0px var(--pop-ink);
                     display: flex;
                     align-items: center;
                     gap: 1.15rem;
@@ -795,7 +795,7 @@ export default function MoodboardGallery({
                     font-size: 0.76rem;
                     font-weight: 700;
                     letter-spacing: 0.06em;
-                    color: #15130f;
+                    color: var(--pop-ink);
                     white-space: nowrap;
                     flex-shrink: 0;
                 }
@@ -813,8 +813,8 @@ export default function MoodboardGallery({
                     flex: 1;
                     height: 24px;
                     border-radius: 6px;
-                    border: 1.5px solid #15130f;
-                    box-shadow: 1.5px 1.5px 0px #15130f;
+                    border: 1.5px solid var(--pop-ink);
+                    box-shadow: 1.5px 1.5px 0px var(--pop-ink);
                     background: linear-gradient(
                         to right,
                         #881b24 0%,
@@ -842,7 +842,7 @@ export default function MoodboardGallery({
 
                 .pop-gradient-track:hover,
                 .pop-gradient-track:focus-visible {
-                    box-shadow: 2px 2px 0px #15130f;
+                    box-shadow: 2px 2px 0px var(--pop-ink);
                 }
 
                 .pop-gradient-thumb {
@@ -852,7 +852,7 @@ export default function MoodboardGallery({
                     height: 22px;
                     border-radius: 50%;
                     border: 2.5px solid #ffffff;
-                    box-shadow: 0 0 0 1.5px #15130f, 0 2px 6px rgba(0, 0, 0, 0.35);
+                    box-shadow: 0 0 0 1.5px var(--pop-ink), 0 2px 6px rgba(0, 0, 0, 0.35);
                     transform: translate(-50%, -50%) scale(1);
                     pointer-events: none;
                     transition: left 0.38s cubic-bezier(0.18, 1.25, 0.4, 1), transform 0.12s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.12s ease-out, opacity 0.2s ease;
@@ -871,7 +871,7 @@ export default function MoodboardGallery({
                 .pop-gradient-thumb.is-dragging {
                     transition: transform 0.12s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.12s ease-out, left 0s !important;
                     transform: translate(-50%, -50%) scale(1.18);
-                    box-shadow: 0 0 0 2px #15130f, 0 4px 12px rgba(0, 0, 0, 0.4);
+                    box-shadow: 0 0 0 2px var(--pop-ink), 0 4px 12px rgba(0, 0, 0, 0.4);
                     opacity: 1;
                 }
 
@@ -883,7 +883,7 @@ export default function MoodboardGallery({
                     align-items: center;
                     gap: 5px;
                     padding: 2px 7px;
-                    background: #15130f;
+                    background: var(--pop-ink);
                     color: #ffffff;
                     border-radius: 4px;
                     font-family: var(--font-mono, "Space Mono", monospace);
@@ -906,7 +906,7 @@ export default function MoodboardGallery({
                     transform: translateX(-50%);
                     border-width: 4px;
                     border-style: solid;
-                    border-color: #15130f transparent transparent transparent;
+                    border-color: var(--pop-ink) transparent transparent transparent;
                 }
 
                 .pop-hover-dot {
@@ -918,9 +918,9 @@ export default function MoodboardGallery({
                 }
 
                 .pop-strip-clear {
-                    border: 1.5px solid #15130f;
+                    border: 1.5px solid var(--pop-ink);
                     background: #ffffff;
-                    color: #15130f;
+                    color: var(--pop-ink);
                     font-family: var(--font-mono, "Space Mono", monospace);
                     font-size: 0.72rem;
                     font-weight: 700;
@@ -928,7 +928,7 @@ export default function MoodboardGallery({
                     height: 24px;
                     border-radius: 4px;
                     cursor: pointer;
-                    box-shadow: 1.5px 1.5px 0px #15130f;
+                    box-shadow: 1.5px 1.5px 0px var(--pop-ink);
                     transition: all 0.1s ease;
                     white-space: nowrap;
                     flex-shrink: 0;
@@ -938,8 +938,8 @@ export default function MoodboardGallery({
                 }
 
                 .pop-strip-clear:hover {
-                    background: #15130f;
-                    color: #fff8e8;
+                    background: var(--pop-ink);
+                    color: var(--pop-cream);
                 }
 
                 @media (max-width: 768px) {
@@ -1023,7 +1023,7 @@ export default function MoodboardGallery({
                     margin: 0 0 25px;
                     overflow: hidden;
                     border-radius: 14px;
-                    border: 1.5px solid #15130f;
+                    border: 1.5px solid var(--pop-ink);
                     background: #eadfce;
                     position: relative;
                     width: 100%;
@@ -1034,7 +1034,7 @@ export default function MoodboardGallery({
                 /* 1. COLOR SWATCH HERO CARD (POSITION 0 IN GRID) */
                 .pop-swatch-hero-card {
                     aspect-ratio: 4 / 5;
-                    border: 1.5px solid #15130f;
+                    border: 1.5px solid var(--pop-ink);
                     position: relative;
                     width: 100%;
                     box-sizing: border-box;
@@ -1134,7 +1134,7 @@ export default function MoodboardGallery({
                 }
 
                 .boudoir-photo-button:focus-visible {
-                    outline: 4px solid #2444ca;
+                    outline: 4px solid var(--pop-blue);
                     outline-offset: -4px;
                 }
 
@@ -1157,10 +1157,10 @@ export default function MoodboardGallery({
                 .boudoir-empty-state {
                     padding: 3.5rem 2rem;
                     text-align: center;
-                    background: #fff8e8;
-                    border: 2px solid #15130f;
+                    background: var(--pop-cream);
+                    border: 2px solid var(--pop-ink);
                     border-radius: 12px;
-                    box-shadow: 3px 3px 0px #15130f;
+                    box-shadow: 3px 3px 0px var(--pop-ink);
                     display: flex;
                     flex-direction: column;
                     align-items: center;
@@ -1172,21 +1172,21 @@ export default function MoodboardGallery({
                     width: 32px;
                     height: 32px;
                     border-radius: 4px;
-                    border: 2px solid #15130f;
+                    border: 2px solid var(--pop-ink);
                     display: block;
                 }
 
                 .pop-empty-title {
                     font-family: var(--font-ui, "Satoshi", sans-serif);
                     font-size: 0.95rem;
-                    color: #15130f;
+                    color: var(--pop-ink);
                     margin: 0;
                 }
 
                 .pop-empty-btn {
-                    border: 2px solid #15130f;
-                    background: #15130f;
-                    color: #fff8e8;
+                    border: 2px solid var(--pop-ink);
+                    background: var(--pop-ink);
+                    color: var(--pop-cream);
                     font-family: var(--font-mono, "Space Mono", monospace);
                     font-size: 0.8rem;
                     font-weight: 700;

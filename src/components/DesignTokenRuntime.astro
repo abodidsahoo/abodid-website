@@ -1,0 +1,70 @@
+---
+import { DESIGN_TOKEN_NAMES } from "../lib/designTokens.js";
+
+const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL || "";
+const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY || "";
+const tokenNames = DESIGN_TOKEN_NAMES;
+---
+
+<script is:inline define:vars={{ supabaseUrl, supabaseAnonKey, tokenNames }}>
+  (() => {
+    const cacheKey = "abodid-published-design-tokens-v1";
+    const allowedNames = new Set(tokenNames);
+
+    const isSafeValue = (value) => {
+      const text = String(value).trim();
+      return /^#[0-9a-f]{6}$/i.test(text) || /^-?\d+(\.\d+)?$/.test(text);
+    };
+
+    const applyTokens = (tokens) => {
+      if (!tokens || typeof tokens !== "object") return;
+      for (const [name, value] of Object.entries(tokens)) {
+        if (!allowedNames.has(name) || !isSafeValue(value)) continue;
+        document.documentElement.style.setProperty(name, String(value));
+      }
+    };
+
+    try {
+      const cached = JSON.parse(localStorage.getItem(cacheKey) || "null");
+      applyTokens(cached?.tokens);
+    } catch (_error) {
+      // Defaults in design-system.css remain active.
+    }
+
+    window.addEventListener("design-tokens:published", (event) => {
+      applyTokens(event.detail?.tokens);
+    });
+
+    if (!supabaseUrl || !supabaseAnonKey) return;
+
+    fetch(`${supabaseUrl}/rest/v1/design_system_settings?id=eq.global&select=published_tokens,published_version,updated_at`, {
+      headers: {
+        apikey: supabaseAnonKey,
+        Authorization: `Bearer ${supabaseAnonKey}`,
+        Accept: "application/json",
+      },
+      cache: "no-store",
+    })
+      .then((response) => response.ok ? response.json() : [])
+      .then((rows) => {
+        const settings = rows?.[0];
+        if (!settings?.published_tokens) return;
+        applyTokens(settings.published_tokens);
+        window.dispatchEvent(new CustomEvent("design-tokens:loaded", {
+          detail: { tokens: settings.published_tokens },
+        }));
+        try {
+          localStorage.setItem(cacheKey, JSON.stringify({
+            tokens: settings.published_tokens,
+            version: settings.published_version,
+            updatedAt: settings.updated_at,
+          }));
+        } catch (_error) {
+          // A private browsing quota should not block the live theme.
+        }
+      })
+      .catch(() => {
+        // Keep cached or bundled defaults if Supabase is unavailable.
+      });
+  })();
+</script>

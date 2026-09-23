@@ -252,7 +252,7 @@ const FilmsFilter = ({ items }) => {
                 .filter-chip {
                     min-height: 44px;
                     padding: 10px 18px;
-                    border: 1px solid var(--pop-ink, #15130f);
+                    border: 1px solid var(--pop-ink, var(--pop-ink));
                     border-radius: 14px;
                     background: var(--pop-cream, #fff8e8);
                     color: var(--pop-ink, #15130f);
@@ -267,14 +267,14 @@ const FilmsFilter = ({ items }) => {
                 .filter-chip:hover {
                     background: var(--pop-pink, #ff7eb5);
                     transform: translateY(-2px);
-                    box-shadow: 0 3px 0 var(--pop-ink, #15130f);
+                    box-shadow: 0 3px 0 var(--pop-ink, var(--pop-ink));
                 }
 
                 .filter-chip.active {
                     background: var(--pop-yellow, #ffe44f);
                     color: var(--pop-ink, #15130f);
                     font-weight: 800;
-                    box-shadow: inset 0 -3px 0 var(--pop-ink, #15130f);
+                    box-shadow: inset 0 -3px 0 var(--pop-ink, var(--pop-ink));
                 }
 
                 /* Heading Bar */
@@ -284,7 +284,7 @@ const FilmsFilter = ({ items }) => {
                     justify-content: space-between;
                     gap: 16px;
                     padding-top: 20px;
-                    border-top: 1px solid var(--pop-ink, #15130f);
+                    border-top: 1px solid var(--pop-ink, var(--pop-ink));
                 }
 
                 .resource-results-heading h2 {
@@ -309,7 +309,7 @@ const FilmsFilter = ({ items }) => {
                 .resource-clear {
                     min-height: 40px;
                     padding: 6px 14px;
-                    border: 1px solid var(--pop-ink, #15130f);
+                    border: 1px solid var(--pop-ink, var(--pop-ink));
                     border-radius: 12px;
                     background: var(--pop-pink, #ff7eb5);
                     color: var(--pop-ink, #15130f);
@@ -346,27 +346,27 @@ const FilmsFilter = ({ items }) => {
 
                 .resource-card-react {
                     padding: 12px;
-                    border: 1.5px solid var(--pop-ink, #15130f);
+                    border: 1.5px solid var(--pop-ink, var(--pop-ink));
                     border-radius: 20px;
                     background: #ffffff;
                     color: var(--pop-ink, #15130f);
                     display: flex;
                     flex-direction: column;
-                    box-shadow: 0 4px 0 var(--pop-ink, #15130f);
+                    box-shadow: 0 4px 0 var(--pop-ink, var(--pop-ink));
                     transition: transform 200ms ease, box-shadow 200ms ease, background 200ms ease;
                 }
 
                 .resource-card-react:hover {
                     background: var(--pop-cream, #fff8e8);
                     transform: translateY(-3px);
-                    box-shadow: 0 8px 0 var(--pop-ink, #15130f);
+                    box-shadow: 0 8px 0 var(--pop-ink, var(--pop-ink));
                 }
 
                 .thumbnail-container {
                     position: relative;
                     width: 100%;
                     aspect-ratio: 16 / 9;
-                    border: 1px solid var(--pop-ink, #15130f);
+                    border: 1px solid var(--pop-ink, var(--pop-ink));
                     border-radius: 14px;
                     background: var(--pop-ink, #15130f);
                     overflow: hidden;
@@ -403,9 +403,9 @@ const FilmsFilter = ({ items }) => {
                     height: 58px;
                     border-radius: 50%;
                     background: var(--pop-yellow, #ffe44f);
-                    border: 1.5px solid var(--pop-ink, #15130f);
+                    border: 1.5px solid var(--pop-ink, var(--pop-ink));
                     color: var(--pop-ink, #15130f);
-                    box-shadow: 0 3px 0 var(--pop-ink, #15130f);
+                    box-shadow: 0 3px 0 var(--pop-ink, var(--pop-ink));
                     display: flex;
                     align-items: center;
                     justify-content: center;
@@ -424,12 +424,12 @@ const FilmsFilter = ({ items }) => {
                     right: 12px;
                     padding: 6px 14px;
                     border-radius: 999px;
-                    border: 1px solid var(--pop-ink, #15130f);
+                    border: 1px solid var(--pop-ink, var(--pop-ink));
                     font: 700 0.72rem/1 var(--resources-mono, "Satoshi-Variable", monospace);
                     letter-spacing: 0.06em;
                     text-transform: uppercase;
-                    color: #15130f;
-                    box-shadow: 0 2px 0 var(--pop-ink, #15130f);
+                    color: var(--pop-ink);
+                    box-shadow: 0 2px 0 var(--pop-ink, var(--pop-ink));
                     pointer-events: none;
                 }
 
@@ -495,7 +495,7 @@ const FilmsFilter = ({ items }) => {
 
                 .tag {
                     padding: 5px 10px;
-                    border: 1px solid var(--pop-ink, #15130f);
+                    border: 1px solid var(--pop-ink, var(--pop-ink));
                     border-radius: 8px;
                     background: var(--pop-cream, #fff8e8);
                     color: var(--pop-ink, #15130f);
@@ -506,13 +506,13 @@ const FilmsFilter = ({ items }) => {
 
                 .film-year-badge {
                     padding: 5px 10px;
-                    border: 1px solid var(--pop-ink, #15130f);
+                    border: 1px solid var(--pop-ink, var(--pop-ink));
                     border-radius: 8px;
                     background: var(--pop-yellow, #ffe44f);
                     color: var(--pop-ink, #15130f);
                     font: 750 0.72rem/1.2 var(--resources-mono, "Satoshi-Variable", monospace);
                     letter-spacing: 0.08em;
-                    box-shadow: 0 2px 0 var(--pop-ink, #15130f);
+                    box-shadow: 0 2px 0 var(--pop-ink, var(--pop-ink));
                 }
 
                 @media (max-width: 860px) {

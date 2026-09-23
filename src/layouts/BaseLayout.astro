@@ -7,6 +7,7 @@ import SEO from "../components/SEO.astro";
 import NewsletterPopup from "../components/NewsletterPopup.jsx";
 import MagneticCursorFollower from "../components/MagneticCursorFollower.jsx";
 import RouteLoadingOverlay from "../components/RouteLoadingOverlay.astro";
+import DesignTokenRuntime from "../components/DesignTokenRuntime.astro";
 import { ClientRouter } from "astro:transitions";
 import { getPageMetadata } from "../lib/api";
 import {
@@ -126,6 +127,7 @@ const googleFontsUrl =
     <meta name="apple-mobile-web-app-title" content="Abodid" />
     <meta name="application-name" content="Abodid Sahoo" />
     <meta name="generator" content={Astro.generator} />
+    <DesignTokenRuntime />
     <ClientRouter fallback="swap" />
     <link
       rel="alternate"

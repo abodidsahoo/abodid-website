@@ -193,9 +193,9 @@ export default function PhotoDropzone({ onPhotosAdded }) {
                     display: inline-flex;
                     align-items: center;
                     gap: 0.45rem;
-                    background: #ff7eb5;
-                    color: #15130f;
-                    border: 1.5px solid #15130f;
+                    background: var(--pop-pink);
+                    color: var(--pop-ink);
+                    border: 1.5px solid var(--pop-ink);
                     border-radius: 999px;
                     padding: 0.45rem 0.95rem;
                     font-family: var(--font-mono, "Satoshi-Variable", monospace);
@@ -233,13 +233,13 @@ export default function PhotoDropzone({ onPhotosAdded }) {
                 }
 
                 .pop-dropzone-modal {
-                    background: #fff8e8;
-                    color: #15130f;
-                    border: 2px dashed #15130f;
+                    background: var(--pop-cream);
+                    color: var(--pop-ink);
+                    border: 2px dashed var(--pop-ink);
                     border-radius: 24px;
                     padding: 3rem 4rem;
                     text-align: center;
-                    box-shadow: 0 16px 0 #15130f, 0 30px 60px rgba(0,0,0,0.4);
+                    box-shadow: 0 16px 0 var(--pop-ink), 0 30px 60px rgba(0,0,0,0.4);
                     max-width: 32rem;
                     display: flex;
                     flex-direction: column;
@@ -257,7 +257,7 @@ export default function PhotoDropzone({ onPhotosAdded }) {
                     font-size: 1.25rem;
                     font-weight: 850;
                     letter-spacing: 0.04em;
-                    color: #15130f;
+                    color: var(--pop-ink);
                 }
 
                 .pop-dropzone-desc {

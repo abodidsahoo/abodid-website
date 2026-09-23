@@ -1,4 +1,5 @@
 @import url("./satoshi.css");
+@import url("./design-system.css");
 
 /* Core Design System */
 *,
@@ -33,16 +34,16 @@
   --pop-cream: #fff8e8;
   --pop-white: #ffffff;
   --pop-ink: #15130f;
-  --pop-ink-secondary: rgba(21, 19, 15, 0.78);
-  --pop-ink-tertiary: rgba(21, 19, 15, 0.58);
-  --pop-border: rgba(21, 19, 15, 0.78);
-  --pop-line: rgba(21, 19, 15, 0.22);
-  --pop-gap: 8px;
-  --pop-page-gutter: clamp(1rem, 3vw, 3.5rem);
-  --pop-radius-panel: clamp(18px, 2vw, 28px);
-  --pop-radius-card: clamp(14px, 1.5vw, 22px);
-  --pop-radius-control: 14px;
-  --pop-radius-media: clamp(10px, 1.2vw, 16px);
+  --pop-ink-secondary: color-mix(in srgb, var(--pop-ink) 78%, transparent);
+  --pop-ink-tertiary: color-mix(in srgb, var(--pop-ink) 58%, transparent);
+  --pop-border: color-mix(in srgb, var(--pop-ink) 78%, transparent);
+  --pop-line: color-mix(in srgb, var(--pop-ink) 22%, transparent);
+  --pop-gap: var(--design-grid-gap);
+  --pop-page-gutter: var(--design-page-gutter);
+  --pop-radius-panel: var(--design-radius-panel);
+  --pop-radius-card: var(--design-radius-card);
+  --pop-radius-control: var(--design-radius-control);
+  --pop-radius-media: var(--design-radius-media);
   --pop-control-height: 52px;
   --pop-motion: 180ms ease;
 
@@ -50,17 +51,17 @@
      * MAJOR COLOR PALETTE (Added for reference)
      * Source: Step 39 Request
      */
-  --palette-red: #2444ca;
+  --palette-red: var(--pop-blue);
   --palette-light: #f9f8f3;
   --palette-dark: #010101;
   --palette-sand: #e0dbd3;
   --palette-grey: #9e9992;
 
   /* Grainy Glitch Palette */
-  --color-glitch-red: #3b82f6;
+  --color-glitch-red: var(--pop-blue);
   --color-glitch-dark: #050505;
   /* Brand Blue Accent */
-  --color-brand-red: #2444ca;
+  --color-brand-red: var(--pop-blue);
   /* Menu Red */
   --color-glitch-text: #e0e0e0;
 
@@ -85,16 +86,16 @@
     monospace;
 
   /* Canonical type system: four sizes plus two weight modifiers. */
-  --type-display: clamp(3rem, 5.7vw, 6rem);
-  --type-heading: clamp(1.5rem, 2.65vw, 2.25rem);
-  --type-body: clamp(1rem, 1.1vw, 1.125rem);
-  --type-label: 0.8rem;
-  --type-weight-display: 540;
+  --type-display: var(--type-role-display-size);
+  --type-heading: var(--type-role-section-title-size);
+  --type-body: var(--type-role-body-size);
+  --type-label: var(--type-role-label-size);
+  --type-weight-display: var(--type-role-display-weight);
   --type-weight-strong: 720;
-  --type-weight-heading: 540;
+  --type-weight-heading: var(--type-role-section-title-weight);
   --type-weight-heading-strong: 650;
-  --type-weight-body: 400;
-  --type-weight-label: 700;
+  --type-weight-body: var(--type-role-body-weight);
+  --type-weight-label: var(--type-role-label-weight);
 
   /* LAYOUT VARIABLES */
   --page-gutter: 24px;
@@ -135,7 +136,8 @@
   --dark-footer-text: #edf2f8;
   --dark-link-color: var(--color-brand-red);
   --dark-link-hover-color: #4b6ef5;
-  --dark-selection-bg: #2444ca;
+  --dark-selection-bg: var(--pop-blue);
+  --dark-selection-fg: var(--pop-cream);
 
   --light-page-bg: #f8fafc;
   --light-surface-bg: #ffffff;
@@ -153,7 +155,8 @@
   --light-footer-border: #d0d9e3;
   --light-link-color: var(--color-brand-red);
   --light-link-hover-color: #19339e;
-  --light-selection-bg: #2444ca;
+  --light-selection-bg: var(--pop-blue);
+  --light-selection-fg: var(--pop-cream);
 
   /* Runtime Theme Variables (default: dark) */
   --bg-canvas: var(--dark-page-bg);
@@ -196,29 +199,29 @@
   --accent-primary: var(--theme-color-accent);
 
   /* TYPOGRAPHY SCALE */
-  --step-h1: clamp(2.4rem, 5vw, 4.8rem);
-  --step-h2: clamp(1.9rem, 3.6vw, 3.2rem);
-  --step-h3: clamp(1.45rem, 2.7vw, 2.2rem);
+  --step-h1: var(--type-role-page-title-size);
+  --step-h2: var(--type-role-section-title-size);
+  --step-h3: var(--type-role-card-title-size);
   --step-h4: 1.8rem;
   --step-h5: 1.4rem;
   --step-h6: 1.1rem;
-  --step-body: 1.06rem;
-  --step-small: 0.875rem;
+  --step-body: var(--type-role-body-size);
+  --step-small: var(--type-role-label-size);
   --step-custom-1: 5.6rem;
   --step-custom-2: 0.72rem;
   --step-custom-3: 2.8rem;
   --step-custom-4: 1.35rem;
-  --type-h1-weight: 800;
-  --type-h1-line-height: 1.08;
-  --type-h1-letter-spacing: -0.03em;
+  --type-h1-weight: var(--type-role-page-title-weight);
+  --type-h1-line-height: var(--type-role-page-title-line);
+  --type-h1-letter-spacing: var(--type-role-page-title-track);
   --type-h1-color: var(--text-primary);
-  --type-h2-weight: 600;
-  --type-h2-line-height: 1.08;
-  --type-h2-letter-spacing: -0.02em;
+  --type-h2-weight: var(--type-role-section-title-weight);
+  --type-h2-line-height: var(--type-role-section-title-line);
+  --type-h2-letter-spacing: var(--type-role-section-title-track);
   --type-h2-color: var(--text-primary);
-  --type-h3-weight: 600;
-  --type-h3-line-height: 1.08;
-  --type-h3-letter-spacing: -0.01em;
+  --type-h3-weight: var(--type-role-card-title-weight);
+  --type-h3-line-height: var(--type-role-card-title-line);
+  --type-h3-letter-spacing: var(--type-role-card-title-track);
   --type-h3-color: var(--text-primary);
   --type-h4-weight: 600;
   --type-h4-line-height: 1.1;
@@ -232,13 +235,13 @@
   --type-h6-line-height: 1.15;
   --type-h6-letter-spacing: 0em;
   --type-h6-color: var(--text-primary);
-  --type-paragraph-weight: 400;
-  --type-paragraph-line-height: 1.75;
-  --type-paragraph-letter-spacing: 0em;
+  --type-paragraph-weight: var(--type-role-body-weight);
+  --type-paragraph-line-height: var(--type-role-body-line);
+  --type-paragraph-letter-spacing: var(--type-role-body-track);
   --type-paragraph-color: var(--text-primary);
-  --type-small-weight: 400;
-  --type-small-line-height: 1.4;
-  --type-small-letter-spacing: 0em;
+  --type-small-weight: var(--type-role-label-weight);
+  --type-small-line-height: var(--type-role-label-line);
+  --type-small-letter-spacing: var(--type-role-label-track);
   --type-small-color: var(--text-secondary);
   --type-custom1-weight: 800;
   --type-custom1-line-height: 1.02;
@@ -281,10 +284,10 @@
   --feature-photo-cta-letter-spacing: 0.05em;
   --feature-photo-cta-color: var(--text-tertiary);
   --feature-photo-overlay-title-font: var(--font-ui);
-  --feature-photo-overlay-title-size: 1.4rem;
-  --feature-photo-overlay-title-weight: 700;
-  --feature-photo-overlay-title-line-height: 1.1;
-  --feature-photo-overlay-title-letter-spacing: -0.02em;
+  --feature-photo-overlay-title-size: var(--type-role-card-title-size);
+  --feature-photo-overlay-title-weight: var(--type-role-card-title-weight);
+  --feature-photo-overlay-title-line-height: var(--type-role-card-title-line);
+  --feature-photo-overlay-title-letter-spacing: var(--type-role-card-title-track);
   --feature-photo-overlay-title-color: var(--text-primary);
   --feature-photo-overlay-meta-font: var(--font-mono);
   --feature-photo-overlay-meta-size: 0.8rem;
@@ -293,10 +296,10 @@
   --feature-photo-overlay-meta-letter-spacing: 0.1em;
   --feature-photo-overlay-meta-color: #00f3ff;
   --feature-writing-title-font: var(--font-serif);
-  --feature-writing-title-size: 1.5rem;
-  --feature-writing-title-weight: 400;
-  --feature-writing-title-line-height: 1.2;
-  --feature-writing-title-letter-spacing: 0em;
+  --feature-writing-title-size: var(--type-role-card-title-size);
+  --feature-writing-title-weight: var(--type-role-card-title-weight);
+  --feature-writing-title-line-height: var(--type-role-card-title-line);
+  --feature-writing-title-letter-spacing: var(--type-role-card-title-track);
   --feature-writing-title-color: var(--text-primary);
   --feature-writing-date-font: var(--font-mono);
   --feature-writing-date-size: 0.75rem;
@@ -335,10 +338,10 @@
   --feature-stack-peel-btn-letter-spacing: 0.05em;
   --feature-stack-peel-btn-color: var(--text-primary);
   --feature-stack-main-text-font: var(--font-mono);
-  --feature-stack-main-text-size: 0.95rem;
-  --feature-stack-main-text-weight: 500;
-  --feature-stack-main-text-line-height: 1.62;
-  --feature-stack-main-text-letter-spacing: 0em;
+  --feature-stack-main-text-size: var(--type-role-body-size);
+  --feature-stack-main-text-weight: var(--type-role-body-weight);
+  --feature-stack-main-text-line-height: var(--type-role-body-line);
+  --feature-stack-main-text-letter-spacing: var(--type-role-body-track);
   --feature-stack-main-text-color: var(--text-primary);
   --feature-nav-card-title-font: var(--font-ui);
   --feature-nav-card-title-size: 1.1rem;
@@ -353,16 +356,16 @@
   --feature-nav-card-link-letter-spacing: 0.02em;
   --feature-nav-card-link-color: var(--text-secondary);
   --feature-newsletter-title-font: var(--font-display);
-  --feature-newsletter-title-size: 1.75rem;
-  --feature-newsletter-title-weight: 700;
-  --feature-newsletter-title-line-height: 1.1;
-  --feature-newsletter-title-letter-spacing: -0.03em;
+  --feature-newsletter-title-size: var(--type-role-card-title-size);
+  --feature-newsletter-title-weight: var(--type-role-card-title-weight);
+  --feature-newsletter-title-line-height: var(--type-role-card-title-line);
+  --feature-newsletter-title-letter-spacing: var(--type-role-card-title-track);
   --feature-newsletter-title-color: var(--text-primary);
   --feature-newsletter-body-font: var(--font-ui);
-  --feature-newsletter-body-size: 0.95rem;
-  --feature-newsletter-body-weight: 400;
-  --feature-newsletter-body-line-height: 1.6;
-  --feature-newsletter-body-letter-spacing: 0em;
+  --feature-newsletter-body-size: var(--type-role-body-size);
+  --feature-newsletter-body-weight: var(--type-role-body-weight);
+  --feature-newsletter-body-line-height: var(--type-role-body-line);
+  --feature-newsletter-body-letter-spacing: var(--type-role-body-track);
   --feature-newsletter-body-color: var(--text-secondary);
   --feature-newsletter-input-font: var(--font-ui);
   --feature-newsletter-input-size: 0.95rem;
@@ -395,15 +398,16 @@
   --feature-obsidian-tag-letter-spacing: 0.015em;
   --feature-obsidian-tag-color: var(--text-secondary);
   --feature-obsidian-note-body-font: var(--font-body);
-  --feature-obsidian-note-body-size: 1.05rem;
-  --feature-obsidian-note-body-weight: 400;
-  --feature-obsidian-note-body-line-height: 1.7;
-  --feature-obsidian-note-body-letter-spacing: 0em;
+  --feature-obsidian-note-body-size: var(--type-role-reading-size);
+  --feature-obsidian-note-body-weight: var(--type-role-reading-weight);
+  --feature-obsidian-note-body-line-height: var(--type-role-reading-line);
+  --feature-obsidian-note-body-letter-spacing: var(--type-role-reading-track);
   --feature-obsidian-note-body-color: var(--text-secondary);
 
   --link-color: var(--dark-link-color);
   --link-hover-color: var(--dark-link-hover-color);
   --selection-bg: var(--dark-selection-bg);
+  --selection-fg: var(--dark-selection-fg);
   --link-underline: none;
   --link-hover-underline: none;
 
@@ -427,49 +431,45 @@
   --chip-active-text: #ffffff;
 }
 
-/*
- * Typography utilities are intentionally authoritative. Legacy pages contain
- * component-level font shorthands; these classes provide one predictable
- * system while those declarations are retired incrementally.
- */
+/* Opt-in typography roles. Component aliases should point to the same roles. */
 .t-display {
-  font-family: var(--font-display) !important;
-  font-size: var(--type-display) !important;
-  font-weight: var(--type-weight-display) !important;
-  line-height: 0.94 !important;
-  letter-spacing: -0.055em !important;
+  font-family: var(--font-display);
+  font-size: var(--type-display);
+  font-weight: var(--type-weight-display);
+  line-height: var(--type-role-display-line);
+  letter-spacing: var(--type-role-display-track);
 }
 
 .t-display-strong {
-  font-weight: var(--type-weight-strong) !important;
+  font-weight: var(--type-weight-strong);
 }
 
 .t-heading {
-  font-family: var(--font-display) !important;
-  font-size: var(--type-heading) !important;
-  font-weight: var(--type-weight-heading) !important;
-  line-height: 1.05 !important;
-  letter-spacing: -0.035em !important;
+  font-family: var(--font-display);
+  font-size: var(--type-heading);
+  font-weight: var(--type-weight-heading);
+  line-height: var(--type-role-section-title-line);
+  letter-spacing: var(--type-role-section-title-track);
 }
 
 .t-heading-strong {
-  font-weight: var(--type-weight-heading-strong) !important;
+  font-weight: var(--type-weight-heading-strong);
 }
 
 .t-body {
-  font-family: var(--font-body) !important;
-  font-size: var(--type-body) !important;
-  font-weight: var(--type-weight-body) !important;
-  line-height: 1.55 !important;
-  letter-spacing: normal !important;
+  font-family: var(--font-body);
+  font-size: var(--type-body);
+  font-weight: var(--type-weight-body);
+  line-height: var(--type-role-body-line);
+  letter-spacing: var(--type-role-body-track);
 }
 
 .t-label {
-  font-family: var(--font-ui) !important;
-  font-size: var(--type-label) !important;
-  font-weight: var(--type-weight-label) !important;
-  line-height: 1.2 !important;
-  letter-spacing: normal !important;
+  font-family: var(--font-ui);
+  font-size: var(--type-label);
+  font-weight: var(--type-weight-label);
+  line-height: 1.2;
+  letter-spacing: normal;
 }
 
 /* ==========================================================================
@@ -519,6 +519,7 @@
   --link-color: var(--light-link-color);
   --link-hover-color: var(--light-link-hover-color);
   --selection-bg: var(--light-selection-bg);
+  --selection-fg: var(--light-selection-fg);
   --btn-primary-bg: var(--light-text-primary);
   --btn-primary-text: #ffffff;
   --btn-primary-border: var(--light-text-primary);
@@ -586,15 +587,15 @@ body::-webkit-scrollbar {
 }
 
 ::selection {
-  background: var(--selection-bg, #ffe44f);
-  color: #15130f;
-  -webkit-text-fill-color: #15130f;
+  background: var(--surface-selection-bg, var(--selection-bg, var(--pop-blue)));
+  color: var(--surface-selection-fg, var(--selection-fg, var(--pop-cream)));
+  -webkit-text-fill-color: var(--surface-selection-fg, var(--selection-fg, var(--pop-cream)));
 }
 
 ::-moz-selection {
-  background: var(--selection-bg, #ffe44f);
-  color: #15130f;
-  -webkit-text-fill-color: #15130f;
+  background: var(--surface-selection-bg, var(--selection-bg, var(--pop-blue)));
+  color: var(--surface-selection-fg, var(--selection-fg, var(--pop-cream)));
+  -webkit-text-fill-color: var(--surface-selection-fg, var(--selection-fg, var(--pop-cream)));
 }
 
 [data-theme="light"] body {
@@ -1139,316 +1140,125 @@ main {
 }
 
 /* ==========================================================================
-   ABODID POP EDITORIAL SYSTEM: UNIVERSAL CONTRAST & LEGIBILITY ENGINE
-   Guarantees strict WCAG accessible contrast across all pop pages & surfaces
-   in both dark mode and light mode by default.
+   ABODID POP EDITORIAL SEMANTIC SURFACE CONTRACT
+
+   Use data-pop-surface on a colour-bearing component. The surface owns its
+   foreground, muted text, focus and selection colours. Nested surfaces reset
+   the contract naturally through CSS custom-property inheritance. No selector
+   guesses from class names or inline styles, and no !important escalation.
    ========================================================================== */
 
-/* 1. Universal variables on pop pages */
-body[class*="pop-"],
-body[class*="story-"],
 [data-pop-page="true"] {
   --text-primary: var(--pop-ink);
-  --text-secondary: var(--pop-ink-secondary);
-  --text-tertiary: var(--pop-ink-tertiary);
-  --type-h1-color: var(--pop-ink);
-  --type-h2-color: var(--pop-ink);
-  --type-h3-color: var(--pop-ink);
-  --type-h4-color: var(--pop-ink);
-  --type-h5-color: var(--pop-ink);
-  --type-h6-color: var(--pop-ink);
-  --type-paragraph-color: var(--pop-ink);
-  --link-color: var(--pop-ink);
-  color: var(--pop-ink);
+  --text-secondary: var(--pop-secondary-on-light);
+  --text-tertiary: var(--pop-tertiary-on-light);
+  --type-h1-color: var(--text-primary);
+  --type-h2-color: var(--text-primary);
+  --type-h3-color: var(--text-primary);
+  --type-h4-color: var(--text-primary);
+  --type-h5-color: var(--text-primary);
+  --type-h6-color: var(--text-primary);
+  --type-paragraph-color: var(--text-primary);
+  --link-color: var(--text-primary);
+  color: var(--text-primary);
 }
 
-/* 2. High-Chroma / Light Surfaces: Yellow, Lime, Pink, Cream, White, Orange, Cyan */
-/* MUST ALWAYS HAVE DEEP SOLID INK (#15130f) FOREGROUND */
-:is(
-  [class*="--yellow"],
-  [class*="--lime"],
-  [class*="--pink"],
-  [class*="--cream"],
-  [class*="--white"],
-  [class*="--orange"],
-  [class*="--cyan"],
-  [data-pop-surface="yellow"],
-  [data-pop-surface="lime"],
-  [data-pop-surface="pink"],
+:where(
   [data-pop-surface="cream"],
   [data-pop-surface="white"],
+  [data-pop-surface="pink"],
+  [data-pop-surface="yellow"],
+  [data-pop-surface="lime"],
   [data-pop-surface="orange"],
   [data-pop-surface="cyan"],
-  .pop-card--yellow,
-  .pop-card--lime,
-  .pop-card--pink,
   .pop-card--cream,
   .pop-card--white,
+  .pop-card--pink,
+  .pop-card--yellow,
+  .pop-card--lime,
+  .pop-card--orange,
+  .pop-card--cyan,
+  .pop-panel--cream,
+  .pop-panel--white,
+  .pop-panel--pink,
   .pop-panel--yellow,
   .pop-panel--lime,
-  .pop-panel--pink,
-  .pop-panel--cream,
-  .pop-panel--white
+  .pop-panel--orange,
+  .pop-panel--cyan,
+  .btn-yellow,
+  .badge-yellow,
+  .pill-yellow
 ) {
-  --text-primary: var(--pop-ink) !important;
-  --text-secondary: var(--pop-ink-secondary) !important;
-  --text-tertiary: var(--pop-ink-tertiary) !important;
-  --type-h1-color: var(--pop-ink) !important;
-  --type-h2-color: var(--pop-ink) !important;
-  --type-h3-color: var(--pop-ink) !important;
-  --type-h4-color: var(--pop-ink) !important;
-  --type-h5-color: var(--pop-ink) !important;
-  --type-h6-color: var(--pop-ink) !important;
-  --type-paragraph-color: var(--pop-ink) !important;
-  --link-color: var(--pop-ink) !important;
-  color: var(--pop-ink) !important;
+  --surface-fg: var(--pop-foreground-on-light);
+  --surface-fg-secondary: var(--pop-secondary-on-light);
+  --surface-fg-tertiary: var(--pop-tertiary-on-light);
+  --surface-selection-bg: var(--pop-selection-on-light-bg);
+  --surface-selection-fg: var(--pop-selection-on-light-fg);
+  --text-primary: var(--surface-fg);
+  --text-secondary: var(--surface-fg-secondary);
+  --text-tertiary: var(--surface-fg-tertiary);
+  --type-h1-color: var(--surface-fg);
+  --type-h2-color: var(--surface-fg);
+  --type-h3-color: var(--surface-fg);
+  --type-h4-color: var(--surface-fg);
+  --type-h5-color: var(--surface-fg);
+  --type-h6-color: var(--surface-fg);
+  --type-paragraph-color: var(--surface-fg);
+  --type-small-color: var(--surface-fg-secondary);
+  --link-color: var(--surface-fg);
+  --link-hover-color: var(--surface-fg);
+  --border-focus: var(--pop-purple);
+  color: var(--surface-fg);
 }
 
-:is(
-  [class*="--yellow"],
-  [class*="--lime"],
-  [class*="--pink"],
-  [class*="--cream"],
-  [class*="--white"],
-  [class*="--orange"],
-  [class*="--cyan"],
-  [data-pop-surface="yellow"],
-  [data-pop-surface="lime"],
-  [data-pop-surface="pink"],
-  [data-pop-surface="cream"],
-  [data-pop-surface="white"],
-  [data-pop-surface="orange"],
-  [data-pop-surface="cyan"],
-  .pop-card--yellow,
-  .pop-card--lime,
-  .pop-card--pink,
-  .pop-card--cream,
-  .pop-card--white,
-  .pop-panel--yellow,
-  .pop-panel--lime,
-  .pop-panel--pink,
-  .pop-panel--cream,
-  .pop-panel--white
-) :is(h1, h2, h3, h4, h5, h6, p, span, small, li, strong, em, b, a, button, label, td, th, code) {
-  color: var(--pop-ink) !important;
-}
-
-/* 3. Deep Chromatic Surfaces: Cobalt (#2444ca), Purple (#5524c7) */
-/* MUST ALWAYS HAVE WARM CREAM (#fff8e8) FOREGROUND */
-:is(
-  [class*="--blue"],
-  [class*="--purple"],
+:where(
   [data-pop-surface="blue"],
   [data-pop-surface="purple"],
   .pop-card--blue,
   .pop-card--purple,
   .pop-panel--blue,
-  .pop-panel--purple
-) {
-  --text-primary: var(--pop-cream) !important;
-  --text-secondary: rgba(255, 248, 232, 0.85) !important;
-  --text-tertiary: rgba(255, 248, 232, 0.65) !important;
-  --type-h1-color: var(--pop-cream) !important;
-  --type-h2-color: var(--pop-cream) !important;
-  --type-h3-color: var(--pop-cream) !important;
-  --type-h4-color: var(--pop-cream) !important;
-  --type-h5-color: var(--pop-cream) !important;
-  --type-h6-color: var(--pop-cream) !important;
-  --type-paragraph-color: var(--pop-cream) !important;
-  --link-color: var(--pop-cream) !important;
-  color: var(--pop-cream) !important;
-}
-
-:is(
-  [class*="--blue"],
-  [class*="--purple"],
-  [data-pop-surface="blue"],
-  [data-pop-surface="purple"],
-  .pop-card--blue,
-  .pop-card--purple,
-  .pop-panel--blue,
-  .pop-panel--purple
-) :is(h1, h2, h3, h4, h5, h6, p, span, small, li, strong, em, b, a, button, label, td, th, code) {
-  color: var(--pop-cream) !important;
-}
-
-/* ==========================================================================
-   ABODID POP EDITORIAL STRICT CONTRAST SYSTEM (Design System Law)
-   1. ANY YELLOW SURFACE / PILL / BUTTON / BADGE / CARD -> STRICT BLACK INK (#15130f)
-   2. ANY BLUE SURFACE / PILL / BUTTON / BADGE / CARD -> STRICT PURE WHITE (#ffffff)
-   3. NESTED YELLOW BUTTONS/PILLS INSIDE BLUE SURFACES -> STRICT BLACK INK (#15130f)
-   ========================================================================== */
-
-/* 1. STRICT BLACK TEXT ON ALL YELLOW SURFACES */
-:is(
-  .rp-case__caption-badge,
-  .rp-case__experiment-btn,
-  .rp-case__trio-card--yellow,
-  .rp-case__next-arrow,
-  .rp-case__next-button,
-  .rp-case__reading-card,
-  .rp-case__reading-badge,
-  .rp-case__contrib-card,
-  .pop-card--yellow,
-  .pop-panel--yellow,
-  .btn-yellow,
-  .badge-yellow,
-  .pill-yellow,
-  [class*="--yellow"],
-  [class*="yellow"],
-  [data-pop-surface="yellow"],
-  [style*="#ffe44f"],
-  [style*="--pe-yellow"],
-  [style*="--pop-yellow"],
-  [style*="--rp-yellow"]
-),
-:is(
-  .rp-case__caption-badge,
-  .rp-case__experiment-btn,
-  .rp-case__trio-card--yellow,
-  .rp-case__next-arrow,
-  .rp-case__next-button,
-  .rp-case__reading-card,
-  .rp-case__reading-badge,
-  .rp-case__contrib-card,
-  .pop-card--yellow,
-  .pop-panel--yellow,
-  .btn-yellow,
-  .badge-yellow,
-  .pill-yellow,
-  [class*="--yellow"],
-  [class*="yellow"],
-  [data-pop-surface="yellow"],
-  [style*="#ffe44f"],
-  [style*="--pe-yellow"],
-  [style*="--pop-yellow"],
-  [style*="--rp-yellow"]
-) :is(h1, h2, h3, h4, h5, h6, p, span, small, li, strong, em, b, a, button, label, td, th, code, svg, dt, dd, figcaption) {
-  color: #15130f !important;
-  -webkit-text-fill-color: #15130f !important;
-}
-
-/* 2. STRICT WHITE TEXT ON ALL BLUE AND PURPLE SURFACES */
-:is(
-  .rp-case__meta-pill,
-  .rp-case__trio-card--blue,
-  .rp-case__trio-card--purple,
-  .rp-case[data-accent="purple"] .rp-case__hero,
-  .pop-card--blue,
-  .pop-panel--blue,
-  .pop-card--purple,
   .pop-panel--purple,
   .btn-blue,
   .badge-blue,
   .pill-blue,
   .btn-purple,
   .badge-purple,
-  .pill-purple,
-  [class*="--blue"],
-  [class*="--purple"],
-  [data-pop-surface="blue"],
-  [data-pop-surface="purple"],
-  [data-accent="purple"]:not(.rp-case),
-  [data-accent="blue"]:not(.rp-case),
-  [style*="#5524c7"]:not(.rp-case),
-  [style*="--pop-purple"]:not(.rp-case),
-  [style*="--pe-purple"]:not(.rp-case),
-  [style*="--rp-purple"]:not(.rp-case)
-),
-:is(
-  .rp-case__meta-pill,
-  .rp-case__trio-card--blue,
-  .rp-case__trio-card--purple,
-  .rp-case[data-accent="purple"] .rp-case__hero,
-  .pop-card--blue,
-  .pop-panel--blue,
-  .pop-card--purple,
-  .pop-panel--purple,
-  .btn-blue,
-  .badge-blue,
-  .pill-blue,
-  .btn-purple,
-  .badge-purple,
-  .pill-purple,
-  [class*="--blue"],
-  [class*="--purple"],
-  [data-pop-surface="blue"],
-  [data-pop-surface="purple"],
-  [data-accent="purple"]:not(.rp-case),
-  [data-accent="blue"]:not(.rp-case),
-  [style*="#5524c7"]:not(.rp-case),
-  [style*="--pop-purple"]:not(.rp-case),
-  [style*="--pe-purple"]:not(.rp-case),
-  [style*="--rp-purple"]:not(.rp-case)
-) :is(h1, h2, h3, h4, h5, h6, p, span, small, li, strong, em, b, a, dt, dd, svg) {
-  color: #ffffff !important;
-  -webkit-text-fill-color: #ffffff !important;
+  .pill-purple
+) {
+  --surface-fg: var(--pop-foreground-on-deep);
+  --surface-fg-secondary: var(--pop-secondary-on-deep);
+  --surface-fg-tertiary: var(--pop-tertiary-on-deep);
+  --surface-selection-bg: var(--pop-selection-on-deep-bg);
+  --surface-selection-fg: var(--pop-selection-on-deep-fg);
+  --text-primary: var(--surface-fg);
+  --text-secondary: var(--surface-fg-secondary);
+  --text-tertiary: var(--surface-fg-tertiary);
+  --type-h1-color: var(--surface-fg);
+  --type-h2-color: var(--surface-fg);
+  --type-h3-color: var(--surface-fg);
+  --type-h4-color: var(--surface-fg);
+  --type-h5-color: var(--surface-fg);
+  --type-h6-color: var(--surface-fg);
+  --type-paragraph-color: var(--surface-fg);
+  --type-small-color: var(--surface-fg-secondary);
+  --link-color: var(--surface-fg);
+  --link-hover-color: var(--surface-fg);
+  --border-focus: var(--pop-yellow);
+  color: var(--surface-fg);
 }
 
-/* 3. NESTED YELLOW ELEMENTS INSIDE BLUE SURFACES REMAIN STRICT BLACK */
-:is([class*="--blue"], [data-pop-surface="blue"], .bg-blue, .rp-case__trio-card--blue, .pop-card--blue, .hero-vault-tags-card) :is(
-  .rp-case__experiment-btn,
-  .rp-case__caption-badge,
-  .hero-tag-content,
-  .hero-floating-tag,
-  .badge-yellow,
-  .pill-yellow,
-  .btn-yellow,
-  [class*="--yellow"],
-  [class*="yellow"],
-  [data-pop-surface="yellow"],
-  [style*="#ffe44f"],
-  [style*="#f6e05e"],
-  [style*="--pe-yellow"],
-  [style*="--pop-yellow"],
-  [style*="--rp-yellow"]
-),
-:is([class*="--blue"], [data-pop-surface="blue"], .bg-blue, .rp-case__trio-card--blue, .pop-card--blue, .hero-vault-tags-card) :is(
-  .rp-case__experiment-btn,
-  .rp-case__caption-badge,
-  .hero-tag-content,
-  .hero-floating-tag,
-  .badge-yellow,
-  .pill-yellow,
-  .btn-yellow,
-  [class*="--yellow"],
-  [class*="yellow"],
-  [data-pop-surface="yellow"],
-  [style*="#ffe44f"],
-  [style*="#f6e05e"],
-  [style*="--pe-yellow"],
-  [style*="--pop-yellow"],
-  [style*="--rp-yellow"]
-) :is(span, strong, b, em, p, a, button, label, svg, dt, dd) {
-  color: #15130f !important;
-  -webkit-text-fill-color: #15130f !important;
-}
+:where([data-pop-surface="cream"], .pop-card--cream, .pop-panel--cream) { --surface-bg: var(--pop-cream); }
+:where([data-pop-surface="white"], .pop-card--white, .pop-panel--white) { --surface-bg: var(--pop-white); }
+:where([data-pop-surface="pink"], .pop-card--pink, .pop-panel--pink) { --surface-bg: var(--pop-pink); }
+:where([data-pop-surface="yellow"], .pop-card--yellow, .pop-panel--yellow, .btn-yellow, .badge-yellow, .pill-yellow) { --surface-bg: var(--pop-yellow); }
+:where([data-pop-surface="lime"], .pop-card--lime, .pop-panel--lime) { --surface-bg: var(--pop-lime); }
+:where([data-pop-surface="orange"], .pop-card--orange, .pop-panel--orange) { --surface-bg: var(--pop-orange); }
+:where([data-pop-surface="cyan"], .pop-card--cyan, .pop-panel--cyan) { --surface-bg: var(--pop-cyan); }
+:where([data-pop-surface="blue"], .pop-card--blue, .pop-panel--blue, .btn-blue, .badge-blue, .pill-blue) { --surface-bg: var(--pop-blue); }
+:where([data-pop-surface="purple"], .pop-card--purple, .pop-panel--purple, .btn-purple, .badge-purple, .pill-purple) { --surface-bg: var(--pop-purple); }
 
-/* 4. NESTED BLUE ELEMENTS INSIDE YELLOW SURFACES REMAIN STRICT WHITE */
-:is([class*="--yellow"], [data-pop-surface="yellow"], .bg-yellow, .rp-case__trio-card--yellow, .pop-card--yellow, .rp-case__hero) :is(
-  .rp-case__meta-pill,
-  .badge-blue,
-  .pill-blue,
-  .btn-blue,
-  [class*="--blue"],
-  [data-pop-surface="blue"],
-  [style*="--pe-blue"],
-  [style*="--pop-blue"],
-  [style*="#2444ca"]
-),
-:is([class*="--yellow"], [data-pop-surface="yellow"], .bg-yellow, .rp-case__trio-card--yellow, .pop-card--yellow, .rp-case__hero) :is(
-  .rp-case__meta-pill,
-  .badge-blue,
-  .pill-blue,
-  .btn-blue,
-  [class*="--blue"],
-  [data-pop-surface="blue"],
-  [style*="--pe-blue"],
-  [style*="--pop-blue"],
-  [style*="#2444ca"]
-) :is(span, strong, b, em, p, a, button, label, svg, dt, dd) {
-  color: #ffffff !important;
-  -webkit-text-fill-color: #ffffff !important;
+:where([data-pop-surface]) {
+  background-color: var(--surface-bg);
 }
 
 /* ==========================================================================
@@ -1493,4 +1303,3 @@ button, a, input, select, textarea {
     user-select: none;
   }
 }
-

@@ -155,13 +155,13 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         display: inline-block;
         padding: 6px 14px;
         border-radius: 999px;
-        background: #ffe44f;
-        color: #15130f;
+        background: var(--pop-yellow);
+        color: var(--pop-ink);
         font-weight: 900;
         font-size: 0.75rem;
         letter-spacing: 0.08em;
         margin-bottom: 12px;
-        border: 2px solid #15130f;
+        border: 2px solid var(--pop-ink);
     }
 
     h1 {
@@ -184,11 +184,11 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     .quick-links-section,
     .whatsapp-section {
         background: var(--bg-card, #ffffff);
-        border: 2px solid #15130f;
+        border: 2px solid var(--pop-ink);
         border-radius: 16px;
         padding: 28px;
         margin-bottom: 32px;
-        box-shadow: 4px 4px 0px #15130f;
+        box-shadow: 4px 4px 0px var(--pop-ink);
     }
 
     h2 {
@@ -231,7 +231,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         padding: 12px 14px;
         font-size: 0.95rem;
         font-weight: 600;
-        border: 2px solid #15130f;
+        border: 2px solid var(--pop-ink);
         border-radius: 8px;
         outline: none;
         background: #fafafa;
@@ -239,7 +239,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
     .input-group input:focus,
     .input-group select:focus {
-        border-color: #5524c7;
+        border-color: var(--pop-purple);
         background: #ffffff;
     }
 
@@ -251,32 +251,32 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
     .primary-btn {
         padding: 12px 22px;
-        background: #ffe44f;
-        color: #15130f;
-        border: 2px solid #15130f;
+        background: var(--pop-yellow);
+        color: var(--pop-ink);
+        border: 2px solid var(--pop-ink);
         border-radius: 8px;
         font-weight: 850;
         font-size: 0.92rem;
         cursor: pointer;
-        box-shadow: 2px 2px 0px #15130f;
+        box-shadow: 2px 2px 0px var(--pop-ink);
         transition: transform 0.1s ease;
     }
 
     .primary-btn:hover {
         transform: translateY(-1px);
-        box-shadow: 3px 3px 0px #15130f;
+        box-shadow: 3px 3px 0px var(--pop-ink);
     }
 
     .secondary-btn {
         padding: 12px 20px;
         background: #ffffff;
-        color: #15130f;
-        border: 2px solid #15130f;
+        color: var(--pop-ink);
+        border: 2px solid var(--pop-ink);
         border-radius: 8px;
         font-weight: 750;
         font-size: 0.92rem;
         cursor: pointer;
-        box-shadow: 2px 2px 0px #15130f;
+        box-shadow: 2px 2px 0px var(--pop-ink);
     }
 
     .image-preview-wrapper {
@@ -284,10 +284,10 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     }
 
     .image-preview {
-        border: 2px solid #15130f;
+        border: 2px solid var(--pop-ink);
         border-radius: 12px;
         overflow: hidden;
-        background: #15130f;
+        background: var(--pop-ink);
         aspect-ratio: 1200 / 630;
     }
 
@@ -323,20 +323,20 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     .page-btn {
         padding: 12px 14px;
         background: #ffffff;
-        border: 2px solid #15130f;
+        border: 2px solid var(--pop-ink);
         border-radius: 8px;
         font-size: 0.88rem;
         font-weight: 750;
         text-align: left;
         cursor: pointer;
-        box-shadow: 2px 2px 0px #15130f;
+        box-shadow: 2px 2px 0px var(--pop-ink);
         transition: all 0.12s ease;
     }
 
     .page-btn:hover {
-        background: #ffe44f;
+        background: var(--pop-yellow);
         transform: translateY(-1px);
-        box-shadow: 3px 3px 0px #15130f;
+        box-shadow: 3px 3px 0px var(--pop-ink);
     }
 
     .instructions ol {
