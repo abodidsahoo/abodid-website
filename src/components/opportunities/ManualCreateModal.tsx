@@ -244,6 +244,32 @@ export const ManualCreateModal: React.FC<ManualCreateModalProps> = ({
                                             onChange={(e) => setTimezone(e.target.value)}
                                         />
                                     </div>
+
+                                    <div className="opp-form-group">
+                                        <label className="opp-form-label">Event Date & Time</label>
+                                        <input
+                                            type="datetime-local"
+                                            className="opp-form-input"
+                                            value={eventDate}
+                                            onChange={(e) => setEventDate(e.target.value)}
+                                        />
+                                        {eventDatePreview && (
+                                            <div className="opp-date-live-preview">
+                                                ✨ {eventDatePreview}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="opp-form-group">
+                                        <label className="opp-form-label">Location</label>
+                                        <input
+                                            type="text"
+                                            className="opp-form-input"
+                                            placeholder="e.g. Online or Cambridge, UK"
+                                            value={location}
+                                            onChange={(e) => setLocation(e.target.value)}
+                                        />
+                                    </div>
                                 </div>
                             </div>
 
@@ -303,6 +329,16 @@ export const ManualCreateModal: React.FC<ManualCreateModalProps> = ({
                                             placeholder="Thoughts, pitch angles, collaborators..."
                                             value={notes}
                                             onChange={(e) => setNotes(e.target.value)}
+                                        />
+                                    </div>
+
+                                    <div className="opp-form-group opp-form-col-span-full">
+                                        <label className="opp-form-label">Summary</label>
+                                        <textarea
+                                            className="opp-form-textarea"
+                                            placeholder="Short description of the opportunity or event..."
+                                            value={summary}
+                                            onChange={(e) => setSummary(e.target.value)}
                                         />
                                     </div>
                                 </div>

@@ -56,7 +56,9 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({ init
     const fetchOpportunities = async () => {
         setIsLoading(true);
         try {
-            const res = await fetch('/api/opportunities');
+            const res = await fetch(`/api/opportunities?refresh=${Date.now()}`, {
+                cache: 'no-store',
+            });
             if (res.ok) {
                 const data = await res.json();
                 setOpportunities(data.opportunities || []);
@@ -272,8 +274,9 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({ init
         return opportunities.filter((o) => {
             if (o.status === 'done' || o.status === 'dismissed') return false;
             if (o.priority === 3) return true;
-            if (!o.deadline_at) return false;
-            const diffMs = new Date(o.deadline_at).getTime() - now;
+            const actionableAt = o.deadline_at || o.event_date;
+            if (!actionableAt) return false;
+            const diffMs = new Date(actionableAt).getTime() - now;
             const diffHours = diffMs / (1000 * 60 * 60);
             return diffHours > 0 && diffHours <= 7 * 24;
         }).length;
@@ -313,7 +316,8 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({ init
             // Urgency Rail Filters: 'attention' | 'this_week' | 'this_month' | 'later' | 'all'
             if (urgencyFilter === 'all') return true;
 
-            const diffMs = o.deadline_at ? new Date(o.deadline_at).getTime() - now : null;
+            const actionableAt = o.deadline_at || o.event_date;
+            const diffMs = actionableAt ? new Date(actionableAt).getTime() - now : null;
             const diffHours = diffMs !== null ? diffMs / (1000 * 60 * 60) : null;
             const isDoneOrDismissed = o.status === 'done' || o.status === 'dismissed';
 
@@ -355,6 +359,12 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({ init
                 if (opp.deadline_at) {
                     const diffHours = (new Date(opp.deadline_at).getTime() - now) / (1000 * 60 * 60);
                     if (diffHours < 0) return 90000; // expired
+                    return Math.max(0, diffHours) + prioBonus;
+                }
+
+                if (opp.event_date) {
+                    const diffHours = (new Date(opp.event_date).getTime() - now) / (1000 * 60 * 60);
+                    if (diffHours < 0) return 90000; // past event
                     return Math.max(0, diffHours) + prioBonus;
                 }
 

@@ -17,6 +17,8 @@ FIELD EXTRACTION GUIDELINES:
 
 3. category (string, required):
    - Must be strictly one of: "grant", "residency", "fellowship", "open_call", "job", "conference", "event", "other".
+   - Information sessions, webinars, open days, registration sessions, and scheduled talks MUST use "event".
+   - A PhD or degree programme itself is "other", not "fellowship", unless the page explicitly describes a funded fellowship.
 
 4. deadline (string | null):
    - The application / submission deadline timestamp or date (e.g. "2026-10-15T23:59:00Z" or "October 15, 2026").
@@ -28,6 +30,8 @@ FIELD EXTRACTION GUIDELINES:
 
 6. event_date (string | null):
    - The dates when the residency, fellowship, conference, or job actually takes place (e.g. "March 2027 – August 2027").
+   - For an information session, webinar, open day, registration session, or scheduled talk, this is the session start date and time.
+   - Use CAPTURE CONTEXT to resolve relative dates such as "tomorrow" or a month/day with no year.
 
 7. location (string | null):
    - Host city and country (e.g. "Singapore", "Berlin, Germany", "Online / Remote").
@@ -42,13 +46,23 @@ FIELD EXTRACTION GUIDELINES:
 10. application_url (string | null):
     - Direct URL to the submission portal (Google Form, Submittable, Typeform, or portal link) if distinct from the main page.
 
-11. fee_or_funding (string | null):
+11. meeting_url (string | null):
+    - Direct URL to the online event, webinar, video call, or registration page when present in the supplied link targets.
+
+12. fee_or_funding (string | null):
     - Clean financial summary (e.g. "SGD 5,000/month stipend + studio + housing provided", "USD 10,000 production grant", "Free application").
 
-12. summary (string, required):
+13. summary (string, required):
     - Concise 1-2 sentence overview (max 30 words) summarizing who this is for and what benefits are provided.
 
+When the PAGE TITLE, SOURCE URL, or URL fragment identifies a specific event or information session, extract that event—not the broader course, job, fellowship, or programme it discusses.
 Never guess dates or requirements. If a field is not present or unclear, use null. Output strict JSON only.`;
+
+export interface OpportunityExtractionContext {
+    sourceUrl?: string;
+    capturedAt?: string;
+    timezone?: string;
+}
 
 export interface ParsedDeadline {
     deadline_at: string | null;
@@ -132,17 +146,109 @@ export function parseDeadline(deadlineStr: string | null | undefined, timezoneSt
 /**
  * Parses event date text into ISO timestamp if possible.
  */
-export function parseEventDate(eventDateStr: string | null | undefined): string | null {
+export function parseEventDate(
+    eventDateStr: string | null | undefined,
+    referenceDate?: string | null,
+    timezone?: string | null,
+): string | null {
     if (!eventDateStr || typeof eventDateStr !== 'string') return null;
-    try {
-        const parsed = new Date(eventDateStr.trim());
-        if (!isNaN(parsed.getTime())) {
-            return parsed.toISOString();
-        }
-    } catch {
-        // parsing failed
+    const raw = eventDateStr.trim();
+    const localDateTime = raw.match(/^(20\d{2})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2}))?$/);
+    if (localDateTime && timezone) {
+        return zonedDateTimeToIso({
+            year: Number(localDateTime[1]),
+            month: Number(localDateTime[2]),
+            day: Number(localDateTime[3]),
+            hour: localDateTime[4] ? Number(localDateTime[4]) : 0,
+            minute: localDateTime[5] ? Number(localDateTime[5]) : 0,
+        }, timezone);
     }
-    return null;
+
+    const hasExplicitYear = /\b(?:19|20)\d{2}\b/.test(raw);
+    if (hasExplicitYear) {
+        try {
+            const parsed = new Date(raw);
+            if (!isNaN(parsed.getTime())) {
+                return parsed.toISOString();
+            }
+        } catch {
+            // Continue to the context-aware parser below.
+        }
+    }
+    const reference = referenceDate ? new Date(referenceDate) : new Date();
+    if (isNaN(reference.getTime())) return null;
+
+    const timeMatch = raw.match(/\b(\d{1,2})(?::(\d{2}))?\s*(am|pm)\b/i);
+    let hour = timeMatch ? Number(timeMatch[1]) : 0;
+    const minute = timeMatch?.[2] ? Number(timeMatch[2]) : 0;
+    const meridiem = timeMatch?.[3]?.toLowerCase();
+    if (meridiem === 'pm' && hour < 12) hour += 12;
+    if (meridiem === 'am' && hour === 12) hour = 0;
+
+    const monthList = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const monthNames = monthList.join('|');
+    const explicitDate = raw.match(new RegExp(`\\b(${monthNames})\\s+(\\d{1,2})(?:,?\\s+(20\\d{2}))?`, 'i'));
+
+    let year: number;
+    let month: number;
+    let day: number;
+
+    if (explicitDate) {
+        year = explicitDate[3] ? Number(explicitDate[3]) : getZonedDateParts(reference, timezone).year;
+        month = monthList.findIndex((name) => name.toLowerCase() === explicitDate[1].toLowerCase()) + 1;
+        day = Number(explicitDate[2]);
+    } else if (/\btomorrow\b/i.test(raw)) {
+        const parts = getZonedDateParts(reference, timezone);
+        const next = new Date(Date.UTC(parts.year, parts.month - 1, parts.day + 1));
+        year = next.getUTCFullYear();
+        month = next.getUTCMonth() + 1;
+        day = next.getUTCDate();
+    } else {
+        return null;
+    }
+
+    return zonedDateTimeToIso({ year, month, day, hour, minute }, timezone);
+}
+
+function getZonedDateParts(date: Date, timezone?: string | null) {
+    const formatter = new Intl.DateTimeFormat('en-CA', {
+        timeZone: timezone || 'UTC',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hourCycle: 'h23',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+    });
+    const parts = Object.fromEntries(formatter.formatToParts(date).map((part) => [part.type, part.value]));
+    return {
+        year: Number(parts.year),
+        month: Number(parts.month),
+        day: Number(parts.day),
+        hour: Number(parts.hour),
+        minute: Number(parts.minute),
+        second: Number(parts.second),
+    };
+}
+
+function zonedDateTimeToIso(
+    parts: { year: number; month: number; day: number; hour: number; minute: number },
+    timezone?: string | null,
+): string | null {
+    const zone = timezone || 'UTC';
+    let utcGuess = Date.UTC(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute, 0);
+
+    try {
+        for (let attempt = 0; attempt < 2; attempt += 1) {
+            const zoned = getZonedDateParts(new Date(utcGuess), zone);
+            const displayedAsUtc = Date.UTC(zoned.year, zoned.month - 1, zoned.day, zoned.hour, zoned.minute, zoned.second);
+            utcGuess -= displayedAsUtc - Date.UTC(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute, 0);
+        }
+        return new Date(utcGuess).toISOString();
+    } catch {
+        return null;
+    }
 }
 
 /**
@@ -151,7 +257,8 @@ export function parseEventDate(eventDateStr: string | null | undefined): string 
  */
 export async function extractOpportunityWithLLM(
     cleanPageText: string,
-    pageTitle?: string
+    pageTitle?: string,
+    context: OpportunityExtractionContext = {},
 ): Promise<{ data: LLMExtractionOutput; model: string }> {
     const apiKey = import.meta.env.OPENROUTER_API_KEY || process.env.OPENROUTER_API_KEY;
     if (!apiKey) {
@@ -161,7 +268,13 @@ export async function extractOpportunityWithLLM(
     const modelsToTry = [DEFAULT_MODEL, FALLBACK_MODEL];
     let lastError: Error | null = null;
 
-    const userPrompt = `${pageTitle ? `PAGE TITLE: ${pageTitle}\n\n` : ''}PAGE:\n${cleanPageText}`;
+    const contextLines = [
+        context.sourceUrl ? `SOURCE URL: ${context.sourceUrl}` : '',
+        pageTitle ? `PAGE TITLE: ${pageTitle}` : '',
+        context.capturedAt ? `CAPTURED AT: ${context.capturedAt}` : '',
+        context.timezone ? `BROWSER TIMEZONE: ${context.timezone}` : '',
+    ].filter(Boolean);
+    const userPrompt = `${contextLines.length ? `CAPTURE CONTEXT:\n${contextLines.join('\n')}\n\n` : ''}PAGE:\n${cleanPageText}`;
 
     for (const model of modelsToTry) {
         try {

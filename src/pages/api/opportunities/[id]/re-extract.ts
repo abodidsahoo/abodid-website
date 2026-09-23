@@ -62,7 +62,7 @@ export const POST: APIRoute = async ({ params, request, cookies }) => {
         const { data: llmData, model: usedModel } = await extractOpportunityWithLLM(fetched.text, existing.title);
 
         const parsedDeadline = parseDeadline(llmData.deadline, llmData.timezone);
-        const parsedEventDate = parseEventDate(llmData.event_date);
+        const parsedEventDate = parseEventDate(llmData.event_date, new Date().toISOString(), llmData.timezone);
 
         const currentCount = existing.llm_extraction_count || 1;
 

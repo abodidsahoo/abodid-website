@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import { canonicalizeUrl, cleanHtmlToText, computeContentHash } from '../../src/lib/opportunities/scraper';
+import { canonicalizeCaptureUrl, canonicalizeUrl, cleanHtmlToText, computeContentHash } from '../../src/lib/opportunities/scraper';
 import { parseDeadline, parseEventDate } from '../../src/lib/opportunities/extractor';
 import { LLMExtractionOutputSchema, type Opportunity } from '../../src/lib/opportunities/types';
 import { createSessionToken, verifySessionToken } from '../../src/lib/opportunities/auth';
@@ -25,6 +25,13 @@ describe('Opportunity Assistant Core Functionality', () => {
             const raw = 'https://jobs.lever.co/company/abc-123?page=2';
             const canonical = canonicalizeUrl(raw);
             expect(canonical).toBe('https://jobs.lever.co/company/abc-123?page=2');
+        });
+
+        it('preserves event and information-session fragments for browser captures', () => {
+            expect(canonicalizeCaptureUrl('https://www.cdh.cam.ac.uk/phd/#2-information-sessions'))
+                .toBe('https://www.cdh.cam.ac.uk/phd#2-information-sessions');
+            expect(canonicalizeCaptureUrl('https://example.com/course/#apply'))
+                .toBe('https://example.com/course');
         });
 
         it('computes deterministic content hashes', () => {
@@ -101,6 +108,33 @@ describe('Opportunity Assistant Core Functionality', () => {
             const eventIso = parseEventDate('2026-12-05');
             expect(eventIso).toBeTruthy();
             expect(eventIso?.startsWith('2026-12-05')).toBe(true);
+        });
+
+        it('resolves a yearless information-session date using capture context', () => {
+            const eventIso = parseEventDate(
+                'Thursday, September 24, 7:30 PM',
+                '2026-09-23T04:30:00.000Z',
+                'Asia/Kolkata',
+            );
+            expect(eventIso).toBe('2026-09-24T14:00:00.000Z');
+        });
+
+        it('resolves tomorrow using the browser timezone', () => {
+            const eventIso = parseEventDate(
+                'Tomorrow at 7:30 PM',
+                '2026-09-23T18:45:00.000Z',
+                'Asia/Kolkata',
+            );
+            expect(eventIso).toBe('2026-09-25T14:00:00.000Z');
+        });
+
+        it('interprets a manual local event time in its stated timezone', () => {
+            const eventIso = parseEventDate(
+                '2026-09-24T19:30',
+                null,
+                'Asia/Kolkata',
+            );
+            expect(eventIso).toBe('2026-09-24T14:00:00.000Z');
         });
     });
 
@@ -307,5 +341,3 @@ describe('Opportunity Assistant Core Functionality', () => {
         });
     });
 });
-
-

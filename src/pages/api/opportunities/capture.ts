@@ -6,7 +6,7 @@ import {
     setAuthCookie,
     checkRateLimit,
 } from '../../../lib/opportunities/auth';
-import { canonicalizeUrl, computeContentHash, fetchWebpageContent, cleanHtmlToText } from '../../../lib/opportunities/scraper';
+import { canonicalizeCaptureUrl, computeContentHash, fetchWebpageContent } from '../../../lib/opportunities/scraper';
 import { extractOpportunityWithLLM, parseDeadline, parseEventDate } from '../../../lib/opportunities/extractor';
 import { formatOpportunityTitle } from '../../../lib/opportunities/ui-helpers';
 import { createSupabaseServiceClient } from '../../../lib/supabaseServer';
@@ -17,7 +17,14 @@ export const prerender = false;
 export const POST: APIRoute = async ({ request, cookies, clientAddress }) => {
     try {
         const body = await request.json().catch(() => ({}));
-        const { url, title: providedTitle, page_text: providedText, password } = body;
+        const {
+            url,
+            title: providedTitle,
+            page_text: providedText,
+            password,
+            captured_at: capturedAt,
+            capture_timezone: captureTimezone,
+        } = body;
 
         // 1. Authenticate request (via cookie, bearer, or password in body)
         let isAuthenticated = isRequestAuthenticated(request, cookies);
@@ -56,7 +63,7 @@ export const POST: APIRoute = async ({ request, cookies, clientAddress }) => {
 
         let canonicalUrl: string;
         try {
-            canonicalUrl = canonicalizeUrl(url);
+            canonicalUrl = canonicalizeCaptureUrl(url);
         } catch (err: any) {
             return new Response(JSON.stringify({ error: `Invalid URL format: ${err?.message || 'Check URL'}` }), {
                 status: 400,
@@ -134,7 +141,11 @@ export const POST: APIRoute = async ({ request, cookies, clientAddress }) => {
         const sourceHash = computeContentHash(cleanText);
         let extractedResult;
         try {
-            extractedResult = await extractOpportunityWithLLM(cleanText, pageTitle);
+            extractedResult = await extractOpportunityWithLLM(cleanText, pageTitle, {
+                sourceUrl: url.trim(),
+                capturedAt: typeof capturedAt === 'string' ? capturedAt : new Date().toISOString(),
+                timezone: typeof captureTimezone === 'string' ? captureTimezone : undefined,
+            });
         } catch (llmErr: any) {
             return new Response(JSON.stringify({
                 error: `AI extraction failed: ${llmErr?.message || 'LLM error'}. You can create the opportunity manually.`,
@@ -150,7 +161,11 @@ export const POST: APIRoute = async ({ request, cookies, clientAddress }) => {
 
         // 7. Parse deadlines and dates deterministically
         const parsedDeadline = parseDeadline(llmData.deadline, llmData.timezone);
-        const parsedEventDate = parseEventDate(llmData.event_date);
+        const parsedEventDate = parseEventDate(
+            llmData.event_date,
+            typeof capturedAt === 'string' ? capturedAt : undefined,
+            typeof captureTimezone === 'string' ? captureTimezone : undefined,
+        );
 
         // 8. Insert record into Supabase
         const rawExtractedTitle = llmData.title || pageTitle || 'Untitled Opportunity';

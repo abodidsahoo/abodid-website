@@ -76,7 +76,37 @@ document.addEventListener('DOMContentLoaded', async () => {
                         const clone = document.body.cloneNode(true);
                         const badElements = clone.querySelectorAll('script, style, noscript, svg, nav, footer, header, .cookie-banner');
                         badElements.forEach(el => el.remove());
-                        return clone.innerText || '';
+
+                        const pageText = clone.innerText || '';
+                        const links = Array.from(document.querySelectorAll('a[href]'))
+                            .map((link) => {
+                                const label = (link.textContent || '').replace(/\s+/g, ' ').trim();
+                                if (!label) return null;
+                                try {
+                                    return `${label}: ${new URL(link.getAttribute('href'), document.baseURI).href}`;
+                                } catch {
+                                    return null;
+                                }
+                            })
+                            .filter(Boolean)
+                            .slice(0, 100);
+
+                        const fragment = decodeURIComponent(window.location.hash.replace(/^#/, ''));
+                        let sectionText = '';
+                        if (fragment) {
+                            const target = document.getElementById(fragment) || document.querySelector(`[name="${CSS.escape(fragment)}"]`);
+                            const section = target?.closest('section, article, main') || target?.parentElement;
+                            sectionText = section?.innerText || target?.innerText || '';
+                        }
+
+                        return [
+                            `CURRENT PAGE: ${document.title}`,
+                            `CURRENT URL: ${window.location.href}`,
+                            fragment ? `CURRENT SECTION: ${fragment}` : '',
+                            sectionText ? `CURRENT SECTION CONTENT:\n${sectionText.slice(0, 4000)}` : '',
+                            `VISIBLE PAGE CONTENT:\n${pageText}`,
+                            links.length ? `LINK TARGETS:\n${links.join('\n')}` : '',
+                        ].filter(Boolean).join('\n\n');
                     },
                 });
                 if (execResult && execResult.result) {
@@ -101,6 +131,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 url: tab.url,
                 title: tab.title || '',
                 page_text: extractedText,
+                captured_at: new Date().toISOString(),
+                capture_timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
                 password: currentConfig.apiKey || undefined,
             };
 
@@ -150,7 +182,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             resultDeadline.textContent = deadlineDisplay;
             resultBox.classList.remove('hidden');
 
-            saveBtn.textContent = '✓ Saved to Radar';
+            saveBtn.textContent = data.is_duplicate ? '✓ Already in Radar' : '✓ Saved to Radar';
             saveBtn.disabled = true;
 
         } catch (err) {

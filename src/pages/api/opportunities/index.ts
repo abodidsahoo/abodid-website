@@ -84,9 +84,13 @@ export const GET: APIRoute = async ({ request, cookies }) => {
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     });
 
-    return new Response(JSON.stringify({ opportunities: sorted }), {
+    return new Response(JSON.stringify({ opportunities: sorted, authenticated: isAuth }), {
         status: 200,
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'private, no-store, max-age=0, must-revalidate',
+            'Vary': 'Cookie, Authorization',
+        },
     });
 };
 
@@ -128,7 +132,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
         const canonicalUrl = canonicalizeUrl(source_url);
         const parsedDeadline = parseDeadline(deadline, timezone);
-        const parsedEventDate = parseEventDate(event_date);
+        const parsedEventDate = parseEventDate(event_date, undefined, timezone);
 
         const supabase = createSupabaseServiceClient();
         if (!supabase) {

@@ -26,7 +26,16 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({
     const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
     const [priority, setPriority] = useState<number>(opp.priority || 1);
 
-    const urgency = formatDaysRemaining(opp.deadline_at, opp.deadline_confidence);
+    const usesEventDate = !opp.deadline_at && Boolean(opp.event_date);
+    const urgency = formatDaysRemaining(
+        opp.deadline_at || opp.event_date,
+        usesEventDate ? undefined : opp.deadline_confidence,
+    );
+    const urgencyLabel = usesEventDate
+        ? urgency.label
+            .replace(/ left$/, ' until event')
+            .replace(/^Past deadline$/, 'Event passed')
+        : urgency.label;
     const categoryLabel = formatCategoryTitle(opp.category);
     const displayTitle = formatOpportunityTitle(opp.title);
 
@@ -56,7 +65,7 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({
                 <div className="opp-card-top-row">
                     <div className={`opp-days-remaining ${urgency.level}`}>
                         <span className="opp-days-pulse-dot" />
-                        {urgency.label}
+                        {urgencyLabel}
                     </div>
                 </div>
 
@@ -134,5 +143,4 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({
             </div>
     );
 };
-
 

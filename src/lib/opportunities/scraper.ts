@@ -73,6 +73,27 @@ export function canonicalizeUrl(rawUrl: string): string {
     return parsed.toString();
 }
 
+const EVENT_FRAGMENT_PATTERN = /(?:^|[-_])(event|events|session|sessions|webinar|workshop|open[-_]?day|information|info)(?:$|[-_])/i;
+
+/**
+ * Canonicalizes URLs captured from the browser without discarding a fragment
+ * that identifies a distinct event or information-session section.
+ *
+ * Generic navigation fragments such as #apply remain stripped so ordinary
+ * duplicate captures still collapse to one record.
+ */
+export function canonicalizeCaptureUrl(rawUrl: string): string {
+    const canonical = canonicalizeUrl(rawUrl);
+    const parsed = new URL(/^https?:\/\//i.test(rawUrl.trim()) ? rawUrl.trim() : `https://${rawUrl.trim()}`);
+    const fragment = decodeURIComponent(parsed.hash.replace(/^#/, '')).trim();
+
+    if (!fragment || !EVENT_FRAGMENT_PATTERN.test(fragment)) {
+        return canonical;
+    }
+
+    return `${canonical}#${encodeURIComponent(fragment)}`;
+}
+
 /**
  * Computes a SHA-256 hash of a string.
  */
