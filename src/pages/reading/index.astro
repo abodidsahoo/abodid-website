@@ -1,0 +1,57 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import ReadingFeed from "../../components/ReadingFeed.jsx";
+import { getPublicReadingFeed, istDate } from "../../lib/reading/publicFeed";
+import { breadcrumbJsonLd, personJsonLd } from "../../lib/seoData";
+import "../../styles/blog-editorial.css";
+import "../../styles/reading-editorial.css";
+
+export const prerender = false;
+
+const initialTag = Astro.url.searchParams.get("tag")?.trim().slice(0, 100) || "";
+let feedError = "";
+let feed;
+try {
+  feed = await getPublicReadingFeed({ topic: initialTag || null, includeTopics: true });
+  Astro.response.headers.set("Cache-Control", "public, max-age=0, s-maxage=45");
+  Astro.response.headers.set("Vercel-CDN-Cache-Control", "s-maxage=45");
+} catch (error) {
+  feedError = "The reading file is temporarily unavailable. Please try again shortly.";
+  console.error("Reading feed unavailable:", error);
+  Astro.response.headers.set("Cache-Control", "no-store");
+  feed = {
+    todayDate: istDate(), today: [], archive: [],
+    nextCursor: null, topics: [],
+  };
+}
+
+const description = "Five worthwhile readings on immersive media, art, photography, culture, research and creative technology, selected by Abodid Sahoo.";
+---
+
+<BaseLayout
+  title="Morning Digest"
+  description={description}
+  structuredData={[
+    personJsonLd(),
+    breadcrumbJsonLd([{ name: "Home", path: "/" }, { name: "Reading", path: "/reading" }]),
+  ]}
+  fullWidth
+  navigationVariant="next"
+  showGlobalGrid={false}
+  bodyClass="blog-page reading-page"
+>
+  <div class="blog-editorial">
+    <div class="blog-file">
+      <header class="blog-masthead">
+        <p class="blog-file-tag">reading.log — a daily selection</p>
+        <div class="blog-masthead__hero">
+          <h1>Morning Digest</h1>
+          <p>Useful ideas from art, culture, research and creative technology. Five links, carefully chosen; always the original source.</p>
+        </div>
+      </header>
+      <div class="blog-board">
+        <ReadingFeed initialFeed={feed} initialTag={initialTag} initialError={feedError} client:load />
+      </div>
+    </div>
+  </div>
+</BaseLayout>

@@ -34,7 +34,7 @@ const description =
         </div>
 
         <div class="resources-hero__account">
-            <AuthHeader client:only="react" theme="default" />
+            <AuthHeader client:only="react" />
         </div>
     </header>
 
@@ -56,8 +56,8 @@ const description =
 
 <script>
     // Supabase sometimes redirects auth callbacks (recovery, signup confirmation, magic link)
-    // to the Site URL root instead of /login when redirectTo isn't in the allowlist.
-    // This catches those tokens on any non-login page and forwards them to /login.
+    // to the Site URL root instead of /resources/login when redirectTo isn't in the allowlist.
+    // This catches those tokens on any non-login page and forwards them to /resources/login.
     (function () {
         const hash = window.location.hash.slice(1);
         if (!hash) return;
@@ -65,7 +65,7 @@ const description =
         const type = params.get("type");
         const accessToken = params.get("access_token");
         if ((type === "recovery" || type === "signup" || type === "magiclink") && accessToken) {
-            window.location.replace("/login" + window.location.hash);
+            window.location.replace("/resources/login" + window.location.hash);
         }
     })();
 </script>

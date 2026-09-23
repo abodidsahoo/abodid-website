@@ -103,19 +103,23 @@ import ThemeToggle from "../../components/ThemeToggle.astro";
 
   /* Responsive */
   @media (max-width: 768px) {
+    .page-container {
+      padding: 0;
+    }
+
     .login-card {
       grid-template-columns: 1fr;
       max-width: 500px;
     }
 
     .brand-column {
-      padding: 2.5rem;
+      padding: 2rem;
       border-right: none;
       border-bottom: 1px solid var(--border-subtle);
     }
 
     .form-column {
-      padding: 2.5rem;
+      padding: 2rem;
     }
 
     h1 {

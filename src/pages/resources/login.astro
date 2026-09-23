@@ -1,0 +1,6 @@
+---
+export const prerender = false;
+
+// Keep the existing Curation login implementation while giving it a dedicated URL.
+return Astro.rewrite("/login");
+---

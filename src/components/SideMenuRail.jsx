@@ -13,6 +13,7 @@ const primaryLinks = [
   { href: "/photography", label: "Photography" },
   { href: "/films", label: "Filmmaking" },
   { href: "/blog", label: "Writing" },
+  { href: "/reading", label: "Reading" },
   { href: "/about", label: "About" },
 ];
 
@@ -22,6 +23,7 @@ const mobilePrimaryLinks = [
   { href: "/research", label: "Research" },
   { href: "/lab", label: "Lab" },
   { href: "/blog", label: "Writing" },
+  { href: "/reading", label: "Reading" },
   { href: "/contact", label: "Contact" },
 ];
 

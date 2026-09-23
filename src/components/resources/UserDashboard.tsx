@@ -30,7 +30,7 @@ export default function UserDashboard({ user: propUser }: UserDashboardProps) {
             setUser(session.user);
             fetchData(session.user.id);
         } else {
-            window.location.href = '/login?redirect=%2Fdashboard';
+            window.location.href = '/resources/login?redirect=%2Fresources%2Fdashboard';
         }
     };
 

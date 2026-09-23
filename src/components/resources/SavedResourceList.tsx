@@ -105,7 +105,7 @@ export default function SavedResourceList() {
 
                     <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
                         <a
-                            href="/login?redirect=%2Fresources%2Fsaved"
+                            href="/resources/login?redirect=%2Fresources%2Fsaved"
                             className="hub-btn"
                             style={{
                                 display: 'inline-flex',

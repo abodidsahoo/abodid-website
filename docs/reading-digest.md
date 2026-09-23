@@ -19,6 +19,16 @@ This system discovers, verifies, ranks, stores and emails five readings at 08:00
 
 The Edge Function stores its raw search actions/citations on the run and stores every structurally valid candidate in `reading_digest_readings`, including rejections.
 
+## Public Reading page
+
+`/reading` is part of the main Astro site and uses the existing digest tables as its only content source. The additional migration `supabase/migrations/20260922100000_public_reading_page.sql` adds publication, thumbnail, editorial-note, order and weekly-pick fields to `reading_digest_readings`. It exposes a narrow public view containing only verified, published readings from sent digests. It does not expose recipients, run details, rejected candidates or saved/feedback records.
+
+The page shows the current Asia/Kolkata delivery date (up to five readings), followed by five archive dates at a time. Topic filters use the readings' existing `topic_names`. Article cards always link to the original source in a new tab; no local article pages are created. The Edge Function records an article's Open Graph or Twitter thumbnail during URL verification when available. If a reading has no working thumbnail, the page uses one of 56 existing 800px exhibition WebPs from `assets.abodid.com`. A frozen file list and the reading ID make that image choice stable for old and future articles without a new database field or per-visit randomization. Those content-addressed WebPs are served with a one-year immutable browser-cache header, and archive images remain lazy-loaded.
+
+An authenticated user whose `profiles.role` is `admin` sees a small “Edit reading page” control. It supports hiding/republishing a reading, changing its short note or thumbnail, and reordering a delivered day's five items. Normal visitors never receive the editor data or controls. All five of today's readings use the same editorial cards as the archive; the stored weekly-pick fields are not displayed in the current layout.
+
+The public HTML and feed API have a 45-second Vercel CDN cache; editor responses are never cached. Hiding a reading (`published = false`) or changing its editorial fields therefore appears publicly after at most roughly one cache interval without a redeployment. The first archive page is server-rendered and subsequent date pages load only when “Earlier readings” is pressed. Apply the migration before deploying the website code; otherwise the new page reports the feed as temporarily unavailable. If the project has other pending migrations, review them rather than using an indiscriminate `supabase db push`.
+
 ## Deploy Supabase
 
 Prerequisites: the repository must be linked to the intended Supabase project and the admin user must have `profiles.role = 'admin'`.

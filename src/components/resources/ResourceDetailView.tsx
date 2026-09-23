@@ -113,7 +113,7 @@ export default function ResourceDetailView({ initialResource, resourceId }: Prop
                         This resource is currently pending curator review. If you are a curator or admin, please log in to access this resource.
                     </p>
                     <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                        <a href={`/login?redirect=${encodeURIComponent(`/resources/${resourceId}`)}`} className="detail-cta-primary">
+                        <a href={`/resources/login?redirect=${encodeURIComponent(`/resources/${resourceId}`)}`} className="detail-cta-primary">
                             Log In as Curator ↗
                         </a>
                         <a href="/resources" className="detail-cta-secondary">

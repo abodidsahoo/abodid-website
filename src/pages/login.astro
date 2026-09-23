@@ -36,6 +36,19 @@ const description = "Log in or create an account to curate, submit, and bookmark
                     </p>
                 </div>
 
+                <div class="google-auth-group" id="google-auth-group">
+                    <button type="button" class="google-auth-btn" id="google-auth-btn">
+                        <svg viewBox="0 0 48 48" aria-hidden="true">
+                            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5Z" />
+                            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.25 5.48-4.76 7.18l7.73 6C44.42 38.03 46.98 31.89 46.98 24.55Z" />
+                            <path fill="#FBBC05" d="M10.53 28.59A14.4 14.4 0 0 1 9.75 24c0-1.59.27-3.13.76-4.59l-7.98-6.2A23.9 23.9 0 0 0 0 24c0 3.87.93 7.51 2.56 10.78l7.97-6.19Z" />
+                            <path fill="#34A853" d="M24 48c6.48 0 11.92-2.13 15.9-5.8l-7.73-6c-2.14 1.44-4.88 2.3-8.17 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.97 6.19C6.51 42.62 14.62 48 24 48Z" />
+                        </svg>
+                        <span id="google-auth-label">Continue with Google</span>
+                    </button>
+                    <div class="auth-method-divider"><span>or use email</span></div>
+                </div>
+
                 <form id="auth-form" method="POST" class="editorial-auth-form">
                     {/* Full Name - Hidden by default (Login Mode) */}
                     <div
@@ -248,6 +261,47 @@ const description = "Log in or create an account to curate, submit, and bookmark
         margin-bottom: 26px;
     }
 
+    .google-auth-group { margin-bottom: 26px; }
+
+    .google-auth-btn {
+        width: 100%;
+        min-height: 56px;
+        padding: 12px 20px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        border: 1px solid var(--pop-border);
+        border-radius: 14px;
+        background: #fff;
+        color: var(--pop-ink);
+        font: 750 1rem/1.2 var(--resources-font);
+        transition: background 180ms ease;
+    }
+
+    .google-auth-btn:hover:not(:disabled) { background: var(--pop-yellow); }
+    .google-auth-btn:disabled { opacity: 0.65; cursor: wait; }
+    .google-auth-btn svg { width: 22px; height: 22px; flex: none; }
+
+    .auth-method-divider {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-top: 20px;
+        color: var(--text-secondary);
+        font: 750 0.7rem/1.2 var(--resources-mono);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .auth-method-divider::before,
+    .auth-method-divider::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: var(--pop-line);
+    }
+
     .status-badge-editorial {
         display: inline-flex;
         align-items: center;
@@ -421,7 +475,7 @@ const description = "Log in or create an account to curate, submit, and bookmark
 
 <script>
     import { supabase } from "../lib/supabaseClient";
-    import { safeCurationReturnTo } from "../lib/curationRoutes.js";
+    import { curationLoginReturnTo, curationPath } from "../lib/curationRoutes.js";
 
     type AuthMode = "login" | "signup" | "forgot" | "reset";
 
@@ -447,6 +501,9 @@ const description = "Log in or create an account to curate, submit, and bookmark
     );
     const forgotActionRow = document.getElementById("forgot-action-row");
     const forgotPasswordBtn = document.getElementById("forgot-password-btn");
+    const googleAuthGroup = document.getElementById("google-auth-group");
+    const googleAuthBtn = document.getElementById("google-auth-btn") as HTMLButtonElement;
+    const googleAuthLabel = document.getElementById("google-auth-label");
     const pageTitle = document.getElementById("page-title");
     const pageSubtitle = document.getElementById("page-subtitle");
     const switchText = document.getElementById("switch-text");
@@ -487,6 +544,11 @@ const description = "Log in or create an account to curate, submit, and bookmark
         if (!messageEl) return;
         messageEl.style.display = "none";
         messageEl.innerText = "";
+    };
+
+    const getReturnTo = () => {
+        const rawRedirect = new URLSearchParams(window.location.search).get("redirect");
+        return curationLoginReturnTo(rawRedirect);
     };
 
     const setFieldError = (
@@ -593,6 +655,7 @@ const description = "Log in or create an account to curate, submit, and bookmark
         setVisibility(confirmPasswordGroup, showConfirmPassword);
         setVisibility(forgotActionRow, showForgotAction, "flex");
         setVisibility(toggleWrapper, showToggle);
+        setVisibility(googleAuthGroup, mode === "login" || mode === "signup");
 
         if (fullNameInput) {
             if (showName) fullNameInput.setAttribute("required", "true");
@@ -658,8 +721,9 @@ const description = "Log in or create an account to curate, submit, and bookmark
         } else {
             if (pageTitle) pageTitle.innerText = "Curator Login";
             if (pageSubtitle) {
-                pageSubtitle.innerText =
-                    "Log in to continue your curation journey.";
+                pageSubtitle.innerText = getReturnTo() === curationPath.submit
+                    ? "Log in or create an account, then continue to the submission form."
+                    : "Log in to continue your curation journey.";
             }
             if (statusPill) statusPill.innerText = "🔐 CURATOR PORTAL";
             if (switchText) switchText.innerText = "Don't have an account?";
@@ -875,7 +939,7 @@ const description = "Log in or create an account to curate, submit, and bookmark
                     : undefined;
 
             if (authMode === "forgot") {
-                const resetBase = `${window.location.origin}/login?mode=reset`;
+                const resetBase = `${window.location.origin}${curationPath.login}?mode=reset`;
 
                 const { error } = await supabase.auth.resetPasswordForEmail(
                     email,
@@ -901,15 +965,13 @@ const description = "Log in or create an account to curate, submit, and bookmark
 
                 setTimeout(async () => {
                     await supabase.auth.signOut();
-                    window.location.assign("/login");
+                    window.location.assign(curationPath.login);
                 }, 1000);
                 return;
             }
 
-            const params = new URLSearchParams(window.location.search);
-            const rawRedirect = params.get("redirect");
-            const redirect = rawRedirect ? safeCurationReturnTo(rawRedirect) : null;
-            const emailRedirectTo = `${window.location.origin}/login${redirect ? `?redirect=${encodeURIComponent(redirect)}` : ""}`;
+            const returnTo = getReturnTo();
+            const emailRedirectTo = `${window.location.origin}${curationPath.login}?redirect=${encodeURIComponent(returnTo)}`;
 
             if (authMode === "signup") {
                 if (isLinking) {
@@ -974,7 +1036,6 @@ const description = "Log in or create an account to curate, submit, and bookmark
             } else {
                 showMsg("Success! Redirecting...", "success");
 
-                // Smart redirect based on user role
                 const { data: profile } = await supabase
                     .from("profiles")
                     .select("username, full_name, role")
@@ -989,21 +1050,7 @@ const description = "Log in or create an account to curate, submit, and bookmark
                     }
                 }
 
-                const params = new URLSearchParams(window.location.search);
-                const rawRedirect = params.get("redirect");
-                const redirect = rawRedirect ? safeCurationReturnTo(rawRedirect) : null;
-
-                if (redirect) {
-                    window.location.assign(redirect);
-                } else if (profile?.role === "admin") {
-                    // Admins logging in via main login should probably go to Admin Dashboard,
-                    // or Unified Dashboard? Let's send them to Unified for now as it has a link to Admin.
-                    window.location.assign("/dashboard");
-                } else if (profile?.role === "curator") {
-                    window.location.assign("/dashboard");
-                } else {
-                    window.location.assign("/dashboard");
-                }
+                window.location.assign(getReturnTo());
             }
         } catch (error: any) {
             const rawMessage = error?.message || "";
@@ -1047,6 +1094,35 @@ const description = "Log in or create an account to curate, submit, and bookmark
     passwordToggleBtn?.addEventListener("click", () => {
         isPasswordVisible = !isPasswordVisible;
         syncPasswordVisibility();
+    });
+
+    googleAuthBtn?.addEventListener("click", async () => {
+        if (!supabase) {
+            showMsg("Authentication service is not available right now. Please try again.", "error");
+            return;
+        }
+
+        googleAuthBtn.disabled = true;
+        if (googleAuthLabel) googleAuthLabel.textContent = "Opening Google…";
+        clearMsg();
+
+        const callbackUrl = new URL(curationPath.login, window.location.origin);
+        callbackUrl.searchParams.set("redirect", getReturnTo());
+
+        try {
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider: "google",
+                options: {
+                    redirectTo: callbackUrl.toString(),
+                    queryParams: { prompt: "select_account" },
+                },
+            });
+            if (error) throw error;
+        } catch (error: any) {
+            showMsg(error?.message || "Google sign-in could not start. Please try again.", "error");
+            googleAuthBtn.disabled = false;
+            if (googleAuthLabel) googleAuthLabel.textContent = "Continue with Google";
+        }
     });
 
     fullNameInput?.addEventListener("input", () => {
@@ -1106,19 +1182,20 @@ const description = "Log in or create an account to curate, submit, and bookmark
         const params = new URLSearchParams(window.location.search);
         const mode = params.get("mode");
         const link = params.get("link");
-        const rawRedirect = params.get("redirect");
-        const redirect = rawRedirect ? safeCurationReturnTo(rawRedirect) : null;
+        const returnTo = getReturnTo();
         const hashParams = new URLSearchParams(window.location.hash.slice(1));
         const hashType = hashParams.get("type");
+        const oauthError = params.get("error_description") || hashParams.get("error_description");
+        if (oauthError) showMsg(oauthError, "error");
 
         const {
             data: { session },
         } = await supabase.auth.getSession();
         const isAnonymous = session?.user?.is_anonymous;
 
-        // Automatically forward authenticated non-anonymous users if redirect target is present
-        if (session && !isAnonymous && redirect && !mode && hashType !== "recovery") {
-            window.location.assign(redirect);
+        // A signed-in visitor can continue directly to the requested page.
+        if (session && !isAnonymous && !mode && hashType !== "recovery" && !oauthError) {
+            window.location.assign(returnTo);
             return;
         }
 

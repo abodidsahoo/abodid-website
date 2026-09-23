@@ -41,7 +41,7 @@ const privatePagePatterns = [
     /^\/paper-renamer\/insights(?:\/|$)/,
     /^\/research\/admin(?:\/|$)/,
     /^\/opportunities(?:\/|$)/,
-    /^\/resources\/(?:admin|auth|curator|dashboard|saved|submit)(?:\/|$)/,
+    /^\/resources\/(?:admin|auth|curator|dashboard|login|saved|submit)(?:\/|$)/,
     /^\/resources\/.*\/edit\/?$/,
 ];
 

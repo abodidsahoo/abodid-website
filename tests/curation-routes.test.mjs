@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   curationPath,
+  curationLoginReturnTo,
   curationPathToInternalPath,
   getCurationCanonicalRedirect,
   getCurationSubdomainRedirect,
@@ -26,6 +27,7 @@ test("maps paths to the unified /resources namespace", () => {
 
 test("resolves internal Astro implementation routes", () => {
   assert.equal(curationPathToInternalPath("/resources"), "/resources");
+  assert.equal(curationPathToInternalPath("/resources/login"), "/resources/login");
   assert.equal(curationPathToInternalPath("/resources/admin"), "/resources/admin");
   assert.equal(curationPathToInternalPath("/resources/abc-123"), "/resources/abc-123");
   assert.equal(curationPathToInternalPath("/resources/abc-123/edit"), "/resources/abc-123/edit");
@@ -62,4 +64,10 @@ test("keeps authentication return paths safe and internal", () => {
   assert.equal(safeCurationReturnTo("//evil.example/steal"), "/resources/dashboard");
 });
 
-
+test("returns login visitors to Resources or the page that requested login", () => {
+  assert.equal(curationPath.login, "/resources/login");
+  assert.equal(curationLoginReturnTo(null), "/resources");
+  assert.equal(curationLoginReturnTo("/resources/submit"), "/resources/submit");
+  assert.equal(curationLoginReturnTo("/dashboard"), "/resources/dashboard");
+  assert.equal(curationLoginReturnTo("https://evil.example/steal"), "/resources");
+});

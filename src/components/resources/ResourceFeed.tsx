@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import type { HubResource } from '../../lib/resources/types';
 import { getApprovedResources } from '../../lib/resources/db';
+import { supabase } from '../../lib/supabaseClient';
 
 // --- Re-implementing Resource Card (React) ---
 const ReactResourceCard = ({
@@ -131,6 +132,28 @@ export default function ResourceFeed({ initialResources, showSearch = true, vari
         'Researcher'
     ];
 
+    const handleSubmitClick = async (event: React.MouseEvent<HTMLAnchorElement>) => {
+        if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+        event.preventDefault();
+
+        if (!supabase) {
+            window.location.assign('/resources/submit');
+            return;
+        }
+
+        try {
+            const { data: { session }, error } = await supabase.auth.getSession();
+            if (error) throw error;
+            const destination = session?.user && !session.user.is_anonymous
+                ? '/resources/submit'
+                : '/resources/login?redirect=%2Fresources%2Fsubmit';
+            window.location.assign(destination);
+        } catch (error) {
+            console.error('Could not check curator session before submitting', error);
+            window.location.assign('/resources/submit');
+        }
+    };
+
     return (
         <div className="feed-container" suppressHydrationWarning={true}>
 
@@ -151,7 +174,7 @@ export default function ResourceFeed({ initialResources, showSearch = true, vari
                                 autoFocus={false}
                             />
                         </div>
-                        <a href="/resources/submit" className="submit-to-hub-btn">
+                        <a href="/resources/submit" className="submit-to-hub-btn" onClick={handleSubmitClick}>
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                 <line x1="12" y1="5" x2="12" y2="19"></line>
                                 <line x1="5" y1="12" x2="19" y2="12"></line>

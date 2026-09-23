@@ -156,11 +156,11 @@ export default function SubmissionForm() {
                         color: 'rgba(21, 19, 15, 0.8)',
                         margin: '0 0 28px',
                     }}>
-                        You need to be logged in to submit resources to the hub. Create a free account to start sharing useful tools and articles with the community.
+                        Log in or create a free account to submit. You'll return to this form as soon as you're signed in.
                     </p>
                     <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
                         <a
-                            href="/login?redirect=%2Fresources%2Fsubmit"
+                            href="/resources/login?redirect=%2Fresources%2Fsubmit"
                             className="hub-btn"
                             style={{
                                 display: 'inline-flex',

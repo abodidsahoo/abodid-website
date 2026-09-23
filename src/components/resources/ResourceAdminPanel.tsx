@@ -49,13 +49,13 @@ export default function ResourceAdminPanel({ view = "dashboard" }: { view?: Admi
       try {
         const currentViewer = await getResourceViewer();
         if (!active) return;
-        const returnTo = `/admin${view === "dashboard" ? "" : `/${view}`}`;
+        const returnTo = `/resources/admin${view === "dashboard" ? "" : `/${view}`}`;
         if (!currentViewer) {
-          window.location.replace(`/login?redirect=${encodeURIComponent(returnTo)}`);
+          window.location.replace(`/resources/login?redirect=${encodeURIComponent(returnTo)}`);
           return;
         }
         if (currentViewer.role !== "admin" && currentViewer.role !== "curator") {
-          window.location.replace("/dashboard");
+          window.location.replace("/resources/dashboard");
           return;
         }
         if (ADMIN_ONLY_VIEWS.has(view) && currentViewer.role !== "admin") {
@@ -81,7 +81,7 @@ export default function ResourceAdminPanel({ view = "dashboard" }: { view?: Admi
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === "SIGNED_OUT") {
         clearResourcePageData();
-        window.location.replace("/login?redirect=%2Fadmin");
+        window.location.replace("/resources/login?redirect=%2Fresources%2Fadmin");
       }
     });
     return () => {
@@ -96,7 +96,7 @@ export default function ResourceAdminPanel({ view = "dashboard" }: { view?: Admi
         <div className="curation-admin-state" role="alert">
           <h1>Admin access interrupted</h1>
           <p>{error}</p>
-          <a href="/login?redirect=%2Fresources%2Fadmin">Sign in again</a>
+          <a href="/resources/login?redirect=%2Fresources%2Fadmin">Sign in again</a>
         </div>
       );
     }

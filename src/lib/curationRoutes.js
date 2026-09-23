@@ -20,7 +20,7 @@ export const isPrimarySiteHostname = (hostname) =>
 
 export const curationPath = Object.freeze({
   home: "/resources",
-  login: "/login",
+  login: "/resources/login",
   dashboard: "/resources/dashboard",
   saved: "/resources/saved",
   submit: "/resources/submit",
@@ -69,6 +69,7 @@ export const legacyResourcePathToCurationPath = (pathname) => {
 /** Map a public curation URL to the existing internal Astro route. */
 export const curationPathToInternalPath = (pathname) => {
   if (pathname === "/" || pathname === "/resources") return "/resources";
+  if (pathname === "/login" || pathname === "/resources/login") return "/resources/login";
   if (pathname === "/robots.txt") return "/robots.txt";
   if (pathname === "/sitemap.xml") return "/sitemap-index.xml";
   if (pathname === "/dashboard" || pathname === "/resources/dashboard") return "/resources/dashboard";
@@ -124,6 +125,9 @@ export const safeCurationReturnTo = (value, fallback = curationPath.dashboard) =
   }
 };
 
+export const curationLoginReturnTo = (value) =>
+  safeCurationReturnTo(value || curationPath.home, curationPath.home);
+
 export const isCurationOnlyPath = (pathname = "") => {
   if (pathname.startsWith("/resources")) return true;
   if (pathname === "/login" || pathname.startsWith("/login/")) return true;
@@ -144,5 +148,3 @@ export const getCurationSubdomainRedirect = (url) => {
   const targetPath = legacyResourcePathToCurationPath(url.pathname);
   return `${PRIMARY_ORIGIN}${targetPath}${url.search}`;
 };
-
-

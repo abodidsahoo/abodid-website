@@ -6,8 +6,8 @@ import {
   canonicalizeUrl,
   cleanJsonText,
   type DigestCandidate,
-  discoveryTooling,
   digestSubject,
+  discoveryTooling,
   domainFromUrl,
   domainMatches,
   filterTopicsForDay,
@@ -89,7 +89,8 @@ class AiResponseParseError extends Error {
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-cron-secret",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-cron-secret",
 };
 
 const json = (body: unknown, status = 200) =>
@@ -120,9 +121,10 @@ const resolveAiProvider = (openAiModel: string): AiProvider => {
   const openRouterApiKey = Deno.env.get("OPENROUTER_API_KEY")?.trim();
 
   // Prefer gpt-4o-mini if requested model is generic or heavy or gpt-5.6
-  const targetModel = (!openAiModel || openAiModel === "gpt-5.6" || openAiModel === "gpt-4o")
-    ? "gpt-4o-mini"
-    : openAiModel;
+  const targetModel =
+    (!openAiModel || openAiModel === "gpt-5.6" || openAiModel === "gpt-4o")
+      ? "gpt-4o-mini"
+      : openAiModel;
 
   if (
     (requested === "auto" || requested === "openrouter") && openRouterApiKey
@@ -278,9 +280,13 @@ const extractChatMetadata = (response: Record<string, unknown>) => {
   for (const choice of choices as Array<Record<string, unknown>>) {
     const message = choice.message as Record<string, unknown> | undefined;
     if (!Array.isArray(message?.annotations)) continue;
-    for (const annotation of message.annotations as Array<Record<string, unknown>>) {
+    for (
+      const annotation of message.annotations as Array<Record<string, unknown>>
+    ) {
       if (annotation.type !== "url_citation") continue;
-      const nested = annotation.url_citation as Record<string, unknown> | undefined;
+      const nested = annotation.url_citation as
+        | Record<string, unknown>
+        | undefined;
       const url = typeof nested?.url === "string"
         ? nested.url
         : typeof annotation.url === "string"
@@ -300,7 +306,9 @@ const extractChatMetadata = (response: Record<string, unknown>) => {
     }
   }
   const usage = response.usage as Record<string, unknown> | undefined;
-  const serverToolUse = usage?.server_tool_use as Record<string, unknown> | undefined;
+  const serverToolUse = usage?.server_tool_use as
+    | Record<string, unknown>
+    | undefined;
   if (typeof serverToolUse?.web_search_requests === "number") {
     searches.push({ requests: serverToolUse.web_search_requests });
   }
@@ -421,13 +429,17 @@ Hard Search & Discovery Requirements:
 - Round ${round}: Every candidate must be distinct from all excluded items below.`;
 
   if (favoriteZones && favoriteZones.length > 0) {
-    prompt += `\n\nUSER FAVORITES & UPVOTED ZONES:\nThe user strongly UPVOTED and loved articles in these exact zones:\n${favoriteZones.map((zone) => `- ${zone}`).join("\n")}\nPriority Instruction: Actively prioritize discovering similar articles, essays, and community discussions in these exact zones!`;
+    prompt +=
+      `\n\nUSER FAVORITES & UPVOTED ZONES:\nThe user strongly UPVOTED and loved articles in these exact zones:\n${
+        favoriteZones.map((zone) => `- ${zone}`).join("\n")
+      }\nPriority Instruction: Actively prioritize discovering similar articles, essays, and community discussions in these exact zones!`;
   }
 
   prompt += `\n\nAlready sent or considered URLs:\n${
     excludedUrls.slice(-500).map((url) => `- ${url}`).join("\n") || "- None"
   }\n\nAlready sent or considered titles:\n${
-    excludedTitles.slice(-500).map((title) => `- ${title}`).join("\n") || "- None"
+    excludedTitles.slice(-500).map((title) => `- ${title}`).join("\n") ||
+    "- None"
   }`;
 
   // Build the request body differently depending on which API format is in use.
@@ -484,7 +496,10 @@ Hard Search & Discovery Requirements:
       Authorization: `Bearer ${provider.apiKey}`,
       "Content-Type": "application/json",
       ...(provider.name === "openrouter"
-        ? { "HTTP-Referer": "https://abodid.com", "X-Title": "Abodid Reading Digest" }
+        ? {
+          "HTTP-Referer": "https://abodid.com",
+          "X-Title": "Abodid Reading Digest",
+        }
         : {}),
     },
     body: JSON.stringify(requestBody),
@@ -529,7 +544,14 @@ Hard Search & Discovery Requirements:
   };
 };
 
-const isArticleContent = (candidate: { title: string; url?: string; canonical_url?: string; estimated_reading_minutes?: number }): boolean => {
+const isArticleContent = (
+  candidate: {
+    title: string;
+    url?: string;
+    canonical_url?: string;
+    estimated_reading_minutes?: number;
+  },
+): boolean => {
   const title = (candidate.title || "").trim();
   const wordCount = title.split(/\s+/).length;
   // Article titles must be descriptive sentences/phrases (4+ words). Short 1-3 word titles are usually dictionary terms or definitions.
@@ -540,7 +562,10 @@ const isArticleContent = (candidate: { title: string; url?: string; canonical_ur
 
   // Disallow common dictionary, glossary, index, or tag path patterns generically across all sites
   const url = (candidate.url || candidate.canonical_url || "").toLowerCase();
-  if (/\/(?:glossary|dictionary|art-terms|terms|tags|category|topics|index)\b/.test(url)) {
+  if (
+    /\/(?:glossary|dictionary|art-terms|terms|tags|category|topics|index)\b/
+      .test(url)
+  ) {
     return false;
   }
 
@@ -548,7 +573,8 @@ const isArticleContent = (candidate: { title: string; url?: string; canonical_ur
 };
 
 const promotionalReason = (candidate: DigestCandidate): string | null => {
-  const value = `${candidate.title} ${candidate.source_name} ${candidate.url}`.toLowerCase();
+  const value = `${candidate.title} ${candidate.source_name} ${candidate.url}`
+    .toLowerCase();
   const patterns = [
     /\bpress release\b/,
     /\bsponsored\b/,
@@ -601,11 +627,37 @@ const verifyUrl = async (url: string) => {
     (!contentType &&
       new URL(response.url || url).pathname.toLowerCase().endsWith(".pdf"));
   let pageTitle = "";
-  if (contentType.includes("html") || contentType.includes("xhtml") || contentType.includes("xml")) {
+  let thumbnailUrl: string | null = null;
+  if (
+    contentType.includes("html") || contentType.includes("xhtml") ||
+    contentType.includes("xml")
+  ) {
     try {
       const text = await response.text();
-      const metaMatch = text.match(/<meta\s+(?:name|property)=["'](?:og:title|citation_title)["']\s+content=["']([^"']+)["']/i)
-        || text.match(/<meta\s+content=["']([^"']+)["']\s+(?:name|property)=["'](?:og:title|citation_title)["']/i);
+      const imageMeta = [...text.matchAll(/<meta\b[^>]*>/gi)].find(([tag]) =>
+        /(?:property|name)\s*=\s*["'](?:og:image|twitter:image)["']/i.test(tag)
+      )?.[0];
+      const imageValue = imageMeta?.match(/content\s*=\s*["']([^"']+)["']/i)
+        ?.[1];
+      if (imageValue) {
+        try {
+          const image = new URL(
+            imageValue.replace(/&amp;/gi, "&"),
+            finalUrl || url,
+          );
+          if (image.protocol === "https:" || image.protocol === "http:") {
+            thumbnailUrl = image.href;
+          }
+        } catch {
+          // Malformed image URLs never affect source verification.
+        }
+      }
+      const metaMatch = text.match(
+        /<meta\s+(?:name|property)=["'](?:og:title|citation_title)["']\s+content=["']([^"']+)["']/i,
+      ) ||
+        text.match(
+          /<meta\s+content=["']([^"']+)["']\s+(?:name|property)=["'](?:og:title|citation_title)["']/i,
+        );
       if (metaMatch && metaMatch[1]) {
         pageTitle = metaMatch[1].trim();
       } else {
@@ -645,6 +697,7 @@ const verifyUrl = async (url: string) => {
     httpStatus: response.status,
     contentType,
     pageTitle,
+    thumbnailUrl,
   };
 };
 
@@ -770,7 +823,11 @@ Deno.serve(async (request) => {
     return json({ error: "Unauthorized" }, 401);
   }
 
-  let input: { trigger?: string; force?: boolean; articles?: Array<Record<string, unknown>> } = {};
+  let input: {
+    trigger?: string;
+    force?: boolean;
+    articles?: Array<Record<string, unknown>>;
+  } = {};
   try {
     input = await request.json();
   } catch {
@@ -786,7 +843,10 @@ Deno.serve(async (request) => {
     let selected: VerifiedDigestCandidate[] = [];
 
     // Priority 0: Render exact articles currently displayed on active Reader's Digest screen
-    if (input.articles && Array.isArray(input.articles) && input.articles.length > 0) {
+    if (
+      input.articles && Array.isArray(input.articles) &&
+      input.articles.length > 0
+    ) {
       selected = input.articles.map((row) => ({
         title: String(row.title ?? ""),
         source_name: String(row.source_name ?? ""),
@@ -796,7 +856,9 @@ Deno.serve(async (request) => {
         url: String(row.url ?? row.canonical_url ?? ""),
         canonical_url: String(row.canonical_url ?? ""),
         why_it_matters: String(row.why_it_matters ?? ""),
-        topic_names: Array.isArray(row.topic_names) ? row.topic_names as string[] : [],
+        topic_names: Array.isArray(row.topic_names)
+          ? row.topic_names as string[]
+          : [],
         relevance_score: Number(row.relevance_score ?? 70),
         credibility_score: Number(row.credibility_score ?? 70),
         rank_score: Number(row.rank_score ?? 0),
@@ -812,15 +874,21 @@ Deno.serve(async (request) => {
     if (selected.length < 1) {
       const { data: latestDelivery } = await database
         .from("reading_digest_deliveries")
-        .select("created_at, reading_digest_delivery_items(position, reading_digest_readings(*))")
+        .select(
+          "created_at, reading_digest_delivery_items(position, reading_digest_readings(*))",
+        )
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
 
       if (latestDelivery?.reading_digest_delivery_items?.length) {
-        const items = (latestDelivery.reading_digest_delivery_items as Array<Record<string, unknown>>)
+        const items = (latestDelivery.reading_digest_delivery_items as Array<
+          Record<string, unknown>
+        >)
           .sort((a, b) => Number(a.position) - Number(b.position))
-          .map((item) => item.reading_digest_readings as Record<string, unknown>)
+          .map((item) =>
+            item.reading_digest_readings as Record<string, unknown>
+          )
           .filter(Boolean);
 
         selected = items.map((row) => ({
@@ -832,7 +900,9 @@ Deno.serve(async (request) => {
           url: String(row.url ?? row.canonical_url ?? ""),
           canonical_url: String(row.canonical_url ?? ""),
           why_it_matters: String(row.why_it_matters ?? ""),
-          topic_names: Array.isArray(row.topic_names) ? row.topic_names as string[] : [],
+          topic_names: Array.isArray(row.topic_names)
+            ? row.topic_names as string[]
+            : [],
           relevance_score: Number(row.relevance_score ?? 70),
           credibility_score: Number(row.credibility_score ?? 70),
           rank_score: Number(row.rank_score ?? 0),
@@ -867,7 +937,9 @@ Deno.serve(async (request) => {
           url: String(row.url ?? row.canonical_url ?? ""),
           canonical_url: String(row.canonical_url ?? ""),
           why_it_matters: String(row.why_it_matters ?? ""),
-          topic_names: Array.isArray(row.topic_names) ? row.topic_names as string[] : [],
+          topic_names: Array.isArray(row.topic_names)
+            ? row.topic_names as string[]
+            : [],
           relevance_score: Number(row.relevance_score ?? 70),
           credibility_score: Number(row.credibility_score ?? 70),
           rank_score: Number(row.rank_score ?? 0),
@@ -924,7 +996,11 @@ Deno.serve(async (request) => {
         ok: true,
         subject,
         html,
-        articles: selected.map((a) => ({ title: a.title, source_domain: a.source_domain, url: a.url })),
+        articles: selected.map((a) => ({
+          title: a.title,
+          source_domain: a.source_domain,
+          url: a.url,
+        })),
         recipient: testSettings.recipient_email,
       });
     } catch (error) {
@@ -948,7 +1024,10 @@ Deno.serve(async (request) => {
       }
       const testSettings = settingsRow as DigestSettings;
       if (!testSettings.recipient_email) {
-        return json({ error: "Set a recipient email in the dashboard first." }, 400);
+        return json(
+          { error: "Set a recipient email in the dashboard first." },
+          400,
+        );
       }
       const now = new Date();
       const digestDate = now.toISOString().slice(0, 10);
@@ -1159,7 +1238,9 @@ Deno.serve(async (request) => {
 
     const { data: feedbackRows } = await database
       .from("reading_digest_feedback")
-      .select("signal, reading_digest_readings!inner(source_domain, title, topic_names)")
+      .select(
+        "signal, reading_digest_readings!inner(source_domain, title, topic_names)",
+      )
       .limit(1_000);
     const sourcePreferences = new Map<string, number>();
     const favoriteZones: string[] = [];
@@ -1167,7 +1248,9 @@ Deno.serve(async (request) => {
       const relation = (row as Record<string, unknown>)
         .reading_digest_readings as
           | { source_domain?: string; title?: string; topic_names?: string[] }
-          | Array<{ source_domain?: string; title?: string; topic_names?: string[] }>;
+          | Array<
+            { source_domain?: string; title?: string; topic_names?: string[] }
+          >;
       const item = Array.isArray(relation) ? relation[0] : relation;
       const domain = item?.source_domain;
       if (!domain) continue;
@@ -1185,12 +1268,16 @@ Deno.serve(async (request) => {
       );
 
       if ((signal === "helpful" || signal === "useful") && item?.title) {
-        const topicsText = item.topic_names && item.topic_names.length > 0 ? ` [Topics: ${item.topic_names.join(", ")}]` : "";
+        const topicsText = item.topic_names && item.topic_names.length > 0
+          ? ` [Topics: ${item.topic_names.join(", ")}]`
+          : "";
         favoriteZones.push(`"${item.title}"${topicsText}`);
       }
     }
 
-    const allTopics = (topicRows as Array<{ name: string; description: string; weight: number }>).map((topic) => ({
+    const allTopics = (topicRows as Array<
+      { name: string; description: string; weight: number }
+    >).map((topic) => ({
       ...topic,
       weight: Number(topic.weight),
     }));
@@ -1203,9 +1290,13 @@ Deno.serve(async (request) => {
       rule.disposition === "blocked"
     ).map((rule) => rule.domain);
     const excludedUrls = new Set<string>(
-      (sentRows ?? []).map((row: { canonical_url: string }) => row.canonical_url),
+      (sentRows ?? []).map((row: { canonical_url: string }) =>
+        row.canonical_url
+      ),
     );
-    const excludedTitles = new Set<string>((sentRows ?? []).map((row: { title: string }) => row.title));
+    const excludedTitles = new Set<string>(
+      (sentRows ?? []).map((row: { title: string }) => row.title),
+    );
     const sentTitles = [...excludedTitles];
     const eligibleByUrl = new Map<
       string,
@@ -1294,9 +1385,14 @@ Deno.serve(async (request) => {
 
           // Verify page title matches candidate title (detects hallucinated URLs)
           if (entry.verification.pageTitle) {
-            const similarity = titleSimilarity(candidate.title, entry.verification.pageTitle);
+            const similarity = titleSimilarity(
+              candidate.title,
+              entry.verification.pageTitle,
+            );
             if (similarity < 0.22) {
-              rejectionReason = `URL content title mismatch (page title: "${entry.verification.pageTitle.slice(0, 50)}")`;
+              rejectionReason = `URL content title mismatch (page title: "${
+                entry.verification.pageTitle.slice(0, 50)
+              }")`;
               verificationStatus = "broken";
             }
           }
@@ -1385,6 +1481,9 @@ Deno.serve(async (request) => {
           verification_status: verificationStatus,
           http_status: httpStatus,
           content_type: contentType,
+          thumbnail_url: entry.verification?.ok
+            ? entry.verification.thumbnailUrl
+            : null,
           status: verificationStatus === "verified" ? "discovered" : "rejected",
           rejection_reason: rejectionReason,
           last_discovered_at: new Date().toISOString(),
@@ -1399,7 +1498,7 @@ Deno.serve(async (request) => {
 
         const { data: existing } = await database
           .from("reading_digest_readings")
-          .select("id, status")
+          .select("id, status, thumbnail_url")
           .eq("canonical_url", canonical)
           .maybeSingle();
         let readingId = existing?.id as string | undefined;
@@ -1411,6 +1510,7 @@ Deno.serve(async (request) => {
                 last_discovered_at: row.last_discovered_at,
                 discovery_run_id: run.id,
                 metadata: row.metadata,
+                thumbnail_url: existing.thumbnail_url || row.thumbnail_url,
               }
               : row;
           await database.from("reading_digest_readings").update(safeUpdate).eq(

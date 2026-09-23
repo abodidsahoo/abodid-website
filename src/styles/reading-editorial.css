@@ -1,0 +1,85 @@
+/* /reading extends the existing /blog card and filter language. */
+.reading-page .blog-masthead { background: var(--pop-yellow); }
+.reading-page .blog-masthead h1 { font-size: clamp(3.1rem, 7vw, 7rem); max-width: none; }
+.reading-page .blog-masthead__hero p { max-width: 31rem; }
+.reading-page .blog-archive { gap: clamp(22px, 3vw, 42px); }
+.reading-page .reading-section-heading { margin-top: 4px; }
+.reading-page .reading-section-heading > div:first-child { display: grid; gap: 10px; }
+.reading-page .reading-section-heading .blog-eyebrow { color: var(--pop-blue); }
+.reading-page .reading-filter-toggle { display: none; }
+.reading-page .reading-card-image { background: var(--pop-purple); }
+.reading-page .reading-card-image > img { position: absolute; inset: 0; z-index: 1; }
+.reading-page .reading-card-source {
+  margin: 0; color: var(--pop-blue); font: 800 0.72rem/1.25 var(--blog-mono);
+  letter-spacing: 0.08em; text-transform: uppercase; overflow-wrap: anywhere;
+}
+.reading-page .reading-card-note {
+  margin: 0; color: var(--pop-ink); font: 500 0.98rem/1.45 var(--blog-font);
+  letter-spacing: -0.01em;
+}
+.reading-page .blog-card-date {
+  color: #050505;
+  font-size: .82rem;
+  font-weight: 900;
+  letter-spacing: .02em;
+}
+.reading-page .reading-archive-day { display: grid; gap: 18px; }
+.reading-page .reading-day-heading { display: flex; align-items: end; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--pop-ink); padding-bottom: 10px; }
+.reading-page .reading-day-heading h3 { margin: 0; font: 720 clamp(1.3rem, 2vw, 1.8rem)/1.1 var(--blog-font); letter-spacing: -0.04em; }
+.reading-page .reading-day-heading time { color: #050505; }
+.reading-page .reading-day-heading > span { font: 700 0.7rem/1 var(--blog-mono); letter-spacing: 0.08em; text-transform: uppercase; }
+.reading-page .reading-archive-heading { margin-top: 18px; }
+.reading-page .reading-load-more {
+  width: fit-content; min-height: 50px; padding: 12px 24px; border: 1.5px solid var(--pop-ink);
+  border-radius: 14px; background: var(--pop-yellow); color: var(--pop-ink);
+  box-shadow: 0 4px 0 var(--pop-ink); cursor: pointer;
+  font: 800 0.75rem/1 var(--blog-mono); letter-spacing: 0.08em; text-transform: uppercase;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+.reading-page .reading-load-more:hover { transform: translateY(-2px); box-shadow: 0 6px 0 var(--pop-ink); }
+.reading-page .reading-load-more:disabled { opacity: .6; cursor: wait; }
+.reading-page .reading-empty { background: white; }
+.reading-page .reading-archive-empty { margin: 0; font: 500 1rem/1.5 var(--blog-font); }
+.reading-page .reading-error { padding: 12px 16px; border: 1px solid var(--pop-ink); border-radius: 12px; background: var(--pop-pink); font: 600 .9rem/1.4 var(--blog-font); }
+.reading-page .reading-editor-toggle { display: flex; justify-content: flex-end; }
+.reading-page .reading-editor-panel { display: grid; gap: 24px; padding: clamp(16px, 2.5vw, 28px); border: 1.5px solid var(--pop-ink); border-radius: 18px; background: white; box-shadow: 0 4px 0 var(--pop-ink); }
+.reading-page .reading-editor-panel__head { display: flex; align-items: end; justify-content: space-between; gap: 16px; }
+.reading-page .reading-editor-panel h2 { margin: 8px 0 0; font: 720 1.6rem/1.1 var(--blog-font); letter-spacing: -.04em; }
+.reading-page .reading-editor-panel__head > p { max-width: 20rem; margin: 0; font: 500 .8rem/1.4 var(--blog-font); }
+.reading-page .reading-editor-day { display: grid; gap: 12px; }
+.reading-page .reading-editor-day h3 { margin: 0; font: 700 1rem/1.2 var(--blog-font); }
+.reading-page .reading-editor-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; padding: 14px 0; border-top: 1px solid var(--pop-line); }
+.reading-page .reading-editor-row__title { display: grid; gap: 4px; min-width: 0; }
+.reading-page .reading-editor-row__title strong { font: 700 .95rem/1.3 var(--blog-font); }
+.reading-page .reading-editor-row__title span { font: 500 .7rem/1.3 var(--blog-mono); }
+.reading-page .reading-editor-row__actions { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+.reading-page .reading-editor-row button { min-height: 38px; padding: 6px 10px; border: 1px solid var(--pop-ink); border-radius: 8px; background: var(--pop-cream); cursor: pointer; font: 700 .7rem/1.2 var(--blog-mono); }
+.reading-page .reading-editor-row button:hover { background: var(--pop-yellow); }
+.reading-page .reading-editor-row button:disabled { opacity: .45; cursor: not-allowed; }
+.reading-page .reading-editor-row__note { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; }
+.reading-page .reading-editor-row__note input { flex: 1 1 220px; min-height: 38px; padding: 7px 10px; border: 1px solid var(--pop-ink); border-radius: 8px; font: 500 .8rem/1.2 var(--blog-font); }
+.reading-page .blog-editorial :is(input, button):focus-visible { outline: 3px solid var(--pop-blue); outline-offset: 3px; }
+
+@media (max-width: 860px), (hover: none) and (pointer: coarse) {
+  .reading-page .blog-topics .blog-eyebrow { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+  .reading-page .reading-filter-toggle {
+    display: flex; align-items: center; justify-content: space-between; gap: 14px;
+    width: 100%; min-height: 48px; padding: 10px 16px; border: 1.5px solid var(--pop-ink);
+    border-radius: 14px; background: var(--pop-yellow); color: var(--pop-ink);
+    box-shadow: 0 3px 0 var(--pop-ink); cursor: pointer;
+    font: 800 .76rem/1.2 var(--blog-mono); letter-spacing: .06em; text-align: left; text-transform: uppercase;
+  }
+  .reading-page .reading-filter-toggle > span:last-child { font-size: 1.4rem; line-height: .8; }
+  .reading-page .blog-topics__options { display: none; margin-top: 10px; }
+  .reading-page .blog-topics__options[data-open="true"] { display: flex; }
+}
+@media (max-width: 620px) {
+  .reading-page .reading-editor-row { grid-template-columns: 1fr; }
+  .reading-page .reading-editor-row__actions { justify-content: flex-start; }
+  .reading-page .reading-editor-panel__head { display: block; }
+  .reading-page .reading-editor-panel__head > p { margin-top: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .reading-page .reading-load-more { transition: none; }
+  .reading-page .reading-load-more:hover { transform: none; }
+}

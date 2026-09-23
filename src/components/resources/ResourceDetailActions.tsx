@@ -39,7 +39,7 @@ export default function ResourceDetailActions({ resourceId, initialUpvotes }: Pr
         const session = await ensureSession();
         if (!session) {
             const currentPath = window.location.pathname;
-            window.location.href = `/login?redirect=${encodeURIComponent(currentPath)}`;
+            window.location.href = `/resources/login?redirect=${encodeURIComponent(currentPath)}`;
             return false;
         }
         return true;
@@ -65,7 +65,7 @@ export default function ResourceDetailActions({ resourceId, initialUpvotes }: Pr
             setIsBookmarked(!next);
             if (error?.message?.includes('Must be logged in') || error?.message?.includes('JWT')) {
                 const currentPath = window.location.pathname;
-                window.location.href = `/login?redirect=${encodeURIComponent(currentPath)}`;
+                window.location.href = `/resources/login?redirect=${encodeURIComponent(currentPath)}`;
             } else {
                 console.error('Failed to toggle bookmark:', error);
             }
@@ -96,7 +96,7 @@ export default function ResourceDetailActions({ resourceId, initialUpvotes }: Pr
             setUpvotesCount((prev) => Math.max(0, prev + (next ? -1 : 1)));
             if (error?.message?.includes('Must be logged in') || error?.message?.includes('JWT')) {
                 const currentPath = window.location.pathname;
-                window.location.href = `/login?redirect=${encodeURIComponent(currentPath)}`;
+                window.location.href = `/resources/login?redirect=${encodeURIComponent(currentPath)}`;
             } else {
                 console.error('Failed to toggle upvote:', error);
             }
