@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import {
     loadNewsletterExhibitionMedia,
@@ -27,9 +27,19 @@ import BlogAdminList from './BlogAdminList';
 import HomeCardsManager from './HomeCardsManager';
 import LabExperimentsManager from './LabExperimentsManager';
 import DesignStudio from './DesignStudio';
+import { OpportunityDetailModal } from '../opportunities/OpportunityDetailModal';
+import { getOpportunityActionAt, selectAttentionOpportunities } from '../../lib/opportunities/attention';
+import { formatDaysRemaining, formatOpportunityTitle } from '../../lib/opportunities/ui-helpers';
+import {
+    describeRecentVisitor,
+    getRecentVisitorCount,
+    selectRecentHumanVisitors,
+} from '../../lib/analytics/recent-visitors';
+import '../../styles/opportunities-editorial.css';
 import {
     ArrowUpRight,
     BookOpen,
+    CalendarClock,
     ChartNoAxesCombined,
     Camera,
     Clapperboard,
@@ -38,7 +48,6 @@ import {
     FolderOpen,
     FolderKanban,
     Images,
-    LayoutDashboard,
     LayoutTemplate,
     Library,
     LogOut,
@@ -49,6 +58,7 @@ import {
     ScanSearch,
     Globe2,
     Glasses,
+    Home,
     Moon,
     Network,
     Sun,
@@ -59,40 +69,70 @@ import {
     X,
 } from 'lucide-react';
 
-const SECTIONS = [
-    { id: 'dashboard', label: 'Overview', icon: LayoutDashboard },
-    { id: 'analytics', label: 'Analytics', icon: ChartNoAxesCombined },
-    { id: 'reading_digest', label: "Reader's Digest", icon: BookOpen },
-    { id: 'network_intelligence', label: 'Network Intelligence', icon: Network },
-    { id: 'portfolio_projects', label: 'Portfolio Projects', icon: FolderKanban },
-    { id: 'lab_experiments', label: 'Lab Experiments', icon: FlaskConical },
-    { id: 'home_cards', label: 'Home Cards', icon: LayoutTemplate },
-    { id: 'design_system', label: 'Design Studio', icon: Palette },
-    { id: 'xr_showcase', label: 'XR Showcase', icon: Glasses },
-    { id: 'hub_resources', label: 'Curator Dashboard', icon: Library },
-    { id: 'media_library', label: 'Media Library', icon: FolderOpen },
-    { id: 'users', label: 'Accounts', icon: UsersRound },
-    { id: 'brands', label: 'Brands', icon: Tags },
-    { id: 'photography', label: 'Photography', icon: Camera },
-    { id: 'photo_stories', label: 'Photo Stories', icon: FileText },
-    { id: 'moodboard_items', label: 'Moodboard', icon: Images },
-    { id: 'films', label: 'Films', icon: Clapperboard },
-    { id: 'blog', label: 'Blog', icon: PenLine },
-    { id: 'research', label: 'Research', icon: FlaskConical },
-    { id: 'newsletter', label: 'Newsletter', icon: Mail },
-    { id: 'page_metadata', label: 'SEO Studio', icon: ScanSearch },
+const NAV_GROUPS = [
+    {
+        id: 'home',
+        label: 'Home',
+        sections: [
+            { id: 'dashboard', label: 'Studio Home', icon: Home },
+        ],
+    },
+    {
+        id: 'publish',
+        label: 'Publish',
+        sections: [
+            { id: 'portfolio_projects', label: 'Projects', icon: FolderKanban },
+            { id: 'photography', label: 'Photography', icon: Camera },
+            { id: 'photo_stories', label: 'Photo Stories', icon: FileText },
+            { id: 'films', label: 'Films', icon: Clapperboard },
+            { id: 'blog', label: 'Blog / Writing', icon: PenLine },
+            { id: 'research', label: 'Research', icon: FlaskConical },
+            { id: 'lab_experiments', label: 'Lab', icon: FlaskConical },
+        ],
+    },
+    {
+        id: 'discover',
+        label: 'Discover & Research',
+        sections: [
+            { id: 'hub_resources', label: 'Resources', icon: Library },
+            { id: 'xr_showcase', label: 'XR References', icon: Glasses },
+            { id: 'moodboard_items', label: 'Moodboard', icon: Images },
+            { id: 'reading_digest', label: 'Reading Digest', icon: BookOpen },
+        ],
+    },
+    {
+        id: 'connect',
+        label: 'Connect',
+        sections: [
+            { id: 'network_intelligence', label: 'Contacts', icon: Network },
+            { id: 'newsletter', label: 'Newsletters', icon: Mail },
+            { id: 'users', label: 'Members & Access', icon: UsersRound },
+        ],
+    },
+    {
+        id: 'website',
+        label: 'Website',
+        sections: [
+            { id: 'home_cards', label: 'Homepage Cards', icon: LayoutTemplate },
+            { id: 'brands', label: 'Clients & Collaborators', icon: Tags },
+            { id: 'media_library', label: 'Media Library', icon: FolderOpen },
+            { id: 'page_metadata', label: 'Search & Social', icon: ScanSearch },
+            { id: 'design_system', label: 'Site Design', icon: Palette },
+        ],
+    },
+    {
+        id: 'understand',
+        label: 'Understand',
+        sections: [
+            { id: 'analytics', label: 'Analytics', icon: ChartNoAxesCombined },
+        ],
+    },
 ];
+const SECTIONS = NAV_GROUPS.flatMap((group) => (
+    group.sections.map((section) => ({ ...section, groupId: group.id, groupLabel: group.label }))
+));
 const VALID_SECTION_IDS = new Set(SECTIONS.map((section) => section.id));
 const REQUEST_TIMEOUT_MS = 8000;
-const QUICK_ACTIONS = [
-    { label: 'Design Studio', href: '/admin/dashboard?section=design_system', icon: Palette, section: 'design_system' },
-    { label: 'Media Library', href: '/admin/dashboard?section=media_library', icon: FolderOpen, section: 'media_library' },
-    { label: 'Analytics', href: '/admin/dashboard?section=analytics', icon: ChartNoAxesCombined, section: 'analytics' },
-    { label: 'Add a Resource', href: '/admin/dashboard?section=hub_resources&action=new', icon: Library, section: 'hub_resources', actionParam: 'new' },
-    { label: 'Send a Newsletter', href: '/admin/dashboard?section=newsletter', icon: Mail, section: 'newsletter' },
-    { label: 'Network Intelligence', href: '/admin/dashboard?section=network_intelligence', icon: Network, section: 'network_intelligence' },
-    { label: "Reader's Digest", href: '/admin/dashboard?section=reading_digest', icon: BookOpen, section: 'reading_digest' },
-];
 const WORLD_CLOCKS = [
     { city: 'New York', timeZone: 'America/New_York' },
     { city: 'London', timeZone: 'Europe/London' },
@@ -161,6 +201,16 @@ class SectionErrorBoundary extends React.Component {
 }
 
 export default function AdminDashboard() {
+    const moodboardFileInputRef = useRef(null);
+    const opportunityDragRef = useRef({
+        active: false,
+        pointerId: null,
+        startX: 0,
+        scrollLeft: 0,
+        pendingScrollLeft: 0,
+        frameId: null,
+        moved: false,
+    });
     const [session, setSession] = useState(null);
     const [loading, setLoading] = useState(true);
     const [activeSection, setActiveSection] = useState('dashboard');
@@ -170,6 +220,22 @@ export default function AdminDashboard() {
         sample: null,
         ready: false,
     });
+    const [moodboardInitialFiles, setMoodboardInitialFiles] = useState([]);
+    const [opportunityFocus, setOpportunityFocus] = useState({
+        items: [],
+        total: 0,
+        loading: true,
+        error: '',
+    });
+    const [selectedOpportunity, setSelectedOpportunity] = useState(null);
+    const [analyticsSnapshot, setAnalyticsSnapshot] = useState({
+        visitorCount: 0,
+        visitors: [],
+        loading: true,
+        error: '',
+    });
+    const activeDestination = SECTIONS.find((section) => section.id === activeSection) || SECTIONS[0];
+    const activeNavGroup = NAV_GROUPS.find((group) => group.id === activeDestination.groupId) || NAV_GROUPS[0];
 
     useEffect(() => {
         console.log("AdminDashboard: Mounted");
@@ -257,6 +323,25 @@ export default function AdminDashboard() {
     }, []);
 
     useEffect(() => {
+        const handleHistoryChange = () => {
+            const section = new URLSearchParams(window.location.search).get('section');
+            setActiveSection(section && VALID_SECTION_IDS.has(section) ? section : 'dashboard');
+        };
+
+        window.addEventListener('popstate', handleHistoryChange);
+        return () => window.removeEventListener('popstate', handleHistoryChange);
+    }, []);
+
+    useEffect(() => {
+        if (!sidebarOpen || !window.matchMedia('(max-width: 899px)').matches) return undefined;
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        return () => {
+            document.body.style.overflow = previousOverflow;
+        };
+    }, [sidebarOpen]);
+
+    useEffect(() => {
         const accessToken = session?.access_token;
         if (!accessToken) return undefined;
 
@@ -290,6 +375,138 @@ export default function AdminDashboard() {
             cancelled = true;
         };
     }, [session?.access_token]);
+
+    useEffect(() => {
+        if (!session || activeSection !== 'dashboard') return undefined;
+
+        const controller = new AbortController();
+        setOpportunityFocus((current) => ({ ...current, loading: true, error: '' }));
+
+        fetch(`/api/opportunities?refresh=${Date.now()}`, {
+            cache: 'no-store',
+            signal: controller.signal,
+        })
+            .then(async (response) => {
+                const payload = await response.json().catch(() => ({}));
+                if (!response.ok) throw new Error(payload.error || 'Could not load opportunities.');
+                const attentionItems = selectAttentionOpportunities(payload.opportunities || [], Date.now());
+                setOpportunityFocus({
+                    items: attentionItems.slice(0, 8),
+                    total: attentionItems.length,
+                    loading: false,
+                    error: '',
+                });
+            })
+            .catch((error) => {
+                if (error.name === 'AbortError') return;
+                setOpportunityFocus({ items: [], total: 0, loading: false, error: error.message });
+            });
+
+        return () => controller.abort();
+    }, [activeSection, session]);
+
+    useEffect(() => {
+        const accessToken = session?.access_token;
+        if (!accessToken || activeSection !== 'dashboard') return undefined;
+
+        const controller = new AbortController();
+        setAnalyticsSnapshot((current) => ({ ...current, loading: true, error: '' }));
+
+        const loadSnapshot = async () => {
+            const timezoneOffset = new Date().getTimezoneOffset();
+            const requestUrl = `/api/admin/analytics?range=7d&traffic=human&timezoneOffset=${timezoneOffset}`;
+            const requestReport = (token) => fetch(requestUrl, {
+                cache: 'no-store',
+                headers: { Authorization: `Bearer ${token}` },
+                signal: controller.signal,
+            });
+
+            try {
+                let response = await requestReport(accessToken);
+                if (response.status === 401) {
+                    const { data, error: refreshError } = await supabase.auth.refreshSession();
+                    const refreshedToken = data?.session?.access_token;
+                    if (!refreshError && refreshedToken) response = await requestReport(refreshedToken);
+                }
+
+                const payload = await response.json().catch(() => ({}));
+                if (!response.ok) throw new Error(payload.error || 'Could not load recent visitors.');
+
+                const report = payload.report || {};
+                setAnalyticsSnapshot({
+                    visitorCount: getRecentVisitorCount(report),
+                    visitors: selectRecentHumanVisitors(report, 7),
+                    loading: false,
+                    error: '',
+                });
+            } catch (error) {
+                if (error.name === 'AbortError') return;
+                setAnalyticsSnapshot({ visitorCount: 0, visitors: [], loading: false, error: error.message });
+            }
+        };
+
+        void loadSnapshot();
+        return () => controller.abort();
+    }, [activeSection, session?.access_token]);
+
+    const handleOpportunityStripPointerDown = (event) => {
+        if (event.pointerType !== 'mouse' || event.button !== 0 || event.target.closest('a')) return;
+        const strip = event.currentTarget;
+        if (opportunityDragRef.current.frameId) {
+            window.cancelAnimationFrame(opportunityDragRef.current.frameId);
+        }
+        opportunityDragRef.current = {
+            active: true,
+            pointerId: event.pointerId,
+            startX: event.clientX,
+            scrollLeft: strip.scrollLeft,
+            pendingScrollLeft: strip.scrollLeft,
+            frameId: null,
+            moved: false,
+        };
+        strip.setPointerCapture(event.pointerId);
+        strip.classList.add('is-dragging');
+    };
+
+    const handleOpportunityStripPointerMove = (event) => {
+        const drag = opportunityDragRef.current;
+        if (!drag.active || drag.pointerId !== event.pointerId) return;
+        const distance = event.clientX - drag.startX;
+        if (Math.abs(distance) > 3 && !drag.moved) {
+            drag.moved = true;
+        }
+        if (drag.moved) {
+            event.preventDefault();
+            drag.pendingScrollLeft = drag.scrollLeft - distance;
+            if (!drag.frameId) {
+                const strip = event.currentTarget;
+                drag.frameId = window.requestAnimationFrame(() => {
+                    strip.scrollLeft = drag.pendingScrollLeft;
+                    drag.frameId = null;
+                });
+            }
+        }
+    };
+
+    const handleOpportunityStripPointerEnd = (event) => {
+        const drag = opportunityDragRef.current;
+        if (!drag.active || drag.pointerId !== event.pointerId) return;
+        drag.active = false;
+        if (drag.frameId) {
+            window.cancelAnimationFrame(drag.frameId);
+            drag.frameId = null;
+            event.currentTarget.scrollLeft = drag.pendingScrollLeft;
+        }
+        event.currentTarget.classList.remove('is-dragging');
+        if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+            event.currentTarget.releasePointerCapture(event.pointerId);
+        }
+        if (drag.moved) {
+            window.setTimeout(() => {
+                opportunityDragRef.current.moved = false;
+            }, 0);
+        }
+    };
 
     useEffect(() => {
         const accessToken = session?.access_token;
@@ -404,8 +621,11 @@ export default function AdminDashboard() {
         return (
             <div className="loading-screen" style={{ flexDirection: 'column', gap: '1rem', fontFamily: 'var(--font-sans)' }}>
                 <div style={{ textAlign: 'center', maxWidth: '320px' }}>
-                    <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', margin: '0 0 1.5rem 0', lineHeight: '1.5' }}>
-                        I'm sorry, we're facing some hiccups.
+                    <h1 style={{ fontSize: '1.2rem', color: 'var(--text-primary)', margin: '0 0 0.55rem 0' }}>
+                        Creator Studio could not open
+                    </h1>
+                    <p role="alert" style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', margin: '0 0 1.5rem 0', lineHeight: '1.5' }}>
+                        {connectionError}
                     </p>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', alignItems: 'center' }}>
                         <a
@@ -420,7 +640,7 @@ export default function AdminDashboard() {
                                 fontWeight: 500
                             }}
                         >
-                            View Resources Instead
+                            Open Resources Hub
                         </a>
                         <button
                             onClick={() => window.location.reload()}
@@ -454,7 +674,13 @@ export default function AdminDashboard() {
             {/* Sidebar Navigation */}
             <aside id="admin-sidebar" className={`sidebar ${sidebarOpen ? 'is-open' : ''}`}>
                 <div className="sidebar-header">
-                    <h1 className="brand-title">Creator Studio</h1>
+                    <button type="button" className="brand-title" onClick={() => handleNav('dashboard')}>
+                        <span className="brand-mark" aria-hidden="true">A</span>
+                        <span className="brand-copy">
+                            <strong>Creator Studio</strong>
+                            <small>Abodid Sahoo</small>
+                        </span>
+                    </button>
                     <button
                         type="button"
                         className="sidebar-toggle"
@@ -470,21 +696,38 @@ export default function AdminDashboard() {
                     </button>
                 </div>
 
-                <nav className="sidebar-nav">
-                    {SECTIONS.map(section => (
-                        <button
-                            key={section.id}
-                            type="button"
-                            onClick={() => handleNav(section.id)}
-                            className={`nav-item ${activeSection === section.id ? 'active' : ''}`}
-                            aria-current={activeSection === section.id ? 'page' : undefined}
-                            aria-label={section.label}
-                            title={section.label}
-                        >
-                            <span className="nav-icon" aria-hidden="true"><LineIcon icon={section.icon} /></span>
-                            <span className="nav-label">{section.label}</span>
-                        </button>
-                    ))}
+                <nav className="sidebar-nav" aria-label="Creator Studio">
+                    {NAV_GROUPS.map((group) => {
+                        const groupIsActive = group.id === activeDestination.groupId;
+                        return (
+                            <section
+                                key={group.id}
+                                className={`nav-group ${groupIsActive ? 'is-current' : ''}`}
+                                aria-labelledby={`nav-group-${group.id}`}
+                            >
+                                <h2 id={`nav-group-${group.id}`} className="nav-group-label">
+                                    {group.label}
+                                    {groupIsActive && <span className="sr-only">, current group</span>}
+                                </h2>
+                                <div className="nav-group-items">
+                                    {group.sections.map((section) => (
+                                        <button
+                                            key={section.id}
+                                            type="button"
+                                            onClick={() => handleNav(section.id)}
+                                            className={`nav-item ${activeSection === section.id ? 'active' : ''}`}
+                                            aria-current={activeSection === section.id ? 'page' : undefined}
+                                            aria-label={section.label}
+                                            title={section.label}
+                                        >
+                                            <span className="nav-icon" aria-hidden="true"><LineIcon icon={section.icon} /></span>
+                                            <span className="nav-label">{section.label}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </section>
+                        );
+                    })}
                 </nav>
 
                 <div className="sidebar-footer">
@@ -501,68 +744,169 @@ export default function AdminDashboard() {
 
             {/* Main Content Area */}
             <main className={`main-content ${activeSection === 'dashboard' ? 'dashboard-main' : ''} ${activeSection === 'analytics' || activeSection === 'reading_digest' || activeSection === 'network_intelligence' || activeSection === 'portfolio_projects' || activeSection === 'lab_experiments' || activeSection === 'home_cards' || activeSection === 'design_system' || activeSection === 'xr_showcase' || activeSection === 'hub_resources' || activeSection === 'media_library' || activeSection === 'users' || activeSection === 'brands' || activeSection === 'photography' || activeSection === 'photo_stories' || activeSection === 'moodboard_items' || activeSection === 'films' || activeSection === 'blog' || activeSection === 'research' || activeSection === 'newsletter' || activeSection === 'page_metadata' ? 'admin-page-main' : ''}`}>
+                <div className="mobile-studio-bar">
+                    <button
+                        type="button"
+                        className="mobile-menu-button"
+                        aria-controls="admin-sidebar"
+                        aria-expanded={sidebarOpen}
+                        aria-label="Open Creator Studio navigation"
+                        onClick={() => setSidebarOpen(true)}
+                    >
+                        <Menu size={19} strokeWidth={1.8} aria-hidden="true" />
+                    </button>
+                    <span className="mobile-location">
+                        <small>{activeNavGroup.label}</small>
+                        <strong>{activeDestination.label}</strong>
+                    </span>
+                </div>
                 <div className="content-body">
                     {activeSection === 'dashboard' && (
-                        <>
-                            <div className="overview-grid">
-                                <section className="dashboard-launch-section admin-page-intro" aria-labelledby="dashboard-greeting">
-                                    <AdminPageHeader
-                                        className="dashboard-greeting"
-                                        headingId="dashboard-greeting"
-                                        title="Hi Abodid,"
-                                        description="Build, publish, and keep the ideas moving."
-                                    />
-                                    <div className="destination-actions">
-                                        <a href="/" target="_blank" rel="noreferrer" className="destination-card destination-card-primary">
-                                            <span className="destination-icon" aria-hidden="true">
-                                                <Globe2 size={24} strokeWidth={1.7} />
-                                            </span>
-                                            <strong>View live site</strong>
-                                            <ArrowUpRight size={21} strokeWidth={1.7} aria-hidden="true" />
-                                        </a>
-                                        <a href="/resources" target="_blank" rel="noreferrer" className="destination-card destination-card-secondary">
-                                            <span className="destination-icon" aria-hidden="true">
-                                                <Library size={24} strokeWidth={1.7} />
-                                            </span>
-                                            <strong>View Resources Hub</strong>
-                                            <ArrowUpRight size={21} strokeWidth={1.7} aria-hidden="true" />
-                                        </a>
-                                    </div>
-                                </section>
+                        <div className="studio-home">
+                            <section className="studio-home-hero admin-page-intro" aria-labelledby="dashboard-greeting">
+                                <AdminPageHeader
+                                    className="dashboard-greeting"
+                                    headingId="dashboard-greeting"
+                                    title="Abodid's Creator Studio"
+                                    description="This is where the magic happens."
+                                />
+                            </section>
 
-                                <section className="dashboard-panel quick-actions-panel" aria-labelledby="quick-actions-title">
-                                    <div className="panel-heading">
-                                        <h3 id="quick-actions-title">Start something</h3>
-                                        <span>Direct actions</span>
-                                    </div>
-                                    <div className="quick-actions-grid">
-                                        {QUICK_ACTIONS.map((action) => (
-                                            <a
-                                                key={action.href}
-                                                href={action.href}
-                                                className="quick-action-card"
-                                                onClick={action.section
-                                                    ? (event) => {
-                                                        event.preventDefault();
-                                                        handleNav(action.section, action.actionParam || null);
+                            <section className="studio-home-grid" aria-label="Studio shortcuts">
+                                <article className="studio-frame-card opportunity-focus-card">
+                                    <header className="studio-card-heading">
+                                        <span className="studio-card-icon" aria-hidden="true"><CalendarClock size={20} strokeWidth={1.7} /></span>
+                                        <div>
+                                            <h2>Needs attention</h2>
+                                        </div>
+                                    </header>
+                                    <div
+                                        className="opportunity-focus-list"
+                                        aria-live="polite"
+                                        aria-label="Priority opportunities. Scroll horizontally for more."
+                                        tabIndex={0}
+                                        onPointerDown={handleOpportunityStripPointerDown}
+                                        onPointerMove={handleOpportunityStripPointerMove}
+                                        onPointerUp={handleOpportunityStripPointerEnd}
+                                        onPointerCancel={handleOpportunityStripPointerEnd}
+                                        onDragStart={(event) => event.preventDefault()}
+                                    >
+                                        {opportunityFocus.loading && [0, 1, 2].map((index) => (
+                                            <article key={index} className="opportunity-focus-row is-loading" aria-hidden="true">
+                                                <span className="opportunity-loading-line is-deadline" />
+                                                <span className="opportunity-loading-line is-title" />
+                                                <span className="opportunity-loading-line is-copy" />
+                                                <span className="opportunity-loading-line is-link" />
+                                            </article>
+                                        ))}
+                                        {!opportunityFocus.loading && opportunityFocus.error && (
+                                            <p className="studio-card-state is-error">Opportunities could not be loaded. Open the dashboard to review them.</p>
+                                        )}
+                                        {!opportunityFocus.loading && !opportunityFocus.error && opportunityFocus.items.length === 0 && (
+                                            <p className="studio-card-state">Nothing needs attention in the next seven days.</p>
+                                        )}
+                                        {opportunityFocus.items.map((opportunity) => (
+                                            <OpportunityFocusRow
+                                                key={opportunity.id}
+                                                opportunity={opportunity}
+                                                onOpen={() => {
+                                                    if (opportunityDragRef.current.moved) {
+                                                        opportunityDragRef.current.moved = false;
+                                                        return;
                                                     }
-                                                    : undefined}
-                                            >
-                                                <span className="quick-action-icon" aria-hidden="true">
-                                                    <LineIcon icon={action.icon} size={21} />
-                                                </span>
-                                                <span className="quick-action-copy">
-                                                    <strong>{action.label}</strong>
-                                                </span>
-                                                <ArrowUpRight size={17} strokeWidth={1.7} aria-hidden="true" />
-                                            </a>
+                                                    setSelectedOpportunity(opportunity);
+                                                }}
+                                            />
                                         ))}
                                     </div>
-                                </section>
+                                    <a className="studio-card-link" href="/opportunities" target="_blank" rel="noreferrer">
+                                        Check all Opportunities.
+                                        <ArrowUpRight size={16} strokeWidth={1.8} aria-hidden="true" />
+                                    </a>
+                                </article>
 
-                                <WorldClockPanel />
-                            </div>
-                        </>
+                                <article className="studio-frame-card studio-media-card admin-accent-surface">
+                                    <span className="studio-card-icon is-inverted" aria-hidden="true"><FolderOpen size={22} strokeWidth={1.7} /></span>
+                                    <div className="studio-card-copy">
+                                        <h2>Media Library</h2>
+                                        <span>Find, upload and reuse your visual assets.</span>
+                                    </div>
+                                    <button type="button" className="studio-card-button is-on-cobalt" onClick={() => handleNav('media_library')}>
+                                        Open Media Library
+                                        <ArrowUpRight size={16} strokeWidth={1.8} aria-hidden="true" />
+                                    </button>
+                                </article>
+
+                                <article className="studio-frame-card studio-moodboard-card">
+                                    <span className="studio-card-icon" aria-hidden="true"><Images size={22} strokeWidth={1.7} /></span>
+                                    <div className="studio-card-copy">
+                                        <h2>Add to moodboard</h2>
+                                        <span>Upload a JPEG/PNG/WebP/GIF to your moodboard.</span>
+                                    </div>
+                                    <div className="studio-card-actions">
+                                        <input
+                                            ref={moodboardFileInputRef}
+                                            className="sr-only"
+                                            type="file"
+                                            accept="image/*"
+                                            multiple
+                                            aria-hidden="true"
+                                            tabIndex={-1}
+                                            onChange={(event) => {
+                                                const files = Array.from(event.target.files || []);
+                                                event.target.value = '';
+                                                if (!files.length) return;
+                                                setMoodboardInitialFiles(files);
+                                                handleNav('moodboard_items', 'upload');
+                                            }}
+                                        />
+                                        <button type="button" className="studio-card-button" onClick={() => moodboardFileInputRef.current?.click()}>
+                                            Add images
+                                        </button>
+                                    </div>
+                                </article>
+
+                                <article className="studio-frame-card studio-analytics-card">
+                                    <div className="studio-analytics-summary">
+                                        <span className="studio-card-icon" aria-hidden="true"><ChartNoAxesCombined size={22} strokeWidth={1.7} /></span>
+                                        <div className="studio-card-copy">
+                                            <h2>Analytics</h2>
+                                            <span className="studio-visitor-count" aria-live="polite">
+                                                {analyticsSnapshot.loading
+                                                    ? 'Loading recent visitors…'
+                                                    : `${analyticsSnapshot.visitorCount.toLocaleString('en-GB')} ${analyticsSnapshot.visitorCount === 1 ? 'visitor' : 'visitors'} in the last 7 days`}
+                                            </span>
+                                        </div>
+                                        <button type="button" className="studio-card-button" onClick={() => handleNav('analytics')}>
+                                            View Analytics
+                                            <ArrowUpRight size={16} strokeWidth={1.8} aria-hidden="true" />
+                                        </button>
+                                    </div>
+                                    <RecentVisitorCarousel
+                                        snapshot={analyticsSnapshot}
+                                        onOpenAnalytics={() => handleNav('analytics')}
+                                    />
+                                </article>
+
+                                <article className="studio-frame-card studio-curator-card">
+                                    <span className="studio-card-icon" aria-hidden="true"><Library size={22} strokeWidth={1.7} /></span>
+                                    <div className="studio-card-copy">
+                                        <h2>Curator Dashboard</h2>
+                                        <span>Manage the resources collected for your public hub.</span>
+                                    </div>
+                                    <div className="studio-card-actions">
+                                        <button type="button" className="studio-card-button" onClick={() => handleNav('hub_resources')}>
+                                            Open Dashboard
+                                        </button>
+                                        <a className="studio-card-text-button" href="/resources" target="_blank" rel="noreferrer">
+                                            View public hub
+                                        </a>
+                                    </div>
+                                </article>
+                            </section>
+
+                            <WorldClockPanel />
+                        </div>
                     )}
 
                     {activeSection === 'users' && (
@@ -661,7 +1005,11 @@ export default function AdminDashboard() {
 
                     {activeSection === 'moodboard_items' && (
                         <SectionErrorBoundary>
-                            <MoodboardManager />
+                            <MoodboardManager
+                                accessToken={session?.access_token}
+                                initialFiles={moodboardInitialFiles}
+                                onInitialFilesConsumed={() => setMoodboardInitialFiles([])}
+                            />
                         </SectionErrorBoundary>
                     )}
 
@@ -700,6 +1048,33 @@ export default function AdminDashboard() {
                     )}
                 </div>
             </main>
+
+            {selectedOpportunity && (
+                <div className="opportunity-modal-host">
+                    <OpportunityDetailModal
+                        opportunity={selectedOpportunity}
+                        isOpen={true}
+                        isAuthenticated={false}
+                        onClose={() => setSelectedOpportunity(null)}
+                        onUpdateStatus={async () => {}}
+                        onEdit={() => {}}
+                        onReExtract={async () => {}}
+                        onDelete={async () => {}}
+                        onNavigateNext={() => {
+                            const currentIndex = opportunityFocus.items.findIndex((item) => item.id === selectedOpportunity.id);
+                            const nextIndex = (currentIndex + 1) % opportunityFocus.items.length;
+                            setSelectedOpportunity(opportunityFocus.items[nextIndex]);
+                        }}
+                        onNavigatePrev={() => {
+                            const currentIndex = opportunityFocus.items.findIndex((item) => item.id === selectedOpportunity.id);
+                            const previousIndex = (currentIndex - 1 + opportunityFocus.items.length) % opportunityFocus.items.length;
+                            setSelectedOpportunity(opportunityFocus.items[previousIndex]);
+                        }}
+                        currentIndex={opportunityFocus.items.findIndex((item) => item.id === selectedOpportunity.id) + 1}
+                        totalCount={opportunityFocus.items.length}
+                    />
+                </div>
+            )}
 
             <style>{`
                 :root {
@@ -1208,6 +1583,376 @@ export default function AdminDashboard() {
                     .row-main-info { align-items: flex-start; flex-direction: column; gap: 0.6rem; }
                     .row-actions { margin-left: 0; }
                 }
+
+                /* Creator Studio shell refresh */
+                :root { --sidebar-width: 276px; }
+
+                .admin-layout { background: var(--bg-color); }
+                .sidebar {
+                    width: var(--sidebar-width);
+                    background: var(--bg-surface);
+                    border-color: var(--border-subtle);
+                }
+                .sidebar-header {
+                    min-height: 82px;
+                    padding: 1.1rem 1rem 0.8rem;
+                    align-items: center;
+                }
+                .brand-title {
+                    width: 100%; min-width: 0; display: flex; align-items: center; gap: 0.75rem;
+                    padding: 0.45rem; border: 0; border-radius: 11px; background: transparent;
+                    color: var(--text-primary); cursor: pointer; text-align: left;
+                }
+                .brand-title:hover { background: var(--bg-surface-hover); }
+                .brand-mark {
+                    width: 38px; height: 38px; flex: 0 0 38px; display: grid; place-items: center;
+                    border-radius: 10px; background: var(--admin-cobalt); color: #fff;
+                    font-size: 1rem; font-weight: 750; letter-spacing: -0.04em;
+                    box-shadow: 0 7px 18px rgba(36, 68, 202, 0.2);
+                }
+                .brand-copy { min-width: 0; display: grid; gap: 0.05rem; }
+                .brand-copy strong { font-size: 0.92rem; font-weight: 700; letter-spacing: -0.025em; }
+                .brand-copy small { color: var(--text-tertiary); font-size: 0.66rem; font-weight: 550; letter-spacing: 0.025em; }
+
+                .sidebar-nav {
+                    gap: 1.05rem; padding: 0.65rem 0.8rem 1.4rem; scrollbar-gutter: stable;
+                }
+                .nav-group { display: grid; gap: 0.35rem; }
+                .nav-group-label {
+                    margin: 0; padding: 0 0.65rem; color: var(--text-tertiary);
+                    font-size: 0.61rem; font-weight: 750; line-height: 1.4;
+                    letter-spacing: 0.105em; text-transform: uppercase;
+                }
+                .nav-group.is-current .nav-group-label { color: var(--admin-cobalt); }
+                .nav-group-items { display: grid; gap: 0.16rem; }
+                .nav-item {
+                    position: relative; width: 100%; min-height: 36px; gap: 0.66rem; padding: 0.48rem 0.62rem;
+                    border-radius: 9px; color: var(--text-secondary); font-size: 0.79rem; font-weight: 520;
+                }
+                .nav-item:hover { background: var(--bg-surface-hover); color: var(--text-primary); }
+                .nav-item.active {
+                    border-color: color-mix(in srgb, var(--admin-cobalt) 28%, var(--border-subtle));
+                    background: var(--admin-cobalt-soft); color: var(--admin-cobalt); font-weight: 690;
+                }
+                [data-theme="dark"] .nav-item.active {
+                    background: color-mix(in srgb, var(--admin-cobalt) 24%, var(--bg-surface));
+                    color: #aebcff;
+                }
+                .nav-item.active::before {
+                    content: ""; position: absolute; left: -0.8rem; top: 8px; bottom: 8px; width: 3px;
+                    border-radius: 0 3px 3px 0; background: var(--admin-cobalt);
+                }
+                .nav-icon { width: 18px; flex: 0 0 18px; color: var(--text-tertiary); }
+                .nav-item.active .nav-icon { color: currentColor; }
+
+                .sidebar-footer {
+                    display: grid; grid-template-columns: 1fr auto; gap: 0.45rem; padding: 0.8rem;
+                    background: var(--bg-surface); border-color: var(--border-subtle);
+                }
+                .btn-curator-link, .btn-logout-sidebar {
+                    min-height: 38px; margin: 0; border: 1px solid var(--border-subtle); border-radius: 9px;
+                    background: transparent; color: var(--text-secondary); font-size: 0.71rem;
+                    font-weight: 620; letter-spacing: 0; text-transform: none;
+                }
+                .btn-curator-link:hover { background: var(--bg-surface-hover); color: var(--text-primary); }
+                .btn-logout-sidebar { width: 38px; padding: 0; }
+                .btn-logout-sidebar span { display: none; }
+                .btn-logout-sidebar:hover { border-color: #d7a7a1; background: #fff0ee; color: var(--admin-danger); }
+
+                .main-content {
+                    flex-basis: calc(100vw - var(--sidebar-width)); width: calc(100vw - var(--sidebar-width));
+                    margin-left: var(--sidebar-width); padding: 1.5rem clamp(1.25rem, 3vw, 3rem) 3rem;
+                    background: var(--bg-color);
+                }
+                .main-content.dashboard-main {
+                    height: auto; min-height: 100vh; overflow: visible;
+                    padding: 0 clamp(1.25rem, 3vw, 3rem) 4rem;
+                }
+                .dashboard-main .content-body { height: auto; overflow: visible; }
+                .mobile-studio-bar { display: none; }
+
+                .studio-home { width: min(100%, 1480px); margin: 0 auto; }
+                .studio-home-hero {
+                    min-height: 0; display: block;
+                    padding: clamp(3.1rem, 6vh, 4.5rem) 0 1.8rem;
+                    border-bottom: 1px solid var(--border-subtle);
+                }
+                .dashboard-greeting .admin-page-header__title { max-width: 18ch; }
+                .dashboard-greeting .admin-page-header__description { max-width: 32rem; }
+
+                .studio-home-grid {
+                    display: grid; grid-template-columns: repeat(12, minmax(0, 1fr));
+                    grid-auto-flow: dense; gap: 0.85rem; padding-top: 1.25rem;
+                }
+                .studio-frame-card {
+                    min-width: 0; min-height: 210px; display: flex; flex-direction: column; gap: 1rem;
+                    padding: clamp(1.1rem, 1.6vw, 1.45rem); border: 1px solid var(--border-subtle);
+                    border-radius: 16px; background: var(--bg-surface); color: var(--text-primary);
+                    box-shadow: 0 1px 0 rgba(21, 21, 21, 0.035);
+                }
+                .opportunity-focus-card { grid-column: span 8; grid-row: span 2; min-height: 436px; box-shadow: none; }
+                .studio-media-card, .studio-moodboard-card { grid-column: span 4; }
+                .studio-analytics-card, .studio-curator-card { grid-column: span 6; }
+                .studio-analytics-card {
+                    display: grid; grid-template-columns: minmax(0, 0.82fr) minmax(220px, 1.18fr);
+                    align-items: stretch; gap: 1.15rem;
+                }
+                .studio-analytics-summary { min-width: 0; display: flex; flex-direction: column; gap: 1rem; }
+                .studio-visitor-count { font-variant-numeric: tabular-nums; }
+                .recent-visitor-carousel { min-width: 0; display: flex; flex-direction: column; justify-content: center; }
+                .recent-visitor-track {
+                    display: grid; grid-auto-flow: column; grid-auto-columns: 100%; overflow-x: auto; overflow-y: hidden;
+                    border-radius: 12px; scroll-snap-type: inline mandatory; scrollbar-width: none; overscroll-behavior-inline: contain;
+                }
+                .recent-visitor-track::-webkit-scrollbar { display: none; }
+                .recent-visitor-card {
+                    min-width: 0; min-height: 132px; display: flex; flex-direction: column; justify-content: space-between;
+                    padding: 1rem; border: 1px solid var(--border-subtle); border-radius: 12px;
+                    background: var(--bg-color); color: var(--text-primary); text-align: left; cursor: pointer;
+                    scroll-snap-align: start; scroll-snap-stop: always;
+                }
+                .recent-visitor-card:hover { border-color: var(--border-strong); }
+                .recent-visitor-card:focus-visible, .recent-visitor-dot:focus-visible {
+                    outline: 2px solid var(--border-focus); outline-offset: 3px;
+                }
+                .recent-visitor-card p {
+                    margin: 0; font-size: var(--admin-card-body-size); font-weight: var(--admin-card-title-weight);
+                    line-height: var(--admin-card-copy-line-height);
+                }
+                .recent-visitor-card span {
+                    display: inline-flex; align-items: center; gap: 0.35rem; margin-top: 0.8rem;
+                    color: var(--admin-cobalt); font-size: var(--admin-card-action-size);
+                    font-weight: var(--admin-card-action-weight);
+                }
+                .recent-visitor-dots { display: flex; justify-content: center; gap: 0.38rem; min-height: 22px; padding-top: 0.65rem; }
+                .recent-visitor-dot {
+                    width: 22px; height: 22px; display: grid; place-items: center; padding: 0; border: 0;
+                    background: transparent; cursor: pointer;
+                }
+                .recent-visitor-dot::before {
+                    content: ""; width: 6px; height: 6px; border-radius: 999px; background: var(--border-strong);
+                    transition: width 0.16s ease, background 0.16s ease;
+                }
+                .recent-visitor-dot.is-active::before { width: 16px; background: var(--admin-cobalt); }
+                .recent-visitor-empty {
+                    min-height: 132px; margin: 0; display: flex; align-items: center; padding: 1rem;
+                    border: 1px solid var(--border-subtle); border-radius: 12px; color: var(--text-secondary);
+                    font-size: var(--admin-card-meta-size); line-height: var(--admin-card-copy-line-height);
+                }
+                .recent-visitor-empty.is-loading { color: transparent; }
+                .recent-visitor-empty.is-loading::after {
+                    content: ""; width: 78%; height: 0.8rem; border-radius: 999px;
+                    background: color-mix(in srgb, var(--text-tertiary) 13%, transparent);
+                }
+                .studio-media-card {
+                    border-color: var(--admin-cobalt); background: var(--admin-cobalt); color: #fff;
+                    box-shadow: 0 14px 36px rgba(36, 68, 202, 0.18);
+                }
+                .studio-card-heading { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 0.8rem; }
+                .studio-card-heading h2, .studio-card-copy h2 {
+                    margin: 0; font-size: var(--admin-card-heading-size); font-weight: var(--admin-card-heading-weight);
+                    line-height: var(--admin-card-heading-line-height); letter-spacing: var(--admin-card-heading-tracking);
+                }
+                .studio-card-icon {
+                    width: 42px; height: 42px; flex: 0 0 42px; display: grid; place-items: center;
+                    border-radius: 11px; background: var(--admin-cobalt-soft); color: var(--admin-cobalt);
+                }
+                .studio-card-icon.is-inverted { background: rgba(255,255,255,0.14); color: #fff; }
+                [data-theme="dark"] .studio-card-icon:not(.is-inverted) {
+                    background: color-mix(in srgb, var(--admin-cobalt) 24%, var(--bg-surface)); color: #aebcff;
+                }
+                .studio-card-copy { display: grid; gap: 0.42rem; margin-top: 0.1rem; }
+                .studio-card-copy > span {
+                    max-width: 36ch; margin-top: 0; color: var(--text-secondary);
+                    font-size: var(--admin-card-body-size); line-height: var(--admin-card-copy-line-height);
+                }
+                .studio-media-card .studio-card-copy > span { color: rgba(255,255,255,0.72); }
+                .studio-media-card .studio-card-copy { margin-top: 0.1rem; }
+                .studio-card-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 0.55rem; margin-top: auto; }
+                .studio-card-button, .studio-card-text-button, .studio-card-link {
+                    min-height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+                    border-radius: 9px; font: inherit; font-size: var(--admin-card-action-size);
+                    font-weight: var(--admin-card-action-weight); cursor: pointer;
+                    text-decoration: none;
+                }
+                .studio-card-button {
+                    width: fit-content; margin-top: auto; padding: 0.65rem 0.82rem;
+                    border: 1px solid var(--border-strong); background: var(--text-primary); color: var(--bg-surface);
+                }
+                .studio-card-button:hover { opacity: 0.86; }
+                .studio-card-button.is-on-cobalt { border-color: #fff; background: #fff; color: var(--admin-cobalt-deep); }
+                .studio-card-text-button {
+                    padding: 0.65rem 0.45rem; border: 0; background: transparent; color: var(--admin-cobalt);
+                }
+                .studio-card-text-button:hover { text-decoration: underline; text-underline-offset: 0.2em; }
+                .studio-card-actions .studio-card-button { margin-top: 0; }
+                .studio-card-button:focus-visible, .studio-card-text-button:focus-visible, .studio-card-link:focus-visible,
+                .opportunity-focus-row:focus-visible { outline: 2px solid var(--border-focus); outline-offset: 3px; }
+
+                .opportunity-focus-list {
+                    display: grid; grid-auto-flow: column;
+                    grid-auto-columns: calc((100% - 1.3rem) / 3);
+                    align-items: stretch; min-height: 220px; flex: 1; gap: 0.65rem; margin-top: 0.3rem;
+                    overflow-x: auto; overflow-y: hidden; overscroll-behavior-inline: contain;
+                    scroll-snap-type: inline proximity; scrollbar-width: thin; scrollbar-color: var(--border-strong) transparent;
+                    cursor: grab; touch-action: pan-x pan-y; user-select: none;
+                }
+                .opportunity-focus-list:active { cursor: grabbing; }
+                .opportunity-focus-list.is-dragging { scroll-snap-type: none; cursor: grabbing; }
+                .opportunity-focus-list:focus-visible { outline: 2px solid var(--border-focus); outline-offset: 4px; }
+                .opportunity-focus-list::-webkit-scrollbar { height: 5px; }
+                .opportunity-focus-list::-webkit-scrollbar-track { background: transparent; }
+                .opportunity-focus-list::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 999px; }
+                .opportunity-focus-row {
+                    min-width: 0; min-height: 220px; display: flex; flex-direction: column; align-items: flex-start;
+                    padding: 1.05rem; border: 1px solid var(--border-subtle); border-radius: 12px;
+                    background: var(--bg-color); color: var(--text-primary); scroll-snap-align: start;
+                }
+                .opportunity-focus-row:not(.is-loading) { cursor: pointer; }
+                .opportunity-focus-row:not(.is-loading):hover { border-color: var(--border-strong); }
+                .opportunity-focus-time { margin: 0; }
+                .opportunity-focus-time strong {
+                    font-size: var(--admin-card-emphasis-size); font-weight: var(--admin-card-heading-weight);
+                    line-height: var(--admin-card-heading-line-height); letter-spacing: var(--admin-card-heading-tracking);
+                    font-variant-numeric: tabular-nums;
+                }
+                .opportunity-focus-title {
+                    margin: 1rem 0 0.38rem; font-size: var(--admin-card-title-size);
+                    font-weight: var(--admin-card-title-weight); line-height: var(--admin-card-title-line-height);
+                    letter-spacing: var(--admin-card-title-tracking); display: -webkit-box; overflow: hidden;
+                    -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+                }
+                .opportunity-focus-context {
+                    display: -webkit-box; overflow: hidden; margin: 0; color: var(--text-secondary);
+                    font-size: var(--admin-card-meta-size); line-height: var(--admin-card-copy-line-height);
+                    -webkit-box-orient: vertical; -webkit-line-clamp: 3;
+                }
+                .opportunity-source-link {
+                    display: inline-flex; align-items: center; gap: 0.28rem; margin-top: auto; padding-top: 1rem;
+                    color: var(--admin-cobalt); font-size: var(--admin-card-action-size);
+                    font-weight: var(--admin-card-action-weight); text-decoration: none;
+                }
+                .opportunity-source-link:hover { text-decoration: underline; text-underline-offset: 0.2em; }
+                .opportunity-source-link:focus-visible { outline: 2px solid var(--border-focus); outline-offset: 3px; }
+                .opportunity-focus-row.is-loading { pointer-events: none; }
+                .opportunity-loading-line {
+                    display: block; height: 0.72rem; border-radius: 999px;
+                    background: color-mix(in srgb, var(--text-tertiary) 13%, transparent);
+                }
+                .opportunity-loading-line.is-deadline { width: 58%; height: 1.35rem; }
+                .opportunity-loading-line.is-title { width: 82%; margin-top: 1rem; }
+                .opportunity-loading-line.is-copy { width: 94%; margin-top: 0.55rem; }
+                .opportunity-loading-line.is-link { width: 34%; margin-top: auto; }
+                .studio-card-state {
+                    grid-column: 1 / -1; min-height: 220px; margin: 0; display: flex; align-items: center;
+                    color: var(--text-secondary); font-size: 0.78rem; line-height: 1.5;
+                }
+                .studio-card-state.is-error { color: var(--admin-danger); }
+                .studio-card-link {
+                    width: fit-content; margin-top: auto; padding: 0.25rem 0; color: var(--admin-cobalt);
+                }
+                .studio-card-link:hover { text-decoration: underline; text-underline-offset: 0.22em; }
+
+                .world-clock-section {
+                    margin-top: 2.25rem; border: 0; border-top: 1px solid var(--border-subtle);
+                    border-radius: 0; background: transparent;
+                }
+                .world-clock-section .panel-heading { padding: 1.4rem 0 0.8rem; border: 0; }
+                .world-clock-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 0.7rem; padding: 0; background: transparent; }
+                .world-clock-item, .world-clock-item.is-adaptive-clock {
+                    display: flex; min-height: 150px; aspect-ratio: 1 / 0.92; gap: 0.85rem; padding: 1rem;
+                    border-radius: 14px; transition: transform 0.16s ease, box-shadow 0.16s ease;
+                }
+                .world-clock-item:hover { transform: translateY(-2px) rotate(-0.2deg); box-shadow: 0 10px 24px rgba(21,21,21,0.08); }
+                .world-clock-city { font-size: 0.88rem; }
+                .world-clock-time { font-size: clamp(1.35rem, 1.8vw, 1.95rem); }
+                .world-clock-icon { width: 29px; height: 29px; flex-basis: 29px; }
+                .world-clock-icon svg { width: 14px; height: 14px; }
+
+                .section-error { border-left: 4px solid var(--admin-danger); }
+
+                @media (max-width: 1280px) {
+                    .opportunity-focus-card { grid-column: span 7; }
+                    .studio-media-card, .studio-moodboard-card { grid-column: span 5; }
+                    .world-clock-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+                    .world-clock-item, .world-clock-item.is-adaptive-clock { aspect-ratio: 1.35 / 1; }
+                }
+
+                @media (max-width: 1024px) {
+                    :root { --sidebar-width: 0px; }
+                    .sidebar {
+                        width: min(304px, calc(100vw - 1rem)); transform: translateX(-103%);
+                        transition: transform 0.22s ease, box-shadow 0.22s ease;
+                    }
+                    .sidebar.is-open { width: min(304px, calc(100vw - 1rem)); transform: translateX(0); box-shadow: 20px 0 55px rgba(0,0,0,0.28); }
+                    .sidebar-backdrop {
+                        display: block; position: fixed; inset: 0; z-index: 45; border: 0;
+                        background: var(--bg-overlay); opacity: 0; pointer-events: none; transition: opacity 0.22s ease;
+                    }
+                    .admin-layout.sidebar-open .sidebar-backdrop { opacity: 1; pointer-events: auto; }
+                    .sidebar-header, .sidebar.is-open .sidebar-header { min-height: 64px; justify-content: space-between; padding: 0.65rem 0.75rem; }
+                    .sidebar-toggle {
+                        display: grid; width: 38px; height: 38px; flex: 0 0 38px; place-items: center;
+                        padding: 0; border: 1px solid var(--border-subtle); border-radius: 9px;
+                        background: var(--bg-color); color: var(--text-primary); cursor: pointer;
+                    }
+                    .brand-title, .sidebar.is-open .brand-title { display: flex; width: auto; }
+                    .brand-copy, .sidebar.is-open .brand-copy { display: grid; }
+                    .nav-group-label, .nav-label, .sidebar.is-open .nav-label { display: initial; }
+                    .nav-item, .sidebar.is-open .nav-item { justify-content: flex-start; padding: 0.48rem 0.62rem; }
+                    .sidebar-nav { gap: 1rem; padding: 0.65rem 0.8rem 1.4rem; }
+                    .sidebar-footer { padding: 0.8rem; }
+                    .btn-curator-link span { display: inline; }
+                    .sidebar.is-open .btn-logout-sidebar span { display: none; }
+                    .main-content, .main-content.dashboard-main {
+                        flex-basis: 100%; width: 100%; margin-left: 0; padding: 0 1.25rem 3rem;
+                    }
+                    .main-content.admin-page-main { padding: 0 1.25rem 3rem; }
+                    .mobile-studio-bar {
+                        position: sticky; top: 0; z-index: 35; display: flex; align-items: center; gap: 0.75rem;
+                        min-height: 62px; margin: 0 -1.25rem 0; padding: 0.65rem 5rem 0.65rem 1rem;
+                        border-bottom: 1px solid var(--border-subtle);
+                        background: color-mix(in srgb, var(--bg-color) 91%, transparent); backdrop-filter: blur(14px);
+                    }
+                    .mobile-menu-button {
+                        width: 40px; height: 40px; flex: 0 0 40px; display: grid; place-items: center;
+                        border: 1px solid var(--border-subtle); border-radius: 9px;
+                        background: var(--bg-surface); color: var(--text-primary); cursor: pointer;
+                    }
+                    .mobile-location { min-width: 0; display: grid; gap: 0.05rem; }
+                    .mobile-location small {
+                        color: var(--admin-cobalt); font-size: 0.58rem; font-weight: 760;
+                        letter-spacing: 0.08em; text-transform: uppercase;
+                    }
+                    .mobile-location strong { overflow: hidden; font-size: 0.82rem; text-overflow: ellipsis; white-space: nowrap; }
+                    .studio-home-hero { min-height: 0; padding-top: 1.8rem; }
+                    .opportunity-focus-card { grid-column: 1 / -1; grid-row: auto; min-height: 410px; }
+                    .studio-media-card, .studio-moodboard-card,
+                    .studio-analytics-card, .studio-curator-card { grid-column: span 6; }
+                }
+
+                @media (max-width: 720px) {
+                    .studio-home-hero { padding: 1.65rem 0 1.5rem; }
+                    .studio-home-grid { grid-template-columns: 1fr; }
+                    .opportunity-focus-card, .studio-media-card, .studio-moodboard-card,
+                    .studio-analytics-card, .studio-curator-card { grid-column: 1; min-height: 220px; }
+                    .studio-analytics-card { grid-template-columns: 1fr; }
+                    .opportunity-focus-card { min-height: 390px; }
+                    .opportunity-focus-list { grid-auto-columns: minmax(82%, 82%); }
+                    .opportunity-focus-row,
+                    .opportunity-focus-row:first-child,
+                    .opportunity-focus-row:last-child {
+                        min-height: 170px; padding: 1rem; border: 1px solid var(--border-subtle);
+                    }
+                    .world-clock-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+                    .world-clock-item, .world-clock-item.is-adaptive-clock { aspect-ratio: 1 / 1; min-height: 138px; }
+                }
+
+                @media (max-width: 440px) {
+                    .main-content, .main-content.dashboard-main, .main-content.admin-page-main { padding-inline: 0.85rem; }
+                    .mobile-studio-bar { margin-inline: -0.85rem; }
+                    .studio-frame-card { padding: 1rem; }
+                }
             `}</style>
         </div>
     );
@@ -1215,6 +1960,133 @@ export default function AdminDashboard() {
 
 function LineIcon({ icon: Icon, size = 18 }) {
     return <Icon size={size} strokeWidth={1.7} />;
+}
+
+function RecentVisitorCarousel({ snapshot, onOpenAnalytics }) {
+    const trackRef = useRef(null);
+    const [activeIndex, setActiveIndex] = useState(0);
+    const visitors = snapshot.visitors || [];
+
+    useEffect(() => {
+        setActiveIndex(0);
+        trackRef.current?.scrollTo({ left: 0 });
+    }, [visitors.length]);
+
+    const handleScroll = (event) => {
+        const track = event.currentTarget;
+        if (!track.clientWidth) return;
+        const nextIndex = Math.max(0, Math.min(visitors.length - 1, Math.round(track.scrollLeft / track.clientWidth)));
+        setActiveIndex(nextIndex);
+    };
+
+    const showVisitor = (index) => {
+        setActiveIndex(index);
+        trackRef.current?.scrollTo({ left: index * trackRef.current.clientWidth, behavior: 'smooth' });
+    };
+
+    if (snapshot.loading) {
+        return <div className="recent-visitor-empty is-loading" aria-hidden="true" />;
+    }
+
+    if (snapshot.error) {
+        return <p className="recent-visitor-empty" role="status">Recent visitor details could not be loaded.</p>;
+    }
+
+    if (visitors.length === 0) {
+        return <p className="recent-visitor-empty">No human visitor sessions are available for the last 7 days.</p>;
+    }
+
+    return (
+        <div className="recent-visitor-carousel">
+            <div
+                ref={trackRef}
+                className="recent-visitor-track"
+                aria-label="Recent human visitors"
+                onScroll={handleScroll}
+            >
+                {visitors.map((visitor, index) => (
+                    <button
+                        key={visitor.visitorId || visitor.sessionId || visitor.id || index}
+                        type="button"
+                        className="recent-visitor-card"
+                        onClick={onOpenAnalytics}
+                        aria-label={`${describeRecentVisitor(visitor)} Open Analytics.`}
+                    >
+                        <p>{describeRecentVisitor(visitor)}</p>
+                        <span>
+                            See visitor details
+                            <ArrowUpRight size={14} strokeWidth={1.8} aria-hidden="true" />
+                        </span>
+                    </button>
+                ))}
+            </div>
+            {visitors.length > 1 && (
+                <div className="recent-visitor-dots" aria-label="Choose a recent visitor">
+                    {visitors.map((visitor, index) => (
+                        <button
+                            key={visitor.visitorId || visitor.sessionId || visitor.id || index}
+                            type="button"
+                            className={`recent-visitor-dot ${index === activeIndex ? 'is-active' : ''}`}
+                            aria-label={`Show recent visitor ${index + 1}`}
+                            aria-current={index === activeIndex ? 'true' : undefined}
+                            onClick={() => showVisitor(index)}
+                        />
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+}
+
+function OpportunityFocusRow({ opportunity, onOpen }) {
+    const actionAt = getOpportunityActionAt(opportunity);
+    const remaining = formatDaysRemaining(actionAt, opportunity.deadline_confidence);
+    const sourceUrl = getOpportunitySourceUrl(opportunity);
+    const context = opportunity.summary || opportunity.organisation || opportunity.organization || '';
+
+    return (
+        <article
+            className="opportunity-focus-row"
+            role="button"
+            tabIndex={0}
+            onClick={onOpen}
+            onKeyDown={(event) => {
+                if (event.target !== event.currentTarget) return;
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    onOpen();
+                }
+            }}
+            aria-label={`Open details for ${formatOpportunityTitle(opportunity.title)}`}
+        >
+            <p className="opportunity-focus-time"><strong>{remaining.label}</strong></p>
+            <strong className="opportunity-focus-title">{formatOpportunityTitle(opportunity.title)}</strong>
+            {context && <p className="opportunity-focus-context">{context}</p>}
+            {sourceUrl && (
+                <a
+                    className="opportunity-source-link"
+                    href={sourceUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={(event) => event.stopPropagation()}
+                >
+                    View source
+                    <ArrowUpRight size={14} strokeWidth={1.8} aria-hidden="true" />
+                </a>
+            )}
+        </article>
+    );
+}
+
+function getOpportunitySourceUrl(opportunity) {
+    const candidate = opportunity.source_url || opportunity.canonical_url;
+    if (!candidate) return '';
+    try {
+        const parsed = new URL(candidate);
+        return parsed.protocol === 'http:' || parsed.protocol === 'https:' ? parsed.toString() : '';
+    } catch {
+        return '';
+    }
 }
 
 function getWorldClockPhase(hour) {

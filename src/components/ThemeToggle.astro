@@ -1,53 +1,56 @@
 ---
-
+const { labeled = false } = Astro.props;
 ---
 
 <button
-    id="theme-toggle"
-    class="theme-toggle"
+    class:list={["theme-toggle", { "theme-toggle-labeled": labeled }]}
+    data-theme-toggle
     title="Toggle theme"
     aria-label="Toggle theme"
 >
-    <span class="sr-only"> </span>
-    <div class="toggle-track">
-        <div class="toggle-thumb">
-            <!-- Sun Icon -->
-            <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="icon sun-icon"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-            >
-                <circle cx="12" cy="12" r="5"></circle>
-                <line x1="12" y1="1" x2="12" y2="3"></line>
-                <line x1="12" y1="21" x2="12" y2="23"></line>
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                <line x1="1" y1="12" x2="3" y2="12"></line>
-                <line x1="21" y1="12" x2="23" y2="12"></line>
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-            </svg>
-            <!-- Moon Icon -->
-            <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="icon moon-icon"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-            >
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"
-                ></path>
-            </svg>
+    {labeled ? (
+        <span class="theme-labels" aria-hidden="true">
+            <span class="theme-label theme-label-light">Light</span>
+            <span class="theme-label theme-label-dark">Dark</span>
+        </span>
+    ) : (
+        <div class="toggle-track">
+            <div class="toggle-thumb">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="icon sun-icon"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                >
+                    <circle cx="12" cy="12" r="5"></circle>
+                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                    <line x1="21" y1="12" x2="23" y2="12"></line>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="icon moon-icon"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                >
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+            </div>
         </div>
-    </div>
+    )}
 </button>
 
 <style>
@@ -66,6 +69,40 @@
 
     .theme-toggle:hover {
         opacity: 1;
+    }
+
+    .theme-toggle-labeled {
+        min-height: 34px;
+        padding: 3px;
+        border: 1px solid var(--border-subtle);
+        border-radius: 999px;
+        background: var(--bg-surface);
+        opacity: 1;
+    }
+
+    .theme-labels {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        align-items: center;
+        gap: 2px;
+    }
+
+    .theme-label {
+        min-width: 48px;
+        padding: 0.42rem 0.65rem;
+        border-radius: 999px;
+        color: var(--text-tertiary);
+        font-size: 0.68rem;
+        font-weight: 650;
+        line-height: 1;
+        text-align: center;
+        transition: background 0.16s ease, color 0.16s ease;
+    }
+
+    :global([data-theme="light"]) .theme-toggle-labeled .theme-label-light,
+    :global([data-theme="dark"]) .theme-toggle-labeled .theme-label-dark {
+        background: var(--text-primary);
+        color: var(--bg-surface);
     }
 
     .toggle-track {
@@ -138,41 +175,33 @@
 </style>
 
 <script is:inline>
-    // Script to handle theme toggle logic
-    // Placed inline to run as early as possible (though blocking script in Head is better for FOUC)
-    // This part handles the interactive part
+    (() => {
+        const themeToggles = document.querySelectorAll("[data-theme-toggle]");
 
-    const themeToggle = document.getElementById("theme-toggle");
+        const setTheme = (theme) => {
+            document.documentElement.setAttribute("data-theme", theme);
+            document.documentElement.style.colorScheme = theme;
+            localStorage.setItem("theme", theme);
+        };
 
-    const getTheme = () => {
-        if (
-            typeof localStorage !== "undefined" &&
-            localStorage.getItem("theme")
-        ) {
-            return localStorage.getItem("theme");
-        }
-        if (window.matchMedia("(prefers-color-scheme: light)").matches) {
-            return "light";
-        }
-        return "dark"; // Default to dark
-    };
+        const syncThemeLabels = () => {
+            const currentTheme = document.documentElement.getAttribute("data-theme") || "dark";
+            themeToggles.forEach((toggle) => {
+                const nextTheme = currentTheme === "light" ? "dark" : "light";
+                toggle.setAttribute("aria-label", `Switch to ${nextTheme} theme`);
+                toggle.setAttribute("title", `Switch to ${nextTheme} theme`);
+            });
+        };
 
-    const setTheme = (theme) => {
-        document.documentElement.setAttribute("data-theme", theme);
-        document.documentElement.style.colorScheme = theme;
-        localStorage.setItem("theme", theme);
-    };
-
-    // Initial set is handled in BaseLayout head script to avoid FOUC
-    // But we can double check here or just handle toggle click
-
-    themeToggle?.addEventListener("click", () => {
-        const currentTheme =
-            document.documentElement.getAttribute("data-theme") || "dark";
-        const newTheme = currentTheme === "light" ? "dark" : "light";
-        setTheme(newTheme);
-    });
-
-    // Listen for system changes if no override is set does make sense,
-    // but for simplicity we rely on manual toggle once pressed.
+        syncThemeLabels();
+        themeToggles.forEach((themeToggle) => {
+            if (themeToggle.dataset.themeBound === "true") return;
+            themeToggle.dataset.themeBound = "true";
+            themeToggle.addEventListener("click", () => {
+                const currentTheme = document.documentElement.getAttribute("data-theme") || "dark";
+                setTheme(currentTheme === "light" ? "dark" : "light");
+                syncThemeLabels();
+            });
+        });
+    })();
 </script>

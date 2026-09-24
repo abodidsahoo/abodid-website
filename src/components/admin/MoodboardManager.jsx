@@ -4,8 +4,9 @@ import { supabase } from '../../lib/supabaseClient';
 import AdminPageHeader from './AdminPageHeader';
 
 const MOODBOARD_BUCKET = 'moodboard-assets';
-const MOODBOARD_PATH_PREFIX = 'uploads';
-const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
+const R2_BUCKET = 'assets';
+const MOODBOARD_R2_FOLDER = 'photos/originals/moodboard';
+const MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024;
 
 function buildQueueId() {
     if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -20,8 +21,9 @@ function normalizeTag(value) {
 
 function isImageFile(file) {
     if (!file) return false;
-    if (typeof file.type === 'string' && file.type.startsWith('image/')) return true;
-    return /\.(avif|gif|jpe?g|png|webp|svg)$/i.test(file.name || '');
+    const supportedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (supportedTypes.includes(file.type)) return true;
+    return /\.(gif|jpe?g|png|webp)$/i.test(file.name || '');
 }
 
 function isFileSizeAllowed(file) {
@@ -41,15 +43,6 @@ function normalizeTagArray(rawTags) {
     return rawTags
         .map((tag) => (typeof tag === 'string' ? tag.trim() : ''))
         .filter(Boolean);
-}
-
-function toStorageSafeName(fileName) {
-    const base = titleFromFilename(fileName)
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '');
-
-    return base || 'mood-image';
 }
 
 function readImageDimensions(file) {
@@ -83,7 +76,7 @@ function getStorageTarget(item) {
 
     if (rawPath.includes('/')) {
         const [bucket, ...rest] = rawPath.split('/');
-        const knownBucket = bucket === MOODBOARD_BUCKET || bucket === 'portfolio-assets';
+        const knownBucket = bucket === MOODBOARD_BUCKET || bucket === 'portfolio-assets' || bucket === R2_BUCKET;
         if (knownBucket && rest.length > 0) {
             return { bucket, path: rest.join('/') };
         }
@@ -108,7 +101,11 @@ function getStorageTarget(item) {
     return { bucket: MOODBOARD_BUCKET, path: rawPath };
 }
 
-export default function MoodboardManager() {
+export default function MoodboardManager({
+    accessToken,
+    initialFiles = [],
+    onInitialFilesConsumed,
+}) {
     const fileInputRef = useRef(null);
     const queueRef = useRef([]);
 
@@ -131,7 +128,7 @@ export default function MoodboardManager() {
     useEffect(() => {
         return () => {
             queueRef.current.forEach((entry) => {
-                if (entry.previewUrl) URL.revokeObjectURL(entry.previewUrl);
+                if (entry.previewUrl?.startsWith('blob:')) URL.revokeObjectURL(entry.previewUrl);
             });
         };
     }, []);
@@ -168,7 +165,7 @@ export default function MoodboardManager() {
 
     const revokeEntries = (entries) => {
         entries.forEach((entry) => {
-            if (entry.previewUrl) URL.revokeObjectURL(entry.previewUrl);
+            if (entry.previewUrl?.startsWith('blob:')) URL.revokeObjectURL(entry.previewUrl);
         });
     };
 
@@ -210,6 +207,12 @@ export default function MoodboardManager() {
         setQueue((previous) => [...previous, ...newRows]);
     }, []);
 
+    useEffect(() => {
+        if (!initialFiles.length) return;
+        appendFiles(initialFiles);
+        onInitialFilesConsumed?.();
+    }, [appendFiles, initialFiles, onInitialFilesConsumed]);
+
     const updateQueueEntry = (entryId, updater) => {
         setQueue((previous) =>
             previous.map((entry) => (entry.id === entryId ? updater(entry) : entry)),
@@ -219,7 +222,7 @@ export default function MoodboardManager() {
     const removeQueueEntry = (entryId) => {
         setQueue((previous) => {
             const target = previous.find((entry) => entry.id === entryId);
-            if (target?.previewUrl) URL.revokeObjectURL(target.previewUrl);
+            if (target?.previewUrl?.startsWith('blob:')) URL.revokeObjectURL(target.previewUrl);
             return previous.filter((entry) => entry.id !== entryId);
         });
     };
@@ -268,17 +271,21 @@ export default function MoodboardManager() {
 
         for (const entry of queue) {
             try {
+                if (!accessToken) throw new Error('Your admin session has expired. Sign in again before uploading.');
+
                 const dimensions = await readImageDimensions(entry.file);
-                const fileExt = (entry.file.name.split('.').pop() || 'jpg').toLowerCase();
-                const uploadFolder = `${MOODBOARD_PATH_PREFIX}/moodboard`;
 
                 const formData = new FormData();
                 formData.append('file', entry.file);
-                formData.append('bucket', MOODBOARD_BUCKET);
-                formData.append('path', uploadFolder);
+                formData.append('folder', MOODBOARD_R2_FOLDER);
+                formData.append('width', String(dimensions.width));
+                formData.append('height', String(dimensions.height));
 
-                const uploadResponse = await fetch('/api/admin/upload', {
+                const uploadResponse = await fetch('/api/admin/media/upload', {
                     method: 'POST',
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                    },
                     body: formData,
                 });
 
@@ -287,13 +294,17 @@ export default function MoodboardManager() {
                     throw new Error(uploadResult?.error || `Upload failed for ${entry.file.name}`);
                 }
 
-                const uploadPath = uploadResult?.path || `${uploadFolder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${toStorageSafeName(entry.file.name)}.${fileExt}`;
-                const publicUrl = uploadResult?.url;
-                if (!publicUrl) throw new Error('Missing public URL from upload API.');
+                const uploadedAsset = uploadResult?.asset;
+                const publicUrl = uploadedAsset?.publicUrl;
+                const objectKey = uploadedAsset?.objectKey;
+
+                if (!publicUrl || !objectKey) {
+                    throw new Error('The original was uploaded, but its Cloudflare location was not returned.');
+                }
 
                 const payload = {
                     image_url: String(publicUrl),
-                    storage_path: `${MOODBOARD_BUCKET}/${uploadPath}`,
+                    storage_path: `${R2_BUCKET}/${objectKey}`,
                     title: entry.title?.trim() || titleFromFilename(entry.file.name) || 'Untitled mood',
                     tags: entry.tags,
                     published: true,
@@ -306,11 +317,8 @@ export default function MoodboardManager() {
                     .insert(payload);
 
                 if (insertError) {
-                    try {
-                        await supabase.storage.from(MOODBOARD_BUCKET).remove([uploadPath]);
-                    } catch {
-                        // best effort cleanup only
-                    }
+                    // Preserve the R2 original if the moodboard record fails. The
+                    // Cloudflare pipeline can still create and retain its variants.
                     throw insertError;
                 }
 
@@ -327,7 +335,7 @@ export default function MoodboardManager() {
 
         if (failedIds.size === 0) {
             clearQueue();
-            setNotice(`Uploaded ${successCount} moodboard image${successCount === 1 ? '' : 's'}. Queue is clean for your next drop.`);
+            setNotice(`Uploaded ${successCount} original${successCount === 1 ? '' : 's'}. Cloudflare is preparing the 800 and 1600 variants.`);
         } else {
             const successful = queue.filter((entry) => !failedIds.has(entry.id));
             revokeEntries(successful);
@@ -353,7 +361,9 @@ export default function MoodboardManager() {
 
             if (item.storage_path || item.image_url) {
                 const target = getStorageTarget(item);
-                if (target.path) {
+                // Media Library files can be referenced by several workspaces.
+                // Removing a moodboard row must never delete the shared original.
+                if (target.bucket === MOODBOARD_BUCKET && target.path) {
                     await supabase.storage.from(target.bucket).remove([target.path]);
                 }
             }

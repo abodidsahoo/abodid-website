@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import type { Opportunity, OpportunityCategory, OpportunityStatus } from '../../lib/opportunities/types';
 import { formatCategoryTitle } from '../../lib/opportunities/ui-helpers';
+import { isOpportunityAttention, opportunityAttentionScore } from '../../lib/opportunities/attention';
 import { OpportunityCard } from './OpportunityCard';
 import { OpportunityDetailModal } from './OpportunityDetailModal';
 import { EditOpportunityModal } from './EditOpportunityModal';
@@ -271,15 +272,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({ init
 
     // Count opportunities needing immediate attention (due within 7 days or priority 3)
     const attentionCount = useMemo(() => {
-        return opportunities.filter((o) => {
-            if (o.status === 'done' || o.status === 'dismissed') return false;
-            if (o.priority === 3) return true;
-            const actionableAt = o.deadline_at || o.event_date;
-            if (!actionableAt) return false;
-            const diffMs = new Date(actionableAt).getTime() - now;
-            const diffHours = diffMs / (1000 * 60 * 60);
-            return diffHours > 0 && diffHours <= 7 * 24;
-        }).length;
+        return opportunities.filter((opportunity) => isOpportunityAttention(opportunity, now)).length;
     }, [opportunities, now]);
 
     // Filter & Smart Sort Opportunities
@@ -319,13 +312,8 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({ init
             const actionableAt = o.deadline_at || o.event_date;
             const diffMs = actionableAt ? new Date(actionableAt).getTime() - now : null;
             const diffHours = diffMs !== null ? diffMs / (1000 * 60 * 60) : null;
-            const isDoneOrDismissed = o.status === 'done' || o.status === 'dismissed';
-
             if (urgencyFilter === 'attention') {
-                if (isDoneOrDismissed) return false;
-                if (o.priority === 3) return true;
-                if (diffHours !== null && diffHours > 0 && diffHours <= 7 * 24) return true;
-                return false;
+                return isOpportunityAttention(o, now);
             }
 
             if (urgencyFilter === 'this_week') {
@@ -349,30 +337,7 @@ export const OpportunityDashboard: React.FC<OpportunityDashboardProps> = ({ init
 
         // Smart Sort: High priority opportunities nearing deadline automatically surface first
         return filtered.sort((a, b) => {
-            const getScore = (opp: Opportunity) => {
-                const isDone = opp.status === 'done' || opp.status === 'dismissed';
-                if (isDone) return 100000;
-
-                const prio = opp.priority || 1; // 1, 2, 3
-                const prioBonus = (3 - prio) * 50; // Priority 3 gets 0 penalty, Priority 1 gets +100 penalty
-
-                if (opp.deadline_at) {
-                    const diffHours = (new Date(opp.deadline_at).getTime() - now) / (1000 * 60 * 60);
-                    if (diffHours < 0) return 90000; // expired
-                    return Math.max(0, diffHours) + prioBonus;
-                }
-
-                if (opp.event_date) {
-                    const diffHours = (new Date(opp.event_date).getTime() - now) / (1000 * 60 * 60);
-                    if (diffHours < 0) return 90000; // past event
-                    return Math.max(0, diffHours) + prioBonus;
-                }
-
-                if (opp.deadline_confidence === 'rolling') return 8000 + prioBonus;
-                return 5000 + prioBonus; // no date
-            };
-
-            return getScore(a) - getScore(b);
+            return opportunityAttentionScore(a, now) - opportunityAttentionScore(b, now);
         });
     }, [opportunities, urgencyFilter, categoryFilter, statusFilter, priorityFilter, searchQuery, now]);
 

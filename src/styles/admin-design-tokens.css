@@ -5,6 +5,21 @@
  * Keep page-specific styles focused on layout and use these tokens for hierarchy.
  */
 :root {
+  /*
+   * Admin type scale
+   * Use these nine levels when adding or migrating admin typography. Semantic
+   * roles below map onto the scale so components do not add one-off sizes.
+   */
+  --admin-type-100: 0.625rem;
+  --admin-type-200: 0.7rem;
+  --admin-type-300: 0.75rem;
+  --admin-type-400: 0.8rem;
+  --admin-type-500: 0.875rem;
+  --admin-type-600: clamp(0.9rem, 1.08vw, 1rem);
+  --admin-type-700: clamp(1.18rem, 1.7vw, 1.55rem);
+  --admin-type-800: clamp(1.25rem, 1.7vw, 1.65rem);
+  --admin-type-900: clamp(2.25rem, 4.5vw, 4.5rem);
+
   /* Page frame */
   --admin-page-content-max: 1480px;
   --admin-page-gutter-block: 1.25rem;
@@ -14,21 +29,38 @@
   --admin-page-spacer: 1rem;
 
   /* Page title: mirrors “Hi Abodid,” on the overview */
-  --admin-page-title-size: var(--type-role-page-title-size);
-  --admin-page-title-line-size: var(--type-role-page-title-size);
-  --admin-page-title-weight: var(--type-role-page-title-weight);
-  --admin-page-title-line-height: var(--type-role-page-title-line);
-  --admin-page-title-tracking: var(--type-role-page-title-track);
+  --admin-page-title-size: var(--admin-type-900);
+  --admin-page-title-line-size: var(--admin-type-900);
+  --admin-page-title-weight: 650;
+  --admin-page-title-line-height: 0.98;
+  --admin-page-title-tracking: -0.055em;
 
   /* Page subtext: mirrors “Welcome to the admin workspace.” */
-  --admin-page-subtitle-size: var(--type-role-body-size);
-  --admin-page-subtitle-weight: var(--type-role-body-weight);
-  --admin-page-subtitle-line-height: var(--type-role-body-line);
+  --admin-page-subtitle-size: clamp(0.94rem, 1.1vw, 1.05rem);
+  --admin-page-subtitle-weight: 450;
+  --admin-page-subtitle-line-height: 1.5;
   --admin-page-subtitle-gap: 0.8rem;
 
+  /* Compact workspace cards */
+  --admin-card-eyebrow-size: var(--admin-type-100);
+  --admin-card-action-size: var(--admin-type-200);
+  --admin-card-meta-size: var(--admin-type-300);
+  --admin-card-body-size: var(--admin-type-400);
+  --admin-card-title-size: var(--admin-type-600);
+  --admin-card-emphasis-size: var(--admin-type-700);
+  --admin-card-heading-size: var(--admin-type-800);
+  --admin-card-heading-weight: 690;
+  --admin-card-heading-line-height: 1.08;
+  --admin-card-heading-tracking: -0.04em;
+  --admin-card-title-weight: 650;
+  --admin-card-title-line-height: 1.3;
+  --admin-card-title-tracking: -0.022em;
+  --admin-card-copy-line-height: 1.45;
+  --admin-card-action-weight: 680;
+
   /* Shared surfaces for future admin-page migrations */
-  --admin-panel-radius: var(--design-radius-card);
-  --admin-control-radius: var(--design-radius-control);
+  --admin-panel-radius: 16px;
+  --admin-control-radius: 10px;
   --admin-panel-border: 1px solid var(--border-subtle);
 }
 

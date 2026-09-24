@@ -29,16 +29,61 @@ type MediaVariantRow = {
   object_key: string;
 };
 
+const MAX_IMAGE_SIZE_BYTES = 20 * 1024 * 1024;
+const CACHE_CONTROL = "public, max-age=31536000, immutable";
+const QUALITY = 82;
+const ALLOWED_MIME_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+]);
+
 const isOriginalKey = (key: string) => key.startsWith("originals/") || key.startsWith("photos/originals/");
+
+const cleanBaseUrl = (value: string) => value.replace(/\/+$/, "");
+
+const publicUrlFor = (env: Env, objectKey: string) => {
+  const encoded = objectKey
+    .split("/")
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
+  return `${cleanBaseUrl(env.PUBLIC_BASE_URL)}/${encoded}`;
+};
+
+const inferMimeType = (key: string) => {
+  const extension = key.split(".").pop()?.toLowerCase();
+  if (extension === "jpg" || extension === "jpeg") return "image/jpeg";
+  if (extension === "png") return "image/png";
+  if (extension === "webp") return "image/webp";
+  if (extension === "gif") return "image/gif";
+  return "application/octet-stream";
+};
+
+const originalFilenameFor = (objectKey: string) => {
+  const filename = objectKey.split("/").pop() || "image";
+  try {
+    return decodeURIComponent(filename);
+  } catch {
+    return filename;
+  }
+};
+
+const storageFolderFor = (objectKey: string) => {
+  const prefix = objectKey.startsWith("photos/originals/")
+    ? "photos/originals/"
+    : "originals/";
+  return objectKey.slice(prefix.length).split("/").filter(Boolean)[0] || null;
+};
 
 const variantObjectKey = (
   originalKey: string,
   variantKey: "800" | "1600",
   sourceEtag: string,
 ) => {
-  let isPhotosPrefix = originalKey.startsWith("photos/originals/");
-  let prefixLength = isPhotosPrefix ? "photos/originals/".length : "originals/".length;
-  let relative = originalKey.slice(prefixLength);
+  const isPhotosPrefix = originalKey.startsWith("photos/originals/");
+  const prefixLength = isPhotosPrefix ? "photos/originals/".length : "originals/".length;
+  const relative = originalKey.slice(prefixLength);
 
   const slashIndex = relative.lastIndexOf("/");
   const directory = slashIndex >= 0 ? relative.slice(0, slashIndex) : "";
@@ -176,7 +221,7 @@ const markIgnored = async (
 
 const processEvent = async (event: R2Event, env: Env) => {
   const objectKey = event.object?.key || "";
-  if (!objectKey.startsWith(ORIGINAL_PREFIX) || objectKey.endsWith("/")) return;
+  if (!isOriginalKey(objectKey) || objectKey.endsWith("/")) return;
 
   const sourceHead = await env.MEDIA_BUCKET.head(objectKey);
   if (!sourceHead) return;
@@ -229,13 +274,10 @@ const processEvent = async (event: R2Event, env: Env) => {
 
   const existingVariants = await listExistingVariants(env, asset.id);
   const existingByKey = new Map(existingVariants.map((variant) => [variant.variant_key, variant]));
-  const targets: Array<{ key: "800" | "1600"; width: 800 | 1600 }> =
-    width <= 800
-      ? [{ key: "800", width: 800 }]
-      : [
-          { key: "800", width: 800 },
-          { key: "1600", width: 1600 },
-        ];
+  const targets: Array<{ key: "800" | "1600"; width: 800 | 1600 }> = [
+    { key: "800", width: 800 },
+    { key: "1600", width: 1600 },
+  ];
 
   for (const target of targets) {
     const source = await env.MEDIA_BUCKET.get(objectKey);

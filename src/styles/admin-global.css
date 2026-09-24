@@ -1,3 +1,155 @@
+/*
+ * Creator Studio foundation.
+ * These role tokens deliberately live inside .admin-document so public Design
+ * Studio releases cannot restyle operational tools.
+ */
+.admin-document {
+  --admin-cream: #f5f0e6;
+  --admin-paper: #ffffff;
+  --admin-ink: #151515;
+  --admin-cobalt: #2444ca;
+  --admin-cobalt-deep: #19339e;
+  --admin-cobalt-soft: #e8edff;
+  --admin-danger: #b42318;
+  --admin-success: #16734a;
+  --admin-warning: #8a5400;
+  --admin-on-accent: #fffaf2;
+  --admin-on-accent-muted: rgba(255, 250, 242, 0.74);
+  --bg-card: var(--bg-surface);
+  --bg-hover: var(--bg-surface-hover);
+  --bg-surface-elevated: var(--bg-surface);
+  --design-radius-panel: 18px;
+  --design-radius-card: 14px;
+  --design-radius-control: 10px;
+  --design-radius-media: 12px;
+  --type-role-page-title-size: clamp(2.25rem, 4.5vw, 4.5rem);
+  --type-role-page-title-weight: 650;
+  --type-role-page-title-line: 0.98;
+  --type-role-page-title-track: -0.055em;
+  --type-role-body-size: 1rem;
+  --type-role-body-weight: 450;
+  --type-role-body-line: 1.5;
+  --type-role-label-size: 0.72rem;
+  --type-role-label-weight: 650;
+  --type-role-label-line: 1.35;
+  --type-role-label-track: 0.04em;
+  font-family: var(--font-sans);
+}
+
+/* Pair saturated cobalt/purple surfaces with a guaranteed light foreground.
+ * Redefining the text roles also protects headings that set their own colour. */
+.admin-document .admin-accent-surface {
+  --text-primary: var(--admin-on-accent);
+  --text-secondary: var(--admin-on-accent-muted);
+  --text-tertiary: var(--admin-on-accent-muted);
+  --type-h1-color: var(--admin-on-accent);
+  --type-h2-color: var(--admin-on-accent);
+  --type-h3-color: var(--admin-on-accent);
+  --type-h4-color: var(--admin-on-accent);
+  --type-h5-color: var(--admin-on-accent);
+  --type-h6-color: var(--admin-on-accent);
+  color: var(--admin-on-accent);
+}
+
+.admin-document[data-theme="light"] {
+  --bg-canvas: var(--admin-cream);
+  --bg-color: var(--admin-cream);
+  --bg-surface: var(--admin-paper);
+  --bg-surface-hover: #f0ede7;
+  --bg-overlay: rgba(21, 21, 21, 0.58);
+  --text-primary: var(--admin-ink);
+  --text-secondary: #514f4a;
+  --text-tertiary: #77736b;
+  --text-inverse: #ffffff;
+  --border-subtle: #d9d3c8;
+  --border-strong: #a8a094;
+  --border-focus: var(--admin-cobalt);
+  --accent-primary: var(--admin-cobalt);
+  --theme-color-accent: var(--admin-cobalt);
+}
+
+.admin-document[data-theme="dark"] {
+  --bg-canvas: #10100f;
+  --bg-color: #10100f;
+  --bg-surface: #1a1a18;
+  --bg-surface-hover: #262522;
+  --bg-overlay: rgba(0, 0, 0, 0.74);
+  --text-primary: #f7f2e9;
+  --text-secondary: #cbc4b9;
+  --text-tertiary: #999187;
+  --text-inverse: #10100f;
+  --border-subtle: #393631;
+  --border-strong: #625d55;
+  --border-focus: #7890ff;
+  --accent-primary: #7890ff;
+  --theme-color-accent: #7890ff;
+}
+
+.admin-document ::selection {
+  background: var(--accent-primary);
+  color: #ffffff;
+}
+
+.admin-document :where(button, a, input, textarea, select, [tabindex]):focus-visible {
+  outline: 3px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+.admin-document :where(button, input, textarea, select) {
+  font-family: inherit;
+}
+
+/* Status messages keep a text label and readable contrast in both themes. */
+.admin-document[data-theme="light"] .media-message.is-error,
+.admin-document[data-theme="light"] .admin-notice.error,
+.admin-document[data-theme="light"] .floating-admin-notice.error {
+  border-color: #d9a29c;
+  background: #fff0ee;
+  color: #8f1d14;
+}
+
+.admin-document[data-theme="light"] .media-message.is-error span {
+  color: #6f1a13;
+}
+
+.admin-document[data-theme="light"] .media-message.is-success,
+.admin-document[data-theme="light"] .admin-notice.success,
+.admin-document[data-theme="light"] .floating-admin-notice.success {
+  border-color: #9bcbb5;
+  background: #ecf8f1;
+  color: #12613e;
+}
+
+.admin-document[data-theme="light"] .upload-strip {
+  background: #eaf0ff;
+  color: #17358f;
+}
+
+.admin-document[data-theme="light"] .search-strip {
+  background: #eaf7f0;
+  color: #14613e;
+}
+
+.admin-document[data-theme="light"] .limit-note {
+  background: #fff5dd;
+  color: #754700;
+}
+
+.admin-theme-control {
+  position: fixed;
+  top: 1.1rem;
+  right: 1.25rem;
+  z-index: 90;
+  display: block;
+}
+
+@media (max-width: 899px) {
+  .admin-theme-control {
+    top: 0.72rem;
+    right: 0.8rem;
+  }
+}
+
 /* Admin workspace scrollbars. Kept out of the public site's visual system. */
 .admin-document,
 .admin-document body,

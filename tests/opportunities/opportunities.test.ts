@@ -6,8 +6,42 @@ import { LLMExtractionOutputSchema, type Opportunity } from '../../src/lib/oppor
 import { createSessionToken, verifySessionToken } from '../../src/lib/opportunities/auth';
 import { generateIcsFile, generateGoogleCalendarUrl } from '../../src/lib/opportunities/calendar';
 import { formatTimeRemaining } from '../../src/lib/opportunities/reminders';
+import { isOpportunityAttention, selectAttentionOpportunities } from '../../src/lib/opportunities/attention';
 
 describe('Opportunity Assistant Core Functionality', () => {
+    describe('Attention selection', () => {
+        const now = new Date('2026-09-24T00:00:00.000Z').getTime();
+        const opportunity = (overrides: Partial<Opportunity> = {}) => ({
+            id: 'attention-item',
+            title: 'Opportunity',
+            status: 'inbox',
+            priority: 1,
+            deadline_at: null,
+            event_date: null,
+            deadline_confidence: 'none',
+            ...overrides,
+        } as Opportunity);
+
+        it('includes active opportunities due within seven days', () => {
+            expect(isOpportunityAttention(opportunity({ deadline_at: '2026-09-30T00:00:00.000Z' }), now)).toBe(true);
+            expect(isOpportunityAttention(opportunity({ deadline_at: '2026-10-02T00:00:00.000Z' }), now)).toBe(false);
+        });
+
+        it('includes three-star priorities while excluding finished items', () => {
+            expect(isOpportunityAttention(opportunity({ priority: 3 }), now)).toBe(true);
+            expect(isOpportunityAttention(opportunity({ priority: 3, status: 'done' }), now)).toBe(false);
+            expect(isOpportunityAttention(opportunity({ priority: 3, status: 'dismissed' }), now)).toBe(false);
+        });
+
+        it('puts the nearest high-priority work first', () => {
+            const selected = selectAttentionOpportunities([
+                opportunity({ id: 'standard-soon', deadline_at: '2026-09-26T00:00:00.000Z' }),
+                opportunity({ id: 'priority-soon', priority: 3, deadline_at: '2026-09-25T00:00:00.000Z' }),
+            ], now);
+            expect(selected.map((item) => item.id)).toEqual(['priority-soon', 'standard-soon']);
+        });
+    });
+
     describe('URL Canonicalization & Deduplication', () => {
         it('strips tracking parameters and hashes', () => {
             const raw = 'https://example.com/jobs/creative-tech/?utm_source=twitter&utm_medium=social&ref=123#apply';

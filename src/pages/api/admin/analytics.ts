@@ -173,12 +173,18 @@ export const GET: APIRoute = async ({ request, url }) => {
         ]);
 
         // Query active sessions in this period for revenue intelligence
-        const { data: rawSessions } = await supabase
+        let liveSessionsQuery = supabase
             .from('analytics_sessions')
             .select('*')
             .gte('started_at', startAt.toISOString())
             .order('started_at', { ascending: false })
             .limit(100);
+
+        liveSessionsQuery = trafficClass === 'human'
+            ? liveSessionsQuery.gte('total_engaged_seconds', 2)
+            : liveSessionsQuery.lt('total_engaged_seconds', 2);
+
+        const { data: rawSessions } = await liveSessionsQuery;
 
         let liveSessions = rawSessions || [];
         let livePages: any[] = [];
@@ -244,4 +250,3 @@ export const GET: APIRoute = async ({ request, url }) => {
         return json({ error: 'Could not load analytics.' }, 500);
     }
 };
-

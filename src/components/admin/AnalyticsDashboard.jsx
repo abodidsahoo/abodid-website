@@ -53,6 +53,7 @@ import {
     Zap,
 } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
+import { getRecentVisitorCount } from '../../lib/analytics/recent-visitors';
 import AdminPageHeader from './AdminPageHeader';
 import './analytics-dashboard.css';
 
@@ -607,7 +608,7 @@ export default function AnalyticsDashboard({ accessToken }) {
     const summary = report?.summary || {};
 
     // 1. PRIMARY METRICS (Minimal Instrument Panel)
-    const visitorsCount = overview.meaningfulVisitors || summary.visitors || visitorsFeed.length || 0;
+    const visitorsCount = getRecentVisitorCount(report);
     const engagedCount = visitorsFeed.filter((v) => (v.totalEngagedSeconds || 0) >= 8).length || overview.meaningfulVisitors || 0;
     const highIntentCount = overview.highIntentVisitors || visitorsFeed.filter((v) => (v.intentScore || 0) >= 40 || v.intentStrength === 'High' || v.converted).length || 0;
     const attentionAvgSec = summary.averageEngagedSeconds || (visitorsCount > 0 ? Math.round(visitorsFeed.reduce((acc, v) => acc + (v.totalEngagedSeconds || 0), 0) / Math.max(1, visitorsFeed.length)) : 134);
